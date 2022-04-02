@@ -20,6 +20,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/math.h"
+#include "ac/object.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
@@ -299,79 +300,35 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 		return RETURN_CONTINUE;
       }
       else {
-        int oldframe = frame;
-        if (animating & CHANIM_BACKWARDS) {
-          frame--;
-          if (frame < 0) {
-            // if the previous loop is a Run Next Loop one, go back to it
-            if ((loop > 0) && 
-              (views[view].loops[loop - 1].RunNextLoop())) {
-
-              loop --;
-              frame = views[view].loops[loop].numFrames - 1;
-            }
-            else if (animating & CHANIM_REPEAT) {
-
-              frame = views[view].loops[loop].numFrames - 1;
-
-              while (views[view].loops[loop].RunNextLoop()) {
-                loop++;
-                frame = views[view].loops[loop].numFrames - 1;
-              }
-            }
-            else {
-              frame++;
-              animating = 0;
-            }
-          }
-        }
-        else
-          frame++;
+        // Normal view animation
+        const int oldframe = frame;
 
         if ((aa == char_speaking) &&
-             (play.speech_in_post_state ||
-             ((!play.speech_has_voice) &&
-             (play.close_mouth_speech_time > 0) &&
-             (play.messagetime < play.close_mouth_speech_time)))) {
-          // finished talking - stop animation
-          animating = 0;
-          frame = 0;
+            (play.speech_in_post_state ||
+            ((!play.speech_has_voice) &&
+                (play.close_mouth_speech_time > 0) &&
+                (play.messagetime < play.close_mouth_speech_time)))) {
+            // finished talking - stop animation
+            animating = 0;
+            frame = 0;
+        } else {
+            if (!CycleViewAnim(view, loop, frame, (animating & CHANIM_BACKWARDS) == 0,
+                    (animating & CHANIM_REPEAT) ? ANIM_REPEAT : ANIM_ONCE)) {
+                animating = 0; // finished animating
+                // end of idle anim
+                if (idleleft < 0) {
+                    // constant anim, reset (need this cos animating==0)
+                    if (idletime == 0)
+                        frame = 0;
+                    // one-off anim, stop
+                    else {
+                        ReleaseCharacterView(aa);
+                        idleleft = idletime;
+                    }
+                }
+            }
         }
 
-        if (frame >= views[view].loops[loop].numFrames) {
-          
-          if (views[view].loops[loop].RunNextLoop()) 
-          {
-            if (loop+1 >= views[view].numLoops)
-              quit("!Animating character tried to overrun last loop in view");
-            loop++;
-            frame=0;
-          }
-          else if ((animating & CHANIM_REPEAT)==0) {
-            animating=0;
-            frame--;
-            // end of idle anim
-            if (idleleft < 0) {
-              // constant anim, reset (need this cos animating==0)
-              if (idletime == 0)
-                frame = 0;
-              // one-off anim, stop
-              else {
-                ReleaseCharacterView(aa);
-                idleleft=idletime;
-              }
-            }
-          }
-          else {
-            frame=0;
-            // if it's a multi-loop animation, go back to start
-            if (play.no_multiloop_repeat == 0) {
-              while ((loop > 0) && 
-                  (views[view].loops[loop - 1].RunNextLoop()))
-                loop--;
-            }
-          }
-        }
         wait = views[view].loops[loop].frames[frame].speed;
         // idle anim doesn't have speed stored cos animating==0 (TODO: investigate why?)
         if (idleleft < 0)

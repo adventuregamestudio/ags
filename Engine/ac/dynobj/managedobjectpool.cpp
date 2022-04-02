@@ -34,14 +34,10 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force) != 0;
     if (!(canBeRemovedFromPool || force)) { return 0; }
 
-    auto handle = o.handle;
     available_ids.push(o.handle);
-
     handleByAddress.erase(o.addr);
+    ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, o.handle);
     o = ManagedObject();
-
-    ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, handle);
-
     return 1;
 }
 

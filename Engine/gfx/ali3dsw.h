@@ -57,8 +57,8 @@ public:
     }
     // Rotation is set in degrees
     void SetRotation(float rotation) override { _rotation = rotation; }
-    void SetLightLevel(int lightLevel) override  { }
-    void SetTint(int red, int green, int blue, int tintSaturation) override { }
+    void SetLightLevel(int /*lightLevel*/) override  { }
+    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
 
     Bitmap *_bmp = nullptr;
@@ -193,17 +193,17 @@ public:
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
-    void UseSmoothScaling(bool enabled) override { }
-    void EnableVsyncBeforeRender(bool enabled) override { }
+    void UseSmoothScaling(bool /*enabled*/) override { }
+    void EnableVsyncBeforeRender(bool /*enabled*/) override { }
     void Vsync() override;
-    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override { }
+    void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }
     bool UsesMemoryBackBuffer() override { return true; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;
-    bool GetStageMatrixes(RenderMatrixes &rm) override { return false; /* not supported */ }
+    bool GetStageMatrixes(RenderMatrixes &/*rm*/) override { return false; /* not supported */ }
     ~SDLRendererGraphicsDriver() override;
 
     typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;

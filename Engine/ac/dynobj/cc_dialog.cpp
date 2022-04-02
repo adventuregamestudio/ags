@@ -11,28 +11,30 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_dialog.h"
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 // return the type name of the object
 const char *CCDialog::GetType() {
     return "Dialog";
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
-int CCDialog::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptDialog *shh = (ScriptDialog*)address;
-    StartSerialize(buffer);
-    SerializeInt(shh->id);
-    return EndSerialize();
+size_t CCDialog::CalcSerializeSize()
+{
+    return sizeof(int32_t);
 }
 
-void CCDialog::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int num = UnserializeInt();
+void CCDialog::Serialize(const char *address, Stream *out) {
+    ScriptDialog *shh = (ScriptDialog*)address;
+    out->WriteInt32(shh->id);
+}
+
+void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrDialog[num], this);
 }

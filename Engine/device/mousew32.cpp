@@ -133,32 +133,6 @@ void msetcursorlimit(int x1, int y1, int x2, int y2)
   boundy2 = y2;
 }
 
-static int hotxwas = 0, hotywas = 0;
-void domouse(int str)
-{
-  int poow = mousecurs[currentcursor]->GetWidth();
-  int pooh = mousecurs[currentcursor]->GetHeight();
-  int smx = mousex - hotxwas, smy = mousey - hotywas;
-  const Rect &viewport = play.GetMainViewport();
-
-  mgetgraphpos();
-
-  // temporarily adjust mousex/y. Original values returned at end of func.
-  mousex -= hotx;
-  mousey -= hoty;
-
-  if (mousex + poow >= viewport.GetWidth())
-    poow = viewport.GetWidth() - mousex;
-
-  if (mousey + pooh >= viewport.GetHeight())
-    pooh = viewport.GetHeight() - mousey;
-
-  mousex += hotx;
-  mousey += hoty;
-  hotxwas = hotx;
-  hotywas = hoty;
-}
-
 void msetgraphpos(int xa, int ya)
 {
   real_mouse_x = xa;

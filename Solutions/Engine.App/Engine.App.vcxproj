@@ -305,7 +305,6 @@
     <ClCompile Include="..\..\Engine\ac\global_overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_palette.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_parser.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_record.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_region.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_room.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_screen.cpp" />
@@ -569,7 +568,6 @@
     <ClInclude Include="..\..\Engine\ac\global_palette.h" />
     <ClInclude Include="..\..\Engine\ac\global_parser.h" />
     <ClInclude Include="..\..\Engine\ac\global_plugin.h" />
-    <ClInclude Include="..\..\Engine\ac\global_record.h" />
     <ClInclude Include="..\..\Engine\ac\global_region.h" />
     <ClInclude Include="..\..\Engine\ac\global_room.h" />
     <ClInclude Include="..\..\Engine\ac\global_screen.h" />

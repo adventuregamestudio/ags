@@ -11,17 +11,20 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptstring.h"
-#include "ac/string.h"
 #include <stdlib.h>
 #include <string.h>
+#include "ac/string.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
+
 
 DynObjectRef ScriptString::CreateString(const char *fromText) {
     return CreateNewScriptStringObj(fromText);
 }
 
-int ScriptString::Dispose(const char *address, bool force) {
+int ScriptString::Dispose(const char* /*address*/, bool /*force*/) {
     // always dispose
     if (text) {
         free(text);
@@ -35,32 +38,32 @@ const char *ScriptString::GetType() {
     return "String";
 }
 
-int ScriptString::Serialize(const char *address, char *buffer, int bufsize) {
-    StartSerialize(buffer);
-    
-    auto toSerialize = text ? text : "";
-    
-    auto len = strlen(toSerialize);
-    SerializeInt(len);
-    strcpy(&serbuffer[bytesSoFar], toSerialize);
-    bytesSoFar += len + 1;
-    
-    return EndSerialize();
+size_t ScriptString::CalcSerializeSize()
+{
+    return _len + 1 + sizeof(int32_t);
 }
 
-void ScriptString::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int textsize = UnserializeInt();
-    text = (char*)malloc(textsize + 1);
-    strcpy(text, &serializedData[bytesSoFar]);
+void ScriptString::Serialize(const char* /*address*/, Stream *out) {
+    const auto *cstr = text ? text : "";
+    out->WriteInt32(_len);
+    out->Write(cstr, _len + 1);
+}
+
+void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    _len = in->ReadInt32();
+    text = (char*)malloc(_len + 1);
+    in->Read(text, _len + 1);
+    text[_len] = 0; // for safety
     ccRegisterUnserializedObject(index, text, this);
 }
 
 ScriptString::ScriptString() {
     text = nullptr;
+    _len = 0;
 }
 
 ScriptString::ScriptString(const char *fromText) {
-    text = (char*)malloc(strlen(fromText) + 1);
-    strcpy(text, fromText);
+    _len = strlen(fromText);
+    text = (char*)malloc(_len + 1);
+    memcpy(text, fromText, _len + 1);
 }

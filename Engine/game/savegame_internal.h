@@ -41,8 +41,8 @@ struct PreservedParams
     bool SpeechVOX;
     bool MusicVOX;
     // Script global data sizes
-    int GlScDataSize;
-    std::vector<int> ScMdDataSize;
+    size_t GlScDataSize;
+    std::vector<size_t> ScMdDataSize;
 
     PreservedParams();
 };

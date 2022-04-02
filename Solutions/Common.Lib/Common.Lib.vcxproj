@@ -333,6 +333,7 @@
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
     <ClCompile Include="..\..\Common\util\compress.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
     <ClCompile Include="..\..\Common\util\data_ext.cpp" />
@@ -480,6 +481,7 @@
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bbop.h" />
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
     <ClInclude Include="..\..\Common\util\compress.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\data_ext.h" />

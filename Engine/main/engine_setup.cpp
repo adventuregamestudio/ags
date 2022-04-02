@@ -101,26 +101,6 @@ void engine_pre_gfxmode_driver_cleanup()
     gfxDriver->SetMemoryBackBuffer(nullptr);
 }
 
-// Setup virtual screen
-void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitmaps)
-{
-    if (recreate_bitmaps)
-    {
-        // TODO: find out if 
-        // - we need to support this case at all;
-        // - if yes then which bitmaps need to be recreated (probably only video bitmaps and textures?)
-    }
-}
-
-void engine_pre_gfxmode_screen_cleanup()
-{
-}
-
-// Release virtual screen
-void engine_pre_gfxsystem_screen_destroy()
-{
-}
-
 // Setup color conversion parameters
 // CLNUP we want only 32 bit for the future, color conversion should be dropped I guess
 void engine_setup_color_conversions(int coldepth)
@@ -176,7 +156,7 @@ void engine_pre_gfxmode_draw_cleanup()
 }
 
 // Setup mouse control mode and graphic area
-void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_desktop)
+void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
 {
     // Assign mouse control parameters.
     //
@@ -231,8 +211,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     {
         engine_post_gfxmode_draw_setup(dm);
     }
-    engine_post_gfxmode_screen_setup(dm, has_driver_changed);   
-    engine_post_gfxmode_mouse_setup(dm, init_desktop);
+    engine_post_gfxmode_mouse_setup(init_desktop);
 
     video_on_gfxmode_changed();
     invalidate_screen();
@@ -242,14 +221,12 @@ void engine_pre_gfxmode_release()
 {
     engine_pre_gfxmode_mouse_cleanup();
     engine_pre_gfxmode_driver_cleanup();
-    engine_pre_gfxmode_screen_cleanup();
 }
 
 void engine_pre_gfxsystem_shutdown()
 {
     engine_pre_gfxmode_release();
     engine_pre_gfxmode_draw_cleanup();
-    engine_pre_gfxsystem_screen_destroy();
 }
 
 void on_coordinates_scaling_changed()

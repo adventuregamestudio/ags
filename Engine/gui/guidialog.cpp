@@ -44,7 +44,6 @@ IDriverDependantBitmap *dialogDDB;
 
 #undef MAXSAVEGAMES
 #define MAXSAVEGAMES 20
-DisplayProperties dispp;
 char *lpTemp, *lpTemp2;
 char bufTemp[260], buffer2[260];
 int numsaves = 0, toomanygames;
@@ -300,7 +299,7 @@ void preparesavegamelist(int ctrllist)
 {
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, MAXSAVEGAMES);
+  FillSaveList(saves, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box and global savegameindex[] array for backward compatibilty
@@ -364,7 +363,8 @@ int enternumberwindow(char *prompttext)
   return atoi(ourbuf);
 }
 
-int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roomNames)
+int roomSelectorWindow(int currentRoom, int numRooms,
+    const std::vector<int> &roomNumbers, const std::vector<String> &roomNames)
 {
   char labeltext[200];
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
@@ -382,7 +382,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);    // clear the list box
   for (int aa = 0; aa < numRooms; aa++)
   {
-    sprintf(buff, "%3d %s", roomNumbers[aa], roomNames[aa]);
+    snprintf(buff, sizeof(buff), "%3d %s", roomNumbers[aa], roomNames[aa].GetCStr());
     CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)&buff[0]);
     if (roomNumbers[aa] == currentRoom)
     {
@@ -423,7 +423,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
       int cursel = CSCISendControlMessage(ctrllist, CLB_GETCURSEL, 0, 0);
       if (cursel >= 0) 
       {
-        sprintf(buffer2, "%d", roomNumbers[cursel]);
+        snprintf(buffer2, sizeof(buffer2), "%d", roomNumbers[cursel]);
         CSCISendControlMessage(ctrltbox, CTB_SETTEXT, 0, (long)&buffer2[0]);
       }
     }

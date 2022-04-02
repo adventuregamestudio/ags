@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/invwindow.h"
 #include "ac/common.h"
 #include "ac/characterextras.h"
@@ -47,7 +46,6 @@ extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
-extern int mousex,mousey;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
@@ -366,11 +364,11 @@ bool InventoryScreen::Run()
         refresh_gui_screen();
 
         // NOTE: this is because old code was working with full game screen
-        const int mousex = ::mousex - windowxp;
-        const int mousey = ::mousey - windowyp;
+        const int mx = ::mousex - windowxp;
+        const int my = ::mousey - windowyp;
 
-        int isonitem=((mousey-bartop)/highest)*ICONSPERLINE+(mousex-barxp)/widest;
-        if (mousey<=bartop) isonitem=-1;
+        int isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
+        if (my<=bartop) isonitem=-1;
         else if (isonitem >= 0) isonitem += top_item;
         if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
             isonitem=-1;
@@ -381,9 +379,9 @@ bool InventoryScreen::Run()
         }
 
         if (mclick == MouseLeft) {
-            if ((mousey<0) | (mousey>windowhit) | (mousex<0) | (mousex>windowwid))
+            if ((my<0) | (my>windowhit) | (mx<0) | (mx>windowwid))
                 return true; // continue inventory screen loop
-            if (mousey<buttonyp) {
+            if (my<buttonyp) {
                 int clickedon=isonitem;
                 if (clickedon<0) return true; // continue inventory screen loop
                 evblocknum=dii[clickedon].num;
@@ -436,8 +434,8 @@ bool InventoryScreen::Run()
                 return true; // continue inventory screen loop
             }
             else {
-                if (mousex >= windowwid-ARROWBUTTONWID) {
-                    if (mousey < buttonyp + 2 + ARROWBUTTONWID) {
+                if (mx >= windowwid-ARROWBUTTONWID) {
+                    if (my < buttonyp + 2 + ARROWBUTTONWID) {
                         if (top_item > 0) {
                             top_item -= ICONSPERLINE;
                             //ags_domouse(DOMOUSE_DISABLE);
@@ -446,7 +444,7 @@ bool InventoryScreen::Run()
                             return break_code == 0;
                         }
                     }
-                    else if ((mousey < buttonyp + 4 + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
+                    else if ((my < buttonyp + 4 + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
                         top_item += ICONSPERLINE;
                         //ags_domouse(DOMOUSE_DISABLE);
                         
@@ -456,7 +454,7 @@ bool InventoryScreen::Run()
                     return true; // continue inventory screen loop
                 }
 
-                int buton=mousex-2;
+                int buton=mx-2;
                 if (buton<0) return true; // continue inventory screen loop
                 buton/=BUTTONWID;
                 if (buton>=3) return true; // continue inventory screen loop

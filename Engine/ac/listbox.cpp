@@ -96,7 +96,7 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
 int ListBox_FillSaveGameList(GUIListBox *listbox) {
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, MAXSAVEGAMES);
+  FillSaveList(saves, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box

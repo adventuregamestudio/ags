@@ -260,7 +260,7 @@ void FlicPlayer::Restore()
     set_palette_range(fli_palette, 0, 255, 0);
 }
 
-bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
+bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int& /*flags*/)
 {
     Stream *in = AssetMgr->OpenAsset(name);
     if (!in)

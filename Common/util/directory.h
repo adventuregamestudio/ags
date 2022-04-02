@@ -91,7 +91,7 @@ public:
     ~FindFileRecursive() = default;
 
     static FindFileRecursive Open(const String &path, const String &wildcard = "*",
-                                  size_t max_level = -1);
+                                  size_t max_level = SIZE_MAX);
     // TODO: directory mode, like in FindFile
     bool AtEnd() const { return _ffile.AtEnd(); }
     String Current() const { return _curFile; }
@@ -107,7 +107,8 @@ private:
     std::stack<FindFile> _fdirs;
     FindFile _fdir; // current find dir iterator
     FindFile _ffile; // current find file iterator
-    size_t _maxLevel = -1; // max nesting level, -1 for unrestricted
+    // max nesting level, SIZE_MAX for unrestricted
+    size_t _maxLevel = SIZE_MAX;
     String _fullDir; // full directory path
     String _curDir; // current dir path, relative to the base path
     String _curFile; // current file path with parent dirs

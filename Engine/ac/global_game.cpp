@@ -191,7 +191,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     return gotSlot;
 }
 
-void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t max_count)
 {
     if (max_count == 0)
         return; // duh
@@ -204,7 +204,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
     {
         int saveGameSlot = Path::GetFileExtension(ff.Current()).ToInt();
         // only list games .000 to .XXX (to allow higher slots for other perposes)
-        if (saveGameSlot < 0 || saveGameSlot > TOP_LISTEDSAVESLOT)
+        if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) > top_index)
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);
@@ -212,6 +212,16 @@ void FillSaveList(std::vector<SaveListItem> &saves, size_t max_count)
         if (saves.size() >= max_count)
             break;
     }
+}
+
+int GetLastSaveSlot()
+{
+    std::vector<SaveListItem> saves;
+    FillSaveList(saves, RESTART_POINT_SAVE_GAME_NUMBER - 1);
+    if (saves.size() == 0)
+        return -1;
+    std::sort(saves.rbegin(), saves.rend());
+    return saves[0].Slot;
 }
 
 void SetGlobalInt(int index,int valu) {
@@ -823,4 +833,8 @@ int WaitMouseKey(int nloops) {
 
 void SkipWait() {
     play.wait_counter = 0;
+}
+
+void scStartRecording(int /*keyToStop*/) {
+    debug_script_warn("StartRecording: not supported");
 }

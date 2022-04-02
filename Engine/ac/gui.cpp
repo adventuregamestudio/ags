@@ -354,7 +354,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
     }
 
     int btype = guis[ifce].GetControlType(btn);
-    int rtype=kGUIAction_None,rdata;
+    int rtype=kGUIAction_None,rdata=0;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
         rtype=gbuto->ClickAction[kMouseLeft];
@@ -375,7 +375,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (!theObj->EventHandlers[0].IsEmpty()) &&
             (!gameinst->GetSymbolAddress(theObj->EventHandlers[0].GetCStr()).IsNull())) {
                 // control-specific event handler
-                if (theObj->GetEventArgs(0).FindChar(',') != -1)
+                if (theObj->GetEventArgs(0).FindChar(',') != String::NoIndex)
                 {
                     RuntimeScriptValue params[]{ RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut) };

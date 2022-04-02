@@ -212,8 +212,8 @@ Size get_game_frame_from_screen_size(const Size &game_size, const Size screen_si
                 frame_size = ProportionalStretch(screen_size, game_size);
             return frame_size;
         }
+    default: return Size();
     }
-    return Size();
 }
 
 static Size precalc_screen_size(const Size &game_size, const WindowSetup &ws, const FrameScaleDef frame)
@@ -370,6 +370,7 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     return result;
 }
 
+#ifdef USE_SIMPLE_GFX_INIT
 static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
                                             const GraphicResolution &game_res,
                                             const DisplayModeSetup &setup,
@@ -391,6 +392,7 @@ static bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
 
     return true;
 }
+#endif // USE_SIMPLE_GFX_INIT
 
 
 void display_gfx_mode_error(const Size &game_size, const WindowSetup &ws, const int color_depth,
@@ -449,13 +451,13 @@ bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayMode
 
     // Try to create renderer and init gfx mode, choosing one factory at a time
     bool result = false;
-    for (StringV::const_iterator it = ids.begin(); it != ids.end(); ++it)
+    for (const auto &id : ids)
     {
         result =
 #ifdef USE_SIMPLE_GFX_INIT
-            simple_create_gfx_driver_and_init_mode(*it, game_res, setup, color_depth);
+            simple_create_gfx_driver_and_init_mode(id, game_res, setup, color_depth);
 #else
-            create_gfx_driver_and_init_mode_any(*it, game_res, setup, color_depth);
+            create_gfx_driver_and_init_mode_any(id, game_res, setup, color_depth);
 #endif
 
         if (result)

@@ -28,8 +28,7 @@
 
 size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t max)
 {
-  int count = 0;
-  
+  size_t count = 0;
   while ((count < max) && (*mbstr != 0))
   {
     *wcstr++ = *mbstr++;
@@ -41,8 +40,7 @@ size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t max)
 
 size_t wcstombs(char* mbstr, const wchar_t *wcstr, size_t max)
 {
-  int count = 0;
-
+  size_t count = 0;
   while ((count < max) && (*wcstr != 0))
   {
     *mbstr++ = *wcstr++;

@@ -40,7 +40,7 @@ void _delete(int);
 #define root (node+1+N+N+N)
 #define NIL -1
 
-char *lzbuffer;
+uint8_t *lzbuffer;
 int *node;
 int pos;
 size_t outbytes = 0, maxsize = 0, putbytes = 0;
@@ -54,7 +54,7 @@ int insert(int i, int run)
 
   k = l = 1;
   match = THRESHOLD - 1;
-  p = &root[(unsigned char)lzbuffer[i]];
+  p = &root[lzbuffer[i]];
   lson[i] = rson[i] = NIL;
   while ((j = *p) != NIL) {
     for (n = min(k, l); n < run && (c = (lzbuffer[j + n] - lzbuffer[i + n])) == 0; n++) ;
@@ -120,9 +120,9 @@ void _delete(int z)
 bool lzwcompress(Stream *lzw_in, Stream *out)
 {
   int ch, i, run, len, match, size, mask;
-  char buf[17];
+  uint8_t buf[17];
 
-  lzbuffer = (char *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int));       // 28.5 k !
+  lzbuffer = (uint8_t *)malloc(N + F + (N + 1 + N + N + 256) * sizeof(int));       // 28.5 k !
   if (lzbuffer == nullptr) {
     return false;
   }
@@ -139,7 +139,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
   i = N - F - F;
 
   for (len = 0; len < F && (ch = lzw_in->ReadByte()) != -1; len++) {
-    lzbuffer[i + F] = ch;
+    lzbuffer[i + F] = static_cast<uint8_t>(ch);
     i = (i + 1) & (N - 1);
   }
 
@@ -149,10 +149,10 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
     ch = lzw_in->ReadByte();
     if (i >= N - F) {
       _delete(i + F - N);
-      lzbuffer[i + F] = lzbuffer[i + F - N] = ch;
+      lzbuffer[i + F] = lzbuffer[i + F - N] = static_cast<uint8_t>(ch);
     } else {
       _delete(i + F);
-      lzbuffer[i + F] = ch;
+      lzbuffer[i + F] = static_cast<uint8_t>(ch);
     }
 
     match = insert(i, run);
@@ -165,7 +165,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
       if (match >= THRESHOLD) {
         buf[0] |= mask;
         // possible fix: change int* to short* ??
-        *(short *)(buf + size) = ((match - 3) << 12) | ((i - pos - 1) & (N - 1));
+        *(short *)(buf + size) = static_cast<short>(((match - 3) << 12) | ((i - pos - 1) & (N - 1)));
         size += 2;
         len -= match;
       } else {
@@ -192,7 +192,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
   return true;
 }
 
-void myputc(int ccc, Stream *out)
+inline void myputc(uint8_t ccc, Stream *out)
 {
   if (maxsize > 0) {
     putbytes++;
@@ -207,11 +207,10 @@ void myputc(int ccc, Stream *out)
 bool lzwexpand(Stream *lzw_in, Stream *out, size_t out_size)
 {
   int bits, ch, i, j, len, mask;
-  char *lzbuffer;
   outbytes = 0; putbytes = 0;
   maxsize = out_size;
 
-  lzbuffer = (char *)malloc(N);
+  lzbuffer = (uint8_t *)malloc(N);
   if (lzbuffer == nullptr) {
     return false;
   }
@@ -235,7 +234,7 @@ bool lzwexpand(Stream *lzw_in, Stream *out, size_t out_size)
         }
       } else {
         ch = lzw_in->ReadByte();
-        myputc(lzbuffer[i] = ch, out);
+        myputc(lzbuffer[i] = static_cast<uint8_t>(ch), out);
         i = (i + 1) & (N - 1);
       }
 

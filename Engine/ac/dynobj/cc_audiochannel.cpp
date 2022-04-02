@@ -11,10 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/audio_system.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
@@ -22,15 +24,17 @@ const char *CCAudioChannel::GetType() {
     return "AudioChannel";
 }
 
-int CCAudioChannel::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptAudioChannel *ach = (ScriptAudioChannel*)address;
-    StartSerialize(buffer);
-    SerializeInt(ach->id);
-    return EndSerialize();
+size_t CCAudioChannel::CalcSerializeSize()
+{
+    return sizeof(int32_t);
 }
 
-void CCAudioChannel::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int id = UnserializeInt();
+void CCAudioChannel::Serialize(const char *address, Stream *out) {
+    ScriptAudioChannel *ach = (ScriptAudioChannel*)address;
+    out->WriteInt32(ach->id);
+}
+
+void CCAudioChannel::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    int id = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrAudioChannel[id], this);
 }

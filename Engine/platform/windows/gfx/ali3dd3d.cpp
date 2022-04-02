@@ -311,7 +311,6 @@ int D3DGraphicsDriver::FirstTimeInit()
     HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
     if (hGlobal)
     {
-      DWORD resourceSize = SizeofResource(exeHandle, hRes);
       DWORD *dataPtr = (DWORD*)LockResource(hGlobal);
       hr = direct3ddevice->CreatePixelShader(dataPtr, &pixelShader);
       if (hr != D3D_OK)
@@ -483,7 +482,8 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
       return false;
     }
 
-    if ((d3d_mode.Width == mode.Width) && (d3d_mode.Height == mode.Height))
+    if ((d3d_mode.Width == static_cast<uint32_t>(mode.Width)) &&
+        (d3d_mode.Height == static_cast<uint32_t>(mode.Height)))
     {
       return true;
     }
@@ -897,7 +897,7 @@ bool D3DGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
   return !_dstRect.IsEmpty();
 }
 
-int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/) const
 {
     // TODO: check for device caps to know which depth is supported?
     return 32;
@@ -1738,7 +1738,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
      {
         free(tiles);
         char errorMessage[200];
-        sprintf(errorMessage, "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
+        snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
         throw Ali3DException(errorMessage);
      }
 
@@ -1799,7 +1799,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
       if (hr != D3D_OK)
       {
         char errorMessage[200];
-        sprintf(errorMessage, "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code %08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr);
+        snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code %08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr);
         throw Ali3DException(errorMessage);
       }
 
@@ -1867,7 +1867,7 @@ void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColour
   do_fade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
-void D3DGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void D3DGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue) 
 {
   do_fade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
@@ -2074,4 +2074,4 @@ bool D3DGraphicsFactory::Init()
 } // namespace Engine
 } // namespace AGS
 
-#endif // AGS_PLATFORM_OS_WINDOWS
+#endif // AGS_HAS_DIRECT3D

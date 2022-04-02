@@ -40,6 +40,7 @@ enum TraFileErrorType
 
 enum TraFileBlock
 {
+    kTraFblk_None       = 0,
     kTraFblk_Dict       = 1,
     kTraFblk_GameID     = 2,
     kTraFblk_TextOpts   = 3,

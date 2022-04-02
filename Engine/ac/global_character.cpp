@@ -417,7 +417,7 @@ void RunCharacterInteraction (int cc, int mood) {
     if (loaded_game_file_version > kGameVersion_272)
     {
         if (passon>=0)
-            run_interaction_script(game.charScripts[cc].get(), passon, 4, (passon == 3));
+            run_interaction_script(game.charScripts[cc].get(), passon, 4);
         run_interaction_script(game.charScripts[cc].get(), 4);  // any click on char
     }
 }

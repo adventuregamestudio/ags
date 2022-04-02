@@ -76,8 +76,8 @@ struct SDLResampler
 {
 public:
     SDLResampler() = default;
-    SDLResampler(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
-        SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+    SDLResampler(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
+        SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate)
     {
         Setup(src_fmt, src_chans, src_rate, dst_fmt, dst_chans, dst_rate);
     }
@@ -85,8 +85,10 @@ public:
     bool HasConversion() const { return _cvt.needed > 0; }
     // Setup a new conversion; returns whether setup has succeeded;
     // note that if no conversion necessary it still considered a success.
-    bool Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
-        SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate);
+    bool Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
+        SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate);
+    bool Setup(const Sound_AudioInfo &src, const Sound_AudioInfo &dst)
+        { return Setup(src.format, src.channels, src.rate, dst.format, dst.channels, dst.rate); }
     // Converts given sound data, on success returns a read-only pointer to the
     // memory containing resulting data, and fills out_sz with output length value;
     // note that if no conversion is required it does not perform any operation
@@ -119,16 +121,16 @@ public:
     // Tells if the data reading has reached EOS
     bool EOS() const { return _EOS; }
     // Gets current reading position, in ms
-    float GetPositionMs() const { return _posMs; }
+    float GetPositionMs() const { return static_cast<float>(_posMs); }
     // Gets total duration, in ms
-    float GetDurationMs() const { return _durationMs; }
+    float GetDurationMs() const { return static_cast<float>(_durationMs); }
 
     // Try initializing the sound sample, returns the result
     bool Open(float pos_ms = 0.f);
     // Closes decoder, releases any owned resources
     void Close();
-    // Seeks to the given read position
-    void Seek(float pos_ms);
+    // Seeks to the given read position; returns the new position
+    float Seek(float pos_ms);
     // Returns the next chunk of data; may return empty buffer in EOS or error
     SoundBuffer GetData();
 
@@ -136,12 +138,11 @@ private:
     std::vector<char> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
-    uint32_t _bytesPerMs = 0u;
-    float _durationMs = 0.f;
+    uint32_t _durationMs = 0u;
     bool _repeat = false;
     bool _EOS = false;
-    uint32_t _posBytes = 0u;
-    float _posMs = 0.f;
+    size_t _posBytes = 0u;
+    uint32_t _posMs = 0u;
 };
 
 
@@ -150,14 +151,16 @@ namespace SoundHelper
     // Tells bytes per sample from SDL_Audio format
     inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format); }
     // Calculate number of bytes of sound data per millisecond
-    inline size_t BytesPerMs(SDL_AudioFormat format, int chans, int freq)
+    inline size_t BytesPerMs(uint32_t ms, SDL_AudioFormat format, int chans, int freq)
     {
-        return (SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000);
+        return static_cast<size_t>(
+            (static_cast<uint64_t>(ms) * SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000));
     }
     // Calculate number of milliseconds from given number of bytes of sound data
-    inline uint32_t DurationMsFromBytes(size_t count, SDL_AudioFormat format, int chans, int freq)
+    inline uint32_t MillisecondsFromBytes(size_t bytes, SDL_AudioFormat format, int chans, int freq)
     {
-        return (count * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq);
+        return static_cast<uint32_t>(
+            (static_cast<uint64_t>(bytes) * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq));
     }
 } // namespace SoundHelper
 

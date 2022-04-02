@@ -183,16 +183,16 @@ void get_dialog_script_parameters(unsigned char* &script, unsigned short* param1
   }
 }
 
-int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex) {
+int run_dialog_script(int dialogID, int offse, int optionIndex) {
   said_speech_line = 0;
   int result = RUN_DIALOG_STAY;
 
   if (dialogScriptsInst)
   {
-    char funcName[100];
-    sprintf(funcName, "_run_dialog%d", dialogID);
+    char func_name[100];
+    snprintf(func_name, sizeof(func_name), "_run_dialog%d", dialogID);
     RuntimeScriptValue params[]{ optionIndex };
-    RunScriptFunction(dialogScriptsInst, funcName, 1, params);
+    RunScriptFunction(dialogScriptsInst, func_name, 1, params);
     result = dialogScriptsInst->returnValue;
   }
 
@@ -215,7 +215,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 }
 
 int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
-    int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
+    int bullet_wid, int usingfont, DialogTopic*dtop, int*disporder, short*dispyp,
     int linespacing, int utextcol, int padding) {
   int ww;
 
@@ -250,7 +250,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
       if (game.dialog_bullet > 0)
         actualpicwid = game.SpriteInfos[game.dialog_bullet].Width+3;
 
-      sprintf (tempbfr, "%d.", ww + 1);
+      snprintf(tempbfr, sizeof(tempbfr), "%d.", ww + 1);
       wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
     }
     for (size_t cc=0;cc<Lines.Count();cc++) {
@@ -323,10 +323,13 @@ struct DialogOptions
     GUITextBox *parserInput;
     DialogTopic*dtop;
 
-    char disporder[MAXTOPICOPTIONS];
+    // display order of options
+    int disporder[MAXTOPICOPTIONS];
+    // display Y coordinate of options
     short dispyp[MAXTOPICOPTIONS];
-
+    // number of displayed options
     int numdisp;
+    // currently chosen option
     int chose;
 
     Bitmap *tempScrn;
@@ -510,14 +513,14 @@ void DialogOptions::Show()
     
     update_polled_stuff_if_runtime();
     if (!play.mouse_cursor_hidden)
-      ags_domouse(DOMOUSE_ENABLE);
+      ags_domouse();
     update_polled_stuff_if_runtime();
 
     Redraw();
     while(Run());
 
     if (!play.mouse_cursor_hidden)
-      ags_domouse(DOMOUSE_DISABLE);
+      ags_domouse();
 }
 
 void DialogOptions::Redraw()
@@ -1040,7 +1043,7 @@ void do_conversation(int dlgnum)
   DialogTopic *dtop = &dialog[dlgnum];
 
   // run the startup script
-  int tocar = run_dialog_script(dtop, dlgnum, dtop->startupentrypoint, 0);
+  int tocar = run_dialog_script(dlgnum, dtop->startupentrypoint, 0);
   if ((tocar == RUN_DIALOG_STOP_DIALOG) ||
       (tocar == RUN_DIALOG_GOTO_PREVIOUS)) 
   {
@@ -1063,7 +1066,7 @@ void do_conversation(int dlgnum)
     {
       // dialog topic changed, so play the startup
       // script for the new topic
-      tocar = run_dialog_script(dtop, dlgnum, dtop->startupentrypoint, 0);
+      tocar = run_dialog_script(dlgnum, dtop->startupentrypoint, 0);
       dlgnum_was = dlgnum;
       if (tocar == RUN_DIALOG_GOTO_PREVIOUS) {
         if (numPrevTopics < 1) {
@@ -1106,7 +1109,7 @@ void do_conversation(int dlgnum)
     }
     else if (chose >= 0)
     {
-      tocar = run_dialog_script(dtop, dlgnum, dtop->entrypoints[chose], chose + 1);
+      tocar = run_dialog_script(dlgnum, dtop->entrypoints[chose], chose + 1);
     }
     else
     {

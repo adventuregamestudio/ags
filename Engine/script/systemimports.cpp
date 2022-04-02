@@ -11,28 +11,26 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdlib.h>
 #include <string.h>
 #include "script/systemimports.h"
 
-
-extern void quit(const char *);
-
 SystemImports simp;
 SystemImports simp_for_plugin;
 
-int SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
+uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
 {
-    int ixof;
-
-    if ((ixof = get_index_of(name)) >= 0) {
+    uint32_t ixof = get_index_of(name);
+    // Check if symbol already exists
+    if (ixof != UINT32_MAX)
+    {
         // Only allow override if not a script-exported function
-        if (anotherscr == nullptr) {
+        if (anotherscr == nullptr)
+        {
             imports[ixof].Value = value;
             imports[ixof].InstancePtr = anotherscr;
         }
-        return 0;
+        return ixof;
     }
 
     ixof = imports.size();
@@ -48,15 +46,16 @@ int SystemImports::add(const String &name, const RuntimeScriptValue &value, ccIn
     btree[name] = ixof;
     if (ixof == imports.size())
         imports.push_back(ScriptImport());
-    imports[ixof].Name          = name; // TODO: rather make a string copy here for safety reasons
+    imports[ixof].Name          = name;
     imports[ixof].Value         = value;
     imports[ixof].InstancePtr   = anotherscr;
-    return 0;
+    return ixof;
 }
 
-void SystemImports::remove(const String &name) {
-    int idx = get_index_of(name);
-    if (idx < 0)
+void SystemImports::remove(const String &name)
+{
+    uint32_t idx = get_index_of(name);
+    if (idx == UINT32_MAX)
         return;
     btree.erase(imports[idx].Name);
     imports[idx].Name = nullptr;
@@ -66,22 +65,22 @@ void SystemImports::remove(const String &name) {
 
 const ScriptImport *SystemImports::getByName(const String &name)
 {
-    int o = get_index_of(name);
-    if (o < 0)
+    uint32_t o = get_index_of(name);
+    if (o == UINT32_MAX)
         return nullptr;
 
     return &imports[o];
 }
 
-const ScriptImport *SystemImports::getByIndex(int index)
+const ScriptImport *SystemImports::getByIndex(uint32_t index)
 {
-    if ((size_t)index >= imports.size())
+    if (index >= imports.size())
         return nullptr;
 
     return &imports[index];
 }
 
-int SystemImports::get_index_of(const String &name)
+uint32_t SystemImports::get_index_of(const String &name)
 {
     IndexMap::const_iterator it = btree.find(name);
     if (it != btree.end())
@@ -97,23 +96,23 @@ int SystemImports::get_index_of(const String &name)
     if (name.GetLength() > 3)
     {
         size_t c = name.FindCharReverse('^');
-        if (c != -1 && (c == name.GetLength() - 2 || c == name.GetLength() - 3))
+        if (c != String::NoIndex && (c == name.GetLength() - 2 || c == name.GetLength() - 3))
         {
             // Function with number of prametrs on the end
             // attempt to find it without the param count
             return get_index_of(name.Left(c));
         }
     }
-    return -1;
+    return UINT32_MAX;
 }
 
 String SystemImports::findName(const RuntimeScriptValue &value)
 {
-    for (size_t i = 0; i < imports.size(); ++i)
+    for (const auto &import : imports)
     {
-        if (imports[i].Value == value)
+        if (import.Value == value)
         {
-            return imports[i].Name;
+            return import.Name;
         }
     }
     return String();
@@ -126,17 +125,17 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
         return;
     }
 
-    for (size_t i = 0; i < imports.size(); ++i)
+    for (auto &import : imports)
     {
-        if (imports[i].Name == nullptr)
+        if (import.Name == nullptr)
             continue;
 
-        if (imports[i].InstancePtr == inst)
+        if (import.InstancePtr == inst)
         {
-            btree.erase(imports[i].Name);
-            imports[i].Name = nullptr;
-            imports[i].Value.Invalidate();
-            imports[i].InstancePtr = nullptr;
+            btree.erase(import.Name);
+            import.Name = nullptr;
+            import.Value.Invalidate();
+            import.InstancePtr = nullptr;
         }
     }
 }

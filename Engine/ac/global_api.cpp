@@ -46,7 +46,6 @@
 #include "ac/global_overlay.h"
 #include "ac/global_palette.h"
 #include "ac/global_parser.h"
-#include "ac/global_record.h"
 #include "ac/global_region.h"
 #include "ac/global_room.h"
 #include "ac/global_slider.h"
@@ -837,12 +836,14 @@ RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, 
 
 RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
 {
+    (void)params; (void)param_count;
     ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaWalkable);
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
 }
 
 RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count)
 {
+    (void)params; (void)param_count;
     ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaWalkBehind);
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
 }

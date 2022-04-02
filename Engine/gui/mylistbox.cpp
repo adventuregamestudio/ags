@@ -103,16 +103,16 @@ extern int smcode;
     wid = widwas;
   }
 
-  int MyListBox::pressedon(int mousex, int mousey)
+  int MyListBox::pressedon(int mx, int my)
   {
-    if (mousex > x + wid - ARROWWIDTH) {
-      if ((mousey - y < hit / 2) & (topitem > 0))
+    if (mx > x + wid - ARROWWIDTH) {
+      if ((my - y < hit / 2) & (topitem > 0))
         topitem--;
-      else if ((mousey - y > hit / 2) & (topitem + numonscreen < items))
+      else if ((my - y > hit / 2) & (topitem + numonscreen < items))
         topitem++;
 
     } else {
-      selected = ((mousey - y) - 2) / TEXT_HT + topitem;
+      selected = ((my - y) - 2) / TEXT_HT + topitem;
       if (selected >= items)
         selected = items - 1;
 

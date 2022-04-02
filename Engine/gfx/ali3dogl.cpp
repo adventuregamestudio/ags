@@ -191,7 +191,7 @@ bool OGLGraphicsDriver::SupportsGammaControl()
   return false;
 }
 
-void OGLGraphicsDriver::SetGamma(int newGamma)
+void OGLGraphicsDriver::SetGamma(int /*newGamma*/)
 {
 }
 
@@ -260,7 +260,6 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   glClear(GL_COLOR_BUFFER_BIT);
 
 
-  auto interval = mode.Vsync ? 1 : 0;
   bool vsyncEnabled = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
   if (mode.Vsync && !vsyncEnabled)
     Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync could not be enabled. Setting will be kept at driver default.");
@@ -831,13 +830,13 @@ bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
   return !_dstRect.IsEmpty();
 }
 
-int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/) const
 {
     // TODO: check for device caps to know which depth is supported?
     return 32;
 }
 
-IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int /*color_depth*/)
 {
     std::vector<DisplayMode> modes {};
     sys_get_desktop_modes(modes);
@@ -882,7 +881,7 @@ OGLGraphicsDriver::~OGLGraphicsDriver()
   OGLGraphicsDriver::UnInit();
 }
 
-void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
+void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /*y2*/, RGB* /*colorToUse*/)
 {
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
@@ -1812,7 +1811,7 @@ void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColour
   do_fade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
-void OGLGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void OGLGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
   do_fade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }

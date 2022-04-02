@@ -67,13 +67,13 @@ void MyPushButton::draw(Bitmap *ds)
     ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }
 
-int MyPushButton::pressedon(int mousex, int mousey)
+int MyPushButton::pressedon(int mx, int my)
 {
     int wasstat;
     while (mbutrelease(MouseLeft) == 0) {
 
         wasstat = state;
-        state = mouseisinarea(mousex, mousey);
+        state = mouseisinarea(mx, my);
         // stop mp3 skipping if button held down
         update_polled_stuff_if_runtime();
         if (wasstat != state) {
@@ -96,7 +96,7 @@ int MyPushButton::pressedon(int mousex, int mousey)
     return wasstat;
 }
 
-int MyPushButton::processmessage(int mcode, int wParam, long lParam)
+int MyPushButton::processmessage(int /*mcode*/, int /*wParam*/, long /*lParam*/)
 {
     return -1;                  // doesn't support messages
 }

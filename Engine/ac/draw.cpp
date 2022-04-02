@@ -127,9 +127,10 @@ std::vector<IDriverDependantBitmap*> guibgbmp;
 std::vector<std::unique_ptr<Bitmap>> guihelpbg;
 // For debugging room masks
 RoomAreaMask debugRoomMask = kRoomAreaNone;
+std::unique_ptr<Bitmap> debugRoomMaskBmp;
 IDriverDependantBitmap *debugRoomMaskDDB = nullptr;
 int debugMoveListChar = -1;
-Bitmap* debugMoveListBmp = nullptr;
+std::unique_ptr<Bitmap> debugMoveListBmp;
 IDriverDependantBitmap *debugMoveListDDB = nullptr;
 
 bool current_background_is_dirty = false;
@@ -431,10 +432,11 @@ void dispose_game_drawdata()
 
 static void dispose_debug_room_drawdata()
 {
+    debugRoomMaskBmp.reset();
     if (debugRoomMaskDDB != nullptr)
         gfxDriver->DestroyDDB(debugRoomMaskDDB);
     debugRoomMaskDDB = nullptr;
-    delete debugMoveListBmp;
+    debugMoveListBmp.reset();
     debugMoveListBmp = nullptr;
     if (debugMoveListDDB != nullptr)
         gfxDriver->DestroyDDB(debugMoveListDDB);
@@ -2059,7 +2061,7 @@ void draw_preroom_background()
 // ds and roomcam_surface may be the same bitmap.
 // no_transform flag tells to copy dirty regions on roomcam_surface without any coordinate conversion
 // whatsoever.
-PBitmap draw_room_background(Viewport *view, const SpriteTransform &room_trans)
+PBitmap draw_room_background(Viewport *view)
 {
     our_eip = 31;
 
@@ -2110,9 +2112,9 @@ void draw_fps(const Rect &viewport)
 
     char base_buffer[20];
     if (!isTimerFpsMaxed()) {
-        sprintf(base_buffer, "%d", frames_per_second);
+        snprintf(base_buffer, sizeof(base_buffer), "%d", frames_per_second);
     } else {
-        sprintf(base_buffer, "unlimited");
+        snprintf(base_buffer, sizeof(base_buffer), "unlimited");
     }
 
     char fps_buffer[60];
@@ -2125,7 +2127,7 @@ void draw_fps(const Rect &viewport)
     wouttext_outline(fpsDisplay, 1, 1, font, text_color, fps_buffer);
 
     char loop_buffer[60];
-    sprintf(loop_buffer, "Loop %u", loopcounter);
+    snprintf(loop_buffer, sizeof(loop_buffer), "Loop %u", loopcounter);
     wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, font, text_color, loop_buffer);
 
     if (ddb)
@@ -2371,7 +2373,7 @@ static void construct_room_view()
             }
             else
             { // room background is drawn by dirty rects system
-                PBitmap bg_surface = draw_room_background(viewport.get(), room_trans);
+                PBitmap bg_surface = draw_room_background(viewport.get());
                 gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), kFlip_None, bg_surface);
             }
         }
@@ -2450,7 +2452,7 @@ void construct_game_screen_overlay(bool draw_mouse)
     // to the update loop instead of doing it in the drawing routine
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view >= 0) {
-        ags_domouse(DOMOUSE_NOCURSOR);
+        ags_domouse();
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
             (mousex == lastmx) && (mousey == lastmy));
@@ -2477,7 +2479,7 @@ void construct_game_screen_overlay(bool draw_mouse)
         lastmx = mousex; lastmy = mousey;
     }
 
-    ags_domouse(DOMOUSE_NOCURSOR);
+    ags_domouse();
 
     // Stage: mouse cursor
     if (draw_mouse && !play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
@@ -2558,19 +2560,32 @@ void debug_draw_room_mask(RoomAreaMask mask)
     debugRoomMask = mask;
     if (mask == kRoomAreaNone)
         return;
-    
-    Bitmap *mask_bmp;
+
+    Bitmap *bmp;
     switch (mask)
     {
-    case kRoomAreaHotspot: mask_bmp = thisroom.HotspotMask.get(); break;
-    case kRoomAreaWalkBehind: mask_bmp = thisroom.WalkBehindMask.get(); break;
-    case kRoomAreaWalkable: mask_bmp = prepare_walkable_areas(-1); break;
-    case kRoomAreaRegion: mask_bmp = thisroom.RegionMask.get(); break;
+    case kRoomAreaHotspot: bmp = thisroom.HotspotMask.get(); break;
+    case kRoomAreaWalkBehind: bmp = thisroom.WalkBehindMask.get(); break;
+    case kRoomAreaWalkable: bmp = prepare_walkable_areas(-1); break;
+    case kRoomAreaRegion: bmp = thisroom.RegionMask.get(); break;
     default: return;
     }
 
-    debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, mask_bmp, false, true);
+    // Software mode scaling
+    // note we don't use transparency in software mode - may be slow in hi-res games
+    if (!gfxDriver->HasAcceleratedTransform() &&
+        (mask != kRoomAreaWalkBehind) &&
+        (bmp->GetSize() != Size(thisroom.Width, thisroom.Height)))
+    {
+        debugRoomMaskBmp.reset(recycle_bitmap(debugRoomMaskBmp.release(),
+            bmp->GetColorDepth(), thisroom.Width, thisroom.Height));
+        debugRoomMaskBmp->StretchBlt(bmp, RectWH(0, 0, thisroom.Width, thisroom.Height));
+        bmp = debugRoomMaskBmp.get();
+    }
+
+    debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, bmp, false, true);
     debugRoomMaskDDB->SetTransparency(150);
+    debugRoomMaskDDB->SetStretch(thisroom.Width, thisroom.Height);
 }
 
 void debug_draw_movelist(int charnum)
@@ -2582,14 +2597,29 @@ void update_room_debug()
 {
     if (debugRoomMask == kRoomAreaWalkable)
     {
-        Bitmap *mask_bmp = prepare_walkable_areas(-1);
-        debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, mask_bmp, false, true);
+        Bitmap *bmp = prepare_walkable_areas(-1);
+        // Software mode scaling
+        if (!gfxDriver->HasAcceleratedTransform() && (thisroom.MaskResolution > 1))
+        {
+            debugRoomMaskBmp.reset(recycle_bitmap(debugRoomMaskBmp.release(),
+                bmp->GetColorDepth(), thisroom.Width, thisroom.Height));
+            debugRoomMaskBmp->StretchBlt(bmp, RectWH(0, 0, thisroom.Width, thisroom.Height));
+            bmp = debugRoomMaskBmp.get();
+        }
+        debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, bmp, false, true);
         debugRoomMaskDDB->SetTransparency(150);
+        debugRoomMaskDDB->SetStretch(thisroom.Width, thisroom.Height);
     }
     if (debugMoveListChar >= 0)
     {
-        debugMoveListBmp = recycle_bitmap(debugMoveListBmp, game.GetColorDepth(),
-            thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
+        const int mult = gfxDriver->HasAcceleratedTransform() ? thisroom.MaskResolution : 1;
+        if (gfxDriver->HasAcceleratedTransform())
+            debugMoveListBmp.reset(recycle_bitmap(debugMoveListBmp.release(), game.GetColorDepth(),
+                thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true));
+        else
+            debugMoveListBmp.reset(recycle_bitmap(debugMoveListBmp.release(), game.GetColorDepth(),
+                thisroom.Width, thisroom.Height, true));
+
         if (game.chars[debugMoveListChar].walking > 0)
         {
             int mlsnum = game.chars[debugMoveListChar].walking;
@@ -2601,11 +2631,13 @@ void update_room_debug()
                 short srcy = short(cmls.pos[i] & 0x00ffff);
                 short targetx = short((cmls.pos[i + 1] >> 16) & 0x00ffff);
                 short targety = short(cmls.pos[i + 1] & 0x00ffff);
-                debugMoveListBmp->DrawLine(Line(srcx, srcy, targetx, targety), MakeColor(i + 1));
+                debugMoveListBmp->DrawLine(Line(srcx / mult, srcy / mult, targetx / mult, targety / mult),
+                    MakeColor(i + 1));
             }
         }
-        debugMoveListDDB = recycle_ddb_bitmap(debugMoveListDDB, debugMoveListBmp, false, false);
+        debugMoveListDDB = recycle_ddb_bitmap(debugMoveListDDB, debugMoveListBmp.get(), false, false);
         debugMoveListDDB->SetTransparency(150);
+        debugMoveListDDB->SetStretch(thisroom.Width, thisroom.Height);
     }
 }
 

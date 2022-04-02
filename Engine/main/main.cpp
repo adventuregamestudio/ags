@@ -78,7 +78,7 @@ bool justTellInfo = false;
 bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
-const char *loadSaveGameOnStartup = nullptr;
+String loadSaveGameOnStartup;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;
@@ -322,7 +322,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
         {
-            INIwritestring(cfg, "misc", "clear_cache_on_room_change", "1");
+            CfgWriteString(cfg, "misc", "clear_cache_on_room_change", "1");
         }
         else if (ags_strnicmp(arg, "--tell", 6) == 0) {
             if (arg[6] == 0)
@@ -343,25 +343,25 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["graphics"]["windowed"] = "0";
         else if ((ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
         {
-            INIwritestring(cfg, "graphics", "driver", argv[++ee]);
+            CfgWriteString(cfg, "graphics", "driver", argv[++ee]);
         }
         else if ((ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
             // NOTE: we make an assumption here that if user provides scaling factor,
             // this factor means to be applied to windowed mode only.
-            INIwritestring(cfg, "graphics", "filter", argv[++ee]);
+            CfgWriteString(cfg, "graphics", "filter", argv[++ee]);
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
-                INIwritestring(cfg, "graphics", "game_scale_win", argv[++ee]);
+                CfgWriteString(cfg, "graphics", "game_scale_win", argv[++ee]);
             else
-                INIwritestring(cfg, "graphics", "game_scale_win", "max_round");
+                CfgWriteString(cfg, "graphics", "game_scale_win", "max_round");
         }
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
         {
-            INIwritestring(cfg, "language", "translation", argv[++ee]);
+            CfgWriteString(cfg, "language", "translation", argv[++ee]);
         }
         else if (ags_stricmp(arg, "--no-translation") == 0)
         {
-            INIwritestring(cfg, "language", "translation", "");
+            CfgWriteString(cfg, "language", "translation", "");
         }
         else if (ags_stricmp(arg, "--fps") == 0) display_fps = kFPS_Forced;
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
@@ -375,13 +375,13 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--novideo") == 0) debug_flags |= DBG_NOVIDEO;
         else if (ags_stricmp(arg, "--rotation") == 0 && (argc > ee + 1))
         {
-            INIwritestring(cfg, "graphics", "rotation", argv[++ee]);
+            CfgWriteString(cfg, "graphics", "rotation", argv[++ee]);
         }
         else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
         {
             String logarg = arg + 6;
             size_t split_at = logarg.FindChar('=');
-            if (split_at >= 0)
+            if (split_at != String::NoIndex)
                 cfg["log"][logarg.Left(split_at)] = logarg.Mid(split_at + 1);
             else
                 cfg["log"][logarg] = "";

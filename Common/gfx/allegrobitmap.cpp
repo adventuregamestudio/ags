@@ -163,11 +163,6 @@ bool Bitmap::SaveToFile(const char *filename, const void *palette)
 	return save_bitmap(filename, _alBitmap, (const RGB*)palette) == 0;
 }
 
-void Bitmap::SetMaskColor(color_t color)
-{
-	// not supported? CHECKME
-}
-
 color_t Bitmap::GetCompatibleColor(color_t color)
 {
     color_t compat_color = 0;

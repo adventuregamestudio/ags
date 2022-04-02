@@ -18,6 +18,10 @@
 #ifndef __AGS_CN_UTIL__MATH_H
 #define __AGS_CN_UTIL__MATH_H
 
+// safeguards against min/max macros
+#undef min
+#undef max
+
 #include <cmath>
 #include <limits>
 
@@ -81,7 +85,8 @@ namespace Math
     template <typename T, typename TBig>
     inline T InRangeOrDef(const TBig &val, const T &def)
     {
-        return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ? val : def;
+        return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ?
+            static_cast<T>(val) : def;
     }
 
     inline float RadiansToDegrees(float rads)

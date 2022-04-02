@@ -84,6 +84,10 @@ int     is_pos_in_sprite(int xx,int yy,int arx,int ary, Common::Bitmap *sprit, i
 // X and Y co-ordinates must be in native format
 // X and Y are ROOM coordinates
 int     check_click_on_object(int roomx, int roomy, int mood);
+// General view animation algorithm: find next loop and frame, depending on anim settings;
+// loop and frame values are passed by reference and will be updated;
+// returns whether the animation should continue.
+bool    CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, bool forwards, int repeat);
 
 #endif // __AGS_EE_AC__OBJECT_H
 

@@ -17,8 +17,11 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "debug/debug_log.h"
+#include "util/stream.h"
 
-int ScriptOverlay::Dispose(const char *address, bool force) 
+using namespace AGS::Common;
+
+int ScriptOverlay::Dispose(const char* /*address*/, bool force) 
 {
     // since the managed object is being deleted, remove the
     // reference so it doesn't try and dispose something else
@@ -32,7 +35,7 @@ int ScriptOverlay::Dispose(const char *address, bool force)
     // if this is being removed voluntarily (ie. pointer out of
     // scope) then remove the associateed overlay
     // Otherwise, it's a Restre Game or something so don't
-    if ((!force) && (!isBackgroundSpeech) && (Overlay_GetValid(this)))
+    if ((!force) && (!hasInternalRef) && (Overlay_GetValid(this)))
     {
         Remove();
     }
@@ -45,21 +48,23 @@ const char *ScriptOverlay::GetType() {
     return "Overlay";
 }
 
-int ScriptOverlay::Serialize(const char *address, char *buffer, int bufsize) {
-    StartSerialize(buffer);
-    SerializeInt(overlayId);
-    SerializeInt(borderWidth);
-    SerializeInt(borderHeight);
-    SerializeInt(isBackgroundSpeech);
-    return EndSerialize();
+size_t ScriptOverlay::CalcSerializeSize()
+{
+    return sizeof(int32_t) * 4;
 }
 
-void ScriptOverlay::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    overlayId = UnserializeInt();
-    borderWidth = UnserializeInt();
-    borderHeight = UnserializeInt();
-    isBackgroundSpeech = UnserializeInt();
+void ScriptOverlay::Serialize(const char* /*address*/, Stream *out) {
+    out->WriteInt32(overlayId);
+    out->WriteInt32(0); // unused (was text window x padding)
+    out->WriteInt32(0); // unused (was text window y padding)
+    out->WriteInt32(hasInternalRef);
+}
+
+void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    overlayId = in->ReadInt32();
+    in->ReadInt32(); // unused (was text window x padding)
+    in->ReadInt32(); // unused (was text window y padding)
+    hasInternalRef = in->ReadInt32() != 0;
     ccRegisterUnserializedObject(index, this, this);
 }
 
@@ -73,12 +78,4 @@ void ScriptOverlay::Remove()
     }
     remove_screen_overlay_index(overlayIndex);
     overlayId = -1;
-}
-
-
-ScriptOverlay::ScriptOverlay() {
-    overlayId = -1;
-    borderWidth = 0;
-    borderHeight = 0;
-    isBackgroundSpeech = 0;
 }

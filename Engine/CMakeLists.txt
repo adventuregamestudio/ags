@@ -175,8 +175,6 @@ target_sources(engine
     ac/global_parser.cpp
     ac/global_parser.h
     ac/global_plugin.h
-    ac/global_record.cpp
-    ac/global_record.h
     ac/global_region.cpp
     ac/global_region.h
     ac/global_room.cpp
@@ -482,6 +480,9 @@ target_sources(engine
     platform/windows/win_ex_handling.h
     platform/windows/minidump.cpp
     platform/windows/winapi_exclusive.h
+
+    platform/base/mobile_base.cpp
+    platform/base/mobile_base.h
 )
 
 if(ANDROID)

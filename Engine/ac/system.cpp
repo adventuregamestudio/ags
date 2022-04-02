@@ -109,21 +109,18 @@ int System_GetHardwareAcceleration()
 
 int System_GetNumLock()
 {
-    SDL_PumpEvents();
     SDL_Keymod mod_state = SDL_GetModState();
     return (mod_state & KMOD_NUM) ? 1 : 0;
 }
 
 int System_GetCapsLock()
 {
-    SDL_PumpEvents();
     SDL_Keymod mod_state = SDL_GetModState();
     return (mod_state & KMOD_CAPS) ? 1 : 0;
 }
 
 int System_GetScrollLock()
 {
-    SDL_PumpEvents();
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     return (state[SDL_SCANCODE_SCROLLLOCK]) ? 1 : 0;
 }

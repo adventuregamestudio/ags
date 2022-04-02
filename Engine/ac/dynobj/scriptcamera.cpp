@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/gamestate.h"
-#include "util/bbop.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 
@@ -25,7 +24,7 @@ const char *ScriptCamera::GetType()
     return "Camera2";
 }
 
-int ScriptCamera::Dispose(const char *address, bool force)
+int ScriptCamera::Dispose(const char* /*address*/, bool /*force*/)
 {
     // Note that ScriptCamera is a reference to actual Camera object,
     // and this deletes the reference, while camera may remain in GameState.
@@ -33,27 +32,29 @@ int ScriptCamera::Dispose(const char *address, bool force)
     return 1;
 }
 
-int ScriptCamera::Serialize(const char *address, char *buffer, int bufsize)
+size_t ScriptCamera::CalcSerializeSize()
 {
-    StartSerialize(buffer);
-    SerializeInt(_id);
-    return EndSerialize();
+    return sizeof(int32_t);
 }
 
-void ScriptCamera::Unserialize(int index, const char *serializedData, int dataSize)
+void ScriptCamera::Serialize(const char* /*address*/, Stream *out)
 {
-    StartUnserialize(serializedData, dataSize);
-    _id = UnserializeInt();
+    out->WriteInt32(_id);
+}
+
+void ScriptCamera::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
+    _id = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptCamera *Camera_Unserialize(int handle, const char *serializedData, int dataSize)
+ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,
     // but acquire one from the GameState, which keeps the first reference.
     // This is essential because GameState should be able to invalidate any
     // script references when Camera gets removed.
-    const int id = BBOp::Int32FromLE(*((int*)serializedData));
+    const int id = in->ReadInt32();
     if (id >= 0)
     {
         auto scam = play.RegisterRoomCamera(id, handle);

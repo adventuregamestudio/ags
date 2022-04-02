@@ -82,7 +82,7 @@ void ViewLoopNew::Dispose()
 
 void ViewLoopNew::WriteToFile_v321(Stream *out)
 {
-    out->WriteInt16(numFrames);
+    out->WriteInt16(static_cast<uint16_t>(numFrames));
     out->WriteInt32(flags);
     WriteFrames_Aligned(out);
 }
@@ -99,7 +99,7 @@ void ViewLoopNew::WriteFrames_Aligned(Stream *out)
 
 void ViewLoopNew::ReadFromFile_v321(Stream *in)
 {
-    Initialize(in->ReadInt16());
+    Initialize(static_cast<uint16_t>(in->ReadInt16()));
     flags = in->ReadInt32();
     ReadFrames_Aligned(in);
 }
@@ -133,7 +133,7 @@ void ViewStruct::Dispose()
 
 void ViewStruct::WriteToFile(Stream *out)
 {
-    out->WriteInt16(numLoops);
+    out->WriteInt16(static_cast<uint16_t>(numLoops));
     for (int i = 0; i < numLoops; i++)
     {
         loops[i].WriteToFile_v321(out);
@@ -142,7 +142,7 @@ void ViewStruct::WriteToFile(Stream *out)
 
 void ViewStruct::ReadFromFile(Stream *in)
 {
-    Initialize(in->ReadInt16());
+    Initialize(static_cast<uint16_t>(in->ReadInt16()));
 
     for (int i = 0; i < numLoops; i++)
     {

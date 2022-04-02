@@ -66,6 +66,9 @@ public:
     // Resumes the playback from the current position
     void Resume();
 
+    // Sets the reference position in ms; this may be necessary because player
+    // receives position hint only with the data timestamps
+    void SetPlaybackPosMs(float pos_ms);
     // Sets the sound panning (-1.0f to 1.0)
     void SetPanning(float panning);
     // Sets the playback speed (fraction of normal); NOTE: the speed is implemented through resampling
@@ -78,10 +81,9 @@ private:
     void Unqueue();
 
     ALuint _source = 0u;
-    SDL_AudioFormat _inputFormat = 0u;
-    ALenum _alFormat = 0u;
-    int _freq = 0;
-    int _channels = 0;
+    Sound_AudioInfo _inputFmt; // actual input format
+    Sound_AudioInfo _recvFmt; // corrected format (if necessary)
+    ALenum _alFormat = 0u; // matching OpenAl format
     PlaybackState _playState = PlayStateInitial;
     float _speed = 1.f; // change in playback rate
     float _positionMs = 0.f;

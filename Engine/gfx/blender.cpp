@@ -88,7 +88,7 @@ unsigned long _myblender_color32_light(unsigned long x, unsigned long y, unsigne
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long n)
+unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long /*n*/)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -103,7 +103,7 @@ unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long n)
+unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long /*n*/)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -118,7 +118,7 @@ unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long n)
+unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long /*n*/)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -163,7 +163,7 @@ void set_my_trans_blender(int r, int g, int b, int a)
 
 // plain copy source to destination
 // assign new alpha value as a summ of alphas.
-unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, unsigned long n)
+unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, unsigned long /*n*/)
 {
     unsigned long newAlpha = ((x & 0xff000000) >> 24) + ((y & 0xff000000) >> 24);
 
@@ -275,7 +275,7 @@ void set_argb2argb_blender(int alpha)
 }
 
 // sets the alpha channel to opaque. used when drawing a non-alpha sprite onto an alpha-sprite
-unsigned long _opaque_alpha_blender(unsigned long x, unsigned long y, unsigned long n)
+unsigned long _opaque_alpha_blender(unsigned long x, unsigned long /*y*/, unsigned long /*n*/)
 {
     return x | 0xff000000;
 }

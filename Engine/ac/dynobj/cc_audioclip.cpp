@@ -11,10 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/gamesetupstruct.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 
@@ -22,15 +24,17 @@ const char *CCAudioClip::GetType() {
     return "AudioClip";
 }
 
-int CCAudioClip::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptAudioClip *ach = (ScriptAudioClip*)address;
-    StartSerialize(buffer);
-    SerializeInt(ach->id);
-    return EndSerialize();
+size_t CCAudioClip::CalcSerializeSize()
+{
+    return sizeof(int32_t);
 }
 
-void CCAudioClip::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int id = UnserializeInt();
+void CCAudioClip::Serialize(const char *address, Stream *out) {
+    ScriptAudioClip *ach = (ScriptAudioClip*)address;
+    out->WriteInt32(ach->id);
+}
+
+void CCAudioClip::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    int id = in->ReadInt32();
     ccRegisterUnserializedObject(index, &game.audioClips[id], this);
 }

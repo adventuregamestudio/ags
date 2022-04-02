@@ -78,12 +78,12 @@ bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   return true;
 }
 
-int SDLRendererGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+int SDLRendererGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/) const
 {
     return 32;
 }
 
-IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int color_depth)
+IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int /*color_depth*/)
 {
     std::vector<DisplayMode> modes;
     sys_get_desktop_modes(modes);
@@ -106,7 +106,7 @@ void SDLRendererGraphicsDriver::SetGraphicsFilter(PSDLRenderFilter filter)
   // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
 }
 
-void SDLRendererGraphicsDriver::SetTintMethod(TintMethod method) 
+void SDLRendererGraphicsDriver::SetTintMethod(TintMethod /*method*/) 
 {
   // TODO: support new D3D-style tint method
 }
@@ -242,7 +242,7 @@ bool SDLRendererGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
   return !_dstRect.IsEmpty();
 }
 
-void SDLRendererGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
+void SDLRendererGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /*y2*/, RGB* /*colorToUse*/)
 {
   // TODO: but maybe is not necessary, as we use SDL_Renderer with accelerated gfx here?
   // See SDL_RenderDrawRect
@@ -382,7 +382,7 @@ void SDLRendererGraphicsDriver::DrawSprite(int /*ox*/, int /*oy*/, int ltx, int 
     _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, ltx, lty));
 }
 
-void SDLRendererGraphicsDriver::SetScreenFade(int red, int green, int blue)
+void SDLRendererGraphicsDriver::SetScreenFade(int /*red*/, int /*green*/, int /*blue*/)
 {
     // TODO: was not necessary atm
     // TODO: checkme later
@@ -644,7 +644,8 @@ bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, b
 
 	Author: Matthew Leverton
 **/
-void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(),
+    int /*offx*/, int /*offy*/, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
    Bitmap *bmp_orig = vs;
    const int col_depth = bmp_orig->GetColorDepth();
@@ -679,7 +680,8 @@ void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callbac
    Present();
 }
 
-void SDLRendererGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int offx, int offy, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void SDLRendererGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(),
+    int /*offx*/, int /*offy*/, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
     Bitmap *bmp_orig = vs;
     const int col_depth = vs->GetColorDepth();

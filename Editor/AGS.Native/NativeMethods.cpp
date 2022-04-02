@@ -18,11 +18,14 @@ see the license.txt for details.
 #include "ac/game_version.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
+#include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
 
 using namespace System::Runtime::InteropServices;
+using namespace AGS::Native;
+using Icon = System::Drawing::Icon;
 typedef AGS::Common::HError HAGSError;
 
 extern bool initialize_native();
@@ -130,7 +133,7 @@ AGSString TextHelper::ConvertASCII(System::String^ clr_str)
 void TextHelper::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len)
 {
     char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
-    size_t ansi_len = min(strlen(stringPointer) + 1, buf_len);
+    size_t ansi_len = std::min(strlen(stringPointer) + 1, buf_len);
     memcpy(buf, stringPointer, ansi_len);
     buf[ansi_len - 1] = 0;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
@@ -603,7 +606,7 @@ namespace AGS
         Object^ NativeMethods::GetNativeConstant(String ^name)
         {
             if (name == nullptr) return nullptr;
-            if (name->Equals("GAME_FILE_SIG")) return gcnew String(game_file_sig);
+            if (name->Equals("GAME_FILE_SIG")) return gcnew String(AGS::Common::MainGameSource::Signature.GetCStr());
             if (name->Equals("GAME_DATA_VERSION_CURRENT")) return (int)kGameVersion_Current;
             if (name->Equals("MAX_GUID_LENGTH")) return MAX_GUID_LENGTH;
             if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;

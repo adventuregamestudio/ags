@@ -27,6 +27,8 @@ namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
 struct RoomObject {
+    static const uint16_t NoView = UINT16_MAX;
+
     int   x,y;
     int   transparent;    // current transparency setting
     short tint_r, tint_g;   // specific object tint
@@ -62,8 +64,6 @@ struct RoomObject {
     void UpdateGraphicSpace();
 
     void UpdateCyclingView(int ref_id);
-    void update_cycle_view_forwards();
-    void update_cycle_view_backwards();
 
     void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;

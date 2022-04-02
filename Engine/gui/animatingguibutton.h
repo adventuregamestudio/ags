@@ -12,12 +12,13 @@
 //
 //=============================================================================
 //
-//
+// Description of a button animation; stored separately from the GUI button.
 //
 //=============================================================================
 #ifndef __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 #define __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 
+#include "core/types.h"
 #include "ac/runtime_defines.h"
 
 // Forward declaration
@@ -28,10 +29,10 @@ struct AnimatingGUIButton {
     // index into guibuts array, GUI, button
     short buttonid, ongui, onguibut;
     // current animation status
-    short view, loop, frame;
-    short speed, repeat, wait;
+    uint16_t view, loop, frame;
+    short speed, repeat, blocking, direction, wait;
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, int cmp_ver);
     void WriteToFile(Common::Stream *out);
 };
 

@@ -12,11 +12,14 @@
 //
 //=============================================================================
 //
-//
+// Default built-in game dialogs.
 //
 //=============================================================================
 #ifndef __AGS_EE_GUI__GUIDIALOG_H
 #define __AGS_EE_GUI__GUIDIALOG_H
+
+#include <vector>
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 
@@ -34,7 +37,8 @@ int  savegamedialog();
 void preparesavegamelist(int ctrllist);
 void enterstringwindow(const char *prompttext, char *stouse);
 int  enternumberwindow(char *prompttext);
-int  roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roomNames);
+int  roomSelectorWindow(int currentRoom, int numRooms,
+    const std::vector<int> &roomNumbers, const std::vector<AGS::Common::String> &roomNames);
 int  myscimessagebox(const char *lpprompt, char *btn1, char *btn2);
 int  quitdialog();
 

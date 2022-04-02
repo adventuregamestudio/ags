@@ -186,21 +186,15 @@ struct ShaderProgram
 {
     GLuint Program = 0;
     GLuint Arg[4] {};
-    // GLuint SamplerVar;      // texture ID
-    // GLuint ColorVar;        // primary operation variable
-    // GLuint AuxVar;          // auxiliary variable
 
-    GLuint MVPMatrix = -1;
+    GLuint MVPMatrix = 0;
+    GLuint TextureId = 0;
+    GLuint Alpha = 0;
 
-    GLuint TextureId = -1;
-
-    GLuint Alpha = -1;
-
-    GLuint TintHSV = -1;
-    GLuint TintAmount = -1;
-    GLuint TintLuminance = -1;
-
-    GLuint LightingAmount = -1;
+    GLuint TintHSV = 0;
+    GLuint TintAmount = 0;
+    GLuint TintLuminance = 0;
+    GLuint LightingAmount = 0;
 };
 
 class OGLGfxFilter;
@@ -233,7 +227,7 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
-    void EnableVsyncBeforeRender(bool enabled) override { }
+    void EnableVsyncBeforeRender(bool /*enabled*/) override { }
     void Vsync() override;
     void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override;
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;

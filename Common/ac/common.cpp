@@ -11,13 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "util/string.h"
 
 using namespace AGS::Common;
-
-const char *game_file_sig = "Adventure Creator Game File v2";
 
 void quit(const String &str)
 {

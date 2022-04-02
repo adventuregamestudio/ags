@@ -11,11 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "ac/common_defines.h"
 #include "game/roomstruct.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 
@@ -24,17 +26,17 @@ const char *CCHotspot::GetType() {
     return "Hotspot";
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
-int CCHotspot::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptHotspot *shh = (ScriptHotspot*)address;
-    StartSerialize(buffer);
-    SerializeInt(shh->id);
-    return EndSerialize();
+size_t CCHotspot::CalcSerializeSize()
+{
+    return sizeof(int32_t);
 }
 
-void CCHotspot::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int num = UnserializeInt();
+void CCHotspot::Serialize(const char *address, Stream *out) {
+    ScriptHotspot *shh = (ScriptHotspot*)address;
+    out->WriteInt32(shh->id);
+}
+
+void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrHotspot[num], this);
 }

@@ -44,6 +44,7 @@ void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
+void AGSPlatformDriver::ValidateWindowSize(int & /*x*/, int & /*y*/, bool /*borderless*/) const {}
 
 const char* AGSPlatformDriver::GetBackendFailUserHint()
 {
@@ -96,7 +97,7 @@ void AGSPlatformDriver::YieldCPU() {
     //std::this_thread::yield();
 }
 
-SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
+SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &/*cfg_in*/, ConfigTree &/*cfg_out*/)
 {
     return kSetup_Cancel;
 }

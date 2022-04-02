@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <string.h>
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "util/stream.h"
 #include "util/string.h"
 #include "util/string_types.h"
 
@@ -39,8 +40,7 @@ class ScriptDictBase : public AGSCCDynamicObject
 public:
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;
-    int Serialize(const char *address, char *buffer, int bufsize) override;
-    void Unserialize(int index, const char *serializedData, int dataSize) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
     virtual bool IsCaseSensitive() const = 0;
     virtual bool IsSorted() const = 0;
@@ -54,10 +54,15 @@ public:
     virtual void GetKeys(std::vector<const char*> &buf) const = 0;
     virtual void GetValues(std::vector<const char*> &buf) const = 0;
 
-private:
+protected:
+    // Calculate and return required space for serialization, in bytes
     virtual size_t CalcSerializeSize() = 0;
-    virtual void SerializeContainer() = 0;
-    virtual void UnserializeContainer(const char *serializedData) = 0;
+    // Write object data into the provided stream
+    void Serialize(const char *address, AGS::Common::Stream *out) override;
+
+private:
+    virtual void SerializeContainer(AGS::Common::Stream *out) = 0;
+    virtual void UnserializeContainer(AGS::Common::Stream *in) = 0;
 };
 
 template <typename TDict, bool is_sorted, bool is_casesensitive>
@@ -100,9 +105,7 @@ public:
             Remove(key);
             return true;
         }
-        size_t key_len = strlen(key);
-        size_t value_len = strlen(value);
-        return TryAddItem(key, key_len, value, value_len);
+        return TryAddItem(String(key), String(value));
     }
     int GetItemCount() override { return _dic.size(); }
     void GetKeys(std::vector<const char*> &buf) const override
@@ -117,19 +120,18 @@ public:
     }
 
 private:
-    bool TryAddItem(const char *key, size_t key_len, const char *value, size_t value_len)
+    bool TryAddItem(const String &key, const String &value)
     {
-        String elem_key(key, key_len);
-        String elem_value;
-        elem_value.SetString(value, value_len);
-        _dic[elem_key] = elem_value;
+        _dic[key] = value;
         return true;
     }
-    void DeleteItem(ConstIterator it) { /* do nothing */ }
+    void DeleteItem(ConstIterator /*it*/) { /* do nothing */ }
 
     size_t CalcSerializeSize() override
     {
-        size_t total_sz = sizeof(int32_t);
+        // 2 class properties + item count
+        size_t total_sz = sizeof(int32_t) * 3;
+        // (int32 + string buffer) per item
         for (auto it = _dic.begin(); it != _dic.end(); ++it)
         {
             total_sz += sizeof(int32_t) + it->first.GetLength();
@@ -138,32 +140,30 @@ private:
         return total_sz;
     }
 
-    void SerializeContainer() override
+    void SerializeContainer(AGS::Common::Stream *out) override
     {
-        SerializeInt((int)_dic.size());
+        out->WriteInt32((int)_dic.size());
         for (auto it = _dic.begin(); it != _dic.end(); ++it)
         {
-            SerializeInt((int)it->first.GetLength());
-            memcpy(&serbuffer[bytesSoFar], it->first.GetCStr(), it->first.GetLength());
-            bytesSoFar += it->first.GetLength();
-            SerializeInt((int)it->second.GetLength());
-            memcpy(&serbuffer[bytesSoFar], it->second.GetCStr(), it->second.GetLength());
-            bytesSoFar += it->second.GetLength();
+            out->WriteInt32((int)it->first.GetLength());
+            out->Write(it->first.GetCStr(), it->first.GetLength());
+            out->WriteInt32((int)it->second.GetLength());
+            out->Write(it->second.GetCStr(), it->second.GetLength());
         }
     }
 
-    void UnserializeContainer(const char *serializedData) override
+    void UnserializeContainer(AGS::Common::Stream *in) override
     {
-        size_t item_count = (size_t)UnserializeInt();
+        size_t item_count = in->ReadInt32();
         for (size_t i = 0; i < item_count; ++i)
         {
-            size_t key_len = UnserializeInt();
-            int key_pos = bytesSoFar; bytesSoFar += key_len;
-            size_t value_len = UnserializeInt();
+            size_t key_len = in->ReadInt32();
+            String key = String::FromStreamCount(in, key_len);
+            size_t value_len = in->ReadInt32();
             if (value_len != (size_t)-1) // do not restore keys with null value (old format)
             {
-                int value_pos = bytesSoFar; bytesSoFar += value_len;
-                TryAddItem(&serializedData[key_pos], key_len, &serializedData[value_pos], value_len);
+                String value = String::FromStreamCount(in, value_len);
+                TryAddItem(key, value);
             }
         }
     }

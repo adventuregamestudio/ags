@@ -251,15 +251,15 @@ int CSCISendControlMessage(int haa, int mess, int wPar, long lPar)
 int checkcontrols()
 {
     // NOTE: this is because old code was working with full game screen
-    const int mousex = ::mousex - win_x;
-    const int mousey = ::mousey - win_y;
+    const int mx = ::mousex - win_x;
+    const int my = ::mousey - win_y;
 
     smcode = 0;
     for (int kk = 0; kk < MAXCONTROLS; kk++) {
         if (vobjs[kk] != nullptr) {
-            if (vobjs[kk]->mouseisinarea(mousex, mousey)) {
+            if (vobjs[kk]->mouseisinarea(mx, my)) {
                 controlid = kk;
-                return vobjs[kk]->pressedon(mousex, mousey);
+                return vobjs[kk]->pressedon(mx, my);
             }
         }
     }

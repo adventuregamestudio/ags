@@ -131,7 +131,4 @@ private:
 extern std::vector<AGS::Common::GUIButton> guibuts;
 extern int numguibuts;
 
-int UpdateAnimatingButton(int bu);
-void StopButtonAnimation(int idxn);
-
 #endif // __AC_GUIBUTTON_H

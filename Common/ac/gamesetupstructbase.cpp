@@ -232,8 +232,9 @@ Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox)
         return Size(1024, 768);
     case kGameResolution_1280x720:
         return Size(1280,720);
+    default:
+        return Size();
     }
-    return Size();
 }
 
 const char *GetScriptAPIName(ScriptAPIVersion v)
@@ -250,6 +251,6 @@ const char *GetScriptAPIName(ScriptAPIVersion v)
     case kScriptAPI_v3507: return "v3.5.0-final";
     case kScriptAPI_v399: return "3.99.x";
     case kScriptAPI_v360: return "v3.6.0";
+    default: return "unknown";
     }
-    return "unknown";
 }

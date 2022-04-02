@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/gamestate.h"
-#include "util/bbop.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 
@@ -25,7 +24,7 @@ const char *ScriptViewport::GetType()
     return "Viewport2";
 }
 
-int ScriptViewport::Dispose(const char *address, bool force)
+int ScriptViewport::Dispose(const char* /*address*/, bool /*force*/)
 {
     // Note that ScriptViewport is a reference to actual Viewport object,
     // and this deletes the reference, while viewport may remain in GameState.
@@ -33,27 +32,29 @@ int ScriptViewport::Dispose(const char *address, bool force)
     return 1;
 }
 
-int ScriptViewport::Serialize(const char *address, char *buffer, int bufsize)
+size_t ScriptViewport::CalcSerializeSize()
 {
-    StartSerialize(buffer);
-    SerializeInt(_id);
-    return EndSerialize();
+    return sizeof(int32_t);
 }
 
-void ScriptViewport::Unserialize(int index, const char *serializedData, int dataSize)
+void ScriptViewport::Serialize(const char* /*address*/, Stream *out)
 {
-    StartUnserialize(serializedData, dataSize);
-    _id = UnserializeInt();
+    out->WriteInt32(_id);
+}
+
+void ScriptViewport::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
+    _id = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptViewport *Viewport_Unserialize(int handle, const char *serializedData, int dataSize)
+ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,
     // but acquire one from the GameState, which keeps the first reference.
     // This is essential because GameState should be able to invalidate any
     // script references when Viewport gets removed.
-    const int id = BBOp::Int32FromLE(*((int*)serializedData));
+    const int id = in->ReadInt32();
     if (id >= 0)
     {
         auto scview = play.RegisterRoomViewport(id, handle);

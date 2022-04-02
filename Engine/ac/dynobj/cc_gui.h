@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_CCGUI_H
 #define __AC_CCGUI_H
 
@@ -21,12 +20,12 @@ struct CCGUI final : AGSCCDynamicObject {
 
     // return the type name of the object
     const char *GetType() override;
-
-    // serialize the object into BUFFER (which is BUFSIZE bytes)
-    // return number of bytes used
-    int Serialize(const char *address, char *buffer, int bufsize) override;
-
-    void Unserialize(int index, const char *serializedData, int dataSize) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+protected:
+    // Calculate and return required space for serialization, in bytes
+    size_t CalcSerializeSize() override;
+    // Write object data into the provided stream
+    void Serialize(const char *address, AGS::Common::Stream *out) override;
 };
 
 #endif // __AC_CCGUI_H

@@ -107,7 +107,7 @@ Bitmap *remove_alpha_channel(Bitmap *from)
     return to;
 }
 
-void pre_save_sprite(Common::Bitmap *image) {
+void pre_save_sprite(Common::Bitmap* /*image*/) {
     // not used, we don't save
 }
 

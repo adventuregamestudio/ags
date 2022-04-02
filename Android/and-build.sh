@@ -1,10 +1,16 @@
 #!/bin/bash
+set -e
+#   Exit immediately if a simple command exits with a non-zero status, unless
+# the command that fails is part of an until or  while loop, part of an
+# if statement, part of a && or || list, or if the command's return status
+# is being inverted using !.
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 TAR_CMD="bsdtar"
 command -v bsdtar >/dev/null 2>&1 || { TAR_CMD="tar" ; }
 
 function prepare_package {
+  set -e
   echo "Do this only before any build, or after a full clean."
   echo "doing preparations..."
   pushd "${SCRIPT_DIR}"
@@ -38,22 +44,29 @@ function prepare_package {
 }
 
 function build_debug_library_and_runtime {
+  set -e
   echo "building debug library and runtime..."
   pushd "${SCRIPT_DIR}"
-  pushd agsplayer && ./gradlew assembleDebug --console=plain && popd
+  pushd agsplayer 
+  ./gradlew assembleDebug --console=plain 
+  popd
   popd
   echo "done!"
 }
 
 function build_release_library_and_runtime {
+  set -e
   echo "building release library and runtime..."
   pushd "${SCRIPT_DIR}"
-  pushd agsplayer && ./gradlew assembleRelease --console=plain && popd
+  pushd agsplayer 
+  ./gradlew assembleRelease --console=plain 
+  popd
   popd
   echo "done!"
 }
 
 function rename_apks {
+  set -e
   echo "renaming apks..."
   pushd "${SCRIPT_DIR}"
   version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' ../Common/core/def_version.h)
@@ -74,6 +87,7 @@ function rename_apks {
 }
 
 function create_proj_archive {
+  set -e
   echo "creating libs archive..."
   pushd "${SCRIPT_DIR}"
   version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' ../Common/core/def_version.h)

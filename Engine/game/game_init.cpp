@@ -51,7 +51,6 @@
 using namespace Common;
 using namespace Engine;
 
-extern GameSetupStruct game;
 extern CharacterCache *charcache;
 extern std::vector<ViewStruct> views;
 
@@ -133,7 +132,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 }
 
 // Initializes audio channels and clips and registers them in the script system
-void InitAndRegisterAudioObjects()
+void InitAndRegisterAudioObjects(const GameSetupStruct &game)
 {
     for (int i = 0; i < game.numGameChannels; ++i)
     {
@@ -143,18 +142,15 @@ void InitAndRegisterAudioObjects()
 
     for (size_t i = 0; i < game.audioClips.size(); ++i)
     {
-        // Note that as of 3.5.0 data format the clip IDs are still restricted
-        // to actual item index in array, so we don't make any difference
-        // between game versions, for now.
-        game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
+        ccAddExternalDynamicObject(game.audioClips[i].scriptName, (void*)&game.audioClips[i], &ccDynamicAudioClip);
     }
 }
 
 // Initializes characters and registers them in the script system
 void InitAndRegisterCharacters(const LoadedGameEntities &ents)
 {
+    const GameSetupStruct &game = ents.Game;
     characterScriptObjNames.resize(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
@@ -189,7 +185,7 @@ void InitAndRegisterCharacters(const LoadedGameEntities &ents)
 }
 
 // Initializes dialog and registers them in the script system
-void InitAndRegisterDialogs()
+void InitAndRegisterDialogs(const GameSetupStruct &game)
 {
     scrDialog = new ScriptDialog[game.numdialog];
     for (int i = 0; i < game.numdialog; ++i)
@@ -215,7 +211,7 @@ void InitAndRegisterDialogOptions()
 }
 
 // Initializes gui and registers them in the script system
-HError InitAndRegisterGUI()
+HError InitAndRegisterGUI(const GameSetupStruct &game)
 {
     scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (int i = 0; i < game.numgui; ++i)
@@ -243,7 +239,7 @@ HError InitAndRegisterGUI()
 }
 
 // Initializes inventory items and registers them in the script system
-void InitAndRegisterInvItems()
+void InitAndRegisterInvItems(const GameSetupStruct &game)
 {
     for (int i = 0; i < MAX_INV; ++i)
     {
@@ -288,7 +284,7 @@ void InitAndRegisterRegions()
 }
 
 // Registers static entity arrays in the script system
-void RegisterStaticArrays()
+void RegisterStaticArrays(const GameSetupStruct &game)
 {
     // We need to know sizes of related script structs to convert memory offsets into object indexes.
     // These sized are calculated by the compiler based on script struct declaration.
@@ -324,21 +320,22 @@ void RegisterStaticArrays()
 // Initializes various game entities and registers them in the script system
 HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 {
-    InitAndRegisterAudioObjects();
+    const GameSetupStruct &game = ents.Game;
+    InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(ents);
-    InitAndRegisterDialogs();
+    InitAndRegisterDialogs(game);
     InitAndRegisterDialogOptions();
-    HError err = InitAndRegisterGUI();
+    HError err = InitAndRegisterGUI(game);
     if (!err)
         return err;
-    InitAndRegisterInvItems();
+    InitAndRegisterInvItems(game);
 
     InitAndRegisterHotspots();
     InitAndRegisterRegions();
     InitAndRegisterRoomObjects();
     play.CreatePrimaryViewportAndCamera();
 
-    RegisterStaticArrays();
+    RegisterStaticArrays(game);
 
     setup_player_character(game.playercharacter);
     ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
@@ -425,9 +422,9 @@ void AllocScriptModules()
     runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
     runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
-    for (int i = 0; i < numScriptModules; ++i)
+    for (auto &val : moduleRepExecAddr)
     {
-        moduleRepExecAddr[i].Invalidate();
+        val.Invalidate();
     }
 }
 

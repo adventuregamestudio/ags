@@ -88,7 +88,7 @@ public:
 
 protected:
     // Opens the video, implementation-specific; allows to modify flags
-    virtual bool OpenImpl(const String &name, int &flags) { return false; };
+    virtual bool OpenImpl(const String& /*name*/, int& /*flags*/) { return false; };
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
     // Retrieves next video frame, implementation-specific

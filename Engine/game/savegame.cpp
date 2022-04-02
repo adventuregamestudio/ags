@@ -158,8 +158,9 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 Bitmap *RestoreSaveImage(Stream *in)
@@ -319,7 +320,7 @@ void DoBeforeRestore(PreservedParams &pp)
     gameinstFork = nullptr;
     gameinst = nullptr;
     pp.ScMdDataSize.resize(numScriptModules);
-    for (int i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
         delete moduleInstFork[i];
@@ -435,7 +436,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
                 Math::Min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
 
     // restore the script module data
-    for (int i = 0; i < numScriptModules; ++i)
+    for (size_t i = 0; i < numScriptModules; ++i)
     {
         if (r_data.ScriptModules[i].Data.get())
             memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(),
@@ -484,7 +485,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     if (displayed_room >= 0)
     {
         // Fixup the frame index, in case the restored room does not have enough background frames
-        if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
+        if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
             play.bg_frame = 0;
 
         for (int i = 0; i < MAX_ROOM_BGFRAMES; ++i)
@@ -576,7 +577,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
     update_directional_sound_vol();
 
-    adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS]);
+    adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
     recreate_overlay_ddbs();
 

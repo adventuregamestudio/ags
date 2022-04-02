@@ -24,8 +24,6 @@ using namespace AGS::Common;
 GameSetupStruct::GameSetupStruct()
     : filever(0)
     , roomCount(0)
-    , roomNumbers(nullptr)
-    , roomNames(nullptr)
     , scoreClipID(0)
 {
     memset(invinfo, 0, sizeof(invinfo));
@@ -49,10 +47,8 @@ void GameSetupStruct::Free()
     invScripts.clear();
     numinvitems = 0;
 
-    for (int i = 0; i < roomCount; i++)
-        delete roomNames[i];
-    delete[] roomNames;
-    delete[] roomNumbers;
+    roomNames.clear();
+    roomNumbers.clear();
     roomCount = 0;
 
     audioClips.clear();
@@ -157,7 +153,7 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-HGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 {
     ReadMouseCursors_Aligned(in);
     return HGameFileError::None();
@@ -206,9 +202,9 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
+void GameSetupStruct::read_characters(Common::Stream *in)
 {
-    chars = new CharacterInfo[numcharacters + 5]; // TODO: why +5, is this really needed?
+    chars = new CharacterInfo[numcharacters];
 
     ReadCharacters_Aligned(in);
 }
@@ -312,15 +308,12 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
     if (options[OPT_DEBUGMODE] != 0)
     {
         roomCount = in->ReadInt32();
-        roomNumbers = new int[roomCount];
-        roomNames = new char*[roomCount];
-        String pexbuf;
-        for (int bb = 0; bb < roomCount; bb++)
+        roomNumbers.resize(roomCount);
+        roomNames.resize(roomCount);
+        for (int i = 0; i < roomCount; ++i)
         {
-            roomNumbers[bb] = in->ReadInt32();
-            pexbuf.Read(in, STD_BUFFER_SIZE);
-            roomNames[bb] = new char[pexbuf.GetLength() + 1];
-            strcpy(roomNames[bb], pexbuf.GetCStr());
+            roomNumbers[i] = in->ReadInt32();
+            roomNames[i].Read(in);
         }
     }
     else

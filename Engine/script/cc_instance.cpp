@@ -510,7 +510,7 @@ int ccInstance::Run(int32_t curpc)
                     break;
                 case FIXUP_IMPORT:
                     {
-                        const ScriptImport *import = simp.getByIndex((int32_t)codeInst->code[pc_at]);
+                        const ScriptImport *import = simp.getByIndex(static_cast<uint32_t>(codeInst->code[pc_at]));
                         if (import)
                         {
                             codeOp.Args[i] = import->Value;
@@ -1339,7 +1339,7 @@ RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname)
 {
     int k;
     char altName[200];
-    sprintf(altName, "%s$", symname);
+    snprintf(altName, sizeof(altName), "%s$", symname);
     RuntimeScriptValue rval_null;
 
     for (k = 0; k < instanceof->numexports; k++) {
@@ -1636,18 +1636,18 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
         return true;
     }
 
-    resolved_imports = new int[numimports];
-    int errors = 0, last_err_idx;
+    resolved_imports = new uint32_t[numimports];
+    size_t errors = 0, last_err_idx = 0;
     for (int import_idx = 0; import_idx < scri->numimports; ++import_idx)
     {
         if (scri->imports[import_idx] == nullptr)
         {
-            resolved_imports[import_idx] = -1;
+            resolved_imports[import_idx] = UINT32_MAX;
             continue;
         }
 
         resolved_imports[import_idx] = simp.get_index_of(scri->imports[import_idx]);
-        if (resolved_imports[import_idx] < 0)
+        if (resolved_imports[import_idx] == UINT32_MAX)
         {
             Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
             errors++;
@@ -1779,7 +1779,7 @@ static void cc_error_fixups(const ccScript *scri, size_t pc, const char *fmt, ..
     String displbuf = String::FromFormatV(fmt, ap);
     va_end(ap);
     const char *scname = scri->numSections > 0 ? scri->sectionNames[0] : "?";
-    if (pc == -1)
+    if (pc == SIZE_MAX)
     {
         cc_error("in script %s: %s", scname, displbuf.GetCStr());
     }
@@ -1823,7 +1823,7 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         case FIXUP_IMPORT:
             break; // do nothing yet
         default:
-            cc_error_fixups(scri, -1, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
+            cc_error_fixups(scri, SIZE_MAX, "unknown fixup type: %d (fixup num %d)", scri->fixuptypes[i], i);
             return false;
         }
     }
@@ -1837,8 +1837,8 @@ bool ccInstance::ResolveImportFixups(const ccScript *scri)
         if (scri->fixuptypes[fixup_idx] != FIXUP_IMPORT)
             continue;
 
-        int32_t const fixup = scri->fixups[fixup_idx];
-        int const import_index = resolved_imports[code[fixup]];
+        uint32_t const fixup = scri->fixups[fixup_idx];
+        uint32_t const import_index = resolved_imports[code[fixup]];
         ScriptImport const *import = simp.getByIndex(import_index);
         if (!import)
         {

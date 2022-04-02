@@ -11,11 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/common_defines.h"
 #include "game/roomstruct.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 
@@ -24,17 +26,17 @@ const char *CCObject::GetType() {
     return "Object";
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
-int CCObject::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptObject *shh = (ScriptObject*)address;
-    StartSerialize(buffer);
-    SerializeInt(shh->id);
-    return EndSerialize();
+size_t CCObject::CalcSerializeSize()
+{
+    return sizeof(int32_t);
 }
 
-void CCObject::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int num = UnserializeInt();
+void CCObject::Serialize(const char *address, Stream *out) {
+    ScriptObject *shh = (ScriptObject*)address;
+    out->WriteInt32(shh->id);
+}
+
+void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+    int num = in->ReadInt32();
     ccRegisterUnserializedObject(index, &scrObj[num], this);
 }

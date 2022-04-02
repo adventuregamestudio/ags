@@ -21,12 +21,12 @@ namespace Engine
 //-----------------------------------------------------------------------------
 // SDLResampler
 //-----------------------------------------------------------------------------
-bool SDLResampler::Setup(SDL_AudioFormat src_fmt, uint8_t src_chans, int src_rate,
-    SDL_AudioFormat dst_fmt, uint8_t dst_chans, int dst_rate)
+bool SDLResampler::Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
+    SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate)
 {
     SDL_zero(_cvt);
-    return SDL_BuildAudioCVT(&_cvt, src_fmt, src_chans, src_rate,
-        dst_fmt, dst_chans, dst_rate) >= 0;
+    return SDL_BuildAudioCVT(&_cvt, src_fmt, static_cast<uint8_t>(src_chans), src_rate,
+        dst_fmt, static_cast<uint8_t>(dst_chans), dst_rate) >= 0;
 }
 
 const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)
@@ -82,10 +82,10 @@ bool SDLDecoder::Open(float pos_ms)
     }
 
     _sample = std::move(sample);
-    _bytesPerMs = SoundHelper::BytesPerMs(_sample->desired.format, _sample->desired.channels, _sample->desired.rate);
-    _durationMs = static_cast<float>(Sound_GetDuration(_sample.get()));
+    _durationMs = Sound_GetDuration(_sample.get());
+    _posBytes = 0u;
     _posMs = 0u;
-    if (pos_ms >= 0u) {
+    if (pos_ms > 0.f) {
         Seek(pos_ms);
     }
     return true;
@@ -96,20 +96,25 @@ void SDLDecoder::Close()
     _sample.reset();
 }
 
-void SDLDecoder::Seek(float pos_ms)
+float SDLDecoder::Seek(float pos_ms)
 {
-    if (!_sample || pos_ms < 0.f) return;
-    if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) != 0)
-        _posMs = pos_ms;
+    if (!_sample || pos_ms < 0.f) return static_cast<float>(_posMs);
+    if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) == 0)
+        return static_cast<float>(_posMs); // old pos on failure (CHECKME?)
+    _posMs = static_cast<uint32_t>(pos_ms);
+    _posBytes = SoundHelper::BytesPerMs(_posMs,
+        _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+    return pos_ms; // new pos on success
 }
 
 SoundBuffer SDLDecoder::GetData()
 {
     if (!_sample || _EOS) { return SoundBuffer(); }
-    float old_pos = _posMs;
+    uint32_t old_pos = _posMs;
     auto sz = Sound_Decode(_sample.get());
     _posBytes += sz;
-    _posMs = static_cast<float>(_posBytes) / _bytesPerMs;
+    _posMs = SoundHelper::MillisecondsFromBytes(_posBytes,
+        _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
     // If read less than the buffer size - that means
     // either we reached end of sound stream OR decoding error occured
     if (sz < _sample->buffer_size) {
@@ -124,8 +129,8 @@ SoundBuffer SDLDecoder::GetData()
             _posMs = 0u;
         }
     }
-    return SoundBuffer(_sample->buffer, sz, old_pos, static_cast<float>(
-        SoundHelper::DurationMsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
+    return SoundBuffer(_sample->buffer, sz, static_cast<float>(old_pos), static_cast<float>(
+        SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
 }
 
 } // namespace Engine

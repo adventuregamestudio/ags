@@ -48,7 +48,7 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
         char ascii[sizeof(SDL_TextInputEvent::text)];
         StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
         unsigned char textch = ascii[0];
-        if (textch >= 32 && textch <= 255)
+        if (textch >= 32)
             ki.Key = static_cast<eAGSKeyCode>(textch);
         strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
@@ -150,7 +150,6 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, boo
 
     default: return eAGSKeyCodeNone;
     }
-    return eAGSKeyCodeNone;
 }
 
 // Converts ags key to SDL key scans (up to 3 values, because this is not a 1:1 match);
@@ -223,7 +222,6 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 
     default: return false;
     }
-    return false;
 }
 
 
@@ -259,7 +257,13 @@ SDL_Event ags_get_next_keyevent()
 
 int ags_iskeydown(eAGSKeyCode ags_key)
 {
-    SDL_PumpEvents();
+    // old input handling: update key state in realtime
+    // left only in case if necessary for some ancient game, but
+    // this really may only be required if there's a key waiting loop in
+    // script without Wait(1) to let engine poll events in a natural way.
+    if (game.options[OPT_KEYHANDLEAPI] == 0)
+        SDL_PumpEvents();
+
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
@@ -408,7 +412,6 @@ int mgetbutton()
 }
 
 extern int pluginSimulatedClick;
-extern void domouse(int str);
 int mouse_z_was = 0;
 const int MB_ARRAY[3] = { MouseBitLeft, MouseBitRight, MouseBitMiddle };
 
@@ -437,12 +440,8 @@ void ags_mouse_get_relxy(int &x, int &y) {
     mouse_accum_rely = 0;
 }
 
-void ags_domouse(int what) {
-    // do mouse is "update the mouse x,y and also the cursor position", unless DOMOUSE_NOCURSOR is set.
-    if (what == DOMOUSE_NOCURSOR)
-        mgetgraphpos();
-    else
-        domouse(what);
+void ags_domouse() {
+    mgetgraphpos();
 }
 
 int ags_check_mouse_wheel() {

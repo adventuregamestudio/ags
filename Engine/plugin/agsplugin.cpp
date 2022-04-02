@@ -40,6 +40,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
+#include "ac/sys_events.h"
 #include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptstring.h"
@@ -403,11 +404,9 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
     rotate_sprite(ds->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }
 
-extern void domouse(int);
-
 void IAGSEngine::PollSystem () {
 
-    domouse(DOMOUSE_NOCURSOR);
+    ags_domouse();
     update_polled_stuff_if_runtime();
     int mbut, mwheelz;
     if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && !play.IsIgnoringInput())

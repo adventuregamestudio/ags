@@ -99,10 +99,6 @@ extern RGB palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 
-#if AGS_PLATFORM_OS_ANDROID
-extern "C" void selectLatestSavegame();
-#endif
-
 ResourcePaths ResPaths;
 
 t_engine_pre_init_callback engine_pre_init_callback = nullptr;
@@ -207,6 +203,8 @@ bool engine_run_setup(const ConfigTree &cfg, int &app_res)
             String args = String::FromFormat("\"%s\"", appPath.GetCStr());
             _spawnl(_P_OVERLAY, appPath.GetCStr(), args.GetCStr(), NULL);
     }
+#else
+    (void)cfg;
 #endif
     return true;
 }
@@ -221,7 +219,7 @@ static String find_game_data_in_config(const String &path)
     String def_cfg_file = Path::ConcatPaths(path, DefaultConfigFileName);
     if (IniUtil::Read(def_cfg_file, cfg))
     {
-        String data_file = INIreadstring(cfg, "misc", "datafile");
+        String data_file = CfgReadString(cfg, "misc", "datafile");
         Debug::Printf("Found game config: %s", def_cfg_file.GetCStr());
         Debug::Printf(" Cfg: data file: %s", data_file.GetCStr());
         // Only accept if it's a relative path
@@ -893,9 +891,13 @@ void engine_prepare_to_start_game()
 
     engine_setup_scsystem_auxiliary();
 
-#if AGS_PLATFORM_OS_ANDROID
+#if (AGS_PLATFORM_OS_ANDROID) || (AGS_PLATFORM_OS_IOS)
     if (psp_load_latest_savegame)
-        selectLatestSavegame();
+    {
+        int slot = GetLastSaveSlot();
+        if (slot >= 0)
+            loadSaveGameOnStartup = get_save_game_path(slot);
+    }
 #endif
 }
 
@@ -1045,9 +1047,9 @@ void engine_read_config(ConfigTree &cfg)
     // Handle directive to search for the user config inside the custom directory;
     // this option may come either from command line or default/global config.
     if (usetup.user_conf_dir.IsEmpty())
-        usetup.user_conf_dir = INIreadstring(cfg, "misc", "user_conf_dir");
+        usetup.user_conf_dir = CfgReadString(cfg, "misc", "user_conf_dir");
     if (usetup.user_conf_dir.IsEmpty()) // also try deprecated option
-        usetup.user_conf_dir = INIreadint(cfg, "misc", "localuserconf") != 0 ? "." : "";
+        usetup.user_conf_dir = CfgReadBoolInt(cfg, "misc", "localuserconf") ? "." : "";
     // Test if the file is writeable, if it is then both engine and setup
     // applications may actually use it fully as a user config, otherwise
     // fallback to default behavior.

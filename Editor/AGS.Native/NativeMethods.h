@@ -5,19 +5,20 @@
 using namespace AGS::Types;
 using namespace System;
 using namespace System::Collections::Generic;
-using namespace System::Drawing;
 using namespace System::Drawing::Imaging;
 using namespace System::IO;
 
 namespace AGS
 {
-	namespace Native 
+namespace Native 
+{
+    using Bitmap = System::Drawing::Bitmap;
+
+	public ref class NativeMethods
 	{
-		public ref class NativeMethods
-		{
-		private:
-			cli::array<PaletteEntry^>^ lastPaletteSet;
-            static TextConverter^ _gameTextConverter;
+	private:
+		cli::array<PaletteEntry^>^ lastPaletteSet;
+        static TextConverter^ _gameTextConverter;
 
       void UpdateResourceInFile(String ^fileToUpdate, const char *resourceName, cli::array<System::Byte> ^newData);
       BaseTemplate^ LoadTemplateFile(String ^fileName, bool isRoomTemplate);
@@ -105,5 +106,5 @@ namespace AGS
 			void DeleteFiles(cli::array<System::String^> ^fileNames, System::String ^comment);
 		};
 
-	}
-}
+} // namespace Native 
+} // namespace AGS

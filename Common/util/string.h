@@ -54,6 +54,8 @@ class Stream;
 class String
 {
 public:
+    static const size_t NoIndex = SIZE_MAX;
+
     // Standard constructor: intialize empty string
     String();
     // Copy constructor
@@ -132,26 +134,26 @@ public:
     int     CompareNoCase(const String &str) const { return CompareNoCase(str._cstr); }
     int     CompareNoCase(const char *cstr) const;
     // Compares the leftmost part of this string with given string
-    int     CompareLeft(const String &str, size_t count = -1) const
-                { return CompareLeft(str._cstr, count != -1 ? count : str._len ); }
-    int     CompareLeft(const char *cstr, size_t count = -1) const;
-    int     CompareLeftNoCase(const String &str, size_t count = -1) const
-                { return CompareLeftNoCase(str._cstr, count != -1 ? count : str._len); }
-    int     CompareLeftNoCase(const char *cstr, size_t count = -1) const;
+    int     CompareLeft(const String &str, size_t count = NoIndex) const
+                { return CompareLeft(str._cstr, count != NoIndex ? count : str._len ); }
+    int     CompareLeft(const char *cstr, size_t count = NoIndex) const;
+    int     CompareLeftNoCase(const String &str, size_t count = NoIndex) const
+                { return CompareLeftNoCase(str._cstr, count != NoIndex ? count : str._len); }
+    int     CompareLeftNoCase(const char *cstr, size_t count = NoIndex) const;
     // Compares any part of this string with given string
-    int     CompareMid(const String &str, size_t from, size_t count = -1) const
-                { return CompareMid(str._cstr, from, count != -1 ? count : str._len); }
-    int     CompareMid(const char *cstr, size_t from, size_t count = -1) const;
-    int     CompareMidNoCase(const String &str, size_t from, size_t count = -1) const
-                { return CompareMidNoCase(str._cstr, from, count != -1 ? count : str._len); }
-    int     CompareMidNoCase(const char *cstr, size_t from, size_t count = -1) const;
+    int     CompareMid(const String &str, size_t from, size_t count = NoIndex) const
+                { return CompareMid(str._cstr, from, count != NoIndex ? count : str._len); }
+    int     CompareMid(const char *cstr, size_t from, size_t count = NoIndex) const;
+    int     CompareMidNoCase(const String &str, size_t from, size_t count = NoIndex) const
+                { return CompareMidNoCase(str._cstr, from, count != NoIndex ? count : str._len); }
+    int     CompareMidNoCase(const char *cstr, size_t from, size_t count = NoIndex) const;
     // Compares the rightmost part of this string with given C-string
-    int     CompareRight(const String &str, size_t count = -1) const
-                { return CompareRight(str._cstr, count != -1 ? count : str._len); }
-    int     CompareRight(const char *cstr, size_t count = -1) const;
-    int     CompareRightNoCase(const String &str, size_t count = -1) const
-                { return CompareRightNoCase(str._cstr, count != -1 ? count : str._len); }
-    int     CompareRightNoCase(const char *cstr, size_t count = -1) const;
+    int     CompareRight(const String &str, size_t count = NoIndex) const
+                { return CompareRight(str._cstr, count != NoIndex ? count : str._len); }
+    int     CompareRight(const char *cstr, size_t count = NoIndex) const;
+    int     CompareRightNoCase(const String &str, size_t count = NoIndex) const
+                { return CompareRightNoCase(str._cstr, count != NoIndex ? count : str._len); }
+    int     CompareRightNoCase(const char *cstr, size_t count = NoIndex) const;
     // Convenience aliases for Compare functions
     inline bool Equals(const String &str) const { return Compare(str) == 0; }
     inline bool Equals(const char *cstr) const { return Compare(cstr) == 0; }
@@ -161,9 +163,9 @@ public:
     inline bool EndsWidth(const char *cstr) const { return CompareRight(cstr) == 0; }
 
     // These functions search for character or substring inside this string
-    // and return the index of the (first) character, or -1 if nothing found.
+    // and return the index of the (first) character, or NoIndex if nothing found.
     size_t  FindChar(char c, size_t from = 0) const;
-    size_t  FindCharReverse(char c, size_t from = -1) const;
+    size_t  FindCharReverse(char c, size_t from = NoIndex) const;
     size_t  FindString(const String &str, size_t from = 0) const
                 { return FindString(str._cstr, from); }
     size_t  FindString(const char *cstr, size_t from = 0) const;
@@ -223,7 +225,7 @@ public:
     // Extract N leftmost characters as a new string
     String  Left(size_t count) const;
     // Extract up to N characters starting from given index
-    String  Mid(size_t from, size_t count = -1) const;
+    String  Mid(size_t from, size_t count = NoIndex) const;
     // Extract N rightmost characters
     String  Right(size_t count) const;
 
@@ -267,7 +269,7 @@ public:
     // Cuts off leftmost N characters
     void    ClipLeft(size_t count);
     // Cuts out N characters starting from given index
-    void    ClipMid(size_t from, size_t count = -1);
+    void    ClipMid(size_t from, size_t count = NoIndex);
     // Cuts off rightmost N characters
     void    ClipRight(size_t count);
     // Cuts off leftmost part, separated by the given char; if no separator was
@@ -323,7 +325,7 @@ public:
     // Overwrite the Nth character of the string; does not change string's length
     void    SetAt(size_t index, char c);
     // Makes a new string by copying up to N chars from C-string
-    void    SetString(const char *cstr, size_t length = -1);
+    void    SetString(const char *cstr, size_t length = NoIndex);
     // For all Trim functions, if given character value is 0, all whitespace
     // characters (space, tabs, CRLF) are removed.
     // Remove heading and trailing characters from the string
@@ -336,7 +338,7 @@ public:
     // Truncate the string to the leftmost N characters
     void    TruncateToLeft(size_t count);
     // Truncate the string to the middle N characters
-    void    TruncateToMid(size_t from, size_t count = -1);
+    void    TruncateToMid(size_t from, size_t count = NoIndex);
     // Truncate the string to the rightmost N characters
     void    TruncateToRight(size_t count);
     // Truncate the string to the leftmost part, separated by the given char;

@@ -35,12 +35,16 @@ struct ScreenOverlay {
     // helper bitmap for software transform
     std::unique_ptr<Common::Bitmap> helpbmp;
     Engine::IDriverDependantBitmap *bmp = nullptr;
-    int type = 0, x = 0, y = 0, timeout = 0;
-    int bgSpeechForChar = 0;
+    int type = 0, timeout = 0;
+    // Note that x,y are overlay's properties, that define its position in script;
+    // but real drawn position is x + offsetX, y + offsetY;
+    int x = 0, y = 0;
+    // Border/padding offset for the tiled text windows
+    int offsetX = 0, offsetY = 0;
+    int bgSpeechForChar = -1;
     int associatedOverlayHandle = 0;
     int zorder = INT_MIN;
     bool positionRelativeToScreen = false;
-    int _offsetX = 0, _offsetY = 0;
     float rotation = 0.f;
     Common::BlendMode blendMode = Common::kBlend_Normal;
     int transparency = 0;

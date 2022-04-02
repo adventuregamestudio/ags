@@ -11,18 +11,19 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/button.h"
 #include "ac/common.h"
 #include "ac/gui.h"
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
+#include "ac/object.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
+#include "main/game_run.h"
 
 using namespace AGS::Common;
 
@@ -33,43 +34,78 @@ extern std::vector<ViewStruct> views;
 
 std::vector<AnimatingGUIButton> animbuts;
 
-void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) {
+// Update the actual button's image from the current animation frame
+void UpdateButtonState(const AnimatingGUIButton &abtn)
+{
+    guibuts[abtn.buttonid].Image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
+    guibuts[abtn.buttonid].CurrentImage = guibuts[abtn.buttonid].Image;
+    guibuts[abtn.buttonid].PushedImage = 0;
+    guibuts[abtn.buttonid].MouseOverImage = 0;
+    guibuts[abtn.buttonid].NotifyParentChanged();
+}
+
+void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe) {
     int guin = butt->ParentId;
     int objn = butt->Id;
+
+    if (direction == FORWARDS)
+        direction = 0;
+    else if (direction == BACKWARDS)
+        direction = 1;
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
 
     if ((view < 1) || (view > game.numviews))
         quit("!AnimateButton: invalid view specified");
     view--;
-
     if ((loop < 0) || (loop >= views[view].numLoops))
         quit("!AnimateButton: invalid loop specified for view");
+    if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
+        quit("!AnimateButton: invalid starting frame number specified");
+    if ((repeat < 0) || (repeat > 1))
+        quit("!AnimateButton: invalid repeat value");
+    if ((blocking < 0) || (blocking > 1))
+        quit("!AnimateButton: invalid blocking value");
+    if ((direction < 0) || (direction > 1))
+        quit("!AnimateButton: invalid direction");
 
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(guin, objn);
 
-    int buttonId = guis[guin].GetControlID(objn);
+    // reverse animation starts at the *previous frame*
+    if (direction)
+    {
+        if (--sframe < 0)
+            sframe = views[view].loops[loop].numFrames - (-sframe);
+    }
 
-    guibuts[buttonId].PushedImage = 0;
-    guibuts[buttonId].MouseOverImage = 0;
-
+    int but_id = guis[guin].GetControlID(objn);
     AnimatingGUIButton abtn;
     abtn.ongui = guin;
     abtn.onguibut = objn;
-    abtn.buttonid = buttonId;
+    abtn.buttonid = but_id;
     abtn.view = view;
     abtn.loop = loop;
     abtn.speed = speed;
     abtn.repeat = repeat;
-    abtn.frame = -1;
-    abtn.wait = 0;
+    abtn.blocking = blocking;
+    abtn.direction = direction;
+    abtn.frame = sframe;
+    abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     animbuts.push_back(abtn);
-    // launch into the first frame
-    if (UpdateAnimatingButton(animbuts.size() - 1))
-    {
-        debug_script_warn("AnimateButton: no frames to animate (button: %s, view: %d, loop: %d)",
-            butt->GetScriptName().GetCStr(), view, loop);
-        StopButtonAnimation(animbuts.size() - 1);
-    }
+    // launch into the first frame, and play the first frame's sound
+    UpdateButtonState(abtn);
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame);
+
+    // Blocking animate
+    if (blocking)
+        GameLoopUntilButAnimEnd(guin, objn);
+}
+
+void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) {
+    Button_AnimateEx(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0);
 }
 
 const char* Button_GetText_New(GUIButton *butt) {
@@ -206,46 +242,20 @@ void AddButtonAnimation(const AnimatingGUIButton &abtn)
 }
 
 // returns 1 if animation finished
-int UpdateAnimatingButton(int bu) {
+bool UpdateAnimatingButton(int bu)
+{
     AnimatingGUIButton &abtn = animbuts[bu];
-
     if (abtn.wait > 0) {
         abtn.wait--;
-        return 0;
+        return true;
     }
-    ViewStruct *tview = &views[abtn.view];
-
-    abtn.frame++;
-
-    if (abtn.frame >= tview->loops[abtn.loop].numFrames) 
-    {
-        if (tview->loops[abtn.loop].RunNextLoop()) {
-            // go to next loop
-            abtn.loop++;
-            abtn.frame = 0;
-        }
-        else if (abtn.repeat) {
-            abtn.frame = 0;
-            // multi-loop anim, go back
-            while ((abtn.loop > 0) && 
-                (tview->loops[abtn.loop - 1].RunNextLoop()))
-                abtn.loop--;
-        }
-        else
-            return 1;
-    }
-
+    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction,
+            abtn.repeat != 0 ? ANIM_REPEAT : ANIM_ONCE))
+        return false;
     CheckViewFrame(abtn.view, abtn.loop, abtn.frame);
-
-    // update the button's image
-    guibuts[abtn.buttonid].Image = tview->loops[abtn.loop].frames[abtn.frame].pic;
-    guibuts[abtn.buttonid].CurrentImage = guibuts[abtn.buttonid].Image;
-    guibuts[abtn.buttonid].PushedImage = 0;
-    guibuts[abtn.buttonid].MouseOverImage = 0;
-    guibuts[abtn.buttonid].NotifyParentChanged();
-
-    abtn.wait = abtn.speed + tview->loops[abtn.loop].frames[abtn.frame].speed;
-    return 0;
+    abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    UpdateButtonState(abtn);
+    return true;
 }
 
 void StopButtonAnimation(int idxn) {
@@ -259,7 +269,7 @@ void RemoveAllButtonAnimations()
 
 // Returns the index of the AnimatingGUIButton object corresponding to the
 // given button ID; returns -1 if no such animation exists
-int FindAnimatedButton(int guin, int objn)
+int FindButtonAnimation(int guin, int objn)
 {
     for (size_t i = 0; i < animbuts.size(); ++i)
     {
@@ -271,7 +281,7 @@ int FindAnimatedButton(int guin, int objn)
 
 void FindAndRemoveButtonAnimation(int guin, int objn)
 {
-    int idx = FindAnimatedButton(guin, objn);
+    int idx = FindButtonAnimation(guin, objn);
     if (idx >= 0)
         StopButtonAnimation(idx);
 }
@@ -285,7 +295,7 @@ void Button_Click(GUIButton *butt, int mbut)
 
 bool Button_IsAnimating(GUIButton *butt)
 {
-    return FindAnimatedButton(butt->ParentId, butt->Id) >= 0;
+    return FindButtonAnimation(butt->ParentId, butt->Id) >= 0;
 }
 
 // NOTE: in correspondance to similar functions for Character & Object,
@@ -293,19 +303,19 @@ bool Button_IsAnimating(GUIButton *butt)
 // zero-based index and 0 in case of no animation.
 int Button_GetAnimView(GUIButton *butt)
 {
-    int idx = FindAnimatedButton(butt->ParentId, butt->Id);
+    int idx = FindButtonAnimation(butt->ParentId, butt->Id);
     return idx >= 0 ? animbuts[idx].view + 1 : 0;
 }
 
 int Button_GetAnimLoop(GUIButton *butt)
 {
-    int idx = FindAnimatedButton(butt->ParentId, butt->Id);
+    int idx = FindButtonAnimation(butt->ParentId, butt->Id);
     return idx >= 0 ? animbuts[idx].loop : 0;
 }
 
 int Button_GetAnimFrame(GUIButton *butt)
 {
-    int idx = FindAnimatedButton(butt->ParentId, butt->Id);
+    int idx = FindButtonAnimation(butt->ParentId, butt->Id);
     return idx >= 0 ? animbuts[idx].frame : 0;
 }
 
@@ -339,6 +349,11 @@ extern ScriptString myScriptStringImpl;
 RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate);
+}
+
+RuntimeScriptValue Sc_Button_AnimateEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT7(GUIButton, Button_AnimateEx);
 }
 
 // const char* | GUIButton *butt
@@ -475,6 +490,7 @@ RuntimeScriptValue Sc_Button_GetView(void *self, const RuntimeScriptValue *param
 void RegisterButtonAPI()
 {
     ccAddExternalObjectFunction("Button::Animate^4",            Sc_Button_Animate);
+    ccAddExternalObjectFunction("Button::Animate^7",            Sc_Button_AnimateEx);
     ccAddExternalObjectFunction("Button::Click^1",              Sc_Button_Click);
     ccAddExternalObjectFunction("Button::GetText^1",            Sc_Button_GetText);
     ccAddExternalObjectFunction("Button::SetText^1",            Sc_Button_SetText);

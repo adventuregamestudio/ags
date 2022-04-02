@@ -361,10 +361,12 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 	if (!TraceLine(sx, sy, ex, ey, &opath))
 		return NAV_STRAIGHT;
 
-	NodeInfo &ni = mapNodes[sy*mapWidth+sx];
-	ni.dist = 0;
-	ni.frameId = frameId;
-	ni.prev = -1;
+	{
+		NodeInfo &node = mapNodes[sy*mapWidth+sx];
+		node.dist = 0;
+		node.frameId = frameId;
+		node.prev = -1;
+	}
 
 	closest = 0x7fffffff;
 	cnode = PackSquare(sx, sy);
@@ -383,14 +385,16 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 		int x, y;
 		UnpackSquare(e.index, x, y);
 
-		int dx = x - ex;
-		int dy = y - ey;
-		int edist = ClosestDist(dx, dy);
-
-		if (edist < closest)
 		{
-			closest = edist;
-			cnode = e.index;
+			int edx = x - ex;
+			int edy = y - ey;
+			int edist = ClosestDist(edx, edy);
+
+			if (edist < closest)
+			{
+				closest = edist;
+				cnode = e.index;
+			}
 		}
 
 		if (x == ex && y == ey)
@@ -399,14 +403,17 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 			break;
 		}
 
-		const NodeInfo &node = mapNodes[y*mapWidth+x];
+		float dist;
+		int prev;
 
-		float dist = node.dist * DIST_SCALE_UNPACK;
+		{
+			const NodeInfo &node = mapNodes[y*mapWidth + x];
+			dist = node.dist * DIST_SCALE_UNPACK;
+			prev = node.prev;
+		}
 
 		int pneig[8];
 		int ncount = 0;
-
-		int prev = node.prev;
 
 		if (prev < 0)
 		{
@@ -675,9 +682,6 @@ Navigation::NavResult Navigation::NavigateRefined(int sx, int sy, int ex, int ey
 		return res;
 	}
 
-	int fx = sx;
-	int fy = sy;
-
 	fpath.clear();
 	ncpathIndex.clear();
 
@@ -692,7 +696,7 @@ Navigation::NavResult Navigation::NavigateRefined(int sx, int sy, int ex, int ey
 	rayPath.reserve(opath.size());
 	orayPath.reserve(opath.size());
 
-	for (int i=1; i<(int)opath.size(); i++)
+	for (int i=1, fx = sx, fy = sy; i<(int)opath.size(); i++)
 	{
 		// trying to optimize path
 		int tx, ty;
@@ -746,6 +750,7 @@ Navigation::NavResult Navigation::NavigateRefined(int sx, int sy, int ex, int ey
 	// validate cpath
 	for (int i=0; i<(int)ncpath.size()-1; i++)
 	{
+		int fx, fy;
 		int tx, ty;
 		UnpackSquare(ncpath[i], fx, fy);
 		UnpackSquare(ncpath[i+1], tx, ty);

@@ -11,21 +11,25 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
+#include "util/stream.h"
+
+using namespace AGS::Common;
 
 // return the type name of the object
 const char *ScriptDialogOptionsRendering::GetType() {
     return "DialogOptionsRendering";
 }
 
-// serialize the object into BUFFER (which is BUFSIZE bytes)
-// return number of bytes used
-int ScriptDialogOptionsRendering::Serialize(const char *address, char *buffer, int bufsize) {
+size_t ScriptDialogOptionsRendering::CalcSerializeSize()
+{
     return 0;
 }
 
-void ScriptDialogOptionsRendering::Unserialize(int index, const char *serializedData, int dataSize) {
+void ScriptDialogOptionsRendering::Serialize(const char* /*address*/, Stream* /*out*/) {
+}
+
+void ScriptDialogOptionsRendering::Unserialize(int index, Stream* /*in*/, size_t /*data_sz*/) {
     ccRegisterUnserializedObject(index, this, this);
 }
 

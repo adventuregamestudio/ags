@@ -437,7 +437,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     play.bg_anim_delay = play.anim_background_speed;
 
     // Fixup the frame index, in case the new room does not have enough background frames
-    if (play.bg_frame < 0 || play.bg_frame >= thisroom.BgFrameCount)
+    if (play.bg_frame < 0 || static_cast<size_t>(play.bg_frame) >= thisroom.BgFrameCount)
         play.bg_frame = 0;
 
     // do the palette
@@ -891,7 +891,7 @@ void check_new_room() {
         evh.type = EV_RUNEVBLOCK;
         evh.data1 = EVB_ROOM;
         evh.data2 = 0;
-        evh.data3 = 5;
+        evh.data3 = EVROM_BEFOREFADEIN;
         evh.player=game.playercharacter;
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;

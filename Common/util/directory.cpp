@@ -120,7 +120,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
 }
 #else
 bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
-    int attr_dir)
+    uint32_t attr_dir)
 {
     char filename[MAX_PATH_SZ];
     wchar_t wpattern[MAX_PATH_SZ];
@@ -192,8 +192,8 @@ struct FindFile::Internal
 #if AGS_PLATFORM_OS_ANDROID
     std::unique_ptr<AndroidADir> aadir;
 #endif
-    int attrFile = 0;
-    int attrDir = 0;
+    uint32_t attrFile = 0u;
+    uint32_t attrDir = 0u;
 };
 
 
@@ -287,7 +287,7 @@ bool FindFile::Next()
 #if AGS_PLATFORM_OS_WINDOWS
     auto ff = _i->ff;
     auto &fdata = _i->fdata;
-    const int attrDir = _i->attrDir;
+    const uint32_t attrDir = _i->attrDir;
     char filename[MAX_PATH_SZ];
     // We already have an entry opened at this point, so check that first;
     // if it's not valid then continue searching
@@ -305,8 +305,8 @@ bool FindFile::Next()
     }
 #else
     auto dir = _i->dir;
-    const int is_reg = _i->attrFile;
-    const int is_dir = _i->attrDir;
+    const uint32_t is_reg = _i->attrFile;
+    const uint32_t is_dir = _i->attrDir;
     struct dirent *ent;
     struct stat f_stat;
     std::cmatch mr;
@@ -390,7 +390,7 @@ bool FindFileRecursive::Next()
 
 bool FindFileRecursive::PushDir(const String &sub)
 {
-    if (_maxLevel != -1 && _fdirs.size() == _maxLevel)
+    if (_maxLevel != SIZE_MAX && _fdirs.size() == _maxLevel)
         return false; // no more nesting allowed
 
     String path = Path::ConcatPaths(_fullDir, sub);

@@ -198,8 +198,8 @@ Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const
     case kRoomAreaWalkBehind: return WalkBehindMask.get();
     case kRoomAreaWalkable: return WalkAreaMask.get();
     case kRoomAreaRegion: return RegionMask.get();
+    default: return nullptr;
     }
-    return nullptr;
 }
 
 float RoomStruct::GetMaskScale(RoomAreaMask mask) const
@@ -211,8 +211,8 @@ float RoomStruct::GetMaskScale(RoomAreaMask mask) const
     case kRoomAreaWalkable:
     case kRoomAreaRegion:
         return 1.f / MaskResolution;
+    default: return 0.f;
     }
-    return 0.f;
 }
 
 bool RoomStruct::HasRegionLightLevel(int id) const

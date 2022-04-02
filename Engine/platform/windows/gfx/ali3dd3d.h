@@ -213,9 +213,9 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
-    void EnableVsyncBeforeRender(bool enabled) override { }
+    void EnableVsyncBeforeRender(bool /*enabled*/) override { }
     void Vsync() override;
-    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override { _renderSprAtScreenRes = enabled; };
+    void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void BoxOutEffect(bool blackingOut, int speed, int delay) override;

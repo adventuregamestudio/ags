@@ -81,8 +81,8 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
     }
 
     // run script modules
-    for (int kk = 0; kk < numScriptModules; kk++) {
-        toret = RunScriptFunction(moduleInst[kk], tsname, numParams, params);
+    for (auto &module_inst : moduleInst) {
+        toret = RunScriptFunction(module_inst, tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -176,10 +176,9 @@ void process_event(const EventHappened *evp) {
                 scriptPtr = thisroom.EventHandlers;
 
             evblockbasename="room";
-            if (evp->data3 == 5) {
+            if (evp->data3 == EVROM_BEFOREFADEIN) {
                 in_enters_screen ++;
                 run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
-
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
@@ -194,7 +193,7 @@ void process_event(const EventHappened *evp) {
         evblockbasename = oldbasename;
         evblocknum = oldblocknum;
 
-        if ((evp->data3 == 5) && (evp->data1 == EVB_ROOM))
+        if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
             in_enters_screen --;
     }
     else if (evp->type==EV_FADEIN) {
@@ -367,7 +366,10 @@ void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
 
 void processallevents() {
     if (inside_processevent)
+    {
+        events.clear(); // flush queued events
         return;
+    }
 
     // make a copy of the events - if processing an event includes
     // a blocking function it will continue to the next game loop

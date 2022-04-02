@@ -524,6 +524,9 @@
     <ClCompile Include="..\..\Common\ac\spritefile.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -833,6 +836,9 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\utf8.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>

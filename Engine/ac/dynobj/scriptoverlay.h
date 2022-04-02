@@ -11,24 +11,28 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTOVERLAY_H
 #define __AC_SCRIPTOVERLAY_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptOverlay final : AGSCCDynamicObject {
-    int overlayId;
-    int borderWidth;
-    int borderHeight;
-    int isBackgroundSpeech;
+    int overlayId = -1;
+    // TODO: this flag is needed to mark an overlay which lifetime is managed
+    // by the engine; this may be solved with engine owning an object ref instead
+    bool hasInternalRef = false;
 
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;
-    int Serialize(const char *address, char *buffer, int bufsize) override;
-    void Unserialize(int index, const char *serializedData, int dataSize) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
     void Remove();
-    ScriptOverlay();
+    ScriptOverlay() = default;
+
+protected:
+    // Calculate and return required space for serialization, in bytes
+    size_t CalcSerializeSize() override;
+    // Write object data into the provided stream
+    void Serialize(const char *address, AGS::Common::Stream *out) override;
 };
 
 #endif // __AC_SCRIPTOVERLAY_H

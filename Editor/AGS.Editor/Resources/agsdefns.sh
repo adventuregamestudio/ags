@@ -1148,6 +1148,19 @@ enum GUIPopupStyle {
 };
 #endif
 
+enum BlockingStyle {
+  eBlock = 919,
+  eNoBlock = 920
+};
+enum Direction {
+  eForwards = 1062,
+  eBackwards = 1063
+};
+enum WalkWhere {
+  eAnywhere = 304,
+  eWalkableAreas = 305
+};
+
 // forward-declare these so that they can be returned by GUIControl class
 builtin managed struct GUI;
 builtin managed struct Label;
@@ -1220,8 +1233,14 @@ builtin managed struct Label extends GUIControl {
 };
 
 builtin managed struct Button extends GUIControl {
+#ifdef SCRIPT_API_v360
+  /// Animates the button graphic using the specified view loop.
+  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0);
+#endif
+#ifndef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle);
+#endif
   /// Gets/sets whether the image is clipped to the size of the control.
   import attribute bool ClipImage;
   /// Gets/sets the font used to display text on the button.
@@ -1743,19 +1762,6 @@ builtin struct System {
   /// Prints message
   import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$
 #endif
-};
-
-enum BlockingStyle {
-  eBlock = 919,
-  eNoBlock = 920
-};
-enum Direction {
-  eForwards = 1062,
-  eBackwards = 1063
-};
-enum WalkWhere {
-  eAnywhere = 304,
-  eWalkableAreas = 305
 };
 
 builtin managed struct Object {

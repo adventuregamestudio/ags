@@ -865,6 +865,11 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         over.ReadFromFile(in, cmp_ver);
         if (over.hasSerializedBitmap)
             over.pic = read_serialized_bitmap(in);
+        if (over.scaleWidth <= 0 || over.scaleHeight <= 0)
+        {
+            over.scaleWidth = over.pic->GetWidth();
+            over.scaleHeight = over.pic->GetHeight();
+        }
         screenover.push_back(over);
     }
     return HSaveError::None();

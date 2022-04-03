@@ -31,7 +31,8 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, bool old_keyhandle);
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle);
+int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
 
 // Converts SDL scan and key codes to the ags keycode
 KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
@@ -49,7 +50,7 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
         StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
         unsigned char textch = ascii[0];
         if (textch >= 32)
-            ki.Key = static_cast<eAGSKeyCode>(textch);
+            ki.Key = ki.CompatKey = static_cast<eAGSKeyCode>(textch);
         strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
@@ -57,19 +58,18 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
 
     if (event.type == SDL_KEYDOWN)
     {
-        ki.Key = sdl_key_to_ags_key(event.key, ki.Mod, old_keyhandle);
+        ki.Mod = sdl_mod_to_ags_mod(event.key);
+        ki.Key = sdl_key_to_ags_key(event.key, old_keyhandle);
+        ki.CompatKey = sdl_key_to_ags_key(event.key, true);
     }
     return ki;
 }
 
-eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, bool old_keyhandle)
+int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt)
 {
     const SDL_Keysym key = kbevt.keysym;
-    const SDL_Keycode sym = key.sym;
     const Uint16 mod = key.mod;
-
-    // First handle the mods, - these are straightforward
-    ags_mod = 0;
+    int ags_mod = 0;
     if (mod & KMOD_LSHIFT) ags_mod |= eAGSModLShift;
     if (mod & KMOD_RSHIFT) ags_mod |= eAGSModRShift;
     if (mod & KMOD_LCTRL)  ags_mod |= eAGSModLCtrl;
@@ -78,6 +78,14 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, int &ags_mod, boo
     if (mod & KMOD_RALT)   ags_mod |= eAGSModRAlt;
     if (mod & KMOD_NUM)    ags_mod |= eAGSModNum;
     if (mod & KMOD_CAPS)   ags_mod |= eAGSModCaps;
+    return ags_mod;
+}
+
+eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle)
+{
+    const SDL_Keysym key = kbevt.keysym;
+    const SDL_Keycode sym = key.sym;
+    const Uint16 mod = key.mod;
 
     // Old mode: Ctrl and Alt combinations realign the letter code to certain offset
     if (old_keyhandle && (sym >= SDLK_a && sym <= SDLK_z))

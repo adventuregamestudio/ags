@@ -111,11 +111,12 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
 
     // The order of qualifiers shouldn't matter.
     // Note, "_tryimport" isn't legal for struct components.
+    // Note, AGS doesn't feature static struct variables.
     // Can only use one of "protected", "writeprotected" and "readonly".
 
     char *inpl = "\
         struct BothOrders {                                 \n\
-            protected static int something;                 \n\
+            protected static int something();               \n\
             static import readonly attribute int another;   \n\
             readonly import attribute int MyAttrib;         \n\
             import readonly attribute int YourAttrib;       \n\

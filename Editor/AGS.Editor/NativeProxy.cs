@@ -427,16 +427,6 @@ namespace AGS.Editor
             _native.UpdateFileIcon(fileToUpdate, newIconToUse);
         }
 
-		public void UpdateGameExplorerXML(string fileToUpdate, byte[] newData)
-		{
-			_native.UpdateGameExplorerXML(fileToUpdate, newData);
-		}
-
-		public void UpdateGameExplorerThumbnail(string fileToUpdate, byte[] newData)
-		{
-			_native.UpdateGameExplorerThumbnail(fileToUpdate, newData);
-		}
-
         public void UpdateFileVersionInfo(string fileToUpdate, string authorName, string gameName)
         {
             _native.UpdateFileVersionInfo(fileToUpdate, 

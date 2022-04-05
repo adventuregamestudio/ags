@@ -916,7 +916,10 @@ void AGS::Parser::HandleEndOfDo()
         "Expected the 'while' of a 'do ... while(...)' statement");
     EvaluationResult eres;
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "In 'while' clause");
+    if (!_sym.IsAnyIntegerVartype(eres.Vartype) && !_sym.IsDynVartype(eres.Vartype))
+        UserError(
+            "Expected an integer or dynamic array or dynamic pointer expression after 'while', found type '%s' instead",
+            _sym.GetName(eres.Vartype).c_str());
     Expect(kKW_Semicolon, _src.GetNext());
 
     if (!(eres.kTY_Literal == eres.Type &&
@@ -5902,9 +5905,12 @@ void AGS::Parser::ParseIf()
 {
     EvaluationResult eres;
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "'if' condition");
+    if (!_sym.IsAnyIntegerVartype(eres.Vartype) && !_sym.IsDynVartype(eres.Vartype))
+        UserError(
+            "Expected an integer or dynamic array or dynamic pointer expression after 'if', found type '%s' instead",
+            _sym.GetName(eres.Vartype).c_str());
     EvaluationResultToAx(eres);
-    
+
     _nest.Push(NSType::kIf);
 
     // The code that has just been generated has put the result of the check into AX
@@ -5948,7 +5954,10 @@ void AGS::Parser::ParseWhile()
 
     EvaluationResult eres;
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "'while' clause");
+    if (!_sym.IsAnyIntegerVartype(eres.Vartype) && !_sym.IsDynVartype(eres.Vartype))
+        UserError(
+            "Expected an integer or dynamic array or dynamic pointer expression after 'while', found type '%s' instead",
+            _sym.GetName(eres.Vartype).c_str());
     
     _nest.Push(NSType::kWhile);
 

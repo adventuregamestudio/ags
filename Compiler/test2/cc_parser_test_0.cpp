@@ -2279,3 +2279,82 @@ TEST_F(Compile0, Ternary02) {
     EXPECT_NE(std::string::npos, res.find("float"));
 }
 
+TEST_F(Compile0, FlowPointerExpressions1) {
+
+    // The parenthesized expression after 'if', 'while', 'do ... while'
+    // may evaluate to a pointer 
+
+    char *inpl = "\
+        import builtin managed struct Character     \n\
+        {                                           \n\
+        } *player;                                  \n\
+        int main()                                  \n\
+        {                                           \n\
+            if (player)                             \n\
+                return;                             \n\
+            while (player)                          \n\
+                return;                             \n\
+            do                                      \n\
+                break;                              \n\
+            while (player);                         \n\
+        }                                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, FlowPointerExpressions2) {
+
+    // The parenthesized expression after 'if' must not be float
+
+    char *inpl = "\
+        int main()              \n\
+        {                       \n\
+            if (1.0)            \n\
+                return;         \n\
+        }                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string const msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("float"));
+}
+
+TEST_F(Compile0, FlowPointerExpressions3) {
+
+    // The parenthesized expression after 'while' must not be float
+
+    char *inpl = "\
+        int main()              \n\
+        {                       \n\
+            while (0.0)         \n\
+                return;         \n\
+        }                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string const msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("float"));
+}
+
+TEST_F(Compile0, FlowPointerExpressions4) {
+
+    // The parenthesized expression after 'do ... while' must not be float
+
+    char *inpl = "\
+        int main()              \n\
+        {                       \n\
+            do                  \n\
+                break;          \n\
+            while (1.0);        \n\
+        }                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string const msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("float"));
+}

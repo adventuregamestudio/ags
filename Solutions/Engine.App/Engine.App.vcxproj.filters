@@ -1672,11 +1672,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml">
-      <Filter>Resource Files</Filter>
-    </Xml>
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">
       <Filter>Resource Files</Filter>
     </Image>

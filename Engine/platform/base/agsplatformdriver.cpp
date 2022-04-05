@@ -46,8 +46,6 @@ AGSPlatformDriver *platform = nullptr;
 void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
-void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
-void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::ValidateWindowSize(int & /*x*/, int & /*y*/, bool /*borderless*/) const {}
 
 const char* AGSPlatformDriver::GetBackendFailUserHint()

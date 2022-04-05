@@ -738,9 +738,6 @@
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico" />
   </ItemGroup>
   <ItemGroup>

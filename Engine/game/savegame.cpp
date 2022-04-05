@@ -26,7 +26,6 @@
 #include "ac/mouse.h"
 #include "ac/overlay.h"
 #include "ac/region.h"
-#include "ac/richgamemedia.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
@@ -78,6 +77,8 @@ namespace Engine
 
 const String SavegameSource::LegacySignature = "Adventure Game Studio saved game";
 const String SavegameSource::Signature       = "Adventure Game Studio saved game v2";
+// Size of the "windows vista rich game media header" feature, in bytes
+const size_t LegacyRichHeaderSize = (6 * sizeof(int32_t)) + 16 + (1024 * sizeof(int16_t) * 4);
 
 SavegameSource::SavegameSource()
     : Version(kSvgVersion_Undefined)
@@ -276,32 +277,44 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
     return HSaveError::None();
 }
 
+// Tests for the save signature, returns first supported version of found save type
+SavegameVersion CheckSaveSignature(Stream *in)
+{
+    soff_t pre_sig_pos = in->GetPosition();
+    String svg_sig = String::FromStreamCount(in, SavegameSource::Signature.GetLength());
+    if (svg_sig.Compare(SavegameSource::Signature) == 0)
+    {
+        return kSvgVersion_Components;
+    }
+    else
+    {
+        in->Seek(pre_sig_pos, kSeekBegin);
+        svg_sig = String::FromStreamCount(in, SavegameSource::LegacySignature.GetLength());
+        if (svg_sig.Compare(SavegameSource::LegacySignature) == 0)
+            return kSvgVersion_321;
+    }
+    in->Seek(pre_sig_pos, kSeekBegin);
+    return kSvgVersion_Undefined;
+}
+
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
         return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
-    // Skip MS Windows Vista rich media header
-    RICH_GAME_MEDIA_HEADER rich_media_header;
-    rich_media_header.ReadFromFile(in.get());
-
     // Check saved game signature
-    bool is_new_save = false;
-    size_t pre_sig_pos = in->GetPosition();
-    String svg_sig = String::FromStreamCount(in.get(), SavegameSource::Signature.GetLength());
-    if (svg_sig.Compare(SavegameSource::Signature) == 0)
+    SavegameVersion sig_ver = CheckSaveSignature(in.get());
+    if (sig_ver == kSvgVersion_Undefined)
     {
-        is_new_save = true;
-    }
-    else
-    {
-        in->Seek(pre_sig_pos, kSeekBegin);
-        svg_sig = String::FromStreamCount(in.get(), SavegameSource::LegacySignature.GetLength());
-        if (svg_sig.Compare(SavegameSource::LegacySignature) != 0)
+        // Skip MS Windows Vista rich media header (was present in older saves)
+        in->Seek(LegacyRichHeaderSize);
+        sig_ver = CheckSaveSignature(in.get());
+        if (sig_ver == kSvgVersion_Undefined)
             return new SavegameError(kSvgErr_SignatureFailed);
     }
 
+    bool is_new_save = sig_ver >= kSvgVersion_Components;
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
     HSaveError err;
@@ -740,23 +753,6 @@ Stream *StartSavegame(const String &filename, const String &user_text, const Bit
     Stream *out = Common::File::CreateFile(filename);
     if (!out)
         return nullptr;
-
-    // Initialize and write Vista header
-    RICH_GAME_MEDIA_HEADER vistaHeader;
-    memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
-    vistaHeader.dwHeaderVersion = 1;
-    vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
-    vistaHeader.dwThumbnailOffsetHigherDword = 0;
-    vistaHeader.dwThumbnailOffsetLowerDword = 0;
-    vistaHeader.dwThumbnailSize = 0;
-    convert_guid_from_text_to_binary(game.guid, &vistaHeader.guidGameId[0]);
-    uconvert(game.gamename, U_ASCII, (char*)&vistaHeader.szGameName[0], U_UNICODE, RM_MAXLENGTH);
-    uconvert(user_text.GetCStr(), U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
-    vistaHeader.szLevelName[0] = 0;
-    vistaHeader.szComments[0] = 0;
-    // MS Windows Vista rich media header
-    vistaHeader.WriteToFile(out);
 
     // Savegame signature
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());

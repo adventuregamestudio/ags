@@ -451,11 +451,11 @@ namespace AGS.Editor
             }
             else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.Windowed)
             {
-                parameter = "-windowed";
+                parameter = "--windowed";
             }
             else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.FullScreen)
             {
-                parameter = "-fullscreen";
+                parameter = "--fullscreen";
             }
             _runningGameWithDebugger = withDebugger;
             // custom game install directory (points to where all supplemental data files are)

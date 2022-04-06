@@ -588,7 +588,7 @@ namespace AGS.Editor.Utils
         /// Writes the sprite file, importing all the existing sprites either from the
         /// their sources, or sprite cache, - whatever is present (in that order).
         /// </summary>
-        public static void WriteSpriteFileFromSources(string filename)
+        public static void WriteSpriteFileFromSources(string filename, IWorkProgress progress)
         {
             int storeFlags = 0;
             if (Factory.AGSEditor.CurrentGame.Settings.OptimizeSpriteStorage)
@@ -599,9 +599,13 @@ namespace AGS.Editor.Utils
             var sprites = folder.GetAllSpritesFromAllSubFolders();
             var orderedSprites = sprites.OrderBy(sprite => sprite.Number);
 
+            progress.Total = orderedSprites.Count();
+            progress.Current = 0;
+
             var writer = new Native.SpriteFileWriter(filename);
             writer.Begin(storeFlags, compressSprites);
             int spriteIndex = 0;
+            int realSprites = 0;
             foreach (Sprite sprite in orderedSprites)
             {
                 // NOTE: we must add empty slots to fill all the gaps in sprite IDs!
@@ -628,6 +632,7 @@ namespace AGS.Editor.Utils
                     writer.WriteBitmap(bmp);
                     bmp.Dispose();
                 }
+                progress.Current = ++realSprites;
                 spriteIndex++;
             }
             writer.End();

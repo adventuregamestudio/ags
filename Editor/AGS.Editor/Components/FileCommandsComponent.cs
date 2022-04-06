@@ -198,7 +198,7 @@ namespace AGS.Editor.Components
 
         private object RecreateSpriteFileProcess(IWorkProgress progress, object parameter)
         {
-            Utils.SpriteTools.WriteSpriteFileFromSources((string)parameter);
+            Utils.SpriteTools.WriteSpriteFileFromSources((string)parameter, progress);
             return null;
         }
 

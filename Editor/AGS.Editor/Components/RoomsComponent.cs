@@ -610,7 +610,7 @@ namespace AGS.Editor.Components
             room.GameID = _agsEditor.CurrentGame.Settings.UniqueID;
         }
 
-        private object SaveRoomOnThread(object parameter)
+        private object SaveRoomOnThread(IWorkProgress progress, object parameter)
         {            
             Room room = (Room)parameter;
             _agsEditor.RegenerateScriptHeader(room);

@@ -216,7 +216,7 @@ namespace AGS.Editor.Components
             System.Diagnostics.Process.Start(url);
         }
 
-        private object DownloadUpdateStatusThread(object parameter)
+        private object DownloadUpdateStatusThread(IWorkProgress progress, object parameter)
         {
             using (System.Net.WebClient webClient = new System.Net.WebClient())
             {

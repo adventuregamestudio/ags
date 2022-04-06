@@ -61,7 +61,7 @@ namespace AGS.Editor
             return Convert.ToBase64String(serializedImage);
         }
 
-        private object SendErrorReportThread(object parameter)
+        private object SendErrorReportThread(IWorkProgress progress, object parameter)
         {
             string exceptionText = "AGSVersion: " + AGS.Types.Version.AGS_EDITOR_VERSION +
                 Environment.NewLine + "WinVer: " + Environment.OSVersion.VersionString +

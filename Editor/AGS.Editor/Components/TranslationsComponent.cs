@@ -170,7 +170,7 @@ namespace AGS.Editor.Components
             }
         }
 
-        private object UpdateTranslationsProcess(object translationList)
+        private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)
         {
             List<Translation> translations = (List<Translation>)translationList;
             TranslationGenerator generator = new TranslationGenerator();
@@ -255,7 +255,7 @@ namespace AGS.Editor.Components
             }
         }
 
-        private object ReplaceGameTextWithTranslationProcess(object translationAsObj)
+        private object ReplaceGameTextWithTranslationProcess(IWorkProgress progress, object translationAsObj)
         {
             Translation translation = (Translation)translationAsObj;
             CompileMessages errors = TextImporter.ReplaceAllGameText(_agsEditor.CurrentGame, translation);

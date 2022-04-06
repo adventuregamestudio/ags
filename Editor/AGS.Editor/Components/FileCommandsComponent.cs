@@ -196,7 +196,7 @@ namespace AGS.Editor.Components
             _guiController.SetMenuItemEnabled(this, REMOVE_GLOBAL_MESSAGES_COMMAND, false);
         }
 
-        private object RecreateSpriteFileProcess(object parameter)
+        private object RecreateSpriteFileProcess(IWorkProgress progress, object parameter)
         {
             Utils.SpriteTools.WriteSpriteFileFromSources((string)parameter);
             return null;

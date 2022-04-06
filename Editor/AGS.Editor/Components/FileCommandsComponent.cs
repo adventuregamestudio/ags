@@ -152,7 +152,7 @@ namespace AGS.Editor.Components
             {
                 if (_guiController.ShowQuestion("This will recreate game's spritefile using sprite source files if they are available. All sprites will be updated from their sources.\n\nNOTE: sprites that don't have source file references, or which source files are missing, - will remain untouched.\n\nAre you sure you want to do this?") == DialogResult.Yes)
                 {
-                    RecreateSpriteFileFromSources();
+                    Tasks.RecreateSpriteFileFromSources();
                 }
             }
             else if (controlID == SHOW_PREFERENCES_COMMAND)
@@ -194,30 +194,6 @@ namespace AGS.Editor.Components
 
             _guiController.ShowMessage(messagesRemoved.ToString() + " Global Messages were removed.", MessageBoxIcon.Information);
             _guiController.SetMenuItemEnabled(this, REMOVE_GLOBAL_MESSAGES_COMMAND, false);
-        }
-
-        private object RecreateSpriteFileProcess(IWorkProgress progress, object parameter)
-        {
-            Utils.SpriteTools.WriteSpriteFileFromSources((string)parameter, progress);
-            return null;
-        }
-
-        private void RecreateSpriteFileFromSources()
-        {
-            string tempFilename;
-            try
-            {
-                tempFilename = Path.GetTempFileName();
-                BusyDialog.Show("Please wait while the sprite file is recreated...", new BusyDialog.ProcessingHandler(RecreateSpriteFileProcess), tempFilename);
-            }
-            catch(Exception e)
-            {
-                _guiController.ShowMessage("The recreation of a sprite file was interrupted by error. NO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
-                return;
-            }
-
-            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
-            File.Delete(tempFilename);
         }
 
         private int CountSprites(SpriteFolder folder)

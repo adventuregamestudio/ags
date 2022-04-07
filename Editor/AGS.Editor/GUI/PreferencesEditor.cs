@@ -130,7 +130,7 @@ namespace AGS.Editor
             Utilities.CheckLabelWidthsOnForm(this);
         }
 
-        private void btnOK_Click(object sender, EventArgs e)
+        private void ApplySettings()
         {
             cmbColorTheme.SelectedIndex = Factory.GUIController.ColorThemes.Themes.ToList().FindIndex(t => t.Name == _settings.ColorTheme);
             if ((ColorTheme)cmbColorTheme.SelectedItem != Factory.GUIController.ColorThemes.Current)
@@ -143,6 +143,16 @@ namespace AGS.Editor
 
             Factory.AGSEditor.Settings.Apply(_settings);
             UpdateFontSettings();
+        }
+
+        private void btnApply_Click(object sender, EventArgs e)
+        {
+            ApplySettings();
+        }
+
+        private void btnOK_Click(object sender, EventArgs e)
+        {
+            ApplySettings();
         }
 
 		private void radFolderPath_CheckedChanged(object sender, EventArgs e)

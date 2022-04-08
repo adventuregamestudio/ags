@@ -223,6 +223,7 @@ bool VideoPlayer::RenderVideo()
     }
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
     gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
+    gfxDriver->EndSpriteBatch();
     render_to_screen();
     return true;
 }

@@ -391,6 +391,11 @@ void SDLRendererGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
 void SDLRendererGraphicsDriver::RenderToBackBuffer()
 {
+    // Close unended batches, and issue a warning
+    assert(_actSpriteBatch == 0);
+    while (_actSpriteBatch > 0)
+        EndSpriteBatch();
+
     // Render all the sprite batches with necessary transformations
     //
     // NOTE: that's not immediately clear whether it would be faster to first draw upon a camera-sized

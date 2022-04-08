@@ -1264,6 +1264,11 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip)
 
 void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 {
+    // Close unended batches, and issue a warning
+    assert(_actSpriteBatch == 0);
+    while (_actSpriteBatch > 0)
+        EndSpriteBatch();
+
     // Render all the sprite batches with necessary transformations
     // TODO: see if it's possible to refactor and not enable/disable scissor test
     // TODO: also maybe sync scissor code logic with D3D renderer
@@ -1362,6 +1367,14 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
     //glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
     //glLoadIdentity();
+
+    // Apply parent batch's settings, if preset
+    if (desc.Parent > 0)
+    {
+        const auto &parent = _spriteBatches[desc.Parent];
+        model = model * parent.Matrix;
+        viewport = ClampToRect(parent.Viewport, viewport);
+    }
 
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
@@ -1715,6 +1728,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
+  EndSpriteBatch();
   if (_drawPostScreenCallback != NULL)
       _drawPostScreenCallback();
 
@@ -1775,6 +1789,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
     this->DrawSprite(0, 0, d3db);
   }
+  EndSpriteBatch();
   OGLSpriteBatch &batch = _spriteBatches[fx_batch];
   std::vector<OGLDrawListEntry> &drawList = _spriteList;
   const size_t last = drawList.size() - 1;

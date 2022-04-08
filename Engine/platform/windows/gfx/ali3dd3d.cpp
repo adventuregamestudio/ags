@@ -1361,6 +1361,11 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip)
 
 void D3DGraphicsDriver::RenderSpriteBatches()
 {
+    // Close unended batches, and issue a warning
+    assert(_actSpriteBatch == 0);
+    while (_actSpriteBatch > 0)
+        EndSpriteBatch();
+
     // Render all the sprite batches with necessary transformations
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
@@ -1440,6 +1445,16 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     D3DMATRIX matFlip, matFinal;
     MatrixTransform2D(matFlip, node_tx, -(node_ty), node_sx, node_sy, 0.f);
     MatrixMultiply(matFinal, matViewportFinal, matFlip);
+
+    // Apply parent batch's settings, if preset
+    if (desc.Parent > 0)
+    {
+        const auto &parent = _spriteBatches[desc.Parent];
+        D3DMATRIX matCombined;
+        MatrixMultiply(matCombined, parent.Matrix, matFinal);
+        matFinal = matCombined;
+        viewport = ClampToRect(parent.Viewport, viewport);
+    }
 
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
@@ -1759,6 +1774,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
+  EndSpriteBatch();
   if (_drawPostScreenCallback != NULL)
       _drawPostScreenCallback();
 
@@ -1819,6 +1835,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
     this->DrawSprite(0, 0, d3db);
   }
+  EndSpriteBatch();
   D3DSpriteBatch &batch = _spriteBatches[fx_batch];
   std::vector<D3DDrawListEntry> &drawList = _spriteList;
   const size_t last = drawList.size();

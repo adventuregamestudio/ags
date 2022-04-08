@@ -271,8 +271,6 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
             return 0;
         }
 
-        if (!play.mouse_cursor_hidden)
-            ags_domouse();
         int countdown = GetTextDisplayTime (todis);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         // Loop until skipped
@@ -334,8 +332,6 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
             if ((countdown < 1) && (play.fast_forward))
                 break;
         }
-        if (!play.mouse_cursor_hidden)
-            ags_domouse();
         remove_screen_overlay(OVER_TEXTMSG);
         invalidate_screen();
     }

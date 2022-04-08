@@ -630,17 +630,9 @@ void DialogOptions::Show()
     oriyp = dlgyp;
     wantRefresh = false;
     mouseison=-10;
-    
-    update_polled_stuff_if_runtime();
-    if (!play.mouse_cursor_hidden)
-      ags_domouse();
-    update_polled_stuff_if_runtime();
 
     Redraw();
     while(Run());
-
-    if (!play.mouse_cursor_hidden)
-      ags_domouse();
 }
 
 void DialogOptions::Redraw()

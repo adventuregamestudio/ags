@@ -413,7 +413,6 @@ void IAGSEngine::PollSystem () {
     if (run_service_key_controls(kp) && !play.IsIgnoringInput()) {
         pl_run_plugin_hooks (AGSE_KEYPRESS, kp.Key);
     }
-
 }
 AGSCharacter* IAGSEngine::GetCharacter (int32 charnum) {
     if (charnum >= game.numcharacters)

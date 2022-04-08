@@ -283,14 +283,11 @@ int oldmouse;
 void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
-    if (!play.mouse_cursor_hidden)
-        ags_domouse();
-    oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
+    oldmouse=cur_cursor;
+    set_mouse_cursor(CURS_ARROW);
 }
 void restore_after_dialog() {
     set_mouse_cursor(oldmouse);
-    if (!play.mouse_cursor_hidden)
-        ags_domouse();
     invalidate_screen();
 }
 

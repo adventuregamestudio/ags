@@ -2435,3 +2435,20 @@ TEST_F(Compile1, SideEffectExpression4)
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
 }
+
+TEST_F(Compile1, DisallowStaticVariables)
+{
+    // AGS does not have static variables.
+
+    char *inpl = "\
+        struct Struct       \n\
+        {                   \n\
+            static int Var; \n\
+        };                  \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("tatic "));
+
+}

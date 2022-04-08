@@ -163,13 +163,16 @@ typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
 // D3D renderer's sprite batch
 struct D3DSpriteBatch
 {
-    // List of sprites to render
-    std::vector<D3DDrawListEntry> List;
+    uint32_t ID = 0;
     // Clipping viewport
     Rect Viewport;
     // Transformation matrix, built from the batch description
     // TODO: investigate possibility of using glm here (might need conversion to D3D matrix format)
     D3DMATRIX Matrix;
+
+    D3DSpriteBatch() = default;
+    D3DSpriteBatch(uint32_t id, const Rect view, const D3DMATRIX &matrix)
+        : ID(id), Viewport(view), Matrix(matrix) {}
 };
 typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 
@@ -192,9 +195,9 @@ public:
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
-    void DestroyDDB(IDriverDependantBitmap* bitmap) override;
-    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *ddb, bool hasAlpha) override;
+    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
     void RenderToBackBuffer() override;
@@ -250,11 +253,15 @@ private:
     float _pixelRenderYOffset;
     bool _renderSprAtScreenRes;
 
+    // Sprite batches (parent scene nodes)
     D3DSpriteBatches _spriteBatches;
+    // List of sprites to render
+    std::vector<D3DDrawListEntry> _spriteList;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
     D3DSpriteBatches _backupBatches;
+    std::vector<D3DDrawListEntry> _backupSpriteList;
 
     D3DVIEWPORT9 _d3dViewport;
 
@@ -285,8 +292,9 @@ private:
     void _renderAndPresent(bool clearDrawListAfterwards);
     void _render(bool clearDrawListAfterwards);
     void _reDrawLastFrame();
+    void SetScissor(const Rect &clip);
     void RenderSpriteBatches();
-    void RenderSpriteBatch(const D3DSpriteBatch &batch);
+    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
     void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
     void _renderFromTexture();
 };

@@ -1074,7 +1074,7 @@ void D3DGraphicsDriver::_reDrawLastFrame()
 void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal)
 {
   HRESULT hr;
-  D3DBitmap *bmpToDraw = drawListEntry->bitmap;
+  D3DBitmap *bmpToDraw = drawListEntry->ddb;
   D3DMATRIX matSelfTransform;
   D3DMATRIX matTransform;
 
@@ -1331,40 +1331,44 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
   ResetFxPool();
 }
 
-void D3DGraphicsDriver::RenderSpriteBatches()
+void D3DGraphicsDriver::SetScissor(const Rect &clip)
 {
-    // Render all the sprite batches with necessary transformations
-    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    if (!clip.IsEmpty())
     {
-        const Rect &viewport = _spriteBatches[i].Viewport;
-        const D3DSpriteBatch &batch = _spriteBatches[i];
-        if (!viewport.IsEmpty())
+        direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+        RECT scissor;
+        if (_renderSprAtScreenRes)
         {
-            direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-            RECT scissor;
-            if (_renderSprAtScreenRes)
-            {
-                scissor.left = _scaling.X.ScalePt(viewport.Left);
-                scissor.top = _scaling.Y.ScalePt(viewport.Top);
-                scissor.right = _scaling.X.ScalePt(viewport.Right + 1);
-                scissor.bottom = _scaling.Y.ScalePt(viewport.Bottom + 1);
-            }
-            else
-            {
-                scissor.left = viewport.Left;
-                scissor.top = viewport.Top;
-                scissor.right = viewport.Right + 1;
-                scissor.bottom = viewport.Bottom + 1;
-            }
-            direct3ddevice->SetScissorRect(&scissor);
+            scissor.left = _scaling.X.ScalePt(clip.Left);
+            scissor.top = _scaling.Y.ScalePt(clip.Top);
+            scissor.right = _scaling.X.ScalePt(clip.Right + 1);
+            scissor.bottom = _scaling.Y.ScalePt(clip.Bottom + 1);
         }
         else
         {
-            direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+            scissor.left = clip.Left;
+            scissor.top = clip.Top;
+            scissor.right = clip.Right + 1;
+            scissor.bottom = clip.Bottom + 1;
         }
-        _stageScreen = GetStageScreen(i);
-        memcpy(glm::value_ptr(_stageMatrixes.World), _spriteBatches[i].Matrix.m, sizeof(float[16]));
-        RenderSpriteBatch(batch);
+        direct3ddevice->SetScissorRect(&scissor);
+    }
+    else
+    {
+        direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+    }
+}
+
+void D3DGraphicsDriver::RenderSpriteBatches()
+{
+    // Render all the sprite batches with necessary transformations
+    for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
+    {
+        const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
+        SetScissor(batch.Viewport);
+        _stageScreen = GetStageScreen(batch.ID);
+        memcpy(glm::value_ptr(_stageMatrixes.World), batch.Matrix.m, sizeof(float[16]));
+        cur_spr = RenderSpriteBatch(batch, cur_spr);
     }
 
     _stageScreen = GetStageScreen(0);
@@ -1372,36 +1376,34 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 
-void D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch)
+size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from)
 {
-  D3DDrawListEntry stageEntry; // raw-draw plugin support
-
-  const std::vector<D3DDrawListEntry> &listToDraw = batch.List;
-  for (size_t i = 0; i < listToDraw.size(); ++i)
-  {
-    if (listToDraw[i].skip)
-      continue;
-
-    const D3DDrawListEntry *sprite = &listToDraw[i];
-    if (listToDraw[i].bitmap == NULL)
+    for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
-      if (DoNullSpriteCallback(listToDraw[i].x, (int)direct3ddevice))
-        stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB);
-      else
-        continue;
-      sprite = &stageEntry;
-    }
+        const auto &e = _spriteList[from];
+        if (e.skip)
+            continue;
 
-    this->_renderSprite(sprite, batch.Matrix);
-  }
+        switch (reinterpret_cast<intptr_t>(e.ddb))
+        {
+        case DRAWENTRY_STAGECALLBACK:
+            // raw-draw plugin support
+            if (DoNullSpriteCallback(e.x, (int)direct3ddevice))
+            {
+                auto stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
+                _renderSprite(&stageEntry, batch.Matrix);
+            }
+            break;
+        default:
+            _renderSprite(&e, batch.Matrix);
+            break;
+        }
+    }
+    return from;
 }
 
 void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
-    if (_spriteBatches.size() <= index)
-        _spriteBatches.resize(index + 1);
-    _spriteBatches[index].List.clear();
-
     Rect viewport = desc.Viewport;
     // Combine both world transform and viewport transform into one matrix for faster perfomance
     D3DMATRIX matRoomToViewport, matViewport, matViewportFinal;
@@ -1435,10 +1437,14 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         node_sy = -1.f;
     }
     viewport = Rect::MoveBy(viewport, node_tx, node_ty);
-    D3DMATRIX matFlip;
+    D3DMATRIX matFlip, matFinal;
     MatrixTransform2D(matFlip, node_tx, -(node_ty), node_sx, node_sy, 0.f);
-    MatrixMultiply(_spriteBatches[index].Matrix, matViewportFinal, matFlip);
-    _spriteBatches[index].Viewport = viewport;
+    MatrixMultiply(matFinal, matViewportFinal, matFlip);
+
+    // Assign the new spritebatch
+    if (_spriteBatches.size() <= index)
+        _spriteBatches.resize(index + 1);
+    _spriteBatches[index] = D3DSpriteBatch(index, viewport, matFinal);
 
     // create stage screen for plugin raw drawing
     int src_w = viewport.GetWidth() / desc.Transform.ScaleX;
@@ -1448,56 +1454,46 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
 
 void D3DGraphicsDriver::ResetAllBatches()
 {
-    for (size_t i = 0; i < _spriteBatches.size(); ++i)
-        _spriteBatches[i].List.clear();
+    _spriteBatches.clear();
+    _spriteList.clear();
 }
 
 void D3DGraphicsDriver::ClearDrawBackups()
 {
     _backupBatchDescs.clear();
     _backupBatches.clear();
+    _backupSpriteList.clear();
 }
 
 void D3DGraphicsDriver::BackupDrawLists()
 {
-    ClearDrawBackups();
-    for (size_t i = 0; i <= _actSpriteBatch; ++i)
-    {
-        _backupBatchDescs.push_back(_spriteBatchDesc[i]);
-        _backupBatches.push_back(_spriteBatches[i]);
-    }
+    _backupBatchDescs = _spriteBatchDesc;
+    _backupBatches = _spriteBatches;
+    _backupSpriteList = _spriteList;
 }
 
 void D3DGraphicsDriver::RestoreDrawLists()
 {
-    if (_backupBatchDescs.size() == 0)
-    {
-        ClearDrawLists();
-        return;
-    }
     _spriteBatchDesc = _backupBatchDescs;
     _spriteBatches = _backupBatches;
-    _actSpriteBatch = _backupBatchDescs.size() - 1;
+    _spriteList = _backupSpriteList;
+    _actSpriteBatch = 0;
 }
 
-void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
+void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 {
-    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry((D3DBitmap*)bitmap, x, y));
+    _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
-void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
+void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove deleted DDB from backups
-    for (D3DSpriteBatches::iterator it = _backupBatches.begin(); it != _backupBatches.end(); ++it)
+    for (auto &backup_spr : _backupSpriteList)
     {
-        std::vector<D3DDrawListEntry> &drawlist = it->List;
-        for (size_t i = 0; i < drawlist.size(); i++)
-        {
-            if (drawlist[i].bitmap == bitmap)
-                drawlist[i].skip = true;
-        }
+        if (backup_spr.ddb == ddb)
+            backup_spr.skip = true;
     }
-    delete (D3DBitmap*)bitmap;
+    delete (D3DBitmap*)ddb;
 }
 
 void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha)
@@ -1812,7 +1808,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
   delete blackSquare;
   BeginSpriteBatch(_srcRect, SpriteTransform());
-  size_t fx_batch = _actSpriteBatch;
+  const size_t fx_batch = _actSpriteBatch;
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
@@ -1823,6 +1819,10 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
     this->DrawSprite(0, 0, d3db);
   }
+  D3DSpriteBatch &batch = _spriteBatches[fx_batch];
+  std::vector<D3DDrawListEntry> &drawList = _spriteList;
+  const size_t last = drawList.size();
+
   if (_drawPostScreenCallback != NULL)
     _drawPostScreenCallback();
 
@@ -1834,9 +1834,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     boxWidth += speed;
     boxHeight += yspeed;
-    D3DSpriteBatch &batch = _spriteBatches[fx_batch];
-    std::vector<D3DDrawListEntry> &drawList = batch.List;
-    const size_t last = drawList.size() - 1;
+    
     if (blackingOut)
     {
       drawList[last].x = _srcRect.GetWidth() / 2- boxWidth / 2;
@@ -1871,7 +1869,7 @@ void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(0);
-    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
+    _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
 void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
@@ -1881,7 +1879,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetTransparency(128);
-    _spriteBatches[_actSpriteBatch].List.push_back(D3DDrawListEntry(ddb));
+    _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
 

@@ -138,7 +138,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 // Initializes audio channels and clips and registers them in the script system
 void InitAndRegisterAudioObjects(GameSetupStruct &game)
 {
-    for (int i = 0; i < game.numGameChannels; ++i)
+    for (int i = 0; i < game.numCompatGameChannels; ++i)
     {
         scrAudioChannel[i].id = i;
         ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
@@ -452,9 +452,15 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     old_speech_lines = ents.OldSpeechLines;
     // Set number of game channels corresponding to the loaded game version
     if (loaded_game_file_version < kGameVersion_360)
+    {
         game.numGameChannels = MAX_GAME_CHANNELS_v320;
+        game.numCompatGameChannels = TOTAL_AUDIO_CHANNELS_v320;
+    }
     else
+    {
         game.numGameChannels = MAX_GAME_CHANNELS;
+        game.numCompatGameChannels = MAX_GAME_CHANNELS;
+    }
     HError err = InitAndRegisterGameEntities(game);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);

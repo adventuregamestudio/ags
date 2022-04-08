@@ -2449,6 +2449,6 @@ TEST_F(Compile1, DisallowStaticVariables)
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'('"));
+    EXPECT_NE(std::string::npos, msg.find("tatic "));
 
 }

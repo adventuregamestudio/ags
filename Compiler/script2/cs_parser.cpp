@@ -5032,10 +5032,10 @@ void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype
     if (PP::kMain != _pp)
         return SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
 
-    if (_sym.IsDynarrayVartype(vartype) ||  // e.g., 'int [] zonk;', disallowed
-        tqs[TQ::kStatic])                   // e.g. 'static int zonk;': No static struct variables in AGS
+    if (_sym.IsDynarrayVartype(vartype)) // e.g., 'int [] zonk;', disallowed
         Expect(kKW_OpenParenthesis, _src.PeekNext());
-
+    if (tqs[TQ::kStatic]) // e.g. 'static int zonk;': No static struct variables in AGS
+        UserError("Static variables are not supported");
     if (tqs[TQ::kImport])
         UserError("Cannot import struct component variables; import the whole struct instead");
     

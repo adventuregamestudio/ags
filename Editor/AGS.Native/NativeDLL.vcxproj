@@ -242,6 +242,7 @@
     <ClCompile Include="MSSCCI.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="ScriptCompiler.cpp" />
+    <ClCompile Include="SpriteFileWriter_NET.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Native\ac\actiontype.h" />
@@ -250,6 +251,7 @@
     <ClInclude Include="NativeMethods.h" />
     <ClInclude Include="NativeUtils.h" />
     <ClInclude Include="Scripting.h" />
+    <ClInclude Include="SpriteFileWriter_NET.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NativeDLL.rc" />

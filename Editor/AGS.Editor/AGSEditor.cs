@@ -985,7 +985,7 @@ namespace AGS.Editor
             return dialogScripts;
         }
 
-        private object CompileScripts(object parameter)
+        private object CompileScripts(IWorkProgress progress, object parameter)
         {
             CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
             CompileMessages errors = parameters.Errors;
@@ -1068,7 +1068,7 @@ namespace AGS.Editor
             }
         }
 
-        private object CreateCompiledFiles(object parameter)
+        private object CreateCompiledFiles(IWorkProgress progress, object parameter)
         {
             CompileScriptsParameters parameters = (CompileScriptsParameters)parameter;
             CompileMessages errors = parameters.Errors;
@@ -1644,7 +1644,7 @@ namespace AGS.Editor
             }
         }
 
-        private object SaveGameFilesProcess(object parameter)
+        private object SaveGameFilesProcess(IWorkProgress progress, object parameter)
         {
 			WriteConfigFile(Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY));
 

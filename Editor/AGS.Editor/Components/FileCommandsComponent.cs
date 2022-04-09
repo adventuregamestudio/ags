@@ -19,6 +19,7 @@ namespace AGS.Editor.Components
         private const string AUTO_NUMBER_SPEECH_COMMAND = "AutoNumberSpeech";
 		private const string CREATE_VOICE_ACTING_SCRIPT_COMMAND = "CreateVoiceActingScript";
         private const string REMOVE_GLOBAL_MESSAGES_COMMAND = "RemoveGlobalMessages";
+        private const string RECREATE_SPRITEFILE_COMMAND = "RecreateSpriteFile";
         private const string SHOW_PREFERENCES_COMMAND = "ShowPreferences";
         private const string EXIT_COMMAND = "Exit";
         private const string DEFAULT_FONT_RESOURCE_PATH = "AGS.Editor.Resources.";
@@ -56,6 +57,7 @@ namespace AGS.Editor.Components
             commands.Commands.Add(new MenuCommand(AUTO_NUMBER_SPEECH_COMMAND, "&Auto-number speech lines...", "MenuIconAutoNumber"));
 			commands.Commands.Add(new MenuCommand(CREATE_VOICE_ACTING_SCRIPT_COMMAND, "Create &voice acting script...", "MenuIconVoiceActingScript"));
             commands.Commands.Add(new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "&Remove Global Messages"));
+            commands.Commands.Add(new MenuCommand(RECREATE_SPRITEFILE_COMMAND, "Restore all sprites from sources"));
             _guiController.AddMenuItems(this, commands);
 
 			commands = new MenuCommands(GUIController.FILE_MENU_ID, 400);
@@ -144,6 +146,13 @@ namespace AGS.Editor.Components
                 if (_guiController.ShowQuestion("This will remove all traces of AGS 2.x Global Messages from this game. Do not proceed if you are still using any of the Global Messages that you created with a previous version of AGS. Are you sure you want to do this?") == DialogResult.Yes)
                 {
                     RemoveGlobalMessagesFromGame();
+                }
+            }
+            else if (controlID == RECREATE_SPRITEFILE_COMMAND)
+            {
+                if (_guiController.ShowQuestion("This will recreate game's spritefile using sprite source files if they are available. All sprites will be updated from their sources.\n\nNOTE: sprites that don't have source file references, or which source files are missing, - will remain untouched.\n\nAre you sure you want to do this?") == DialogResult.Yes)
+                {
+                    Tasks.RecreateSpriteFileFromSources();
                 }
             }
             else if (controlID == SHOW_PREFERENCES_COMMAND)

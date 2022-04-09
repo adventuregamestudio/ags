@@ -65,6 +65,7 @@ namespace AGS
             void OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate);
 			Dictionary<int,Sprite^>^ LoadAllSpriteDimensions();
 			void LoadNewSpriteFile();
+            void ReplaceSpriteFile(String ^srcFileName);
 			Room^ LoadRoomFile(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
 			void SaveRoomFile(Room ^roomToSave);
             void SaveDefaultRoomFile(Room ^roomToSave);

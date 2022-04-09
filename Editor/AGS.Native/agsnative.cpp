@@ -1893,6 +1893,49 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 }
 
+void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles)
+{
+    AGSString use_spritefile = sprsetname;
+    AGSString use_indexfile = sprindexname;
+
+    Exception ^main_exception;
+    try
+    {
+        PutNewSpritefileIntoProject(new_spritefile, new_indexfile);
+    }
+    catch (Exception ^e)
+    {
+        main_exception = e;
+        if (fallback_tempfiles)
+        {
+            use_spritefile = new_spritefile;
+            use_indexfile = new_indexfile;
+        }
+    }
+    finally
+    {
+        // Reset the sprite cache to whichever file was successfully saved
+        HAGSError err = spriteset.InitFile(use_spritefile, use_indexfile);
+        if (!err)
+        {
+            throw gcnew AGSEditorException(
+                String::Format("Unable to re-initialize sprite file after save.{0}{1}",
+                    Environment::NewLine, gcnew String(err->FullMessage().GetCStr())), main_exception);
+        }
+        else if (main_exception != nullptr)
+        {
+            if (fallback_tempfiles)
+                throw gcnew AGSEditorException(
+                    String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
+                        Environment::NewLine, TextHelper::ConvertUTF8(use_spritefile)), main_exception);
+            else
+                throw gcnew AGSEditorException(
+                    String::Format("Unable to save sprites in your project folder."), main_exception);
+        }
+    }
+    spritesModified = false;
+}
+
 void SaveNativeSprites(Settings^ gameSettings)
 {
     int storeFlags = 0;
@@ -1908,35 +1951,7 @@ void SaveNativeSprites(Settings^ gameSettings)
     AGSString saved_indexfile;
     SaveTempSpritefile(storeFlags, compressSprites, saved_spritefile, saved_indexfile);
 
-    Exception ^main_exception;
-    try
-    {
-        PutNewSpritefileIntoProject(saved_spritefile, saved_indexfile);
-        saved_spritefile = sprsetname;
-        saved_indexfile = sprindexname;
-    }
-    catch (Exception ^e)
-    {
-        main_exception = e;
-    }
-    finally
-    {
-        // Reset the sprite cache to whichever file was successfully saved
-        HAGSError err = spriteset.InitFile(saved_spritefile, saved_indexfile);
-        if (!err)
-        {
-            throw gcnew AGSEditorException(
-                String::Format("Unable to re-initialize sprite file after save.{0}{1}",
-                    Environment::NewLine, gcnew String(err->FullMessage().GetCStr())), main_exception);
-        }
-        else if (err && main_exception != nullptr)
-        {
-            throw gcnew AGSEditorException(
-                String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
-                    Environment::NewLine, TextHelper::ConvertUTF8(saved_spritefile)), main_exception);
-        }
-    }
-    spritesModified = false;
+    ReplaceSpriteFile(saved_spritefile, saved_indexfile, true);
 }
 
 void SetGameResolution(Game ^game)
@@ -2330,16 +2345,17 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 	}
 }
 
-AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
+    bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     RGB imgPalBuf[256];
-  int importedColourDepth;
-	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+    int importedColourDepth;
+    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-	if (thisgame.color_depth > 1) 
-	{
-		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
-	}
+    if (thisgame.color_depth > 1)
+    {
+        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
+    }
     else
     {
         int transcol;
@@ -2349,18 +2365,30 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
     }
 
     int flags = 0;
-	if (alphaChannel)
-	{
+    if (alphaChannel)
+    {
         flags |= SPF_ALPHACHANNEL;
-		if (tempsprite->GetColorDepth() == 32)
-		{
-			set_rgb_mask_from_alpha_channel(tempsprite);
-		}
-	}
-	else if (tempsprite->GetColorDepth() == 32)
-	{
-		set_opaque_alpha_channel(tempsprite);
-	}
+        if (tempsprite->GetColorDepth() == 32)
+        {
+            set_rgb_mask_from_alpha_channel(tempsprite);
+        }
+    }
+    else if (tempsprite->GetColorDepth() == 32)
+    {
+        set_opaque_alpha_channel(tempsprite);
+    }
+
+    if (out_flags)
+        *out_flags = flags;
+    return tempsprite;
+}
+
+AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
+    bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+{
+    int flags;
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, remapColours,
+        useRoomBackgroundColours, alphaChannel, &flags);
     thisgame.SpriteInfos[slot].Flags = flags;
 
 	SetNewSprite(slot, tempsprite);

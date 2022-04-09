@@ -40,7 +40,7 @@ namespace AGS.Editor
             Utilities.TryDeleteFile(filename);
         }
 
-        private object CreateDebugFiles(object parameter)
+        private object CreateDebugFiles(IWorkProgress progress, object parameter)
         {
             Factory.AGSEditor.SetMODMusicFlag();
             CompileMessages errors = (parameter as CompileMessages);

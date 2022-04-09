@@ -980,7 +980,7 @@ namespace AGS.Editor
             throw new AGSEditorException("No default application registered to handle file type " + extension);
         }
 
-        private object LaunchImageEditorThread(object parameter)
+        private object LaunchImageEditorThread(IWorkProgress progress, object parameter)
         {
             string fileName = (string)parameter;
             Process imageEditor = new Process();

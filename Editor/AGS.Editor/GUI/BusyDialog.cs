@@ -11,9 +11,16 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    public partial class BusyDialog : Form
+    public interface IWorkProgress
     {
-        public delegate object ProcessingHandler(object parameter);
+        int? Total { get; set; }
+        int? Current { get; set; }
+        string Message { get; set; }
+    }
+
+    public partial class BusyDialog : Form, IWorkProgress
+    {
+        public delegate object ProcessingHandler(IWorkProgress progress, object parameter);
 
         private System.Windows.Forms.Timer _timer;
         private int _tickCount = 0;
@@ -23,12 +30,16 @@ namespace AGS.Editor
         private Exception _exceptionThrownOnThread;
         private object _result;
         private bool _allowClose = false;
+        private int? _progressTotal = null;
+        private int? _progressCurrent = null;
+        private string _originalMessage;
 
         private static Bitmap[] _icons = null;
 
         public BusyDialog(string message, ProcessingHandler handler, object parameter)
         {
             InitializeComponent();
+            _originalMessage = message;
             lblMessage.Text = message;
             _handler = handler;
             _parameter = parameter;
@@ -93,6 +104,48 @@ namespace AGS.Editor
             get { return _result; }
         }
 
+        private void UpdateMessageLabel()
+        {
+            string progrText = "";
+            if (_progressTotal.HasValue && _progressCurrent.HasValue)
+                progrText = string.Format("({0} / {1})", _progressCurrent, _progressTotal);
+            else if (_progressTotal.HasValue)
+                progrText = string.Format("(- / {0})", _progressTotal);
+            else if (_progressCurrent.HasValue)
+                progrText = string.Format("({0} / -)", _progressCurrent);
+            lblMessage.Text = _originalMessage + " " + progrText;
+        }
+
+        public string Message
+        {
+            get { return lblMessage.Text; }
+            set
+            {
+                _originalMessage = value;
+                Invoke((Action)(() => { UpdateMessageLabel(); }));
+            }
+        }
+
+        public int? Total
+        {
+            get { return _progressTotal; }
+            set
+            {
+                _progressTotal = value;
+                Invoke((Action)(() => { UpdateMessageLabel(); }));
+            }
+        }
+
+        public int? Current
+        {
+            get { return _progressCurrent; }
+            set
+            {
+                _progressCurrent = value;
+                Invoke((Action)(() => { UpdateMessageLabel(); }));
+            }
+        }
+
         private void BusyDialog_Load(object sender, EventArgs e)
         {
             _timer = new System.Windows.Forms.Timer();
@@ -110,7 +163,7 @@ namespace AGS.Editor
         {
             try
             {
-                _result = _handler(_parameter);
+                _result = _handler(this, _parameter);
             }
             catch (Exception ex)
             {

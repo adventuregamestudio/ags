@@ -1292,6 +1292,10 @@ builtin managed struct Overlay {
   import attribute int Width;
   /// Gets/sets the height of this overlay. Resizing overlay will scale its image.
   import attribute int Height;
+  /// Gets the original width of this overlay's graphic.
+  import readonly attribute int GraphicWidth;
+  /// Gets the original height of this overlay's graphic.
+  import readonly attribute int GraphicHeight;
   /// Gets/sets the transparency of this overlay.
   import attribute int Transparency;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.

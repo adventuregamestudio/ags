@@ -26,8 +26,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // DATA
 //
 
-__GDF_XML               DATA                    "DefaultGDF.gdf.xml"
-
 PIXEL_SHADER            DATA                    "tintshader.fxo"
 
 PIXEL_SHADER_LEGACY     DATA                    "tintshaderLegacy.fxo"

@@ -73,89 +73,6 @@ namespace AGS.Editor
             sw.Close();
         }
 
-        private string GenerateGameExplorerXML()
-        {
-            Game _game = Factory.AGSEditor.CurrentGame;
-            StringWriter sw = new StringWriter();
-            XmlTextWriter writer = new XmlTextWriter(sw);
-            writer.Formatting = Formatting.Indented;
-
-            writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf-8\"");
-
-            writer.WriteStartElement("GameDefinitionFile");
-            writer.WriteAttributeString("xmlns:baseTypes", "urn:schemas-microsoft-com:GamesExplorerBaseTypes.v1");
-            writer.WriteAttributeString("xmlns", "urn:schemas-microsoft-com:GameDescription.v1");
-
-            writer.WriteStartElement("GameDefinition");
-            writer.WriteAttributeString("gameID", _game.Settings.GUIDAsString);
-            writer.WriteElementString("Name", _game.Settings.GameName);
-            writer.WriteElementString("Description", _game.Settings.Description);
-            writer.WriteElementString("ReleaseDate", _game.Settings.ReleaseDate.ToString("yyyy-MM-dd"));
-
-            writer.WriteStartElement("Genres");
-            writer.WriteElementString("Genre", _game.Settings.Genre);
-            writer.WriteEndElement();
-
-            if (!string.IsNullOrEmpty(_game.Settings.SaveGameFolderName))
-            {
-                writer.WriteStartElement("SavedGames");
-                writer.WriteAttributeString("baseKnownFolderID", "{4C5C32FF-BB9D-43B0-B5B4-2D72E54EAAA4}");
-                writer.WriteAttributeString("path", _game.Settings.SaveGameFolderName);
-                writer.WriteEndElement();
-            }
-
-            writer.WriteStartElement("Version");
-            writer.WriteStartElement("VersionNumber");
-            writer.WriteAttributeString("versionNumber", _game.Settings.Version);
-            writer.WriteEndElement();
-            writer.WriteEndElement();
-
-            writer.WriteStartElement("WindowsSystemPerformanceRating");
-            writer.WriteAttributeString("minimum", _game.Settings.WindowsExperienceIndex.ToString());
-            writer.WriteAttributeString("recommended", _game.Settings.WindowsExperienceIndex.ToString());
-            writer.WriteEndElement();
-
-            if (!string.IsNullOrEmpty(_game.Settings.DeveloperName))
-            {
-                writer.WriteStartElement("Developers");
-                writer.WriteStartElement("Developer");
-                writer.WriteAttributeString("URI", _game.Settings.DeveloperURL);
-                writer.WriteString(_game.Settings.DeveloperName);
-                writer.WriteEndElement();
-                writer.WriteEndElement();
-            }
-
-            writer.WriteEndElement();
-            writer.WriteEndElement();
-            writer.Flush();
-
-            string xml = sw.ToString();
-            writer.Close();
-            return xml;
-        }
-
-        private void UpdateVistaGameExplorerResources(string newExeName)
-        {
-            if (Factory.AGSEditor.CurrentGame.Settings.GameExplorerEnabled)
-            {
-                string xml = GenerateGameExplorerXML();
-                Factory.NativeProxy.UpdateGameExplorerXML(newExeName, Encoding.UTF8.GetBytes(xml));
-
-                if (File.Exists(AGSEditor.GAME_EXPLORER_THUMBNAIL_FILE_NAME))
-                {
-                    BinaryReader br = new BinaryReader(new FileStream(AGSEditor.GAME_EXPLORER_THUMBNAIL_FILE_NAME, FileMode.Open, FileAccess.Read));
-                    byte[] data = br.ReadBytes((int)br.BaseStream.Length);
-                    br.Close();
-
-                    Factory.NativeProxy.UpdateGameExplorerThumbnail(newExeName, data);
-                }
-            }
-            else
-            {
-                Factory.NativeProxy.UpdateGameExplorerXML(newExeName, null);
-            }
-        }
-
         public void UpdateWindowsEXE(string filename)
         {
             UpdateWindowsEXE(filename, null);
@@ -175,14 +92,6 @@ namespace AGS.Editor
                 {
                     Factory.GUIController.ShowMessage("An problem occurred setting your custom icon onto the EXE file. The error was: " + ex.Message, MessageBoxIcon.Warning);
                 }
-            }
-            try
-            {
-                UpdateVistaGameExplorerResources(filename);
-            }
-            catch (Exception ex)
-            {
-                errors.Add(new CompileError("Unable to register for Windows Game Explorer: " + ex.Message));
             }
             try
             {

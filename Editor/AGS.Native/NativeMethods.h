@@ -19,7 +19,6 @@ namespace AGS
 			cli::array<PaletteEntry^>^ lastPaletteSet;
             static TextConverter^ _gameTextConverter;
 
-      void UpdateResourceInFile(String ^fileToUpdate, const char *resourceName, cli::array<System::Byte> ^newData);
       BaseTemplate^ LoadTemplateFile(String ^fileName, bool isRoomTemplate);
       void FindAndUpdateMemory(unsigned char *data, int dataLen, const unsigned char *searchFor, int searchForLen, const unsigned char *replaceWith);
       void ReplaceStringInMemory(unsigned char *memory, int memorySize, const char *searchFor, const unsigned char *replaceWithData);
@@ -97,8 +96,6 @@ namespace AGS
 			void ExtractTemplateFiles(String ^templateFileName);
 		  void ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber);
 			void UpdateFileIcon(String ^fileToUpdate, String ^iconFileName);
-      void UpdateGameExplorerXML(String ^fileToUpdate, cli::array<unsigned char> ^data);
-      void UpdateGameExplorerThumbnail(String ^fileToUpdate, cli::array<unsigned char> ^data);
       void UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode);
 			bool HaveSpritesBeenModified();
             Object^ GetNativeConstant(String ^name);

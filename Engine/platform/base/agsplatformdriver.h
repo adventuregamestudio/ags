@@ -112,8 +112,6 @@ public:
     virtual void PauseApplication();
     // Called when the application is being resumed.
     virtual void ResumeApplication();
-    virtual void RegisterGameWithGameExplorer();
-    virtual void UnRegisterGameWithGameExplorer();
     // Adjust window size to ensure it is in the supported limits
     virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
     // Either set window icon using system API directly, or create a SDL_Surface

@@ -107,7 +107,7 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 void GUIInvWindow::Draw(Bitmap *ds)
 {
     color_t draw_color = ds->GetCompatibleColor(15);
-    ds->DrawRect(Rect(X, Y, X + Width, Y + Height), draw_color);
+    ds->DrawRect(RectWH(X, Y, Width, Height), draw_color);
 }
 
 void GUIButton::PrepareTextToDraw()

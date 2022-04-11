@@ -92,6 +92,11 @@ bool GUIButton::IsClippingImage() const
     return (Flags & kGUICtrl_Clip) != 0;
 }
 
+bool GUIButton::HasAlphaChannel() const
+{
+    return is_sprite_alpha(CurrentImage);
+}
+
 Rect GUIButton::CalcGraphicRect(bool clipped)
 {
     if (clipped)

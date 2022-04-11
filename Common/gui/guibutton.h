@@ -61,6 +61,7 @@ public:
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
+    bool HasAlphaChannel() const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;

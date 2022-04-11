@@ -143,9 +143,6 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         right_hand_edge -= get_fixed_pixel_size(7);
     }
 
-    // FIXME: cut this out, and let editor add real items for display
-    DrawItemsFix();
-
     Rect old_clip = ds->GetClip();
     if (scrollbar && GUI::Options.ClipControls)
         ds->SetClip(Rect(X, Y, right_hand_edge + 1, Y + Height - 1));
@@ -179,8 +176,6 @@ void GUIListBox::Draw(Common::Bitmap *ds)
             (FrameAlignment)TextAlignment);
     }
     ds->SetClip(old_clip);
-
-    DrawItemsUnfix();
 }
 
 int GUIListBox::InsertItem(int index, const String &text)

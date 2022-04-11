@@ -87,7 +87,7 @@ bool enable_greyed_out_masks = true;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
 AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);
-GUIMain tempgui;
+GUIMain tempgui; // for drawing a GUI preview
 const char *sprsetname = "acsprset.spr";
 const char *sprindexname = "sprindex.dat";
 const char *old_editor_data_file = "editor.dat";
@@ -2725,6 +2725,12 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scal
   guiinv.resize(0);
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
+  // Add dummy items to all listboxes, let user preview the fonts
+  for (auto &lb : guilist)
+  {
+      lb.AddItem("Sample selected");
+      lb.AddItem("Sample item");
+  }
 
   tempgui.HighlightCtrl = selectedControl;
 

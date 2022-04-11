@@ -99,21 +99,6 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
     wouttext_outline(ds, X + 2, Y + 2, Font, text_color, "Text Box Contents");
 }
 
-static int num_items_temp;
-void GUIListBox::DrawItemsFix()
-{
-    num_items_temp = ItemCount;
-    ItemCount = 2;
-    Items.push_back("Sample selected");
-    Items.push_back("Sample item");
-}
-
-void GUIListBox::DrawItemsUnfix()
-{
-    Items.clear();
-    ItemCount = num_items_temp;
-}
-
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
     _textToDraw = text;

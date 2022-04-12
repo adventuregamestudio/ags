@@ -118,6 +118,7 @@ void GUIObject::SetVisible(bool on)
         Flags |= kGUICtrl_Visible;
     else
         Flags &= ~kGUICtrl_Visible;
+    MarkChanged();
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

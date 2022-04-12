@@ -84,7 +84,7 @@ public:
     // Mouse button up
     virtual void    OnMouseUp() { }
     // Control was resized
-    virtual void    OnResized() { }
+    virtual void    OnResized() { MarkChanged(); }
 
     // Serialization
     virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);

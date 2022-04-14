@@ -27,6 +27,7 @@
 #include "ac/timer.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
+#include "gfx/gfx_def.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
 #include "platform/base/agsplatformdriver.h"
@@ -1071,14 +1072,15 @@ void D3DGraphicsDriver::_reDrawLastFrame()
   RestoreDrawLists();
 }
 
-void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal)
+void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal,
+    const SpriteColorTransform &color)
 {
   HRESULT hr;
   D3DBitmap *bmpToDraw = drawListEntry->ddb;
   D3DMATRIX matSelfTransform;
   D3DMATRIX matTransform;
 
-  const int alpha = bmpToDraw->_alpha;
+  const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
 
   if (bmpToDraw->_tintSaturation > 0)
   {
@@ -1386,11 +1388,11 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
             if (DoNullSpriteCallback(e.x, (int)direct3ddevice))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
-                _renderSprite(&stageEntry, batch.Matrix);
+                _renderSprite(&stageEntry, batch.Matrix, batch.Color);
             }
             break;
         default:
-            _renderSprite(&e, batch.Matrix);
+            _renderSprite(&e, batch.Matrix, batch.Color);
             break;
         }
     }
@@ -1449,7 +1451,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = D3DSpriteBatch(index, viewport, matFinal);
+    _spriteBatches[index] = D3DSpriteBatch(index, viewport, matFinal, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     int src_w = viewport.GetWidth() / desc.Transform.ScaleX;

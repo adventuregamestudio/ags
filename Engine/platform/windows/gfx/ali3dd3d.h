@@ -166,10 +166,12 @@ struct D3DSpriteBatch
     // Transformation matrix, built from the batch description
     // TODO: investigate possibility of using glm here (might need conversion to D3D matrix format)
     D3DMATRIX Matrix;
+    // Batch color transformation
+    SpriteColorTransform Color;
 
     D3DSpriteBatch() = default;
-    D3DSpriteBatch(uint32_t id, const Rect view, const D3DMATRIX &matrix)
-        : ID(id), Viewport(view), Matrix(matrix) {}
+    D3DSpriteBatch(uint32_t id, const Rect view, const D3DMATRIX &matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
 };
 typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 
@@ -292,7 +294,7 @@ private:
     void SetScissor(const Rect &clip);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
-    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
+    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal, const SpriteColorTransform &color);
     void _renderFromTexture();
 };
 

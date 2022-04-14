@@ -21,6 +21,7 @@
 #include "ac/timer.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
+#include "gfx/gfx_def.h"
 #include "gfx/gfxfilter_ogl.h"
 #include "gfx/gfxfilter_aaogl.h"
 #include "platform/base/agsplatformdriver.h"
@@ -961,11 +962,12 @@ void OGLGraphicsDriver::_reDrawLastFrame()
     RestoreDrawLists();
 }
 
-void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, const glm::mat4 &projection, const glm::mat4 &matGlobal)
+void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
+    const glm::mat4 &projection, const glm::mat4 &matGlobal, const SpriteColorTransform &color)
 {
   OGLBitmap *bmpToDraw = drawListEntry->ddb;
 
-  const int alpha = bmpToDraw->_alpha;
+  const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
 
   ShaderProgram program;
 
@@ -1300,11 +1302,11 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
             if (DoNullSpriteCallback(e.x, e.y))
             {
                 auto stageEntry = OGLDrawListEntry((OGLBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
-                _renderSprite(&stageEntry, projection, batch.Matrix);
+                _renderSprite(&stageEntry, projection, batch.Matrix, batch.Color);
             }
             break;
         default:
-            _renderSprite(&e, projection, batch.Matrix);
+            _renderSprite(&e, projection, batch.Matrix, batch.Color);
             break;
         }
     }
@@ -1372,7 +1374,7 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = OGLSpriteBatch(index, viewport, model);
+    _spriteBatches[index] = OGLSpriteBatch(index, viewport, model, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     int src_w = orig_viewport.GetWidth() / desc.Transform.ScaleX;

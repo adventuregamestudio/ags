@@ -137,10 +137,12 @@ struct OGLSpriteBatch
     Rect Viewport;
     // Transformation matrix, built from the batch description
     glm::mat4 Matrix;
+    // Batch color transformation
+    SpriteColorTransform Color;
 
     OGLSpriteBatch() = default;
-    OGLSpriteBatch(uint32_t id, const Rect view, const glm::mat4 &matrix)
-        : ID(id), Viewport(view), Matrix(matrix) {}
+    OGLSpriteBatch(uint32_t id, const Rect view, const glm::mat4 &matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
 };
 typedef std::vector<OGLSpriteBatch>    OGLSpriteBatches;
 
@@ -316,7 +318,8 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal);
+    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);

@@ -1232,7 +1232,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
 
-  tempgui.DrawAt (tempblock, 0, 0);
+  tempgui.DrawWithControls(tempblock);
 
   dsc_want_hires = 0;
 

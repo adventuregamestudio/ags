@@ -57,9 +57,14 @@ public:
     bool            IsClickable() const;
     // Compatibility: should the control's graphic be clipped to its x,y,w,h
     virtual bool    IsContentClipped() const { return true; }
+    // Tells if the object image supports alpha channel
+    virtual bool    HasAlphaChannel() const { return false; }
     
     // Operations
-    virtual void    Draw(Bitmap*) { }
+    // Returns the (untransformed!) visual rectangle of this control,
+    // optionally clipped by the logical position
+    virtual Rect    CalcGraphicRect(bool clipped) { return RectWH(X, Y, Width, Height); }
+    virtual void    Draw(Bitmap *ds, int x = 0, int y = 0) { (void)ds; (void)x; (void)y; }
     void            SetClickable(bool on);
     void            SetEnabled(bool on);
     void            SetTranslated(bool on);
@@ -79,7 +84,7 @@ public:
     // Mouse button up
     virtual void    OnMouseUp() { }
     // Control was resized
-    virtual void    OnResized() { }
+    virtual void    OnResized() { MarkChanged(); }
 
     // Serialization
     virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
@@ -90,7 +95,10 @@ public:
 // TODO: these members are currently public; hide them later
 public:
     // Notifies parent GUI that this control has changed
-    void     NotifyParentChanged();
+    void     MarkChanged();
+
+    bool     HasChanged() const;
+    void     ClearChanged();
 
     int32_t  Id;         // GUI object's identifier
     int32_t  ParentId;   // id of parent GUI
@@ -107,6 +115,7 @@ public:
   
 protected:
     uint32_t Flags;      // generic style and behavior flags
+    bool     _hasChanged;
 
     // TODO: explicit event names & handlers for every event
     int32_t  _scEventCount;                    // number of supported script events

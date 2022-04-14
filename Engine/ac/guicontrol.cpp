@@ -57,7 +57,6 @@ void GUIControl_SetVisible(GUIObject *guio, int visible)
   if (on != guio->IsVisible())
   {
     guio->SetVisible(on);
-    guis[guio->ParentId].OnControlPositionChanged();
   }
 }
 
@@ -72,8 +71,8 @@ void GUIControl_SetClickable(GUIObject *guio, int enabled) {
     guio->SetClickable(true);
   else
     guio->SetClickable(false);
-
-  guis[guio->ParentId].OnControlPositionChanged();
+  // clickable property may change control behavior under mouse
+  guis[guio->ParentId].MarkControlsChanged();
 }
 
 int GUIControl_GetEnabled(GUIObject *guio) {
@@ -85,7 +84,6 @@ void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
   if (on != guio->IsEnabled())
   {
     guio->SetEnabled(on);
-    guis[guio->ParentId].OnControlPositionChanged();
   }
 }
 
@@ -146,7 +144,7 @@ int GUIControl_GetX(GUIObject *guio) {
 
 void GUIControl_SetX(GUIObject *guio, int xx) {
   guio->X = data_to_game_coord(xx);
-  guis[guio->ParentId].OnControlPositionChanged();
+  guis[guio->ParentId].MarkControlsChanged(); // update control under cursor
 }
 
 int GUIControl_GetY(GUIObject *guio) {
@@ -155,7 +153,7 @@ int GUIControl_GetY(GUIObject *guio) {
 
 void GUIControl_SetY(GUIObject *guio, int yy) {
   guio->Y = data_to_game_coord(yy);
-  guis[guio->ParentId].OnControlPositionChanged();
+  guis[guio->ParentId].MarkControlsChanged(); // update control under cursor
 }
 
 int GUIControl_GetZOrder(GUIObject *guio)
@@ -181,7 +179,6 @@ int GUIControl_GetWidth(GUIObject *guio) {
 void GUIControl_SetWidth(GUIObject *guio, int newwid) {
   guio->Width = data_to_game_coord(newwid);
   guio->OnResized();
-  guis[guio->ParentId].OnControlPositionChanged();
 }
 
 int GUIControl_GetHeight(GUIObject *guio) {
@@ -191,7 +188,6 @@ int GUIControl_GetHeight(GUIObject *guio) {
 void GUIControl_SetHeight(GUIObject *guio, int newhit) {
   guio->Height = data_to_game_coord(newhit);
   guio->OnResized();
-  guis[guio->ParentId].OnControlPositionChanged();
 }
 
 void GUIControl_SetSize(GUIObject *guio, int newwid, int newhit) {

@@ -78,7 +78,7 @@ bool GUIObject::IsClickable() const
     return true;
 }
 
-void GUIObject::NotifyParentChanged()
+void GUIObject::MarkChanged()
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
@@ -93,10 +93,10 @@ size_t GUILabel::SplitLinesForDrawing(SplitLines &lines)
     return split_lines(_textToDraw.GetCStr(), lines, Width, Font);
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
 {
     // print something fake so we can see what it looks like
-    wouttext_outline(ds, X + 2, Y + 2, Font, text_color, "Text Box Contents");
+    wouttext_outline(ds, x + 2, y + 2, Font, text_color, "Text Box Contents");
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)
@@ -104,10 +104,10 @@ void GUIListBox::PrepareTextToDraw(const String &text)
     _textToDraw = text;
 }
 
-void GUIInvWindow::Draw(Bitmap *ds)
+void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
     color_t draw_color = ds->GetCompatibleColor(15);
-    ds->DrawRect(RectWH(X, Y, Width, Height), draw_color);
+    ds->DrawRect(RectWH(x, y, Width, Height), draw_color);
 }
 
 void GUIButton::PrepareTextToDraw()

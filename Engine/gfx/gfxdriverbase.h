@@ -34,6 +34,7 @@ using Common::PlaneScaling;
 // Sprite batch, defines viewport and an optional model transformation for the list of sprites
 struct SpriteBatchDesc
 {
+    uint32_t                 Parent = 0;
     // View rectangle for positioning and clipping, in resolution coordinates
     // (this may be screen or game frame resolution, depending on circumstances)
     Rect                     Viewport;
@@ -42,14 +43,15 @@ struct SpriteBatchDesc
     // Global node offset applied to the whole batch as the last transform
     Point                    Offset;
     // Global node flip applied to the whole batch as the last transform
-    GlobalFlipType           Flip;
+    GlobalFlipType           Flip = kFlip_None;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     PBitmap                  Surface;
 
-    SpriteBatchDesc() : Flip(kFlip_None) {}
-    SpriteBatchDesc(const Rect viewport, const SpriteTransform &transform, const Point offset = Point(),
+    SpriteBatchDesc() = default;
+    SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform, const Point offset = Point(),
             GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr)
-        : Viewport(viewport)
+        : Parent(parent)
+        , Viewport(viewport)
         , Transform(transform)
         , Offset(offset)
         , Flip(flip)
@@ -64,20 +66,15 @@ typedef std::vector<SpriteBatchDesc> SpriteBatchDescs;
 template<class T_DDB>
 struct SpriteDrawListEntry
 {
-    T_DDB *bitmap; // TODO: use shared pointer?
-    int x, y; // sprite position, in camera coordinates
-    bool skip;
+    T_DDB *ddb = nullptr; // TODO: use shared pointer?
+    uint32_t node = 0; // sprite batch / scene node index
+    int x = 0, y = 0; // sprite position, in local batch / node coordinates
+    bool skip = false;
 
-    SpriteDrawListEntry()
-        : bitmap(nullptr)
-        , x(0)
-        , y(0)
-        , skip(false)
-    {
-    }
-
-    SpriteDrawListEntry(T_DDB *ddb, int x_ = 0, int y_ = 0)
-        : bitmap(ddb)
+    SpriteDrawListEntry() = default;
+    SpriteDrawListEntry(T_DDB *ddb_, uint32_t node_, int x_, int y_)
+        : ddb(ddb_)
+        , node(node_)
         , x(x_)
         , y(y_)
         , skip(false)
@@ -102,6 +99,7 @@ public:
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) override;
+    void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 
     void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) override { _pollingCallback = callback; }
@@ -111,6 +109,11 @@ public:
     void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) override { _nullSpriteCallback = callback; }
 
 protected:
+    // Special internal values, applied to DrawListEntry
+    static const intptr_t DRAWENTRY_STAGECALLBACK = 0x0;
+    static const intptr_t DRAWENTRY_FADE = 0x1;
+    static const intptr_t DRAWENTRY_TINT = 0x2;
+
     // Called after graphics driver was initialized for use for the first time
     virtual void OnInit();
     // Called just before graphics mode is going to be uninitialized and its

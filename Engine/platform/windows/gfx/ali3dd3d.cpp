@@ -1078,8 +1078,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   D3DMATRIX matSelfTransform;
   D3DMATRIX matTransform;
 
-  if (bmpToDraw->_transparency >= 255)
-    return;
+  const int alpha = bmpToDraw->_alpha;
 
   if (bmpToDraw->_tintSaturation > 0)
   {
@@ -1098,11 +1097,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     }
 
     vector[3] = (float)bmpToDraw->_tintSaturation / 256.0;
-
-    if (bmpToDraw->_transparency > 0)
-      vector[4] = (float)bmpToDraw->_transparency / 256.0;
-    else
-      vector[4] = 1.0f;
+    vector[4] = (float)alpha / 256.0;
 
     if (bmpToDraw->_lightLevel > 0)
       vector[5] = (float)bmpToDraw->_lightLevel / 256.0;
@@ -1142,17 +1137,12 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       useTintBlue = useTintRed;
     }
 
-    if (bmpToDraw->_transparency > 0)
-    {
-      useTransparency = bmpToDraw->_transparency;
-    }
-
-    direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(useTintRed, useTintGreen, useTintBlue, useTransparency));
+    direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(useTintRed, useTintGreen, useTintBlue, alpha));
     direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, textureColorOp);
     direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
 
-    if (bmpToDraw->_transparency == 0)
+    if (alpha == 255)
     {
       // No transparency, use texture alpha component
       direct3ddevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
@@ -1782,7 +1772,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    d3db->SetTransparency(fadingOut ? a : (255 - a));
+    d3db->SetAlpha(fadingOut ? a : (255 - a));
     this->_renderAndPresent(false);
 
     sys_evt_process_pending();
@@ -1793,7 +1783,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   if (fadingOut)
   {
-    d3db->SetTransparency(0);
+    d3db->SetAlpha(255);
     this->_renderAndPresent(false);
   }
 
@@ -1885,7 +1875,7 @@ void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
-    ddb->SetTransparency(0);
+    ddb->SetAlpha(255);
     _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
@@ -1895,7 +1885,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
-    ddb->SetTransparency(128);
+    ddb->SetAlpha(128);
     _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 

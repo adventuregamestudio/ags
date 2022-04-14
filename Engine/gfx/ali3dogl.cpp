@@ -965,8 +965,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
 {
   OGLBitmap *bmpToDraw = drawListEntry->ddb;
 
-  if (bmpToDraw->_transparency >= 255)
-    return;
+  const int alpha = bmpToDraw->_alpha;
 
   ShaderProgram program;
 
@@ -1036,14 +1035,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry, con
     glUseProgram(_transparencyShader.Program);
   }
 
-
   glUniform1i(program.TextureId, 0);
-
-  float alpha = 1.0f;
-  if (bmpToDraw->_transparency > 0) {
-    alpha = bmpToDraw->_transparency / 255.0f;
-  }
-  glUniform1f(program.Alpha, alpha);
+  glUniform1f(program.Alpha, alpha / 255.0f);
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
@@ -1736,7 +1729,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    d3db->SetTransparency(fadingOut ? a : (255 - a));
+    d3db->SetAlpha(fadingOut ? a : (255 - a));
     this->_render(false);
 
     sys_evt_process_pending();
@@ -1747,7 +1740,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   if (fadingOut)
   {
-    d3db->SetTransparency(0);
+    d3db->SetAlpha(255);
     this->_render(false);
   }
 
@@ -1838,7 +1831,7 @@ void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
-    ddb->SetTransparency(0);
+    ddb->SetAlpha(255);
     _spriteList.push_back(OGLDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
@@ -1848,7 +1841,7 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
-    ddb->SetTransparency(128);
+    ddb->SetAlpha(128);
     _spriteList.push_back(OGLDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 

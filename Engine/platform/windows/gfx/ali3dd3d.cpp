@@ -1838,7 +1838,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   EndSpriteBatch();
   D3DSpriteBatch &batch = _spriteBatches[fx_batch];
   std::vector<D3DDrawListEntry> &drawList = _spriteList;
-  const size_t last = drawList.size();
+  const size_t last = drawList.size() - 1;
 
   if (_drawPostScreenCallback != NULL)
     _drawPostScreenCallback();

@@ -316,7 +316,9 @@ void process_event(const EventHappened *evp) {
                 {
                     // on last frame of fade (where transparency < 16), don't
                     // draw the old screen on top
+                    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
                     gfxDriver->DrawSprite(0, 0, ddb);
+                    gfxDriver->EndSpriteBatch();
                 }
                 render_to_screen();
                 update_polled_stuff_if_runtime();
@@ -352,7 +354,9 @@ void process_event(const EventHappened *evp) {
                 gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
                 construct_game_scene(true);
                 construct_game_screen_overlay(false);
+                gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
                 gfxDriver->DrawSprite(0, 0, ddb);
+                gfxDriver->EndSpriteBatch();
                 render_to_screen();
                 update_polled_stuff_if_runtime();
                 WaitForNextFrame();

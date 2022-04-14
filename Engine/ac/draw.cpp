@@ -2673,8 +2673,7 @@ void construct_game_screen_overlay(bool draw_mouse)
 
     if (play.screen_is_faded_out != 0 && gfxDriver->RequiresFullRedrawEachFrame())
     {
-        const Rect &main_viewport = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
         gfxDriver->EndSpriteBatch();
     }
@@ -2834,11 +2833,14 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
 
     construct_game_scene(false);
     our_eip=5;
-    // NOTE: extraBitmap will always be drawn with the UI render stage
+    // TODO: extraBitmap is a hack, used to place an additional gui element
+    // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
+        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
+        gfxDriver->EndSpriteBatch();
     }
     construct_game_screen_overlay(true);
     render_to_screen();

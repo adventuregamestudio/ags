@@ -104,13 +104,14 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
     DIR *dir = opendir(dir_path.GetCStr());
     if (!dir)
         return false;
+    int dir_fd = dirfd(dir);
     struct dirent *ent;
     struct stat f_stat;
     while ((ent = readdir(dir)) != nullptr)
     {
         if (strcmp(ent->d_name, ".") == 0 ||
             strcmp(ent->d_name, "..") == 0) continue;
-        if (stat(ent->d_name, &f_stat) != 0) continue;
+        if (fstatat(dir_fd, ent->d_name, &f_stat, 0) != 0) continue;
         if (S_ISREG(f_stat.st_mode) == is_reg &&
             S_ISDIR(f_stat.st_mode) == is_dir)
             files.push_back(ent->d_name);
@@ -304,7 +305,8 @@ bool FindFile::Next()
         _currentTime = FileTime2time_t(fdata.ftLastWriteTime);
     }
 #else
-    auto dir = _i->dir;
+    DIR *dir = _i->dir;
+    int dir_fd = dirfd(dir);
     const uint32_t is_reg = _i->attrFile;
     const uint32_t is_dir = _i->attrDir;
     struct dirent *ent;
@@ -315,7 +317,7 @@ bool FindFile::Next()
     {
         if (strcmp(ent->d_name, ".") == 0 ||
             strcmp(ent->d_name, "..") == 0) continue;
-        if (stat(ent->d_name, &f_stat) != 0) continue;
+        if (fstatat(dir_fd, ent->d_name, &f_stat, 0) != 0) continue;
         if (S_ISREG(f_stat.st_mode) != is_reg ||
             S_ISDIR(f_stat.st_mode) != is_dir)
             continue;

@@ -32,7 +32,8 @@ GUIObject::GUIObject()
     Width       = 0;
     Height      = 0;
     ZOrder      = -1;
-    IsActivated    = false;
+    IsActivated   = false;
+    _transparency = 0;
     _scEventCount = 0;
     _hasChanged = true;
 }
@@ -124,6 +125,15 @@ void GUIObject::SetVisible(bool on)
         Flags &= ~kGUICtrl_Visible;
 }
 
+void GUIObject::SetTransparency(int trans)
+{
+    if (_transparency != trans)
+    {
+        _transparency = trans;
+        NotifyParentChanged(); // for software mode
+    }
+}
+
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
 // methods in the future, to keep this organized.
 void GUIObject::WriteToFile(Stream *out) const
@@ -192,6 +202,13 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     ZOrder = in->ReadInt32();
     // Dynamic state
     IsActivated = in->ReadBool() ? 1 : 0;
+    if (svg_ver >= kGuiSvgVersion_36023)
+    {
+        _transparency = in->ReadInt32();
+        in->ReadInt32(); // reserve 3 ints
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void GUIObject::WriteToSavegame(Stream *out) const
@@ -205,6 +222,10 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(ZOrder);
     // Dynamic state
     out->WriteBool(IsActivated != 0);
+    out->WriteInt32(_transparency);
+    out->WriteInt32(0); // reserve 3 ints
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 

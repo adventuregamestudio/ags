@@ -2450,7 +2450,7 @@ void draw_gui_and_overlays()
             auto *obj_ddb = guiobjbmp[draw_index + obj_id];
             assert(obj_ddb); // Test for missing texture, might happen if not marked for update
             if (!obj_ddb) continue;
-            obj_ddb->SetAlpha(255);
+            obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
             gfxDriver->DrawSprite(
                 guiobjoff[draw_index + obj_id].X,
                 guiobjoff[draw_index + obj_id].Y,

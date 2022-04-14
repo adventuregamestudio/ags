@@ -1650,6 +1650,10 @@ builtin managed struct GUIControl {
   /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
   import attribute int  ZOrder;
 #endif
+#ifdef SCRIPT_API_v360
+  /// Gets/sets the control's transparency.
+  import attribute int  Transparency;
+#endif
 };
 
 builtin managed struct Label extends GUIControl {

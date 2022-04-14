@@ -213,7 +213,7 @@ struct GameState {
     int   gamma_adjustment;
     short temporarily_turned_off_character;  // Hide Player Charactr ticked
     short inv_backwards_compatibility;
-    int  *gui_draw_order;
+    std::vector<int> gui_draw_order; // used only for hit detection now
     std::vector<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;

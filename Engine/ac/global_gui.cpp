@@ -237,12 +237,10 @@ int GetGUIObjectAt (int xx, int yy) {
 
 int GetGUIAt (int xx,int yy) {
     data_to_game_coords(&xx, &yy);
-
-    int aa, ll;
-    for (ll = game.numgui - 1; ll >= 0; ll--) {
-        aa = play.gui_draw_order[ll];
-        if (guis[aa].IsInteractableAt(xx, yy))
-            return aa;
+    // Test in the opposite order (from closer to further)
+    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g) {
+        if (guis[*g].IsInteractableAt(xx, yy))
+            return *g;
     }
     return -1;
 }

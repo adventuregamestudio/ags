@@ -552,7 +552,7 @@ void unload_game_file()
     ccUnregisterAllObjects();
 
     free_do_once_tokens();
-    free(play.gui_draw_order);
+    play.gui_draw_order.clear();
 
     resetRoomStatuses();
 

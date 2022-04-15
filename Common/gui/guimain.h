@@ -90,6 +90,8 @@ public:
     // Tells if GUI has graphically changed recently
     bool        HasChanged() const;
     // Manually marks GUI as graphically changed
+    // NOTE: this only matters if GUI's own graphic changes (content, size etc),
+    // but not its state (visible) or texture drawing mode (transparency, etc).
     void        MarkChanged();
     // Clears changed flag
     void        ClearChanged();

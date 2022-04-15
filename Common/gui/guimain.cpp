@@ -353,7 +353,6 @@ void GUIMain::Poll()
                     _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
-            //MarkChanged(); // TODO: only do if anything really changed
         } 
         else if (MouseOverCtrl >= 0)
             _controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
@@ -431,7 +430,6 @@ void GUIMain::SetConceal(bool on)
         _flags |= kGUIMain_Concealed;
     else
         _flags &= ~kGUIMain_Concealed;
-    MarkChanged();
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -482,7 +480,6 @@ void GUIMain::SetTextWindow(bool on)
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
     Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
-    MarkChanged();
 }
 
 void GUIMain::SetVisible(bool on)
@@ -491,7 +488,6 @@ void GUIMain::SetVisible(bool on)
         _flags |= kGUIMain_Visible;
     else
         _flags &= ~kGUIMain_Visible;
-    MarkChanged();
 }
 
 void GUIMain::OnControlPositionChanged()
@@ -516,7 +512,6 @@ void GUIMain::OnMouseButtonDown()
     if (_controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
     _controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
-    //MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::OnMouseButtonUp()
@@ -534,7 +529,6 @@ void GUIMain::OnMouseButtonUp()
 
     _controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
-    //MarkChanged(); // TODO: only do if anything really changed
 }
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)

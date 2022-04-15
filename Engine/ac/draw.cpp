@@ -1215,18 +1215,26 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 
 // used by GUI renderer to draw images
-void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode) 
+// NOTE: use_alpha arg is for backward compatibility (legacy draw modes)
+void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode)
 {
-    Bitmap *sprite = spriteset[pic];
-    const bool ds_has_alpha  = ds->GetColorDepth() == 32;
-    const bool src_has_alpha = (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0;
+    draw_gui_sprite(ds, use_alpha, x, y, spriteset[pic],
+        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode);
+}
 
-    if (use_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper)
+void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
+    BlendMode blend_mode, int alpha)
+{
+    if (alpha <= 0)
+        return;
+
+    const bool ds_has_alpha = use_alpha && (ds->GetColorDepth() == 32);
+    if (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper)
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
     }
     // Backwards-compatible drawing
-    else if (use_alpha && ds_has_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_AdditiveAlpha)
+    else if (ds_has_alpha && (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_AdditiveAlpha) && (alpha == 0xFF))
     {
         if (src_has_alpha)
             set_additive_alpha_blender();
@@ -1236,7 +1244,7 @@ void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMod
     }
     else
     {
-        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y);
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y, alpha);
     }
 }
 

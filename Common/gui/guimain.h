@@ -256,6 +256,9 @@ extern bool is_sprite_alpha(int spr);
 // This function has distinct implementations in Engine and Editor
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
                             Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
+extern void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int x, int y,
+                            Common::Bitmap *image, bool src_has_alpha,
+                            Common::BlendMode blend_mode, int alpha);
 
 extern AGS_INLINE int game_to_data_coord(int coord);
 extern AGS_INLINE int data_to_game_coord(int coord);

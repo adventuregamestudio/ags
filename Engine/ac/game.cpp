@@ -55,6 +55,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
+#include "gui/guislider.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
@@ -1484,6 +1485,14 @@ void game_sprite_updated(int sprnum)
             guibuts[i].MarkChanged();
         }
     }
+    // gui sliders
+    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    {
+        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
+        {
+            guislider[i].MarkChanged();
+        }
+    }
 }
 
 void game_sprite_deleted(int sprnum)
@@ -1531,6 +1540,16 @@ void game_sprite_deleted(int sprnum)
             guibuts[i].CurrentImage = 0;
             guibuts[i].MarkChanged();
         }
+    }
+    // gui sliders
+    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    {
+        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
+            guislider[i].MarkChanged();
+        if (guislider[i].BgImage == sprnum)
+            guislider[i].BgImage = 0; 
+        if (guislider[i].HandleImage == sprnum)
+            guislider[i].HandleImage = 0;
     }
     // views
     for (size_t v = 0; v < (size_t)game.numviews; ++v)

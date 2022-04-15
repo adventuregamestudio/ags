@@ -11,11 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/slider.h"
 #include "ac/common.h"
+#include "util/math.h"
 
-// *** SLIDER FUNCTIONS
+using namespace AGS::Common;
 
 void Slider_SetMax(GUISlider *guisl, int valn) {
 
@@ -56,9 +56,7 @@ int Slider_GetMin(GUISlider *guisl) {
 }
 
 void Slider_SetValue(GUISlider *guisl, int valn) {
-    if (valn > guisl->MaxValue) valn = guisl->MaxValue;
-    if (valn < guisl->MinValue) valn = guisl->MinValue;
-
+    valn = Math::Clamp(valn, guisl->MinValue, guisl->MaxValue);
     if (valn != guisl->Value) {
         guisl->Value = valn;
         guisl->MarkChanged();

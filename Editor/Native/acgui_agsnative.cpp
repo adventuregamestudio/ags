@@ -83,6 +83,11 @@ void GUIObject::MarkChanged()
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
+void GUIObject::NotifyParentChanged()
+{
+    // do nothing: in Editor "guis" array is not even guaranteed to be filled!
+}
+
 void GUILabel::PrepareTextToDraw()
 {
     _textToDraw = Text;

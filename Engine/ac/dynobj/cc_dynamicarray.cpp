@@ -170,7 +170,7 @@ int32_t DynamicArray_Length(void *untyped_dynarray)
     // A dynamic array is preceded by two int32_t values.
     // The first one contains the number of elements, maybe with a flag added to it.
     // So that's the one we need.
-    size_t const k_offset_to_num_elements = -2u;
+    int const k_offset_to_num_elements = -2; 
     auto typed_dynarray = static_cast<int32_t *>(untyped_dynarray);
     return typed_dynarray[k_offset_to_num_elements] & ~ARRAY_MANAGED_TYPE_FLAG;
 }

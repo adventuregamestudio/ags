@@ -77,31 +77,30 @@ static void Backspace(String &text)
 
 void GUITextBox::OnKeyPress(const KeyInput &ki)
 {
-    eAGSKeyCode keycode = ki.Key;
-    // other key, continue
-    if ((keycode >= 128) && (!font_supports_extended_characters(Font)))
-        return;
-    // return/enter
-    if (keycode == eAGSKeyCodeReturn)
+    switch (ki.Key)
     {
+    case eAGSKeyCodeReturn:
         IsActivated = true;
         return;
+    case eAGSKeyCodeBackspace:
+        Backspace(Text);
+        MarkChanged();
+        return;
+    default: break;
     }
 
-    MarkChanged();
-    // backspace, remove character
-    if (keycode == eAGSKeyCodeBackspace)
-    {
-        Backspace(Text);
-        return;
-    }
+    if (ki.UChar == 0)
+        return; // not a textual event
+    if ((ki.UChar >= 128) && (!font_supports_extended_characters(Font)))
+        return; // unsupported letter
 
     (get_uformat() == U_UTF8) ?
         Text.Append(ki.Text) :
-        Text.AppendChar(keycode);
+        Text.AppendChar(ki.UChar);
     // if the new string is too long, remove the new character
     if (get_text_width(Text.GetCStr(), Font) > (Width - (6 + get_fixed_pixel_size(5))))
         Backspace(Text);
+    MarkChanged();
 }
 
 void GUITextBox::SetShowBorder(bool on)

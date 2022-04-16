@@ -15,6 +15,7 @@ Common features:
    optional and works only if backwards compatible option is set.
  - Max number of AudioChannels is now 16 (was 8).
  - Removed game Cursors hard limit (was 20).
+ - Discontinued "Windows Game Explorer" support in both Editor and Engine.
 
 Editor:
  - Editor requires .NET Framework 4.6 to run.
@@ -55,7 +56,11 @@ Editor:
  - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
  - Rooms created from a Blank template will now have default background of a game's resolution.
  - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
+ - Editor will now create an empty sprite file if one is missing in the game project. Any existing
+   sprite descriptions in the project will be kept, letting user to reimport these from sources.
+ - Added "File -> Restore all sprites from sources" menu command.
  - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
+ - Added "Apply" button on editor's Preferences dialog.
  - Select script editor's font in the editor's Preferences.
  - Cursor's position in script is now displayed on the status bar.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
@@ -108,7 +113,11 @@ Script API:
  - All Wait* functions now may have infinite timeout if you pass a negative timeout parameter.
  - All Wait* functions now return the reason they were skipped: positive value means a key code,
    negative value means an inverted mouse code, and 0 means skipped by a timer or script command.
- - Added Overlay.Transparency and readonly Overlay.Width and Height properties.
+ - Added GUIControl.Transparency property.
+ - Added Overlay.Width and Height properties, that let you freely scale existing Overlay.
+ - Added readonly Overlay.GraphicWidth and GraphicHeight properties that let read original
+   overlay's graphic size (for textual overlays too).
+ - Added Overlay.Transparency property.
  - Added Overlay.ZOrder property that lets you sort Overlays on screen among themselves and GUI.
  - Added Speech.TextOverlay and Speech.PortraitOverlay for accessing blocking speech overlay
    and portrait overlay respectively.
@@ -150,6 +159,9 @@ Engine:
  - Removed Overlay limit.
  - Character.SetWalkSpeed() is no longer restricted by an arbitrary limit of 50.
  - Process character's idle view based on real game speed, not hardcoded 40 fps.
+ - Engine now renders GUI controls as separate textures when using hardware accelerated renderers.
+   This may significantly improve perfomance in the high-resolution games and games with large
+   number of GUI elements on screen.
  - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
    game is updated, and not while the game script is running. This prevents situations when
    the clip could begin playing before all properties are set in script, or when AudioChannel's

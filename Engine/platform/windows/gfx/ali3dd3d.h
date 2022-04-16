@@ -56,10 +56,8 @@ struct D3DTextureTile : public TextureTile
 class D3DBitmap : public BaseDDB
 {
 public:
-    // Transparency is a bit counter-intuitive
-    // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-    int  GetTransparency() const override { return _transparency; }
-    void SetTransparency(int transparency) override { _transparency = transparency; }
+    int  GetAlpha() const override { return _alpha; }
+    void SetAlpha(int alpha) override { _alpha = alpha; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
     void SetStretch(int width, int height, bool useResampler = true) override
     {
@@ -88,8 +86,7 @@ public:
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
-    bool _hasAlpha;
-    int _transparency;
+    int _alpha;
 
     D3DBitmap(int width, int height, int colDepth, bool opaque)
     {
@@ -108,7 +105,7 @@ public:
         _red = _green = _blue = 0;
         _tintSaturation = 0;
         _lightLevel = 0;
-        _transparency = 0;
+        _alpha = 255;
         _opaque = opaque;
     }
 
@@ -169,10 +166,12 @@ struct D3DSpriteBatch
     // Transformation matrix, built from the batch description
     // TODO: investigate possibility of using glm here (might need conversion to D3D matrix format)
     D3DMATRIX Matrix;
+    // Batch color transformation
+    SpriteColorTransform Color;
 
     D3DSpriteBatch() = default;
-    D3DSpriteBatch(uint32_t id, const Rect view, const D3DMATRIX &matrix)
-        : ID(id), Viewport(view), Matrix(matrix) {}
+    D3DSpriteBatch(uint32_t id, const Rect view, const D3DMATRIX &matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
 };
 typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 
@@ -295,7 +294,7 @@ private:
     void SetScissor(const Rect &clip);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
-    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal);
+    void _renderSprite(const D3DDrawListEntry *entry, const D3DMATRIX &matGlobal, const SpriteColorTransform &color);
     void _renderFromTexture();
 };
 

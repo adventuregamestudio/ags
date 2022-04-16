@@ -302,20 +302,16 @@ void process_event(const EventHappened *evp) {
                 quit("!Cannot use crossfade screen transition in 256-colour games");
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
-
-            int transparency = 254;
-
-            while (transparency > 0) {
+            for (int alpha = 254; alpha > 0; alpha -= 16)
+            {
                 // do the crossfade
-                ddb->SetTransparency(transparency);
+                ddb->SetAlpha(alpha);
                 invalidate_screen();
                 construct_game_scene(true);
                 construct_game_screen_overlay(false);
-
-                if (transparency > 16)
+                // draw old screen on top while alpha > 16
+                if (alpha > 16)
                 {
-                    // on last frame of fade (where transparency < 16), don't
-                    // draw the old screen on top
                     gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
                     gfxDriver->DrawSprite(0, 0, ddb);
                     gfxDriver->EndSpriteBatch();
@@ -323,7 +319,6 @@ void process_event(const EventHappened *evp) {
                 render_to_screen();
                 update_polled_stuff_if_runtime();
                 WaitForNextFrame();
-                transparency -= 16;
             }
 
             delete saved_viewport_bitmap;

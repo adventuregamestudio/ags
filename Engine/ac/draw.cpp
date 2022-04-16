@@ -993,7 +993,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, int zo
 {
     assert(ddb);
     // completely invisible, so don't draw it at all
-    if (ddb->GetTransparency() == 255)
+    if (ddb->GetAlpha() == 0)
         return;
 
     SpriteListEntry sprite;
@@ -1215,18 +1215,26 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 
 // used by GUI renderer to draw images
-void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode) 
+// NOTE: use_alpha arg is for backward compatibility (legacy draw modes)
+void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode)
 {
-    Bitmap *sprite = spriteset[pic];
-    const bool ds_has_alpha  = ds->GetColorDepth() == 32;
-    const bool src_has_alpha = (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0;
+    draw_gui_sprite(ds, use_alpha, x, y, spriteset[pic],
+        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode);
+}
 
-    if (use_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper)
+void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
+    BlendMode blend_mode, int alpha)
+{
+    if (alpha <= 0)
+        return;
+
+    const bool ds_has_alpha = use_alpha && (ds->GetColorDepth() == 32);
+    if (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Proper)
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
     }
     // Backwards-compatible drawing
-    else if (use_alpha && ds_has_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_AdditiveAlpha)
+    else if (ds_has_alpha && (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_AdditiveAlpha) && (alpha == 0xFF))
     {
         if (src_has_alpha)
             set_additive_alpha_blender();
@@ -1236,7 +1244,7 @@ void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMod
     }
     else
     {
-        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y);
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y, alpha);
     }
 }
 
@@ -1775,7 +1783,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        actspsbmp[useindx]->SetTransparency(objs[aa].transparent);
+        actspsbmp[useindx]->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(objs[aa].transparent));
         add_to_sprite_list(actspsbmp[useindx], atxp, atyp, usebasel, false);
     }
 }
@@ -2088,7 +2096,7 @@ void prepare_characters_for_drawing() {
         chin->actx = atxp;
         chin->acty = atyp;
 
-        actspsbmp[useindx]->SetTransparency(chin->transparency);
+        actspsbmp[useindx]->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(chin->transparency));
         add_to_sprite_list(actspsbmp[useindx], bgX, bgY, usebasel, false);
     }
 }
@@ -2320,7 +2328,7 @@ void draw_gui_and_overlays()
     for (auto &over : screenover)
     {
         if (over.transparency == 255) continue; // skip fully transparent
-        over.bmp->SetTransparency(over.transparency);
+        over.bmp->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         int tdxp, tdyp;
         get_overlay_position(over, &tdxp, &tdyp);
         add_to_sprite_list(over.bmp, tdxp, tdyp, over.zorder, false, -1);
@@ -2401,7 +2409,7 @@ void draw_gui_and_overlays()
             auto *gui_ddb = guibgbmp[aa];
             assert(gui_ddb); // Test for missing texture, might happen if not marked for update
             if (!gui_ddb) continue;
-            gui_ddb->SetTransparency(guis[aa].Transparency);
+            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(guis[aa].Transparency));
             add_to_sprite_list(gui_ddb, guis[aa].X, guis[aa].Y, guis[aa].ZOrder, false, aa);
         }
 
@@ -2438,7 +2446,8 @@ void draw_gui_and_overlays()
         gfxDriver->DrawSprite(s.x, s.y, s.ddb);
         if (s.id < 0) continue; // not a group parent (gui)
         // Create a sub-batch
-        gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, s.ddb->GetWidth(), s.ddb->GetHeight()), SpriteTransform());
+        gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, s.ddb->GetWidth(), s.ddb->GetHeight()),
+            SpriteTransform(0, 0, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
         const int draw_index = guiobjbmpref[s.id];
         for (const auto &obj_id : guis[s.id].GetControlsDrawOrder())
         {
@@ -2449,7 +2458,7 @@ void draw_gui_and_overlays()
             auto *obj_ddb = guiobjbmp[draw_index + obj_id];
             assert(obj_ddb); // Test for missing texture, might happen if not marked for update
             if (!obj_ddb) continue;
-            obj_ddb->SetTransparency(guis[s.id].Transparency);
+            obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
             gfxDriver->DrawSprite(
                 guiobjoff[draw_index + obj_id].X,
                 guiobjoff[draw_index + obj_id].Y,
@@ -2469,7 +2478,7 @@ void put_sprite_list_on_screen(bool in_room)
         assert(t.ddb || (t.renderStage >= 0));
         if (t.ddb)
         {
-            if (t.ddb->GetTransparency() == 255)
+            if (t.ddb->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
             invalidate_sprite(t.x, t.y, t.ddb, in_room);
@@ -2760,7 +2769,7 @@ void debug_draw_room_mask(RoomAreaMask mask)
     }
 
     debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, bmp, false, true);
-    debugRoomMaskDDB->SetTransparency(150);
+    debugRoomMaskDDB->SetAlpha(150);
     debugRoomMaskDDB->SetStretch(thisroom.Width, thisroom.Height);
 }
 
@@ -2783,7 +2792,7 @@ void update_room_debug()
             bmp = debugRoomMaskBmp.get();
         }
         debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, bmp, false, true);
-        debugRoomMaskDDB->SetTransparency(150);
+        debugRoomMaskDDB->SetAlpha(150);
         debugRoomMaskDDB->SetStretch(thisroom.Width, thisroom.Height);
     }
     if (debugMoveListChar >= 0)
@@ -2812,7 +2821,7 @@ void update_room_debug()
             }
         }
         debugMoveListDDB = recycle_ddb_bitmap(debugMoveListDDB, debugMoveListBmp.get(), false, false);
-        debugMoveListDDB->SetTransparency(150);
+        debugMoveListDDB->SetAlpha(150);
         debugMoveListDDB->SetStretch(thisroom.Width, thisroom.Height);
     }
 }

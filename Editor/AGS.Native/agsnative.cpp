@@ -583,8 +583,11 @@ void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock
   else g->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
-void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha, Common::BlendMode blend_mode) {
-  Common::Bitmap *blptr = get_sprite(sprnum);
+// draw_gui_sprite is supported formally, without actual blending and other effects
+// This is one ugly function... a "simplified" alternative of the engine's one;
+// but with extra hacks, due to how sprites are stored while working in editor.
+void draw_gui_sprite_impl(Common::Bitmap *g, int sprnum, Common::Bitmap *blptr, int atxp, int atyp)
+{
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
 
@@ -605,7 +608,7 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
     }
 
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
-  if (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[sprnum].IsRelativeRes()) {
+  if ((sprnum >= 0) && thisgame.AllowRelativeRes() && thisgame.SpriteInfos[sprnum].IsRelativeRes()) {
     if (thisgame.SpriteInfos[sprnum].IsLegacyHiRes()) {
       if (dsc_want_hires == 0) {
         nwid/=2;
@@ -619,6 +622,17 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
   }
   wputblock_stretch(g, atxp,atyp,towrite,nwid,nhit);
   if (needtofree) delete towrite;
+}
+
+void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha, Common::BlendMode blend_mode)
+{
+    draw_gui_sprite_impl(g, sprnum, get_sprite(sprnum), atxp, atyp);
+}
+
+void draw_gui_sprite(Common::Bitmap *g, bool use_alpha, int atxp, int atyp,
+    Common::Bitmap *blptr, bool src_has_alpha, Common::BlendMode blend_mode, int alpha)
+{
+    draw_gui_sprite_impl(g, -1, blptr, atxp, atyp);
 }
 
 void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {

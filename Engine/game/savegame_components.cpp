@@ -11,9 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <map>
-
+#include "game/savegame_components.h"
 #include "ac/audiocliptype.h"
 #include "ac/button.h"
 #include "ac/character.h"
@@ -35,7 +34,6 @@
 #include "ac/system.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "debug/out.h"
-#include "game/savegame_components.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
 #include "gui/animatingguibutton.h"
@@ -1178,7 +1176,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_36020,
+        kGuiSvgVersion_36023,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI

@@ -27,6 +27,7 @@
 #include "ac/timer.h"
 #include "debug/out.h"
 #include "gfx/ali3dexception.h"
+#include "gfx/gfx_def.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
 #include "platform/base/agsplatformdriver.h"
@@ -1071,15 +1072,15 @@ void D3DGraphicsDriver::_reDrawLastFrame()
   RestoreDrawLists();
 }
 
-void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal)
+void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal,
+    const SpriteColorTransform &color)
 {
   HRESULT hr;
   D3DBitmap *bmpToDraw = drawListEntry->ddb;
   D3DMATRIX matSelfTransform;
   D3DMATRIX matTransform;
 
-  if (bmpToDraw->_transparency >= 255)
-    return;
+  const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
 
   if (bmpToDraw->_tintSaturation > 0)
   {
@@ -1098,11 +1099,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     }
 
     vector[3] = (float)bmpToDraw->_tintSaturation / 256.0;
-
-    if (bmpToDraw->_transparency > 0)
-      vector[4] = (float)bmpToDraw->_transparency / 256.0;
-    else
-      vector[4] = 1.0f;
+    vector[4] = (float)alpha / 256.0;
 
     if (bmpToDraw->_lightLevel > 0)
       vector[5] = (float)bmpToDraw->_lightLevel / 256.0;
@@ -1142,17 +1139,12 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       useTintBlue = useTintRed;
     }
 
-    if (bmpToDraw->_transparency > 0)
-    {
-      useTransparency = bmpToDraw->_transparency;
-    }
-
-    direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(useTintRed, useTintGreen, useTintBlue, useTransparency));
+    direct3ddevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(useTintRed, useTintGreen, useTintBlue, alpha));
     direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, textureColorOp);
     direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     direct3ddevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
 
-    if (bmpToDraw->_transparency == 0)
+    if (alpha == 255)
     {
       // No transparency, use texture alpha component
       direct3ddevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
@@ -1396,11 +1388,11 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
             if (DoNullSpriteCallback(e.x, (int)direct3ddevice))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
-                _renderSprite(&stageEntry, batch.Matrix);
+                _renderSprite(&stageEntry, batch.Matrix, batch.Color);
             }
             break;
         default:
-            _renderSprite(&e, batch.Matrix);
+            _renderSprite(&e, batch.Matrix, batch.Color);
             break;
         }
     }
@@ -1459,7 +1451,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = D3DSpriteBatch(index, viewport, matFinal);
+    _spriteBatches[index] = D3DSpriteBatch(index, viewport, matFinal, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     int src_w = viewport.GetWidth() / desc.Transform.ScaleX;
@@ -1782,7 +1774,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   speed *= 2;  // harmonise speeds with software driver which is faster
   for (int a = 1; a < 255; a += speed)
   {
-    d3db->SetTransparency(fadingOut ? a : (255 - a));
+    d3db->SetAlpha(fadingOut ? a : (255 - a));
     this->_renderAndPresent(false);
 
     sys_evt_process_pending();
@@ -1793,7 +1785,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
   if (fadingOut)
   {
-    d3db->SetTransparency(0);
+    d3db->SetAlpha(255);
     this->_renderAndPresent(false);
   }
 
@@ -1885,7 +1877,7 @@ void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
-    ddb->SetTransparency(0);
+    ddb->SetAlpha(255);
     _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
@@ -1895,7 +1887,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
-    ddb->SetTransparency(128);
+    ddb->SetAlpha(128);
     _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 

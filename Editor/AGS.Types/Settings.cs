@@ -100,17 +100,14 @@ namespace AGS.Types
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private int _defRoomMaskResolution = 1;
-        // Windows game explorer fields
-        private bool _enableGameExplorer = false;
+        // Description fields (previously: made for Windows Game Explorer)
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
 		private string _genre = DEFAULT_GENRE;
 		private string _version = DEFAULT_VERSION;
-		private int _windowsExperienceIndex = 1;
 		private string _developerName = string.Empty;
 		private string _developerURL = string.Empty;
 		private string _saveGameExtension = string.Empty;
-		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = AudioClip.FixedIndexBase;
         private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
@@ -927,18 +924,13 @@ namespace AGS.Types
             set { _defRoomMaskResolution = value; }
         }
 
-        [DisplayName("Enable Game Explorer integration")]
-		[Description("Whether or not this game can be added to the Vista Game Explorer")]
-		[Category("Windows Game Explorer")]
-		public bool GameExplorerEnabled
-		{
-			get { return _enableGameExplorer; }
-			set { _enableGameExplorer = value; }
-		}
+        [Obsolete]
+        [Browsable(false)]
+        public bool GameExplorerEnabled { get; }
 
 		[DisplayName("Game description")]
-		[Description("The Description displayed in the Game Explorer")]
-		[Category("Windows Game Explorer")]
+		[Description("The game's description")]
+		[Category("(Information)")]
 		public string Description
 		{
 			get { return _description; }
@@ -947,26 +939,26 @@ namespace AGS.Types
 
 		[DisplayName("Release date")]
 		[Description("Date on which this game is first released")]
-		[Category("Windows Game Explorer")]
-		public DateTime ReleaseDate
+        [Category("(Information)")]
+        public DateTime ReleaseDate
 		{
 			get { return _releaseDate; }
 			set { _releaseDate = value; }
 		}
 
 		[DisplayName("Genre")]
-		[Description("The Genre displayed in the Game Explorer")]
-		[Category("Windows Game Explorer")]
-		public string Genre
+		[Description("The game's genre")]
+        [Category("(Information)")]
+        public string Genre
 		{
 			get { return _genre; }
 			set { _genre = value; }
 		}
 
 		[DisplayName("Version")]
-		[Description("The Version displayed in the Game Explorer")]
-		[Category("Windows Game Explorer")]
-		public string Version
+		[Description("Current game version")]
+        [Category("(Information)")]
+        public string Version
 		{
 			get { return _version; }
 			set 
@@ -980,17 +972,12 @@ namespace AGS.Types
             }
 		}
 
-		[DisplayName("Windows Experience Index")]
-		[Description("The minimum Windows Experience Index necessary to play the game")]
-		[Category("Windows Game Explorer")]
-		public int WindowsExperienceIndex
-		{
-			get { return _windowsExperienceIndex; }
-			set { _windowsExperienceIndex = value; }
-		}
+        [Obsolete]
+        [Browsable(false)]
+        public int WindowsExperienceIndex { get; }
 
 		[DisplayName("Developer name")]
-		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Windows Game Explorer.")]
+		[Description("The name of the game developer (you!). On Windows assigned to the game exe properties.")]
         [Category("(Basic properties)")]
 		public string DeveloperName
 		{
@@ -1000,24 +987,19 @@ namespace AGS.Types
 
 		[DisplayName("Developer website")]
 		[Description("URL of game developer's website")]
-		[Category("Windows Game Explorer")]
-		public string DeveloperURL
+        [Category("(Information)")]
+        public string DeveloperURL
 		{
 			get { return _developerURL; }
 			set { _developerURL = value; }
 		}
 
-		[DisplayName("Enhanced save games")]
-		[Description("Whether to enable enhanced save games, where the user can double-click on one in Explorer to start the game and load it. If enabled, you must set the Save Game File Extension. Please see the manual for important information.")]
-		[Category("Saved Games")]
-		public bool EnhancedSaveGames
-		{
-			get { return _enhancedSaveGames; }
-			set { _enhancedSaveGames = value; }
-		}
+        [Obsolete]
+        [Browsable(false)]
+        public bool EnhancedSaveGames { get; }
 
 		[DisplayName("Save game file extension")]
-		[Description("The file extension to give save game files (if Enhanced Save Games are enabled)")]
+		[Description("The file extension to give save game files")]
 		[Category("Saved Games")]
 		public string SaveGameFileExtension
 		{
@@ -1112,15 +1094,12 @@ namespace AGS.Types
         {
             _totalScore = 0;
 			_guid = Guid.Empty;
-			_enableGameExplorer = false;
 			_description = string.Empty;
 			_releaseDate = DateTime.Now;
 			_genre = DEFAULT_GENRE;
 			_version = DEFAULT_VERSION;
-			_windowsExperienceIndex = 1;
 			_developerName = string.Empty;
 			_developerURL = string.Empty;
-			_enhancedSaveGames = false;
 			_saveGameExtension = string.Empty;
             _saveGamesFolderName = null;
             _binaryFilesInSourceControl = false;

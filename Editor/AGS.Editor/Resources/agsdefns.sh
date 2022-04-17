@@ -969,10 +969,14 @@ builtin managed struct Overlay {
   /// Gets/sets the Y position on the screen where this overlay is displayed.
   import attribute int Y;
 #ifdef SCRIPT_API_v360
-  /// Gets the width of this overlay.
-  import readonly attribute int Width;
-  /// Gets the height of this overlay.
-  import readonly attribute int Height;
+  /// Gets/sets the width of this overlay. Resizing overlay will scale its image.
+  import attribute int Width;
+  /// Gets/sets the height of this overlay. Resizing overlay will scale its image.
+  import attribute int Height;
+  /// Gets the original width of this overlay's graphic.
+  import readonly attribute int GraphicWidth;
+  /// Gets the original height of this overlay's graphic.
+  import readonly attribute int GraphicHeight;
   /// Gets/sets the transparency of this overlay.
   import attribute int Transparency;
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
@@ -1217,6 +1221,10 @@ builtin managed struct GUIControl {
   import attribute int  Y;
   /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
   import attribute int  ZOrder;
+#ifdef SCRIPT_API_v360
+  /// Gets/sets the control's transparency.
+  import attribute int  Transparency;
+#endif
 };
 
 builtin managed struct Label extends GUIControl {

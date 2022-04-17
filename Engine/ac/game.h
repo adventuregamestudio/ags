@@ -150,11 +150,8 @@ bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
 bool try_restore_save(int slot);
 bool try_restore_save(const Common::String &path, int slot);
 void serialize_bitmap(const Common::Bitmap *thispic, Common::Stream *out);
-// On Windows we could just use IIDFromString but this is platform-independant
-void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer);
 Common::Bitmap *read_serialized_bitmap(Common::Stream *in);
 void skip_serialized_bitmap(Common::Stream *in);
-long write_screen_shot_for_vista(Common::Stream *out, Common::Bitmap *screenshot);
 
 bool is_in_cutscene();
 CutsceneSkipStyle get_cutscene_skipstyle();

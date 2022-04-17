@@ -470,6 +470,9 @@ namespace AGS.Editor.Components
             return true;
         }
 
+        /// <summary>
+        /// Creates empty room definition, not attached to any actual resources yet.
+        /// </summary>
         private Room CreateEmptyRoom(int roomNumber)
         {
             Room room = new Room(roomNumber);
@@ -477,6 +480,7 @@ namespace AGS.Editor.Components
             room.GameID = gameSettings.UniqueID;
             room.Width = gameSettings.CustomResolution.Width;
             room.Height = gameSettings.CustomResolution.Height;
+            room.MaskResolution = gameSettings.DefaultRoomMaskResolution;
             room.ColorDepth = (int)gameSettings.ColorDepth * 8; // from bytes to bits per pixel
             room.BackgroundCount = 1;
             room.RightEdgeX = room.Width - 1;
@@ -646,7 +650,7 @@ namespace AGS.Editor.Components
             room.GameID = _agsEditor.CurrentGame.Settings.UniqueID;
         }
 
-        private object SaveRoomOnThread(object parameter)
+        private object SaveRoomOnThread(IWorkProgress progress, object parameter)
         {            
             Room room = (Room)parameter;
             _agsEditor.RegenerateScriptHeader(room);
@@ -863,7 +867,13 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
-            _loadedRoom.Modified |= ApplyDefaultMaskResolution();
+            _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
+            // NOTE: currently the only way to know if the room was not affected by
+            // game's settings is to test whether it has game's ID.
+            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            {
+                _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
+            }
 			if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -918,19 +928,13 @@ namespace AGS.Editor.Components
             return scriptModified;
         }
 
-        private bool ApplyDefaultMaskResolution()
+        private bool ApplyDefaultMaskResolution(Room room)
         {
-            // TODO: currently the only way to know if the room was not affected by
-            // game's settings is to test whether it has game's ID. Investigate for
-            // a better way later?
-            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            int mask = _agsEditor.CurrentGame.Settings.DefaultRoomMaskResolution;
+            if (mask != room.MaskResolution)
             {
-                int mask = _agsEditor.CurrentGame.Settings.DefaultRoomMaskResolution;
-                if (mask != _loadedRoom.MaskResolution)
-                {
-                    ((IRoomController)this).AdjustMaskResolution(mask);
-                    return true;
-                }
+                ((IRoomController)this).AdjustMaskResolution(mask);
+                return true;
             }
             return false;
         }

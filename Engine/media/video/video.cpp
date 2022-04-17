@@ -221,7 +221,9 @@ bool VideoPlayer::RenderVideo()
     {
         gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
     }
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
     gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
+    gfxDriver->EndSpriteBatch();
     render_to_screen();
     return true;
 }

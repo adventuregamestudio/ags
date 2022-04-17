@@ -38,7 +38,8 @@ public:
     // Operations
     int  AddItem(const String &text);
     void Clear();
-    void Draw(Bitmap *ds) override;
+    Rect CalcGraphicRect(bool clipped) override;
+    void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     int  InsertItem(int index, const String &text);
     void RemoveItem(int index);
     void SetShowArrows(bool on);
@@ -82,9 +83,7 @@ private:
 
     // Updates dynamic metrics such as row height and others
     void UpdateMetrics();
-    // A temporary solution for special drawing in the Editor
-    void DrawItemsFix();
-    void DrawItemsUnfix();
+    // Applies translation
     void PrepareTextToDraw(const String &text);
 
     // prepared text buffer/cache

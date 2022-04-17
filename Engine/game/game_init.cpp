@@ -134,7 +134,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 // Initializes audio channels and clips and registers them in the script system
 void InitAndRegisterAudioObjects(GameSetupStruct &game)
 {
-    for (int i = 0; i < game.numGameChannels; ++i)
+    for (int i = 0; i < game.numCompatGameChannels; ++i)
     {
         scrAudioChannel[i].id = i;
         ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
@@ -471,9 +471,15 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.charProps.resize(game.numcharacters);
     // Set number of game channels corresponding to the loaded game version
     if (loaded_game_file_version < kGameVersion_360)
+    {
         game.numGameChannels = MAX_GAME_CHANNELS_v320;
+        game.numCompatGameChannels = TOTAL_AUDIO_CHANNELS_v320;
+    }
     else
+    {
         game.numGameChannels = MAX_GAME_CHANNELS;
+        game.numCompatGameChannels = MAX_GAME_CHANNELS;
+    }
     HError err = InitAndRegisterGameEntities(ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
@@ -502,7 +508,9 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         // labels are not clickable by default
         guilabels[i].SetClickable(false);
     }
-    play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
+    play.gui_draw_order.resize(game.numgui);
+    for (int i = 0; i < game.numgui; ++i)
+        play.gui_draw_order[i] = i;
     update_gui_zorder();
     calculate_reserved_channel_count();
 

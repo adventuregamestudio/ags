@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
 #include <cstdio>
 #include "ac/gui.h"
 #include "ac/common.h"
@@ -453,29 +454,15 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
     }
 }
 
-
-void update_gui_zorder() {
-    int numdone = 0, b;
-
-    // for each GUI
-    for (int a = 0; a < game.numgui; a++) {
-        // find the right place in the draw order array
-        int insertAt = numdone;
-        for (b = 0; b < numdone; b++) {
-            if (guis[a].ZOrder < guis[play.gui_draw_order[b]].ZOrder) {
-                insertAt = b;
-                break;
-            }
-        }
-        // insert the new item
-        for (b = numdone - 1; b >= insertAt; b--)
-            play.gui_draw_order[b + 1] = play.gui_draw_order[b];
-        play.gui_draw_order[insertAt] = a;
-        numdone++;
-    }
-
+bool sort_gui_less(const int g1, const int g2)
+{
+    return guis[g1].ZOrder < guis[g2].ZOrder;
 }
 
+void update_gui_zorder()
+{
+    std::sort(play.gui_draw_order.begin(), play.gui_draw_order.end(), sort_gui_less);
+}
 
 void export_gui_controls(int ee)
 {
@@ -514,7 +501,7 @@ void update_gui_disabled_status() {
         // As controls become enabled we must notify parent GUIs
         // to let them reset control-under-mouse detection
         for (int aa = 0; aa < game.numgui; aa++) {
-            guis[aa].OnControlPositionChanged(); // this marks GUI as changed too
+            guis[aa].MarkControlsChanged();
         }
         if (GUI::Options.DisabledStyle != kGuiDis_Unchanged) {
             invalidate_screen();
@@ -584,14 +571,13 @@ int gui_on_mouse_move()
     else {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it
-        int ll;
-        for (ll = 0; ll < game.numgui;ll++) {
-            const int guin = play.gui_draw_order[ll];
+        // CHECKME: not sure why, but we're testing forward draw order here -
+        // from farthest to nearest (this was in original code?)
+        for (int guin : play.gui_draw_order) {
             if (guis[guin].IsInteractableAt(mousex, mousey)) mouse_over_gui=guin;
 
             if (guis[guin].PopupStyle!=kGUIPopupMouseY) continue;
             if (play.complete_overlay_on > 0) break;  // interfaces disabled
-            //    if (play.disabled_user_interface>0) break;
             if (ifacepopped==guin) continue;
             if (!guis[guin].IsVisible()) continue;
             // Don't allow it to be popped up while skipping cutscene

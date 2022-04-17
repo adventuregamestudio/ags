@@ -43,6 +43,7 @@ typedef std::shared_ptr<Stream> PStream;
 //
 // 8      last old style saved game format (of AGS 3.2.1)
 // 9      first new style (self-descriptive block-based) format version
+// Since 3.6.0: value is defined as AGS version represented as NN,NN,NN,NN.
 //-----------------------------------------------------------------------------
 enum SavegameVersion
 {
@@ -53,6 +54,7 @@ enum SavegameVersion
     kSvgVersion_350_final = 11,
     kSvgVersion_350_final2= 12,
     kSvgVersion_351       = 13,
+    kSvgVersion_360beta   = 3060023,
     kSvgVersion_399       = 20,
     kSvgVersion_Current   = kSvgVersion_399,
     kSvgVersion_LowestSupported = kSvgVersion_Components // change if support dropped
@@ -97,8 +99,6 @@ struct SavegameSource
 {
     // Signature of the current savegame format
     static const String Signature;
-    // Signature of the legacy savegame format
-    static const String LegacySignature;
 
     // Name of the savefile
     String              Filename;

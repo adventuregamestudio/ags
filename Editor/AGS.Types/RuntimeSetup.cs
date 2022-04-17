@@ -59,7 +59,6 @@ namespace AGS.Types
             RenderAtScreenResolution = false;
             Rotation = ScreenRotationMode.Unlocked;
             DigitalSound = RuntimeAudioDriver.Default;
-            MidiSound = RuntimeAudioDriver.Default;
             UseVoicePack = true;
             Translation = "";
             AutoLockMouse = false;
@@ -194,7 +193,7 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        public bool DowngradeTo16bit { get { return false; } }
+        public bool DowngradeTo16bit { get; }
 
         [DisplayName("Render sprites at screen resolution")]
         [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
@@ -228,11 +227,7 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        public RuntimeAudioDriver MidiSound
-        {
-            get;
-            set;
-        }
+        public RuntimeAudioDriver MidiSound { get; }
 
         [DisplayName("Use voice pack if available")]
         [Description("Enables the use of digital voice-over pack. Will be ignored if your game does not have one.")]
@@ -246,11 +241,7 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        public bool ThreadedAudio
-        {
-            get;
-            set;
-        }
+        public bool ThreadedAudio { get; }
 
         [DisplayName("Game language")]
         [Description("Use this translation when running the game.")]

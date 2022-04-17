@@ -340,7 +340,6 @@
     <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
     <ClCompile Include="..\..\Engine\ac\sys_events.cpp" />
     <ClCompile Include="..\..\Engine\ac\region.cpp" />
-    <ClCompile Include="..\..\Engine\ac\richgamemedia.cpp" />
     <ClCompile Include="..\..\Engine\ac\room.cpp" />
     <ClCompile Include="..\..\Engine\ac\roomobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\roomstatus.cpp" />
@@ -602,7 +601,6 @@
     <ClInclude Include="..\..\Engine\ac\route_finder_impl_legacy.h" />
     <ClInclude Include="..\..\Engine\ac\sys_events.h" />
     <ClInclude Include="..\..\Engine\ac\region.h" />
-    <ClInclude Include="..\..\Engine\ac\richgamemedia.h" />
     <ClInclude Include="..\..\Engine\ac\room.h" />
     <ClInclude Include="..\..\Engine\ac\roomobject.h" />
     <ClInclude Include="..\..\Engine\ac\roomstatus.h" />
@@ -738,9 +736,6 @@
     <ClInclude Include="..\..\Engine\util\thread_windows.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico" />

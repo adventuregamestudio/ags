@@ -21,7 +21,7 @@
 //{
 
 bool AreRectsIntersecting(const Rect &r1, const Rect &r2)
-{ // NOTE: remember that in AGS Y axis is pointed downwards
+{ // NOTE: remember that in AGS Y axis is pointed downwards (top < bottom)
     return r1.Left <= r2.Right && r1.Right >= r2.Left &&
         r1.Top <= r2.Bottom && r1.Bottom >= r2.Top;
 }
@@ -127,6 +127,18 @@ Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &place
     default:
         return RectWH(place.Left + item.Left, place.Top + item.Top, item.GetWidth(), item.GetHeight());
     }
+}
+
+Rect SumRects(const Rect &r1, const Rect &r2)
+{ // NOTE: remember that in AGS Y axis is pointed downwards (top < bottom)
+    return Rect(std::min(r1.Left, r2.Left), std::min(r1.Top, r2.Top),
+        std::max(r1.Right, r2.Right), std::max(r1.Bottom, r2.Bottom));
+}
+
+Rect IntersectRects(const Rect &r1, const Rect &r2)
+{ // NOTE: the result may be empty (negative) rect if there's no intersection
+    return Rect(std::max(r1.Left, r2.Left), std::max(r1.Top, r2.Top),
+        std::min(r1.Right, r2.Right), std::min(r1.Bottom, r2.Bottom));
 }
 
 Size RotateSize(Size sz, int degrees)

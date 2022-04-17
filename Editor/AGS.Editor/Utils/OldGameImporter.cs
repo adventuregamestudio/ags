@@ -73,7 +73,7 @@ namespace AGS.Editor
             return backupLocation;
         }
 
-        private object ImportOldGameThread(object parameter)
+        private object ImportOldGameThread(IWorkProgress progress, object parameter)
         {
             ImportGameResult result = new ImportGameResult();
             string gameToLoad = (string)parameter;
@@ -84,7 +84,7 @@ namespace AGS.Editor
             return result;
         }
 
-        private object MakeBackupCopyOfGameFolderThread(object backupLocationAsObject)
+        private object MakeBackupCopyOfGameFolderThread(IWorkProgress progress, object backupLocationAsObject)
         {
             string backupLocation = (string)backupLocationAsObject;
             string sourceDir = Path.GetDirectoryName(backupLocation);

@@ -88,8 +88,12 @@ public:
 
     // Tells if GUI has graphically changed recently
     bool        HasChanged() const;
+    bool        HasControlsChanged() const;
     // Manually marks GUI as graphically changed
+    // NOTE: this only matters if GUI's own graphic changes (content, size etc),
+    // but not its state (visible) or texture drawing mode (transparency, etc).
     void        MarkChanged();
+    void        MarkControlsChanged();
     // Clears changed flag
     void        ClearChanged();
 
@@ -105,6 +109,8 @@ public:
     GUIControlType GetControlType(int index) const;
     // Gets child control's global ID, looks up with child's index
     int32_t GetControlID(int index) const;
+    // Gets an array of child control indexes in the z-order, from bottom to top
+    const std::vector<int> &GetControlsDrawOrder() const;
 
     // Child control management
     // Note that currently GUIMain does not own controls (should not delete them)
@@ -113,8 +119,8 @@ public:
 
     // Operations
     bool    BringControlToFront(int index);
-    void    Draw(Bitmap *ds);
-    void    DrawAt(Bitmap *ds, int x, int y);
+    void    DrawSelf(Bitmap *ds);
+    void    DrawWithControls(Bitmap *ds);
     // Polls GUI state, providing current cursor (mouse) coordinates
     void    Poll(int mx, int my);
     HError  RebuildArray();
@@ -143,7 +149,6 @@ public:
     // Events
     void    OnMouseButtonDown(int mx, int my);
     void    OnMouseButtonUp();
-    void    OnControlPositionChanged();
   
     // Serialization
     void    ReadFromFile(Stream *in, GuiVersion gui_version);
@@ -194,6 +199,7 @@ private:
     int32_t _flags;         // style and behavior flags
     GraphicSpace _gs;
     bool    _hasChanged;    // flag tells whether GUI has graphically changed recently
+    bool    _hasControlsChanged;
 
     // Array of types and control indexes in global GUI object arrays;
     // maps GUI child slots to actual controls and used for rebuilding Controls array
@@ -211,6 +217,10 @@ namespace GUI
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
 
+    // Calculates the text's graphical position, given the alignment
+    Rect CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align);
+    // Calculates the text's graphical position, given the horizontal alignment
+    Line CalcTextPositionHor(const char *text, int font, int x1, int x2, int y, FrameAlignment align);
     // Draw standart "shading" effect over rectangle
     void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
     // Draw text aligned inside rectangle
@@ -256,6 +266,9 @@ extern bool is_sprite_alpha(int spr);
 // This function has distinct implementations in Engine and Editor
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
                             Common::BlendMode blend_mode = Common::kBlend_Normal);
+extern void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int x, int y,
+                            Common::Bitmap *image, bool src_has_alpha,
+                            Common::BlendMode blend_mode, int alpha);
 
 // Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);

@@ -451,7 +451,8 @@ void update_sierra_speech()
         DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y, face_has_alpha);
       }
 
-      gfxDriver->UpdateDDBFromBitmap(screenover[face_talking].bmp, screenover[face_talking].pic, face_has_alpha);
+      screenover[face_talking].hasAlphaChannel = face_has_alpha;
+      screenover[face_talking].MarkChanged();
     }  // end if updatedFrame
   }
 }

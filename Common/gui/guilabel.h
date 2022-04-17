@@ -37,7 +37,8 @@ public:
     GUILabelMacro GetTextMacros() const;
 
     // Operations
-    void Draw(Bitmap *ds) override;
+    Rect CalcGraphicRect(bool clipped) override;
+    void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetText(const String &text);
 
     // Serialization

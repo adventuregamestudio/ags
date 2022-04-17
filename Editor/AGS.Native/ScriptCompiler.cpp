@@ -23,8 +23,6 @@ see the license.txt for details.
 
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
-static const char *GAME_DEFINITION_FILE_RESOURCE = "__GDF_XML";
-static const char *GAME_DEFINITION_THUMBNAIL_RESOURCE = "__GDF_THUMBNAIL";
 
 using namespace System::IO;
 
@@ -32,7 +30,6 @@ namespace AGS
 {
 	namespace Native
 	{
-
     void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^messages)
     {
 			TextConverter^ tcv = NativeMethods::GetGameTextConverter();
@@ -153,16 +150,6 @@ namespace AGS
 			}
 		}
 
-    void NativeMethods::UpdateGameExplorerThumbnail(String ^fileToUpdate, cli::array<System::Byte> ^newData)
-    {
-      this->UpdateResourceInFile(fileToUpdate, GAME_DEFINITION_THUMBNAIL_RESOURCE, newData);
-    }
-
-    void NativeMethods::UpdateGameExplorerXML(String ^fileToUpdate, cli::array<System::Byte> ^newData)
-		{
-      this->UpdateResourceInFile(fileToUpdate, GAME_DEFINITION_FILE_RESOURCE, newData);
-    }
-
     void NativeMethods::FindAndUpdateMemory(unsigned char *data, int dataLen, const unsigned char *searchFor, int searchForLen, const unsigned char *replaceWith)
     {
       for (int i = 0; i < dataLen - searchForLen; i++)
@@ -220,31 +207,6 @@ namespace AGS
       free(dataCopy);
     }
 
-    void NativeMethods::UpdateResourceInFile(String ^fileToUpdate, const char *resourceName, cli::array<System::Byte> ^newData)
-    {
-			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
-			{
-				char fileNameChars[MAX_PATH];
-				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
+    } // namespace Native
+} // namespace AGS
 
-        if (newData == nullptr) 
-        {
-          ReplaceResourceInEXE(fileNameChars, resourceName, NULL, 0, "DATA");
-        }
-        else
-        {
-          unsigned char *data = new unsigned char[newData->Length];
-          for (int i = 0; i < newData->Length; i++)
-          {
-            data[i] = newData[i];
-          }
-
-				  ReplaceResourceInEXE(fileNameChars, resourceName, data, newData->Length, "DATA");
-
-          delete data;
-        }
-			}
-		}
-
-	}
-}

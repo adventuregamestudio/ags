@@ -83,7 +83,7 @@ namespace AGS.Editor
             {
                 Factory.Events.OnGameSettingsChanged();
                 BusyDialog.Show("Please wait while we convert game files to the new text format...",
-                    (o) => {
+                    (IWorkProgress progress, object o) => {
                         Factory.AGSEditor.Tasks.ConvertAllGameTexts(
                             Types.Utilities.EncodingFromName(oldFormat),
                             Types.Utilities.EncodingFromName(newFormat));

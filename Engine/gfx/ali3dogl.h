@@ -65,10 +65,8 @@ struct OGLTextureTile : public TextureTile
 class OGLBitmap : public BaseDDB
 {
 public:
-    // Transparency is a bit counter-intuitive
-    // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-    int  GetTransparency() const override { return _transparency; }
-    void SetTransparency(int transparency) override { _transparency = transparency; }
+    int  GetAlpha() const override { return _alpha; }
+    void SetAlpha(int alpha) override { _alpha = alpha; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
     void SetStretch(int width, int height, bool useResampler = true) override
     {
@@ -101,8 +99,7 @@ public:
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
-    bool _hasAlpha;
-    int _transparency;
+    int _alpha;
     Common::BlendMode _blendMode;
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
@@ -124,7 +121,7 @@ public:
         _red = _green = _blue = 0;
         _tintSaturation = 0;
         _lightLevel = 0;
-        _transparency = 0;
+        _alpha = 255;
         _opaque = opaque;
         _blendMode = Common::kBlend_Normal;
     }
@@ -143,12 +140,17 @@ public:
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
 struct OGLSpriteBatch
 {
-    // List of sprites to render
-    std::vector<OGLDrawListEntry> List;
+    uint32_t ID = 0;
     // Clipping viewport
     Rect Viewport;
     // Transformation matrix, built from the batch description
     glm::mat4 Matrix;
+    // Batch color transformation
+    SpriteColorTransform Color;
+
+    OGLSpriteBatch() = default;
+    OGLSpriteBatch(uint32_t id, const Rect view, const glm::mat4 &matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
 };
 typedef std::vector<OGLSpriteBatch>    OGLSpriteBatches;
 
@@ -219,10 +221,10 @@ public:
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
-    void DestroyDDB(IDriverDependantBitmap* bitmap) override;
-    void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) override
-         { DrawSprite(x, y, x, y, bitmap); }
-    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
+    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
+         { DrawSprite(x, y, x, y, ddb); }
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, GlobalFlipType flip) override;
@@ -250,7 +252,6 @@ public:
 
 private:
     POGLFilter _filter {};
-
 
     bool _firstTimeInit;
     SDL_Window *_sdlWindow = nullptr;
@@ -290,11 +291,15 @@ private:
     // Actual size of the backbuffer texture, created by OpenGL
     Size _backTextureSize {};
 
+    // Sprite batches (parent scene nodes)
     OGLSpriteBatches _spriteBatches;
+    // List of sprites to render
+    std::vector<OGLDrawListEntry> _spriteList;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
     SpriteBatchDescs _backupBatchDescs;
     OGLSpriteBatches _backupBatches;
+    std::vector<OGLDrawListEntry> _backupSpriteList;
 
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
     void ResetAllBatches() override;
@@ -323,7 +328,8 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal);
+    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
@@ -335,8 +341,9 @@ private:
     // Deletes draw list backups
     void ClearDrawBackups();
     void _render(bool clearDrawListAfterwards);
+    void SetScissor(const Rect &clip);
     void RenderSpriteBatches(const glm::mat4 &projection);
-    void RenderSpriteBatch(const OGLSpriteBatch &batch, const glm::mat4 &projection);
+    size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection);
     void _reDrawLastFrame();
 };
 

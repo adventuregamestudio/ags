@@ -114,6 +114,7 @@ namespace AGS.Editor
             AddFontIfNotAlreadyThere(2);
             Game game = null;
 
+            // Load or import the game itself
             if (gameToLoad.ToLower().EndsWith(".dta"))
             {
                 game = new OldGameImporter().ImportGameFromAGS272(gameToLoad, interactive);
@@ -122,37 +123,90 @@ namespace AGS.Editor
             else
             {
                 Factory.AGSEditor.LoadGameFile(gameToLoad);
-                Factory.NativeProxy.LoadNewSpriteFile();
                 game = Factory.AGSEditor.CurrentGame;
             }
 
-            if (game != null)
+            if (game == null)
+                return false;
+
+            game.DirectoryPath = gameDirectory;
+            SetDefaultValuesForNewFeatures(game);
+            Utilities.EnsureStandardSubFoldersExist();
+
+            // Load the sprite file
+            bool isNewSpriteFile = false;
+            if (!File.Exists(Path.Combine(game.DirectoryPath, AGSEditor.SPRITE_FILE_NAME)))
             {
-                game.DirectoryPath = gameDirectory;
-                SetDefaultValuesForNewFeatures(game);
-
-                Utilities.EnsureStandardSubFoldersExist();
-
-                RecentGame recentGame = new RecentGame(game.Settings.GameName, gameDirectory);
-                if (Factory.AGSEditor.Settings.RecentGames.Contains(recentGame))
+                if (Factory.GUIController.ShowQuestion(string.Format("Spriteset file ({0}) was not found. Would you like to try reimport sprites from their sources? Otherwise, we'll generate an empty spritefile.\nNOTE: you may always try reimporting sprites later using respective menu commands.", AGSEditor.SPRITE_FILE_NAME), MessageBoxIcon.Warning)
+                    == DialogResult.Yes)
                 {
-                    Factory.AGSEditor.Settings.RecentGames.Remove(recentGame);
+                    RecreateSpriteFileFromSources();
                 }
-                Factory.AGSEditor.Settings.RecentGames.Insert(0, recentGame);
-
-                Factory.Events.OnGamePostLoad();
-
-                Factory.AGSEditor.RefreshEditorAfterGameLoad(game, errors);
-                if (needToSave)
+                else
                 {
-                    Factory.AGSEditor.SaveGameFiles();
+                    CreateNewSpriteFile();
+                    isNewSpriteFile = true;
                 }
-
-                Factory.AGSEditor.ReportGameLoad(errors);
-                return true;
             }
 
-            return false;
+            try
+            {
+                Factory.NativeProxy.LoadNewSpriteFile();
+            }
+            catch (Exception e)
+            {
+                errors.Add(e.Message);
+                if (!isNewSpriteFile)
+                    CreateNewSpriteFile();
+            }
+
+            // Process after game load operations
+            RecentGame recentGame = new RecentGame(game.Settings.GameName, gameDirectory);
+            if (Factory.AGSEditor.Settings.RecentGames.Contains(recentGame))
+            {
+                Factory.AGSEditor.Settings.RecentGames.Remove(recentGame);
+            }
+            Factory.AGSEditor.Settings.RecentGames.Insert(0, recentGame);
+
+            Factory.Events.OnGamePostLoad();
+
+            Factory.AGSEditor.RefreshEditorAfterGameLoad(game, errors);
+            if (needToSave)
+            {
+                Factory.AGSEditor.SaveGameFiles();
+            }
+
+            Factory.AGSEditor.ReportGameLoad(errors);
+            return true;
+        }
+
+        public static void CreateNewSpriteFile()
+        {
+            string tempFilename = Path.GetTempFileName();
+            Utils.SpriteTools.WriteDummySpriteFile(tempFilename);
+            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
+            File.Delete(tempFilename);
+        }
+
+        public static void RecreateSpriteFileFromSources()
+        {
+            string tempFilename;
+            try
+            {
+                tempFilename = Path.GetTempFileName();
+                BusyDialog.Show("Please wait while the sprite file is recreated...",
+                    new BusyDialog.ProcessingHandler(
+                        (IWorkProgress progress, object o) => { Utils.SpriteTools.WriteSpriteFileFromSources((string)o, progress); return null; }),
+                    tempFilename);
+            }
+            catch (Exception e)
+            {
+                Factory.GUIController.ShowMessage("The recreation of a sprite file was interrupted by error. NO CHANGES were applied to your game.\n\n" + e.Message, MessageBoxIcon.Error);
+                return;
+            }
+
+            Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
+            File.Delete(tempFilename);
         }
 
         private void SetDefaultValuesForNewFeatures(Game game)
@@ -430,11 +484,11 @@ namespace AGS.Editor
             }
             else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.Windowed)
             {
-                parameter = "-windowed";
+                parameter = "--windowed";
             }
             else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.FullScreen)
             {
-                parameter = "-fullscreen";
+                parameter = "--fullscreen";
             }
             _runningGameWithDebugger = withDebugger;
             // custom game install directory (points to where all supplemental data files are)

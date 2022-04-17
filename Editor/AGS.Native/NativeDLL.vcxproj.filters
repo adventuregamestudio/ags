@@ -205,6 +205,9 @@
     <ClCompile Include="..\scintilla\win32\ScintillaWin.cxx">
       <Filter>Scintilla\win32</Filter>
     </ClCompile>
+    <ClCompile Include="SpriteFileWriter_NET.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agsnative.h">
@@ -217,6 +220,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NativeUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteFileWriter_NET.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

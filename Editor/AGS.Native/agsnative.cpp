@@ -81,7 +81,7 @@ int antiAliasFonts = 0;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
 AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);
-GUIMain tempgui;
+GUIMain tempgui; // for drawing a GUI preview
 const char *sprsetname = "acsprset.spr";
 const char *sprindexname = "sprindex.dat";
 const char *old_editor_data_file = "editor.dat";
@@ -555,8 +555,11 @@ void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock
   else g->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
-void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha, Common::BlendMode blend_mode) {
-  Common::Bitmap *blptr = get_sprite(sprnum);
+// draw_gui_sprite is supported formally, without actual blending and other effects
+// This is one ugly function... a "simplified" alternative of the engine's one;
+// but with extra hacks, due to how sprites are stored while working in editor.
+void draw_gui_sprite_impl(Common::Bitmap *g, int sprnum, Common::Bitmap *blptr, int atxp, int atyp)
+{
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
 
@@ -579,6 +582,17 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
   wputblock_stretch(g, atxp,atyp,towrite,nwid,nhit);
   if (needtofree) delete towrite;
+}
+
+void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha, Common::BlendMode blend_mode)
+{
+    draw_gui_sprite_impl(g, sprnum, get_sprite(sprnum), atxp, atyp);
+}
+
+void draw_gui_sprite(Common::Bitmap *g, bool use_alpha, int atxp, int atyp,
+    Common::Bitmap *blptr, bool src_has_alpha, Common::BlendMode blend_mode, int alpha)
+{
+    draw_gui_sprite_impl(g, -1, blptr, atxp, atyp);
 }
 
 void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
@@ -942,7 +956,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
 
-  tempgui.DrawAt (tempblock, 0, 0);
+  tempgui.DrawWithControls(tempblock);
 
   if (x1 >= 0) {
     tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
@@ -1499,6 +1513,49 @@ void PutNewSpritefileIntoProject(const AGSString &temp_spritefile, const AGSStri
     }
 }
 
+void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles)
+{
+    AGSString use_spritefile = sprsetname;
+    AGSString use_indexfile = sprindexname;
+
+    Exception ^main_exception;
+    try
+    {
+        PutNewSpritefileIntoProject(new_spritefile, new_indexfile);
+    }
+    catch (Exception ^e)
+    {
+        main_exception = e;
+        if (fallback_tempfiles)
+        {
+            use_spritefile = new_spritefile;
+            use_indexfile = new_indexfile;
+        }
+    }
+    finally
+    {
+        // Reset the sprite cache to whichever file was successfully saved
+        HAGSError err = spriteset.InitFile(use_spritefile, use_indexfile);
+        if (!err)
+        {
+            throw gcnew AGSEditorException(
+                String::Format("Unable to re-initialize sprite file after save.{0}{1}",
+                    Environment::NewLine, gcnew String(err->FullMessage().GetCStr())), main_exception);
+        }
+        else if (main_exception != nullptr)
+        {
+            if (fallback_tempfiles)
+                throw gcnew AGSEditorException(
+                    String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
+                        Environment::NewLine, TextHelper::ConvertUTF8(use_spritefile)), main_exception);
+            else
+                throw gcnew AGSEditorException(
+                    String::Format("Unable to save sprites in your project folder."), main_exception);
+        }
+    }
+    spritesModified = false;
+}
+
 void SaveNativeSprites(Settings^ gameSettings)
 {
     int storeFlags = 0;
@@ -1514,35 +1571,7 @@ void SaveNativeSprites(Settings^ gameSettings)
     AGSString saved_indexfile;
     SaveTempSpritefile(storeFlags, compressSprites, saved_spritefile, saved_indexfile);
 
-    Exception ^main_exception;
-    try
-    {
-        PutNewSpritefileIntoProject(saved_spritefile, saved_indexfile);
-        saved_spritefile = sprsetname;
-        saved_indexfile = sprindexname;
-    }
-    catch (Exception ^e)
-    {
-        main_exception = e;
-    }
-    finally
-    {
-        // Reset the sprite cache to whichever file was successfully saved
-        HAGSError err = spriteset.InitFile(saved_spritefile, saved_indexfile);
-        if (!err)
-        {
-            throw gcnew AGSEditorException(
-                String::Format("Unable to re-initialize sprite file after save.{0}{1}",
-                    Environment::NewLine, gcnew String(err->FullMessage().GetCStr())), main_exception);
-        }
-        else if (err && main_exception != nullptr)
-        {
-            throw gcnew AGSEditorException(
-                String::Format("Unable to save sprites in your project folder. The sprites were saved to a temporary location:{0}{1}",
-                    Environment::NewLine, TextHelper::ConvertUTF8(saved_spritefile)), main_exception);
-        }
-    }
-    spritesModified = false;
+    ReplaceSpriteFile(saved_spritefile, saved_indexfile, true);
 }
 
 void SetGameResolution(Game ^game)
@@ -1941,16 +1970,17 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 	}
 }
 
-AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
+    bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
     RGB imgPalBuf[256];
-  int importedColourDepth;
-	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+    int importedColourDepth;
+    Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-	if (thisgame.color_depth > 1) 
-	{
-		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
-	}
+    if (thisgame.color_depth > 1)
+    {
+        sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
+    }
     else
     {
         int transcol;
@@ -1960,18 +1990,30 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
     }
 
     int flags = 0;
-	if (alphaChannel)
-	{
+    if (alphaChannel)
+    {
         flags |= SPF_ALPHACHANNEL;
-		if (tempsprite->GetColorDepth() == 32)
-		{
-			set_rgb_mask_from_alpha_channel(tempsprite);
-		}
-	}
-	else if (tempsprite->GetColorDepth() == 32)
-	{
-		set_opaque_alpha_channel(tempsprite);
-	}
+        if (tempsprite->GetColorDepth() == 32)
+        {
+            set_rgb_mask_from_alpha_channel(tempsprite);
+        }
+    }
+    else if (tempsprite->GetColorDepth() == 32)
+    {
+        set_opaque_alpha_channel(tempsprite);
+    }
+
+    if (out_flags)
+        *out_flags = flags;
+    return tempsprite;
+}
+
+AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
+    bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+{
+    int flags;
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, remapColours,
+        useRoomBackgroundColours, alphaChannel, &flags);
     thisgame.SpriteInfos[slot].Flags = flags;
 
 	SetNewSprite(slot, tempsprite);
@@ -2295,6 +2337,12 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scal
   guiinv.resize(0);
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
+  // Add dummy items to all listboxes, let user preview the fonts
+  for (auto &lb : guilist)
+  {
+      lb.AddItem("Sample selected");
+      lb.AddItem("Sample item");
+  }
 
   tempgui.HighlightCtrl = selectedControl;
 

@@ -11,11 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/slider.h"
 #include "ac/common.h"
+#include "util/math.h"
 
-// *** SLIDER FUNCTIONS
+using namespace AGS::Common;
 
 void Slider_SetMax(GUISlider *guisl, int valn) {
 
@@ -27,7 +27,7 @@ void Slider_SetMax(GUISlider *guisl, int valn) {
         if (guisl->MinValue > guisl->MaxValue)
             quit("!Slider.Max: minimum cannot be greater than maximum");
 
-        guisl->NotifyParentChanged();
+        guisl->MarkChanged();
     }
 
 }
@@ -46,7 +46,7 @@ void Slider_SetMin(GUISlider *guisl, int valn) {
         if (guisl->MinValue > guisl->MaxValue)
             quit("!Slider.Min: minimum cannot be greater than maximum");
 
-        guisl->NotifyParentChanged();
+        guisl->MarkChanged();
     }
 
 }
@@ -56,12 +56,10 @@ int Slider_GetMin(GUISlider *guisl) {
 }
 
 void Slider_SetValue(GUISlider *guisl, int valn) {
-    if (valn > guisl->MaxValue) valn = guisl->MaxValue;
-    if (valn < guisl->MinValue) valn = guisl->MinValue;
-
+    valn = Math::Clamp(valn, guisl->MinValue, guisl->MaxValue);
     if (valn != guisl->Value) {
         guisl->Value = valn;
-        guisl->NotifyParentChanged();
+        guisl->MarkChanged();
     }
 }
 
@@ -78,7 +76,7 @@ void Slider_SetBackgroundGraphic(GUISlider *guisl, int newImage)
     if (newImage != guisl->BgImage)
     {
         guisl->BgImage = newImage;
-        guisl->NotifyParentChanged();
+        guisl->MarkChanged();
     }
 }
 
@@ -91,7 +89,7 @@ void Slider_SetHandleGraphic(GUISlider *guisl, int newImage)
     if (newImage != guisl->HandleImage)
     {
         guisl->HandleImage = newImage;
-        guisl->NotifyParentChanged();
+        guisl->MarkChanged();
     }
 }
 
@@ -104,7 +102,7 @@ void Slider_SetHandleOffset(GUISlider *guisl, int newOffset)
     if (newOffset != guisl->HandleOffset)
     {
         guisl->HandleOffset = newOffset;
-        guisl->NotifyParentChanged();
+        guisl->MarkChanged();
     }
 }
 

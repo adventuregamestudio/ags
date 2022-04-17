@@ -1222,7 +1222,7 @@ namespace AGS.Editor
             dialog.Dispose();
         }
 
-        private object AutoNumberSpeechLinesProcess(object parameter)
+        private object AutoNumberSpeechLinesProcess(IWorkProgress progress, object parameter)
         {
             AutoNumberSpeechData data = (AutoNumberSpeechData)parameter;
             bool doNarrator = (data.Options & AutoNumberSpeechOptions.DoNarrator) != 0;
@@ -1231,7 +1231,7 @@ namespace AGS.Editor
             return new SpeechLinesNumbering().NumberSpeechLines(_agsEditor.CurrentGame, doNarrator, combineIdenticalLines, removeNumbering, data.CharacterID);
         }
 
-		private object CreateVoiceActingScriptProcess(object parameter)
+		private object CreateVoiceActingScriptProcess(IWorkProgress progress, object parameter)
 		{
 			string outputFile = (string)parameter;
 			VoiceActorScriptGenerator generator = new VoiceActorScriptGenerator();

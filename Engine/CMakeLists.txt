@@ -237,8 +237,6 @@ target_sources(engine
     ac/properties.h
     ac/region.cpp
     ac/region.h
-    ac/richgamemedia.cpp
-    ac/richgamemedia.h
     ac/room.cpp
     ac/room.h
     ac/roomobject.cpp

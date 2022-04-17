@@ -74,18 +74,17 @@ out/
 *.xcscmblueprint
 
 
-# Engine output and temporary files
-# for Linux and Windows build
+# Linux output and temporary files
 *.o
 *.d
 Engine/common.a
 Engine/ags
-Engine/resource/version.aps
 
 
 # MSVS solution output and temporary files
 **/.vs
 *.csproj.user
+*.aps
 *.ncb
 *.suo
 *.VC.db

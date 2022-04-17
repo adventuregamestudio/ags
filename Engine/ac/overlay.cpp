@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/overlay.h"
 #include "ac/common.h"
 #include "ac/view.h"
@@ -26,6 +25,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
@@ -104,14 +104,55 @@ int Overlay_GetWidth(ScriptOverlay *scover) {
     int ovri = find_overlay_of_type(scover->overlayId);
     if (ovri < 0)
         quit("!invalid overlay ID specified");
-    return screenover[ovri].pic->GetWidth();
+    return screenover[ovri].scaleWidth;
 }
 
 int Overlay_GetHeight(ScriptOverlay *scover) {
     int ovri = find_overlay_of_type(scover->overlayId);
     if (ovri < 0)
         quit("!invalid overlay ID specified");
+    return screenover[ovri].scaleHeight;
+}
+
+int Overlay_GetGraphicWidth(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    return screenover[ovri].pic->GetWidth();
+}
+
+int Overlay_GetGraphicHeight(ScriptOverlay *scover) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
     return screenover[ovri].pic->GetHeight();
+}
+
+void Overlay_SetScaledSize(ScreenOverlay &over, int width, int height) {
+    if (width < 1 || height < 1)
+    {
+        debug_script_warn("Overlay.SetSize: invalid dimensions: %d x %d", width, height);
+        return;
+    }
+    if ((width == over.scaleWidth) && (height == over.scaleHeight))
+        return; // no change
+    over.scaleWidth = width;
+    over.scaleHeight = height;
+    over.MarkChanged();
+}
+
+void Overlay_SetWidth(ScriptOverlay *scover, int width) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    Overlay_SetScaledSize(screenover[ovri], width, screenover[ovri].scaleHeight);
+}
+
+void Overlay_SetHeight(ScriptOverlay *scover, int height) {
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    Overlay_SetScaledSize(screenover[ovri], screenover[ovri].scaleWidth, height);
 }
 
 int Overlay_GetValid(ScriptOverlay *scover) {
@@ -240,12 +281,11 @@ static void invalidate_and_subref(ScreenOverlay &over, ScriptOverlay *&scover)
 // Frees overlay resources and disposes script object if there are no more refs
 static void dispose_overlay(ScreenOverlay &over)
 {
-    over.helpbmp.reset();
     delete over.pic;
     over.pic = nullptr;
-    if (over.bmp != nullptr)
-        gfxDriver->DestroyDDB(over.bmp);
-    over.bmp = nullptr;
+    if (over.ddb != nullptr)
+        gfxDriver->DestroyDDB(over.ddb);
+    over.ddb = nullptr;
     if (over.associatedOverlayHandle) // dispose script object if there are no more refs
         ccAttemptDisposeObject(over.associatedOverlayHandle);
 }
@@ -317,6 +357,8 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.y=y;
     over.offsetX = pic_offx;
     over.offsetY = pic_offy;
+    over.scaleWidth = piccy->GetWidth();
+    over.scaleHeight = piccy->GetHeight();
     // by default draw speech and portraits over GUI, and the rest under GUI
     over.zorder = (type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH) ?
         INT_MAX : INT_MIN;
@@ -327,7 +369,6 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     over.hasAlphaChannel = alphaChannel;
     over.positionRelativeToScreen = true;
     over.blendMode = blendMode;
-    recreate_overlay_image(over);
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE) play.complete_overlay_on = type;
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
@@ -342,6 +383,7 @@ size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic
     {
         play.speech_face_scover = create_scriptobj_addref(over);
     }
+    over.MarkChanged();
     screenover.push_back(std::move(over));
     return screenover.size() - 1;
 }
@@ -401,38 +443,44 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
     return Point(atx, aty);
 }
 
-void recreate_overlay_image(ScreenOverlay &over)
+void recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
+    Bitmap *&scalebmp, Bitmap *&rotbmp)
 {
-    if (over.bmp)
-        gfxDriver->DestroyDDB(over.bmp);
-    Bitmap *use_pic = over.pic;
+    if (over.ddb)
+        gfxDriver->DestroyDDB(over.ddb);
+    Bitmap *use_bmp = over.pic;
     // For software renderer - apply all supported Overlay transforms
-    if (!gfxDriver->HasAcceleratedTransform() && over.rotation != 0.0)
+    if (!is_3d_render && (over.rotation != 0.0))
     {
-        Size final_sz = RotateSize(Size(over.pic->GetWidth(), over.pic->GetHeight()), over.rotation);
-        over.helpbmp.reset(recycle_bitmap(over.helpbmp.release(), over.pic->GetColorDepth(),
-            final_sz.Width, final_sz.Height, false));
+        Size final_sz = RotateSize(over.pic->GetSize(), over.rotation);
+        rotbmp = recycle_bitmap(rotbmp, over.pic->GetColorDepth(),
+            final_sz.Width, final_sz.Height, false);
         const int dst_w = final_sz.Width;
         const int dst_h = final_sz.Height;
         // (+ width%2 fixes one pixel offset problem)
-        over.helpbmp->ClearTransparent();
-        over.helpbmp->RotateBlt(over.pic, dst_w / 2 + dst_w % 2, dst_h / 2,
+        rotbmp->ClearTransparent();
+        rotbmp->RotateBlt(over.pic, dst_w / 2 + dst_w % 2, dst_h / 2,
             over.pic->GetWidth() / 2, over.pic->GetHeight() / 2, over.rotation); // clockwise
-        use_pic = over.helpbmp.get();
+        use_bmp = rotbmp;
     }
-    over.bmp = gfxDriver->CreateDDBFromBitmap(use_pic, over.hasAlphaChannel);
+    if (!is_3d_render && (over.pic->GetSize() != Size(over.scaleWidth, over.scaleHeight)))
+    {
+        Size final_sz = RotateSize(Size(over.scaleWidth, over.scaleHeight), over.rotation);
+        scalebmp = recycle_bitmap(scalebmp, over.pic->GetColorDepth(), over.scaleWidth, over.scaleHeight);
+        scalebmp->StretchBlt(use_bmp, RectWH(scalebmp->GetSize()));
+        use_bmp = scalebmp;
+    }
+    over.ddb = recycle_ddb_bitmap(over.ddb, use_bmp, over.hasAlphaChannel);
 }
 
 void recreate_overlay_ddbs()
 {
     for (auto &over : screenover)
     {
-        if (over.bmp)
-            gfxDriver->DestroyDDB(over.bmp);
-        if (over.pic)
-            over.bmp = gfxDriver->CreateDDBFromBitmap(over.pic, false);
-        else
-            over.bmp = nullptr;
+        if (over.ddb)
+            gfxDriver->DestroyDDB(over.ddb);
+        over.ddb = nullptr; // is generated during first draw pass
+        over.MarkChanged();
     }
 }
 
@@ -510,9 +558,29 @@ RuntimeScriptValue Sc_Overlay_GetWidth(void *self, const RuntimeScriptValue *par
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetWidth);
 }
 
+RuntimeScriptValue Sc_Overlay_SetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetWidth);
+}
+
 RuntimeScriptValue Sc_Overlay_GetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetHeight);
+}
+
+RuntimeScriptValue Sc_Overlay_SetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetHeight);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicWidth);
+}
+
+RuntimeScriptValue Sc_Overlay_GetGraphicHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetGraphicHeight);
 }
 
 RuntimeScriptValue Sc_Overlay_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -589,7 +657,11 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
     ccAddExternalObjectFunction("Overlay::get_Width",           Sc_Overlay_GetWidth);
+    ccAddExternalObjectFunction("Overlay::set_Width",           Sc_Overlay_SetWidth);
     ccAddExternalObjectFunction("Overlay::get_Height",          Sc_Overlay_GetHeight);
+    ccAddExternalObjectFunction("Overlay::set_Height",          Sc_Overlay_SetHeight);
+    ccAddExternalObjectFunction("Overlay::get_GraphicWidth",    Sc_Overlay_GetGraphicWidth);
+    ccAddExternalObjectFunction("Overlay::get_GraphicHeight",   Sc_Overlay_GetGraphicHeight);
     ccAddExternalObjectFunction("Overlay::get_BlendMode",       Sc_Overlay_GetBlendMode);
     ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
     ccAddExternalObjectFunction("Overlay::get_Rotation",        Sc_Overlay_GetRotation);

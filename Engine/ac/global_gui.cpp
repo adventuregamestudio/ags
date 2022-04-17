@@ -69,7 +69,7 @@ void InterfaceOn(int ifn) {
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
   // clear the cached mouse position
-  guis[ifn].OnControlPositionChanged();
+  guis[ifn].MarkControlsChanged();
   guis[ifn].Poll(mousex, mousey);
 }
 
@@ -86,7 +86,7 @@ void InterfaceOff(int ifn) {
     guis[ifn].GetControl(guis[ifn].MouseOverCtrl)->OnMouseLeave();
     guis[ifn].MouseOverCtrl = -1;
   }
-  guis[ifn].OnControlPositionChanged();
+  guis[ifn].MarkControlsChanged();
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) UnPauseGame();
 }
@@ -236,11 +236,10 @@ int GetGUIObjectAt (int xx, int yy) {
 }
 
 int GetGUIAt (int xx,int yy) {
-    int aa, ll;
-    for (ll = game.numgui - 1; ll >= 0; ll--) {
-        aa = play.gui_draw_order[ll];
-        if (guis[aa].IsInteractableAt(xx, yy))
-            return aa;
+    // Test in the opposite order (from closer to further)
+    for (auto g = play.gui_draw_order.crbegin(); g < play.gui_draw_order.crend(); ++g) {
+        if (guis[*g].IsInteractableAt(xx, yy))
+            return *g;
     }
     return -1;
 }

@@ -11,9 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <map>
-
+#include "game/savegame_components.h"
 #include "ac/audiocliptype.h"
 #include "ac/button.h"
 #include "ac/character.h"
@@ -35,7 +34,6 @@
 #include "ac/system.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "debug/out.h"
-#include "game/savegame_components.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
 #include "gui/animatingguibutton.h"
@@ -779,6 +777,11 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         over.ReadFromFile(in, has_bitmap, cmp_ver);
         if (has_bitmap)
             over.pic = read_serialized_bitmap(in);
+        if (over.scaleWidth <= 0 || over.scaleHeight <= 0)
+        {
+            over.scaleWidth = over.pic->GetWidth();
+            over.scaleHeight = over.pic->GetHeight();
+        }
         screenover.push_back(std::move(over));
     }
     return HSaveError::None();

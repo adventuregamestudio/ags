@@ -72,8 +72,6 @@ int override_start_room = 0;
 bool justDisplayHelp = false;
 bool justDisplayVersion = false;
 bool justRunSetup = false;
-bool justRegisterGame = false;
-bool justUnRegisterGame = false;
 bool justTellInfo = false;
 bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
@@ -271,14 +269,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--setup") == 0)
         {
             justRunSetup = true;
-        }
-        else if (ags_stricmp(arg,"--registergame") == 0)
-        {
-            justRegisterGame = true;
-        }
-        else if (ags_stricmp(arg,"--unregistergame") == 0)
-        {
-            justUnRegisterGame = true;
         }
         else if ((ags_stricmp(arg,"--loadsavedgame") == 0) && (argc > ee + 1))
         {

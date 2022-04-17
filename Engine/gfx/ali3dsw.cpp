@@ -322,7 +322,7 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
     ALSpriteBatch &batch = _spriteBatches[index];
-    batch.List.clear();
+    batch.ID = index;
     // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
     const int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
     const int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
@@ -373,13 +373,13 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
 
 void SDLRendererGraphicsDriver::ResetAllBatches()
 {
-    for (ALSpriteBatches::iterator it = _spriteBatches.begin(); it != _spriteBatches.end(); ++it)
-        it->List.clear();
+    _spriteBatches.clear();
+    _spriteList.clear();
 }
 
 void SDLRendererGraphicsDriver::DrawSprite(int /*ox*/, int /*oy*/, int ltx, int lty, IDriverDependantBitmap* bitmap)
 { // Note we are only interested in left-top coords for software renderer
-    _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, ltx, lty));
+    _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, _actSpriteBatch, ltx, lty));
 }
 
 void SDLRendererGraphicsDriver::SetScreenFade(int /*red*/, int /*green*/, int /*blue*/)
@@ -393,12 +393,18 @@ void SDLRendererGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _tint_red = red; _tint_green = green; _tint_blue = blue;
     if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0)) && (_srcColorDepth > 8))
     {
-      _spriteBatches[_actSpriteBatch].List.push_back(ALDrawListEntry((ALSoftwareBitmap*)0x1, 0, 0));
+      _spriteList.push_back(
+          ALDrawListEntry(reinterpret_cast<ALSoftwareBitmap*>(DRAWENTRY_TINT), _actSpriteBatch, 0, 0));
     }
 }
 
 void SDLRendererGraphicsDriver::RenderToBackBuffer()
 {
+    // Close unended batches, and issue a warning
+    assert(_actSpriteBatch == 0);
+    while (_actSpriteBatch > 0)
+        EndSpriteBatch();
+
     // Render all the sprite batches with necessary transformations
     //
     // NOTE: that's not immediately clear whether it would be faster to first draw upon a camera-sized
@@ -410,11 +416,12 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
     // that here would slow things down significantly, so if we ever go that way sprite caching will
     // be required (similarily to how AGS caches flipped/scaled object sprites now for).
     //
-    for (size_t i = 0; i <= _actSpriteBatch; ++i)
+    for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
-        const Rect &viewport = _spriteBatchDesc[i].Viewport;
-        const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
-        const ALSpriteBatch &batch = _spriteBatches[i];
+        const auto &batch_desc = _spriteBatchDesc[_spriteList[cur_spr].node];
+        const ALSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
+        const Rect &viewport = batch_desc.Viewport;
+        const SpriteTransform &transform = batch_desc.Transform;
 
         virtualScreen->SetClip(viewport);
         Bitmap *surface = batch.Surface.get();
@@ -430,7 +437,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
             if (!batch.Opaque)
                 surface->ClearTransparent();
             _stageVirtualScreen = surface;
-            RenderSpriteBatch(batch, surface, transform.X, transform.Y);
+            cur_spr = RenderSpriteBatch(batch, cur_spr, surface, transform.X, transform.Y);
             // Blit batch surface over to the virtual screen
             if (!batch.IsVirtualScreen)
             {
@@ -460,28 +467,28 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         // directly onto the virtual screen (no batch transformation)
         else
         {
-            RenderSpriteBatch(batch, virtualScreen, view_x + transform.X, view_y + transform.Y);
+            cur_spr = RenderSpriteBatch(batch, cur_spr, virtualScreen, view_x + transform.X, view_y + transform.Y);
         }
         _stageVirtualScreen = virtualScreen;
     }
     ClearDrawLists();
 }
 
-void SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Common::Bitmap *surface, int surf_offx, int surf_offy)
+size_t SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, size_t from, Bitmap *surface, int surf_offx, int surf_offy)
 {
-  const std::vector<ALDrawListEntry> &drawlist = batch.List;
-  for (size_t i = 0; i < drawlist.size(); i++)
+  for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
   {
-    if (drawlist[i].bitmap == nullptr)
+    const auto &sprite = _spriteList[from];
+    if (sprite.ddb == nullptr)
     {
       if (_nullSpriteCallback)
-        _nullSpriteCallback(drawlist[i].x, drawlist[i].y);
+        _nullSpriteCallback(sprite.x, sprite.y);
       else
         throw Ali3DException("Unhandled attempt to draw null sprite");
 
       continue;
     }
-    else if (drawlist[i].bitmap == (ALSoftwareBitmap*)0x1)
+    else if (sprite.ddb == reinterpret_cast<ALSoftwareBitmap*>(DRAWENTRY_TINT))
     {
       // draw screen tint fx
       set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
@@ -489,15 +496,14 @@ void SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Co
       continue;
     }
 
-    ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
+    ALSoftwareBitmap* bitmap = sprite.ddb;
     // A sprite entry provides us with the "top-left" image's position here,
     // disregarding sprite origin, because we expect an already transformed
-    // image that should be drawn from top-left.
-    int drawAtX = drawlist[i].x + surf_offx;
-    int drawAtY = drawlist[i].y + surf_offy;
+    int drawAtX = sprite.x + surf_offx;
+    int drawAtY = sprite.y + surf_offy;
 
-    if (bitmap->_transparency >= 255) {} // fully transparent, do nothing
-    else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_transparency == 0)) {}
+    if (bitmap->_alpha == 0) {} // fully transparent, do nothing
+    else if ((bitmap->_opaque) && (bitmap->_bmp == surface) && (bitmap->_alpha == 255)) {}
     else if (bitmap->_opaque && bitmap->_blendMode == 0)
     {
         surface->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
@@ -507,10 +513,10 @@ void SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, Co
     }
     else
     {
-        // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
-        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, false, true, bitmap->_transparency ? bitmap->_transparency : 255);
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, false, true, bitmap->_alpha);
     }
   }
+  return from;
 }
 
 void SDLRendererGraphicsDriver::BlitToTexture()

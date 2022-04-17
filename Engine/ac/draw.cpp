@@ -52,6 +52,7 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
+#include "gui/guiobject.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
@@ -125,6 +126,13 @@ std::vector<Bitmap*> guibg;
 std::vector<IDriverDependantBitmap*> guibgbmp;
 // Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
 std::vector<std::unique_ptr<Bitmap>> guihelpbg;
+// GUI control surfaces
+std::vector<Bitmap*> guiobjbg;
+std::vector<IDriverDependantBitmap*> guiobjbmp;
+std::vector<Point> guiobjoff; // because surface may be larger than logical position
+std::vector<int> guiobjbmpref; // first control texture index of each GUI
+// Overlay's cached transformed bitmap, for software mode
+std::vector<Bitmap*> overlaybmp;
 // For debugging room masks
 RoomAreaMask debugRoomMask = kRoomAreaNone;
 std::unique_ptr<Bitmap> debugRoomMaskBmp;
@@ -153,10 +161,11 @@ struct RoomCameraDrawData
 std::vector<RoomCameraDrawData> CameraDrawData;
 
 
-// A wrap over RenderItem with just a sorting adjustment
+// Describes a texture or node description, for sorting and passing into renderer
 struct SpriteListEntry
 {
-    IDriverDependantBitmap *bmp = nullptr;
+    int id = -1; // user identifier, for any custom purpose
+    IDriverDependantBitmap *ddb = nullptr;
     int x = 0, y = 0;
     Rect aabb;
     int zorder = 0;
@@ -229,8 +238,8 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 {
     const int bmp_col_depth = bitmap->GetColorDepth();
-    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(bmp_col_depth);
     const int game_col_depth = game.GetColorDepth();
+    const int compat_col_depth = gfxDriver->GetCompatibleBitmapFormat(game_col_depth);
 
     const bool must_switch_palette = bitmap->GetColorDepth() == 8 && game_col_depth > 8;
     if (must_switch_palette)
@@ -279,8 +288,8 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     }
     
     // Finally, if we did not create a new copy already, - convert to driver compatible format
-    if ((new_bitmap == bitmap) && (bmp_col_depth != compat_col_depth))
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, compat_col_depth);
+    if (new_bitmap == bitmap)
+        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 
     if (must_switch_palette)
         unselect_palette();
@@ -414,6 +423,17 @@ void init_game_drawdata()
     guibg.resize(game.numgui);
     guibgbmp.resize(game.numgui);
     guihelpbg.resize(game.numgui);
+    size_t guio_num = 0;
+    // Prepare GUI cache lists and build the quick reference for controls cache
+    guiobjbmpref.resize(game.numgui);
+    for (const auto &gui : guis)
+    {
+        guiobjbmpref[gui.ID] = guio_num;
+        guio_num += gui.GetControlCount();
+    }
+    guiobjbg.resize(guio_num);
+    guiobjbmp.resize(guio_num);
+    guiobjoff.resize(guio_num);
 }
 
 void dispose_game_drawdata()
@@ -428,6 +448,10 @@ void dispose_game_drawdata()
     guibg.clear();
     guibgbmp.clear();
     guihelpbg.clear();
+    guiobjbg.clear();
+    guiobjbmp.clear();
+    guiobjbmpref.clear();
+    guiobjoff.clear();
 }
 
 static void dispose_debug_room_drawdata()
@@ -484,6 +508,15 @@ void clear_drawobj_cache()
             gfxDriver->DestroyDDB(guibgbmp[i]);
         guibgbmp[i] = nullptr;
         guihelpbg[i].reset();
+    }
+
+    for (size_t i = 0; i < guiobjbg.size(); ++i)
+    {
+        delete guiobjbg[i];
+        guiobjbg[i] = nullptr;
+        if (guiobjbmp[i])
+            gfxDriver->DestroyDDB(guiobjbmp[i]);
+        guiobjbmp[i] = nullptr;
     }
 
     dispose_debug_room_drawdata();
@@ -721,6 +754,7 @@ void render_black_borders()
             gfxDriver->DrawSprite(0, 0, blankSidebarImage);
             gfxDriver->DrawSprite(viewport.Right + 1, 0, blankSidebarImage);
         }
+        gfxDriver->EndSpriteBatch();
     }
 }
 
@@ -732,6 +766,7 @@ void render_to_screen()
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
+        gfxDriver->EndSpriteBatch();
     }
     // Stage: engine overlay
     construct_engine_overlay();
@@ -802,7 +837,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha, bool opaque) {
     if (bimp != nullptr) {
         // same colour depth, width and height -> reuse
-        if (((bimp->GetColorDepth() + 1) / 8 == source->GetBPP()) && 
+        if ((bimp->GetColorDepth() == source->GetColorDepth()) &&
             (bimp->GetWidth() == source->GetWidth()) && (bimp->GetHeight() == source->GetHeight()))
         {
             gfxDriver->UpdateDDBFromBitmap(bimp, source, hasAlpha);
@@ -822,13 +857,14 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y)
+static void add_thing_to_draw(IDriverDependantBitmap* ddb, int x, int y)
 {
+    assert(ddb);
     SpriteListEntry sprite;
-    sprite.bmp = bmp;
+    sprite.ddb = ddb;
     sprite.x = x;
     sprite.y = y;
-    sprite.aabb = RectWH(x, y, bmp->GetWidth(), bmp->GetHeight());
+    sprite.aabb = RectWH(x, y, ddb->GetWidth(), ddb->GetHeight());
     thingsToDrawList.push_back(sprite);
 }
 
@@ -844,19 +880,20 @@ static void clear_sprite_list()
     sprlist.clear();
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, const Rect &aabb, int zorder, bool isWalkBehind)
+static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, const Rect &aabb,
+    int zorder, bool isWalkBehind, int id = -1)
 {
-    if (spp == nullptr)
-        quit("add_to_sprite_list: attempted to draw NULL sprite");
+    assert(ddb);
     // completely invisible, so don't draw it at all
-    if (spp->GetTransparency() == 255)
+    if (ddb->GetAlpha() == 0)
         return;
 
     SpriteListEntry sprite;
-    sprite.bmp = spp;
+    sprite.id = id;
+    sprite.ddb = ddb;
     sprite.zorder = zorder;
-    sprite.x = xx;
-    sprite.y = yy;
+    sprite.x = x;
+    sprite.y = y;
     sprite.aabb = aabb;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
@@ -872,8 +909,15 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
     add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder, isWalkBehind);
 }
 
-// function to sort the sprites into baseline order
+// z-order sorting function for sprites
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
+{
+    return (e1.zorder < e2.zorder);
+}
+
+// room-specialized function to sort the sprites into baseline order
+// has special handling for walk-behinds (this is complicated...)
+static bool spritelistentry_room_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
     if (e1.zorder == e2.zorder)
     {
@@ -886,11 +930,14 @@ static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntr
 }
 
 // copy the sorted sprites into the Things To Draw list
-static void draw_sprite_list()
+static void draw_sprite_list(bool is_room)
 {
-    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
+    std::sort(sprlist.begin(), sprlist.end(), is_room ? spritelistentry_room_less : spritelistentry_less);
     thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
 }
+
+// Push the gathered list of sprites into the active graphic renderer
+void put_sprite_list_on_screen(bool in_room);
 //
 //------------------------------------------------------------------------
 
@@ -1066,19 +1113,27 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 
 // used by GUI renderer to draw images
-void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode) 
+// NOTE: use_alpha arg is for backward compatibility (legacy draw modes)
+void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode)
 {
-    Bitmap *sprite = spriteset[pic];
-    const bool ds_has_alpha  = ds->GetColorDepth() == 32;
-    const bool src_has_alpha = (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0;
+    draw_gui_sprite(ds, use_alpha, x, y, spriteset[pic],
+        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode);
+}
 
+void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
+    BlendMode blend_mode, int alpha)
+{
+    if (alpha <= 0)
+        return;
+
+    const bool ds_has_alpha = (ds->GetColorDepth() == 32);
     if (use_alpha)
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
     }
     else
     {
-        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y);
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y, alpha);
     }
 }
 
@@ -1105,22 +1160,20 @@ Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_tra
 }
 
 // Allocates texture for the GUI
-void recreate_guibg_image(GUIMain *tehgui)
+void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int width, int height, int rot_degrees)
 {
     // Calculate all supported GUI transforms
-    const int ifn = tehgui->ID;
     Size final_sz = gfxDriver->HasAcceleratedTransform() ?
-        Size(tehgui->Width, tehgui->Height) :
-        RotateSize(Size(tehgui->Width, tehgui->Height), tehgui->Rotation);
-    if (guibg[ifn] && guibg[ifn]->GetSize() == final_sz)
+        Size(width, height) :
+        RotateSize(Size(width, height), rot_degrees);
+    if (raw && raw->GetSize() == final_sz)
         return; // all is fine
-
-    delete guibg[ifn];
-    guibg[ifn] = CreateCompatBitmap(final_sz.Width, final_sz.Height);
-    if (guibgbmp[ifn] != nullptr)
+    delete raw;
+    raw = CreateCompatBitmap(final_sz.Width, final_sz.Height);
+    if (ddb != nullptr)
     {
-        gfxDriver->DestroyDDB(guibgbmp[ifn]);
-        guibgbmp[ifn] = nullptr;
+        gfxDriver->DestroyDDB(ddb);
+        ddb = nullptr;
     }
 }
 
@@ -1643,7 +1696,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        actspsbmp[useindx]->SetTransparency(objs[aa].transparent);
+        actspsbmp[useindx]->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(objs[aa].transparent));
         actspsbmp[useindx]->SetBlendMode(objs[aa].blend_mode);
         add_to_sprite_list(actspsbmp[useindx], objx, objy, aabb, usebasel, false);
     }
@@ -1961,7 +2014,7 @@ void prepare_characters_for_drawing() {
 
         our_eip = 337;
 
-        actspsbmp[useindx]->SetTransparency(chin->transparency);
+        actspsbmp[useindx]->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(chin->transparency));
         actspsbmp[useindx]->SetBlendMode(charextra[chin->index_id].blend_mode);
         add_to_sprite_list(actspsbmp[useindx], charx, chary, aabb, usebasel, false);
     }
@@ -2033,7 +2086,7 @@ void prepare_room_sprites()
             if (pl_any_want_hook(AGSE_PRESCREENDRAW))
                 add_render_stage(AGSE_PRESCREENDRAW);
 
-            draw_sprite_list();
+            draw_sprite_list(true);
         }
     }
     our_eip = 36;
@@ -2139,38 +2192,72 @@ void draw_fps(const Rect &viewport)
     invalidate_sprite_glob(1, yp, ddb);
 }
 
+// Draw GUI controls as separate sprites
+void draw_gui_controls(GUIMain &gui)
+{
+    if (all_buttons_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+        return; // don't draw GUI controls
+
+    int draw_index = guiobjbmpref[gui.ID];
+    for (int i = 0; i < gui.GetControlCount(); ++i, ++draw_index)
+    {
+        GUIObject *obj = gui.GetControl(i);
+        if (!obj->IsVisible() ||
+            (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+            continue;
+        if (!obj->HasChanged())
+            continue;
+        obj->ClearChanged();
+
+        Rect obj_surf = obj->CalcGraphicRect(GUI::Options.ClipControls);
+        if (guiobjbg[draw_index] == nullptr ||
+            guiobjbg[draw_index]->GetSize() != obj_surf.GetSize())
+        {
+            recreate_drawobj_bitmap(guiobjbg[draw_index], guiobjbmp[draw_index],
+                obj_surf.GetWidth(), obj_surf.GetHeight(), 0 /* rotation */);
+        }
+        
+        guiobjbg[draw_index]->ClearTransparent();
+        obj->Draw(guiobjbg[draw_index], obj->X - obj_surf.Left, obj->Y - obj_surf.Top);
+
+        if (guiobjbmp[draw_index] != nullptr)
+            gfxDriver->UpdateDDBFromBitmap(guiobjbmp[draw_index], guiobjbg[draw_index], obj->HasAlphaChannel());
+        else
+            guiobjbmp[draw_index] = gfxDriver->CreateDDBFromBitmap(guiobjbg[draw_index], obj->HasAlphaChannel());
+        guiobjoff[draw_index] = Point(obj_surf.GetLT());
+    }
+}
+
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
     if(pl_any_want_hook(AGSE_PREGUIDRAW))
-        add_render_stage(AGSE_PREGUIDRAW);
+        gfxDriver->DrawSprite(AGSE_PREGUIDRAW, 0, nullptr); // render stage
 
     clear_sprite_list();
 
     const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+    const bool draw_controls_as_textures = is_3d_render;
 
-    // Prepare overlays, check if their bitmap has to be redrawn (software only)
-    if (!is_3d_render)
+    // Add overlays
+    if (overlaybmp.size() < screenover.size())
+        overlaybmp.resize(screenover.size() * 2); // for scale and rot
+    for (size_t index = 0; index < screenover.size(); ++index)
     {
-        for (auto &over : screenover)
-        {
-            if (over.lastRotation != over.rotation)
-            {
-                // Create or resize GUI surface, accomodating for any GUI transformations
-                recreate_overlay_image(over);
-                over.lastRotation = over.rotation;
-            }
-        }
-    }
-    // Add active overlays to the sprite list
-    for (auto &over : screenover)
-    {
+        auto &over = screenover[index];
         if (over.transparency == 255) continue; // skip fully transparent
-        over.bmp->SetTransparency(over.transparency);
-        over.bmp->SetBlendMode(over.blendMode);
-        over.bmp->SetRotation(over.rotation);
+        if (screenover[index].HasChanged())
+        {
+            // Create or resize GUI surface, accomodating for any GUI transformations
+            recreate_overlay_image(over, is_3d_render, overlaybmp[index * 2], overlaybmp[index * 2 + 1]);
+            over.ClearChanged();
+        }
+        over.ddb->SetStretch(over.scaleWidth, over.scaleHeight);
+        over.ddb->SetRotation(over.rotation);
+        over.ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
+        over.ddb->SetBlendMode(over.blendMode);
         const Point overpos = update_overlay_graphicspace(over);
-        add_to_sprite_list(over.bmp, overpos.X, overpos.Y, over._gs.AABB(), over.zorder, false);
+        add_to_sprite_list(over.ddb, overpos.X, overpos.Y, over._gs.AABB(), over.zorder, false);
     }
 
     // Add GUIs
@@ -2183,15 +2270,15 @@ void draw_gui_and_overlays()
         if (playerchar->activeinv < 1) gui_inv_pic=-1;
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
         our_eip = 37;
+        // Prepare and update GUI textures
         {
             for (int index = 0; index < game.numgui; ++index) {
                 GUIMain &gui = guis[index];
                 if (!gui.IsDisplayed()) continue; // not on screen
-                if (!gui.HasChanged()) continue; // no changes: no need to update image
+                if (!gui.HasChanged() && !gui.HasControlsChanged()) continue; // no changes: no need to update image
                 if (gui.Transparency == 255) continue; // 100% transparent
 
-                gui.ClearChanged();
-                recreate_guibg_image(&guis[index]);
+                recreate_drawobj_bitmap(guibg[index], guibgbmp[index], gui.Width, gui.Height, gui.Rotation);
 
                 eip_guinum = index;
                 Bitmap *guibg_final = guibg[index];
@@ -2205,27 +2292,31 @@ void draw_gui_and_overlays()
                         recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.Width, gui.Height));
                     draw_at = guihelpbg[index].get();
                 }
-
-                our_eip = 370;
-                draw_at->ClearTransparent();
                 our_eip = 372;
-                gui.DrawAt(draw_at, 0, 0);
-                our_eip = 373;
-
-                if (draw_at != guibg_final)
+                const bool draw_with_controls = !draw_controls_as_textures;
+                if (gui.HasChanged() || (draw_with_controls && gui.HasControlsChanged()))
                 {
-                    guibg_final->ClearTransparent();
-                    if (gui.Rotation != 0.f)
-                    {
-                        const int dst_w = guibg_final->GetWidth();
-                        const int dst_h = guibg_final->GetHeight();
-                        // (+ width%2 fixes one pixel offset problem)
-                        guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
-                            gui.Width / 2, gui.Height / 2, gui.Rotation); // clockwise
-                    }
+                    draw_at->ClearTransparent();
+                    if (draw_with_controls)
+                        gui.DrawWithControls(draw_at);
                     else
+                        gui.DrawSelf(draw_at);
+
+                    if (draw_at != guibg_final)
                     {
-                        guibg_final->StretchBlt(draw_at, RectWH(guibg_final->GetSize()));
+                        guibg_final->ClearTransparent();
+                        if (gui.Rotation != 0.f)
+                        {
+                            const int dst_w = guibg_final->GetWidth();
+                            const int dst_h = guibg_final->GetHeight();
+                            // (+ width%2 fixes one pixel offset problem)
+                            guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
+                                gui.Width / 2, gui.Height / 2, gui.Rotation); // clockwise
+                        }
+                        else
+                        {
+                            guibg_final->StretchBlt(draw_at, RectWH(guibg_final->GetSize()));
+                        }
                     }
                 }
 
@@ -2239,28 +2330,40 @@ void draw_gui_and_overlays()
                 {
                     ddb = gfxDriver->CreateDDBFromBitmap(guibg_final, isAlpha);
                 }
+                
+                our_eip = 373;
+
+                if (!draw_with_controls && gui.HasControlsChanged())
+                {
+                    draw_gui_controls(gui);
+                }
+
                 our_eip = 374;
+                gui.ClearChanged();
             }
         }
         our_eip = 38;
         // Draw the GUIs
-        for (int gg = 0; gg < game.numgui; gg++) {
-            int aa = play.gui_draw_order[gg];
-            if (!guis[aa].IsDisplayed()) continue; // not on screen
-            if (guis[aa].Transparency == 255) continue; // 100% transparent
+        for (int index = 0; index < game.numgui; ++index) {
+            GUIMain &gui = guis[index];
+            if (!gui.IsDisplayed()) continue; // not on screen
+            if (gui.Transparency == 255) continue; // 100% transparent
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
                 (all_buttons_disabled >= 0) &&
-                (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
+                (gui.PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
-            guibgbmp[aa]->SetOrigin(0.f, 0.f);
-            guibgbmp[aa]->SetTransparency(guis[aa].Transparency);
-            guibgbmp[aa]->SetBlendMode(guis[aa].BlendMode);
-            guibgbmp[aa]->SetRotation(guis[aa].Rotation);
-            add_to_sprite_list(guibgbmp[aa], guis[aa].X, guis[aa].Y,
-                guis[aa].GetGraphicSpace().AABB(), guis[aa].ZOrder, false);
+            auto *gui_ddb = guibgbmp[index];
+            assert(gui_ddb); // Test for missing texture, might happen if not marked for update
+            if (!gui_ddb) continue;
+            gui_ddb->SetOrigin(0.f, 0.f);
+            gui_ddb->SetRotation(gui.Rotation);
+            gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
+            gui_ddb->SetBlendMode(gui.BlendMode);
+            add_to_sprite_list(gui_ddb, gui.X, gui.Y,
+                gui.GetGraphicSpace().AABB(), gui.ZOrder, false, index);
         }
 
         // Poll the GUIs
@@ -2279,8 +2382,43 @@ void draw_gui_and_overlays()
         }
     }
 
-    // sort and append ui sprites to the global draw things list
-    draw_sprite_list();
+    // If not adding gui controls as textures, simply move the resulting sprlist to render
+    if (!draw_controls_as_textures ||
+        (all_buttons_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+    {
+        draw_sprite_list(false);
+        put_sprite_list_on_screen(false);
+        return;
+    }
+    // If adding control textures, sort the ui list, and then pass into renderer,
+    // adding controls and creating sub-batches as necessary
+    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
+    for (const auto &s : sprlist)
+    {
+        invalidate_sprite(s.x, s.y, s.ddb, false);
+        gfxDriver->DrawSprite(s.x, s.y, s.ddb);
+        if (s.id < 0) continue; // not a group parent (gui)
+        // Create a sub-batch
+        gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, s.ddb->GetWidth(), s.ddb->GetHeight()),
+            SpriteTransform(0, 0, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
+        const int draw_index = guiobjbmpref[s.id];
+        for (const auto &obj_id : guis[s.id].GetControlsDrawOrder())
+        {
+            GUIObject *obj = guis[s.id].GetControl(obj_id);
+            if (!obj->IsVisible() ||
+                (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+                continue;
+            auto *obj_ddb = guiobjbmp[draw_index + obj_id];
+            assert(obj_ddb); // Test for missing texture, might happen if not marked for update
+            if (!obj_ddb) continue;
+            obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
+            gfxDriver->DrawSprite(
+                guiobjoff[draw_index + obj_id].X,
+                guiobjoff[draw_index + obj_id].Y,
+                obj_ddb);
+        }
+        gfxDriver->EndSpriteBatch();
+    }
 
     our_eip = 1099;
 }
@@ -2288,28 +2426,23 @@ void draw_gui_and_overlays()
 // Push the gathered list of sprites into the active graphic renderer
 void put_sprite_list_on_screen(bool in_room)
 {
-    for (size_t i = 0; i < thingsToDrawList.size(); ++i)
+    for (const auto &t : thingsToDrawList)
     {
-        const auto *thisThing = &thingsToDrawList[i];
-
-        if (thisThing->bmp != nullptr)
+        assert(t.ddb || (t.renderStage >= 0));
+        if (t.ddb)
         {
-            if (thisThing->bmp->GetTransparency() == 255)
+            if (t.ddb->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
-            invalidate_sprite(thisThing->aabb.Left, thisThing->aabb.Top, thisThing->bmp, in_room);
+            invalidate_sprite(t.x, t.y, t.ddb, in_room);
             // push to the graphics driver
-            gfxDriver->DrawSprite(thisThing->x, thisThing->y,
-                thisThing->aabb.Left, thisThing->aabb.Top, thisThing->bmp);
+            gfxDriver->DrawSprite(t.x, t.y,
+                t.aabb.Left, t.aabb.Top, t.ddb);
         }
-        else if (thisThing->renderStage >= 0)
+        else if (t.renderStage >= 0)
         {
             // meta entry to run the plugin hook
-            gfxDriver->DrawSprite(thisThing->renderStage, 0, nullptr);
-        }
-        else
-        {
-            quit("Null pointer added to draw list");
+            gfxDriver->DrawSprite(t.renderStage, 0, nullptr);
         }
     }
 
@@ -2378,6 +2511,7 @@ static void construct_room_view()
             }
         }
         put_sprite_list_on_screen(true);
+        gfxDriver->EndSpriteBatch();
     }
 
     clear_draw_list();
@@ -2388,7 +2522,7 @@ static void construct_ui_view()
 {
     gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     draw_gui_and_overlays();
-    put_sprite_list_on_screen(false);
+    gfxDriver->EndSpriteBatch();
     clear_draw_list();
 }
 
@@ -2444,15 +2578,18 @@ void construct_game_scene(bool full_redraw)
 
 void construct_game_screen_overlay(bool draw_mouse)
 {
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
+    {
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
+        gfxDriver->EndSpriteBatch();
+    }
 
     // TODO: find out if it's okay to move cursor animation and state update
     // to the update loop instead of doing it in the drawing routine
     // update animating mouse cursor
+    ags_domouse(); // update mouse pos (mousex, mousey)
     if (game.mcurs[cur_cursor].view >= 0) {
-        ags_domouse();
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
             (mousex == lastmx) && (mousey == lastmy));
@@ -2479,29 +2616,29 @@ void construct_game_screen_overlay(bool draw_mouse)
         lastmx = mousex; lastmy = mousey;
     }
 
-    ags_domouse();
-
-    // Stage: mouse cursor
-    if (draw_mouse && !play.mouse_cursor_hidden && play.screen_is_faded_out == 0)
-    {
-        gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-        invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
-    }
-
     if (play.screen_is_faded_out == 0)
     {
+        // Stage: mouse cursor
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+        if (draw_mouse && !play.mouse_cursor_hidden)
+        {
+            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
+            invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
+        }
         // Stage: screen fx
         if (play.screen_tint >= 1)
             gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
-        // Stage: legacy letterbox mode borders
+        gfxDriver->EndSpriteBatch();
+
+        // Stage: legacy letterbox mode borders (has its own sprite batch)
         render_black_borders();
     }
 
     if (play.screen_is_faded_out != 0 && gfxDriver->RequiresFullRedrawEachFrame())
     {
-        const Rect &main_viewport = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(main_viewport, SpriteTransform());
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         gfxDriver->SetScreenFade(play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        gfxDriver->EndSpriteBatch();
     }
 }
 
@@ -2542,6 +2679,8 @@ void construct_engine_overlay()
 
     if (display_fps != kFPS_Hide)
         draw_fps(viewport);
+
+    gfxDriver->EndSpriteBatch();
 }
 
 static void update_shakescreen()
@@ -2584,7 +2723,7 @@ void debug_draw_room_mask(RoomAreaMask mask)
     }
 
     debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, bmp, false, true);
-    debugRoomMaskDDB->SetTransparency(150);
+    debugRoomMaskDDB->SetAlpha(150);
     debugRoomMaskDDB->SetStretch(thisroom.Width, thisroom.Height);
 }
 
@@ -2607,7 +2746,7 @@ void update_room_debug()
             bmp = debugRoomMaskBmp.get();
         }
         debugRoomMaskDDB = recycle_ddb_bitmap(debugRoomMaskDDB, bmp, false, true);
-        debugRoomMaskDDB->SetTransparency(150);
+        debugRoomMaskDDB->SetAlpha(150);
         debugRoomMaskDDB->SetStretch(thisroom.Width, thisroom.Height);
     }
     if (debugMoveListChar >= 0)
@@ -2636,7 +2775,7 @@ void update_room_debug()
             }
         }
         debugMoveListDDB = recycle_ddb_bitmap(debugMoveListDDB, debugMoveListBmp.get(), false, false);
-        debugMoveListDDB->SetTransparency(150);
+        debugMoveListDDB->SetAlpha(150);
         debugMoveListDDB->SetStretch(thisroom.Width, thisroom.Height);
     }
 }
@@ -2657,11 +2796,14 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
 
     construct_game_scene(false);
     our_eip=5;
-    // NOTE: extraBitmap will always be drawn with the UI render stage
+    // TODO: extraBitmap is a hack, used to place an additional gui element
+    // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
+        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
+        gfxDriver->EndSpriteBatch();
     }
     construct_game_screen_overlay(true);
     render_to_screen();

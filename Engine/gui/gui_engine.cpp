@@ -95,9 +95,25 @@ bool GUIObject::IsClickable() const
     return (Flags & kGUICtrl_Clickable) != 0;
 }
 
+void GUIObject::MarkChanged()
+{
+    _hasChanged = true;
+    guis[ParentId].MarkControlsChanged();
+}
+
 void GUIObject::NotifyParentChanged()
 {
-    guis[ParentId].MarkChanged();
+    guis[ParentId].MarkControlsChanged();
+}
+
+bool GUIObject::HasChanged() const
+{
+    return _hasChanged;
+}
+
+void GUIObject::ClearChanged()
+{
+    _hasChanged = false;
 }
 
 void GUILabel::PrepareTextToDraw()
@@ -111,26 +127,16 @@ size_t GUILabel::SplitLinesForDrawing(SplitLines &lines)
     return break_up_text_into_lines(_textToDraw.GetCStr(), lines, Width, Font);
 }
 
-void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
 {
-    wouttext_outline(ds, X + 1 + 1, Y + 1 + 1, Font, text_color, Text.GetCStr());
+    wouttext_outline(ds, x + 1 + 1, y + 1 + 1, Font, text_color, Text.GetCStr());
     if (IsGUIEnabled(this))
     {
         // draw a cursor
-        int draw_at_x = get_text_width(Text.GetCStr(), Font) + X + 3;
-        int draw_at_y = Y + 1 + get_font_height(Font);
+        int draw_at_x = get_text_width(Text.GetCStr(), Font) + x + 3;
+        int draw_at_y = y + 1 + get_font_height(Font);
         ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + 5, draw_at_y), text_color);
     }
-}
-
-void GUIListBox::DrawItemsFix()
-{
-  // do nothing
-}
-
-void GUIListBox::DrawItemsUnfix()
-{
-  // do nothing
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)

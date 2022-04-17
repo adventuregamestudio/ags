@@ -70,6 +70,7 @@ extern HAGSError extract_room_template_files(const AGSString &templateFileName, 
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum);
 extern void SaveNativeSprites(Settings^ gameSettings);
+extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
 extern HAGSError reset_sprite_file();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameDirChanged(String ^workingDir);
@@ -222,6 +223,12 @@ namespace AGS
 				throw gcnew AGSEditorException(gcnew String("Unable to load spriteset from ACSPRSET.SPR.\n") + TextHelper::ConvertUTF8(err->FullMessage()));
 			}
 		}
+
+        void NativeMethods::ReplaceSpriteFile(String ^srcFileName)
+        {
+            AGSString temp_filename = TextHelper::ConvertUTF8(srcFileName);
+            ::ReplaceSpriteFile(temp_filename, "", false);
+        }
 
 		void NativeMethods::SaveGame(Game ^game)
 		{

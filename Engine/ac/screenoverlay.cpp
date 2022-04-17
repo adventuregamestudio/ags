@@ -19,10 +19,8 @@ using namespace AGS::Common;
 
 void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
-    // TODO: find out if it's safe to just drop these pointers!! replace with unique_ptr?
-    bmp = nullptr;
     pic = nullptr;
-    in->ReadInt32(); // bmp 32-bit pointer value (nasty legacy format)
+    in->ReadInt32(); // ddb 32-bit pointer value (nasty legacy format)
     has_bitmap = in->ReadInt32() != 0;
     type = in->ReadInt32();
     x = in->ReadInt32();
@@ -41,8 +39,8 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     {
         zorder = in->ReadInt32();
         transparency = in->ReadInt32();
-        in->ReadInt32(); // reserve 2 ints
-        in->ReadInt32();
+        scaleWidth = in->ReadInt32();
+        scaleHeight = in->ReadInt32();
     }
     if (cmp_ver >= 10)
     {
@@ -68,7 +66,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 
 void ScreenOverlay::WriteToFile(Stream *out) const
 {
-    out->WriteInt32(0); // bmp 32-bit pointer value (nasty legacy format)
+    out->WriteInt32(0); // ddb 32-bit pointer value (nasty legacy format)
     out->WriteInt32(pic ? 1 : 0); // has bitmap
     out->WriteInt32(type);
     out->WriteInt32(x);
@@ -84,8 +82,8 @@ void ScreenOverlay::WriteToFile(Stream *out) const
     // since cmp_ver = 2
     out->WriteInt32(zorder);
     out->WriteInt32(transparency);
-    out->WriteInt32(0); // reserve 2 ints
-    out->WriteInt32(0);
+    out->WriteInt32(scaleWidth);
+    out->WriteInt32(scaleHeight);
     // since cmp_ver = 10
     out->WriteInt32(blendMode);
     // Reserved for colour options

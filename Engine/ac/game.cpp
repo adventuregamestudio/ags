@@ -40,7 +40,6 @@
 #include "ac/overlay.h"
 #include "ac/path_helper.h"
 #include "ac/sys_events.h"
-#include "ac/richgamemedia.h"
 #include "ac/roomstatus.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
@@ -57,6 +56,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
+#include "gui/guislider.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
@@ -284,14 +284,11 @@ int oldmouse;
 void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
-    if (!play.mouse_cursor_hidden)
-        ags_domouse();
-    oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
+    oldmouse=cur_cursor;
+    set_mouse_cursor(CURS_ARROW);
 }
 void restore_after_dialog() {
     set_mouse_cursor(oldmouse);
-    if (!play.mouse_cursor_hidden)
-        ags_domouse();
     invalidate_screen();
 }
 
@@ -557,7 +554,7 @@ void unload_game_file()
     ccUnregisterAllObjects();
 
     free_do_once_tokens();
-    free(play.gui_draw_order);
+    play.gui_draw_order.clear();
 
     resetRoomStatuses();
 
@@ -891,34 +888,6 @@ void serialize_bitmap(const Common::Bitmap *thispic, Stream *out) {
     }
 }
 
-// On Windows we could just use IIDFromString but this is platform-independant
-void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer)
-{
-    guidText++; // skip {
-    for (int bytesDone = 0; bytesDone < 16; bytesDone++)
-    {
-        if (*guidText == '-')
-            guidText++;
-
-        char tempString[3];
-        tempString[0] = guidText[0];
-        tempString[1] = guidText[1];
-        tempString[2] = 0;
-        int thisByte = 0;
-        sscanf(tempString, "%X", &thisByte);
-
-        buffer[bytesDone] = thisByte;
-        guidText += 2;
-    }
-
-    // Swap bytes to give correct GUID order
-    unsigned char temp;
-    temp = buffer[0]; buffer[0] = buffer[3]; buffer[3] = temp;
-    temp = buffer[1]; buffer[1] = buffer[2]; buffer[2] = temp;
-    temp = buffer[4]; buffer[4] = buffer[5]; buffer[5] = temp;
-    temp = buffer[6]; buffer[6] = buffer[7]; buffer[7] = temp;
-}
-
 Bitmap *read_serialized_bitmap(Stream *in) {
     Bitmap *thispic;
     int picwid = in->ReadInt32();
@@ -956,31 +925,6 @@ void skip_serialized_bitmap(Stream *in)
     // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8
     int bpp = piccoldep / 8;
     in->Seek(picwid * pichit * bpp);
-}
-
-long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
-{
-    long fileSize = 0;
-    String tempFileName = String::FromFormat("%s""_tmpscht.bmp", saveGameDirectory.GetCStr());
-
-    screenshot->SaveToFile(tempFileName, palette);
-
-    update_polled_stuff_if_runtime();
-
-    if (File::IsFile(tempFileName))
-    {
-        fileSize = File::GetFileSize(tempFileName);
-        char *buffer = (char*)malloc(fileSize);
-
-        Stream *temp_in = Common::File::OpenFileRead(tempFileName);
-        temp_in->Read(buffer, fileSize);
-        delete temp_in;
-        File::DeleteFile(tempFileName);
-
-        out->Write(buffer, fileSize);
-        free(buffer);
-    }
-    return fileSize;
 }
 
 Bitmap *create_savegame_screenshot()
@@ -1030,22 +974,8 @@ void save_game(int slotn, const char*descript) {
 
     update_polled_stuff_if_runtime();
 
-    // Actual dynamic game data is saved here
+    // Save dynamic game data
     SaveGameState(out.get());
-
-    if (screenShot != nullptr)
-    {
-        int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
-        int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot.get());
-
-        update_polled_stuff_if_runtime();
-
-        out.reset(Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite));
-        out->Seek(12, kSeekBegin);
-        out->WriteInt32(screenShotOffset);
-        out->Seek(4);
-        out->WriteInt32(screenShotSize);
-    }
 }
 
 int gameHasBeenRestored = 0;
@@ -1547,7 +1477,15 @@ void game_sprite_updated(int sprnum)
     {
         if (guibuts[i].CurrentImage == sprnum)
         {
-            guibuts[i].NotifyParentChanged();
+            guibuts[i].MarkChanged();
+        }
+    }
+    // gui sliders
+    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    {
+        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
+        {
+            guislider[i].MarkChanged();
         }
     }
 }
@@ -1595,8 +1533,18 @@ void game_sprite_deleted(int sprnum)
         if (guibuts[i].CurrentImage == sprnum)
         {
             guibuts[i].CurrentImage = 0;
-            guibuts[i].NotifyParentChanged();
+            guibuts[i].MarkChanged();
         }
+    }
+    // gui sliders
+    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    {
+        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
+            guislider[i].MarkChanged();
+        if (guislider[i].BgImage == sprnum)
+            guislider[i].BgImage = 0; 
+        if (guislider[i].HandleImage == sprnum)
+            guislider[i].HandleImage = 0;
     }
     // views
     for (size_t v = 0; v < (size_t)game.numviews; ++v)

@@ -465,25 +465,6 @@ int engine_load_game_data()
     return 0;
 }
 
-int engine_check_register_game()
-{
-    if (justRegisterGame) 
-    {
-        platform->RegisterGameWithGameExplorer();
-        proper_exit = 1;
-        return EXIT_NORMAL;
-    }
-
-    if (justUnRegisterGame) 
-    {
-        platform->UnRegisterGameWithGameExplorer();
-        proper_exit = 1;
-        return EXIT_NORMAL;
-    }
-
-    return 0;
-}
-
 // Replace special tokens inside a user path option
 static void resolve_configured_path(String &option)
 {
@@ -1276,10 +1257,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     our_eip=-19;
 
     int res = engine_load_game_data();
-    if (res != 0)
-        return res;
-    
-    res = engine_check_register_game();
     if (res != 0)
         return res;
 

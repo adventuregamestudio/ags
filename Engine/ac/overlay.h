@@ -46,7 +46,8 @@ ScriptOverlay* create_scriptobj_for_overlay(ScreenOverlay &over);
 void remove_screen_overlay_index(size_t over_idx);
 void recreate_overlay_ddbs();
 // Create or resize GUI surface, accomodating for any GUI transformations
-void recreate_overlay_image(ScreenOverlay &over);
+void recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
+    Common::Bitmap *&scalebmp, Common::Bitmap *&rotbmp);
 // Recalculates overlay's transform matrix and AABB, returns overlay object's position
 Point update_overlay_graphicspace(ScreenOverlay &over);
 

@@ -101,7 +101,7 @@ namespace AGS.Editor
             BusyDialog.Show("Please wait while the template is created...", new BusyDialog.ProcessingHandler(CreateTemplateFromCurrentGameProcess), templateFileName);
         }
 
-        private object CreateTemplateFromCurrentGameProcess(object templateFileName)
+        private object CreateTemplateFromCurrentGameProcess(IWorkProgress progress, object templateFileName)
         {
             _tasks.CreateTemplateFromCurrentGame((string)templateFileName);
             return null;

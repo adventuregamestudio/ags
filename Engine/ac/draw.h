@@ -17,6 +17,7 @@
 #include <memory>
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "game/roomstruct.h"
 
@@ -24,7 +25,6 @@ namespace AGS
 {
     namespace Common
     {
-        class Bitmap;
         typedef std::shared_ptr<Common::Bitmap> PBitmap;
     }
     namespace Engine { class IDriverDependantBitmap; }
@@ -115,6 +115,12 @@ void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, 
 void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
     Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
+// Generates a transformed sprite, using src image and parameters;
+// * if transformation is necessary - writes into dst and returns dst;
+// * if no transformation is necessary - simply returns src;
+Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, Common::Bitmap *&dst,
+    const Size dst_sz, Common::BitmapFlip flip = Common::kBitmap_NoFlip);
+
 // Render game on screen
 void render_to_screen();
 // Callbacks for the graphics driver

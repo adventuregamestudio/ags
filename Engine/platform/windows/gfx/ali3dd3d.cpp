@@ -21,6 +21,7 @@
 #if AGS_HAS_DIRECT3D
 
 #include "platform/windows/gfx/ali3dd3d.h"
+#include <algorithm>
 #include <SDL.h>
 #include <glm/ext.hpp>
 #include "ac/sys_events.h"
@@ -1612,10 +1613,10 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
 
 IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
+  assert(width > 0);
+  assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
-  assert(allocatedWidth > 0);
-  assert(allocatedHeight > 0);
   if (color_depth != GetCompatibleBitmapFormat(color_depth))
     throw Ali3DException("CreateDDB: bitmap colour depth not supported");
   int colourDepth = color_depth;
@@ -1625,17 +1626,14 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
 
-  // *************** REMOVE THESE LINES *************
-  //direct3ddevicecaps.MaxTextureWidth = 64;
-  //direct3ddevicecaps.MaxTextureHeight = 256;
-  // *************** END REMOVE THESE LINES *************
-
   // Calculate how many textures will be necessary to
   // store this image
   tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
   tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
   assert(tilesAcross > 0);
   assert(tilesDown > 0);
+  tilesAcross = std::max(1, tilesAcross);
+  tilesDown = std::max(1, tilesDown);
   int tileWidth = width / tilesAcross;
   int lastTileExtraWidth = width % tilesAcross;
   int tileHeight = height / tilesDown;

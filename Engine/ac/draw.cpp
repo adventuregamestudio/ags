@@ -2253,6 +2253,7 @@ void draw_gui_controls(GUIMain &gui)
     {
         GUIObject *obj = gui.GetControl(i);
         if (!obj->IsVisible() ||
+            (obj->Width <= 0 || obj->Height <= 0) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
             continue;
         if (!obj->HasChanged())
@@ -2430,6 +2431,7 @@ void draw_gui_and_overlays()
         {
             GUIObject *obj = guis[s.id].GetControl(obj_id);
             if (!obj->IsVisible() ||
+                (obj->Width <= 0 || obj->Height <= 0) ||
                 (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
                 continue;
             auto *obj_ddb = guiobjddb[draw_index + obj_id];

@@ -889,6 +889,7 @@ namespace AGS.Editor
 		protected override void OnPropertyChanged(string propertyName, object oldValue)
 		{
 			_room.Modified = true;
+            bufferedPanel1.Invalidate();
 
             bool needRefresh = false;
             // TODO: unfortunately had to duplicate handling of property change here;

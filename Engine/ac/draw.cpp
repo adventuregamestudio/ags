@@ -117,10 +117,6 @@ IDriverDependantBitmap *debugConsole = nullptr;
 // of the latest version of the sprite
 std::vector<Bitmap*> actsps;
 std::vector<IDriverDependantBitmap*> actspsbmp;
-// temporary cache of walk-behind for this actsps image
-std::vector<Bitmap*> actspswb;
-std::vector<IDriverDependantBitmap*>actspswbbmp;
-std::vector<CachedActSpsData> actspswbcache;
 // GUI surfaces
 std::vector<Bitmap*> guibg;
 std::vector<IDriverDependantBitmap*> guibgddb;
@@ -516,9 +512,6 @@ void init_game_drawdata()
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
     actspsbmp.resize(actsps_num);
-    actspswb.resize(actsps_num);
-    actspswbbmp.resize(actsps_num);
-    actspswbcache.resize(actsps_num);
     guibg.resize(game.numgui);
     guibgddb.resize(game.numgui);
 
@@ -541,9 +534,6 @@ void dispose_game_drawdata()
 
     actsps.clear();
     actspsbmp.clear();
-    actspswb.clear();
-    actspswbbmp.clear();
-    actspswbcache.clear();
     guibg.clear();
     guibgddb.clear();
 
@@ -589,13 +579,6 @@ void clear_drawobj_cache()
         if (actspsbmp[i] != nullptr)
             gfxDriver->DestroyDDB(actspsbmp[i]);
         actspsbmp[i] = nullptr;
-
-        delete actspswb[i];
-        actspswb[i] = nullptr;
-        if (actspswbbmp[i] != nullptr)
-            gfxDriver->DestroyDDB(actspswbbmp[i]);
-        actspswbbmp[i] = nullptr;
-        actspswbcache[i].valid = 0;
     }
 
     // cleanup GUI backgrounds
@@ -1045,15 +1028,10 @@ void put_sprite_list_on_screen(bool in_room);
 //
 //------------------------------------------------------------------------
 
-void invalidate_cached_walkbehinds() 
-{
-    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actspswbcache.size());
-}
-
 // sort_out_walk_behinds: modifies the supplied sprite by overwriting parts
 // of it with transparent pixels where there are walk-behind areas
 // Returns whether any pixels were updated
-int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPixelsFrom = nullptr, Bitmap *checkPixelsFrom = nullptr, int zoom=100) {
+int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, int zoom=100) {
     if (noWalkBehindsAtAll)
         return 0;
 
@@ -1068,9 +1046,6 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
     int ee = 0;
     if (xx < 0)
         ee = 0 - xx;
-
-    if ((checkPixelsFrom != nullptr) && (checkPixelsFrom->GetColorDepth() != spcoldep))
-        quit("sprite colour depth does not match background colour depth");
 
     for ( ; ee < sprit->GetWidth(); ee++) {
         if (ee + xx >= thisroom.WalkBehindMask->GetWidth())
@@ -1108,94 +1083,26 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
             if (tmm<1) continue;
             if (croom->walkbehind_base[tmm] <= basel) continue;
 
-            if (copyPixelsFrom != nullptr)
-            {
-                if (spcoldep <= 8)
-                {
-                    if (checkPixelsFrom->GetScanLine((rr * 100) / zoom)[(ee * 100) / zoom] != maskcol) {
-                        sprit->GetScanLineForWriting(rr)[ee] = copyPixelsFrom->GetScanLine(rr + yy)[ee + xx];
-                        pixelsChanged = 1;
-                    }
-                }
-                else if (spcoldep <= 16) {
-                    shptr = (short*)&sprit->GetScanLine(rr)[0];
-                    shptr2 = (short*)&checkPixelsFrom->GetScanLine((rr * 100) / zoom)[0];
-                    if (shptr2[(ee * 100) / zoom] != maskcol) {
-                        shptr[ee] = ((short*)(&copyPixelsFrom->GetScanLine(rr + yy)[0]))[ee + xx];
-                        pixelsChanged = 1;
-                    }
-                }
-                else if (spcoldep == 24) {
-                    char *chptr = (char*)&sprit->GetScanLine(rr)[0];
-                    char *chptr2 = (char*)&checkPixelsFrom->GetScanLine((rr * 100) / zoom)[0];
-                    if (memcmp(&chptr2[((ee * 100) / zoom) * 3], &maskcol, 3) != 0) {
-                        memcpy(&chptr[ee * 3], &copyPixelsFrom->GetScanLine(rr + yy)[(ee + xx) * 3], 3);
-                        pixelsChanged = 1;
-                    }
-                }
-                else if (spcoldep <= 32) {
-                    loptr = (int*)&sprit->GetScanLine(rr)[0];
-                    loptr2 = (int*)&checkPixelsFrom->GetScanLine((rr * 100) / zoom)[0];
-                    if (loptr2[(ee * 100) / zoom] != maskcol) {
-                        loptr[ee] = ((int*)(&copyPixelsFrom->GetScanLine(rr + yy)[0]))[ee + xx];
-                        pixelsChanged = 1;
-                    }
-                }
+            pixelsChanged = 1;
+            if (spcoldep <= 8)
+                sprit->GetScanLineForWriting(rr)[ee] = maskcol;
+            else if (spcoldep <= 16) {
+                shptr = (short*)&sprit->GetScanLine(rr)[0];
+                shptr[ee] = maskcol;
+            }
+            else if (spcoldep == 24) {
+                char *chptr = (char*)&sprit->GetScanLine(rr)[0];
+                memcpy(&chptr[ee * 3], &maskcol, 3);
+            }
+            else if (spcoldep <= 32) {
+                loptr = (int*)&sprit->GetScanLine(rr)[0];
+                loptr[ee] = maskcol;
             }
             else
-            {
-                pixelsChanged = 1;
-                if (spcoldep <= 8)
-                    sprit->GetScanLineForWriting(rr)[ee] = maskcol;
-                else if (spcoldep <= 16) {
-                    shptr = (short*)&sprit->GetScanLine(rr)[0];
-                    shptr[ee] = maskcol;
-                }
-                else if (spcoldep == 24) {
-                    char *chptr = (char*)&sprit->GetScanLine(rr)[0];
-                    memcpy(&chptr[ee * 3], &maskcol, 3);
-                }
-                else if (spcoldep <= 32) {
-                    loptr = (int*)&sprit->GetScanLine(rr)[0];
-                    loptr[ee] = maskcol;
-                }
-                else
-                    quit("!Sprite colour depth >32 ??");
-            }
+                quit("!Sprite colour depth >32 ??");
         }
     }
     return pixelsChanged;
-}
-
-void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel, int zoom, int width, int height)
-{
-    if (noWalkBehindsAtAll)
-        return;
-
-    if ((!actspswbcache[actspsIndex].valid) ||
-        (actspswbcache[actspsIndex].xWas != xx) ||
-        (actspswbcache[actspsIndex].yWas != yy) ||
-        (actspswbcache[actspsIndex].baselineWas != basel))
-    {
-        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.BgFrames[play.bg_frame].Graphic->GetColorDepth(), width, height, true);
-        Bitmap *wbSprite = actspswb[actspsIndex];
-
-        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.BgFrames[play.bg_frame].Graphic.get(), actsps[actspsIndex], zoom);
-        actspswbcache[actspsIndex].xWas = xx;
-        actspswbcache[actspsIndex].yWas = yy;
-        actspswbcache[actspsIndex].baselineWas = basel;
-        actspswbcache[actspsIndex].valid = 1;
-
-        if (actspswbcache[actspsIndex].isWalkBehindHere)
-        {
-            actspswbbmp[actspsIndex] = recycle_ddb_bitmap(actspswbbmp[actspsIndex], actspswb[actspsIndex], false);
-        }
-    }
-
-    if (actspswbcache[actspsIndex].isWalkBehindHere)
-    {
-        add_to_sprite_list(actspswbbmp[actspsIndex], xx, yy, basel, true);
-    }
 }
 
 void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
@@ -1711,10 +1618,6 @@ void prepare_objects_for_drawing() {
                 usebasel += thisroom.Height;
             }
         }
-        else if (walkBehindMethod == DrawAsSeparateCharSprite) 
-        {
-            sort_out_char_sprite_walk_behind(useindx, atxp, atyp, usebasel, objs[aa].zoom, objs[aa].last_width, objs[aa].last_height);
-        }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
             sort_out_walk_behinds(actsps[useindx], atxp, atyp, usebasel);
@@ -2021,10 +1924,6 @@ void prepare_characters_for_drawing() {
             {
                 usebasel += thisroom.Height;
             }
-        }
-        else if (walkBehindMethod == DrawAsSeparateCharSprite) 
-        {
-            sort_out_char_sprite_walk_behind(useindx, bgX, bgY, usebasel, charextra[aa].zoom, newwidth, newheight);
         }
         else if (walkBehindMethod == DrawOverCharSprite)
         {

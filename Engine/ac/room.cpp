@@ -1054,7 +1054,6 @@ void on_background_frame_change () {
 
     invalidate_screen();
     mark_current_background_dirty();
-    invalidate_cached_walkbehinds();
 
     // get the new frame's palette
     memcpy (palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(RGB) * 256);

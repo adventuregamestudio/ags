@@ -33,13 +33,6 @@ using namespace AGS; // FIXME later
 
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
 
-struct CachedActSpsData {
-    int xWas, yWas;
-    int baselineWas;
-    int isWalkBehindHere;
-    int valid;
-};
-
 // Converts AGS color index to the actual bitmap color using game's color depth
 int MakeColor(int color_index);
 
@@ -86,7 +79,6 @@ void invalidate_camera_frame(int index);
 void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
 
 void mark_current_background_dirty();
-void invalidate_cached_walkbehinds();
 
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);

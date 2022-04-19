@@ -129,6 +129,9 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 Common::Bitmap *get_cached_character_image(int charid);
 // Returns a cached object image prepared for the render
 Common::Bitmap *get_cached_object_image(int objid);
+// Adds a walk-behind sprite to the list for the given slot
+// (reuses existing texture if possible)
+void add_walkbehind_image(size_t index, Common::Bitmap *bmp, int x, int y);
 
 void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text);
 

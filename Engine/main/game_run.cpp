@@ -44,6 +44,7 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
+#include "ac/walkbehind.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
@@ -80,7 +81,6 @@ extern CharacterInfo*playerchar;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
-extern char noWalkBehindsAtAll;
 extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;

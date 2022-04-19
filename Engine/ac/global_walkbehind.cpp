@@ -21,7 +21,6 @@
 #include "debug/debug_log.h"
 
 extern RoomStatus*croom;
-extern int walk_behind_baselines_changed;
 
 void SetWalkBehindBase(int wa,int bl) {
   if ((wa < 1) || (wa >= MAX_WALK_BEHINDS))

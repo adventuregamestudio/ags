@@ -12,11 +12,13 @@
 //
 //=============================================================================
 //
-//
+// Walk-behinds calculation logic.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__WALKBEHIND_H
 #define __AGS_EE_AC__WALKBEHIND_H
+
+#include "util/geometry.h"
 
 // A method of rendering walkbehinds on screen:
 // DrawAsSeparateSprite - draws whole walkbehind as a sprite;
@@ -31,7 +33,20 @@ enum WalkBehindMethodEnum
     DrawOverCharSprite,
 };
 
-void update_walk_behind_images();
-void recache_walk_behinds ();
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
+// Recalculates walk-behind positions
+void walkbehinds_recalc();
+// Generates walk-behinds as separate sprites
+void walkbehinds_generate_sprites();
+// Edits the given game object's sprite, cutting out pixels covered by walk-behinds;
+// returns whether any pixels were updated
+bool walkbehinds_cropout(Common::Bitmap *sprit, int sprx, int spry, int basel, int zoom = 100);
+
+extern WalkBehindMethodEnum walkBehindMethod;
+extern bool noWalkBehindsAtAll;
+extern int walkBehindsCachedForBgNum;
+extern bool walk_behind_baselines_changed;
 
 #endif // __AGS_EE_AC__WALKBEHIND_H

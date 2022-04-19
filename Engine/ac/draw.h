@@ -82,7 +82,8 @@ void mark_current_background_dirty();
 
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
-Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
+void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);
+Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer
@@ -110,7 +111,7 @@ void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
 // Generates a transformed sprite, using src image and parameters;
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
-Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, Common::Bitmap *&dst,
+Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, std::unique_ptr<Common::Bitmap> &dst,
     const Size dst_sz, Common::BitmapFlip flip = Common::kBitmap_NoFlip);
 
 // Render game on screen

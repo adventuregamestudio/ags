@@ -48,6 +48,7 @@ struct RoomObject {
     char  flags;
     // Down to here is a part of the plugin API
     short blocking_width, blocking_height;
+    int   anim_volume = -1; // current animation volume
     Common::String name;
 
     RoomObject();

@@ -44,6 +44,7 @@ struct CharacterExtras {
     char  process_idle_this_time = 0;
     char  slow_move_counter = 0;
     short animwait = 0;
+    int   cur_anim_volume = -1; // current animation sound volume (-1 = default)
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

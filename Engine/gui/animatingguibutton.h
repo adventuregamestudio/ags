@@ -25,12 +25,15 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-struct AnimatingGUIButton {
+struct AnimatingGUIButton
+{
     // index into guibuts array, GUI, button
-    short buttonid, ongui, onguibut;
+    short buttonid = -1, ongui = -1, onguibut = -1;
     // current animation status
-    uint16_t view, loop, frame;
-    short speed, repeat, blocking, direction, wait;
+    uint16_t view = 0, loop = 0, frame = 0;
+    short speed = 0, repeat = 0, blocking = 0, direction = 0, wait = 0;
+    // relative volume of the frame sounds
+    int volume = -1;
 
     void ReadFromFile(Common::Stream *in, int cmp_ver);
     void WriteToFile(Common::Stream *out);

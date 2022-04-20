@@ -117,17 +117,18 @@ void precache_view(int view)
     }
 }
 
-// the specified frame has just appeared, see if we need
-// to play a sound or whatever
-void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
+// Handle the new animation frame (play linked sounds, etc)
+void CheckViewFrame(int view, int loop, int frame, int sound_volume)
+{
     ScriptAudioChannel *channel = nullptr;
+    // Play a sound, if one is linked to this frame
     if (game.IsLegacyAudioSystem())
     {
         // sound field contains legacy sound num, so we also need an actual clip index
         const int sound = views[view].loops[loop].frames[frame].sound;
-        int &clip_id = views[view].loops[loop].frames[frame].audioclip;
         if (sound > 0)
         {
+            int &clip_id = views[view].loops[loop].frames[frame].audioclip;
             if (clip_id < 0)
             {
                 ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
@@ -141,12 +142,12 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
     else
     {
         if (views[view].loops[loop].frames[frame].sound >= 0) {
-            // play this sound (eg. footstep)
             channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
         }
     }
-    if (sound_volume != SCR_NO_VALUE && channel != nullptr)
+    if (channel && (sound_volume >= 0))
     {
+        sound_volume = std::min(sound_volume, 100);
         auto* ch = AudioChans::GetChannel(channel->id);
         if (ch)
             ch->set_volume100(ch->get_volume100() * sound_volume / 100);

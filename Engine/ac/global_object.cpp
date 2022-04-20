@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
 #include "ac/global_object.h"
 #include "ac/common.h"
 #include "ac/object.h"
@@ -221,7 +222,7 @@ int GetObjectBaseline(int obn) {
     return objs[obn].baseline;
 }
 
-void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe) {
+void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe, int volume) {
     if (obn>=MANOBJNUM) {
         scAnimateCharacter(obn - 100,loopn,spdd,rept);
         return;
@@ -266,7 +267,8 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
+    objs[obn].anim_volume = std::min(volume, 100); // NOTE: negative volume means use defaults
+    CheckViewFrame(objs[obn].view, loopn, objs[obn].frame, objs[obn].anim_volume);
 
     if (blocking)
         GameLoopUntilValueIsZero(&objs[obn].cycling);

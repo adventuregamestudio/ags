@@ -75,7 +75,7 @@ public:
         _useResampler = useResampler;
     }
     // Rotation is set in degrees, clockwise
-    void SetRotation(float degrees) override { _rotation = _rotation = -Common::Math::DegreesToRadians(degrees); }
+    void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
     void SetLightLevel(int lightLevel) override  { _lightLevel = lightLevel; }
     void SetTint(int red, int green, int blue, int tintSaturation) override 
     {

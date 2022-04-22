@@ -2399,8 +2399,10 @@ void draw_gui_and_overlays()
         gfxDriver->DrawSprite(s.x, s.y, s.ddb);
         if (s.id < 0) continue; // not a group parent (gui)
         // Create a sub-batch
-        gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, s.ddb->GetWidth(), s.ddb->GetHeight()),
-            SpriteTransform(0, 0, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
+        gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, guis[s.id].Width, guis[s.id].Height),
+            SpriteTransform(0, 0, 1.f, 1.f, guis[s.id].Rotation,
+                Point(guis[s.id].Width / 2, guis[s.id].Height / 2),
+                s.ddb->GetAlpha()));
         const int draw_index = guiobjbmpref[s.id];
         for (const auto &obj_id : guis[s.id].GetControlsDrawOrder())
         {
@@ -2484,7 +2486,8 @@ static void construct_room_view()
         SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
             (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
             (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
-            camera->GetRotation());
+            camera->GetRotation(),
+            Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
             gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);

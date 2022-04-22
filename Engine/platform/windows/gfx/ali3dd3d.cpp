@@ -92,7 +92,8 @@ void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
             mr.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
 }
 // Setup full 2D transformation matrix
-void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez, float pivotx = 0.0, float pivoty = 0.0)
+void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy,
+    float anglez, float pivotx = 0.0, float pivoty = 0.0)
 {
     D3DMATRIX scale;
     D3DMATRIX tr_to_pivot;
@@ -109,18 +110,22 @@ void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float
     MatrixMultiply(m, tr2, translate);
 }
 // Setup inverse 2D transformation matrix
-void MatrixTransformInverse2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
+void MatrixTransformInverse2D(D3DMATRIX &m, float x, float y, float sx, float sy,
+    float anglez, float pivotx = 0.0, float pivoty = 0.0)
 {
     D3DMATRIX translate;
     D3DMATRIX rotate;
+    D3DMATRIX tr_to_pivot;
     D3DMATRIX scale;
-    MatrixTranslate(translate, x, y, 0.f);
+    MatrixTranslate(translate, x + pivotx, y + pivoty, 0.f);
     MatrixRotateZ(rotate, anglez);
+    MatrixTranslate(tr_to_pivot, -pivotx, -pivoty, 0.f);
     MatrixScale(scale, sx, sy, 1.f);
 
-    D3DMATRIX tr1;
+    D3DMATRIX tr1, tr2;
     MatrixMultiply(tr1, translate, rotate);
-    MatrixMultiply(m, tr1, scale);
+    MatrixMultiply(tr2, tr1, tr_to_pivot);
+    MatrixMultiply(m, tr2, scale);
 }
 
 
@@ -1479,9 +1484,12 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale
+    float pivotx = _srcRect.GetWidth() / 2.f - desc.Transform.Pivot.X;
+    float pivoty = _srcRect.GetHeight() / 2.f - desc.Transform.Pivot.Y;
     MatrixTransformInverse2D(matRoomToViewport,
         desc.Transform.X, -(desc.Transform.Y),
-        desc.Transform.ScaleX, desc.Transform.ScaleY, -Math::DegreesToRadians(desc.Transform.Rotate));
+        desc.Transform.ScaleX, desc.Transform.ScaleY, -Math::DegreesToRadians(desc.Transform.Rotate),
+        pivotx, -pivoty);
     // Next step is translate to viewport position; remove this if this is
     // changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates

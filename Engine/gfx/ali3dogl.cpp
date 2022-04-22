@@ -1420,9 +1420,12 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
-    model = glm::scale(model, {desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f});
-    model = glm::rotate(model, -Math::DegreesToRadians(desc.Transform.Rotate), { 0.f, 0.f, 1.f}); // rotate camera clockwise
-    model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
+    float pivotx = _srcRect.GetWidth() / 2.f - desc.Transform.Pivot.X;
+    float pivoty = _srcRect.GetHeight() / 2.f - desc.Transform.Pivot.Y;
+    model = glm::scale(model, { desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f });
+    model = glm::translate(model, { -pivotx, -(-pivoty), 0.0f });
+    model = glm::rotate(model, -Math::DegreesToRadians(desc.Transform.Rotate), { 0.f, 0.f, 1.f });
+    model = glm::translate(model, { (float)desc.Transform.X + pivotx, (float)-desc.Transform.Y + (-pivoty), 0.0f });
 
     // Apply parent batch's settings, if preset
     if (desc.Parent > 0)

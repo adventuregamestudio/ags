@@ -446,8 +446,6 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
 void recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
     Bitmap *&scalebmp, Bitmap *&rotbmp)
 {
-    if (over.ddb)
-        gfxDriver->DestroyDDB(over.ddb);
     Bitmap *use_bmp = over.pic;
     // For software renderer - apply all supported Overlay transforms
     if (!is_3d_render && (over.rotation != 0.0))

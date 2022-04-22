@@ -2240,7 +2240,7 @@ void draw_gui_and_overlays()
     const bool draw_controls_as_textures = is_3d_render;
 
     // Add overlays
-    if (overlaybmp.size() < screenover.size())
+    if (overlaybmp.size() < screenover.size() * 2)
         overlaybmp.resize(screenover.size() * 2); // for scale and rot
     for (size_t index = 0; index < screenover.size(); ++index)
     {

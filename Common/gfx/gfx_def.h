@@ -58,10 +58,10 @@ public:
         assert((sx != 0.f) && (sy != 0.f));
         // World->local transform
         W2LTransform = glmex::make_inv_transform2d((float)-x, (float)-y, 1.f / sx, 1.f / sy,
-            Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
+            -Math::DegreesToRadians(rot), 0.5f * dst_w, 0.5f * dst_h);
         // Local->world transform + AABB
         L2WTransform = glmex::make_transform2d((float)x, (float)y, sx, sy,
-            -Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
+            Math::DegreesToRadians(rot), -0.5f * dst_w, -0.5f * dst_h);
         Rect aabb = RectWH(0, 0, src_w, src_h);
         _AABB = glmex::full_transform(aabb, L2WTransform);
     }

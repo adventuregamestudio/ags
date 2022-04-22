@@ -365,7 +365,8 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
     // If there's a rotation tranform: prepare a helper surface
     if (desc.Transform.Rotate != 0.f)
     {
-        Size rot_sz = RotateSize(Size(batch.Surface->GetWidth(), batch.Surface->GetWidth()), (int)desc.Transform.Rotate);
+        int max_size = std::max(batch.Surface->GetWidth(), batch.Surface->GetHeight());
+        Size rot_sz = RotateSize(Size(max_size, max_size), (int)desc.Transform.Rotate);
         if (batch.HelpSurface == nullptr || batch.HelpSurface->GetSize() != rot_sz)
             batch.HelpSurface.reset(new Bitmap(rot_sz.Width, rot_sz.Height));
     }

@@ -867,13 +867,6 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
-            _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
-            // NOTE: currently the only way to know if the room was not affected by
-            // game's settings is to test whether it has game's ID.
-            if (_loadedRoom.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
-            {
-                _loadedRoom.Modified |= ApplyDefaultMaskResolution(_loadedRoom);
-            }
 			if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))

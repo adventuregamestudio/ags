@@ -2220,7 +2220,7 @@ namespace AGS.Editor.Components
             }
 
             if (!File.Exists(_loadedRoom.FileName))
-                Resources.ResourceManager.CopyFileFromResourcesToDisk("blank.crm", _loadedRoom.FileName);
+                _nativeProxy.SaveDefaultRoom(_loadedRoom); // create a valid room file
 
             // Load and forget; We need a valid RoomStruct instance because the Editor Native Proxy code
             // expects to find it. We can't construct an instance easily directly from C#, but we get can get

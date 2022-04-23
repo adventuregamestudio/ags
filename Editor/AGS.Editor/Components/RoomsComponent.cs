@@ -513,8 +513,6 @@ namespace AGS.Editor.Components
 					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number);
 				}
 
-                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom).ToArray());
-
                 string newNodeID = AddSingleItem(newRoom);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 _guiController.ProjectTree.SelectNode(this, newNodeID);

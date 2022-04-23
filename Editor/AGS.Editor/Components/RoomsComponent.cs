@@ -513,6 +513,9 @@ namespace AGS.Editor.Components
 					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number);
 				}
 
+
+                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, null, true).ToArray());
+
                 string newNodeID = AddSingleItem(newRoom);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
@@ -2168,7 +2171,7 @@ namespace AGS.Editor.Components
         /// </summary>
         /// <param name="room">The room to convert to open format</param>
         /// <returns>A collection of tasks that converts the room async.</returns>
-        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom, Action report = null)
+        private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom, Action report = null, bool isNewRoom=false)
         {
             Room room = _nativeProxy.LoadRoom(unloadedRoom);
 
@@ -2180,13 +2183,16 @@ namespace AGS.Editor.Components
             foreach (RoomAreaMaskType type in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
                 yield return SaveAndDisposeBitmapAsync(_nativeProxy.ExportAreaMask(room, type), room.GetMaskFileName(type));
 
-            string oldScriptFileName = $"room{room.Number}.asc";
-            if (File.Exists(oldScriptFileName))
-                File.Move(oldScriptFileName, room.ScriptFileName);
+            if (!isNewRoom)
+            {
+                string oldScriptFileName = $"room{room.Number}.asc";
+                if (File.Exists(oldScriptFileName))
+                    File.Move(oldScriptFileName, room.ScriptFileName);
 
-            string oldUserFileName = $"room{room.Number}.crm.user";
-            if (File.Exists(oldUserFileName))
-                File.Move(oldUserFileName, room.UserFileName);
+                string oldUserFileName = $"room{room.Number}.crm.user";
+                if (File.Exists(oldUserFileName))
+                    File.Move(oldUserFileName, room.UserFileName);
+            }
 
             report?.Invoke();
         }

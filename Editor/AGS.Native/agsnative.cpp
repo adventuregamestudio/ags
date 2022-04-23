@@ -376,7 +376,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     }
     char outputName[MAX_PATH];
     AGSString extension = AGSPath::GetFileExtension(thisFile);
-    sprintf(outputName, "room%d%s", newRoomNumber, extension.GetCStr());
+    sprintf(outputName, "room%d.%s", newRoomNumber, extension.GetCStr());
     Stream *wrout = AGSFile::CreateFile(outputName);
     if (!wrout) 
     {

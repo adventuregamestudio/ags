@@ -1738,7 +1738,15 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
+            // adjust coordinates to mask resolution
+            double scale = _loadedRoom.GetMaskScale(maskType);
+            x = (int)(x * scale);
+            y = (int)(y * scale);
+
             Bitmap mask = _maskCache[maskType];
+
+            if (x < 0 || y < 0 || x > mask.Width || y > mask.Height) return 0;
+
             return mask.GetRawData()[(y * mask.Width) + x];
         }
 

@@ -250,9 +250,6 @@ void quit(const char *quitmsg)
     
     our_eip = 9901;
 
-    shutdown_font_renderer();
-    our_eip = 9902;
-
     spriteset.Reset();
 
     our_eip = 9908;
@@ -270,8 +267,9 @@ void quit(const char *quitmsg)
     // release backed library
     // WARNING: no Allegro objects should remain in memory after this,
     // if their destruction is called later, program will crash!
-    sys_main_shutdown();
+    shutdown_font_renderer();
     allegro_exit();
+    sys_main_shutdown();
 
     platform->PostBackendExit();
 

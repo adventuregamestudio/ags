@@ -455,8 +455,9 @@ int GetTextDisplayTime(const char *text, int canberel) {
     return (textDisplayTimeInMS * fpstimer) / 1000;
 }
 
-bool ShouldAntiAliasText() {
-    return (game.options[OPT_ANTIALIASFONTS] != 0);
+bool ShouldAntiAliasText()
+{
+    return (game.GetColorDepth() >= 24) && (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font

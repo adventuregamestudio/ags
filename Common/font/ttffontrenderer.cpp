@@ -21,9 +21,6 @@
 
 using namespace AGS::Common;
 
-// project-specific implementation
-extern bool ShouldAntiAliasText();
-
 // ***** TTF RENDERER *****
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {

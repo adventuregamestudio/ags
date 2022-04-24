@@ -20,6 +20,7 @@
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
+#include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
 #include "gui/guitextbox.h"

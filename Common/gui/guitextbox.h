@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUITEXTBOX_H
 #define __AC_GUITEXTBOX_H
 
@@ -29,6 +28,7 @@ class GUITextBox : public GUIObject
 public:
     GUITextBox();
 
+    bool HasAlphaChannel() const override;
     bool IsBorderShown() const;
 
     // Operations

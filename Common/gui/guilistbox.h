@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUILISTBOX_H
 #define __AC_GUILISTBOX_H
 
@@ -29,6 +28,7 @@ class GUIListBox : public GUIObject
 public:
     GUIListBox();
 
+    bool HasAlphaChannel() const override;
     bool AreArrowsShown() const;
     bool IsBorderShown() const;
     bool IsSvgIndex() const;

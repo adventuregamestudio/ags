@@ -109,6 +109,11 @@ void GUIListBox::PrepareTextToDraw(const String &text)
     _textToDraw = text;
 }
 
+bool GUIInvWindow::HasAlphaChannel() const
+{
+    return false; // don't do alpha in the editor
+}
+
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
     color_t draw_color = ds->GetCompatibleColor(15);

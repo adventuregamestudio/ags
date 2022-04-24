@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUILABEL_H
 #define __AC_GUILABEL_H
 
@@ -31,6 +30,7 @@ class GUILabel : public GUIObject
 public:
     GUILabel();
 
+    bool HasAlphaChannel() const override;
     // Gets label's text property in original set form (with macros etc)
     String       GetText() const;
     // Gets which macro are contained within label's text

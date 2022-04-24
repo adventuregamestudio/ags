@@ -1042,6 +1042,8 @@ namespace AGS.Editor.Components
             editor.AbandonChanges += new RoomSettingsEditor.AbandonChangesHandler(RoomsComponent_AbandonChanges);
             RoomDesignData.LoadFromUserFile(_loadedRoom, editor);
             editor.RefreshLayersTree();
+            // Reset the Modified flag in case initialization triggered some events
+            editor.DesignModified = false;
         }
 
         private void RoomsComponent_AbandonChanges(Room room)

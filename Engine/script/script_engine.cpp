@@ -22,16 +22,13 @@
 //=============================================================================
 
 #include <stdlib.h>
+#include "script/cc_common.h"
 #include "script/cc_instance.h"
-#include "script/cc_error.h"
 #include "util/file.h"
 #include "util/stream.h"
 
 namespace AGS { namespace Common { class RoomStruct; } }
 using namespace AGS::Common;
-
-extern void quit(const char *);
-extern int currentline; // in script/script_common
 
 std::pair<String, String> cc_error_at_line(const char *error_msg)
 {

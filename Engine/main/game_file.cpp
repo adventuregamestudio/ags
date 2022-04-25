@@ -39,7 +39,7 @@
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/script.h"
 #include "util/alignedstream.h"
 #include "util/stream.h"

@@ -24,7 +24,7 @@
 #include "debug/out.h"
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "util/alignedstream.h"
 #include "util/data_ext.h"
 #include "util/directory.h"

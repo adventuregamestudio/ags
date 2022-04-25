@@ -59,20 +59,17 @@
     <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_error.cpp">
-      <Filter>Source Files\cs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_options.cpp">
-      <Filter>Source Files\cs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_script.cpp">
-      <Filter>Source Files\cs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp">
-      <Filter>Source Files\cs</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp">
       <Filter>Source Files\preproc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_script.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cc_treemap.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_common.cpp">
+      <Filter>Source Files\script</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

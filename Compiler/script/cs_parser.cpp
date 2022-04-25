@@ -5,13 +5,12 @@
 #include <cerrno>
 #include <string>
 #include <vector>
-#include "cs_parser.h"
-#include "cc_internallist.h"    // ccInternalList
-#include "cs_parser_common.h"
-#include "cc_symboltable.h"
-#include "script/cc_options.h"
-#include "script/script_common.h"
-#include "script/cc_error.h"
+#include "script/cs_parser.h"
+#include "script/cc_internallist.h"
+#include "script/cs_parser_common.h"
+#include "script/cc_symboltable.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
 #include "cc_variablesymlist.h"
 #include "fmem.h"
 #include "util/utf8.h"

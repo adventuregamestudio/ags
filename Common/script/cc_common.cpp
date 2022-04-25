@@ -11,13 +11,30 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "script/cc_common.h"
 #include <stdio.h>
 #include <utility>
-#include "script/script_common.h"  // current_line
 #include "util/string.h"
 
 using namespace AGS::Common;
+
+int ccCompOptions = SCOPT_LEFTTORIGHT;
+
+void ccSetOption(int optbit, int onoroff)
+{
+    if (onoroff)
+        ccCompOptions |= optbit;
+    else
+        ccCompOptions &= ~optbit;
+}
+
+int ccGetOption(int optbit)
+{
+    if (ccCompOptions & optbit)
+        return 1;
+
+    return 0;
+}
 
 // Returns full script error message and callstack (if possible)
 extern std::pair<String, String> cc_error_at_line(const char *error_msg);

@@ -22,7 +22,7 @@
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
 #include "util/data_ext.h"

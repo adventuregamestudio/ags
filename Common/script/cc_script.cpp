@@ -11,12 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdlib.h>
 #include <string.h>
-#include "script/cc_error.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
 #include "script/cc_script.h"
-#include "script/script_common.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 

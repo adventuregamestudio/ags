@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cc_symboltable.h"
-#include "script/script_common.h"      // macro definitions
-#include "cc_symboldef.h"   // macro definitions
+#include "script/cc_symboltable.h"
+#include "script/cc_internal.h"      // macro definitions
+#include "script/cc_symboldef.h"   // macro definitions
 
 symbolTable::symbolTable() {
     normalIntSym = 0;

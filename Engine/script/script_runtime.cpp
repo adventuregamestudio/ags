@@ -27,13 +27,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "script/script_runtime.h"
-#include "script/script_common.h"
-#include "script/cc_error.h"
-#include "script/cc_options.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "script/systemimports.h"
 #include "ac/statobj/staticobject.h"
+#include "script/cc_common.h"
+#include "script/systemimports.h"
+#include "script/script_runtime.h"
+
 
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {

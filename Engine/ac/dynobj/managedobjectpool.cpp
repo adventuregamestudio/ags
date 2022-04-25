@@ -17,8 +17,7 @@
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "debug/out.h"
 #include "util/string_utils.h"               // fputstring, etc
-#include "script/cc_error.h"
-#include "script/script_common.h"
+#include "script/cc_common.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

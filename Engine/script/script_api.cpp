@@ -11,12 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdio.h>
 #include <string.h>
 #include <allegro.h>
 #include "ac/game_version.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_api.h"
 #include "util/math.h"

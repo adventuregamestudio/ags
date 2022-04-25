@@ -329,8 +329,7 @@
     <ClCompile Include="..\..\Common\libsrc\freetype-2.1.3\src\type1\type1.c" />
     <ClCompile Include="..\..\Common\libsrc\freetype-2.1.3\src\type42\type42.c" />
     <ClCompile Include="..\..\Common\libsrc\freetype-2.1.3\src\winfonts\winfnt.c" />
-    <ClCompile Include="..\..\Common\script\cc_error.cpp" />
-    <ClCompile Include="..\..\Common\script\cc_options.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_common.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
@@ -476,10 +475,9 @@
     <ClInclude Include="..\..\Common\gui\guislider.h" />
     <ClInclude Include="..\..\Common\gui\guitextbox.h" />
     <ClInclude Include="..\..\Common\platform\windows\windows.h" />
-    <ClInclude Include="..\..\Common\script\cc_error.h" />
-    <ClInclude Include="..\..\Common\script\cc_options.h" />
+    <ClInclude Include="..\..\Common\script\cc_common.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
-    <ClInclude Include="..\..\Common\script\script_common.h" />
+    <ClInclude Include="..\..\Common\script\cc_internal.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bbop.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />

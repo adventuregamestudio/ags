@@ -48,7 +48,7 @@
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "util/alignedstream.h"
 #include "util/file.h"
 #include "util/stream.h"

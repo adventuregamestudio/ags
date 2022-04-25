@@ -2,15 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cs_compiler.h"
-#include "cc_macrotable.h"
-#include "cc_compiledscript.h"
-#include "cc_symboltable.h"
-#include "script/cc_error.h"
-#include "script/cc_options.h"
-#include "script/script_common.h"
-
-#include "cs_parser.h"
+#include "script/cs_compiler.h"
+#include "script/cc_macrotable.h"
+#include "script/cc_compiledscript.h"
+#include "script/cc_symboltable.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
+#include "script/cs_parser.h"
 
 const char *ccSoftwareVersion = "1.0";
 

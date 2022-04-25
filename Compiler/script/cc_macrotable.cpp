@@ -1,7 +1,7 @@
 
 #include "util/string.h"
-#include "cc_macrotable.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
+#include "script/cc_macrotable.h"
 
 using namespace AGS::Common;
 

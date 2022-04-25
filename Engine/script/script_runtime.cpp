@@ -35,8 +35,6 @@
 #include "script/systemimports.h"
 #include "ac/statobj/staticobject.h"
 
-extern ccInstance *current_instance; // in script/cc_instance
-
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) != UINT32_MAX;
@@ -139,8 +137,9 @@ void ccSetScriptAliveTimer (int numloop) {
 }
 
 void ccNotifyScriptStillAlive () {
-    if (current_instance != nullptr)
-        current_instance->flags |= INSTF_RUNNING;
+    ccInstance *cur_inst = ccInstance::GetCurrentInstance();
+    if (cur_inst)
+        cur_inst->flags |= INSTF_RUNNING;
 }
 
 void ccSetDebugHook(new_line_hook_type jibble)

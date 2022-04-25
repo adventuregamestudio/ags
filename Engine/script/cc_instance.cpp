@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <cstdio>
+#include <stack>
 #include <string.h>
 #include "ac/common.h"
 #include "ac/dynobj/cc_dynamicarray.h"
@@ -159,7 +160,11 @@ const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
 
 const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
 
-ccInstance *current_instance;
+// Instance thread stack holds a list of running or suspended script instances;
+// In AGS currently only one thread is running, others are waiting in the queue.
+// An example situation is repeatedly_execute_always callback running while
+// another instance is waiting at the blocking action or Wait().
+std::stack<ccInstance*> InstThreads;
 // [IKM] 2012-10-21:
 // NOTE: This is temporary solution (*sigh*, one of many) which allows certain
 // exported functions return value as a RuntimeScriptValue object;
@@ -195,7 +200,7 @@ struct FunctionCallStack
 
 ccInstance *ccInstance::GetCurrentInstance()
 {
-    return current_instance;
+    return InstThreads.size() > 0 ? InstThreads.top() : nullptr;
 }
 
 ccInstance *ccInstance::CreateFromScript(PScript scri)
@@ -344,16 +349,12 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
         return -2;
     }
 
+    // Prepare instance for run
+    flags &= ~INSTF_ABORTED;
     // Allow to pass less parameters if script callback has less declared args
     numargs = std::min(numargs, export_args);
-
-    //numargs++;                    // account for return address
-    flags &= ~INSTF_ABORTED;
-
     // object pointer needs to start zeroed
     registers[SREG_OP].SetDynamicObject(nullptr, nullptr);
-
-    ccInstance* currentInstanceWas = current_instance;
     registers[SREG_SP].SetStackPtr( &stack[0] );
     stackdata_ptr = stackdata;
     // NOTE: Pushing parameters to stack in reverse order
@@ -363,17 +364,17 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
         PushValueToStack(params[i]);
     }
     PushValueToStack(RuntimeScriptValue().SetInt32(0)); // return address on stack
-    if (ccError)
-    {
-        return -1;
-    }
-    runningInst = this;
 
+    InstThreads.push(this); // push instance thread
+    runningInst = this;
     int reterr = Run(startat);
+    // Cleanup before returning, even if error
     ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
     pc = 0;
-    current_instance = currentInstanceWas;
+    InstThreads.pop(); // pop instance thread
+    if (reterr != 0)
+        return reterr;
 
     // NOTE that if proper multithreading is added this will need
     // to be reconsidered, since the GC could be run in the middle 
@@ -383,9 +384,6 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
 
     if (new_line_hook)
         new_line_hook(nullptr, 0);
-
-    if (reterr)
-        return -6;
 
     if (flags & INSTF_ABORTED) {
         flags &= ~INSTF_ABORTED;
@@ -442,7 +440,6 @@ int ccInstance::Run(int32_t curpc)
     int loopIterationCheckDisabled = 0;
     thisbase[0] = 0;
     funcstart[0] = pc;
-    current_instance = this;
     ccInstance *codeInst = runningInst;
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
 	ScriptOperation codeOp;
@@ -659,7 +656,6 @@ int ccInstance::Run(int32_t curpc)
               returnValue = registers[SREG_AX].IValue;
               return 0;
           }
-          current_instance = this;
           POP_CALL_STACK;
           continue; // continue so that the PC doesn't get overwritten
           }
@@ -1123,7 +1119,6 @@ int ccInstance::Run(int32_t curpc)
           }
 
           registers[SREG_AX] = return_value;
-          current_instance = this;
           next_call_needs_object = 0;
           num_args_to_func = -1;
           break;

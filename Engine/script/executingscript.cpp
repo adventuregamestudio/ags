@@ -11,11 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h>
 #include "executingscript.h"
 #include "debug/debug_log.h"
-#include "debug/debugger.h"
+#include "script/script.h"
 
 QueuedScript::QueuedScript()
     : Instance(kScInstGame)

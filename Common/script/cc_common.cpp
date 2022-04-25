@@ -41,19 +41,29 @@ extern std::pair<String, String> cc_error_at_line(const char *error_msg);
 // Returns script error message without location or callstack
 extern String cc_error_without_line(const char *error_msg);
 
-int ccError = 0;
-int ccErrorLine = 0;
-String ccErrorString;
-String ccErrorCallStack;
-bool ccErrorIsUserError = false;
-const char *ccCurScriptName = "";
+ScriptError ccError;
+
+void cc_clear_error()
+{
+    ccError = ScriptError();
+}
+
+bool cc_has_error()
+{
+    return ccError.HasError;
+}
+
+const ScriptError &cc_get_error()
+{
+    return ccError;
+}
 
 void cc_error(const char *descr, ...)
 {
-    ccErrorIsUserError = false;
+    ccError.IsUserError = false;
     if (descr[0] == '!')
     {
-        ccErrorIsUserError = true;
+        ccError.IsUserError = true;
         descr++;
     }
 
@@ -66,15 +76,15 @@ void cc_error(const char *descr, ...)
     {
         // [IKM] Implementation is project-specific
         std::pair<String, String> errinfo = cc_error_at_line(displbuf.GetCStr());
-        ccErrorString = errinfo.first;
-        ccErrorCallStack = errinfo.second;
+        ccError.ErrorString = errinfo.first;
+        ccError.CallStack = errinfo.second;
     }
     else
     {
-        ccErrorString = cc_error_without_line(displbuf.GetCStr());
-        ccErrorCallStack = "";
+        ccError.ErrorString = cc_error_without_line(displbuf.GetCStr());
+        ccError.CallStack = "";
     }
 
-    ccError = 1;
-    ccErrorLine = currentline;
+    ccError.HasError = 1;
+    ccError.Line = currentline;
 }

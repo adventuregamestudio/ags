@@ -35,14 +35,19 @@ extern int ccGetOption(int);
 
 // error reporting
 
-extern void cc_error(const char *, ...);
+struct ScriptError
+{
+    bool HasError = false; // set if error occurs
+    bool IsUserError = false; // marks script use errors
+    AGS::Common::String ErrorString; // description of the error
+    int Line = 0;  // line number of the error
+    AGS::Common::String CallStack; // callstack where error happened
+};
 
-extern int ccError;             // set to non-zero if error occurs
-extern int ccErrorLine;         // line number of the error
-extern AGS::Common::String ccErrorString; // description of the error
-extern AGS::Common::String ccErrorCallStack; // callstack where error happened
-extern bool ccErrorIsUserError;
-extern const char *ccCurScriptName; // name of currently compiling script
+void cc_clear_error();
+bool cc_has_error();
+const ScriptError &cc_get_error();
+void cc_error(const char *, ...);
 
 extern int currentline;
 

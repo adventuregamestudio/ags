@@ -125,4 +125,6 @@
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe
 
+extern const char *ccCurScriptName; // name of currently compiling script
+
 #endif // __CC_INTERNAL_H

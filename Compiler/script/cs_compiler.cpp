@@ -11,6 +11,7 @@
 #include "script/cs_parser.h"
 
 const char *ccSoftwareVersion = "1.0";
+const char *ccCurScriptName = "";
 
 std::vector<const char*> defaultheaders;
 std::vector<const char*> defaultHeaderNames;
@@ -42,8 +43,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     if (scriptName == NULL)
         scriptName = "Main script";
 
-    ccError = 0;
-    ccErrorLine = 0;
+    cc_clear_error();
 
     for (size_t t=0;t<defaultheaders.size();t++) {
         if (defaultHeaderNames[t])
@@ -53,16 +53,16 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
         cctemp->start_new_section(ccCurScriptName);
         cc_compile(defaultheaders[t],cctemp);
-        if (ccError) break;
+        if (cc_has_error()) break;
     }
 
-    if (!ccError) {
+    if (!cc_has_error()) {
         ccCurScriptName = scriptName;
         cctemp->start_new_section(ccCurScriptName);
         cc_compile(texo,cctemp);
     }
 
-    if (ccError) {
+    if (cc_has_error()) {
         cctemp->shutdown();
         delete cctemp;
         return NULL;

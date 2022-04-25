@@ -75,9 +75,10 @@ namespace AGS
         if (exceptionToThrow == nullptr)
         {
 			    scrpt = ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr());
- 			    if ((scrpt == NULL) || (ccError != 0))
+ 			    if ((scrpt == NULL) || (cc_has_error()))
 			    {
-				    exceptionToThrow = gcnew CompileError(tcv->Convert(ccErrorString), TextHelper::ConvertASCII(ccCurScriptName), ccErrorLine);
+                    auto &error = cc_get_error();
+                    exceptionToThrow = gcnew CompileError(tcv->Convert(error.ErrorString), TextHelper::ConvertASCII(ccCurScriptName), error.Line);
 			    }
         }
 

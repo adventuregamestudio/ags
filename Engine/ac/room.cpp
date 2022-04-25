@@ -451,7 +451,7 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
         if (!script)
             return new Error(String::FromFormat(
                 "Failed to load a script module: %s", filename.GetCStr()),
-                ccErrorString);
+                cc_get_error().ErrorString);
         room->CompiledScript = script;
     }
     return HError::None();
@@ -1026,22 +1026,22 @@ void check_new_room() {
 }
 
 void compile_room_script() {
-    ccError = 0;
+    cc_clear_error();
 
     roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
-    if ((ccError!=0) || (roominst==nullptr)) {
-        quitprintf("Unable to create local script:\n%s", ccErrorString.GetCStr());
+    if ((cc_has_error()) || (roominst==nullptr)) {
+        quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
 
     if (!roominst->ResolveScriptImports(roominst->instanceof.get()))
-        quitprintf("Unable to resolve imports in room script:\n%s", ccErrorString.GetCStr());
+        quitprintf("Unable to resolve imports in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
     if (!roominst->ResolveImportFixups(roominst->instanceof.get()))
-        quitprintf("Unable to resolve import fixups in room script:\n%s", ccErrorString.GetCStr());
+        quitprintf("Unable to resolve import fixups in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
     roominstFork = roominst->Fork();
     if (roominstFork == nullptr)
-        quitprintf("Unable to create forked room instance:\n%s", ccErrorString.GetCStr());
+        quitprintf("Unable to create forked room instance:\n%s", cc_get_error().ErrorString.GetCStr());
 
     repExecAlways.roomHasFunction = true;
     lateRepExecAlways.roomHasFunction = true;

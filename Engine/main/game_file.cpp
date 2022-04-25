@@ -127,7 +127,7 @@ static inline HError MakeScriptLoadError(const char *name)
 {
     return new Error(String::FromFormat(
         "Failed to load a script module: %s", name),
-        ccErrorString);
+        cc_get_error().ErrorString);
 }
 
 // Looks up for the game scripts available as separate assets.

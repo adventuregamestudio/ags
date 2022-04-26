@@ -23,8 +23,7 @@ LDFLAGS  += -rdynamic -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 CFLAGS   += -Werror=implicit-function-declaration
 
 COMMON_OBJS = \
-	../Common/script/cc_error.cpp \
-	../Common/script/cc_options.cpp \
+	../Common/script/cc_common.cpp \
 	../Common/script/cc_script.cpp \
 	../Common/util/bufferedstream.cpp \
 	../Common/util/cmdlineopts.cpp \

@@ -110,6 +110,7 @@ target_sources(common
     gui/guitextbox.h
     script/cc_common.cpp
     script/cc_common.h
+    script/cc_internal.h
     script/cc_script.cpp
     script/cc_script.h
     util/aasset_stream.cpp

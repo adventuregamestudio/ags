@@ -3968,6 +3968,12 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
 }
 
 
+// Dummy placeholders to avoid unresolved functions in Common
+AGSString cc_get_callstack(int max_lines)
+{
+    return "";
+}
+
 void quit(const char * message) 
 {
 	ThrowManagedException((const char*)message);

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdio.h>
 #include <string.h>
 #include "script/script.h"
@@ -621,7 +620,7 @@ void quit_with_script_error(const char *functionName)
         quitprintf("!Error running function '%s':\n%s", functionName, error.ErrorString.GetCStr());
     else
         quitprintf("Error running function '%s':\n%s\n\n%s", functionName,
-            error.ErrorString.GetCStr(), get_cur_script(5).GetCStr());
+            error.ErrorString.GetCStr(), error.CallStack.GetCStr());
 }
 
 int get_nivalue (InteractionCommandList *nic, int idx, int parm) {

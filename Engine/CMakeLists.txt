@@ -437,7 +437,6 @@ target_sources(engine
     script/script.h
     script/script_api.cpp
     script/script_api.h
-    script/script_engine.cpp
     script/script_runtime.cpp
     script/script_runtime.h
     script/systemimports.cpp

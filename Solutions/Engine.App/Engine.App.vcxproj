@@ -445,7 +445,6 @@
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
     <ClCompile Include="..\..\Engine\script\script.cpp" />
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
-    <ClCompile Include="..\..\Engine\script\script_engine.cpp" />
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />

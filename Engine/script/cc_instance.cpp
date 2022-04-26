@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include <cstdio>
-#include <stack>
+#include <deque>
 #include <string.h>
 #include "ac/common.h"
 #include "ac/dynobj/cc_dynamicarray.h"
@@ -163,12 +163,28 @@ const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fi
 // In AGS currently only one thread is running, others are waiting in the queue.
 // An example situation is repeatedly_execute_always callback running while
 // another instance is waiting at the blocking action or Wait().
-std::stack<ccInstance*> InstThreads;
+std::deque<ccInstance*> InstThreads;
 // [IKM] 2012-10-21:
 // NOTE: This is temporary solution (*sigh*, one of many) which allows certain
 // exported functions return value as a RuntimeScriptValue object;
 // Of 2012-12-20: now used only for plugin exports
 RuntimeScriptValue GlobalReturnValue;
+
+
+String cc_get_callstack(int max_lines)
+{
+    String callstack;
+    for (auto sci = InstThreads.crbegin(); sci != InstThreads.crend(); ++sci)
+    {
+        if (callstack.IsEmpty())
+            callstack.Append("in the active script:\n");
+        else
+            callstack.Append("in the waiting script:\n");
+        callstack.Append((*sci)->GetCallStack(max_lines));
+    }
+    return callstack;
+}
+
 
 // Function call stack is used to temporarily store
 // values before passing them to script function
@@ -199,7 +215,7 @@ struct FunctionCallStack
 
 ccInstance *ccInstance::GetCurrentInstance()
 {
-    return InstThreads.size() > 0 ? InstThreads.top() : nullptr;
+    return InstThreads.size() > 0 ? InstThreads.back() : nullptr;
 }
 
 ccInstance *ccInstance::CreateFromScript(PScript scri)
@@ -364,14 +380,14 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     }
     PushValueToStack(RuntimeScriptValue().SetInt32(0)); // return address on stack
 
-    InstThreads.push(this); // push instance thread
+    InstThreads.push_back(this); // push instance thread
     runningInst = this;
     int reterr = Run(startat);
     // Cleanup before returning, even if error
     ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
     pc = 0;
-    InstThreads.pop(); // pop instance thread
+    InstThreads.pop_back(); // pop instance thread
     if (reterr != 0)
         return reterr;
 
@@ -1298,7 +1314,7 @@ int ccInstance::Run(int32_t curpc)
     }
 }
 
-String ccInstance::GetCallStack(int maxLines)
+String ccInstance::GetCallStack(int maxLines) const
 {
     String buffer = String::FromFormat("in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
 
@@ -1314,14 +1330,14 @@ String ccInstance::GetCallStack(int maxLines)
     return buffer;
 }
 
-void ccInstance::GetScriptPosition(ScriptPosition &script_pos)
+void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 {
     script_pos.Section = runningInst->instanceof->GetSectionName(pc);
     script_pos.Line    = line_number;
 }
 
 // get a pointer to a variable or function exported by the script
-RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname)
+RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname) const
 {
     int k;
     char altName[200];
@@ -1338,7 +1354,7 @@ RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname)
     return rval_null;
 }
 
-void ccInstance::DumpInstruction(const ScriptOperation &op)
+void ccInstance::DumpInstruction(const ScriptOperation &op) const
 {
     // line_num local var should be shared between all the instances
     static int line_num = 0;

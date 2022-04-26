@@ -603,9 +603,6 @@
     <ClCompile Include="..\..\Engine\script\script_api.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\script\script_engine.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>

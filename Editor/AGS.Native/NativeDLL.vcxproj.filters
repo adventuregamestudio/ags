@@ -64,9 +64,6 @@
     <ClCompile Include="NativeMethods.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Native\script_agsnative.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ScriptCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

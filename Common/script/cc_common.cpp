@@ -36,10 +36,8 @@ int ccGetOption(int optbit)
     return 0;
 }
 
-// Returns full script error message and callstack (if possible)
-extern std::pair<String, String> cc_error_at_line(const char *error_msg);
-// Returns script error message without location or callstack
-extern String cc_error_without_line(const char *error_msg);
+// Returns current running script callstack as a human-readable text
+extern String cc_get_callstack(int max_lines = INT_MAX);
 
 ScriptError ccError;
 
@@ -72,19 +70,12 @@ void cc_error(const char *descr, ...)
     String displbuf = String::FromFormatV(descr, ap);
     va_end(ap);
 
-    if (currentline > 0)
-    {
-        // [IKM] Implementation is project-specific
-        std::pair<String, String> errinfo = cc_error_at_line(displbuf.GetCStr());
-        ccError.ErrorString = errinfo.first;
-        ccError.CallStack = errinfo.second;
-    }
+    String callstack = cc_get_callstack();
+    if ((currentline > 0) && callstack.IsEmpty())
+        ccError.ErrorString = String::FromFormat("Error (line %d): %s", currentline, displbuf.GetCStr());
     else
-    {
-        ccError.ErrorString = cc_error_without_line(displbuf.GetCStr());
-        ccError.CallStack = "";
-    }
-
+        ccError.ErrorString = String::FromFormat("Error: %s", displbuf.GetCStr());
+    ccError.CallStack = callstack;
     ccError.HasError = 1;
     ccError.Line = currentline;
 }

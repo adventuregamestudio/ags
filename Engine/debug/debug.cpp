@@ -390,17 +390,6 @@ void debug_script_log(const char *msg, ...)
 }
 
 
-String get_cur_script(int numberOfLinesOfCallStack)
-{
-    String callstack;
-    ccInstance *sci = ccInstance::GetCurrentInstance();
-    if (sci)
-        callstack = sci->GetCallStack(numberOfLinesOfCallStack);
-    if (callstack.IsEmpty())
-        callstack = cc_get_error().CallStack;
-    return callstack;
-}
-
 struct Breakpoint
 {
     char scriptName[80];
@@ -412,7 +401,7 @@ int numBreakpoints = 0;
 
 bool send_message_to_editor(const char *msg, const char *errorMsg) 
 {
-    String callStack = get_cur_script(25);
+    String callStack = cc_get_error().CallStack;
     if (callStack.IsEmpty())
         return false;
 

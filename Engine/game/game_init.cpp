@@ -51,7 +51,6 @@
 using namespace Common;
 using namespace Engine;
 
-extern CharacterCache *charcache;
 extern std::vector<ViewStruct> views;
 
 extern CCGUIObject ccDynamicGUIObject;
@@ -442,7 +441,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 3. Allocate and init game objects
     //
-    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     charextra.resize(game.numcharacters);
     mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
     init_game_drawdata();

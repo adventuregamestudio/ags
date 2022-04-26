@@ -48,7 +48,6 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern RoomStruct thisroom;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
@@ -342,7 +341,7 @@ void Object_SetManualScaling(ScriptObject *objj, bool on)
     if (on) objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
     else objs[objj->id].flags |= OBJF_USEROOMSCALING;
     // clear the cache
-    objcache[objj->id].ywas = -9999;
+    mark_object_changed(objj->id);
 }
 
 void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {

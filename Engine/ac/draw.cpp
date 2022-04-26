@@ -81,8 +81,6 @@ extern int our_eip;
 extern int in_new_room;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern int displayed_room;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
@@ -162,6 +160,11 @@ RoomAreaMask debugRoomMask = kRoomAreaNone;
 ObjTexture debugRoomMaskObj;
 int debugMoveListChar = -1;
 ObjTexture debugMoveListObj;
+
+// Cached character and object states, used to determine
+// whether these require texture update
+std::vector<CharacterCache> charcache;
+ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 bool current_background_is_dirty = false;
 
@@ -534,6 +537,8 @@ void dispose_draw_method()
 
 void init_game_drawdata()
 {
+    // character and object caches
+    charcache.resize(game.numcharacters);
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
         objcache[i].image = nullptr;
 
@@ -556,6 +561,7 @@ void dispose_game_drawdata()
 {
     clear_drawobj_cache();
 
+    charcache.clear();
     actsps.clear();
     walkbehindobj.clear();
 
@@ -578,6 +584,14 @@ void dispose_room_drawdata()
 
 void clear_drawobj_cache()
 {
+    // clear the character cache
+    for (auto &cc : charcache)
+    {
+        if (cc.inUse)
+            delete cc.image;
+        cc.image = nullptr;
+        cc.inUse = 0;
+    }
     // clear the object cache
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
@@ -756,6 +770,11 @@ void on_roomcamera_changed(Camera *cam)
     }
     // TODO: only invalidate what this particular camera sees
     invalidate_screen();
+}
+
+void mark_object_changed(int objid)
+{
+    objcache[objid].ywas = -9999;
 }
 
 void mark_screen_dirty()
@@ -1754,7 +1773,6 @@ void prepare_characters_for_drawing() {
             usingCachedImage = true;
         }
         else if (charcache[aa].inUse) {
-            //destroy_bitmap (charcache[aa].image);
             charcache[aa].inUse = 0;
         }
 

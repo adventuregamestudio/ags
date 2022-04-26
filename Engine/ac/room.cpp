@@ -82,7 +82,6 @@ extern int displayed_room;
 extern RoomObject*objs;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
-extern CharacterCache *charcache;
 extern int done_es_error;
 extern int our_eip;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
@@ -305,14 +304,8 @@ void unload_old_room() {
     for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_GLOBAL_VARIABLES; ++i)
         croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
 
-    // wipe the character cache when we change rooms
+    // ensure that any half-moves (eg. with scaled movement) are stopped
     for (ff = 0; ff < game.numcharacters; ff++) {
-        if (charcache[ff].inUse) {
-            delete charcache[ff].image;
-            charcache[ff].image = nullptr;
-            charcache[ff].inUse = 0;
-        }
-        // ensure that any half-moves (eg. with scaled movement) are stopped
         charextra[ff].xwas = INVALID_X;
     }
 

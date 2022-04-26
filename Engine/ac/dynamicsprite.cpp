@@ -42,8 +42,6 @@ extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern RoomStatus*croom;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 extern RGB palette[256];
 extern AGS::Engine::IGraphicsDriver *gfxDriver;

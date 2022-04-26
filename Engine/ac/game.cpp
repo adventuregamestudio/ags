@@ -82,6 +82,8 @@ extern int obj_lowest_yp, char_lowest_yp;
 
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
+extern std::vector<CharacterCache> charcache;
+extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 //=============================================================================
 GameState play;
@@ -136,10 +138,6 @@ ScriptInvItem scrInv[MAX_INV];
 ScriptDialog *scrDialog;
 
 std::vector<ViewStruct> views;
-
-CharacterCache *charcache = nullptr;
-ObjectCache objcache[MAX_ROOM_OBJECTS];
-
 std::vector<CharacterExtras> charextra;
 std::vector<MoveList> mls;
 
@@ -508,9 +506,6 @@ void unload_game_file()
     numScriptModules = 0;
 
     views.clear();
-
-    free(charcache);
-    charcache = nullptr;
 
     if (splipsync != nullptr)
     {

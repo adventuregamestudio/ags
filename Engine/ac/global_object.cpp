@@ -45,7 +45,6 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
@@ -208,8 +207,8 @@ void SetObjectBaseline (int obn, int basel) {
     if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
     // baseline has changed, invalidate the cache
     if (objs[obn].baseline != basel) {
-        objcache[obn].ywas = -9999;
         objs[obn].baseline = basel;
+        mark_object_changed(obn);
     }
 }
 
@@ -421,8 +420,7 @@ void SetObjectIgnoreWalkbehinds (int cha, int clik) {
     objs[cha].flags&=~OBJF_NOWALKBEHINDS;
     if (clik)
         objs[cha].flags|=OBJF_NOWALKBEHINDS;
-    // clear the cache
-    objcache[cha].ywas = -9999;
+    mark_object_changed(cha);
 }
 
 void RunObjectInteraction (int aa, int mood) {

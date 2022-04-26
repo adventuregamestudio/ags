@@ -29,7 +29,7 @@
 
 #include "route_finder_jps.inl"
 
-extern MoveList *mls;
+extern std::vector<MoveList> mls;
 
 using AGS::Common::Bitmap;
 

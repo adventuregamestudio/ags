@@ -96,7 +96,6 @@ extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
-extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 
 ResourcePaths ResPaths;

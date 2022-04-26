@@ -65,7 +65,6 @@ using namespace AGS::Common;
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;
 extern RoomStruct thisroom;
-extern MoveList *mls;
 extern std::vector<ViewStruct> views;
 extern RoomObject*objs;
 extern ScriptInvItem scrInv[MAX_INV];
@@ -81,7 +80,6 @@ extern CCInventory ccDynamicInv;
 //--------------------------------
 
 
-CharacterExtras *charextra;
 CharacterInfo*playerchar;
 int32_t _sc_PlayerCharPtr = 0;
 int char_lowest_yp;

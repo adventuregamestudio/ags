@@ -37,7 +37,6 @@ extern GameSetupStruct game;
 extern int displayed_room;
 extern int face_talking;
 extern std::vector<ViewStruct> views;
-extern CharacterExtras *charextra;
 extern IGraphicsDriver *gfxDriver;
 
 

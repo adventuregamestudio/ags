@@ -31,7 +31,7 @@
 
 extern void update_polled_stuff_if_runtime();
 
-extern MoveList *mls;
+extern std::vector<MoveList> mls;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -752,7 +752,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
   assert(onscreen != nullptr);
-  assert(mls != nullptr);
+  assert(mls.size() > movlst);
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
 

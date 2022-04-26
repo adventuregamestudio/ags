@@ -82,7 +82,6 @@ extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
 extern RoomStatus*croom;
-extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 extern int cur_mode,cur_cursor;
 extern char check_dynamic_sprites_at_exit;

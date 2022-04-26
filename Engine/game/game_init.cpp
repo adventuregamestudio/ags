@@ -442,9 +442,9 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 3. Allocate and init game objects
     //
-    charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
-    mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
+    charextra.resize(game.numcharacters);
+    mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
     init_game_drawdata();
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);

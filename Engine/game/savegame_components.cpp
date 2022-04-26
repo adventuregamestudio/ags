@@ -61,7 +61,6 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
 extern Bitmap *raw_saved_screen;
-extern MoveList *mls;
 
 
 namespace AGS

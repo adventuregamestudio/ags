@@ -83,7 +83,6 @@ extern RoomObject*objs;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern CharacterCache *charcache;
-extern CharacterExtras *charextra;
 extern int done_es_error;
 extern int our_eip;
 extern Bitmap *walkareabackup, *walkable_areas_temp;

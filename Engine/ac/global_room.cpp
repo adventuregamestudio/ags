@@ -41,7 +41,6 @@ extern int displayed_room;
 extern int in_enters_screen;
 extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
-extern MoveList *mls;
 extern int gs_to_newroom;
 extern bool new_room_placeonwalkable;
 extern RoomStruct thisroom;

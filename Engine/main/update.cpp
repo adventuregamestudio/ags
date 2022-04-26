@@ -43,7 +43,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern MoveList *mls;
 extern RoomStatus*croom;
 extern GameSetupStruct game;
 extern GameState play;
@@ -52,7 +51,6 @@ extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern int our_eip;
 extern CharacterInfo*playerchar;
-extern CharacterExtras *charextra;
 extern CharacterInfo *facetalkchar;
 extern int face_talking,facetalkview,facetalkwait,facetalkframe;
 extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;

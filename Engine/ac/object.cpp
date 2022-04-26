@@ -49,7 +49,6 @@ extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern RoomStruct thisroom;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
-extern MoveList *mls;
 extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;

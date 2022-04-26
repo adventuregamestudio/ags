@@ -140,7 +140,8 @@ std::vector<ViewStruct> views;
 CharacterCache *charcache = nullptr;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
 
-MoveList *mls = nullptr;
+std::vector<CharacterExtras> charextra;
+std::vector<MoveList> mls;
 
 //=============================================================================
 
@@ -462,10 +463,8 @@ void unload_game_file()
     play.FreeViewportsAndCameras();
 
     characterScriptObjNames.clear();
-    free(charextra);
-    charextra = nullptr;
-    free(mls);
-    mls = nullptr;
+    charextra.clear();
+    mls.clear();
 
     dispose_game_drawdata();
 

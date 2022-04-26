@@ -24,7 +24,6 @@
 
 extern GameSetupStruct game;
 extern GameState play;
-extern CharacterExtras *charextra;
 
 
 namespace AGS

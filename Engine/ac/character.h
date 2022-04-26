@@ -211,8 +211,6 @@ Rect GetCharacterRoomBBox(int charid, bool use_frame_0 = false);
 PViewport FindNearestViewport(int charid);
 
 extern CharacterInfo*playerchar;
-extern CharacterExtras *charextra;
-extern MoveList *mls;
 extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down

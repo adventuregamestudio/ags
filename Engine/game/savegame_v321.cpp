@@ -52,8 +52,6 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern GameState play;
 extern std::vector<ViewStruct> views;
-extern CharacterExtras *charextra;
-extern MoveList *mls;
 extern RGB palette[256];
 extern DialogTopic *dialog;
 extern std::vector<AnimatingGUIButton> animbuts;

@@ -84,7 +84,6 @@ extern std::vector<ViewStruct> views;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern int displayed_room;
-extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
@@ -93,7 +92,6 @@ extern int lastmx,lastmy;
 extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
-extern MoveList *mls;
 
 RGB palette[256];
 

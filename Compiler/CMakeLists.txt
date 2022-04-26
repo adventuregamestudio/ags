@@ -10,8 +10,7 @@ set_target_properties(compiler PROPERTIES
 target_include_directories(compiler PUBLIC .)
 target_include_directories(compiler PUBLIC ../Common)
 set(COMPILER_COMMON_SOURCES
-        ../Common/script/cc_error.cpp
-        ../Common/script/cc_options.cpp
+        ../Common/script/cc_common.cpp
         ../Common/script/cc_script.cpp
         ../Common/util/bufferedstream.cpp
         ../Common/util/cmdlineopts.cpp

@@ -423,7 +423,6 @@ target_sources(engine
     plugin/pluginobjectreader.cpp
     plugin/pluginobjectreader.h
     resource/resource.h
-    script/cc_error_engine.cpp
     script/cc_instance.cpp
     script/cc_instance.h
     script/executingscript.cpp

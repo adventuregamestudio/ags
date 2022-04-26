@@ -112,7 +112,6 @@ target_sources(common
     script/cc_common.h
     script/cc_script.cpp
     script/cc_script.h
-    script/script_common.h
     util/aasset_stream.cpp
     util/aasset_stream.h
     util/android_file.cpp

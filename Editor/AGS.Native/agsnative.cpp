@@ -3968,7 +3968,17 @@ void save_room_file(RoomStruct &rs, const AGSString &path)
 }
 
 
-// Dummy placeholders to avoid unresolved functions in Common
+// Reimplementation of project-dependent functions from Common
+#include "script/cc_common.h"
+
+AGSString cc_format_error(const AGSString &message)
+{
+    if (currentline > 0)
+        return AGSString::FromFormat("Error (line %d): %s", currentline, message.GetCStr());
+    else
+        return AGSString::FromFormat("Error (line unknown): %s", message.GetCStr());
+}
+
 AGSString cc_get_callstack(int max_lines)
 {
     return "";

@@ -935,3 +935,11 @@ bool get_script_position(ScriptPosition &script_pos)
     }
     return false;
 }
+
+String cc_format_error(const String &message)
+{
+    if (currentline > 0)
+        return String::FromFormat("Error (line %d): %s", currentline, message.GetCStr());
+    else
+        return String::FromFormat("Error (line unknown): %s", message.GetCStr());
+}

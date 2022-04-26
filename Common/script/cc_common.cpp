@@ -70,12 +70,10 @@ void cc_error(const char *descr, ...)
     String displbuf = String::FromFormatV(descr, ap);
     va_end(ap);
 
-    String callstack = cc_get_callstack();
-    if ((currentline > 0) && callstack.IsEmpty())
-        ccError.ErrorString = String::FromFormat("Error (line %d): %s", currentline, displbuf.GetCStr());
-    else
-        ccError.ErrorString = String::FromFormat("Error: %s", displbuf.GetCStr());
-    ccError.CallStack = callstack;
+    // TODO: because this global ccError is a global shared variable,
+    // we have to use project-dependent function to format the final message
+    ccError.ErrorString = cc_format_error(displbuf);
+    ccError.CallStack = cc_get_callstack();
     ccError.HasError = 1;
     ccError.Line = currentline;
 }

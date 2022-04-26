@@ -2624,6 +2624,8 @@ builtin managed struct Character {
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
 #ifdef SCRIPT_API_v360
+  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this character.
+  import attribute int  AnimationVolume;
   /// Gets/sets the character's idle animation delay.
   import attribute int  IdleAnimationDelay;
 #endif

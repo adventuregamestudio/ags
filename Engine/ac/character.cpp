@@ -1147,6 +1147,15 @@ void Character_SetAnimationSpeed(CharacterInfo *chaa, int newval) {
         chaa->idle_anim_speed = chaa->animspeed + 5;
 }
 
+int Character_GetAnimationVolume(CharacterInfo *chaa) {
+    return charextra[chaa->index_id].anim_volume;
+}
+
+void Character_SetAnimationVolume(CharacterInfo *chaa, int newval) {
+
+    charextra[chaa->index_id].anim_volume = std::min(newval, 100); // negative means default
+}
+
 int Character_GetBaseline(CharacterInfo *chaa) {
 
     if (chaa->baseline < 1)
@@ -2183,6 +2192,11 @@ void CheckViewFrameForCharacter(CharacterInfo *chi)
     if (charextra[chi->index_id].cur_anim_volume >= 0)
     {
         frame_vol = charextra[chi->index_id].cur_anim_volume;
+    }
+    // Next check the character's animation volume setting
+    else if (charextra[chi->index_id].anim_volume >= 0)
+    {
+        frame_vol = charextra[chi->index_id].anim_volume;
     }
     // Adjust the sound volume using the character's zoom level
     // NOTE: historically scales only in 0-100 range :/
@@ -3376,6 +3390,16 @@ RuntimeScriptValue Sc_Character_SetAnimationSpeed(void *self, const RuntimeScrip
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAnimationSpeed);
 }
 
+RuntimeScriptValue Sc_Character_GetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetAnimationVolume);
+}
+
+RuntimeScriptValue Sc_Character_SetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAnimationVolume);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3929,6 +3953,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
 	ccAddExternalObjectFunction("Character::get_Animating",             Sc_Character_GetAnimating);
 	ccAddExternalObjectFunction("Character::get_AnimationSpeed",        Sc_Character_GetAnimationSpeed);
 	ccAddExternalObjectFunction("Character::set_AnimationSpeed",        Sc_Character_SetAnimationSpeed);
+    ccAddExternalObjectFunction("Character::get_AnimationVolume",       Sc_Character_GetAnimationVolume);
+    ccAddExternalObjectFunction("Character::set_AnimationVolume",       Sc_Character_SetAnimationVolume);
 	ccAddExternalObjectFunction("Character::get_Baseline",              Sc_Character_GetBaseline);
 	ccAddExternalObjectFunction("Character::set_Baseline",              Sc_Character_SetBaseline);
 	ccAddExternalObjectFunction("Character::get_BlinkInterval",         Sc_Character_GetBlinkInterval);

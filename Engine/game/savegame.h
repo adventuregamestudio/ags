@@ -91,8 +91,6 @@ String GetSavegameErrorText(SavegameErrorType err);
 
 typedef TypedCodeError<SavegameErrorType, GetSavegameErrorText> SavegameError;
 typedef ErrorHandle<SavegameError> HSaveError;
-typedef std::unique_ptr<Stream> UStream;
-typedef std::unique_ptr<Bitmap> UBitmap;
 
 // SavegameSource defines a successfully opened savegame stream
 struct SavegameSource
@@ -105,7 +103,7 @@ struct SavegameSource
     // Savegame format version
     SavegameVersion     Version;
     // A pointer to the opened stream
-    UStream             InputStream;
+    std::unique_ptr<Stream> InputStream;
 
     SavegameSource();
 };
@@ -146,7 +144,7 @@ struct SavegameDescription
     int                 ColorDepth;
     
     String              UserText;
-    UBitmap             UserImage;
+    std::unique_ptr<Bitmap> UserImage;
 
     SavegameDescription();
 };

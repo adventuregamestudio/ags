@@ -84,7 +84,15 @@ namespace AGS.Editor.Components
                     if ((evArgs.ForceRebuild) ||
 						(Utilities.DoesFileNeedRecompile(translation.FileName, compiledPath)))
                     {
-                        CompileTranslation(translation, evArgs.Errors);
+                        try
+                        {
+                            CompileTranslation(translation, evArgs.Errors);
+                        }
+                        catch (Exception e)
+                        {
+                            evArgs.Errors.Add(new CompileError(string.Format("Translation '{0}' compiled with errors: \n{1}",
+                                translation.FileName, e.Message)));
+                        }
                     }
                 }
             }
@@ -116,11 +124,10 @@ namespace AGS.Editor.Components
         {
             translation.LoadData();
 
-            string compiledFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
-                Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
+            string tempFile = Path.GetTempFileName();
             Encoding textEncoding = translation.Encoding;
 
-            using (BinaryWriter bw = new BinaryWriter(new FileStream(compiledFile, FileMode.Create, FileAccess.Write)))
+            using (BinaryWriter bw = new BinaryWriter(new FileStream(tempFile, FileMode.Create, FileAccess.Write)))
             {
                 bw.Write(Encoding.ASCII.GetBytes(COMPILED_TRANSLATION_FILE_SIGNATURE));
                 bw.Write(TRANSLATION_BLOCK_GAME_ID);
@@ -168,6 +175,11 @@ namespace AGS.Editor.Components
                 bw.Write((int)mainBlockSize);
                 bw.Close();
             }
+
+            string destFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
+            Utilities.TryDeleteFile(destFile);
+            File.Move(tempFile, destFile);
         }
 
         private object UpdateTranslationsProcess(IWorkProgress progress, object translationList)
@@ -352,10 +364,18 @@ namespace AGS.Editor.Components
             else if (controlID == COMMAND_COMPILE)
             {
                 CompileMessages errors = new CompileMessages();
-                CompileTranslation(_itemRightClicked, errors);
+                try
+                {
+                    CompileTranslation(_itemRightClicked, errors);
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new CompileError(e.Message));
+                }
                 if (errors.Count > 0)
                 {
-                    _guiController.ShowMessage(errors[0].Message, MessageBoxIcon.Warning);
+                    _guiController.ShowMessage(string.Format("Translation compiled with errors: \n\n{0}",
+                        errors[0].Message), MessageBoxIcon.Warning);
                 }
                 else
                 {

@@ -484,7 +484,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
     update_polled_stuff_if_runtime();
-    recache_walk_behinds();
+    walkbehinds_recalc();
     update_polled_stuff_if_runtime();
 
     our_eip=205;
@@ -932,7 +932,6 @@ void on_background_frame_change () {
 
     invalidate_screen();
     mark_current_background_dirty();
-    invalidate_cached_walkbehinds();
 
     // get the new frame's palette
     memcpy (palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(RGB) * 256);

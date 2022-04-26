@@ -451,8 +451,9 @@ int GetTextDisplayTime(const char *text, int canberel) {
     return (textDisplayTimeInMS * fpstimer) / 1000;
 }
 
-bool ShouldAntiAliasText() {
-    return (game.options[OPT_ANTIALIASFONTS] != 0);
+bool ShouldAntiAliasText()
+{
+    return (game.GetColorDepth() >= 24) && (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
 #if defined (AGS_FONTOUTLINE_MOREOPAQUE)

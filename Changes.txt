@@ -71,6 +71,7 @@ Editor:
  - Editor no longer prevents exporting string arguments from Get/SetTextProperty calls to TRS file.
  - Editor now cleanups spritefile on game load, identifying any data not referenced by the project
    and marking it for deletion.
+ - Fixed room editor was suggesting to save the modified room even if no changes were made.
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
@@ -217,6 +218,9 @@ OSX:
 
 Web / Emscripten:
  - Initial port release.
+
+Windows:
+ - Installer will create program links with three-digit version in the name.
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.

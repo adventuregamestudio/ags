@@ -17,6 +17,7 @@
 #include <memory>
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "game/roomstruct.h"
 
@@ -24,7 +25,6 @@ namespace AGS
 {
     namespace Common
     {
-        class Bitmap;
         typedef std::shared_ptr<Common::Bitmap> PBitmap;
     }
     namespace Engine { class IDriverDependantBitmap; }
@@ -32,13 +32,6 @@ namespace AGS
 using namespace AGS; // FIXME later
 
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
-
-struct CachedActSpsData {
-    int xWas, yWas;
-    int baselineWas;
-    int isWalkBehindHere;
-    int valid;
-};
 
 // Converts AGS color index to the actual bitmap color using game's color depth
 int MakeColor(int color_index);
@@ -86,11 +79,11 @@ void invalidate_camera_frame(int index);
 void invalidate_rect(int x1, int y1, int x2, int y2, bool in_room);
 
 void mark_current_background_dirty();
-void invalidate_cached_walkbehinds();
 
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
-Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *bimp, Common::Bitmap *source, bool hasAlpha = false, bool opaque = false);
+void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);
+Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer
@@ -113,6 +106,12 @@ void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, 
 //void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlend_Alpha);
 void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
     Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
+// Generates a transformed sprite, using src image and parameters;
+// * if transformation is necessary - writes into dst and returns dst;
+// * if no transformation is necessary - simply returns src;
+Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, std::unique_ptr<Common::Bitmap> &dst,
+    const Size dst_sz, Common::BitmapFlip flip = Common::kBitmap_NoFlip);
+
 // Render game on screen
 void render_to_screen();
 // Callbacks for the graphics driver
@@ -128,6 +127,9 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 Common::Bitmap *get_cached_character_image(int charid);
 // Returns a cached object image prepared for the render
 Common::Bitmap *get_cached_object_image(int objid);
+// Adds a walk-behind sprite to the list for the given slot
+// (reuses existing texture if possible)
+void add_walkbehind_image(size_t index, Common::Bitmap *bmp, int x, int y);
 // Clears black game borders in legacy letterbox mode (CLNUP?)
 void clear_letterbox_borders();
 

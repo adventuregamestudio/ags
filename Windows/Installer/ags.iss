@@ -131,7 +131,7 @@ Source: "Source\Redist\{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafter
 
 
 [Icons]
-Name: "{group}\AGS Editor"; Filename: "{app}\AGSEditor.exe"; Comment: "What are you waiting for? Fire it up and start making the best game ever!";
+Name: "{group}\AGS Editor {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Comment: "What are you waiting for? Fire it up and start making the best game ever!";
 ; Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
 Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online help, tutorials and reference. THIS IS YOUR BIBLE NOW!"
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."

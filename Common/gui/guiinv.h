@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUIINV_H
 #define __AC_GUIINV_H
 
@@ -28,6 +27,7 @@ class GUIInvWindow : public GUIObject
 public:
     GUIInvWindow();
 
+    bool HasAlphaChannel() const override;
     // This function has distinct implementations in Engine and Editor
     int GetCharacterId() const;
 

@@ -23,8 +23,9 @@ struct ObjectCache {
     Common::Bitmap *image;
     int   sppic;
     short tintredwas, tintgrnwas, tintbluwas, tintamntwas, tintlightwas;
-    short lightlevwas, mirroredWas, zoomWas;
+    short lightlevwas, zoomWas;
     float rotation;
+    bool  mirroredWas;
     // The following are used to determine if the character has moved
     int   xwas, ywas;
 };

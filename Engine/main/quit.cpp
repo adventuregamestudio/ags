@@ -19,6 +19,7 @@
 #include "core/platform.h"
 #include <allegro.h> // find files, allegro_exit
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -172,10 +173,7 @@ void quit_release_data()
     resetRoomStatuses();
     thisroom.Free();
     play.Free();
-
-    /*  _CrtMemState memstart;
-    _CrtMemCheckpoint(&memstart);
-    _CrtMemDumpStatistics( &memstart );*/
+    unload_game_file();
 
     AssetMgr.reset();
 }
@@ -239,32 +237,26 @@ void quit(const char *quitmsg)
     
     our_eip = 9901;
 
-    shutdown_font_renderer();
-    our_eip = 9902;
-
     spriteset.Reset();
-
-    our_eip = 9907;
-
-    close_translation();
 
     our_eip = 9908;
 
     shutdown_pathfinder();
 
+    quit_release_data();
+
     engine_shutdown_gfxmode();
 
     quit_message_on_exit(qmsg, alertis, qreason);
-
-    quit_release_data();
 
     platform->PreBackendExit();
 
     // release backed library
     // WARNING: no Allegro objects should remain in memory after this,
     // if their destruction is called later, program will crash!
-    sys_main_shutdown();
+    shutdown_font_renderer();
     allegro_exit();
+    sys_main_shutdown();
 
     platform->PostBackendExit();
 

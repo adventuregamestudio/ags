@@ -126,13 +126,8 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[sds->slot].Width, game.SpriteInfos[sds->slot].Height, spriteset[sds->slot]->GetColorDepth());
 
-    if (direction == 1)
-        newPic->FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HFlip);
-    else if (direction == 2)
-        newPic->FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_VFlip);
-    else if (direction == 3)
-        newPic->FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HVFlip);
-
+    // AGS script FlipDirection corresponds to internal BitmapFlip
+    newPic->FlipBlt(spriteset[sds->slot], 0, 0, static_cast<BitmapFlip>(direction));
     delete spriteset[sds->slot];
 
     // replace the bitmap in the sprite set

@@ -1643,10 +1643,10 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
 IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
+  assert(width > 0);
+  assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
-  assert(allocatedWidth > 0);
-  assert(allocatedHeight > 0);
   // NOTE: original bitmap object is not modified in this function
   if (color_depth != GetCompatibleBitmapFormat(color_depth))
     throw Ali3DException("CreateDDB: bitmap colour depth not supported");
@@ -1669,6 +1669,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
   tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
   assert(tilesAcross > 0);
   assert(tilesDown > 0);
+  tilesAcross = std::max(1, tilesAcross);
+  tilesDown = std::max(1, tilesDown);
   int tileWidth = width / tilesAcross;
   int lastTileExtraWidth = width % tilesAcross;
   int tileHeight = height / tilesDown;

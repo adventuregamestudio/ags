@@ -39,6 +39,11 @@ GUITextBox::GUITextBox()
     _scEventArgs[0] = "GUIControl *control";
 }
 
+bool GUITextBox::HasAlphaChannel() const
+{
+    return is_font_antialiased(Font);
+}
+
 bool GUITextBox::IsBorderShown() const
 {
     return (TextBoxFlags & kTextBox_ShowBorder) != 0;

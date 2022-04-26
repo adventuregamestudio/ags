@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GUIBUTTON_H
 #define __AC_GUIBUTTON_H
 
@@ -58,10 +57,10 @@ class GUIButton : public GUIObject
 public:
     GUIButton();
 
+    bool HasAlphaChannel() const override;
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
-    bool HasAlphaChannel() const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;

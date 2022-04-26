@@ -14,6 +14,7 @@
 #include "gui/guibutton.h"
 #include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
+#include "font/fonts.h"
 #include "gui/guimain.h" // TODO: extract helper functions
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -77,6 +78,12 @@ GUIButton::GUIButton()
     _scEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
+bool GUIButton::HasAlphaChannel() const
+{
+    return ((CurrentImage > 0) && is_sprite_alpha(CurrentImage)) ||
+        (!_unnamed && is_font_antialiased(Font));
+}
+
 const String &GUIButton::GetText() const
 {
     return _text;
@@ -90,11 +97,6 @@ bool GUIButton::IsImageButton() const
 bool GUIButton::IsClippingImage() const
 {
     return (Flags & kGUICtrl_Clip) != 0;
-}
-
-bool GUIButton::HasAlphaChannel() const
-{
-    return is_sprite_alpha(CurrentImage);
 }
 
 Rect GUIButton::CalcGraphicRect(bool clipped)

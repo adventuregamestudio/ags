@@ -23,12 +23,12 @@ using namespace AGS; // FIXME later
 
 // stores cached info about the character
 struct CharacterCache {
-    Common::Bitmap *image;
-    int sppic;
-    int scaling;
-    int inUse;
-    short tintredwas, tintgrnwas, tintbluwas, tintamntwas;
-    short lightlevwas, tintlightwas;
+    Common::Bitmap *image = nullptr;
+    int sppic = 0;
+    int scaling = 0;
+    int inUse = 0;
+    short tintredwas = 0, tintgrnwas = 0, tintbluwas = 0, tintamntwas = 0;
+    short lightlevwas = 0, tintlightwas = 0;
     // no mirroredWas is required, since the code inverts the sprite number
 };
 

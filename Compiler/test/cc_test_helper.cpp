@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string>
 #include "util/string_compat.h"
-#include "script/cc_error.h"
+#include "util/string.h"
 
 extern int currentline; // in script/script_common
 
@@ -32,17 +31,16 @@ const char* last_seen_cc_error(void)
     return last_cc_error_buf.c_str();
 }
 
+// Reimplementation of project-dependent functions from Common
 // IMPORTANT: the last_seen_cc_error must contain unformatted error message.
 // It is being used in test and compared to hard-coded strings.
-std::pair<AGSString, AGSString> cc_error_at_line(const char* error_msg)
+AGSString cc_format_error(const AGSString &message)
 {
-    // printf("error: %s\n", error_msg);
-    last_cc_error_buf = ags_strdup(error_msg);
-    return std::make_pair(AGSString::FromFormat("Error (line %d): %s", currentline, error_msg), AGSString());
+    last_cc_error_buf = message.GetCStr();
+    return message;
 }
 
-AGSString cc_error_without_line(const char* error_msg)
+AGSString cc_get_callstack(int max_lines)
 {
-    last_cc_error_buf = ags_strdup(error_msg);
-    return AGSString::FromFormat("Error (line unknown): %s", error_msg);
+    return "";
 }

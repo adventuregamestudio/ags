@@ -102,16 +102,16 @@ bool GUIButton::IsClippingImage() const
 Rect GUIButton::CalcGraphicRect(bool clipped)
 {
     if (clipped)
-        return RectWH(X, Y, Width, Height);
+        return RectWH(0, 0, Width, Height);
     // TODO: need to find a way to cache image and text position, or there'll be some repetition
-    Rect rc = RectWH(X, Y, Width, Height);
+    Rect rc = RectWH(0, 0, Width, Height);
     if (IsImageButton())
     {
         if (IsClippingImage())
             return rc;
         // Main button graphic
         if (spriteset[CurrentImage] != nullptr)
-            rc = SumRects(rc, RectWH(X, Y, get_adjusted_spritewidth(CurrentImage), get_adjusted_spriteheight(CurrentImage)));
+            rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(CurrentImage), get_adjusted_spriteheight(CurrentImage)));
         // Optionally merge with the inventory pic
         if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
         {
@@ -124,9 +124,9 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             }
 
             Rect inv_rc = (place == kButtonPlace_InvItemStretch) ?
-                RectWH(X + 3, Y + 3, Width - 6, Height - 6) :
-                RectWH(X + Width / 2 - inv_sz.Width / 2,
-                       Y + Height / 2 - inv_sz.Height / 2,
+                RectWH(0 + 3, 0 + 3, Width - 6, Height - 6) :
+                RectWH(0 + Width / 2 - inv_sz.Width / 2,
+                       0 + Height / 2 - inv_sz.Height / 2,
                        inv_sz.Width, inv_sz.Height);
             rc = SumRects(rc, inv_rc);
         }
@@ -135,7 +135,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (!IsImageButton() || ((_placeholder == kButtonPlace_None) && !_unnamed))
     {
         PrepareTextToDraw();
-        Rect frame = RectWH(X + 2, Y + 2, Width - 4, Height - 4);
+        Rect frame = RectWH(0 + 2, 0 + 2, Width - 4, Height - 4);
         if (IsPushed && IsMouseOver)
         {
             frame.Left++;

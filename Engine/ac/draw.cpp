@@ -112,13 +112,15 @@ struct ObjTexture
     std::unique_ptr<Bitmap> Bmp;
     // Corresponding texture, created by renderer
     IDriverDependantBitmap *Ddb = nullptr;
-    // Sprite's position, may be used in case the texture's pos is different
-    // from the object's logical position (x,y,w,h) for some reason.
+    // Sprite's position
     Point Pos;
+    // Texture's offset, *relative* to the logical sprite's position;
+    // may be used in case the texture's size is different for any reason
+    Point Off;
 
     ObjTexture() = default;
-    ObjTexture(Bitmap *bmp, IDriverDependantBitmap *ddb, int x, int y)
-        : Bmp(bmp), Ddb(ddb), Pos(x, y) {}
+    ObjTexture(Bitmap *bmp, IDriverDependantBitmap *ddb, int x, int y, int xoff = 0, int yoff = 0)
+        : Bmp(bmp), Ddb(ddb), Pos(x, y), Off(xoff, yoff) {}
     ObjTexture(const ObjTexture&) = default;
     ObjTexture(ObjTexture &&o) { *this = std::move(o); }
     ~ObjTexture()
@@ -142,6 +144,7 @@ struct ObjTexture
         Ddb = o.Ddb;
         o.Ddb = nullptr;
         Pos = o.Pos;
+        Off = o.Off;
         return *this;
     }
 };
@@ -2113,10 +2116,10 @@ void draw_gui_controls(GUIMain &gui)
         auto &objbg = guiobjbg[draw_index];
         Rect obj_surf = obj->CalcGraphicRect(GUI::Options.ClipControls);
         recycle_bitmap(objbg.Bmp, game.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
-        obj->Draw(objbg.Bmp.get(), obj->X - obj_surf.Left, obj->Y - obj_surf.Top);
+        obj->Draw(objbg.Bmp.get(), -obj_surf.Left, -obj_surf.Top);
 
         sync_object_texture(objbg, obj->HasAlphaChannel());
-        objbg.Pos = Point(obj_surf.GetLT());
+        objbg.Off = Point(obj_surf.GetLT());
         obj->ClearChanged();
     }
 }
@@ -2315,14 +2318,12 @@ void draw_gui_and_overlays()
                 (obj->Width <= 0 || obj->Height <= 0) ||
                 (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
                 continue;
-            auto *obj_ddb = guiobjbg[draw_index + obj_id].Ddb;
+            const auto &obj_tx = guiobjbg[draw_index + obj_id];
+            auto *obj_ddb = obj_tx.Ddb;
             assert(obj_ddb); // Test for missing texture, might happen if not marked for update
             if (!obj_ddb) continue;
             obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
-            gfxDriver->DrawSprite(
-                guiobjbg[draw_index + obj_id].Pos.X,
-                guiobjbg[draw_index + obj_id].Pos.Y,
-                obj_ddb);
+            gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
         }
         gfxDriver->EndSpriteBatch();
     }

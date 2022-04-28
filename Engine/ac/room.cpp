@@ -65,7 +65,6 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
-#include "util/math.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;

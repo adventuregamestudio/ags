@@ -11,12 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "game/interactions.h"
+#include <algorithm>
 #include <string.h>
 #include "ac/common.h" // quit
-#include "game/interactions.h"
 #include "util/alignedstream.h"
-#include "util/math.h"
 
 using namespace AGS::Common;
 
@@ -251,7 +250,7 @@ Interaction &Interaction::operator =(const Interaction &ni)
 void Interaction::CopyTimesRun(const Interaction &inter)
 {
     assert(Events.size() == inter.Events.size());
-    size_t count = Math::Min(Events.size(), inter.Events.size());
+    size_t count = std::min(Events.size(), inter.Events.size());
     for (size_t i = 0; i < count; ++i)
     {
         Events[i].TimesRun = inter.Events[i].TimesRun;

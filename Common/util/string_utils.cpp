@@ -135,7 +135,7 @@ void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
         return;
     }
 
-    len = Math::Min(len, buf_limit - 1);
+    len = std::min(len, buf_limit - 1);
     if (len > 0)
         in->Read(cstr, len);
     cstr[len] = 0;

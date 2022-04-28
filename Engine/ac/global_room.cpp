@@ -29,7 +29,6 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "script/script.h"
-#include "util/math.h"
 
 using namespace Common;
 

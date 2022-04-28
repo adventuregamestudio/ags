@@ -200,8 +200,8 @@ Size get_game_frame_from_screen_size(const Size &game_size, const Size screen_si
             if (scale > 0)
                 fp_scale = convert_scaling_to_fp(scale);
             else
-                fp_scale = Math::Max<int32_t>(kUnit,
-                    Math::Min((screen_size.Width / game_size.Width) << kShift,
+                fp_scale = std::max<int32_t>(kUnit,
+                    std::min((screen_size.Width / game_size.Width) << kShift,
                               (screen_size.Height / game_size.Height) << kShift));
             Size frame_size = Size(
                 (game_size.Width * fp_scale) >> kShift,
@@ -254,8 +254,8 @@ bool try_init_compatible_mode(const DisplayMode &dm)
     if (dm.IsWindowed())
     {
         // If windowed mode, make the resolution stay in the generally supported limits
-        dm_compat.Width = Math::Min(dm_compat.Width, device_size.Width);
-        dm_compat.Height = Math::Min(dm_compat.Height, device_size.Height);
+        dm_compat.Width = std::min(dm_compat.Width, device_size.Width);
+        dm_compat.Height = std::min(dm_compat.Height, device_size.Height);
     }
     // Fullscreen mode
     else

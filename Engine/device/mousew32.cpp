@@ -231,7 +231,7 @@ float Mouse::GetSpeedUnit()
 
 void Mouse::SetSpeed(float speed)
 {
-    SpeedVal = Math::Max(0.f, speed);
+    SpeedVal = std::max(0.f, speed);
     Speed = SpeedUnit * SpeedVal;
 }
 

@@ -21,7 +21,6 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "main/update.h"
-#include "util/math.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 

@@ -1079,7 +1079,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
 int ctx_data_to_game_size(int val, bool hires_ctx)
 {
     if (hires_ctx && !thisgame.IsLegacyHiRes())
-        return AGSMath::Max(1, (val / HIRES_COORD_MULTIPLIER));
+        return max(1, (val / HIRES_COORD_MULTIPLIER));
     if (!hires_ctx && thisgame.IsLegacyHiRes())
         return val * HIRES_COORD_MULTIPLIER;
     return val;

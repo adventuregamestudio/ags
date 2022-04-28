@@ -386,7 +386,7 @@ void ReadDialogs(DialogTopic *&dialog,
                 break;
             }
 
-            newlen = Math::Min(newlen, sizeof(buffer) - 1);
+            newlen = std::min(newlen, sizeof(buffer) - 1);
             in->Read(buffer, newlen);
             decrypt_text(buffer, newlen);
             buffer[newlen] = 0;

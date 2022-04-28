@@ -496,7 +496,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     RemapLegacySoundNums(game, views, loaded_game_file_version);
 
     // restore these to the ones retrieved from the save game
-    const size_t dynsurf_num = Math::Min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
+    const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
     for (size_t i = 0; i < dynsurf_num; ++i)
     {
         dynamicallyCreatedSurfaces[i] = r_data.DynamicSurfaces[i];
@@ -516,14 +516,14 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // read the global data into the newly created script
     if (r_data.GlobalScript.Data.get())
         memcpy(gameinst->globaldata, r_data.GlobalScript.Data.get(),
-                Math::Min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
+                std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
 
     // restore the script module data
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         if (r_data.ScriptModules[i].Data.get())
             memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(),
-                    Math::Min((size_t)moduleInst[i]->globaldatasize, r_data.ScriptModules[i].Len));
+                    std::min((size_t)moduleInst[i]->globaldatasize, r_data.ScriptModules[i].Len));
     }
 
     setup_player_character(game.playercharacter);

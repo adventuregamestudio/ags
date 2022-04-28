@@ -1446,13 +1446,13 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
   if (textureWidth > tile->width)
   {
-      int texxoff = Math::Min(textureWidth - tile->width - 1, 1);
+      int texxoff = std::min(textureWidth - tile->width - 1, 1);
       tilex = texxoff;
       tileWidth += 1 + texxoff;
   }
   if (textureHeight > tile->height)
   {
-      int texyoff = Math::Min(textureHeight - tile->height - 1, 1);
+      int texyoff = std::min(textureHeight - tile->height - 1, 1);
       tiley = texyoff;
       tileHeight += 1 + texyoff;
   }
@@ -1465,8 +1465,8 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   TextureTile fixedTile;
   fixedTile.x = tile->x;
   fixedTile.y = tile->y;
-  fixedTile.width = Math::Min(tile->width, tileWidth);
-  fixedTile.height = Math::Min(tile->height, tileHeight);
+  fixedTile.width = std::min(tile->width, tileWidth);
+  fixedTile.height = std::min(tile->height, tileHeight);
   if (target->_opaque)
     BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, memPtr, pitch);
   else

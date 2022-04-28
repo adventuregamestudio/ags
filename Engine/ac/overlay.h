@@ -20,6 +20,7 @@
 #include <vector>
 #include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
+#include "util/geometry.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -37,7 +38,7 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 int  find_overlay_of_type(int type);
 void remove_screen_overlay(int type);
 // Calculates overlay position in screen coordinates
-void get_overlay_position(const ScreenOverlay &over, int *x, int *y);
+Point get_overlay_position(const ScreenOverlay &over);
 size_t add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
 size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel = false);
 void remove_screen_overlay_index(size_t over_idx);

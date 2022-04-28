@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/overlay.h"
+#include <algorithm>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/character.h"
@@ -66,10 +67,8 @@ int Overlay_GetX(ScriptOverlay *scover) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
 
-    int tdxp, tdyp;
-    get_overlay_position(screenover[ovri], &tdxp, &tdyp);
-
-    return game_to_data_coord(tdxp);
+    Point pos = get_overlay_position(screenover[ovri]);
+    return game_to_data_coord(pos.X);
 }
 
 void Overlay_SetX(ScriptOverlay *scover, int newx) {
@@ -85,10 +84,8 @@ int Overlay_GetY(ScriptOverlay *scover) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
 
-    int tdxp, tdyp;
-    get_overlay_position(screenover[ovri], &tdxp, &tdyp);
-
-    return game_to_data_coord(tdyp);
+    Point pos = get_overlay_position(screenover[ovri]);
+    return game_to_data_coord(pos.Y);
 }
 
 void Overlay_SetY(ScriptOverlay *scover, int newy) {
@@ -361,11 +358,11 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, int pic_offx, i
 
 
 
-void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
-    int tdxp, tdyp;
-    const Rect &ui_view = play.GetUIViewport();
-
-    if (over.x == OVR_AUTOPLACE) {
+Point get_overlay_position(const ScreenOverlay &over)
+{
+    if (over.x == OVR_AUTOPLACE)
+    {
+        const Rect &ui_view = play.GetUIViewport();
         // auto place on character
         int charid = over.y;
 
@@ -375,11 +372,10 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
         Point screenpt = view->RoomToScreen(
             data_to_game_coord(game.chars[charid].x),
             data_to_game_coord(game.chars[charid].get_effective_y()) - height).first;
-        tdxp = screenpt.X - over.pic->GetWidth() / 2;
-        if (tdxp < 0) tdxp = 0;
-        tdyp = screenpt.Y - get_fixed_pixel_size(5);
+        int tdxp = std::max(0, screenpt.X - over.pic->GetWidth() / 2);
+        int tdyp = screenpt.Y - get_fixed_pixel_size(5);
         tdyp -= over.pic->GetHeight();
-        if (tdyp < 5) tdyp = 5;
+        tdyp = std::max(5, tdyp);
 
         if ((tdxp + over.pic->GetWidth()) >= ui_view.GetWidth())
             tdxp = (ui_view.GetWidth() - over.pic->GetWidth()) - 1;
@@ -387,22 +383,18 @@ void get_overlay_position(const ScreenOverlay &over, int *x, int *y) {
             tdxp = ui_view.GetWidth()/2 - over.pic->GetWidth()/2;
             tdyp = ui_view.GetHeight()/2 - over.pic->GetHeight()/2;
         }
+        return Point(tdxp, tdyp);
     }
-    else {
+    else
+    {
         // Note: the internal offset is only needed when x,y coordinates are specified
         // and only in the case where the overlay is using a GUI. See issue #1098
-        tdxp = over.x + over.offsetX;
-        tdyp = over.y + over.offsetY;
-
-        if (!over.positionRelativeToScreen)
-        {
-            Point tdxy = play.RoomToScreen(tdxp, tdyp);
-            tdxp = tdxy.X;
-            tdyp = tdxy.Y;
-        }
+        int tdxp = over.x + over.offsetX;
+        int tdyp = over.y + over.offsetY;
+        if (over.positionRelativeToScreen)
+            return Point(tdxp, tdyp);
+        return play.RoomToScreen(tdxp, tdyp);
     }
-    *x = tdxp;
-    *y = tdyp;
 }
 
 void recreate_overlay_ddbs()

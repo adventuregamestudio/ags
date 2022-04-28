@@ -1288,6 +1288,10 @@ builtin managed struct Overlay {
   /// Gets/sets the Y position on the screen where this overlay is displayed.
   import attribute int Y;
 #ifdef SCRIPT_API_v360
+  /// Creates an overlay that displays a sprite inside the room.
+  import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool transparent);  // $AUTOCOMPLETESTATICONLY$
+  /// Creates an overlay that displays some text inside the room.
+  import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
   /// Gets/sets the width of this overlay. Resizing overlay will scale its image.
   import attribute int Width;
   /// Gets/sets the height of this overlay. Resizing overlay will scale its image.

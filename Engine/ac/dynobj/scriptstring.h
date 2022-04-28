@@ -17,18 +17,16 @@
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptString final : AGSCCDynamicObject, ICCStringClass {
-    // TODO: the preallocated text buffer may be assigned externally;
-    // find out if it's possible to refactor while keeping same functionality
-    char *text;
-
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
     DynObjectRef CreateString(const char *fromText) override;
 
-    ScriptString();
-    ScriptString(const char *fromText);
+    ScriptString() = default;
+    ScriptString(const char *text);
+    ScriptString(char *text, bool take_ownership);
+    char *GetTextPtr() const { return _text; }
 
 protected:
     // Calculate and return required space for serialization, in bytes
@@ -37,7 +35,10 @@ protected:
     void Serialize(const char *address, AGS::Common::Stream *out) override;
 
 private:
-    size_t _len;
+    // TODO: the preallocated text buffer may be assigned externally;
+    // find out if it's possible to refactor while keeping same functionality
+    char *_text = nullptr;
+    size_t _len = 0;
 };
 
 #endif // __AC_SCRIPTSTRING_H

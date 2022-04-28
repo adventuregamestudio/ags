@@ -47,8 +47,8 @@ struct CharacterExtras {
     int   anim_volume = -1; // default animation volume (-1 use clip default)
     int   cur_anim_volume = -1; // current animation sound volume (-1 = default)
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromSavegame(Common::Stream *in, int save_ver);
+    void WriteToSavegame(Common::Stream *out);
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

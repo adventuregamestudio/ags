@@ -35,8 +35,8 @@ struct AnimatingGUIButton
     // relative volume of the frame sounds
     int volume = -1;
 
-    void ReadFromFile(Common::Stream *in, int cmp_ver);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(Common::Stream *out);
 };
 
 #endif // __AGS_EE_GUI__ANIMATINGGUIBUTTON_H

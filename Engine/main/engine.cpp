@@ -38,7 +38,6 @@
 #include "ac/global_game.h"
 #include "ac/gui.h"
 #include "ac/lipsync.h"
-#include "ac/objectcache.h"
 #include "ac/path_helper.h"
 #include "ac/route_finder.h"
 #include "ac/sys_events.h"

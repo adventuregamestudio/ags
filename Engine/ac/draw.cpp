@@ -19,7 +19,6 @@
 #include "ac/common.h"
 #include "util/compress.h"
 #include "ac/view.h"
-#include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/display.h"
@@ -34,7 +33,6 @@
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
-#include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/sys_events.h"
 #include "ac/roomobject.h"
@@ -145,6 +143,19 @@ struct ObjTexture
     }
 };
 
+// ObjectCache stores cached object data, used to determine
+// if active sprite / texture should be reconstructed
+struct ObjectCache
+{
+    Bitmap *image = nullptr;
+    bool  in_use = false;
+    int   sppic = 0;
+    short tintr = 0, tintg = 0, tintb = 0, tintamnt = 0, tintlight = 0;
+    short lightlev = 0, zoom = 0;
+    bool  mirrored = 0;
+    int   x = 0, y = 0;
+};
+
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters)
 std::vector<ObjTexture> actsps;
@@ -166,7 +177,7 @@ ObjTexture debugMoveListObj;
 
 // Cached character and object states, used to determine
 // whether these require texture update
-std::vector<CharacterCache> charcache;
+std::vector<ObjectCache> charcache;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 bool current_background_is_dirty = false;
@@ -590,10 +601,10 @@ void clear_drawobj_cache()
     // clear the character cache
     for (auto &cc : charcache)
     {
-        if (cc.inUse)
+        if (cc.in_use)
             delete cc.image;
         cc.image = nullptr;
-        cc.inUse = 0;
+        cc.in_use = false;
     }
     // clear the object cache
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
@@ -777,7 +788,27 @@ void on_roomcamera_changed(Camera *cam)
 
 void mark_object_changed(int objid)
 {
-    objcache[objid].ywas = -9999;
+    objcache[objid].y = -9999;
+}
+
+void reset_objcache_for_sprite(int sprnum)
+{
+    // Check if this sprite is assigned to any game object, and update them if necessary
+    // room objects cache
+    if (croom != nullptr)
+    {
+        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
+        {
+            if (objs[i].num == sprnum)
+                objcache[i].sppic = -1;
+        }
+    }
+    // character cache
+    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
+    {
+        if (charcache[i].sppic == sprnum)
+            charcache[i].sppic = -1;
+    }
 }
 
 void mark_screen_dirty()
@@ -1443,14 +1474,14 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         (actsp.Bmp != nullptr))
     {
         // HW acceleration
-        objcache[aa].tintamntwas = tint_level;
-        objcache[aa].tintredwas = tint_red;
-        objcache[aa].tintgrnwas = tint_green;
-        objcache[aa].tintbluwas = tint_blue;
-        objcache[aa].tintlightwas = tint_light;
-        objcache[aa].lightlevwas = light_level;
-        objcache[aa].zoomWas = zoom_level;
-        objcache[aa].mirroredWas = isMirrored;
+        objcache[aa].tintamnt = tint_level;
+        objcache[aa].tintr = tint_red;
+        objcache[aa].tintg = tint_green;
+        objcache[aa].tintb = tint_blue;
+        objcache[aa].tintlight = tint_light;
+        objcache[aa].lightlev = light_level;
+        objcache[aa].zoom = zoom_level;
+        objcache[aa].mirrored = isMirrored;
 
         return 1;
     }
@@ -1465,22 +1496,22 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     // If we have the image cached, use it
     if ((objcache[aa].image != nullptr) &&
         (objcache[aa].sppic == objs[aa].num) &&
-        (objcache[aa].tintamntwas == tint_level) &&
-        (objcache[aa].tintlightwas == tint_light) &&
-        (objcache[aa].tintredwas == tint_red) &&
-        (objcache[aa].tintgrnwas == tint_green) &&
-        (objcache[aa].tintbluwas == tint_blue) &&
-        (objcache[aa].lightlevwas == light_level) &&
-        (objcache[aa].zoomWas == zoom_level) &&
-        (objcache[aa].mirroredWas == isMirrored)) {
+        (objcache[aa].tintamnt == tint_level) &&
+        (objcache[aa].tintlight == tint_light) &&
+        (objcache[aa].tintr == tint_red) &&
+        (objcache[aa].tintg == tint_green) &&
+        (objcache[aa].tintb == tint_blue) &&
+        (objcache[aa].lightlev == light_level) &&
+        (objcache[aa].zoom == zoom_level) &&
+        (objcache[aa].mirrored == isMirrored)) {
             // the image is the same, we can use it cached!
             if ((walkBehindMethod != DrawOverCharSprite) &&
                 (actsp.Bmp != nullptr))
                 return 1;
             // Check if the X & Y co-ords are the same, too -- if so, there
             // is scope for further optimisations
-            if ((objcache[aa].xwas == objs[aa].x) &&
-                (objcache[aa].ywas == objs[aa].y) &&
+            if ((objcache[aa].x == objs[aa].x) &&
+                (objcache[aa].y == objs[aa].y) &&
                 (actsp.Bmp != nullptr) &&
                 (walk_behind_baselines_changed == 0))
                 return 1;
@@ -1524,14 +1555,14 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     // Create the cached image and store it
     objcache[aa].image->Blit(actsp.Bmp.get(), 0, 0);
     objcache[aa].sppic = objs[aa].num;
-    objcache[aa].tintamntwas = tint_level;
-    objcache[aa].tintredwas = tint_red;
-    objcache[aa].tintgrnwas = tint_green;
-    objcache[aa].tintbluwas = tint_blue;
-    objcache[aa].tintlightwas = tint_light;
-    objcache[aa].lightlevwas = light_level;
-    objcache[aa].zoomWas = zoom_level;
-    objcache[aa].mirroredWas = isMirrored;
+    objcache[aa].tintamnt = tint_level;
+    objcache[aa].tintr = tint_red;
+    objcache[aa].tintg = tint_green;
+    objcache[aa].tintb = tint_blue;
+    objcache[aa].tintlight = tint_light;
+    objcache[aa].lightlev = light_level;
+    objcache[aa].zoom = zoom_level;
+    objcache[aa].mirrored = isMirrored;
     return 0;
 }
 
@@ -1556,8 +1587,8 @@ void prepare_objects_for_drawing() {
         auto &actsp = actsps[useindx];
 
         // update the cache for next time
-        objcache[aa].xwas = objs[aa].x;
-        objcache[aa].ywas = objs[aa].y;
+        objcache[aa].x = objs[aa].x;
+        objcache[aa].y = objs[aa].y;
         int atxp = data_to_game_coord(objs[aa].x);
         int atyp = data_to_game_coord(objs[aa].y) - tehHeight;
 
@@ -1582,21 +1613,21 @@ void prepare_objects_for_drawing() {
 
         if (gfxDriver->HasAcceleratedTransform())
         {
-            actsp.Ddb->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
+            actsp.Ddb->SetFlippedLeftRight(objcache[aa].mirrored);
             actsp.Ddb->SetStretch(objs[aa].last_width, objs[aa].last_height);
-            actsp.Ddb->SetTint(objcache[aa].tintredwas, objcache[aa].tintgrnwas, objcache[aa].tintbluwas, (objcache[aa].tintamntwas * 256) / 100);
+            actsp.Ddb->SetTint(objcache[aa].tintr, objcache[aa].tintg, objcache[aa].tintb, (objcache[aa].tintamnt * 256) / 100);
 
-            if (objcache[aa].tintamntwas > 0)
+            if (objcache[aa].tintamnt > 0)
             {
-                if (objcache[aa].tintlightwas == 0)  // luminance of 0 -- pass 1 to enable
+                if (objcache[aa].tintlight == 0)  // luminance of 0 -- pass 1 to enable
                     actsp.Ddb->SetLightLevel(1);
-                else if (objcache[aa].tintlightwas < 250)
-                    actsp.Ddb->SetLightLevel(objcache[aa].tintlightwas);
+                else if (objcache[aa].tintlight < 250)
+                    actsp.Ddb->SetLightLevel(objcache[aa].tintlight);
                 else
                     actsp.Ddb->SetLightLevel(0);
             }
-            else if (objcache[aa].lightlevwas != 0)
-                actsp.Ddb->SetLightLevel((objcache[aa].lightlevwas * 25) / 10 + 256);
+            else if (objcache[aa].lightlev != 0)
+                actsp.Ddb->SetLightLevel((objcache[aa].lightlev * 25) / 10 + 256);
             else
                 actsp.Ddb->SetLightLevel(0);
         }
@@ -1749,15 +1780,15 @@ void prepare_characters_for_drawing() {
 
         // if the character was the same sprite and scaling last time,
         // just use the cached image
-        if ((charcache[aa].inUse) &&
+        if ((charcache[aa].in_use) &&
             (charcache[aa].sppic == specialpic) &&
-            (charcache[aa].scaling == zoom_level) &&
-            (charcache[aa].tintredwas == tint_red) &&
-            (charcache[aa].tintgrnwas == tint_green) &&
-            (charcache[aa].tintbluwas == tint_blue) &&
-            (charcache[aa].tintamntwas == tint_amount) &&
-            (charcache[aa].tintlightwas == tint_light) &&
-            (charcache[aa].lightlevwas == light_level)) 
+            (charcache[aa].zoom == zoom_level) &&
+            (charcache[aa].tintr == tint_red) &&
+            (charcache[aa].tintg == tint_green) &&
+            (charcache[aa].tintb == tint_blue) &&
+            (charcache[aa].tintamnt == tint_amount) &&
+            (charcache[aa].tintlight == tint_light) &&
+            (charcache[aa].lightlev == light_level)) 
         {
             if (walkBehindMethod == DrawOverCharSprite)
             {
@@ -1769,14 +1800,14 @@ void prepare_characters_for_drawing() {
                 usingCachedImage = true;
             }
         }
-        else if ((charcache[aa].inUse) && 
+        else if ((charcache[aa].in_use) && 
             (charcache[aa].sppic == specialpic) &&
             (gfxDriver->HasAcceleratedTransform()))
         {
             usingCachedImage = true;
         }
-        else if (charcache[aa].inUse) {
-            charcache[aa].inUse = 0;
+        else if (charcache[aa].in_use) {
+            charcache[aa].in_use = false;
         }
 
         our_eip = 3332;
@@ -1808,17 +1839,17 @@ void prepare_characters_for_drawing() {
             // adjust the Y positioning for the character's Z co-ord
             - data_to_game_coord(chin->z);
 
-        charcache[aa].scaling = zoom_level;
+        charcache[aa].zoom = zoom_level;
         charcache[aa].sppic = specialpic;
-        charcache[aa].tintredwas = tint_red;
-        charcache[aa].tintgrnwas = tint_green;
-        charcache[aa].tintbluwas = tint_blue;
-        charcache[aa].tintamntwas = tint_amount;
-        charcache[aa].tintlightwas = tint_light;
-        charcache[aa].lightlevwas = light_level;
+        charcache[aa].tintr = tint_red;
+        charcache[aa].tintg = tint_green;
+        charcache[aa].tintb = tint_blue;
+        charcache[aa].tintamnt = tint_amount;
+        charcache[aa].tintlight = tint_light;
+        charcache[aa].lightlev = light_level;
 
         // If cache needs to be re-drawn
-        if (!charcache[aa].inUse) {
+        if (!charcache[aa].in_use) {
 
             // create the base sprite in actsps[useindx], which will
             // be scaled and/or flipped, as appropriate
@@ -1853,7 +1884,7 @@ void prepare_characters_for_drawing() {
             }
 
             // update the character cache with the new image
-            charcache[aa].inUse = 1;
+            charcache[aa].in_use = true;
             charcache[aa].image = recycle_bitmap(charcache[aa].image, coldept, actsp.Bmp->GetWidth(), actsp.Bmp->GetHeight());
             charcache[aa].image->Blit(actsp.Bmp.get(), 0, 0);
 

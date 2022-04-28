@@ -19,7 +19,6 @@
 #include "main/game_file.h"
 #include "ac/common.h"
 #include "ac/character.h"
-#include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
 #include "ac/game.h"

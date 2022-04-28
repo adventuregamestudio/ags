@@ -30,7 +30,6 @@ target_sources(engine
     ac/cdaudio.h
     ac/character.cpp
     ac/character.h
-    ac/charactercache.h
     ac/characterextras.cpp
     ac/characterextras.h
     ac/characterinfo_engine.cpp
@@ -227,7 +226,6 @@ target_sources(engine
     ac/movelist.h
     ac/object.cpp
     ac/object.h
-    ac/objectcache.h
     ac/overlay.cpp
     ac/overlay.h
     ac/parser.cpp

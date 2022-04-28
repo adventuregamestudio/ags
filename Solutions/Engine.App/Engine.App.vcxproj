@@ -490,7 +490,6 @@
     <ClInclude Include="..\..\Engine\ac\button.h" />
     <ClInclude Include="..\..\Engine\ac\cdaudio.h" />
     <ClInclude Include="..\..\Engine\ac\character.h" />
-    <ClInclude Include="..\..\Engine\ac\charactercache.h" />
     <ClInclude Include="..\..\Engine\ac\characterextras.h" />
     <ClInclude Include="..\..\Engine\ac\datetime.h" />
     <ClInclude Include="..\..\Engine\ac\dialog.h" />
@@ -593,7 +592,6 @@
     <ClInclude Include="..\..\Engine\ac\mouse.h" />
     <ClInclude Include="..\..\Engine\ac\movelist.h" />
     <ClInclude Include="..\..\Engine\ac\object.h" />
-    <ClInclude Include="..\..\Engine\ac\objectcache.h" />
     <ClInclude Include="..\..\Engine\ac\overlay.h" />
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />

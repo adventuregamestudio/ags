@@ -18,7 +18,6 @@
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/character.h"
-#include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
 #include "ac/event.h"
@@ -33,7 +32,6 @@
 #include "ac/global_translation.h"
 #include "ac/movelist.h"
 #include "ac/mouse.h"
-#include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
 #include "ac/region.h"

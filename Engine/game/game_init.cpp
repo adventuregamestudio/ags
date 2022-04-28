@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include "ac/character.h"
-#include "ac/charactercache.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
 #include "ac/draw.h"

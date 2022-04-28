@@ -19,7 +19,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
-#include "ac/objectcache.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"

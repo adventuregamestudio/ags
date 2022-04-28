@@ -23,7 +23,6 @@
 #include "ac/global_character.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
-#include "ac/objectcache.h"
 #include "ac/properties.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"

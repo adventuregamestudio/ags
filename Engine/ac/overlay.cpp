@@ -356,8 +356,8 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, int pic_offx, i
     over.timeout=0;
     over.bgSpeechForChar = -1;
     over.associatedOverlayHandle = 0;
-    over.hasAlphaChannel = alphaChannel;
-    over.positionRelativeToScreen = true;
+    over.SetAlphaChannel(alphaChannel);
+    over.SetRoomRelative(false);
     // TODO: move these custom settings outside of this function
     if (type == OVER_COMPLETE) play.complete_overlay_on = type;
     else if (type == OVER_TEXTMSG || type == OVER_TEXTSPEECH)
@@ -412,9 +412,9 @@ Point get_overlay_position(const ScreenOverlay &over)
         // and only in the case where the overlay is using a GUI. See issue #1098
         int tdxp = over.x + over.offsetX;
         int tdyp = over.y + over.offsetY;
-        if (over.positionRelativeToScreen)
-            return Point(tdxp, tdyp);
-        return play.RoomToScreen(tdxp, tdyp);
+        if (over.IsRoomRelative())
+            return play.RoomToScreen(tdxp, tdyp);
+        return Point(tdxp, tdyp);
     }
 }
 

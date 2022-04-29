@@ -1834,8 +1834,6 @@ namespace AGS.Editor.Components
             Bitmap bg = _backgroundCache[0];
             int baseWidth = bg.Width;
             int baseHeight = bg.Height;
-            int scaledWidth = baseWidth / _loadedRoom.MaskResolution;
-            int scaledHeight = baseHeight / _loadedRoom.MaskResolution;
 
             foreach (RoomAreaMaskType maskType in Enum.GetValues(typeof(RoomAreaMaskType)))
             {
@@ -1843,9 +1841,8 @@ namespace AGS.Editor.Components
 
                 using (Bitmap mask = _maskCache[maskType])
                 {
-                    _maskCache[maskType] = maskType == RoomAreaMaskType.WalkBehinds
-                        ? mask.ScaleIndexed(baseWidth, baseHeight) // Walk-behinds are always 1:1 of the primary background
-                        : mask.ScaleIndexed(scaledWidth, scaledHeight); // Other masks are 1:x where X is MaskResolution
+                    double scale = _loadedRoom.GetMaskScale(maskType);
+                    _maskCache[maskType] = mask.ScaleIndexed((int)(baseWidth * scale), (int)(baseHeight * scale));
                 }
             }
 
@@ -1931,9 +1928,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    double scale = _loadedRoom.GetMaskScale(mask);
-                    _maskCache[mask] = new Bitmap((int)(_loadedRoom.Width * scale), (int)(_loadedRoom.Height * scale), PixelFormat.Format8bppIndexed);
-                    _maskCache[mask].SetPaletteFromGlobalPalette();
+                    _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
                     imageNotFound = true;
                     _guiController.ShowMessage(
                         $"Could not to find mask at \"{_loadedRoom.GetMaskFileName(mask)}\", an empty " +
@@ -1972,6 +1967,17 @@ namespace AGS.Editor.Components
             _backgroundCache[i]?.Dispose();
             _backgroundCache[i] = LoadBackground(i);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+        }
+
+        /// <summary>
+        /// Creates mask bitmap for the given mask type of the requested size.
+        /// </summary>
+        private Bitmap CreateMaskBitmap(RoomAreaMaskType mask, int width, int height)
+        {
+            double scale = _loadedRoom.GetMaskScale(mask);
+            var bitmap = new Bitmap((int)(width * scale), (int)(height * scale), PixelFormat.Format8bppIndexed);
+            bitmap.SetPaletteFromGlobalPalette();
+            return bitmap;
         }
 
         private Bitmap LoadMask(RoomAreaMaskType mask) => LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
@@ -2073,7 +2079,7 @@ namespace AGS.Editor.Components
                 if (_maskCache.ContainsKey(mask))
                 {
                     _maskCache[mask]?.Dispose();
-                    _maskCache[mask] = new Bitmap(_loadedRoom.Width / _loadedRoom.MaskResolution, _loadedRoom.Height / _loadedRoom.MaskResolution, PixelFormat.Format8bppIndexed);
+                    _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
                 }
             }
         }

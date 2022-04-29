@@ -59,7 +59,10 @@ enum RoomAreaMask
     kRoomAreaHotspot,
     kRoomAreaWalkBehind,
     kRoomAreaWalkable,
-    kRoomAreaRegion
+    kRoomAreaRegion,
+
+    kRoomArea_First = kRoomAreaHotspot,
+    kRoomArea_Last  = kRoomAreaRegion
 };
 
 // Room's audio volume modifier

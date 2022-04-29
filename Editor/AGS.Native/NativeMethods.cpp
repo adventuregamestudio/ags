@@ -33,7 +33,8 @@ extern void shutdown_native();
 extern AGS::Types::Game^ import_compiled_game_dta(const AGSString &filename);
 extern void free_old_game_data();
 extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
-extern void save_crm_file(Room ^roomToSave);
+extern void save_crm_file(Room ^room, IList<Bitmap^>^ backgrounds,
+    bool useExactPalette, bool sharePalette, IList<Bitmap^>^ masks);
 extern void save_default_crm_file(Room ^roomToSave);
 extern AGSString import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
@@ -77,9 +78,7 @@ extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
 extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
-extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 extern void FixRoomMasks(Room ^room);
-extern void set_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
 extern Bitmap ^export_area_mask(void *roomptr, int maskType);
 extern System::String ^load_room_script(System::String ^fileName);
 extern bool spritesModified;
@@ -495,9 +494,10 @@ namespace AGS
 			return load_crm_file(roomToLoad, defEncoding);
 		}
 
-		void NativeMethods::SaveRoomFile(AGS::Types::Room ^roomToSave)
+		void NativeMethods::SaveRoomFile(Room ^room, IList<Bitmap^>^ backgrounds,
+            bool useExactPalette, bool sharePalette, IList<Bitmap^>^ masks)
 		{
-			save_crm_file(roomToSave);
+			save_crm_file(room, backgrounds, useExactPalette, sharePalette, masks);
 		}
 
         void NativeMethods::SaveDefaultRoomFile(AGS::Types::Room ^roomToSave)
@@ -505,20 +505,10 @@ namespace AGS
             save_default_crm_file(roomToSave);
         }
 
-		void NativeMethods::ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette)
-		{
-			::ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
-		}
-
 		Bitmap^ NativeMethods::GetBitmapForBackground(Room ^room, int backgroundNumber)
 		{
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
-
-    void NativeMethods::SetAreaMask(Room^ room, RoomAreaMaskType maskType, Bitmap^ bmp)
-    {
-        set_area_mask((void*)room->_roomStructPtr, (int)maskType, bmp);
-    }
 
     Bitmap ^NativeMethods::ExportAreaMask(Room ^room, RoomAreaMaskType maskType)
     {

@@ -269,9 +269,10 @@ namespace AGS.Editor
             return _native.LoadRoomFile(roomToLoad, defEncoding);
         }
 
-        public void SaveRoom(Room roomToSave)
+        public void SaveRoom(Room room, IList<Bitmap> backgrounds,
+            bool useExactPalette, bool sharePalette, IList<Bitmap> masks)
         {
-            _native.SaveRoomFile(roomToSave);
+            _native.SaveRoomFile(room, backgrounds, useExactPalette, sharePalette, masks);
         }
 
         public void SaveDefaultRoom(Room roomToSave)
@@ -279,19 +280,9 @@ namespace AGS.Editor
             _native.SaveDefaultRoomFile(roomToSave);
         }
 
-        public void ImportBackground(Room room, int backgroundNumber, Bitmap bmp, bool useExactPalette, bool sharePalette)
-        {
-            _native.ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
-        }
-
         public Bitmap GetBitmapForBackground(Room room, int backgroundNumber)
         {
             return _native.GetBitmapForBackground(room, backgroundNumber);
-        }
-
-        public void SetAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
-        {
-            _native.SetAreaMask(room, mask, bmp);
         }
 
         public Bitmap ExportAreaMask(Room room, RoomAreaMaskType mask)

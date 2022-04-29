@@ -68,11 +68,10 @@ namespace Native
 			void LoadNewSpriteFile();
             void ReplaceSpriteFile(String ^srcFileName);
 			Room^ LoadRoomFile(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
-			void SaveRoomFile(Room ^roomToSave);
+			void SaveRoomFile(Room ^room, IList<Bitmap^>^ backgrounds,
+                bool useExactPalette, bool sharePalette, IList<Bitmap^>^ masks);
             void SaveDefaultRoomFile(Room ^roomToSave);
-			void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
 			Bitmap^ GetBitmapForBackground(Room ^room, int backgroundNumber);
-      void SetAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
       Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
 			String ^LoadRoomScript(String ^roomFileName);
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^errors);

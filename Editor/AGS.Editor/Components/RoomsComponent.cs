@@ -2240,30 +2240,10 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            if (!File.Exists(_loadedRoom.FileName))
-                _nativeProxy.SaveDefaultRoom(_loadedRoom); // create a valid room file
-
-            // Load and forget; We need a valid RoomStruct instance because the Editor Native Proxy code
-            // expects to find it. We can't construct an instance easily directly from C#, but we get can get
-            // one by running the Native Proxy room loader code.
-            if (_loadedRoom._roomStructPtr == default(IntPtr))
-                _loadedRoom._roomStructPtr = _nativeProxy.LoadRoom(_loadedRoom)._roomStructPtr;
-
-            for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
-            {
-                _nativeProxy.ImportBackground(
-                    _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
-            }
-
-            foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
-            {
-                if (mask == RoomAreaMaskType.None)
-                    continue;
-
-                _nativeProxy.SetAreaMask(_loadedRoom, mask, _maskCache[mask]);
-            }
-
-            _nativeProxy.SaveRoom(_loadedRoom);
+            var masks = new List<Bitmap>();
+            masks.AddRange(_maskCache.OrderBy(v => v.Key).Select(v => v.Value));
+            _nativeProxy.SaveRoom(_loadedRoom, _backgroundCache,
+                _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false, masks: masks);
         }
         #endregion
     }

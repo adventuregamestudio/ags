@@ -1832,64 +1832,57 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 	return tempsprite;
 }
 
-void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
+void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
+    SysBitmap ^bmp, bool useExactPalette, bool sharePalette)
 {
+    if (backgroundNumber < 0 || backgroundNumber > MAX_ROOM_BGFRAMES)
+    {
+        throw gcnew AGSEditorException(String::Format("SetNativeRoomBackground: invalid background number {0}", backgroundNumber));
+    }
+
     RGB oldpale[256];
-	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
-	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-	theRoom->Width = room->Width;
-	theRoom->Height = room->Height;
-    theRoom->MaskResolution = room->MaskResolution;
+    Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
+    if (newbg->GetColorDepth() == 8) 
+    {
+        for (int aa = 0; aa < 256; aa++)
+        {
+            // make sure it maps to locked cols properly
+            if (thisgame.paluses[aa] == PAL_LOCKED)
+                room.BgFrames[backgroundNumber].Palette[aa] = palette[aa];
+        }
 
-	if (newbg->GetColorDepth() == 8) 
-	{
-		for (int aa = 0; aa < 256; aa++) {
-		  // make sure it maps to locked cols properly
-		  if (thisgame.paluses[aa] == PAL_LOCKED)
-			  theRoom->BgFrames[backgroundNumber].Palette[aa] = palette[aa];
-		}
+        // sharing palette with main background - so copy it across
+        if (sharePalette)
+        {
+            memcpy(&room.BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
+            room.BgFrames[backgroundNumber].IsPaletteShared = 1;
+            if ((size_t)backgroundNumber >= room.BgFrameCount - 1)
+                room.BgFrames[0].IsPaletteShared = 1;
 
-		// sharing palette with main background - so copy it across
-		if (sharePalette) {
-		  memcpy (&theRoom->BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
-		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 1;
-		  if ((size_t)backgroundNumber >= theRoom->BgFrameCount - 1)
-		  	theRoom->BgFrames[0].IsPaletteShared = 1;
+            if (!useExactPalette)
+                wremapall(oldpale, newbg, palette);
+        }
+        else
+        {
+            room.BgFrames[backgroundNumber].IsPaletteShared = 0;
+            remap_background (newbg, oldpale, room.BgFrames[backgroundNumber].Palette, useExactPalette);
+        }
 
-		  if (!useExactPalette)
-			wremapall(oldpale, newbg, palette);
-		}
-		else {
-		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 0;
-		  remap_background (newbg, oldpale, theRoom->BgFrames[backgroundNumber].Palette, useExactPalette);
-		}
+        copy_room_palette_to_global_palette(room);
+    }
 
-    copy_room_palette_to_global_palette(*theRoom);
-	}
-
-	if ((size_t)backgroundNumber >= theRoom->BgFrameCount)
-	{
-		theRoom->BgFrameCount++;
-	}
-	theRoom->BgFrames[backgroundNumber].Graphic.reset(newbg);
-
-  // if size or resolution has changed, reset masks
-	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
-      (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) )
-	{
-        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
-        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
-        theRoom->WalkBehindMask.reset(new AGSBitmap(theRoom->Width, theRoom->Height, 8));
-        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
-        theRoom->WalkAreaMask->Clear();
-        theRoom->HotspotMask->Clear();
-        theRoom->WalkBehindMask->Clear();
-        theRoom->RegionMask->Clear();
-	}
+    if ((size_t)backgroundNumber >= room.BgFrameCount)
+        room.BgFrameCount++;
+    room.BgFrames[backgroundNumber].Graphic.reset(newbg);
 }
 
-void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
+void SetNativeRoomMask(RoomStruct &room, int maskType, SysBitmap^ bmp)
 {
+    if (maskType < kRoomArea_First || maskType > kRoomArea_Last)
+    {
+        throw gcnew AGSEditorException(String::Format("SetNativeRoomMask: invalid mask type {0}", maskType));
+    }
+
     // Palette entry 0 alpha value is hardcoded to 0 originally, probably because it's
     // convenient for rendering area 0 as invisible? This was taken out when converting
     // the room to open format because it created issues with saving/loading to disk
@@ -1901,8 +1894,7 @@ void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
     bmp->Palette = palette;
 
     RGB oldpale[256];
-    RoomStruct* room = (RoomStruct*)roomptr;
-    AGSBitmap* oldMask = room->GetMask((RoomAreaMask)maskType);
+    AGSBitmap* oldMask = room.GetMask((RoomAreaMask)maskType);
     AGSBitmap* newMask = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
     if (maskType != kRoomAreaNone)
         validate_mask(newMask, "imported", (maskType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
@@ -1910,19 +1902,19 @@ void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
     switch (maskType)
     {
     case kRoomAreaHotspot:
-        room->HotspotMask = PBitmap(newMask);
+        room.HotspotMask = PBitmap(newMask);
         break;
     case kRoomAreaRegion:
-        room->RegionMask = PBitmap(newMask);
+        room.RegionMask = PBitmap(newMask);
         break;
     case kRoomAreaWalkable:
-        room->WalkAreaMask = PBitmap(newMask);
+        room.WalkAreaMask = PBitmap(newMask);
         break;
     case kRoomAreaWalkBehind:
-        room->WalkBehindMask = PBitmap(newMask);
+        room.WalkBehindMask = PBitmap(newMask);
         break;
     default:
-        return;
+        break;
     }
 }
 
@@ -3178,11 +3170,24 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
 }
 
-void save_crm_file(Room ^room)
+void save_crm_file(Room ^room, IList<Bitmap^>^ backgrounds,
+    bool useExactPalette, bool sharePalette, IList<Bitmap^>^ masks)
 {
-    convert_room_to_native(room, thisroom);
+    RoomStruct rs;
+    // First convert main room data
+    convert_room_to_native(room, rs);
+    // Convert room backgrounds
+    for (int i = 0; i < backgrounds->Count; ++i)
+    {
+        SetNativeRoomBackground(rs, i, backgrounds[i], useExactPalette, sharePalette);
+    }
+    // Convert room masks
+    for (int mask = kRoomArea_First; mask <= kRoomArea_Last; ++mask)
+    {
+        SetNativeRoomMask(rs, mask, masks[mask - kRoomArea_First]);
+    }
     AGSString roomFileName = TextHelper::ConvertUTF8(room->FileName);
-    save_room_file(thisroom, roomFileName);
+    save_room_file(rs, roomFileName);
 }
 
 void save_default_crm_file(Room ^room)

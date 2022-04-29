@@ -416,6 +416,7 @@ namespace AGS.Editor.Components
                 }
 
                 UnloadedRoom newRoom = new UnloadedRoom(newRoomNumber);
+                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, null).ToArray());
                 AddSingleItem(newRoom);                
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
@@ -514,7 +515,7 @@ namespace AGS.Editor.Components
 				}
 
 
-                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, null, true).ToArray());
+                Task.WaitAll(ConvertRoomFromCrmToOpenFormat(newRoom, null, template.FileName == null).ToArray());
 
                 string newNodeID = AddSingleItem(newRoom);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;

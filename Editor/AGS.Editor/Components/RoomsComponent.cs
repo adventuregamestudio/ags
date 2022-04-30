@@ -2190,15 +2190,18 @@ namespace AGS.Editor.Components
         /// <returns>A collection of tasks that converts the room async.</returns>
         private IEnumerable<Task> ConvertRoomFromCrmToOpenFormat(UnloadedRoom unloadedRoom, Action report = null, bool isNewRoom=false)
         {
-            Room room = _nativeProxy.LoadRoom(unloadedRoom);
+            var nativeRoom = new Native.NativeRoom(unloadedRoom.FileName, null);
+            Room room = nativeRoom.ConvertToManagedRoom(unloadedRoom.Number, null);
+            room.Description = unloadedRoom.Description;
+            room.Script = unloadedRoom.Script;
 
             for (int i = 0; i < room.BackgroundCount; i++)
-                yield return SaveAndDisposeBitmapAsync(_nativeProxy.GetBitmapForBackground(room, i), room.GetBackgroundFileName(i));
+                yield return SaveAndDisposeBitmapAsync(nativeRoom.GetBackground(i), room.GetBackgroundFileName(i));
 
             yield return SaveXmlAsync(room.ToXmlDocument(), room.DataFileName);
 
             foreach (RoomAreaMaskType type in Enum.GetValues(typeof(RoomAreaMaskType)).Cast<RoomAreaMaskType>().Where(m => m != RoomAreaMaskType.None))
-                yield return SaveAndDisposeBitmapAsync(_nativeProxy.ExportAreaMask(room, type), room.GetMaskFileName(type));
+                yield return SaveAndDisposeBitmapAsync(nativeRoom.GetAreaMask(type), room.GetMaskFileName(type));
 
             if (!isNewRoom)
             {
@@ -2240,19 +2243,11 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            if (!File.Exists(_loadedRoom.FileName))
-                _nativeProxy.SaveDefaultRoom(_loadedRoom); // create a valid room file
-
-            // Load and forget; We need a valid RoomStruct instance because the Editor Native Proxy code
-            // expects to find it. We can't construct an instance easily directly from C#, but we get can get
-            // one by running the Native Proxy room loader code.
-            if (_loadedRoom._roomStructPtr == default(IntPtr))
-                _loadedRoom._roomStructPtr = _nativeProxy.LoadRoom(_loadedRoom)._roomStructPtr;
-
+            var nativeRoom = new Native.NativeRoom(_loadedRoom);
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
-                _nativeProxy.ImportBackground(
-                    _loadedRoom, i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+                nativeRoom.SetBackground(
+                    i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
             }
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
@@ -2260,10 +2255,10 @@ namespace AGS.Editor.Components
                 if (mask == RoomAreaMaskType.None)
                     continue;
 
-                _nativeProxy.SetAreaMask(_loadedRoom, mask, _maskCache[mask]);
+                nativeRoom.SetAreaMask(mask, _maskCache[mask]);
             }
 
-            _nativeProxy.SaveRoom(_loadedRoom);
+            nativeRoom.SaveToFile(_loadedRoom.FileName);
         }
         #endregion
     }

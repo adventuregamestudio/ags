@@ -198,7 +198,19 @@ Bitmap *RoomStruct::GetMask(RoomAreaMask mask) const
     case kRoomAreaWalkBehind: return WalkBehindMask.get();
     case kRoomAreaWalkable: return WalkAreaMask.get();
     case kRoomAreaRegion: return RegionMask.get();
-    default: return nullptr;
+    default: assert(0); return nullptr;
+    }
+}
+
+void RoomStruct::SetMask(RoomAreaMask mask, Bitmap *bmp)
+{
+    switch (mask)
+    {
+    case kRoomAreaHotspot: HotspotMask.reset(bmp); break;
+    case kRoomAreaWalkBehind: WalkBehindMask.reset(bmp); break;
+    case kRoomAreaWalkable: WalkAreaMask.reset(bmp); break;
+    case kRoomAreaRegion: RegionMask.reset(bmp); break;
+    default: assert(0); break;
     }
 }
 

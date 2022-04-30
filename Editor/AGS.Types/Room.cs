@@ -59,7 +59,6 @@ namespace AGS.Types
         private readonly List<RoomWalkBehind> _walkBehinds = new List<RoomWalkBehind>();
         private readonly List<RoomRegion> _regions = new List<RoomRegion>();
         private IList<OldInteractionVariable> _oldInteractionVariables = new List<OldInteractionVariable>();
-        public IntPtr _roomStructPtr;
 
         static Room()
         {

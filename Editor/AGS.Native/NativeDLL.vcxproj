@@ -236,12 +236,14 @@
     <ClCompile Include="cstretch.cpp" />
     <ClCompile Include="MSSCCI.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
+    <ClCompile Include="NativeRoom.cpp" />
     <ClCompile Include="ScriptCompiler.cpp" />
     <ClCompile Include="SpriteFileWriter_NET.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agsnative.h" />
     <ClInclude Include="NativeMethods.h" />
+    <ClInclude Include="NativeRoom.h" />
     <ClInclude Include="NativeUtils.h" />
     <ClInclude Include="Scripting.h" />
     <ClInclude Include="SpriteFileWriter_NET.h" />

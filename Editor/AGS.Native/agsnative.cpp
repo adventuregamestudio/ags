@@ -91,7 +91,6 @@ const char *TEMPLATE_LOCK_FILE = "template.dta";
 const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
-RoomStruct thisroom;
 
 GameDataVersion loaded_game_file_version = kGameVersion_Current;
 AGS::Common::Version game_compiled_version;
@@ -104,13 +103,6 @@ std::vector<ViewStruct> newViews;
 // A reference color depth, for correct color selection;
 // originally was defined by 'abuf' bitmap.
 int BaseColorDepth = 0;
-
-
-struct NativeRoomTools
-{
-    int loaded_room_number = -1;
-};
-std::unique_ptr<NativeRoomTools> RoomTools;
 
 
 bool reload_font(int curFont);
@@ -875,16 +867,12 @@ bool initialize_native()
       return false;
 
 	init_font_renderer();
-
-	RoomTools.reset(new NativeRoomTools());
 	return true;
 }
 
 void shutdown_native()
 {
-    RoomTools.reset();
     // We must dispose all native bitmaps before shutting down the library
-    thisroom.Free();
     shutdown_font_renderer();
     spriteset.Reset();
     allegro_exit();
@@ -1832,114 +1820,48 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 	return tempsprite;
 }
 
-void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
+void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
+    SysBitmap ^bmp, bool useExactPalette, bool sharePalette)
 {
-    RGB oldpale[256];
-	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
-	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
-	theRoom->Width = room->Width;
-	theRoom->Height = room->Height;
-    theRoom->MaskResolution = room->MaskResolution;
-
-	if (newbg->GetColorDepth() == 8) 
-	{
-		for (int aa = 0; aa < 256; aa++) {
-		  // make sure it maps to locked cols properly
-		  if (thisgame.paluses[aa] == PAL_LOCKED)
-			  theRoom->BgFrames[backgroundNumber].Palette[aa] = palette[aa];
-		}
-
-		// sharing palette with main background - so copy it across
-		if (sharePalette) {
-		  memcpy (&theRoom->BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
-		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 1;
-		  if ((size_t)backgroundNumber >= theRoom->BgFrameCount - 1)
-		  	theRoom->BgFrames[0].IsPaletteShared = 1;
-
-		  if (!useExactPalette)
-			wremapall(oldpale, newbg, palette);
-		}
-		else {
-		  theRoom->BgFrames[backgroundNumber].IsPaletteShared = 0;
-		  remap_background (newbg, oldpale, theRoom->BgFrames[backgroundNumber].Palette, useExactPalette);
-		}
-
-    copy_room_palette_to_global_palette(*theRoom);
-	}
-
-	if ((size_t)backgroundNumber >= theRoom->BgFrameCount)
-	{
-		theRoom->BgFrameCount++;
-	}
-	theRoom->BgFrames[backgroundNumber].Graphic.reset(newbg);
-
-  // if size or resolution has changed, reset masks
-	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
-      (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) )
-	{
-        theRoom->WalkAreaMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
-        theRoom->HotspotMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
-        theRoom->WalkBehindMask.reset(new AGSBitmap(theRoom->Width, theRoom->Height, 8));
-        theRoom->RegionMask.reset(new AGSBitmap(theRoom->Width / theRoom->MaskResolution, theRoom->Height / theRoom->MaskResolution, 8));
-        theRoom->WalkAreaMask->Clear();
-        theRoom->HotspotMask->Clear();
-        theRoom->WalkBehindMask->Clear();
-        theRoom->RegionMask->Clear();
-	}
-}
-
-void set_area_mask(void* roomptr, int maskType, SysBitmap^ bmp)
-{
-    // Palette entry 0 alpha value is hardcoded to 0 originally, probably because it's
-    // convenient for rendering area 0 as invisible? This was taken out when converting
-    // the room to open format because it created issues with saving/loading to disk
-    // in certain image formats (.png). Just in case we set the alpha back to 0 when
-    // setting the mask back into crm on the off chance it might be used for something
-    // internally somewhere
-    ColorPalette^ palette = bmp->Palette;
-    palette->Entries[0] = Color::FromArgb(255, palette->Entries[0]);
-    bmp->Palette = palette;
-
-    RGB oldpale[256];
-    RoomStruct* room = (RoomStruct*)roomptr;
-    AGSBitmap* oldMask = room->GetMask((RoomAreaMask)maskType);
-    AGSBitmap* newMask = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-    if (maskType != kRoomAreaNone)
-        validate_mask(newMask, "imported", (maskType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
-
-    switch (maskType)
+    if (backgroundNumber < 0 || backgroundNumber > MAX_ROOM_BGFRAMES)
     {
-    case kRoomAreaHotspot:
-        room->HotspotMask = PBitmap(newMask);
-        break;
-    case kRoomAreaRegion:
-        room->RegionMask = PBitmap(newMask);
-        break;
-    case kRoomAreaWalkable:
-        room->WalkAreaMask = PBitmap(newMask);
-        break;
-    case kRoomAreaWalkBehind:
-        room->WalkBehindMask = PBitmap(newMask);
-        break;
-    default:
-        return;
+        throw gcnew AGSEditorException(String::Format("SetNativeRoomBackground: invalid background number {0}", backgroundNumber));
     }
-}
 
-SysBitmap ^export_area_mask(void *roomptr, int maskType)
-{
-    AGSBitmap *mask = ((RoomStruct*)roomptr)->GetMask((RoomAreaMask)maskType);
-    SysBitmap^ managedMask = ConvertBlockToBitmap(mask, false);
+    RGB oldpale[256];
+    Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
+    if (newbg->GetColorDepth() == 8) 
+    {
+        for (int aa = 0; aa < 256; aa++)
+        {
+            // make sure it maps to locked cols properly
+            if (thisgame.paluses[aa] == PAL_LOCKED)
+                room.BgFrames[backgroundNumber].Palette[aa] = palette[aa];
+        }
 
-    // Palette entry 0 alpha value is hardcoded to 0, probably because it's convenient
-    // for rendering area 0 as invisible? However it creates issues when exporting 8-bit
-    // image with transparency to different image formats (tested with .png). To make things
-    // easier we take the alpha value out.
-    ColorPalette^ palette = managedMask->Palette;
-    palette->Entries[0] = Color::FromArgb(255, palette->Entries[0]);
-    managedMask->Palette = palette;
+        // sharing palette with main background - so copy it across
+        if (sharePalette)
+        {
+            memcpy(&room.BgFrames[backgroundNumber].Palette[0], &palette[0], sizeof(RGB) * 256);
+            room.BgFrames[backgroundNumber].IsPaletteShared = 1;
+            if ((size_t)backgroundNumber >= room.BgFrameCount - 1)
+                room.BgFrames[0].IsPaletteShared = 1;
 
-    return managedMask;
+            if (!useExactPalette)
+                wremapall(oldpale, newbg, palette);
+        }
+        else
+        {
+            room.BgFrames[backgroundNumber].IsPaletteShared = 0;
+            remap_background (newbg, oldpale, room.BgFrames[backgroundNumber].Palette, useExactPalette);
+        }
+
+        copy_room_palette_to_global_palette(room);
+    }
+
+    if ((size_t)backgroundNumber >= room.BgFrameCount)
+        room.BgFrameCount++;
+    room.BgFrames[backgroundNumber].Graphic.reset(newbg);
 }
 
 void set_rgb_mask_from_alpha_channel(Common::Bitmap *image)
@@ -2152,12 +2074,6 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   return ConvertBlockToBitmap32(todraw, width, height, (thisgame.SpriteInfos[spriteNum].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
-System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
-
-  RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap32(roomptr->BgFrames[backgroundNumber].Graphic.get(), room->Width, room->Height, false);
-}
-
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
 {  
 	for each (PaletteEntry ^colour in newPalette) 
@@ -2167,7 +2083,8 @@ void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette)
 		palette[colour->Index].b = colour->Colour.B / 4;
 	}
 	set_palette(palette);
-  copy_global_palette_to_room_palette(thisroom);
+	RoomStruct dummy; // FIXME: not working since open room format
+	copy_global_palette_to_room_palette(dummy);
 }
 
 void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui) 
@@ -2892,11 +2809,6 @@ System::String ^load_room_script(System::String ^fileName)
 	return gcnew String(scriptText.GetCStr(), 0, scriptText.GetLength(), System::Text::Encoding::Default);;
 }
 
-int GetCurrentlyLoadedRoomNumber()
-{
-  return RoomTools->loaded_room_number;
-}
-
 void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::Encoding ^defEncoding)
 {
     // Use local converter to account for room encoding (could be imported from another game)
@@ -3022,27 +2934,6 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 	ConvertCustomProperties(room->Properties, &rs.Properties);
 
 	CopyInteractions(room->Interactions, rs.EventHandlers.get());
-}
-
-AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding)
-{
-    AGSString roomFileName = TextHelper::ConvertUTF8(roomToLoad->FileName);
-
-    AGSString errorMsg = load_room_file(thisroom, roomFileName);
-    if (!errorMsg.IsEmpty())
-    {
-        throw gcnew AGSEditorException(TextHelper::ConvertUTF8(errorMsg));
-    }
-
-    RoomTools->loaded_room_number = roomToLoad->Number;
-
-    Room ^room = gcnew Room(roomToLoad->Number);
-    convert_room_from_native(thisroom, room, defEncoding);
-    room->_roomStructPtr = (IntPtr)&thisroom;
-
-    room->Description = roomToLoad->Description;
-    room->Script = roomToLoad->Script;
-    return room;
 }
 
 void convert_room_interactions_to_native(Room ^room, RoomStruct &rs);
@@ -3176,13 +3067,6 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 
     // Encoding hint
     rs.StrOptions["textencoding"].Format("%d", tcv->GetEncoding()->CodePage);
-}
-
-void save_crm_file(Room ^room)
-{
-    convert_room_to_native(room, thisroom);
-    AGSString roomFileName = TextHelper::ConvertUTF8(room->FileName);
-    save_room_file(thisroom, roomFileName);
 }
 
 void save_default_crm_file(Room ^room)

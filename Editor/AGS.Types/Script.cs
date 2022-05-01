@@ -170,9 +170,9 @@ namespace AGS.Types
             get { return _lastSavedAt; }
         }
 
-        public void SaveToDisk()
+        public void SaveToDisk(bool force = false)
         {
-            if (_modified)
+            if (_modified || force)
             {
                 _isBeingSaved = true;
                 try

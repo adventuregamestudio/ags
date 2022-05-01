@@ -31,6 +31,7 @@ GameSetup::GameSetup()
     RenderAtScreenRes = false;
     Supersampling = 1;
     clear_cache_on_room_change = false;
+    load_latest_save = false;
     rotation = kScreenRotation_Unlocked;
 
     Screen.Params.RefreshRate = 0;

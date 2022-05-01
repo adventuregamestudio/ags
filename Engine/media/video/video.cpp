@@ -46,7 +46,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
-extern int psp_video_framedrop;
 
 
 //-----------------------------------------------------------------------------

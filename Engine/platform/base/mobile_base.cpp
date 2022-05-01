@@ -15,131 +15,163 @@
 
 #if (AGS_PLATFORM_OS_ANDROID) || (AGS_PLATFORM_OS_IOS)
 #include "platform/base/mobile_base.h"
-#include "util/ini_util.h"
 
 using namespace AGS::Common;
 
-// Mobile platform options
-int psp_ignore_acsetup_cfg_file = 1;
-int psp_clear_cache_on_room_change = 0;
-int psp_rotation = 0;
-int psp_config_enabled = 0;
-char psp_translation[100]{};
-char* psp_translations[100]{};
 
-// Mouse option
-int config_mouse_control_mode;
-
-// Graphic options
-int psp_gfx_scaling;
-int psp_gfx_smoothing;
-
-// Audio options from the Allegro library.
-unsigned int psp_audio_samplerate = 44100;
-int psp_audio_enabled = 1;
-int psp_audio_multithreaded = 1;
-int psp_audio_cachesize = 10;
-int psp_midi_enabled = 1;
-int psp_midi_preload_patches = 0;
-
-int psp_video_framedrop = 0;
-
-int psp_gfx_renderer = 0;
-int psp_gfx_super_sampling = 0;
-int psp_gfx_smooth_sprites = 0;
-
-int psp_debug_write_to_logcat = 1;
-
-int config_mouse_longclick = 0;
-
-// defined in the engine
-extern int display_fps;
-
-bool psp_load_latest_savegame = false;
-
-
-bool WriteConfiguration(const char *filename)
+bool WriteConfiguration(const MobileSetup &setup, const char *filename)
 {
     ConfigTree cfg;
-    CfgWriteInt(cfg, "misc", "config_enabled", psp_config_enabled);
-    CfgWriteInt(cfg, "misc", "rotation", psp_rotation);
-    CfgWriteString(cfg, "misc", "translation", psp_translation);
+    CfgWriteInt(cfg, "misc", "config_enabled", setup.config_enabled);
+    CfgWriteInt(cfg, "misc", "rotation", setup.rotation);
+    CfgWriteString(cfg, "misc", "translation", setup.translation);
 
-    CfgWriteInt(cfg, "controls", "mouse_method", config_mouse_control_mode);
-    CfgWriteInt(cfg, "controls", "mouse_longclick", config_mouse_longclick);
+    CfgWriteInt(cfg, "controls", "mouse_method", setup.mouse_control_mode);
+    CfgWriteInt(cfg, "controls", "mouse_longclick", setup.mouse_longclick);
 
-    CfgWriteInt(cfg, "compatibility", "clear_cache_on_room_change", psp_clear_cache_on_room_change);
+    CfgWriteInt(cfg, "compatibility", "clear_cache_on_room_change", setup.clear_cache_on_room_change);
 
-    CfgWriteInt(cfg, "sound", "samplerate", psp_audio_samplerate);
-    CfgWriteInt(cfg, "sound", "enabled", psp_audio_enabled);
-    CfgWriteInt(cfg, "sound", "threaded", psp_audio_multithreaded);
-    CfgWriteInt(cfg, "sound", "cache_size", psp_audio_cachesize);
+    CfgWriteInt(cfg, "sound", "samplerate", setup.audio_samplerate);
+    CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
+    CfgWriteInt(cfg, "sound", "threaded", setup.audio_multithreaded);
+    CfgWriteInt(cfg, "sound", "cache_size", setup.audio_cachesize);
 
-    CfgWriteInt(cfg, "midi", "enabled", psp_midi_enabled);
-    CfgWriteInt(cfg, "midi", "preload_patches", psp_midi_preload_patches);
+    CfgWriteInt(cfg, "midi", "enabled", setup.midi_enabled);
+    CfgWriteInt(cfg, "midi", "preload_patches", setup.midi_preload_patches);
 
-    CfgWriteInt(cfg, "video", "framedrop", psp_video_framedrop);
+    CfgWriteInt(cfg, "video", "framedrop", setup.video_framedrop);
 
-    CfgWriteInt(cfg, "graphics", "renderer", psp_gfx_renderer);
-    CfgWriteInt(cfg, "graphics", "smoothing", psp_gfx_smoothing);
-    CfgWriteInt(cfg, "graphics", "scaling", psp_gfx_scaling);
-    CfgWriteInt(cfg, "graphics", "super_sampling", psp_gfx_super_sampling);
-    CfgWriteInt(cfg, "graphics", "smooth_sprites", psp_gfx_smooth_sprites);
+    CfgWriteInt(cfg, "graphics", "renderer", setup.gfx_renderer);
+    CfgWriteInt(cfg, "graphics", "smoothing", setup.gfx_smoothing);
+    CfgWriteInt(cfg, "graphics", "scaling", setup.gfx_scaling);
+    CfgWriteInt(cfg, "graphics", "super_sampling", setup.gfx_super_sampling);
+    CfgWriteInt(cfg, "graphics", "smooth_sprites", setup.gfx_smooth_sprites);
 
-    CfgWriteInt(cfg, "debug", "show_fps", (display_fps == 2) ? 1 : 0);
-    CfgWriteInt(cfg, "debug", "logging", psp_debug_write_to_logcat);
+    CfgWriteInt(cfg, "debug", "show_fps", (setup.display_fps == 2) ? 1 : 0);
+    CfgWriteInt(cfg, "debug", "logging", setup.debug_write_to_logcat);
 
     return IniUtil::Merge(filename, cfg);
 }
 
-void ResetConfiguration()
+void ResetConfiguration(MobileSetup &setup)
 {
-    ReadConfiguration(nullptr, true);
+    ReadConfiguration(setup, nullptr, true);
 }
 
 // Reads config from a given file; pass nullptr instead of filename
 // to perform a config reset (all variables will get default values)
-bool ReadConfiguration(const char* filename, bool read_everything)
+bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_everything)
 {
     ConfigTree cfg;
     if (filename && !IniUtil::Read(filename, cfg))
         return false;
 
-    CfgReadString(&psp_translation[0], sizeof(psp_translation), cfg, "misc", "translation", "default");
+    setup.translation = CfgReadString(cfg, "misc", "translation", "default");
 
-    psp_config_enabled = CfgReadBoolInt(cfg, "misc", "config_enabled", false);
-    if (!psp_config_enabled && !read_everything)
+    setup.config_enabled = CfgReadBoolInt(cfg, "misc", "config_enabled", false);
+    if (!setup.config_enabled && !read_everything)
         return true;
 
-    psp_debug_write_to_logcat = CfgReadBoolInt(cfg, "debug", "logging", false);
-    display_fps = CfgReadBoolInt(cfg, "debug", "show_fps", false);
-    if (display_fps == 1)
-        display_fps = 2;
+    setup.debug_write_to_logcat = CfgReadBoolInt(cfg, "debug", "logging", false);
+    setup.display_fps = CfgReadBoolInt(cfg, "debug", "show_fps", false);
+    if (setup.display_fps == 1)
+        setup.display_fps = 2;
 
-    psp_rotation = CfgReadInt(cfg, "misc", "rotation", 0, 2, 0);
+    setup.rotation = CfgReadInt(cfg, "misc", "rotation", 0, 2, 0);
 
-    psp_clear_cache_on_room_change = CfgReadBoolInt(cfg, "compatibility", "clear_cache_on_room_change", false);
+    setup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "compatibility", "clear_cache_on_room_change", false);
 
-    psp_audio_samplerate = CfgReadInt(cfg, "sound", "samplerate", 0, 44100, 44100);
-    psp_audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", true);
-    psp_audio_multithreaded = CfgReadBoolInt(cfg, "sound", "threaded", true);
-    psp_audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 1, 50, 10);
+    setup.audio_samplerate = CfgReadInt(cfg, "sound", "samplerate", 0, 44100, 44100);
+    setup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", true);
+    setup.audio_multithreaded = CfgReadBoolInt(cfg, "sound", "threaded", true);
+    setup.audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 1, 50, 10);
 
-    psp_midi_enabled = CfgReadBoolInt(cfg, "midi", "enabled", true);
-    psp_midi_preload_patches = CfgReadBoolInt(cfg, "midi", "preload_patches", false);
+    setup.midi_enabled = CfgReadBoolInt(cfg, "midi", "enabled", true);
+    setup.midi_preload_patches = CfgReadBoolInt(cfg, "midi", "preload_patches", false);
 
-    psp_video_framedrop = CfgReadBoolInt(cfg, "video", "framedrop", true);
+    setup.video_framedrop = CfgReadBoolInt(cfg, "video", "framedrop", true);
 
-    psp_gfx_renderer = CfgReadInt(cfg, "graphics", "renderer", 0, 2, 0);
-    psp_gfx_smoothing = CfgReadBoolInt(cfg, "graphics", "smoothing", true);
-    psp_gfx_scaling = CfgReadInt(cfg, "graphics", "scaling", 0, 2, 1);
-    psp_gfx_super_sampling = CfgReadBoolInt(cfg, "graphics", "super_sampling", true);
-    psp_gfx_smooth_sprites = CfgReadBoolInt(cfg, "graphics", "smooth_sprites", true);
+    setup.gfx_renderer = CfgReadInt(cfg, "graphics", "renderer", 0, 2, 0);
+    setup.gfx_smoothing = CfgReadBoolInt(cfg, "graphics", "smoothing", true);
+    setup.gfx_scaling = CfgReadInt(cfg, "graphics", "scaling", 0, 2, 1);
+    setup.gfx_super_sampling = CfgReadBoolInt(cfg, "graphics", "super_sampling", true);
+    setup.gfx_smooth_sprites = CfgReadBoolInt(cfg, "graphics", "smooth_sprites", true);
 
-    config_mouse_control_mode = CfgReadInt(cfg, "controls", "mouse_method", 0, 1, 0);
-    config_mouse_longclick = CfgReadBoolInt(cfg, "controls", "mouse_longclick", true);
+    setup.mouse_control_mode = CfgReadInt(cfg, "controls", "mouse_method", 0, 1, 0);
+    setup.mouse_longclick = CfgReadBoolInt(cfg, "controls", "mouse_longclick", true);
 
     return true;
+}
+
+void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
+{
+    // Mobile ports always run in fullscreen mode
+    CfgWriteInt(cfg, "graphics", "windowed", 0);
+
+    // gfx_renderer - rendering mode
+    //    * 0 - software renderer
+    //    * 1 - hardware, render to screen
+    //    * 2 - hardware, render to texture
+    if (setup.gfx_renderer == 0)
+    {
+        CfgWriteString(cfg, "graphics", "driver", "Software");
+        CfgWriteInt(cfg, "graphics", "render_at_screenres", 1);
+    }
+    else
+    {
+        CfgWriteString(cfg, "graphics", "driver", "OGL");
+        CfgWriteInt(cfg, "graphics", "render_at_screenres", setup.gfx_renderer == 1);
+    }
+
+    // gfx_scaling - scaling style:
+    //    * 0 - no scaling
+    //    * 1 - stretch and preserve aspect ratio
+    //    * 2 - stretch to whole screen
+    if (setup.gfx_scaling == 0)
+        CfgWriteString(cfg, "graphics", "game_scale_fs", "1");
+    else if (setup.gfx_scaling == 1)
+        CfgWriteString(cfg, "graphics", "game_scale_fs", "proportional");
+    else
+        CfgWriteString(cfg, "graphics", "game_scale_fs", "stretch");
+
+    // gfx_smoothing - scaling filter:
+    //    * 0 - nearest-neighbour
+    //    * 1 - linear
+    if (setup.gfx_smoothing == 0)
+        CfgWriteString(cfg, "graphics", "filter", "StdScale");
+    else
+        CfgWriteString(cfg, "graphics", "filter", "Linear");
+
+    // gfx_super_sampling - enable super sampling,
+    //  - only for hardware renderer and when rendering to texture:
+    //    * 0 - x1
+    //    * 1 - x2
+    if (setup.gfx_renderer == 2)
+        CfgWriteInt(cfg, "graphics", "supersampling", setup.gfx_super_sampling + 1);
+    else
+        CfgWriteInt(cfg, "graphics", "supersampling", 0);
+
+    // gfx_rotation - scaling style:
+    //    * 0 - unlocked, let the user rotate as wished.
+    //    * 1 - portrait
+    //    * 2 - landscape
+    CfgWriteInt(cfg, "graphics", "rotation", setup.rotation);
+
+    // sound
+    CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
+
+    // mouse_control_mode - enable relative mouse mode
+    //    * 1 - relative mouse touch controls
+    //    * 0 - direct touch mouse control
+    CfgWriteInt(cfg, "mouse", "control_enabled", setup.mouse_control_mode);
+
+    // translations
+    CfgWriteString(cfg, "language", "translation", setup.translation);
+
+    // miscellaneous
+    CfgWriteInt(cfg, "misc", "antialias", setup.gfx_smooth_sprites != 0);
+    CfgWriteInt(cfg, "misc", "clear_cache_on_room_change", setup.clear_cache_on_room_change != 0);
+    CfgWriteInt(cfg, "misc", "load_latest_save", setup.load_latest_savegame != 0);
 }
 
 #endif

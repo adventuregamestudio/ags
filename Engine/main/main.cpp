@@ -13,17 +13,10 @@
 //=============================================================================
 
 //
-// Entry point of the application here.
-//
-//
-// For Windows main() function is really called _mangled_main and is called
-// not by system, but from insides of allegro library.
-// (See allegro\platform\alwin.h)
-// What about other platforms?
+// Entry point of the application.
 //
 
 #include "core/platform.h"
-#define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
 #include <set>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
@@ -77,22 +70,6 @@ bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
-
-#if ! AGS_PLATFORM_DEFINES_PSP_VARS
-int psp_video_framedrop = 1;
-int psp_ignore_acsetup_cfg_file = 0;
-int psp_clear_cache_on_room_change = 0; // clear --sprite cache-- when room is unloaded
-int psp_rotation = 0;
-
-char psp_game_file_name[] = "";
-char psp_translation[] = "default";
-
-int psp_gfx_renderer = 0;
-int psp_gfx_scaling = 1;
-int psp_gfx_smoothing = 0;
-int psp_gfx_super_sampling = 1;
-int psp_gfx_smooth_sprites = 0;
-#endif
 
 // this needs to be updated if the "play" struct changes
 #define SVG_VERSION_BWCOMPAT_MAJOR      3
@@ -390,11 +367,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
     if (datafile_argv > 0)
     {
         cmdGameDataPath = platform->GetCommandArg(datafile_argv);
-    }
-    else
-    {
-        // assign standard path for mobile/consoles (defined in their own platform implementation)
-        cmdGameDataPath = psp_game_file_name;
     }
 
     if (tellInfoKeys.size() > 0)

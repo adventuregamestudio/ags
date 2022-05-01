@@ -292,84 +292,9 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
     usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
 }
 
-// Variables used for mobile port configs
-extern int psp_rotation;
-extern int psp_gfx_renderer;
-extern int psp_gfx_scaling;
-extern int psp_gfx_super_sampling;
-extern int psp_gfx_smoothing;
-extern int psp_gfx_smooth_sprites;
-extern int psp_clear_cache_on_room_change;
-extern char psp_translation[];
-#if AGS_PLATFORM_OS_ANDROID
-extern int config_mouse_control_mode;
-#endif
-
 void override_config_ext(ConfigTree &cfg)
 {
-    // Mobile ports always run in fullscreen mode
-#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
-    CfgWriteInt(cfg, "graphics", "windowed", 0);
-#endif
-
-    // psp_gfx_renderer - rendering mode
-    //    * 0 - software renderer
-    //    * 1 - hardware, render to screen
-    //    * 2 - hardware, render to texture
-    if (psp_gfx_renderer == 0)
-    {
-        CfgWriteString(cfg, "graphics", "driver", "Software");
-        CfgWriteInt(cfg, "graphics", "render_at_screenres", 1);
-    }
-    else
-    {
-        CfgWriteString(cfg, "graphics", "driver", "OGL");
-        CfgWriteInt(cfg, "graphics", "render_at_screenres", psp_gfx_renderer == 1);
-    }
-
-    // psp_gfx_scaling - scaling style:
-    //    * 0 - no scaling
-    //    * 1 - stretch and preserve aspect ratio
-    //    * 2 - stretch to whole screen
-    if (psp_gfx_scaling == 0)
-        CfgWriteString(cfg, "graphics", "game_scale_fs", "1");
-    else if (psp_gfx_scaling == 1)
-        CfgWriteString(cfg, "graphics", "game_scale_fs", "proportional");
-    else
-        CfgWriteString(cfg, "graphics", "game_scale_fs", "stretch");
-
-    // psp_gfx_smoothing - scaling filter:
-    //    * 0 - nearest-neighbour
-    //    * 1 - linear
-    if (psp_gfx_smoothing == 0)
-        CfgWriteString(cfg, "graphics", "filter", "StdScale");
-    else
-        CfgWriteString(cfg, "graphics", "filter", "Linear");
-
-    // psp_gfx_super_sampling - enable super sampling
-    //    * 0 - x1
-    //    * 1 - x2
-    if (psp_gfx_renderer == 2)
-        CfgWriteInt(cfg, "graphics", "supersampling", psp_gfx_super_sampling + 1);
-    else
-        CfgWriteInt(cfg, "graphics", "supersampling", 0);
-
-    // psp_gfx_rotation - scaling style:
-    //    * 0 - unlocked, let the user rotate as wished.
-    //    * 1 - portrait
-    //    * 2 - landscape
-    CfgWriteInt(cfg, "graphics", "rotation", psp_rotation);
-
-#if AGS_PLATFORM_OS_ANDROID
-    // config_mouse_control_mode - enable relative mouse mode
-    //    * 1 - relative mouse touch controls
-    //    * 0 - direct touch mouse control
-    CfgWriteInt(cfg, "mouse", "control_enabled", config_mouse_control_mode);
-#endif
-
-    CfgWriteInt(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
-    CfgWriteString(cfg, "language", "translation", psp_translation);
-    CfgWriteInt(cfg, "misc", "clear_cache_on_room_change", psp_clear_cache_on_room_change != 0);
+    platform->ReadConfiguration(cfg);
 }
 
 void apply_config(const ConfigTree &cfg)
@@ -419,6 +344,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.no_speech_pack = !CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
         usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
+        usetup.load_latest_save = CfgReadBoolInt(cfg, "misc", "load_latest_save", usetup.load_latest_save);
         usetup.user_data_dir = CfgReadString(cfg, "misc", "user_data_dir");
         usetup.shared_data_dir = CfgReadString(cfg, "misc", "shared_data_dir");
 

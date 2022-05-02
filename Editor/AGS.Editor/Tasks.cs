@@ -855,12 +855,6 @@ namespace AGS.Editor
                 room.Script.SaveToDisk();
                 room.UnloadScript();
             }
-            // Convert all rooms
-            foreach (var room in Factory.AGSEditor.CurrentGame.Rooms)
-            {
-                var loadedRoom = Factory.NativeProxy.LoadRoom((UnloadedRoom)room, oldEnc);
-                Factory.NativeProxy.SaveRoom(loadedRoom);
-            }
             // Save game with a new encoding
             if (Factory.GUIController.InvokeRequired)
             {

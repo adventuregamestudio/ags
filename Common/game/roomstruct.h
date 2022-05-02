@@ -59,7 +59,10 @@ enum RoomAreaMask
     kRoomAreaHotspot,
     kRoomAreaWalkBehind,
     kRoomAreaWalkable,
-    kRoomAreaRegion
+    kRoomAreaRegion,
+
+    kRoomArea_First = kRoomAreaHotspot,
+    kRoomArea_Last  = kRoomAreaRegion
 };
 
 // Room's audio volume modifier
@@ -283,6 +286,9 @@ public:
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
+    // Sets bitmap for the particular mask layer;
+    // WARNING: takes the ownership of the given bitmap
+    void    SetMask(RoomAreaMask mask, Bitmap *bmp);
     // Gets mask's scale relative to the room's background size
     float   GetMaskScale(RoomAreaMask mask) const;
 

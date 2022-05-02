@@ -264,39 +264,9 @@ namespace AGS.Editor
             }
         }
 
-        public Room LoadRoom(UnloadedRoom roomToLoad, Encoding defEncoding = null)
-        {
-            return _native.LoadRoomFile(roomToLoad, defEncoding);
-        }
-
-        public void SaveRoom(Room roomToSave)
-        {
-            _native.SaveRoomFile(roomToSave);
-        }
-
         public void SaveDefaultRoom(Room roomToSave)
         {
             _native.SaveDefaultRoomFile(roomToSave);
-        }
-
-        public void ImportBackground(Room room, int backgroundNumber, Bitmap bmp, bool useExactPalette, bool sharePalette)
-        {
-            _native.ImportBackground(room, backgroundNumber, bmp, useExactPalette, sharePalette);
-        }
-
-        public Bitmap GetBitmapForBackground(Room room, int backgroundNumber)
-        {
-            return _native.GetBitmapForBackground(room, backgroundNumber);
-        }
-
-        public void SetAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
-        {
-            _native.SetAreaMask(room, mask, bmp);
-        }
-
-        public Bitmap ExportAreaMask(Room room, RoomAreaMaskType mask)
-        {
-            return _native.ExportAreaMask(room, mask);
         }
 
         public string LoadRoomScript(string roomFileName)

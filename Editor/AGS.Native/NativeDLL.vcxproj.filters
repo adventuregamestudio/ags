@@ -208,6 +208,9 @@
     <ClCompile Include="SpriteFileWriter_NET.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="NativeRoom.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agsnative.h">
@@ -223,6 +226,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SpriteFileWriter_NET.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeRoom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

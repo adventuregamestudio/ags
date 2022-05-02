@@ -164,6 +164,98 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
     EXPECT_STREQ("Could not parse integer symbol '-9999999999999999999999' because of overflow.", last_seen_cc_error());
 }
 
+TEST(Compile, ParsingIntDefaultFloatMismatch) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        import  int  importedfunc(int data1 = 156.15);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Parameter default value must be int or 0", last_seen_cc_error());
+}
+
+TEST(Compile, ParsingFloatDefault) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        import  int  importedfunc(float data1 = 0, float data2=12.5, float data3=-35654.156);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, ParsingFloatDefaultIntMismatch) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        import  int  importedfunc(float data1 = 1);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Parameter default value must be float or 0", last_seen_cc_error());
+}
+
+TEST(Compile, ParsingStringDefaultNull) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        managed struct String { };\
+        import  int  importedfunc(String data1 = 0);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, ParsingStringDefaultInvalid) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        managed struct String { };\
+        import  int  importedfunc(String data1 = 1);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Parameter default value for type String must be 0", last_seen_cc_error());
+}
+
+TEST(Compile, ParsingPointerDefaultNull) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        managed struct Character { };\
+        import  int  importedfunc(Character *data1 = 0);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, ParsingPointerDefaultInvalid) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    const char *inpl = "\
+        managed struct Character { };\
+        import  int  importedfunc(Character *data1 = 10);\
+        ";
+
+    clear_error();
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Parameter default pointer value can only be 0", last_seen_cc_error());
+}
+
 TEST(Compile, ParsingIntOverflow) {
     ccCompiledScript *scrip = newScriptFixture();
 

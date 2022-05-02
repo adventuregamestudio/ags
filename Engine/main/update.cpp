@@ -417,6 +417,7 @@ void update_sierra_speech()
       int view_frame_x = 0;
       int view_frame_y = 0;
 
+      Bitmap *frame_pic = screenover[face_talking].GetImage();
       if (game.options[OPT_SPEECHTYPE] == 3) {
         // QFG4-style fullscreen dialog
         if (facetalk_qfg4_override_placement_x)
@@ -429,15 +430,14 @@ void update_sierra_speech()
         }
         else
         {
-          view_frame_y = (screenover[face_talking].pic->GetHeight() / 2) - (game.SpriteInfos[thisPic].Height / 2);
+          view_frame_y = (frame_pic->GetHeight() / 2) - (game.SpriteInfos[thisPic].Height / 2);
         }
-        screenover[face_talking].pic->Clear(0);
+        frame_pic->Clear(0);
       }
       else {
-        screenover[face_talking].pic->ClearTransparent();
+        frame_pic->ClearTransparent();
       }
 
-      Bitmap *frame_pic = screenover[face_talking].pic;
       const ViewFrame *face_vf = &views[facetalkview].loops[facetalkloop].frames[facetalkframe];
       bool face_has_alpha = (game.SpriteInfos[face_vf->pic].Flags & SPF_ALPHACHANNEL) != 0;
       DrawViewFrame(frame_pic, face_vf, view_frame_x, view_frame_y);

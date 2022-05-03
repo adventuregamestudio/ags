@@ -33,6 +33,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_PASTE_NEW = "PasteNewSprite";
         private const string MENU_ITEM_NEW_FROM_PREVIOUS = "NewSpriteFromPrevious";
         private const string MENU_ITEM_EXPORT_FOLDER = "ExportFolder";
+        private const string MENU_ITEM_EXPORT_FIXUP_SOURCES = "ExportFixupSources";
         private const string MENU_ITEM_SORT_BY_NUMBER = "SortSpritesByNumber";
         private const string MENU_ITEM_REPLACE_FROM_SOURCE = "ReplaceSpriteFromSource";
         private const string MENU_ITEM_FIND_BY_NUMBER = "FindSpriteByNumber";
@@ -689,6 +690,10 @@ namespace AGS.Editor
             {
                 ExportAllSprites();
             }
+            else if (item.Name == MENU_ITEM_EXPORT_FIXUP_SOURCES)
+            {
+                ExportFixupSources();
+            }
             else if (item.Name == MENU_ITEM_SORT_BY_NUMBER)
             {
                 SortAllSpritesInCurrentFolderByNumber();
@@ -1140,6 +1145,26 @@ namespace AGS.Editor
             dialog.Dispose();
         }
 
+        private void ExportFixupSources()
+        {
+            string folder = Factory.GUIController.ShowSelectFolderOrNoneDialog("Create sprite source in folder...",
+                Factory.AGSEditor.CurrentGame.DirectoryPath);
+            if (folder != null)
+            {
+                try
+                {
+                    SpriteTools.ExportSprites(Path.Combine(folder, "%Number%"), recurse: true,
+                        skipIf: SpriteTools.SkipIf.SourceLocal,
+                        updateSourcePath: true);
+                }
+                catch (Exception ex)
+                {
+                    String message = String.Format("There was an error during the export. The error message was: '{0}'", ex.Message);
+                    Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
         private void SortAllSpritesInCurrentFolderByNumber()
         {
             ((List<Sprite>)_currentFolder.Sprites).Sort();
@@ -1260,9 +1285,10 @@ namespace AGS.Editor
 
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Export all sprites...", null, onClick, MENU_ITEM_EXPORT_FOLDER));
-            menu.Items.Add(new ToolStripMenuItem("Sort sprites by number", null, onClick, MENU_ITEM_SORT_BY_NUMBER));
+            menu.Items.Add(new ToolStripMenuItem("Create source files for all sprites with missing / external sources...", null, onClick, MENU_ITEM_EXPORT_FIXUP_SOURCES));
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Find sprite by number...", null, onClick, MENU_ITEM_FIND_BY_NUMBER));
+            menu.Items.Add(new ToolStripMenuItem("Sort sprites by number", null, onClick, MENU_ITEM_SORT_BY_NUMBER));
 
             ToolStripMenuItem viewMenu = new ToolStripMenuItem();
             viewMenu.Text = "View";

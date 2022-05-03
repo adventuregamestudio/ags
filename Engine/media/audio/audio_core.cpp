@@ -251,10 +251,18 @@ void audio_core_init()
         name = alcGetString(g_acore.alcDevice, ALC_ALL_DEVICES_SPECIFIER);
     if (!name || alcGetError(g_acore.alcDevice) != AL_NO_ERROR)
         name = alcGetString(g_acore.alcDevice, ALC_DEVICE_SPECIFIER);
-    Debug::Printf(kDbgMsg_Info, "AudioCore: opened device \"%s\"\n", name);
+    Debug::Printf(kDbgMsg_Info, "AudioCore: opened device \"%s\"", name);
 
     // SDL_Sound
     Sound_Init();
+    Debug::Printf(kDbgMsg_Info, "Supported sound decoders:");
+    for (const auto **dec = Sound_AvailableDecoders(); *dec; ++dec)
+    {
+        String buf;
+        for (const auto **ext = (*dec)->extensions; *ext; ++ext)
+            buf.AppendFmt("%s,", *ext);
+        Debug::Printf(kDbgMsg_Info, " - %s : %s", (*dec)->description, buf.GetCStr());
+    }
 
     g_acore.audio_core_thread_running = true;
 #if !defined(AGS_DISABLE_THREADS)

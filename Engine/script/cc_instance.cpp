@@ -387,6 +387,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
     pc = 0;
+    currentline = 0;
     InstThreads.pop_back(); // pop instance thread
     if (reterr != 0)
         return reterr;

@@ -25,6 +25,7 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
@@ -39,7 +40,6 @@ extern int displayed_room;
 extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
-
 
 
 std::vector<ScreenOverlay> screenover;
@@ -164,20 +164,39 @@ int Overlay_GetValid(ScriptOverlay *scover) {
     return 1;
 }
 
-ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) {
+ScreenOverlay *Overlay_CreateGraphicCore(int x, int y, int slot, bool transparent)
+{
+    data_to_game_coords(&x, &y);
+    Bitmap *screeno = BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth());
+    screeno->Blit(spriteset[slot], 0, 0, transparent ? kBitmap_Transparency : kBitmap_Copy);
+    size_t nse = add_screen_overlay(x, y, OVER_CUSTOM, screeno, (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
+    return nse < SIZE_MAX ? &screenover[nse] : nullptr;
+}
+
+ScreenOverlay *Overlay_CreateTextCore(int x, int y, int width, int font, int text_color,
+    const char *text, int disp_type, int allow_shrink)
+{
+    if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
+    if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
+    if (text_color == 0) text_color = 16;
+    return _display_main(x, y, width, text, disp_type, font, -text_color, 0, allow_shrink, false);
+}
+
+ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent)
+{
+    auto *over = Overlay_CreateGraphicCore(x, y, slot, transparent != 0);
     ScriptOverlay *sco = new ScriptOverlay();
-    sco->overlayId = CreateGraphicOverlay(x, y, slot, transparent);
+    sco->overlayId = over->type;
     ccRegisterManagedObject(sco, sco);
     return sco;
 }
 
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
-    ScriptOverlay *sco = new ScriptOverlay();
-
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
-
-    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
+    auto *over = Overlay_CreateTextCore(x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
+    ScriptOverlay *sco = new ScriptOverlay();
+    sco->overlayId = over->type;
     ccRegisterManagedObject(sco, sco);
     return sco;
 }

@@ -29,11 +29,12 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.groupBoxExport = new System.Windows.Forms.GroupBox();
-            this.chkSkipValidSpriteSource = new System.Windows.Forms.CheckBox();
+            this.groupBoxExportFrom = new System.Windows.Forms.GroupBox();
             this.chkRecurse = new System.Windows.Forms.CheckBox();
             this.radRootFolder = new System.Windows.Forms.RadioButton();
             this.radThisFolder = new System.Windows.Forms.RadioButton();
+            this.chkIfSpriteSourceLocal = new System.Windows.Forms.CheckBox();
+            this.chkIfSpriteSourceValid = new System.Windows.Forms.CheckBox();
             this.groupBoxSaveAs = new System.Windows.Forms.GroupBox();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.txtFolder = new System.Windows.Forms.TextBox();
@@ -50,41 +51,32 @@
             this.btnClose = new System.Windows.Forms.Button();
             this.btnExport = new System.Windows.Forms.Button();
             this.groupBoxSpriteProperties = new System.Windows.Forms.GroupBox();
-            this.groupBoxExport.SuspendLayout();
+            this.groupBoxExportIf = new System.Windows.Forms.GroupBox();
+            this.groupBoxExportFrom.SuspendLayout();
             this.groupBoxSaveAs.SuspendLayout();
             this.contextMenuStripExport.SuspendLayout();
             this.groupBoxSpriteProperties.SuspendLayout();
+            this.groupBoxExportIf.SuspendLayout();
             this.SuspendLayout();
             // 
-            // groupBoxExport
+            // groupBoxExportFrom
             // 
-            this.groupBoxExport.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBoxExportFrom.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxExport.Controls.Add(this.chkSkipValidSpriteSource);
-            this.groupBoxExport.Controls.Add(this.chkRecurse);
-            this.groupBoxExport.Controls.Add(this.radRootFolder);
-            this.groupBoxExport.Controls.Add(this.radThisFolder);
-            this.groupBoxExport.Location = new System.Drawing.Point(12, 12);
-            this.groupBoxExport.Name = "groupBoxExport";
-            this.groupBoxExport.Size = new System.Drawing.Size(410, 116);
-            this.groupBoxExport.TabIndex = 0;
-            this.groupBoxExport.TabStop = false;
-            this.groupBoxExport.Text = "Export from";
-            // 
-            // chkSkipValidSpriteSource
-            // 
-            this.chkSkipValidSpriteSource.AutoSize = true;
-            this.chkSkipValidSpriteSource.Location = new System.Drawing.Point(7, 92);
-            this.chkSkipValidSpriteSource.Name = "chkSkipValidSpriteSource";
-            this.chkSkipValidSpriteSource.Size = new System.Drawing.Size(192, 17);
-            this.chkSkipValidSpriteSource.TabIndex = 3;
-            this.chkSkipValidSpriteSource.Text = "Skip sprites where source file exists";
-            this.chkSkipValidSpriteSource.UseVisualStyleBackColor = true;
+            this.groupBoxExportFrom.Controls.Add(this.chkRecurse);
+            this.groupBoxExportFrom.Controls.Add(this.radRootFolder);
+            this.groupBoxExportFrom.Controls.Add(this.radThisFolder);
+            this.groupBoxExportFrom.Location = new System.Drawing.Point(12, 12);
+            this.groupBoxExportFrom.Name = "groupBoxExportFrom";
+            this.groupBoxExportFrom.Size = new System.Drawing.Size(409, 98);
+            this.groupBoxExportFrom.TabIndex = 0;
+            this.groupBoxExportFrom.TabStop = false;
+            this.groupBoxExportFrom.Text = "Export from";
             // 
             // chkRecurse
             // 
             this.chkRecurse.AutoSize = true;
-            this.chkRecurse.Location = new System.Drawing.Point(7, 68);
+            this.chkRecurse.Location = new System.Drawing.Point(11, 67);
             this.chkRecurse.Name = "chkRecurse";
             this.chkRecurse.Size = new System.Drawing.Size(115, 17);
             this.chkRecurse.TabIndex = 2;
@@ -94,7 +86,7 @@
             // radRootFolder
             // 
             this.radRootFolder.AutoSize = true;
-            this.radRootFolder.Location = new System.Drawing.Point(7, 44);
+            this.radRootFolder.Location = new System.Drawing.Point(11, 43);
             this.radRootFolder.Name = "radRootFolder";
             this.radRootFolder.Size = new System.Drawing.Size(105, 17);
             this.radRootFolder.TabIndex = 1;
@@ -105,13 +97,33 @@
             // 
             this.radThisFolder.AutoSize = true;
             this.radThisFolder.Checked = true;
-            this.radThisFolder.Location = new System.Drawing.Point(7, 20);
+            this.radThisFolder.Location = new System.Drawing.Point(11, 19);
             this.radThisFolder.Name = "radThisFolder";
             this.radThisFolder.Size = new System.Drawing.Size(102, 17);
             this.radThisFolder.TabIndex = 0;
             this.radThisFolder.TabStop = true;
             this.radThisFolder.Text = "This sprite folder";
             this.radThisFolder.UseVisualStyleBackColor = true;
+            // 
+            // chkIfSpriteSourceLocal
+            // 
+            this.chkIfSpriteSourceLocal.AutoSize = true;
+            this.chkIfSpriteSourceLocal.Location = new System.Drawing.Point(11, 42);
+            this.chkIfSpriteSourceLocal.Name = "chkIfSpriteSourceLocal";
+            this.chkIfSpriteSourceLocal.Size = new System.Drawing.Size(226, 17);
+            this.chkIfSpriteSourceLocal.TabIndex = 4;
+            this.chkIfSpriteSourceLocal.Text = "Sprite source file is inside the project folder";
+            this.chkIfSpriteSourceLocal.UseVisualStyleBackColor = true;
+            // 
+            // chkIfSpriteSourceValid
+            // 
+            this.chkIfSpriteSourceValid.AutoSize = true;
+            this.chkIfSpriteSourceValid.Location = new System.Drawing.Point(11, 19);
+            this.chkIfSpriteSourceValid.Name = "chkIfSpriteSourceValid";
+            this.chkIfSpriteSourceValid.Size = new System.Drawing.Size(139, 17);
+            this.chkIfSpriteSourceValid.TabIndex = 3;
+            this.chkIfSpriteSourceValid.Text = "Sprite source file is valid";
+            this.chkIfSpriteSourceValid.UseVisualStyleBackColor = true;
             // 
             // groupBoxSaveAs
             // 
@@ -122,7 +134,7 @@
             this.groupBoxSaveAs.Controls.Add(this.txtFilename);
             this.groupBoxSaveAs.Controls.Add(this.lblFolder);
             this.groupBoxSaveAs.Controls.Add(this.lblFilename);
-            this.groupBoxSaveAs.Location = new System.Drawing.Point(12, 134);
+            this.groupBoxSaveAs.Location = new System.Drawing.Point(12, 194);
             this.groupBoxSaveAs.Name = "groupBoxSaveAs";
             this.groupBoxSaveAs.Size = new System.Drawing.Size(410, 78);
             this.groupBoxSaveAs.TabIndex = 1;
@@ -159,39 +171,39 @@
             this.toolStripSeparator1,
             this.menuItemToken});
             this.contextMenuStripExport.Name = "contextMenuStripExport";
-            this.contextMenuStripExport.Size = new System.Drawing.Size(137, 98);
+            this.contextMenuStripExport.Size = new System.Drawing.Size(134, 98);
             this.contextMenuStripExport.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripExport_Opening);
             // 
             // menuItemCopy
             // 
             this.menuItemCopy.Name = "menuItemCopy";
-            this.menuItemCopy.Size = new System.Drawing.Size(136, 22);
+            this.menuItemCopy.Size = new System.Drawing.Size(133, 22);
             this.menuItemCopy.Text = "Copy";
             this.menuItemCopy.Click += new System.EventHandler(this.menuItemCopy_Click);
             // 
             // menuItemCut
             // 
             this.menuItemCut.Name = "menuItemCut";
-            this.menuItemCut.Size = new System.Drawing.Size(136, 22);
+            this.menuItemCut.Size = new System.Drawing.Size(133, 22);
             this.menuItemCut.Text = "Cut";
             this.menuItemCut.Click += new System.EventHandler(this.menuItemCut_Click);
             // 
             // menuItemPaste
             // 
             this.menuItemPaste.Name = "menuItemPaste";
-            this.menuItemPaste.Size = new System.Drawing.Size(136, 22);
+            this.menuItemPaste.Size = new System.Drawing.Size(133, 22);
             this.menuItemPaste.Text = "Paste";
             this.menuItemPaste.Click += new System.EventHandler(this.menuItemPaste_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(133, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(130, 6);
             // 
             // menuItemToken
             // 
             this.menuItemToken.Name = "menuItemToken";
-            this.menuItemToken.Size = new System.Drawing.Size(136, 22);
+            this.menuItemToken.Size = new System.Drawing.Size(133, 22);
             this.menuItemToken.Text = "Insert token";
             this.menuItemToken.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.menuItemToken_DropDownItemClicked);
             // 
@@ -228,7 +240,7 @@
             // chkUpdateSpriteSource
             // 
             this.chkUpdateSpriteSource.AutoSize = true;
-            this.chkUpdateSpriteSource.Location = new System.Drawing.Point(7, 19);
+            this.chkUpdateSpriteSource.Location = new System.Drawing.Point(11, 19);
             this.chkUpdateSpriteSource.Name = "chkUpdateSpriteSource";
             this.chkUpdateSpriteSource.Size = new System.Drawing.Size(179, 17);
             this.chkUpdateSpriteSource.TabIndex = 5;
@@ -239,7 +251,7 @@
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(93, 272);
+            this.btnClose.Location = new System.Drawing.Point(93, 334);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 2;
@@ -250,7 +262,7 @@
             // 
             this.btnExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnExport.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnExport.Location = new System.Drawing.Point(12, 272);
+            this.btnExport.Location = new System.Drawing.Point(12, 334);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(75, 23);
             this.btnExport.TabIndex = 3;
@@ -262,45 +274,59 @@
             this.groupBoxSpriteProperties.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBoxSpriteProperties.Controls.Add(this.chkUpdateSpriteSource);
-            this.groupBoxSpriteProperties.Location = new System.Drawing.Point(12, 218);
+            this.groupBoxSpriteProperties.Location = new System.Drawing.Point(12, 278);
             this.groupBoxSpriteProperties.Name = "groupBoxSpriteProperties";
-            this.groupBoxSpriteProperties.Size = new System.Drawing.Size(409, 44);
+            this.groupBoxSpriteProperties.Size = new System.Drawing.Size(410, 44);
             this.groupBoxSpriteProperties.TabIndex = 6;
             this.groupBoxSpriteProperties.TabStop = false;
             this.groupBoxSpriteProperties.Text = "Sprite properties";
+            // 
+            // groupBoxExportIf
+            // 
+            this.groupBoxExportIf.Controls.Add(this.chkIfSpriteSourceLocal);
+            this.groupBoxExportIf.Controls.Add(this.chkIfSpriteSourceValid);
+            this.groupBoxExportIf.Location = new System.Drawing.Point(12, 116);
+            this.groupBoxExportIf.Name = "groupBoxExportIf";
+            this.groupBoxExportIf.Size = new System.Drawing.Size(410, 72);
+            this.groupBoxExportIf.TabIndex = 7;
+            this.groupBoxExportIf.TabStop = false;
+            this.groupBoxExportIf.Text = "Skip if...";
             // 
             // SpriteExportDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(434, 307);
+            this.ClientSize = new System.Drawing.Size(442, 369);
+            this.Controls.Add(this.groupBoxExportIf);
             this.Controls.Add(this.btnExport);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.groupBoxSaveAs);
-            this.Controls.Add(this.groupBoxExport);
+            this.Controls.Add(this.groupBoxExportFrom);
             this.Controls.Add(this.groupBoxSpriteProperties);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(4096, 346);
+            this.MaximumSize = new System.Drawing.Size(4096, 396);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(450, 346);
+            this.MinimumSize = new System.Drawing.Size(450, 396);
             this.Name = "SpriteExportDialog";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Sprite export";
-            this.groupBoxExport.ResumeLayout(false);
-            this.groupBoxExport.PerformLayout();
+            this.groupBoxExportFrom.ResumeLayout(false);
+            this.groupBoxExportFrom.PerformLayout();
             this.groupBoxSaveAs.ResumeLayout(false);
             this.groupBoxSaveAs.PerformLayout();
             this.contextMenuStripExport.ResumeLayout(false);
             this.groupBoxSpriteProperties.ResumeLayout(false);
             this.groupBoxSpriteProperties.PerformLayout();
+            this.groupBoxExportIf.ResumeLayout(false);
+            this.groupBoxExportIf.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.GroupBox groupBoxExport;
+        private System.Windows.Forms.GroupBox groupBoxExportFrom;
         private System.Windows.Forms.CheckBox chkRecurse;
         private System.Windows.Forms.RadioButton radRootFolder;
         private System.Windows.Forms.RadioButton radThisFolder;
@@ -312,7 +338,7 @@
         private System.Windows.Forms.TextBox txtFolder;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.Button btnExport;
-        private System.Windows.Forms.CheckBox chkSkipValidSpriteSource;
+        private System.Windows.Forms.CheckBox chkIfSpriteSourceValid;
         private System.Windows.Forms.CheckBox chkUpdateSpriteSource;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripExport;
         private System.Windows.Forms.ToolStripMenuItem menuItemCopy;
@@ -321,5 +347,7 @@
         private System.Windows.Forms.ToolStripMenuItem menuItemToken;
         private System.Windows.Forms.ToolStripMenuItem menuItemCut;
         private System.Windows.Forms.GroupBox groupBoxSpriteProperties;
+        private System.Windows.Forms.CheckBox chkIfSpriteSourceLocal;
+        private System.Windows.Forms.GroupBox groupBoxExportIf;
     }
 }

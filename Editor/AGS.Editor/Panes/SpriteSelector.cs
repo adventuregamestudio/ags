@@ -1122,12 +1122,12 @@ namespace AGS.Editor
                     if (dialog.UseRootFolder)
                     {
                         SpriteTools.ExportSprites(dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipValidSpriteSource, dialog.UpdateSpriteSource);
+                            dialog.SkipIf, dialog.UpdateSpriteSource);
                     }
                     else
                     {
                         SpriteTools.ExportSprites(_currentFolder, dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipValidSpriteSource, dialog.UpdateSpriteSource);
+                            dialog.SkipIf, dialog.UpdateSpriteSource);
                     }
                 }
                 catch (Exception ex)

@@ -1960,7 +1960,7 @@ namespace AGS.Editor.Components
             _guiController.RefreshPropertyGrid();
         }
 
-        private Bitmap LoadBackground(int i) => LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
+        private Bitmap LoadBackground(int i) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetBackgroundFileName(i));
 
         private void RefreshBackground(int i)
         {
@@ -1980,7 +1980,7 @@ namespace AGS.Editor.Components
             return bitmap;
         }
 
-        private Bitmap LoadMask(RoomAreaMaskType mask) => LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
+        private Bitmap LoadMask(RoomAreaMaskType mask) => BitmapExtensions.LoadNonLockedBitmap(_loadedRoom.GetMaskFileName(mask));
 
         private void RefreshMask(RoomAreaMaskType mask)
         {
@@ -2029,14 +2029,6 @@ namespace AGS.Editor.Components
             }
 
             return true;
-        }
-
-        private Bitmap LoadNonLockedBitmap(string fileName)
-        {
-            using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(fileName)))
-            {
-                return new Bitmap(ms);
-            }
         }
 
         private void ClearImageCache()

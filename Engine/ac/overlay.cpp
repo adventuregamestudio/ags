@@ -25,6 +25,7 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
@@ -39,7 +40,6 @@ extern int displayed_room;
 extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
-
 
 
 std::vector<ScreenOverlay> screenover;
@@ -164,22 +164,35 @@ int Overlay_GetValid(ScriptOverlay *scover) {
     return 1;
 }
 
-ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) {
-    ScriptOverlay *sco = new ScriptOverlay();
-    sco->overlayId = CreateGraphicOverlay(x, y, slot, transparent);
-    ccRegisterManagedObject(sco, sco);
-    return sco;
+ScreenOverlay *Overlay_CreateGraphicCore(int x, int y, int slot, bool transparent)
+{
+    data_to_game_coords(&x, &y);
+    Bitmap *screeno = BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth());
+    screeno->Blit(spriteset[slot], 0, 0, transparent ? kBitmap_Transparency : kBitmap_Copy);
+    size_t nse = add_screen_overlay(x, y, OVER_CUSTOM, screeno, (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
+    return nse < SIZE_MAX ? &screenover[nse] : nullptr;
+}
+
+ScreenOverlay *Overlay_CreateTextCore(int x, int y, int width, int font, int text_color,
+    const char *text, int disp_type, int allow_shrink)
+{
+    if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
+    if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
+    if (text_color == 0) text_color = 16;
+    return _display_main(x, y, width, text, disp_type, font, -text_color, 0, allow_shrink, false);
+}
+
+ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent)
+{
+    auto *over = Overlay_CreateGraphicCore(x, y, slot, transparent != 0);
+    return over ? create_scriptoverlay(*over) : nullptr;
 }
 
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
-    ScriptOverlay *sco = new ScriptOverlay();
-
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
-
-    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
-    ccRegisterManagedObject(sco, sco);
-    return sco;
+    auto *over = Overlay_CreateTextCore(x, y, width, font, colour, text, DISPLAYTEXT_NORMALOVERLAY, 0);
+    return over ? create_scriptoverlay(*over) : nullptr;
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover) {
@@ -218,35 +231,36 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
 
 //=============================================================================
 
-// Creates and registers a managed script object for existing overlay object
-ScriptOverlay* create_scriptobj_for_overlay(ScreenOverlay &over)
+// Creates and registers a managed script object for existing overlay object;
+// optionally adds an internal engine reference to prevent object's disposal
+ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref)
 {
     ScriptOverlay *scover = new ScriptOverlay();
     scover->overlayId = over.type;
     int handl = ccRegisterManagedObject(scover, scover);
     over.associatedOverlayHandle = handl;
-    return scover;
-}
-
-// Creates managed script object for overlay and adds internal engine's reference to it,
-// so that it does not get disposed even if there are no user references in script.
-static ScriptOverlay* create_scriptobj_addref(ScreenOverlay &over)
-{
-    ScriptOverlay* scover = create_scriptobj_for_overlay(over);
-    ccAddObjectReference(over.associatedOverlayHandle);
+    if (internal_ref)
+        ccAddObjectReference(handl);
     return scover;
 }
 
 // Invalidates existing script object to let user know that previous overlay is gone,
 // and releases engine's internal reference (script object may exist while there are user refs)
-static void invalidate_and_subref(ScreenOverlay &over, ScriptOverlay *&scover)
+static void invalidate_and_subref(ScreenOverlay &over, ScriptOverlay **scover)
 {
-    scover->overlayId = -1;
-    scover = nullptr;
-    ccReleaseObjectReference(over.associatedOverlayHandle);
+    if (scover && (*scover))
+    {
+        (*scover)->overlayId = -1;
+        *scover = nullptr;
+    }
+    if (over.associatedOverlayHandle > 0)
+    {
+        ccReleaseObjectReference(over.associatedOverlayHandle);
+        over.associatedOverlayHandle = 0;
+    }
 }
 
-// Frees overlay resources and disposes script object if there are no more refs
+// Frees overlay resources and tell to dispose script object if there are no refs left
 static void dispose_overlay(ScreenOverlay &over)
 {
     delete over.pic;
@@ -254,8 +268,13 @@ static void dispose_overlay(ScreenOverlay &over)
     if (over.ddb != nullptr)
         gfxDriver->DestroyDDB(over.ddb);
     over.ddb = nullptr;
-    if (over.associatedOverlayHandle) // dispose script object if there are no more refs
+    // invalidate script object and dispose it if there are no more refs
+    if (over.associatedOverlayHandle > 0)
+    {
+        ScriptOverlay *scover = (ScriptOverlay*)ccGetObjectAddressFromHandle(over.associatedOverlayHandle);
+        if (scover) scover->overlayId = -1;
         ccAttemptDisposeObject(over.associatedOverlayHandle);
+    }
 }
 
 void remove_screen_overlay_index(size_t over_idx)
@@ -267,16 +286,18 @@ void remove_screen_overlay_index(size_t over_idx)
         play.complete_overlay_on = 0;
     }
     else if (over.type == play.text_overlay_on)
-    {
-        if (play.speech_text_scover)
-            invalidate_and_subref(over, play.speech_text_scover);
+    { // release internal ref for speech text
+        invalidate_and_subref(over, &play.speech_text_scover);
         play.text_overlay_on = 0;
     }
     else if (over.type == OVER_PICTURE)
-    {
-        if (play.speech_face_scover)
-            invalidate_and_subref(over, play.speech_face_scover);
+    { // release internal ref for speech face
+        invalidate_and_subref(over, &play.speech_face_scover);
         face_talking = -1;
+    }
+    else if (over.bgSpeechForChar > 0)
+    { // release internal ref for bg speech
+        invalidate_and_subref(over, nullptr);
     }
     dispose_overlay(over);
     screenover.erase(screenover.begin() + over_idx);
@@ -345,11 +366,11 @@ size_t add_screen_overlay(int x, int y, int type, Bitmap *piccy, int pic_offx, i
         // only make script object for blocking speech now, because messagebox blocks all script
         // and therefore cannot be accessed, so no practical reason for that atm
         if (type == OVER_TEXTSPEECH)
-            play.speech_text_scover = create_scriptobj_addref(over);
+            play.speech_text_scover = create_scriptoverlay(over, true);
     }
     else if (type == OVER_PICTURE)
     {
-        play.speech_face_scover = create_scriptobj_addref(over);
+        play.speech_face_scover = create_scriptoverlay(over, true);
     }
     over.MarkChanged();
     screenover.push_back(std::move(over));

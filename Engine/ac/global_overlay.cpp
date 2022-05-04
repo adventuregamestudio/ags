@@ -11,29 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_overlay.h"
-#include "ac/common.h"
-#include "ac/display.h"
+#include "ac/common.h" // quit
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
-#include "ac/global_translation.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"
-#include "ac/screenoverlay.h"
-#include "ac/string.h"
-#include "ac/spritecache.h"
-#include "ac/system.h"
-#include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
-
-using namespace Common;
-using namespace Engine;
-
-extern SpriteCache spriteset;
-extern GameSetupStruct game;
-
 
 
 void RemoveOverlay(int ovrid) {
@@ -41,21 +23,10 @@ void RemoveOverlay(int ovrid) {
     remove_screen_overlay(ovrid);
 }
 
-int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
-    data_to_game_coords(&xx, &yy);
-
-    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slott].Width, game.SpriteInfos[slott].Height, game.GetColorDepth());
-    wputblock(screeno, 0,0,spriteset[slott],trans);
-    bool hasAlpha = (game.SpriteInfos[slott].Flags & SPF_ALPHACHANNEL) != 0;
-    int nse = add_screen_overlay(xx, yy, OVER_CUSTOM, screeno, hasAlpha);
-    return screenover[nse].type;
-}
-
-int CreateTextOverlayCore(int xx, int yy, int wii, int fontid, int text_color, const char *text, int disp_type, int allowShrink) {
-    if (wii<8) wii=play.GetUIViewport().GetWidth()/2;
-    if (xx<0) xx=play.GetUIViewport().GetWidth()/2-wii/2;
-    if (text_color ==0) text_color =16;
-    return _display_main(xx,yy,wii, text, disp_type, fontid, -text_color, 0, allowShrink, false);
+int CreateGraphicOverlay(int x, int y, int slot, int trans)
+{
+    auto *over = Overlay_CreateGraphicCore(x, y, slot, trans != 0);
+    return over ? over->type : 0;
 }
 
 int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type) {
@@ -68,7 +39,8 @@ int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const
     else  // allow DisplaySpeechBackground to be shrunk
         allowShrink = 1;
 
-    return CreateTextOverlayCore(xx, yy, wii, fontid, text_color, text, disp_type, allowShrink);
+    auto *over = Overlay_CreateTextCore(xx, yy, wii, fontid, text_color, text, disp_type, allowShrink);
+    return over ? over->type : 0;
 }
 
 void SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int text_color, const char *text) {

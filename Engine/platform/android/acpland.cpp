@@ -157,7 +157,7 @@ JNIEXPORT jint JNICALL
     case CONFIG_ENABLED:
       return setup.config_enabled;
     case CONFIG_DEBUG_FPS:
-      return (setup.display_fps == 2) ? 1 : 0;
+      return setup.show_fps;
     case CONFIG_DEBUG_LOGCAT:
       return setup.debug_write_to_logcat;
     case CONFIG_MOUSE_METHOD:
@@ -240,7 +240,7 @@ JNIEXPORT void JNICALL
       setup.config_enabled = value;
       break;
     case CONFIG_DEBUG_FPS:
-      setup.display_fps = (value == 1) ? 2 : 0;
+      setup.show_fps = value;
       break;
     case CONFIG_DEBUG_LOGCAT:
       setup.debug_write_to_logcat = value;

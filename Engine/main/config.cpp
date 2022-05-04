@@ -347,6 +347,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.load_latest_save = CfgReadBoolInt(cfg, "misc", "load_latest_save", usetup.load_latest_save);
         usetup.user_data_dir = CfgReadString(cfg, "misc", "user_data_dir");
         usetup.shared_data_dir = CfgReadString(cfg, "misc", "shared_data_dir");
+        usetup.show_fps = CfgReadBoolInt(cfg, "misc", "show_fps");
 
         usetup.translation = CfgReadString(cfg, "language", "translation");
 

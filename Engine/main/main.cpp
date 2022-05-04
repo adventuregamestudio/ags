@@ -321,7 +321,8 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["language"]["translation"] = argv[++ee];
         else if (ags_stricmp(arg, "--no-translation") == 0)
             cfg["language"]["translation"] = "";
-        else if (ags_stricmp(arg, "--fps") == 0) display_fps = kFPS_Forced;
+        else if (ags_stricmp(arg, "--fps") == 0)
+            cfg["misc"]["show_fps"] = "1";
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
         else if (ags_stricmp(arg, "--noiface") == 0) debug_flags |= DBG_NOIFACE;
         else if (ags_stricmp(arg, "--nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;

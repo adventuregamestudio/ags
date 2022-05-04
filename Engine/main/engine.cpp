@@ -404,6 +404,8 @@ void engine_init_audio()
 
 void engine_init_debug()
 {
+    if (usetup.show_fps)
+        display_fps = kFPS_Forced;
     if ((debug_flags & (~DBG_DEBUGMODE)) >0) {
         platform->DisplayAlert("Engine debugging enabled.\n"
             "\nNOTE: You have selected to enable one or more engine debugging options.\n"

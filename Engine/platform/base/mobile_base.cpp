@@ -47,7 +47,7 @@ bool WriteConfiguration(const MobileSetup &setup, const char *filename)
     CfgWriteInt(cfg, "graphics", "super_sampling", setup.gfx_super_sampling);
     CfgWriteInt(cfg, "graphics", "smooth_sprites", setup.gfx_smooth_sprites);
 
-    CfgWriteInt(cfg, "debug", "show_fps", (setup.display_fps == 2) ? 1 : 0);
+    CfgWriteInt(cfg, "debug", "show_fps", setup.show_fps);
     CfgWriteInt(cfg, "debug", "logging", setup.debug_write_to_logcat);
 
     return IniUtil::Merge(filename, cfg);
@@ -73,9 +73,7 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
         return true;
 
     setup.debug_write_to_logcat = CfgReadBoolInt(cfg, "debug", "logging", false);
-    setup.display_fps = CfgReadBoolInt(cfg, "debug", "show_fps", false);
-    if (setup.display_fps == 1)
-        setup.display_fps = 2;
+    setup.show_fps = CfgReadBoolInt(cfg, "debug", "show_fps", false);
 
     setup.rotation = CfgReadInt(cfg, "misc", "rotation", 0, 2, 0);
 
@@ -172,6 +170,7 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
     CfgWriteInt(cfg, "misc", "antialias", setup.gfx_smooth_sprites != 0);
     CfgWriteInt(cfg, "misc", "clear_cache_on_room_change", setup.clear_cache_on_room_change != 0);
     CfgWriteInt(cfg, "misc", "load_latest_save", setup.load_latest_savegame != 0);
+    CfgWriteInt(cfg, "misc", "show_fps", setup.show_fps);
 }
 
 #endif

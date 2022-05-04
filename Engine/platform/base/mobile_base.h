@@ -55,7 +55,7 @@ struct MobileSetup
 
     int mouse_longclick = 0;
 
-    int display_fps = 0;
+    int show_fps = 0;
 
     bool load_latest_savegame = false;
 };

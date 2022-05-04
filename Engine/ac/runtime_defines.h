@@ -149,4 +149,11 @@ const int LegacyRoomVolumeFactor            = 30;
 
 #define RETURN_CONTINUE 1
 
+// Defines the coordinate space the game object belongs to
+enum ObjectLayer
+{
+    eLayerRoom,
+    eLayerUI
+};
+
 #endif // __AC_RUNTIMEDEFINES_H

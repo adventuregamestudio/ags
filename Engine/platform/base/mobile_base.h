@@ -15,49 +15,58 @@
 
 #if (AGS_PLATFORM_OS_ANDROID) || (AGS_PLATFORM_OS_IOS)
 
-// Writes mobile platform config
-bool WriteConfiguration(const char *filename);
-// Reads mobile platform config
-bool ReadConfiguration(const char *filename, bool read_everything);
-// Reset config variables
-void ResetConfiguration();
-
+#include "util/ini_util.h"
 
 // Mobile platform options
-extern int psp_ignore_acsetup_cfg_file;
-extern int psp_clear_cache_on_room_change;
-extern int psp_rotation;
-extern int psp_config_enabled;
-extern char psp_translation[100];
-extern char* psp_translations[100];
+struct MobileSetup
+{
+    AGS::Common::String game_file_name;
 
-// Mouse option
-extern int config_mouse_control_mode;
+    // Mobile platform options
+    int ignore_acsetup_cfg_file = 0;
+    int clear_cache_on_room_change = 0;
+    int rotation = 0;
+    int config_enabled = 0;
+    AGS::Common::String translation;
 
-// Graphic options
-extern int psp_gfx_scaling;
-extern int psp_gfx_smoothing;
+    // Mouse option
+    int mouse_control_mode = 0;
 
-// Audio options from the Allegro library.
-extern unsigned int psp_audio_samplerate;
-extern int psp_audio_enabled;
-extern int psp_audio_multithreaded;
-extern int psp_audio_cachesize;
-extern int psp_midi_enabled;
-extern int psp_midi_preload_patches;
+    // Graphic options
+    int gfx_scaling = 0;
+    int gfx_smoothing = 0;
 
-extern int psp_video_framedrop;
+    // Audio options from the Allegro library.
+    unsigned int audio_samplerate = 0;
+    int audio_enabled = 0;
+    int audio_multithreaded = 0;
+    int audio_cachesize = 0;
+    int midi_enabled = 0;
+    int midi_preload_patches = 0;
 
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
-extern int psp_gfx_smooth_sprites;
+    // Video playback options
+    int video_framedrop = 0;
 
-extern int psp_debug_write_to_logcat;
+    int gfx_renderer = 0;
+    int gfx_super_sampling = 0;
+    int gfx_smooth_sprites = 0;
 
-extern int config_mouse_longclick;
+    int debug_write_to_logcat = 0;
 
-extern int display_fps;
+    int mouse_longclick = 0;
 
-extern bool psp_load_latest_savegame;
+    int show_fps = 0;
+
+    bool load_latest_savegame = false;
+};
+
+// Writes mobile platform config
+bool WriteConfiguration(const MobileSetup &setup, const char *filename);
+// Reads mobile platform config
+bool ReadConfiguration(MobileSetup &setup, const char *filename, bool read_everything);
+// Reset config variables
+void ResetConfiguration(MobileSetup &setup);
+// Copy mobile options to the config tree meant for the engine
+void ApplyEngineConfiguration(const MobileSetup &setup, AGS::Common::ConfigTree &cfg);
 
 #endif

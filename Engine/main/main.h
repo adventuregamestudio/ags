@@ -42,13 +42,6 @@ extern int override_start_room;
 extern bool justTellInfo;
 extern AGS::Common::String loadSaveGameOnStartup;
 
-extern int psp_video_framedrop;
-extern int psp_ignore_acsetup_cfg_file;
-extern bool psp_load_latest_savegame;
-extern int psp_clear_cache_on_room_change; // clear --sprite cache-- when room is unloaded
-extern char psp_game_file_name[];
-extern char psp_translation[];
-
 void main_print_help();
 
 int ags_entry_point(int argc, char *argv[]);

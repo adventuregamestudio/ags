@@ -210,7 +210,7 @@ static void ReadCharacterExtras_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].ReadFromFile(&align_s);
+        charextra[i].ReadFromSavegame(&align_s, 0);
         align_s.Reset();
     }
 }
@@ -241,7 +241,7 @@ void ReadAnimatedButtons_Aligned(Stream *in, int num_abuts)
     for (int i = 0; i < num_abuts; ++i)
     {
         AnimatingGUIButton abtn;
-        abtn.ReadFromFile(&align_s, 0);
+        abtn.ReadFromSavegame(&align_s, 0);
         AddButtonAnimation(abtn);
         align_s.Reset();
     }

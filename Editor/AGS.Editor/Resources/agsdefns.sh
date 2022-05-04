@@ -1292,6 +1292,8 @@ builtin managed struct Overlay {
   import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool transparent);  // $AUTOCOMPLETESTATICONLY$
   /// Creates an overlay that displays some text inside the room.
   import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  /// Gets whether this overlay is located inside the room, as opposed to the screen layer.
+  import readonly attribute bool InRoom;
   /// Gets/sets the width of this overlay. Resizing overlay will scale its image.
   import attribute int Width;
   /// Gets/sets the height of this overlay. Resizing overlay will scale its image.

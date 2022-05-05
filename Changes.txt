@@ -1,5 +1,19 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 11, May 2022
+
+Editor:
+ - Fixed batch sprite export with "Set exported file as sprite source" option was assigning
+   new source paths without file extension.
+
+Engine:
+ - Perfomance fix: GUIs changing Transparency or Visible state should not redraw their surface.
+
+Compatibility:
+ - Allow AudioClip.Play to to place clips on a crossfade channel, which is normally unaccessible
+   from script. This prevents errors in some games that relied on this behavior.
+
+
 VERSION 3.5.1 - Patch 10, April 2022
 
 Engine:

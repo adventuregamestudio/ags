@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <stdio.h>
 #include <string.h>
 #include "ac/keycode.h"
 #include "font/fonts.h"

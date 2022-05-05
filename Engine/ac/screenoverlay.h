@@ -13,11 +13,15 @@
 //=============================================================================
 //
 // ScreenOverlay is a simple sprite container with no advanced functions.
+// May contain owned bitmap or reference persistent sprite's id, similar to how
+// other game objects do that.
+// May logically exist either on UI or room layer.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
+#include <memory>
 #include "core/types.h"
 
 // Forward declaration
@@ -30,22 +34,13 @@ enum OverlayFlags
     kOver_AlphaChannel     = 0x0001,
     kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
+    kOver_SpriteReference  = 0x0008, // reference persistent sprite
 };
 
-// Overlay class.
-// TODO: currently overlay creates and stores its own bitmap, even if
-// created using existing sprite. As a side-effect, changing that sprite
-// (if it were a dynamic one) will not affect overlay (unlike other objects).
-// For future perfomance optimization it may be desired to store sprite index
-// instead; but that would mean that overlay will have to receive sprite
-// changes. For backward compatibility there may be a game switch that
-// forces it to make a copy.
 struct ScreenOverlay
 {
     // Texture
     Engine::IDriverDependantBitmap *ddb = nullptr;
-    // Original bitmap
-    Common::Bitmap *pic = nullptr;
     int type = 0, timeout = 0;
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offsetX, y + offsetY;
@@ -60,6 +55,7 @@ struct ScreenOverlay
     int transparency = 0;
 
     bool HasAlphaChannel() const { return (_flags & kOver_AlphaChannel) != 0; }
+    bool IsSpriteReference() const { return (_flags & kOver_SpriteReference) != 0; }
     bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     void SetAlphaChannel(bool on) { on ? _flags |= kOver_AlphaChannel : _flags &= ~kOver_AlphaChannel; }
@@ -69,6 +65,12 @@ struct ScreenOverlay
         on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
              _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
+    // Gets actual overlay's image, whether owned by overlay or by a sprite reference
+    Common::Bitmap *GetImage() const;
+    // Get sprite reference id, or -1 if none set
+    int GetSpriteNum() const { return _sprnum; }
+    void SetImage(std::unique_ptr<Common::Bitmap> pic);
+    void SetSpriteNum(int sprnum);
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
     // Manually marks GUI as graphically changed
@@ -81,6 +83,9 @@ struct ScreenOverlay
 
 private:
     int _flags = 0; // OverlayFlags
+    std::unique_ptr<Common::Bitmap> _pic; // owned bitmap
+    int _sprnum = -1; // sprite reference
+
     bool _hasChanged = false;
 };
 

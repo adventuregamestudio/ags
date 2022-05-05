@@ -326,7 +326,7 @@ static void restore_game_overlays(Stream *in)
     ReadOverlays_Aligned(in, has_bitmap, num_overs);
     for (size_t i = 0; i < num_overs; ++i) {
         if (has_bitmap[i])
-            screenover[i].pic = read_serialized_bitmap(in);
+            screenover[i].SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)));
     }
 }
 

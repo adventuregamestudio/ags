@@ -1302,6 +1302,8 @@ builtin managed struct Overlay {
   import attribute int Width;
   /// Gets/sets the height of this overlay. Resizing overlay will scale its image.
   import attribute int Height;
+  /// Gets/sets the sprite's number which is displayed on this overlay. Returns -1 for generated image without actual number.
+  import attribute int Graphic;
   /// Gets the original width of this overlay's graphic.
   import readonly attribute int GraphicWidth;
   /// Gets the original height of this overlay's graphic.

@@ -39,7 +39,7 @@ int ccGetOption(int optbit)
 // Returns current running script callstack as a human-readable text
 extern String cc_get_callstack(int max_lines = INT_MAX);
 
-ScriptError ccError;
+static ScriptError ccError;
 
 void cc_clear_error()
 {
@@ -76,4 +76,9 @@ void cc_error(const char *descr, ...)
     ccError.CallStack = cc_get_callstack();
     ccError.HasError = 1;
     ccError.Line = currentline;
+}
+
+void cc_error(const ScriptError &err)
+{
+    ccError = err;
 }

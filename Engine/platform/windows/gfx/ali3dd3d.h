@@ -15,7 +15,6 @@
 // Direct3D graphics factory
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__ALI3DD3D_H
 #define __AGS_EE_GFX__ALI3DD3D_H
 
@@ -50,7 +49,17 @@ class D3DGfxFilter;
 
 struct D3DTextureTile : public TextureTile
 {
-    IDirect3DTexture9* texture;
+    IDirect3DTexture9 *texture = nullptr;
+};
+
+// Full Direct3D texture data
+struct D3DTextureData : TextureData
+{
+    IDirect3DVertexBuffer9 *_vertex = nullptr;
+    D3DTextureTile *_tiles = nullptr;
+    size_t _numTiles = 0;
+
+    ~D3DTextureData();
 };
 
 class D3DBitmap : public BaseDDB
@@ -75,9 +84,7 @@ public:
     }
 
     // Direct3D texture data
-    IDirect3DVertexBuffer9* _vertex;
-    D3DTextureTile *_tiles;
-    int _numTiles;
+    std::shared_ptr<D3DTextureData> _data;
 
     // Drawing parameters
     bool _flipped;
@@ -90,10 +97,6 @@ public:
 
     D3DBitmap(int width, int height, int colDepth, bool opaque)
     {
-        _vertex = NULL;
-        _tiles = NULL;
-        _numTiles = 0;
-
         _width = width;
         _height = height;
         _colDepth = colDepth;
@@ -112,12 +115,7 @@ public:
     int GetWidthToRender() { return _stretchToWidth; }
     int GetHeightToRender() { return _stretchToHeight; }
 
-    void Dispose();
-
-    ~D3DBitmap() override
-    {
-        Dispose();
-    }
+    ~D3DBitmap() override = default;
 };
 
 class D3DGfxModeList : public IGfxModeList
@@ -194,7 +192,16 @@ public:
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *ddb, bool hasAlpha) override;
+    // Create texture data with the given parameters
+    TextureData *CreateTextureData(int width, int height, bool opaque) override;
+    // Update texture data from the given bitmap
+    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
+    // Create DDB using preexisting texture data
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
+        int width, int height, int color_depth, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void SetScreenFade(int red, int green, int blue) override;
@@ -278,7 +285,7 @@ private:
     void ReleaseDisplayMode();
     void set_up_default_vertices();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha);
+    void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );

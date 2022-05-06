@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// Allegro Interface for 3D; Direct 3D 9 driver
-//
-//=============================================================================
 
 #include "core/platform.h"
 
@@ -126,21 +122,17 @@ namespace D3D
 
 using namespace Common;
 
-void D3DBitmap::Dispose()
+D3DTextureData::~D3DTextureData()
 {
-    if (_tiles != NULL)
+    if (_tiles)
     {
-        for (int i = 0; i < _numTiles; i++)
+        for (size_t i = 0; i < _numTiles; ++i)
             _tiles[i].texture->Release();
-
-        free(_tiles);
-        _tiles = NULL;
-        _numTiles = 0;
+        delete[] _tiles;
     }
-    if (_vertex != NULL)
+    if (_vertex)
     {
         _vertex->Release();
-        _vertex = NULL;
     }
 }
 
@@ -1160,13 +1152,14 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     }
   }
 
-  if (bmpToDraw->_vertex == NULL)
+  const auto *txdata = bmpToDraw->_data.get();
+  if (txdata->_vertex == NULL)
   {
     hr = direct3ddevice->SetStreamSource(0, vertexbuffer, 0, sizeof(CUSTOMVERTEX));
   }
   else
   {
-    hr = direct3ddevice->SetStreamSource(0, bmpToDraw->_vertex, 0, sizeof(CUSTOMVERTEX));
+    hr = direct3ddevice->SetStreamSource(0, txdata->_vertex, 0, sizeof(CUSTOMVERTEX));
   }
   if (hr != D3D_OK) 
   {
@@ -1180,16 +1173,16 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   float drawAtX = drawListEntry->x;
   float drawAtY = drawListEntry->y;
 
-  for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
+  for (size_t ti = 0; ti < txdata->_numTiles; ++ti)
   {
-    width = bmpToDraw->_tiles[ti].width * xProportion;
-    height = bmpToDraw->_tiles[ti].height * yProportion;
+    width = txdata->_tiles[ti].width * xProportion;
+    height = txdata->_tiles[ti].height * yProportion;
     float xOffs;
-    float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
+    float yOffs = txdata->_tiles[ti].y * yProportion;
     if (bmpToDraw->_flipped)
-      xOffs = (bmpToDraw->_width - (bmpToDraw->_tiles[ti].x + bmpToDraw->_tiles[ti].width)) * xProportion;
+      xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
-      xOffs = bmpToDraw->_tiles[ti].x * xProportion;
+      xOffs = txdata->_tiles[ti].x * xProportion;
     float thisX = drawAtX + xOffs;
     float thisY = drawAtY + yOffs;
     thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
@@ -1229,7 +1222,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     }
 
     direct3ddevice->SetTransform(D3DTS_WORLD, &matTransform);
-    direct3ddevice->SetTexture(0, bmpToDraw->_tiles[ti].texture);
+    direct3ddevice->SetTexture(0, txdata->_tiles[ti].texture);
 
     hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
     if (hr != D3D_OK) 
@@ -1504,7 +1497,7 @@ void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
     delete (D3DBitmap*)ddb;
 }
 
-void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha)
+void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha)
 {
   IDirect3DTexture9* newTexture = tile->texture;
 
@@ -1518,7 +1511,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap
   bool usingLinearFiltering = _filter->NeedToColourEdgeLines();
   char *memPtr = (char*)lockedRegion.pBits;
 
-  if (target->_opaque)
+  if (opaque)
     BitmapToVideoMemOpaque(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch);
   else
     BitmapToVideoMem(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch, usingLinearFiltering);
@@ -1536,12 +1529,19 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
   target->_hasAlpha = hasAlpha;
+  UpdateTextureData(target->_data.get(), bitmap, target->_opaque, hasAlpha);
+}
+
+void D3DGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha)
+{
+  const int color_depth = bitmap->GetColorDepth();
   if (color_depth == 8)
       select_palette(palette);
 
-  for (int i = 0; i < target->_numTiles; i++)
+  auto *d3ddata = reinterpret_cast<D3DTextureData*>(txdata);
+  for (size_t i = 0; i < d3ddata->_numTiles; ++i)
   {
-    UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
+    UpdateTextureRegion(&d3ddata->_tiles[i], bitmap, opaque, hasAlpha);
   }
 
   if (color_depth == 8)
@@ -1613,19 +1613,37 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
 
 IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
+  if (color_depth != GetCompatibleBitmapFormat(color_depth))
+    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+  D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
+  ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(width, height, opaque)));
+  return ddb;
+}
+
+IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB(std::shared_ptr<TextureData> txdata,
+    int width, int height, int color_depth, bool opaque)
+{
+    auto *ddb = reinterpret_cast<D3DBitmap*>(CreateDDB(width, height, color_depth, opaque));
+    if (ddb)
+        ddb->_data = std::static_pointer_cast<D3DTextureData>(txdata);
+    return ddb;
+}
+
+std::shared_ptr<TextureData> D3DGraphicsDriver::GetTextureData(IDriverDependantBitmap *ddb)
+{
+    return std::static_pointer_cast<TextureData>((reinterpret_cast<D3DBitmap*>(ddb))->_data);
+}
+
+TextureData *D3DGraphicsDriver::CreateTextureData(int width, int height, bool opaque)
+{
   assert(width > 0);
   assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
-  if (color_depth != GetCompatibleBitmapFormat(color_depth))
-    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-  int colourDepth = color_depth;
-
-  D3DBitmap *ddb = new D3DBitmap(width, height, colourDepth, opaque);
-
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
 
+  auto *txdata = new D3DTextureData();
   // Calculate how many textures will be necessary to
   // store this image
   tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
@@ -1644,8 +1662,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
   int numTiles = tilesAcross * tilesDown;
-  D3DTextureTile *tiles = (D3DTextureTile*)malloc(sizeof(D3DTextureTile) * numTiles);
-  memset(tiles, 0, sizeof(D3DTextureTile) * numTiles);
+  D3DTextureTile *tiles = new D3DTextureTile[numTiles];
 
   CUSTOMVERTEX *vertices = NULL;
 
@@ -1661,19 +1678,19 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
      // so that only the relevant portion of the texture is rendered
      int vertexBufferSize = numTiles * 4 * sizeof(CUSTOMVERTEX);
      HRESULT hr = direct3ddevice->CreateVertexBuffer(vertexBufferSize, 0,
-         D3DFVF_CUSTOMVERTEX, D3DPOOL_MANAGED, &ddb->_vertex, NULL);
+         D3DFVF_CUSTOMVERTEX, D3DPOOL_MANAGED, &txdata->_vertex, NULL);
 
      if (hr != D3D_OK) 
      {
-        free(tiles);
+        delete []tiles;
         char errorMessage[200];
         snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
         throw Ali3DException(errorMessage);
      }
 
-     if (ddb->_vertex->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD) != D3D_OK)
+     if (txdata->_vertex->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD) != D3D_OK)
      {
-       free(tiles);
+       delete []tiles;
        throw Ali3DException("Failed to lock vertex buffer");
      }
   }
@@ -1737,12 +1754,12 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
 
   if (vertices != NULL)
   {
-    ddb->_vertex->Unlock();
+      txdata->_vertex->Unlock();
   }
 
-  ddb->_numTiles = numTiles;
-  ddb->_tiles = tiles;
-  return ddb;
+  txdata->_numTiles = numTiles;
+  txdata->_tiles = tiles;
+  return txdata;
 }
 
 void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)

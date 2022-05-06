@@ -85,15 +85,7 @@ public:
     int GetWidthToRender() { return _stretchToWidth; }
     int GetHeightToRender() { return _stretchToHeight; }
 
-    void Dispose()
-    {
-        // do we want to free the bitmap?
-    }
-
-    ~ALSoftwareBitmap() override
-    {
-        Dispose();
-    }
+    ~ALSoftwareBitmap() override = default;
 };
 
 

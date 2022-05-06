@@ -44,22 +44,32 @@ using Common::Bitmap;
 using Common::String;
 using Common::Version;
 
-typedef struct _OGLVECTOR {
-    float x;
-    float y;
-} OGLVECTOR2D;
-
+struct OGLVECTOR2D
+{
+    float x = 0.f;
+    float y = 0.f;
+};
 
 struct OGLCUSTOMVERTEX
 {
     OGLVECTOR2D position;
-    float tu;
-    float tv;
+    float tu = 0.f;
+    float tv = 0.f;
 };
 
 struct OGLTextureTile : public TextureTile
 {
-    unsigned int texture;
+    unsigned int texture = 0;
+};
+
+// Full OpenGL texture data
+struct OGLTextureData : TextureData
+{
+    OGLCUSTOMVERTEX *_vertex = nullptr;
+    OGLTextureTile *_tiles = nullptr;
+    size_t _numTiles = 0;
+
+    ~OGLTextureData();
 };
 
 class OGLBitmap : public BaseDDB
@@ -84,9 +94,7 @@ public:
     }
 
     // OpenGL texture data
-    OGLCUSTOMVERTEX* _vertex;
-    OGLTextureTile *_tiles;
-    int _numTiles;
+    std::shared_ptr<OGLTextureData> _data;
 
     // Drawing parameters
     bool _flipped;
@@ -99,10 +107,6 @@ public:
 
     OGLBitmap(int width, int height, int colDepth, bool opaque)
     {
-        _vertex = nullptr;
-        _tiles = nullptr;
-        _numTiles = 0;
-
         _width = width;
         _height = height;
         _colDepth = colDepth;
@@ -121,12 +125,7 @@ public:
     int GetWidthToRender() const { return _stretchToWidth; }
     int GetHeightToRender() const { return _stretchToHeight; }
 
-    void Dispose();
-
-    ~OGLBitmap() override
-    {
-        Dispose();
-    }
+    ~OGLBitmap() override = default;
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
@@ -212,7 +211,16 @@ public:
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha) override;
+    // Create texture data with the given parameters
+    TextureData *CreateTextureData(int width, int height, bool opaque) override;
+    // Update texture data from the given bitmap
+    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
+    // Create DDB using preexisting texture data
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
+        int width, int height, int color_depth, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void RenderToBackBuffer() override;
@@ -315,7 +323,7 @@ private:
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
+    void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,

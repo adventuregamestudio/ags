@@ -4,8 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "script/cc_options.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 #include "script2/cc_symboltable.h"
 #include "script2/cc_internallist.h"
@@ -35,8 +34,7 @@ int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
     if (error_code >= 0)
     {
         // Here if there weren't any errors.
-        ccError = 0;
-        ccErrorLine = 0;
+        cc_clear_error();
         return error_code;
     }
 

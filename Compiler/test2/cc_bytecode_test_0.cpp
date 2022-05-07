@@ -4,7 +4,7 @@
 #include "cc_bytecode_test_lib.h"
 #include "cc_parser_test_lib.h"
 
-#include "script/cc_options.h"
+#include "script/cc_common.h"
 
 #include "script2/cs_parser.h"
 

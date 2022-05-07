@@ -11,6 +11,8 @@
 
 #include "cs_parser.h"
 
+const char *ccCurScriptName = "";
+
 ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, long const options, MessageHandler &mh)
 {
     ccCompiledScript *compiled_script =

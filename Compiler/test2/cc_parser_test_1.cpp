@@ -4,8 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "script/cc_options.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 #include "script2/cc_symboltable.h"
 #include "script2/cc_internallist.h"

@@ -15,11 +15,9 @@ see the license.txt for details.
 #include "NativeMethods.h"
 #include "NativeUtils.h"
 #include "scripting.h"
-//#include "cscomp.h"
 #include "script/cs_compiler.h"
 #include "script2/cs_compiler.h"
-#include "script/cc_options.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
@@ -119,9 +117,10 @@ namespace AGS
                 mainScript = tcv->Convert(preProcessedScripts[preProcessedScripts->Length - 1]);
                 mainScriptName = tcv->Convert(script->FileName);
                 scrpt = ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr());
-                if ((scrpt == NULL) || (ccError != 0))
+                if ((scrpt == NULL) || (cc_has_error()))
                 {
-                    compile_error = gcnew CompileError(tcv->Convert(ccErrorString), TextHelper::ConvertASCII(ccCurScriptName), ccErrorLine);
+                    auto &error = cc_get_error();
+                    compile_error = gcnew CompileError(tcv->Convert(error.ErrorString), TextHelper::ConvertASCII(ccCurScriptName), error.Line);
                 }
             }
 

@@ -19,7 +19,6 @@
 #include "main/game_file.h"
 #include "ac/common.h"
 #include "ac/character.h"
-#include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
 #include "ac/game.h"
@@ -39,7 +38,7 @@
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/script.h"
 #include "util/alignedstream.h"
 #include "util/stream.h"
@@ -127,7 +126,7 @@ static inline HError MakeScriptLoadError(const char *name)
 {
     return new Error(String::FromFormat(
         "Failed to load a script module: %s", name),
-        ccErrorString);
+        cc_get_error().ErrorString);
 }
 
 // Looks up for the game scripts available as separate assets.

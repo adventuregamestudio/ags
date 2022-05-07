@@ -22,7 +22,7 @@
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/cc_script.h"
 #include "util/compress.h"
 #include "util/data_ext.h"
@@ -265,7 +265,7 @@ HError ReadCompSc3Block(RoomStruct *room, Stream *in, RoomFileVersion /*data_ver
 {
     room->CompiledScript.reset(ccScript::CreateFromStream(in));
     if (room->CompiledScript == nullptr)
-        return new RoomFileError(kRoomFileErr_ScriptLoadFailed, ccErrorString);
+        return new RoomFileError(kRoomFileErr_ScriptLoadFailed, cc_get_error().ErrorString);
     return HError::None();
 }
 

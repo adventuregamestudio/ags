@@ -33,7 +33,6 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
-#include "util/math.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
 #include "util/wgt2allg.h"
@@ -42,7 +41,6 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
-extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
@@ -307,7 +305,7 @@ void InventoryScreen::Draw(Bitmap *ds)
         wputblock(ds, barxp+1+((i-top_item)%4)*widest+widest/2-spof->GetWidth()/2,
             bartop+1+((i-top_item)/4)*highest+highest/2-spof->GetHeight()/2,spof,1);
     }
-#define BUTTONWID Math::Max(1, game.SpriteInfos[btn_select_sprite].Width)
+#define BUTTONWID std::max(1, game.SpriteInfos[btn_select_sprite].Width)
     // Draw select, look and OK buttons
     wputblock(ds, 2, buttonyp + 2, spriteset[btn_look_sprite], 1);
     wputblock(ds, 3+BUTTONWID, buttonyp + 2, spriteset[btn_select_sprite], 1);

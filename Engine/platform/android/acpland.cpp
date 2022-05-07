@@ -43,6 +43,7 @@ struct AGSAndroid : AGSPlatformDriver
   void MainInit() override;
   void PostBackendExit() override;
   const char *GetGameDataFile() override;
+  void ReadConfiguration(ConfigTree &cfg) override;
   void Delay(int millis) override;
   void DisplayAlert(const char*, ...) override;
   FSLocation GetAllUsersDataDirectory() override;
@@ -53,14 +54,19 @@ struct AGSAndroid : AGSPlatformDriver
   eScriptSystemOSID GetSystemOSID() override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
+
+  static MobileSetup &GetMobileSetup() { return _msetup; }
+
+private:
+  static MobileSetup _msetup; // static for the use from JNI callbacks
 };
+
+MobileSetup AGSAndroid::_msetup;
 
 
 String android_base_directory = ".";
 String android_app_directory = ".";
 String android_save_directory = "";
-char psp_game_file_name[256];
-char* psp_game_file_name_pointer = psp_game_file_name;
 
 // NOTE: the JVM can't use JNI outside here due to C++ name mangling
 extern "C" 
@@ -95,16 +101,16 @@ JNIEXPORT jboolean JNICALL
   chdir(cdirectory);
   env->ReleaseStringUTFChars(directory, cdirectory);
 
-  ResetConfiguration();
+  ResetConfiguration(AGSAndroid::GetMobileSetup());
 
-  return ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
+  return ReadConfiguration(AGSAndroid::GetMobileSetup(), ANDROID_CONFIG_FILENAME, true);
 }
 
 
 JNIEXPORT jboolean JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object)
 {
-  return WriteConfiguration(ANDROID_CONFIG_FILENAME);
+  return WriteConfiguration(AGSAndroid::GetMobileSetup(), ANDROID_CONFIG_FILENAME);
 }
 
 
@@ -112,71 +118,51 @@ JNIEXPORT jint JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readIntConfigValue(JNIEnv* env,
                                                                                  jclass object, jint id)
 {
+  const auto &setup = AGSAndroid::GetMobileSetup();
   switch (id)
   {
     case CONFIG_IGNORE_ACSETUP:
-      return psp_ignore_acsetup_cfg_file;
-      break;
+      return setup.ignore_acsetup_cfg_file;
     case CONFIG_CLEAR_CACHE:
-      return psp_clear_cache_on_room_change;
-      break;
+      return setup.clear_cache_on_room_change;
     case CONFIG_AUDIO_RATE:
-      return psp_audio_samplerate;
-      break;
+      return setup.audio_samplerate;
     case CONFIG_AUDIO_ENABLED:
-      return psp_audio_enabled;
-      break;
+      return setup.audio_enabled;
     case CONFIG_AUDIO_THREADED:
-      return psp_audio_multithreaded;
-      break;
+      return setup.audio_multithreaded;
     case CONFIG_AUDIO_CACHESIZE:
-      return psp_audio_cachesize;
-      break;
+      return setup.audio_cachesize;
     case CONFIG_MIDI_ENABLED:
-      return psp_midi_enabled;
-      break;
+      return setup.midi_enabled;
     case CONFIG_MIDI_PRELOAD:
-      return psp_midi_preload_patches;
-      break;
+      return setup.midi_preload_patches;
     case CONFIG_VIDEO_FRAMEDROP:
-      return psp_video_framedrop;
-      break;
+      return setup.video_framedrop;
     case CONFIG_GFX_RENDERER:
-      return psp_gfx_renderer;
-      break;
+      return setup.gfx_renderer;
     case CONFIG_GFX_SMOOTHING:
-      return psp_gfx_smoothing;
-      break;
+      return setup.gfx_smoothing;
     case CONFIG_GFX_SCALING:
-      return psp_gfx_scaling;
-      break;
+      return setup.gfx_scaling;
     case CONFIG_GFX_SS:
-      return psp_gfx_super_sampling;
-      break;
+      return setup.gfx_super_sampling;
     case CONFIG_GFX_SMOOTH_SPRITES:
-      return psp_gfx_smooth_sprites;
-      break;
+      return setup.gfx_smooth_sprites;
     case CONFIG_ROTATION:
-      return psp_rotation;
-      break;
+      return setup.rotation;
     case CONFIG_ENABLED:
-      return psp_config_enabled;
-      break;
+      return setup.config_enabled;
     case CONFIG_DEBUG_FPS:
-      return (display_fps == 2) ? 1 : 0;
-      break;
+      return setup.show_fps;
     case CONFIG_DEBUG_LOGCAT:
-      return psp_debug_write_to_logcat;
-      break;
+      return setup.debug_write_to_logcat;
     case CONFIG_MOUSE_METHOD:
-      return config_mouse_control_mode;
-      break;
+      return setup.mouse_control_mode;
     case CONFIG_MOUSE_LONGCLICK:
-      return config_mouse_longclick;
-      break;
+      return setup.mouse_longclick;
     default:
       return 0;
-      break;
   }
 }
 
@@ -185,11 +171,13 @@ JNIEXPORT jstring JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readStringConfigValue(JNIEnv* env,
                                                                                     jclass object, jint id)
 {
+  const auto &setup = AGSAndroid::GetMobileSetup();
   switch (id)
   {
     case CONFIG_TRANSLATION:
-      return env->NewStringUTF(&psp_translation[0]);
-      break;
+      return env->NewStringUTF(setup.translation.GetCStr());
+    default:
+      return nullptr;
   }
 }
 
@@ -197,67 +185,68 @@ JNIEXPORT jstring JNICALL
 JNIEXPORT void JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setIntConfigValue(JNIEnv* env, jobject object, jint id, jint value)
 {
+  auto &setup = AGSAndroid::GetMobileSetup();
   switch (id)
   {
     case CONFIG_IGNORE_ACSETUP:
-      psp_ignore_acsetup_cfg_file = value;
+      setup.ignore_acsetup_cfg_file = value;
       break;
     case CONFIG_CLEAR_CACHE:
-      psp_clear_cache_on_room_change = value;
+      setup.clear_cache_on_room_change = value;
       break;
     case CONFIG_AUDIO_RATE:
-      psp_audio_samplerate = value;
+      setup.audio_samplerate = value;
       break;
     case CONFIG_AUDIO_ENABLED:
-      psp_audio_enabled = value;
+      setup.audio_enabled = value;
       break;
     case CONFIG_AUDIO_THREADED:
-      psp_audio_multithreaded = value;
+      setup.audio_multithreaded = value;
       break;
     case CONFIG_AUDIO_CACHESIZE:
-      psp_audio_cachesize = value;
+      setup.audio_cachesize = value;
       break;
     case CONFIG_MIDI_ENABLED:
-      psp_midi_enabled = value;
+      setup.midi_enabled = value;
       break;
     case CONFIG_MIDI_PRELOAD:
-      psp_midi_preload_patches = value;
+      setup.midi_preload_patches = value;
       break;
     case CONFIG_VIDEO_FRAMEDROP:
-      psp_video_framedrop = value;
+      setup.video_framedrop = value;
       break;
     case CONFIG_GFX_RENDERER:
-      psp_gfx_renderer = value;
+      setup.gfx_renderer = value;
       break;
     case CONFIG_GFX_SMOOTHING:
-      psp_gfx_smoothing = value;
+      setup.gfx_smoothing = value;
       break;
     case CONFIG_GFX_SCALING:
-      psp_gfx_scaling = value;
+      setup.gfx_scaling = value;
       break;
     case CONFIG_GFX_SS:
-      psp_gfx_super_sampling = value;
+      setup.gfx_super_sampling = value;
       break;
     case CONFIG_GFX_SMOOTH_SPRITES:
-      psp_gfx_smooth_sprites = value;
+      setup.gfx_smooth_sprites = value;
       break;
     case CONFIG_ROTATION:
-      psp_rotation = value;
+      setup.rotation = value;
       break;
     case CONFIG_ENABLED:
-      psp_config_enabled = value;
+      setup.config_enabled = value;
       break;
     case CONFIG_DEBUG_FPS:
-      display_fps = (value == 1) ? 2 : 0;
+      setup.show_fps = value;
       break;
     case CONFIG_DEBUG_LOGCAT:
-      psp_debug_write_to_logcat = value;
+      setup.debug_write_to_logcat = value;
       break;
     case CONFIG_MOUSE_METHOD:
-      config_mouse_control_mode = value;
+      setup.mouse_control_mode = value;
       break;
     case CONFIG_MOUSE_LONGCLICK:
-      config_mouse_longclick = value;
+      setup.mouse_longclick = value;
       break;
     default:
       break;
@@ -270,10 +259,11 @@ JNIEXPORT void JNICALL
 {
   const char* cstring = env->GetStringUTFChars(value, NULL);
 
+  auto &setup = AGSAndroid::GetMobileSetup();
   switch (id)
   {
     case CONFIG_TRANSLATION:
-      strcpy(psp_translation, cstring);
+      setup.translation = cstring;
       break;
     default:
       break;
@@ -304,8 +294,6 @@ JNIEXPORT jint JNICALL
         {
           memset(buffer, 0, 200);
           strncpy(buffer, entry->d_name, length - 4);
-          psp_translations[i] = (char*)malloc(strlen(buffer) + 1);
-          strcpy(psp_translations[i], buffer);
           env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0]));
           i++;
         }
@@ -336,12 +324,14 @@ void AGSAndroid::MainInit()
     // find the Java class of the activity.
     jclass clazz(env->GetObjectClass(activity));
 
+    auto &setup = AGSAndroid::GetMobileSetup();
+
     jfieldID fid_game_file_name = env->GetFieldID(clazz, "_game_file_name", "Ljava/lang/String;");
     jobject jobj_game_file_name = env->GetObjectField(activity, fid_game_file_name);
     const char * _game_file_name =
         env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
     if(_game_file_name != nullptr) {
-        strcpy(psp_game_file_name, _game_file_name);
+        setup.game_file_name = _game_file_name;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_game_file_name), _game_file_name);
 
@@ -368,13 +358,13 @@ void AGSAndroid::MainInit()
     bool loadLastSave = jbool_loadLastSave;
 
     // Reset configuration.
-    ResetConfiguration();
+    ResetConfiguration(setup);
 
     // Read general configuration.
-    ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
+    ::ReadConfiguration(setup, ANDROID_CONFIG_FILENAME, true);
 
     // Get the games path.
-    String path = psp_game_file_name;
+    String path = setup.game_file_name;
     path = Path::GetDirectoryPath(path);
     if(path != "./" && path.GetLength() > 1) {
       chdir(path.GetCStr());
@@ -384,14 +374,14 @@ void AGSAndroid::MainInit()
     }
 
     // Read game specific configuration.
-    ReadConfiguration(ANDROID_CONFIG_FILENAME, false);
+    ::ReadConfiguration(setup, ANDROID_CONFIG_FILENAME, false);
 
-    if (config_mouse_longclick > 0) {
+    if (setup.mouse_longclick > 0) {
         jmethodID method_id = env->GetMethodID(clazz, "AgsEnableLongclick", "()V");
         env->CallVoidMethod(activity, method_id);
     }
 
-    psp_load_latest_savegame = loadLastSave;
+    setup.load_latest_savegame = loadLastSave;
 
     // clean up the local references.
     env->DeleteLocalRef(activity);
@@ -406,23 +396,28 @@ bool IsValidAgsGame(const String& filename)
           IsMainGameLibrary(filename));
 }
 
-const char * AGSAndroid::GetGameDataFile()
+const char *AGSAndroid::GetGameDataFile()
 {
   AAssetManager* assetManager = GetAAssetManager();
   AAssetDir* aAssetDir = AAssetManager_openDir(assetManager,"");
 
-  psp_game_file_name[0] = '\0';
+  _msetup.game_file_name = "";
 
   for(String f = AAssetDir_getNextFileName(aAssetDir); !f.IsNullOrSpace(); f = AAssetDir_getNextFileName(aAssetDir))
   {
     if(IsValidAgsGame(f))
     {
-      strcpy(psp_game_file_name, f.GetCStr());
+      _msetup.game_file_name = f;
       break;
     }
   }
   AAssetDir_close(aAssetDir);
-  return psp_game_file_name;
+  return _msetup.game_file_name.GetCStr();
+}
+
+void AGSAndroid::ReadConfiguration(ConfigTree &cfg)
+{
+  ApplyEngineConfiguration(_msetup, cfg);
 }
 void AGSAndroid::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
@@ -453,7 +448,7 @@ void AGSAndroid::PostBackendExit() {
 void AGSAndroid::WriteStdOut(const char *fmt, ...)
 {
   // TODO: this check should probably be done once when setting up output targets for logging
-  if (psp_debug_write_to_logcat)
+  if (_msetup.debug_write_to_logcat)
   {
     va_list args;
     va_start(args, fmt);
@@ -466,7 +461,7 @@ void AGSAndroid::WriteStdOut(const char *fmt, ...)
 void AGSAndroid::WriteStdErr(const char *fmt, ...)
 {
   // TODO: find out if Android needs separate implementation for stderr
-  if (psp_debug_write_to_logcat)
+  if (_msetup.debug_write_to_logcat)
   {
     va_list args;
     va_start(args, fmt);

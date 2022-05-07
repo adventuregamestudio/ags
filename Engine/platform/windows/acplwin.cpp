@@ -424,8 +424,8 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     AdjustWindowRect(&nc_rc, winstyle, FALSE);
     // Limit the window's full size to the system's window size limit,
     // and limit window's client size to the work space (visible area)
-    x = Math::Min(x, (int)(max_win.Width - (nc_rc.right - nc_rc.left)));
-    y = Math::Min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
+    x = std::min(x, (int)(max_win.Width - (nc_rc.right - nc_rc.left)));
+    y = std::min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
     x = Math::Clamp(x, 1, (int)(wa_rc.right - wa_rc.left));
     y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
 }

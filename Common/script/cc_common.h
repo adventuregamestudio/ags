@@ -12,12 +12,13 @@
 //
 //=============================================================================
 //
-// 'C'-style script compiler
+// Script options and error reporting.
 //
 //=============================================================================
+#ifndef __CC_COMMON_H
+#define __CC_COMMON_H
 
-#ifndef __CC_OPTIONS_H
-#define __CC_OPTIONS_H
+#include "util/string.h"
 
 #define SCOPT_EXPORTALL      1   // export all functions automatically
 #define SCOPT_SHOWWARNINGS   2   // printf warnings to console
@@ -33,4 +34,25 @@
 extern void ccSetOption(int, int);
 extern int ccGetOption(int);
 
-#endif
+// error reporting
+
+struct ScriptError
+{
+    bool HasError = false; // set if error occurs
+    bool IsUserError = false; // marks script use errors
+    AGS::Common::String ErrorString; // description of the error
+    int Line = 0;  // line number of the error
+    AGS::Common::String CallStack; // callstack where error happened
+};
+
+void cc_clear_error();
+bool cc_has_error();
+const ScriptError &cc_get_error();
+void cc_error(const char *, ...);
+void cc_error(const ScriptError &err);
+// Project-dependent script error formatting
+AGS::Common::String cc_format_error(const AGS::Common::String &message);
+
+extern int currentline;
+
+#endif // __CC_COMMON_H

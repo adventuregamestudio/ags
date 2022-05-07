@@ -159,7 +159,7 @@ void String::WriteCount(Stream *out, size_t count) const
 {
     if (out)
     {
-        size_t str_out_len = Math::Min(count - 1, _len);
+        size_t str_out_len = std::min(count - 1, _len);
         if (str_out_len > 0)
             out->Write(_cstr, str_out_len);
         size_t null_out_len = count - str_out_len;
@@ -193,14 +193,14 @@ int String::CompareLeftNoCase(const char *cstr, size_t count) const
 int String::CompareMid(const char *cstr, size_t from, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    from = Math::Min(from, _len);
+    from = std::min(from, _len);
     return strncmp(_cstr + from, cstr, count != NoIndex ? count : strlen(cstr));
 }
 
 int String::CompareMidNoCase(const char *cstr, size_t from, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    from = Math::Min(from, _len);
+    from = std::min(from, _len);
     return ags_strnicmp(_cstr + from, cstr, count != NoIndex ? count : strlen(cstr));
 }
 
@@ -208,7 +208,7 @@ int String::CompareRight(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
     count = count != NoIndex ? count : strlen(cstr);
-    size_t off = Math::Min(_len, count);
+    size_t off = std::min(_len, count);
     return strncmp(_cstr + _len - off, cstr, count);
 }
 
@@ -216,7 +216,7 @@ int String::CompareRightNoCase(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
     count = count != NoIndex ? count : strlen(cstr);
-    size_t off = Math::Min(_len, count);
+    size_t off = std::min(_len, count);
     return ags_strnicmp(_cstr + _len - off, cstr, count);
 }
 
@@ -237,7 +237,7 @@ size_t String::FindCharReverse(char c, size_t from) const
         return NoIndex;
     }
 
-    from = Math::Min(from, _len - 1);
+    from = std::min(from, _len - 1);
     const char *seek_ptr = _cstr + from;
     while (seek_ptr >= _cstr)
     {
@@ -376,7 +376,7 @@ String String::Upper() const
 
 String String::Left(size_t count) const
 {
-    count = Math::Min(count, _len);
+    count = std::min(count, _len);
     return count == _len ? *this : String(_cstr, count);
 }
 
@@ -388,7 +388,7 @@ String String::Mid(size_t from, size_t count) const
 
 String String::Right(size_t count) const
 {
-    count = Math::Min(count, _len);
+    count = std::min(count, _len);
     return count == _len ? *this : String(_cstr + _len - count, count);
 }
 
@@ -464,7 +464,7 @@ void String::Reserve(size_t max_length)
         {
             // grow by 50%
             size_t grow_length = _bufHead->Capacity + (_bufHead->Capacity / 2);
-            Copy(Math::Max(max_length, grow_length));
+            Copy(std::max(max_length, grow_length));
         }
     }
     else
@@ -547,7 +547,7 @@ void String::ClipLeft(size_t count)
 {
     if ((_len != 0) && (count > 0))
     {
-        count = Math::Min(count, _len);
+        count = std::min(count, _len);
         BecomeUnique();
         _len -= count;
         _cstr += count;
@@ -558,7 +558,7 @@ void String::ClipMid(size_t from, size_t count)
 {
     if (from < _len)
     {
-        count = Math::Min(count, _len - from);
+        count = std::min(count, _len - from);
         if (count > 0)
         {
             BecomeUnique();
@@ -586,7 +586,7 @@ void String::ClipRight(size_t count)
 {
     if (_len > 0 && count > 0)
     {
-        count = Math::Min(count, _len);
+        count = std::min(count, _len);
         BecomeUnique();
         _len -= count;
         _cstr[_len] = 0;
@@ -885,7 +885,7 @@ void String::SetString(const char *cstr, size_t length)
 {
     if (cstr)
     {
-        length = Math::Min(length, strlen(cstr));
+        length = std::min(length, strlen(cstr));
         if (length > 0)
         {
             ReserveAndShift(false, Math::Surplus(length, _len));
@@ -964,7 +964,7 @@ void String::TruncateToLeft(size_t count)
 {
     if (_len != 0)
     {
-        count = Math::Min(count, _len);
+        count = std::min(count, _len);
         if (count < _len)
         {
             BecomeUnique();
@@ -993,7 +993,7 @@ void String::TruncateToRight(size_t count)
 {
     if (_len != 0)
     {
-        count = Math::Min(count, _len);
+        count = std::min(count, _len);
         if (count < _len)
         {
             BecomeUnique();
@@ -1109,7 +1109,7 @@ void String::Copy(size_t max_length, size_t offset)
     char *new_data = new char[sizeof(String::BufHeader) + max_length + 1];
     // remember, that _cstr may point to any address in buffer
     char *cstr_head = new_data + sizeof(String::BufHeader) + offset;
-    size_t copy_length = Math::Min(_len, max_length);
+    size_t copy_length = std::min(_len, max_length);
     memcpy(cstr_head, _cstr, copy_length);
     Free();
     _buf = new_data;
@@ -1151,7 +1151,7 @@ void String::ReserveAndShift(bool left, size_t more_length)
         { // not enough capacity - reallocate buffer
             // grow by 50% or at least to total_size
             size_t grow_length = _bufHead->Capacity + (_bufHead->Capacity >> 1);
-            Copy(Math::Max(total_length, grow_length), left ? more_length : 0u);
+            Copy(std::max(total_length, grow_length), left ? more_length : 0u);
         }
         else if (_bufHead->RefCount > 1)
         { // is a shared string - clone buffer

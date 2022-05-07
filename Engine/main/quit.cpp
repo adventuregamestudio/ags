@@ -42,6 +42,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/plugin_engine.h"
+#include "script/cc_common.h"
 #include "media/audio/audio_system.h"
 #include "media/video/video.h"
 
@@ -129,7 +130,7 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
                 "(ACI version %s)\n\n", EngineVersion.LongString.GetCStr());
         }
 
-        alertis.Append(get_cur_script(5));
+        alertis.Append(cc_get_error().CallStack);
 
         if (qreason != kQuit_UserAbort)
             alertis.Append("\nError: ");
@@ -142,7 +143,7 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
         qmsg++;
         alertis.Format("A warning has been generated. This is not normally fatal, but you have selected "
             "to treat warnings as errors.\n"
-            "(ACI version %s)\n\n%s\n", EngineVersion.LongString.GetCStr(), get_cur_script(5).GetCStr());
+            "(ACI version %s)\n\n%s\n", EngineVersion.LongString.GetCStr(), cc_get_error().CallStack.GetCStr());
         return kQuit_GameWarning;
     }
     else

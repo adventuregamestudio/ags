@@ -46,7 +46,7 @@
 #include "gui/guitextbox.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/script.h"
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
 #include "media/audio/audio_system.h"
@@ -61,7 +61,6 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
 extern Bitmap *raw_saved_screen;
-extern MoveList *mls;
 
 
 namespace AGS
@@ -550,7 +549,7 @@ HSaveError WriteGUI(Stream *out)
     size_t num_abuts = GetAnimatingButtonCount();
     out->WriteInt32(num_abuts);
     for (size_t i = 0; i < num_abuts; ++i)
-        GetAnimatingButtonByIndex(i)->WriteToFile(out);
+        GetAnimatingButtonByIndex(i)->WriteToSavegame(out);
     return HSaveError::None();
 }
 
@@ -616,7 +615,7 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, R
     for (int i = 0; i < anim_count; ++i)
     {
         AnimatingGUIButton abut;
-        abut.ReadFromFile(in, cmp_ver);
+        abut.ReadFromSavegame(in, cmp_ver);
         AddButtonAnimation(abut);
     }
     return err;
@@ -762,7 +761,8 @@ HSaveError WriteOverlays(Stream *out)
     for (const auto &over : screenover)
     {
         over.WriteToFile(out);
-        serialize_bitmap(over.pic, out);
+        if (!over.IsSpriteReference())
+            serialize_bitmap(over.GetImage(), out);
     }
     return HSaveError::None();
 }
@@ -776,11 +776,11 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         bool has_bitmap;
         over.ReadFromFile(in, has_bitmap, cmp_ver);
         if (has_bitmap)
-            over.pic = read_serialized_bitmap(in);
+            over.SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)));
         if (over.scaleWidth <= 0 || over.scaleHeight <= 0)
         {
-            over.scaleWidth = over.pic->GetWidth();
-            over.scaleHeight = over.pic->GetHeight();
+            over.scaleWidth = over.GetImage()->GetWidth();
+            over.scaleHeight = over.GetImage()->GetHeight();
         }
         screenover.push_back(std::move(over));
     }
@@ -1026,7 +1026,8 @@ HSaveError ReadManagedPool(Stream *in, int32_t /*cmp_ver*/, const PreservedParam
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Managed pool deserialization failed: %s", ccErrorString.GetCStr()));
+            String::FromFormat("Managed pool deserialization failed: %s",
+                cc_get_error().ErrorString.GetCStr()));
     }
     return HSaveError::None();
 }

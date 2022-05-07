@@ -106,13 +106,11 @@ target_sources(common
     gui/guislider.h
     gui/guitextbox.cpp
     gui/guitextbox.h
-    script/cc_error.cpp
-    script/cc_error.h
-    script/cc_options.cpp
-    script/cc_options.h
+    script/cc_common.cpp
+    script/cc_common.h
+    script/cc_internal.h
     script/cc_script.cpp
     script/cc_script.h
-    script/script_common.h
     util/aasset_stream.cpp
     util/aasset_stream.h
     util/android_file.cpp

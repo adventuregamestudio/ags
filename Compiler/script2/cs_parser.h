@@ -46,7 +46,7 @@ The result is:
 #include "cc_compiledscript.h"
 #include "cc_internallist.h"
 #include "cc_symboltable.h"
-#include "script/script_common.h"
+#include "script/cc_internal.h"
 
 namespace AGS
 {

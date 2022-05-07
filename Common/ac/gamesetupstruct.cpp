@@ -116,7 +116,7 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
         {
             fonts[i].YOffset = in->ReadInt32();
             if (data_ver >= kGameVersion_341_2)
-                fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
+                fonts[i].LineSpacing = std::max(0, in->ReadInt32());
         }
     }
     else
@@ -127,7 +127,7 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
             fonts[i].Size = in->ReadInt32();
             fonts[i].Outline = in->ReadInt32();
             fonts[i].YOffset = in->ReadInt32();
-            fonts[i].LineSpacing = Math::Max(0, in->ReadInt32());
+            fonts[i].LineSpacing = std::max(0, in->ReadInt32());
             AdjustFontInfoUsingFlags(fonts[i], flags);
         }
     }

@@ -15,9 +15,8 @@
 // 'C'-style script compiler
 //
 //=============================================================================
-
-#ifndef __CS_COMMON_H
-#define __CS_COMMON_H
+#ifndef __CC_INTERNAL_H
+#define __CC_INTERNAL_H
 
 #define SCOM_VERSION 90
 #define SCOM_VERSIONSTR "0.90"
@@ -122,10 +121,10 @@
 
 
 
-
-extern int currentline;
 // Script file signature
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe
 
-#endif // __CS_COMMON_H
+extern const char *ccCurScriptName; // name of currently compiling script
+
+#endif // __CC_INTERNAL_H

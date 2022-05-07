@@ -233,12 +233,6 @@
     <ClCompile Include="..\..\Common\util\wgt2allg.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_error.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\script\cc_options.cpp">
-      <Filter>Source Files\script</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_script.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -527,6 +521,9 @@
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_common.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -703,16 +700,7 @@
     <ClInclude Include="..\..\Common\util\wgt2allg.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_error.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\cc_options.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_script.h">
-      <Filter>Header Files\script</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\script\script_common.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\core\asset.h">
@@ -840,6 +828,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\cmdlineopts.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_internal.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_common.h">
+      <Filter>Header Files\script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

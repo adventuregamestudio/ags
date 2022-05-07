@@ -24,7 +24,7 @@
 #include "debug/out.h"
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "util/alignedstream.h"
 #include "util/data_ext.h"
 #include "util/directory.h"
@@ -224,7 +224,7 @@ HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVers
     {
         dialog_script.reset(ccScript::CreateFromStream(in));
         if (dialog_script == nullptr)
-            return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, ccErrorString);
+            return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, cc_get_error().ErrorString);
     }
     return HGameFileError::None();
 }
@@ -239,7 +239,7 @@ HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, Game
         {
             sc_mods[i].reset(ccScript::CreateFromStream(in));
             if (sc_mods[i] == nullptr)
-                return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, ccErrorString);
+                return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, cc_get_error().ErrorString);
         }
     }
     else
@@ -318,7 +318,7 @@ void ReadDialogs(DialogTopic *&dialog, Stream *in, GameDataVersion data_ver, int
                 break;
             }
 
-            newlen = Math::Min(newlen, sizeof(buffer) - 1);
+            newlen = std::min(newlen, sizeof(buffer) - 1);
         in->Seek(newlen);// CLNUP old_speech_lines
             decrypt_text(buffer, newlen);
             i++;
@@ -649,7 +649,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     {
         ents.GlobalScript.reset(ccScript::CreateFromStream(in));
         if (!ents.GlobalScript)
-            return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, ccErrorString);
+            return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, cc_get_error().ErrorString);
         err = ReadDialogScript(ents.DialogScript, in, data_ver);
         if (!err)
             return err;

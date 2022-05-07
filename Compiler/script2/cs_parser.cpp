@@ -191,9 +191,7 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 
 #include "util/string.h"
 
-#include "script/cc_options.h"
-#include "script/script_common.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 #include "cc_internallist.h"
 #include "cc_symboltable.h"
@@ -202,8 +200,8 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 #include "cs_scanner.h"
 #include "cs_parser.h"
 
-// Declared in Common/script/script_common.h 
-// Defined in Common/script/script_common.cpp
+// Declared in Common/script/cc_common.h 
+// Defined in Common/script/cc_common.cpp
 extern int currentline;
 
 char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";

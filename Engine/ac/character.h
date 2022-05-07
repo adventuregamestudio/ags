@@ -163,7 +163,10 @@ struct MoveList;
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
-void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride = 0, int direction = 0, int sframe = 0);
+void animate_character(CharacterInfo *chap, int loopn,int sppd, int rept,
+    int noidleoverride = 0, int direction = 0, int sframe = 0, int volume = -1);
+// Clears up animation parameters
+void stop_character_anim(CharacterInfo *chap);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 int  find_looporder_index (int curloop);
 // returns 0 to use diagonal, 1 to not
@@ -214,8 +217,6 @@ Rect GetCharacterRoomBBox(int charid, bool use_frame_0 = false);
 PViewport FindNearestViewport(int charid);
 
 extern CharacterInfo*playerchar;
-extern CharacterExtras *charextra;
-extern MoveList *mls;
 extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down

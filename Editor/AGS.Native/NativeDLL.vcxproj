@@ -183,7 +183,6 @@
     <ClCompile Include="..\Native\acfonts_agsnative.cpp" />
     <ClCompile Include="..\Native\acgui_agsnative.cpp" />
     <ClCompile Include="..\Native\color_native.cpp" />
-    <ClCompile Include="..\Native\script_agsnative.cpp" />
     <ClCompile Include="..\Native\sprcache_agsnative.cpp" />
     <ClCompile Include="..\scintilla\lexers\LexCPP.cxx" />
     <ClCompile Include="..\scintilla\lexlib\Accessor.cxx" />

@@ -13,17 +13,10 @@
 //=============================================================================
 
 //
-// Entry point of the application here.
-//
-//
-// For Windows main() function is really called _mangled_main and is called
-// not by system, but from insides of allegro library.
-// (See allegro\platform\alwin.h)
-// What about other platforms?
+// Entry point of the application.
 //
 
 #include "core/platform.h"
-#define AGS_PLATFORM_DEFINES_PSP_VARS (AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID)
 #include <set>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
@@ -77,22 +70,6 @@ bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
-
-#if ! AGS_PLATFORM_DEFINES_PSP_VARS
-int psp_video_framedrop = 1;
-int psp_ignore_acsetup_cfg_file = 0;
-int psp_clear_cache_on_room_change = 0; // clear --sprite cache-- when room is unloaded
-int psp_rotation = 0;
-
-char psp_game_file_name[] = "";
-char psp_translation[] = "default";
-
-int psp_gfx_renderer = 0;
-int psp_gfx_scaling = 1;
-int psp_gfx_smoothing = 0;
-int psp_gfx_super_sampling = 1;
-int psp_gfx_smooth_sprites = 0;
-#endif
 
 // CLNUP check this stuff
 // this needs to be updated if the "play" struct changes
@@ -311,9 +288,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             ee += 2;
         }
         else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)
-        {
-            CfgWriteString(cfg, "misc", "clear_cache_on_room_change", "1");
-        }
+            cfg["misc"]["clear_cache_on_room_change"] = "1";
         else if (ags_strnicmp(arg, "--tell", 6) == 0) {
             if (arg[6] == 0)
                 tellInfoKeys.insert(String("all"));
@@ -332,28 +307,23 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--fullscreen") == 0)
             cfg["graphics"]["windowed"] = "0";
         else if ((ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
-        {
-            CfgWriteString(cfg, "graphics", "driver", argv[++ee]);
-        }
+            cfg["graphics"]["driver"] = argv[++ee];
         else if ((ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
             // NOTE: we make an assumption here that if user provides scaling factor,
             // this factor means to be applied to windowed mode only.
-            CfgWriteString(cfg, "graphics", "filter", argv[++ee]);
+            cfg["graphics"]["filter"] = argv[++ee];
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
-                CfgWriteString(cfg, "graphics", "game_scale_win", argv[++ee]);
+                cfg["graphics"]["game_scale_win"] = argv[++ee];
             else
-                CfgWriteString(cfg, "graphics", "game_scale_win", "max_round");
+                cfg["graphics"]["game_scale_win"] = "max_round";
         }
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
-        {
-            CfgWriteString(cfg, "language", "translation", argv[++ee]);
-        }
+            cfg["language"]["translation"] = argv[++ee];
         else if (ags_stricmp(arg, "--no-translation") == 0)
-        {
-            CfgWriteString(cfg, "language", "translation", "");
-        }
-        else if (ags_stricmp(arg, "--fps") == 0) display_fps = kFPS_Forced;
+            cfg["language"]["translation"] = "";
+        else if (ags_stricmp(arg, "--fps") == 0)
+            cfg["misc"]["show_fps"] = "1";
         else if (ags_stricmp(arg, "--test") == 0) debug_flags |= DBG_DEBUGMODE;
         else if (ags_stricmp(arg, "--noiface") == 0) debug_flags |= DBG_NOIFACE;
         else if (ags_stricmp(arg, "--nosprdisp") == 0) debug_flags |= DBG_NODRAWSPRITES;
@@ -364,9 +334,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if (ags_stricmp(arg, "--noscript") == 0) debug_flags |= DBG_NOSCRIPT;
         else if (ags_stricmp(arg, "--novideo") == 0) debug_flags |= DBG_NOVIDEO;
         else if (ags_stricmp(arg, "--rotation") == 0 && (argc > ee + 1))
-        {
-            CfgWriteString(cfg, "graphics", "rotation", argv[++ee]);
-        }
+            cfg["graphics"]["rotation"] = argv[++ee];
         else if (ags_strnicmp(arg, "--log-", 6) == 0 && arg[6] != 0)
         {
             String logarg = arg + 6;
@@ -391,11 +359,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
     if (datafile_argv > 0)
     {
         cmdGameDataPath = platform->GetCommandArg(datafile_argv);
-    }
-    else
-    {
-        // assign standard path for mobile/consoles (defined in their own platform implementation)
-        cmdGameDataPath = psp_game_file_name;
     }
 
     if (tellInfoKeys.size() > 0)

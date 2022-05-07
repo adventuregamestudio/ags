@@ -1,8 +1,8 @@
 #include <algorithm>
 #include "preproc/preprocessor.h"
+#include "script/cc_common.h"
 #include "util/textstreamwriter.h"
 #include "util/textreader.h"
-#include "script/cc_error.h"
 
 #define STRINGIFY2(X) #X
 #define STRINGIFY(X) STRINGIFY2(X)

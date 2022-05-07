@@ -1,5 +1,5 @@
 #include "ac/dynobj/scriptsystem.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 int32_t ScriptSystem::ReadInt32(const char *address, intptr_t offset)
 {

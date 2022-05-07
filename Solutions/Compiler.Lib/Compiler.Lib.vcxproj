@@ -159,11 +159,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\script\cc_common.cpp" />
     <ClCompile Include="..\..\Common\util\version.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Common\script\cc_error.cpp" />
-    <ClCompile Include="..\..\Common\script\cc_options.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Compiler\fmem.cpp" />
     <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp" />

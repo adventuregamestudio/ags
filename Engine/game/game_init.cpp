@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include "ac/character.h"
-#include "ac/charactercache.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -41,7 +40,7 @@
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -51,7 +50,6 @@
 using namespace Common;
 using namespace Engine;
 
-extern CharacterCache *charcache;
 extern std::vector<ViewStruct> views;
 
 extern CCGUIObject ccDynamicGUIObject;
@@ -463,9 +461,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // CLNUP: this stage is removed
     // 3. Allocate and init game objects
     //
-    charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
-    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
-    mls = (MoveList*)calloc(game.numcharacters + MAX_ROOM_OBJECTS + 1, sizeof(MoveList));
+    charextra.resize(game.numcharacters);
+    mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
     init_game_drawdata();
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
@@ -542,7 +539,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     scriptModules = ents.ScriptModules;
     AllocScriptModules();
     if (create_global_script())
-        return new GameInitError(kGameInitErr_ScriptLinkFailed, ccErrorString);
+        return new GameInitError(kGameInitErr_ScriptLinkFailed, cc_get_error().ErrorString);
 
     return HGameInitError::None();
 }

@@ -448,7 +448,8 @@ namespace AGS.Editor.Utils
 
             ImageFormat format = sprite.ColorDepth < 32 && !sprite.AlphaChannel ? ImageFormat.Bmp : ImageFormat.Png;
             Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
-            bmp.Save(String.Format("{0}.{1}", path, format.ToString().ToLower()), format);
+            path = string.Format("{0}.{1}", path, format.ToString().ToLower());
+            bmp.Save(path, format);
             bmp.Dispose();
 
             if (updateSourcePath)

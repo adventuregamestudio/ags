@@ -14,9 +14,10 @@
 #include <utility>
 #include <iostream>
 
+#include "compiler.h"
 #include "script/cs_compiler.h"
-#include "script/cc_options.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
 #include "util/filestream.h"
 #include "util/file.h"
 #include "util/path.h"
@@ -26,19 +27,21 @@
 #include "compiler.h"
 
 using namespace AGS::Common;
-#include "compiler.h"
 
-extern int currentline; // in script/script_common
-
-std::pair<String, String> cc_error_at_line(const char* error_msg)
+// Reimplementation of project-dependent functions from Common
+String cc_format_error(const String &message)
 {
-    return std::make_pair(String::FromFormat("Error (line %d): %s", currentline, error_msg), String());
+    if (currentline > 0)
+        return String::FromFormat("Error (line %d): %s", currentline, message.GetCStr());
+    else
+        return String::FromFormat("Error (line unknown): %s", message.GetCStr());
 }
 
-String cc_error_without_line(const char* error_msg)
+String cc_get_callstack(int max_lines)
 {
-    return String::FromFormat("Error (line unknown): %s", error_msg);
+    return "";
 }
+
 
 const char* PREFIX_SCRIPT_COMPAT = "SCRIPT_COMPAT_";
 const char* PREFIX_SCRIPT_API = "SCRIPT_API_";
@@ -246,10 +249,11 @@ int Compile(const CompilerOptions& comp_opts)
     String script_name = Path::RemoveExtension(filename);
 
     script_pp = pp.Preprocess(script_input,script_name);
-    if ((script_pp == nullptr) || (ccError != 0))
+    if ((script_pp == nullptr) || (cc_has_error()))
     {
+        const auto &error = cc_get_error();
         std::cerr << "Error: preprocessor failed at " << script_name.GetCStr() <<
-            ", line " << ccErrorLine << " : " << ccErrorString.GetCStr() << std::endl;
+            ", line " << error.Line << " : " << error.ErrorString.GetCStr() << std::endl;
         return -1;
     }
 
@@ -268,9 +272,10 @@ int Compile(const CompilerOptions& comp_opts)
     // Compile script
     //-----------------------------------------------------------------------//
     ccScript* script = ccCompileText(script_pp.GetCStr(), script_name.GetCStr());
-    if ((script == nullptr) || (ccError != 0))
+    if ((script == nullptr) || (cc_has_error()))
     {
-        std::cerr << "Error: compile failed at " << ccCurScriptName << ", line " << ccErrorLine << " : " << ccErrorString.GetCStr() << std::endl;
+        const auto &error = cc_get_error();
+        std::cerr << "Error: compile failed at " << ccCurScriptName << ", line " << error.Line << " : " << error.ErrorString.GetCStr() << std::endl;
         return -1;
     }
 

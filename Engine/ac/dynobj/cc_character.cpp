@@ -16,7 +16,7 @@
 #include "ac/global_character.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/game_version.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

@@ -29,7 +29,7 @@
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
-#include "script/cc_options.h"
+#include "script/cc_common.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "main/main.h"

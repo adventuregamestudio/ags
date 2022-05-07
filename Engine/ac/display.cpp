@@ -71,7 +71,8 @@ struct DisplayVars
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
 // pass blocking=2 to create permanent overlay
-int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont, int asspch, int isThought, int allowShrink, bool overlayPositionFixed) 
+ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont,
+    int asspch, int isThought, int allowShrink, bool overlayPositionFixed, bool roomlayer)
 {
     const bool use_speech_textwindow = (asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2);
     const bool use_thought_gui = (isThought) && (game.options[OPT_THOUGHTGUI] > 0);
@@ -248,11 +249,11 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
     default: ovrtype = disp_type; break; // must be precreated overlay id
     }
 
-    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
+    size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
     if (disp_type >= DISPLAYTEXT_NORMALOVERLAY) {
-        return screenover[nse].type;
+        return &screenover[nse];
     }
 
     //
@@ -264,7 +265,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
             remove_screen_overlay(OVER_TEXTMSG);
             play.SetWaitSkipResult(SKIP_AUTOTIMER);
             play.messagetime=-1;
-            return 0;
+            return nullptr;
         }
 
         int countdown = GetTextDisplayTime (todis);
@@ -339,7 +340,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
 
         if (!overlayPositionFixed)
         {
-            screenover[nse].positionRelativeToScreen = false;
+            screenover[nse].SetRoomRelative(true);
             VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(screenover[nse].x, screenover[nse].y, false);
             screenover[nse].x = vpt.first.X;
             screenover[nse].y = vpt.first.Y;
@@ -349,7 +350,7 @@ int _display_main(int xx, int yy, int wii, const char *text, int disp_type, int 
     }
 
     play.messagetime=-1;
-    return 0;
+    return nullptr;
 }
 
 void _display_at(int xx, int yy, int wii, const char *text, int disp_type, int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {

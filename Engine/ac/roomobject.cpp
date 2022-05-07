@@ -21,7 +21,6 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "main/update.h"
-#include "util/math.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 
@@ -97,7 +96,7 @@ void RoomObject::UpdateCyclingView(int ref_id)
       return;
 
     wait=vfptr->speed+overall_speed;
-    CheckViewFrame (view, loop, frame);
+    CheckViewFrame(view, loop, frame, anim_volume);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
@@ -126,9 +125,16 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     flags = in->ReadInt8();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
-    if (cmp_ver > 0)
+    if (cmp_ver >= 1)
     {
         name = StrUtil::ReadString(in);
+    }
+    if (cmp_ver >= 2)
+    {
+        anim_volume = in->ReadInt8();
+        in->ReadInt8(); // reserved to fill int32
+        in->ReadInt8();
+        in->ReadInt8();
     }
     if (cmp_ver >= 10)
     {
@@ -186,6 +192,11 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt16(blocking_height);
     // since version 1
     StrUtil::WriteString(name, out);
+    // since version 2
+    out->WriteInt8(anim_volume);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt8(0);
+    out->WriteInt8(0);
     // since version 10
     out->WriteInt32(blend_mode);
     // Reserved for colour options

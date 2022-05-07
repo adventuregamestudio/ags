@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
 #include "ac/button.h"
 #include "ac/common.h"
 #include "ac/gui.h"
@@ -47,7 +48,9 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
     guibuts[abtn.buttonid].MouseOverImage = 0;
 }
 
-void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe) {
+void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat,
+    int blocking, int direction, int sframe, int volume = -1)
+{
     int guin = butt->ParentId;
     int objn = butt->Id;
 
@@ -74,6 +77,8 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     if ((direction < 0) || (direction > 1))
         quit("!AnimateButton: invalid direction");
 
+    volume = std::min(volume, 100); // NOTE: negative volume means use defaults
+
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(guin, objn);
 
@@ -97,10 +102,11 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     abtn.direction = direction;
     abtn.frame = sframe;
     abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
+    abtn.volume = volume;
     animbuts.push_back(abtn);
     // launch into the first frame, and play the first frame's sound
     UpdateButtonState(abtn);
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame);
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, volume);
 
     // Blocking animate
     if (blocking)
@@ -108,7 +114,7 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
 }
 
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) {
-    Button_AnimateEx(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0);
+    Button_AnimateEx(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, -1);
 }
 
 const char* Button_GetText_New(GUIButton *butt) {
@@ -264,7 +270,7 @@ bool UpdateAnimatingButton(int bu)
     if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction,
             abtn.repeat != 0 ? ANIM_REPEAT : ANIM_ONCE))
         return false;
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame);
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.volume);
     abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     UpdateButtonState(abtn);
     return true;
@@ -365,7 +371,7 @@ RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *param
 
 RuntimeScriptValue Sc_Button_AnimateEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT7(GUIButton, Button_AnimateEx);
+    API_OBJCALL_VOID_PINT8(GUIButton, Button_AnimateEx);
 }
 
 // const char* | GUIButton *butt
@@ -502,7 +508,7 @@ RuntimeScriptValue Sc_Button_GetView(void *self, const RuntimeScriptValue *param
 void RegisterButtonAPI()
 {
     ccAddExternalObjectFunction("Button::Animate^4",            Sc_Button_Animate);
-    ccAddExternalObjectFunction("Button::Animate^7",            Sc_Button_AnimateEx);
+    ccAddExternalObjectFunction("Button::Animate^8",            Sc_Button_AnimateEx);
     ccAddExternalObjectFunction("Button::Click^1",              Sc_Button_Click);
     ccAddExternalObjectFunction("Button::GetText^1",            Sc_Button_GetText);
     ccAddExternalObjectFunction("Button::SetText^1",            Sc_Button_SetText);

@@ -40,6 +40,13 @@ void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
+    if (cmp_ver >= 2) // expanded at ver 2
+    {
+        anim_volume = in->ReadInt8();
+        cur_anim_volume = in->ReadInt8();
+        in->ReadInt8(); // reserved to fill int32
+        in->ReadInt8();
+    }
     if (cmp_ver >= 10)
     {
         blend_mode = (BlendMode)in->ReadInt32();
@@ -81,6 +88,11 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
+    // since version 2
+    out->WriteInt8(anim_volume);
+    out->WriteInt8(cur_anim_volume);
+    out->WriteInt8(0); // reserved to fill int32
+    out->WriteInt8(0);
     // since version 10
     out->WriteInt32(blend_mode);
     // Reserved for colour options

@@ -17,11 +17,6 @@
 #include "gfx/blender.h"
 #include <allegro/internal/aintern.h> // for blenders
 
-// CHECKME: is this hack still relevant?
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
-extern int psp_gfx_renderer;
-#endif
-
 namespace AGS
 {
 namespace Engine

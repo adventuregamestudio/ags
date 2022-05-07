@@ -234,7 +234,7 @@ namespace Memory
                    const size_t height)
     {
         for (size_t y = 0; y < height; ++y, src += src_pitch, dst += dst_pitch)
-            memcpy(dst + dst_offset, src + src_offset, Math::Min(dst_pitch - dst_offset, src_pitch - src_offset));
+            memcpy(dst + dst_offset, src + src_offset, std::min(dst_pitch - dst_offset, src_pitch - src_offset));
     }
 
 } // namespace Memory

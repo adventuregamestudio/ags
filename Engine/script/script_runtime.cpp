@@ -27,15 +27,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "script/script_runtime.h"
-#include "script/script_common.h"
-#include "script/cc_error.h"
-#include "script/cc_options.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "script/systemimports.h"
 #include "ac/statobj/staticobject.h"
+#include "script/cc_common.h"
+#include "script/systemimports.h"
+#include "script/script_runtime.h"
 
-extern ccInstance *current_instance; // in script/cc_instance
 
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {
@@ -139,8 +136,9 @@ void ccSetScriptAliveTimer (int numloop) {
 }
 
 void ccNotifyScriptStillAlive () {
-    if (current_instance != nullptr)
-        current_instance->flags |= INSTF_RUNNING;
+    ccInstance *cur_inst = ccInstance::GetCurrentInstance();
+    if (cur_inst)
+        cur_inst->flags |= INSTF_RUNNING;
 }
 
 void ccSetDebugHook(new_line_hook_type jibble)

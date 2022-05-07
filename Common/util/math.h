@@ -22,6 +22,7 @@
 #undef min
 #undef max
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -37,21 +38,9 @@ namespace Common
 namespace Math
 {
     template <class T>
-    inline const T &Max(const T &a, const T &b)
-    {
-        return a < b ? b : a;
-    }
-
-    template <class T>
-    inline const T &Min(const T &a, const T &b)
-    {
-        return a < b ? a : b;
-    }
-
-    template <class T>
     inline const T &Clamp(const T &val, const T &floor, const T &ceil)
     {
-        return Max<T>(floor, Min<T>(val, ceil));
+        return std::max<T>(floor, std::min<T>(val, ceil));
     }
 
     template <class T>
@@ -68,8 +57,8 @@ namespace Math
             length = 0;
         }
 
-        length = Max<T>(length, 0);
-        length = Min<T>(length, height - from);
+        length = std::max<T>(length, 0);
+        length = std::min<T>(length, height - from);
     }
 
     // Get a measure of how value A is greater than value B;

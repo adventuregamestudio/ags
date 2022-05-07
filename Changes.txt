@@ -71,11 +71,14 @@ Editor:
  - Editor no longer prevents exporting string arguments from Get/SetTextProperty calls to TRS file.
  - Editor now cleanups spritefile on game load, identifying any data not referenced by the project
    and marking it for deletion.
+ - Fixed editor displaying unhandled exception if the room script which user is trying to open was
+   missing. Instead it will now open a blank script.
  - Fixed room editor was suggesting to save the modified room even if no changes were made.
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
  - Support unicode character literals.
+ - Support using float literals when defining default values for function arguments.
  - Support hexadecimal number literals (e.g. "0xABCDEF").
  - Removed 500-characters line limit.
 
@@ -94,19 +97,23 @@ Script API:
  - String.AppendChar(), ReplaceChar() functions and String.Chars[] property are now working with
    the unicode characters.
  - String.Format("%c") specifier will now be able to print unicode characters.
- - Extended Button.Animate() to have blocking style, direction and starting frame parameters.
- - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
+ - Extended Button.Animate() to have blocking style, direction and starting frame parameters, thus
+   matching other Animate commands (of Character and Object).
+ - Extended all Animate() commands by adding "volume" parameter, that defines volume of the
+   frame-linked sounds for the duration of this animation.
+ - Added Character.AnimationVolume, defining volume of the frame-linked sounds.
+ - Added Character.IdleAnimationDelay to let control idle view's animation speed.
+ - Character.Scaling is no longer limited by a range of 5-200 (now supports 1-32767).
  - Hotspot.Name and Object.Name may now be set in script.
  - Added Object.ManualScaling and Object.Scaling.
  - Deprecated Object.IgnoreScaling (use Object.ManualScaling instead).
  - Object.SetView default loop & frame values are now 0 (was -1 which retained loop and frame
    indexes from the previous view, often unexpected to the user).
- - Added Character.IdleAnimationDelay to let control idle view's animation speed.
- - Character.Scaling is no longer limited by a range of 5-200 (now supports 1-32767).
  - DrawingSurface.DrawImage() and DrawSurface() now support optional source rect coordinates.
  - Added functions for getting DrawingSurface of room masks: GetDrawingSurfaceForWalkableArea(),
    GetDrawingSurfaceForWalkbehind(), Hotspot.GetDrawingSurface(), Region.GetDrawingSurface().
  - Added new delay parameter to Mouse.ChangeModeView() to let control cursor's animation speed.
+ - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
  - Added Room.Exists().
  - Added System.Log().
  - Added SkipWait() that skips any active Wait() function.
@@ -115,11 +122,22 @@ Script API:
  - All Wait* functions now return the reason they were skipped: positive value means a key code,
    negative value means an inverted mouse code, and 0 means skipped by a timer or script command.
  - Added GUIControl.Transparency property.
+ - Added Overlay.CreateRoomGraphical and CreateRoomTextual. Use these two functions to create
+   "room overlays": that is - overlays that display a sprite inside the room, sorted among other
+   room objects, characters and walk-behinds.
+ - Added readonly Overlay.InRoom property that tells if this is a room or screen overlay.
+ - Extended Overlay.CreateGraphical() with a new "clone" parameter that tells whether to assign
+   a sprite index, or make a sprite's copy owned exclusively by this overlay. The former will
+   save program memory but make overlay update if the sprite is edited later. The latter is
+   meant primarily for backwards compatibility. Overlay.CreateRoomGraphical has the same param.
+ - Added Overlay.Graphic property that lets you change overlay's sprite after it's created.
  - Added Overlay.Width and Height properties, that let you freely scale existing Overlay.
  - Added readonly Overlay.GraphicWidth and GraphicHeight properties that let read original
-   overlay's graphic size (for textual overlays too).
+   overlay's graphic size, as not all overlays hold a sprite reference (e.g. textual overlays).
  - Added Overlay.Transparency property.
- - Added Overlay.ZOrder property that lets you sort Overlays on screen among themselves and GUI.
+ - Added Overlay.ZOrder property that lets you sort Overlays among themselves and other objects
+   in the same "game layer": screen overlays are sorted among GUI, while room overlays are
+   sorted among room objects, characters and walk-behinds.
  - Added Speech.TextOverlay and Speech.PortraitOverlay for accessing blocking speech overlay
    and portrait overlay respectively.
  - Added Game.BlockingWaitSkipped which tells the result of the last blocking wait skipping,
@@ -174,9 +192,13 @@ Engine:
  - Engine now supports loading compiled scripts as separate files packed along with the game,
    along with those embedded into the main game data or inside room files.
  - Engine no longer bails out with error if the chosen translation cannot be loaded on startup.
+ - When reporting script errors, engine will print callstack for all the active script "threads":
+   for example, if there's Wait() function called and error happened in repeatedly_execute_always,
+   then it will print both actual error's location, and Wait() call's location.
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
+ - Added "load_latest_save" and "show_fps" options to config (in "[misc]" category).
  - Added "--sdl-log" command line option for setting up SDL2 library output verbosity. The engine
    log config now has a new "sdl" group meant for SDL2 messages.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
@@ -191,6 +213,8 @@ Engine:
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
+ - Fixed overlay may fail to be created sometimes, if previously another overlay had been
+   forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
@@ -225,6 +249,20 @@ Windows:
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.
  - Remade sound options to reflect the move to the new audio system in the engine.
+
+
+VERSION 3.5.1 - Patch 11, May 2022
+
+Editor:
+ - Fixed batch sprite export with "Set exported file as sprite source" option was assigning
+   new source paths without file extension.
+
+Engine:
+ - Perfomance fix: GUIs changing Transparency or Visible state should not redraw their surface.
+
+Compatibility:
+ - Allow AudioClip.Play to to place clips on a crossfade channel, which is normally unaccessible
+   from script. This prevents errors in some games that relied on this behavior.
 
 
 VERSION 3.5.1 - Patch 10, April 2022

@@ -11,15 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <stdio.h>
 #include <string.h>
 #include <allegro.h>
 #include "ac/game_version.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_api.h"
-#include "util/math.h"
 #include "util/utf8.h"
 
 namespace Math = AGS::Common::Math;
@@ -234,7 +232,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                 if (snprintf_res >= 0)
                 {
                     // snprintf returns maximal number of characters, so limit it with buffer size
-                    out_ptr += Math::Min<ptrdiff_t>(snprintf_res, avail_outbuf);
+                    out_ptr += std::min<ptrdiff_t>(snprintf_res, avail_outbuf);
                     continue;
                 }
                 // -- pass further to invalid format case
@@ -242,7 +240,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
             
             // If format was not valid, or there are no available
             // parameters, just copy stored format buffer as it is
-            size_t copy_len = Math::Min(Math::Min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
+            size_t copy_len = std::min(std::min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
             memcpy(out_ptr, fmtbuf, copy_len);
             out_ptr += copy_len;
         }

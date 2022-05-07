@@ -17,6 +17,8 @@
 #include <memory>
 #include <vector>
 #include "ac/characterinfo.h"
+#include "ac/characterextras.h"
+#include "ac/movelist.h"
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
 #include "ac/timer.h"
@@ -238,6 +240,8 @@ struct GameState {
     int  complete_overlay_on;
     // Is there a blocking text overlay on screen (contains overlay ID)
     int  text_overlay_on;
+    // Script overlay objects, because we must return same pointers
+    // whenever user script queries for them.
     // Blocking speech overlay managed object, for accessing in scripts
     ScriptOverlay *speech_text_scover;
     // Speech portrait overlay managed object
@@ -403,5 +407,7 @@ HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align);
 HorAlignment ReadScriptAlignment(int32_t align);
 
 extern GameState play;
+extern std::vector<CharacterExtras> charextra;
+extern std::vector<MoveList> mls;
 
 #endif // __AC_GAMESTATE_H

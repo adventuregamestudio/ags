@@ -74,6 +74,10 @@ void    quit_with_script_error(const char *functionName);
 void    run_unhandled_event (int evnt);
 void    can_run_delayed_command();
 
+// Gets current running script position
+bool    get_script_position(ScriptPosition &script_pos);
+AGS::Common::String cc_get_callstack(int max_lines = INT_MAX);
+
 
 extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 extern ExecutingScript*curscript;

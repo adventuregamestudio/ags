@@ -90,12 +90,12 @@ String TextStreamReader::ReadLine()
             line_break_position = seek_ptr - char_buffer;
             if (str_len < max_chars)
             {
-                append_length = Math::Min(line_break_position, max_chars - str_len);
+                append_length = std::min(line_break_position, max_chars - str_len);
             }
         }
         else
         {
-            append_length = Math::Min(chars_read_last, max_chars - str_len);
+            append_length = std::min(chars_read_last, max_chars - str_len);
         }
 
         if (append_length > 0)

@@ -445,7 +445,6 @@
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
     <ClCompile Include="..\..\Engine\script\script.cpp" />
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
-    <ClCompile Include="..\..\Engine\script\script_engine.cpp" />
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />
@@ -489,7 +488,6 @@
     <ClInclude Include="..\..\Engine\ac\audioclip.h" />
     <ClInclude Include="..\..\Engine\ac\button.h" />
     <ClInclude Include="..\..\Engine\ac\character.h" />
-    <ClInclude Include="..\..\Engine\ac\charactercache.h" />
     <ClInclude Include="..\..\Engine\ac\characterextras.h" />
     <ClInclude Include="..\..\Engine\ac\datetime.h" />
     <ClInclude Include="..\..\Engine\ac\dialog.h" />
@@ -592,7 +590,6 @@
     <ClInclude Include="..\..\Engine\ac\mouse.h" />
     <ClInclude Include="..\..\Engine\ac\movelist.h" />
     <ClInclude Include="..\..\Engine\ac\object.h" />
-    <ClInclude Include="..\..\Engine\ac\objectcache.h" />
     <ClInclude Include="..\..\Engine\ac\overlay.h" />
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />

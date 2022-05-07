@@ -13,7 +13,6 @@
 //=============================================================================
 #include "ac/slider.h"
 #include "ac/common.h"
-#include "util/math.h"
 
 using namespace AGS::Common;
 

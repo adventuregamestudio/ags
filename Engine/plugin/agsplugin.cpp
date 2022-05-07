@@ -20,7 +20,6 @@
 #include "plugin/agsplugin.h"
 #include "ac/common.h"
 #include "ac/view.h"
-#include "ac/charactercache.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
@@ -34,7 +33,6 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
-#include "ac/objectcache.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
 #include "ac/roomstatus.h"
@@ -101,9 +99,6 @@ extern int game_paused;
 extern GameSetup usetup;
 extern int inside_script;
 extern ccInstance *gameinst, *roominst;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
-extern MoveList *mls;
 extern RGB palette[256];
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;

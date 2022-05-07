@@ -150,7 +150,7 @@ namespace AGS.Editor.Components
 				UnloadedRoom selectedRoom = FindRoomByID(Convert.ToInt32(controlID.Substring(3)));
 				if (selectedRoom.Script == null)
 				{
-					selectedRoom.LoadScript();
+                    TryLoadScriptAndCreateMissing(selectedRoom);
 				}
 
 				CreateOrShowScript(selectedRoom);
@@ -181,6 +181,19 @@ namespace AGS.Editor.Components
 			{
 				LoadRoom(controlID);
 			}
+        }
+
+        private void TryLoadScriptAndCreateMissing(UnloadedRoom room)
+        {
+            try
+            {
+                room.LoadScript();
+            }
+            catch (FileNotFoundException)
+            {
+                _guiController.ShowMessage("The script file '" + room.ScriptFileName + "' is missing. An empty script has been created instead.", MessageBoxIcon.Warning);
+                room.Script.SaveToDisk(true);
+            }
         }
 
         private bool EnsureNoCharactersStartInRoom(int roomNumber)
@@ -699,7 +712,7 @@ namespace AGS.Editor.Components
             {
                 if (selectedRoom.Script == null)
                 {
-                    selectedRoom.LoadScript();
+                    TryLoadScriptAndCreateMissing(selectedRoom);
                 }
                 CreateScriptEditor(selectedRoom);
             }
@@ -846,14 +859,7 @@ namespace AGS.Editor.Components
         {
             if ((newRoom.Script == null) || (!newRoom.Script.Modified))
             {
-				try
-				{
-					newRoom.LoadScript();
-				}
-				catch (FileNotFoundException)
-				{
-					_guiController.ShowMessage("The script file '" + newRoom.ScriptFileName + "' is missing. An empty script has been loaded instead.", MessageBoxIcon.Warning);
-				}
+                TryLoadScriptAndCreateMissing(newRoom);
             }
             else if (_roomScriptEditors.ContainsKey(newRoom.Number))
             {
@@ -1333,7 +1339,7 @@ namespace AGS.Editor.Components
                 ScriptEditor editor = (ScriptEditor)CreateOrShowScript(roomToGetScriptFor).Control;
 				ZoomToCorrectPositionInScript(editor, evArgs);
             }
-        }        
+        }
 
         private void GUIController_OnGetScript(string fileName, ref Script script)
         {

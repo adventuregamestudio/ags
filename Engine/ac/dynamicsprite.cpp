@@ -14,7 +14,6 @@
 #include <math.h>
 #include "ac/dynamicsprite.h"
 #include "ac/common.h"
-#include "ac/charactercache.h"
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -22,7 +21,6 @@
 #include "ac/global_dynamicsprite.h"
 #include "ac/global_game.h"
 #include "ac/math.h"    // M_PI
-#include "ac/objectcache.h"
 #include "ac/path_helper.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -42,8 +40,6 @@ extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern RoomStatus*croom;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 
 extern RGB palette[256];
 extern AGS::Engine::IGraphicsDriver *gfxDriver;

@@ -32,26 +32,27 @@ struct CharacterInfo;
 // and plugin API, therefore new stuff has to go here
 // TODO: now safe to merge with CharacterInfo into one class
 struct CharacterExtras {
-    short invorder[MAX_INVORDER];
-    short invorder_count;
-    // TODO: implement full AABB and keep updated, so that engine could rely on these cached values all time;
-    // TODO: consider having both fixed AABB and volatile one that changes with animation frame (unless you change how anims work)
-    int spr_width, spr_height; // last used sprite's size
-    short width; // width/height last time drawn (includes scaling)
-    short height;
-    short zoom;
-    short xwas;
-    short ywas;
-    short tint_r;
-    short tint_g;
-    short tint_b;
-    short tint_level;
-    short tint_light;
-    char  process_idle_this_time;
-    char  slow_move_counter;
-    short animwait;
-    Common::BlendMode blend_mode;
-    float rotation;
+    short invorder[MAX_INVORDER]{};
+    short invorder_count = 0;
+    int spr_width = 0; // last used sprite's size
+    int spr_height = 0;
+    short width = 0; // width/height last time drawn (includes scaling)
+    short height = 0;
+    short zoom = 0;
+    short xwas = 0;
+    short ywas = 0;
+    short tint_r = 0;
+    short tint_g = 0;
+    short tint_b = 0;
+    short tint_level = 0;
+    short tint_light = 0;
+    char  process_idle_this_time = 0;
+    char  slow_move_counter = 0;
+    short animwait = 0;
+    int   anim_volume = -1; // default animation volume (-1 use clip default)
+    int   cur_anim_volume = -1; // current animation sound volume (-1 = default)
+    Common::BlendMode blend_mode = Common::kBlend_Normal;
+    float rotation = 0.f;
 
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 

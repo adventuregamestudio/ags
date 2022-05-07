@@ -36,9 +36,6 @@ extern char* ios_document_directory;
 
 extern int main(int argc,char*argv[]);
 
-char psp_game_file_name[256];
-char* psp_game_file_name_pointer = psp_game_file_name;
-
 const int CONFIG_IGNORE_ACSETUP = 0;
 const int CONFIG_CLEAR_CACHE = 1;
 const int CONFIG_AUDIO_RATE = 2;
@@ -65,176 +62,166 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 
 struct AGSIOS : AGSPlatformDriver
 {
-  void Delay(int millis) override;
+  virtual const char *GetGameDataFile();
+  virtual void ReadConfiguration(ConfigTree &cfg);
   void DisplayAlert(const char*, ...) override;
   FSLocation GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
+
+  static MobileSetup &GetMobileSetup() { return _msetup; }
+
+private:
+  static MobileSetup _msetup; // static for the use from global callbacks
 };
 
+MobileSetup AGSIOS::_msetup;
 
 
 bool readConfigFile(const char* directory)
 {
   chdir(directory);
 
-  ResetConfiguration();
+  ResetConfiguration(AGSIOS::GetMobileSetup());
 
-  return ReadConfiguration(IOS_CONFIG_FILENAME, true);
+  return ReadConfiguration(AGSIOS::GetMobileSetup(), IOS_CONFIG_FILENAME, true);
 }
 
 
 bool writeConfigFile()
 {
-  return WriteConfiguration(IOS_CONFIG_FILENAME);
+  return WriteConfiguration(AGSIOS::GetMobileSetup(), IOS_CONFIG_FILENAME);
 }
 
 
 int readIntConfigValue(int id)
 {
+  const auto &setup = AGSIOS::GetMobileSetup();
   switch (id)
   {
     case CONFIG_IGNORE_ACSETUP:
-      return psp_ignore_acsetup_cfg_file;
-      break;
+      return setup.ignore_acsetup_cfg_file;
     case CONFIG_CLEAR_CACHE:
-      return psp_clear_cache_on_room_change;
-      break;
+      return setup.clear_cache_on_room_change;
     case CONFIG_AUDIO_RATE:
-      return psp_audio_samplerate;
-      break;
+      return setup.audio_samplerate;
     case CONFIG_AUDIO_ENABLED:
-      return psp_audio_enabled;
-      break;
+      return setup.audio_enabled;
     case CONFIG_AUDIO_THREADED:
-      return psp_audio_multithreaded;
-      break;
+      return setup.audio_multithreaded;
     case CONFIG_AUDIO_CACHESIZE:
-      return psp_audio_cachesize;
-      break;
+      return setup.audio_cachesize;
     case CONFIG_MIDI_ENABLED:
-      return psp_midi_enabled;
-      break;
+      return setup.midi_enabled;
     case CONFIG_MIDI_PRELOAD:
-      return psp_midi_preload_patches;
-      break;
+      return setup.midi_preload_patches;
     case CONFIG_VIDEO_FRAMEDROP:
-      return psp_video_framedrop;
-      break;
+      return setup.video_framedrop;
     case CONFIG_GFX_RENDERER:
-      return psp_gfx_renderer;
-      break;
+      return setup.gfx_renderer;
     case CONFIG_GFX_SMOOTHING:
-      return psp_gfx_smoothing;
-      break;
+      return setup.gfx_smoothing;
     case CONFIG_GFX_SCALING:
-      return psp_gfx_scaling;
-      break;
+      return setup.gfx_scaling;
     case CONFIG_GFX_SS:
-      return psp_gfx_super_sampling;
-      break;
+      return setup.gfx_super_sampling;
     case CONFIG_GFX_SMOOTH_SPRITES:
-      return psp_gfx_smooth_sprites;
-      break;
+      return setup.gfx_smooth_sprites;
     case CONFIG_ROTATION:
-      return psp_rotation;
-      break;
+      return setup.rotation;
     case CONFIG_ENABLED:
-      return psp_config_enabled;
-      break;
+      return setup.config_enabled;
     case CONFIG_DEBUG_FPS:
-      return (display_fps == 2) ? 1 : 0;
-      break;
+      return setup.show_fps;
     case CONFIG_DEBUG_LOGCAT:
-      return psp_debug_write_to_logcat;
-      break;
+      return setup.debug_write_to_logcat;
     case CONFIG_MOUSE_METHOD:
-      return config_mouse_control_mode;
-      break;
+      return setup.mouse_control_mode;
     case CONFIG_MOUSE_LONGCLICK:
-      return config_mouse_longclick;
-      break;
+      return setup.mouse_longclick;
     default:
       return 0;
-      break;
   }
 }
 
 
-char* readStringConfigValue(int id)
+const char* readStringConfigValue(int id)
 {
+  const auto &setup = AGSIOS::GetMobileSetup();
   switch (id)
   {
     case CONFIG_TRANSLATION:
-      return &psp_translation[0];
-      break;
+      return setup.translation.GetCStr();
+    default:
+      return nullptr;
   }
 }
 
 
 void setIntConfigValue(int id, int value)
 {
+  auto &setup = AGSIOS::GetMobileSetup();
   switch (id)
   {
     case CONFIG_IGNORE_ACSETUP:
-      psp_ignore_acsetup_cfg_file = value;
+      setup.ignore_acsetup_cfg_file = value;
       break;
     case CONFIG_CLEAR_CACHE:
-      psp_clear_cache_on_room_change = value;
+      setup.clear_cache_on_room_change = value;
       break;
     case CONFIG_AUDIO_RATE:
-      psp_audio_samplerate = value;
+      setup.audio_samplerate = value;
       break;
     case CONFIG_AUDIO_ENABLED:
-      psp_audio_enabled = value;
+      setup.audio_enabled = value;
       break;
     case CONFIG_AUDIO_THREADED:
-      psp_audio_multithreaded = value;
+      setup.audio_multithreaded = value;
       break;
     case CONFIG_AUDIO_CACHESIZE:
-      psp_audio_cachesize = value;
+      setup.audio_cachesize = value;
       break;
     case CONFIG_MIDI_ENABLED:
-      psp_midi_enabled = value;
+      setup.midi_enabled = value;
       break;
     case CONFIG_MIDI_PRELOAD:
-      psp_midi_preload_patches = value;
+      setup.midi_preload_patches = value;
       break;
     case CONFIG_VIDEO_FRAMEDROP:
-      psp_video_framedrop = value;
+      setup.video_framedrop = value;
       break;
     case CONFIG_GFX_RENDERER:
-      psp_gfx_renderer = value;
+      setup.gfx_renderer = value;
       break;
     case CONFIG_GFX_SMOOTHING:
-      psp_gfx_smoothing = value;
+      setup.gfx_smoothing = value;
       break;
     case CONFIG_GFX_SCALING:
-      psp_gfx_scaling = value;
+      setup.gfx_scaling = value;
       break;
     case CONFIG_GFX_SS:
-      psp_gfx_super_sampling = value;
+      setup.gfx_super_sampling = value;
       break;
     case CONFIG_GFX_SMOOTH_SPRITES:
-      psp_gfx_smooth_sprites = value;
+      setup.gfx_smooth_sprites = value;
       break;
     case CONFIG_ROTATION:
-      psp_rotation = value;
+      setup.rotation = value;
       break;
     case CONFIG_ENABLED:
-      psp_config_enabled = value;
+      setup.config_enabled = value;
       break;
     case CONFIG_DEBUG_FPS:
-      display_fps = (value == 1) ? 2 : 0;
+      setup.show_fps = value;
       break;
     case CONFIG_DEBUG_LOGCAT:
-      psp_debug_write_to_logcat = value;
+      setup.debug_write_to_logcat = value;
       break;
     case CONFIG_MOUSE_METHOD:
-      config_mouse_control_mode = value;
+      setup.mouse_control_mode = value;
       break;
     case CONFIG_MOUSE_LONGCLICK:
-      config_mouse_longclick = value;
+      setup.mouse_longclick = value;
       break;
     default:
       break;
@@ -244,10 +231,11 @@ void setIntConfigValue(int id, int value)
 
 void setStringConfigValue(int id, const char* value)
 {
+  auto &setup = AGSIOS::GetMobileSetup();
   switch (id)
   {
     case CONFIG_TRANSLATION:
-      strcpy(psp_translation, value);
+      setup.translation = value;
       break;
     default:
       break;
@@ -275,8 +263,6 @@ int getAvailableTranslations(char* translations)
         {
           memset(buffer, 0, 200);
           strncpy(buffer, entry->d_name, length - 4);
-          psp_translations[i] = (char*)malloc(strlen(buffer) + 1);
-          strcpy(psp_translations[i], buffer);
           env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0]));
           i++;
         }
@@ -295,20 +281,21 @@ volatile int ios_wait_for_ui = 0;
 
 void startEngine(char* filename, char* directory, int loadLastSave)
 {
-  strcpy(psp_game_file_name, filename);
+  auto &setup = AGSIOS::GetMobileSetup();
+  setup.game_file_name = filename;
 
   // Get the base directory (usually "/sdcard/ags").
   chdir(directory);
 
   // Reset configuration.
-  ResetConfiguration();
+  ResetConfiguration(setup);
 
   // Read general configuration.
-  ReadConfiguration(IOS_CONFIG_FILENAME, true);
+  ReadConfiguration(setup, IOS_CONFIG_FILENAME, true);
 
   // Get the games path.
   char path[256];
-  strcpy(path, psp_game_file_name);
+  strcpy(path, setup.game_file_name.GetCStr());
   int lastindex = strlen(path) - 1;
   while (path[lastindex] != '/')
   {
@@ -322,15 +309,24 @@ void startEngine(char* filename, char* directory, int loadLastSave)
   // Read game specific configuration.
   ReadConfiguration(IOS_CONFIG_FILENAME, false);
 
-  psp_load_latest_savegame = loadLastSave;
+  setup.load_latest_savegame = loadLastSave;
 
   // Start the engine main function.
-  main(1, &psp_game_file_name_pointer);
+  main(0, nullptr);
   
   // Explicitly quit here, otherwise the app will hang forever.
   exit(0);
 }
 
+const char *AGSIOS::GetGameDataFile()
+{
+  return _msetup.game_file_name.GetCStr();
+}
+
+void AGSIOS::ReadConfiguration(Common::ConfigTree &cfg)
+{
+  ApplyEngineConfiguration(_msetup, cfg);
+}
 void AGSIOS::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
   va_list ap;

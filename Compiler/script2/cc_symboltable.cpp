@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "cc_symboltable.h"
-#include "script/script_common.h"       // macro definitions
+#include "script/cc_internal.h"
 
 AGS::SymbolTableEntry::~SymbolTableEntry()
 {

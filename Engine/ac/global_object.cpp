@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <algorithm>
 #include "ac/global_object.h"
 #include "ac/common.h"
 #include "ac/object.h"
@@ -23,7 +24,6 @@
 #include "ac/global_character.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
-#include "ac/objectcache.h"
 #include "ac/properties.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -45,7 +45,6 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
-extern ObjectCache objcache[MAX_ROOM_OBJECTS];
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
@@ -211,8 +210,8 @@ void SetObjectBaseline (int obn, int basel) {
     if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
     // baseline has changed, invalidate the cache
     if (objs[obn].baseline != basel) {
-        objcache[obn].ywas = -9999;
         objs[obn].baseline = basel;
+        mark_object_changed(obn);
     }
 }
 
@@ -225,7 +224,7 @@ int GetObjectBaseline(int obn) {
     return objs[obn].baseline;
 }
 
-void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe) {
+void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe, int volume) {
     if (obn>=MANOBJNUM) {// CHECKME: what is this about ?
         scAnimateCharacter(obn - 100,loopn,spdd,rept);// CLNUP scAnimateCharacter is only used by AnimateObject which is used by Object_Animate
         return;
@@ -270,7 +269,8 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
+    objs[obn].anim_volume = std::min(volume, 100); // NOTE: negative volume means use defaults
+    CheckViewFrame(objs[obn].view, loopn, objs[obn].frame, objs[obn].anim_volume);
 
     if (blocking)
         GameLoopUntilValueIsZero(&objs[obn].cycling);
@@ -427,8 +427,7 @@ void SetObjectIgnoreWalkbehinds (int cha, int clik) {
     objs[cha].flags&=~OBJF_NOWALKBEHINDS;
     if (clik)
         objs[cha].flags|=OBJF_NOWALKBEHINDS;
-    // clear the cache
-    objcache[cha].ywas = -9999;
+    mark_object_changed(cha);
 }
 
 void RunObjectInteraction (int aa, int mood) {

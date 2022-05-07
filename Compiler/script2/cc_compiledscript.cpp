@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string>
 #include "cc_compiledscript.h"
-#include "script/script_common.h"   // macro definitions
-#include "script/cc_error.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
 
 void AGS::ccCompiledScript::WriteLineno(size_t lno)
 {

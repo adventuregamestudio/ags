@@ -1,5 +1,5 @@
 #include "ac/dynobj/scriptmouse.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 int32_t ScriptMouse::ReadInt32(const char *address, intptr_t offset)
 {

@@ -15,8 +15,6 @@
 // macro defined the deprecated API contents that were still active in
 // corresponding version are kept enabled; otherwise these are disabled.
 
-/*
-*/
 #define function int  // $AUTOCOMPLETEIGNORE$
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
@@ -955,7 +953,11 @@ builtin managed struct InventoryItem {
 
 builtin managed struct Overlay {
   /// Creates an overlay that displays a sprite.
-  import static Overlay* CreateGraphical(int x, int y, int slot, bool transparent);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateGraphical(int x, int y, int slot, bool transparent = true
+#ifdef SCRIPT_API_v360
+	, bool clone = false
+#endif
+  );  // $AUTOCOMPLETESTATICONLY$
   /// Creates an overlay that displays some text.
   import static Overlay* CreateTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
   /// Changes the text on the overlay.
@@ -969,10 +971,18 @@ builtin managed struct Overlay {
   /// Gets/sets the Y position on the screen where this overlay is displayed.
   import attribute int Y;
 #ifdef SCRIPT_API_v360
+  /// Creates an overlay that displays a sprite inside the room.
+  import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool transparent = true, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
+  /// Creates an overlay that displays some text inside the room.
+  import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  /// Gets whether this overlay is located inside the room, as opposed to the screen layer.
+  import readonly attribute bool InRoom;
   /// Gets/sets the width of this overlay. Resizing overlay will scale its image.
   import attribute int Width;
   /// Gets/sets the height of this overlay. Resizing overlay will scale its image.
   import attribute int Height;
+  /// Gets/sets the sprite's number which is displayed on this overlay. Returns -1 for generated image without actual number.
+  import attribute int Graphic;
   /// Gets the original width of this overlay's graphic.
   import readonly attribute int GraphicWidth;
   /// Gets the original height of this overlay's graphic.
@@ -1243,7 +1253,7 @@ builtin managed struct Label extends GUIControl {
 builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
-  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0);
+  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=-1);
 #endif
 #ifndef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
@@ -1773,14 +1783,15 @@ builtin struct System {
 };
 
 builtin managed struct Object {
+  /// Animates the object using its current view.
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
-  /// Animates the object using its current view.
-  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards, int frame=0);
+    , int frame=0
+#endif  
+#ifdef SCRIPT_API_v360
+    , int volume=-1
 #endif
-#ifndef SCRIPT_API_v3507
-  /// Animates the object using its current view.
-  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
-#endif
+  );
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Gets an integer Custom Property for this object.
@@ -1909,14 +1920,15 @@ builtin managed struct Character {
   import function AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
   /// Manually adds a waypoint to the character's movement path.
   import function AddWaypoint(int x, int y);
+  /// Animates the character using its current locked view.
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
-  /// Animates the character using its current locked view.
-  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards, int frame=0);
+    , int frame=0
+#endif  
+#ifdef SCRIPT_API_v360
+    , int volume=-1
 #endif
-#ifndef SCRIPT_API_v3507
-  /// Animates the character using its current locked view.
-  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
-#endif
+  );
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
   import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
   /// Moves the character to another room, using the old-style position variable
@@ -2113,6 +2125,8 @@ builtin managed struct Character {
   import static Character* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
 #endif
 #ifdef SCRIPT_API_v360
+  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this character.
+  import attribute int  AnimationVolume;
   /// Gets/sets the character's idle animation delay.
   import attribute int  IdleAnimationDelay;
 #endif

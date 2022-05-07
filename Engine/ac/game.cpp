@@ -17,7 +17,6 @@
 #include "ac/audiochannel.h"
 #include "ac/button.h"
 #include "ac/character.h"
-#include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
@@ -36,7 +35,6 @@
 #include "ac/keycode.h"
 #include "ac/lipsync.h"
 #include "ac/mouse.h"
-#include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/path_helper.h"
 #include "ac/sys_events.h"
@@ -137,11 +135,8 @@ ScriptInvItem scrInv[MAX_INV];
 ScriptDialog *scrDialog;
 
 std::vector<ViewStruct> views;
-
-CharacterCache *charcache = nullptr;
-ObjectCache objcache[MAX_ROOM_OBJECTS];
-
-MoveList *mls = nullptr;
+std::vector<CharacterExtras> charextra;
+std::vector<MoveList> mls;
 
 //=============================================================================
 
@@ -463,10 +458,8 @@ void unload_game_file()
     play.FreeViewportsAndCameras();
 
     characterScriptObjNames.clear();
-    free(charextra);
-    charextra = nullptr;
-    free(mls);
-    mls = nullptr;
+    charextra.clear();
+    mls.clear();
 
     dispose_game_drawdata();
 
@@ -510,9 +503,6 @@ void unload_game_file()
     numScriptModules = 0;
 
     views.clear();
-
-    free(charcache);
-    charcache = nullptr;
 
     if (splipsync != nullptr)
     {
@@ -1443,22 +1433,8 @@ bool unserialize_audio_script_object(int index, const char *objectType, Stream *
 
 void game_sprite_updated(int sprnum)
 {
-    // Check if this sprite is assigned to any game object, and update them if necessary
-    // room objects cache
-    if (croom != nullptr)
-    {
-        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
-        {
-            if (objs[i].num == sprnum)
-                objcache[i].sppic = -1;
-        }
-    }
-    // character cache
-    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
-    {
-        if (charcache[i].sppic == sprnum)
-            charcache[i].sppic = -1;
-    }
+    // character and object draw caches
+    reset_objcache_for_sprite(sprnum);
     // gui backgrounds
     for (size_t i = 0; i < (size_t)game.numgui; ++i)
     {
@@ -1483,28 +1459,26 @@ void game_sprite_updated(int sprnum)
             guislider[i].MarkChanged();
         }
     }
+    // overlays
+    for (auto &over : screenover)
+    {
+        if (over.GetSpriteNum() == sprnum)
+            over.MarkChanged();
+    }
 }
 
 void game_sprite_deleted(int sprnum)
 {
-    // Check if this sprite is assigned to any game object, and update them if necessary
-    // room objects and their cache
+    // character and object draw caches
+    reset_objcache_for_sprite(sprnum);
+    // room object graphics
     if (croom != nullptr)
     {
         for (size_t i = 0; i < (size_t)croom->numobj; ++i)
         {
             if (objs[i].num == sprnum)
-            {
                 objs[i].num = 0;
-                objcache[i].sppic = -1;
-            }
         }
-    }
-    // character cache
-    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
-    {
-        if (charcache[i].sppic == sprnum)
-            charcache[i].sppic = -1;
     }
     // gui backgrounds
     for (size_t i = 0; i < (size_t)game.numgui; ++i)
@@ -1552,6 +1526,12 @@ void game_sprite_deleted(int sprnum)
                     views[v].loops[l].frames[f].pic = 0;
             }
         }
+    }
+    // overlays
+    for (auto &over : screenover)
+    {
+        if (over.GetSpriteNum() == sprnum)
+            over.SetSpriteNum(0);
     }
 }
 

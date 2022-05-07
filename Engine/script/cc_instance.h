@@ -22,8 +22,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
+#include "script/cc_internal.h"  // bytecode constants
 #include "script/nonblockingscriptfunction.h"
 #include "util/string.h"
 
@@ -43,9 +43,6 @@ using namespace AGS;
 #define INSTANCE_ID_SHIFT 24LL
 #define INSTANCE_ID_MASK  0x00000000000000ffLL
 #define INSTANCE_ID_REMOVEMASK 0x0000000000ffffffLL
-
-struct ccInstance;
-struct ScriptImport;
 
 struct ScriptInstruction
 {
@@ -106,7 +103,6 @@ struct ScriptPosition
 struct ccInstance
 {
 public:
-    // TODO: change to std:: if moved to C++11
     typedef std::unordered_map<int32_t, ScriptVariable> ScVarMap;
     typedef std::shared_ptr<ScVarMap>                   PScVarMap;
 public:
@@ -167,16 +163,14 @@ public:
     
     // Call an exported function in the script
     int     CallScriptFunction(const char *funcname, int32_t num_params, const RuntimeScriptValue *params);
-    // Begin executing script starting from the given bytecode index
-    int     Run(int32_t curpc);
     
     // Get the script's execution position and callstack as human-readable text
-    Common::String GetCallStack(int maxLines);
+    Common::String GetCallStack(int max_lines = INT_MAX) const;
     // Get the script's execution position
-    void    GetScriptPosition(ScriptPosition &script_pos);
+    void    GetScriptPosition(ScriptPosition &script_pos) const;
     // Get the address of an exported symbol (function or variable) in the script
-    RuntimeScriptValue GetSymbolAddress(const char *symname);
-    void    DumpInstruction(const ScriptOperation &op);
+    RuntimeScriptValue GetSymbolAddress(const char *symname) const;
+    void    DumpInstruction(const ScriptOperation &op) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
 
@@ -199,6 +193,8 @@ protected:
     bool    CreateRuntimeCodeFixups(const ccScript *scri);
 	//bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 
+    // Begin executing script starting from the given bytecode index
+    int     Run(int32_t curpc);
     // Runtime fixups
     //bool    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);
 

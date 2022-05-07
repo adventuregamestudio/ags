@@ -5,13 +5,12 @@
 #include <cerrno>
 #include <string>
 #include <vector>
-#include "cs_parser.h"
-#include "cc_internallist.h"    // ccInternalList
-#include "cs_parser_common.h"
-#include "cc_symboltable.h"
-#include "script/cc_options.h"
-#include "script/script_common.h"
-#include "script/cc_error.h"
+#include "script/cs_parser.h"
+#include "script/cc_internallist.h"
+#include "script/cs_parser_common.h"
+#include "script/cc_symboltable.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
 #include "cc_variablesymlist.h"
 #include "fmem.h"
 #include "util/utf8.h"
@@ -3764,7 +3763,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         }
                         // not found -- a good thing, but find_member_sym will
                         // have errored. Clear the error
-                        ccError = 0;
+                        cc_clear_error();
                     }
 
                     if (isFunction) {
@@ -4331,7 +4330,7 @@ startvarbit:
             if (oldDefinition.stype) {
                 // there was a forward declaration -- check that
                 // the real declaration matches it
-                ccError = 0;
+                cc_clear_error();
                 if (!isglobal)
                     cc_error("Local variable cannot have the same name as an import");
                 else if (oldDefinition.stype != sym.entries[cursym].stype)
@@ -4358,7 +4357,7 @@ startvarbit:
                         }
                     }
                 }
-                if (ccError)
+                if (cc_has_error())
                     return -1;
             }
 

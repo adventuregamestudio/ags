@@ -6,9 +6,8 @@
 #include "cc_compiledscript.h"
 #include "cc_symboltable.h"
 
-#include "script/cc_error.h"
-#include "script/cc_options.h"
-#include "script/script_common.h"
+#include "script/cc_common.h"
+#include "script/cc_internal.h"
 
 #include "cs_parser.h"
 
@@ -51,8 +50,7 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
     }
 
     ccCurScriptName = nullptr;
-    ccError = 0;
-    ccErrorLine = 0;
+    cc_clear_error();
     compiled_script->FreeExtra();
     return compiled_script;
 }

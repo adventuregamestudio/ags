@@ -13,6 +13,9 @@
 //=============================================================================
 //
 // ScreenOverlay is a simple sprite container with no advanced functions.
+// May contain owned bitmap or reference persistent sprite's id, similar to how
+// other game objects do that.
+// May logically exist either on UI or room layer.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
@@ -27,21 +30,19 @@ namespace AGS { namespace Common { class Bitmap; class Stream; class GraphicSpac
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS; // FIXME later
 
-// Overlay class.
-// TODO: currently overlay creates and stores its own bitmap, even if
-// created using existing sprite. As a side-effect, changing that sprite
-// (if it were a dynamic one) will not affect overlay (unlike other objects).
-// For future perfomance optimization it may be desired to store sprite index
-// instead; but that would mean that overlay will have to receive sprite
-// changes. For backward compatibility there may be a game switch that
-// forces it to make a copy.
+enum OverlayFlags
+{
+    kOver_AlphaChannel     = 0x0001,
+    kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
+    kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
+    kOver_SpriteReference  = 0x0008, // reference persistent sprite
+};
+
 // TODO: what if we actually register a real dynamic sprite for overlay?
-struct ScreenOverlay {
-    // Original bitmap
-    Common::Bitmap *pic = nullptr;
+struct ScreenOverlay
+{
     // Texture
     Engine::IDriverDependantBitmap *ddb = nullptr;
-    bool hasAlphaChannel = false;
     int type = 0, timeout = 0;
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offsetX, y + offsetY;
@@ -51,9 +52,8 @@ struct ScreenOverlay {
     // Width and height to stretch the texture to
     int scaleWidth = 0, scaleHeight = 0;
     int bgSpeechForChar = -1;
-    int associatedOverlayHandle = 0;
+    int associatedOverlayHandle = 0; // script obj handle
     int zorder = INT_MIN;
-    bool positionRelativeToScreen = false;
     float rotation = 0.f;
     Common::BlendMode blendMode = Common::kBlend_Normal;
     int transparency = 0;
@@ -65,6 +65,23 @@ struct ScreenOverlay {
 
     // Returns Overlay's graphic space params
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
+    bool HasAlphaChannel() const { return (_flags & kOver_AlphaChannel) != 0; }
+    bool IsSpriteReference() const { return (_flags & kOver_SpriteReference) != 0; }
+    bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
+    bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
+    void SetAlphaChannel(bool on) { on ? _flags |= kOver_AlphaChannel : _flags &= ~kOver_AlphaChannel; }
+    void SetRoomRelative(bool on) { on ? _flags |= kOver_PositionAtRoomXY : _flags &= ~kOver_PositionAtRoomXY; }
+    void SetRoomLayer(bool on)
+    {
+        on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
+             _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
+    }
+    // Gets actual overlay's image, whether owned by overlay or by a sprite reference
+    Common::Bitmap *GetImage() const;
+    // Get sprite reference id, or -1 if none set
+    int GetSpriteNum() const { return _sprnum; }
+    void SetImage(std::unique_ptr<Common::Bitmap> pic);
+    void SetSpriteNum(int sprnum);
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
     // Manually marks GUI as graphically changed
@@ -76,6 +93,10 @@ struct ScreenOverlay {
     void WriteToFile(Common::Stream *out) const;
 
 private:
+    int _flags = 0; // OverlayFlags
+    std::unique_ptr<Common::Bitmap> _pic; // owned bitmap
+    int _sprnum = -1; // sprite reference
+
     bool _hasChanged = false;
 };
 

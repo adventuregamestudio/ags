@@ -1,11 +1,9 @@
 
-#include "script/cc_error.h"
 #include "script/runtimescriptvalue.h"
+#include <string.h> // for memcpy()
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/statobj/staticobject.h"
 #include "util/memory.h"
-
-#include <string.h> // for memcpy()
 
 using namespace AGS::Common;
 

@@ -1,7 +1,7 @@
 #include "ac/statobj/staticgame.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "script/cc_error.h"
+#include "script/cc_common.h"
 
 extern GameState play;
 

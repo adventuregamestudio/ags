@@ -20,7 +20,6 @@
 #define __CC_TEST_HELPER_H
 
 #include "util/string.h"
-#include "script/cc_error.h"
 
 extern void clear_error(void);
 extern const char *last_seen_cc_error(void);

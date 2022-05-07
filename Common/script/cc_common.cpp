@@ -19,6 +19,9 @@
 using namespace AGS::Common;
 
 int ccCompOptions = 0;
+int currentline = 0;
+const char *ccCurScriptName = "";
+
 
 void ccSetOption(int optbit, int onoroff)
 {

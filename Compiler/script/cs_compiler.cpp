@@ -11,7 +11,6 @@
 #include "script/cs_parser.h"
 
 const char *ccSoftwareVersion = "1.0";
-const char *ccCurScriptName = "";
 
 std::vector<const char*> defaultheaders;
 std::vector<const char*> defaultHeaderNames;

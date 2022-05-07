@@ -21,8 +21,6 @@
 
 using AGS::Common::Stream;
 
-// currently executed line
-int currentline;
 // script file format signature
 const char scfilesig[5] = "SCOM";
 

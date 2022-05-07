@@ -225,7 +225,7 @@ namespace AGS.Editor
             spriteList.BeginUpdate();
             spriteList.Clear();
             _spriteImages.Images.Clear();
-            _spriteImages.ColorDepth = ColorDepth.Depth16Bit;
+            _spriteImages.ColorDepth = ColorDepth.Depth32Bit;
             _spriteImages.ImageSize = new Size(SPRITE_BASE_SIZE * _spriteSizeMultiplier, SPRITE_BASE_SIZE * _spriteSizeMultiplier);
             _spriteImages.TransparentColor = Color.Pink;
             List<ListViewItem> itemsToAdd = new List<ListViewItem>();
@@ -238,9 +238,9 @@ namespace AGS.Editor
                 progress.SetProgressValue(index);
                 Sprite sprite = folder.Sprites[index];
 
-                int newSize = Math.Min(Math.Max(Math.Max(sprite.Width, sprite.Height), SPRITE_BASE_SIZE), SPRITE_BASE_SIZE * _spriteSizeMultiplier);
+                int newSize = SPRITE_BASE_SIZE * _spriteSizeMultiplier;
 
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, newSize, newSize, false, true, Color.Pink);
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(sprite, newSize, newSize, true, true, Color.Pink);
 
                 // we are already indexing from 0 and this ImageList was cleared,
                 // so just adding the image doesn't need a modified index

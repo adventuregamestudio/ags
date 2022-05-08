@@ -75,6 +75,8 @@ struct OGLTextureData : TextureData
 class OGLBitmap : public BaseDDB
 {
 public:
+    uint32_t GetRefID() const override { return _data->ID; }
+
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
@@ -221,7 +223,7 @@ public:
     // Retrieve shared texture data object from the given DDB
     std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
-    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void RenderToBackBuffer() override;
     void Render() override;

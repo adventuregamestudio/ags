@@ -1417,7 +1417,7 @@ void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
     _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
-void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
+void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 {
     // Remove deleted DDB from backups
     for (auto &backup_spr : _backupSpriteList)

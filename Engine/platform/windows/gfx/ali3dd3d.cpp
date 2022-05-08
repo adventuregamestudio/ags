@@ -1486,7 +1486,7 @@ void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
     _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
-void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
+void D3DGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 {
     // Remove deleted DDB from backups
     for (auto &backup_spr : _backupSpriteList)

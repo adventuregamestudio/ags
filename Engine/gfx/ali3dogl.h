@@ -74,7 +74,7 @@ public:
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
-    void SetLightLevel(int lightLevel) override  { _lightLevel = lightLevel; }
+    void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
     void SetTint(int red, int green, int blue, int tintSaturation) override 
     {
         _red = red;
@@ -108,8 +108,8 @@ public:
         _colDepth = colDepth;
         _flipped = false;
         _hasAlpha = false;
-        _stretchToWidth = 0;
-        _stretchToHeight = 0;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
         _useResampler = false;
         _red = _green = _blue = 0;
         _tintSaturation = 0;
@@ -118,8 +118,8 @@ public:
         _opaque = opaque;
     }
 
-    int GetWidthToRender() const { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() const { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() const { return _stretchToWidth; }
+    int GetHeightToRender() const { return _stretchToHeight; }
 
     void Dispose();
 

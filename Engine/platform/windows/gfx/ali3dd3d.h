@@ -99,8 +99,8 @@ public:
         _colDepth = colDepth;
         _flipped = false;
         _hasAlpha = false;
-        _stretchToWidth = 0;
-        _stretchToHeight = 0;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
         _useResampler = false;
         _red = _green = _blue = 0;
         _tintSaturation = 0;
@@ -109,8 +109,8 @@ public:
         _opaque = opaque;
     }
 
-    int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() { return _stretchToWidth; }
+    int GetHeightToRender() { return _stretchToHeight; }
 
     void Dispose();
 

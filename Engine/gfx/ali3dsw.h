@@ -66,6 +66,8 @@ public:
         _height = height;
         _colDepth = color_depth;
         _opaque = opaque;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
     }
 
     ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
@@ -76,10 +78,12 @@ public:
         _colDepth = bmp->GetColorDepth();
         _opaque = opaque;
         _hasAlpha = hasAlpha;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
     }
 
-    int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() { return _stretchToWidth; }
+    int GetHeightToRender() { return _stretchToHeight; }
 
     void Dispose()
     {

@@ -228,7 +228,7 @@ void GUIMain::ClearChanged()
 
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
 {
-    _ctrlRefs.push_back(std::make_pair(type, id));
+    _ctrlRefs.emplace_back(type, id);
     _controls.push_back(control);
 }
 
@@ -527,7 +527,7 @@ void GUIMain::OnMouseButtonDown(int mx, int my)
     // don't activate disabled buttons
     if (!IsGUIEnabled(_controls[MouseOverCtrl]) || !_controls[MouseOverCtrl]->IsVisible() ||
         !_controls[MouseOverCtrl]->IsClickable())
-    return;
+        return;
 
     MouseDownCtrl = MouseOverCtrl;
     if (_controls[MouseOverCtrl]->OnMouseDown())
@@ -1006,32 +1006,32 @@ void WriteGUI(Stream *out)
         guis[i].WriteToFile(out);
     }
     out->WriteInt32(numguibuts);
-    for (int i = 0; i < numguibuts; ++i)
+    for (size_t i = 0; i < numguibuts; ++i)
     {
         guibuts[i].WriteToFile(out);
     }
     out->WriteInt32(numguilabels);
-    for (int i = 0; i < numguilabels; ++i)
+    for (size_t i = 0; i < numguilabels; ++i)
     {
         guilabels[i].WriteToFile(out);
     }
     out->WriteInt32(numguiinv);
-    for (int i = 0; i < numguiinv; ++i)
+    for (size_t i = 0; i < numguiinv; ++i)
     {
         guiinv[i].WriteToFile(out);
     }
     out->WriteInt32(numguislider);
-    for (int i = 0; i < numguislider; ++i)
+    for (size_t i = 0; i < numguislider; ++i)
     {
         guislider[i].WriteToFile(out);
     }
     out->WriteInt32(numguitext);
-    for (int i = 0; i < numguitext; ++i)
+    for (size_t i = 0; i < numguitext; ++i)
     {
         guitext[i].WriteToFile(out);
     }
     out->WriteInt32(numguilist);
-    for (int i = 0; i < numguilist; ++i)
+    for (size_t i = 0; i < numguilist; ++i)
     {
         guilist[i].WriteToFile(out);
     }

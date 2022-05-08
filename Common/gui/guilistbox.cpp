@@ -125,7 +125,7 @@ int GUIListBox::AddItem(const String &text)
 
 void GUIListBox::Clear()
 {
-    if (Items.size() == 0)
+    if (Items.empty())
         return;
     Items.clear();
     SavedGameIndex.clear();

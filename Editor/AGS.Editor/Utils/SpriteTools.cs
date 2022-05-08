@@ -458,26 +458,33 @@ namespace AGS.Editor.Utils
             }
         }
 
-        public static void ExportSprites(SpriteFolder folder, string path, bool recurse, bool skipValidSourcePath, bool updateSourcePath)
+        [Flags]
+        public enum SkipIf
+        {
+            SourceValid     = 0x0001,
+            SourceLocal     = 0x0002
+        }
+
+        public static void ExportSprites(SpriteFolder folder, string path, bool recurse,
+            SkipIf skipIf, bool updateSourcePath)
         {
             foreach(Sprite sprite in folder.Sprites)
             {
-                if (skipValidSourcePath)
+                if (skipIf > 0)
                 {
-                    string checkPath;
+                    string checkPath = Path.IsPathRooted(sprite.SourceFile) ?
+                        sprite.SourceFile :
+                        Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, sprite.SourceFile);
 
-                    if (Path.IsPathRooted(sprite.SourceFile))
+                    if (skipIf.HasFlag(SkipIf.SourceValid) && File.Exists(checkPath))
                     {
-                        checkPath = sprite.SourceFile;
+                        continue; // skip if source is valid
                     }
-                    else
+                    else if (skipIf.HasFlag(SkipIf.SourceLocal) &&
+                        File.Exists(checkPath) &&
+                        Utilities.PathsAreSameOrNested(sprite.SourceFile, Factory.AGSEditor.CurrentGame.DirectoryPath))
                     {
-                        checkPath = Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, sprite.SourceFile);
-                    }
-
-                    if (File.Exists(checkPath))
-                    {
-                        continue;
+                        continue; // skip if source is valid and local (inside the project folder)
                     }
                 }
 
@@ -488,15 +495,16 @@ namespace AGS.Editor.Utils
             {
                 foreach (SpriteFolder subFolder in folder.SubFolders)
                 {
-                    ExportSprites(subFolder, path, recurse, skipValidSourcePath, updateSourcePath);
+                    ExportSprites(subFolder, path, recurse, skipIf, updateSourcePath);
                 }
             }
         }
 
-        public static void ExportSprites(string path, bool recurse, bool skipValidSourcePath, bool updateSourcePath)
+        public static void ExportSprites(string path, bool recurse,
+            SkipIf skipIf, bool updateSourcePath)
         {
             SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
-            ExportSprites(folder, path, recurse, skipValidSourcePath, updateSourcePath);
+            ExportSprites(folder, path, recurse, skipIf, updateSourcePath);
         }
 
         public static Bitmap GetPlaceHolder(int width = 12, int height = 7)

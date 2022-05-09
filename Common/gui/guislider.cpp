@@ -18,7 +18,6 @@
 #include "util/stream.h"
 
 std::vector<AGS::Common::GUISlider> guislider;
-int numguislider = 0;
 
 namespace AGS
 {

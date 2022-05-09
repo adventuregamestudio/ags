@@ -1441,27 +1441,27 @@ void game_sprite_updated(int sprnum)
     // character and object draw caches
     reset_objcache_for_sprite(sprnum);
     // gui backgrounds
-    for (size_t i = 0; i < (size_t)game.numgui; ++i)
+    for (auto &gui : guis)
     {
-        if (guis[i].BgImage == sprnum)
+        if (gui.BgImage == sprnum)
         {
-            guis[i].MarkChanged();
+            gui.MarkChanged();
         }
     }
     // gui buttons
-    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    for (auto &but : guibuts)
     {
-        if (guibuts[i].CurrentImage == sprnum)
+        if (but.CurrentImage == sprnum)
         {
-            guibuts[i].MarkChanged();
+            but.MarkChanged();
         }
     }
     // gui sliders
-    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    for (auto &slider : guislider)
     {
-        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
+        if ((slider.BgImage == sprnum) || (slider.HandleImage == sprnum))
         {
-            guislider[i].MarkChanged();
+            slider.MarkChanged();
         }
     }
     // overlays
@@ -1495,30 +1495,30 @@ void game_sprite_deleted(int sprnum)
         }
     }
     // gui buttons
-    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    for (auto &but : guibuts)
     {
-        if (guibuts[i].Image == sprnum)
-            guibuts[i].Image = 0;
-        if (guibuts[i].MouseOverImage == sprnum)
-            guibuts[i].MouseOverImage = 0;
-        if (guibuts[i].PushedImage == sprnum)
-            guibuts[i].PushedImage = 0;
+        if (but.Image == sprnum)
+            but.Image = 0;
+        if (but.MouseOverImage == sprnum)
+            but.MouseOverImage = 0;
+        if (but.PushedImage == sprnum)
+            but.PushedImage = 0;
 
-        if (guibuts[i].CurrentImage == sprnum)
+        if (but.CurrentImage == sprnum)
         {
-            guibuts[i].CurrentImage = 0;
-            guibuts[i].MarkChanged();
+            but.CurrentImage = 0;
+            but.MarkChanged();
         }
     }
     // gui sliders
-    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    for (auto &slider : guislider)
     {
-        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
-            guislider[i].MarkChanged();
-        if (guislider[i].BgImage == sprnum)
-            guislider[i].BgImage = 0; 
-        if (guislider[i].HandleImage == sprnum)
-            guislider[i].HandleImage = 0;
+        if ((slider.BgImage == sprnum) || (slider.HandleImage == sprnum))
+            slider.MarkChanged();
+        if (slider.BgImage == sprnum)
+            slider.BgImage = 0;
+        if (slider.HandleImage == sprnum)
+            slider.HandleImage = 0;
     }
     // views
     for (size_t v = 0; v < (size_t)game.numviews; ++v)

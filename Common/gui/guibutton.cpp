@@ -20,7 +20,6 @@
 #include "util/string_utils.h"
 
 std::vector<AGS::Common::GUIButton> guibuts;
-int numguibuts = 0;
 
 namespace AGS
 {

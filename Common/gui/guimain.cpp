@@ -941,23 +941,23 @@ HError ReadGUI(Stream *in, bool is_savegame)
     }
 
     // buttons
-    numguibuts = in->ReadInt32();
+    size_t numguibuts = static_cast<uint32_t>(in->ReadInt32());
     guibuts.resize(numguibuts);
-    for (int i = 0; i < numguibuts; ++i)
+    for (size_t i = 0; i < numguibuts; ++i)
     {
         guibuts[i].ReadFromFile(in, GameGuiVersion);
     }
     // labels
-    numguilabels = in->ReadInt32();
+    size_t numguilabels = static_cast<uint32_t>(in->ReadInt32());
     guilabels.resize(numguilabels);
-    for (int i = 0; i < numguilabels; ++i)
+    for (size_t i = 0; i < numguilabels; ++i)
     {
         guilabels[i].ReadFromFile(in, GameGuiVersion);
     }
     // inv controls
-    numguiinv = in->ReadInt32();
+    size_t numguiinv = static_cast<uint32_t>(in->ReadInt32());
     guiinv.resize(numguiinv);
-    for (int i = 0; i < numguiinv; ++i)
+    for (size_t i = 0; i < numguiinv; ++i)
     {
         guiinv[i].ReadFromFile(in, GameGuiVersion);
     }
@@ -965,9 +965,9 @@ HError ReadGUI(Stream *in, bool is_savegame)
     if (GameGuiVersion >= kGuiVersion_214)
     {
         // sliders
-        numguislider = in->ReadInt32();
+        size_t numguislider = static_cast<uint32_t>(in->ReadInt32());
         guislider.resize(numguislider);
-        for (int i = 0; i < numguislider; ++i)
+        for (size_t i = 0; i < numguislider; ++i)
         {
             guislider[i].ReadFromFile(in, GameGuiVersion);
         }
@@ -975,9 +975,9 @@ HError ReadGUI(Stream *in, bool is_savegame)
     if (GameGuiVersion >= kGuiVersion_222)
     {
         // text boxes
-        numguitext = in->ReadInt32();
+        size_t numguitext = static_cast<uint32_t>(in->ReadInt32());
         guitext.resize(numguitext);
-        for (int i = 0; i < numguitext; ++i)
+        for (size_t i = 0; i < numguitext; ++i)
         {
             guitext[i].ReadFromFile(in, GameGuiVersion);
         }
@@ -985,9 +985,9 @@ HError ReadGUI(Stream *in, bool is_savegame)
     if (GameGuiVersion >= kGuiVersion_230)
     {
         // list boxes
-        numguilist = in->ReadInt32();
+        size_t numguilist = static_cast<uint32_t>(in->ReadInt32());
         guilist.resize(numguilist);
-        for (int i = 0; i < numguilist; ++i)
+        for (size_t i = 0; i < numguilist; ++i)
         {
             guilist[i].ReadFromFile(in, GameGuiVersion);
         }
@@ -1001,39 +1001,39 @@ void WriteGUI(Stream *out)
     out->WriteInt32(kGuiVersion_Current);
     out->WriteInt32(guis.size());
 
-    for (size_t i = 0; i < guis.size(); ++i)
+    for (const auto &gui : guis)
     {
-        guis[i].WriteToFile(out);
+        gui.WriteToFile(out);
     }
-    out->WriteInt32(numguibuts);
-    for (size_t i = 0; i < numguibuts; ++i)
+    out->WriteInt32(static_cast<int32_t>(guibuts.size()));
+    for (const auto &but : guibuts)
     {
-        guibuts[i].WriteToFile(out);
+        but.WriteToFile(out);
     }
-    out->WriteInt32(numguilabels);
-    for (size_t i = 0; i < numguilabels; ++i)
+    out->WriteInt32(static_cast<int32_t>(guilabels.size()));
+    for (const auto &label : guilabels)
     {
-        guilabels[i].WriteToFile(out);
+        label.WriteToFile(out);
     }
-    out->WriteInt32(numguiinv);
-    for (size_t i = 0; i < numguiinv; ++i)
+    out->WriteInt32(static_cast<int32_t>(guiinv.size()));
+    for (const auto &inv : guiinv)
     {
-        guiinv[i].WriteToFile(out);
+        inv.WriteToFile(out);
     }
-    out->WriteInt32(numguislider);
-    for (size_t i = 0; i < numguislider; ++i)
+    out->WriteInt32(static_cast<int32_t>(guislider.size()));
+    for (const auto &slider : guislider)
     {
-        guislider[i].WriteToFile(out);
+        slider.WriteToFile(out);
     }
-    out->WriteInt32(numguitext);
-    for (size_t i = 0; i < numguitext; ++i)
+    out->WriteInt32(static_cast<int32_t>(guitext.size()));
+    for (const auto &tb : guitext)
     {
-        guitext[i].WriteToFile(out);
+        tb.WriteToFile(out);
     }
-    out->WriteInt32(numguilist);
-    for (size_t i = 0; i < numguilist; ++i)
+    out->WriteInt32(static_cast<int32_t>(guilist.size()));
+    for (const auto &list : guilist)
     {
-        guilist[i].WriteToFile(out);
+        list.WriteToFile(out);
     }
 }
 

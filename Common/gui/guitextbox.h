@@ -60,6 +60,5 @@ private:
 } // namespace AGS
 
 extern std::vector<AGS::Common::GUITextBox> guitext;
-extern int numguitext;
 
 #endif // __AC_GUITEXTBOX_H

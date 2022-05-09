@@ -19,7 +19,6 @@
 #include "util/stream.h"
 
 std::vector<AGS::Common::GUIInvWindow> guiinv;
-int numguiinv = 0;
 
 namespace AGS
 {

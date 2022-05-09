@@ -130,6 +130,5 @@ private:
 } // namespace AGS
 
 extern std::vector<AGS::Common::GUIButton> guibuts;
-extern int numguibuts;
 
 #endif // __AC_GUIBUTTON_H

@@ -21,7 +21,6 @@
 #define GUITEXTBOX_LEGACY_TEXTLEN 200
 
 std::vector<AGS::Common::GUITextBox> guitext;
-int numguitext = 0;
 
 namespace AGS
 {

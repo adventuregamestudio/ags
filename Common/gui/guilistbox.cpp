@@ -20,7 +20,6 @@
 #include "util/string_utils.h"
 
 std::vector<AGS::Common::GUIListBox> guilist;
-int numguilist = 0;
 
 namespace AGS
 {

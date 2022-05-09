@@ -402,6 +402,7 @@ void DoBeforeRestore(PreservedParams &pp)
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
         delete moduleInstFork[i];
         delete moduleInst[i];
+        moduleInstFork[i] = nullptr;
         moduleInst[i] = nullptr;
     }
 

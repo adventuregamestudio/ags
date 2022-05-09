@@ -2620,94 +2620,93 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  AGS::Types::GUITextWindowEdge^ textwindowedge = dynamic_cast<AGS::Types::GUITextWindowEdge^>(control);
 	  if (button)
 	  {
-          guibuts.push_back(Common::GUIButton());
-		  guibuts[numguibuts].TextColor = button->TextColor;
-		  guibuts[numguibuts].Font = button->Font;
-		  guibuts[numguibuts].Image = button->Image;
-		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
-		  guibuts[numguibuts].MouseOverImage = button->MouseoverImage;
-		  guibuts[numguibuts].PushedImage = button->PushedImage;
-		  guibuts[numguibuts].TextAlignment = (::FrameAlignment)button->TextAlignment;
-          guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
-		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
-          guibuts[numguibuts].SetClipImage(button->ClipImage);
-          guibuts[numguibuts].SetText(tcv->Convert(button->Text));
-          guibuts[numguibuts].EventHandlers[0] = TextHelper::ConvertASCII(button->OnClick);
+          Common::GUIButton nbut;
+          nbut.TextColor = button->TextColor;
+          nbut.Font = button->Font;
+          nbut.Image = button->Image;
+          nbut.CurrentImage = nbut.Image;
+          nbut.MouseOverImage = button->MouseoverImage;
+          nbut.PushedImage = button->PushedImage;
+          nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
+          nbut.ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
+          nbut.ClickData[Common::kMouseLeft] = button->NewModeNumber;
+          nbut.SetClipImage(button->ClipImage);
+          nbut.SetText(tcv->Convert(button->Text));
+          nbut.EventHandlers[0] = TextHelper::ConvertASCII(button->OnClick);
+          guibuts.push_back(nbut);
 		  
-          gui->AddControl(Common::kGUIButton, numguibuts, &guibuts[numguibuts]);
-		  numguibuts++;
+          gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
 	  }
 	  else if (label)
 	  {
-          guilabels.push_back(Common::GUILabel());
-		  guilabels[numguilabels].TextColor = label->TextColor;
-		  guilabels[numguilabels].Font = label->Font;
-		  guilabels[numguilabels].TextAlignment = (::HorAlignment)label->TextAlignment;
+          Common::GUILabel nlabel;
+          nlabel.TextColor = label->TextColor;
+          nlabel.Font = label->Font;
+          nlabel.TextAlignment = (::HorAlignment)label->TextAlignment;
           Common::String text = tcv->Convert(label->Text);
-		  guilabels[numguilabels].SetText(text);
+          nlabel.SetText(text);
+          guilabels.push_back(nlabel);
 
-          gui->AddControl(Common::kGUILabel, numguilabels, &guilabels[numguilabels]);
-		  numguilabels++;
+          gui->AddControl(Common::kGUILabel, guilabels.size() - 1, &guilabels.back());
 	  }
 	  else if (textbox)
 	  {
-          guitext.push_back(Common::GUITextBox());
-		  guitext[numguitext].TextColor = textbox->TextColor;
-		  guitext[numguitext].Font = textbox->Font;
-          guitext[numguitext].SetShowBorder(textbox->ShowBorder);
-          guitext[numguitext].EventHandlers[0] = TextHelper::ConvertASCII(textbox->OnActivate);
+          Common::GUITextBox ntext;
+          ntext.TextColor = textbox->TextColor;
+          ntext.Font = textbox->Font;
+          ntext.SetShowBorder(textbox->ShowBorder);
+          ntext.EventHandlers[0] = TextHelper::ConvertASCII(textbox->OnActivate);
+          guitext.push_back(ntext);
 
-          gui->AddControl(Common::kGUITextBox, numguitext, &guitext[numguitext]);
-		  numguitext++;
+          gui->AddControl(Common::kGUITextBox, guitext.size() - 1, &guitext.back());
 	  }
 	  else if (listbox)
 	  {
-          guilist.push_back(Common::GUIListBox());
-		  guilist[numguilist].TextColor = listbox->TextColor;
-		  guilist[numguilist].Font = listbox->Font;
-		  guilist[numguilist].SelectedTextColor = listbox->SelectedTextColor;
-		  guilist[numguilist].SelectedBgColor = listbox->SelectedBackgroundColor;
-		  guilist[numguilist].TextAlignment = (::HorAlignment)listbox->TextAlignment;
-          guilist[numguilist].SetTranslated(listbox->Translated);
-          guilist[numguilist].SetShowBorder(listbox->ShowBorder);
-		  guilist[numguilist].SetShowArrows(listbox->ShowScrollArrows);
-          guilist[numguilist].EventHandlers[0] = TextHelper::ConvertASCII(listbox->OnSelectionChanged);
+          Common::GUIListBox nlist;
+          nlist.TextColor = listbox->TextColor;
+          nlist.Font = listbox->Font;
+          nlist.SelectedTextColor = listbox->SelectedTextColor;
+          nlist.SelectedBgColor = listbox->SelectedBackgroundColor;
+          nlist.TextAlignment = (::HorAlignment)listbox->TextAlignment;
+          nlist.SetTranslated(listbox->Translated);
+          nlist.SetShowBorder(listbox->ShowBorder);
+          nlist.SetShowArrows(listbox->ShowScrollArrows);
+          nlist.EventHandlers[0] = TextHelper::ConvertASCII(listbox->OnSelectionChanged);
+          guilist.push_back(nlist);
 
-          gui->AddControl(Common::kGUIListBox, numguilist, &guilist[numguilist]);
-		  numguilist++;
+          gui->AddControl(Common::kGUIListBox, guilist.size() - 1, &guilist.back());
 	  }
 	  else if (slider)
 	  {
-          guislider.push_back(Common::GUISlider());
-		  guislider[numguislider].MinValue = slider->MinValue;
-		  guislider[numguislider].MaxValue = slider->MaxValue;
-		  guislider[numguislider].Value = slider->Value;
-		  guislider[numguislider].HandleImage = slider->HandleImage;
-		  guislider[numguislider].HandleOffset = slider->HandleOffset;
-		  guislider[numguislider].BgImage = slider->BackgroundImage;
-          guislider[numguislider].EventHandlers[0] = TextHelper::ConvertASCII(slider->OnChange);
+          Common::GUISlider nslider;
+		  nslider.MinValue = slider->MinValue;
+		  nslider.MaxValue = slider->MaxValue;
+		  nslider.Value = slider->Value;
+		  nslider.HandleImage = slider->HandleImage;
+		  nslider.HandleOffset = slider->HandleOffset;
+		  nslider.BgImage = slider->BackgroundImage;
+          nslider.EventHandlers[0] = TextHelper::ConvertASCII(slider->OnChange);
+          guislider.push_back(nslider);
 
-          gui->AddControl(Common::kGUISlider, numguislider, &guislider[numguislider]);
-		  numguislider++;
+          gui->AddControl(Common::kGUISlider, guislider.size() - 1, &guislider.back());
 	  }
 	  else if (invwindow)
 	  {
-          guiinv.push_back(Common::GUIInvWindow());
-		  guiinv[numguiinv].CharId = invwindow->CharacterID;
-		  guiinv[numguiinv].ItemWidth = invwindow->ItemWidth;
-		  guiinv[numguiinv].ItemHeight = invwindow->ItemHeight;
+          Common::GUIInvWindow ninv;
+          ninv.CharId = invwindow->CharacterID;
+          ninv.ItemWidth = invwindow->ItemWidth;
+          ninv.ItemHeight = invwindow->ItemHeight;
+          guiinv.push_back(ninv);
 
-          gui->AddControl(Common::kGUIInvWindow, numguiinv, &guiinv[numguiinv]);
-		  numguiinv++;
+          gui->AddControl(Common::kGUIInvWindow, guiinv.size() - 1, &guiinv.back());
 	  }
 	  else if (textwindowedge)
 	  {
-          guibuts.push_back(Common::GUIButton());
-		  guibuts[numguibuts].Image = textwindowedge->Image;
-		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
+          Common::GUIButton nbut;
+          nbut.Image = textwindowedge->Image;
+          nbut.CurrentImage = nbut.Image;
 		  
-          gui->AddControl(Common::kGUIButton, numguibuts, &guibuts[numguibuts]);
-		  numguibuts++;
+          gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
 	  }
 
       Common::GUIObject *newObj = gui->GetControl(gui->GetControlCount() - 1);
@@ -2725,18 +2724,12 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 }
 
 void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
-  numguibuts = 0;
-  numguilabels = 0;
-  numguitext = 0;
-  numguilist = 0;
-  numguislider = 0;
-  numguiinv = 0;
-  guibuts.resize(0);
-  guilabels.resize(0);
-  guitext.resize(0);
-  guilist.resize(0);
-  guislider.resize(0);
-  guiinv.resize(0);
+  guibuts.clear();
+  guilabels.clear();
+  guitext.clear();
+  guilist.clear();
+  guislider.clear();
+  guiinv.clear();
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
   // Add dummy items to all listboxes, let user preview the fonts

@@ -272,6 +272,7 @@ namespace AGS.Editor
                 }
                 RoomObject newObj = new RoomObject(_room);
                 newObj.ID = _room.Objects.Count;
+                newObj.Name = Factory.AGSEditor.GetFirstAvailableScriptName("oObject", 0, _room);
                 newObj.StartX = SetObjectCoordinate(_menuClickX);
                 newObj.StartY = SetObjectCoordinate(_menuClickY);
                 _room.Objects.Add(newObj);

@@ -402,5 +402,24 @@ namespace AGS.Types
 		{
 			this.Modified = true;
 		}
-	}
+
+        public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
+        {
+            foreach (RoomHotspot hotspot in Hotspots)
+            {
+                if ((hotspot.Name == tryName) && (hotspot != ignoreObject))
+                {
+                    return true;
+                }
+            }
+            foreach (RoomObject obj in Objects)
+            {
+                if ((obj.Name == tryName) && (obj != ignoreObject))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

@@ -320,6 +320,69 @@ TEST(Stream, BufferedStreamWrite) {
     File::DeleteFile(DummyFile);
 }
 
+TEST(Stream, BufferedSectionStream) {
+    //-------------------------------------------------------------------------
+    // Write data into the temp file
+    FileStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    out.WriteInt32(3);
+    // fill in to ensure buffered stream reach buffer size
+    out.WriteByteCount(0, BufferedStream::BufferSize);
+    const auto section1_start = out.GetPosition();
+    out.WriteInt32(4);
+    out.WriteInt32(5);
+    out.WriteInt32(6);
+    out.WriteInt32(7);
+    const auto section1_end = out.GetPosition();
+    out.WriteByteCount(0, BufferedStream::BufferSize);
+    out.WriteInt32(8);
+    out.WriteInt32(9);
+    out.WriteInt32(10);
+    out.WriteInt32(11);
+    const auto section2_end = out.GetPosition();
+    out.Close();
+
+    //-------------------------------------------------------------------------
+    // Read data back
+    BufferedSectionStream in(DummyFile, section1_start, section1_end, kFile_Open, kFile_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_EQ(in.GetPosition(), 0);
+    ASSERT_EQ(in.GetLength(), section1_end - section1_start);
+    ASSERT_EQ(in.ReadInt32(), 4);
+    ASSERT_EQ(in.ReadInt32(), 5);
+    ASSERT_EQ(in.ReadInt32(), 6);
+    ASSERT_EQ(in.ReadInt32(), 7);
+    ASSERT_EQ(in.GetPosition(), section1_end - section1_start);
+    ASSERT_TRUE(in.EOS());
+    in.Close();
+
+    // Test seeks
+    BufferedSectionStream in2(DummyFile, section1_start, section2_end, kFile_Open, kFile_Read);
+    ASSERT_TRUE(in2.CanRead());
+    ASSERT_TRUE(in2.CanSeek());
+    ASSERT_EQ(in2.GetPosition(), 0);
+    ASSERT_EQ(in2.GetLength(), section2_end - section1_start);
+    in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin);
+    ASSERT_EQ(in2.ReadInt32(), 8);
+    ASSERT_EQ(in2.ReadInt32(), 9);
+    ASSERT_EQ(in2.ReadInt32(), 10);
+    ASSERT_EQ(in2.ReadInt32(), 11);
+    in2.Seek(0, kSeekBegin);
+    ASSERT_EQ(in2.ReadInt32(), 4);
+    ASSERT_EQ(in2.ReadInt32(), 5);
+    ASSERT_EQ(in2.ReadInt32(), 6);
+    ASSERT_EQ(in2.ReadInt32(), 7);
+    ASSERT_EQ(in2.GetPosition(), 4 * sizeof(int32_t));
+    in2.Seek(0, kSeekEnd);
+    ASSERT_EQ(in2.GetPosition(), section2_end - section1_start);
+    ASSERT_TRUE(in2.EOS());
+    in2.Close();
+
+    File::DeleteFile(DummyFile);
+}
+
 #endif // AGS_PLATFORM_TEST_FILE_IO
 
 

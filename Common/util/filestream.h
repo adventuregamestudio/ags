@@ -48,6 +48,8 @@ public:
         { return new FileStream(file, false, work_mode, stream_end); }
     ~FileStream() override;
 
+    FileWorkMode GetWorkMode() const { return _workMode; }
+
     bool    HasErrors() const override;
     void    Close() override;
     bool    Flush() override;

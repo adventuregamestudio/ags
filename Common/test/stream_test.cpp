@@ -1,3 +1,4 @@
+#include <array>
 #include <memory>
 #include <vector>
 #include "gtest/gtest.h"
@@ -6,6 +7,192 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+
+TEST(Stream, Common) {
+    // Storage buffer
+    std::vector<uint8_t> membuf;
+
+    //-------------------------------------------------------------------------
+    // Write data
+    std::unique_ptr<Stream> out(
+        new VectorStream(membuf, kStream_Write));
+
+    out->WriteInt16(10);
+    out->WriteInt64(-20202);
+    StrUtil::WriteCStr("test.tmp", out.get());
+    String very_long_string;
+    very_long_string.FillString('a', 10000);
+    very_long_string.Write(out.get());
+
+    out.reset();
+
+    //-------------------------------------------------------------------------
+    // Read data back
+    std::unique_ptr<Stream> in(
+        new VectorStream(membuf));
+
+    int16_t int16val = in->ReadInt16();
+    int64_t int64val = in->ReadInt64();
+    String str1 = String::FromStream(in.get());
+    String str2 = String::FromStream(in.get());
+
+    in.reset();
+
+    //-----------------------------------------------------
+    // Assertions
+
+    ASSERT_TRUE(int16val == 10);
+    ASSERT_TRUE(int64val == -20202);
+    ASSERT_TRUE(strcmp(str1.GetCStr(), "test.tmp") == 0);
+    ASSERT_TRUE(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
+}
+
+TEST(Stream, MemoryStream) {
+    // Storage buffer
+    std::array<uint8_t, 1024> membuf;
+    const size_t fill_len = 10;
+    //-------------------------------------------------------------------------
+    // Write data
+    MemoryStream out(&membuf.front(), membuf.size(), kStream_Write);
+    ASSERT_TRUE(out.CanWrite());
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    out.WriteInt32(3);
+    out.WriteByteCount(0, fill_len);
+    out.WriteInt32(4);
+    out.WriteInt32(5);
+    out.WriteInt32(6);
+    out.WriteInt32(7);
+    out.WriteByteCount(0, fill_len);
+    out.WriteInt32(8);
+    out.WriteInt32(9);
+    out.WriteInt32(10);
+    out.WriteInt32(11);
+    const auto eos_pos = out.GetPosition();
+    ASSERT_EQ(eos_pos, sizeof(int32_t) * 4 * 3 + fill_len * 2);
+    ASSERT_EQ(out.GetLength(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    MemoryStream in(&membuf.front(), static_cast<size_t>(eos_pos), kStream_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_EQ(in.GetLength(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 1);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 3);
+    for (size_t i = 0; i < fill_len; ++i)
+        in.ReadByte();
+    ASSERT_EQ(in.ReadInt32(), 4);
+    ASSERT_EQ(in.ReadInt32(), 5);
+    ASSERT_EQ(in.ReadInt32(), 6);
+    ASSERT_EQ(in.ReadInt32(), 7);
+    for (size_t i = 0; i < fill_len; ++i)
+        in.ReadByte();
+    ASSERT_EQ(in.ReadInt32(), 8);
+    ASSERT_EQ(in.ReadInt32(), 9);
+    ASSERT_EQ(in.ReadInt32(), 10);
+    ASSERT_EQ(in.ReadInt32(), 11);
+    ASSERT_EQ(in.GetPosition(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
+    ASSERT_TRUE(in.EOS());
+    in.Close();
+    //-------------------------------------------------------------------------
+    // Test seeks
+    MemoryStream in2(&membuf.front(), static_cast<size_t>(eos_pos), kStream_Read);
+    ASSERT_TRUE(in2.CanRead());
+    ASSERT_EQ(in2.GetLength(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
+    in2.Seek(4 * sizeof(int32_t) + fill_len, kSeekBegin);
+    ASSERT_EQ(in2.ReadInt32(), 4);
+    in2.Seek(2 * sizeof(int32_t), kSeekBegin);
+    ASSERT_EQ(in2.ReadInt32(), 2);
+    in2.Seek(8 * sizeof(int32_t) + fill_len * 2, kSeekBegin);
+    ASSERT_EQ(in2.ReadInt32(), 8);
+    in2.Seek(2 * sizeof(int32_t), kSeekCurrent);
+    ASSERT_EQ(in2.ReadInt32(), 11);
+    ASSERT_EQ(in2.GetPosition(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
+    ASSERT_TRUE(in2.EOS());
+}
+
+TEST(Stream, MemoryStream2) {
+    // Storage buffer
+    std::array<uint8_t, 1024> membuf;
+    const size_t fill_len = 10;
+    //-------------------------------------------------------------------------
+    // Write data with seeks
+    MemoryStream out(&membuf.front(), membuf.size(), kStream_Write);
+    ASSERT_TRUE(out.CanWrite());
+    ASSERT_TRUE(out.CanSeek());
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    const auto write_back_pos = out.GetPosition();
+    out.WriteInt32(3);
+    out.WriteByteCount(0, fill_len);
+    out.Seek(write_back_pos, kSeekBegin);
+    out.WriteInt32(111);
+    out.Seek(0, kSeekEnd);
+    out.WriteInt32(222);
+    const auto eos_pos = out.GetPosition();
+    ASSERT_EQ(eos_pos, sizeof(int32_t) * 5 + fill_len);
+    ASSERT_EQ(out.GetLength(), sizeof(int32_t) * 5 + fill_len);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    MemoryStream in(&membuf.front(), static_cast<size_t>(eos_pos), kStream_Read);
+    ASSERT_EQ(in.GetLength(), sizeof(int32_t) * 5 + fill_len);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 1);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 111);
+    in.Seek(fill_len, kSeekCurrent);
+    ASSERT_EQ(in.ReadInt32(), 222);
+    ASSERT_EQ(in.GetPosition(), sizeof(int32_t) * 5 + fill_len);
+    ASSERT_TRUE(in.EOS());
+}
+
+TEST(Stream, VectorStream) {
+    // Storage buffer
+    std::vector<uint8_t> membuf;
+    const size_t fill_len = 10;
+    //-------------------------------------------------------------------------
+    // Write data with seeks
+    VectorStream out(membuf, kStream_Write);
+    ASSERT_TRUE(out.CanWrite());
+    ASSERT_TRUE(out.CanSeek());
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    auto write_back_pos = out.GetPosition();
+    out.WriteInt32(3);
+    out.WriteByteCount(0, fill_len);
+    out.Seek(write_back_pos, kSeekBegin);
+    out.WriteInt32(111);
+    out.Seek(0, kSeekEnd);
+    out.WriteInt32(222);
+    ASSERT_EQ(out.GetPosition(), sizeof(int32_t) * 5 + fill_len);
+    ASSERT_EQ(out.GetLength(), sizeof(int32_t) * 5 + fill_len);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    VectorStream in(membuf, kStream_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_TRUE(in.CanSeek());
+    ASSERT_EQ(in.GetLength(), sizeof(int32_t) * 5 + fill_len);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 1);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 111);
+    in.Seek(fill_len, kSeekCurrent);
+    ASSERT_EQ(in.ReadInt32(), 222);
+    ASSERT_EQ(in.GetPosition(), sizeof(int32_t) * 5 + fill_len);
+    ASSERT_TRUE(in.EOS());
+}
+
+
+//-------------------------------------------------------------------------
+// AlignedStream tests, for backward compatible data serialization
+//-------------------------------------------------------------------------
 
 struct TTrickyAlignedData
 {
@@ -101,45 +288,6 @@ TTrickyAlignedData makeTTricky()
 #endif
     }
     return tricky_data_out;
-}
-
-TEST(Stream, Common) {
-    // Storage buffer
-    std::vector<uint8_t> membuf;
-
-    //-------------------------------------------------------------------------
-    // Write data
-    std::unique_ptr<Stream> out(
-        new VectorStream(membuf, kStream_Write));
-
-    out->WriteInt16(10);
-    out->WriteInt64(-20202);
-    StrUtil::WriteCStr("test.tmp", out.get());
-    String very_long_string;
-    very_long_string.FillString('a', 10000);
-    very_long_string.Write(out.get());
-
-    out.reset();
-
-    //-------------------------------------------------------------------------
-    // Read data back
-    std::unique_ptr<Stream> in(
-        new VectorStream(membuf));
-
-    int16_t int16val = in->ReadInt16();
-    int64_t int64val = in->ReadInt64();
-    String str1 = String::FromStream(in.get());
-    String str2 = String::FromStream(in.get());
-
-    in.reset();
-
-    //-----------------------------------------------------
-    // Assertions
-
-    ASSERT_TRUE(int16val == 10);
-    ASSERT_TRUE(int64val == -20202);
-    ASSERT_TRUE(strcmp(str1.GetCStr(), "test.tmp") == 0);
-    ASSERT_TRUE(strcmp(str2.GetCStr(), very_long_string.GetCStr()) == 0);
 }
 
 // this builds the array that is in AlignedStream membuf for testing

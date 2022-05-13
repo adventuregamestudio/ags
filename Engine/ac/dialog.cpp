@@ -423,6 +423,7 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
 #define MAX_TOPIC_HISTORY 50
 #define DLG_OPTION_PARSER 99
 
+// Dialog options state
 struct DialogOptions
 {
     int dlgnum;
@@ -1107,21 +1108,20 @@ void DialogOptions::Close()
   delete tempScrn;
 }
 
-DialogOptions DlgOpt;
-
 int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBackground) 
 {
-  DlgOpt.Prepare(_dlgnum, _runGameLoopsInBackground);
-  DlgOpt.Show();
-  DlgOpt.Close();  
+  DialogOptions dlgopt;
+  dlgopt.Prepare(_dlgnum, _runGameLoopsInBackground);
+  dlgopt.Show();
+  dlgopt.Close();
 
-  int dialog_choice = DlgOpt.chose;
+  int dialog_choice = dlgopt.chose;
   if (dialog_choice >= 0) // NOTE: this condition also excludes CHOSE_TEXTPARSER
   {
     assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
-    DialogTopic *dialog_topic = DlgOpt.dtop;
+    DialogTopic *dialog_topic = dlgopt.dtop;
     int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = DlgOpt.dtop->optionnames[dialog_choice];
+    const char *option_name = dlgopt.dtop->optionnames[dialog_choice];
 
     option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;

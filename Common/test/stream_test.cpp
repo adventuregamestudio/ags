@@ -197,7 +197,18 @@ TEST(Stream, VectorStream) {
 
 static const char *DummyFile = "dummy.dat";
 
-TEST(Stream, BufferedStreamRead) {
+class FileBasedTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        File::DeleteFile(DummyFile);
+    }
+
+    void TearDown() override {
+        File::DeleteFile(DummyFile);
+    }
+};
+
+TEST_F(FileBasedTest, BufferedStreamRead) {
     //-------------------------------------------------------------------------
     // Write data into the temp file
     FileStream out(DummyFile, kFile_CreateAlways, kFile_Write);
@@ -264,7 +275,7 @@ TEST(Stream, BufferedStreamRead) {
     File::DeleteFile(DummyFile);
 }
 
-TEST(Stream, BufferedStreamWrite) {
+TEST_F(FileBasedTest, BufferedStreamWrite) {
     //-------------------------------------------------------------------------
     // Write data into the temp file
     // fill in to ensure buffered stream reach buffer size
@@ -320,7 +331,7 @@ TEST(Stream, BufferedStreamWrite) {
     File::DeleteFile(DummyFile);
 }
 
-TEST(Stream, BufferedSectionStream) {
+TEST_F(FileBasedTest, BufferedSectionStream) {
     //-------------------------------------------------------------------------
     // Write data into the temp file
     FileStream out(DummyFile, kFile_CreateAlways, kFile_Write);

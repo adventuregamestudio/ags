@@ -23,10 +23,14 @@ namespace AGS
 namespace Common
 {
 
-BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
-        : FileStream(file_name, open_mode, work_mode, stream_endianess), _buffer(BufferStreamSize), _bufferPosition(0), _position(0)
+//-----------------------------------------------------------------------------
+// BufferedStream
+//-----------------------------------------------------------------------------
+
+BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode,
+        FileWorkMode work_mode, DataEndianess stream_endianess)
+    : FileStream(file_name, open_mode, work_mode, stream_endianess)
 {
-    _end = -1;
     if (FileStream::Seek(0, kSeekEnd))
     {
         _start = 0;
@@ -39,16 +43,14 @@ BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, 
         FileStream::Close();
         throw std::runtime_error("Error determining stream end.");
     }
-
-    _buffer.resize(0);
 }
 
 void BufferedStream::FillBufferFromPosition(soff_t position)
 {
     FileStream::Seek(position, kSeekBegin);
 
-    _buffer.resize(BufferStreamSize);
-    auto sz = FileStream::Read(_buffer.data(), BufferStreamSize);
+    _buffer.resize(BufferSize);
+    auto sz = FileStream::Read(_buffer.data(), BufferSize);
     _buffer.resize(sz);
 
     _bufferPosition = position;
@@ -133,8 +135,12 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
     return _position == want_pos;
 }
 
+//-----------------------------------------------------------------------------
+// BufferedSectionStream
+//-----------------------------------------------------------------------------
+
 BufferedSectionStream::BufferedSectionStream(const String &file_name, soff_t start_pos, soff_t end_pos,
-    FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
+        FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
     : BufferedStream(file_name, open_mode, work_mode, stream_endianess)
 {
     assert(start_pos <= end_pos);

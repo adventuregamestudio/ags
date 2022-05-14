@@ -133,7 +133,11 @@
 
 // Certain methods or classes may be meant for the code testing purposes only
 #if !defined(AGS_PLATFORM_TEST)
-    #define AGS_PLATFORM_TEST (AGS_PLATFORM_DEBUG)
+    #define AGS_PLATFORM_TEST (0)
+#endif
+// This option surrounds the test code which requires write disk access
+#if !defined(AGS_PLATFORM_TEST_FILE_IO)
+    #define AGS_PLATFORM_TEST_FILE_IO (AGS_PLATFORM_TEST)
 #endif
 
 #define AGS_HAS_DIRECT3D (AGS_PLATFORM_OS_WINDOWS)

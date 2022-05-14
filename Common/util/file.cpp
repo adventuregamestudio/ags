@@ -352,7 +352,7 @@ Stream *File::OpenFileCI(const String &file_name, FileOpenMode open_mode, FileWo
 Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
 {
     try {
-        FileStream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kFile_Read);
+        Stream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kFile_Read);
         if (fs != nullptr && !fs->IsValid()) {
             delete fs;
             return nullptr;

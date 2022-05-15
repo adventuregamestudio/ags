@@ -69,25 +69,19 @@ namespace OGL
 
 using namespace AGS::Common;
 
-void OGLBitmap::Dispose()
+OGLTextureData::~OGLTextureData()
 {
-    if (_tiles != nullptr)
+    if (_tiles)
     {
-        for (int i = 0; i < _numTiles; i++)
+        for (size_t i = 0; i < _numTiles; ++i)
             glDeleteTextures(1, &(_tiles[i].texture));
-
-        free(_tiles);
-        _tiles = nullptr;
-        _numTiles = 0;
+        delete[] _tiles;
     }
-    if (_vertex != nullptr)
+    if (_vertex)
     {
-        free(_vertex);
-        _vertex = nullptr;
+        delete[] _vertex;
     }
 }
-
-
 
 
 OGLGraphicsDriver::OGLGraphicsDriver()
@@ -1047,16 +1041,17 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
   int drawAtX = drawListEntry->x;
   int drawAtY = drawListEntry->y;
 
-  for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
+  const auto *txdata = bmpToDraw->_data.get();
+  for (size_t ti = 0; ti < txdata->_numTiles; ++ti)
   {
-    width = bmpToDraw->_tiles[ti].width * xProportion;
-    height = bmpToDraw->_tiles[ti].height * yProportion;
+    width = txdata->_tiles[ti].width * xProportion;
+    height = txdata->_tiles[ti].height * yProportion;
     float xOffs;
-    float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
+    float yOffs = txdata->_tiles[ti].y * yProportion;
     if (bmpToDraw->_flipped)
-      xOffs = (bmpToDraw->_width - (bmpToDraw->_tiles[ti].x + bmpToDraw->_tiles[ti].width)) * xProportion;
+      xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
-      xOffs = bmpToDraw->_tiles[ti].x * xProportion;
+      xOffs = txdata->_tiles[ti].x * xProportion;
     int thisX = drawAtX + xOffs;
     int thisY = drawAtY + yOffs;
     thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
@@ -1094,7 +1089,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
+    glBindTexture(GL_TEXTURE_2D, txdata->_tiles[ti].texture);
 
     if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
@@ -1115,15 +1110,15 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    if (bmpToDraw->_vertex != nullptr)
+    if (txdata->_vertex != nullptr)
     {
         glEnableVertexAttribArray(0);
         GLint a_Position = glGetAttribLocation(program.Program, "a_Position");
-        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));
+        glVertexAttribPointer(a_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
 
         glEnableVertexAttribArray(1);
         GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
-        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].tu));
+        glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
     }
     else
     {
@@ -1422,7 +1417,7 @@ void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
     _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
-void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
+void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 {
     // Remove deleted DDB from backups
     for (auto &backup_spr : _backupSpriteList)
@@ -1434,7 +1429,7 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 }
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
@@ -1458,7 +1453,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   }
 
   const bool usingLinearFiltering = _filter->UseLinearFiltering();
-  char *origPtr = (char*)malloc(sizeof(int) * tileWidth * tileHeight);
+  char *origPtr = new char[sizeof(int) * tileWidth * tileHeight];
   const int pitch = tileWidth * sizeof(int);
   char *memPtr = origPtr + pitch * tiley + tilex * sizeof(int);
 
@@ -1467,7 +1462,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   fixedTile.y = tile->y;
   fixedTile.width = std::min(tile->width, tileWidth);
   fixedTile.height = std::min(tile->height, tileHeight);
-  if (target->_opaque)
+  if (opaque)
     BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, memPtr, pitch);
   else
     BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
@@ -1514,7 +1509,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
 
-  free(origPtr);
+  delete []origPtr;
 }
 
 void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
@@ -1527,12 +1522,19 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
   target->_hasAlpha = hasAlpha;
+  UpdateTextureData(target->_data.get(), bitmap, target->_opaque, hasAlpha);
+}
+
+void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha)
+{
+  const int color_depth = bitmap->GetColorDepth();
   if (color_depth == 8)
       select_palette(palette);
 
-  for (int i = 0; i < target->_numTiles; i++)
+  auto *ogldata = reinterpret_cast<OGLTextureData*>(txdata);
+  for (size_t i = 0; i < ogldata->_numTiles; ++i)
   {
-    UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
+    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque, hasAlpha);
   }
 
   if (color_depth == 8)
@@ -1575,27 +1577,41 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
   *height = allocatedHeight;
 }
 
-
-
 IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
+{
+  if (color_depth != GetCompatibleBitmapFormat(color_depth))
+    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+  OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
+  ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque)));
+  return ddb;
+}
+
+IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<TextureData> txdata,
+    int width, int height, int color_depth, bool opaque)
+{
+    auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(width, height, color_depth, opaque));
+    if (ddb)
+        ddb->_data = std::static_pointer_cast<OGLTextureData>(txdata);
+    return ddb;
+}
+
+std::shared_ptr<TextureData> OGLGraphicsDriver::GetTextureData(IDriverDependantBitmap *ddb)
+{
+    return std::static_pointer_cast<TextureData>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
+}
+
+TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool opaque)
 {
   assert(width > 0);
   assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
-  // NOTE: original bitmap object is not modified in this function
-  if (color_depth != GetCompatibleBitmapFormat(color_depth))
-    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-  int colourDepth = color_depth;
-
-  OGLBitmap *ddb = new OGLBitmap(width, height, colourDepth, opaque);
-
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
 
+  auto *txdata = new OGLTextureData();
   // Calculate how many textures will be necessary to
   // store this image
-
   int MaxTextureWidth = 512;
   int MaxTextureHeight = 512;
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureWidth);
@@ -1617,8 +1633,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
   int numTiles = tilesAcross * tilesDown;
-  OGLTextureTile *tiles = (OGLTextureTile*)malloc(sizeof(OGLTextureTile) * numTiles);
-  memset(tiles, 0, sizeof(OGLTextureTile) * numTiles);
+  OGLTextureTile *tiles = new OGLTextureTile[numTiles];
 
   OGLCUSTOMVERTEX *vertices = nullptr;
 
@@ -1632,9 +1647,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
   {
      // The texture is not the same as the bitmap, so create some custom vertices
      // so that only the relevant portion of the texture is rendered
-     int vertexBufferSize = numTiles * 4 * sizeof(OGLCUSTOMVERTEX);
-
-     ddb->_vertex = vertices = (OGLCUSTOMVERTEX*)malloc(vertexBufferSize);
+     txdata->_vertex = vertices = new OGLCUSTOMVERTEX[numTiles * 4];
   }
 
   for (int x = 0; x < tilesAcross; x++)
@@ -1701,9 +1714,9 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
     }
   }
 
-  ddb->_numTiles = numTiles;
-  ddb->_tiles = tiles;
-  return ddb;
+  txdata->_numTiles = numTiles;
+  txdata->_tiles = tiles;
+  return txdata;
 }
 
 void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)

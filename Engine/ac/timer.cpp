@@ -24,6 +24,7 @@
 #endif
 
 extern volatile bool game_update_suspend;
+extern volatile char want_exit, abort_engine;
 
 namespace {
 
@@ -73,7 +74,7 @@ void WaitForNextFrame()
         next_frame_timestamp = now;
 #if !AGS_PLATFORM_OS_EMSCRIPTEN
         // suspend while the game is being switched out
-        while (game_update_suspend) {
+        while (game_update_suspend && (want_exit == 0) && (abort_engine == 0)) {
             sys_evt_process_pending();
             platform->YieldCPU();
         }
@@ -102,7 +103,7 @@ void WaitForNextFrame()
 
 #if !AGS_PLATFORM_OS_EMSCRIPTEN
     // suspend while the game is being switched out
-    while (game_update_suspend) {
+    while (game_update_suspend && (want_exit == 0) && (abort_engine == 0)) {
         sys_evt_process_pending();
         platform->YieldCPU();
     }

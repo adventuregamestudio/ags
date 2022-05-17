@@ -414,18 +414,19 @@ int ags_entry_point(int argc, char *argv[]) {
     if (debug_flags & DBG_REGONLY)
         exit(EXIT_NORMAL);
 
+    int result = 0;
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     if (usetup.disable_exception_handling)
 #endif
     {
-        int result = initialize_engine(startup_opts);
-        quit("|bye!");
-        return result;
+        result = initialize_engine(startup_opts);
     }
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     else
     {
-        return initialize_engine_with_exception_handling(initialize_engine, startup_opts);
+        result = initialize_engine_with_exception_handling(initialize_engine, startup_opts);
     }
 #endif
+    quit("|bye!");
+    return result;
 }

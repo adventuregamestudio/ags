@@ -119,10 +119,4 @@ extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 
-// TODO: find out if these extra arrays are really necessary. This may be remains from the
-// time when the symbol import table was holding raw pointers to char array.
-extern std::vector<AGS::Common::String> characterScriptObjNames;
-extern AGS::Common::String objectScriptObjNames[MAX_ROOM_OBJECTS];
-extern std::vector<AGS::Common::String> guiScriptObjNames;
-
 #endif // __AGS_EE_SCRIPT__SCRIPT_H

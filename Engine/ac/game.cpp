@@ -456,7 +456,6 @@ void unload_game_file()
 
     play.FreeViewportsAndCameras();
 
-    characterScriptObjNames.clear();
     charextra.clear();
     mls.clear();
 
@@ -527,7 +526,6 @@ void unload_game_file()
     delete[] scrDialog;
     scrDialog = nullptr;
 
-    guiScriptObjNames.clear();
     guis.clear();
     free(scrGui);
 

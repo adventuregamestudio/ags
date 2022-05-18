@@ -86,7 +86,7 @@ GameState play;
 GameSetup usetup;
 GameSetupStruct game;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
-RoomObject*objs;
+RoomObject*objs=nullptr;
 RoomStatus*croom=nullptr;
 RoomStruct thisroom;
 

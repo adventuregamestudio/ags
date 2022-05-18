@@ -418,8 +418,7 @@ void DoBeforeRestore(PreservedParams &pp)
     dialogScriptsInst = nullptr;
 
     resetRoomStatuses();
-    troom.FreeScriptData();
-    troom.FreeProperties();
+    troom = RoomStatus(); // reset temp room state
     free_do_once_tokens();
 
     // unregister gui controls from API exports

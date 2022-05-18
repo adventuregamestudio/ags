@@ -1034,8 +1034,9 @@ HSaveError WriteThisRoom(Stream *out)
     }
 
     // room object movement paths cache
-    out->WriteInt32(thisroom.ObjectCount + 1);
-    for (size_t i = 0; i < thisroom.ObjectCount + 1; ++i)
+    // CHECKME: not sure why it saves (object count + 1) move lists
+    out->WriteInt32(thisroom.Objects.size() + 1);
+    for (size_t i = 0; i < thisroom.Objects.size() + 1; ++i)
     {
         mls[i].WriteToFile(out);
     }

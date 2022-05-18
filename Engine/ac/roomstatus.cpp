@@ -74,17 +74,21 @@ void RoomStatus::FreeProperties()
     {
         hsProps[i].clear();
     }
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
-    {
-        objProps[i].clear();
-    }
+    objProps.clear();
 }
 
 void RoomStatus::ReadFromFile_v321(Stream *in)
 {
+    FreeScriptData();
+    FreeProperties();
+
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
+    obj.resize(numobj);
+    objProps.resize(numobj);
+    intrObject.resize(numobj);
     ReadRoomObjects_Aligned(in);
+
     in->Seek(MAX_LEGACY_ROOM_FLAGS * sizeof(int16_t)); // flagstates (OBSOLETE)
     tsdatasize = in->ReadInt32();
     in->ReadInt32(); // tsdata
@@ -92,9 +96,9 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     {
         intrHotspot[i].ReadFromSavedgame_v321(in);
     }
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    for (auto &intr : intrObject)
     {
-        intrObject[i].ReadFromSavedgame_v321(in);
+        intr.ReadFromSavedgame_v321(in);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
@@ -114,9 +118,9 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
         {
             Properties::ReadValues(hsProps[i], in);
         }
-        for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+        for (auto &props : objProps)
         {
-            Properties::ReadValues(objProps[i], in);
+            Properties::ReadValues(props, in);
         }
     }
 }
@@ -124,9 +128,9 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
 void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
+    for (auto &o : obj)
     {
-        obj[i].ReadFromSavegame(&align_s, 0);
+        o.ReadFromSavegame(&align_s, 0);
         align_s.Reset();
     }
 }
@@ -138,7 +142,10 @@ void RoomStatus::ReadFromSavegame(Stream *in, int save_ver)
 
     beenhere = in->ReadInt8();
     numobj = in->ReadInt32();
-    for (int i = 0; i < numobj; ++i)
+    obj.resize(numobj);
+    objProps.resize(numobj);
+    intrObject.resize(numobj);
+    for (size_t i = 0; i < numobj; ++i)
     {
         obj[i].ReadFromSavegame(in, save_ver);
         Properties::ReadValues(objProps[i], in);
@@ -182,7 +189,7 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);
-    for (int i = 0; i < numobj; ++i)
+    for (size_t i = 0; i < numobj; ++i)
     {
         obj[i].WriteToSavegame(out);
         Properties::WriteValues(objProps[i], out);

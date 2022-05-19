@@ -454,6 +454,16 @@ enum LogLevel
 };
 #endif
 
+#ifdef SCRIPT_API_v360
+enum InputType
+{
+	eInputNone     = 0x00000000,
+	eInputTime     = 0x00010000,
+	eInputKeyboard = 0x00020000,
+	eInputMouse    = 0x00040000,
+	eInputAny      = 0xFFFF0000
+};
+#endif
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
@@ -1489,6 +1499,8 @@ import int  WaitKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless a key is pressed or the mouse is clicked.
 import int  WaitMouseKey(int waitLoops = -1);
 #ifdef SCRIPT_API_v360
+/// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.
+import int  WaitInput(InputFlag input_flag, int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless the mouse is clicked.
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.

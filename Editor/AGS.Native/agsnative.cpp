@@ -1622,7 +1622,7 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
   copy_global_palette_to_room_palette(rs);
   // Update current global palette with room background colours
   copy_room_palette_to_global_palette(rs);
-  for (size_t i = 0; i < rs.ObjectCount; ++i) {
+  for (size_t i = 0; i < rs.Objects.size(); ++i) {
     // change invalid objects to blue cup
     // TODO: should this be done in the common native lib?
     if (spriteset[rs.Objects[i].Sprite] == NULL)
@@ -3602,7 +3602,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 		room->Messages->Add(newMessage);
 	}
 
-	for (size_t i = 0; i < rs.ObjectCount; ++i) 
+	for (size_t i = 0; i < rs.Objects.size(); ++i) 
 	{
 		RoomObject ^obj = gcnew RoomObject(room);
 		obj->ID = i;
@@ -3793,8 +3793,8 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		if (newMessage->AutoRemoveAfterTime) rs.MessageInfos[i].Flags |= MSG_TIMELIMIT;
 	}
 
-	rs.ObjectCount = room->Objects->Count;
-	for (size_t i = 0; i < rs.ObjectCount; ++i)
+	rs.Objects.resize(room->Objects->Count);
+	for (size_t i = 0; i < rs.Objects.size(); ++i)
 	{
 		RoomObject ^obj = room->Objects[i];
 		rs.Objects[i].ScriptName = TextHelper::ConvertASCII(obj->Name);

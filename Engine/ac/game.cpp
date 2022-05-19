@@ -135,6 +135,8 @@ ScriptDialog *scrDialog;
 
 std::vector<ViewStruct> views;
 std::vector<CharacterExtras> charextra;
+// MoveLists for characters and room objects; NOTE: 1-based array!
+// object sprites begin with index 1, characters are after MAX_ROOM_OBJECTS + 1
 std::vector<MoveList> mls;
 
 //=============================================================================

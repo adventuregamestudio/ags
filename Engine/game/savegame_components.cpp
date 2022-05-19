@@ -1090,7 +1090,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         return err;
     for (int i = 0; i < objmls_count; ++i)
     {
-        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0); // FIXME!!
+        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0); // FIXME cmp_ver, ugly
         if (!err)
             return err;
     }

@@ -195,7 +195,6 @@ static void ReadMoveList_Aligned(Stream *in)
     for (int i = 0; i < game.numcharacters + MAX_ROOM_OBJECTS + 1; ++i)
     {
         mls[i].ReadFromFile_Legacy(&align_s);
-
         align_s.Reset();
     }
 }

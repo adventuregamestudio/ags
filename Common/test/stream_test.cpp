@@ -275,36 +275,166 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
     File::DeleteFile(DummyFile);
 }
 
-TEST_F(FileBasedTest, BufferedStreamWrite) {
+TEST_F(FileBasedTest, BufferedStreamWrite1) {
+    // Test case 1: simple straight writing, within max buffer size
     //-------------------------------------------------------------------------
-    // Write data into the temp file
+    // Write data
+    const soff_t file_len = sizeof(int32_t) * 10;
+    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    ASSERT_TRUE(out.CanWrite());
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    out.WriteInt32(3);
+    out.WriteInt32(4);
+    out.WriteInt32(5);
+    out.WriteInt32(6);
+    out.WriteInt32(7);
+    out.WriteInt32(8);
+    out.WriteInt32(9);
+    ASSERT_EQ(out.GetPosition(), file_len);
+    ASSERT_EQ(out.GetLength(), file_len);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_TRUE(in.CanSeek());
+    ASSERT_EQ(in.GetLength(), file_len);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 1);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 3);
+    ASSERT_EQ(in.ReadInt32(), 4);
+    ASSERT_EQ(in.ReadInt32(), 5);
+    ASSERT_EQ(in.ReadInt32(), 6);
+    ASSERT_EQ(in.ReadInt32(), 7);
+    ASSERT_EQ(in.ReadInt32(), 8);
+    ASSERT_EQ(in.ReadInt32(), 9);
+    ASSERT_EQ(in.GetPosition(), file_len);
+    in.Close();
+
+    File::DeleteFile(DummyFile);
+}
+
+TEST_F(FileBasedTest, BufferedStreamWrite2) {
+    // Test case 2: simple straight writing, exceeding max buffer size
+    //-------------------------------------------------------------------------
     // fill in to ensure buffered stream reach buffer size
     size_t fill_len = BufferedStream::BufferSize;
     //-------------------------------------------------------------------------
     // Write data
-    const soff_t file_len = sizeof(int32_t) * 9 + fill_len + fill_len / 2;
+    const soff_t file_len = sizeof(int32_t) * 10 + fill_len;
+    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    ASSERT_TRUE(out.CanWrite());
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    out.WriteInt32(3);
+    out.WriteInt32(4);
+    out.WriteInt32(5);
+    out.WriteInt32(6);
+    out.WriteByteCount(0, fill_len); // fill to force buffer flush
+    out.WriteInt32(7);
+    out.WriteInt32(8);
+    out.WriteInt32(9);
+    ASSERT_EQ(out.GetPosition(), file_len);
+    ASSERT_EQ(out.GetLength(), file_len);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_TRUE(in.CanSeek());
+    ASSERT_EQ(in.GetLength(), file_len);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 1);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 3);
+    ASSERT_EQ(in.ReadInt32(), 4);
+    ASSERT_EQ(in.ReadInt32(), 5);
+    ASSERT_EQ(in.ReadInt32(), 6);
+    in.Seek(fill_len, kSeekCurrent);
+    ASSERT_EQ(in.ReadInt32(), 7);
+    ASSERT_EQ(in.ReadInt32(), 8);
+    ASSERT_EQ(in.ReadInt32(), 9);
+    ASSERT_EQ(in.GetPosition(), file_len);
+    in.Close();
+
+    File::DeleteFile(DummyFile);
+}
+
+TEST_F(FileBasedTest, BufferedStreamWrite3) {
+    // Test case 3: seek within the max buffer size
+    //-------------------------------------------------------------------------
+    // Write data
+    const soff_t file_len = sizeof(int32_t) * 10;
     BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
     ASSERT_TRUE(out.CanWrite());
     ASSERT_TRUE(out.CanSeek());
     out.WriteInt32(0);
     out.WriteInt32(1);
     out.WriteInt32(2);
-    auto write_back_pos = out.GetPosition();
     out.WriteInt32(3);
-    out.WriteByteCount(0, fill_len);
-    out.Seek(write_back_pos, kSeekBegin);
-    out.WriteInt32(111);
-    out.Seek(0, kSeekEnd);
     out.WriteInt32(4);
+    auto write_back_pos = out.GetPosition();
     out.WriteInt32(5);
     out.WriteInt32(6);
-    write_back_pos = out.GetPosition();
     out.WriteInt32(7);
-    out.WriteByteCount(0, fill_len / 2);
+    out.WriteInt32(8);
+    auto end_pos = out.GetPosition();
     out.Seek(write_back_pos, kSeekBegin);
+    out.WriteInt32(111);
+    out.Seek(end_pos, kSeekBegin);
+    out.WriteInt32(9);
+    ASSERT_EQ(out.GetPosition(), file_len);
+    ASSERT_EQ(out.GetLength(), file_len);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_EQ(in.GetLength(), file_len);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 1);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 3);
+    ASSERT_EQ(in.ReadInt32(), 4);
+    ASSERT_EQ(in.ReadInt32(), 111);
+    ASSERT_EQ(in.ReadInt32(), 6);
+    ASSERT_EQ(in.ReadInt32(), 7);
+    ASSERT_EQ(in.ReadInt32(), 8);
+    ASSERT_EQ(in.ReadInt32(), 9);
+    ASSERT_EQ(in.GetPosition(), file_len);
+    in.Close();
+
+    File::DeleteFile(DummyFile);
+}
+
+TEST_F(FileBasedTest, BufferedStreamWrite4) {
+    // Test case 4: seek outside the max buffer size
+    //-------------------------------------------------------------------------
+    // fill in to ensure buffered stream reach buffer size
+    size_t fill_len = BufferedStream::BufferSize;
+    //-------------------------------------------------------------------------
+    // Write data
+    const soff_t file_len = sizeof(int32_t) * 8 + fill_len;
+    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    ASSERT_TRUE(out.CanWrite());
+    out.WriteInt32(0);
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    auto write_back_pos = out.GetPosition();
+    out.WriteInt32(3);
+    out.WriteInt32(4);
+    out.WriteByteCount(0, fill_len); // fill to force buffer flush
+    out.WriteInt32(5);
+    out.WriteInt32(6);
+    auto write_end_pos = out.GetPosition();
+    out.Seek(write_back_pos, kSeekBegin);
+    out.WriteInt32(111);
+    out.Seek(write_end_pos, kSeekEnd);
     out.WriteInt32(222);
-    out.Seek(0, kSeekEnd);
-    out.WriteInt32(333);
     ASSERT_EQ(out.GetPosition(), file_len);
     ASSERT_EQ(out.GetLength(), file_len);
     out.Close();
@@ -318,13 +448,57 @@ TEST_F(FileBasedTest, BufferedStreamWrite) {
     ASSERT_EQ(in.ReadInt32(), 1);
     ASSERT_EQ(in.ReadInt32(), 2);
     ASSERT_EQ(in.ReadInt32(), 111);
-    in.Seek(fill_len, kSeekCurrent);
     ASSERT_EQ(in.ReadInt32(), 4);
+    in.Seek(fill_len, kSeekCurrent);
     ASSERT_EQ(in.ReadInt32(), 5);
     ASSERT_EQ(in.ReadInt32(), 6);
     ASSERT_EQ(in.ReadInt32(), 222);
-    in.Seek(fill_len / 2, kSeekCurrent);
-    ASSERT_EQ(in.ReadInt32(), 333);
+    ASSERT_EQ(in.GetPosition(), file_len);
+    in.Close();
+
+    File::DeleteFile(DummyFile);
+}
+
+TEST_F(FileBasedTest, BufferedStreamWrite5) {
+    // Test case 5: write provoking buffer flush, but seek within max buffer size
+    //-------------------------------------------------------------------------
+    // fill in to ensure buffered stream (almost) reach buffer size
+    size_t fill_len = BufferedStream::BufferSize - sizeof(int32_t) * 4;
+    //-------------------------------------------------------------------------
+    // Write data
+    const soff_t file_len = sizeof(int32_t) * 7 + fill_len;
+    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    ASSERT_TRUE(out.CanWrite());
+    out.WriteByteCount(0, fill_len); // fill to (nearly) force buffer flush
+    out.WriteInt32(0);
+    auto write_back_pos = out.GetPosition();
+    out.WriteInt32(1);
+    out.WriteInt32(2);
+    out.WriteInt32(3); // buffer filled here
+    out.WriteInt32(4); // buffer flushed here
+    out.WriteInt32(5);
+    auto write_end_pos = out.GetPosition();
+    out.Seek(write_back_pos, kSeekBegin); // buffer reset at the new location
+    out.WriteInt32(111);
+    out.Seek(write_end_pos, kSeekBegin); // still within the max buffer size, no reset
+    out.WriteInt32(222);
+    ASSERT_EQ(out.GetPosition(), file_len);
+    ASSERT_EQ(out.GetLength(), file_len);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back
+    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    ASSERT_TRUE(in.CanRead());
+    ASSERT_TRUE(in.CanSeek());
+    ASSERT_EQ(in.GetLength(), file_len);
+    in.Seek(fill_len, kSeekCurrent);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.ReadInt32(), 111);
+    ASSERT_EQ(in.ReadInt32(), 2);
+    ASSERT_EQ(in.ReadInt32(), 3);
+    ASSERT_EQ(in.ReadInt32(), 4);
+    ASSERT_EQ(in.ReadInt32(), 5);
+    ASSERT_EQ(in.ReadInt32(), 222);
     ASSERT_EQ(in.GetPosition(), file_len);
     in.Close();
 

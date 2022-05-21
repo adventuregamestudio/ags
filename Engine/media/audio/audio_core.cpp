@@ -89,8 +89,12 @@ AudioCoreSlot::AudioCoreSlot(int handle, std::unique_ptr<SDLDecoder> decoder)
 
 void AudioCoreSlot::Init()
 {
-    _playState = _decoder->Open(_onLoadPositionMs) ?
-        _onLoadPlayState : PlayStateError;
+    bool success;
+    if (_decoder->IsValid()) // if already opened, then just seek to start
+        success = _decoder->Seek(_onLoadPositionMs) == _onLoadPositionMs;
+    else
+        success = _decoder->Open(_onLoadPositionMs);
+    _playState = success ? _onLoadPlayState : PlayStateError;
     if (_playState == PlayStatePlaying)
         _source->Play();
 }

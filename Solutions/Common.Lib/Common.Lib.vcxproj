@@ -480,6 +480,7 @@
     <ClInclude Include="..\..\Common\script\cc_internal.h" />
     <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bbop.h" />
+    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
     <ClInclude Include="..\..\Common\util\compress.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />

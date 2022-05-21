@@ -163,6 +163,9 @@
     <Filter Include="Library Sources\MojoAL\AL">
       <UniqueIdentifier>{c683eef3-2c8f-4b45-af32-2423f41102ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{fa93d5a4-ee74-4229-a79c-3a7f3be1e634}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
@@ -809,6 +812,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp">
       <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\util\sdl2_util.cpp">
+      <Filter>Source Files\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1630,6 +1636,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\openalsource.h">
       <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\util\sdl2_util.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

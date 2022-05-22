@@ -17,6 +17,7 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__AUDIOCORE_H
 #define __AGS_EE_MEDIA__AUDIOCORE_H
+#include <memory>
 #include <vector>
 #include "media/audio/audiodefines.h"
 #include "util/string.h"
@@ -32,9 +33,9 @@ void audio_core_shutdown();
 //
 // Initializes playback on a free playback slot (reuses spare one or allocates new if there's none).
 // Data array must contain full wave data to play.
-// TODO: this method requires having full sound in memory;
-// should we add a streaming method later? is this of any priority for regular builds?
-int  audio_core_slot_init(const std::vector<uint8_t> &data, const AGS::Common::String &extension_hint, bool repeat);
+int audio_core_slot_init(const std::vector<uint8_t> &data, const AGS::Common::String &extension_hint, bool repeat);
+// Initializes playback streaming
+int audio_core_slot_init(std::unique_ptr<AGS::Common::Stream> in, const AGS::Common::String &extension_hint, bool repeat);
 // Start playback on a slot
 PlaybackState audio_core_slot_play(int slot_handle);
 // Pause playback on a slot, resume with 'audio_core_slot_play'

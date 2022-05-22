@@ -14,10 +14,7 @@
 // [sonneveld]
 // TODO:
 // sound caching ([IKM] please, not right here in this backend module)
-// slot id generation id
-// pre-determine music sizes
-// safer slot look ups (with gen id)
-// generate/load mod/midi offsets
+// generate/load mod/midi offsets (?)
 
 #include "media/audio/audio_core.h"
 #include <math.h>
@@ -310,17 +307,29 @@ static int avail_slot_id()
     return g_acore.nextId++;
 }
 
-int audio_core_slot_init(const std::vector<uint8_t> &data, const String &extension_hint, bool repeat)
+static int audio_core_slot_init(std::unique_ptr<SDLDecoder> decoder)
 {
-    auto decoder = std::make_unique<SDLDecoder>(data, extension_hint, repeat);
-    if (!decoder->Open())
-        return -1;
-
     auto handle = avail_slot_id();
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     g_acore.slots_[handle] = std::make_unique<AudioCoreSlot>(handle, std::move(decoder));
     g_acore.mixer_cv.notify_all();
     return handle;
+}
+
+int audio_core_slot_init(const std::vector<uint8_t> &data, const String &extension_hint, bool repeat)
+{
+    auto decoder = std::make_unique<SDLDecoder>(data, extension_hint, repeat);
+    if (!decoder->Open())
+        return -1;
+    return audio_core_slot_init(std::move(decoder));
+}
+
+int audio_core_slot_init(std::unique_ptr<Stream> in, const String &extension_hint, bool repeat)
+{
+    auto decoder = std::make_unique<SDLDecoder>(std::move(in), extension_hint, repeat);
+    if (!decoder->Open())
+        return -1;
+    return audio_core_slot_init(std::move(decoder));
 }
 
 // -------------------------------------------------------------------------------------------------

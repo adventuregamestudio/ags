@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "media/audio/sdldecoder.h"
+#include "util/sdl2_util.h"
 
 namespace AGS
 {
@@ -64,20 +65,48 @@ SDLDecoder::SDLDecoder(const std::vector<uint8_t> &data,
 {
 }
 
+SDLDecoder::SDLDecoder(std::unique_ptr<Stream> in,
+    const AGS::Common::String &ext_hint, bool repeat)
+    : _rwops(SDL2Util::OpenRWops(std::move(in)))
+    , _sampleExt(ext_hint)
+    , _repeat(repeat)
+{
+}
+
 SDLDecoder::SDLDecoder(SDLDecoder &&dec)
 {
     _sampleData = (std::move(dec._sampleData));
+    _rwops = std::move(dec._rwops);
+    dec._rwops = nullptr;
     _sampleExt = std::move(dec._sampleExt);
     _repeat = dec._repeat;
 }
 
 bool SDLDecoder::Open(float pos_ms)
 {
-    Close();
+    // Prevent from "reopening" twice
+    assert(!_sample);
+    if (_sample && pos_ms > 0.f)
+    {
+        Seek(pos_ms);
+        return true;
+    }
 
-    auto sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
-        (uint8_t*)_sampleData.data(), _sampleData.size(), _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
-    if (!sample) {
+    SoundSampleUniquePtr sample{};
+    if (_rwops)
+    {
+        sample = SoundSampleUniquePtr(Sound_NewSample(_rwops,
+            _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
+    }
+    else
+    {
+        sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
+            (uint8_t*)_sampleData.data(), _sampleData.size(), _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
+    }
+    if (!sample)
+    {
+        _rwops = nullptr; // rwops was closed by the Sound_NewSample
+        _sampleData.clear();
         return false;
     }
 
@@ -94,6 +123,8 @@ bool SDLDecoder::Open(float pos_ms)
 void SDLDecoder::Close()
 {
     _sample.reset();
+    _rwops = nullptr; // rwops was closed by the Sound_NewSample
+    _sampleData.clear();
 }
 
 float SDLDecoder::Seek(float pos_ms)

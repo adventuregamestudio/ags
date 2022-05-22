@@ -53,21 +53,33 @@ static int GuessSoundTypeFromExt(const String &extension)
     return 0;
 }
 
+// Maximal sound asset size which is allowed to be loaded at once;
+// anything larger will be streamed
+// TODO: make configureable?
+static const size_t MaxLoadAtOnce = 1024u * 1024;
+
 static SOUNDCLIP *my_load_clip(const AssetPath &apath, const char *extension_hint, bool loop)
 {
-    auto *s = AssetMgr->OpenAsset(apath);
+    std::unique_ptr<Stream> s(AssetMgr->OpenAsset(apath));
     if (!s)
         return nullptr;
-
-    const size_t asset_size = static_cast<size_t>(s->GetLength());
-    std::vector<uint8_t> data(asset_size);
-    s->Read(data.data(), asset_size);
-    delete s;
 
     const auto asset_ext = AGS::Common::Path::GetFileExtension(apath.Name);
     const auto ext_hint = asset_ext.IsEmpty() ? String(extension_hint) : asset_ext;
 
-    auto slot = audio_core_slot_init(data, ext_hint, loop);
+    int slot{};
+    const size_t asset_size = static_cast<size_t>(s->GetLength());
+    if (asset_size > MaxLoadAtOnce)
+    {
+        slot = audio_core_slot_init(std::move(s), ext_hint, loop);
+    }
+    else
+    {
+        std::vector<uint8_t> data(asset_size);
+        s->Read(data.data(), asset_size);
+        slot = audio_core_slot_init(data, ext_hint, loop);
+    }
+
     if (slot < 0) { return nullptr; }
 
     const auto sound_type = GuessSoundTypeFromExt(ext_hint);

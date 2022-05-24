@@ -28,7 +28,7 @@ extern volatile char want_exit, abort_engine;
 
 namespace {
 
-const auto MAXIMUM_FALL_BEHIND = 3;
+const auto MAXIMUM_FALL_BEHIND = 3; // number of full frames
 
 auto tick_duration = std::chrono::microseconds(1000000LL/40);
 auto framerate = 0;
@@ -53,9 +53,8 @@ int setTimerFps(int new_fps)
     tick_duration = std::chrono::microseconds(1000000LL/new_fps);
     framerate = new_fps;
     framerate_maxed = new_fps >= 1000;
-
-    last_tick_time = AGS_Clock::now();
-    next_frame_timestamp = AGS_Clock::now();
+    // Update next frame time
+    next_frame_timestamp = last_tick_time + tick_duration;
     return old_fps;
 }
 
@@ -66,11 +65,17 @@ bool isTimerFpsMaxed()
 
 void WaitForNextFrame()
 {
-    auto now = AGS_Clock::now();
-    auto frameDuration = GetFrameDuration();
+    // Do the last polls on this frame, if necessary
+#if defined(AGS_DISABLE_THREADS)
+    audio_core_entry_poll();
+#endif
+
+    const auto now = AGS_Clock::now();
+    const auto frameDuration = GetFrameDuration();
 
     // early exit if we're trying to maximise framerate
     if (frameDuration <= std::chrono::milliseconds::zero()) {
+        last_tick_time = next_frame_timestamp;
         next_frame_timestamp = now;
 #if !AGS_PLATFORM_OS_EMSCRIPTEN
         // suspend while the game is being switched out
@@ -81,9 +86,6 @@ void WaitForNextFrame()
 #endif
         return;
     }
-#if defined(AGS_DISABLE_THREADS)
-    audio_core_entry_poll();
-#endif
 
     // jump ahead if we're lagging
     if (next_frame_timestamp < (now - MAXIMUM_FALL_BEHIND*frameDuration)) {
@@ -99,6 +101,7 @@ void WaitForNextFrame()
 #endif
     }
 
+    last_tick_time = next_frame_timestamp;
     next_frame_timestamp += frameDuration;
 
 #if !AGS_PLATFORM_OS_EMSCRIPTEN

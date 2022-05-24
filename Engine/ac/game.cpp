@@ -413,35 +413,44 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 void restore_game_dialog() {
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
-        DisplayMessage (983);
+        DisplayMessage(983);
         return;
     }
     if (inside_script) {
         curscript->queue_action(ePSARestoreGameDialog, 0, "RestoreGameDialog");
         return;
     }
+    do_restore_game_dialog();
+}
+
+bool do_restore_game_dialog() {
     setup_for_dialog();
-    int toload=loadgamedialog();
+    int toload = loadgamedialog();
     restore_after_dialog();
-    if (toload>=0) {
+    if (toload >= 0)
         try_restore_save(toload);
-    }
+    return toload >= 0;
 }
 
 void save_game_dialog() {
     if (thisroom.Options.SaveLoadDisabled == 1) {
-        DisplayMessage (983);
+        DisplayMessage(983);
         return;
     }
     if (inside_script) {
         curscript->queue_action(ePSASaveGameDialog, 0, "SaveGameDialog");
         return;
     }
+    do_save_game_dialog();
+}
+
+bool do_save_game_dialog() {
     setup_for_dialog();
-    int toload=savegamedialog();
+    int toload = savegamedialog();
     restore_after_dialog();
-    if (toload>=0)
+    if (toload >= 0)
         save_game(toload, get_gui_dialog_buffer());
+    return toload >= 0;
 }
 
 void free_do_once_tokens()

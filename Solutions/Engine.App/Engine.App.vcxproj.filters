@@ -1421,36 +1421,6 @@
     <ClInclude Include="..\..\Engine\util\library_windows.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_base.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_psp.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_pthread.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_wii.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_windows.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread_psp.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread_pthread.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread_windows.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h">
       <Filter>Header Files\setup</Filter>
     </ClInclude>

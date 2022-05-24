@@ -721,16 +721,6 @@
     <ClInclude Include="..\..\Engine\test\test_all.h" />
     <ClInclude Include="..\..\Engine\util\library.h" />
     <ClInclude Include="..\..\Engine\util\library_windows.h" />
-    <ClInclude Include="..\..\Engine\util\mutex.h" />
-    <ClInclude Include="..\..\Engine\util\mutex_base.h" />
-    <ClInclude Include="..\..\Engine\util\mutex_psp.h" />
-    <ClInclude Include="..\..\Engine\util\mutex_pthread.h" />
-    <ClInclude Include="..\..\Engine\util\mutex_wii.h" />
-    <ClInclude Include="..\..\Engine\util\mutex_windows.h" />
-    <ClInclude Include="..\..\Engine\util\thread.h" />
-    <ClInclude Include="..\..\Engine\util\thread_psp.h" />
-    <ClInclude Include="..\..\Engine\util\thread_pthread.h" />
-    <ClInclude Include="..\..\Engine\util\thread_windows.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />
   </ItemGroup>

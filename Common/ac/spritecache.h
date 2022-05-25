@@ -31,6 +31,7 @@
 #ifndef __AGS_CN_AC__SPRCACHE_H
 #define __AGS_CN_AC__SPRCACHE_H
 
+#include <list>
 #include "core/platform.h"
 #include "ac/spritefile.h"
 
@@ -122,17 +123,21 @@ private:
     // Gets the index of a sprite which data is used for the given slot;
     // in case of remapped sprite this will return the one given sprite is remapped to
     sprkey_t    GetDataIndex(sprkey_t index);
-    // Delete the oldest image in cache
+    // Delete the oldest (least recently used) image in cache
     void        DisposeOldest();
+    // Keep disposing oldest elements until cache size is reduced to the given threshold
+    void        FreeMem(size_t threshold);
 
     // Information required for the sprite streaming
     struct SpriteData
     {
-        size_t          Size; // to track cache size
-        uint32_t        Flags;
+        size_t          Size = 0; // to track cache size
+        uint32_t        Flags = 0;
         // TODO: investigate if we may safely use unique_ptr here
         // (some of these bitmaps may be assigned from outside of the cache)
-        Common::Bitmap *Image; // actual bitmap
+        Common::Bitmap *Image = nullptr; // actual bitmap
+        // MRU list reference
+        std::list<sprkey_t>::const_iterator MruIt;
 
         // Tells if there actually is a registered sprite in this slot
         bool DoesSpriteExist() const;
@@ -142,9 +147,6 @@ private:
         bool IsExternalSprite() const;
         // Tells if sprite is locked and should not be disposed by cache logic
         bool IsLocked() const;
-
-        SpriteData();
-        ~SpriteData();
     };
 
     // Provided map of sprite infos, to fill in loaded sprite properties
@@ -161,10 +163,7 @@ private:
     // MRU list: the way to track which sprites were used recently.
     // When clearing up space for new sprites, cache first deletes the sprites
     // that were last time used long ago.
-    std::vector<sprkey_t> _mrulist;
-    std::vector<sprkey_t> _mrubacklink;
-    int _liststart;
-    int _listend;
+    std::list<sprkey_t> _mru;
 
     // Initialize the empty sprite slot
     void        InitNullSpriteParams(sprkey_t index);

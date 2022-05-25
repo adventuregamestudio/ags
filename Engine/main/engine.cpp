@@ -577,7 +577,6 @@ void show_preload()
 int engine_init_sprites()
 {
     Debug::Printf(kDbgMsg_Info, "Initialize sprites");
-
     HError err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);
     if (!err) 
     {
@@ -589,7 +588,8 @@ int engine_init_sprites()
             err->FullMessage().GetCStr());
         return EXIT_ERROR;
     }
-
+    if (usetup.SpriteCacheSize > 0)
+        spriteset.SetMaxCacheSize(usetup.SpriteCacheSize);
     return 0;
 }
 

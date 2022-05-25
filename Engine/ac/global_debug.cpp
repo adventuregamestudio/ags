@@ -63,7 +63,7 @@ String GetRuntimeInfo()
         "Adventure Game Studio run-time engine[ACI version %s"
         "[Game resolution %d x %d (%d-bit)"
         "[Running %d x %d at %d-bit%s[GFX: %s; %s[Draw frame %d x %d["
-        "Sprite cache size: %d KB (limit %d KB; %d locked)",
+        "Sprite cache size: %d KB (limit %d KB; %d KB locked)",
         EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth,
         (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")),

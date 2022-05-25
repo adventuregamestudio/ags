@@ -117,7 +117,6 @@ public:
     Common::Bitmap *operator[] (sprkey_t index);
 
 private:
-    void        Init();
     // Load sprite from game resource
     size_t      LoadSprite(sprkey_t index);
     // Gets the index of a sprite which data is used for the given slot;

@@ -252,8 +252,6 @@ void save_room_data_segment () {
 }
 
 void unload_old_room() {
-    int ff;
-
     // if switching games on restore, don't do this
     if (displayed_room < 0)
         return;
@@ -264,11 +262,11 @@ void unload_old_room() {
 
     dispose_room_drawdata();
 
-    for (ff=0;ff<croom->numobj;ff++)
+    for (uint32_t ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
     if (!play.ambient_sounds_persist) {
-        for (ff = NUM_SPEECH_CHANS; ff < game.numGameChannels; ff++)
+        for (int ff = NUM_SPEECH_CHANS; ff < game.numGameChannels; ff++)
             StopAmbientSound(ff);
     }
 
@@ -296,20 +294,20 @@ void unload_old_room() {
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
-    for (ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
+    for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
         play.raw_modified[ff] = 0;
     for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_GLOBAL_VARIABLES; ++i)
         croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
-    for (ff = 0; ff < game.numcharacters; ff++) {
+    for (int ff = 0; ff < game.numcharacters; ff++) {
         charextra[ff].xwas = INVALID_X;
     }
 
     play.swap_portrait_lastchar = -1;
     play.swap_portrait_lastlastchar = -1;
 
-    for (ff = 0; ff < croom->numobj; ff++) {
+    for (uint32_t ff = 0; ff < croom->numobj; ff++) {
         // un-export the object's script object
         if (thisroom.Objects[ff].ScriptName.IsEmpty())
             continue;
@@ -317,7 +315,7 @@ void unload_old_room() {
         ccRemoveExternalSymbol(thisroom.Objects[ff].ScriptName);
     }
 
-    for (ff = 0; ff < MAX_ROOM_HOTSPOTS; ff++) {
+    for (int ff = 0; ff < MAX_ROOM_HOTSPOTS; ff++) {
         if (thisroom.Hotspots[ff].ScriptName.IsEmpty())
             continue;
 
@@ -457,7 +455,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     debug_script_log("Loading room %d", newnum);
 
     String room_filename;
-    int cc;
     done_es_error = 0;
     play.room_changes ++;
     // TODO: find out why do we need to temporarily lower color depth to 8-bit.
@@ -510,7 +507,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         play.bg_frame = 0;
 
     // do the palette
-    for (cc=0;cc<256;cc++) {
+    for (size_t cc=0;cc<256;cc++) {
         if (game.paluses[cc]==PAL_BACKGROUND)
             palette[cc]=thisroom.Palette[cc];
         else {
@@ -578,11 +575,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         if (thisroom.EventHandlers == nullptr)
         {// legacy interactions
             thisroom.Interaction->CopyTimesRun(croom->intrRoom);
-            for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++)
+            for (int cc=0;cc < MAX_ROOM_HOTSPOTS;cc++)
                 thisroom.Hotspots[cc].Interaction->CopyTimesRun(croom->intrHotspot[cc]);
-            for (cc=0;cc < thisroom.Objects.size();cc++)
+            for (size_t cc=0;cc < thisroom.Objects.size();cc++)
                 thisroom.Objects[cc].Interaction->CopyTimesRun(croom->intrObject[cc]);
-            for (cc=0;cc < MAX_ROOM_REGIONS;cc++)
+            for (int cc=0;cc < MAX_ROOM_REGIONS;cc++)
                 thisroom.Regions[cc].Interaction->CopyTimesRun(croom->intrRegion[cc]);
         }
         for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
@@ -591,9 +588,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // Always copy object and hotspot names for < 3.6.0 games, because they were not settable
         if (loaded_game_file_version < kGameVersion_360_16)
         {
-            for (cc = 0; cc < thisroom.Objects.size(); ++cc)
+            for (size_t cc = 0; cc < thisroom.Objects.size(); ++cc)
                 croom->obj[cc].name = thisroom.Objects[cc].Name;
-            for (cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) 
+            for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) 
                 croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
         }
     }
@@ -605,7 +602,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->obj.resize(croom->numobj);
         croom->objProps.resize(croom->numobj);
         croom->intrObject.resize(croom->numobj);
-        for (cc=0;cc<croom->numobj;cc++) {
+        for (uint32_t cc=0;cc<croom->numobj;cc++) {
             const auto &trobj = thisroom.Objects[cc];
             auto &crobj = croom->obj[cc];
             crobj.x=trobj.X;
@@ -635,11 +632,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
 
-        for (cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
+        for (int cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
             croom->hotspot[cc].Enabled = true;
             croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
         }
-        for (cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
+        for (int cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;
         }
 
@@ -663,24 +660,24 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     {// legacy interactions
         // copy interactions from room file into our temporary struct
         croom->intrRoom = *thisroom.Interaction;
-        for (cc=0;cc<MAX_ROOM_HOTSPOTS;cc++)
+        for (int cc=0;cc<MAX_ROOM_HOTSPOTS;cc++)
             croom->intrHotspot[cc] = *thisroom.Hotspots[cc].Interaction;
-        for (cc=0;cc<thisroom.Objects.size();cc++)
+        for (size_t cc=0;cc<thisroom.Objects.size();cc++)
             croom->intrObject[cc] = *thisroom.Objects[cc].Interaction;
-        for (cc=0;cc<MAX_ROOM_REGIONS;cc++)
+        for (int cc=0;cc<MAX_ROOM_REGIONS;cc++)
             croom->intrRegion[cc] = *thisroom.Regions[cc].Interaction;
     }
 
     objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
 
-    for (cc = 0; cc < croom->numobj; cc++) {
+    for (uint32_t cc = 0; cc < croom->numobj; cc++) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
         ccAddExternalDynamicObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
     }
 
-    for (cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
+    for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
         if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
             continue;
 
@@ -728,7 +725,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
-        for (cc=0;cc<game.numcharacters;cc++)
+        for (int cc=0;cc<game.numcharacters;cc++)
             StopMoving(cc);
     }
 
@@ -890,7 +887,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip = 212;
     invalidate_screen();
-    for (cc=0;cc<croom->numobj;cc++) {
+    for (uint32_t cc=0;cc<croom->numobj;cc++) {
         if (objs[cc].on == 2)
             MergeObject(cc);
     }

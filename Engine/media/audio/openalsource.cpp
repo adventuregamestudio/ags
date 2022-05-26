@@ -98,7 +98,7 @@ static struct
 OpenAlSource::OpenAlSource(SDL_AudioFormat format, int channels, int freq)
 {
     _inputFmt.format = format;
-    _inputFmt.channels = channels;
+    _inputFmt.channels = static_cast<Uint8>(channels);
     _inputFmt.rate = freq;
     _alFormat = OpenAlFormatFromSDLFormat(_inputFmt, _recvFmt);;
     alGenSources(1, &_source);

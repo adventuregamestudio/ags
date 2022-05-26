@@ -141,11 +141,11 @@ void RoomStatus::ReadFromSavegame(Stream *in, int save_ver)
     FreeProperties();
 
     beenhere = in->ReadInt8();
-    numobj = in->ReadInt32();
+    numobj = static_cast<uint32_t>(in->ReadInt32());
     obj.resize(numobj);
     objProps.resize(numobj);
     intrObject.resize(numobj);
-    for (size_t i = 0; i < numobj; ++i)
+    for (uint32_t i = 0; i < numobj; ++i)
     {
         obj[i].ReadFromSavegame(in, save_ver);
         Properties::ReadValues(objProps[i], in);
@@ -189,7 +189,7 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);
-    for (size_t i = 0; i < numobj; ++i)
+    for (uint32_t i = 0; i < numobj; ++i)
     {
         obj[i].WriteToSavegame(out);
         Properties::WriteValues(objProps[i], out);

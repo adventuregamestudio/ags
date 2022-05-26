@@ -82,7 +82,7 @@ public:
     // platform specific data file
     virtual const char * GetGameDataFile() {return nullptr; }
     // Optionally fill in config tree from the platform-specific config source
-    virtual void ReadConfiguration(Common::ConfigTree &cfg) { };
+    virtual void ReadConfiguration(Common::ConfigTree & /*cfg*/) { };
     // Get root directory for storing per-game shared data
     virtual FSLocation GetAllUsersDataDirectory() { return FSLocation("."); }
     // Get root directory for storing per-game saved games

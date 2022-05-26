@@ -982,7 +982,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 }
 
 
-Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, int sprite_id,
+Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
     // no ddb, - get or create shared object
@@ -1588,7 +1588,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 void prepare_objects_for_drawing() {
     our_eip=32;
 
-    for (int aa=0; aa<croom->numobj; aa++) {
+    for (uint32_t aa=0; aa<croom->numobj; aa++) {
         if (objs[aa].on != 1) continue;
         // offscreen, don't draw
         if ((objs[aa].x >= thisroom.Width) || (objs[aa].y < 1))
@@ -2033,7 +2033,7 @@ void prepare_room_sprites()
 
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
-                for (int wb = 1 /* 0 is "no area" */;
+                for (size_t wb = 1 /* 0 is "no area" */;
                     (wb < MAX_WALK_BEHINDS) && (wb < walkbehindobj.size()); ++wb)
                 {
                     const auto &wbobj = walkbehindobj[wb];

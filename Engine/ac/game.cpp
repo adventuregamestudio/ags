@@ -1448,7 +1448,8 @@ bool unserialize_audio_script_object(int index, const char *objectType, Stream *
 void game_sprite_updated(int sprnum)
 {
     // update the shared texture (if exists)
-    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum], game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL, false);
+    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum],
+        (game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0, false);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum);
     // gui backgrounds

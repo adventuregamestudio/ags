@@ -1600,7 +1600,7 @@ std::shared_ptr<TextureData> OGLGraphicsDriver::GetTextureData(IDriverDependantB
     return std::static_pointer_cast<TextureData>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
 }
 
-TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool opaque)
+TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*opaque*/)
 {
   assert(width > 0);
   assert(height > 0);
@@ -1788,7 +1788,6 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
   delete blackSquare;
   BeginSpriteBatch(_srcRect, SpriteTransform());
-  size_t fx_batch = _actSpriteBatch;
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
@@ -1800,7 +1799,6 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
   }
   EndSpriteBatch();
-  OGLSpriteBatch &batch = _spriteBatches[fx_batch];
   std::vector<OGLDrawListEntry> &drawList = _spriteList;
   const size_t last = drawList.size() - 1;
 

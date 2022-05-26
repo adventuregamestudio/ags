@@ -108,7 +108,7 @@ class SDLDecoder
 {
 public:
     // Initializes decoder with a complete sound data loaded to memory
-    SDLDecoder(const std::vector<uint8_t> &data, const String &ext_hint, bool repeat);
+    SDLDecoder(std::shared_ptr<std::vector<uint8_t>> &data, const String &ext_hint, bool repeat);
     // Initializes decoder with an input stream
     SDLDecoder(const std::unique_ptr<Stream> in, const String &ext_hint, bool repeat);
     SDLDecoder(SDLDecoder&& dec);
@@ -140,7 +140,7 @@ public:
 
 private:
     SDL_RWops *_rwops = nullptr;
-    std::vector<uint8_t> _sampleData{};
+    std::shared_ptr<std::vector<uint8_t>> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
     uint32_t _durationMs = 0u;

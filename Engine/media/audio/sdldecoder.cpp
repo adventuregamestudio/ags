@@ -57,9 +57,9 @@ const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)
 //-----------------------------------------------------------------------------
 const auto SampleDefaultBufferSize = 64 * 1024;
 
-SDLDecoder::SDLDecoder(const std::vector<uint8_t> &data,
+SDLDecoder::SDLDecoder(std::shared_ptr<std::vector<uint8_t>> &data,
     const AGS::Common::String &ext_hint, bool repeat)
-    : _sampleData(std::move(data))
+    : _sampleData(data)
     , _sampleExt(ext_hint)
     , _repeat(repeat)
 {
@@ -101,12 +101,12 @@ bool SDLDecoder::Open(float pos_ms)
     else
     {
         sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
-            (uint8_t*)_sampleData.data(), _sampleData.size(), _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
+            _sampleData->data(), _sampleData->size(), _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
     }
     if (!sample)
     {
         _rwops = nullptr; // rwops was closed by the Sound_NewSample
-        _sampleData.clear();
+        _sampleData = nullptr;
         return false;
     }
 
@@ -124,7 +124,7 @@ void SDLDecoder::Close()
 {
     _sample.reset();
     _rwops = nullptr; // rwops was closed by the Sound_NewSample
-    _sampleData.clear();
+    _sampleData = nullptr;
 }
 
 float SDLDecoder::Seek(float pos_ms)

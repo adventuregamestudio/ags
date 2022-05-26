@@ -22,6 +22,8 @@
 #include "ac/asset_helper.h"
 #include "media/audio/soundclip.h"
 
+void soundcache_set_size(size_t size);
+void soundcache_clear();
 SOUNDCLIP *my_load_wave(const AssetPath &asset_name, bool loop);
 SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop);
 SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, bool loop);

@@ -316,7 +316,7 @@ static int audio_core_slot_init(std::unique_ptr<SDLDecoder> decoder)
     return handle;
 }
 
-int audio_core_slot_init(const std::vector<uint8_t> &data, const String &extension_hint, bool repeat)
+int audio_core_slot_init(std::shared_ptr<std::vector<uint8_t>> &data, const String &extension_hint, bool repeat)
 {
     auto decoder = std::make_unique<SDLDecoder>(data, extension_hint, repeat);
     if (!decoder->Open())

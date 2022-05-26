@@ -33,7 +33,7 @@ void audio_core_shutdown();
 //
 // Initializes playback on a free playback slot (reuses spare one or allocates new if there's none).
 // Data array must contain full wave data to play.
-int audio_core_slot_init(const std::vector<uint8_t> &data, const AGS::Common::String &extension_hint, bool repeat);
+int audio_core_slot_init(std::shared_ptr<std::vector<uint8_t>> &data, const AGS::Common::String &extension_hint, bool repeat);
 // Initializes playback streaming
 int audio_core_slot_init(std::unique_ptr<AGS::Common::Stream> in, const AGS::Common::String &extension_hint, bool repeat);
 // Start playback on a slot

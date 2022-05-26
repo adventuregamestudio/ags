@@ -15,14 +15,21 @@
 // SOUNDCLIP factory methods.
 //
 //=============================================================================
-
 #ifndef __AC_SOUND_H
 #define __AC_SOUND_H
 
 #include "ac/asset_helper.h"
 #include "media/audio/soundclip.h"
 
-void soundcache_set_size(size_t size);
+// Threshold in bytes for loading sounds immediately, in KB
+const size_t DEFAULT_SOUNDLOADATONCE_KB = 1024u;
+// Sound cache limit, in KB
+const size_t DEFAULT_SOUNDCACHESIZE_KB = 1024u * 32; // 32 MB
+
+// Sets sound loading and caching rules:
+// * max_loadatonce - threshold in bytes for loading sounds immediately, vs streaming
+// * max_cachesize - sound cache limit, in bytes
+void soundcache_set_rules(size_t max_loadatonce, size_t max_cachesize);
 void soundcache_clear();
 SOUNDCLIP *my_load_wave(const AssetPath &asset_name, bool loop);
 SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop);

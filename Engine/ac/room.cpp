@@ -943,8 +943,9 @@ void new_room(int newnum,CharacterInfo*forchar) {
 
     if (usetup.clear_cache_on_room_change)
     {
-        // Delete all cached sprites
+        // Delete all cached resources
         spriteset.DisposeAll();
+        soundcache_clear();
         GUI::MarkAllGUIForUpdate();
     }
 

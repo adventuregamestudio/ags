@@ -140,7 +140,7 @@ private:
     };
 
     size_t _cacheSize = 0u;
-    size_t _maxSize = 0u;
+    size_t _maxSize = DEFAULT_SOUNDCACHESIZE_KB;
     std::unordered_map<String, SoundEntry, HashStrNoCase> _map;
     // MRU list: the way to track which items were used recently.
     // When clearing up space for new items, cache first deletes the items
@@ -152,12 +152,13 @@ private:
 // Maximal sound asset size which is allowed to be loaded at once;
 // anything larger will be streamed
 // TODO: make configureable?
-static const size_t MaxLoadAtOnce = 1024u * 1024;
+static size_t MaxLoadAtOnce = DEFAULT_SOUNDLOADATONCE_KB;
 static SoundCache SndCache;
 
-void soundcache_set_size(size_t size)
+void soundcache_set_rules(size_t max_loadatonce, size_t max_cachesize)
 {
-    SndCache.SetMaxCacheSize(size);
+    MaxLoadAtOnce = max_loadatonce;
+    SndCache.SetMaxCacheSize(max_cachesize);
 }
 
 void soundcache_clear()

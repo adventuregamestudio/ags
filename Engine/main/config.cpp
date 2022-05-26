@@ -351,9 +351,15 @@ void apply_config(const ConfigTree &cfg)
 
         usetup.translation = CfgReadString(cfg, "language", "translation");
 
-        int cache_size_kb = CfgReadInt(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
-        if (cache_size_kb > 0)
-            usetup.SpriteCacheSize = cache_size_kb * 1024;
+        int size_kb = CfgReadInt(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
+        if (size_kb > 0)
+            usetup.SpriteCacheSize = size_kb * 1024;
+        size_kb = CfgReadInt(cfg, "sound", "cache_size", DEFAULT_SOUNDCACHESIZE_KB);
+        if (size_kb > 0)
+            usetup.SoundCacheSize = size_kb * 1024;
+        size_kb = CfgReadInt(cfg, "sound", "stream_threshold", DEFAULT_SOUNDLOADATONCE_KB);
+        if (size_kb > 0)
+            usetup.SoundLoadAtOnceSize = size_kb * 1024;
 
         usetup.mouse_auto_lock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
 

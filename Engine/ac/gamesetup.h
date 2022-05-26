@@ -87,6 +87,8 @@ struct GameSetup {
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;
     size_t SpriteCacheSize = 0u;
+    size_t SoundLoadAtOnceSize = 1024u * 1024;
+    size_t SoundCacheSize = 0u;
     bool  clear_cache_on_room_change; // for low-end devices: clear resource caches on room change
     bool  load_latest_save; // load latest saved game on launch
     ScreenRotation rotation;

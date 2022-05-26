@@ -58,6 +58,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/ddb.h"
+#include "media/audio/sound.h"
 #include "main/config.h"
 #include "main/game_file.h"
 #include "main/game_start.h"
@@ -393,7 +394,11 @@ void engine_init_audio()
         usetup.audio_enabled = res;
     }
     
-    if (!usetup.audio_enabled)
+    if (usetup.audio_enabled)
+    {
+        soundcache_set_rules(usetup.SoundLoadAtOnceSize, usetup.SoundCacheSize);
+    }
+    else
     {
         // all audio is disabled
         play.voice_avail = false;

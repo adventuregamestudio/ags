@@ -56,7 +56,7 @@ const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)
 //-----------------------------------------------------------------------------
 const auto SampleDefaultBufferSize = 64 * 1024;
 
-SDLDecoder::SDLDecoder(const std::vector<char> &data,
+SDLDecoder::SDLDecoder(const std::vector<uint8_t> &data,
     const AGS::Common::String &ext_hint, bool repeat)
     : _sampleData(std::move(data))
     , _sampleExt(ext_hint)

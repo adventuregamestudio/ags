@@ -106,7 +106,7 @@ class SDLDecoder
 {
 public:
     // Initializes decoder with a complete sound data loaded to memory
-    SDLDecoder(const std::vector<char> &data, const String &ext_hint, bool repeat);
+    SDLDecoder(const std::vector<uint8_t> &data, const String &ext_hint, bool repeat);
     SDLDecoder(SDLDecoder&& dec);
     ~SDLDecoder() = default;
 
@@ -135,7 +135,7 @@ public:
     SoundBuffer GetData();
 
 private:
-    std::vector<char> _sampleData{};
+    std::vector<uint8_t> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
     uint32_t _durationMs = 0u;

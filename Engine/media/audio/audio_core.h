@@ -34,7 +34,7 @@ void audio_core_shutdown();
 // Data array must contain full wave data to play.
 // TODO: this method requires having full sound in memory;
 // should we add a streaming method later? is this of any priority for regular builds?
-int  audio_core_slot_init(const std::vector<char> &data, const AGS::Common::String &extension_hint, bool repeat);
+int  audio_core_slot_init(const std::vector<uint8_t> &data, const AGS::Common::String &extension_hint, bool repeat);
 // Start playback on a slot
 PlaybackState audio_core_slot_play(int slot_handle);
 // Pause playback on a slot, resume with 'audio_core_slot_play'

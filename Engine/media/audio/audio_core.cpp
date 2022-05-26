@@ -310,7 +310,7 @@ static int avail_slot_id()
     return g_acore.nextId++;
 }
 
-int audio_core_slot_init(const std::vector<char> &data, const String &extension_hint, bool repeat)
+int audio_core_slot_init(const std::vector<uint8_t> &data, const String &extension_hint, bool repeat)
 {
     auto decoder = std::make_unique<SDLDecoder>(data, extension_hint, repeat);
     if (!decoder->Open())

@@ -235,7 +235,7 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
 
 void SpriteCache::FreeMem(size_t threshold)
 {
-    for (int tries = 0; (_mru.size() > 0) && (_cacheSize >= _maxCacheSize); ++tries)
+    for (int tries = 0; (_mru.size() > 0) && (_cacheSize >= threshold); ++tries)
     {
         DisposeOldest();
         if (tries > 1000) // ???

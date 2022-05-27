@@ -283,7 +283,27 @@ namespace AGS.Editor.Components
             Dialog dialog = GetDialog(evArgs.FileName);
             if (dialog != null)
             {
-                ShowPaneForDialog(dialog).GoToScriptLine(evArgs);
+                DialogEditor dialogEditor = ShowPaneForDialog(dialog);
+
+                // has dialogEditor has already taken the area available?
+                if (dialogEditor.Parent.ClientSize == dialogEditor.Size)
+                {
+                    // the Dialog Editor be already on screen!
+                    dialogEditor.GoToScriptLine(evArgs);
+                } 
+                else
+                {
+                    // GoToScriptLine uses the size of scintilla control to calculate what lines are visibile and scroll accordingly
+                    // since this is not the case, we will advance once the paint events happens, which is after layout adjustment
+                    PaintEventHandler paintEvent = null;
+                    paintEvent = (s, e1) =>
+                    {
+                        dialogEditor.GoToScriptLine(evArgs);
+                        dialogEditor.Paint -= paintEvent;
+                    };
+                    dialogEditor.Paint += paintEvent;
+                    dialogEditor.Invalidate();
+                }
             }         
 		}
 

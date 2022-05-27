@@ -1500,7 +1500,7 @@ import int  WaitKey(int waitLoops = -1);
 import int  WaitMouseKey(int waitLoops = -1);
 #ifdef SCRIPT_API_v360
 /// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.
-import int  WaitInput(InputFlag input_flag, int waitLoops = -1);
+import int  WaitInput(InputType inputs, int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless the mouse is clicked.
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.

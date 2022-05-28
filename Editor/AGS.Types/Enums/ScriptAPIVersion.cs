@@ -31,8 +31,10 @@ namespace AGS.Types
         // Define API constant value as AGS version represented as NN,NN,NN,NN:
         // e.g. 3.6.0     is 03,06,00,00 (3060000),
         //      4.12.3.25 is 04,12,03,25 (4120325), and so on
-        [Description("3.6.0")]
+        [Description("3.6.0 Alpha")]
         v360 = 3060000,
+        [Description("3.6.0 Final")]
+        v36026 = 3060026,
         // Highest constant is used for automatic upgrade to new API when
         // the game is loaded in the newer version of the Editor
         [Description("Latest version")]

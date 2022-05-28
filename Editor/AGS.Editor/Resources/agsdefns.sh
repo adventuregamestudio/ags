@@ -454,7 +454,7 @@ enum LogLevel
 };
 #endif
 
-#ifdef SCRIPT_API_v360
+#ifdef SCRIPT_API_v36026
 enum InputType
 {
 	eInputNone     = 0x00000000,
@@ -1499,12 +1499,14 @@ import int  WaitKey(int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless a key is pressed or the mouse is clicked.
 import int  WaitMouseKey(int waitLoops = -1);
 #ifdef SCRIPT_API_v360
-/// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.
-import int  WaitInput(InputType inputs, int waitLoops = -1);
 /// Blocks the script for the specified number of game loops, unless the mouse is clicked.
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.
 import void SkipWait();
+#endif
+#ifdef SCRIPT_API_v36026
+/// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.
+import int  WaitInput(InputType inputs, int waitLoops = -1);
 #endif
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);

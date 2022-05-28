@@ -832,5 +832,8 @@
     <ClInclude Include="..\..\Common\script\cc_common.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\bufferedstream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

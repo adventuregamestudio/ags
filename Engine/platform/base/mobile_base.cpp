@@ -157,6 +157,7 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
 
     // sound
     CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
+    CfgWriteInt(cfg, "sound", "cache_size", setup.audio_cachesize);
 
     // mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls

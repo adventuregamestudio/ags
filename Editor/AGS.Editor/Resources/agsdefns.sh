@@ -445,23 +445,23 @@ enum SortStyle
 #ifdef SCRIPT_API_v360
 enum LogLevel
 {
-	eLogAlert = 1,
-	eLogFatal = 2,
-	eLogError = 3,
-	eLogWarn = 4,
-	eLogInfo = 5,
-	eLogDebug = 6
+  eLogAlert = 1,
+  eLogFatal = 2,
+  eLogError = 3,
+  eLogWarn = 4,
+  eLogInfo = 5,
+  eLogDebug = 6
 };
 #endif
 
 #ifdef SCRIPT_API_v36026
 enum InputType
 {
-	eInputNone     = 0x00000000,
-	eInputTime     = 0x00010000,
-	eInputKeyboard = 0x00020000,
-	eInputMouse    = 0x00040000,
-	eInputAny      = 0xFFFF0000
+  eInputNone     = 0x00000000,
+  // 0x0001... is used internally to define Timeout
+  eInputKeyboard = 0x00020000,
+  eInputMouse    = 0x00040000,
+  eInputAny      = 0xFFFF0000
 };
 #endif
 

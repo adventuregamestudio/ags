@@ -15,6 +15,7 @@ Common features:
    optional and works only if backwards compatible option is set.
  - Max number of AudioChannels is now 16 (was 8).
  - Removed game Cursors hard limit (was 20).
+ - Increased Room Objects limit to 256 (was 40).
  - Discontinued "Windows Game Explorer" support in both Editor and Engine.
 
 Editor:
@@ -55,6 +56,7 @@ Editor:
  - Added Character.IdleAnimationDelay property to let setup idle view's animation speed.
  - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
  - Rooms created from a Blank template will now have default background of a game's resolution.
+ - When creating new room objects they will now have their script names set to some default value.
  - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
  - Editor will now create an empty sprite file if one is missing in the game project. Any existing
    sprite descriptions in the project will be kept, letting user to reimport these from sources.
@@ -65,6 +67,9 @@ Editor:
  - Cursor's position in script is now displayed on the status bar.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
+ - In sprite manager's "export all" dialog added "skip if local" option.
+ - In sprite manager's context menu added command "Create source files for all sprites with missing
+    / external sources..."
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
  - Editor no longer errors on empty translations when compiling the game.
  - Editor now exports values of the string type Custom Properties to translations.
@@ -74,6 +79,8 @@ Editor:
  - Fixed editor displaying unhandled exception if the room script which user is trying to open was
    missing. Instead it will now open a blank script.
  - Fixed room editor was suggesting to save the modified room even if no changes were made.
+ - Fixed going to a "find all" result in dialog script did not highlight the found text,
+   and sometimes did not scroll down to it.
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
@@ -118,9 +125,12 @@ Script API:
  - Added System.Log().
  - Added SkipWait() that skips any active Wait() function.
  - Added WaitMouse() to complement existing Wait functions.
+ - Added InputType enum which defines input devices and lets create their sets as flags.
+ - Added WaitInput(), a more generic and extendable function that accepts a combination of flags
+   telling which input types to wait for.
  - All Wait* functions now may have infinite timeout if you pass a negative timeout parameter.
- - All Wait* functions now return the reason they were skipped: positive value means a key code,
-   negative value means an inverted mouse code, and 0 means skipped by a timer or script command.
+ - All Wait* functions now return the reason they were skipped: a combination of InputType flag
+   and a respective key or button code.
  - Added GUIControl.Transparency property.
  - Added Overlay.CreateRoomGraphical and CreateRoomTextual. Use these two functions to create
    "room overlays": that is - overlays that display a sprite inside the room, sorted among other
@@ -178,9 +188,13 @@ Engine:
  - Removed Overlay limit.
  - Character.SetWalkSpeed() is no longer restricted by an arbitrary limit of 50.
  - Process character's idle view based on real game speed, not hardcoded 40 fps.
+ - Improved file writing times (e.g. when doing a game save) by using buffered file stream.
+   Initial tests showed 50% faster file writing.
  - Engine now renders GUI controls as separate textures when using hardware accelerated renderers.
    This may significantly improve perfomance in the high-resolution games and games with large
    number of GUI elements on screen.
+ - Engine now shares the video texture data for all game objects on screen sharing same sprite.
+   This improves perfomance in case there are multiple objects which use same image.
  - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
    game is updated, and not while the game script is running. This prevents situations when
    the clip could begin playing before all properties are set in script, or when AudioChannel's
@@ -189,6 +203,10 @@ Engine:
  - File.ReadRawLineBack() now always reads full line, and not limited to 200 characters anymore.
  - Debug displays, such as showing room mask and character walk paths, are now implemented as
    non-blocking translucent overlays, allowing you to keep playing the game while they are on.
+ - Implemented debug key controls for calling a built-in save and restore game dialogs. These
+   controls have to be set in user config as "save_game_key" and "restore_game_key"
+   in "[override]" category. These may be used by testers if the game is missing a save function
+   or one is bugged.
  - Engine now supports loading compiled scripts as separate files packed along with the game,
    along with those embedded into the main game data or inside room files.
  - Engine no longer bails out with error if the chosen translation cannot be loaded on startup.
@@ -198,7 +216,9 @@ Engine:
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
- - Added "load_latest_save" and "show_fps" options to config (in "[misc]" category).
+ - Added "cache_size" and "stream_threshold" options to config in "[sound]" category, they setup
+   the rules for sound caching and choosing whether to load a clip fully into mem or stream one.
+ - Added "load_latest_save" and "show_fps" options to config in "[misc]" category.
  - Added "--sdl-log" command line option for setting up SDL2 library output verbosity. The engine
    log config now has a new "sdl" group meant for SDL2 messages.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
@@ -208,16 +228,20 @@ Engine:
  - Added "--clear-cache-on-room-change" command-line arg (and similar config option).
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
+ - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
+   using "goto-dialog" (a very-very old bug).
  - Fixed potential crash on room load if the walkable area mask contained color values
    above the supported range.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
+ - Fixed renderer error occuring if room background frames are of different sizes.
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
+ - Fixed game fps sped up if SetGameSpeed() is called repeatedly in game script.
 
 Compatibility:
  - Fallback to loop 0 if the speech view does not have frames in the current directional loop.

@@ -192,6 +192,10 @@ namespace AGS.Editor
                 scintillaEditor.GoToLine(evArgs.ZoomPosition);
             }
             scintillaEditor.Focus();
+            if(evArgs.SelectLine)
+            {
+                scintillaEditor.SelectCurrentLine();
+            }
 
             if (evArgs.IsDebugExecutionPoint)
             {

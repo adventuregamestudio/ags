@@ -11,28 +11,27 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// Custom SDL2 utilities, wrappers, reimplementations etc.
+//
+//=============================================================================
+#ifndef __AGS_EE_UTIL__SDL2UTIL_H
+#define __AGS_EE_UTIL__SDL2UTIL_H
 
-#ifndef __AGS_EE_PLATFORM__MUTEX_BASE_H
-#define __AGS_EE_PLATFORM__MUTEX_BASE_H
-
+#include <memory>
+#include <SDL.h>
+#include "util/stream.h"
 
 namespace AGS
 {
-namespace Common
+namespace Engine
 {
-
-
-class BaseMutex
+namespace SDL2Util
 {
-public:
-  BaseMutex() = 0;
-  virtual ~BaseMutex() = 0;
-  virtual void Lock() = 0;
-  virtual void Unlock() = 0;
-};
-
-
-} // namespace Common
+    // Opens a custom SDL2 RWOps implementation that embeds AGS stream
+    SDL_RWops *OpenRWops(std::unique_ptr<Common::Stream> ags_stream);
+} // namespace SDL2Util
+} // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_PLATFORM__MUTEX_BASE_H
+#endif // __AGS_EE_UTIL__RWOPSUTIL_H

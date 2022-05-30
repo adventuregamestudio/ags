@@ -89,8 +89,8 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
     // since version 2
-    out->WriteInt8(anim_volume);
-    out->WriteInt8(cur_anim_volume);
+    out->WriteInt8(static_cast<uint8_t>(anim_volume));
+    out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
     // since version 10

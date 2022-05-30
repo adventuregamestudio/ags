@@ -190,6 +190,57 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *b
     return ddb;
 }
 
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool hasAlpha, bool opaque)
+{
+    const auto found = _txRefs.find(sprite_id);
+    if (found != _txRefs.end())
+    {
+        const auto &item = found->second;
+        if (!item.Data.expired())
+            return CreateDDB(item.Data.lock(), item.Res.Width, item.Res.Height, item.Res.ColorDepth, opaque);
+    }
+
+    // Create and add a new element
+    std::shared_ptr<TextureData> txdata(CreateTextureData(bitmap->GetWidth(), bitmap->GetHeight(), opaque));
+    txdata->ID = sprite_id;
+    UpdateTextureData(txdata.get(), bitmap, opaque, hasAlpha);
+    // only add into the map when has valid sprite ID
+    if (sprite_id != UINT32_MAX)
+    {
+        _txRefs[sprite_id] = TextureCacheItem(txdata,
+            GraphicResolution(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth()));
+    }
+    return CreateDDB(txdata, bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), opaque);
+}
+
+void VideoMemoryGraphicsDriver::UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap, bool hasAlpha, bool opaque)
+{
+    const auto found = _txRefs.find(sprite_id);
+    if (found != _txRefs.end())
+    {
+        auto txdata = found->second.Data.lock();
+        if (txdata)
+            UpdateTextureData(txdata.get(), bitmap, opaque, hasAlpha);
+    }
+}
+
+void VideoMemoryGraphicsDriver::ClearSharedDDB(uint32_t sprite_id)
+{
+    const auto found = _txRefs.find(sprite_id);
+    if (found != _txRefs.end())
+        _txRefs.erase(found);
+}
+
+void VideoMemoryGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
+{
+    uint32_t sprite_id = ddb->GetRefID();
+    DestroyDDBImpl(ddb);
+    // Remove shared object from ref list if no more active refs left
+    const auto found = _txRefs.find(sprite_id);
+    if (found != _txRefs.end() && found->second.Data.expired())
+        _txRefs.erase(found);
+}
+
 VideoMemoryGraphicsDriver::StageScreen
     VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)
 {

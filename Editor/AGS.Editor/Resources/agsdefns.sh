@@ -23,7 +23,7 @@
 // MAX_INV is a topmost index, AGS_MAX_INV_ITEMS is max count
 #define MAX_INV 301
 #define AGS_MAX_INV_ITEMS 300
-#define AGS_MAX_OBJECTS   40
+#define AGS_MAX_OBJECTS   256
 #define AGS_MAX_HOTSPOTS  50
 #define AGS_MAX_REGIONS   16
 // MAX_ROOM_OBJECTS is a duplicate and was added by an oversight
@@ -423,12 +423,23 @@ enum SortStyle
 #ifdef SCRIPT_API_v360
 enum LogLevel
 {
-	eLogAlert = 1,
-	eLogFatal = 2,
-	eLogError = 3,
-	eLogWarn = 4,
-	eLogInfo = 5,
-	eLogDebug = 6
+  eLogAlert = 1,
+  eLogFatal = 2,
+  eLogError = 3,
+  eLogWarn = 4,
+  eLogInfo = 5,
+  eLogDebug = 6
+};
+#endif
+
+#ifdef SCRIPT_API_v36026
+enum InputType
+{
+  eInputNone     = 0x00000000,
+  // 0x0001... is used internally to define Timeout
+  eInputKeyboard = 0x00020000,
+  eInputMouse    = 0x00040000,
+  eInputAny      = 0xFFFF0000
 };
 #endif
 
@@ -1119,6 +1130,10 @@ import int  WaitMouseKey(int waitLoops = -1);
 import int  WaitMouse(int waitLoops = -1);
 /// Cancels current Wait function, regardless of its type, if one was active at the moment.
 import void SkipWait();
+#endif
+#ifdef SCRIPT_API_v36026
+/// Blocks the script for the specified number of game loops, unless a input is issued. Input are flags, and can be combined using bitwise operators.
+import int  WaitInput(InputType inputs, int waitLoops = -1);
 #endif
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);

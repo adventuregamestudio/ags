@@ -20,7 +20,6 @@
 #include "util/string_utils.h"
 
 std::vector<AGS::Common::GUILabel> guilabels;
-int numguilabels = 0;
 
 #define GUILABEL_TEXTLENGTH_PRE272 200
 

@@ -12,9 +12,10 @@
 //
 //=============================================================================
 
+#include <stdexcept>
+#include <string.h> // memcpy
 #include <aastr.h>
 #include "gfx/allegrobitmap.h"
-#include <string.h> // memcpy
 #include "debug/assert.h"
 
 extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
@@ -286,7 +287,7 @@ void Bitmap::AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, B
 		// TODO: aastr lib does not expose method for masked stretch blit; should do that at some point since 
 		// the source code is a gift-ware anyway
 		// aa_masked_blit(_alBitmap, al_src_bmp, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-		throw "aa_masked_blit is not yet supported!";
+		throw std::runtime_error("aa_masked_blit is not yet supported!");
 	}
 	else
 	{

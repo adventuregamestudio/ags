@@ -87,7 +87,7 @@ GameState play;
 GameSetup usetup;
 GameSetupStruct game;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
-RoomObject*objs;
+RoomObject*objs=nullptr;
 RoomStatus*croom=nullptr;
 RoomStruct thisroom;
 
@@ -136,6 +136,8 @@ ScriptDialog *scrDialog;
 
 std::vector<ViewStruct> views;
 std::vector<CharacterExtras> charextra;
+// MoveLists for characters and room objects; NOTE: 1-based array!
+// object sprites begin with index 1, characters are after MAX_ROOM_OBJECTS + 1
 std::vector<MoveList> mls;
 
 //=============================================================================
@@ -412,35 +414,44 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 void restore_game_dialog() {
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
-        DisplayMessage (983);
+        DisplayMessage(983);
         return;
     }
     if (inside_script) {
         curscript->queue_action(ePSARestoreGameDialog, 0, "RestoreGameDialog");
         return;
     }
+    do_restore_game_dialog();
+}
+
+bool do_restore_game_dialog() {
     setup_for_dialog();
-    int toload=loadgamedialog();
+    int toload = loadgamedialog();
     restore_after_dialog();
-    if (toload>=0) {
+    if (toload >= 0)
         try_restore_save(toload);
-    }
+    return toload >= 0;
 }
 
 void save_game_dialog() {
     if (thisroom.Options.SaveLoadDisabled == 1) {
-        DisplayMessage (983);
+        DisplayMessage(983);
         return;
     }
     if (inside_script) {
         curscript->queue_action(ePSASaveGameDialog, 0, "SaveGameDialog");
         return;
     }
+    do_save_game_dialog();
+}
+
+bool do_save_game_dialog() {
     setup_for_dialog();
-    int toload=savegamedialog();
+    int toload = savegamedialog();
     restore_after_dialog();
-    if (toload>=0)
+    if (toload >= 0)
         save_game(toload, get_gui_dialog_buffer());
+    return toload >= 0;
 }
 
 void free_do_once_tokens()
@@ -457,7 +468,6 @@ void unload_game_file()
 
     play.FreeViewportsAndCameras();
 
-    characterScriptObjNames.clear();
     charextra.clear();
     mls.clear();
 
@@ -528,7 +538,6 @@ void unload_game_file()
     delete[] scrDialog;
     scrDialog = nullptr;
 
-    guiScriptObjNames.clear();
     guis.clear();
     free(scrGui);
 
@@ -1433,30 +1442,33 @@ bool unserialize_audio_script_object(int index, const char *objectType, Stream *
 
 void game_sprite_updated(int sprnum)
 {
+    // update the shared texture (if exists)
+    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum],
+        (game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0, false);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum);
     // gui backgrounds
-    for (size_t i = 0; i < (size_t)game.numgui; ++i)
+    for (auto &gui : guis)
     {
-        if (guis[i].BgImage == sprnum)
+        if (gui.BgImage == sprnum)
         {
-            guis[i].MarkChanged();
+            gui.MarkChanged();
         }
     }
     // gui buttons
-    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    for (auto &but : guibuts)
     {
-        if (guibuts[i].CurrentImage == sprnum)
+        if (but.CurrentImage == sprnum)
         {
-            guibuts[i].MarkChanged();
+            but.MarkChanged();
         }
     }
     // gui sliders
-    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    for (auto &slider : guislider)
     {
-        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
+        if ((slider.BgImage == sprnum) || (slider.HandleImage == sprnum))
         {
-            guislider[i].MarkChanged();
+            slider.MarkChanged();
         }
     }
     // overlays
@@ -1469,6 +1481,8 @@ void game_sprite_updated(int sprnum)
 
 void game_sprite_deleted(int sprnum)
 {
+    // clear from texture cache
+    gfxDriver->ClearSharedDDB(sprnum);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum);
     // room object graphics
@@ -1490,30 +1504,30 @@ void game_sprite_deleted(int sprnum)
         }
     }
     // gui buttons
-    for (size_t i = 0; i < (size_t)numguibuts; ++i)
+    for (auto &but : guibuts)
     {
-        if (guibuts[i].Image == sprnum)
-            guibuts[i].Image = 0;
-        if (guibuts[i].MouseOverImage == sprnum)
-            guibuts[i].MouseOverImage = 0;
-        if (guibuts[i].PushedImage == sprnum)
-            guibuts[i].PushedImage = 0;
+        if (but.Image == sprnum)
+            but.Image = 0;
+        if (but.MouseOverImage == sprnum)
+            but.MouseOverImage = 0;
+        if (but.PushedImage == sprnum)
+            but.PushedImage = 0;
 
-        if (guibuts[i].CurrentImage == sprnum)
+        if (but.CurrentImage == sprnum)
         {
-            guibuts[i].CurrentImage = 0;
-            guibuts[i].MarkChanged();
+            but.CurrentImage = 0;
+            but.MarkChanged();
         }
     }
     // gui sliders
-    for (size_t i = 0; i < (size_t)numguislider; ++i)
+    for (auto &slider : guislider)
     {
-        if ((guislider[i].BgImage == sprnum) || (guislider[i].HandleImage == sprnum))
-            guislider[i].MarkChanged();
-        if (guislider[i].BgImage == sprnum)
-            guislider[i].BgImage = 0; 
-        if (guislider[i].HandleImage == sprnum)
-            guislider[i].HandleImage = 0;
+        if ((slider.BgImage == sprnum) || (slider.HandleImage == sprnum))
+            slider.MarkChanged();
+        if (slider.BgImage == sprnum)
+            slider.BgImage = 0;
+        if (slider.HandleImage == sprnum)
+            slider.HandleImage = 0;
     }
     // views
     for (size_t v = 0; v < (size_t)game.numviews; ++v)

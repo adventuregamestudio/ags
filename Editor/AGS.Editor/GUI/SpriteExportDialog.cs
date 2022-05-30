@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using AGS.Types;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -32,9 +33,13 @@ namespace AGS.Editor
             get { return radRootFolder.Checked; }
         }
 
-        public bool SkipValidSpriteSource
+        public SpriteTools.SkipIf SkipIf
         {
-            get { return chkSkipValidSpriteSource.Checked; }
+            get
+            {
+                return (chkIfSpriteSourceValid.Checked ? SpriteTools.SkipIf.SourceValid : 0) |
+                    (chkIfSpriteSourceLocal.Checked ? SpriteTools.SkipIf.SourceLocal : 0);
+            }
         }
 
         public bool UpdateSpriteSource

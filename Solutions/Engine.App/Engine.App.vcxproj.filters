@@ -160,6 +160,9 @@
     <Filter Include="Library Sources\MojoAL\AL">
       <UniqueIdentifier>{c683eef3-2c8f-4b45-af32-2423f41102ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{fa93d5a4-ee74-4229-a79c-3a7f3be1e634}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
@@ -807,6 +810,9 @@
     <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\util\sdl2_util.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1415,36 +1421,6 @@
     <ClInclude Include="..\..\Engine\util\library_windows.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_base.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_psp.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_pthread.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_wii.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\mutex_windows.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread_psp.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread_pthread.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\util\thread_windows.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h">
       <Filter>Header Files\setup</Filter>
     </ClInclude>
@@ -1657,6 +1633,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\openalsource.h">
       <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\util\sdl2_util.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

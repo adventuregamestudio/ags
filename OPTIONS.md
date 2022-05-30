@@ -61,6 +61,8 @@ Locations of two latter files differ between running platforms:
       * pulseaudio, alsa, arts, esd, jack, pipewire, disk, dsp, dummy
     * For Windows:
       * wasapi, directsound, winmm, disk, dummy
+  * cache_size = \[integer\] - size of the engine's sound cache, in kilobytes. Default is 32768 (32 MB).
+  * stream_threshold = \[integer\] - max size of the sound clip that engine is allowed to load in memory at once, as opposed to continuously streaming one. In the current implementation this also defines the max size of a clip that may be put into the sound cache. Default is 1024 (1 MB).
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).
 * **\[mouse\]** - mouse options
   * auto_lock = \[0; 1\] - enables mouse autolock in window: mouse cursor locks inside the window whenever it receives input focus.
@@ -109,6 +111,8 @@ Locations of two latter files differ between running platforms:
     * win - Windows;
     * linux - Linux;
     * mac - MacOS.
+  * restore_game_key = \[integer\] - key for calling built-in restore game dialog. Key value corresponds to the [AGS script keycode](https://github.com/adventuregamestudio/ags-manual/wiki/Keycodes).
+  * save_game_key = \[integer\] - key for calling built-in save game dialog.
   * upscale = \[0; 1\] - run game in the "upscale mode". The earlier versions of AGS provided support for "upscaling" low-res games to hi-res. The script API has means for detecting if the game is running upscaled, and game developer could use this opportunity to setup game accordingly (e.g. assign hi-res fonts, etc). This options works **only** for games created before AGS 3.1.0 with low-res native resolution, such as 320x200 or 320x240, and it may somewhat improve
   game looks.
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.

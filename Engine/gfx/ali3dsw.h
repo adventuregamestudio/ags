@@ -45,6 +45,8 @@ using AGS::Common::Bitmap;
 class ALSoftwareBitmap : public BaseDDB
 {
 public:
+    uint32_t GetRefID() const override { return UINT32_MAX /* not supported */; }
+
     int  GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
     void SetFlippedLeftRight(bool isFlipped) override { _flipped = isFlipped; }
@@ -74,6 +76,8 @@ public:
         _stretchToWidth = _width;
         _stretchToHeight = _height;
         _opaque = opaque;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
     }
 
     ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
@@ -86,20 +90,14 @@ public:
         _stretchToHeight = _height;
         _opaque = opaque;
         _hasAlpha = hasAlpha;
+        _stretchToWidth = _width;
+        _stretchToHeight = _height;
     }
 
     int GetWidthToRender() const { return _stretchToWidth; }
     int GetHeightToRender() const { return _stretchToHeight; }
 
-    void Dispose()
-    {
-        // do we want to free the bitmap?
-    }
-
-    ~ALSoftwareBitmap() override
-    {
-        Dispose();
-    }
+    ~ALSoftwareBitmap() override = default;
 };
 
 
@@ -172,6 +170,15 @@ public:
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
+
+    IDriverDependantBitmap *GetSharedDDB(uint32_t /*sprite_id*/,
+        Common::Bitmap *bitmap, bool hasAlpha, bool opaque) override
+    { // Software renderer does not require a texture cache, because it uses bitmaps directly
+        return CreateDDBFromBitmap(bitmap, hasAlpha, opaque);
+    }
+    void UpdateSharedDDB(uint32_t /*sprite_id*/, Common::Bitmap * /*bitmap*/, bool /*hasAlpha*/, bool /*opaque*/)
+        override { /* do nothing */ }
+    void ClearSharedDDB(uint32_t /*sprite_id*/) override { /* do nothing */ }
 
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
          { DrawSprite(x, y, x, y, ddb); }

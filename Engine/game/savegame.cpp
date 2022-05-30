@@ -337,6 +337,7 @@ void DoBeforeRestore(PreservedParams &pp)
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
         delete moduleInstFork[i];
         delete moduleInst[i];
+        moduleInstFork[i] = nullptr;
         moduleInst[i] = nullptr;
     }
 
@@ -352,8 +353,7 @@ void DoBeforeRestore(PreservedParams &pp)
     dialogScriptsInst = nullptr;
 
     resetRoomStatuses();
-    troom.FreeScriptData();
-    troom.FreeProperties();
+    troom = RoomStatus(); // reset temp room state
     free_do_once_tokens();
 
     // unregister gui controls from API exports

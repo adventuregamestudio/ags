@@ -14,6 +14,10 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
+#define USE_CUSTOM_EXCEPTION_HANDLER
+#endif
+
+#ifdef USE_CUSTOM_EXCEPTION_HANDLER
 #define UNICODE
 #include <stdio.h> // sprintf
 #include <windows.h>
@@ -108,4 +112,4 @@ int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo) {
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-#endif	// AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
+#endif	// USE_CUSTOM_EXCEPTION_HANDLER

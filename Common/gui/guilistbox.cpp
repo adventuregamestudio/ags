@@ -20,7 +20,6 @@
 #include "util/string_utils.h"
 
 std::vector<AGS::Common::GUIListBox> guilist;
-int numguilist = 0;
 
 namespace AGS
 {
@@ -125,7 +124,7 @@ int GUIListBox::AddItem(const String &text)
 
 void GUIListBox::Clear()
 {
-    if (Items.size() == 0)
+    if (Items.empty())
         return;
     Items.clear();
     SavedGameIndex.clear();

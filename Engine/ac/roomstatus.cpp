@@ -73,10 +73,7 @@ void RoomStatus::FreeProperties()
     {
         hsProps[i].clear();
     }
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
-    {
-        objProps[i].clear();
-    }
+    objProps.clear();
 }
 
 void RoomStatus::ReadFromSavegame(Stream *in, int32_t cmp_ver)
@@ -84,9 +81,17 @@ void RoomStatus::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     FreeScriptData();
     FreeProperties();
 
+    obj.resize(numobj);
+    objProps.resize(numobj);
+
+    FreeScriptData();
+    FreeProperties();
+
     beenhere = in->ReadInt8();
-    numobj = in->ReadInt32();
-    for (int i = 0; i < numobj; ++i)
+    numobj = static_cast<uint32_t>(in->ReadInt32());
+    obj.resize(numobj);
+    objProps.resize(numobj);
+    for (uint32_t i = 0; i < numobj; ++i)
     {
         obj[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(objProps[i], in);
@@ -119,7 +124,7 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);
-    for (int i = 0; i < numobj; ++i)
+    for (uint32_t i = 0; i < numobj; ++i)
     {
         obj[i].WriteToSavegame(out);
         Properties::WriteValues(objProps[i], out);

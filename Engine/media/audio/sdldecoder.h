@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 #include <SDL_sound.h>
+#include "util/stream.h"
 #include "util/string.h"
 #ifdef AUDIO_CORE_DEBUG
 #include "debug/out.h"
@@ -34,6 +35,7 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::Stream;
 using AGS::Common::String;
 
 // RAII wrapper over SDL_Sound sample
@@ -106,7 +108,9 @@ class SDLDecoder
 {
 public:
     // Initializes decoder with a complete sound data loaded to memory
-    SDLDecoder(const std::vector<char> &data, const String &ext_hint, bool repeat);
+    SDLDecoder(std::shared_ptr<std::vector<uint8_t>> &data, const String &ext_hint, bool repeat);
+    // Initializes decoder with an input stream
+    SDLDecoder(const std::unique_ptr<Stream> in, const String &ext_hint, bool repeat);
     SDLDecoder(SDLDecoder&& dec);
     ~SDLDecoder() = default;
 
@@ -135,7 +139,8 @@ public:
     SoundBuffer GetData();
 
 private:
-    std::vector<char> _sampleData{};
+    SDL_RWops *_rwops = nullptr;
+    std::shared_ptr<std::vector<uint8_t>> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
     uint32_t _durationMs = 0u;

@@ -12,12 +12,12 @@
 //
 //=============================================================================
 //
-// Driver-dependant bitmap interface
+// Driver-dependant bitmap interface.
 //
-// TODO: split into texture object that has only tex data
-// and object describing a drawing operation, with ref to texture and
-// drawing parameters (modes, shaders, etc).
-// Then we will also be able to share one texture among multiple game entities.
+// This interface describes an individual sprite object. The actual texture
+// data (pixel data) may be shared among multiple DDBs, while DDB define
+// additional settings telling how to present the texture: transform, colorize,
+// and so on.
 //=============================================================================
 #ifndef __AGS_EE_GFX__DDB_H
 #define __AGS_EE_GFX__DDB_H
@@ -32,6 +32,9 @@ namespace Engine
 class IDriverDependantBitmap
 {
 public:
+  // Get an arbitrary sprite ID, returns UINT32_MAX if does not have one
+  virtual uint32_t GetRefID() const = 0;
+
   // Sprite's origin [0,1] is a relative position of texture around sprite's position;
   // E.g. (0.0, 0.0) means the texture will be aligned to sprite's position by its
   // left-top corner, (0.5, 0.5) means the texture will be centered around sprite's pos.
@@ -51,7 +54,7 @@ public:
 
 protected:
   IDriverDependantBitmap() = default;
-  ~IDriverDependantBitmap() = default;
+  virtual ~IDriverDependantBitmap() = default;
 };
 
 } // namespace Engine

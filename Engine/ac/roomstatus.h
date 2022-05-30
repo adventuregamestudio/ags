@@ -37,14 +37,14 @@ struct HotspotState
 // a room that could change
 struct RoomStatus {
     int   beenhere;
-    int   numobj;
-    RoomObject obj[MAX_ROOM_OBJECTS];
+    uint32_t numobj;
+    std::vector<RoomObject> obj;
     int   tsdatasize;
     char* tsdata;
 
     Common::StringIMap roomProps;
     Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];
-    Common::StringIMap objProps[MAX_ROOM_OBJECTS];
+    std::vector<Common::StringIMap> objProps;
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];

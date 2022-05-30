@@ -527,6 +527,7 @@ void sys_evt_process_one(const SDL_Event &event) {
     switch (event.type) {
     // GENERAL
     case SDL_QUIT:
+        Debug::Printf("SDL event: quit");
         if (_on_quit_callback) {
             _on_quit_callback();
         }
@@ -546,6 +547,9 @@ void sys_evt_process_one(const SDL_Event &event) {
             if (_on_switchout_callback) {
                 _on_switchout_callback();
             }
+            break;
+        case SDL_WINDOWEVENT_CLOSE:
+            Debug::Printf("Window event: close");
             break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
             Debug::Printf("Window event: size changed (%d, %d)", event.window.data1, event.window.data2);

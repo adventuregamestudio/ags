@@ -58,6 +58,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/ddb.h"
+#include "media/audio/sound.h"
 #include "main/config.h"
 #include "main/game_file.h"
 #include "main/game_start.h"
@@ -393,7 +394,11 @@ void engine_init_audio()
         usetup.audio_enabled = res;
     }
     
-    if (!usetup.audio_enabled)
+    if (usetup.audio_enabled)
+    {
+        soundcache_set_rules(usetup.SoundLoadAtOnceSize, usetup.SoundCacheSize);
+    }
+    else
     {
         // all audio is disabled
         play.voice_avail = false;
@@ -577,7 +582,6 @@ void show_preload()
 int engine_init_sprites()
 {
     Debug::Printf(kDbgMsg_Info, "Initialize sprites");
-
     HError err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);
     if (!err) 
     {
@@ -589,7 +593,8 @@ int engine_init_sprites()
             err->FullMessage().GetCStr());
         return EXIT_ERROR;
     }
-
+    if (usetup.SpriteCacheSize > 0)
+        spriteset.SetMaxCacheSize(usetup.SpriteCacheSize);
     return 0;
 }
 

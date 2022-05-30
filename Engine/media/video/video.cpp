@@ -163,8 +163,8 @@ bool VideoPlayer::Poll()
     if (_playState != PlayStatePlaying)
         return false;
     // Acquire next video frame
-    if (!NextFrame())
-    {
+    if (!NextFrame() && !_audioFrame)
+    { // stop is no new frames, and no buffered frames left
         _playState = PlayStateFinished;
         return false;
     }
@@ -188,6 +188,8 @@ bool VideoPlayer::RenderAudio()
     assert(_audioOut != nullptr);
     _wantAudio = _audioOut->PutData(_audioFrame) > 0u;
     _audioOut->Poll();
+    if (_wantAudio)
+        _audioFrame = SoundBuffer(); // clear received buffer
     return true;
 }
 

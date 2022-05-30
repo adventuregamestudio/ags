@@ -65,9 +65,9 @@ int GetObjectIDAtScreen(int scrx, int scry)
 
 int GetObjectIDAtRoom(int roomx, int roomy)
 {
-    int aa,bestshotyp=-1,bestshotwas=-1;
+    int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
-    for (aa=0;aa<croom->numobj;aa++) {
+    for (uint32_t aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != 1) continue;
         if (objs[aa].flags & OBJF_NOINTERACT)
             continue;

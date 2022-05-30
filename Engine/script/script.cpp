@@ -84,10 +84,6 @@ std::vector<ccInstance *> moduleInstFork;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;
 size_t numScriptModules = 0;
 
-std::vector<String> characterScriptObjNames;
-String              objectScriptObjNames[MAX_ROOM_OBJECTS];
-std::vector<String> guiScriptObjNames;
-
 
 static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
 

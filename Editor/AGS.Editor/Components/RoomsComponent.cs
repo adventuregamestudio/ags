@@ -634,14 +634,16 @@ namespace AGS.Editor.Components
         {
             foreach (RoomHotspot hotspot in room.Hotspots)
             {
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(hotspot.Name, hotspot))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(hotspot.Name, hotspot) ||
+                    room.IsScriptNameAlreadyUsed(hotspot.Name, hotspot))
                 {
                     errors.Add(new CompileError("Hotspot '" + hotspot.Name + "' script name conflicts with other game item"));
                 }
             }
             foreach (RoomObject obj in room.Objects)
             {
-                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(obj.Name, obj))
+                if (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(obj.Name, obj) ||
+                    room.IsScriptNameAlreadyUsed(obj.Name, obj))
                 {
                     errors.Add(new CompileError("Object '" + obj.Name + "' script name conflicts with other game item"));
                 }

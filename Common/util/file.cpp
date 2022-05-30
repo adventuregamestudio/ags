@@ -206,10 +206,7 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
 {
     Stream *fs = nullptr;
     try {
-        if (work_mode == kFile_Read) // NOTE: BufferedStream does not work correctly in the write mode
-            fs = new BufferedStream(filename, open_mode, work_mode);
-        else
-            fs = new FileStream(filename, open_mode, work_mode);
+        fs = new BufferedStream(filename, open_mode, work_mode);
         if (fs != nullptr && !fs->IsValid()) {
             delete fs;
             fs = nullptr;
@@ -352,7 +349,7 @@ Stream *File::OpenFileCI(const String &file_name, FileOpenMode open_mode, FileWo
 Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
 {
     try {
-        FileStream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kFile_Read);
+        Stream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kFile_Read);
         if (fs != nullptr && !fs->IsValid()) {
             delete fs;
             return nullptr;

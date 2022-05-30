@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <stack>
 #include <stdio.h>
 #include "ac/dialog.h"
 #include "ac/common.h"
@@ -300,9 +300,9 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
   return false;
 }
 
-#define MAX_TOPIC_HISTORY 50
 #define DLG_OPTION_PARSER 99
 
+// Dialog options state
 struct DialogOptions
 {
     int dlgnum;
@@ -987,21 +987,20 @@ void DialogOptions::Close()
   delete tempScrn;
 }
 
-DialogOptions DlgOpt;
-
 int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBackground) 
 {
-  DlgOpt.Prepare(_dlgnum, _runGameLoopsInBackground);
-  DlgOpt.Show();
-  DlgOpt.Close();  
+  DialogOptions dlgopt;
+  dlgopt.Prepare(_dlgnum, _runGameLoopsInBackground);
+  dlgopt.Show();
+  dlgopt.Close();
 
-  int dialog_choice = DlgOpt.chose;
+  int dialog_choice = dlgopt.chose;
   if (dialog_choice >= 0) // NOTE: this condition also excludes CHOSE_TEXTPARSER
   {
     assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
-    DialogTopic *dialog_topic = DlgOpt.dtop;
+    DialogTopic *dialog_topic = dlgopt.dtop;
     int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = DlgOpt.dtop->optionnames[dialog_choice];
+    const char *option_name = dlgopt.dtop->optionnames[dialog_choice];
 
     option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;
@@ -1021,112 +1020,116 @@ int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBa
   return dialog_choice;
 }
 
-void do_conversation(int dlgnum) 
+// Dialog execution state
+struct DialogExec
 {
-  EndSkippingUntilCharStops();
+    int DlgNum = -1;
+    int DlgWas = -1;
+    // CHECKME: this may be unnecessary, investigate later
+    bool IsFirstEntry = true;
+    // nested dialogs "stack"
+    std::stack<int> TopicHist;
 
-  // AGS 2.x always makes the mouse cursor visible when displaying a dialog.
-  if (loaded_game_file_version <= kGameVersion_272)
-    play.mouse_cursor_hidden = 0;
+    DialogExec(int start_dlgnum) : DlgNum(start_dlgnum) {}
+    int HandleDialogResult(int res);
+    void Run();
+};
 
-  int dlgnum_was = dlgnum;
-  int previousTopics[MAX_TOPIC_HISTORY];
-  int numPrevTopics = 0;
-  DialogTopic *dtop = &dialog[dlgnum];
-
-  // run the startup script
-  int tocar = run_dialog_script(dlgnum, dtop->startupentrypoint, 0);
-  if ((tocar == RUN_DIALOG_STOP_DIALOG) ||
-      (tocar == RUN_DIALOG_GOTO_PREVIOUS)) 
-  {
-    // 'stop' or 'goto-previous' from first startup script
-    remove_screen_overlay(OVER_COMPLETE);
-    play.in_conversation--;
-    return;
-  }
-  else if (tocar >= 0)
-    dlgnum = tocar;
-
-  while (dlgnum >= 0)
-  {
-    if (dlgnum >= game.numdialog)
-      quit("!RunDialog: invalid dialog number specified");
-
-    dtop = &dialog[dlgnum];
-
-    if (dlgnum != dlgnum_was) 
+int DialogExec::HandleDialogResult(int res)
+{
+    // Handle goto-previous, see if there's any previous dialog in history
+    if (res == RUN_DIALOG_GOTO_PREVIOUS)
     {
-      // dialog topic changed, so play the startup
-      // script for the new topic
-      tocar = run_dialog_script(dlgnum, dtop->startupentrypoint, 0);
-      dlgnum_was = dlgnum;
-      if (tocar == RUN_DIALOG_GOTO_PREVIOUS) {
-        if (numPrevTopics < 1) {
-          // goto-previous on first topic -- end dialog
-          tocar = RUN_DIALOG_STOP_DIALOG;
+        if (TopicHist.size() == 0)
+            return RUN_DIALOG_STOP_DIALOG;
+        res = TopicHist.top();
+        TopicHist.pop();
+    }
+    // Continue to the next dialog
+    if (res >= 0)
+    {
+        // save the old topic number in the history, and switch to the new one
+        TopicHist.push(DlgNum);
+        DlgNum = res;
+        return DlgNum;
+    }
+    return res;
+}
+
+void DialogExec::Run()
+{
+    while (DlgNum >= 0)
+    {
+        if (DlgNum < 0 || DlgNum >= game.numdialog)
+            quitprintf("!RunDialog: invalid dialog number specified: %d", DlgNum);
+
+        // current dialog object
+        DialogTopic *dtop = &dialog[DlgNum];
+        int res = 0; // dialog execution result
+        // If a new dialog topic: run dialog entry point
+        if (DlgNum != DlgWas)
+        {
+            res = run_dialog_script(DlgNum, dtop->startupentrypoint, 0);
+            DlgWas = DlgNum;
+
+            // Handle the dialog entry's result
+            res = HandleDialogResult(res);
+            if (res == RUN_DIALOG_STOP_DIALOG)
+                return; // stop the dialog
+            IsFirstEntry = false;
+            if (res != RUN_DIALOG_STAY)
+                continue; // skip to the next dialog
         }
-        else {
-          tocar = previousTopics[numPrevTopics - 1];
-          numPrevTopics--;
+
+        // Show current dialog's options
+        int chose = show_dialog_options(DlgNum, SAYCHOSEN_USEFLAG, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+        if (chose == CHOSE_TEXTPARSER)
+        {
+            said_speech_line = 0;
+            res = run_dialog_request(DlgNum);
+            if (said_speech_line > 0)
+            {
+                // fix the problem with the close-up face remaining on screen
+                DisableInterface();
+                UpdateGameOnce(); // redraw the screen to make sure it looks right
+                EnableInterface();
+                set_mouse_cursor(CURS_ARROW);
+            }
         }
-      }
-      if (tocar == RUN_DIALOG_STOP_DIALOG)
-        break;
-      else if (tocar >= 0) {
-        // save the old topic number in the history
-        if (numPrevTopics < MAX_TOPIC_HISTORY) {
-          previousTopics[numPrevTopics] = dlgnum;
-          numPrevTopics++;
+        else if (chose >= 0)
+        { // chose some option - run its script
+            res = run_dialog_script(DlgNum, dtop->entrypoints[chose], chose + 1);
         }
-        dlgnum = tocar;
-        continue;
-      }
+        else
+        {
+            return; // no option chosen? - stop the dialog
+        }
+
+        // Handle the dialog option's result
+        res = HandleDialogResult(res);
+        if (res == RUN_DIALOG_STOP_DIALOG)
+            return; // stop the dialog
+        // continue to the next dialog or show same dialog's options again
     }
+}
 
-    int chose = show_dialog_options(dlgnum, SAYCHOSEN_USEFLAG, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+void do_conversation(int dlgnum)
+{
+    EndSkippingUntilCharStops();
 
-    if (chose == CHOSE_TEXTPARSER)
+    // AGS 2.x always makes the mouse cursor visible when displaying a dialog.
+    if (loaded_game_file_version <= kGameVersion_272)
+        play.mouse_cursor_hidden = 0;
+
+    DialogExec dlgexec(dlgnum);
+    dlgexec.Run();
+    // CHECKME: find out if this is safe to do always, regardless of number of iterations
+    if (dlgexec.IsFirstEntry)
     {
-      said_speech_line = 0;
-  
-      tocar = run_dialog_request(dlgnum);
-
-      if (said_speech_line > 0) {
-        // fix the problem with the close-up face remaining on screen
-        DisableInterface();
-        UpdateGameOnce(); // redraw the screen to make sure it looks right
-        EnableInterface();
-        set_mouse_cursor(CURS_ARROW);
-      }
+        // bail out from first startup script
+        remove_screen_overlay(OVER_COMPLETE);
+        play.in_conversation--;
     }
-    else if (chose >= 0)
-    {
-      tocar = run_dialog_script(dlgnum, dtop->entrypoints[chose], chose + 1);
-    }
-    else
-    {
-      tocar = RUN_DIALOG_STOP_DIALOG;
-    }
-
-    if (tocar == RUN_DIALOG_GOTO_PREVIOUS) {
-      if (numPrevTopics < 1) {
-        tocar = RUN_DIALOG_STOP_DIALOG;
-      }
-      else {
-        tocar = previousTopics[numPrevTopics - 1];
-        numPrevTopics--;
-      }
-    }
-    if (tocar == RUN_DIALOG_STOP_DIALOG) break;
-    else if (tocar >= 0) {
-      // save the old topic number in the history
-      if (numPrevTopics < MAX_TOPIC_HISTORY) {
-        previousTopics[numPrevTopics] = dlgnum;
-        numPrevTopics++;
-      }
-      dlgnum = tocar;
-    }
-  }
 }
 
 // end dialog manager

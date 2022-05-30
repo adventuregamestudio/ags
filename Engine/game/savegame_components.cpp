@@ -511,38 +511,38 @@ HSaveError WriteGUI(Stream *out)
     // GUI state
     WriteFormatTag(out, "GUIs");
     out->WriteInt32(game.numgui);
-    for (int i = 0; i < game.numgui; ++i)
-        guis[i].WriteToSavegame(out);
+    for (const auto &gui : guis)
+        gui.WriteToSavegame(out);
 
     WriteFormatTag(out, "GUIButtons");
-    out->WriteInt32(numguibuts);
-    for (int i = 0; i < numguibuts; ++i)
-        guibuts[i].WriteToSavegame(out);
+    out->WriteInt32(static_cast<int32_t>(guibuts.size()));
+    for (const auto &but : guibuts)
+        but.WriteToSavegame(out);
 
     WriteFormatTag(out, "GUILabels");
-    out->WriteInt32(numguilabels);
-    for (int i = 0; i < numguilabels; ++i)
-        guilabels[i].WriteToSavegame(out);
+    out->WriteInt32(static_cast<int32_t>(guilabels.size()));
+    for (const auto &label : guilabels)
+        label.WriteToSavegame(out);
 
     WriteFormatTag(out, "GUIInvWindows");
-    out->WriteInt32(numguiinv);
-    for (int i = 0; i < numguiinv; ++i)
-        guiinv[i].WriteToSavegame(out);
+    out->WriteInt32(static_cast<int32_t>(guiinv.size()));
+    for (const auto &inv : guiinv)
+        inv.WriteToSavegame(out);
 
     WriteFormatTag(out, "GUISliders");
-    out->WriteInt32(numguislider);
-    for (int i = 0; i < numguislider; ++i)
-        guislider[i].WriteToSavegame(out);
+    out->WriteInt32(static_cast<int32_t>(guislider.size()));
+    for (const auto &slider : guislider)
+        slider.WriteToSavegame(out);
 
     WriteFormatTag(out, "GUITextBoxes");
-    out->WriteInt32(numguitext);
-    for (int i = 0; i < numguitext; ++i)
-        guitext[i].WriteToSavegame(out);
+    out->WriteInt32(static_cast<int32_t>(guitext.size()));
+    for (const auto &tb : guitext)
+        tb.WriteToSavegame(out);
 
     WriteFormatTag(out, "GUIListBoxes");
-    out->WriteInt32(numguilist);
-    for (int i = 0; i < numguilist; ++i)
-        guilist[i].WriteToSavegame(out);
+    out->WriteInt32(static_cast<int32_t>(guilist.size()));
+    for (const auto &list : guilist)
+        list.WriteToSavegame(out);
 
     // Animated buttons
     WriteFormatTag(out, "AnimatedButtons");
@@ -560,52 +560,52 @@ HSaveError ReadGUI(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, R
     // GUI state
     if (!AssertFormatTagStrict(err, in, "GUIs"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), game.numgui, "GUIs"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), game.numgui, "GUIs"))
         return err;
     for (int i = 0; i < game.numgui; ++i)
         guis[i].ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIButtons"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), numguibuts, "GUI Buttons"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guibuts.size(), "GUI Buttons"))
         return err;
-    for (int i = 0; i < numguibuts; ++i)
-        guibuts[i].ReadFromSavegame(in, svg_ver);
+    for (auto &but : guibuts)
+        but.ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUILabels"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), numguilabels, "GUI Labels"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guilabels.size(), "GUI Labels"))
         return err;
-    for (int i = 0; i < numguilabels; ++i)
-        guilabels[i].ReadFromSavegame(in, svg_ver);
+    for (auto &label : guilabels)
+        label.ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIInvWindows"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), numguiinv, "GUI InvWindows"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guiinv.size(), "GUI InvWindows"))
         return err;
-    for (int i = 0; i < numguiinv; ++i)
-        guiinv[i].ReadFromSavegame(in, svg_ver);
+    for (auto &inv : guiinv)
+        inv.ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUISliders"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), numguislider, "GUI Sliders"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guislider.size(), "GUI Sliders"))
         return err;
-    for (int i = 0; i < numguislider; ++i)
-        guislider[i].ReadFromSavegame(in, svg_ver);
+    for (auto &slider : guislider)
+        slider.ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUITextBoxes"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), numguitext, "GUI TextBoxes"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guitext.size(), "GUI TextBoxes"))
         return err;
-    for (int i = 0; i < numguitext; ++i)
-        guitext[i].ReadFromSavegame(in, svg_ver);
+    for (auto &tb : guitext)
+        tb.ReadFromSavegame(in, svg_ver);
 
     if (!AssertFormatTagStrict(err, in, "GUIListBoxes"))
         return err;
-    if (!AssertGameContent(err, in->ReadInt32(), numguilist, "GUI ListBoxes"))
+    if (!AssertGameContent(err, static_cast<size_t>(in->ReadInt32()), guilist.size(), "GUI ListBoxes"))
         return err;
-    for (int i = 0; i < numguilist; ++i)
-        guilist[i].ReadFromSavegame(in, svg_ver);
+    for (auto &list : guilist)
+        list.ReadFromSavegame(in, svg_ver);
 
     // Animated buttons
     if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))
@@ -945,8 +945,9 @@ HSaveError WriteThisRoom(Stream *out)
     }
 
     // room object movement paths cache
-    out->WriteInt32(thisroom.ObjectCount + 1);
-    for (size_t i = 0; i < thisroom.ObjectCount + 1; ++i)
+    // CHECKME: not sure why it saves (object count + 1) move lists
+    out->WriteInt32(thisroom.Objects.size() + 1);
+    for (size_t i = 0; i < thisroom.Objects.size() + 1; ++i)
     {
         mls[i].WriteToFile(out);
     }
@@ -1000,7 +1001,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         return err;
     for (int i = 0; i < objmls_count; ++i)
     {
-        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0); // FIXME!!
+        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0); // FIXME cmp_ver, ugly
         if (!err)
             return err;
     }

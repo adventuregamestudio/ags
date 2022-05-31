@@ -2802,11 +2802,11 @@ builtin struct Game {
   import static readonly attribute int CameraCount;
 #endif
 #ifdef SCRIPT_API_v360
-  /// Changes the active translation.
+  /// Changes the active voice-over pack.
   import static bool   ChangeSpeechVox(const string newName);
   /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
   import static readonly attribute int BlockingWaitSkipped;
-  /// Gets name of the currently active translation.
+  /// Gets name of the currently active voice-over pack.
   readonly import static attribute String SpeechVoxFilename;
 #endif
 };

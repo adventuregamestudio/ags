@@ -1,14 +1,12 @@
+<img align="left" src="https://avatars.githubusercontent.com/u/1833326" width=256>
+
 # Adventure Game Studio
 
-[![Build Status](https://api.cirrus-ci.com/github/adventuregamestudio/ags.svg)](https://cirrus-ci.com/github/adventuregamestudio/ags)
+[![Build Status](https://api.cirrus-ci.com/github/adventuregamestudio/ags.svg)](https://cirrus-ci.com/github/adventuregamestudio/ags) 
 
-Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and running videogames of adventure (aka "quest") genre. You can use it for the other genres as well, although you may find out-of-the-box features lacking.
+Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and running videogames of adventure (aka "quest") genre. Created by Chris Jones back in 1999, AGS was open-sourced in 2011. Since then continues to be developed by contributors. Both Editor and Engine are licensed under the Artistic License 2.0; for more details see [License.txt](License.txt). 
 
-Created by Chris Jones back in 1999, AGS was open-sourced in 2011. Since then continues to be developed by contributors.
-
-The official homepage of AGS is: [www.adventuregamestudio.co.uk](https://www.adventuregamestudio.co.uk)
-
-Both Editor and Engine are licensed under the Artistic License 2.0; for more details see [License.txt](License.txt).
+For community forums, games and more, go to the website: [www.adventuregamestudio.co.uk](https://www.adventuregamestudio.co.uk)
 
 
 ## Branches and releases

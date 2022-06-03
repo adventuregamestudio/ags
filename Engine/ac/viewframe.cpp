@@ -22,6 +22,7 @@
 #include "ac/draw.h"
 #include "ac/game_version.h"
 #include "media/audio/audio_system.h"
+#include "util/math.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -147,7 +148,7 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume)
     }
     if (channel && (sound_volume >= 0))
     {
-        sound_volume = std::min(sound_volume, 100);
+        sound_volume = Math::Clamp(sound_volume, 0, 100);
         auto* ch = AudioChans::GetChannel(channel->id);
         if (ch)
             ch->set_volume100(ch->get_volume100() * sound_volume / 100);

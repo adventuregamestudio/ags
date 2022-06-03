@@ -1592,12 +1592,14 @@ import void SetFrameSound (int view, int loop, int frame, int sound);
 enum EventType {
   eEventLeaveRoom = 1,
   eEventEnterRoomBeforeFadein = 2,
+  // 3 is reserved by an obsolete "death" event
   eEventGotScore = 4,
   eEventGUIMouseDown = 5,
   eEventGUIMouseUp = 6,
   eEventAddInventory = 7,
   eEventLoseInventory = 8,
-  eEventRestoreGame = 9
+  eEventRestoreGame = 9,
+  eEventEnterRoomAfterFadein = 10
 };
 
 #ifdef SCRIPT_API_v350

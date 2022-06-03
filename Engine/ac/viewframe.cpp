@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -24,8 +23,7 @@
 #include "media/audio/audio_system.h"
 #include "util/math.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;

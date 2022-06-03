@@ -110,6 +110,7 @@ extern NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
+extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 
 extern ScriptSystem scsystem;
 

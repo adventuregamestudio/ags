@@ -509,6 +509,7 @@ void unload_game_file()
     runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(0);
     runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(0);
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
+    runDialogOptionCloseFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
     views.clear();

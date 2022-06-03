@@ -1706,7 +1706,7 @@ builtin managed struct Label extends GUIControl {
 builtin managed struct Button extends GUIControl {
 #ifdef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
-  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=-1);
+  import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
 #endif
 #ifndef SCRIPT_API_v360
   /// Animates the button graphic using the specified view loop.
@@ -2276,7 +2276,7 @@ builtin managed struct Object {
     , int frame=0
 #endif  
 #ifdef SCRIPT_API_v360
-    , int volume=-1
+    , int volume=100
 #endif
   );
   /// Gets the object that is on the screen at the specified co-ordinates.
@@ -2418,7 +2418,7 @@ builtin managed struct Character {
     , int frame=0
 #endif  
 #ifdef SCRIPT_API_v360
-    , int volume=-1
+    , int volume=100
 #endif
   );
 #ifdef SCRIPT_API_v340

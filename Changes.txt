@@ -99,6 +99,10 @@ Script API:
  - Similarily, expanded `dialog_options_key_press` with the third `mod` argument, and implemented
    `dialog_options_text_input` callback for receiving unicode chars during the custom dialog
    options state.
+ - Implemented `dialog_options_close` callback which is called when custom dialog options are
+   removed from the screen. This allows to perform any required cleanup.
+ - Added eEventEnterRoomAfterFadein event for `on_event` callback, which corresponds to
+   "enter after fade-in" room event.
  - Added eKey constants for Shift, Control and Alt keys.
  - Added eKeyMod enum for key modifiers constants.
  - String.AppendChar(), ReplaceChar() functions and String.Chars[] property are now working with

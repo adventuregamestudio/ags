@@ -269,7 +269,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    objs[obn].anim_volume = std::min(volume, 100); // NOTE: negative volume means use defaults
+    objs[obn].anim_volume = Math::Clamp(volume, 0, 100);
     CheckViewFrame(objs[obn].view, loopn, objs[obn].frame, objs[obn].anim_volume);
 
     if (blocking)

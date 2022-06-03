@@ -116,7 +116,7 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, Rect clip,
       {
         if (scale > 1)
         {
-          ds->FillRect(RectWH(x, y, scale - 1, scale - 1), text_color);
+          ds->FillRect(RectWH(x, y, scale, scale), text_color);
         } 
         else
         {

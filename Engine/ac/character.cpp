@@ -179,7 +179,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 }
 
 void Character_AnimateEx(CharacterInfo *chaa, int loop, int delay, int repeat,
-    int blocking, int direction, int sframe, int volume = -1)
+    int blocking, int direction, int sframe, int volume = 100)
 {
     if (direction == FORWARDS)
         direction = 0;
@@ -2176,7 +2176,7 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     }
     chap->frame = sframe;
     chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;
-    charextra[chap->index_id].cur_anim_volume = std::min(100, volume);
+    charextra[chap->index_id].cur_anim_volume = Math::Clamp(volume, 0, 100);
 
     CheckViewFrameForCharacter(chap);
 }
@@ -2185,7 +2185,7 @@ void stop_character_anim(CharacterInfo *chap)
 { // TODO: may expand with resetting more properties,
   // but have to be careful to not break logic somewhere
     chap->animating = 0;
-    charextra[chap->index_id].cur_anim_volume = -1;
+    charextra[chap->index_id].cur_anim_volume = 100;
 }
 
 void CheckViewFrameForCharacter(CharacterInfo *chi)

@@ -49,7 +49,7 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
 }
 
 void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat,
-    int blocking, int direction, int sframe, int volume = -1)
+    int blocking, int direction, int sframe, int volume = 100)
 {
     int guin = butt->ParentId;
     int objn = butt->Id;
@@ -77,7 +77,7 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     if ((direction < 0) || (direction > 1))
         quit("!AnimateButton: invalid direction");
 
-    volume = std::min(volume, 100); // NOTE: negative volume means use defaults
+    volume = Math::Clamp(volume, 0, 100);
 
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(guin, objn);

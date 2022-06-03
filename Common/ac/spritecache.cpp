@@ -74,8 +74,8 @@ size_t SpriteCache::GetSpriteSlotCount() const
 
 void SpriteCache::SetMaxCacheSize(size_t size)
 {
-    FreeMem(size);
     _maxCacheSize = size;
+    FreeMem(0); // makes sure it does not exceed max size
 }
 
 void SpriteCache::Reset()
@@ -232,9 +232,9 @@ Bitmap *SpriteCache::operator [] (sprkey_t index)
     return _spriteData[index].Image;
 }
 
-void SpriteCache::FreeMem(size_t threshold)
+void SpriteCache::FreeMem(size_t space)
 {
-    for (int tries = 0; (_mru.size() > 0) && (_cacheSize >= threshold); ++tries)
+    for (int tries = 0; (_mru.size() > 0) && (_cacheSize >= (_maxCacheSize - space)); ++tries)
     {
         DisposeOldest();
         if (tries > 1000) // ???
@@ -330,8 +330,6 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (index < 0 || (size_t)index >= _spriteData.size())
         return 0;
 
-    FreeMem(_maxCacheSize);
-
     sprkey_t load_index = GetDataIndex(index);
     Bitmap *image;
     HError err = _file.LoadSprite(load_index, image);
@@ -362,10 +360,10 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
     if (index != 0)  // leave sprite 0 locked
         _spriteData[index].Flags &= ~SPRCACHEFLAG_LOCKED;
 
-    // we need to store this because the main program might
-    // alter spritewidth/height if it resizes stuff
-    size_t size = _sprInfos[index].Width * _sprInfos[index].Height *
+    const size_t size = _sprInfos[index].Width * _sprInfos[index].Height *
         _spriteData[index].Image->GetBPP();
+    // Clear up space before adding to cache
+    FreeMem(size);
     _spriteData[index].Size = size;
     _cacheSize += size;
 

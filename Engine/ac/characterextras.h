@@ -49,8 +49,8 @@ struct CharacterExtras {
     char  process_idle_this_time = 0;
     char  slow_move_counter = 0;
     short animwait = 0;
-    int   anim_volume = -1; // default animation volume (-1 use clip default)
-    int   cur_anim_volume = -1; // current animation sound volume (-1 = default)
+    int   anim_volume = 100; // default animation volume (relative factor)
+    int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     Common::BlendMode blend_mode = Common::kBlend_Normal;
     float rotation = 0.f;
 

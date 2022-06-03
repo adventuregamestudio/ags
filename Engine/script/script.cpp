@@ -75,6 +75,7 @@ NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_m
 NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc("dialog_options_key_press", 3);
 NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc("dialog_options_text_input", 2);
 NonBlockingScriptFunction runDialogOptionRepExecFunc("dialog_options_repexec", 1);
+NonBlockingScriptFunction runDialogOptionCloseFunc("dialog_options_close", 1);
 
 ScriptSystem scsystem;
 

@@ -513,6 +513,13 @@ void DialogOptions::Show()
 
     Redraw();
     while(Run());
+
+    // Close custom dialog options
+    if (usingCustomRendering)
+    {
+        runDialogOptionCloseFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
+    }
 }
 
 void DialogOptions::Redraw()

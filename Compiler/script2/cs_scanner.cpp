@@ -307,11 +307,11 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
         symstring.push_back(Get());
 
     errno = 0;
-    long long_value = std::strtol(valstring.c_str(), &endptr, 0);
+    long long_value = std::strtoul(valstring.c_str(), &endptr, 0);
     bool can_be_long = (valstring.length() == endptr - valstring.c_str());
     if (can_be_long && peek != 'f' && peek != 'F')
     {
-        if (ERANGE == errno)
+        if (std::numeric_limits<CodeCell>::max() < long_value || ERANGE == errno)
             UserError(
                 "Literal integer '%s' is out of bounds (maximum is '%s')",
                 valstring.c_str(),

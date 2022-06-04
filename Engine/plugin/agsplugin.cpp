@@ -108,8 +108,8 @@ extern ScriptString myScriptStringImpl;
 
 const int PLUGIN_API_VERSION = 25;
 struct EnginePlugin {
-    char        filename[PLUGIN_FILENAME_MAX+1];
-    AGS::Engine::Library   library;
+    AGS::Common::String  filename;
+    AGS::Engine::Library library;
     bool       available;
     char       *savedata;
     int         savedatasize;
@@ -124,7 +124,6 @@ struct EnginePlugin {
     bool        builtin;
 
     EnginePlugin() {
-        filename[0] = 0;
         wantHook = 0;
         invalidatedRegion = 0;
         savedata = nullptr;
@@ -896,7 +895,7 @@ int pl_register_builtin_plugin(InbuiltPluginDetails const &details) {
 bool pl_use_builtin_plugin(EnginePlugin* apl)
 {
 #if defined(BUILTIN_PLUGINS)
-    if (ags_stricmp(apl->filename, "agsflashlight") == 0)
+    if (apl->filename.CompareNoCase("agsflashlight") == 0)
     {
         apl->engineStartup = agsflashlight::AGS_EngineStartup;
         apl->engineShutdown = agsflashlight::AGS_EngineShutdown;
@@ -907,7 +906,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (ags_stricmp(apl->filename, "agsblend") == 0)
+    else if (apl->filename.CompareNoCase("agsblend") == 0)
     {
         apl->engineStartup = agsblend::AGS_EngineStartup;
         apl->engineShutdown = agsblend::AGS_EngineShutdown;
@@ -918,7 +917,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (ags_stricmp(apl->filename, "ags_snowrain") == 0)
+    else if (apl->filename.CompareNoCase("ags_snowrain") == 0)
     {
         apl->engineStartup = ags_snowrain::AGS_EngineStartup;
         apl->engineShutdown = ags_snowrain::AGS_EngineShutdown;
@@ -929,7 +928,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (ags_stricmp(apl->filename, "ags_parallax") == 0)
+    else if (apl->filename.CompareNoCase("ags_parallax") == 0)
     {
         apl->engineStartup = ags_parallax::AGS_EngineStartup;
         apl->engineShutdown = ags_parallax::AGS_EngineShutdown;
@@ -940,7 +939,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (ags_stricmp(apl->filename, "agspalrender") == 0)
+    else if (apl->filename.CompareNoCase("agspalrender") == 0)
     {
         apl->engineStartup = agspalrender::AGS_EngineStartup;
         apl->engineShutdown = agspalrender::AGS_EngineShutdown;
@@ -952,7 +951,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         return true;
     }
 #if AGS_PLATFORM_OS_IOS
-    else if (ags_stricmp(apl->filename, "agstouch") == 0)
+    else if (apl->filename.CompareNoCase("agstouch") == 0)
     {
         apl->engineStartup = agstouch::AGS_EngineStartup;
         apl->engineShutdown = agstouch::AGS_EngineShutdown;
@@ -967,7 +966,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 #endif // BUILTIN_PLUGINS
 
     for(std::vector<InbuiltPluginDetails>::iterator it = _registered_builtin_plugins.begin(); it != _registered_builtin_plugins.end(); ++it) {
-        if (ags_stricmp(apl->filename, it->filename) == 0) {
+        if (apl->filename.CompareNoCase(it->filename) == 0) {
             apl->engineStartup = it->engineStartup;
             apl->engineShutdown = it->engineShutdown;
             apl->onEvent = it->onEvent;
@@ -1004,7 +1003,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
 
         EnginePlugin *apl = &plugins[numPlugins++];
         // Copy plugin info
-        snprintf(apl->filename, sizeof(apl->filename), "%s", name.GetCStr());
+        apl->filename = name;
         if (info.DataLen)
         {
             apl->savedata = (char*)malloc(info.DataLen);
@@ -1013,23 +1012,23 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         apl->savedatasize = info.DataLen;
 
         // Compatibility with the old SnowRain module
-        if (ags_stricmp(apl->filename, "ags_SnowRain20") == 0) {
-            strcpy(apl->filename, "ags_snowrain");
+        if (apl->filename.CompareNoCase("ags_SnowRain20") == 0) {
+            apl->filename = "ags_snowrain";
         }
 
         String expect_filename = apl->library.GetFilenameForLib(apl->filename);
         if (apl->library.Load(apl->filename))
         {
-          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded as '%s', resolving imports...", apl->filename, expect_filename.GetCStr());
+          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded as '%s', resolving imports...", apl->filename.GetCStr(), expect_filename.GetCStr());
 
           if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr) {
-              quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
+              quitprintf("Plugin '%s' is an old incompatible version.", apl->filename.GetCStr());
           }
           apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
           apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
 
           if (apl->engineStartup == nullptr) {
-              quitprintf("Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
+              quitprintf("Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename.GetCStr());
           }
           apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
           apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
@@ -1038,18 +1037,18 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         else
         {
           AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' could not be loaded (expected '%s'), trying built-in plugins...",
-              apl->filename, expect_filename.GetCStr());
+              apl->filename.GetCStr(), expect_filename.GetCStr());
           if (pl_use_builtin_plugin(apl))
           {
-            AGS::Common::Debug::Printf(kDbgMsg_Info, "Build-in plugin '%s' found and being used.", apl->filename);
+            AGS::Common::Debug::Printf(kDbgMsg_Info, "Build-in plugin '%s' found and being used.", apl->filename.GetCStr());
           }
           else
           {
             // Plugin loading has failed at this point, try using built-in plugin function stubs
-            if (RegisterPluginStubs((const char*)apl->filename))
-              AGS::Common::Debug::Printf(kDbgMsg_Info, "Placeholder functions for the plugin '%s' found.", apl->filename);
+            if (RegisterPluginStubs(apl->filename.GetCStr()))
+              AGS::Common::Debug::Printf(kDbgMsg_Info, "Placeholder functions for the plugin '%s' found.", apl->filename.GetCStr());
             else
-              AGS::Common::Debug::Printf(kDbgMsg_Info, "No placeholder functions for the plugin '%s' found. The game might fail to load!", apl->filename);
+              AGS::Common::Debug::Printf(kDbgMsg_Info, "No placeholder functions for the plugin '%s' found. The game might fail to load!", apl->filename.GetCStr());
             continue;
           }
         }
@@ -1069,7 +1068,7 @@ bool pl_is_plugin_loaded(const char *pl_name)
 
     for (int i = 0; i < numPlugins; ++i)
     {
-        if (ags_stricmp(pl_name, plugins[i].filename) == 0)
+        if (plugins[i].filename.CompareNoCase(pl_name) == 0)
             return plugins[i].available;
     }
     return false;

@@ -27,7 +27,7 @@ using namespace AGS; // FIXME later
 //  Initial implementation for apps to register their own inbuilt plugins
 
 struct InbuiltPluginDetails {
-    char      filename[PLUGIN_FILENAME_MAX+1];
+    String    filename;
     void      (*engineStartup) (IAGSEngine *);
     void      (*engineShutdown) ();
     int       (*onEvent) (int, int);

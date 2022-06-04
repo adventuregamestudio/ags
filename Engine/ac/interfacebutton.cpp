@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#if defined (OBSOLETE)
 #include "ac/interfacebutton.h"
 
 void InterfaceButton::set(int xx, int yy, int picc, int overpicc, int actionn) {
@@ -19,3 +19,4 @@ void InterfaceButton::set(int xx, int yy, int picc, int overpicc, int actionn) {
     rightclick = 0; flags = IBFLG_ENABLED;
     reserved_for_future = 0;
 }
+#endif // OBSOLETE

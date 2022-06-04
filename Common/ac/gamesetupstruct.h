@@ -43,7 +43,6 @@ namespace AGS
 using AGS::Common::PInteraction;
 using AGS::Common::PInteractionScripts;
 using AGS::Common::HGameFileError;
-struct OldGameSetupStruct;
 
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
@@ -161,8 +160,11 @@ struct GameSetupStruct: public GameSetupStructBase {
 };
 
 //=============================================================================
-// TODO: find out how this function was supposed to be used
+#if defined (OBSOLETE)
+struct OldGameSetupStruct;
 void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss);
+#endif // OBSOLETE
+
 // Finds an audio clip using legacy convention index
 ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num);
 

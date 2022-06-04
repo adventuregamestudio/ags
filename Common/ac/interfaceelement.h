@@ -11,9 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_INTERFACEELEMENT_H
 #define __AC_INTERFACEELEMENT_H
+
+#if defined (OBSOLETE)
 
 #include "ac/interfacebutton.h" // InterfaceButton
 
@@ -32,5 +33,7 @@ struct InterfaceElement {
     char            on;
     InterfaceElement();
 };
+
+#endif // OBSOLETE
 
 #endif // __AC_INTERFACEELEMENT_H

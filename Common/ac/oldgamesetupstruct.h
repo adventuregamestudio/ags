@@ -11,17 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_CN_AC__OLDGAMESETUPSTRUCT_H
 #define __AGS_CN_AC__OLDGAMESETUPSTRUCT_H
 
-#include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
 #if defined (OBSOLETE)
+
+#include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
 #include "ac/eventblock.h"       // EventBlock
-#endif
 #include "ac/interfaceelement.h"    // InterfaceElement
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/mousecursor.h"      // MouseCursor
@@ -74,5 +70,7 @@ struct OriGameSetupStruct2 : public OriGameSetupStruct {
 struct OldGameSetupStruct : public OriGameSetupStruct2 {
     unsigned char spriteflags[LEGACY_MAX_SPRITES_V25];
 };
+
+#endif // OBSOLETE
 
 #endif // __AGS_CN_AC__OLDGAMESETUPSTRUCT_H

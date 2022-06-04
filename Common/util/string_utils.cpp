@@ -18,6 +18,7 @@
 #include "core/platform.h"
 #include "util/math.h"
 #include "util/stream.h"
+#include "util/string_compat.h"
 #include "util/utf8.h"
 
 using namespace AGS::Common;
@@ -213,6 +214,22 @@ void StrUtil::ReadCStr(char *buf, Stream *in, size_t buf_limit)
     }
 }
 
+char *StrUtil::ReadMallocCStrOrNull(Stream *in)
+{
+    char buf[1024];
+    for (auto ptr = buf; (ptr < buf + sizeof(buf)); ++ptr)
+    {
+        auto ichar = in->ReadByte();
+        if (ichar <= 0)
+        {
+            *ptr = 0;
+            break;
+        }
+        *ptr = static_cast<char>(ichar);
+    }
+    return buf[0] != 0 ? ags_strdup(buf) : nullptr;
+}
+
 void StrUtil::SkipCStr(Stream *in)
 {
     while (in->ReadByte() > 0);
@@ -220,8 +237,10 @@ void StrUtil::SkipCStr(Stream *in)
 
 void StrUtil::WriteCStr(const char *cstr, Stream *out)
 {
-    size_t len = strlen(cstr);
-    out->Write(cstr, len + 1);
+    if (cstr)
+        out->Write(cstr, strlen(cstr) + 1);
+    else
+        out->WriteByte(0);
 }
 
 void StrUtil::WriteCStr(const String &s, Stream *out)

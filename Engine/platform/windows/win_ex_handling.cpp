@@ -36,6 +36,7 @@ extern int eip_guiobj;
 extern int proper_exit;
 
 char tempmsg[100];
+#define PRINT_WORKSPACE_SIZE (7000u)
 char *printfworkingspace;
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
@@ -48,7 +49,7 @@ extern int miniDumpResultCode;
 static void DisplayException()
 {
     const auto &sc_error = cc_get_error();
-    sprintf(printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
+    snprintf(printfworkingspace, PRINT_WORKSPACE_SIZE, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
         "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and contact the game author for support "
         "or post these details on the AGS Technical Forum.\n\n%s\n\n"
         "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
@@ -92,7 +93,7 @@ void setup_malloc_handling()
 {
     _set_new_handler(malloc_fail_handler);
     _set_new_mode(1);
-    printfworkingspace = (char*)malloc(7000);
+    printfworkingspace = (char*)malloc(PRINT_WORKSPACE_SIZE);
 }
 
 #endif // AGS_PLATFORM_OS_WINDOWS

@@ -253,7 +253,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if ((ags_stricmp(arg,"--enabledebugger") == 0) && (argc > ee + 1))
         {
-            strcpy(editor_debugger_instance_token, argv[ee + 1]);
+            snprintf(editor_debugger_instance_token, sizeof(editor_debugger_instance_token), "%s", argv[ee + 1]);
             editor_debugging_enabled = 1;
             cfg["graphics"]["windowed"] = "1";
             ee++;

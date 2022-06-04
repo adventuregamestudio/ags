@@ -817,7 +817,7 @@ void engine_init_game_settings()
     play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
     if (play.speech_textwindow_gui == 0)
         play.speech_textwindow_gui = -1;
-    strcpy(play.game_name, game.gamename);
+    snprintf(play.game_name, sizeof(play.game_name), "%s", game.gamename);
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
     for (ee = 0; ee < MAX_ROOM_BGFRAMES; ee++) 

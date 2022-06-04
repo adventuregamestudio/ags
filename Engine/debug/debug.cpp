@@ -525,7 +525,7 @@ int check_for_messages_from_editor()
             else 
             {
                 breakpoints.push_back(Breakpoint());
-                strcpy(breakpoints[numBreakpoints].scriptName, scriptNameBuf);
+                snprintf(breakpoints[numBreakpoints].scriptName, sizeof(Breakpoint::scriptName), "%s", scriptNameBuf);
                 breakpoints[numBreakpoints].lineNumber = lineNumber;
                 numBreakpoints++;
             }

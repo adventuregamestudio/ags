@@ -11,8 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <algorithm>
+#include <stdio.h>
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "util/stream.h"

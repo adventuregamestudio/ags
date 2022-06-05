@@ -7,7 +7,7 @@
 // Should contain a path to which the tests can write copies of their checking code
 constexpr char *WRITE_PATH = "C:/TEMP/";
 
-extern void WriteOutput(char *fname, AGS::ccCompiledScript const &scrip);
+extern void WriteOutput(const char *fname, AGS::ccCompiledScript const &scrip);
 
 extern void CompareCode(AGS::ccCompiledScript *scrip, size_t codesize, int32_t code[]);
 extern void CompareFixups(AGS::ccCompiledScript *scrip, size_t numfixups, int32_t fixups[], char fixuptypes[]);

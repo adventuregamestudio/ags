@@ -35,7 +35,7 @@ TEST_F(Compile1, Sections) {
     // "__NEWSCRIPTSTART..." begins a line #0,
     // so the error must be reported on line 3.
 
-    char *inpl = "\
+    const char *inpl = "\
         \"__NEWSCRIPTSTART_globalscript.ash\"   \n\
         int main()                              \n\
         {                                       \n\
@@ -54,7 +54,7 @@ TEST_F(Compile1, Autoptr) {
 
     // String is autoptr so should not print as "String *"
 
-    char *inpl = "\
+    const char *inpl = "\
         managed autoptr builtin struct String   \n\
         {};                                     \n\
         int main()                              \n\
@@ -74,7 +74,7 @@ TEST_F(Compile1, BinaryNot)
 
     // '!' can't be binary
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = 15 ! 2;                   \n\
@@ -91,7 +91,7 @@ TEST_F(Compile1, UnaryDivideBy) {
 
     // '/' can't be unary
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = (/ 2);                    \n\
@@ -108,7 +108,7 @@ TEST_F(Compile1, UnaryPlus) {
 
     // '/' can't be unary
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return +42;                         \n\
@@ -124,7 +124,7 @@ TEST_F(Compile1, FloatInt1) {
 
     // Can't mix float and int
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = 4 / 2.0;                  \n\
@@ -141,7 +141,7 @@ TEST_F(Compile1, FloatInt2) {
 
     // Can't negate float
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = !2.0;                     \n\
@@ -158,7 +158,7 @@ TEST_F(Compile1, StringInt1) {
 
     // Can't mix string and int
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = (\"Holzschuh\" == 2);     \n\
@@ -175,7 +175,7 @@ TEST_F(Compile1, ExpressionVoid) {
 
     // Can't mix void
 
-    char *inpl = "\
+    const char *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -193,7 +193,7 @@ TEST_F(Compile1, ExpressionLoneUnary1) {
 
     // Unary -, nothing following
 
-    char *inpl = "\
+    const char *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -212,7 +212,7 @@ TEST_F(Compile1, ExpressionLoneUnary2) {
 
     // Unary ~, nothing following
 
-    char *inpl = "\
+    const char *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -231,7 +231,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
 
     // Binary %, nothing following
 
-    char *inpl = "\
+    const char *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -248,7 +248,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
 
 TEST_F(Compile1, LocalTypes1)
 {
-    char *inpl = "\
+    const char *inpl = "\
         void Test1()            \n\
         {                       \n\
             struct MyStruct     \n\
@@ -265,7 +265,7 @@ TEST_F(Compile1, LocalTypes1)
 
 TEST_F(Compile1, LocalTypes2)
 {
-    char *inpl = "\
+    const char *inpl = "\
         void Test1()            \n\
         {                       \n\
             enum Foo            \n\
@@ -284,7 +284,7 @@ TEST_F(Compile1, StaticArrayIndex1) {
 
     // Constant array index, is out ouf bounds
 
-    char *inpl = "\
+    const char *inpl = "\
         enum E                          \n\
         {                               \n\
             MinusFive = -5,             \n\
@@ -306,7 +306,7 @@ TEST_F(Compile1, StaticArrayIndex2) {
 
     // Constant array index, is out ouf bounds
 
-    char *inpl = "\
+    const char *inpl = "\
         enum E                          \n\
         {                               \n\
             MinusFive = -5,             \n\
@@ -328,7 +328,7 @@ TEST_F(Compile1, ExpressionArray1) {
 
     // Can't mix void
 
-    char *inpl = "\
+    const char *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -347,7 +347,7 @@ TEST_F(Compile1, FuncTypeClash1) {
 
     // Can't use func here except in a func call
 
-    char *inpl = "\
+    const char *inpl = "\
         int Func()                              \n\
         {                                       \n\
         }                                       \n\
@@ -368,7 +368,7 @@ TEST_F(Compile1, FloatOutOfBounds) {
 
     // Too small
 
-    char *inpl = "\
+    const char *inpl = "\
         int Func()                              \n\
         {                                       \n\
         }                                       \n\
@@ -389,7 +389,7 @@ TEST_F(Compile1, DoWhileSemicolon) {
 
     // ';' missing
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             int I = 1;                          \n\
@@ -409,7 +409,7 @@ TEST_F(Compile1, ExtenderExtender1) {
 
     // No extending a struct with a compound function
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Struct1                      \n\
         {                                   \n\
             void Func();                    \n\
@@ -432,7 +432,7 @@ TEST_F(Compile1, ExtenderExtender2) {
 
     // No extending a struct with a compound function
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Struct1                      \n\
         {                                   \n\
         };                                  \n\
@@ -452,7 +452,7 @@ TEST_F(Compile1, NonManagedStructParameter) {
 
     // Can't pass a non-managed struct as a function parameter
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Struct                           \n\
         {                                       \n\
         };                                      \n\
@@ -471,7 +471,7 @@ TEST_F(Compile1, StrangeParameterName) {
 
     // Can't use keyword as parameter name
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int while)                    \n\
         {                                       \n\
         }                                       \n\
@@ -487,7 +487,7 @@ TEST_F(Compile1, DoubleParameterName) {
 
     // Can't use keyword as parameter name
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int PI, float PI)             \n\
         {                                       \n\
         }                                       \n\
@@ -503,7 +503,7 @@ TEST_F(Compile1, FuncParamDefaults1) {
 
     // Either give no defaults or give them all
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int i = 5, float j = 6.0);    \n\
         void Func(int i = 5, float j)           \n\
         {                                       \n\
@@ -520,7 +520,7 @@ TEST_F(Compile1, FuncParamDefaults2) {
 
     // All parameters that follow a default parameter must have a default
 
-    char *inpl = "\
+    const char *inpl = "\
         import void Func(int i = 5, float j);   \n\
         ";
     
@@ -534,7 +534,7 @@ TEST_F(Compile1, FuncParamDefaults3) {
 
     // Can't give a parameter a default here, not a default there
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int i, float j);          \n\
         void Func(int i, float j = 6.0)     \n\
         {                                       \n\
@@ -551,7 +551,7 @@ TEST_F(Compile1, FuncParamDefaults4) {
 
     // Can't give a parameter differing defaults
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(float J = -6.0);              \n\
         void Func(float J = 6.0)                \n\
         {                                       \n\
@@ -568,7 +568,7 @@ TEST_F(Compile1, FuncParamNumber1) {
 
     // Differing number of parameters
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int, float);                  \n\
         void Func(int I, float J, short K)      \n\
         {                                       \n\
@@ -585,7 +585,7 @@ TEST_F(Compile1, FuncParamNumber2) {
 
     // Instantiation has number of parameters than is different from declaration
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Test                                         \n\
         {                                                   \n\
             import void Func(int a, int b, int c, int d);   \n\
@@ -606,7 +606,7 @@ TEST_F(Compile1, FuncVariadicCollision) {
 
     // Variadic / non-variadic
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int, float, short, ...);      \n\
         void Func(int I, float J, short K)      \n\
         {                                       \n\
@@ -623,7 +623,7 @@ TEST_F(Compile1, FuncReturnVartypes) {
 
     // Return vartypes
 
-    char *inpl = "\
+    const char *inpl = "\
         int Func(int, float, short);            \n\
         short Func(int I, float J, short K)     \n\
         {                                       \n\
@@ -640,7 +640,7 @@ TEST_F(Compile1, FuncReturnStruct1) {
 
     // Return vartype must be managed when it is a struct
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Struct {  };                     \n\
         Struct Func()                           \n\
         {                                       \n\
@@ -658,7 +658,7 @@ TEST_F(Compile1, FuncReturnStruct2) {
     // Compiler will imply the '*'
     // but should be slightly unhappy about the missing return statement
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct {  }; \n\
         Struct Func()               \n\
         {                           \n\
@@ -676,7 +676,7 @@ TEST_F(Compile1, FuncReturnStruct3) {
 
     // Compiler should be slightly unhappy about the missing return statement
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct {  };             \n\
         Struct[] Func()                         \n\
         {                                       \n\
@@ -695,7 +695,7 @@ TEST_F(Compile1, FuncReturn1) {
     // Should detect that the 'I' define can't be reached
     // Should not warn about a missing return at end of function body.
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Random(int); \n\
         float Func()            \n\
         {                       \n\
@@ -719,7 +719,7 @@ TEST_F(Compile1, FuncReturn2) {
     // Should detect that the 'I' assignment can't be reached
     // Should warn about a missing return at end of function body.
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Random(int); \n\
         float Func()            \n\
         {                       \n\
@@ -745,7 +745,7 @@ TEST_F(Compile1, FuncDouble) {
 
     // No two equally-named functions with body
 
-    char *inpl = "\
+    const char *inpl = "\
         int Func()                              \n\
         {                                       \n\
         }                                       \n\
@@ -764,7 +764,7 @@ TEST_F(Compile1, FuncProtected) {
 
     // Protected functions must be part of a struct
 
-    char *inpl = "\
+    const char *inpl = "\
         protected void Func(int I = 6)          \n\
         {                                       \n\
         }                                       \n\
@@ -780,7 +780,7 @@ TEST_F(Compile1, FuncNameClash1) {
 
     // Function name mustn't equal a variable name.
 
-    char *inpl = "\
+    const char *inpl = "\
         int Func;                               \n\
         void Func(int I = 6)                    \n\
         {                                       \n\
@@ -795,7 +795,7 @@ TEST_F(Compile1, FuncNameClash1) {
 
 TEST_F(Compile1, FuncDeclWrong1) {
 
-    char *inpl = "\
+    const char *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -828,7 +828,7 @@ TEST_F(Compile1, FuncDeclWrong1) {
 TEST_F(Compile1, FuncDeclWrong2) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -862,7 +862,7 @@ TEST_F(Compile1, FuncDeclReturnVartype) {
 
     // Should compile.
 
-    char *inpl = "\
+    const char *inpl = "\
     managed struct DynamicSprite                                    \n\
     {                                                               \n\
     };                                                              \n\
@@ -888,7 +888,7 @@ TEST_F(Compile1, FuncHeader1) {
 
     // Can't have a specific array size in func parameters
 
-    char *inpl = "\
+    const char *inpl = "\
         void main(int a[15])                   \n\
         {                                      \n\
              return;                           \n\
@@ -905,7 +905,7 @@ TEST_F(Compile1, FuncHeader2) {
 
     // Default for float parameter, an int value. Should fail
 
-    char *inpl = "\
+    const char *inpl = "\
         void Foo(float Param = 7);              \n\
         {                                      \n\
              return;                           \n\
@@ -921,7 +921,7 @@ TEST_F(Compile1, FuncHeader2) {
 TEST_F(Compile1, FuncHeader3) {
 
     // Integer default for managed parameter. Should fail
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Payload                  \n\
         {                                       \n\
             float foo;                          \n\
@@ -941,7 +941,7 @@ TEST_F(Compile1, FuncHeader3) {
 
 TEST_F(Compile1, FuncExtenderHeaderFault1a) {
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -962,7 +962,7 @@ TEST_F(Compile1, FuncExtenderHeaderFault1b) {
 
     // A comma or paren should follow 'Weapon'
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -981,7 +981,7 @@ TEST_F(Compile1, FuncExtenderHeaderFault1b) {
 
 TEST_F(Compile1, FuncExtenderHeaderFault1c) {
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -1000,7 +1000,7 @@ TEST_F(Compile1, FuncExtenderHeaderFault1c) {
 
 TEST_F(Compile1, FuncExtenderHeaderFault2) {
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -1022,7 +1022,7 @@ TEST_F(Compile1, FuncDoubleExtender) {
 
     // Must not define a function with body twice.
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                         \n\
             int Damage;                         \n\
         };                                      \n\
@@ -1046,7 +1046,7 @@ TEST_F(Compile1, FuncDoubleExtender) {
 
 TEST_F(Compile1, FuncDoubleNonExtender) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int Foo(int Bar)                       \n\
         {                                      \n\
             return 1;                          \n\
@@ -1067,7 +1067,7 @@ TEST_F(Compile1, FuncUndeclaredStruct1) {
 
     // Should fail, Struct doesn't have Func
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct                       \n\
         {                                           \n\
             int Component;                          \n\
@@ -1088,7 +1088,7 @@ TEST_F(Compile1, FuncUndeclaredStruct2) {
 
     // Should succeed, Struct has Func
 
-    char *inpl = "\
+    const char *inpl = "\
         void Struct::Func(int Param)                \n\
         {                                           \n\
         }                                           \n\
@@ -1107,7 +1107,7 @@ TEST_F(Compile1, TypeEqComponent) {
 
     // A struct component may have the same name as a type.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Room             \n\
         {                                       \n\
         };                                      \n\
@@ -1127,7 +1127,7 @@ TEST_F(Compile1, ExtenderFuncClash) {
 
     // Don't remember the struct of extender functions past their definition (and body, if applicable)
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin struct Maths 							\n\
         { 												\n\
         }; 												\n\
@@ -1144,7 +1144,7 @@ TEST_F(Compile1, MissingSemicolonAfterStruct1) {
 
     // Missing ";" after struct declaration; isn't a var decl either
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1 };      \n\
         struct CameraEx                         \n\
         {                                       \n\
@@ -1167,7 +1167,7 @@ TEST_F(Compile1, NewBuiltin1) {
 
     // Cannot do "new X;" when X is a builtin type
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct DynamicSprite            \n\
         {                                               \n\
         };                                              \n\
@@ -1195,7 +1195,7 @@ TEST_F(Compile1, NewArrayBuiltin1) {
     // Can do "new X[77];" when X is a builtin type because this will only
     // allocate a dynarray of pointers, not of X chunks
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct DynamicSprite            \n\
         {                                               \n\
         };                                              \n\
@@ -1222,7 +1222,7 @@ TEST_F(Compile1, MissingFunc) {
     // Must either import or define a function with body if you want to call it.
     // Also, check that the section is set correctly.
 
-    char *inpl = "\
+    const char *inpl = "\
 \"__NEWSCRIPTSTART_HauntedHouse\"                       \n\
         int main()                                      \n\
         {                                               \n\
@@ -1243,7 +1243,7 @@ TEST_F(Compile1, FixupMismatch) {
     // Code cells that have an "import" fixup must point to the corresponding imports.
     // (This used to fail in combination with linenumbers turned on)
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct InventoryItem    \n\
         {                                       \n\
             readonly int reserved[2];           \n\
@@ -1292,7 +1292,7 @@ TEST_F(Compile1, ComponentOfNonStruct1) {
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
 
-    char *inpl = "\
+    const char *inpl = "\
         struct MyStruct             \n\
         {                           \n\
             int i;                  \n\
@@ -1316,7 +1316,7 @@ TEST_F(Compile1, ComponentOfNonStruct2) {
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
 
-    char *inpl = "\
+    const char *inpl = "\
         void Test()     \n\
         {               \n\
             int i;      \n\
@@ -1334,7 +1334,7 @@ TEST_F(Compile1, EmptySection) {
 
     // An empty last section should not result in an endless loop.
 
-    char *inpl = "\
+    const char *inpl = "\
 \"__NEWSCRIPTSTART_FOO\"     \n\
 \"__NEWSCRIPTSTART_BAR\"      \n\
         ";
@@ -1347,7 +1347,7 @@ TEST_F(Compile1, EmptySection) {
 TEST_F(Compile1, AutoptrDisplay) {
 
     // Autopointered types should not be shown with trailing ' ' in messages
-    char *inpl = "\
+    const char *inpl = "\
         internalstring autoptr builtin      \n\
             managed struct String           \n\
         {                                   \n\
@@ -1367,7 +1367,7 @@ TEST_F(Compile1, ReadonlyObjectWritableAttribute)
 {
     // player is readonly, but player.InventoryQuantity[...] can be written to.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Character                \n\
         {                                               \n\
             import attribute int InventoryQuantity[];   \n\
@@ -1389,7 +1389,7 @@ TEST_F(Compile1, ImportAutoptr1) {
 
     // Import decls of funcs with autopointered returns must be processed correctly.
 
-    char *inpl = "\
+    const char *inpl = "\
         internalstring autoptr builtin      \n\
             managed struct String           \n\
         {                                   \n\
@@ -1411,7 +1411,7 @@ TEST_F(Compile1, ImportAutoptr2) {
 
     // Import decls of autopointered variables must be processed correctly.
 
-    char *inpl = "\
+    const char *inpl = "\
         internalstring autoptr builtin      \n\
             managed struct String           \n\
         {                                   \n\
@@ -1429,7 +1429,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch1)
 {
     // It is an error to assign a Dynpointer to a Dynarray variable
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
             int Payload;                    \n\
@@ -1450,7 +1450,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch1a)
 {
     // It is an error to assign a Dynpointer to a Dynarray variable
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
             int Payload;                    \n\
@@ -1472,7 +1472,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
 {
     // It is an error to assign a Dynarray to a Dynpointer variable
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Object       \n\
         {                                   \n\
             int Payload;                    \n\
@@ -1496,7 +1496,7 @@ TEST_F(Compile1, ZeroMemoryAllocation1)
     // to allocate. However, it _is_ legal to allocate a dynarray for the
     // struct. (Its elements could be initialized via other means than new.)
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
         };                                  \n\
@@ -1516,7 +1516,7 @@ TEST_F(Compile1, ZeroMemoryAllocation2)
     // If a struct type doesn't contain any variables then there are zero
     // bytes to allocate. The Engine really doesn't like allocating 0 bytes
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
         };                                  \n\
@@ -1537,7 +1537,7 @@ TEST_F(Compile1,ForwardStructManaged)
     // Forward-declared structs must be 'managed', so the
     // actual declaration must have the 'managed' keyword
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Object;              \n\
         struct Object                       \n\
         {                                   \n\
@@ -1638,7 +1638,7 @@ TEST_F(Compile1, BuiltinForbidden)
 {
     // Function names must not start with '__Builtin_'.
 
-    char *inpl = "\
+    const char *inpl = "\
         void __Builtin_TestFunc()   \n\
         {                           \n\
             return;                 \n\
@@ -1655,7 +1655,7 @@ TEST_F(Compile1, ReadonlyParameters1) {
     // Parameters may be declared "readonly" so that they cannot be
     // assigned to within the function.
 
-    char *inpl = "\
+    const char *inpl = "\
         int foo(readonly int bar)           \n\
         {                                   \n\
             bar++;                          \n\
@@ -1684,7 +1684,7 @@ TEST_F(Compile1, ReadonlyParameters2) {
     // "Readonly" does NOT imply "const".
     // All the assignments in the function should be allowed.
 
-    char *inpl = "\
+    const char *inpl = "\
         int ReadonlyTest2(readonly int ReadOnly)    \n\
         {                                   \n\
             readonly int A = ReadOnly;      \n\
@@ -1703,7 +1703,7 @@ TEST_F(Compile1, BinaryCompileTimeEval1) {
 
     // Checks binary compile time evaluations for integers.
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (4 + 3) / 0;                 \n\
@@ -1742,7 +1742,7 @@ TEST_F(Compile1, BinaryCompileTimeEval1) {
 TEST_F(Compile1, CTEvalIntPlus) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (4 + 3) / 0;                 \n\
@@ -1781,7 +1781,7 @@ TEST_F(Compile1, CTEvalIntPlus) {
 TEST_F(Compile1, CTEvalIntMinus) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (83 - 95) / 0;               \n\
@@ -1820,7 +1820,7 @@ TEST_F(Compile1, CTEvalIntMinus) {
 TEST_F(Compile1, CTEvalIntMultiply) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (33 * -39) / 0;              \n\
@@ -1859,7 +1859,7 @@ TEST_F(Compile1, CTEvalIntMultiply) {
 TEST_F(Compile1, CTEvalIntDivide) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (52 / 8) / 0;                \n\
@@ -1875,7 +1875,7 @@ TEST_F(Compile1, CTEvalIntDivide) {
 TEST_F(Compile1, CTEvalIntModulo) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (95 % 17) / 0;               \n\
@@ -1902,7 +1902,7 @@ TEST_F(Compile1, CTEvalIntModulo) {
 TEST_F(Compile1, CTEvalIntShiftLeft) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (60 << 3) / 0;               \n\
@@ -1966,7 +1966,7 @@ TEST_F(Compile1, CTEvalIntShiftLeft) {
 TEST_F(Compile1, CTEvalIntShiftRight) {
 
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (60 >> 3) / 0;               \n\
@@ -2019,7 +2019,7 @@ TEST_F(Compile1, CTEvalIntComparisons) {
 
     // Will fail as soon as any one of those comparisons go awry
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                          \n\
         {                                   \n\
             return                          \n\
@@ -2052,7 +2052,7 @@ TEST_F(Compile1, CTEvalIntComparisons) {
 
 TEST_F(Compile1, CTEvalBitOps) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                        \n\
         {                                 \n\
             return                        \n\
@@ -2079,7 +2079,7 @@ TEST_F(Compile1, CTEvalBitOps) {
 
 TEST_F(Compile1, CTEvalBitNeg) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                        \n\
         {                                 \n\
             return (~660753869) / 0;      \n\
@@ -2094,7 +2094,7 @@ TEST_F(Compile1, CTEvalBitNeg) {
 
 TEST_F(Compile1, CTEvalLogicalOps) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (  100000000 *   (!!7) +     \n\
@@ -2119,7 +2119,7 @@ TEST_F(Compile1, EnumConstantExpressions)
 {
     // Enum values to be evaluated at compile time
 
-    char *inpl = "\
+    const char *inpl = "\
         enum Bytes              \n\
         {                       \n\
             zero = 1 << 0,      \n\
@@ -2141,7 +2141,7 @@ TEST_F(Compile1, IncrementReadonly)
 {
     // No incrementing readonly vars
 
-    char *inpl = "\
+    const char *inpl = "\
         readonly int I;         \n\
                                 \n\
         int main() {            \n\
@@ -2158,7 +2158,7 @@ TEST_F(Compile1, SpuriousExpression)
 {
     // Warn that '77' doesn't have any effect
 
-    char *inpl = "\
+    const char *inpl = "\
         int main() {            \n\
             77;                 \n\
         }                       \n\
@@ -2172,7 +2172,7 @@ TEST_F(Compile1, SpuriousExpression)
 
 TEST_F(Compile1, CompileTimeConstant1)
 {
-    char *inpl = "\
+    const char *inpl = "\
         const int CI = 4711;                    \n\
         const float Euler = 2.718281828459045;  \n\
         const float AroundOne = Euler / Euler;  \n\
@@ -2185,7 +2185,7 @@ TEST_F(Compile1, CompileTimeConstant1)
 
 TEST_F(Compile1, CompileTimeConstant2)
 {
-    char *inpl = "\
+    const char *inpl = "\
         int main() {                            \n\
             while (1)                           \n\
             {                                   \n\
@@ -2201,7 +2201,7 @@ TEST_F(Compile1, CompileTimeConstant2)
 
 TEST_F(Compile1, CompileTimeConstant3)
 {
-    char *inpl = "\
+    const char *inpl = "\
         struct Str                          \n\
         {                                   \n\
             int stuff;                      \n\
@@ -2221,7 +2221,7 @@ TEST_F(Compile1, CompileTimeConstant3)
 
 TEST_F(Compile1, CompileTimeConstant4)
 {
-    char *inpl = "\
+    const char *inpl = "\
         import const int C = 42; \n\
         ";
     int compile_result = cc_compile(inpl, scrip);
@@ -2242,7 +2242,7 @@ TEST_F(Compile1, CompileTimeConstant5)
 {
     // Cannot define a compile-time constant of type 'short'
 
-    char *inpl = "\
+    const char *inpl = "\
         const short S = 42; \n\
         ";
     int compile_result = cc_compile(inpl, scrip);
@@ -2271,7 +2271,7 @@ TEST_F(Compile1, CompileTimeConstant5)
 
 TEST_F(Compile1, CompileTimeConstant6)
 {
-    char *inpl = "\
+    const char *inpl = "\
             const float pi = 3.14;  \n\
         int main() {                \n\
             float pi = 3.141;       \n\
@@ -2289,7 +2289,7 @@ TEST_F(Compile1, StaticThisExtender)
     // This declaration should be written
     //     "import int foo (static Struct);"
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct                   \n\
         {                                       \n\
             int Payload;                        \n\
@@ -2306,7 +2306,7 @@ TEST_F(Compile1, ReachabilityAndSwitch1)
 {
     // Mustn't complain about unreachable code at the end of a switch case
 
-    char *inpl = "\n\
+    const char *inpl = "\n\
         int main()          \n\
         {                   \n\
             int i;          \n\
@@ -2332,7 +2332,7 @@ TEST_F(Compile1, IfClauseFloat)
 {
     // Should complain that the if clause isn't vartype 'int'
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
         };                                  \n\
@@ -2356,7 +2356,7 @@ TEST_F(Compile1, SideEffectExpression1)
     // the expression has a side effect.
     // Compiler shouldn't warn about an expression without side effects
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Character {              \n\
             int Payload;                                \n\
         };                                              \n\
@@ -2380,7 +2380,7 @@ TEST_F(Compile1, SideEffectExpression2)
     // that should have side effects.
     // Compiler should complain about 'SaveTheWorld;'
 
-    char *inpl = "\
+    const char *inpl = "\
         import int SaveTheWorld();      \n\
                                         \n\
         int game_start()                \n\
@@ -2400,7 +2400,7 @@ TEST_F(Compile1, SideEffectExpression3)
     // that should have side effects.
     // Compiler should complain about 'Initialize;' in the 'for' loop
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Initialize();        \n\
                                         \n\
         int game_start()                \n\
@@ -2421,7 +2421,7 @@ TEST_F(Compile1, SideEffectExpression4)
     // that should have side effects.
     // Compiler should complain about 'Increment' in the 'for' loop
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Increment();         \n\
                                         \n\
         int game_start()                \n\
@@ -2439,7 +2439,7 @@ TEST_F(Compile1, DisallowStaticVariables)
 {
     // AGS does not have static variables.
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Struct       \n\
         {                   \n\
             static int Var; \n\

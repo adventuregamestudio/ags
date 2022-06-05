@@ -379,7 +379,7 @@ private:
     bool IsVTF(Symbol s, VartypeFlag flag) const;
 
     // A wrapper, only for usage in the debugger
-    inline Symbol FindCString(char *name) { return Find(name); }
+    inline Symbol FindCString(const char *name) { return Find(name); }
 
 public:
     std::vector<SymbolTableEntry> entries;

@@ -106,7 +106,7 @@ TEST_F(Scan, ShortInputString1) {
 
     // String literal isn't ended
 
-    char *Input = "\"Supercalifragilisticexpialidocious";
+    const char *Input = "\"Supercalifragilisticexpialidocious";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -118,7 +118,7 @@ TEST_F(Scan, ShortInputString2) {
 
     // String literal isn't ended
 
-    char *Input = "\"Donaudampfschiffahrtskapitaen\\";
+    const char *Input = "\"Donaudampfschiffahrtskapitaen\\";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -130,7 +130,7 @@ TEST_F(Scan, ShortInputString3) {
 
     // String literal isn't ended
 
-    char *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
+    const char *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -299,7 +299,7 @@ TEST_F(Scan, StringCollect)
 
 TEST_F(Scan, LiteralInt1)
 {
-    char *inp = "15 3 05 ";
+    const char *inp = "15 3 05 ";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -321,7 +321,7 @@ TEST_F(Scan, LiteralInt1)
 
 TEST_F(Scan, LiteralInt2)
 {
-    char *inp = "-2147483648";
+    const char *inp = "-2147483648";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -331,7 +331,7 @@ TEST_F(Scan, LiteralInt2)
 TEST_F(Scan, LiteralFloat)
 {
     //           0u 1u  2u  3u  4u   5u    6u   7u    8u   9u    10u
-    char *inp = "3. 3.0 0.0 0.3 33E5 3e-15 3.E5 3.E-5 .3E5 .3E-5 3.14E+2";
+    const char *inp = "3. 3.0 0.0 0.3 33E5 3e-15 3.E5 3.E-5 .3E5 .3E-5 3.14E+2";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -473,7 +473,7 @@ TEST_F(Scan, BackslashBracketInChar) {
 
     // Character literal '\[' is forbidden ('[' is okay)
 
-    char *Input = "int i = '\\[';";
+    const char *Input = "int i = '\\[';";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     scanner.Scan();
@@ -486,7 +486,7 @@ TEST_F(Scan, BackslashOctal1) {
 
     // "\19" is equivalent to "\1" + "9" because 9 isn't an octal digit
 
-    char *Input = "String s = \"Boom\\19 Box\";";
+    const char *Input = "String s = \"Boom\\19 Box\";";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -506,7 +506,7 @@ TEST_F(Scan, BackslashOctal2) {
     // '/' is just below the lowest digit '0'; "\7/" is equivalent to "\7" + "/"
     // Octal 444 is too large for a character, so this is equivalent to "\44" + "4"
 
-    char *Input = "String s = \"Boom\\7/Box\\444/Borg\";";
+    const char *Input = "String s = \"Boom\\7/Box\\444/Borg\";";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -523,7 +523,7 @@ TEST_F(Scan, BackslashOctal3) {
 
     // '\102' is 66 corresponds to 'B'; '\234' is 156u is -100
 
-    char *Input = "\"b\\102b\" '\\234'";
+    const char *Input = "\"b\\102b\" '\\234'";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
     
@@ -539,7 +539,7 @@ TEST_F(Scan, BackslashHex1) {
 
     // Expect a hex digit after '\x'
 
-    char *Input = "\"Le\\xicon\"";
+    const char *Input = "\"Le\\xicon\"";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -556,7 +556,7 @@ TEST_F(Scan, BackslashHex2) {
     // End hex when 'g' is encountered; that's directly after 'F'
     // End hex after two hex digits
 
-    char *Input = "\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"";
+    const char *Input = "\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -571,7 +571,7 @@ TEST_F(Scan, BackslashOctHex) {
     
     // Test all combinations of upper and lower letters and numbers
 
-    char *Input =
+    const char *Input =
         "\" \\x19 \\x2a \\x3A \\xb4 \\xcd \\xeB \\xC5 \\xDf \\xEF \""
         "\" \\31 \\52 \\72 \\264 \\315 \\353 \\305 \\337 \\357 \"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
@@ -589,7 +589,7 @@ TEST_F(Scan, BackslashCSym) {
     
     // Test different symbol characters after '\'
 
-    char *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
+    const char *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -602,7 +602,7 @@ TEST_F(Scan, BackslashBackslash) {
     
     // Backslash Backslash in strings or char literals converts to backslash.
 
-    char *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
+    const char *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -634,7 +634,7 @@ TEST_F(Scan, UnknownKeywordAfterReadonly) {
     // Now, semantic struct parsing has been completely relocated into the parser,
     // and thus this sequence should not pose problems.
 
-    char *inpl =   "struct MyStruct \
+    const char *inpl =   "struct MyStruct \
                     {\
                       readonly int2 a; \
                       readonly int2 b; \
@@ -756,7 +756,7 @@ TEST_F(Scan, MatchBraceParen5)
     // The scanner checks that nested (), [], {} match.
     // Opener without closer
 
-    char *Input = "\
+    const char *Input = "\
             struct MyStruct \n\
             {               \n\
                 int i;      \n\
@@ -778,7 +778,7 @@ TEST_F(Scan, MatchBraceParen6)
     // The scanner checks that nested (), [], {} match.
     // Opener without closer
 
-    char *Input = "\
+    const char *Input = "\
             struct MyStruct \n\
             {               \n\
                 int i;      \n\
@@ -817,7 +817,7 @@ TEST_F(Scan, ConsecutiveStringLiterals2)
     // Literals that start with __NEWSCRIPTSTART_ are section start markers
     // and must NOT be concatenated.
 
-    char *input = " \
+    const char *input = " \
         \"__NEWSCRIPTSTART_File1\" \
         \"xyzzy\" \
         \"__NEWSCRIPTSTART_File2\" \

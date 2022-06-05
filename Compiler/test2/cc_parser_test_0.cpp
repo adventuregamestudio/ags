@@ -71,7 +71,7 @@ TEST_F(Compile0, UnknownVartypeAfterReadonly) {
 
     // Must have a known vartype in struct
 
-    char *inpl = "\
+    const char *inpl = "\
         struct MyStruct     \n\
         {                   \n\
           readonly int2 a;  \n\
@@ -90,7 +90,7 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
 
     // Can't convert DynamicSprite[] to int[]
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct DynamicSprite { };   \n\
                                             \n\
         int[] Func()                        \n\
@@ -112,7 +112,7 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
     // Note, AGS doesn't feature static struct variables.
     // Can only use one of "protected", "writeprotected" and "readonly".
 
-    char *inpl = "\
+    const char *inpl = "\
         struct BothOrders {                                 \n\
             protected static int something();               \n\
             static import readonly attribute int another;   \n\
@@ -127,7 +127,7 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
 
 TEST_F(Compile0, ParsingIntSuccess) {  
 
-    char *inpl = "\
+    const char *inpl = "\
         import  int  importedfunc(int data1 = 1, int data2=2, int data3=3); \n\
         int testfunc(int x ) { int y = 42; } \n\
         ";
@@ -140,7 +140,7 @@ TEST_F(Compile0, ParsingIntLimits) {
 
     // Note, 2147483648 will result in an overflow found by the scanner
 
-    char *inpl = "\
+    const char *inpl = "\
         import int int_limits(int param_min = -2147483647, int param_max = 2147483647); \n\
         int int_limits(int param_min, int param_max)    \n\
         {                                               \n\
@@ -155,7 +155,7 @@ TEST_F(Compile0, ParsingIntLimits) {
 
 TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {    
 
-    char *inpl = "\
+    const char *inpl = "\
         import int importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);    \n\
         ";
 
@@ -169,7 +169,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {
 
 TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
 
-    char *inpl = "\
+    const char *inpl = "\
         import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);   \n\
         ";
 
@@ -182,7 +182,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
 
 TEST_F(Compile0, ParsingIntOverflow) {
     
-    char *inpl = "\
+    const char *inpl = "\
         int testfunc(int x ) { int y = 4200000000000000000000; }    \n\
         ";
 
@@ -195,7 +195,7 @@ TEST_F(Compile0, ParsingIntOverflow) {
 
 TEST_F(Compile0, ParsingNegIntOverflow) {
     
-    char *inpl = "\
+    const char *inpl = "\
         int testfunc(int x ) { int y = -4200000000000000000000; }   \n\
         ";
 
@@ -216,7 +216,7 @@ TEST_F(Compile0, EnumNegative) {
     AGS::MessageHandler mh;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    char *inpl = "\
+    const char *inpl = "\
         enum TestMyEnums {      \n\
             cat,                \n\
             dog,                \n\
@@ -267,7 +267,7 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
     AGS::MessageHandler mh;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    char *inpl = "\
+    const char *inpl = "\
         import int importedfunc(    \n\
             int data1 = 0,          \n\
             int data2 = 1,          \n\
@@ -326,7 +326,7 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
     AGS::MessageHandler mh;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    char *inpl = "\
+    const char *inpl = "\
         struct A                            \n\
         {                                   \n\
             import static int[] MyFunc();   \n\
@@ -349,7 +349,7 @@ TEST_F(Compile0, DoubleNegatedConstant) {
     
     // Parameter default can be evaluated at compile time
 
-    char *inpl = "\
+    const char *inpl = "\
         import int MyFunction(  \n\
             int data0 = - -69   \n\
             );                  \n\
@@ -361,7 +361,7 @@ TEST_F(Compile0, DoubleNegatedConstant) {
 
 TEST_F(Compile0, SubtractionWithoutSpaces) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int MyFunction()        \n\
         {                       \n\
             int data0 = 2-4;    \n\
@@ -374,7 +374,7 @@ TEST_F(Compile0, SubtractionWithoutSpaces) {
 
 TEST_F(Compile0, NegationLHSOfExpression) {   
 
-    char *inpl = "\
+    const char *inpl = "\
         enum MyEnum         \n\
         {                   \n\
             cat             \n\
@@ -401,7 +401,7 @@ TEST_F(Compile0, NegationLHSOfExpression) {
 
 TEST_F(Compile0, NegationRHSOfExpression) {
 
-    char *inpl = "\
+    const char *inpl = "\
         enum MyEnum\
         {\
             cat\
@@ -431,7 +431,7 @@ TEST_F(Compile0, Writeprotected) {
     // Directly taken from the doc on writeprotected, simplified.
     // Should fail, no modifying of writeprotected components from the outside.
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             writeprotected int Damage;         \n\
         };                                     \n\
@@ -456,7 +456,7 @@ TEST_F(Compile0, Protected1) {
     // Directly taken from the doc on protected, simplified.
     // Should fail, no reading protected components from the outside.
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
         };                                     \n\
@@ -482,7 +482,7 @@ TEST_F(Compile0, Protected2) {
     // Is still an attempt to modify a protected component from the outside
     // ('this.Damage = 7;' or even 'Damage = 7;' would be legal, however.)
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
             import int DoDamage();             \n\
@@ -506,7 +506,7 @@ TEST_F(Compile0, Protected3) {
 
     // Should succeed; protected is allowed for struct component functions.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct VectorF                      \n\
         {                                           \n\
             float x, y;                             \n\
@@ -532,7 +532,7 @@ TEST_F(Compile0, Protected4) {
     
     // Should succeed
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct VectorF                      \n\
         {                                           \n\
             float x, y;                             \n\
@@ -558,7 +558,7 @@ TEST_F(Compile0, Protected5) {
 
     // Should succeed; protected is allowed for extender functions.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct VectorF                      \n\
         {                                           \n\
             float x, y;                             \n\
@@ -575,7 +575,7 @@ TEST_F(Compile0, Protected5) {
 
 TEST_F(Compile0, Do1Wrong) {    
 
-    char *inpl = "\
+    const char *inpl = "\
     void main()                     \n\
     {                               \n\
         do                          \n\
@@ -595,7 +595,7 @@ TEST_F(Compile0, Do2Wrong) {
 
     // Should balk because the "while" clause is missing.
 
-    char *inpl = "\
+    const char *inpl = "\
     void main()                     \n\
     {                               \n\
         int I;                      \n\
@@ -612,7 +612,7 @@ TEST_F(Compile0, Do2Wrong) {
 
 TEST_F(Compile0, Do3Wrong) {
     
-    char *inpl = "\
+    const char *inpl = "\
     void main()                     \n\
     {                               \n\
         int i;                      \n\
@@ -631,7 +631,7 @@ TEST_F(Compile0, Do3Wrong) {
 
 TEST_F(Compile0, Do4Wrong) {    
 
-    char *inpl = "\
+    const char *inpl = "\
     void main()                     \n\
     {                               \n\
         int i;                      \n\
@@ -652,7 +652,7 @@ TEST_F(Compile0, Protected0) {
 
     // Should fail, no modifying of protected components from the outside.
     
-    char *inpl = "\
+    const char *inpl = "\
         struct Weapon {                        \n\
             protected int Damage;              \n\
             import int DoDamage();             \n\
@@ -676,7 +676,7 @@ TEST_F(Compile0, ParamVoid) {
 
     // Can't have a parameter of type 'void'.
 
-    char *inpl = "\
+    const char *inpl = "\
         int Foo(int bar, void bazz)            \n\
         {                                      \n\
             return 1;                          \n\
@@ -693,7 +693,7 @@ TEST_F(Compile0, LocalGlobalSeq2) {
 
     // Should garner a warning for line 7 because the re-definition hides the func
 
-    char *inpl = "\
+    const char *inpl = "\
         float Func(void) { return 7.7; }    \n\
         int Foo(void)                       \n\
         {                                   \n\
@@ -726,7 +726,7 @@ TEST_F(Compile0, VartypeLocalSeq1) {
 
     // Can't redefine a vartype as a local variable
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true, };     \n\
         int Foo(void)                       \n\
         {                                   \n\
@@ -744,7 +744,7 @@ TEST_F(Compile0, VartypeLocalSeq2) {
 
     // Can't redefine an enum constant as a local variable
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true };      \n\
         int Foo(void)                       \n\
         {                                   \n\
@@ -762,7 +762,7 @@ TEST_F(Compile0, StructMemberImport) {
 
     // Struct variables must not be 'import'
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Parent                   \n\
         {                               \n\
             import int Payload;         \n\
@@ -777,7 +777,7 @@ TEST_F(Compile0, StructMemberImport) {
 
 TEST_F(Compile0, StructExtend1) {    
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Parent                   \n\
         {                               \n\
             int Payload;                \n\
@@ -796,7 +796,7 @@ TEST_F(Compile0, StructExtend1) {
 
 TEST_F(Compile0, StructExtend2) {   
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Grandparent              \n\
         {                               \n\
             int Payload;                \n\
@@ -820,7 +820,7 @@ TEST_F(Compile0, StructExtend2) {
 
 TEST_F(Compile0, StructExtend3) {   
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Parent           \n\
         {                               \n\
             int Wage;                   \n\
@@ -843,7 +843,7 @@ TEST_F(Compile0, StructExtend4) {
 
     // Can't assign Parent * to Child *: Parent doesn't necessarily have all the fields
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Parent           \n\
         {                               \n\
             int Wage;                   \n\
@@ -868,7 +868,7 @@ TEST_F(Compile0, StructStaticFunc) {
 
     // Okay, a struct that is being defined is automatically forward-declared
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct GUI {                          \n\
             import static GUI* GetAtScreenXY(int x, int y);   \n\
         };                                                    \n\
@@ -882,7 +882,7 @@ TEST_F(Compile0, StructForwardDeclare1) {
 
     // GUI is forward-defined, but the definition will show up later so this is okay.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct GUI;     \n\
         GUI *Var;               \n\
         managed struct GUI {    \n\
@@ -897,7 +897,7 @@ TEST_F(Compile0, StructForwardDeclare2) {
 
     // Forward-declared structs must be "managed".
 
-    char *inpl = "\
+    const char *inpl = "\
         struct GUI;     \n\
         ";
 
@@ -911,7 +911,7 @@ TEST_F(Compile0, StructForwardDeclare3) {
 
     // GUI only has a forward definition
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct GUI;     \n\
         GUI *Var;               \n\
         ";
@@ -927,7 +927,7 @@ TEST_F(Compile0, StructForwardDeclareNew) {
     // "new" on a forward-declared struct mustn't work
     // even when the struct is defined after the reference
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Bang;        \n\
         int main()                  \n\
         {                           \n\
@@ -950,7 +950,7 @@ TEST_F(Compile0, StructManaged1a)
     // Cannot have managed components in managed struct.
     // This is an Engine restriction.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Managed1 \n\
         { };                    \n\
         managed struct Managed  \n\
@@ -971,7 +971,7 @@ TEST_F(Compile0, StructManaged1b)
     // Cannot have managed components in managed struct.
     // This is an Engine restriction.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Managed1 \n\
         { };                    \n\
         managed struct Managed  \n\
@@ -991,7 +991,7 @@ TEST_F(Compile0, StructManaged2)
     // Cannot have managed components in managed struct.
     // This is an Engine restriction.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Managed  \n\
         {                       \n\
             int *compo;         \n\
@@ -1009,7 +1009,7 @@ TEST_F(Compile0, StructRecursiveComponent01)
     // Cannot have a component that has the same type as the struct;
     // this construct would be infinitively large
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Foo              \n\
         {                       \n\
             Foo magic;          \n\
@@ -1028,7 +1028,7 @@ TEST_F(Compile0, StructRecursiveComponent02)
     // Cannot have a component that has the same type as the struct;
     // this construct would be infinitively large
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Foo              \n\
         {                       \n\
             int magic;          \n\
@@ -1049,7 +1049,7 @@ TEST_F(Compile0, StructRecursiveComponent02)
 
 TEST_F(Compile0, Undefined) {   
 
-    char *inpl = "\
+    const char *inpl = "\
         Supercalifragilisticexpialidocious! \n\
         ";
 
@@ -1062,7 +1062,7 @@ TEST_F(Compile0, Undefined) {
 
 TEST_F(Compile0, ImportOverride1) {
 
-    char *inpl = "\
+    const char *inpl = "\
     import int Func(int i = 5);     \n\
     int Func(int i)                 \n\
     {                               \n\
@@ -1081,7 +1081,7 @@ TEST_F(Compile0, DynamicNonManaged1) {
 
     // Dynamic array of non-managed struct not allowed
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Inner                                        \n\
         {                                                   \n\
             short Payload;                                  \n\
@@ -1102,7 +1102,7 @@ TEST_F(Compile0, DynamicNonManaged2) {
 
     // Dynamic array of non-managed struct not allowed
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Inner                                        \n\
         {                                                   \n\
             short Payload;                                  \n\
@@ -1123,7 +1123,7 @@ TEST_F(Compile0, DynamicNonManaged3) {
 
     // Dynamic array of non-managed struct not allowed
 
-    char *inpl = "\
+    const char *inpl = "\
         struct Inner                                        \n\
         {                                                   \n\
             short Payload;                                  \n\
@@ -1141,7 +1141,7 @@ TEST_F(Compile0, BuiltinStructMember) {
 
     // Builtin (non-managed) components not allowed 
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin struct Inner                                \n\
         {                                                   \n\
             short Fluff;                                    \n\
@@ -1160,7 +1160,7 @@ TEST_F(Compile0, BuiltinStructMember) {
 
 TEST_F(Compile0, ImportOverride2) {    
 
-    char *inpl = "\
+    const char *inpl = "\
         int Func(int i = 5);    \n\
         int Func(int i)         \n\
         {                       \n\
@@ -1176,7 +1176,7 @@ TEST_F(Compile0, ImportOverride2) {
 
 TEST_F(Compile0, ImportOverride3) {   
 
-    char *inpl = "\
+    const char *inpl = "\
     int Func(int i)                 \n\
     {                               \n\
         return 2 * i;               \n\
@@ -1195,7 +1195,7 @@ TEST_F(Compile0, LocalSeq1) {
 
     // The  { ... } must NOT invalidate Var1 but they MUST invalidate Var2.
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func()                 \n\
         {                           \n\
             int Var1 = 0;           \n\
@@ -1213,7 +1213,7 @@ TEST_F(Compile0, LocalSeq2) {
 
     // The  while() { ... } must NOT invalidate Var1 but MUST invalidate Var2.
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func()                     \n\
         {                               \n\
             int Var1 = 0;               \n\
@@ -1231,7 +1231,7 @@ TEST_F(Compile0, LocalSeq3) {
     
     // The  do { ... } while() must NOT invalidate Var1 but MUST invalidate Var2.
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func()                     \n\
         {                               \n\
             int Var1 = 0;               \n\
@@ -1249,7 +1249,7 @@ TEST_F(Compile0, LocalSeq4) {
    
     // The  for() { ... } must NOT invalidate Var1 but MUST invalidate Var2 and Var3.
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func()                     \n\
         {                               \n\
             int Var1 = 0;               \n\
@@ -1271,7 +1271,7 @@ TEST_F(Compile0, LocalParameterSeq1) {
 
     // Must fail because definitions of I collide
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int I)                \n\
         {                               \n\
             int I;                      \n\
@@ -1288,7 +1288,7 @@ TEST_F(Compile0, LocalParameterSeq2) {
 
     // Fine
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(int I)            \n\
         {                           \n\
             { int I; }              \n\
@@ -1301,7 +1301,7 @@ TEST_F(Compile0, LocalParameterSeq2) {
 
 TEST_F(Compile0, LocalGlobalSeq1) {   
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func()                     \n\
         {                               \n\
             short Var = 5;              \n\
@@ -1316,7 +1316,7 @@ TEST_F(Compile0, LocalGlobalSeq1) {
 
 TEST_F(Compile0, Void1) {
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Parser {                             \n\
 	        import static int    FindWordID(const string wordToFind);   \n\
 	        import static void   ParseText(const string text);      \n\
@@ -1335,7 +1335,7 @@ TEST_F(Compile0, Void1) {
 
 TEST_F(Compile0, RetLengthNoMatch) { 
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct GUI {                                \n\
             import void Centre();                                   \n\
             import static GUI* GetAtScreenXY(int x, int y);         \n\
@@ -1352,7 +1352,7 @@ TEST_F(Compile0, RetLengthNoMatch) {
 
 TEST_F(Compile0, ImportVar1) {    
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
         int Var;            \n\
@@ -1365,7 +1365,7 @@ TEST_F(Compile0, ImportVar1) {
 
 TEST_F(Compile0, ImportVar2) {
     
-    char *inpl = "\
+    const char *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
         int Var;            \n\
@@ -1382,7 +1382,7 @@ TEST_F(Compile0, ImportVar2) {
 
 TEST_F(Compile0, ImportVar3) {
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
         short Var;          \n\
@@ -1397,7 +1397,7 @@ TEST_F(Compile0, ImportVar3) {
 
 TEST_F(Compile0, ImportVar4) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int Var;            \n\
         import int Var;     \n\
         ";
@@ -1413,7 +1413,7 @@ TEST_F(Compile0, ImportVar5) {
     // "import int Var" is treated as a forward declaration
     // for the "int Var" that follows, not as an import proper.
 
-    char *inpl = "\
+    const char *inpl = "\
         import int Var;     \n\
         int main()          \n\
         {                   \n\
@@ -1431,7 +1431,7 @@ TEST_F(Compile0, ExtenderFuncDifference) {
     
     // Same func name, should be okay since they extend different structs
 
-    char *inpl = "\
+    const char *inpl = "\
         struct A            \n\
         {                   \n\
             int A_Payload;  \n\
@@ -1459,7 +1459,7 @@ TEST_F(Compile0, StaticFuncCall) {
     
     // Static function call, should work.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct GUI                                  \n\
         {                                                           \n\
             import static void ProcessClick(int x, int y, int z);   \n\
@@ -1480,7 +1480,7 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     // Imported var I becomes a global var; must be allocated only once.
     // This means that J ought to be allocated at 4.
 
-    char *inpl = "\
+    const char *inpl = "\
         import int I;   \n\
         int I;          \n\
         int J;          \n\
@@ -1505,7 +1505,7 @@ TEST_F(Compile0, Import2GlobalAllocation) {
 
 TEST_F(Compile0, LocalImportVar) {
     
-    char *inpl = "\
+    const char *inpl = "\
         import int Var;     \n\
         int Var;            \n\
         export Var;         \n\
@@ -1620,7 +1620,7 @@ TEST_F(Compile0, Attributes01) {
     
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1 };              \n\
         builtin managed struct ViewFrame {              \n\
             float get_Flipped;                          \n\
@@ -1638,7 +1638,7 @@ TEST_F(Compile0, Attributes02) {
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1 };              \n\
         builtin managed struct ViewFrame {              \n\
             import bool get_Flipped(int Holzschuh);     \n\
@@ -1656,7 +1656,7 @@ TEST_F(Compile0, Attributes03) {
 
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1 };              \n\
         builtin managed struct ViewFrame {              \n\
             readonly import attribute bool Flipped;     \n\
@@ -1674,7 +1674,7 @@ TEST_F(Compile0, Attributes04) {
 
     // Components may have the same name as vartypes.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Character {  \n\
             readonly import attribute int Room;     \n\
         };                                  \n\
@@ -1697,7 +1697,7 @@ TEST_F(Compile0, Attributes05) {
 
     // Assignment to static attribute should call the setter.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Game {       \n\
             import static attribute int MinimumTextDisplayTimeMs;     \n\
         };                                  \n\
@@ -1716,7 +1716,7 @@ TEST_F(Compile0, Attributes06) {
 
     // Assignment to static indexed attribute
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Dialog {                             \n\
             readonly import attribute int OptionCount;              \n\
         };                                                          \n\
@@ -1742,7 +1742,7 @@ TEST_F(Compile0, Attributes07) {
     // Reading an import static attribute should not trigger
     //  a Not Declared error since it is declared.
 
-    char *inpl = "\
+    const char *inpl = "\
 		enum bool { false = 0, true };                              \n\
 		builtin managed struct Game {                               \n\
 			readonly import static attribute bool Foo;              \n\
@@ -1764,7 +1764,7 @@ TEST_F(Compile0, Attributes08) {
 
     // Accept a readonly attribute and a non-readonly getter
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1 };      \n\
         struct CameraEx                         \n\
         {                                       \n\
@@ -1786,7 +1786,7 @@ TEST_F(Compile0, Attributes09) {
 
     // Do not accept a static attribute and a non-static getter
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1 };      \n\
         struct CameraEx                         \n\
         {                                       \n\
@@ -1809,7 +1809,7 @@ TEST_F(Compile0, Attributes10) {
 
     // Call non-indexed attribute with index, is error
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Cam                      \n\
         {                                       \n\
             int payload;                        \n\
@@ -1832,7 +1832,7 @@ TEST_F(Compile0, Attributes11) {
 
     // Call indexed attribute without index, is error
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Cam                      \n\
         {                                       \n\
             int payload;                        \n\
@@ -1854,7 +1854,7 @@ TEST_F(Compile0, Attributes12) {
 
     // No local attributes
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Cam                      \n\
         {                                       \n\
             int payload;                        \n\
@@ -1876,7 +1876,7 @@ TEST_F(Compile0, Attributes13) {
 
     // No attributes defined as 'static'
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Cam                      \n\
         {                                       \n\
             int payload;                        \n\
@@ -1895,7 +1895,7 @@ TEST_F(Compile0, Attributes14) {
 
     // Setting a readonly attribute, is error
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Cam                      \n\
         {                                       \n\
             int payload;                        \n\
@@ -1919,7 +1919,7 @@ TEST_F(Compile0, Attributes15) {
 
     // Setting a readonly attribute, is error
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Cam                      \n\
         {                                       \n\
             int payload;                        \n\
@@ -1943,7 +1943,7 @@ TEST_F(Compile0, Attributes16) {
 
     // Import decls of autopointered variables must be processed correctly.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Object       \n\
         {                                   \n\
             import attribute int Graphic;   \n\
@@ -1964,7 +1964,7 @@ TEST_F(Compile0, Attributes17)
 
     // This attribute is type 'float' and assigned an 'int'. This should fail.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Character            \n\
         {                                           \n\
             import attribute float GraphicRotation; \n\
@@ -1986,7 +1986,7 @@ TEST_F(Compile0, StructPtrFunc) {
     // Func is ptr to managed, but it is a function not a variable
     // so ought to be let through.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct MS {     \n\
             MS *Func();         \n\
         };                      \n\
@@ -2005,7 +2005,7 @@ TEST_F(Compile0, StringOldstyle01) {
     // Can't return a local string because it will be already de-allocated when
     // the function returns
 
-    char *inpl = "\
+    const char *inpl = "\
         string MyFunction(int a)    \n\
         {                           \n\
             string x;               \n\
@@ -2025,7 +2025,7 @@ TEST_F(Compile0, StringOldstyle02) {
     
     // If a function expects a non-const string, it mustn't be passed a const string
 
-    char *inpl = "\
+    const char *inpl = "\
         void Func(string s)         \n\
         {                           \n\
             Func(\"Holzschuh\");    \n\
@@ -2045,7 +2045,7 @@ TEST_F(Compile0, StringOldstyle03) {
     // A string literal is a constant string, so you should not be able to
     // return it as a string.
 
-    char *inpl = "\
+    const char *inpl = "\
         string Func()                   \n\
         {                               \n\
             return \"Parameter\";       \n\
@@ -2065,7 +2065,7 @@ TEST_F(Compile0, ConstOldstringReturn)
     // A 'const string' should be a valid return
     // from a 'const string' function.
 
-    char *inpl = "\
+    const char *inpl = "\
         const string GetLiteral()       \n\
         {                               \n\
             return \"string literal\";  \n\
@@ -2081,7 +2081,7 @@ TEST_F(Compile0, ConstOldstringReturn2)
     // Must not pass a const string return as a
     // non-const parameter of another function.
 
-    char *inpl = "\
+    const char *inpl = "\
         import const string GetConstString();   \n\
         import void UseString(string s);        \n\
                                                 \n\
@@ -2100,7 +2100,7 @@ TEST_F(Compile0, StructPointerAttribute) {
 
     // It's okay for a managed struct to have a pointer import attribute.
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct AudioClip {          \n\
             import void Stop();                     \n\
         };                                          \n\
@@ -2139,7 +2139,7 @@ TEST_F(Compile0, Decl) {
     // Should complain about the "+="
     // Note, there are many more legal possibilites than just "," ";" "=".
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()          \n\
         {                   \n\
             int Sum +=4;    \n\
@@ -2159,7 +2159,7 @@ TEST_F(Compile0, DynamicArrayCompare) {
     // The pointers, not the array components are compared.
     // May have a '*' after a struct defn.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct               \n\
         {                                   \n\
         } *Arr1[];                          \n\
@@ -2182,7 +2182,7 @@ TEST_F(Compile0, DoubleLocalDecl) {
     // A local definition may hide an outer local definition or a global definition;
     // those will be uncovered when the scope of the local definition ends.
 
-    char *inpl = "\
+    const char *inpl = "\
         float Bang1 = 7.7;                              \n\
         int room_AfterFadeIn()                          \n\
         {                                               \n\
@@ -2205,7 +2205,7 @@ TEST_F(Compile0, NewEnumArray) {
     
     // dynamic array of enum should work
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool                               \n\
         {                                       \n\
             false = 0,                          \n\
@@ -2226,7 +2226,7 @@ TEST_F(Compile0, Readonly01) {
     
     // Declaring a readonly variable with initialization is okay.
 
-    char *inpl = "\
+    const char *inpl = "\
 		int room_RepExec()                  \n\
         {                                   \n\
             readonly int Constant = 835;    \n\
@@ -2241,7 +2241,7 @@ TEST_F(Compile0, Ternary01) {
 
     // case labels accept expressions in AGS, so ternary expressions should work, too.
 
-    char *inpl = "\
+    const char *inpl = "\
         void main()                     \n\
         {                               \n\
             int i = 15;                 \n\
@@ -2263,7 +2263,7 @@ TEST_F(Compile0, Ternary02) {
 
     // Values of ternary must have compatible vartypes
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                      \n\
         {                               \n\
             return 2 < 1 ? 1 : 2.0;     \n\
@@ -2283,7 +2283,7 @@ TEST_F(Compile0, FlowPointerExpressions1) {
     // The parenthesized expression after 'if', 'while', 'do ... while'
     // may evaluate to a pointer 
 
-    char *inpl = "\
+    const char *inpl = "\
         import builtin managed struct Character     \n\
         {                                           \n\
         } *player;                                  \n\
@@ -2307,7 +2307,7 @@ TEST_F(Compile0, FlowPointerExpressions2) {
 
     // The parenthesized expression after 'if' must not be float
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()              \n\
         {                       \n\
             if (1.0)            \n\
@@ -2325,7 +2325,7 @@ TEST_F(Compile0, FlowPointerExpressions3) {
 
     // The parenthesized expression after 'while' must not be float
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()              \n\
         {                       \n\
             while (0.0)         \n\
@@ -2343,7 +2343,7 @@ TEST_F(Compile0, FlowPointerExpressions4) {
 
     // The parenthesized expression after 'do ... while' must not be float
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()              \n\
         {                       \n\
             do                  \n\

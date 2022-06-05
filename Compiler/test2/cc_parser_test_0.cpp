@@ -138,13 +138,11 @@ TEST_F(Compile0, ParsingIntSuccess) {
 
 TEST_F(Compile0, ParsingIntLimits) {    
 
-    // Note, 2147483648 will result in an overflow found by the scanner
-
     const char *inpl = "\
-        import int int_limits(int param_min = -2147483647, int param_max = 2147483647); \n\
+        import int int_limits(int param_min = -2147483648, int param_max = 2147483647); \n\
         int int_limits(int param_min, int param_max)    \n\
         {                                               \n\
-            int var_min = - 2147483647;                 \n\
+            int var_min = -2147483648;                  \n\
             int var_max = 2147483647;                   \n\
         }\
         ";
@@ -228,7 +226,7 @@ TEST_F(Compile0, EnumNegative) {
             x,                  \n\
             y,                  \n\
             z,                  \n\
-            intmin=-2147483647, \n\
+            intmin=-2147483648, \n\
             intmax=2147483647   \n\
         };\
         ";
@@ -252,8 +250,7 @@ TEST_F(Compile0, EnumNegative) {
     EXPECT_EQ(sym.Find("-1"), sym.entries.at(sym.Find("y")).ConstantD->ValueSym);
     EXPECT_EQ(sym.Find("0"), sym.entries.at(sym.Find("z")).ConstantD->ValueSym);
 
-    // Note: -2147483648 makes the scanner (!) find an int overflow.
-    EXPECT_EQ(sym.Find("-2147483647"), sym.entries.at(sym.Find("intmin")).ConstantD->ValueSym);
+    EXPECT_EQ(sym.Find("-2147483648"), sym.entries.at(sym.Find("intmin")).ConstantD->ValueSym);
     EXPECT_EQ(sym.Find("2147483647"), sym.entries.at(sym.Find("intmax")).ConstantD->ValueSym);
 }
 
@@ -275,7 +272,7 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
             int data4 = -32000,     \n\
             int  = 32001,           \n\
             int data6 = 2147483647, \n\
-            int data7 = -2147483647 , \n\
+            int data7 = -2147483648 , \n\
             int data8 = -1,         \n\
             int data9 = -2          \n\
             );                      \n\
@@ -307,7 +304,7 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
     EXPECT_EQ(sym.Find("2147483647"), sym.entries.at(funcidx).FunctionD->Parameters[6].Default);
 
     EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[7].Vartype);
-    EXPECT_EQ(sym.Find("-2147483647"), sym.entries.at(funcidx).FunctionD->Parameters[7].Default);
+    EXPECT_EQ(sym.Find("-2147483648"), sym.entries.at(funcidx).FunctionD->Parameters[7].Default);
 
     EXPECT_EQ(AGS::kKW_Int, sym.entries.at(funcidx).FunctionD->Parameters[8].Vartype);
     EXPECT_EQ(sym.Find("-1"), sym.entries.at(funcidx).FunctionD->Parameters[8].Default);

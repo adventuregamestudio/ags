@@ -21,7 +21,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Game options";
+            return "General settings";
         }
 
         private void DeleteAllCompiledTranslations()

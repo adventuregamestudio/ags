@@ -47,7 +47,7 @@ namespace AGS.Editor
 
         private void lnkUpgrading_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.5");
+            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.6");
         }
 
         private void WelcomePane_Resize(object sender, EventArgs e)

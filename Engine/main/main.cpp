@@ -18,6 +18,7 @@
 
 #include "core/platform.h"
 #include <set>
+#include <stdio.h>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
 #include "ac/gamesetup.h"

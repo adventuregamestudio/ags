@@ -15,6 +15,7 @@
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include <new.h>
+#include <stdio.h>
 #include "ac/common.h" // quit
 #include "ac/common_defines.h"
 #include "debug/out.h"

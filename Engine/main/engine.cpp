@@ -19,6 +19,7 @@
 #include "core/platform.h"
 
 #include <errno.h>
+#include <stdio.h>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h>  // _spawnl
 #endif

@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#include <stdio.h>
-#include <memory>
 #include <limits>
+#include <memory>
+#include <stdio.h>
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"

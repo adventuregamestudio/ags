@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <stdio.h>
 #include "ac/global_hotspot.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"

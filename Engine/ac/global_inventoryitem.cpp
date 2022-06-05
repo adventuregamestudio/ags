@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <stdio.h>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_gui.h"

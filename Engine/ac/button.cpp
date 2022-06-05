@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <algorithm>
+#include <stdio.h>
 #include "ac/button.h"
 #include "ac/common.h"
 #include "ac/gui.h"

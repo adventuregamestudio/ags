@@ -204,6 +204,33 @@ TEST_F(Compile0, ParsingNegIntOverflow) {
     EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
 }
 
+TEST_F(Compile0, ParsingHexSuccess) {
+
+    const char *inpl = "\
+        import  int  importedfunc(int data1 = 0x01, int data2=0x20, int data3=0x400); \n\
+        int testfunc(int x ) { int y = 0xABCDEF; int z = 0xabcdef; } \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, ParsingHexLimits) {
+    // Try some edge values (convert to INT32_MAX, INT32_MIN and -1)
+    const char *inpl = "\
+        import int int_limits(int param_hex1 = 0x7FFFFFFF, int param_hex2 = 0x80000000, int param_hex3 = 0xFFFFFFFF); \n\
+        int int_limits(int param_hex1, int param_hex2, int param_hex3) \n\
+        {                                               \n\
+            int var_hex1 = 0x7FFFFFFF;                  \n\
+            int var_hex2 = 0x80000000;                  \n\
+            int var_hex3 = 0xFFFFFFFF;                  \n\
+        }\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
 TEST_F(Compile0, EnumNegative) {
     
     std::vector<AGS::Symbol> tokens;

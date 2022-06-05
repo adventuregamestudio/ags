@@ -352,6 +352,23 @@ TEST_F(Scan, LiteralIntOverflow)
     ASSERT_TRUE(mh.HasError());
 }
 
+TEST_F(Scan, LiteralIntHex)
+{
+    const char *inp = "0x7FFFFFFF 0xFFFFFFFF";
+
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
+
+    AGS::Symbol const lit_hex1 = token_list[0u];
+    ASSERT_TRUE(sym.IsLiteral(lit_hex1));
+    EXPECT_EQ(INT32_MAX, sym[lit_hex1].LiteralD->Value);
+
+    AGS::Symbol const lit_hex2 = token_list[1u];
+    ASSERT_TRUE(sym.IsLiteral(lit_hex2));
+    EXPECT_EQ(-1, sym[lit_hex2].LiteralD->Value);
+}
+
 TEST_F(Scan, LiteralFloat)
 {
     //           0u 1u  2u  3u  4u   5u    6u   7u    8u   9u    10u

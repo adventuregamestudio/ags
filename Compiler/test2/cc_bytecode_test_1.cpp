@@ -32,7 +32,7 @@ protected:
 TEST_F(Bytecode1, StringOldstyle01) {
     ccSetOption(SCOPT_OLDSTRINGS, true);
 
-    char *inpl = "\
+    const char *inpl = "\
         int Sentinel1;              \n\
         string GLOBAL;              \n\
         int Sentinel2;              \n\
@@ -86,7 +86,7 @@ TEST_F(Bytecode1, StringOldstyle01) {
 
 TEST_F(Bytecode1, StringOldstyle02) {
 
-    char *inpl = "\
+    const char *inpl = "\
         int sub(const string s) \n\
         {                       \n\
             return;             \n\
@@ -146,7 +146,7 @@ TEST_F(Bytecode1, StringOldstyle02) {
 
 TEST_F(Bytecode1, StringOldstyle03) {
     
-    char *inpl = "\
+    const char *inpl = "\
         int Sentinel1;                  \n\
         string Global;                  \n\
         int Sentinel2;                  \n\
@@ -217,7 +217,7 @@ TEST_F(Bytecode1, StringOldstyle03) {
 
 TEST_F(Bytecode1, StringOldstyle04) {
     
-    char *inpl = "\
+    const char *inpl = "\
         int Sentinel;                   \n\
         string Global;                  \n\
         int main()                      \n\
@@ -280,7 +280,7 @@ TEST_F(Bytecode1, StringOldstyle04) {
 
 TEST_F(Bytecode1, StringOldstyle05) {
     
-    char *inpl = "\
+    const char *inpl = "\
         int main()                  \n\
         {                           \n\
             string S3 = \"Holz-\";  \n\
@@ -585,7 +585,7 @@ TEST_F(Bytecode1, AccessStructAsPointer01) {
     // - the struct is "builtin" as well as "managed".
     // Such structs can be used as a parameter of a function that expects a pointered struct
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Object {                 \n\
         };                                              \n\
         import Object oCleaningCabinetDoor;             \n\
@@ -647,7 +647,7 @@ TEST_F(Bytecode1, AccessStructAsPointer02) {
     // Managed structs can be declared without (implicit) pointer in certain circumstances.
     // Such structs can be assigned to a variable that is a pointered struct
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Object { };              \n\
         import Object oCleaningCabinetDoor;             \n\
                                                         \n\
@@ -712,7 +712,7 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
     // Managed structs can be declared without (implicit) pointer in certain circumstances.
     // Such structs can be assigned to a variable that is a pointered struct
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Object {                 \n\
             readonly int Reserved;                      \n\
         };                                              \n\
@@ -770,7 +770,7 @@ TEST_F(Bytecode1, AccessStructAsPointer03) {
 
 TEST_F(Bytecode1, Attributes01) {
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true = 1, };              \n\
         builtin managed struct ViewFrame {              \n\
             readonly import attribute bool Flipped;     \n\
@@ -856,7 +856,7 @@ TEST_F(Bytecode1, Attributes02) {
     // as calling the setter; reading the same as calling the getter.
     // Armor:: functions should be allowed to access _Damage.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Armor {                          \n\
             attribute int Damage;                       \n\
             writeprotected short _Aura;                 \n\
@@ -938,7 +938,7 @@ TEST_F(Bytecode1, Attributes03) {
     // so import decls should be generated for them.
     // The getters and setters should be called as import funcs.
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Armor {                          \n\
             attribute int Damage;                       \n\
             writeprotected short _aura;                 \n\
@@ -1001,7 +1001,7 @@ TEST_F(Bytecode1, Attributes04) {
     
     // Attribute func was not called properly
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Character {      \n\
             import attribute int  x;            \n\
         };                                      \n\
@@ -1060,7 +1060,7 @@ TEST_F(Bytecode1, Attributes05) {
     
     // Test static attribute
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool                               \n\
         {                                       \n\
             false = 0,                          \n\
@@ -1123,7 +1123,7 @@ TEST_F(Bytecode1, Attributes06) {
     
     // Indexed static attribute -- must return an int
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed struct Game             \n\
         {                                       \n\
             readonly import static attribute    \n\
@@ -1237,7 +1237,7 @@ TEST_F(Bytecode1, Attributes07) {
 
 TEST_F(Bytecode1, Attributes08) {
 
-    char *inpl = "\
+    const char *inpl = "\
         builtin managed autoptr struct String           \n\
         {                                               \n\
             char Payload;                               \n\
@@ -1319,7 +1319,7 @@ TEST_F(Bytecode1, Attributes09) {
     // Function call to 'set_Visible()' mustn't go awry
     // After loading 'true' to AX´, must protect AX from being clobbered (push it)
 
-    char *inpl = "\
+    const char *inpl = "\
         enum bool { false = 0, true };                  \n\
         builtin managed struct GUIControl               \n\
         {                                               \n\
@@ -1538,7 +1538,7 @@ TEST_F(Bytecode1, DynArrayOfPrimitives) {
     
     // Dynamic arrays of primitives are allowed.
 
-    char *inpl = "\
+    const char *inpl = "\
         int main()                              \n\
         {                                       \n\
             short PrmArray[] = new short[10];   \n\
@@ -1585,7 +1585,7 @@ TEST_F(Bytecode1, DynArrayOfPrimitives) {
 TEST_F(Bytecode1, ManagedDerefZerocheck) {
     
     // Bytecode ought to check that S isn't initialized yet
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct           \n\
         {                               \n\
             int Int[10];                \n\
@@ -1637,7 +1637,7 @@ TEST_F(Bytecode1, MemInitPtr1) {
     
     // Check that pointer vars are pushed correctly in func calls
 
-    char *inpl = "\
+    const char *inpl = "\
         managed struct Struct1          \n\
         {                               \n\
             float Payload1;             \n\
@@ -1715,7 +1715,7 @@ TEST_F(Bytecode1, Ternary1) {
     // Accept a simple ternary expression
     // The 'return' in line 4 isn't reachable
     
-    char *inpl = "\
+    const char *inpl = "\
     int Foo(int i)              \n\
     {                           \n\
         return i > 0 ? 1 : -1;  \n\
@@ -1763,7 +1763,7 @@ TEST_F(Bytecode1, Ternary2) {
     
     // Accept Elvis operator expression
 
-    char *inpl = "\
+    const char *inpl = "\
     managed struct Struct       \n\
     {                           \n\
         int Payload;            \n\
@@ -1822,7 +1822,7 @@ TEST_F(Bytecode1, Ternary3) {
     
     // Accept nested expression
 
-    char *inpl = "\
+    const char *inpl = "\
     int main()                  \n\
     {                           \n\
         int t1 = 15;            \n\

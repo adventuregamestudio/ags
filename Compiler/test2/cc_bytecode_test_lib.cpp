@@ -300,7 +300,7 @@ void CompareStrings(AGS::ccCompiledScript *scrip, size_t stringssize, char strin
     }
 }
 
-void WriteOutput(char *fname, AGS::ccCompiledScript const &scrip)
+void WriteOutput(const char *fname, AGS::ccCompiledScript const &scrip)
 {
     std::string path = WRITE_PATH;
     std::ofstream of;

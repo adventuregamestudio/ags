@@ -262,9 +262,8 @@ PViewport GameState::CreateRoomViewport()
     PViewport viewport(new Viewport());
     viewport->SetID(index);
     viewport->SetRect(_mainViewport.GetRect());
-    ScriptViewport *scv = new ScriptViewport(index);
     _roomViewports.push_back(viewport);
-    _scViewportRefs.push_back(std::make_pair(scv, 0));
+    _scViewportHandles.push_back(0);
     _roomViewportsSorted.push_back(viewport);
     _roomViewportZOrderChanged = true;
     on_roomviewport_created(index);
@@ -275,18 +274,18 @@ ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return nullptr;
-    auto &scobj = _scViewportRefs[index];
+    auto scview = new ScriptViewport(index);
     if (handle == 0)
     {
-        handle = ccRegisterManagedObject(scobj.first, scobj.first);
+        handle = ccRegisterManagedObject(scview, scview);
         ccAddObjectReference(handle); // one reference for the GameState
     }
     else
     {
-        ccRegisterUnserializedObject(handle, scobj.first, scobj.first);
+        ccRegisterUnserializedObject(handle, scview, scview);
     }
-    scobj.second = handle;
-    return scobj.first;
+    _scViewportHandles[index] = handle; // save handle for us
+    return scview;
 }
 
 void GameState::DeleteRoomViewport(int index)
@@ -294,18 +293,23 @@ void GameState::DeleteRoomViewport(int index)
     // NOTE: viewport 0 can not be deleted
     if (index <= 0 || (size_t)index >= _roomViewports.size())
         return;
-    auto scobj = _scViewportRefs[index];
-    scobj.first->Invalidate();
-    ccReleaseObjectReference(scobj.second);
+    auto handle = _scViewportHandles[index];
+    auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+    if (scobj)
+        scobj->Invalidate();
+    ccReleaseObjectReference(handle);
     auto cam = _roomViewports[index]->GetCamera();
     if (cam)
         cam->UnlinkFromViewport(index);
     _roomViewports.erase(_roomViewports.begin() + index);
-    _scViewportRefs.erase(_scViewportRefs.begin() + index);
+    _scViewportHandles.erase(_scViewportHandles.begin() + index);
     for (size_t i = index; i < _roomViewports.size(); ++i)
     {
         _roomViewports[i]->SetID(i);
-        _scViewportRefs[i].first->SetID(i);
+        handle = _scViewportHandles[index];
+        auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        if (scobj)
+            scobj->SetID(i);
     }
     for (size_t i = 0; i < _roomViewportsSorted.size(); ++i)
     {
@@ -331,7 +335,7 @@ PCamera GameState::CreateRoomCamera()
     camera->SetAt(0, 0);
     camera->SetSize(_mainViewport.GetRect().GetSize());
     ScriptCamera *scam = new ScriptCamera(index);
-    _scCameraRefs.push_back(std::make_pair(scam, 0));
+    _scCameraHandles.push_back(0);
     _roomCameras.push_back(camera);
     return camera;
 }
@@ -340,18 +344,18 @@ ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return nullptr;
-    auto &scobj = _scCameraRefs[index];
+    auto sccamera = new ScriptCamera(index);
     if (handle == 0)
     {
-        handle = ccRegisterManagedObject(scobj.first, scobj.first);
+        handle = ccRegisterManagedObject(sccamera, sccamera);
         ccAddObjectReference(handle); // one reference for the GameState
     }
     else
     {
-        ccRegisterUnserializedObject(handle, scobj.first, scobj.first);
+        ccRegisterUnserializedObject(handle, sccamera, sccamera);
     }
-    scobj.second = handle;
-    return scobj.first;
+    _scCameraHandles[index] = handle;
+    return sccamera;
 }
 
 void GameState::DeleteRoomCamera(int index)
@@ -359,9 +363,11 @@ void GameState::DeleteRoomCamera(int index)
     // NOTE: camera 0 can not be deleted
     if (index <= 0 || (size_t)index >= _roomCameras.size())
         return;
-    auto scobj = _scCameraRefs[index];
-    scobj.first->Invalidate();
-    ccReleaseObjectReference(scobj.second);
+    auto handle = _scCameraHandles[index];
+    auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+    if (scobj)
+        scobj->Invalidate();
+    ccReleaseObjectReference(handle);
     for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
     {
         auto view = viewref.lock();
@@ -369,11 +375,14 @@ void GameState::DeleteRoomCamera(int index)
             view->LinkCamera(nullptr);
     }
     _roomCameras.erase(_roomCameras.begin() + index);
-    _scCameraRefs.erase(_scCameraRefs.begin() + index);
+    _scCameraHandles.erase(_scCameraHandles.begin() + index);
     for (size_t i = index; i < _roomCameras.size(); ++i)
     {
         _roomCameras[i]->SetID(i);
-        _scCameraRefs[i].first->SetID(i);
+        handle = _scCameraHandles[index];
+        auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        if (scobj)
+            scobj->SetID(i);
     }
 }
 
@@ -385,15 +394,15 @@ int GameState::GetRoomCameraCount() const
 ScriptViewport *GameState::GetScriptViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
-        return NULL;
-    return _scViewportRefs[index].first;
+        return nullptr;
+    return (ScriptViewport*)ccGetObjectAddressFromHandle(_scViewportHandles[index]);
 }
 
 ScriptCamera *GameState::GetScriptCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
-        return NULL;
-    return _scCameraRefs[index].first;
+        return nullptr;
+    return (ScriptCamera*)ccGetObjectAddressFromHandle(_scCameraHandles[index]);
 }
 
 bool GameState::IsIgnoringInput() const
@@ -879,19 +888,23 @@ void GameState::FreeViewportsAndCameras()
 {
     _roomViewports.clear();
     _roomViewportsSorted.clear();
-    for (auto &scobj : _scViewportRefs)
+    for (auto handle : _scViewportHandles)
     {
-        scobj.first->Invalidate();
-        ccReleaseObjectReference(scobj.second);
+        auto scview = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        if (scview)
+            scview->Invalidate();
+        ccReleaseObjectReference(handle);
     }
-    _scViewportRefs.clear();
+    _scViewportHandles.clear();
     _roomCameras.clear();
-    for (auto &scobj : _scCameraRefs)
+    for (auto handle : _scCameraHandles)
     {
-        scobj.first->Invalidate();
-        ccReleaseObjectReference(scobj.second);
+        auto sccam = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
+        if (sccam)
+            sccam->Invalidate();
+        ccReleaseObjectReference(handle);
     }
-    _scCameraRefs.clear();
+    _scCameraHandles.clear();
 }
 
 void GameState::ReadCustomProperties_v340(Common::Stream *in)

@@ -40,8 +40,8 @@ extern ScriptSystem scsystem;
 
 GameState::GameState()
 {
-    speech_text_scover = nullptr;
-    speech_face_scover = nullptr;
+    speech_text_schandle = 0;
+    speech_face_schandle = 0;
     _isAutoRoomViewport = true;
     _mainViewportHasChanged = false;
 }
@@ -296,8 +296,10 @@ void GameState::DeleteRoomViewport(int index)
     auto handle = _scViewportHandles[index];
     auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
+    {
         scobj->Invalidate();
-    ccReleaseObjectReference(handle);
+        ccReleaseObjectReference(handle);
+    }
     auto cam = _roomViewports[index]->GetCamera();
     if (cam)
         cam->UnlinkFromViewport(index);
@@ -366,8 +368,10 @@ void GameState::DeleteRoomCamera(int index)
     auto handle = _scCameraHandles[index];
     auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
+    {
         scobj->Invalidate();
-    ccReleaseObjectReference(handle);
+        ccReleaseObjectReference(handle);
+    }
     for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
     {
         auto view = viewref.lock();
@@ -892,8 +896,10 @@ void GameState::FreeViewportsAndCameras()
     {
         auto scview = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
         if (scview)
+        {
             scview->Invalidate();
-        ccReleaseObjectReference(handle);
+            ccReleaseObjectReference(handle);
+        }
     }
     _scViewportHandles.clear();
     _roomCameras.clear();
@@ -901,8 +907,10 @@ void GameState::FreeViewportsAndCameras()
     {
         auto sccam = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
         if (sccam)
+        {
             sccam->Invalidate();
-        ccReleaseObjectReference(handle);
+            ccReleaseObjectReference(handle);
+        }
     }
     _scCameraHandles.clear();
 }

@@ -799,11 +799,17 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
    while ((c = *(mode++)) != 0) {
       switch (c) {
 	 case 'r': case 'R': f->normal.flags &= ~PACKFILE_FLAG_WRITE; break;
+	 case 'w': case 'W': f->normal.flags |= PACKFILE_FLAG_WRITE; break;
       }
    }
 
-   { 
-      {
+   if (f->normal.flags & PACKFILE_FLAG_WRITE) {
+     /* write a 'real' file */
+     f->normal.hndl = fd;
+     f->normal.todo = 0;
+     errno = 0;
+   }
+   else {
 	 /* read a 'real' file */
 	 f->normal.todo = lseek(fd, 0, SEEK_END);  /* size of the file */
 	 if (f->normal.todo < 0) {
@@ -820,7 +826,6 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
 	 }
 
          f->normal.hndl = fd;
-      }
    }
 
    return f;
@@ -1294,6 +1299,10 @@ static int normal_fclose(void *_f)
    PACKFILE *f = _f;
    int ret;
 
+   if (f->normal.flags & PACKFILE_FLAG_WRITE) {
+      normal_flush_buffer(f, TRUE);
+   }
+
    if (f->normal.parent) {
       ret = pack_fclose(f->normal.parent);
    }
@@ -1421,6 +1430,9 @@ static int normal_fseek(void *_f, int offset)
 {
    PACKFILE *f = _f;
    int i;
+
+   if (f->normal.flags & PACKFILE_FLAG_WRITE)
+      return -1;
 
    *allegro_errno = 0;
 

@@ -174,8 +174,6 @@ AL_FUNC(int, _color_load_depth, (int depth, int hasalpha));
 
 AL_VAR(int, _color_conv);
 
-AL_FUNC(BITMAP *, _fixup_loaded_bitmap, (BITMAP *bmp, PALETTE pal, int bpp));
-
 AL_FUNC(int, _bitmap_has_alpha, (BITMAP *bmp));
 
 /* default truecolor pixel format */

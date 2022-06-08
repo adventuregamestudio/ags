@@ -12,10 +12,12 @@
 //
 //=============================================================================
 
+#include <memory>
 #include <stdexcept>
 #include <string.h> // memcpy
 #include <aastr.h>
 #include "gfx/allegrobitmap.h"
+#include "util/filestream.h"
 #include "debug/assert.h"
 
 extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
@@ -123,6 +125,12 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
     return _alBitmap != nullptr;
 }
 
+void Bitmap::ForgetAllegroBitmap()
+{
+    _alBitmap = nullptr;
+    _isDataOwner = false;
+}
+
 void Bitmap::Destroy()
 {
     if (_isDataOwner && _alBitmap)
@@ -133,35 +141,9 @@ void Bitmap::Destroy()
     _isDataOwner = false;
 }
 
-bool Bitmap::LoadFromFile(const char *filename)
-{
-    Destroy();
-
-	BITMAP *al_bmp = load_bitmap(filename, nullptr);
-	if (al_bmp)
-	{
-		_alBitmap = al_bmp;
-        _isDataOwner = true;
-	}
-	return _alBitmap != nullptr;
-}
-
-bool Bitmap::LoadFromFile(PACKFILE *pf)
-{
-    Destroy();
-
-    BITMAP *al_bmp = load_bmp_pf(pf, nullptr);
-    if (al_bmp)
-    {
-        _alBitmap = al_bmp;
-        _isDataOwner = true;
-    }
-    return _alBitmap != nullptr;
-}
-
 bool Bitmap::SaveToFile(const char *filename, const void *palette)
 {
-	return save_bitmap(filename, _alBitmap, (const RGB*)palette) == 0;
+	return BitmapHelper::SaveToFile(this, filename, (const RGB*) palette);
 }
 
 color_t Bitmap::GetCompatibleColor(color_t color)

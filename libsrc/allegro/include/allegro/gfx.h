@@ -302,6 +302,8 @@ AL_FUNC(void, set_clip_rect, (BITMAP *bitmap, int x1, int y_1, int x2, int y2));
 AL_FUNC(void, add_clip_rect, (BITMAP *bitmap, int x1, int y_1, int x2, int y2));
 AL_FUNC(void, clear_bitmap, (BITMAP *bitmap));
 
+AL_FUNC(BITMAP *, _fixup_loaded_bitmap, (BITMAP *bmp, PALETTE pal, int bpp));
+
 AL_FUNC(void, lock_bitmap, (struct BITMAP *bmp));
 
 #ifdef __cplusplus

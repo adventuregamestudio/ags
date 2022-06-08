@@ -729,17 +729,6 @@ static PACKFILE *create_packfile(int is_normal_packfile)
 static void free_packfile(PACKFILE *f)
 {
    if (f) {
-      /* These are no longer the responsibility of this function, but
-       * these assertions help catch instances of old code which still
-       * rely on the old behaviour.
-       */
-      if (f->is_normal_packfile) {
-	 ASSERT(!f->normal.pack_data);
-	 ASSERT(!f->normal.unpack_data);
-	 ASSERT(!f->normal.passdata);
-	 ASSERT(!f->normal.passpos);
-      }
-
       _AL_FREE(f);
    }
 }

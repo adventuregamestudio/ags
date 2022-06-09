@@ -82,6 +82,13 @@ extern int getloctype_index;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
 
+
+void AbortGame()
+{
+    // make sure scripts stop at the next step
+    cancel_all_scripts();
+}
+
 void GiveScore(int amnt) 
 {
     GUI::MarkSpecialLabelsForUpdate(kLabelMacro_AllScore);

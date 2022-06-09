@@ -130,10 +130,12 @@ bool engine_init_backend()
     return true;
 }
 
-void winclosehook() {
-  want_exit = 1;
-  abort_engine = 1;
-  check_dynamic_sprites_at_exit = 0;
+void winclosehook()
+{
+    want_exit = 1;
+    abort_engine = 1;
+    check_dynamic_sprites_at_exit = 0;
+    AbortGame();
 }
 
 void engine_setup_window()

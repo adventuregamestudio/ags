@@ -105,7 +105,7 @@ AGS::Common::Version game_compiled_version;
 // stuff for importing old games
 int numScriptModules = 0;
 std::vector<ScriptModule> scModules;
-DialogTopic *dialog = NULL;
+std::vector<DialogTopic> dialog;
 std::vector<Common::String> dlgscript;
 std::vector<GUIMain> guis;
 std::vector<ViewStruct> newViews;
@@ -1380,8 +1380,9 @@ int numThisgamePlugins = 0;
 
 HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    dlgscript = ents.OldDialogSources;
     newViews = std::move(ents.Views);
+    dialog = std::move(ents.Dialogs);
+    dlgscript = std::move(ents.OldDialogSources);
     numScriptModules = (int)ents.ScriptModules.size();
     scModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; i++)
@@ -1429,7 +1430,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
 HAGSError load_dta_file_into_thisgame(const AGSString &filename)
 {
     AGS::Common::MainGameSource src;
-    AGS::Common::LoadedGameEntities ents(thisgame, dialog);
+    AGS::Common::LoadedGameEntities ents(thisgame);
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
@@ -1461,15 +1462,14 @@ void free_script_modules() {
 
 void free_old_game_data()
 {
-  int bb;
-  for (bb = 0; bb < thisgame.numdialog; bb++) 
+  for (auto &dlg : dialog)
   {
-	  if (dialog[bb].optionscripts != NULL)
-		  free(dialog[bb].optionscripts);
+	  if (dlg.optionscripts != NULL)
+		  free(dlg.optionscripts);
   }
   newViews.clear();
   guis.clear();
-  free(dialog);
+  dialog.clear();
   free_script_modules();
 
   // free game struct last because it contains object counts

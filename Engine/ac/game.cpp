@@ -18,7 +18,7 @@
 #include "ac/audiochannel.h"
 #include "ac/button.h"
 #include "ac/character.h"
-#include "ac/dialogtopic.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
@@ -74,8 +74,6 @@ using namespace AGS::Engine;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
-
-extern DialogTopic *dialog;
 
 extern int obj_lowest_yp, char_lowest_yp;
 
@@ -518,14 +516,12 @@ void unload_game_file()
         curLipLine = -1;
     }
 
-    for (int i = 0; i < game.numdialog; ++i)
+    for (auto &dlg : dialog)
     {
-        if (dialog[i].optionscripts != nullptr)
-            free(dialog[i].optionscripts);
-        dialog[i].optionscripts = nullptr;
+        if (dlg.optionscripts != nullptr)
+            free(dlg.optionscripts);
     }
-    free(dialog);
-    dialog = nullptr;
+    dialog.clear();
     delete[] scrDialog;
     scrDialog = nullptr;
 

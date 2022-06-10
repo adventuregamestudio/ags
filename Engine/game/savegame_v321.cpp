@@ -23,7 +23,7 @@
 #include "ac/button.h"
 #include "ac/characterextras.h"
 #include "ac/common.h"
-#include "ac/dialogtopic.h"
+#include "ac/dialog.h"
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -54,7 +54,6 @@ extern GameSetupStruct game;
 extern GameState play;
 extern std::vector<ViewStruct> views;
 extern RGB palette[256];
-extern DialogTopic *dialog;
 extern std::vector<AnimatingGUIButton> animbuts;
 extern int ifacepopped;
 extern int mouse_on_iface;

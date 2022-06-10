@@ -50,7 +50,6 @@ using namespace AGS::Engine;
 extern int ifacepopped;
 
 extern GameSetupStruct game;
-extern DialogTopic *dialog;
 
 extern AGSPlatformDriver *platform;
 
@@ -184,7 +183,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
 HError load_game_file()
 {
     MainGameSource src;
-    LoadedGameEntities ents(game, dialog);
+    LoadedGameEntities ents(game);
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (err)
     {

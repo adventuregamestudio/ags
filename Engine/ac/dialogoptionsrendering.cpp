@@ -20,7 +20,6 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dialog.h"
 
-extern DialogTopic *dialog;
 extern CCDialog ccDynamicDialog;
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT

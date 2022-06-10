@@ -65,7 +65,7 @@ extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
 extern IGraphicsDriver *gfxDriver;
 
-DialogTopic *dialog;
+std::vector<DialogTopic> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
 ScriptDrawingSurface* dialogOptionsRenderingSurface;
 

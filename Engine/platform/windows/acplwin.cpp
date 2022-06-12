@@ -102,15 +102,6 @@ struct AGSWin32 : AGSPlatformDriver {
   String GetCommandArg(size_t arg_index) override;
 
 private:
-  void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
-  void remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid);
-  void add_tasks_for_game(const char *guidAsText, const char *gameEXE, const char *workingFolder, bool allUsers);
-  void get_tasks_directory(char *directoryNameBuffer, const char *guidAsText, bool allUsers);
-  void update_game_explorer(bool add);
-  void create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath);
-  void register_file_extension(const char *exePath);
-  void unregister_file_extension();
-
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
   bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
 };

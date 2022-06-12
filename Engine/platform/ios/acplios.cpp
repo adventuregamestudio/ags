@@ -61,17 +61,17 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 
 
 struct AGSIOS : AGSPlatformDriver {
-  virtual const char *GetGameDataFile();
-  virtual void ReadConfiguration(ConfigTree &cfg);
-  virtual int  CDPlayerCommand(int cmdd, int datt);
-  virtual void Delay(int millis);
-  virtual void DisplayAlert(const char*, ...);
-  virtual FSLocation GetAppOutputDirectory();
-  virtual unsigned long GetDiskFreeSpaceMB();
-  virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
-  virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
+  const char *GetGameDataFile() override;
+  void ReadConfiguration(ConfigTree &cfg) override;
+  int  CDPlayerCommand(int cmdd, int datt) override;
+  void Delay(int millis) override;
+  void DisplayAlert(const char*, ...) override;
+  FSLocation GetAppOutputDirectory() override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  int  InitializeCDPlayer() override;
+  void SetGameWindowIcon() override;
+  void ShutdownCDPlayer() override;
 
   static MobileSetup &GetMobileSetup() { return _msetup; }
 

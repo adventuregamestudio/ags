@@ -39,24 +39,24 @@ using namespace AGS::Common;
 #define ANDROID_CONFIG_FILENAME "android.cfg"
 
 struct AGSAndroid : AGSPlatformDriver {
-  virtual void MainInit();
-  virtual void PostBackendExit();
+  void MainInit() override;
+  void PostBackendExit() override;
 
-  virtual const char *GetGameDataFile();
-  virtual void ReadConfiguration(ConfigTree &cfg);
-  virtual int  CDPlayerCommand(int cmdd, int datt);
-  virtual void Delay(int millis);
-  virtual void DisplayAlert(const char*, ...);
-  virtual FSLocation GetAllUsersDataDirectory();
-  virtual FSLocation GetUserSavedgamesDirectory();
-  virtual FSLocation GetUserGlobalConfigDirectory();
-  virtual FSLocation GetAppOutputDirectory();
-  virtual unsigned long GetDiskFreeSpaceMB();
-  virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
-  virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char *fmt, ...);
-  virtual void WriteStdErr(const char *fmt, ...);
+  const char *GetGameDataFile() override;
+  void ReadConfiguration(ConfigTree &cfg) override;
+  int  CDPlayerCommand(int cmdd, int datt) override;
+  void Delay(int millis) override;
+  void DisplayAlert(const char*, ...) override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetUserGlobalConfigDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  int  InitializeCDPlayer() override;
+  void ShutdownCDPlayer() override;
+  void WriteStdOut(const char *fmt, ...) override;
+  void WriteStdErr(const char *fmt, ...) override;
 
   static MobileSetup &GetMobileSetup() { return _msetup; }
 

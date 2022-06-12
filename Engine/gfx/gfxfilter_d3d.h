@@ -15,7 +15,6 @@
 // Standard 3D-accelerated filter
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__D3DGFXFILTER_H
 #define __AGS_EE_GFX__D3DGFXFILTER_H
 

@@ -41,18 +41,18 @@ static FSLocation commonDataPath;
 struct AGSMac : AGSPlatformDriver {
   AGSMac();
 
-  virtual int  CDPlayerCommand(int cmdd, int datt) override;
-  virtual void DisplayAlert(const char*, ...) override;
-  virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual int  InitializeCDPlayer() override;
-  virtual void ShutdownCDPlayer() override;
-    
-  virtual FSLocation GetUserSavedgamesDirectory() override;
-  virtual FSLocation GetAllUsersDataDirectory() override;
-  virtual FSLocation GetUserConfigDirectory() override;
-  virtual FSLocation GetAppOutputDirectory() override;
-  virtual const char *GetIllegalFileChars() override;
+  int  CDPlayerCommand(int cmdd, int datt) override;
+  void DisplayAlert(const char*, ...) override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  int  InitializeCDPlayer() override;
+  void ShutdownCDPlayer() override;
+  
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserConfigDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
+  const char *GetIllegalFileChars() override;
 };
 
 AGSMac::AGSMac()

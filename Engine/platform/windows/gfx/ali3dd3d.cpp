@@ -231,11 +231,6 @@ void D3DGraphicsDriver::set_up_default_vertices()
   defaultVertices[3].tv=1.0;
 }
 
-void D3DGraphicsDriver::Vsync() 
-{
-  // do nothing on D3D
-}
-
 void D3DGraphicsDriver::OnModeSet(const DisplayMode &mode)
 {
   GraphicsDriverBase::OnModeSet(mode);

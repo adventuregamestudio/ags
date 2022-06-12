@@ -144,11 +144,6 @@ void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
     _mode.Height = device_screen_physical_height;
 }
 
-void OGLGraphicsDriver::Vsync()
-{
-  // do nothing on OpenGL
-}
-
 void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
 {
   if (_can_render_to_texture)

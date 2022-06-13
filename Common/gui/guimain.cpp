@@ -732,6 +732,25 @@ void MarkAllGUIForUpdate()
     }
 }
 
+void MarkForTranslationUpdate()
+{
+    for (auto &btn : guibuts)
+    {
+        if (btn.IsTranslated())
+            btn.NotifyParentChanged();
+    }
+    for (auto &lbl : guilabels)
+    {
+        if (lbl.IsTranslated())
+            lbl.NotifyParentChanged();
+    }
+    for (auto &list : guilist)
+    {
+        if (list.IsTranslated())
+            list.NotifyParentChanged();
+    }
+}
+
 void MarkForFontUpdate(int font)
 {
     for (auto &btn : guibuts)

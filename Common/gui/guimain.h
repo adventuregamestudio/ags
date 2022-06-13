@@ -218,6 +218,8 @@ namespace GUI
 
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate();
+    // Mark all translatable GUI controls for redraw
+    void MarkForTranslationUpdate();
     // Mark all GUI which use the given font for redraw
     void MarkForFontUpdate(int font);
     // Mark labels that acts as special text placeholders for redraw

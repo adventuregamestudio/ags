@@ -781,6 +781,7 @@ int Game_ChangeTranslation(const char *newFilename)
     { // switch back to default translation
         close_translation();
         usetup.translation = "";
+        GUI::MarkForTranslationUpdate();
         return 1;
     }
 
@@ -789,6 +790,7 @@ int Game_ChangeTranslation(const char *newFilename)
         return 0; // failed, kept previous translation
 
     usetup.translation = newFilename;
+    GUI::MarkForTranslationUpdate();
     return 1;
 }
 

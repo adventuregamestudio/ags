@@ -388,6 +388,7 @@ void apply_config(const ConfigTree &cfg)
         mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
         usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
+        usetup.mouse_hardware_cursor = CfgReadBoolInt(cfg, "mouse", "hardware_cursor");
 
         // Touch options
         usetup.touch_emulate_mouse = StrUtil::ParseEnum<TouchMouseEmulation>(

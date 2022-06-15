@@ -34,7 +34,9 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
+#include "gfx/gfx_util.h"
 #include "platform/base/agsplatformdriver.h"
+#include <SDL_mouse.h>
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -52,6 +54,15 @@ int lastmx=-1,lastmy=-1;
 
 CursorGraphicState cursor_gstate;
 
+struct HardwareCursor {
+    int cur_spriteslot = -1;
+    int last_spriteslot = -1;
+    SDL_Surface *sdl_surface = nullptr;
+    std::unique_ptr<Bitmap> bitmap = nullptr;
+    SDL_Cursor *sdl_cursor = nullptr;
+    const Point base_point = Point(32, 32);
+    Point prev_point = Point(1, 1);
+} hcur;
 
 Bitmap *CursorGraphicState::GetImage() const
 {
@@ -60,6 +71,9 @@ Bitmap *CursorGraphicState::GetImage() const
 
 void CursorGraphicState::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha)
 {
+    if(hcur.bitmap) hcur.bitmap->Destroy();
+    hcur.bitmap.reset(new Bitmap());
+    hcur.bitmap->CreateCopy(pic.get(), 32);
     _genImage = std::move(pic);
     _hasAlpha = has_alpha;
     _sprnum = -1;
@@ -68,11 +82,15 @@ void CursorGraphicState::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_
 
 void CursorGraphicState::SetSpriteNum(int sprnum)
 {
+    if(hcur.bitmap) hcur.bitmap->Destroy();
+    hcur.bitmap.reset(new Bitmap());
+    hcur.bitmap->CreateCopy(spriteset[_sprnum], 32);
     _sprnum = sprnum;
     _genImage.reset();
     _hasAlpha = (game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0;
     MarkChanged();
 }
+
 
 
 // The Mouse:: functions are static so the script doesn't pass
@@ -404,8 +422,49 @@ void update_inv_cursor(int invnum) {
     }
 }
 
+void update_hardware_cursor_graphic() {
+    int width, height, hotspot_x, hotspot_y;
+    Size sz;
+    if(hcur.prev_point != GameScaling.Scale(hcur.base_point)) {
+        hcur.prev_point = GameScaling.Scale(hcur.base_point);
+        hcur.last_spriteslot = -1;
+    }
+
+    if(play.mouse_cursor_hidden || hcur.cur_spriteslot <= 0) {
+        SDL_ShowCursor(0);
+        hcur.last_spriteslot = -1;
+        return;
+    }
+
+    if(hcur.last_spriteslot == hcur.cur_spriteslot) return;
+    std::unique_ptr<Bitmap> cur_bitmap = std::move(hcur.bitmap);
+    hcur.last_spriteslot = hcur.cur_spriteslot;
+
+    bool alpha_blend_cursor = (hcur.cur_spriteslot >= 0) ?
+                              ((game.SpriteInfos[hcur.cur_spriteslot].Flags & SPF_ALPHACHANNEL) != 0) : false;
+
+    width = GameScaling.X.ScaleDistance(cur_bitmap->GetWidth());
+    height = GameScaling.Y.ScaleDistance(cur_bitmap->GetHeight());
+    hotspot_x = GameScaling.X.ScaleDistance(game.mcurs[cur_cursor].hotx);
+    hotspot_y = GameScaling.Y.ScaleDistance(game.mcurs[cur_cursor].hoty);
+    sz = Size(width, height);
+
+    hcur.bitmap.reset (BitmapHelper::CreateBitmap(width, height, cur_bitmap->GetColorDepth()));
+
+    Bitmap* res_bmp = transform_sprite(cur_bitmap.get(), alpha_blend_cursor != 0, hcur.bitmap, sz, GraphicFlip::kFlip_None);
+
+    if(hcur.sdl_cursor) SDL_FreeCursor(hcur.sdl_cursor);
+    if(hcur.sdl_surface) SDL_FreeSurface(hcur.sdl_surface);
+
+    hcur.sdl_surface = GfxUtil::CreateSDL_SurfaceFromBitmap(res_bmp);
+    hcur.sdl_cursor = SDL_CreateColorCursor(hcur.sdl_surface, hotspot_x, hotspot_y);
+    SDL_SetCursor(hcur.sdl_cursor);
+    SDL_ShowCursor(1);
+}
+
 void set_new_cursor_graphic(int spriteslot)
 {
+    hcur.cur_spriteslot = spriteslot;
     // It looks like spriteslot 0 can be used in games with version 2.72 and lower.
     // The NULL check should ensure that the sprite is valid anyway.
     if ((spriteslot < 1) && (loaded_game_file_version > kGameVersion_272))

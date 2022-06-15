@@ -138,6 +138,12 @@ public:
         return (GetColorDepth() + 7) / 8;
     }
 
+    // Length of the scanline in bytes
+    inline int  GetPitch() const
+    {
+        return GetBPP() * GetWidth();
+    }
+
     // Gets size of Bitmap's pixel data, in bytes
 	inline int  GetDataSize() const
     {

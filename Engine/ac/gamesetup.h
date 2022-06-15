@@ -96,6 +96,7 @@ struct GameSetup
     // touch control abs/relative mode
     bool  touch_motion_relative;
     //
+    bool  mouse_hardware_cursor;
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;
     size_t SpriteCacheSize = DefSpriteCacheSize; // in KB

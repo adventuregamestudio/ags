@@ -30,6 +30,7 @@ GameSetup::GameSetup()
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
     touch_emulate_mouse = kTouchMouse_OneFingerDrag;
     touch_motion_relative = false;
+    mouse_hardware_cursor = false;
     RenderAtScreenRes = false;
     Supersampling = 1;
     clear_cache_on_room_change = false;

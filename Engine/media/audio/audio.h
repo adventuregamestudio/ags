@@ -108,8 +108,6 @@ ScriptAudioClip *get_audio_clip_for_music(int mnum);
 SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
 void        newmusic(int mnum);
 
-extern volatile bool _audio_doing_crossfade;
-
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);

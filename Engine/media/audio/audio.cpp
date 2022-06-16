@@ -85,8 +85,6 @@ void AudioChans::DeleteClipOnChannel(int index)
     _channels[index].reset();
 }
 
-volatile bool _audio_doing_crossfade;
-
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
@@ -856,8 +854,6 @@ void update_audio_system_on_game_loop ()
 
     process_scheduled_music_update();
 
-    _audio_doing_crossfade = true;
-
     audio_update_polled_stuff();
 
     if (crossFading) {
@@ -890,8 +886,6 @@ void update_audio_system_on_game_loop ()
                 }
         }
     }
-
-    _audio_doing_crossfade = false;
 
     if (loopcounter % 5 == 0)
     {

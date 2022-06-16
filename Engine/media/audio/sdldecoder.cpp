@@ -111,7 +111,8 @@ bool SDLDecoder::Open(float pos_ms)
     }
 
     _sample = std::move(sample);
-    _durationMs = Sound_GetDuration(_sample.get());
+    int dur = Sound_GetDuration(_sample.get()); // may return -1 for unknown
+    _durationMs = dur > 0 ? static_cast<uint32_t>(dur) : 0;
     _posBytes = 0u;
     _posMs = 0u;
     if (pos_ms > 0.f) {

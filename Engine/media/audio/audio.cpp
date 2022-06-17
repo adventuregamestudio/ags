@@ -60,24 +60,22 @@ SOUNDCLIP *AudioChans::GetChannelIfPlaying(int index)
     return (ch != nullptr && ch->is_ready()) ? ch : nullptr;
 }
 
-SOUNDCLIP *AudioChans::SetChannel(int index, SOUNDCLIP* ch)
+SOUNDCLIP *AudioChans::SetChannel(int index, std::unique_ptr<SOUNDCLIP> ch)
 {
-    // TODO: store clips in smart pointers
-    if ((ch != nullptr) && (_channels[index].get() == ch))
+    if ((ch != nullptr) && (_channels[index].get() == ch.get()))
     {
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - same clip assigned", index);
-        return ch;
+        return ch.get();
     }
     if ((ch != nullptr) && (_channels[index] != nullptr))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
-    _channels[index].reset(ch);
-    return ch;
+    _channels[index] = std::move(ch);
+    return ch.get();
 }
 
 SOUNDCLIP *AudioChans::MoveChannel(int to, int from)
 {
-    auto from_ch = _channels[from].release();
-    return SetChannel(to, from_ch);
+    return SetChannel(to, std::move(_channels[from]));
 }
 
 void AudioChans::DeleteClipOnChannel(int index)
@@ -419,7 +417,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     if (!play.fast_forward && play.speech_has_voice)
         apply_volume_drop_to_clip(soundfx);
 
-    AudioChans::SetChannel(channel, soundfx);
+    AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(soundfx));
     return &scrAudioChannel[channel];
 }
 
@@ -1115,7 +1113,7 @@ static void play_new_music(int mnum, SOUNDCLIP *music)
 
     if (new_clip && new_clip->play())
     {
-        AudioChans::SetChannel(useChannel, new_clip);
+        AudioChans::SetChannel(useChannel, std::unique_ptr<SOUNDCLIP>(new_clip));
         current_music_type = new_clip->get_sound_type();
     }
     else

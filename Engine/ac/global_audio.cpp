@@ -80,7 +80,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
             asound->priority = 15;  // ambient sound higher priority than normal sfx
-            AudioChans::SetChannel(channel, asound);
+            AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(asound));
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
@@ -155,7 +155,7 @@ int PlaySoundEx(int val1, int channel) {
 
     soundfx->priority = 10;
     soundfx->set_volume255(play.sound_volume);
-    AudioChans::SetChannel(channel,soundfx);
+    AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(soundfx));
     return channel;
 }
 
@@ -392,7 +392,7 @@ void PlayMP3File (const char *filename) {
     if (clip) {
         if (clip->play()) {
             clip->set_volume255(150);
-            AudioChans::SetChannel(useChan, clip);
+            AudioChans::SetChannel(useChan, std::unique_ptr<SOUNDCLIP>(clip));
             current_music_type = sound_type;
             play.cur_music_number = 1000;
             // save the filename (if it's not what we were supplied with)
@@ -433,7 +433,7 @@ void PlaySilentMIDI (int mnum) {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
     if (clip->play()) {
-        AudioChans::SetChannel(play.silent_midi_channel, clip);
+        AudioChans::SetChannel(play.silent_midi_channel, std::unique_ptr<SOUNDCLIP>(clip));
         clip->set_volume100(0);
     } else {
         delete clip;
@@ -534,7 +534,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         return false;
     }
 
-    AudioChans::SetChannel(SCHAN_SPEECH,speechmp3);
+    AudioChans::SetChannel(SCHAN_SPEECH, std::unique_ptr<SOUNDCLIP>(speechmp3));
     return true;
 }
 

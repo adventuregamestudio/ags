@@ -174,6 +174,12 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("MobileResetAchievements",      Sc_PluginStub_Void);
     return true;
   }
+  else if (ags_stricmp(name, "agsshell") == 0)
+  {
+    // agsshell.dll
+    ccAddExternalStaticFunction("ShellExecute", Sc_PluginStub_Void);
+    return true;
+  }
   else if (ags_stricmp(name, "agsspritefont") == 0)
   {
     ccAddExternalStaticFunction("SetSpriteFont",                Sc_PluginStub_Void);

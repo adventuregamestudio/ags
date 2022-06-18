@@ -123,7 +123,17 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Dialog Editor";
+            if (scintillaEditor.ContainsFocus)
+            {
+                var keyword = scintillaEditor.GetFullTypeNameAtCursor();
+                if (string.IsNullOrEmpty(keyword))
+                    return "Dialog Script";
+                return keyword;
+            }
+            else
+            {
+                return "Dialog Editor";
+            }
         }
 
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)

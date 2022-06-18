@@ -15,7 +15,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Default setup";
+            return "Default Setup";
         }
 
         private void LoadColorTheme(ColorTheme t)

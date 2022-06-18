@@ -123,7 +123,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Dialogs";
+            return "Dialog Editor";
         }
 
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)

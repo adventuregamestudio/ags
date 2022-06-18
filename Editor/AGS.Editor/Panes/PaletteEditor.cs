@@ -39,7 +39,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Palette setup";
+            return "Colours Editor";
         }
         
         public void GameChanged()

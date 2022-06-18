@@ -39,7 +39,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Text parser";
+            return "Text Parser";
         }
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)

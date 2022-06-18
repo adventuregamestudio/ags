@@ -16,6 +16,7 @@
 
 #include "debug/out.h"
 #include "platform/windows/winapi_exclusive.h"
+#include "util/path.h"
 #include "util/string.h"
 
 // Because this class may be exposed to generic code in sake of inlining,
@@ -38,77 +39,74 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::String;
 
-class WindowsLibrary : BaseLibrary
+class WindowsLibrary : public BaseLibrary
 {
 public:
-  WindowsLibrary()
-    : _library(NULL)
-  {
-  };
-
-  virtual ~WindowsLibrary()
-  {
-    Unload();
-  };
-
-  AGS::Common::String BuildFilename(AGS::Common::String libraryName)
-  {
-    return String::FromFormat("%s.dll", libraryName.GetCStr());
-  }
-
-  AGS::Common::String BuildPath(AGS::Common::String libraryName)
-  {
-    AGS::Common::String platformLibraryName = BuildFilename(libraryName);
-
-    AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
-
-    return platformLibraryName;
-  }
-
-  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
-  {
-    return BuildFilename(libraryName);
-  }
-
-  bool Load(AGS::Common::String libraryName)
-  {
-    Unload();
-
-    _library = LoadLibraryA(BuildPath(libraryName).GetCStr());
-
-    return (_library != NULL);
-  }
-
-  bool Unload()
-  {
-    if (_library)
+    WindowsLibrary() = default;
+    ~WindowsLibrary() override
     {
-      return (FreeLibrary(_library) != 0);
-    }
-    else
-    {
-      return true;
-    }
-  }
+        Unload();
+    };
 
-  void *GetFunctionAddress(AGS::Common::String functionName)
-  {
-    return GetProcAddress(_library, functionName.GetCStr());
-  }
+    String GetFilenameForLib(const String &libname) override
+    {
+        return String::FromFormat("%s.dll", libname.GetCStr());
+    }
+
+    bool Load(const String &libname) override
+    {
+        Unload();
+        String path;
+        HMODULE lib = TryLoad(libname, path);
+        if (lib == NULL)
+            return false;
+        _library = lib;
+        _name = libname;
+        _path = path;
+        return true;
+    }
+
+    void Unload() override
+    {
+        if (_library)
+        {
+            FreeLibrary(_library);
+            _library = NULL;
+            _name = "";
+            _path = "";
+        }
+    }
+
+    virtual bool IsLoaded() const override
+    {
+        return _library != NULL;
+    }
+
+    void *GetFunctionAddress(const String &fn_name) override
+    {
+        if (!_library)
+            return nullptr;
+        return GetProcAddress(_library, fn_name.GetCStr());
+    }
 
 private:
-  HMODULE _library;
+    HMODULE TryLoad(const String &libname, String &path)
+    {
+        path = GetFilenameForLib(libname);
+        AGS::Common::Debug::Printf("Built library path: %s", path.GetCStr());
+        return LoadLibraryA(path.GetCStr());
+    }
+
+    HMODULE _library = NULL;
 };
 
 
 typedef WindowsLibrary Library;
 
 
-
 } // namespace Engine
 } // namespace AGS
-
-
 
 #endif // __AGS_EE_UTIL__LIBRARY_WINDOWS_H

@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_UTIL__LIBRARY_H
 #define __AGS_EE_UTIL__LIBRARY_H
 
@@ -23,23 +22,27 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::String;
 
 class BaseLibrary
 {
 public:
-  BaseLibrary() = default;
+    BaseLibrary() = default;
+    virtual ~BaseLibrary() = default;
 
-  virtual ~BaseLibrary() = default;
+    String GetName() const { return _name; }
+    String GetFilePath() const { return _path; }
 
-  virtual AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) = 0;
+    virtual String GetFilenameForLib(const String &libname) = 0;
+    virtual bool Load(const String &libname) = 0;
+    virtual void Unload() = 0;
+    virtual bool IsLoaded() const = 0;
+    virtual void *GetFunctionAddress(const String &fn_name) = 0;
 
-  virtual bool Load(AGS::Common::String libraryName) = 0;
-
-  virtual bool Unload() = 0;
-
-  virtual void *GetFunctionAddress(AGS::Common::String functionName) = 0;
+protected:
+    String _name;
+    String _path;
 };
-
 
 } // namespace Engine
 } // namespace AGS
@@ -54,8 +57,7 @@ public:
    || AGS_PLATFORM_OS_FREEBSD
 #include "library_posix.h"
 
-#elif AGS_PLATFORM_OS_IOS \
-   || AGS_PLATFORM_OS_EMSCRIPTEN
+#else
 #include "library_dummy.h"
 
 #endif

@@ -64,9 +64,9 @@ bool RegisterPluginStubs(const char* name)
   bool is_agsgalaxy = (ags_stricmp(name, "agsgalaxy") == 0) || (ags_stricmp(name, "agsgalaxy-unified") == 0) ||
     (ags_stricmp(name, "agsgalaxy-disjoint") == 0);
 
-  if (ags_stricmp(name, "ags_shell") == 0)
+  if (ags_stricmp(name, "ags_shell") == 0 || ags_stricmp(name, "agsshell") == 0)
   {
-    // ags_shell.dll
+    // ags_shell.dll or agsshell.dll
     ccAddExternalStaticFunction("ShellExecute",                 Sc_PluginStub_Void);
     return true;
   }

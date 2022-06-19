@@ -17,6 +17,7 @@
 #include "debug/out.h"
 #include "platform/windows/winapi_exclusive.h"
 #include "util/path.h"
+#include "util/stdio_compat.h"
 #include "util/string.h"
 
 // Because this class may be exposed to generic code in sake of inlining,
@@ -27,7 +28,7 @@ extern "C" {
 
     WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule);
     WINBASEAPI FARPROC WINAPI GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
-    WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName);
+    WINBASEAPI HMODULE WINAPI LoadLibraryW(LPCWSTR lpLibFileName);
 
 #ifdef __cplusplus
 } // extern "C"
@@ -96,7 +97,9 @@ private:
     {
         path = GetFilenameForLib(libname);
         AGS::Common::Debug::Printf("Built library path: %s", path.GetCStr());
-        return LoadLibraryA(path.GetCStr());
+        WCHAR wpath[MAX_PATH_SZ];
+        MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wpath, MAX_PATH_SZ);
+        return LoadLibraryW(wpath);
     }
 
     HMODULE _library = NULL;

@@ -29,7 +29,6 @@
 #include "gfx/gfxfilter_aad3d.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "util/library.h"
 
 using namespace AGS::Common;
 

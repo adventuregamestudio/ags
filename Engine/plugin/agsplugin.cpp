@@ -450,7 +450,7 @@ int IAGSEngine::GetNumObjects () {
     return croom->numobj;
 }
 AGSObject *IAGSEngine::GetObject (int32 num) {
-    if (num >= croom->numobj)
+    if (num < 0 || static_cast<uint32_t>(num) >= croom->numobj)
         quit("!IAGSEngine::GetObject: invalid object");
 
     return (AGSObject*)&croom->obj[num];

@@ -1104,7 +1104,6 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     int useTintRed = 255;
     int useTintGreen = 255;
     int useTintBlue = 255;
-    int useTransparency = 0xff;
     int textureColorOp = D3DTOP_MODULATE;
 
     if ((bmpToDraw->_lightLevel > 0) && (bmpToDraw->_lightLevel < 256))
@@ -1838,7 +1837,6 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
   }
   EndSpriteBatch();
-  D3DSpriteBatch &batch = _spriteBatches[fx_batch];
   std::vector<D3DDrawListEntry> &drawList = _spriteList;
   const size_t last = drawList.size() - 1;
 

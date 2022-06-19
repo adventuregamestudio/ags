@@ -309,7 +309,7 @@ void GameState::DeleteRoomViewport(int index)
     {
         _roomViewports[i]->SetID(i);
         handle = _scViewportHandles[index];
-        auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
         if (scobj)
             scobj->SetID(i);
     }
@@ -383,7 +383,7 @@ void GameState::DeleteRoomCamera(int index)
     {
         _roomCameras[i]->SetID(i);
         handle = _scCameraHandles[index];
-        auto scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
+        scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
         if (scobj)
             scobj->SetID(i);
     }

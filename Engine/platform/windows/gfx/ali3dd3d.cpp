@@ -517,24 +517,18 @@ static int wnd_reset_device()
 int D3DGraphicsDriver::_resetDeviceIfNecessary()
 {
   HRESULT hr = direct3ddevice->TestCooperativeLevel();
-
   if (hr == D3DERR_DEVICELOST)
   {
-    Debug::Printf("D3DGraphicsDriver: D3D Device Lost");
-    // user has alt+tabbed away from the game
-    return 1;
+    return hr;
   }
 
   if (hr == D3DERR_DEVICENOTRESET)
   {
-    Debug::Printf("D3DGraphicsDriver: D3D Device Not Reset");
     hr = ResetD3DDevice();
     if (hr != D3D_OK)
     {
-      Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
-      // can't throw exception because we're in the wrong thread,
-      // so just return a value instead
-      return 2;
+      Debug::Printf("D3DGraphicsDriver: failed to reset D3D device");
+      return hr;
     }
 
     InitializeD3DState();

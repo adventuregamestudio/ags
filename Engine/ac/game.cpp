@@ -1275,6 +1275,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 // Called whenever game looses input focus
 void display_switch_out()
 {
+    Debug::Printf("Switching out from the game");
     switched_away = true;
     ags_clear_input_state();
     // Always unlock mouse when switching out from the game
@@ -1284,6 +1285,7 @@ void display_switch_out()
 // Called when game looses input focus and must pause until focus is returned
 void display_switch_out_suspend()
 {
+    Debug::Printf("Suspending the game on switch out");
     switching_away_from_game++;
     game_update_suspend = true;
     display_switch_out();
@@ -1310,6 +1312,7 @@ void display_switch_out_suspend()
 // Called whenever game gets input focus
 void display_switch_in()
 {
+    Debug::Printf("Switching back into the game");
     ags_clear_input_state();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
@@ -1320,6 +1323,7 @@ void display_switch_in()
 // Called when game gets input focus and must resume after pause
 void display_switch_in_resume()
 {
+    Debug::Printf("Resuming the game on switch in");
     display_switch_in();
 
     // Resume all the sounds

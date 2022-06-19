@@ -38,7 +38,7 @@ public:
 class Ali3DFullscreenLostException : public Ali3DException
 {
 public:
-    Ali3DFullscreenLostException() : Ali3DException("User has switched away from application")
+    Ali3DFullscreenLostException() : Ali3DException("Direct3D device is lost")
     {
     }
 };

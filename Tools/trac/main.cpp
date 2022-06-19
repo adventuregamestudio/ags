@@ -8,7 +8,7 @@ using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
 
-const char *HELP_STRING = "Usage: trac <input.tra> <output.trs>\n\t[--gamename <name>][--uniqueid <idnum>]";
+const char *HELP_STRING = "Usage: trac <input.trs> <output.tra>\n\t[--gamename <name>][--uniqueid <idnum>]";
 
 int main(int argc, char *argv[])
 {
@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 
     const char *src = argv[1];
     const char *dst = argv[2];
-    printf("Input room file: %s\n", src);
-    printf("Output script header: %s\n", dst);
+    printf("Input translation source: %s\n", src);
+    printf("Output compiled translation: %s\n", dst);
     printf("Game name: %s\n", game_name.GetCStr());
     printf("Game uniqueid: %d\n", game_uid);
 

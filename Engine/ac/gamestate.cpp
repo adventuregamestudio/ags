@@ -336,7 +336,6 @@ PCamera GameState::CreateRoomCamera()
     camera->SetID(index);
     camera->SetAt(0, 0);
     camera->SetSize(_mainViewport.GetRect().GetSize());
-    ScriptCamera *scam = new ScriptCamera(index);
     _scCameraHandles.push_back(0);
     _roomCameras.push_back(camera);
     return camera;
@@ -366,7 +365,7 @@ void GameState::DeleteRoomCamera(int index)
     if (index <= 0 || (size_t)index >= _roomCameras.size())
         return;
     auto handle = _scCameraHandles[index];
-    auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+    auto scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
     if (scobj)
     {
         scobj->Invalidate();
@@ -384,7 +383,7 @@ void GameState::DeleteRoomCamera(int index)
     {
         _roomCameras[i]->SetID(i);
         handle = _scCameraHandles[index];
-        auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        auto scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
         if (scobj)
             scobj->SetID(i);
     }

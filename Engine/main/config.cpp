@@ -372,6 +372,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
+        // Various system options
+        usetup.multitasking = CfgReadInt(cfg, "misc", "multitasking", 0) != 0;
+
         // User's overrides and hacks
         usetup.override_multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
         String override_os = CfgReadString(cfg, "override", "os");

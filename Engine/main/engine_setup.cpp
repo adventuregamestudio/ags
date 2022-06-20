@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/display.h"
@@ -20,6 +19,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_game.h"
 #include "ac/mouse.h"
 #include "ac/runtime_defines.h"
 #include "ac/walkbehind.h"
@@ -286,6 +286,9 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
         engine_post_gfxmode_draw_setup(dm);
     }
     engine_post_gfxmode_mouse_setup(init_desktop);
+
+    // reset multitasking (may be overridden by the current display mode)
+    SetMultitasking(usetup.multitasking);
 
     video_on_gfxmode_changed();
     invalidate_screen();

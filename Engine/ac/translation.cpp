@@ -29,7 +29,6 @@
 
 using namespace AGS::Common;
 
-extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
 

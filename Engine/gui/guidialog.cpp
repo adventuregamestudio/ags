@@ -32,7 +32,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
-extern GameSetup usetup;
 extern GameSetupStruct game;
 
 namespace {

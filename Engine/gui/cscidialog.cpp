@@ -37,7 +37,6 @@ using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern IGraphicsDriver *gfxDriver;
-extern GameSetup usetup;
 
 
 //-----------------------------------------------------------------------------

@@ -84,7 +84,6 @@ void AudioChans::DeleteClipOnChannel(int index)
 }
 
 extern GameSetupStruct game;
-extern GameSetup usetup;
 extern GameState play;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;

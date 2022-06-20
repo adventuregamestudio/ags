@@ -94,7 +94,6 @@ extern RoomStatus*croom;
 extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern int game_paused;
-extern GameSetup usetup;
 extern int inside_script;
 extern ccInstance *gameinst, *roominst;
 extern RGB palette[256];

@@ -53,7 +53,6 @@ String appPath; // engine exe path
 String appDirectory; // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
-extern GameSetup usetup;
 extern GameState play;
 extern int our_eip;
 extern int editor_debugging_enabled;

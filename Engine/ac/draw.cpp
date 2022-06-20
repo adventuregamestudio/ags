@@ -66,7 +66,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
 extern ScriptSystem scsystem;

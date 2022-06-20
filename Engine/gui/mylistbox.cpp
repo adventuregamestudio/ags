@@ -23,7 +23,6 @@
 
 using AGS::Common::Bitmap;
 
-extern GameSetup usetup;
 extern int numcurso, hotx, hoty;
 
 extern int windowbackgroundcolor;

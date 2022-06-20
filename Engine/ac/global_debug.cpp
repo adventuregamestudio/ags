@@ -42,7 +42,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameSetup usetup;
 extern GameState play;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;

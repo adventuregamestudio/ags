@@ -39,7 +39,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameSetup usetup;
 extern GameState play;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptSystem scsystem;

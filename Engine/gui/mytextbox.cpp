@@ -21,8 +21,6 @@
 
 using AGS::Common::Bitmap;
 
-extern GameSetup usetup;
-
 extern int windowbackgroundcolor;
 extern int cbuttfont;
 

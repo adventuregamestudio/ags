@@ -71,7 +71,6 @@ extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;
 extern SpriteCache spriteset;
-extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
 extern GameSetupStruct game;

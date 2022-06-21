@@ -80,7 +80,7 @@ using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
-extern volatile char want_exit, abort_engine;
+extern volatile bool want_exit, abort_engine;
 extern bool justRunSetup;
 extern GameSetupStruct game;
 extern int proper_exit;
@@ -131,8 +131,8 @@ bool engine_init_backend()
 
 void winclosehook()
 {
-    want_exit = 1;
-    abort_engine = 1;
+    want_exit = true;
+    abort_engine = true;
     check_dynamic_sprites_at_exit = 0;
     AbortGame();
 }

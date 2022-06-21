@@ -49,7 +49,7 @@ extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
 extern RoomStruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
-extern volatile char want_exit, abort_engine;
+extern volatile bool want_exit, abort_engine;
 extern GameSetupStruct game;
 
 
@@ -543,8 +543,8 @@ int check_for_messages_from_editor()
         }
         else if (strncmp(msgPtr, "EXIT", 4) == 0) 
         {
-            want_exit = 1;
-            abort_engine = 1;
+            want_exit = true;
+            abort_engine = true;
             check_dynamic_sprites_at_exit = 0;
         }
 
@@ -561,7 +561,7 @@ int check_for_messages_from_editor()
 bool send_exception_to_editor(const char *qmsg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    want_exit = 0;
+    want_exit = false;
     // allow the editor to break with the error message
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
@@ -569,7 +569,7 @@ bool send_exception_to_editor(const char *qmsg)
     if (!send_message_to_editor("ERROR", qmsg))
         return false;
 
-    while ((check_for_messages_from_editor() == 0) && (want_exit == 0))
+    while ((check_for_messages_from_editor() == 0) && (!want_exit))
     {
         platform->Delay(10);
     }

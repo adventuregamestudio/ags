@@ -92,7 +92,7 @@ RoomStruct thisroom;
 volatile int switching_away_from_game = 0;
 volatile bool switched_away = false;
 volatile bool game_update_suspend = false;
-volatile char want_exit = 0, abort_engine = 0;
+volatile bool want_exit = false, abort_engine = false;
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 Version game_compiled_version;
 int frames_per_second=40;

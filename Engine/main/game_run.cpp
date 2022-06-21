@@ -66,7 +66,7 @@ using namespace AGS::Common;
 
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
-extern volatile char want_exit, abort_engine;
+extern volatile bool want_exit, abort_engine;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
 extern GameSetupStruct game;
@@ -120,7 +120,7 @@ static unsigned int lastcounter=0;
 
 static void ProperExit()
 {
-    want_exit = 0;
+    want_exit = false;
     proper_exit = 1;
     quit("||exit!");
 }
@@ -1102,7 +1102,7 @@ void RunGameUntilAborted()
 void update_polled_stuff_if_runtime()
 {
     if (want_exit) {
-        want_exit = 0;
+        want_exit = false;
         quit("||exit!");
     }
 

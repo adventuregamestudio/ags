@@ -775,6 +775,9 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 
 void D3DGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
 {
+  if (_mode.IsRealFullscreen())
+    return; // ignore in exclusive fs mode
+
   _mode.Width = screen_sz.Width;
   _mode.Height = screen_sz.Height;
   // TODO: following resets D3D9 device, which may be sub-optimal;

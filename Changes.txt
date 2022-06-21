@@ -61,10 +61,12 @@ Editor:
  - Editor will now create an empty sprite file if one is missing in the game project. Any existing
    sprite descriptions in the project will be kept, letting user to reimport these from sources.
  - Added "File -> Restore all sprites from sources" menu command.
- - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
  - Added "Apply" button on editor's Preferences dialog.
  - Select script editor's font in the editor's Preferences.
+ - Added "Help" option to the editor pane's tab context menu.
+ - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
  - Cursor's position in script is now displayed on the status bar.
+ - Dialog scripts now too can open help topics for keywords or script functions under cursor on F1.
  - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - In sprite manager's "export all" dialog added "skip if local" option.
@@ -214,6 +216,8 @@ Engine:
  - Engine now supports loading compiled scripts as separate files packed along with the game,
    along with those embedded into the main game data or inside room files.
  - Engine no longer bails out with error if the chosen translation cannot be loaded on startup.
+ - When testing for "stuck in the script loop" situations engine will now rely on real time passed
+   in a loop rather than a number of loop iterations.
  - When reporting script errors, engine will print callstack for all the active script "threads":
    for example, if there's Wait() function called and error happened in repeatedly_execute_always,
    then it will print both actual error's location, and Wait() call's location.
@@ -223,6 +227,8 @@ Engine:
  - Added "cache_size" and "stream_threshold" options to config in "[sound]" category, they setup
    the rules for sound caching and choosing whether to load a clip fully into mem or stream one.
  - Added "load_latest_save" and "show_fps" options to config in "[misc]" category.
+ - Added "multitasking" option to config in "[misc]" category, that defines the starting
+   multitasking mode (may later be changed by SetMultitaskingMode in script).
  - Added "--sdl-log" command line option for setting up SDL2 library output verbosity. The engine
    log config now has a new "sdl" group meant for SDL2 messages.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
@@ -232,6 +238,7 @@ Engine:
  - Added "--clear-cache-on-room-change" command-line arg (and similar config option).
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
+ - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
  - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
    using "goto-dialog" (a very-very old bug).
  - Fixed potential crash on room load if the walkable area mask contained color values
@@ -245,7 +252,11 @@ Engine:
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
+ - Fixed multitasking mode persisting if the game was switched from windowed to real fullscreen
+   mode (even though it's not supposed to work in exclusive fullscreen).
  - Fixed game fps sped up if SetGameSpeed() is called repeatedly in game script.
+ - Fixed game not reacting to system close commands when stuck in script, which made it impossible
+   to close the "hanging" game by usual means (other than terminating the process).
 
 Compatibility:
  - Fallback to loop 0 if the speech view does not have frames in the current directional loop.

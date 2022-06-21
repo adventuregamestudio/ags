@@ -159,12 +159,6 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 // The custom FVF, which describes the custom vertex structure.
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
-static int wnd_create_device();
-// TODO: is there better way to not have this mode as a global static variable?
-// wnd_create_device() is being called using wnd_call_proc, which does not take
-// user parameters.
-static DisplayMode d3d_mode_to_init;
-
 D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
   direct3d = d3d;
@@ -175,7 +169,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   set_up_default_vertices();
   pNativeSurface = NULL;
   pNativeTexture = NULL;
-  availableVideoMemory = 0;
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
@@ -260,7 +253,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   sys_window_set_style(kWnd_Windowed);
 }
 
-int D3DGraphicsDriver::FirstTimeInit()
+bool D3DGraphicsDriver::FirstTimeInit()
 {
   HRESULT hr;
 
@@ -281,7 +274,7 @@ int D3DGraphicsDriver::FirstTimeInit()
     direct3ddevice = NULL;
     SDL_SetError("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
     previousError = SDL_GetError();
-    return -1;
+    return false;
   }
 
   // Load the pixel shader!!
@@ -300,7 +293,7 @@ int D3DGraphicsDriver::FirstTimeInit()
         direct3ddevice = NULL;
         SDL_SetError("Failed to create pixel shader: 0x%08X", hr);
         previousError = SDL_GetError();
-        return -1;
+        return false;
       }
       UnlockResource(hGlobal);
     }
@@ -312,7 +305,7 @@ int D3DGraphicsDriver::FirstTimeInit()
     direct3ddevice = NULL;
     SDL_SetError("Failed to load pixel shader resource");
     previousError = SDL_GetError();
-    return -1;
+    return false;
   }
 
   if (direct3ddevice->CreateVertexBuffer(4*sizeof(CUSTOMVERTEX), D3DUSAGE_WRITEONLY,
@@ -322,7 +315,7 @@ int D3DGraphicsDriver::FirstTimeInit()
     direct3ddevice = NULL;
     SDL_SetError("Failed to create vertex buffer");
     previousError = SDL_GetError();
-    return -1;
+    return false;
   }
 
   // This line crashes because my card doesn't support 8-bit textures
@@ -353,24 +346,7 @@ int D3DGraphicsDriver::FirstTimeInit()
   }
   currentgammaramp = defaultgammaramp;
 
-  return 0;
-}
-
-void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode) 
-{
-   if (!IsModeSupported(mode))
-   {
-     throw Ali3DException(SDL_GetError());
-   }
-
-   d3d_mode_to_init = mode;
-   if (wnd_create_device()) {
-     throw Ali3DException(SDL_GetError());
-   }
-
-   availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
-
-   return;
+  return true;
 }
 
 /* color_depth_to_d3d_format:
@@ -500,26 +476,12 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
   direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
 }
 
-/* wnd_set_video_mode:
- *  Called by window thread to set a gfx mode; this is needed because DirectDraw can only
- *  change the mode in the thread that handles the window.
- */
-static int wnd_create_device()
-{
-  return D3DGraphicsFactory::GetD3DDriver()->_initDLLCallback(d3d_mode_to_init);
-}
-
-static int wnd_reset_device()
-{
-  return D3DGraphicsFactory::GetD3DDriver()->_resetDeviceIfNecessary();
-}
-
-int D3DGraphicsDriver::_resetDeviceIfNecessary()
+void D3DGraphicsDriver::ResetDeviceIfNecessary()
 {
   HRESULT hr = direct3ddevice->TestCooperativeLevel();
   if (hr == D3DERR_DEVICELOST)
   {
-    return hr;
+    throw Ali3DFullscreenLostException();
   }
 
   if (hr == D3DERR_DEVICENOTRESET)
@@ -527,20 +489,20 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
     hr = ResetD3DDevice();
     if (hr != D3D_OK)
     {
-      Debug::Printf("D3DGraphicsDriver: failed to reset D3D device");
-      return hr;
+      throw Ali3DException(String::FromFormat("IDirect3DDevice9::Reset: failed: error code: 0x%08X", hr));
     }
 
     InitializeD3DState();
     CreateVirtualScreen();
     direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
   }
-
-  return 0;
 }
 
-int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
+bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
 {
+  if (!IsModeSupported(mode))
+    return false;
+
   SDL_Window *window = sys_get_window();
   if (!window)
   {
@@ -593,14 +555,13 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
       SDL_SetError(previousError.GetCStr());
     else
       SDL_SetError("Failed to create Direct3D Device: 0x%08X", hr);
-    return -1;
+    return false;
   }
 
   if (first_time_init)
   {
-    int ft_res = FirstTimeInit();
-    if (ft_res != 0)
-      return ft_res;
+    if (!FirstTimeInit())
+      return false;
   }
   else
   {
@@ -611,7 +572,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
       sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
     }
   }
-  return 0;
+  return true;
 }
 
 void D3DGraphicsDriver::InitializeD3DState()
@@ -756,16 +717,9 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     return false;
   }
 
-  try
-  {
-    initD3DDLL(mode);
-  }
-  catch (Ali3DException exception)
-  {
-    if (exception._message != SDL_GetError())
-      SDL_SetError("%s", exception._message);
+  if (!CreateDisplayMode(mode))
     return false;
-  }
+
   OnInit();
   OnModeSet(mode);
   InitializeD3DState();
@@ -1044,11 +998,7 @@ void D3DGraphicsDriver::Render()
 
 void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
 {
-  if (wnd_reset_device())
-  {
-    throw Ali3DFullscreenLostException();
-  }
-
+  ResetDeviceIfNecessary();
   _renderAndPresent(true);
 }
 
@@ -1674,9 +1624,8 @@ TextureData *D3DGraphicsDriver::CreateTextureData(int width, int height, bool op
      if (hr != D3D_OK) 
      {
         delete []tiles;
-        char errorMessage[200];
-        snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code %08X", vertexBufferSize, hr);
-        throw Ali3DException(errorMessage);
+        throw Ali3DException(String::FromFormat(
+            "Direct3DDevice9::CreateVertexBuffer(Length=%d) for texture failed: error code 0x%08X", vertexBufferSize, hr));
      }
 
      if (txdata->_vertex->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD) != D3D_OK)
@@ -1735,9 +1684,8 @@ TextureData *D3DGraphicsDriver::CreateTextureData(int width, int height, bool op
                                       D3DPOOL_MANAGED, &thisTile->texture, NULL);
       if (hr != D3D_OK)
       {
-        char errorMessage[200];
-        snprintf(errorMessage, sizeof(errorMessage), "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code %08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr);
-        throw Ali3DException(errorMessage);
+        throw Ali3DException(String::FromFormat(
+            "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code 0x%08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr));
       }
 
     }

@@ -15,9 +15,10 @@
 // Graphics driver exception class
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__ALI3DEXCEPTION_H
 #define __AGS_EE_GFX__ALI3DEXCEPTION_H
+
+#include "util/string.h"
 
 namespace AGS
 {
@@ -27,12 +28,12 @@ namespace Engine
 class Ali3DException
 {
 public:
-    Ali3DException(const char *message)
+    Ali3DException(const AGS::Common::String &message)
     {
         _message = message;
     }
 
-    const char *_message;
+    AGS::Common::String _message;
 };
 
 class Ali3DFullscreenLostException : public Ali3DException

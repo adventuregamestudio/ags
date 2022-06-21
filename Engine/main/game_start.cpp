@@ -131,8 +131,9 @@ void initialize_start_and_play_game(int override_start_room, const String &load_
 
         RunGameUntilAborted();
 
-    } catch (Ali3DException gfxException)
+    }
+    catch (Ali3DException gfxException)
     {
-        quit((char*)gfxException._message);
+        quit(gfxException._message.GetCStr());
     }
 }

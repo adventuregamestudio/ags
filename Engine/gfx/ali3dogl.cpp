@@ -764,8 +764,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != SDL_GetError())
-      SDL_SetError("%s", exception._message);
+    SDL_SetError("%s", exception.Message.GetCStr());
     return false;
   }
 

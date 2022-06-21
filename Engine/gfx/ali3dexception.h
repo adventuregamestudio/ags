@@ -29,11 +29,11 @@ class Ali3DException
 {
 public:
     Ali3DException(const AGS::Common::String &message)
+        : Message(message)
     {
-        _message = message;
     }
 
-    AGS::Common::String _message;
+    const AGS::Common::String Message;
 };
 
 class Ali3DFullscreenLostException : public Ali3DException

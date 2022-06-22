@@ -216,8 +216,6 @@ Engine:
  - Engine now supports loading compiled scripts as separate files packed along with the game,
    along with those embedded into the main game data or inside room files.
  - Engine no longer bails out with error if the chosen translation cannot be loaded on startup.
- - When testing for "stuck in the script loop" situations engine will now rely on real time passed
-   in a loop rather than a number of loop iterations.
  - When reporting script errors, engine will print callstack for all the active script "threads":
    for example, if there's Wait() function called and error happened in repeatedly_execute_always,
    then it will print both actual error's location, and Wait() call's location.

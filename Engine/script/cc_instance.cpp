@@ -214,8 +214,8 @@ struct FunctionCallStack
 
 
 unsigned ccInstance::_timeoutCheckMs = 60u;
-unsigned ccInstance::_timeoutAbortMs = 60u * 10;
-unsigned ccInstance::_maxWhileLoops = 150000u;
+unsigned ccInstance::_timeoutAbortMs = 0u;
+unsigned ccInstance::_maxWhileLoops = 0u;
 
 
 ccInstance *ccInstance::GetCurrentInstance()
@@ -849,14 +849,15 @@ int ccInstance::Run(int32_t curpc)
                   timeout_warn = false;
                   loopIterations = 0;
               }
-              else if ((loopIterationCheckDisabled == 0) && (++loopIterations > _maxWhileLoops))
+              else if ((loopIterationCheckDisabled == 0) && (_maxWhileLoops > 0) &&
+                  (++loopIterations > _maxWhileLoops))
               {
                   cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
                   return -1;
               }
               else if (test_dur > timeout)
               { // minimal timeout occured
-                  if (test_dur.count() > timeout_abort.count())
+                  if ((timeout_abort.count() > 0) && (test_dur.count() > timeout_abort.count()))
                   { // critical timeout occured
                       /* CHECKME: disabled, because not working well
                       if (loopIterationCheckDisabled == 0)

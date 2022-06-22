@@ -37,7 +37,6 @@
 
 using namespace AGS::Common;
 
-extern GameSetup usetup;
 extern GameSetupStruct game;
 extern AGSPlatformDriver *platform;
 

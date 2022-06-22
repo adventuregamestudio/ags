@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <string.h>
-#include "ac/label.h"
-#include "ac/common.h"
+#include <stdio.h>
+#include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
+#include "ac/label.h"
+#include "ac/runtime_defines.h"
 #include "ac/string.h"
 
 extern GameSetupStruct game;
@@ -28,7 +28,7 @@ const char* Label_GetText_New(GUILabel *labl) {
 }
 
 void Label_GetText(GUILabel *labl, char *buffer) {
-    strcpy(buffer, labl->GetText().GetCStr());
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", labl->GetText().GetCStr());
 }
 
 void Label_SetText(GUILabel *labl, const char *newtx) {

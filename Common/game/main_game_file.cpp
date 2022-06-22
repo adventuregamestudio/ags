@@ -91,9 +91,8 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     return "Unknown error.";
 }
 
-LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs)
+LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game)
     : Game(game)
-    , Dialogs(dialogs)
     , SpriteCount(0)
 {
 }
@@ -270,11 +269,9 @@ void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in
 }
 
 // CLNUP remove the old dialogs reading stuff when possible
-void ReadDialogs(DialogTopic *&dialog, Stream *in, GameDataVersion data_ver, int dlg_count)
+void ReadDialogs(std::vector<DialogTopic> &dialog, Stream *in, GameDataVersion data_ver, int dlg_count)
 {
-    // TODO: I suspect +5 was a hacky way to "supress" memory access mistakes;
-    // double check and remove if proved unnecessary
-    dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * dlg_count + 5);
+    dialog.resize(dlg_count);
     for (int i = 0; i < dlg_count; ++i)
     {
         dialog[i].ReadFromFile(in);

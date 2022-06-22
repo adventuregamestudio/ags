@@ -15,6 +15,7 @@
 #define __AGS_EE_MEDIA__AUDIO_H__
 
 #include <array>
+#include <memory>
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
@@ -31,7 +32,7 @@ public:
     // Gets a clip from the channel but only if it's in playback state
     static SOUNDCLIP *GetChannelIfPlaying(int index);
     // Assign new clip to the channel
-    static SOUNDCLIP *SetChannel(int index, SOUNDCLIP *clip);
+    static SOUNDCLIP *SetChannel(int index, std::unique_ptr<SOUNDCLIP> clip);
     // Move clip from one channel to another, clearing the first channel
     static SOUNDCLIP *MoveChannel(int to, int from);
     // Deletes any clip and frees the channel
@@ -107,8 +108,6 @@ int         prepare_for_new_music ();
 ScriptAudioClip *get_audio_clip_for_music(int mnum);
 SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
 void        newmusic(int mnum);
-
-extern volatile bool _audio_doing_crossfade;
 
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);

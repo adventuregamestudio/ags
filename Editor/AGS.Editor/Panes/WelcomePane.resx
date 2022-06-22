@@ -118,18 +118,19 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
-    <value>Some of the new features in AGS 3.5 include:
-* A new Viewport and Camera system that lets you scale and translate your player's view of a room
-* An updated room editor with multilayer editing modes
-* Rooms can now be smaller than the game's resolution
-* An improved sprite importer allows source image reloading from spritesheets
-* Support for packed sprite files which are larger than 2GB in size
-* New script types Dictionary and Set
-* Updated game templates
+    <value>Some of the new features in AGS 3.6 include:
+* Engine backend now uses SDL2
+* Unicode support
+* New game package options
+* Multiple speech voxes
+* New sprite compression options
+* Multiplatform support extended
+* New Room Overlays and Overlays properties
+* Room objects limit increased
 * And loads more!
 </value>
   </data>
   <data name="lnkUpgrading.Text" xml:space="preserve">
-    <value>If you've come from a much older version of AGS (especially from AGS 2.72 and earlier) be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 3.5" page gives insight into most important changes in current version.</value>
+    <value>If you've come from a much older version of AGS (especially from AGS 2.72 and earlier) be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 3.6" page gives insight into most important changes in current version.</value>
   </data>
 </root>

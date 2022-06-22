@@ -27,14 +27,17 @@ Locations of two latter files differ between running platforms:
     * Software - software renderer.
   * software_driver = \[string\] - *optional* id of the SDL2 driver to use for the final output in software mode, leave empty for default. IDs are provided by SDL2, not all of these will work on any system:
     * direct3d, opengl, opengles, opengles2, metal, software.
-  * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
-  * screen_def = \[string\] - determines how display mode is deduced:
-    * explicit - use screen_width and screen_height parameters;
-    * scaling - sets equal to scaled game size;
-    * max - sets equal to device/desktop size.
-  * screen_width = \[integer\] - if screen_def is 'explicit', defines display mode width; otherwise ignored.
-  * screen_height = \[integer\] - if screen_def is 'explicit', defines display mode height; otherwise ignored.
-  * match_device_ratio = \[0; 1\] - when looking for appropriate fullscreen mode, prioritise ones which have same aspect ration as current device/desktop mode.
+  * fullscreen = \[string\] - a fullscreen mode definition, which may be one of the following:
+    * WxH - explicit window size (e.g. `1280x720`);
+    * xS - integer game scaling factor (e.g. `x4`);
+    * desktop - use current system's desktop resolution;
+    * native - use game's native resolution;
+    * full_window - a borderless window covering whole desktop, as opposed to the exclusive fullscreen mode;
+    * default - use engine defaults, which is `full_window`.
+  * window = \[string\] - a windowed mode definition; the options are same as for the `fullscreen`, except for `full_window`, and following differences:
+    * desktop - will try to create largest possible resizing window, while keeping game scaling style (see `game_scale_win`);
+    * default - use engine defaults, which is `desktop`.
+  * windowed = \[0; 1\] - whether to start the game in windowed mode.
   * game_scale_fs = \[string | integer\] - game scaling rule for fullscreen mode, and...
   * game_scale_win = \[string | integer\] - game scaling rule for windowed mode, where
     * any integer number - positive number means upscale multiplier, negative number means downscale divisor;
@@ -87,6 +90,7 @@ Locations of two latter files differ between running platforms:
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
   * clear_cache_on_room_change = \[0; 1\] - whether to clear sprite cache on every room change.
   * load_latest_save = \[0; 1\] - whether to load latest save on game launch.
+  * multitasking = \[0; 1\] - whether the game should continue to run when the window does not have an input focus (does not work in exclusive fullscreen mode).
   * show_fps = \[0; 1\] - whether to display fps counter on screen.
 * **\[log\]** - log options, allow to setup logging to the chosen OUTPUT with given log groups and verbosity levels.
   * \[outputname\] = GROUP[:LEVEL][,GROUP[:LEVEL]][,...];

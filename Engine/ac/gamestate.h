@@ -240,12 +240,12 @@ struct GameState {
     int  complete_overlay_on;
     // Is there a blocking text overlay on screen (contains overlay ID)
     int  text_overlay_on;
-    // Script overlay objects, because we must return same pointers
+    // Script overlay handles, because we must return same script objects
     // whenever user script queries for them.
-    // Blocking speech overlay managed object, for accessing in scripts
-    ScriptOverlay *speech_text_scover;
-    // Speech portrait overlay managed object
-    ScriptOverlay *speech_face_scover;
+    // Blocking speech overlay managed handle
+    int  speech_text_schandle;
+    // Speech portrait overlay managed handle
+    int  speech_face_schandle;
 
     int shake_screen_yoff; // y offset of the shaking screen
 
@@ -385,11 +385,10 @@ private:
     std::vector<PViewport> _roomViewportsSorted;
     // Cameras defines the position of a "looking eye" inside the room.
     std::vector<PCamera> _roomCameras;
-    // Script viewports and cameras are references to real data export to
-    // user script. They became invalidated as the actual object gets
-    // destroyed, but are kept in memory to prevent script errors.
-    std::vector<std::pair<ScriptViewport*, int32_t>> _scViewportRefs;
-    std::vector<std::pair<ScriptCamera*, int32_t>> _scCameraRefs;
+    // We keep handles to the script refs to viewports and cameras, so that we
+    // could address them and invalidate as the actual object gets destroyed.
+    std::vector<int32_t> _scViewportHandles;
+    std::vector<int32_t> _scCameraHandles;
 
     // Tells that the main viewport's position has changed since last game update
     bool  _mainViewportHasChanged;

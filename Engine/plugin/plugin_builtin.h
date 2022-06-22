@@ -23,7 +23,7 @@
 class IAGSEngine;
 
 struct InbuiltPluginDetails {
-    char      filename[PLUGIN_FILENAME_MAX+1];
+    String    filename;
     void      (*engineStartup) (IAGSEngine *);
     void      (*engineShutdown) ();
     int       (*onEvent) (int, int);

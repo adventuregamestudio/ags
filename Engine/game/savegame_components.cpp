@@ -17,7 +17,7 @@
 #include "ac/button.h"
 #include "ac/character.h"
 #include "ac/common.h"
-#include "ac/dialogtopic.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"
@@ -55,7 +55,6 @@ using namespace Common;
 
 extern GameSetupStruct game;
 extern RGB palette[256];
-extern DialogTopic *dialog;
 extern std::vector<ViewStruct> views;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;

@@ -30,7 +30,7 @@ namespace ALSW
 class SDLRendererGfxFilter : public ScalingGfxFilter
 {
 public:
-    virtual const GfxFilterInfo &GetInfo() const;
+    const GfxFilterInfo &GetInfo() const override;
 
     static const GfxFilterInfo FilterInfo;
 };

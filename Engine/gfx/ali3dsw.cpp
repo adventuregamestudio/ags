@@ -586,10 +586,6 @@ void SDLRendererGraphicsDriver::Render()
   Render(0, 0, kFlip_None);
 }
 
-void SDLRendererGraphicsDriver::Vsync()
-{
-}
-
 Bitmap *SDLRendererGraphicsDriver::GetMemoryBackBuffer()
 {
   return virtualScreen;

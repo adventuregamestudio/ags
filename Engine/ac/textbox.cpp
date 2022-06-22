@@ -11,12 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <string.h>
-#include "ac/textbox.h"
-#include "ac/common.h"
+#include <stdio.h>
+#include "ac/common.h" // quit
 #include "ac/gamesetupstruct.h"
+#include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "ac/textbox.h"
 
 extern GameSetupStruct game;
 
@@ -28,7 +28,7 @@ const char* TextBox_GetText_New(GUITextBox *texbox) {
 }
 
 void TextBox_GetText(GUITextBox *texbox, char *buffer) {
-    strcpy(buffer, texbox->Text.GetCStr());
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", texbox->Text.GetCStr());
 }
 
 void TextBox_SetText(GUITextBox *texbox, const char *newtex) {

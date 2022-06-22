@@ -683,32 +683,6 @@ static PACKFILE *pack_fopen_datafile_object(PACKFILE *f, AL_CONST char *objname)
 
 
 
-/* clone_password:
- *  Sets up a local password string for use by this packfile.
- */
-static int clone_password(PACKFILE *f)
-{
-   ASSERT(f);
-   ASSERT(f->is_normal_packfile);
-
-   if (the_password[0]) {
-      if ((f->normal.passdata = _AL_MALLOC_ATOMIC(strlen(the_password)+1)) == NULL) {
-	 *allegro_errno = ENOMEM;
-	 return FALSE;
-      }
-      _al_sane_strncpy(f->normal.passdata, the_password, strlen(the_password)+1);
-      f->normal.passpos = f->normal.passdata;
-   }
-   else {
-      f->normal.passpos = NULL;
-      f->normal.passdata = NULL;
-   }
-
-   return TRUE;
-}
-
-
-
 /* create_packfile:
  *  Helper function for creating a PACKFILE structure.
  */
@@ -740,11 +714,7 @@ static PACKFILE *create_packfile(int is_normal_packfile)
       f->normal.flags = 0;
       f->normal.buf_size = 0;
       f->normal.filename = NULL;
-      f->normal.passdata = NULL;
-      f->normal.passpos = NULL;
       f->normal.parent = NULL;
-      f->normal.pack_data = NULL;
-      f->normal.unpack_data = NULL;
       f->normal.todo = 0;
    }
 
@@ -759,17 +729,6 @@ static PACKFILE *create_packfile(int is_normal_packfile)
 static void free_packfile(PACKFILE *f)
 {
    if (f) {
-      /* These are no longer the responsibility of this function, but
-       * these assertions help catch instances of old code which still
-       * rely on the old behaviour.
-       */
-      if (f->is_normal_packfile) {
-	 ASSERT(!f->normal.pack_data);
-	 ASSERT(!f->normal.unpack_data);
-	 ASSERT(!f->normal.passdata);
-	 ASSERT(!f->normal.passpos);
-      }
-
       _AL_FREE(f);
    }
 }
@@ -799,28 +758,27 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
    while ((c = *(mode++)) != 0) {
       switch (c) {
 	 case 'r': case 'R': f->normal.flags &= ~PACKFILE_FLAG_WRITE; break;
+	 case 'w': case 'W': f->normal.flags |= PACKFILE_FLAG_WRITE; break;
       }
    }
 
-   { 
-      {
+   if (f->normal.flags & PACKFILE_FLAG_WRITE) {
+     /* write a 'real' file */
+     f->normal.hndl = fd;
+     f->normal.todo = 0;
+     errno = 0;
+   }
+   else {
 	 /* read a 'real' file */
 	 f->normal.todo = lseek(fd, 0, SEEK_END);  /* size of the file */
 	 if (f->normal.todo < 0) {
 	    *allegro_errno = errno;
 	    free_packfile(f);
 	    return NULL;
-         }
+     }
 
-         lseek(fd, 0, SEEK_SET);
-
-	 if (!clone_password(f)) {
-            free_packfile(f);
-	    return NULL;
-	 }
-
-         f->normal.hndl = fd;
-      }
+     lseek(fd, 0, SEEK_SET);
+     f->normal.hndl = fd;
    }
 
    return f;
@@ -982,21 +940,6 @@ PACKFILE *pack_fopen_chunk(PACKFILE *f, int pack)
 
       chunk->normal.flags = PACKFILE_FLAG_CHUNK;
       chunk->normal.parent = f;
-
-      if (f->normal.flags & PACKFILE_FLAG_OLD_CRYPT) {
-	 /* backward compatibility mode */
-	 if (f->normal.passdata) {
-	    if ((chunk->normal.passdata = _AL_MALLOC_ATOMIC(strlen(f->normal.passdata)+1)) == NULL) {
-	       *allegro_errno = ENOMEM;
-	       _AL_FREE(chunk);
-	       return NULL;
-	    }
-	    _al_sane_strncpy(chunk->normal.passdata, f->normal.passdata, strlen(f->normal.passdata)+1);
-	    chunk->normal.passpos = chunk->normal.passdata + (long)f->normal.passpos - (long)f->normal.passdata;
-	    f->normal.passpos = f->normal.passdata;
-	 }
-	 chunk->normal.flags |= PACKFILE_FLAG_OLD_CRYPT;
-      }
 
       ASSERT(_packfile_datasize >= 0);
       {
@@ -1294,6 +1237,10 @@ static int normal_fclose(void *_f)
    PACKFILE *f = _f;
    int ret;
 
+   if (f->normal.flags & PACKFILE_FLAG_WRITE) {
+      normal_flush_buffer(f, TRUE);
+   }
+
    if (f->normal.parent) {
       ret = pack_fclose(f->normal.parent);
    }
@@ -1301,12 +1248,6 @@ static int normal_fclose(void *_f)
       ret = close(f->normal.hndl);
       if (ret != 0)
 	 *allegro_errno = errno;
-   }
-
-   if (f->normal.passdata) {
-      _AL_FREE(f->normal.passdata);
-      f->normal.passdata = NULL;
-      f->normal.passpos = NULL;
    }
 
    return ret;
@@ -1422,6 +1363,9 @@ static int normal_fseek(void *_f, int offset)
    PACKFILE *f = _f;
    int i;
 
+   if (f->normal.flags & PACKFILE_FLAG_WRITE)
+      return -1;
+
    *allegro_errno = 0;
 
    /* skip forward through the buffer */
@@ -1438,14 +1382,6 @@ static int normal_fseek(void *_f, int offset)
    if (offset > 0) {
       i = MIN(offset, f->normal.todo);
 
-      if ((f->normal.passpos)) {
-	 /* for compressed or encrypted files, we just have to read through the data */
-	 while (i > 0) {
-	    pack_getc(f);
-	    i--;
-	 }
-      }
-      else {
 	 if (f->normal.parent) {
 	    /* pass the seek request on to the parent file */
 	    pack_fseek(f->normal.parent, i);
@@ -1457,7 +1393,6 @@ static int normal_fseek(void *_f, int offset)
 	 f->normal.todo -= i;
 	 if (normal_no_more_input(f))
 	    f->normal.flags |= PACKFILE_FLAG_EOF;
-      }
    }
 
    if (*allegro_errno)
@@ -1531,14 +1466,6 @@ static int normal_refill_buffer(PACKFILE *f)
          errno = 0;
 	 sz = read(f->normal.hndl, f->normal.buf+done, f->normal.buf_size-done);
       }
-
-      if ((f->normal.passpos) && (!(f->normal.flags & PACKFILE_FLAG_OLD_CRYPT))) {
-	 for (i=0; i<f->normal.buf_size; i++) {
-	    f->normal.buf[i] ^= *(f->normal.passpos++);
-	    if (!*f->normal.passpos)
-	       f->normal.passpos = f->normal.passdata;
-	 }
-      }
    }
 
    f->normal.todo -= f->normal.buf_size;
@@ -1570,13 +1497,6 @@ static int normal_flush_buffer(PACKFILE *f, int last)
 
    if (f->normal.buf_size > 0) {
        {
-	 if ((f->normal.passpos) && (!(f->normal.flags & PACKFILE_FLAG_OLD_CRYPT))) {
-	    for (i=0; i<f->normal.buf_size; i++) {
-	       f->normal.buf[i] ^= *(f->normal.passpos++);
-	       if (!*f->normal.passpos)
-		  f->normal.passpos = f->normal.passdata;
-	    }
-	 }
 
 	 offset = lseek(f->normal.hndl, 0, SEEK_CUR);
 	 done = 0;

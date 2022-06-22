@@ -28,11 +28,11 @@ private:
 public:
 
     NamedPipesAGSDebugger(const char *instanceToken);
-    virtual bool Initialize() override;
-    virtual void Shutdown() override;
-    virtual bool SendMessageToEditor(const char *message) override;
-    virtual bool IsMessageAvailable() override;
-    virtual char* GetNextMessage() override;
+    bool Initialize() override;
+    void Shutdown() override;
+    bool SendMessageToEditor(const char *message) override;
+    bool IsMessageAvailable() override;
+    char* GetNextMessage() override;
 };
 
 #endif // __AC_NAMEDPIPESAGSDEBUGGER_H

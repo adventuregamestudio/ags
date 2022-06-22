@@ -149,7 +149,7 @@ namespace AGS.Editor
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
             this.lblUpgradingInfo.Size = new System.Drawing.Size(298, 28);
             this.lblUpgradingInfo.TabIndex = 2;
-            this.lblUpgradingInfo.Text = "With AGS 3.5 you can have multiple game cameras!";
+            this.lblUpgradingInfo.Text = "With AGS 3.6 you can build your game for Web!";
             // 
             // lnkUpgrading
             // 
@@ -173,7 +173,7 @@ namespace AGS.Editor
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(154, 14);
             this.label5.TabIndex = 0;
-            this.label5.Text = "What\'s new in AGS 3.5?";
+            this.label5.Text = "What\'s new in AGS 3.6?";
             // 
             // pnlTipOfTheDay
             // 

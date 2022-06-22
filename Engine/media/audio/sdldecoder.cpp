@@ -111,7 +111,8 @@ bool SDLDecoder::Open(float pos_ms)
     }
 
     _sample = std::move(sample);
-    _durationMs = Sound_GetDuration(_sample.get());
+    int dur = Sound_GetDuration(_sample.get()); // may return -1 for unknown
+    _durationMs = dur > 0 ? static_cast<uint32_t>(dur) : 0;
     _posBytes = 0u;
     _posMs = 0u;
     if (pos_ms > 0.f) {
@@ -129,7 +130,8 @@ void SDLDecoder::Close()
 
 float SDLDecoder::Seek(float pos_ms)
 {
-    if (!_sample || pos_ms < 0.f) return static_cast<float>(_posMs);
+    if (!_sample || pos_ms < 0.f)
+        return static_cast<float>(_posMs);
     if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) == 0)
         return static_cast<float>(_posMs); // old pos on failure (CHECKME?)
     _posMs = static_cast<uint32_t>(pos_ms);
@@ -140,26 +142,31 @@ float SDLDecoder::Seek(float pos_ms)
 
 SoundBuffer SDLDecoder::GetData()
 {
-    if (!_sample || _EOS) { return SoundBuffer(); }
+    if (!_sample || _EOS)
+        return SoundBuffer();
     uint32_t old_pos = _posMs;
-    auto sz = Sound_Decode(_sample.get());
-    _posBytes += sz;
-    _posMs = SoundHelper::MillisecondsFromBytes(_posBytes,
-        _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
-    // If read less than the buffer size - that means
-    // either we reached end of sound stream OR decoding error occured
-    if (sz < _sample->buffer_size) {
-        _EOS = true;
-        if ((_sample->flags & SOUND_SAMPLEFLAG_ERROR) != 0) {
-            return SoundBuffer();
+    size_t sz = 0;
+    do
+    {
+        sz = Sound_Decode(_sample.get());
+        _posBytes += sz;
+        _posMs = SoundHelper::MillisecondsFromBytes(_posBytes,
+            _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+        // If we reached end of stream, or read less than the buffer size
+        // (in which case it may also be decode error), then finish playing
+        if ((_sample->flags & SOUND_SAMPLEFLAG_EOF) || (sz < _sample->buffer_size))
+        {
+            _EOS = true;
+            if ((_sample->flags & SOUND_SAMPLEFLAG_ERROR) != 0)
+                return SoundBuffer();
+            // if repeat, then seek to start.
+            else if (_repeat) {
+                _EOS = Sound_Rewind(_sample.get()) == 0;
+                _posBytes = 0u;
+                _posMs = 0u;
+            }
         }
-        // if repeat, then seek to start.
-        else if (_repeat) {
-            _EOS = Sound_Rewind(_sample.get()) == 0;
-            _posBytes = 0u;
-            _posMs = 0u;
-        }
-    }
+    } while (!_EOS && (sz == 0));
     return SoundBuffer(_sample->buffer, sz, static_cast<float>(old_pos), static_cast<float>(
         SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
 }

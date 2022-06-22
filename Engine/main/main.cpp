@@ -18,6 +18,7 @@
 
 #include "core/platform.h"
 #include <set>
+#include <stdio.h>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
 #include "ac/gamesetup.h"
@@ -52,7 +53,6 @@ String appPath; // engine exe path
 String appDirectory; // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
-extern GameSetup usetup;
 extern GameState play;
 extern int our_eip;
 extern int editor_debugging_enabled;
@@ -254,7 +254,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         }
         else if ((ags_stricmp(arg,"--enabledebugger") == 0) && (argc > ee + 1))
         {
-            strcpy(editor_debugger_instance_token, argv[ee + 1]);
+            snprintf(editor_debugger_instance_token, sizeof(editor_debugger_instance_token), "%s", argv[ee + 1]);
             editor_debugging_enabled = 1;
             cfg["graphics"]["windowed"] = "1";
             ee++;

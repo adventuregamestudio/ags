@@ -163,6 +163,7 @@ String get_voice_assetpath()
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
+#include "ac/dynobj/cc_dynamicobject.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -172,12 +173,12 @@ extern GameState play;
 
 ScriptOverlay* Speech_GetTextOverlay()
 {
-    return play.speech_text_scover;
+    return (ScriptOverlay*)ccGetObjectAddressFromHandle(play.speech_text_schandle);
 }
 
 ScriptOverlay* Speech_GetPortraitOverlay()
 {
-    return play.speech_face_scover;
+    return (ScriptOverlay*)ccGetObjectAddressFromHandle(play.speech_face_schandle);
 }
 
 RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)

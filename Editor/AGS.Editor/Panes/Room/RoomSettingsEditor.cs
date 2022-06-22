@@ -767,9 +767,11 @@ namespace AGS.Editor
 
 		protected override string OnGetHelpKeyword()
 		{
-            if (_layer == null) return "";
-			return _layer.HelpKeyword;
-		}
+            // CHECKME later: not implemented in the manual
+            //if (_layer != null) 
+			//    return _layer.HelpKeyword;
+            return "Room Editor";
+        }
 
 		private bool DoesThisPanelHaveFocus()
 		{

@@ -11,8 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#include <string.h>
+#include <stdio.h>
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/gamestate.h"
@@ -61,6 +60,6 @@ int IsTranslationAvailable () {
 
 int GetTranslationName (char* buffer) {
     VALIDATE_STRING (buffer);
-    strcpy(buffer, get_translation_name().GetCStr());
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation_name().GetCStr());
     return IsTranslationAvailable();
 }

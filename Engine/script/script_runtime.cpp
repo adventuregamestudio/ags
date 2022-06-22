@@ -33,7 +33,6 @@
 #include "script/systemimports.h"
 #include "script/script_runtime.h"
 
-
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) != UINT32_MAX;
@@ -125,14 +124,12 @@ void *ccGetSymbolAddressForPlugin(const String &name)
 
 new_line_hook_type new_line_hook = nullptr;
 
-char ccRunnerCopyright[] = "ScriptExecuter32 v" SCOM_VERSIONSTR " (c) 2001 Chris Jones";
-int maxWhileLoops = 0;
 
 // If a while loop does this many iterations without the
 // NofityScriptAlive function getting called, the script
 // aborts. Set to 0 to disable.
-void ccSetScriptAliveTimer (int numloop) {
-    maxWhileLoops = numloop;
+void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout) {
+    ccInstance::SetExecTimeout(sys_poll_timeout, abort_timeout);
 }
 
 void ccNotifyScriptStillAlive () {

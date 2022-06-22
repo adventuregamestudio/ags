@@ -54,7 +54,6 @@ extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int our_eip;
-extern GameSetup usetup;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern int proper_exit;
 extern char check_dynamic_sprites_at_exit;
@@ -100,7 +99,11 @@ void quit_shutdown_audio()
     shutdown_sound();
 }
 
-QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
+// Parses the quit message; returns:
+// * QuitReason - which is a code of the reason we're quitting (game error, etc);
+// * errmsg - a pure error message (extracted from the parsed string).
+// * alertis - a complex message to post into the engine output (stdout, log);
+QuitReason quit_check_for_error_state(const char *qmsg, String &errmsg, String &alertis)
 {
     if (qmsg[0]=='|')
     {
@@ -133,9 +136,10 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
         alertis.Append(cc_get_error().CallStack);
 
         if (qreason != kQuit_UserAbort)
-            alertis.Append("\nError: ");
-        else
-            qmsg = "";
+        {
+            alertis.AppendFmt("\nError: %s", qmsg);
+            errmsg = qmsg;
+        }
         return qreason;
     }
     else if (qmsg[0] == '%')
@@ -143,29 +147,18 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
         qmsg++;
         alertis.Format("A warning has been generated. This is not normally fatal, but you have selected "
             "to treat warnings as errors.\n"
-            "(ACI version %s)\n\n%s\n", EngineVersion.LongString.GetCStr(), cc_get_error().CallStack.GetCStr());
+            "(ACI version %s)\n\n%s\n%s", EngineVersion.LongString.GetCStr(), cc_get_error().CallStack.GetCStr(),
+            qmsg);
+        errmsg = qmsg;
         return kQuit_GameWarning;
     }
     else
     {
         alertis.Format("An internal error has occurred. Please note down the following information.\n"
-        "If the problem persists, contact the game author for support or post these details on the AGS Technical Forum.\n"
-        "(ACI version %s)\n"
-        "\nError: ", EngineVersion.LongString.GetCStr());
+            "If the problem persists, contact the game author for support or post these details on the AGS Technical Forum.\n"
+            "(ACI version %s)\n"
+            "\nError: %s", EngineVersion.LongString.GetCStr(), qmsg);
         return kQuit_FatalError;
-    }
-}
-
-void quit_message_on_exit(const String &qmsg, String &alertis, QuitReason qreason)
-{
-    // successful exit displays no messages (because Windoze closes the dos-box
-    // if it is empty).
-    if ((qreason & kQuitKind_NormalExit) == 0 && !handledErrorInEditor)
-    {
-        // Display the message (at this point the window still exists)
-        snprintf(pexbuf, sizeof(pexbuf), "%s\n", qmsg.GetCStr());
-        alertis.Append(pexbuf);
-        platform->DisplayAlert("%s", alertis.GetCStr());
     }
 }
 
@@ -175,7 +168,6 @@ void quit_release_data()
     thisroom.Free();
     play.Free();
     unload_game_file();
-
     AssetMgr.reset();
 }
 
@@ -198,11 +190,12 @@ void allegro_bitmap_test_release()
 // "!|" is a special code used to mean that the player has aborted (Alt+X)
 void quit(const char *quitmsg)
 {
-    String alertis;
-    QuitReason qreason = quit_check_for_error_state(quitmsg, alertis);
-    // Need to copy it in case it's from a plugin (since we're
-    // about to free plugins)
-    String qmsg = quitmsg;
+    Debug::Printf(kDbgMsg_Info, "Quitting the game...");
+
+    // NOTE: we must not use the quitmsg pointer past this step,
+    // as it may be from a plugin and we're about to free plugins
+    String errmsg, fullmsg;
+    QuitReason qreason = quit_check_for_error_state(quitmsg, errmsg, fullmsg);
 
 #if defined (AGS_AUTO_WRITE_USER_CONFIG)
     if (qreason & kQuitKind_NormalExit)
@@ -213,7 +206,7 @@ void quit(const char *quitmsg)
 
     handledErrorInEditor = false;
 
-    quit_tell_editor_debugger(qmsg, qreason);
+    quit_tell_editor_debugger(errmsg, qreason);
 
     our_eip = 9900;
 
@@ -248,9 +241,13 @@ void quit(const char *quitmsg)
 
     engine_shutdown_gfxmode();
 
-    quit_message_on_exit(qmsg, alertis, qreason);
-
     platform->PreBackendExit();
+
+    // On abnormal exit: display the message (at this point the window still exists)
+    if ((qreason & kQuitKind_NormalExit) == 0 && !handledErrorInEditor)
+    {
+        platform->DisplayAlert("%s", fullmsg.GetCStr());
+    }
 
     // release backed library
     // WARNING: no Allegro objects should remain in memory after this,

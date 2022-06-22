@@ -19,6 +19,7 @@
 #include "core/platform.h"
 
 #include <errno.h>
+#include <stdio.h>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h>  // _spawnl
 #endif
@@ -79,9 +80,8 @@ using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
-extern volatile char want_exit, abort_engine;
+extern volatile bool want_exit, abort_engine;
 extern bool justRunSetup;
-extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
@@ -129,10 +129,12 @@ bool engine_init_backend()
     return true;
 }
 
-void winclosehook() {
-  want_exit = 1;
-  abort_engine = 1;
-  check_dynamic_sprites_at_exit = 0;
+void winclosehook()
+{
+    want_exit = true;
+    abort_engine = true;
+    check_dynamic_sprites_at_exit = 0;
+    AbortGame();
 }
 
 void engine_setup_window()
@@ -816,7 +818,7 @@ void engine_init_game_settings()
     play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
     if (play.speech_textwindow_gui == 0)
         play.speech_textwindow_gui = -1;
-    strcpy(play.game_name, game.gamename);
+    snprintf(play.game_name, sizeof(play.game_name), "%s", game.gamename);
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
     for (ee = 0; ee < MAX_ROOM_BGFRAMES; ee++) 
@@ -1287,7 +1289,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Configure game window after renderer was initialized
     engine_setup_window();
 
-    SetMultitasking(0);
+    SetMultitasking(usetup.multitasking);
 
     sys_window_show_cursor(false); // hide the system cursor
 

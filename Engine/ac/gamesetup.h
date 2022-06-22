@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
@@ -47,14 +46,13 @@ enum ScreenRotation
 
 using AGS::Common::String;
 
-// TODO: reconsider the purpose of this struct.
-// Earlier I was trying to remove the uses of this struct from the engine
-// and restrict it to only config/init stage, while applying its values to
-// respective game/engine subcomponents at init stage.
-// However, it did not work well at all times, and consequently I thought
-// that engine may use a "config" object or combo of objects to store
-// current user config, which may also be changed from script, and saved.
-struct GameSetup {
+// TODO: reconsider the purpose of this struct in the future.
+// Currently it's been used as both initial storage for config options
+// before they are used to initialize engine, and as persistent storage
+// for options that may be changed at runtime (and later written back
+// to the config file).
+struct GameSetup
+{
     bool  audio_enabled;
     String audio_driver;
     int   textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
@@ -77,9 +75,6 @@ struct GameSetup {
     String shared_data_dir; // directory to write shared game files to
     String translation;
     bool  mouse_auto_lock;
-    int   override_script_os;
-    char  override_multitasking;
-    bool  override_upscale;
     float mouse_speed;
     MouseControlWhen mouse_ctrl_when;
     bool  mouse_ctrl_enabled;
@@ -93,10 +88,15 @@ struct GameSetup {
     bool  load_latest_save; // load latest saved game on launch
     ScreenRotation rotation;
     bool  show_fps;
+    bool  multitasking = false; // whether run on background, when game is switched out
 
     DisplayModeSetup Screen;
     String software_render_driver;
 
+    // User's overrides and hacks
+    int   override_script_os; // pretend engine is running on this eScriptSystemOSID
+    char  override_multitasking; // -1 for none, 0 or 1 to lock in the on/off mode
+    bool  override_upscale; // whether upscale old games that supported that
     // Optional keys for calling built-in save/restore dialogs;
     // primarily meant for the test runs of the games where save functionality
     // is not implemented (or does not work correctly).

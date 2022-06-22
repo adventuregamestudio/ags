@@ -11,8 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <algorithm>
+#include <stdio.h>
 #include <string.h>
 #include "ac/wordsdictionary.h"
 #include "util/stream.h"
@@ -67,13 +67,12 @@ void WordsDictionary::sort () {
             if (((wordnum[aa] == wordnum[bb]) && (ags_stricmp(word[aa], word[bb]) > 0))
                 || (wordnum[aa] > wordnum[bb])) {
                     short temp = wordnum[aa];
-                    char tempst[30];
-
+                    char tempst[MAX_PARSER_WORD_LENGTH];
                     wordnum[aa] = wordnum[bb];
                     wordnum[bb] = temp;
-                    strcpy(tempst, word[aa]);
-                    strcpy(word[aa], word[bb]);
-                    strcpy(word[bb], tempst);
+                    snprintf(tempst, MAX_PARSER_WORD_LENGTH, "%s", word[aa]);
+                    snprintf(word[aa], MAX_PARSER_WORD_LENGTH, "%s", word[bb]);
+                    snprintf(word[bb], MAX_PARSER_WORD_LENGTH, "%s", tempst);
                     bb = aa;
             }
         }

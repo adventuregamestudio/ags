@@ -75,7 +75,7 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, st
     
     // Fixup character's view when possible
     if (view >= 0 &&
-        (loop >= views[view].numLoops || frame >= views[view].loops[loop].numFrames))
+        (loop >= views[view].numLoops || views[view].loops[loop].numFrames == 0))
     {
         for (loop = 0;
             (loop < views[view].numLoops) && (views[view].loops[loop].numFrames == 0);

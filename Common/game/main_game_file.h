@@ -114,7 +114,7 @@ struct LoadedGameEntities
 {
     GameSetupStruct        &Game;
     std::vector<CharDataEx> CharEx;
-    DialogTopic           *&Dialogs;
+    std::vector<DialogTopic> Dialogs;
     std::vector<ViewStruct> Views;
     PScript                 GlobalScript;
     PScript                 DialogScript;
@@ -125,7 +125,7 @@ struct LoadedGameEntities
     size_t                  SpriteCount;
     std::unique_ptr<char[]> SpriteFlags;
 
-    LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs);
+    LoadedGameEntities(GameSetupStruct &game);
     ~LoadedGameEntities();
 };
 

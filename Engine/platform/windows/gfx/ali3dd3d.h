@@ -224,8 +224,8 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, GlobalFlipType flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
-    void EnableVsyncBeforeRender(bool /*enabled*/) override { }
-    void Vsync() override;
+    bool DoesSupportVsyncToggle() override { return false; }
+    bool SetVsync(bool /*enabled*/) override { return _mode.Vsync; /* TODO: support toggling */ }
     void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
@@ -243,10 +243,6 @@ public:
     void UnInit();
     void SetGraphicsFilter(PD3DFilter filter);
 
-    // Internal; TODO: find a way to hide these
-    int _initDLLCallback(const DisplayMode &mode);
-    int _resetDeviceIfNecessary();
-
     D3DGraphicsDriver(IDirect3D9 *d3d);
     ~D3DGraphicsDriver() override;
 
@@ -263,7 +259,6 @@ private:
     IDirect3DSurface9 *pNativeSurface;
     IDirect3DTexture9 *pNativeTexture;
     RECT viewport_rect;
-    UINT availableVideoMemory;
     CUSTOMVERTEX defaultVertices[4];
     String previousError;
     IDirect3DPixelShader9* pixelShader;
@@ -289,10 +284,12 @@ private:
     void OnModeSet(const DisplayMode &mode) override;
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
     void ResetAllBatches() override;
+    bool CreateDisplayMode(const DisplayMode &mode);
     // Called when the direct3d device is created for the first time
-    int  FirstTimeInit();
-    void initD3DDLL(const DisplayMode &mode);
+    bool FirstTimeInit();
     void InitializeD3DState();
+    // Resets
+    void ResetDeviceIfNecessary();
     void SetupViewport();
     HRESULT ResetD3DDevice();
     // Unset parameters and release resources related to the display mode

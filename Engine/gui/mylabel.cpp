@@ -23,8 +23,6 @@
 
 using namespace Common;
 
-extern GameSetup usetup;
-
 extern int acdialog_font;
 
 MyLabel::MyLabel(int xx, int yy, int wii, const char *tee)

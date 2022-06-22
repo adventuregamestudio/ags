@@ -38,7 +38,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Cursors";
+            return "Cursor Editor";
         }
         
         public void SaveData()

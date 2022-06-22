@@ -54,7 +54,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-extern GameSetup usetup;
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
@@ -425,13 +424,13 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
             macroname[idd]=0; 
             tempo[0]=0;
             if (ags_stricmp(macroname,"score")==0)
-                sprintf(tempo,"%d",play.score);
+                snprintf(tempo, sizeof(tempo), "%d",play.score);
             else if (ags_stricmp(macroname,"totalscore")==0)
-                sprintf(tempo,"%d",MAXSCORE);
+                snprintf(tempo, sizeof(tempo), "%d",MAXSCORE);
             else if (ags_stricmp(macroname,"scoretext")==0)
-                sprintf(tempo,"%d of %d",play.score,MAXSCORE);
+                snprintf(tempo, sizeof(tempo), "%d of %d",play.score,MAXSCORE);
             else if (ags_stricmp(macroname,"gamename")==0)
-                strcpy(tempo, play.game_name);
+                snprintf(tempo, sizeof(tempo), "%s", play.game_name);
             else if (ags_stricmp(macroname,"overhotspot")==0) {
                 // While game is in Wait mode, no overhotspot text
                 if (!IsInterfaceEnabled())
@@ -441,7 +440,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
             }
             else { // not a macro, there's just a @ in the message
                 curptr = curptrWasAt + 1;
-                strcpy(tempo, "@");
+                snprintf(tempo, sizeof(tempo), "%s", "@");
             }
 
             fixed_text.Append(tempo);

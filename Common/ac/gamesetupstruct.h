@@ -41,7 +41,6 @@ namespace AGS
 //using AGS::Common::Interaction;// CLNUP stuff for old interactions
 using AGS::Common::PInteractionScripts;
 using AGS::Common::HGameFileError;
-struct OldGameSetupStruct;
 
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object

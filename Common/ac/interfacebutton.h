@@ -11,9 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_INTERFACEBUTTON_H
 #define __AC_INTERFACEBUTTON_H
+
+#if defined (OBSOLETE)
 
 #define MAXBUTTON       20
 #define IBFLG_ENABLED   1
@@ -25,5 +26,7 @@ struct InterfaceButton {
     char flags;
     void set(int xx, int yy, int picc, int overpicc, int actionn);
 };
+
+#endif // OBSOLETE
 
 #endif // __AC_INTERFACEBUTTON_H

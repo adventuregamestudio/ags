@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include <stdio.h>
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_gui.h"
@@ -85,7 +85,7 @@ int GetInvAt(int atx, int aty) {
 void GetInvName(int indx,char*buff) {
   VALIDATE_STRING(buff);
   if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvName: invalid inventory item specified");
-  strcpy(buff,get_translation(game.invinfo[indx].name));
+  snprintf(buff, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[indx].name));
 }
 
 int GetInvGraphic(int indx) {

@@ -8,9 +8,6 @@
     <Filter Include="Source Files\script">
       <UniqueIdentifier>{2a4b050e-3edd-404e-b601-cdd0be0d6b2e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\cs">
-      <UniqueIdentifier>{ddc4a312-ba4a-464b-af33-6480458667c6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>

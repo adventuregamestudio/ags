@@ -122,6 +122,10 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->WriteInt8(on);
 }
 
+#if defined (OBSOLETE)
+#include <stdio.h>
+#define COPY_CHAR_VAR(name) ci->name = oci->name
+
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {
     COPY_CHAR_VAR (defview);
     COPY_CHAR_VAR (talkview);
@@ -149,10 +153,11 @@ void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {
     COPY_CHAR_VAR (actx__);
     COPY_CHAR_VAR (acty__);
     COPY_CHAR_VAR (on);
-    strcpy (ci->name, oci->name);
-    strcpy (ci->scrname, oci->scrname);
+    snprintf(ci->name, sizeof(CharacterInfo::name), "%s", oci->name);
+    snprintf(ci->scrname, sizeof(CharacterInfo::scrname), "%s", oci->scrname);
     memcpy (&ci->inv[0], &oci->inv[0], sizeof(short) * 100);
     // move the talking colour into the struct and remove from flags
     ci->talkcolor = (oci->flags & OCHF_SPEECHCOL) >> OCHF_SPEECHCOLSHIFT;
     ci->flags = ci->flags & (~OCHF_SPEECHCOL);
 }
+#endif // OBSOLETE

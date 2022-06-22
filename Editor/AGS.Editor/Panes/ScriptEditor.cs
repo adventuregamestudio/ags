@@ -639,7 +639,10 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return scintilla.GetFullTypeNameAtCursor();
+            var keyword = scintilla.GetFullTypeNameAtCursor();
+            if (string.IsNullOrEmpty(keyword))
+                return "Scripting Language";
+            return keyword;
         }
 
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)

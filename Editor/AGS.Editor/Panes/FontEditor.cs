@@ -46,7 +46,7 @@ namespace AGS.Editor
 
         protected override string OnGetHelpKeyword()
         {
-            return "Fonts";
+            return "Font Preview";
         }
 
         private void PaintFont()

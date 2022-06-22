@@ -48,6 +48,9 @@
     <ClCompile Include="..\..\Common\util\string_compat.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Compiler\test\cc_test_helper.h">

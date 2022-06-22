@@ -196,8 +196,12 @@ public:
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }
-    void EnableVsyncBeforeRender(bool /*enabled*/) override { }
-    void Vsync() override;
+    bool DoesSupportVsyncToggle() override { return false; }
+    bool SetVsync(bool /*enabled*/) override
+    {
+        /* TODO: support toggling; need SDL_RenderSetVSync() from SDL 2.0.18 */
+        return _mode.Vsync;
+    }
     void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }

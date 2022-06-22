@@ -40,7 +40,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameSetup usetup;
 extern GameState play;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptSystem scsystem;
@@ -130,7 +129,7 @@ int System_GetVsync() {
 }
 
 void System_SetVsync(int newValue) {
-    if(ags_stricmp(gfxDriver->GetDriverID(), "D3D9") != 0)
+    if (gfxDriver->DoesSupportVsyncToggle())
         scsystem.vsync = newValue;
 }
 

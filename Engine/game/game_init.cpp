@@ -461,6 +461,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     init_game_drawdata();
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
+    dialog = std::move(ents.Dialogs);
     // Set number of game channels corresponding to the loaded game version
     if (loaded_game_file_version < kGameVersion_360)
     {
@@ -511,7 +512,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // NOTE: we must do this before plugin start, because some plugins may
     // require access to script API at initialization time.
     //
-    ccSetScriptAliveTimer(150000);
+    ccSetScriptAliveTimer(10u, 1000u);
     ccSetStringClassImpl(&myScriptStringImpl);
     setup_script_exports(base_api, compat_api);
 

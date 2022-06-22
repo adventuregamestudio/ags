@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <algorithm>
+#include <stdio.h>
 #include "ac/global_object.h"
 #include "ac/common.h"
 #include "ac/object.h"
@@ -401,7 +402,7 @@ void GetObjectName(int obj, char *buffer) {
     if (!is_valid_object(obj))
         quit("!GetObjectName: invalid object number");
 
-    strcpy(buffer, get_translation(croom->obj[obj].name.GetCStr()));
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", get_translation(croom->obj[obj].name.GetCStr()));
 }
 
 void MoveObject(int objj,int xx,int yy,int spp) {

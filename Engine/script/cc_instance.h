@@ -15,13 +15,13 @@
 // 'C'-style script interpreter
 //
 //=============================================================================
-
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
 #include <memory>
 #include <unordered_map>
 
+#include "ac/timer.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
 #include "script/nonblockingscriptfunction.h"
@@ -150,6 +150,7 @@ public:
     // create a runnable instance of the supplied script
     static ccInstance *CreateFromScript(PScript script);
     static ccInstance *CreateEx(PScript scri, ccInstance * joined);
+    static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms);
 
     ccInstance();
     ~ccInstance();
@@ -182,7 +183,7 @@ public:
     // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
     bool    ResolveImportFixups(const ccScript *scri);
 
-protected:    
+private:
     bool    _Create(PScript scri, ccInstance * joined);
     // free the memory associated with the instance
     void    Free();
@@ -219,6 +220,15 @@ protected:
     // Function call stack processing
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
+
+    // Minimal timeout: how much time may pass without any engine update
+    // before we want to check on the situation and do system poll
+    static unsigned _timeoutCheckMs;
+    // Critical timeout: how much time may pass without any engine update
+    // before we abort or post a warning
+    static unsigned _timeoutAbortMs;
+    // Last time the script was noted of being "alive"
+    AGS_Clock::time_point _lastAliveTs;
 };
 
 #endif // __CC_INSTANCE_H

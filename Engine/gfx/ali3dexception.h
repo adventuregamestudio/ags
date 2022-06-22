@@ -15,9 +15,10 @@
 // Graphics driver exception class
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__ALI3DEXCEPTION_H
 #define __AGS_EE_GFX__ALI3DEXCEPTION_H
+
+#include "util/string.h"
 
 namespace AGS
 {
@@ -27,18 +28,18 @@ namespace Engine
 class Ali3DException
 {
 public:
-    Ali3DException(const char *message)
+    Ali3DException(const AGS::Common::String &message)
+        : Message(message)
     {
-        _message = message;
     }
 
-    const char *_message;
+    const AGS::Common::String Message;
 };
 
 class Ali3DFullscreenLostException : public Ali3DException
 {
 public:
-    Ali3DFullscreenLostException() : Ali3DException("User has switched away from application")
+    Ali3DFullscreenLostException() : Ali3DException("Direct3D device is lost")
     {
     }
 };

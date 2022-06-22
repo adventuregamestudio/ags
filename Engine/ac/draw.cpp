@@ -66,7 +66,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
 extern ScriptSystem scsystem;
@@ -409,7 +408,7 @@ void create_blank_image(int coldepth)
     }
     catch (Ali3DException gfxException)
     {
-        quit((char*)gfxException._message);
+        quit(gfxException.Message.GetCStr());
     }
 }
 
@@ -797,6 +796,9 @@ void render_black_borders()
 }
 
 
+extern volatile bool game_update_suspend;
+extern volatile bool want_exit, abort_engine;
+
 void render_to_screen()
 {
     // Stage: final plugin callback (still drawn on game screen
@@ -810,10 +812,10 @@ void render_to_screen()
     construct_engine_overlay();
 
     // only vsync in full screen mode, it makes things worse in a window
-    gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!scsystem.windowed));
+    gfxDriver->SetVsync((scsystem.vsync > 0) && (!scsystem.windowed));
 
     bool succeeded = false;
-    while (!succeeded)
+    while (!succeeded && !want_exit && !abort_engine)
     {
         try
         {
@@ -822,12 +824,16 @@ void render_to_screen()
             if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
                 gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
             gfxDriver->Render(0, play.shake_screen_yoff, (GlobalFlipType)play.screen_flipped);
-
             succeeded = true;
         }
-        catch (Ali3DFullscreenLostException) 
-        { 
-            platform->Delay(500);
+        catch (Ali3DFullscreenLostException e) 
+        {
+            Debug::Printf("Renderer exception: %s", e.Message.GetCStr());
+            while (game_update_suspend && (!want_exit) && (!abort_engine))
+            {
+                sys_evt_process_pending();
+                platform->Delay(300);
+            }
         }
     }
 }

@@ -149,11 +149,6 @@ void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
     _mode.Height = device_screen_physical_height;
 }
 
-void OGLGraphicsDriver::Vsync()
-{
-  // do nothing on OpenGL
-}
-
 void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
 {
   if (_can_render_to_texture)
@@ -774,8 +769,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != SDL_GetError())
-      SDL_SetError("%s", exception._message);
+    SDL_SetError("%s", exception.Message.GetCStr());
     return false;
   }
 

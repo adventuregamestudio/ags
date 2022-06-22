@@ -50,7 +50,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
@@ -71,28 +70,28 @@ struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
   ~AGSWin32();
 
-  virtual void DisplayAlert(const char*, ...) override;
-  virtual void AttachToParentConsole();
-  virtual int  GetLastSystemError() override;
-  virtual FSLocation GetAllUsersDataDirectory() override;
-  virtual FSLocation GetUserSavedgamesDirectory() override;
-  virtual FSLocation GetUserConfigDirectory() override;
-  virtual FSLocation GetUserGlobalConfigDirectory() override;
-  virtual FSLocation GetAppOutputDirectory() override;
-  virtual const char *GetIllegalFileChars() override;
-  virtual const char *GetGraphicsTroubleshootingText() override;
-  virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual const char* GetBackendFailUserHint() override;
-  virtual eScriptSystemOSID GetSystemOSID() override;
-  virtual void PostBackendInit();
-  virtual void PostBackendExit();
-  virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out) override;
-  virtual void WriteStdOut(const char *fmt, ...) override;
-  virtual void WriteStdErr(const char *fmt, ...) override;
-  virtual void PauseApplication() override;
-  virtual void ResumeApplication() override;
-  virtual void ValidateWindowSize(int &x, int &y, bool borderless) const override;
-  virtual SDL_Surface *CreateWindowIcon();
+  void AttachToParentConsole() override;
+  void DisplayAlert(const char*, ...) override;
+  int  GetLastSystemError() override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetUserConfigDirectory() override;
+  FSLocation GetUserGlobalConfigDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
+  const char *GetIllegalFileChars() override;
+  const char *GetGraphicsTroubleshootingText() override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  const char* GetBackendFailUserHint() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  void PostBackendInit() override;
+  void PostBackendExit() override;
+  SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out) override;
+  void WriteStdOut(const char *fmt, ...) override;
+  void WriteStdErr(const char *fmt, ...) override;
+  void PauseApplication() override;
+  void ResumeApplication() override;
+  void ValidateWindowSize(int &x, int &y, bool borderless) const override;
+  SDL_Surface *CreateWindowIcon() override;
 
   // Returns command line argument in a UTF-8 format
   String GetCommandArg(size_t arg_index) override;

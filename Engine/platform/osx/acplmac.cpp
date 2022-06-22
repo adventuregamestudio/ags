@@ -40,15 +40,15 @@ static FSLocation commonDataPath;
 struct AGSMac : AGSPlatformDriver
 {
   AGSMac();
-  virtual void DisplayAlert(const char*, ...) override;
-  virtual unsigned long GetDiskFreeSpaceMB() override;
-  virtual eScriptSystemOSID GetSystemOSID() override;
-    
-  virtual FSLocation GetUserSavedgamesDirectory() override;
-  virtual FSLocation GetAllUsersDataDirectory() override;
-  virtual FSLocation GetUserConfigDirectory() override;
-  virtual FSLocation GetAppOutputDirectory() override;
-  virtual const char *GetIllegalFileChars() override;
+  void DisplayAlert(const char*, ...) override;
+  unsigned long GetDiskFreeSpaceMB() override;
+  eScriptSystemOSID GetSystemOSID() override;
+  
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserConfigDirectory() override;
+  FSLocation GetAppOutputDirectory() override;
+  const char *GetIllegalFileChars() override;
 };
 
 AGSMac::AGSMac()

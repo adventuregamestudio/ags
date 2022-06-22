@@ -482,6 +482,8 @@ namespace AGS.Editor
             {
                 menu.Items.Add(new ToolStripMenuItem("Navigate (In Tree)", null, onClick, MENU_ITEM_NAVIGATE));
             }
+            menu.Items.Add(new ToolStripMenuItem("Help", GUIController.Instance.ImageList.Images["MenuIconDynamicHelp"],
+                new EventHandler(TreeContextMenuOnHelp), Keys.F1));
             document.Control.DockingContainer.TabPageContextMenuStrip = menu;
         }
 
@@ -510,8 +512,14 @@ namespace AGS.Editor
             else if (item.Name == MENU_ITEM_NAVIGATE)
             {
                 Factory.GUIController.ProjectTree.SelectNode(null, document.TreeNodeID);
- 
             }
+        }
+
+        private void TreeContextMenuOnHelp(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            ContentDocument document = (ContentDocument)item.Owner.Tag;
+            Factory.GUIController.LaunchHelpForKeyword(document.Control.HelpKeyword);
         }
 
         private void btnClose_Click(object sender, EventArgs e)

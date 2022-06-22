@@ -12,12 +12,13 @@
 //
 //=============================================================================
 #include "ac/game.h"
+#include <stdio.h>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
 #include "ac/button.h"
 #include "ac/character.h"
-#include "ac/dialogtopic.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
@@ -75,8 +76,6 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
-extern DialogTopic *dialog;
-
 extern int obj_lowest_yp, char_lowest_yp;
 
 extern RGB palette[256];
@@ -94,7 +93,7 @@ RoomStruct thisroom;
 volatile int switching_away_from_game = 0;
 volatile bool switched_away = false;
 volatile bool game_update_suspend = false;
-volatile char want_exit = 0, abort_engine = 0;
+volatile bool want_exit = false, abort_engine = false;
 GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 Version game_compiled_version;
 int frames_per_second=40;
@@ -461,7 +460,6 @@ void free_do_once_tokens()
 
 
 // Free all the memory associated with the game
-// TODO: call this when exiting the game (currently only called in RunAGSGame)
 void unload_game_file()
 {
     close_translation();
@@ -477,19 +475,10 @@ void unload_game_file()
     delete gameinst;
     gameinstFork = nullptr;
     gameinst = nullptr;
-
     gamescript.reset();
 
-    if ((dialogScriptsInst != nullptr) && (dialogScriptsInst->pc != 0))
-    {
-        quit("Error: unload_game called while dialog script still running");
-    }
-    else if (dialogScriptsInst != nullptr)
-    {
-        delete dialogScriptsInst;
-        dialogScriptsInst = nullptr;
-    }
-
+    delete dialogScriptsInst;
+    dialogScriptsInst = nullptr;
     dialogScriptsScript.reset();
 
     for (size_t i = 0; i < numScriptModules; ++i)
@@ -528,14 +517,12 @@ void unload_game_file()
         curLipLine = -1;
     }
 
-    for (int i = 0; i < game.numdialog; ++i)
+    for (auto &dlg : dialog)
     {
-        if (dialog[i].optionscripts != nullptr)
-            free(dialog[i].optionscripts);
-        dialog[i].optionscripts = nullptr;
+        if (dlg.optionscripts != nullptr)
+            free(dlg.optionscripts);
     }
-    free(dialog);
-    dialog = nullptr;
+    dialog.clear();
     delete[] scrDialog;
     scrDialog = nullptr;
 
@@ -791,6 +778,7 @@ int Game_ChangeTranslation(const char *newFilename)
     { // switch back to default translation
         close_translation();
         usetup.translation = "";
+        GUI::MarkForTranslationUpdate();
         return 1;
     }
 
@@ -799,6 +787,7 @@ int Game_ChangeTranslation(const char *newFilename)
         return 0; // failed, kept previous translation
 
     usetup.translation = newFilename;
+    GUI::MarkForTranslationUpdate();
     return 1;
 }
 
@@ -945,7 +934,8 @@ void save_game(int slotn, const char*descript) {
     can_run_delayed_command();
 
     if (inside_script) {
-        strcpy(curscript->postScriptSaveSlotDescription[curscript->queue_action(ePSASaveGame, slotn, "SaveGameSlot")], descript);
+        snprintf(curscript->postScriptSaveSlotDescription[curscript->queue_action(ePSASaveGame, slotn, "SaveGameSlot")],
+            MAX_QUEUED_ACTION_DESC, "%s", descript);
         return;
     }
 
@@ -1280,6 +1270,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 // Called whenever game looses input focus
 void display_switch_out()
 {
+    Debug::Printf("Switching out from the game");
     switched_away = true;
     ags_clear_input_state();
     // Always unlock mouse when switching out from the game
@@ -1289,6 +1280,7 @@ void display_switch_out()
 // Called when game looses input focus and must pause until focus is returned
 void display_switch_out_suspend()
 {
+    Debug::Printf("Suspending the game on switch out");
     switching_away_from_game++;
     game_update_suspend = true;
     display_switch_out();
@@ -1306,15 +1298,13 @@ void display_switch_out_suspend()
         }
     }
 
-    // restore the callbacks
-    SetMultitasking(0);
-
     switching_away_from_game--;
 }
 
 // Called whenever game gets input focus
 void display_switch_in()
 {
+    Debug::Printf("Switching back into the game");
     ags_clear_input_state();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
@@ -1325,6 +1315,7 @@ void display_switch_in()
 // Called when game gets input focus and must resume after pause
 void display_switch_in_resume()
 {
+    Debug::Printf("Resuming the game on switch in");
     display_switch_in();
 
     // Resume all the sounds
@@ -1376,7 +1367,7 @@ void replace_tokens(const char*srcmes,char*destm, int maxlen) {
                     quit("!Display: invalid global int index speicifed in @GI@");
                 snprintf(tval,sizeof(tval),"%d",GetGlobalInt(inx));
             }
-            strcpy(destp,tval);
+            snprintf(destp, maxlen, "%s", tval);
             indxdest+=strlen(tval);
         }
         else {

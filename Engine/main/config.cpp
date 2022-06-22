@@ -40,7 +40,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameSetup usetup;
 extern SpriteCache spriteset;
 extern GameState play;
 
@@ -274,7 +273,7 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
             break;
         case kScreenDef_ByGameScaling:
             {
-                int src_scale;
+                int src_scale = 0;
                 is_windowed ?
                     parse_legacy_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), src_scale) :
                     parse_legacy_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), src_scale);
@@ -299,15 +298,18 @@ void override_config_ext(ConfigTree &cfg)
 
 void apply_config(const ConfigTree &cfg)
 {
+    // Legacy graphics settings has to be translated into new options;
+    // they must be read first, to let newer options override them, if ones are present
+    read_legacy_graphics_config(cfg);
+
     {
+        // Audio options
         usetup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", usetup.audio_enabled);
         usetup.audio_driver = CfgReadString(cfg, "sound", "driver");
+        // This option is backwards (usevox is 0 if no_speech_pack)
+        usetup.no_speech_pack = !CfgReadBoolInt(cfg, "sound", "usespeech", true);
 
-        // Legacy graphics settings has to be translated into new options;
-        // they must be read first, to let newer options override them, if ones are present
-        read_legacy_graphics_config(cfg);
-
-        // Graphics mode
+        // Graphics mode and options
         usetup.Screen.DriverID = CfgReadString(cfg, "graphics", "driver", usetup.Screen.DriverID);
         usetup.Screen.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", usetup.Screen.Windowed);
         usetup.Screen.FsSetup =
@@ -315,16 +317,11 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.WinSetup =
             parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true, usetup.Screen.WinSetup);
 
-        // TODO: move to config overrides (replace values during config load)
-#if AGS_PLATFORM_OS_MACOS
-        usetup.Screen.Filter.ID = "none";
-#else
         usetup.Screen.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
         usetup.Screen.FsGameFrame =
             parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Screen.FsGameFrame);
         usetup.Screen.WinGameFrame =
             parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win", "round"), usetup.Screen.WinGameFrame);
-#endif
 
         usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "graphics", "refresh");
         usetup.Screen.Params.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
@@ -340,17 +337,17 @@ void apply_config(const ConfigTree &cfg)
 
         usetup.enable_antialiasing = CfgReadBoolInt(cfg, "misc", "antialias");
 
-        // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = !CfgReadBoolInt(cfg, "sound", "usespeech", true);
-
-        usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
+        // Custom paths
         usetup.load_latest_save = CfgReadBoolInt(cfg, "misc", "load_latest_save", usetup.load_latest_save);
         usetup.user_data_dir = CfgReadString(cfg, "misc", "user_data_dir");
         usetup.shared_data_dir = CfgReadString(cfg, "misc", "shared_data_dir");
         usetup.show_fps = CfgReadBoolInt(cfg, "misc", "show_fps");
 
+        // Translation / localization
         usetup.translation = CfgReadString(cfg, "language", "translation");
 
+        // Resource caches and options
+        usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
         int size_kb = CfgReadInt(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
         if (size_kb > 0)
             usetup.SpriteCacheSize = size_kb * 1024;
@@ -361,8 +358,8 @@ void apply_config(const ConfigTree &cfg)
         if (size_kb > 0)
             usetup.SoundLoadAtOnceSize = size_kb * 1024;
 
+        // Mouse options
         usetup.mouse_auto_lock = CfgReadBoolInt(cfg, "mouse", "auto_lock");
-
         usetup.mouse_speed = CfgReadFloat(cfg, "mouse", "speed", 1.f);
         if (usetup.mouse_speed <= 0.f)
             usetup.mouse_speed = 1.f;
@@ -375,6 +372,10 @@ void apply_config(const ConfigTree &cfg)
         usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
+        // Various system options
+        usetup.multitasking = CfgReadInt(cfg, "misc", "multitasking", 0) != 0;
+
+        // User's overrides and hacks
         usetup.override_multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
         String override_os = CfgReadString(cfg, "override", "os");
         usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,

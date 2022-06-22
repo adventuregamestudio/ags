@@ -115,6 +115,7 @@ struct CharacterInfo {
 };
 
 
+#if defined (OBSOLETE)
 struct OldCharacterInfo {
     int   defview;
     int   talkview;
@@ -139,7 +140,7 @@ struct OldCharacterInfo {
     char  on;
 };
 
-#define COPY_CHAR_VAR(name) ci->name = oci->name
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci);
+#endif // OBSOLETE
 
 #endif // __AC_CHARACTERINFO_H

@@ -62,8 +62,8 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 
 struct AGSIOS : AGSPlatformDriver
 {
-  virtual const char *GetGameDataFile();
-  virtual void ReadConfiguration(ConfigTree &cfg);
+  void ReadConfiguration(ConfigTree &cfg) override;
+  int  CDPlayerCommand(int cmdd, int datt) override;
   void DisplayAlert(const char*, ...) override;
   FSLocation GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;

@@ -474,8 +474,8 @@ private:
     {
         VDispModes Modes;
 
-        virtual int  GetModeCount() const;
-        virtual bool GetMode(int index, DisplayMode &mode) const;
+        int  GetModeCount() const override;
+        bool GetMode(int index, DisplayMode &mode) const override;
     };
 
     typedef std::vector<GfxFilterInfo> VFilters;

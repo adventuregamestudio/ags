@@ -66,10 +66,11 @@ typedef void (*new_line_hook_type) (ccInstance *, int);
 extern void ccSetDebugHook(new_line_hook_type jibble);
 #endif
 
-// Set the script interpreter timeout values, in milliseconds:
-// * sys_poll_timeout - defines the timeout at which the interpreter will run system events poll;
-// * abort_timeout - defines the timeout at which the interpreter will cancel with error.
-extern void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout);
+// Set the script interpreter timeout values:
+// * sys_poll_timeout - defines the timeout (ms) at which the interpreter will run system events poll;
+// * abort_timeout - [temp disabled] defines the timeout (ms) at which the interpreter will cancel with error.
+// * abort_loops - max script loops without an engine update after which the interpreter will error;
+extern void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout, unsigned abort_loops);
 // reset the current while loop counter
 extern void ccNotifyScriptStillAlive();
 // for calling exported plugin functions old-style

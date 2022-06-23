@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GFX__GFXDEFINES_H
 #define __AGS_EE_GFX__GFXDEFINES_H
 
@@ -22,15 +21,6 @@ namespace AGS
 {
 namespace Engine
 {
-
-// TODO: find the way to merge this with sprite batch transform
-enum GlobalFlipType
-{
-    kFlip_None,
-    kFlip_Horizontal, // this means - mirror over horizontal middle line
-    kFlip_Vertical,   // this means - mirror over vertical middle line
-    kFlip_Both
-};
 
 // GraphicResolution struct determines image size and color depth
 struct GraphicResolution : Size

@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <vector>
 #include "gfx/ddb.h"
+#include "gfx/gfx_def.h"
 #include "gfx/graphicsdriver.h"
 #include "util/scaling.h"
 
@@ -45,13 +46,13 @@ struct SpriteBatchDesc
     // Global node offset applied to the whole batch as the last transform
     Point                    Offset;
     // Global node flip applied to the whole batch as the last transform
-    GlobalFlipType           Flip = kFlip_None;
+    Common::GraphicFlip      Flip = Common::kFlip_None;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     PBitmap                  Surface;
 
     SpriteBatchDesc() = default;
     SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform, const Point offset = Point(),
-            GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr)
+        Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
@@ -100,7 +101,7 @@ public:
     Rect        GetRenderDestination() const override;
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-                    const Point offset = Point(), GlobalFlipType flip = kFlip_None, PBitmap surface = nullptr) override;
+                    const Point offset = Point(), Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
     void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 

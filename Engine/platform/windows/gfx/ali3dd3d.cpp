@@ -996,7 +996,7 @@ void D3DGraphicsDriver::Render()
   Render(0, 0, kFlip_None);
 }
 
-void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
+void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
   ResetDeviceIfNecessary();
   _renderAndPresent(true);

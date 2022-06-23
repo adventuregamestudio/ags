@@ -174,7 +174,7 @@ public:
 
     void RenderToBackBuffer() override;
     void Render() override;
-    void Render(int xoff, int yoff, GlobalFlipType flip) override;
+    void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue) override;

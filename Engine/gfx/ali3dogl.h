@@ -227,7 +227,7 @@ public:
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void RenderToBackBuffer() override;
     void Render() override;
-    void Render(int xoff, int yoff, GlobalFlipType flip) override;
+    void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     bool DoesSupportVsyncToggle() override { return false; }
     bool SetVsync(bool /*enabled*/) override { return _mode.Vsync; /* TODO: support toggling */ }

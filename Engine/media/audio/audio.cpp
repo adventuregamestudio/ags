@@ -62,15 +62,10 @@ SOUNDCLIP *AudioChans::GetChannelIfPlaying(int index)
 
 SOUNDCLIP *AudioChans::SetChannel(int index, std::unique_ptr<SOUNDCLIP> ch)
 {
-    if ((ch != nullptr) && (_channels[index].get() == ch.get()))
-    {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - same clip assigned", index);
-        return ch.get();
-    }
     if ((ch != nullptr) && (_channels[index] != nullptr))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
     _channels[index] = std::move(ch);
-    return ch.get();
+    return _channels[index].get();
 }
 
 SOUNDCLIP *AudioChans::MoveChannel(int to, int from)

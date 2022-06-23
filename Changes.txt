@@ -1,5 +1,14 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 12, June 2022
+
+Engine:
+ - Fixed GUI textual controls don't redraw when the game translation changes until player clicks
+   on GUI (regression since previous 3.5.1 updates).
+ - Fixed multitasking mode persisting if the game was switched from windowed to fullscreen mode
+   (even though it's not supposed to work in fullscreen).
+
+
 VERSION 3.5.1 - Patch 11, May 2022
 
 Editor:

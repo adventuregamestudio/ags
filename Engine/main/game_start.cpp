@@ -19,6 +19,7 @@
 #include "ac/common.h"
 #include "ac/characterinfo.h"
 #include "ac/game.h"
+#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
@@ -53,6 +54,8 @@ void start_game_init_editor_debugging()
 {
     if (editor_debugging_enabled)
     {
+        // Debugger expects strict multitasking
+        usetup.multitasking = true;
         SetMultitasking(1);
         if (init_editor_debugging())
         {

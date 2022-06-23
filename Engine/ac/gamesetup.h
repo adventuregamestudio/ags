@@ -78,6 +78,7 @@ struct GameSetup {
     MouseSpeedDef mouse_speed_def;
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;
+    bool  multitasking = false; // whether run on background, when game is switched out
 
     ScreenSetup Screen;
 

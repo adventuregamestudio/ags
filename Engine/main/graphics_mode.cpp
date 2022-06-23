@@ -587,7 +587,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
         SavedWindowedSetting.Dm = rdm;
     else
         SavedFullscreenSetting.Dm = rdm;
-    Debug::Printf("Succeeded. Using gfx mode %d x %d (%d-bit) %s",
+    Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s",
         rdm.Width, rdm.Height, rdm.ColorDepth, rdm.Windowed ? "windowed" : "fullscreen");
     return true;
 }

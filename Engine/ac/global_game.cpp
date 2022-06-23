@@ -799,23 +799,44 @@ void SetMultitasking (int mode) {
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
 
-    if (usetup.override_multitasking >= 0)
+    // Save requested setting
+    Debug::Printf("SetMultitasking: mode requested: %d", mode);
+    usetup.multitasking = mode;
+
+    // Account for the override config option (must be checked first!)
+    if ((usetup.override_multitasking >= 0) && (mode != usetup.override_multitasking))
     {
+        Debug::Printf("SetMultitasking: overridden by user config: %d -> %d",
+            mode, usetup.override_multitasking);
         mode = usetup.override_multitasking;
+    }
+
+    // Must run on background if debugger is connected
+    if ((mode == 0) && (editor_debugging_initialized != 0))
+    {
+        Debug::Printf("SetMultitasking: overridden by the external debugger: %d -> 1", mode);
+        mode = 1;
     }
 
     // Don't allow background running if full screen
     if ((mode == 1) && (!scsystem.windowed))
+    {
+        Debug::Printf("SetMultitasking: overridden by fullscreen: %d -> 0", mode);
         mode = 0;
+    }
 
-    if (mode == 0) {
+    // Install engine callbacks for switching in and out the window
+    Debug::Printf(kDbgMsg_Info, "Multitasking mode set: %d", mode);
+    if (mode == 0)
+    {
         if (set_display_switch_mode(SWITCH_PAUSE) == -1)
             set_display_switch_mode(SWITCH_AMNESIA);
         // install callbacks to stop the sound when switching away
         set_display_switch_callback(SWITCH_IN, display_switch_in_resume);
         set_display_switch_callback(SWITCH_OUT, display_switch_out_suspend);
     }
-    else {
+    else
+    {
         if (set_display_switch_mode (SWITCH_BACKGROUND) == -1)
             set_display_switch_mode(SWITCH_BACKAMNESIA);
         set_display_switch_callback(SWITCH_IN, display_switch_in);

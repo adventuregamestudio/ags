@@ -1535,7 +1535,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     if (!engine_try_set_gfxmode_any(usetup.Screen))
         return EXIT_ERROR;
 
-    SetMultitasking(0);
+    SetMultitasking(usetup.multitasking);
 
     // [ER] 2014-03-13
     // Hide the system cursor via allegro

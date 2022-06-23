@@ -9,7 +9,7 @@
   * If you are using MSVS 2019 and higher you might need to manually download [Windows 10 SDK (10.0.10240)](https://go.microsoft.com/fwlink/p/?LinkId=619296) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
 * Specifically for the Engine:
   * SDL 2.0.12 or higher (https://www.libsdl.org/download-2.0.php)
-  * SDL_Sound 2.0.* (revision 32ee23e20183 or higher) https://github.com/icculus/SDL_sound/archive/32ee23e2018378225eba2c2bca8c2264bdbd369f.tar.gz
+  * SDL_Sound 2.0.* (revision 495e948b455 or higher) https://github.com/icculus/SDL_sound/archive/495e948b455af48eb45f75cccc060498f1e0e8a2.tar.gz
   * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
   * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
@@ -54,7 +54,7 @@ and SDL2.dll to run.
 Official page for SDL_Sound library is https://www.icculus.org/SDL_sound/.
 Any latest release from the 2.0.X tags should be good.
 
-For now, people haven't yet packaged the newer releases, so the only way to get a compatible version is to use their GitHub repository. For the reference, our build server is using revision 32ee23e201: https://github.com/icculus/SDL_sound/archive/32ee23e2018378225eba2c2bca8c2264bdbd369f.tar.gz
+For now, people haven't yet packaged the newer releases, so the only way to get a compatible version is to use their GitHub repository. For the reference, our build server is using revision 495e948b45: https://github.com/icculus/SDL_sound/archive/495e948b455af48eb45f75cccc060498f1e0e8a2.tar.gz
 
 After you downloaded the source this way or another, use CMake to build MSVS solution from their provided CMakeList.txt, then build a static library using wanted configuration.
 

@@ -676,6 +676,8 @@ int SaveScreenShot(const char*namm) {
 void SetMultitasking (int mode) {
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
+    // Save requested setting
+    usetup.multitasking = mode;
 
     // Account for the override config option (must be checked first!)
     if ((usetup.override_multitasking >= 0) && (mode != usetup.override_multitasking))

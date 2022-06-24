@@ -219,7 +219,9 @@ void AGS_EditorLoadGame(char *buffer, int bufsize)            //*** optional ***
 #define STRINGIFY(s) STRINGIFY_X(s)
 #define STRINGIFY_X(s) #s
 
-
+#if defined(BUILTIN_PLUGINS)
+namespace agsspritefont {
+#endif
 
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
@@ -303,3 +305,7 @@ void AGS_EngineInitGfx(const char *driverID, void *data)      //*** optional ***
 }
 */
 //..............................................................................
+
+#if defined(BUILTIN_PLUGINS)
+}
+#endif

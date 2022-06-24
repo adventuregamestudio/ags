@@ -500,6 +500,7 @@ if (AGS_BUILTIN_PLUGINS)
         ../Plugins/ags_snowrain/ags_snowrain.h
 
         ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.cpp
+        ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/CharacterEntry.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/CharacterEntry.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFont.cpp

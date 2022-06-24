@@ -79,6 +79,7 @@ using namespace AGS::Engine;
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
 #include "../Plugins/agspalrender/agspalrender.h"
+#include "../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h"
 #if AGS_PLATFORM_OS_IOS
 #include "../Plugins/agstouch/agstouch.h"
 #endif // AGS_PLATFORM_OS_IOS
@@ -945,6 +946,15 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = agspalrender::AGS_EngineOnEvent;
         apl->debugHook = agspalrender::AGS_EngineDebugHook;
         apl->initGfxHook = agspalrender::AGS_EngineInitGfx;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
+    else if (apl->filename.CompareNoCase("agsspritefont") == 0)
+    {
+        apl->engineStartup = agsspritefont::AGS_EngineStartup;
+        apl->engineShutdown = agsspritefont::AGS_EngineShutdown;
+        apl->onEvent = agsspritefont::AGS_EngineOnEvent;
         apl->available = true;
         apl->builtin = true;
         return true;

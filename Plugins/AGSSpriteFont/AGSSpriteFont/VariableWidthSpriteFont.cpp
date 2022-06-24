@@ -54,6 +54,14 @@ void VariableWidthSpriteFontRenderer::SetSpacing(int fontNum, int spacing)
 
 }
 
+void VariableWidthSpriteFontRenderer::SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride)
+{
+	VariableWidthFont *font = getFontFor(fontNum);
+	font->LineHeightAdjust = lineHeight;
+	font->LineSpacingAdjust = spacingHeight;
+	font->LineSpacingOverride = spacingOverride;
+}
+
 void VariableWidthSpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
 	VariableWidthFont *font = getFontFor(fontNumber);

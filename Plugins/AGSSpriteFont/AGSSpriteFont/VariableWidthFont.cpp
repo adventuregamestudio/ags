@@ -6,6 +6,9 @@ VariableWidthFont::VariableWidthFont(void)
 	Spacing = 0;
 	FontReplaced = 0;
 	SpriteNumber = 0;
+	LineHeightAdjust = 0;
+	LineSpacingAdjust = 0;
+	LineSpacingOverride = 0;
 }
 
 
@@ -19,3 +22,10 @@ void VariableWidthFont::SetGlyph(int character, int x, int y, int width, int hei
 	characters[character].Height = height;
 	characters[character].Character = character;
 }
+
+void VariableWidthFont::SetLineHeightAdjust(int lineHeight, int spacingHeight, int spacingOverride)
+{
+	LineHeightAdjust = lineHeight;
+	LineSpacingAdjust = spacingHeight;
+	LineSpacingOverride = spacingOverride;
+  }

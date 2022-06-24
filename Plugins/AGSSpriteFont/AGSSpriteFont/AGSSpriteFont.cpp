@@ -120,11 +120,10 @@ void SetSpacing(int fontNum, int spacing)
 	vWidthRenderer->SetSpacing(fontNum, spacing);
 }
 
-void SetLineHeightAdjust(int /*fontNum*/, int /*lineHeight*/, int /*spacingHeight*/, int /*spacingOverride*/)
+void SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride)
 {
 	engine->PrintDebugConsole("AGSSpriteFont: SetLineHeightAdjust");
-	// TODO This function was added in the Clifftop version of the plugin
-//	vWidthRenderer->SetLineHeightAdjust(fontNum, lineHeight, spacingHeight, spacingOverride);
+	vWidthRenderer->SetLineHeightAdjust(fontNum, lineHeight, spacingHeight, spacingOverride);
 }
 
 //==============================================================================

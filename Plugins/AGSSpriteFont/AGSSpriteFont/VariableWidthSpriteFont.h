@@ -19,6 +19,7 @@ public:
 	void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);
 	void SetSprite(int fontNum, int spriteNum);
 	void SetSpacing(int fontNum, int spacing);
+	void SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride);
 
 private:
 	IAGSEngine *_engine;

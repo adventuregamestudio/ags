@@ -119,6 +119,14 @@ void SetSpacing(int fontNum, int spacing)
 	engine->PrintDebugConsole("AGSSpriteFont: SetSpacing");
 	vWidthRenderer->SetSpacing(fontNum, spacing);
 }
+
+void SetLineHeightAdjust(int /*fontNum*/, int /*lineHeight*/, int /*spacingHeight*/, int /*spacingOverride*/)
+{
+	engine->PrintDebugConsole("AGSSpriteFont: SetLineHeightAdjust");
+	// TODO This function was added in the Clifftop version of the plugin
+//	vWidthRenderer->SetLineHeightAdjust(fontNum, lineHeight, spacingHeight, spacingOverride);
+}
+
 //==============================================================================
 
 #if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
@@ -131,6 +139,7 @@ const char *ourScriptHeader =
   "import void SetVariableSpriteFont(int fontNum, int sprite);\r\n"
   "import void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);\r\n"
   "import void SetSpacing(int fontNum, int spacing);\r\n"
+  "import void SetLineHeightAdjust(int, int, int, int);\r\n"
   ;
 
 //------------------------------------------------------------------------------
@@ -229,6 +238,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 	REGISTER(SetVariableSpriteFont)
 	REGISTER(SetGlyph)
 	REGISTER(SetSpacing)
+	REGISTER(SetLineHeightAdjust)
 }
 
 //------------------------------------------------------------------------------

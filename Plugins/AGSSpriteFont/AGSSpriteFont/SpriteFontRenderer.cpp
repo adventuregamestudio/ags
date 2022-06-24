@@ -97,7 +97,7 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 {
 	
 	SpriteFont *font = getFontFor(fontNumber);
-	BITMAP *vScreen = _engine->GetVirtualScreen();
+	//BITMAP *vScreen = _engine->GetVirtualScreen();
 	
 	//_engine->SetVirtualScreen(destination);
 	

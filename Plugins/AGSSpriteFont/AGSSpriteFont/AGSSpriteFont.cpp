@@ -248,6 +248,8 @@ void AGS_EngineShutdown()
 	// Called by the game engine just before it exits.
 	// This gives you a chance to free any memory and do any cleanup
 	// that you need to do before the engine shuts down.
+	delete fontRenderer;
+	delete vWidthRenderer;
 }
 
 //------------------------------------------------------------------------------

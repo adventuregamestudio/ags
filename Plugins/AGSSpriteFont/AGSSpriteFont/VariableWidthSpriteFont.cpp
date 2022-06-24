@@ -34,7 +34,7 @@ int VariableWidthSpriteFontRenderer::GetTextWidth(const char *text, int fontNumb
 {
 	int total = 0;
 	VariableWidthFont *font = getFontFor(fontNumber);
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		if (font->characters.count(text[i]) > 0)
 		{
@@ -48,7 +48,7 @@ int VariableWidthSpriteFontRenderer::GetTextWidth(const char *text, int fontNumb
 int VariableWidthSpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
 	VariableWidthFont *font = getFontFor(fontNumber);
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		if (font->characters.count(text[i]) > 0)
 		{
@@ -79,7 +79,7 @@ void VariableWidthSpriteFontRenderer::EnsureTextValidForFont(char *text, int fon
 	VariableWidthFont *font = getFontFor(fontNumber);
 	std::string s(text);
 	
-	for(int i = s.length() - 1; i >= 0 ; i--)
+	for(int i = (int)s.length() - 1; i >= 0 ; i--)
 	{
 		if (font->characters.count(s[i]) == 0)
 		{
@@ -105,7 +105,7 @@ void VariableWidthSpriteFontRenderer::SetSprite(int fontNum, int spriteNum)
 
 VariableWidthFont *VariableWidthSpriteFontRenderer::getFontFor(int fontNum){
 	VariableWidthFont *font;
-	for (int i = 0; i < _fonts.size(); i ++)
+	for (size_t i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
@@ -121,7 +121,7 @@ void VariableWidthSpriteFontRenderer::RenderText(const char *text, int fontNumbe
 {
 	VariableWidthFont *font = getFontFor(fontNumber);
 	int totalWidth = 0;
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
 				

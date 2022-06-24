@@ -45,7 +45,7 @@ void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int co
 void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
 	SpriteFont *font = getFontFor(fontNumber);
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		if(text[i] < font->MinChar || text[i] > font->MaxChar) 
 		{
@@ -79,7 +79,7 @@ int SpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
 SpriteFont *SpriteFontRenderer::getFontFor(int fontNum)
 {
 	SpriteFont *font;
-	for (int i = 0; i < _fonts.size(); i ++)
+	for (size_t i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
@@ -101,7 +101,7 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 	
 	//_engine->SetVirtualScreen(destination);
 	
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
 		c -= font->MinChar;

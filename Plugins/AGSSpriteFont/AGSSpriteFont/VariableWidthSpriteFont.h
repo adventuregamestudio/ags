@@ -21,7 +21,7 @@ public:
 	void SetSpacing(int fontNum, int spacing);
 	void SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride);
 
-private:
+protected:
 	IAGSEngine *_engine;
 	std::vector<VariableWidthFont * > _fonts;
 	VariableWidthFont *getFontFor(int fontNum);

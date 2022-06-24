@@ -26,6 +26,8 @@
 #include "plugin/agsplugin.h"
 #include "SpriteFontRenderer.h"
 #include "VariableWidthSpriteFont.h"
+#include "SpriteFontRendererClifftopGames.h"
+#include "VariableWidthSpriteFontClifftopGames.h"
 
 
 #define DEFAULT_RGB_R_SHIFT_32  16
@@ -225,10 +227,18 @@ namespace agsspritefont {
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
 	engine = lpEngine;
+	// TODO: find a way de know which renderers to instantiate
+#if 1
 	engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
 	fontRenderer = new SpriteFontRenderer(engine);
 	engine->PrintDebugConsole("AGSSpriteFont: Init vari width renderer");
 	vWidthRenderer = new VariableWidthSpriteFontRenderer(engine);
+#else
+	engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
+	fontRenderer = new SpriteFontRendererClifftopGames(engine);
+	engine->PrintDebugConsole("AGSSpriteFont: Init vari width renderer");
+	vWidthRenderer = new VariableWidthSpriteFontRendererClifftopGames(engine);
+#endif
 	// Make sure it's got the version with the features we need
 	if (engine->version < MIN_ENGINE_VERSION)
 		engine->AbortGame("Plugin needs engine version " STRINGIFY(MIN_ENGINE_VERSION) " or newer.");

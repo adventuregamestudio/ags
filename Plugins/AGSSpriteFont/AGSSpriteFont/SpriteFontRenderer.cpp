@@ -13,6 +13,21 @@ SpriteFontRenderer::SpriteFontRenderer(IAGSEngine *engine)
 
 SpriteFontRenderer::~SpriteFontRenderer(void) = default;
 
+
+void SpriteFontRenderer::FreeMemory(int fontNum)
+{
+	for(auto it = _fonts.begin(); it != _fonts.end() ; ++it)
+	{
+		SpriteFont *font = *it;
+		if (font->FontReplaced == fontNum)
+		{
+			_fonts.erase(it);
+			delete font;
+			return;
+		}
+	}
+}
+
 void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
 {
 	SpriteFont *font = getFontFor(fontNum);

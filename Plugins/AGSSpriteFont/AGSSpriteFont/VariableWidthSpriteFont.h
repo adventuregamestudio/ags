@@ -9,7 +9,7 @@ public:
 	VariableWidthSpriteFontRenderer(IAGSEngine *engine);
 	virtual ~VariableWidthSpriteFontRenderer(void);
 	bool LoadFromDisk(int fontNumber, int fontSize) override { return true; }
-	void FreeMemory(int fontNumber) override { }
+	void FreeMemory(int fontNumber) override;
 	bool SupportsExtendedCharacters(int fontNumber) override;
 	int GetTextWidth(const char *text, int fontNumber) override;
 	int GetTextHeight(const char *text, int fontNumber) override;

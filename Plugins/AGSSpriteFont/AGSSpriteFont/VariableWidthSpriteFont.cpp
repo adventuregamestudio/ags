@@ -14,7 +14,19 @@ VariableWidthSpriteFontRenderer::VariableWidthSpriteFontRenderer(IAGSEngine *eng
 VariableWidthSpriteFontRenderer::~VariableWidthSpriteFontRenderer(void) = default;
 
 
-
+void VariableWidthSpriteFontRenderer::FreeMemory(int fontNum)
+{
+	for(auto it = _fonts.begin(); it != _fonts.end() ; ++it)
+	{
+		VariableWidthFont *font = *it;
+		if (font->FontReplaced == fontNum)
+		{
+			_fonts.erase(it);
+			delete font;
+			return;
+		}
+	}
+}
 
 bool VariableWidthSpriteFontRenderer::SupportsExtendedCharacters(int fontNumber) { return false; }
 

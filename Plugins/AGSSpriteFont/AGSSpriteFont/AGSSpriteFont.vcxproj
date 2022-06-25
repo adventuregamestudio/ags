@@ -84,8 +84,10 @@
     <ClInclude Include="color.h" />
     <ClInclude Include="SpriteFont.h" />
     <ClInclude Include="SpriteFontRenderer.h" />
+    <ClInclude Include="SpriteFontRendererClifftopGames.h" />
     <ClInclude Include="VariableWidthFont.h" />
     <ClInclude Include="VariableWidthSpriteFont.h" />
+    <ClInclude Include="VariableWidthSpriteFontClifftopGames.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGSSpriteFont.cpp" />
@@ -93,8 +95,10 @@
     <ClCompile Include="color.cpp" />
     <ClCompile Include="SpriteFont.cpp" />
     <ClCompile Include="SpriteFontRenderer.cpp" />
+    <ClCompile Include="SpriteFontRendererClifftopGames.cpp" />
     <ClCompile Include="VariableWidthFont.cpp" />
     <ClCompile Include="VariableWidthSpriteFont.cpp" />
+    <ClCompile Include="VariableWidthSpriteFontClifftopGames.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -72,7 +72,7 @@ static int get_subchnl(struct cdrom_subchnl *s)
  */
 int cd_init()
 {
-    char *device;
+    const char *device;
 
     device = getenv("CDAUDIO");
     if (!device) device = "/dev/cdrom";

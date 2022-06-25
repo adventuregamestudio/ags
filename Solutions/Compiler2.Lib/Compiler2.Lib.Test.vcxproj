@@ -98,6 +98,7 @@
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Common\util\string_compat.c" />
+    <ClCompile Include="..\..\Common\util\string_utils.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_0.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_1.cpp" />
     <ClCompile Include="..\..\Compiler\test2\cc_internallist_test.cpp" />

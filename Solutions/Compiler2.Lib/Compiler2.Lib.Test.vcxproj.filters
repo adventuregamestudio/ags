@@ -57,6 +57,9 @@
     <ClCompile Include="..\..\Compiler\test2\cc_bytecode_test_1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Compiler\test2\cc_bytecode_test_lib.h">

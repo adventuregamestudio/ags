@@ -1015,10 +1015,9 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
             apl->filename = "ags_snowrain";
         }
 
-        String expect_filename = apl->library.GetFilenameForLib(apl->filename);
         if (apl->library.Load(apl->filename))
         {
-          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded as '%s', resolving imports...", apl->filename.GetCStr(), expect_filename.GetCStr());
+          AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' loaded from '%s', resolving imports...", apl->filename.GetCStr(), apl->library.GetFilePath().GetCStr());
 
           if (apl->library.GetFunctionAddress("AGS_PluginV2") == nullptr) {
               quitprintf("Plugin '%s' is an old incompatible version.", apl->filename.GetCStr());
@@ -1035,6 +1034,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         }
         else
         {
+          String expect_filename = apl->library.GetFilenameForLib(apl->filename);
           AGS::Common::Debug::Printf(kDbgMsg_Info, "Plugin '%s' could not be loaded (expected '%s'), trying built-in plugins...",
               apl->filename.GetCStr(), expect_filename.GetCStr());
           if (pl_use_builtin_plugin(apl))

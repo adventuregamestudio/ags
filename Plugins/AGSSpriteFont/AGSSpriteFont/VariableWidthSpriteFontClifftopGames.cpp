@@ -1,6 +1,7 @@
 #include "VariableWidthSpriteFontClifftopGames.h"
 #include <string>
 #include <string.h>
+#include <stdint.h>
 #include "color.h"
 
 
@@ -53,15 +54,15 @@ void VariableWidthSpriteFontRendererClifftopGames::RenderText(const char *text, 
 
 void VariableWidthSpriteFontRendererClifftopGames::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height, int colour)
 {
-	int srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
+	int32 srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
 
 	unsigned char **srccharbuffer = _engine->GetRawBitmapSurface (src); //8bit
-	unsigned short **srcshortbuffer = (unsigned short**)srccharbuffer; //16bit;
-    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer; //32bit
+	uint16_t **srcshortbuffer = (uint16_t**)srccharbuffer; //16bit;
+	uint32_t **srclongbuffer = (uint32_t**)srccharbuffer; //32bit
 
 	unsigned char **destcharbuffer = _engine->GetRawBitmapSurface (dest); //8bit
-	unsigned short **destshortbuffer = (unsigned short**)destcharbuffer; //16bit;
-    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer; //32bit
+	uint16_t **destshortbuffer = (uint16_t**)destcharbuffer; //16bit;
+	uint32_t **destlongbuffer = (uint32_t**)destcharbuffer; //32bit
 
 	int transColor = _engine->GetBitmapTransparentColor(src);
 

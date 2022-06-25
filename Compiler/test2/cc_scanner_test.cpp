@@ -319,13 +319,54 @@ TEST_F(Scan, LiteralInt1)
     EXPECT_EQ(5, sym[lit05].LiteralD->Value);
 }
 
-TEST_F(Scan, LiteralInt2)
+TEST_F(Scan, LiteralIntLimits)
 {
-    const char *inp = "-2147483648";
+    // Should correctly parse INT32_MAX and INT32_MIN
+    const char *inp1 = "-2147483648 2147483647";
+
+    AGS::Scanner scanner(inp1, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
+
+    AGS::Symbol const lit_min = token_list[1u]; // 0u is '-'
+    ASSERT_TRUE(sym.IsLiteral(lit_min));
+    EXPECT_EQ(INT32_MIN, sym[lit_min].LiteralD->Value);
+
+    AGS::Symbol const lit_max = token_list[2u];
+    ASSERT_TRUE(sym.IsLiteral(lit_max));
+    EXPECT_EQ(INT32_MAX, sym[lit_max].LiteralD->Value);
+}
+
+TEST_F(Scan, LiteralIntOverflow)
+{
+    // Should detect int32 overflow
+    const char *inp1 = "-2147483649";
+    const char *inp2 = "2147483648";
+
+    AGS::Scanner scanner1(inp1, token_list, string_collector, sym, mh);
+    scanner1.Scan();
+    ASSERT_TRUE(mh.HasError());
+
+    AGS::Scanner scanner2(inp2, token_list, string_collector, sym, mh);
+    scanner2.Scan();
+    ASSERT_TRUE(mh.HasError());
+}
+
+TEST_F(Scan, LiteralIntHex)
+{
+    const char *inp = "0x7FFFFFFF 0xFFFFFFFF";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
-    ASSERT_TRUE(mh.HasError());
+    EXPECT_FALSE(mh.HasError());
+
+    AGS::Symbol const lit_hex1 = token_list[0u];
+    ASSERT_TRUE(sym.IsLiteral(lit_hex1));
+    EXPECT_EQ(INT32_MAX, sym[lit_hex1].LiteralD->Value);
+
+    AGS::Symbol const lit_hex2 = token_list[1u];
+    ASSERT_TRUE(sym.IsLiteral(lit_hex2));
+    EXPECT_EQ(-1, sym[lit_hex2].LiteralD->Value);
 }
 
 TEST_F(Scan, LiteralFloat)

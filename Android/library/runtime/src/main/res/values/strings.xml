@@ -28,4 +28,70 @@
 
     <!-- Global Settings Preferences -->
     <string name="games_directory">Games Directory</string>
+
+    <!-- Credits -->
+    <string name="long_credits"><![CDATA["
+Adventure Game Studio was originally developed by Chris Jones.
+The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order):
+
+  Alan Van Drake
+  Benjamin Penney
+  Benoit Pierre
+  Bernhard Rosenkraenzer
+  Cameron Cawley
+  Cristian Morales Vega
+  Edward Rudd
+  Erico Vieira Porto
+  Ferdinand Thiessen
+  Francesco Ariis
+  Gilad Shaham
+  Ivan Mogilko
+  James Duong
+  Janet Gilbert
+  Jochen Schleu
+  Joe Lee
+  John Steele Scott
+  Martin Sedlak
+  Matthew Gambrell
+  Michael Rittenhouse
+  Morgan Willcock
+  Nick Sonneveld
+  Ori Avtalion
+  Pablo Navarro
+  Paul Wilkinson
+  Per Olav Flaten
+  Peter Bouillon
+  Piotr Wieczorek
+  rofl0r
+  Ryan O\'Connor
+  Scott Baker
+  Shane Stevens
+  Shawn R. Walker
+  Stefano Collavini
+  Steve McCrea
+  Steven Poulton
+  Sunit Das
+  Thierry Crozat
+  Tobias Hansen
+  Tom Vandepoele
+  Tzach Shabtay
+
+Engine backend graphics, sound and inputs using SDL2 by Sam Lantinga and many other (https://libsdl.org/)
+
+Sound uses SDL_Sound and MojoAL, by Ryan C. Gordon (https://github.com/icculus)
+
+Engine bitmap drawing using Allegro 4 game programming library by Shawn Hargreaves and many others (https://liballeg.org/)
+
+TrueType font display uses ALFont by Javier Gonzalez and the FreeType project
+
+Hi-color fade out/in routines by Matthew Leverton
+
+Sprite anti-aliasing code by Michael Bukin
+
+OGG player is alogg by Javier Gonzalez, using the Ogg Vorbis decoder, which is available from https://www.xiph.org/
+
+OGG Theora player is APEG by Chris Robinson, using the Ogg Theora decoder, which is available from https://www.xiph.org/
+
+Thanks to all the AGS beta testers for all their suggestions and bug reports.
+"]]></string>
 </resources>

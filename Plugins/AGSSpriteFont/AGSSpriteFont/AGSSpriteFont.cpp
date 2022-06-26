@@ -21,6 +21,7 @@
 #include <windows.h>
 #include <WinBase.h>
 #endif
+#include <ctype.h>
 
 #define THIS_IS_THE_PLUGIN
 #include "plugin/agsplugin.h"
@@ -93,7 +94,6 @@ IAGSEngine *engine = nullptr;
 SpriteFontRenderer *fontRenderer = nullptr;
 VariableWidthSpriteFontRenderer *vWidthRenderer = nullptr;
 
-                
 
 void SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
 {
@@ -224,25 +224,51 @@ void AGS_EditorLoadGame(char *buffer, int bufsize)            //*** optional ***
 namespace agsspritefont {
 #endif
 
+bool IsEqualCaseInsensitive(char const *a, char const *b)
+{
+	for (; *a && *b; a++, b++)
+	{
+		if (tolower((unsigned char)*a) != tolower((unsigned char)*b))
+			return false;
+	}
+	if (*a || *b)
+		return false;
+	return true;
+}
+
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
 	engine = lpEngine;
-	// TODO: find a way de know which renderers to instantiate
-#if 1
-	engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
-	fontRenderer = new SpriteFontRenderer(engine);
-	engine->PrintDebugConsole("AGSSpriteFont: Init vari width renderer");
-	vWidthRenderer = new VariableWidthSpriteFontRenderer(engine);
-#else
-	engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
-	fontRenderer = new SpriteFontRendererClifftopGames(engine);
-	engine->PrintDebugConsole("AGSSpriteFont: Init vari width renderer");
-	vWidthRenderer = new VariableWidthSpriteFontRendererClifftopGames(engine);
-#endif
+
 	// Make sure it's got the version with the features we need
 	if (engine->version < MIN_ENGINE_VERSION)
 		engine->AbortGame("Plugin needs engine version " STRINGIFY(MIN_ENGINE_VERSION) " or newer.");
-	
+
+	// For Kathy Rain and WOAM instantiate the Clifftop Games version
+	// of the font renderer.
+	bool useClifftopGamesRenderers = false;
+	if (engine->version >= 26) {
+		AGSGameInfo gameInfo;
+		gameInfo.Version = 26;
+		lpEngine->GetGameInfo(&gameInfo);
+		useClifftopGamesRenderers = IsEqualCaseInsensitive(gameInfo.GameName, "kathy rain") ||
+			IsEqualCaseInsensitive(gameInfo.GameName, "whispers of a machine");
+	}
+	if (useClifftopGamesRenderers)
+	{
+		engine->PrintDebugConsole("AGSSpriteFont: Init Clifftop Games fixed width renderer");
+		fontRenderer = new SpriteFontRendererClifftopGames(engine);
+		engine->PrintDebugConsole("AGSSpriteFont: Init Clifftop Games variable width renderer");
+		vWidthRenderer = new VariableWidthSpriteFontRendererClifftopGames(engine);
+	}
+	else
+	{
+		engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
+		fontRenderer = new SpriteFontRenderer(engine);
+		engine->PrintDebugConsole("AGSSpriteFont: Init variable width renderer");
+		vWidthRenderer = new VariableWidthSpriteFontRenderer(engine);
+	}
+
 	//register functions
 	engine->PrintDebugConsole("AGSSpriteFont: Register functions");
 	REGISTER(SetSpriteFont)

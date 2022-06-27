@@ -249,6 +249,7 @@ Engine:
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
+ - Fixed scheduled sound fadeout effect was not cancelled by skipping a cutscene.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
  - Fixed game fps sped up if SetGameSpeed() is called repeatedly in game script.
  - Fixed game not reacting to system close commands when stuck in script, which made it impossible
@@ -589,9 +590,6 @@ Windows:
 
 WinSetup:
  - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
-
-
-===================================================================================================
 
 
 VERSION 3.5.0 - Patch 10, May 2021

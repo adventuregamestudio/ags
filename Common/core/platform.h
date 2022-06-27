@@ -161,4 +161,12 @@
 
 #define AGS_PLATFORM_IS_XDG_UNIX (AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD)
 
+#if !defined(DEBUG_MANAGED_OBJECTS)
+    #define DEBUG_MANAGED_OBJECTS (0)
+#endif
+
+#if !defined(DEBUG_SPRITECACHE)
+    #define DEBUG_SPRITECACHE (0)
+#endif
+
 #endif // __AC_PLATFORM_H

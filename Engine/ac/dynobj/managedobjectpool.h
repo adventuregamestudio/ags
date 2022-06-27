@@ -19,6 +19,7 @@
 #include <queue>
 #include <unordered_map>
 
+#include "core/platform.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
@@ -79,7 +80,7 @@ public:
 
 extern ManagedObjectPool pool;
 
-#ifdef DEBUG_MANAGED_OBJECTS
+#if DEBUG_MANAGED_OBJECTS
 #define ManagedObjectLog(...) Debug::Printf(kDbgGroup_ManObj, kDbgMsg_Debug, __VA_ARGS__)
 #else
 #define ManagedObjectLog(...)

@@ -250,8 +250,6 @@ Engine:
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed OGV Theora videos positioned incorrectly if they have certain sizes or aspect ratios.
- - Fixed multitasking mode persisting if the game was switched from windowed to real fullscreen
-   mode (even though it's not supposed to work in exclusive fullscreen).
  - Fixed game fps sped up if SetGameSpeed() is called repeatedly in game script.
  - Fixed game not reacting to system close commands when stuck in script, which made it impossible
    to close the "hanging" game by usual means (other than terminating the process).
@@ -286,6 +284,18 @@ Windows:
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.
  - Remade sound options to reflect the move to the new audio system in the engine.
+
+
+===================================================================================================
+
+
+VERSION 3.5.1 - Patch 12, June 2022
+
+Engine:
+ - Fixed GUI textual controls don't redraw when the game translation changes until player clicks
+   on GUI (regression since previous 3.5.1 updates).
+ - Fixed multitasking mode persisting if the game was switched from windowed to fullscreen mode
+   (even though it's not supposed to work in fullscreen).
 
 
 VERSION 3.5.1 - Patch 11, May 2022
@@ -579,6 +589,9 @@ Windows:
 
 WinSetup:
  - Fixed changing fullscreen mode from "use current desktop" to explicit resolution on save.
+
+
+===================================================================================================
 
 
 VERSION 3.5.0 - Patch 10, May 2021
@@ -954,6 +967,9 @@ Windows:
 
 WinSetup:
  - Added "Enable threaded audio" checkbox.
+
+
+===================================================================================================
 
 
 VERSION 3.4.4 - Patch 1, September 2019
@@ -1468,7 +1484,10 @@ WinSetup:
  - Added support for "default_translation_name" option in the "[language]"
    section of the config file.
 
-   
+
+===================================================================================================
+
+
 VERSION 3.3.5 - Patch 7, September 2016
 
 Editor:
@@ -1797,6 +1816,9 @@ Bug Fixes:
   in case the music is not found in resources anymore.
 - Fixed division by zero which occured if there was a 1px tall walkable area with vector scaling.
 - Fixed side-borders that were not applied properly at larger widescreen resolutions.
+
+
+===================================================================================================
 
 
 VERSION 3.2.2 Beta, July 2012:

@@ -283,12 +283,12 @@ void apply_debug_config(const ConfigTree &cfg)
           DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_Game, kDbgMsg_Info),
           DbgGroupOption(kDbgGroup_Script, kDbgMsg_All),
-#ifdef DEBUG_SPRITECACHE
+#if DEBUG_SPRITECACHE
           DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_All),
 #else
           DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_Info),
 #endif
-#ifdef DEBUG_MANAGED_OBJECTS
+#if DEBUG_MANAGED_OBJECTS
           DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_All),
 #else
           DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_Info),

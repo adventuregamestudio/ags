@@ -24,10 +24,9 @@
 //
 //=============================================================================
 
-//#define DEBUG_MANAGED_OBJECTS
-
 #include <stdlib.h>
 #include <string.h>
+#include "core/platform.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "debug/out.h"

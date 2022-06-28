@@ -11,18 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// C-Script run-time interpreter (c) 2001 Chris Jones
-//
-// You must DISABLE OPTIMIZATIONS AND REGISTER VARIABLES in your compiler
-// when compiling this, or strange results can happen.
-//
-// There is a problem with importing functions on 16-bit compilers: the
-// script system assumes that all parameters are passed as 4 bytes, which
-// ints are not on 16-bit systems. Be sure to define all parameters as longs,
-// or join the 21st century and switch to DJGPP or Visual C++.
-//
-//=============================================================================
 
 #ifndef __CS_RUNTIME_H
 #define __CS_RUNTIME_H

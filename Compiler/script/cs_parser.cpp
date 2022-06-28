@@ -997,7 +997,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.entries[cursym].extends = 0;
         sym.entries[cursym].arrsize = 1;
         sym.entries[cursym].vartype = vartypesym;
-        sym.entries[cursym].ssize = 4; //oldsize;  fix param to 4 bytes for djgpp
+        sym.entries[cursym].ssize = 4; // param is 4 bytes
         sym.entries[cursym].sscope = nested_level + 1;
         sym.entries[cursym].flags |= SFLG_PARAMETER;
         if (isPointerParam)

@@ -152,7 +152,7 @@ namespace AGS.Editor
         public void RegisterScriptHeader(string header)
         {
             Script newHeader = new Script("__Plugin" + _editorInterface.pluginID + ".ash", header, true);
-            AutoComplete.ConstructCache(newHeader);
+            AutoComplete.ConstructCache(newHeader, Factory.AGSEditor.GetImportedScriptHeaders(newHeader, true));
             _scriptHeaders.Add(newHeader);
         }
 

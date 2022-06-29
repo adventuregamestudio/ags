@@ -14,6 +14,7 @@ namespace AGS.Editor
         private const string AUTO_COMPLETE_STATIC_ONLY = "$AUTOCOMPLETESTATICONLY$";
         private const string AUTO_COMPLETE_NO_INHERIT = "$AUTOCOMPLETENOINHERIT$";
         private static Script _scriptToUpdateInBackground = null;
+        private static List<Script> _importedScripts = null;
         private static object _scriptLockObject = new object();
 
         public delegate void BackgroundCacheUpdateStatusChangedHandler(BackgroundAutoCompleteStatus status, Exception errorDetails);
@@ -28,11 +29,12 @@ namespace AGS.Editor
             thread.Start();
         }
 
-        public static void RequestBackgroundCacheUpdate(Script scriptToUpdate)
+        public static void RequestBackgroundCacheUpdate(Script scriptToUpdate, List<Script> importedScripts)
         {
             lock (_scriptLockObject)
             {
                 _scriptToUpdateInBackground = scriptToUpdate;
+                _importedScripts = importedScripts;
             }
         }
 
@@ -52,15 +54,18 @@ namespace AGS.Editor
                 if (_scriptToUpdateInBackground != null)
                 {
                     Script scriptToUpdate;
+                    List<Script> importedScripts;
                     lock (_scriptLockObject)
                     {
                         scriptToUpdate = _scriptToUpdateInBackground;
+                        importedScripts = _importedScripts;
                         _scriptToUpdateInBackground = null;
+                        _importedScripts = null;
                     }
                     try
                     {
                         OnBackgroundCacheUpdateStatusChanged(BackgroundAutoCompleteStatus.Processing, null);
-                        ConstructCache(scriptToUpdate);
+                        ConstructCache(scriptToUpdate, importedScripts);
                         OnBackgroundCacheUpdateStatusChanged(BackgroundAutoCompleteStatus.Finished, null);
                     }
                     catch (Exception ex)
@@ -139,7 +144,7 @@ namespace AGS.Editor
             script = script.Substring(index);
         }
 
-        public static void ConstructCache(Script scriptToCache)
+        public static void ConstructCache(Script scriptToCache, IEnumerable<Script> importScripts)
         {
             string originalText = scriptToCache.Text;
             ScriptAutoCompleteData newCache = new ScriptAutoCompleteData();
@@ -156,6 +161,13 @@ namespace AGS.Editor
             FastString script = originalText;
             AutoCompleteParserState state = new AutoCompleteParserState();
             ScriptFunction lastFunction = null;
+            // Struct lookup will have both local and imported types
+            List<ScriptStruct> structsLookup = new List<ScriptStruct>();
+            if (importScripts != null)
+            {
+                foreach (var import in importScripts)
+                    structsLookup.AddRange(import.AutoCompleteData.Structs);
+            }
 
             while (script.Length > 0)
             {
@@ -202,7 +214,7 @@ namespace AGS.Editor
                     else if (state.WordBeforeLast == "extends")
                     {
                         // inherited struct
-                        foreach (ScriptStruct baseStruct in structs)
+                        foreach (ScriptStruct baseStruct in structsLookup)
                         {
                             if (baseStruct.Name == state.LastWord)
                             {
@@ -239,8 +251,16 @@ namespace AGS.Editor
                     List<ScriptFunction> functionList = functions;
                     bool isStaticExtender = script.StartsWith("static ");
                     bool isExtenderMethod = isStaticExtender || script.StartsWith("this ");
-                    if(isExtenderMethod)
-                        AdjustFunctionListForExtenderFunction(structs, ref functionList, ref script);
+                    if (isExtenderMethod)
+                    {
+                        ScriptStruct newStruct = null;
+                        AdjustFunctionListForExtenderFunction(structsLookup, ref functionList, ref newStruct, ref script);
+                        if (newStruct != null)
+                        {
+                            structs.Add(newStruct);
+                            structsLookup.Add(newStruct);
+                        }
+                    }
                     if (AddFunctionDeclaration(functionList, ref script, thisWord, state, isExtenderMethod, isStaticExtender, isStaticExtender))
                     {
                         lastFunction = functionList[functionList.Count - 1];
@@ -311,8 +331,7 @@ namespace AGS.Editor
 				else if ((thisWord == "}") && (state.InsideStructDefinition != null))
 				{
 					structs.Add(state.InsideStructDefinition);
-					functions = newCache.Functions;
-					variables = newCache.Variables;
+                    structsLookup.Add(state.InsideStructDefinition);
                     state.InsideStructDefinition = null;
                     state.ClearPreviousWords();
 				}
@@ -325,7 +344,8 @@ namespace AGS.Editor
 			scriptToCache.AutoCompleteData.Populated = true;
         }
 
-        private static void AdjustFunctionListForExtenderFunction(List<ScriptStruct> structs, ref List<ScriptFunction> functionList, ref FastString script)
+        private static void AdjustFunctionListForExtenderFunction(List<ScriptStruct> structsLookup,
+            ref List<ScriptFunction> functionList, ref ScriptStruct newStruct, ref FastString script)
         {
             GetNextWord(ref script);
             string structName = GetNextWord(ref script);
@@ -339,7 +359,7 @@ namespace AGS.Editor
             }
             script = script.Trim();
 
-            foreach (ScriptStruct struc in structs)
+            foreach (ScriptStruct struc in structsLookup)
             {
                 if (struc.Name == structName)
                 {
@@ -347,9 +367,8 @@ namespace AGS.Editor
                     return;
                 }
             }
-            ScriptStruct newStruct = new ScriptStruct(structName);
+            newStruct = new ScriptStruct(structName);
             functionList = newStruct.Functions;
-            structs.Add(newStruct);
             return;
         }
 

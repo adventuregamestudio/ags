@@ -466,7 +466,7 @@ namespace AGS.Editor
                 scintilla.SetSavePoint();
                 if (_script.IsHeader)
                 {
-                    AutoComplete.ConstructCache(_script);
+                    AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
                 }
             }
         }
@@ -669,7 +669,7 @@ namespace AGS.Editor
             {
                 UpdateScriptObjectWithLatestTextInWindow();
             }
-            AutoComplete.RequestBackgroundCacheUpdate(_script);
+            AutoComplete.RequestBackgroundCacheUpdate(_script, _agsEditor.GetImportedScriptHeaders(_script));
             ActivateTextEditor();
         }
 
@@ -772,7 +772,7 @@ namespace AGS.Editor
             {
                 UpdateScriptObjectWithLatestTextInWindow();
             }
-            AutoComplete.ConstructCache(_script);
+            AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
         }
 
         private void scintilla_TextModified(int startPos, int length, bool wasAdded)
@@ -944,7 +944,7 @@ namespace AGS.Editor
                     {
                         if (!mainScript.AutoCompleteData.Populated)
                         {
-                            AutoComplete.ConstructCache(mainScript);
+                            AutoComplete.ConstructCache(mainScript, _agsEditor.GetImportedScriptHeaders(mainScript));
                         }
                         ScriptToken foundInScriptBody = FindTokenInScript(mainScript, structName, memberName);
                         if (foundInScriptBody != null)

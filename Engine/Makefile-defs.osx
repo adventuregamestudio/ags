@@ -10,7 +10,7 @@ CFLAGS := -O2 -g \
     -Wno-logical-op-parentheses -Wno-unused-value \
     -Werror=write-strings -Werror=format-security -Werror=implicit-function-declaration \
     -DNDEBUG \
-    -DALLEGRO_STATICLINK -DALLEGRO_NO_COMPATIBILITY -DALLEGRO_NO_FIX_ALIASES -DALLEGRO_NO_FIX_CLASS \
+    -DALLEGRO_STATICLINK \
     -DMAC_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO \
     -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
     $(CFLAGS)

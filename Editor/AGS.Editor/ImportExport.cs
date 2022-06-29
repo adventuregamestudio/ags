@@ -368,8 +368,6 @@ namespace AGS.Editor
                 enc.GetString(description), enc.GetString(author), version, uniqueKey, false);
             scriptsImported.Add(header);
             scriptsImported.Add(mainScript);
-
-			AutoComplete.ConstructCache(header);
             return scriptsImported;
         }
 

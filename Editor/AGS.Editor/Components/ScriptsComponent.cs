@@ -239,6 +239,8 @@ namespace AGS.Editor.Components
                 AddSingleItem(scripts);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 RePopulateTreeView(GetNodeID(scripts));
+                foreach (Script script in newScripts)
+                    AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
             }
             catch (Exception ex)
             {

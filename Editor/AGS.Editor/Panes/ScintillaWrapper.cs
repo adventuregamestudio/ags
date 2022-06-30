@@ -1067,13 +1067,14 @@ namespace AGS.Editor
             }
             else if ((e.Char == '(') || (e.Char == ','))
             {
-                if ((e.Char == ',') && (!InsideStringOrComment(true)) &&
+                bool insideString = InsideStringOrComment(true);
+                if ((e.Char == ',') && (!insideString) &&
                     (_autoSpaceAfterComma))
                 {
                     scintillaControl1.AddText(" ");
                 }
 
-                _doCalltip = true;
+                _doCalltip = !insideString;
             }
             else if ((e.Char == '.') && (!scintillaControl1.AutoCActive))
             {
@@ -1599,6 +1600,14 @@ namespace AGS.Editor
             return false;
         }
 
+        public bool InsideStringOrCommentStyleOnly(int position)
+        {
+            int style = this.scintillaControl1.GetStyleAt(position);
+            return ((style == Style.Cpp.CommentLine) || (style == Style.Cpp.Comment) ||
+                (style == Style.Cpp.CommentDoc) || (style == Style.Cpp.CommentLineDoc) ||
+                (style == Style.Cpp.String));
+        }
+
         private bool IgnoringCurrentLine()
         {
             if (_ignoreLinesWithoutIndent)
@@ -1662,6 +1671,14 @@ namespace AGS.Editor
             return null;
         }
 
+        // Max chars of a function call to parse when calculating current parameter (for autocomplete)
+        private const int AUTOC_FUNCPARAMS_MAXCHARS = 256;
+
+        /// <summary>
+        /// Parses the assumed function call *backwards*, returns the found start of
+        /// the function call and the assumed parameter index under currentPos.
+        /// Returns -1 if the call start was not found within AUTOC_FUNCPARAMS_MAXCHARS.
+        /// </summary>
         private int FindStartOfFunctionCall(int currentPos, out int parameterIndex)
         {
             int bracketDepth = 0;
@@ -1674,20 +1691,29 @@ namespace AGS.Editor
             }
 
             int charsCounted = 0;
+            // This parses the function call *backwards* from the current cursor pos
+            // trying to find the start of the call (an opening bracket at level 0)
             while (currentPos > 0)
             {
                 char thisChar = (char)this.scintillaControl1.GetCharAt(currentPos);
-                if ((thisChar == '(') && (bracketDepth == 0))
+                if ((thisChar == '(' || thisChar == ')' || thisChar == ',') &&
+                    !InsideStringOrCommentStyleOnly(currentPos))
                 {
-                    break;
+                    if ((thisChar == '(') && (bracketDepth == 0))
+                    {
+                        break;
+                    }
+                    else if (thisChar == '(') bracketDepth--;
+                    else if (thisChar == ')') bracketDepth++;
+                    else if ((thisChar == ',') && (bracketDepth == 0))
+                    {
+                        parameterIndex++;
+                    }
                 }
-                if (thisChar == '(') bracketDepth--;
-                if (thisChar == ')') bracketDepth++;
-                if ((thisChar == ',') && (bracketDepth == 0)) parameterIndex++;
                 currentPos--;
                 charsCounted++;
 
-                if (charsCounted > 100)
+                if (charsCounted > AUTOC_FUNCPARAMS_MAXCHARS)
                 {
                     // not inside function parmaeters
                     return -1;

@@ -1148,7 +1148,7 @@ namespace AGS.Editor
             if ((_callTipsEnabled) && (e.Position > 0) &&
                 (!scintillaControl1.CallTipActive) &&
                 (!scintillaControl1.AutoCActive) &&
-                (!InsideStringOrComment(false, e.Position)) &&
+                (!InsideStringOrComment(e.Position)) &&
                 _activated && !TabbedDocumentManager.HoveringTabs
                 && !ScriptEditor.HoveringCombo)
             {
@@ -1556,12 +1556,12 @@ namespace AGS.Editor
         /// because the new character won't have any formatting yet.</param>
         private bool InsideStringOrComment(bool charJustAdded)
         {
-            return InsideStringOrComment(charJustAdded, this.scintillaControl1.CurrentPosition);
+            return InsideStringOrComment(scintillaControl1.CurrentPosition - (charJustAdded ? 1 : 0));
         }
 
-        public bool InsideStringOrComment(bool charJustAdded, int position)
+        public bool InsideStringOrComment(int position)
         {
-            int style = this.scintillaControl1.GetStyleAt(position - (charJustAdded ? 2 : 1));
+            int style = scintillaControl1.GetStyleAt(position);
             if ((style == Style.Cpp.CommentLine) || (style == Style.Cpp.Comment) ||
                 (style == Style.Cpp.CommentDoc) || (style == Style.Cpp.CommentLineDoc) ||
                 (style == Style.Cpp.String))

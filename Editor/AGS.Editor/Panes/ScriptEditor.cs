@@ -1031,7 +1031,7 @@ namespace AGS.Editor
 
             _goToSprite = null;
             string clickedOnType = string.Empty;
-            if (!scintilla.InsideStringOrComment(false, clickedPositionInDocument))
+            if (!scintilla.InsideStringOrComment(clickedPositionInDocument))
             {
                 float dummy;
                 clickedOnType = scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);

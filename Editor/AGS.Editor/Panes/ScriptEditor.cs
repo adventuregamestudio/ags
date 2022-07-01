@@ -157,7 +157,9 @@ namespace AGS.Editor
 
             if (!this.Script.IsHeader)
             {
-                scintilla.SetAutoCompleteSource(this.Script);
+                // Scripts may miss autocomplete cache when they are first opened, so update
+                AutoComplete.ConstructCache(Script, _agsEditor.GetImportedScriptHeaders(Script));
+                scintilla.SetAutoCompleteSource(Script);
             }
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
@@ -240,7 +242,9 @@ namespace AGS.Editor
         private void UpdateStructHighlighting()
         {
             StringBuilder sb = new StringBuilder(5000);
-            foreach (Script script in _agsEditor.GetAllScriptHeaders())
+            List<Script> allScripts = _agsEditor.GetImportedScriptHeaders(_script);
+            allScripts.Add(_script); // only imported scripts + current one
+            foreach (Script script in allScripts)
             {
                 foreach (ScriptStruct thisClass in script.AutoCompleteData.Structs)
                 {
@@ -927,7 +931,7 @@ namespace AGS.Editor
             ScriptToken found = null;
             Script foundInScript = null;
             List<Script> scriptsToSearch = new List<Script>();
-            scriptsToSearch.AddRange(_agsEditor.GetAllScriptHeaders());
+            scriptsToSearch.AddRange(_agsEditor.GetAllScriptHeaders()); // all scripts!
             scriptsToSearch.Add(_script);
 
             foreach (Script script in scriptsToSearch)

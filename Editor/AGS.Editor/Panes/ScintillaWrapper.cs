@@ -2061,6 +2061,7 @@ namespace AGS.Editor
             {
                 if (ShouldShowThis(se, defines))
                 {
+                    globalsList.Add(se.Name + "?" + IMAGE_INDEX_STRUCT);
                     AddEnumValuesToAutocompleteList(globalsList, se);
                 }
             }

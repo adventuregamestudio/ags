@@ -4235,6 +4235,18 @@ void AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
     if (nullptr == known_info->VariableD)
         return; // We don't have any known info
 
+    if (known_info->VariableD->Vartype != this_entry->VariableD->Vartype)
+        // This will check the array lengths, too
+        UserError(
+            ReferenceMsgLoc(
+                "The variable '%s' is declared as '%s' here, as '%s' elsewhere",
+                known_info->Declared).c_str(),
+            known_info->Name.c_str(),
+            _sym.GetName(this_entry->VariableD->Vartype).c_str(),
+            _sym.GetName(known_info->VariableD->Vartype).c_str());
+
+    // Note, if the variables have the same vartype, they must also have the same size because size is a vartype property.
+
     TypeQualifierSet known_tq = known_info->VariableD->TypeQualifiers;
     known_tq[TQ::kImport] = false;
     TypeQualifierSet this_tq = this_entry->VariableD->TypeQualifiers;
@@ -4246,19 +4258,8 @@ void AGS::Parser::ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_
         std::string msg = ReferenceMsgLoc(
             "The variable '%s' has the qualifiers '%s' here, but '%s' elsewhere",
             known_info->Declared);
-        UserError(msg.c_str(), te_tq.c_str(), ki_tq.c_str());
+        UserError(msg.c_str(), known_info->Name.c_str(), te_tq.c_str(), ki_tq.c_str());
     }
-
-    if (known_info->VariableD->Vartype != this_entry->VariableD->Vartype)
-        // This will check the array lengths, too
-        UserError(
-            ReferenceMsgLoc(
-				"This variable is declared as '%s' here, as '%s' elsewhere",
-				known_info->Declared).c_str(),
-            _sym.GetName(this_entry->VariableD->Vartype).c_str(),
-            _sym.GetName(known_info->VariableD->Vartype).c_str());
-
-    // Note, if the variables have the same vartype, they must also have the same size because size is a vartype property.
 }
 
 void AGS::Parser::ParseVardecl_Import(Symbol var_name)

@@ -1,5 +1,54 @@
 REVISION HISTORY
-================
+===================================================================================================
+
+AGS 4 WIP (3.99.*.*)
+
+Editor:
+ - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
+   component has its own separate file (room data, backgrounds, masks and scripts).
+ - In General Settings added "Use extended compiler" option that lets to choose a new script
+   compiler for your game (see list of changes in related section below).
+ - Added BlendMode property to Characters, GUI and Room Objects.
+
+Compiler:
+ - The new extended script compiler is available.
+ - Support for having regular structs inside any structs (regular or managed); there's
+   no nesting limit.
+ - When declaring a pointer to managed struct you may now omit "*" sign.
+ - When writing struct's function's code you may now omit "this" keyword when addressing
+   current struct's member (variable, attribute or function).
+ - Support for extender attributes.
+ - Support for multi-dimensional regular (non-dynamic) arrays. They may have any positive
+   number of dimensions.
+ - Dynamic arrays now have Length pseudo-attribute used to retrieve their length.
+ - Global variables may now be declared right after struct's or enum's declaration, between
+   the closing bracket and closing semi-colon.
+ - Functions now may call any other function from within same script, regardless of their
+   order of declaration.
+ - Compiler can now evaluate integer or float expressions at compile time whenever result
+   is actually constant and can be calculated at compile time.
+ - "const" keyword now may be used to define compile-time "int" and "float" constants.
+ - "readonly" keyword now may be used to declare non-modifiable variables (local or global)
+   and function parameters.
+ - Added "fallthrough" keyword, which is used to hint that switch's case does not require a
+   break statement. This is only to clarify coder's intent and prevent compiler's warnings.
+ - Support pre-increment and pre-decrement operators (++x, --x).
+ - Support bitwise negation operator (~x).
+ - Support addressing members of the function return values in one expression. This lets
+   chain multiple commands including function calls, e.g. GetObject().MyVariable...and so on.
+ - Two sequenced string literals ("text" "text") are now automatically concatenated.
+
+Script API:
+ - Added BlendMode enum.
+ - Added Character.BlendMode, GUI.BlendMode, Object.BlendMode, Overlay.BlendMode.
+ - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
+   Overlay.Rotation.
+ - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
+
+
+===================================================================================================
+
+
 VERSION 3.6.0, ???
 
 Common features:

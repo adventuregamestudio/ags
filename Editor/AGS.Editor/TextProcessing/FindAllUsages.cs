@@ -50,7 +50,7 @@ namespace AGS.Editor.TextProcessing
         private void AddToResultsIfNeeded(IScript script, string line, 
             int characterIndex, int lineIndex, string token)
         {
-            if (!_scintilla.InsideStringOrComment(false, characterIndex))
+            if (!_scintilla.InsideStringOrComment(characterIndex))
             {
                 _results.Add(new ScriptTokenReference
                 {

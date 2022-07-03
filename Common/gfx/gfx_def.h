@@ -27,6 +27,14 @@ namespace AGS
 namespace Common
 {
 
+enum GraphicFlip
+{
+    kFlip_None,
+    kFlip_Horizontal, // this means - mirror over horizontal middle line
+    kFlip_Vertical,   // this means - mirror over vertical middle line
+    kFlip_Both        // mirror over diagonal (horizontal and vertical)
+};
+
 // Blend modes for object sprites
 enum BlendMode
 {

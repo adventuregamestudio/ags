@@ -62,15 +62,10 @@ SOUNDCLIP *AudioChans::GetChannelIfPlaying(int index)
 
 SOUNDCLIP *AudioChans::SetChannel(int index, std::unique_ptr<SOUNDCLIP> ch)
 {
-    if ((ch != nullptr) && (_channels[index].get() == ch.get()))
-    {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - same clip assigned", index);
-        return ch.get();
-    }
     if ((ch != nullptr) && (_channels[index] != nullptr))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
     _channels[index] = std::move(ch);
-    return ch.get();
+    return _channels[index].get();
 }
 
 SOUNDCLIP *AudioChans::MoveChannel(int to, int from)
@@ -147,7 +142,8 @@ static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudioClip *newSound)
 {
     ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&scrAudioChannel[fadeOutChannel]);
-    if ((sourceClip != nullptr) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
+    if ((play.fast_forward == 0) && // don't crossfade if skipping a cutscene
+        (sourceClip != nullptr) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
     {
         move_track_to_crossfade_channel(fadeOutChannel, game.audioClipTypes[sourceClip->type].crossfadeSpeed, fadeInChannel, newSound);
     }

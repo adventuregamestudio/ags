@@ -46,10 +46,10 @@ import java.io.FileNotFoundException;
  * status bar and navigation/system bar) with user interaction.
  */
 public class AGSRuntimeActivity extends SDLActivity {
-    private String _game_file_name = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
-    private String _android_base_directory = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
-    private String _android_app_directory = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
-    private boolean _loadLastSave = false; // Can't be local variable since ags engine reads it. See acpland.cpp.
+    protected String _game_file_name = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
+    protected String _android_base_directory = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
+    protected String _android_app_directory = ""; // Can't be local variable since ags engine reads it. See acpland.cpp.
+    protected boolean _loadLastSave = false; // Can't be local variable since ags engine reads it. See acpland.cpp.
 
     public static native void nativeSdlShowKeyboard();
 
@@ -281,7 +281,7 @@ public class AGSRuntimeActivity extends SDLActivity {
     }
 
     @Keep
-    private  void AgsEnableLongclick() {
+    protected  void AgsEnableLongclick() {
 
     }
 

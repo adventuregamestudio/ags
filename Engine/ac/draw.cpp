@@ -804,7 +804,7 @@ void render_to_screen()
     // Stage: final plugin callback (still drawn on game screen
     if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
@@ -823,7 +823,7 @@ void render_to_screen()
             const Rect &viewport = play.GetMainViewport();
             if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
                 gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
-            gfxDriver->Render(0, play.shake_screen_yoff, (GlobalFlipType)play.screen_flipped);
+            gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
             succeeded = true;
         }
         catch (Ali3DFullscreenLostException e) 
@@ -1301,7 +1301,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
               tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
-          active_spr->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
+          active_spr->FlipBlt(tempspr, 0, 0, Common::kFlip_Horizontal);
           delete tempspr;
       }
       else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
@@ -1318,7 +1318,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
       our_eip = 339;
 
       if (isMirrored)
-          active_spr->FlipBlt(src_sprite, 0, 0, Common::kBitmap_HFlip);
+          active_spr->FlipBlt(src_sprite, 0, 0, Common::kFlip_Horizontal);
       else if (rotation != 0.f)
           // (+ width%2 fixes one pixel offset problem)
           active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,
@@ -1331,7 +1331,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
   return actsps_used;
 }
 
-Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap> &dst, const Size dst_sz, BitmapFlip flip)
+Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap> &dst, const Size dst_sz, GraphicFlip flip)
 {
     if ((src->GetSize() == dst_sz) && (flip == kFlip_None))
         return src; // No transform: return source image
@@ -1356,7 +1356,7 @@ Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap
                 tempbmp.AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 tempbmp.StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
-            dst->FlipBlt(&tempbmp, 0, 0, kBitmap_HFlip);
+            dst->FlipBlt(&tempbmp, 0, 0, kFlip_Horizontal);
         }
         else
         {
@@ -1372,7 +1372,7 @@ Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap
     else
     {
         // If not scaled, then simply blit mirrored
-        dst->FlipBlt(src, 0, 0, kBitmap_HFlip);
+        dst->FlipBlt(src, 0, 0, kFlip_Horizontal);
     }
     return dst.get(); // return transformed result
 }
@@ -1385,7 +1385,7 @@ static bool scale_and_flip_sprite(int useindx, int sppic, int newwidth, int newh
 {
     Bitmap *src = spriteset[sppic];
     Bitmap *result = transform_sprite(src, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0,
-        actsps[useindx].Bmp, Size(newwidth, newheight), hmirror ? kBitmap_HFlip : kBitmap_NoFlip);
+        actsps[useindx].Bmp, Size(newwidth, newheight), hmirror ? kFlip_Horizontal : kFlip_None);
     return result != src;
 }
 
@@ -2460,7 +2460,7 @@ static void construct_room_view()
             Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         }
         else
         {
@@ -2493,7 +2493,7 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
     draw_gui_and_overlays();
     gfxDriver->EndSpriteBatch();
     clear_draw_list();
@@ -2613,7 +2613,7 @@ void construct_game_screen_overlay(bool draw_mouse)
 {
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
@@ -2652,7 +2652,7 @@ void construct_game_screen_overlay(bool draw_mouse)
     if (play.screen_is_faded_out == 0)
     {
         // Stage: mouse cursor
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         if (draw_mouse && !play.mouse_cursor_hidden)
         {
             gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
@@ -2833,7 +2833,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
-        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GlobalFlipType)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();

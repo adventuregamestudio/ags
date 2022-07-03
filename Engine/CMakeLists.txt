@@ -524,10 +524,6 @@ if (AGS_BUILTIN_PLUGINS)
     )
 endif()
 
-target_compile_definitions(engine PRIVATE
-    $<$<BOOL:AGS_DEBUG_MANAGED_OBJECTS>:DEBUG_MANAGED_OBJECTS>
-)
-
 if (AGS_BUILD_STR)
     target_compile_definitions(engine PUBLIC BUILD_STR=\"${AGS_BUILD_STR}\")
 endif()

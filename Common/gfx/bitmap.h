@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_GFX__BITMAP_H
 #define __AGS_CN_GFX__BITMAP_H
 
+#include "gfx/gfx_def.h"
 #include "util/geometry.h"
 
 namespace AGS
@@ -32,14 +33,6 @@ enum BitmapMaskOption
 	kBitmap_Copy,
 	// Consider mask color fully transparent and do not copy pixels having it
 	kBitmap_Transparency
-};
-
-enum BitmapFlip
-{
-	kBitmap_NoFlip,
-	kBitmap_HFlip,
-	kBitmap_VFlip,
-	kBitmap_HVFlip
 };
 
 } // namespace Common

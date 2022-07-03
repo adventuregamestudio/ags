@@ -11,14 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_UTIL__LIBRARY_POSIX_H
 #define __AGS_EE_UTIL__LIBRARY_POSIX_H
 
 #include <dlfcn.h>
 #include "core/platform.h"
-#include "util/string.h"
 #include "debug/out.h"
+#include "util/path.h"
+#include "util/string.h"
 
 // FIXME: Replace with a unified way to get the directory which contains the engine binary
 #if AGS_PLATFORM_OS_ANDROID
@@ -33,111 +33,103 @@ namespace AGS
 namespace Engine
 {
 
+using AGS::Common::String;
 
-class PosixLibrary : BaseLibrary
+class PosixLibrary : public BaseLibrary
 {
 public:
-  PosixLibrary()
-    : _library(nullptr)
-  {
-  };
+    PosixLibrary() = default;
+    ~PosixLibrary() override
+    {
+        Unload();
+    };
 
-  ~PosixLibrary() override
-  {
-    Unload();
-  };
-
-  AGS::Common::String BuildFilename(AGS::Common::String libraryName)
-  {
-    return String::FromFormat(
+    String GetFilenameForLib(const String &libname) override
+    {
+        return String::FromFormat(
 #if AGS_PLATFORM_OS_MACOS
-        "lib%s.dylib"
+            "lib%s.dylib"
 #else
-        "lib%s.so"
+            "lib%s.so"
 #endif
-        , libraryName.GetCStr());
-  }
-
-  AGS::Common::String BuildPath(const char *path, AGS::Common::String libraryName)
-  {
-    AGS::Common::String platformLibraryName = "";
-    if (path)
-    {
-      platformLibraryName = path;
-      platformLibraryName.Append("/");
-    }
-    platformLibraryName.Append(BuildFilename(libraryName));
-
-    AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
-    return platformLibraryName;
-  }
-
-  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
-  {
-    return BuildFilename(libraryName);
-  }
-
-  bool Load(AGS::Common::String libraryName) override
-  {
-    Unload();
-
-    // Try rpath first
-    _library = dlopen(BuildPath(nullptr, libraryName).GetCStr(), RTLD_LAZY);
-    AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
-    if (_library != nullptr)
-    {
-      return true;
+            , libname.GetCStr());
     }
 
-    // Try current path
-    _library = dlopen(BuildPath(".", libraryName).GetCStr(), RTLD_LAZY);
-
-    AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
-
-    if (_library == nullptr)
+    bool Load(const String &libname) override
     {
-      // Try the engine directory
-
-#if AGS_PLATFORM_OS_ANDROID
-      char buffer[200];
-      sprintf(buffer, "%s%s", android_app_directory, "/lib");
-      _library = dlopen(BuildPath(buffer, libraryName).GetCStr(), RTLD_LAZY);
-#else
-      _library = dlopen(BuildPath(appDirectory.GetCStr(), libraryName).GetCStr(), RTLD_LAZY);
-#endif
-
-      AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
+        Unload();
+        String path;
+        void *lib = TryLoadAnywhere(libname, path);
+        if (!lib)
+            return false;
+        _library = lib;
+        _name = libname;
+        _path = path;
+        return true;
     }
 
-    return (_library != nullptr);
-  }
+    void Unload() override
+    {
+        if (_library)
+        {
+            dlclose(_library);
+            _library = nullptr;
+            _name = "";
+            _path = "";
+        }
+    }
 
-  bool Unload() override
-  {
-    if (_library)
+    virtual bool IsLoaded() const override
     {
-      return (dlclose(_library) == 0);
+        return _library != nullptr;
     }
-    else
-    {
-      return true;
-    }
-  }
 
-  void *GetFunctionAddress(AGS::Common::String functionName) override
-  {
-    if (_library)
+    void *GetFunctionAddress(const String &fn_name) override
     {
-      return dlsym(_library, functionName.GetCStr());
+        if (!_library)
+            return nullptr;
+        return dlsym(_library, fn_name.GetCStr());
     }
-    else
-    {
-      return nullptr;
-    }
-  }
 
 private:
-  void *_library;
+    void *TryLoad(const String &path)
+    {
+        AGS::Common::Debug::Printf("Built library path: %s", path.GetCStr());
+        void *lib = dlopen(path.GetCStr(), RTLD_LAZY);
+        if (!lib)
+            AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
+        return lib;
+    }
+
+    // TODO: Perhaps move this out of the Library class? testing for engine dir
+    // should not be a part of utility class imo
+    void *TryLoadAnywhere(const String &libname, String &path)
+    {
+        String libfile = GetFilenameForLib(libname);
+        // Try rpath first
+        path = libfile;
+        void *lib = TryLoad(path);
+        if (lib)
+            return lib;
+
+        // Try current path
+        path = AGS::Common::Path::ConcatPaths(".", libfile);
+        lib = TryLoad(path);
+        if (lib)
+            return lib;
+
+        // Try the engine directory
+#if AGS_PLATFORM_OS_ANDROID
+        char buffer[200];
+        snprintf(buffer, sizeof(buffer), "%s%s", android_app_directory, "/lib");
+        path = AGS::Common::Path::ConcatPaths(buffer, libfile);
+#else
+        path = AGS::Common::Path::ConcatPaths(appDirectory, libfile);
+#endif
+        return TryLoad(path);
+    }
+
+    void *_library = nullptr;
 };
 
 
@@ -147,7 +139,5 @@ typedef PosixLibrary Library;
 
 } // namespace Engine
 } // namespace AGS
-
-
 
 #endif // __AGS_EE_UTIL__LIBRARY_POSIX_H

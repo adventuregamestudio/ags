@@ -150,7 +150,7 @@ public:
     // create a runnable instance of the supplied script
     static ccInstance *CreateFromScript(PScript script);
     static ccInstance *CreateEx(PScript scri, ccInstance * joined);
-    static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms);
+    static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
 
     ccInstance();
     ~ccInstance();
@@ -229,6 +229,9 @@ private:
     static unsigned _timeoutAbortMs;
     // Last time the script was noted of being "alive"
     AGS_Clock::time_point _lastAliveTs;
+    // Maximal while loops without any engine update in between,
+    // after which the interpreter will abort
+    static unsigned _maxWhileLoops;
 };
 
 #endif // __CC_INSTANCE_H

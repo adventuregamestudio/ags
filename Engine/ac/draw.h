@@ -117,7 +117,7 @@ void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, std::unique_ptr<Common::Bitmap> &dst,
-    const Size dst_sz, Common::BitmapFlip flip = Common::kBitmap_NoFlip);
+    const Size dst_sz, Common::GraphicFlip flip = Common::kFlip_None);
 
 // Render game on screen
 void render_to_screen();

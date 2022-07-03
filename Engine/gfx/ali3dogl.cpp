@@ -945,7 +945,7 @@ void OGLGraphicsDriver::Render()
   Render(0, 0, kFlip_None);
 }
 
-void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType /*flip*/)
+void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
   _render(true);
 }

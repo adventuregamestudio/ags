@@ -568,7 +568,7 @@ void SDLRendererGraphicsDriver::Present()
     SDL_RenderPresent(_renderer);
 }
 
-void SDLRendererGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GlobalFlipType flip)
+void SDLRendererGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip flip)
 {
   switch (flip) {
     case kFlip_Both: _renderFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL); break;

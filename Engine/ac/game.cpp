@@ -531,9 +531,9 @@ void unload_game_file()
 
     free_all_fonts();
 
-    pl_stop_plugins();
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
+    pl_stop_plugins();
 
     free_do_once_tokens();
     play.gui_draw_order.clear();

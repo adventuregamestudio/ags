@@ -220,8 +220,6 @@ void quit(const char *quitmsg)
 
     our_eip = 9016;
 
-    pl_stop_plugins();
-
     quit_check_dynamic_sprites(qreason);
 
     our_eip = 9019;

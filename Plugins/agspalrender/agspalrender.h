@@ -1,5 +1,5 @@
-#ifndef AGS_TOUCH_H
-#define AGS_TOUCH_H
+#ifndef AGS_PAL_RENDER_H
+#define AGS_PAL_RENDER_H
 
 #include "plugin/agsplugin.h"
 

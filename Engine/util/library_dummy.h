@@ -11,52 +11,44 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AGS_EE_UTIL__LIBRARY_DUMMY_H
 #define __AGS_EE_UTIL__LIBRARY_DUMMY_H
-
 
 namespace AGS
 {
 namespace Engine
 {
 
+using AGS::Common::String;
 
-class DummyLibrary : BaseLibrary
+class DummyLibrary : public BaseLibrary
 {
 public:
-  DummyLibrary()
-  {
-  };
+    DummyLibrary() = default;
+    ~DummyLibrary() override { /* do nothing */ };
 
-  ~DummyLibrary() override
-  {
-  };
+    String GetFilenameForLib(const String &libname) override
+    {
+        return ""; // not supported
+    }
 
-  AGS::Common::String GetFilenameForLib(AGS::Common::String libraryName) override
-  {
-      return libraryName;
-  }
+    bool Load(const String &libname) override
+    {
+        return false; // always fail
+    }
 
-  bool Load(AGS::Common::String libraryName) override
-  {
-    return false;
-  }
+    void Unload() override { /* do nothing */ }
 
-  bool Unload() override
-  {
-    return true;
-  }
+    bool IsLoaded() const override { return false; /* always fail */ }
 
-  void *GetFunctionAddress(AGS::Common::String functionName) override
-  {
-    return NULL;
-  }
+    void *GetFunctionAddress(const String &fn_name) override
+    {
+        return nullptr; // not supported
+    }
 };
 
 
 typedef DummyLibrary Library;
-
 
 
 } // namespace Engine

@@ -210,7 +210,13 @@ if(NOT MSVC)
     target_compile_options(common PUBLIC -Werror=undef)
 endif()
 
-target_compile_definitions(common PUBLIC "$<$<CONFIG:DEBUG>:DEBUG_SPRITECACHE>")
+if(AGS_DEBUG_MANAGED_OBJECTS)
+    target_compile_definitions(common PUBLIC "DEBUG_MANAGED_OBJECTS=1")
+endif()
+
+if(AGS_DEBUG_SPRITECACHE)
+    target_compile_definitions(common PUBLIC "DEBUG_SPRITECACHE=1")
+endif()
 
 get_target_property(COMMON_SOURCES common SOURCES)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMMON_SOURCES})

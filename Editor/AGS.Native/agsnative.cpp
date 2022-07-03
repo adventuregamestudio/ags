@@ -761,7 +761,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       // mirror the sprite
       flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
       flipped->Clear (flipped->GetMaskColor ());
-      flipped->FlipBlt(toblt, 0, 0, Common::kBitmap_HFlip);
+      flipped->FlipBlt(toblt, 0, 0, Common::kFlip_Horizontal);
       if (freeBlock)
         delete toblt;
       toblt = flipped;
@@ -898,7 +898,7 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 	if (flipImage) {
 		Common::Bitmap *flipped = Common::BitmapHelper::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
 		flipped->FillTransparent();
-		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
+		flipped->FlipBlt(theSprite, 0, 0, Common::kFlip_Horizontal);
 		drawBlockScaledAt(hdc, flipped, x, y, 1);
 		delete flipped;
 	}
@@ -925,7 +925,7 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
   if (flipImage) {
     Common::Bitmap* flipped = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), todraw->GetColorDepth());
     flipped->FillTransparent();
-    flipped->FlipBlt(todraw, 0, 0, Common::kBitmap_HFlip);
+    flipped->FlipBlt(todraw, 0, 0, Common::kFlip_Horizontal);
     stretch_blit_to_hdc(flipped->GetAllegroBitmap(), (HDC)hdc, 0, 0, flipped->GetWidth(), flipped->GetHeight(), x, y, width, height);
     delete flipped;
   } else {

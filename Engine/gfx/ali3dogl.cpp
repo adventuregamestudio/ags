@@ -754,6 +754,9 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     return false;
   }
 
+  if (_initGfxCallback != nullptr)
+    _initGfxCallback(nullptr);
+
   try
   {
     if (!InitGlScreen(mode))

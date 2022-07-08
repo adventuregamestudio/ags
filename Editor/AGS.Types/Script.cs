@@ -18,7 +18,7 @@ namespace AGS.Types
         public const string DIALOG_SCRIPTS_FILE_NAME = "__DialogScripts.asc";
 
         private string _fileName;
-        private string _text;
+        private string _text = string.Empty;
         private string _name = string.Empty;
         private string _description = string.Empty;
         private string _author = string.Empty;
@@ -49,7 +49,7 @@ namespace AGS.Types
         public Script(string fileName, string text, bool isHeader)
         {
             _fileName = fileName;
-            _text = text;
+            _text = text ?? string.Empty;
             _uniqueKey = new Random().Next(Int32.MaxValue);
             _isHeader = isHeader;
         }
@@ -67,7 +67,7 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set { _text = value; _modified = true; }
+            set { _text = value ?? string.Empty; _modified = true; }
         }
 
         [ReadOnly(true)]
@@ -194,12 +194,20 @@ namespace AGS.Types
 
         public void LoadFromDisk()
         {
-            using (BinaryReader reader = new BinaryReader(File.Open(_fileName, FileMode.Open, FileAccess.Read)))
+            try
             {
-                byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
-                _text = TextEncoding.GetString(bytes);
+                using (BinaryReader reader = new BinaryReader(File.Open(_fileName, FileMode.Open, FileAccess.Read)))
+                {
+                    byte[] bytes = reader.ReadBytes((int)reader.BaseStream.Length);
+                    _text = TextEncoding.GetString(bytes) ?? string.Empty;
+                }
             }
-			_modified = false;
+            catch (Exception)
+            {
+                // TODO: add warning? would require changes to report system
+                _text = string.Empty;
+            }
+            _modified = false;
         }
 
         public Script(XmlNode node)

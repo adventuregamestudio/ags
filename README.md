@@ -1,8 +1,9 @@
-<img align="left" src="https://avatars.githubusercontent.com/u/1833326" width=256>
-
+<p align=center>
+  <img src="https://avatars.githubusercontent.com/u/1833326" width=96></br>
+  <a target="_blank" href="https://cirrus-ci.com/github/adventuregamestudio/ags" title="Build Status"><img src="https://api.cirrus-ci.com/github/adventuregamestudio/ags.svg"></a>
+</p>
+  
 # Adventure Game Studio
-
-[![Build Status](https://api.cirrus-ci.com/github/adventuregamestudio/ags.svg)](https://cirrus-ci.com/github/adventuregamestudio/ags) 
 
 Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and running videogames of adventure (aka "quest") genre. Created by Chris Jones back in 1999, AGS was open-sourced in 2011. Since then continues to be developed by contributors. Both Editor and Engine are licensed under the Artistic License 2.0; for more details see [License.txt](License.txt). 
 
@@ -32,15 +33,15 @@ There may be other temporary development branches meant for preparing and testin
 To get started building the AGS engine, see the platform-specific instructions or forum threads:
 
 - [CMAKE](CMAKE.md) - this readme covers the centralized build system using CMake
-- [Android](Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
-- [iOS](iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
-- [Linux](debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
-- [Mac OS X](OSX/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=47264.0))
+- [Android](Android/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=59751.0))
+- [iOS](iOS/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
+- [Linux](debian/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=59750.0))
+- [Mac OS X](OSX/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=47264.0))
 - [Windows](Windows/README.md)
-- [Emscripten Web port](Emscripten/README.md)
+- [Emscripten Web port](Emscripten/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=59164.0))
 
 No longer actively supported, but may work with older code revisions:
--    [PSP](PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
+-    [PSP](PSP/README.md) ([Forum thread](https://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
 
 On desktop systems launching a game is done by either placing an engine executable in the same directory where the game data is and starting the engine up or passing game location as a command-line argument.
 

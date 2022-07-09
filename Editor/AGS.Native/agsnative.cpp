@@ -187,10 +187,10 @@ Common::Bitmap *get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
-void SetNewSprite(int slot, Common::Bitmap *sprit) {
+void SetNewSprite(int slot, Common::Bitmap *sprit, int flags) {
   delete spriteset[slot];
 
-  spriteset.SetSprite(slot, sprit);
+  spriteset.SetSprite(slot, sprit, flags);
   spritesModified = true;
 }
 
@@ -198,12 +198,6 @@ void deleteSprite (int sprslot) {
   spriteset.RemoveSprite(sprslot, true);
   
   spritesModified = true;
-}
-
-void SetNewSpriteFromHBitmap(int slot, int hBmp) {
-  // FIXME later
-  Common::Bitmap *tempsprite = Common::BitmapHelper::CreateRawBitmapOwner(convert_hbitmap_to_bitmap((HBITMAP)hBmp));
-  SetNewSprite(slot, tempsprite);
 }
 
 int GetSpriteAsHBitmap(int slot) {
@@ -264,11 +258,8 @@ void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
 
 void change_sprite_number(int oldNumber, int newNumber) {
 
-  spriteset.SetSprite(newNumber, spriteset[oldNumber]);
+  spriteset.SetSprite(newNumber, spriteset[oldNumber], thisgame.SpriteInfos[oldNumber].Flags);
   spriteset.RemoveSprite(oldNumber, false);
-
-  thisgame.SpriteInfos[newNumber].Flags = thisgame.SpriteInfos[oldNumber].Flags;
-  thisgame.SpriteInfos[oldNumber].Flags = 0;
 
   spritesModified = true;
 }
@@ -364,8 +355,8 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
 	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     delete sprit;
-
-    spriteset.SetSprite(sprites[aa], newsprit);
+    // set new image and keep old flags
+    spriteset.SetSprite(sprites[aa], newsprit, thisgame.SpriteInfos[aa].Flags);
   }
 
   spritesModified = true;
@@ -2403,9 +2394,8 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
     int flags;
     Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, remapColours,
         useRoomBackgroundColours, alphaChannel, &flags);
-    thisgame.SpriteInfos[slot].Flags = flags;
 
-	SetNewSprite(slot, tempsprite);
+	SetNewSprite(slot, tempsprite, flags);
 
 	return AGS::Types::SpriteImportResolution::Real;
 }

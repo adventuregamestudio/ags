@@ -2695,6 +2695,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUIButton nbut;
           nbut.Image = textwindowedge->Image;
           nbut.CurrentImage = nbut.Image;
+          guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
 	  }

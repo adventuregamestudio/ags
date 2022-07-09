@@ -61,7 +61,7 @@ namespace AGS.Editor
 
 		void IAGSEditor.RebuildAutocompleteCache(Script script)
 		{
-			AutoComplete.ConstructCache(script);
+            AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
 		}
 
 		IList<Script> IAGSEditor.GetAllScriptHeaders()

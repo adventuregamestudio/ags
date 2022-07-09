@@ -752,7 +752,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
   assert(onscreen != nullptr);
-  assert(mls.size() > movlst);
+  assert((movlst >= 0) && (mls.size() > static_cast<size_t>(movlst)));
   assert(pathbackx != nullptr);
   assert(pathbacky != nullptr);
 

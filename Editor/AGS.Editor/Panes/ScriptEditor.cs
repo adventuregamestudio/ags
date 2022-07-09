@@ -152,7 +152,9 @@ namespace AGS.Editor
 
             if (!this.Script.IsHeader)
             {
-                scintilla.SetAutoCompleteSource(this.Script);
+                // Scripts may miss autocomplete cache when they are first opened, so update
+                AutoComplete.ConstructCache(Script, _agsEditor.GetImportedScriptHeaders(Script));
+                scintilla.SetAutoCompleteSource(Script);
             }
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
@@ -196,7 +198,9 @@ namespace AGS.Editor
         private void UpdateStructHighlighting()
         {
             StringBuilder sb = new StringBuilder(5000);
-            foreach (Script script in _agsEditor.GetAllScriptHeaders())
+            List<Script> allScripts = _agsEditor.GetImportedScriptHeaders(_script);
+            allScripts.Add(_script); // only imported scripts + current one
+            foreach (Script script in allScripts)
             {
                 foreach (ScriptStruct thisClass in script.AutoCompleteData.Structs)
                 {
@@ -425,7 +429,7 @@ namespace AGS.Editor
                 scintilla.SetSavePoint();
                 if (_script.IsHeader)
                 {
-                    AutoComplete.ConstructCache(_script);
+                    AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
                 }
             }
         }
@@ -628,7 +632,7 @@ namespace AGS.Editor
             {
                 UpdateScriptObjectWithLatestTextInWindow();
             }
-            AutoComplete.RequestBackgroundCacheUpdate(_script);
+            AutoComplete.RequestBackgroundCacheUpdate(_script, _agsEditor.GetImportedScriptHeaders(_script));
             ActivateTextEditor();
         }
 
@@ -729,7 +733,7 @@ namespace AGS.Editor
             {
                 UpdateScriptObjectWithLatestTextInWindow();
             }
-            AutoComplete.ConstructCache(_script);
+            AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
         }
 
         private void scintilla_TextModified(int startPos, int length, bool wasAdded)
@@ -884,7 +888,7 @@ namespace AGS.Editor
             ScriptToken found = null;
             Script foundInScript = null;
             List<Script> scriptsToSearch = new List<Script>();
-            scriptsToSearch.AddRange(_agsEditor.GetAllScriptHeaders());
+            scriptsToSearch.AddRange(_agsEditor.GetAllScriptHeaders()); // all scripts!
             scriptsToSearch.Add(_script);
 
             foreach (Script script in scriptsToSearch)
@@ -901,7 +905,7 @@ namespace AGS.Editor
                     {
                         if (!mainScript.AutoCompleteData.Populated)
                         {
-                            AutoComplete.ConstructCache(mainScript);
+                            AutoComplete.ConstructCache(mainScript, _agsEditor.GetImportedScriptHeaders(mainScript));
                         }
                         ScriptToken foundInScriptBody = FindTokenInScript(mainScript, structName, memberName);
                         if (foundInScriptBody != null)
@@ -988,7 +992,7 @@ namespace AGS.Editor
 
             _goToSprite = null;
             string clickedOnType = string.Empty;
-            if (!scintilla.InsideStringOrComment(false, clickedPositionInDocument))
+            if (!scintilla.InsideStringOrComment(clickedPositionInDocument))
             {
                 float dummy;
                 clickedOnType = scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);

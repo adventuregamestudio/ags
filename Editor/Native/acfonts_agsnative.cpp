@@ -4,9 +4,6 @@
 
 #pragma unmanaged
 
-#ifndef USE_ALFONT
-#define USE_ALFONT
-#endif
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 

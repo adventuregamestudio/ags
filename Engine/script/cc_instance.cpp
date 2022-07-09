@@ -463,7 +463,7 @@ int ccInstance::Run(int32_t curpc)
     int32_t thisbase[MAXNEST], funcstart[MAXNEST];
     int was_just_callas = -1;
     int curnest = 0;
-    int loopIterations = 0;
+    unsigned loopIterations = 0;
     int num_args_to_func = -1;
     int next_call_needs_object = 0;
     int loopIterationCheckDisabled = 0;

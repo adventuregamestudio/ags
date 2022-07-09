@@ -15,12 +15,16 @@ namespace AGS.CScript.Compiler
 
         public FastString(string source)
         {
-            _data = source;
+            _data = source ?? string.Empty;
             _offset = 0;
         }
 
         public FastString(string source, int offset)
         {
+            if (source == null || offset < 0 || offset > source.Length)
+            {
+                throw new ArgumentNullException();
+            }
             _data = source;
             _offset = offset;
         }

@@ -94,7 +94,7 @@ namespace AGS.Editor.Components
                 sb.AppendLine("import " + variable.Type + " " + variable.Name + ";");
             }
             _scriptHeader.Text = sb.ToString();
-            AutoComplete.ConstructCache(_scriptHeader);
+            AutoComplete.ConstructCache(_scriptHeader, null);
         }
 
         private void _agsEditor_GetScriptHeaderList(GetScriptHeaderListEventArgs evArgs)

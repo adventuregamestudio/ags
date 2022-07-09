@@ -202,10 +202,6 @@ if (HAVE_FSEEKO)
     target_compile_definitions(common PUBLIC HAVE_FSEEKO)
 endif()
 
-if (AGS_NO_MP3_PLAYER)
-    target_compile_definitions(common PUBLIC NO_MP3_PLAYER)
-endif()
-
 if(NOT MSVC)
     target_compile_options(common PUBLIC -Werror=undef)
 endif()

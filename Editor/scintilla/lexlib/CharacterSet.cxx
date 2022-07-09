@@ -18,10 +18,10 @@ namespace Scintilla {
 int CompareCaseInsensitive(const char *a, const char *b) noexcept {
 	while (*a && *b) {
 		if (*a != *b) {
-			const char upperA = MakeUpperCase(*a);
-			const char upperB = MakeUpperCase(*b);
-			if (upperA != upperB)
-				return upperA - upperB;
+			const char lowerA = MakeLowerCase(*a);
+			const char lowerB = MakeLowerCase(*b);
+			if (lowerA != lowerB)
+				return lowerA - lowerB;
 		}
 		a++;
 		b++;
@@ -33,10 +33,10 @@ int CompareCaseInsensitive(const char *a, const char *b) noexcept {
 int CompareNCaseInsensitive(const char *a, const char *b, size_t len) noexcept {
 	while (*a && *b && len) {
 		if (*a != *b) {
-			const char upperA = MakeUpperCase(*a);
-			const char upperB = MakeUpperCase(*b);
-			if (upperA != upperB)
-				return upperA - upperB;
+			const char lowerA = MakeLowerCase(*a);
+			const char lowerB = MakeLowerCase(*b);
+			if (lowerA != lowerB)
+				return lowerA - lowerB;
 		}
 		a++;
 		b++;

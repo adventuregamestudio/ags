@@ -157,15 +157,15 @@ namespace AGS.Editor
 
             if (!this.Script.IsHeader)
             {
-                // Scripts may miss autocomplete cache when they are first opened, so update
-                AutoComplete.ConstructCache(Script, _agsEditor.GetImportedScriptHeaders(Script));
                 scintilla.SetAutoCompleteSource(Script);
             }
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-            UpdateStructHighlighting();
             // pressing ( [ or . will auto-complete
             scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
+
+            // Scripts may miss autocomplete cache when they are first opened, so update
+            UpdateAutocompleteAndControls(true);
         }
 
         public void ActivateWindow()
@@ -286,6 +286,18 @@ namespace AGS.Editor
             cmbFunctions.Items.AddRange(functions.ToArray());
             cmbFunctions.EndUpdate();
             SelectFunctionInListForCurrentPosition();
+        }
+
+        /// <summary>
+        /// Updates this script's autocomplete cache and all the controls that depend on it.
+        /// </summary>
+        private void UpdateAutocompleteAndControls(bool force)
+        {
+            if (!force && !ContainsFocus)
+                return; // only update for the active pane to avoid expensive combo Add operations
+            AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
+            UpdateStructHighlighting();
+            UpdateFunctionList();
         }
 
         private void AdjustStartOfFunctionsInScript(int fromPos, int adjustment)
@@ -468,10 +480,7 @@ namespace AGS.Editor
             {
                 _script.SaveToDisk();
                 scintilla.SetSavePoint();
-                if (_script.IsHeader)
-                {
-                    AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
-                }
+                UpdateAutocompleteAndControls(true);
             }
         }
 

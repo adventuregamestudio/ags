@@ -254,7 +254,14 @@ namespace AGS.Editor
                     if (isExtenderMethod)
                     {
                         ScriptStruct newStruct = null;
-                        AdjustFunctionListForExtenderFunction(structsLookup, ref functionList, ref newStruct, ref script);
+                        // NOTE: for extenders we DO NOT look up the global struct list;
+                        // the reason is a bit complicated, but in a nutshell:
+                        // we need to have a list of extender functions bound to the
+                        // struct defs in the *local* script's autocomplete cache, not the
+                        // imported script's cache. The struct defs may be duplicated this
+                        // way, but that's mostly fine, as these may be merged together;
+                        // e.g. see ScintillaWrapper.GetAllStructsWithMatchingName().
+                        AdjustFunctionListForExtenderFunction(structs, ref functionList, ref newStruct, ref script);
                         if (newStruct != null)
                         {
                             structs.Add(newStruct);

@@ -36,6 +36,8 @@ namespace AGS.Types
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
 
+        private const string DEFAULT_TARGET_NAMES = "DataFile, Windows";
+
         public Settings()
         {
 			GenerateNewGameID();
@@ -123,7 +125,7 @@ namespace AGS.Types
 		private string _saveGameExtension = string.Empty;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = AudioClip.FixedIndexBase;
-        private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
+        private string _buildTargets = GetBuildTargetsString(DEFAULT_TARGET_NAMES, false);
         private string _androidApplicationId = "com.mystudio.mygame";
         private int _androidAppVersionCode = 1;
         private string _androidAppVersionName = DEFAULT_VERSION;

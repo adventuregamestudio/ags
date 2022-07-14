@@ -111,7 +111,7 @@ namespace AGS.Types
 
         public static string ValidateScriptName(string name)
         {
-            return ValidateScriptName(name, 99999);
+            return ValidateScriptName(name, Int32.MaxValue);
         }
 
         public static Size UserStringToResolution(string s)

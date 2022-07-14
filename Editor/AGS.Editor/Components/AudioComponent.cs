@@ -322,7 +322,8 @@ namespace AGS.Editor.Components
             string fileExtension = Path.GetExtension(sourceFileName).ToLower();
             if (_fileTypeMappings.ContainsKey(fileExtension))
             {
-                string newScriptName = EnsureScriptNameIsUnique(Path.GetFileNameWithoutExtension(sourceFileName));
+                string newScriptName = EnsureScriptNameIsUnique(
+                    Path.GetFileNameWithoutExtension(sourceFileName), AudioClip.MAX_SCRIPTNAME_LENGTH);
                 AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
                 newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
                 newClip.SourceFileName = Utilities.GetRelativeToProjectPath(sourceFileName);
@@ -337,16 +338,25 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        private string EnsureScriptNameIsUnique(string nameToTry)
+        private string EnsureScriptNameIsUnique(string nameToTry, int truncateToLength = Int32.MaxValue)
         {
             nameToTry = AGS.Types.Utilities.RemoveInvalidCharactersFromScriptName(nameToTry);
             nameToTry = "a" + Char.ToUpper(nameToTry[0]) + nameToTry.Substring(1);
-            string tryThisTime = nameToTry;
+            string tryThisTime = nameToTry.Length > truncateToLength ?
+                nameToTry.Substring(0, truncateToLength) : nameToTry;
             int suffix = 0;
             while (_agsEditor.CurrentGame.IsScriptNameAlreadyUsed(tryThisTime, null))
             {
                 suffix++;
-                tryThisTime = nameToTry + suffix;
+                string suffixStr = suffix.ToString();
+                if (nameToTry.Length + suffixStr.Length > truncateToLength)
+                {
+                    tryThisTime = nameToTry.Substring(0, truncateToLength - suffixStr.Length) + suffix;
+                }
+                else
+                {
+                    tryThisTime = nameToTry + suffix;
+                }
             }
             return tryThisTime;
         }

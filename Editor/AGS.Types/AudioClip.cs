@@ -10,6 +10,7 @@ namespace AGS.Types
     {
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
+        public const int MAX_SCRIPTNAME_LENGTH = 29; // restricted by data format
 
         private int _id;
         private string _sourceFileName;
@@ -77,7 +78,7 @@ namespace AGS.Types
         public string ScriptName
         {
             get { return _scriptName; }
-            set { _scriptName = Utilities.ValidateScriptName(value); }
+            set { _scriptName = Utilities.ValidateScriptName(value, MAX_SCRIPTNAME_LENGTH); }
         }
 
         [Browsable(false)]

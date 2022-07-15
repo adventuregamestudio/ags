@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 
 namespace AGS.Editor
 {
@@ -13,6 +10,12 @@ namespace AGS.Editor
             if (val.CompareTo(min) < 0) return min;
             else if (val.CompareTo(max) > 0) return max;
             else return val;
+        }
+
+        public static Size SafeScale(this Size size, float scale)
+        {
+            return new Size(Math.Max(1, (int)(size.Width * scale)),
+                     Math.Max(1, (int)(size.Height * scale)));
         }
     }
 }

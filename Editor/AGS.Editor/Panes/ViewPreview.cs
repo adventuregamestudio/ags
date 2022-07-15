@@ -16,6 +16,8 @@ namespace AGS.Editor
         private Timer _animationTimer;
 		private bool _dynamicUpdates = false;
 		private int _thisFrameDelay = 0;
+		private float _zoomLevel = 1.0f;
+        private readonly Size _defaultFrameSize; // default picture frame size
 
         private const int MILLISECONDS_IN_SECOND = 1000;
         private const int DEFUALT_FRAME_RATE = 40;
@@ -23,6 +25,7 @@ namespace AGS.Editor
         public ViewPreview()
         {
             InitializeComponent();
+            _defaultFrameSize = previewPanel.ClientSize;
         }
 
         public string Title
@@ -49,7 +52,20 @@ namespace AGS.Editor
 			set { _dynamicUpdates = value; }
 		}
 
-		public void ReleaseResources()
+        public float ZoomLevel
+        {
+            get
+            {
+                return _zoomLevel;
+            }
+            set
+            {
+                _zoomLevel = value;
+                UpdateSize();
+            }
+        }
+
+        public void ReleaseResources()
 		{
 			StopTimer();
 			chkAnimate.Checked = false;
@@ -95,46 +111,78 @@ namespace AGS.Editor
                 udDelay.Minimum = 1;
                 udDelay.Maximum = 100;
                 udLoop_ValueChanged(null, null);
+                UpdateSize();
             }
+        }
+
+        private bool IsFrameValid
+        {
+            get
+            {
+                return (_view != null) && (udLoop.Value < _view.Loops.Count) &&
+                    (udFrame.Value < _view.Loops[(int)udLoop.Value].Frames.Count);
+            }
+        }
+
+        private void UpdateSize()
+        {
+            if (_view == null)
+                return;
+            // Calculate the maximal view frame size,
+            // see if the frame may be resized within the control's client size
+            Size viewSize = Utilities.GetSizeViewWillBeRenderedInGame(_view);
+            viewSize = MathExtra.SafeScale(viewSize, _zoomLevel);
+            if (previewPanel.ClientSize.Width < viewSize.Width ||
+                previewPanel.ClientSize.Height < viewSize.Height)
+            {
+                previewPanel.ClientSize = new Size(
+                    Math.Max(previewPanel.ClientSize.Width, viewSize.Width),
+                    Math.Max(previewPanel.ClientSize.Height, viewSize.Height));
+            }
+            else
+            {
+                previewPanel.ClientSize = new Size(
+                    Math.Max(_defaultFrameSize.Width, viewSize.Width),
+                    Math.Max(_defaultFrameSize.Height, viewSize.Height));
+            }
+            previewPanel.Invalidate();
         }
 
         private void previewPanel_Paint(object sender, PaintEventArgs e)
         {
-            if ((_view != null) && (udLoop.Value < _view.Loops.Count) &&
-                (udFrame.Value < _view.Loops[(int)udLoop.Value].Frames.Count))
+            if (!IsFrameValid)
+                return;
+
+            ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
+            int spriteNum = thisFrame.Image;
+            Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
+            spriteSize = MathExtra.SafeScale(spriteSize, _zoomLevel);
+            if (spriteSize.Width <= previewPanel.ClientSize.Width && spriteSize.Height <= previewPanel.ClientSize.Height)
             {
-                ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
-                int spriteNum = thisFrame.Image;
-                int scale = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
-                Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
-                spriteSize = new Size { Width = spriteSize.Width * scale, Height = spriteSize.Height * scale };
-                if (spriteSize.Width <= previewPanel.ClientSize.Width && spriteSize.Height <= previewPanel.ClientSize.Height)
+                int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;
+                int y = previewPanel.ClientSize.Height - spriteSize.Height;
+                IntPtr hdc = e.Graphics.GetHdc();
+                Factory.NativeProxy.DrawSprite(hdc, x, y, spriteSize.Width, spriteSize.Height, spriteNum, thisFrame.Flipped);
+                e.Graphics.ReleaseHdc();
+            }
+            else
+            {
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
+
+                if (thisFrame.Flipped)
                 {
-                    int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;
-                    int y = previewPanel.ClientSize.Height - spriteSize.Height;
-                    IntPtr hdc = e.Graphics.GetHdc();
-                    Factory.NativeProxy.DrawSprite(hdc, x, y, spriteSize.Width, spriteSize.Height, spriteNum, thisFrame.Flipped);
-                    e.Graphics.ReleaseHdc();
+                    Point urCorner = new Point(0, 0);
+                    Point ulCorner = new Point(bmp.Width, 0);
+                    Point llCorner = new Point(bmp.Width, bmp.Height);
+                    Point[] destPara = { ulCorner, urCorner, llCorner };
+                    e.Graphics.DrawImage(bmp, destPara);
                 }
                 else
-				{
-					Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
+                {
+                    e.Graphics.DrawImage(bmp, 1, 1);
+                }
 
-                    if (thisFrame.Flipped)
-                    {
-                        Point urCorner = new Point(0, 0);
-                        Point ulCorner = new Point(bmp.Width, 0);
-                        Point llCorner = new Point(bmp.Width, bmp.Height);
-                        Point[] destPara = { ulCorner, urCorner, llCorner };
-                        e.Graphics.DrawImage(bmp, destPara);
-                    }
-                    else
-                    {
-                        e.Graphics.DrawImage(bmp, 1, 1);
-                    }
-
-					bmp.Dispose();
-				}
+                bmp.Dispose();
             }
         }
 

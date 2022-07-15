@@ -75,6 +75,7 @@ namespace AGS.Editor
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CallStackPanel";
             this.Padding = new System.Windows.Forms.Padding(1, 20, 1, 1);
+            this.Load += new System.EventHandler(this.CallStackPanel_Load);
             this.ResumeLayout(false);
 
         }

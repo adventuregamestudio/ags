@@ -32,14 +32,12 @@ namespace AGS.Editor
             _dialog = dialogToEdit;
             _agsEditor = agsEditor;
 
-            Init();
+            InitializeComponent();
+            this.Load += new EventHandler(DialogEditor_Load);
         }
 
-        private void Init()
+        private void DialogEditor_Load(object sender, EventArgs e)
         {
-            InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
-
             _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
@@ -71,6 +69,11 @@ namespace AGS.Editor
 
             RegisterEvents();
             scintillaEditor.ActivateTextEditor();
+
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
 
         private void RegisterEvents()

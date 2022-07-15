@@ -49,7 +49,6 @@ namespace AGS.Editor
                 }
             }
             UpdateControlsEnabled();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public LipSync EditingLipSync
@@ -104,6 +103,14 @@ namespace AGS.Editor
                     textBox.ForeColor = t.GetColor("lip-sync-editor/text-boxes/foreground");
                     textBox.BorderStyle = (BorderStyle)t.GetInt("lip-sync-editor/text-boxes/border-style");
                 }
+            }
+        }
+
+        private void LipSyncEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }
     }

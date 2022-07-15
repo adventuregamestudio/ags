@@ -35,7 +35,6 @@ namespace AGS.Editor
         public frmMain()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
 
             _layoutManager = new WindowsLayoutManager(mainContainer, GetStartupPanes());            
             tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
@@ -80,8 +79,12 @@ namespace AGS.Editor
 
 		private void frmMain_Load(object sender, EventArgs e)
 		{
-            LoadLayout();            			
-		}
+            if (!DesignMode)
+            {
+                LoadLayout();
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
+        }
 
         public void RefreshPropertyGridForDocument(ContentDocument document)
         {

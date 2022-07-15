@@ -18,7 +18,6 @@ namespace AGS.Editor
         public CharacterEditor(Character characterToEdit)
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _character = characterToEdit;
             _normalFont = lblIsPlayer.Font;
             _boldFont = new System.Drawing.Font(_normalFont.Name, _normalFont.Size, FontStyle.Bold);
@@ -90,6 +89,14 @@ namespace AGS.Editor
             btnMakePlayer.FlatStyle = (FlatStyle)t.GetInt("character-editor/btn-make/flat/style");
             btnMakePlayer.FlatAppearance.BorderSize = t.GetInt("character-editor/btn-make/flat/border/size");
             btnMakePlayer.FlatAppearance.BorderColor = t.GetColor("character-editor/btn-make/flat/border/color");
+        }
+
+        private void CharacterEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

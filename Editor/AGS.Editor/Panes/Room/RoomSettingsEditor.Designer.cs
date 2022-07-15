@@ -262,6 +262,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "RoomSettingsEditor";
             this.Size = new System.Drawing.Size(768, 491);
+            this.Load += new System.EventHandler(this.RoomSettingsEditor_Load);
             this.mainFrame.ResumeLayout(false);
             this.mainFrame.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).EndInit();

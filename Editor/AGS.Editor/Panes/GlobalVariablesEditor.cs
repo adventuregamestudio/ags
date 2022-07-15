@@ -30,7 +30,6 @@ namespace AGS.Editor
         public GlobalVariablesEditor(Game game)
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             lvwWords.ListViewItemSorter = new GlobalVariableComparer();
             _game = game;
             _variables = game.GlobalVariables;
@@ -260,6 +259,14 @@ namespace AGS.Editor
                 a.Graphics.DrawString(a.Header.Text, lvwWords.Font, new SolidBrush(t.GetColor("global-variables-editor/list/column-header/foreground")), a.Bounds.X + 5, a.Bounds.Y + a.Bounds.Size.Height / 5);
                 a.Graphics.DrawRectangle(new Pen(new SolidBrush(t.GetColor("global-variables-editor/list/column-header/border"))), a.Bounds.X - 1, a.Bounds.Y - 1, a.Bounds.Size.Width, a.Bounds.Size.Height);
             };
+        }
+
+        private void GlobalVariablesEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

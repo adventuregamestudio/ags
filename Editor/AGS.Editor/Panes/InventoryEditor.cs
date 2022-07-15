@@ -45,7 +45,6 @@ namespace AGS.Editor
         public InventoryEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             UpdatePanelSizes();
         }
 
@@ -217,6 +216,14 @@ namespace AGS.Editor
         private void pnlInvWindowImage_MouseWheel(object sender, MouseEventArgs e)
         {
             mouseWheelZoom(sender, e);
+        }
+
+        private void InventoryEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

@@ -90,7 +90,7 @@ namespace AGS.Editor
             this.lblIsPlayer.Size = new System.Drawing.Size(398, 26);
             this.lblIsPlayer.TabIndex = 5;
             this.lblIsPlayer.Text = "This character is OR IS NOT the player; the game will startin this character\'s ro" +
-                "om or something";
+    "om or something";
             // 
             // CharacterEditor
             // 
@@ -100,6 +100,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "CharacterEditor";
             this.Size = new System.Drawing.Size(593, 441);
+            this.Load += new System.EventHandler(this.CharacterEditor_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);

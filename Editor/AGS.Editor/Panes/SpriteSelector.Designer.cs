@@ -186,6 +186,7 @@ namespace AGS.Editor
             this.Controls.Add(this.splitWindow);
             this.Name = "SpriteSelector";
             this.Size = new System.Drawing.Size(640, 484);
+            this.Load += new System.EventHandler(this.SpriteSelector_Load);
             this.splitWindow.Panel1.ResumeLayout(false);
             this.splitWindow.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).EndInit();

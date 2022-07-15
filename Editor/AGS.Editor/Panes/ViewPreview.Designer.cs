@@ -125,7 +125,6 @@ namespace AGS.Editor
             0,
             0,
             0});
-			this.udDelay.ValueChanged += new System.EventHandler(this.udDelay_ValueChanged);
 			// 
 			// label2
 			// 

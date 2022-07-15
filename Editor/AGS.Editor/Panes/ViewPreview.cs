@@ -90,7 +90,8 @@ namespace AGS.Editor
                 udLoop.Minimum = 0;
                 udLoop.Maximum = (view.Loops.Count == 0) ? 0 : view.Loops.Count - 1;
                 udFrame.Minimum = 0;
-                udFrame.Maximum = 99;
+                udFrame.Maximum = (view.Loops[(int)udLoop.Value].Frames.Count == 0) ? 0 :
+                    view.Loops[(int)udLoop.Value].Frames.Count - 1;
                 udDelay.Minimum = 1;
                 udDelay.Maximum = 100;
                 udLoop_ValueChanged(null, null);
@@ -227,10 +228,6 @@ namespace AGS.Editor
                 udFrame.Value = 0;
             }
 			UpdateDelayForThisFrame();
-        }
-
-        private void udDelay_ValueChanged(object sender, EventArgs e)
-        {
         }
 
         private void LoadColorTheme(ColorTheme t)

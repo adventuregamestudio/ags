@@ -162,7 +162,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {
 
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("9999999999999999999999"));
+    EXPECT_NE(std::string::npos, res.find("'99999999999999"));
 }
 
 TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
@@ -175,7 +175,7 @@ TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("9999999999999999999999"));
+    EXPECT_NE(std::string::npos, res.find("'999999999999999"));
 }
 
 TEST_F(Compile0, ParsingIntOverflow) {
@@ -188,7 +188,7 @@ TEST_F(Compile0, ParsingIntOverflow) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
+    EXPECT_NE(std::string::npos, res.find("'42000000000000"));
 }
 
 TEST_F(Compile0, ParsingNegIntOverflow) {
@@ -201,7 +201,7 @@ TEST_F(Compile0, ParsingNegIntOverflow) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     // Offer some leeway in the error message, but insist that the culprit is named
     std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("4200000000000000000000"));
+    EXPECT_NE(std::string::npos, res.find("'420000000000000"));
 }
 
 TEST_F(Compile0, ParsingHexSuccess) {

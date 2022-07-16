@@ -227,7 +227,7 @@ TEST_F(Bytecode0, Float01) {
             return Test1 + Test2 + Test3 +  \n\
                 Test4 + Test5 + Test6 +     \n\
                 Test7 + Test8;              \n\
-            Test1 = 77f;                    \n\
+            Test1 = 77.;                    \n\
         }                                   \n\
         ";
 

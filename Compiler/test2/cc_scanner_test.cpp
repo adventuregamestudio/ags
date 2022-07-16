@@ -319,37 +319,87 @@ TEST_F(Scan, LiteralInt1)
     EXPECT_EQ(5, sym[lit05].LiteralD->Value);
 }
 
-TEST_F(Scan, LiteralIntLimits)
+TEST_F(Scan, LiteralInt2)
 {
-    // Should correctly parse INT32_MAX and INT32_MIN
-    const char *inp1 = "-2147483648 2147483647";
+    // Accept LONG_MIN written in decimal (will yield 2 symbols)
+    char *inp = "-2147483648";
 
-    AGS::Scanner scanner(inp1, token_list, string_collector, sym, mh);
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
-    EXPECT_FALSE(mh.HasError());
-
-    AGS::Symbol const lit_min = token_list[1u]; // 0u is '-'
-    ASSERT_TRUE(sym.IsLiteral(lit_min));
-    EXPECT_EQ(INT32_MIN, sym[lit_min].LiteralD->Value);
-
-    AGS::Symbol const lit_max = token_list[2u];
-    ASSERT_TRUE(sym.IsLiteral(lit_max));
-    EXPECT_EQ(INT32_MAX, sym[lit_max].LiteralD->Value);
+    ASSERT_FALSE(mh.HasError());
+    EXPECT_EQ(2u, token_list.Length());
 }
 
-TEST_F(Scan, LiteralIntOverflow)
+TEST_F(Scan, LiteralInt3)
 {
-    // Should detect int32 overflow
-    const char *inp1 = "-2147483649";
-    const char *inp2 = "2147483648";
+    // Accept large hexadecimal, treat as negative number (will yield 1 symbol)
+    char *inp = "0XFF000000";
 
-    AGS::Scanner scanner1(inp1, token_list, string_collector, sym, mh);
-    scanner1.Scan();
-    ASSERT_TRUE(mh.HasError());
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    long const res = 0XFF000000L;
+    AGS::Symbol token = token_list[0];
+    EXPECT_EQ(res, sym[token].LiteralD->Value);
+}
 
-    AGS::Scanner scanner2(inp2, token_list, string_collector, sym, mh);
-    scanner2.Scan();
+TEST_F(Scan, LiteralInt4)
+{
+    // Accept LONG_MIN written as hexadecimal (will yield 1 symbol)
+    char *inp = "0x80000000";
+
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Symbol token = token_list[0];
+    EXPECT_EQ(LONG_MIN, sym[token].LiteralD->Value);
+}
+
+TEST_F(Scan, LiteralInt5)
+{
+    // Leading zeroes in hex literal
+    char *inp = "0x000000001234";
+
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Symbol token = token_list[0];
+    EXPECT_EQ(0x1234, sym[token].LiteralD->Value);
+}
+
+TEST_F(Scan, LiteralInt6a)
+{
+    // Huge hexadecimal, too many significant hex digits
+    char *inp = "0x000123456789";
+
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
     ASSERT_TRUE(mh.HasError());
+}
+
+TEST_F(Scan, LiteralInt6b)
+{
+    // Huge decimal 
+    char *inp = "1234567890123456789012345678901234567890123456789012345678901234567890"
+                "1234567890123456789012345678901234567890123456789012345678901234567890"
+                "1234567890123456789012345678901234567890123456789012345678901234567890";
+
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    ASSERT_TRUE(mh.HasError());
+}
+
+TEST_F(Scan, LiteralInt7)
+{
+    // Accept number that begins with '0' but not '0x';
+    // interpret such a number in decimal (!) notation
+    char *inp = "0123";
+
+    AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Symbol token = token_list[0];
+    EXPECT_EQ(123, sym[token].LiteralD->Value);
 }
 
 TEST_F(Scan, LiteralIntHex)

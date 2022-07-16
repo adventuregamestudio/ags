@@ -25,9 +25,10 @@ public:
     {
         kSct_Unspecified = 0,
         kSct_Identifier,      // Identifier or keyword --- [A-Za-z][A-Za-z_]*
-        kSct_FloatLiteral,    // Numbers containing a "." --- [0-9]+[.][0-9]*
-        kSct_IntLiteral,      // Numbers not containing a "." --- [0-9]+
+        kSct_FloatLiteral,    // Float literal in C++ syntax
+        kSct_IntLiteral,      // Integer literal in C++ syntax
         kSct_NonAlphanum,     // i.e., +, ++, /=; this can be one character or two characters
+        kSct_OnePastLongMax,  // 1 plus largest signed integer
         kSct_SectionChange,   // String literal beginning with magic string
         kSct_StringLiteral,   // Quoted strings --- ["]([\\].[^"]*)*["]
     };
@@ -107,6 +108,9 @@ private:
     // We encountered a section start; process it
     void NewSection(std::string const &section);
 
+    // Convert 'valstring' to a long long (!)
+    long long StringToLongLong(std::string const &valstring, bool &conversion_successful) const;
+
     // Read in either an int literal or a float literal
     // Note: appends to symstring, doesn't clear it first.
     void ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value);
@@ -161,6 +165,9 @@ private:
 
     // Abort scanning with an internal error
     void InternalError(char const *desc  ...);
+
+    // Warn, but don't abort.
+    void Warning(char const *desc ...);
 
 protected:
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }

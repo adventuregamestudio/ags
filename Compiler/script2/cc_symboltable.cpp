@@ -336,6 +336,7 @@ AGS::SymbolTable::SymbolTable()
     MakeEntryLiteral(kKW_Null);
     entries[kKW_Null].LiteralD->Vartype = kKW_Null;
     entries[kKW_Null].LiteralD->Value = 0u;
+    AddKeyword(kKW_OnePastLongMax, "2147483648");
     AddKeyword(kKW_Protected, "protected");
     AddKeyword(kKW_Readonly, "readonly");
     AddKeyword(kKW_Return, "return");
@@ -360,6 +361,12 @@ AGS::SymbolTable::SymbolTable()
         MakeEntryLiteral(one_sym);
         entries[one_sym].LiteralD->Value = 1;
         entries[one_sym].LiteralD->Vartype = kKW_Int;
+    }
+    {
+        Symbol const long_min_sym = Add("-2147483648");
+        MakeEntryLiteral(long_min_sym);
+        entries[long_min_sym].LiteralD->Value = LONG_MIN;
+        entries[long_min_sym].LiteralD->Vartype = kKW_Int;
     }
     {
         Symbol const float_zero_sym = Add("0.0");
@@ -449,7 +456,8 @@ bool AGS::SymbolTable::CanBePartOfAnExpression(Symbol s)
         IsFunction(s) ||
         IsLiteral(s) ||
         (IsOperator(s) && entries.at(s).OperatorD->CanBePartOfAnExpression) ||
-        IsVariable(s);
+        IsVariable(s) ||
+        (s == kKW_OnePastLongMax);
 }
 
 bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const

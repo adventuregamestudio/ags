@@ -1950,7 +1950,7 @@ TEST_F(Bytecode1, Ternary5) {
             int I5a = 0 ? I4a : 90;     \n\
             int I5b = 5 ? I4b : 100;    \n\
             int I6 = 0 ? : I5a;         \n\
-            return 0f;                  \n\
+            return 0.;                  \n\
         }                               \n\
         ";
 
@@ -2773,4 +2773,56 @@ TEST_F(Bytecode1, StringLiteral2String) {
     'g',  '!',    0,  '\0'
     };
     CompareStrings(&scrip, stringssize, strings);
+}
+
+TEST_F(Bytecode1, LongMin1) {
+
+    // Accept LONG_MIN written in decimal, generate appropriate code
+    char *inpl = "\
+        int I = - 2147483648;                   \n\
+                                                \n\
+        int test(int foo = -2147483648)         \n\
+        {                                       \n\
+            int i2 = -1 - -2147483648;          \n\
+            return test() + (2 + -2147483648);  \n\
+        }\n\
+    ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    // WriteOutput("LongMin1", scrip);
+    size_t const codesize = 37;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      38,    0,    6,    3,         2147483647,   29,    3,    6,    // 7
+       3, -2147483648,   29,    3,            6,    3,    0,   23,    // 15
+       3,    2,    1,    4,           29,    3,    6,    3,    // 23
+    -2147483646,   30,    4,   11,            4,    3,    3,    4,    // 31
+       3,    2,    1,    4,            5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      14,  -999
+    };
+    char fixuptypes[] = {
+      2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }

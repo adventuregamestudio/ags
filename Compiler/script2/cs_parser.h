@@ -644,6 +644,10 @@ private:
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     void ParseExpression_PostfixCrement(Symbol op_sym, SrcList &expression, EvaluationResult &eres);
 
+    // Parse literal int with the lowest possible value
+    // This will arrive at the parser as '-' '2147483648'
+    void ParseExpression_LongMin(EvaluationResult &eres);
+
     // If consecutive parentheses surround the expression, strip them.
     void StripOutermostParens(SrcList &expression);
 

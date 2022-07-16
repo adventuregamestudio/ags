@@ -2245,6 +2245,15 @@ void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &exp
     eres.SideEffects = true;
 }
 
+void AGS::Parser::ParseExpression_LongMin(EvaluationResult &eres)
+{
+    eres.Type = eres.kTY_Literal;
+    eres.Location = eres.kLOC_SymbolTable;
+    eres.Symbol = _sym.Find("-2147483648");
+    eres.Vartype = kKW_Int;
+}
+
+
 // The least binding operator is the first thing in the expression
 // This means that the op must be an unary op.
 void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &eres)
@@ -2266,6 +2275,14 @@ void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &
         StripOutermostParens(expression);
         return ParseExpression_PrefixCrement(op_sym, expression, eres);
     }
+
+    // Special case: Lowest integer literal, written in decimal notation.
+    // We treat this here in the parser because the scanner doesn't know
+    // whether a minus symbol stands for a unary minus.
+    if (op_sym == kKW_Minus &&
+        expression.Length() == 1 &&
+        expression[0] == kKW_OnePastLongMax)
+        return ParseExpression_LongMin(eres);
 
     ParseExpression_Term(expression, eres);
     
@@ -3516,6 +3533,9 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
         expression.BackUp();
         return;
     }
+
+    if (kKW_OnePastLongMax == first_sym)
+        UserError("Integer literal is out of bounds (maximum is %d)", LONG_MAX);
 
     UserError("Unexpected '%s' in expression", _sym.GetName(first_sym).c_str());
 }

@@ -2451,3 +2451,53 @@ TEST_F(Compile1, DisallowStaticVariables)
     EXPECT_NE(std::string::npos, msg.find("tatic "));
 
 }
+
+TEST_F(Compile1, LongMin01) {
+
+    // LONG_MAX + 1 is too large (when there isn't a '-' in front)
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int i = 2147483648;                 \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+}
+
+TEST_F(Compile1, LongMin02) {
+
+    // LONG_MAX + 1 is too large (when there isn't a UNARY '-' in front)
+
+    char *inpl = "\
+        int main()                              \n\
+        {                                       \n\
+            int i = (5 - 2147483648);           \n\
+        }                                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("ut of bounds"));
+}
+
+TEST_F(Compile1, LongMin03) {
+
+    // Can subtract LONG_MIN from LONG_MIN (result is 0)
+
+    char *inpl = "\
+        int main()                                  \n\
+        {                                           \n\
+            int i = (- 2147483648 - -2147483648);   \n\
+        }                                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
+}

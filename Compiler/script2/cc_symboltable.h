@@ -189,6 +189,7 @@ enum Predefined : Symbol
     kKW_New,            // "new"
     kKW_Noloopcheck,    // "noloopcheck"
     kKW_OpenBrace,      // "{"
+    kKW_OnePastLongMax, // "2147483648"
     kKW_Protected,      // "protected"
     kKW_Readonly,       // "readonly"
     kKW_Return,         // "return"

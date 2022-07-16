@@ -88,12 +88,17 @@ void AGS::CTF_IntMinus::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i1 = _sym[arg1].LiteralD->Value;
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
+    if (i1 >= 0 && i2 == LONG_MIN)
+        UserError(
+            "Overflow when calculating '%s - %s'",
+            _sym[arg1].Name.c_str(),
+            _sym[arg2].Name.c_str());
     if (((i1 > 0 && i2 < 0) || (i1 < 0 && i2 > 0)) &&
         (std::numeric_limits<CodeCell>::max() - abs(i1) < abs(i2)))
         UserError(
             "Overflow when calculating '%s - %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+            _sym[arg1].Name.c_str(),
+            _sym[arg2].Name.c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }

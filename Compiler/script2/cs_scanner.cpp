@@ -241,6 +241,26 @@ void AGS::Scanner::SkipWhitespace()
     }
 }
 
+long long AGS::Scanner::StringToLongLong(std::string const &valstring, bool &conversion_successful) const
+{
+    errno = 0;
+    char *endptr;
+    int base = 0;
+    if (valstring.length() > 1 &&
+        valstring[0] == '0' &&
+        IsDigit(valstring[1]))
+    {
+        // Force interpreting the integer as decimal instead of octal
+        base = 10;
+    }
+    long long retval = std::strtoll(valstring.c_str(), &endptr, base);
+    conversion_successful =
+        (errno == 0 || errno == ERANGE) &&                  // ignore range error here
+        valstring.length() == endptr - valstring.c_str();   // ensure that all chars were used up in the conversion
+
+    return retval;
+}
+
 void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, CodeCell &value)
 {
     static std::string const exponent_leadin = "EePp";
@@ -248,48 +268,63 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 
     // Collect all the characters into symstring.
     // Collect those characters that are part of the number proper and have a meaning into valstring
-    // Extend the strings as far as possible so that they still can be interpreted as long or double.
-    // Let std::strtol and std::strtod figure out just what that is.
+    // Extend the strings as far as possible within the constraint that they still can be interpreted as long or double.
+    // Let std::strtoll and std::strtod figure out just what that is.
 
     symstring.push_back(Get());
     std::string valstring = symstring;
-    char *endptr;
 
     while (true)
     {
         int const ch = Get();
         if (!EOFReached() && Failed())
-            UserError("Error whilst reading a number literal (file corrupt?)");
+            UserError(
+                "Error whilst reading the number literal starting with '%s' (file corrupt?)",
+                valstring.c_str());
 
         symstring.push_back(ch);
         if ('\'' == ch)
         {
-            if ((!valstring.empty() && IsDigit(valstring.back()) && IsDigit(Peek())) ||
-                ("0x" == valstring.substr(0, 2) && IsHexDigit(valstring.back()) && IsHexDigit(Peek())))
+            if (!valstring.empty() && IsDigit(valstring.back()) && IsDigit(Peek()))
                 continue;
+
+            if (valstring.length() > 1 &&
+                '0' == valstring[0] &&
+                ('x' == valstring[1] || 'X' == valstring[1]) &&
+                IsHexDigit(valstring.back()) &&
+                IsHexDigit(Peek()))
+                continue; 
         }
         valstring.push_back(ch);
 
-        int const peek = Peek();
-        if ("0x" == valstring && IsHexDigit(peek))
-            continue; // Is neither an int nor a float but will become a number
+        if (2 == valstring.length() &&
+            ("0x" == valstring || "0X" == valstring) &&
+            IsHexDigit(Peek()))
+            continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
-        if (std::string::npos != exponent_leadin.find(ch) && std::string::npos != exponent_follow.find(peek))
-            continue; // Is neither an int nor a float but will become a number
+        if (std::string::npos != exponent_leadin.find(ch) &&
+            std::string::npos != exponent_follow.find(Peek()))
+            continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
         if (('-' == ch || '+' == ch) &&
-            IsDigit(peek) &&
+            IsDigit(Peek()) &&
             valstring.length() > 1 &&
             std::string::npos != exponent_leadin.find(valstring[valstring.length() - 2]))
-            continue; // Is neither an int nor a float but will become a number
+            continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
-        std::strtol(valstring.c_str(), &endptr, 0);
-        bool const can_be_long = (valstring.length() == endptr - valstring.c_str());
-        if (can_be_long)
+        // Test convert to a long long (!) so that -LONG_MIN is still within the range that we must allow.
+        bool can_be_an_integer;
+        StringToLongLong(valstring, can_be_an_integer);
+        if (can_be_an_integer)
             continue;
-        std::strtod(valstring.c_str(), &endptr);
-        bool const can_be_double = (valstring.length() == endptr - valstring.c_str());
-        if (can_be_double)
+
+        errno = 0;
+        char *endptr;
+        std::strtof(valstring.c_str(), &endptr);
+        bool const can_be_a_floating_point =
+            (errno == 0 || errno == ERANGE) &&                  // range errors will be treated below
+            (valstring.length() == endptr - valstring.c_str()); // ensure that all chars are used up in the conversion
+        if (can_be_a_floating_point)
             continue;
 
         // So this last char can't belong to the number
@@ -299,43 +334,73 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
         break;
     }
 
-    int const peek = Peek();
-    if ('8' == peek || '9' == peek)
-        UserError("Encountered the illegal digit '%c' in the octal number literal starting with '%s'", peek, symstring.c_str());
+    // We've read in the number completely: Figure out what it is
 
-    if ('f' == peek || 'F' == peek)
-        symstring.push_back(Get());
-
-    errno = 0;
-    long long_value = std::strtoul(valstring.c_str(), &endptr, 0);
-    bool can_be_long = (valstring.length() == endptr - valstring.c_str());
-    if (can_be_long && peek != 'f' && peek != 'F')
+    bool can_be_an_integer;
+    // Convert to a long long (!) so that -LONG_MIN is still within the range that we must allow.
+    long long longlong_value = StringToLongLong(valstring.c_str(), can_be_an_integer);
+    if (can_be_an_integer)
     {
-        if (std::numeric_limits<CodeCell>::max() < long_value || ERANGE == errno)
-            UserError(
-                "Literal integer '%s' is out of bounds (maximum is '%s')",
-                valstring.c_str(),
-                std::to_string(std::numeric_limits<CodeCell>::max()).c_str());
+        if (valstring.length() > 1 && '0' == valstring[0] && IsDigit(valstring[1]))
+            Warning("'%s' is interpreted as a number in decimal notation", symstring.c_str());
+
+        if (longlong_value > LONG_MAX)
+        {
+            if (valstring.length() > 2 &&
+                IsDigit(valstring[0]) &&
+                IsDigit(valstring[1]) &&
+                longlong_value == -static_cast<long long>(LONG_MIN))
+            {
+                // Special case. This is out-of-range for integers,
+                // but might still be allowed when preceded by a _unary_ minus.
+                // Only the parser can decide whether a minus is unary,
+                // so let this through here. A code cell is too small to hold
+                // this value, so return a dedicated scan type for this situation
+                scan_type = kSct_OnePastLongMax;
+                value = 0;
+                return;
+            }
+
+            if (longlong_value >= 0x80000000 &&
+                valstring.length() > 1 &&
+                valstring[0] == '0' &&
+                (valstring[1] == 'x' || valstring[1] == 'X'))
+            {
+                // Large hexadecimal
+                if (longlong_value > 0xFFFFFFFF)
+                    UserError(
+                        "Too many significant hex digits in '%s' (at most 8 significant digits allowed)",
+                        (symstring.length() <= 20? symstring : symstring.substr(0, 20) + "...").c_str());
+                // 'strtoll()' has converted this hexadecimal into a value that
+                // is too large for a long. However, this is still legal and
+                // yields a negative long number.
+                longlong_value = longlong_value - (0xFFFFFFFFLL + 1LL);
+            }
+            else
+            {
+                UserError(
+                    "Literal integer '%s' is out of bounds (maximum is '%d')",
+                    symstring.length() <= 20 ? symstring.c_str() : (symstring.substr(0, 20) + "...").c_str(),
+                    LONG_MAX);
+            }
+        }
 
         scan_type = kSct_IntLiteral;
-        value = long_value;
+        value = static_cast<long>(longlong_value);
         return;
     }
 
     errno = 0;
-    double double_value = std::strtod(valstring.c_str(), &endptr);
-    bool can_be_double = (valstring.length() == endptr - valstring.c_str());
-    if (!can_be_double)
-        UserError("Expected a number literal, found '%s' instead", symstring.c_str());
-
-    if (std::numeric_limits<float>::max() < double_value || ERANGE == errno)
+    float float_value = std::strtof(valstring.c_str(), nullptr);
+    if (ERANGE == errno)
         UserError(
             "Literal float '%s' is out of bounds (maximum is '%.3G')",
-            valstring.c_str(),
+            symstring.c_str(),
             static_cast<double>(std::numeric_limits<float>::max()));
+    if (errno != 0)
+        UserError("Expected a number literal, found '%s' instead", symstring.c_str());   
 
     scan_type = kSct_FloatLiteral;
-    float float_value = static_cast<float>(double_value);
     value = *reinterpret_cast<CodeCell *>(&float_value);
     return;
 }
@@ -645,6 +710,7 @@ void AGS::Scanner::ReadInGTCombi(std::string &symstring)
 void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
 {
     static Symbol const const_string_vartype = _sym.VartypeWith(VTT::kConst, kKW_String);
+    static const char *const one_past_long_max_string = "2147483648";
 
     symb = _sym.FindOrAdd(symstring);
     if (symb < 0)
@@ -665,6 +731,10 @@ void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_ty
         _sym[symb].LiteralD = new SymbolTableEntry::LiteralDesc;
         _sym[symb].LiteralD->Vartype = kKW_Int;
         _sym[symb].LiteralD->Value = value;
+        return;
+
+    case Scanner::kSct_OnePastLongMax:  // 1 plus largest signed integer
+        symb = _sym.FindOrAdd(one_past_long_max_string);
         return;
 
     case Scanner::kSct_FloatLiteral:
@@ -797,4 +867,23 @@ void AGS::Scanner::InternalError(char const *descr ...)
     va_end(vlist1);
 
     Error(true, &message[0u]);
+}
+
+void AGS::Scanner::Warning(char const *descr ...)
+{
+    // Convert the parameters into message
+    va_list vlist1, vlist2;
+    va_start(vlist1, descr);
+    va_copy(vlist2, vlist1);
+    size_t const needed_len = vsnprintf(nullptr, 0u, descr, vlist1) + 1u;
+    std::vector<char> message(needed_len);
+    vsprintf(&message[0u], descr, vlist2);
+    va_end(vlist2);
+    va_end(vlist1);
+
+    _msgHandler.AddMessage(
+        MessageHandler::kSV_Warning,
+        _section,
+        _lineno,
+        &message[0u]);
 }

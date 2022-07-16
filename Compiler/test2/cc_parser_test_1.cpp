@@ -1555,7 +1555,7 @@ TEST_F(Compile1, ForwardStructBuiltin)
     // Either the forward decl and the actual decl must both be 'builtin'
     // or both be non-'builtin'.
 
-    char *inpl1 = "\
+    const char *inpl1 = "\
         managed struct Object;              \n\
         managed builtin struct Object       \n\
         {                                   \n\
@@ -1566,7 +1566,7 @@ TEST_F(Compile1, ForwardStructBuiltin)
     ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
     EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
 
-    char *inpl2 = "\
+    const char *inpl2 = "\
         builtin managed struct Object;      \n\
         managed struct Object               \n\
         {                                   \n\
@@ -1583,7 +1583,7 @@ TEST_F(Compile1, ForwardStructAutoptr)
     // Either the forward decl and the actual decl must both be 'autoptr'
     // or both be non-'autoptr'.
 
-    char *inpl1 = "\
+    const char *inpl1 = "\
         managed struct Object;              \n\
         managed builtin struct Object       \n\
         {                                   \n\
@@ -1594,7 +1594,7 @@ TEST_F(Compile1, ForwardStructAutoptr)
     ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
     EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
 
-    char *inpl2 = "\
+    const char *inpl2 = "\
         builtin managed struct Object;      \n\
         managed struct Object               \n\
         {                                   \n\
@@ -1611,7 +1611,7 @@ TEST_F(Compile1, FuncThenAssign)
     // A function symbol in front of an assignment
     // The compiler should complain about a missing '('  
 
-    char *inpl2 = "\
+    const char *inpl2 = "\
         import int GetTextHeight                    \n\
             (const string text, int, int width);    \n\
                                                     \n\
@@ -2229,7 +2229,7 @@ TEST_F(Compile1, CompileTimeConstant4)
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("import"));
 
-    char *inpl2 = "\
+    const char *inpl2 = "\
         readonly const int C = 42; \n\
         ";
     compile_result = cc_compile(inpl2, scrip);
@@ -2251,7 +2251,7 @@ TEST_F(Compile1, CompileTimeConstant5)
     EXPECT_NE(std::string::npos, msg.find("'short'"));
 
     // Cannot define a compile-time constant array
-    char *inpl2 = "\
+    const char *inpl2 = "\
         const int C[]; \n\
         ";
     compile_result = cc_compile(inpl2, scrip);
@@ -2260,7 +2260,7 @@ TEST_F(Compile1, CompileTimeConstant5)
     EXPECT_NE(std::string::npos, msg.find("array"));
 
     // Misplaced '[]'
-    char *inpl3 = "\
+    const char *inpl3 = "\
         const int[] C; \n\
         ";
     compile_result = cc_compile(inpl3, scrip);

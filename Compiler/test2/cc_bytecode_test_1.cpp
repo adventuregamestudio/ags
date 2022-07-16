@@ -350,7 +350,7 @@ TEST_F(Bytecode1, StringOldstyle05) {
 
 TEST_F(Bytecode1, StringStandard01) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         int main()                         \n\
         {                                  \n\
             String s = \"Hello, world!\";  \n\
@@ -416,7 +416,7 @@ TEST_F(Bytecode1, StringStandard01) {
 
 TEST_F(Bytecode1, StringStandard02) {
     
-    char inpl[] = "\
+    const char inpl[] = "\
         String S;                           \n\
         import String I;                    \n\
         String Func1()                      \n\
@@ -497,7 +497,7 @@ TEST_F(Bytecode1, StringStandard02) {
 
 TEST_F(Bytecode1, StringStandardOldstyle) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         string OS;                          \n\
         String Func1()                      \n\
         {                                   \n\
@@ -1471,7 +1471,7 @@ TEST_F(Bytecode1, Attributes11) {
 
     // Accept static extender attributes
 
-    char inpl[] = "\
+    const char inpl[] = "\
     builtin managed struct Character                    \n\
     {                                                   \n\
         int payload;                                    \n\
@@ -1936,7 +1936,7 @@ TEST_F(Bytecode1, Ternary5) {
 
     // Compile-time evaluation
 
-    char inpl[] = "\
+    const char inpl[] = "\
         float main()                    \n\
         {                               \n\
             int I1a = 0 ? 10 : 20;      \n\
@@ -1996,7 +1996,7 @@ TEST_F(Bytecode1, AssignToString) {
     
     // Definition of global string with assignment
 
-    char inpl[] = "\
+    const char inpl[] = "\
         string Payload = \"Holzschuh\";     \n\
         readonly int una = 1;               \n\
         String main()                       \n\
@@ -2069,7 +2069,7 @@ TEST_F(Bytecode1, StructWOldstyleString1) {
     
     // Unmanaged structs containing strings
 
-    char inpl[] = "\
+    const char inpl[] = "\
         struct Struct               \n\
         {                           \n\
             short Pad1;             \n\
@@ -2152,7 +2152,7 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
     
     // Managed structs containing strings
 
-    char inpl[] = "\
+    const char inpl[] = "\
         managed struct Struct       \n\
         {                           \n\
             short Pad1;             \n\
@@ -2237,7 +2237,7 @@ TEST_F(Bytecode1, ThisExpression1) {
 
     // "this" must be handled correctly as an expression term
 
-    char inpl[] = "\
+    const char inpl[] = "\
         builtin managed struct Character    \n\
         {                                   \n\
         };                                  \n\
@@ -2297,7 +2297,7 @@ TEST_F(Bytecode1, ThisExpression1) {
 
 TEST_F(Bytecode1, CrementAttribute1) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         builtin managed struct Object       \n\
         {                                   \n\
             import attribute int Graphic;   \n\
@@ -2354,7 +2354,7 @@ TEST_F(Bytecode1, CrementAttribute1) {
 
 TEST_F(Bytecode1, CrementAttribute2) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         builtin managed struct Object       \n\
         {                                   \n\
             import attribute int Graphic;   \n\
@@ -2410,7 +2410,7 @@ TEST_F(Bytecode1, CrementAttribute2) {
 
 TEST_F(Bytecode1, CrementInExpression1) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         int foo ()                          \n\
         {                                   \n\
             int I;                          \n\
@@ -2452,7 +2452,7 @@ TEST_F(Bytecode1, CrementInExpression1) {
 
 TEST_F(Bytecode1, CrementInExpression2) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         int foo ()                          \n\
         {                                   \n\
             char Ch;                        \n\
@@ -2494,7 +2494,7 @@ TEST_F(Bytecode1, CrementInExpression2) {
 
 TEST_F(Bytecode1, CrementInExpression3) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         int foo ()                          \n\
         {                                   \n\
             int I = 7;                      \n\
@@ -2546,7 +2546,7 @@ TEST_F(Bytecode1, CompareStringToNull) {
     // If a String is compared to 'null', the pointer opcodes must be used,
     // not the String opcodes.
 
-    char inpl[] = "\
+    const char inpl[] = "\
         String S;                           \n\
         bool func()                         \n\
         {                                   \n\
@@ -2606,7 +2606,7 @@ TEST_F(Bytecode1, CompareStringToNull) {
 
 TEST_F(Bytecode1, DynarrayLength1) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         managed struct Struct               \n\
         {                                   \n\
             int Payload;                    \n\
@@ -2661,7 +2661,7 @@ TEST_F(Bytecode1, DynarrayLength1) {
 
 TEST_F(Bytecode1, DynarrayLength2) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         int foo ()                          \n\
         {                                   \n\
             int Dynarray[] = new int[7];    \n\
@@ -2713,7 +2713,7 @@ TEST_F(Bytecode1, DynarrayLength2) {
 
 TEST_F(Bytecode1, StringLiteral2String) {
 
-    char inpl[] = "\
+    const char inpl[] = "\
         internalstring autoptr builtin managed struct String    \n\
         {};                     \n\
                                 \n\

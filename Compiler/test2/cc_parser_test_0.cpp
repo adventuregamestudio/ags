@@ -1541,7 +1541,7 @@ TEST_F(Compile0, LocalImportVar) {
 
 TEST_F(Compile0, Recursive1) {
 
-    char *agscode = "\
+  const char *agscode = "\
         import int Foo2 (int);    \n\
                                   \n\
         int Foo1(int a)           \n\
@@ -1562,7 +1562,7 @@ TEST_F(Compile0, Recursive1) {
 
 TEST_F(Compile0, GlobalFuncStructFunc) {
 
-    char *agscode = "\
+    const char *agscode = "\
         import int Foo2 (int);      \n\
                                     \n\
         struct Struct               \n\
@@ -2141,7 +2141,7 @@ TEST_F(Compile0, StringNullCompare) {
 
     // It's okay to compare strings to null
 
-    char inpl[] = "\
+    const char inpl[] = "\
         void main()                         \n\
         {                                   \n\
             String SS;                      \n\

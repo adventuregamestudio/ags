@@ -44,7 +44,7 @@
 TEST_F(Bytecode0, P_r_o_t_o_t_y_p_e) {
     
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int Foo(int a)      \n\
         {                   \n\
             return a*a;     \n\
@@ -80,7 +80,7 @@ TEST_F(Bytecode0, UnaryMinus1) {
 
     // Accept a unary minus in front of parens
 
-    const const char *inpl = "\
+    const char *inpl = "\
         void Foo()              \n\
         {                       \n\
             int bar = 5;        \n\
@@ -125,7 +125,7 @@ TEST_F(Bytecode0, UnaryMinus2) {
 
     // Unary minus binds more than multiply
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()                      \n\
         {                               \n\
             int five = 5;               \n\
@@ -171,7 +171,7 @@ TEST_F(Bytecode0, UnaryMinus2) {
 TEST_F(Bytecode0, NotNot) {
 
     // !!a should be interpreted as !(!a)
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()                  \n\
         {                           \n\
             int five = 5;           \n\
@@ -212,7 +212,7 @@ TEST_F(Bytecode0, Float01) {
 
     // Float values
 
-    char inpl[] = "\
+    const char inpl[] = "\
         float Test0 = -9.9;                 \n\
         float main()                        \n\
         {                                   \n\
@@ -285,7 +285,7 @@ TEST_F(Bytecode0, Float02) {
 
     // Positive and negative float parameter defaults
 
-    char inpl[] = "\
+    const char inpl[] = "\
         float sub (float p1 = 7.2,          \n\
                    float p2 = -2.7)         \n\
         {                                   \n\
@@ -341,7 +341,7 @@ TEST_F(Bytecode0, Float02) {
 
 TEST_F(Bytecode0, Float03) { 
 
-    const const char *inpl = "\
+    const char *inpl = "\
         float a = 15.0;     \n\
         float Foo()         \n\
         {                   \n\
@@ -391,7 +391,7 @@ TEST_F(Bytecode0, Float03) {
 
 TEST_F(Bytecode0, Float04) {    
 
-    const const char *inpl = "\
+    const char *inpl = "\
         float a = 15.0;                             \n\
         float Foo()                                 \n\
         {                                           \n\
@@ -461,7 +461,7 @@ TEST_F(Bytecode0, Float04) {
 
 TEST_F(Bytecode0, FlowIfThenElse1) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     int Foo()               \n\
     {                       \n\
         readonly int vier = 4; \n\
@@ -515,7 +515,7 @@ TEST_F(Bytecode0, FlowIfThenElse1) {
 
 TEST_F(Bytecode0, FlowIfThenElse2) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     int Foo()               \n\
     {                       \n\
         readonly int deux = 2; \n\
@@ -569,19 +569,19 @@ TEST_F(Bytecode0, FlowIfThenElse2) {
 
 TEST_F(Bytecode0, FlowWhile) {
 
-    const const char *inpl = "\
-    char c = 'x';             \n\
-    int Foo(int i, float f)   \n\
-    {                         \n\
-        int sum = 0;          \n\
-        while (c >= 0)        \n\
-        {                     \n\
-            sum += (500 & c); \n\
-            c--;              \n\
-            if (c == 1) continue; \n\
-        }                     \n\
-        return sum;           \n\
-    }";
+    const char *inpl = "\
+        char c = 'x';             \n\
+        int Foo(int i, float f)   \n\
+        {                         \n\
+            int sum = 0;          \n\
+            while (c >= 0)        \n\
+            {                     \n\
+                sum += (500 & c); \n\
+                c--;              \n\
+                if (c == 1) continue; \n\
+            }                     \n\
+            return sum;           \n\
+        }";
 
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -635,7 +635,7 @@ TEST_F(Bytecode0, FlowWhileTrue)
 {
     // Mustn't short-circuit the 'while()' body
 
-    const const char *inpl = "\n\
+    const char *inpl = "\n\
         enum bool { false = 0, true }; \n\
         int main()          \n\
         {                   \n\
@@ -679,7 +679,7 @@ TEST_F(Bytecode0, FlowDoWhileFalse)
 {
     // Don't emit back jump
 
-    const const char *inpl = "\n\
+    const char *inpl = "\n\
         enum bool { false = 0, true }; \n\
         int main()              \n\
         {                       \n\
@@ -722,25 +722,25 @@ TEST_F(Bytecode0, FlowDoWhileFalse)
 
 TEST_F(Bytecode0, FlowDoNCall) {
 
-    const const char *inpl = "\
-    char c = 'x';             \n\
-    int Foo(int i)            \n\
-    {                         \n\
-        int sum = 0;          \n\
-        do                    \n\
-        {                     \n\
-            sum -= (500 | c); \n\
-            c--;              \n\
-        }                     \n\
-        while (c > 0);        \n\
-        return sum;           \n\
-    }                         \n\
-                              \n\
-    int Bar(int x)            \n\
-    {                         \n\
-        return Foo(x^x);      \n\
-    }                         \n\
-    ";
+    const char *inpl = "\
+        char c = 'x';             \n\
+        int Foo(int i)            \n\
+        {                         \n\
+            int sum = 0;          \n\
+            do                    \n\
+            {                     \n\
+                sum -= (500 | c); \n\
+                c--;              \n\
+            }                     \n\
+            while (c > 0);        \n\
+            return sum;           \n\
+        }                         \n\
+                                  \n\
+        int Bar(int x)            \n\
+        {                         \n\
+            return Foo(x^x);      \n\
+        }                         \n\
+        ";
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -793,7 +793,7 @@ TEST_F(Bytecode0, FlowDoNCall) {
 
 TEST_F(Bytecode0, FlowDoUnbracedIf) {    
 
-    const const char *inpl = "\
+    const char *inpl = "\
     void noloopcheck main()   \n\
     {                         \n\
         int sum = 0;          \n\
@@ -845,7 +845,7 @@ TEST_F(Bytecode0, FlowDoUnbracedIf) {
 
 TEST_F(Bytecode0, FlowFor1) {  
 
-    const const char *inpl = "\
+    const char *inpl = "\
     int loop;                       \n\
     int Foo(int i, float f)         \n\
     {                               \n\
@@ -910,7 +910,7 @@ TEST_F(Bytecode0, FlowFor1) {
 
 TEST_F(Bytecode0, FlowFor2) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     int Foo(int i, float f)         \n\
     {                               \n\
         int lp, sum;                \n\
@@ -998,7 +998,7 @@ TEST_F(Bytecode0, FlowFor2) {
 
 TEST_F(Bytecode0, FlowFor3) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct Struct           \n\
     {                               \n\
         float Payload[1];           \n\
@@ -1059,7 +1059,7 @@ TEST_F(Bytecode0, FlowFor3) {
 
 TEST_F(Bytecode0, FlowFor4) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     void main()                     \n\
     {                               \n\
         for (int Loop = 0; Loop < 10; Loop++)  \n\
@@ -1106,7 +1106,7 @@ TEST_F(Bytecode0, FlowFor4) {
 
 TEST_F(Bytecode0, FlowFor5) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int Start()                     \n\
         {                               \n\
             return 1;                   \n\
@@ -1182,7 +1182,7 @@ TEST_F(Bytecode0, FlowFor5) {
 
 TEST_F(Bytecode0, FlowFor6) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
         void main()                     \n\
         {                               \n\
             for(int i = Start();        \n\
@@ -1262,7 +1262,7 @@ TEST_F(Bytecode0, FlowFor7) {
     // Initializer and iterator of a for() need not be assignments,
     // they can be func calls.
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int i;                          \n\
         void main()                     \n\
         {                               \n\
@@ -1344,7 +1344,7 @@ TEST_F(Bytecode0, FlowContinue1) {
     // they remain valid, and so the offset to start of the local block
     // must not be reduced.
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()                      \n\
         {                               \n\
             int I;                      \n\
@@ -1404,7 +1404,7 @@ TEST_F(Bytecode0, FlowContinue1) {
 
 TEST_F(Bytecode0, FlowIfDoWhile) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     int Foo(int i, float f)                      \n\
     {                                            \n\
         int five = 5, sum, loop = -2;            \n\
@@ -1472,7 +1472,7 @@ TEST_F(Bytecode0, FlowSwitch01) {
 
     // The "break;" in line 6 is unreachable code
 
-    const const char *inpl = "\
+    const char *inpl = "\
     int Foo(int i, float f)         \n\
     {                               \n\
         switch (i * i)              \n\
@@ -1545,7 +1545,7 @@ TEST_F(Bytecode0, FlowSwitch01) {
 TEST_F(Bytecode0, FlowSwitch02) {
 
     // Last switch clause no "break"
-    const const char *inpl = "\
+    const char *inpl = "\
         void main()                     \n\
         {                               \n\
             int i = 5;                  \n\
@@ -1593,7 +1593,7 @@ TEST_F(Bytecode0, FlowSwitch02) {
 
 TEST_F(Bytecode0, FlowSwitch03) {
     // Last case clause an empty pair of braces
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()          \n\
         {                   \n\
             int test = 0;   \n\
@@ -1642,7 +1642,7 @@ TEST_F(Bytecode0, FlowSwitch04) {
 
     // Last case clause an empty pair of braces
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()          \n\
         {                   \n\
             int test = 7;   \n\
@@ -1690,7 +1690,7 @@ TEST_F(Bytecode0, FlowSwitch05) {
 
     // No default/case clauses (zany but allowed)
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()          \n\
         {                   \n\
             int test = 0;   \n\
@@ -1733,7 +1733,7 @@ TEST_F(Bytecode0, FlowSwitch06) {
 
     // 'Default' and 'case 77' fall through, compiler should warn about the latter
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int main()              \n\
         {                       \n\
             int test = 7;       \n\
@@ -1794,7 +1794,7 @@ TEST_F(Bytecode0, FlowSwitch07) {
 
     // Expression in switch clause
 
-    const const char *inpl = "\
+    const char *inpl = "\
         readonly int two = 2;   \n\
         int main()              \n\
         {                       \n\
@@ -1857,7 +1857,7 @@ TEST_F(Bytecode0, FlowSwitch07) {
 
 TEST_F(Bytecode0, FreeLocalPtr) {   
 
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct S                  \n\
     {                                 \n\
         int i;                        \n\
@@ -1910,7 +1910,7 @@ TEST_F(Bytecode0, FreeLocalPtr) {
 
 TEST_F(Bytecode0, Struct01) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     	struct Struct                       \n\
 		{                                   \n\
 			float Float;                    \n\
@@ -1990,7 +1990,7 @@ TEST_F(Bytecode0, Struct02) {
     // test arrays; arrays in structs;
     // whether the namespace in structs is independent of the global namespace
 
-    const const char *inpl = "\
+    const char *inpl = "\
     struct Struct1                  \n\
     {                               \n\
         int Array[17], Ix;          \n\
@@ -2056,7 +2056,7 @@ TEST_F(Bytecode0, Struct03) {
     // test arrays; arrays in structs;
     // whether the namespace in structs is independent of the global namespace
 
-    const const char *inpl = "\
+    const char *inpl = "\
     struct Struct1                  \n\
     {                               \n\
         int Array[17], Ix;          \n\
@@ -2117,7 +2117,7 @@ TEST_F(Bytecode0, Struct03) {
 
 TEST_F(Bytecode0, Struct04) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
         managed struct StructI                               \n\
         {                                                    \n\
             int k;                                           \n\
@@ -2180,7 +2180,7 @@ TEST_F(Bytecode0, Struct04) {
 
 TEST_F(Bytecode0, Struct05) {   
 
-    const const char *inpl = "\
+    const char *inpl = "\
         struct StructO                                       \n\
         {                                                    \n\
             static import int StInt(int i);                  \n\
@@ -2242,7 +2242,7 @@ TEST_F(Bytecode0, Struct06) {
     // NOTE: S1.Array[3] is null, so S1.Array[3].Payload should dump
     // when executed in real.
 
-    const const char *inpl = "\
+    const char *inpl = "\
         managed struct Struct0;                             \n\
                                                             \n\
         struct Struct1                                      \n\
@@ -2299,7 +2299,7 @@ TEST_F(Bytecode0, Struct06) {
 
 TEST_F(Bytecode0, Struct07) {    
 
-    const const char *inpl = "\
+    const char *inpl = "\
         struct Struct1                                       \n\
         {                                                    \n\
             int IPayload;                                    \n\
@@ -2362,7 +2362,7 @@ TEST_F(Bytecode0, Struct07) {
 
 TEST_F(Bytecode0, Struct08) {   
 
-    const const char *inpl = "\
+    const char *inpl = "\
         struct Struct                                        \n\
         {                                                    \n\
             int k;                                           \n\
@@ -2422,7 +2422,7 @@ TEST_F(Bytecode0, Struct09) {
     // VehicleBase as an extension of Vehicle Cars[5];
     // should generate call of VehicleBase::SetCharacter()
 
-    const const char *inpl = "\
+    const char *inpl = "\
         enum CharacterDirection                                     \n\
         {                                                           \n\
             eDirectionUp = 3                                        \n\
@@ -2528,7 +2528,7 @@ TEST_F(Bytecode0, Struct10) {
     // the import variable must be read first so that the fixup can be
     // applied. Only then may the offset be added to it.
 
-    const const char *inpl = "\
+    const char *inpl = "\
         import struct Struct                                 \n\
         {                                                    \n\
             int fluff;                                       \n\
@@ -2583,7 +2583,7 @@ TEST_F(Bytecode0, Struct11) {
     // Structs may contain variables that are structs themselves.
     // Since Inner1 is managed, In1 will convert into an Inner1 *.
 
-    const const char *inpl = "\
+    const char *inpl = "\
         managed struct Inner1                               \n\
         {                                                   \n\
             short Fluff;                                    \n\
@@ -2657,7 +2657,7 @@ TEST_F(Bytecode0, Struct12) {
 
     // Can have managed components in non-managed struct.
 
-    const const char *inpl = "\
+    const char *inpl = "\
         struct NonManaged           \n\
         {                           \n\
             long Dummy;             \n\
@@ -2716,7 +2716,7 @@ TEST_F(Bytecode0, Struct12) {
 
 TEST_F(Bytecode0, StructArray01) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct Struct                \n\
     {                                    \n\
         int Int[10];                     \n\
@@ -2764,7 +2764,7 @@ TEST_F(Bytecode0, StructArray02) {
 
     // Static arrays can be multidimensional
 
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct Struct                \n\
     {                                    \n\
         int Int1[5, 4];                  \n\
@@ -2815,7 +2815,7 @@ TEST_F(Bytecode0, StructArray02) {
 
 TEST_F(Bytecode0, Func01) {
 
-    const const char *inpl = "\
+    const char *inpl = "\
         int Foo()      \n\
     {                  \n\
         return 15;     \n\
@@ -2851,26 +2851,26 @@ TEST_F(Bytecode0, Func01) {
 
 TEST_F(Bytecode0, Func02) {
 
-    const const char *inpl = "\
-    managed struct Struct1          \n\
-    {                               \n\
-        float Payload1;             \n\
-    };                              \n\
-    managed struct Struct2          \n\
-    {                               \n\
-        char Payload2;              \n\
-    };                              \n\
-                                    \n\
-    import int Func(Struct1 *S1, Struct2 *S2);  \n\
-                                    \n\
-    int main()                      \n\
-    {                               \n\
-        Struct1 *SS1;               \n\
-        Struct2 *SS2;               \n\
-        int Ret = Func(SS1, SS2);   \n\
-        return Ret;                 \n\
-    }                               \n\
-    ";
+    const char *inpl = "\
+        managed struct Struct1          \n\
+        {                               \n\
+            float Payload1;             \n\
+        };                              \n\
+        managed struct Struct2          \n\
+        {                               \n\
+            char Payload2;              \n\
+        };                              \n\
+                                        \n\
+        import int Func(Struct1 *S1, Struct2 *S2);  \n\
+                                        \n\
+        int main()                      \n\
+        {                               \n\
+            Struct1 *SS1;               \n\
+            Struct2 *SS2;               \n\
+            int Ret = Func(SS1, SS2);   \n\
+            return Ret;                 \n\
+        }                               \n\
+        ";
     
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
@@ -2916,7 +2916,7 @@ TEST_F(Bytecode0, Func02) {
 
 TEST_F(Bytecode0, Func03) {   
 
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -2981,7 +2981,7 @@ TEST_F(Bytecode0, Func03) {
 
 TEST_F(Bytecode0, Func04) {    
 
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -3054,7 +3054,7 @@ TEST_F(Bytecode0, Func04) {
 
 TEST_F(Bytecode0, Func05) {
     
-    const const char *inpl = "\
+    const char *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -3114,7 +3114,7 @@ TEST_F(Bytecode0, Func05) {
 
 TEST_F(Bytecode0, Func06) {
    
-    const const char *inpl = "\
+    const char *inpl = "\
         import int Func(int, int = 5); \n\
                                      \n\
         int Func(int P1, int P2)     \n\
@@ -3172,7 +3172,7 @@ TEST_F(Bytecode0, Func06) {
 
 TEST_F(Bytecode0, Func07) {  
 
-    const const char *inpl = "\
+    const char *inpl = "\
         import int Func(int, int = 5); \n\
                                      \n\
         void main()                  \n\

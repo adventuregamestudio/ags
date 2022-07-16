@@ -322,7 +322,7 @@ TEST_F(Scan, LiteralInt1)
 TEST_F(Scan, LiteralInt2)
 {
     // Accept LONG_MIN written in decimal (will yield 2 symbols)
-    char *inp = "-2147483648";
+    const char *inp = "-2147483648";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -333,7 +333,7 @@ TEST_F(Scan, LiteralInt2)
 TEST_F(Scan, LiteralInt3)
 {
     // Accept large hexadecimal, treat as negative number (will yield 1 symbol)
-    char *inp = "0XFF000000";
+    const char *inp = "0XFF000000";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -346,7 +346,7 @@ TEST_F(Scan, LiteralInt3)
 TEST_F(Scan, LiteralInt4)
 {
     // Accept LONG_MIN written as hexadecimal (will yield 1 symbol)
-    char *inp = "0x80000000";
+    const char *inp = "0x80000000";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -358,7 +358,7 @@ TEST_F(Scan, LiteralInt4)
 TEST_F(Scan, LiteralInt5)
 {
     // Leading zeroes in hex literal
-    char *inp = "0x000000001234";
+    const char *inp = "0x000000001234";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -370,7 +370,7 @@ TEST_F(Scan, LiteralInt5)
 TEST_F(Scan, LiteralInt6a)
 {
     // Huge hexadecimal, too many significant hex digits
-    char *inp = "0x000123456789";
+    const char *inp = "0x000123456789";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -380,9 +380,9 @@ TEST_F(Scan, LiteralInt6a)
 TEST_F(Scan, LiteralInt6b)
 {
     // Huge decimal 
-    char *inp = "1234567890123456789012345678901234567890123456789012345678901234567890"
-                "1234567890123456789012345678901234567890123456789012345678901234567890"
-                "1234567890123456789012345678901234567890123456789012345678901234567890";
+    const char *inp = "1234567890123456789012345678901234567890123456789012345678901234567890"
+                      "1234567890123456789012345678901234567890123456789012345678901234567890"
+                      "1234567890123456789012345678901234567890123456789012345678901234567890";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -393,7 +393,7 @@ TEST_F(Scan, LiteralInt7)
 {
     // Accept number that begins with '0' but not '0x';
     // interpret such a number in decimal (!) notation
-    char *inp = "0123";
+    const char *inp = "0123";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();

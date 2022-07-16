@@ -18,6 +18,7 @@ namespace AGS.Editor
 		private int _thisFrameDelay = 0;
 		private float _zoomLevel = 1.0f;
         private readonly Size _defaultFrameSize; // default picture frame size
+        private bool _autoResize = false;
 
         private const int MILLISECONDS_IN_SECOND = 1000;
         private const int DEFUALT_FRAME_RATE = 40;
@@ -61,6 +62,23 @@ namespace AGS.Editor
             set
             {
                 _zoomLevel = value;
+                UpdateSize();
+            }
+        }
+
+        /// <summary>
+        /// Whether ViewPreview control should automatically resize itself
+        /// whenever preview frame gets too large or small.
+        /// </summary>
+        public bool AutoResize
+        {
+            get
+            {
+                return _autoResize;
+            }
+            set
+            {
+                _autoResize = value;
                 UpdateSize();
             }
         }
@@ -146,6 +164,17 @@ namespace AGS.Editor
                     Math.Max(_defaultFrameSize.Height, viewSize.Height));
             }
             previewPanel.Invalidate();
+
+            if (_autoResize)
+            {
+                // Try to calculate necessary size, knowing the previewPanel's
+                // location relative to client edges, and its new size
+                // (actually use panelAutoScroll as a reference here, as it's
+                // previewPanel's immediate parent).
+                this.ClientSize = new Size(
+                    panelAutoScroll.Left + (this.ClientRectangle.Right - panelAutoScroll.Right) + previewPanel.Width,
+                    panelAutoScroll.Top + (this.ClientRectangle.Bottom - panelAutoScroll.Bottom) + previewPanel.Height);
+            }
         }
 
         private void previewPanel_Paint(object sender, PaintEventArgs e)

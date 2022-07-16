@@ -402,6 +402,44 @@ TEST_F(Scan, LiteralInt7)
     EXPECT_EQ(123, sym[token].LiteralD->Value);
 }
 
+TEST_F(Scan, LiteralIntLimits)
+{
+    // Should correctly parse INT32_MAX and INT32_MIN
+    const char *inp1 = "-2147483648 2147483647";
+
+    AGS::Scanner scanner(inp1, token_list, string_collector, sym, mh);
+    scanner.Scan();
+    EXPECT_FALSE(mh.HasError());
+    AGS::Symbol const lit_min = token_list[1u]; // 0u is '-'
+
+    // This translates to a symbol that gets special treatment
+    // within expressions in the parser but is NOT recognized
+    // as a literal. I had to treat it this way because 2147483648
+    // is too large for a value for literals. 
+    // ASSERT_TRUE(sym.IsLiteral(lit_min));
+    // EXPECT_EQ(INT32_MIN, sym[lit_min].LiteralD->Value);
+
+    AGS::Symbol const lit_max = token_list[2u];
+    ASSERT_TRUE(sym.IsLiteral(lit_max));
+    EXPECT_EQ(INT32_MAX, sym[lit_max].LiteralD->Value);
+}
+
+TEST_F(Scan, LiteralIntOverflow)
+{
+    // Should detect int32 overflow
+    const char *inp1 = "-2147483649";
+    
+    AGS::Scanner scanner1(inp1, token_list, string_collector, sym, mh);
+    scanner1.Scan();
+    ASSERT_TRUE(mh.HasError());
+
+    // The scanner won't catch this, but the parser will.
+    // const char *inp2 = "2147483648";
+    // AGS::Scanner scanner2(inp2, token_list, string_collector, sym, mh);
+    // scanner2.Scan();
+    // ASSERT_TRUE(mh.HasError());
+}
+
 TEST_F(Scan, LiteralIntHex)
 {
     const char *inp = "0x7FFFFFFF 0xFFFFFFFF";

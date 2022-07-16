@@ -341,7 +341,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
     long long longlong_value = StringToLongLong(valstring.c_str(), can_be_an_integer);
     if (can_be_an_integer)
     {
-        if (valstring.length() > 1 && '0' == valstring[0] && IsDigit(valstring[2]))
+        if (valstring.length() > 1 && '0' == valstring[0] && IsDigit(valstring[1]))
             Warning("'%s' is interpreted as a number in decimal notation", symstring.c_str());
 
         if (longlong_value > LONG_MAX)

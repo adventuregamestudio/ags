@@ -106,7 +106,7 @@ extern ScriptString myScriptStringImpl;
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 25;
+const int PLUGIN_API_VERSION = 26;
 struct EnginePlugin {
     AGS::Common::String  filename;
     AGS::Engine::Library library;
@@ -821,6 +821,15 @@ void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)
     }
 }
 
+void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
+{
+    if (ginfo->Version >= 26)
+    {
+        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename);
+        snprintf(ginfo->guid, sizeof(ginfo->guid), "%s", game.guid);
+        ginfo->uniqueid = game.uniqueid;
+    }
+}
 
 // *********** General plugin implementation **********
 

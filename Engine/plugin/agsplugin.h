@@ -317,6 +317,18 @@ struct AGSRenderStageDesc {
   AGSRenderMatrixes Matrixes;
 };
 
+// Game info
+struct AGSGameInfo {
+  // Which version of the plugin interface the struct corresponds to;
+  // this field must be filled by a plugin before passing the struct into the engine!
+  int Version;
+  // Game name
+  char GameName[50];
+  // guid
+  char guid[40];
+  // Random key identifying the game
+  int uniqueid;
+};
 
 // The plugin-to-engine interface
 class IAGSEngine {
@@ -561,6 +573,11 @@ public:
   // fills the provided AGSRenderStageDesc struct with current render stage description;
   // please note that plugin MUST fill the struct's Version field before passing it into the function!
   AGSIFUNC(void)  GetRenderStageDesc(AGSRenderStageDesc* desc);
+
+  // *** BELOW ARE INTERFACE VERSION 26 AND ABOVE ONLY
+  // fills the provided AGSGameInfo struct
+  // please note that plugin MUST fill the struct's Version field before passing it into the function!
+  AGSIFUNC(void)  GetGameInfo(AGSGameInfo* ginfo);
 };
 
 #ifdef THIS_IS_THE_PLUGIN

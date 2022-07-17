@@ -373,7 +373,7 @@ bool run_service_key_controls(KeyInput &out_key)
     if (ki.Key == eAGSKeyCodeNone)
         return false; // should skip this key event
 
-    // Use backward-compatible combined key for service checks
+    // Use backward-compatible combined key (comparable with script variables)
     eAGSKeyCode agskey = ki.CompatKey;
     // LAlt or RAlt + Enter/Return
     if ((cur_mod == KMOD_ALT) && agskey == eAGSKeyCodeReturn)
@@ -479,7 +479,8 @@ static void check_keyboard_controls()
     if (!run_service_key_controls(ki)) {
         return;
     }
-    const eAGSKeyCode agskey = ki.Key;
+    // Use backward-compatible combined key (comparable with script variables)
+    const eAGSKeyCode agskey = ki.CompatKey;
     // Then, check cutscene skip
     check_skip_cutscene_keypress(agskey);
     if (play.fast_forward) { 

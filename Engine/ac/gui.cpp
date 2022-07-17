@@ -341,8 +341,8 @@ void process_interface_click(int ifce, int btn, int mbut) {
     int rtype=kGUIAction_None,rdata=0;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].GetControl(btn);
-        rtype=gbuto->ClickAction[kMouseLeft];
-        rdata=gbuto->ClickData[kMouseLeft];
+        rtype=gbuto->ClickAction[kGUIClickLeft];
+        rdata=gbuto->ClickData[kGUIClickLeft];
     }
     else if ((btype==kGUISlider) || (btype == kGUITextBox) || (btype == kGUIListBox))
         rtype = kGUIAction_RunScript;

@@ -485,7 +485,8 @@ bool TheoraPlayer::NextFrame()
 static bool video_check_user_input(VideoSkipType skip)
 {
     KeyInput key;
-    int mbut, mwheelz;
+    eAGSMouseButton mbut;
+    int mwheelz;
     if (run_service_key_controls(key))
     {
         if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
@@ -493,7 +494,7 @@ static bool video_check_user_input(VideoSkipType skip)
         if (skip >= VideoSkipAnyKey)
             return true;  // skip on any key
     }
-    if (run_service_mb_controls(mbut, mwheelz) && (mbut >= 0) && (skip == VideoSkipKeyOrMouse))
+    if (run_service_mb_controls(mbut, mwheelz) && (mbut > kMouseNone) && (skip == VideoSkipKeyOrMouse))
         return true; // skip on mouse click
     return false;
 }

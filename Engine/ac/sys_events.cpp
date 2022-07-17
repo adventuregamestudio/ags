@@ -388,23 +388,20 @@ static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
 }
 
 int butwas = 0;
-int mgetbutton()
+static eAGSMouseButton mgetbutton()
 {
-    int toret = MouseNone;
-    int butis = mouse_button_poll();
-
+    const int butis = mouse_button_poll();
     if ((butis > 0) & (butwas > 0))
-        return MouseNone;  // don't allow holding button down
-
-    if (butis & MouseBitLeft)
-        toret = MouseLeft;
-    else if (butis & MouseBitRight)
-        toret = MouseRight;
-    else if (butis & MouseBitMiddle)
-        toret = MouseMiddle;
+        return kMouseNone;  // don't allow holding button down
 
     butwas = butis;
-    return toret;
+    if (butis & MouseBitLeft)
+        return kMouseLeft;
+    else if (butis & MouseBitRight)
+        return kMouseRight;
+    else if (butis & MouseBitMiddle)
+        return kMouseMiddle;
+    return kMouseNone;
 
     // TODO: presumably this was a hack for 1-button Mac mouse;
     // is this still necessary?
@@ -419,26 +416,26 @@ int mgetbutton()
 #endif
 }
 
-extern int pluginSimulatedClick;
+extern eAGSMouseButton pluginSimulatedClick;
 int mouse_z_was = 0;
-const int MB_ARRAY[3] = { MouseBitLeft, MouseBitRight, MouseBitMiddle };
+// Convert mouse button id to flags
+const int MouseButton2Bits[kNumMouseButtons] =
+    { MouseBitLeft, MouseBitRight, MouseBitMiddle };
 
-bool ags_misbuttondown(int but)
+bool ags_misbuttondown(eAGSMouseButton but)
 {
-    return (mouse_button_poll() & MB_ARRAY[but]) != 0;
+    return (mouse_button_poll() & MouseButton2Bits[but]) != 0;
 }
 
-int ags_mgetbutton() {
-    int result;
-
-    if (pluginSimulatedClick > MouseNone) {
-        result = pluginSimulatedClick;
-        pluginSimulatedClick = MouseNone;
+eAGSMouseButton ags_mgetbutton()
+{
+    if (pluginSimulatedClick > kMouseNone)
+    {
+        eAGSMouseButton mbut = pluginSimulatedClick;
+        pluginSimulatedClick = kMouseNone;
+        return mbut;
     }
-    else {
-        result = mgetbutton();
-    }
-    return result;
+    return mgetbutton();
 }
 
 void ags_mouse_get_relxy(int &x, int &y) {

@@ -985,9 +985,9 @@ bool DialogOptions::Run()
           parserActivated = 1;
       }
 
-      int mouseButtonPressed = MouseNone;
-      int mouseWheelTurn = 0;
-      if (run_service_mb_controls(mouseButtonPressed, mouseWheelTurn) && mouseButtonPressed >= 0 &&
+      eAGSMouseButton mbut;
+      int mwheelz;
+      if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone &&
           !play.IsIgnoringInput())
       {
         if (mouseison < 0 && !new_custom_render)
@@ -995,7 +995,7 @@ bool DialogOptions::Run()
           if (usingCustomRendering)
           {
             runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mouseButtonPressed + 1);
+            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mbut);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
             if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
@@ -1013,7 +1013,7 @@ bool DialogOptions::Run()
         else if (new_custom_render)
         {
             runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mouseButtonPressed + 1);
+            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mbut);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
         }
         else if (usingCustomRendering)
@@ -1029,10 +1029,10 @@ bool DialogOptions::Run()
 
       if (usingCustomRendering)
       {
-        if (mouseWheelTurn != 0)
+        if (mwheelz != 0)
         {
             runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mouseWheelTurn < 0) ? 9 : 8);
+            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mwheelz < 0) ? 9 : 8);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
             if (!new_custom_render)

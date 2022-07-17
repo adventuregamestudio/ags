@@ -21,10 +21,10 @@
 #include "ac/sys_events.h"
 #include "util/string_compat.h"
 
-int pluginSimulatedClick = MouseNone;
+eAGSMouseButton pluginSimulatedClick = kMouseNone;
 
 void PluginSimulateMouseClick(int pluginButtonID) {
-    pluginSimulatedClick = pluginButtonID - 1;
+    pluginSimulatedClick = static_cast<eAGSMouseButton>(pluginButtonID);
 }
 
 //=============================================================================

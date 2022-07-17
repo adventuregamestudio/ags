@@ -1159,7 +1159,7 @@ bool check_skip_cutscene_mclick(int mbut)
 {
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
     if (skip == eSkipSceneMouse || skip == eSkipSceneKeyMouse ||
-        (mbut == MouseRight && skip == eSkipSceneEscOrRMB))
+        (mbut == kMouseRight && skip == eSkipSceneEscOrRMB))
     {
         start_skipping_cutscene();
         return true;

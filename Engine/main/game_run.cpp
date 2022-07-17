@@ -235,19 +235,20 @@ static void check_mouse_controls()
         remove_popup_interface(ifacepopped);
 
     // check mouse clicks on GUIs
-    static int wasbutdown=0,wasongui=0;
+    static eAGSMouseButton wasbutdown = kMouseNone;
+    static int wasongui = 0;
 
-    if ((wasbutdown>0) && (ags_misbuttondown(wasbutdown-1))) {
+    if ((wasbutdown > kMouseNone) && (ags_misbuttondown(wasbutdown))) {
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
-    else if ((wasbutdown>0) && (!ags_misbuttondown(wasbutdown-1))) {
+    else if ((wasbutdown > kMouseNone) && (!ags_misbuttondown(wasbutdown))) {
         gui_on_mouse_up(wasongui, wasbutdown);
-        wasbutdown=0;
+        wasbutdown = kMouseNone;
     }
 
-    int mbut = MouseNone;
-    int mwheelz = 0;
-    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
+    eAGSMouseButton mbut;
+    int mwheelz;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone) {
 
         check_skip_cutscene_mclick(mbut);
 
@@ -263,18 +264,18 @@ static void check_mouse_controls()
             }
         }
         else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
-        else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut+1)) {
+        else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut)) {
             // plugin took the click
-            debug_script_log("Plugin handled mouse button %d", mbut+1);
+            debug_script_log("Plugin handled mouse button %d", mbut);
         }
         else if (mongu>=0) {
-            if (wasbutdown==0) {
-                gui_on_mouse_down(mongu, mbut+1);
+            if (wasbutdown == kMouseNone) {
+                gui_on_mouse_down(mongu, mbut);
             }            
             wasongui=mongu;
-            wasbutdown=mbut+1;
+            wasbutdown= mbut;
         }
-        else setevent(EV_TEXTSCRIPT,TS_MCLICK,mbut+1);
+        else setevent(EV_TEXTSCRIPT,TS_MCLICK, mbut);
     }
 
     if (mwheelz < 0)
@@ -306,6 +307,8 @@ bool run_service_key_controls(KeyInput &out_key)
     const bool key_valid = ags_keyevent_ready();
     const SDL_Event key_evt = key_valid ? ags_get_next_keyevent() : SDL_Event();
     const bool is_only_mod_key = key_evt.type == SDL_KEYDOWN ? is_mod_key(key_evt.key.keysym) : false;
+
+    out_key = KeyInput(); // reset to default
 
     // Following section is for testing for pushed and released mod-keys.
     // A bit of explanation: some service actions may require combination of
@@ -457,15 +460,13 @@ bool run_service_key_controls(KeyInput &out_key)
     return true;
 }
 
-bool run_service_mb_controls(int &mbut, int &mwheelz)
+bool run_service_mb_controls(eAGSMouseButton &mbut, int &mwheelz)
 {
-    int mb = ags_mgetbutton();
-    int mz = ags_check_mouse_wheel();
-    if (mb == MouseNone && mz == 0)
+    mbut = ags_mgetbutton();
+    mwheelz = ags_check_mouse_wheel();
+    if (mbut == kMouseNone && mwheelz == 0)
         return false;
-    lock_mouse_on_click(); // do not claim
-    mbut = mb;
-    mwheelz = mz;
+    lock_mouse_on_click();
     return true;
 }
 

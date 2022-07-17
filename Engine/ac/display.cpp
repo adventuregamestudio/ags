@@ -292,14 +292,14 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
                     break;
                 }
             }
-            KeyInput kp;
-            if (run_service_key_controls(kp)) {
-                check_skip_cutscene_keypress (kp.Key);
+            KeyInput ki;
+            if (run_service_key_controls(ki)) {
+                check_skip_cutscene_keypress (ki.Key);
                 if (play.fast_forward)
                     break;
                 if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
                 {
-                    play.SetWaitSkipResult(SKIP_KEYPRESS, kp.Key);
+                    play.SetWaitKeySkip(ki);
                     break;
                 }
             }

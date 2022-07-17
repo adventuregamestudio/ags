@@ -505,7 +505,7 @@ static void check_keyboard_controls()
             else
             {
                 remove_screen_overlay(play.text_overlay_on);
-                play.SetWaitSkipResult(SKIP_KEYPRESS, kgn);
+                play.SetWaitKeySkip(ki);
             }
         }
 
@@ -513,7 +513,7 @@ static void check_keyboard_controls()
     }
 
     if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
-        play.SetWaitSkipResult(SKIP_KEYPRESS, kgn);
+        play.SetWaitKeySkip(ki);
         return;
     }
 

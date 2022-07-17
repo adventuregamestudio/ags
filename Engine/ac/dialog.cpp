@@ -882,12 +882,12 @@ bool DialogOptions::Run()
 
       KeyInput ki;
       if (run_service_key_controls(ki) && !play.IsIgnoringInput()) {
-        eAGSKeyCode gkey = ki.Key;
+        const eAGSKeyCode agskey = ki.Key;
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
           // TODO: find out what are these key commands, and are these documented?
-          if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0))) {
+          if ((agskey == eAGSKeyCodeF3) || ((agskey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
             size_t last_len = ustrlen(play.lastParserEntry);
             size_t cur_len = ustrlen(parserInput->Text.GetCStr());
@@ -904,7 +904,7 @@ bool DialogOptions::Run()
             Redraw();
             return true; // continue running loop
           }
-          else if ((gkey >= eAGSKeyCodeSpace) || (gkey == eAGSKeyCodeReturn) || (gkey == eAGSKeyCodeBackspace)) {
+          else if ((agskey >= eAGSKeyCodeSpace) || (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace)) {
             parserInput->OnKeyPress(ki);
             if (!parserInput->IsActivated) {
               //ags_domouse(DOMOUSE_DISABLE);
@@ -918,7 +918,7 @@ bool DialogOptions::Run()
             if (old_keyhandle || (ki.UChar == 0))
             { // "dialog_options_key_press"
                 runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-                runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(gkey));
+                runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(AGSKeyToScriptKey(ki.Key));
                 runDialogOptionKeyPressHandlerFunc.params[2].SetInt32(ki.Mod);
                 run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
             }
@@ -931,9 +931,9 @@ bool DialogOptions::Run()
         }
         // Allow selection of options by keyboard shortcuts
         else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&
-                 gkey >= '1' && gkey <= '9')
+            agskey >= '1' && agskey <= '9')
         {
-          int numkey = gkey - '1';
+          int numkey = agskey - '1';
           if (numkey < numdisp) {
             chose = disporder[numkey];
             return false; // end dialog options running loop

@@ -67,7 +67,7 @@ Editor:
  - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
  - Cursor's position in script is now displayed on the status bar.
  - Dialog scripts now too can open help topics for keywords or script functions under cursor on F1.
- - Added zoom controls for the Sprite Manager. Cursor, Inventory Item and View panes.
+ - Added zoom controls for the Sprite Manager, Character, Cursor, Inventory and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
  - In sprite manager's "export all" dialog added "skip if local" option.
  - In sprite manager's context menu added command "Create source files for all sprites with missing
@@ -79,14 +79,20 @@ Editor:
  - Editor no longer prevents exporting string arguments from Get/SetTextProperty calls to TRS file.
  - Editor now cleanups spritefile on game load, identifying any data not referenced by the project
    and marking it for deletion.
+ - Fixed editor silently enabling all available Build Targets when upgrading a pre-3.4.0 project.
+   This could be very inconvenient as there are several of them supported now.
+ - Fixed editor was not preventing from entering Character's and AudioClip's ScriptName too long
+   for the engine to handle.
  - Fixed editor displaying unhandled exception if the script which user is trying to open was
    missing. Instead it will now open a blank script.
  - Fixed room editor was suggesting to save the modified room even if no changes were made.
  - Fixed a recently imported sprite could be displayed incorrectly scaled up in the room editor
    for high-resolution games, if the "Allow relative asset resolutions" was enabled in General
    Settings, and the sprite 0 had "Resolution" property set to "Low".
+ - Fixed View animation preview stopping at frame 100 (if loop contains over 100 frames).
  - Fixed going to a "find all" result in dialog script did not highlight the found text,
    and sometimes did not scroll down to it.
+ - Fixed script autocomplete sometimes was not updated right after opening a script.
  - Fixed script autocomplete for function calls was mistreating commas in strings and inline
    comments as if they were separating actual parameters.
  - Fixed script autocomplete was not displaying members of extended structs if the parent struct

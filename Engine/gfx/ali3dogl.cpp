@@ -1922,6 +1922,12 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 }
 
 
+bool OGLGraphicsDriver::SetVsync(bool enabled)
+{
+    _mode.Vsync = SDL_GL_SetSwapInterval(_mode.Vsync ? 1 : 0) == 0;
+    return _mode.Vsync;
+}
+
 OGLGraphicsFactory *OGLGraphicsFactory::_factory = nullptr;
 
 OGLGraphicsFactory::~OGLGraphicsFactory()

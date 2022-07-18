@@ -793,6 +793,9 @@ namespace AGS.Types
             node = node.SelectSingleNode("Game");
 
             _settings.FromXml(node);
+            // Sort of a hack: ensure that text encoding is set for Scripts
+            // early, in case any scripts are preloaded during project load.
+            Script.TextEncoding = TextEncoding;
 
             if (node.SelectSingleNode(_defaultSetup.GetType().Name) != null)
             {

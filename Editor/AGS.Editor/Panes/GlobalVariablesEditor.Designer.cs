@@ -90,7 +90,7 @@ namespace AGS.Editor
             this.label1.Size = new System.Drawing.Size(433, 26);
             this.label1.TabIndex = 0;
             this.label1.Text = "Global variables allow you to create variables which you can access from all your" +
-                " scripts. Right-click in the list to add, modify and delete variables.";
+    " scripts. Right-click in the list to add, modify and delete variables.";
             // 
             // GlobalVariablesEditor
             // 
@@ -100,6 +100,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "GlobalVariablesEditor";
             this.Size = new System.Drawing.Size(531, 519);
+            this.Load += new System.EventHandler(this.GlobalVariablesEditor_Load);
             this.SizeChanged += new System.EventHandler(this.TextParserEditor_SizeChanged);
             this.mainFrame.ResumeLayout(false);
             this.mainFrame.PerformLayout();

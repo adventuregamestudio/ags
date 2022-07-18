@@ -60,12 +60,16 @@ namespace AGS.Editor
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
-            _showMatchingScript = showMatchingScript;
+            InitializeComponent();
+
             _agsEditor = agsEditor;
-            Init(scriptToEdit);
+            _script = scriptToEdit;
+            _showMatchingScript = showMatchingScript;
             _room = null;
             _roomNumber = 0;
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+
+            this.Load += new EventHandler(ScriptEditor_Load);
+            this.Resize += new EventHandler(ScriptEditor_Resize);
         }
 
         private void Clear()
@@ -86,10 +90,8 @@ namespace AGS.Editor
             scintilla.ToggleBreakpoint -= scintilla_ToggleBreakpoint;
         }
 
-        private void Init(Script scriptToEdit)
+        private void ScriptEditor_Load(object sender, EventArgs e)
         {
-            InitializeComponent();
-
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
             AutoComplete.BackgroundCacheUpdateStatusChanged += _autocompleteUpdateHandler;
             _fileChangedHandler = new EditorEvents.FileChangedInGameFolderHandler(Events_FileChangedInGameFolder);
@@ -122,9 +124,12 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
 
-            this.Resize += new EventHandler(ScriptEditor_Resize);
-            this.Script = scriptToEdit;
             InitScintilla();
+
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
 
         public int FirstVisibleLine { get { return _firstVisibleLine; } }
@@ -166,6 +171,8 @@ namespace AGS.Editor
 
             // Scripts may miss autocomplete cache when they are first opened, so update
             UpdateAutocompleteAndControls(true);
+
+            scintilla.SetText(_script.Text);
         }
 
         public void ActivateWindow()

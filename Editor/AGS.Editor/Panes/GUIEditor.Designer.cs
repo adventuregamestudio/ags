@@ -105,6 +105,7 @@ namespace AGS.Editor
             this.Controls.Add(this.bgPanel);
             this.Name = "GUIEditor";
             this.Size = new System.Drawing.Size(702, 459);
+            this.Load += new System.EventHandler(this.GUIEditor_Load);
             this.ctrlPanel.ResumeLayout(false);
             this.ctrlPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).EndInit();

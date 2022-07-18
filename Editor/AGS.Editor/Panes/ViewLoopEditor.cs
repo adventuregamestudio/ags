@@ -47,7 +47,6 @@ namespace AGS.Editor
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _guiController = guiController;
             _selectedFrame = -1;
             _loop = loopToEdit;
@@ -427,6 +426,14 @@ namespace AGS.Editor
             {
                 _zoomLevel = value;
                 UpdateSize();
+            }
+        }
+
+        private void ViewLoopEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }
     }

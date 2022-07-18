@@ -71,6 +71,7 @@ namespace AGS.Editor
             this.Controls.Add(this.lblLoopTitle);
             this.Name = "ViewLoopEditor";
             this.Size = new System.Drawing.Size(728, 116);
+            this.Load += new System.EventHandler(this.ViewLoopEditor_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.ViewLoopEditor_Paint);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ViewLoopEditor_MouseDoubleClick);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ViewLoopEditor_MouseUp);

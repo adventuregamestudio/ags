@@ -194,6 +194,7 @@
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "AudioEditor";
             this.Size = new System.Drawing.Size(865, 509);
+            this.Load += new System.EventHandler(this.AudioEditor_Load);
             this.grpAudioClip.ResumeLayout(false);
             this.grpAudioClip.PerformLayout();
             this.grpFolder.ResumeLayout(false);

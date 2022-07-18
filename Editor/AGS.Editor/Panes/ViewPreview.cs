@@ -23,7 +23,6 @@ namespace AGS.Editor
         public ViewPreview()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public string Title
@@ -241,6 +240,14 @@ namespace AGS.Editor
             udFrame.ForeColor = t.GetColor("view-preview/numeric-frame/foreground");
             udDelay.BackColor = t.GetColor("view-preview/numeric-delay/background");
             udDelay.ForeColor = t.GetColor("view-preview/numeric-delay/foreground");
+        }
+
+        private void ViewPreview_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

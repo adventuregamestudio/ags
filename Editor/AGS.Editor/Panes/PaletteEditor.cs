@@ -25,7 +25,6 @@ namespace AGS.Editor
         public PaletteEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _colourFinder = tabControl.TabPages[1];
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             _selectedIndexes.Add(0);
@@ -420,6 +419,14 @@ namespace AGS.Editor
                 TabPage tab = tabControl.TabPages[a.Index];
                 a.Graphics.DrawString(tab.Text, tab.Font, new SolidBrush(t.GetColor("palette/draw-item/foreground")), a.Bounds.X, a.Bounds.Y + 5);
             };
+        }
+
+        private void PaletteEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

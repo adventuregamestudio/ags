@@ -32,7 +32,6 @@ namespace AGS.Editor
         {
             _guiContoller = guiContoller;
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()
@@ -65,6 +64,11 @@ namespace AGS.Editor
 
         private void WelcomePane_Load(object sender, EventArgs e)
         {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
+
             _currentTipIndex = new Random().Next(0, TIPS_OF_THE_DAY.Length);
             ShowTipOfTheDay(_currentTipIndex);
         }

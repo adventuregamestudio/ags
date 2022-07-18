@@ -90,7 +90,6 @@ namespace AGS.Editor
             this.SetStyle(ControlStyles.Selectable, true);
 
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
             sldZoomLevel.Maximum = ZOOM_MAX_VALUE / ZOOM_STEP_VALUE;
             sldZoomLevel.Value = 100 / ZOOM_STEP_VALUE;
@@ -966,6 +965,14 @@ namespace AGS.Editor
 		private void chkCharacterOffset_CheckedChanged(object sender, EventArgs e)
         {
             _state.DragFromCenter = chkCharacterOffset.Checked;
+        }
+
+        private void RoomSettingsEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
 
         private void LoadColorTheme(ColorTheme t)

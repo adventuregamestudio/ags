@@ -110,7 +110,6 @@ namespace AGS.Editor
         public GUIEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
@@ -1166,6 +1165,14 @@ namespace AGS.Editor
                 return true;
             }
             return false;
+        }
+
+        private void GUIEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
 
         private void bgPanel_MouseDoubleClick(object sender, MouseEventArgs e)

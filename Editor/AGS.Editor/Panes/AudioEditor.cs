@@ -23,7 +23,6 @@ namespace AGS.Editor
         public AudioEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()
@@ -230,6 +229,14 @@ namespace AGS.Editor
             btnStop.FlatStyle = (FlatStyle)t.GetInt("audio-editor/btn-stop/flat/style");
             btnStop.FlatAppearance.BorderSize = t.GetInt("audio-editor/btn-stop/flat/border/size");
             btnStop.FlatAppearance.BorderColor = t.GetColor("audio-editor/btn-stop/flat/border/color");
+        }
+
+        private void AudioEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

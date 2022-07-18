@@ -222,6 +222,7 @@ namespace AGS.Editor
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "InventoryEditor";
             this.Size = new System.Drawing.Size(791, 414);
+            this.Load += new System.EventHandler(this.InventoryEditor_Load);
             this.currentItemGroupBox.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();

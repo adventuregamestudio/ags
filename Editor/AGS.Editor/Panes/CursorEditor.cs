@@ -15,7 +15,6 @@ namespace AGS.Editor
         public CursorEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public CursorEditor(MouseCursor cursorToEdit) : this()
@@ -152,6 +151,14 @@ namespace AGS.Editor
         {
             UpdatePanelSize();
             imagePanel.Invalidate();
+        }
+
+        private void CursorEditor_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

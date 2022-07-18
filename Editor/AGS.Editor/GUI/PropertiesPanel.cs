@@ -13,8 +13,7 @@ namespace AGS.Editor
     {
         public PropertiesPanel()
         {
-            InitializeComponent();                          
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            InitializeComponent();
         }
 
         public event PropertyValueChangedEventHandler PropertyValueChanged
@@ -88,6 +87,14 @@ namespace AGS.Editor
             propertiesGrid.CategoryForeColor = t.GetColor("properties-panel/grid/category");
             propertiesGrid.HelpBackColor = t.GetColor("properties-panel/grid/help/background");
             propertiesGrid.HelpForeColor = t.GetColor("properties-panel/grid/help/foreground");
+        }
+
+        private void PropertiesPanel_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

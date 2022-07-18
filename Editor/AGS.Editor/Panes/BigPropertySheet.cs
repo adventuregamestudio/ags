@@ -7,19 +7,20 @@ namespace AGS.Editor
     {
         private readonly object _propertyObject;
 
-        public BigPropertySheet(object propertyObject)
+        public BigPropertySheet()
         {
             InitializeComponent();
+        }
 
+        public BigPropertySheet(object propertyObject) : this()
+        {
             _propertyObject = propertyObject;
             RefreshData();
         }
 
         public void RefreshData()
         {
-            propertyGrid.SelectedObject = null;
             propertyGrid.SelectedObject = _propertyObject;
         }
-
     }
 }

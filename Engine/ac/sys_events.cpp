@@ -420,7 +420,7 @@ extern eAGSMouseButton pluginSimulatedClick;
 int mouse_z_was = 0;
 // Convert mouse button id to flags
 const int MouseButton2Bits[kNumMouseButtons] =
-    { MouseBitLeft, MouseBitRight, MouseBitMiddle };
+    { 0, MouseBitLeft, MouseBitRight, MouseBitMiddle };
 
 bool ags_misbuttondown(eAGSMouseButton but)
 {

@@ -9,6 +9,7 @@ see the license.txt for details.
 */
 #include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP
@@ -147,7 +148,7 @@ AGSString TextHelper::ConvertASCII(System::String^ clr_str)
 void TextHelper::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len)
 {
     char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
-    size_t ansi_len = min(strlen(stringPointer) + 1, buf_len);
+    size_t ansi_len = std::min(strlen(stringPointer) + 1, buf_len);
     memcpy(buf, stringPointer, ansi_len);
     buf[ansi_len - 1] = 0;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
@@ -344,6 +345,23 @@ namespace AGS
 		{
 			return ::GetSpriteHeight(spriteSlot);
 		}
+
+        Drawing::Size NativeMethods::GetMaxSpriteSize(array<int>^ sprites,
+            [Runtime::InteropServices::Out] bool% hasLowResSprites)
+        {
+            int width = 0, height = 0;
+            bool has_lowres = false;
+            ::SpriteInfo info;
+            for (int i = 0; i < sprites->Length; ++i)
+            {
+                ::GetSpriteInfo(sprites[i], info);
+                width = std::max(width, info.Width);
+                height = std::max(height, info.Height);
+                has_lowres |= info.IsRelativeRes() && !info.IsLegacyHiRes();
+            }
+            hasLowResSprites = has_lowres;
+            return Drawing::Size(width, height);
+        }
 
 		void NativeMethods::ChangeSpriteNumber(Sprite^ sprite, int newNumber)
 		{

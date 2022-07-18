@@ -63,6 +63,7 @@ namespace AGS.Editor
 
         private void sldZoomLevel_ValueChanged(object sender, EventArgs e)
         {
+            viewPreview.ZoomLevel = sldZoomLevel.ZoomScale;
             UpdateLoopVisuals();
         }
 
@@ -305,6 +306,8 @@ namespace AGS.Editor
 
 				editorPanel.Left = viewPreview.Right;
 				viewPreview.ViewToPreview = _editingView;
+
+                viewPreview.ZoomLevel = sldZoomLevel.ZoomScale;
 			}
 			else
 			{
@@ -356,7 +359,5 @@ namespace AGS.Editor
             btnNewLoop.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-option/flat/border/size");
             btnNewLoop.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-option/flat/border/color");
         }
-
-
     }
 }

@@ -15,12 +15,21 @@ namespace AGS.Editor
         private System.Drawing.Font _normalFont;
         private System.Drawing.Font _boldFont;
 
-        public CharacterEditor(Character characterToEdit)
+        public CharacterEditor()
         {
             InitializeComponent();
-            _character = characterToEdit;
             _normalFont = lblIsPlayer.Font;
             _boldFont = new System.Drawing.Font(_normalFont.Name, _normalFont.Size, FontStyle.Bold);
+            viewPreview1.AutoResize = true;
+            viewPreview2.AutoResize = true;
+            viewPreview1.ZoomLevel = sldZoomLevel.ZoomScale;
+            viewPreview2.ZoomLevel = sldZoomLevel.ZoomScale;
+        }
+
+        public CharacterEditor(Character characterToEdit) : this()
+        {
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            _character = characterToEdit;
             viewPreview1.IsCharacterView = true;
             viewPreview2.IsCharacterView = true;
             UpdateActivateCharacterText();
@@ -97,6 +106,12 @@ namespace AGS.Editor
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
+        }
+        
+        private void sldZoomLevel_ValueChanged(object sender, EventArgs e)
+        {
+            viewPreview1.ZoomLevel = sldZoomLevel.ZoomScale;
+            viewPreview2.ZoomLevel = sldZoomLevel.ZoomScale;
         }
     }
 }

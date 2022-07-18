@@ -264,6 +264,22 @@ namespace AGS.Editor
             }
         }
 
+        public Size GetMaxViewFrameSize(View view, out bool hasLowResSprites)
+        {
+            lock (_spriteSetLock)
+            {
+                List<int> sprites = new List<int>();
+                foreach (ViewLoop loop in view.Loops)
+                {
+                    foreach (ViewFrame frame in loop.Frames)
+                    {
+                        sprites.Add(frame.Image);
+                    }
+                }
+                return _native.GetMaxSpriteSize(sprites.ToArray(), out hasLowResSprites);
+            }
+        }
+
         public Room LoadRoom(UnloadedRoom roomToLoad, Encoding defEncoding = null)
         {
             return _native.LoadRoomFile(roomToLoad, defEncoding);

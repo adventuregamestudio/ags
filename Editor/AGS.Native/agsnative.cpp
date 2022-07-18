@@ -214,18 +214,16 @@ int GetMaxSprites() {
 }
 
 int GetSpriteWidth(int slot) {
-	return get_sprite(slot)->GetWidth();
+    return thisgame.SpriteInfos[slot].Width;
 }
 
 int GetSpriteHeight(int slot) {
-	return get_sprite(slot)->GetHeight();
+    return thisgame.SpriteInfos[slot].Height;
 }
 
 void GetSpriteInfo(int slot, ::SpriteInfo &info) {
-    // TODO: find out if we may get width/height from SpriteInfos
-    // or it is necessary to go through get_sprite and check bitmaps in cache?
-    info.Width = GetSpriteWidth(slot);
-    info.Height = GetSpriteHeight(slot);
+    info.Width = thisgame.SpriteInfos[slot].Width;
+    info.Height = thisgame.SpriteInfos[slot].Height;
     info.Flags = thisgame.SpriteInfos[slot].Flags;
 }
 

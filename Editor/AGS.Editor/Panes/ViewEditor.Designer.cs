@@ -32,9 +32,14 @@ namespace AGS.Editor
             this.editorPanel = new System.Windows.Forms.Panel();
             this.btnDeleteLastLoop = new System.Windows.Forms.Button();
             this.btnNewLoop = new System.Windows.Forms.Button();
-            this.sldZoomLevel = new AGS.Editor.ZoomTrackbar();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.viewPreview = new AGS.Editor.ViewPreview();
+            this.sldZoomLevel = new AGS.Editor.ZoomTrackbar();
             this.editorPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
             // 
             // chkShowPreview
@@ -42,7 +47,7 @@ namespace AGS.Editor
             this.chkShowPreview.AutoSize = true;
             this.chkShowPreview.Location = new System.Drawing.Point(12, 12);
             this.chkShowPreview.Name = "chkShowPreview";
-            this.chkShowPreview.Size = new System.Drawing.Size(115, 21);
+            this.chkShowPreview.Size = new System.Drawing.Size(93, 17);
             this.chkShowPreview.TabIndex = 2;
             this.chkShowPreview.Text = "Show Preview";
             this.chkShowPreview.UseVisualStyleBackColor = true;
@@ -53,9 +58,10 @@ namespace AGS.Editor
             this.editorPanel.AutoScroll = true;
             this.editorPanel.Controls.Add(this.btnDeleteLastLoop);
             this.editorPanel.Controls.Add(this.btnNewLoop);
-            this.editorPanel.Location = new System.Drawing.Point(293, 35);
+            this.editorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.editorPanel.Location = new System.Drawing.Point(0, 0);
             this.editorPanel.Name = "editorPanel";
-            this.editorPanel.Size = new System.Drawing.Size(359, 444);
+            this.editorPanel.Size = new System.Drawing.Size(372, 463);
             this.editorPanel.TabIndex = 4;
             // 
             // btnDeleteLastLoop
@@ -78,9 +84,44 @@ namespace AGS.Editor
             this.btnNewLoop.UseVisualStyleBackColor = true;
             this.btnNewLoop.Click += new System.EventHandler(this.btnNewLoop_Click);
             // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Location = new System.Drawing.Point(12, 35);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.viewPreview);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.editorPanel);
+            this.splitContainer1.Size = new System.Drawing.Size(647, 463);
+            this.splitContainer1.SplitterDistance = 271;
+            this.splitContainer1.TabIndex = 6;
+            // 
+            // viewPreview
+            // 
+            this.viewPreview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.viewPreview.DynamicUpdates = false;
+            this.viewPreview.IsCharacterView = false;
+            this.viewPreview.Location = new System.Drawing.Point(0, 0);
+            this.viewPreview.Margin = new System.Windows.Forms.Padding(4);
+            this.viewPreview.Name = "viewPreview";
+            this.viewPreview.Size = new System.Drawing.Size(271, 463);
+            this.viewPreview.TabIndex = 3;
+            this.viewPreview.Title = "Preview";
+            this.viewPreview.ViewToPreview = null;
+            this.viewPreview.Visible = false;
+            this.viewPreview.ZoomLevel = 1F;
+            // 
             // sldZoomLevel
             // 
             this.sldZoomLevel.Location = new System.Drawing.Point(172, 3);
+            this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.sldZoomLevel.Maximum = 600;
             this.sldZoomLevel.Minimum = 75;
             this.sldZoomLevel.Name = "sldZoomLevel";
@@ -91,33 +132,23 @@ namespace AGS.Editor
             this.sldZoomLevel.ZoomScale = 1F;
             this.sldZoomLevel.ValueChanged += new System.EventHandler(this.sldZoomLevel_ValueChanged);
             // 
-            // viewPreview
-            // 
-            this.viewPreview.DynamicUpdates = false;
-            this.viewPreview.IsCharacterView = false;
-            this.viewPreview.Location = new System.Drawing.Point(12, 35);
-            this.viewPreview.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.viewPreview.Name = "viewPreview";
-            this.viewPreview.Size = new System.Drawing.Size(275, 332);
-            this.viewPreview.TabIndex = 3;
-            this.viewPreview.Title = "Preview";
-            this.viewPreview.ViewToPreview = null;
-            this.viewPreview.Visible = false;
-            // 
             // ViewEditor
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.sldZoomLevel);
-            this.Controls.Add(this.editorPanel);
             this.Controls.Add(this.chkShowPreview);
-            this.Controls.Add(this.viewPreview);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "ViewEditor";
             this.Size = new System.Drawing.Size(674, 514);
             this.Load += new System.EventHandler(this.ViewEditor_Load);
             this.Resize += new System.EventHandler(this.ViewEditor_Resize);
             this.editorPanel.ResumeLayout(false);
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -131,5 +162,6 @@ namespace AGS.Editor
 		private System.Windows.Forms.Button btnDeleteLastLoop;
 		private System.Windows.Forms.Button btnNewLoop;
 		private AGS.Editor.ZoomTrackbar sldZoomLevel;
+        private System.Windows.Forms.SplitContainer splitContainer1;
     }
 }

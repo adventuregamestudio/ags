@@ -51,6 +51,7 @@ namespace AGS
             Types::SpriteInfo^ GetSpriteInfo(int spriteSlot);
 			int  GetSpriteWidth(int spriteSlot);
 			int  GetSpriteHeight(int spriteSlot);
+            Drawing::Size GetMaxSpriteSize(array<int>^ sprites, [Runtime::InteropServices::Out] bool% hasLowResSprites);
 			bool CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric);
 			bool DoesSpriteExist(int spriteNumber);
 			void ChangeSpriteNumber(Sprite^ sprite, int newNumber);

@@ -411,6 +411,22 @@ namespace AGS.Editor
             return new Size { Width = width, Height = height };
         }
 
+        /// <summary>
+        /// Gets the maximal size at which the given view's frames will be
+        /// rendered in game.
+        /// </summary>
+        public static Size GetSizeViewWillBeRenderedInGame(Types.View view)
+        {
+            bool hasLowResSprites;
+            Size size = Factory.NativeProxy.GetMaxViewFrameSize(view, out hasLowResSprites);
+            if (hasLowResSprites && Factory.AGSEditor.CurrentGame.IsHighResolution)
+            {
+                size.Width *= 2;
+                size.Height *= 2;
+            }
+            return size;
+        }
+
         public static void CheckLabelWidthsOnForm(Control parentControl)
         {
             foreach (Control child in parentControl.Controls)

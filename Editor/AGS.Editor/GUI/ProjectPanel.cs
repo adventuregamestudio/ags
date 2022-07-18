@@ -14,7 +14,6 @@ namespace AGS.Editor
         public ProjectPanel()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public void LoadColorTheme(ColorTheme t)
@@ -23,6 +22,14 @@ namespace AGS.Editor
             projectTree.BackColor = t.GetColor("project-panel/project-tree/background");
             projectTree.ForeColor = t.GetColor("project-panel/project-tree/foreground");
             projectTree.LineColor = t.GetColor("project-panel/project-tree/line");
+        }
+
+        private void ProjectPanel_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

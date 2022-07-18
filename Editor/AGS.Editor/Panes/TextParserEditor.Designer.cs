@@ -100,6 +100,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "TextParserEditor";
             this.Size = new System.Drawing.Size(531, 519);
+            this.Load += new System.EventHandler(this.TextParserEditor_Load);
             this.SizeChanged += new System.EventHandler(this.TextParserEditor_SizeChanged);
             this.mainFrame.ResumeLayout(false);
             this.mainFrame.PerformLayout();

@@ -40,9 +40,9 @@ namespace AGS.Editor
             // 
             // currentItemGroupBox
             // 
-            this.currentItemGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.currentItemGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.currentItemGroupBox.BackColor = System.Drawing.SystemColors.Control;
             this.currentItemGroupBox.Controls.Add(this.btnImportFont);
             this.currentItemGroupBox.Controls.Add(this.imagePanel);
@@ -66,9 +66,9 @@ namespace AGS.Editor
             // 
             // imagePanel
             // 
-            this.imagePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.imagePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.imagePanel.AutoScroll = true;
             this.imagePanel.Controls.Add(this.pictureBox);
             this.imagePanel.Location = new System.Drawing.Point(13, 80);
@@ -102,6 +102,7 @@ namespace AGS.Editor
             this.Controls.Add(this.currentItemGroupBox);
             this.Name = "FontEditor";
             this.Size = new System.Drawing.Size(534, 493);
+            this.Load += new System.EventHandler(this.FontEditor_Load);
             this.currentItemGroupBox.ResumeLayout(false);
             this.currentItemGroupBox.PerformLayout();
             this.imagePanel.ResumeLayout(false);

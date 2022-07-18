@@ -55,7 +55,6 @@ namespace AGS.Editor
             this.lvwResults.View = System.Windows.Forms.View.Details;
             this.lvwResults.ItemActivate += new System.EventHandler(this.lvwResults_ItemActivate);
             this.lvwResults.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwResults_MouseUp);
-            this.lvwResults.Click += new System.EventHandler(this.lvwResults_Click);
             // 
             // columnHeader1
             // 
@@ -81,6 +80,7 @@ namespace AGS.Editor
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "OutputPanel";
             this.Padding = new System.Windows.Forms.Padding(1, 20, 1, 1);
+            this.Load += new System.EventHandler(this.OutputPanel_Load);
             this.ResumeLayout(false);
 
         }

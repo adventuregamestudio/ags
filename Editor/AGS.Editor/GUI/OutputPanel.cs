@@ -17,8 +17,7 @@ namespace AGS.Editor
 
         public OutputPanel()
         {
-            InitializeComponent();            
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            InitializeComponent();
         }
 
 		public void SetImageList(ImageList list)
@@ -89,11 +88,6 @@ namespace AGS.Editor
 			}
         }
 
-		private void lvwResults_Click(object sender, EventArgs e)
-		{
-
-		}
-
 		private void ContextMenuEventHandler(object sender, EventArgs e)
 		{
 			String result = string.Empty;
@@ -160,6 +154,14 @@ namespace AGS.Editor
                 a.Graphics.DrawString(a.Header.Text, lvwResults.Font, new SolidBrush(t.GetColor("output-panel/column-header/foreground")), a.Bounds.X + 5, a.Bounds.Y + a.Bounds.Size.Height / 5);
                 a.Graphics.DrawRectangle(new Pen(new SolidBrush(t.GetColor("output-panel/column-header/border"))), a.Bounds.X - 1, a.Bounds.Y - 1, a.Bounds.Size.Width, a.Bounds.Size.Height);
             };
+        }
+
+        private void OutputPanel_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

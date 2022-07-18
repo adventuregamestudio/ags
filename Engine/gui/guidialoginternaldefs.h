@@ -25,7 +25,6 @@
 #undef WINAPI
 #endif
 #define WINAPI
-#define mbutrelease(X) (!ags_misbuttondown(X))
 #define TEXT_HT usetup.textheight
 
 #endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H

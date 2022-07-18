@@ -264,6 +264,22 @@ namespace AGS.Editor
             }
         }
 
+        public Size GetMaxViewFrameSize(View view)
+        {
+            lock (_spriteSetLock)
+            {
+                List<int> sprites = new List<int>();
+                foreach (ViewLoop loop in view.Loops)
+                {
+                    foreach (ViewFrame frame in loop.Frames)
+                    {
+                        sprites.Add(frame.Image);
+                    }
+                }
+                return _native.GetMaxSpriteSize(sprites.ToArray());
+            }
+        }
+
         public void SaveDefaultRoom(Room roomToSave)
         {
             _native.SaveDefaultRoomFile(roomToSave);

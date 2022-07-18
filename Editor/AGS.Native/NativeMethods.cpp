@@ -9,6 +9,7 @@ see the license.txt for details.
 */
 #include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP
@@ -321,6 +322,19 @@ namespace AGS
 		{
 			return ::GetSpriteHeight(spriteSlot);
 		}
+
+        Drawing::Size NativeMethods::GetMaxSpriteSize(array<int>^ sprites)
+        {
+            int width = 0, height = 0;
+            ::SpriteInfo info;
+            for (int i = 0; i < sprites->Length; ++i)
+            {
+                ::GetSpriteInfo(sprites[i], info);
+                width = std::max(width, info.Width);
+                height = std::max(height, info.Height);
+            }
+            return Drawing::Size(width, height);
+        }
 
 		void NativeMethods::ChangeSpriteNumber(Sprite^ sprite, int newNumber)
 		{

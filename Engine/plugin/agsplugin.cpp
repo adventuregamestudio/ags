@@ -401,12 +401,13 @@ void IAGSEngine::PollSystem () {
 
     ags_domouse();
     update_polled_stuff_if_runtime();
-    int mbut, mwheelz;
-    if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && !play.IsIgnoringInput())
-        pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);
+    eAGSMouseButton mbut;
+    int mwheelz;
+    if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone && !play.IsIgnoringInput())
+        pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut);
     KeyInput kp;
     if (run_service_key_controls(kp) && !play.IsIgnoringInput()) {
-        pl_run_plugin_hooks (AGSE_KEYPRESS, kp.Key);
+        pl_run_plugin_hooks(AGSE_KEYPRESS, kp.Key);
     }
 }
 AGSCharacter* IAGSEngine::GetCharacter (int32 charnum) {

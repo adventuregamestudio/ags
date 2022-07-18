@@ -10,7 +10,7 @@ namespace AGS.Editor
         public DefaultRuntimeSetupPane()
             : base(Factory.AGSEditor.CurrentGame.DefaultSetup)
         {
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            InitializeComponent();
         }
 
         protected override string OnGetHelpKeyword()
@@ -29,6 +29,26 @@ namespace AGS.Editor
             propertyGrid.ViewForeColor = t.GetColor("general-settings/property-grid/view/foreground");
             propertyGrid.HelpBackColor = t.GetColor("general-settings/property-grid/help/background");
             propertyGrid.HelpForeColor = t.GetColor("general-settings/property-grid/help/foreground");
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // DefaultRuntimeSetupPane
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
+            this.Name = "DefaultRuntimeSetupPane";
+            this.Load += new System.EventHandler(this.DefaultRuntimeSetupPane_Load);
+            this.ResumeLayout(false);
+        }
+
+        private void DefaultRuntimeSetupPane_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

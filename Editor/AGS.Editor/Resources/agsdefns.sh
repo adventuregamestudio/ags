@@ -339,23 +339,27 @@ enum eKeyCode
   eKeyAltRight = 420,
 #endif
   eKeyF11 = 433,
-  eKeyF12 = 434
+  eKeyF12 = 434,
+
+  eKeyCodeMask = 0x0FFF
 };
 
 #ifdef SCRIPT_API_v360
 enum eKeyMod
 {
-  eKeyModShiftLeft  = 0x0001,
-  eKeyModShiftRight = 0x0002,
-  eKeyModShift      = 0x0003,
-  eKeyModCtrlLeft   = 0x0004,
-  eKeyModCtrlRight  = 0x0008,
-  eKeyModCtrl       = 0x000C,
-  eKeyModAltLeft    = 0x0010,
-  eKeyModAltRight   = 0x0020,
-  eKeyModAlt        = 0x0030,
-  eKeyModNum        = 0x0040,
-  eKeyModCaps       = 0x0080,
+  eKeyModShiftLeft  = 0x00010000,
+  eKeyModShiftRight = 0x00020000,
+  eKeyModShift      = 0x00030000,
+  eKeyModCtrlLeft   = 0x00040000,
+  eKeyModCtrlRight  = 0x00080000,
+  eKeyModCtrl       = 0x000C0000,
+  eKeyModAltLeft    = 0x00100000,
+  eKeyModAltRight   = 0x00200000,
+  eKeyModAlt        = 0x00300000,
+  eKeyModNum        = 0x00400000,
+  eKeyModCaps       = 0x00800000,
+
+  eKeyModMask       = 0x00FF0000
 };
 #endif
 
@@ -436,10 +440,10 @@ enum LogLevel
 enum InputType
 {
   eInputNone     = 0x00000000,
-  // 0x0001... is used internally to define Timeout
-  eInputKeyboard = 0x00020000,
-  eInputMouse    = 0x00040000,
-  eInputAny      = 0xFFFF0000
+  // 0x0100... is used internally to define Timeout (may be worked around in the future)
+  eInputKeyboard = 0x02000000,
+  eInputMouse    = 0x04000000,
+  eInputAny      = 0xFF000000
 };
 #endif
 

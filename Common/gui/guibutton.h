@@ -25,11 +25,11 @@ namespace AGS
 namespace Common
 {
 
-enum MouseButton
+enum GUIClickMouseButton
 {
-    kMouseNone  = -1,
-    kMouseLeft  =  0,
-    kMouseRight =  1,
+    kGUIClickLeft         = 0,
+    kGUIClickRight        = 1,
+    kNumGUIClicks
 };
 
 enum GUIClickAction
@@ -91,9 +91,8 @@ public:
     FrameAlignment TextAlignment;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
-    static const int ClickCount = kMouseRight + 1;
-    GUIClickAction ClickAction[ClickCount];
-    int32_t        ClickData[ClickCount];
+    GUIClickAction ClickAction[kNumGUIClicks];
+    int32_t        ClickData[kNumGUIClicks];
 
     bool        IsPushed;
     bool        IsMouseOver;

@@ -58,13 +58,17 @@ namespace AGS.Editor
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
+            InitializeComponent();
             _fileWatcher = new FileWatcher(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
-            _showMatchingScript = showMatchingScript;
+
             _agsEditor = agsEditor;
-            Init(scriptToEdit);
+            _script = scriptToEdit;
+            _showMatchingScript = showMatchingScript;
             _room = null;
             _roomNumber = 0;
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+
+            this.Load += new EventHandler(ScriptEditor_Load);
+            this.Resize += new EventHandler(ScriptEditor_Resize);
         }
 
         private void Clear()
@@ -85,10 +89,8 @@ namespace AGS.Editor
             scintilla.ToggleBreakpoint -= scintilla_ToggleBreakpoint;
         }
 
-        private void Init(Script scriptToEdit)
+        private void ScriptEditor_Load(object sender, EventArgs e)
         {
-            InitializeComponent();
-
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
             AutoComplete.BackgroundCacheUpdateStatusChanged += _autocompleteUpdateHandler;
 
@@ -117,9 +119,12 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
 
-            this.Resize += new EventHandler(ScriptEditor_Resize);
-            this.Script = scriptToEdit;
             InitScintilla();
+
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
 
         public int FirstVisibleLine { get { return _firstVisibleLine; } }
@@ -152,15 +157,17 @@ namespace AGS.Editor
 
             if (!this.Script.IsHeader)
             {
-                // Scripts may miss autocomplete cache when they are first opened, so update
-                AutoComplete.ConstructCache(Script, _agsEditor.GetImportedScriptHeaders(Script));
                 scintilla.SetAutoCompleteSource(Script);
             }
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-            UpdateStructHighlighting();
             // pressing ( [ or . will auto-complete
             scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
+
+            // Scripts may miss autocomplete cache when they are first opened, so update
+            UpdateAutocompleteAndControls(true);
+
+            scintilla.SetText(_script.Text);
         }
 
         public void ActivateWindow()
@@ -242,6 +249,18 @@ namespace AGS.Editor
             cmbFunctions.Items.AddRange(functions.ToArray());
             cmbFunctions.EndUpdate();
             SelectFunctionInListForCurrentPosition();
+        }
+
+        /// <summary>
+        /// Updates this script's autocomplete cache and all the controls that depend on it.
+        /// </summary>
+        private void UpdateAutocompleteAndControls(bool force)
+        {
+            if (!force && !ContainsFocus)
+                return; // only update for the active pane to avoid expensive combo Add operations
+            AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
+            UpdateStructHighlighting();
+            UpdateFunctionList();
         }
 
         private void AdjustStartOfFunctionsInScript(int fromPos, int adjustment)
@@ -427,10 +446,7 @@ namespace AGS.Editor
                 _fileWatcher.Enabled = true;
 
                 scintilla.SetSavePoint();
-                if (_script.IsHeader)
-                {
-                    AutoComplete.ConstructCache(_script, _agsEditor.GetImportedScriptHeaders(_script));
-                }
+                UpdateAutocompleteAndControls(true);
             }
         }
 

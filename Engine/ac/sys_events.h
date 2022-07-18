@@ -20,22 +20,6 @@
 #include "ac/keycode.h"
 #include <SDL_keyboard.h>
 
-// AGS own mouse button codes
-// TODO: these were internal button codes, but AGS script uses different ones,
-// which start with Left=1, and make more sense (0 is easier to use as "no value").
-// Must research if there are any dependencies to these internal values, and if not,
-// then just replace these matching script ones!
-// UPD: even plugin API seem to match script codes and require remap to internals.
-// UPD: or use SDL constants in the engine, but make conversion more visible by using a function.
-enum eAGSMouseButton
-{
-    MouseNone     = -1,
-    MouseLeft     =  0,
-    MouseRight    =  1,
-    MouseMiddle   =  2
-};
-
-
 // Keyboard input handling
 //
 // avoid including SDL.h here, at least for now, because that leads to conflicts with allegro
@@ -84,9 +68,9 @@ void ags_simulate_keypress(eAGSKeyCode ags_key);
 // Mouse input handling
 //
 // Tells if the mouse button is currently down
-bool ags_misbuttondown(int but);
+bool ags_misbuttondown(eAGSMouseButton but);
 // Returns mouse button code
-int  ags_mgetbutton();
+eAGSMouseButton ags_mgetbutton();
 // Returns recent relative mouse movement
 void ags_mouse_get_relxy(int &x, int &y);
 // Updates mouse cursor position in game

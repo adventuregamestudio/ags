@@ -14,9 +14,9 @@ namespace AGS.Editor
         public GeneralSettingsPane()
             : base(Factory.AGSEditor.CurrentGame.Settings)
         {
+            InitializeComponent();
             this.propertyGrid.PropertyValueChanged +=
                 new System.Windows.Forms.PropertyValueChangedEventHandler(this.gameSettings_PropertyValueChanged);
-            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()
@@ -151,6 +151,26 @@ namespace AGS.Editor
             propertyGrid.ViewForeColor = t.GetColor("general-settings/property-grid/view/foreground");
             propertyGrid.HelpBackColor = t.GetColor("general-settings/property-grid/help/background");
             propertyGrid.HelpForeColor = t.GetColor("general-settings/property-grid/help/foreground");
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // GeneralSettingsPane
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
+            this.Name = "GeneralSettingsPane";
+            this.Load += new System.EventHandler(this.GeneralSettingsPane_Load);
+            this.ResumeLayout(false);
+        }
+
+        private void GeneralSettingsPane_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
         }
     }
 }

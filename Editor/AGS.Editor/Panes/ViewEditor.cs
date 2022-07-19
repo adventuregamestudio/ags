@@ -296,24 +296,20 @@ namespace AGS.Editor
 
 		private void UpdateWhetherPreviewIsShown()
 		{
-			viewPreview.Visible = chkShowPreview.Checked;
-			
-			if (viewPreview.Visible)
+			if (chkShowPreview.Checked)
 			{
                 // Adjust control size to match user's DPI settings
                 viewPreview.Width = viewPreview.PreferredSize.Width;
                 viewPreview.Height = viewPreview.PreferredSize.Height;
-
-				editorPanel.Left = viewPreview.Right;
 				viewPreview.ViewToPreview = _editingView;
-
                 viewPreview.ZoomLevel = sldZoomLevel.ZoomScale;
-			}
+                splitContainer1.Panel1Collapsed = false;
+            }
 			else
 			{
-				editorPanel.Left = 0;
-				viewPreview.ReleaseResources();
-			}
+                viewPreview.ReleaseResources();
+                splitContainer1.Panel1Collapsed = true;
+            }
 
 			editorPanel.Width = this.ClientSize.Width - editorPanel.Left;
 			editorPanel.AutoScrollPosition = new Point(0, 0);

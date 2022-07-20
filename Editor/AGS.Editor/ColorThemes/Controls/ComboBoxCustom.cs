@@ -31,6 +31,8 @@ namespace AGS.Editor
                 Items.Add(i);
             }
             EndUpdate();
+
+            SelectedIndex = original.SelectedIndex;
         }
 
         protected override void OnCreateControl()

@@ -61,6 +61,8 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
         ki.Mod = sdl_mod_to_ags_mod(event.key);
         ki.Key = sdl_key_to_ags_key(event.key, old_keyhandle);
         ki.CompatKey = sdl_key_to_ags_key(event.key, true);
+        if (ki.CompatKey == eAGSKeyCodeNone)
+            ki.CompatKey = ki.Key;
     }
     return ki;
 }

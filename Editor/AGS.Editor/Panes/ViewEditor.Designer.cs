@@ -105,6 +105,7 @@ namespace AGS.Editor
             // 
             // viewPreview
             // 
+            this.viewPreview.AutoResize = false;
             this.viewPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.viewPreview.DynamicUpdates = false;
             this.viewPreview.IsCharacterView = false;
@@ -115,7 +116,6 @@ namespace AGS.Editor
             this.viewPreview.TabIndex = 3;
             this.viewPreview.Title = "Preview";
             this.viewPreview.ViewToPreview = null;
-            this.viewPreview.Visible = false;
             this.viewPreview.ZoomLevel = 1F;
             // 
             // sldZoomLevel

@@ -21,7 +21,7 @@
 #include <windows.h>
 #include <WinBase.h>
 #endif
-#include <ctype.h>
+#include <string.h>
 
 #define THIS_IS_THE_PLUGIN
 #include "plugin/agsplugin.h"
@@ -224,18 +224,6 @@ void AGS_EditorLoadGame(char *buffer, int bufsize)            //*** optional ***
 namespace agsspritefont {
 #endif
 
-bool IsEqualCaseInsensitive(char const *a, char const *b)
-{
-	for (; *a && *b; a++, b++)
-	{
-		if (tolower((unsigned char)*a) != tolower((unsigned char)*b))
-			return false;
-	}
-	if (*a || *b)
-		return false;
-	return true;
-}
-
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
 	engine = lpEngine;
@@ -251,8 +239,11 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 		AGSGameInfo gameInfo;
 		gameInfo.Version = 26;
 		lpEngine->GetGameInfo(&gameInfo);
-		useClifftopGamesRenderers = IsEqualCaseInsensitive(gameInfo.GameName, "kathy rain") ||
-			IsEqualCaseInsensitive(gameInfo.GameName, "whispers of a machine");
+		// GUID:
+		// Kathy Rain: {d6795d1c-3cfe-49ec-90a1-85c313bfccaf}
+		// Whispers of a Machine: {5833654f-6f0d-40d9-99e2-65c101c8544a}
+		useClifftopGamesRenderers = strcmp("{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}", gameInfo.guid) == 0 ||
+			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.guid) == 0;
 	}
 	if (useClifftopGamesRenderers)
 	{

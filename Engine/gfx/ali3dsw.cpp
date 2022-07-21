@@ -863,10 +863,12 @@ bool SDLRendererGraphicsDriver::SetVsync(bool enabled)
         return _mode.Vsync;
     }
 
+    #if SDL_VERSION_ATLEAST(2, 0, 18)
     if (!SDL_RenderSetVSync(_renderer, enabled)) { // 0 on success
         _mode.Vsync = enabled;
         SetGamma(_gamma); // gamma might be lost after changing vsync mode at fullscreen
     }
+    #endif
 
     return _mode.Vsync;
 }

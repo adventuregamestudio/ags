@@ -7,9 +7,9 @@ class VariableWidthSpriteFontRenderer :
 {
 public:
 	VariableWidthSpriteFontRenderer(IAGSEngine *engine);
-	~VariableWidthSpriteFontRenderer(void);
+	virtual ~VariableWidthSpriteFontRenderer(void);
 	bool LoadFromDisk(int fontNumber, int fontSize) override { return true; }
-	void FreeMemory(int fontNumber) override { }
+	void FreeMemory(int fontNumber) override;
 	bool SupportsExtendedCharacters(int fontNumber) override;
 	int GetTextWidth(const char *text, int fontNumber) override;
 	int GetTextHeight(const char *text, int fontNumber) override;
@@ -19,8 +19,9 @@ public:
 	void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);
 	void SetSprite(int fontNum, int spriteNum);
 	void SetSpacing(int fontNum, int spacing);
+	void SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride);
 
-private:
+protected:
 	IAGSEngine *_engine;
 	std::vector<VariableWidthFont * > _fonts;
 	VariableWidthFont *getFontFor(int fontNum);

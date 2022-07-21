@@ -1,6 +1,7 @@
 #include "SpriteFontRenderer.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "color.h"
 
 
@@ -12,6 +13,21 @@ SpriteFontRenderer::SpriteFontRenderer(IAGSEngine *engine)
 
 
 SpriteFontRenderer::~SpriteFontRenderer(void) = default;
+
+
+void SpriteFontRenderer::FreeMemory(int fontNum)
+{
+	for(auto it = _fonts.begin(); it != _fonts.end() ; ++it)
+	{
+		SpriteFont *font = *it;
+		if (font->FontReplaced == fontNum)
+		{
+			_fonts.erase(it);
+			delete font;
+			return;
+		}
+	}
+}
 
 void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
 {
@@ -30,7 +46,7 @@ void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int co
 void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
 	SpriteFont *font = getFontFor(fontNumber);
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		if(text[i] < font->MinChar || text[i] > font->MaxChar) 
 		{
@@ -64,7 +80,7 @@ int SpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
 SpriteFont *SpriteFontRenderer::getFontFor(int fontNum)
 {
 	SpriteFont *font;
-	for (int i = 0; i < _fonts.size(); i ++)
+	for (size_t i = 0; i < _fonts.size(); i ++)
 	{
 		font = _fonts.at(i);
 		if (font->FontReplaced == fontNum) return font;
@@ -82,11 +98,11 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 {
 	
 	SpriteFont *font = getFontFor(fontNumber);
-	BITMAP *vScreen = _engine->GetVirtualScreen();
+	//BITMAP *vScreen = _engine->GetVirtualScreen();
 	
 	//_engine->SetVirtualScreen(destination);
 	
-	for(int i = 0; i < strlen(text); i++)
+	for(size_t i = 0; i < strlen(text); i++)
 	{
 		char c = text[i];
 		c -= font->MinChar;
@@ -105,15 +121,15 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height)
 {
 
-	int srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
+	int32 srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
 
 	unsigned char **srccharbuffer = _engine->GetRawBitmapSurface (src); //8bit
-	unsigned short **srcshortbuffer = (unsigned short**)srccharbuffer; //16bit;
-    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer; //32bit
+	uint16_t **srcshortbuffer = (uint16_t**)srccharbuffer; //16bit;
+	uint32_t **srclongbuffer = (uint32_t**)srccharbuffer; //32bit
 
 	unsigned char **destcharbuffer = _engine->GetRawBitmapSurface (dest); //8bit
-	unsigned short **destshortbuffer = (unsigned short**)destcharbuffer; //16bit;
-    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer; //32bit
+	uint16_t **destshortbuffer = (uint16_t**)destcharbuffer; //16bit;
+	uint32_t **destlongbuffer = (uint32_t**)destcharbuffer; //32bit
 
 	int transColor = _engine->GetBitmapTransparentColor(src);
 
@@ -128,64 +144,56 @@ void SpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, i
 	int startx = MAX(0, (-1 * destx));
 	int starty = MAX(0, (-1 * desty));
 
-	
 	int srca, srcr, srcg, srcb, desta, destr, destg, destb, finalr, finalg, finalb, finala, col;
 
 	for(int x = startx; x < width; x ++)
 	{
-		
+
 		for(int y = starty; y <  height; y ++)
 		{
 			int srcyy = y + srcy;
 			int srcxx = x + srcx;
 			int destyy = y + desty;
 			int destxx = x + destx;
-				if (destColDepth == 8)
-				{
-					if (srccharbuffer[srcyy][srcxx] != transColor) destcharbuffer[destyy][destxx] = srccharbuffer[srcyy][srcxx];
-				}
-				else if (destColDepth == 16)
-				{
-					if (srcshortbuffer[srcyy][srcxx] != transColor) destshortbuffer[destyy][destxx] = srcshortbuffer[srcyy][srcxx];
-				}
-				else if (destColDepth == 32)
-				{
-					//if (srclongbuffer[srcyy][srcxx] != transColor) destlongbuffer[destyy][destxx] = srclongbuffer[srcyy][srcxx];
-					
-					srca =  (geta32(srclongbuffer[srcyy][srcxx]));
-            
-					if (srca != 0) {
-						   
-						srcr =  getr32(srclongbuffer[srcyy][srcxx]);  
-						srcg =  getg32(srclongbuffer[srcyy][srcxx]);
-						srcb =  getb32(srclongbuffer[srcyy][srcxx]);
-    
-						destr =  getr32(destlongbuffer[destyy][destxx]);
-						destg =  getg32(destlongbuffer[destyy][destxx]);
-						destb =  getb32(destlongbuffer[destyy][destxx]);
-						desta =  geta32(destlongbuffer[destyy][destxx]);
-                
+			if (destColDepth == 8)
+			{
+				if (srccharbuffer[srcyy][srcxx] != transColor) destcharbuffer[destyy][destxx] = srccharbuffer[srcyy][srcxx];
+			}
+			else if (destColDepth == 16)
+			{
+				if (srcshortbuffer[srcyy][srcxx] != transColor) destshortbuffer[destyy][destxx] = srcshortbuffer[srcyy][srcxx];
+			}
+			else if (destColDepth == 32)
+			{
+				//if (srclongbuffer[srcyy][srcxx] != transColor) destlongbuffer[destyy][destxx] = srclongbuffer[srcyy][srcxx];
 
-						finalr = srcr;
-						finalg = srcg;
-						finalb = srcb;   
-              
-                                                               
-						finala = 255-(255-srca)*(255-desta)/255;                                              
-						finalr = srca*finalr/finala + desta*destr*(255-srca)/finala/255;
-						finalg = srca*finalg/finala + desta*destg*(255-srca)/finala/255;
-						finalb = srca*finalb/finala + desta*destb*(255-srca)/finala/255;
-						col = makeacol32(finalr, finalg, finalb, finala);
-						destlongbuffer[destyy][destxx] = col;
-					}
+				srca =  (geta32(srclongbuffer[srcyy][srcxx]));
 
+				if (srca != 0) {
+					srcr =  getr32(srclongbuffer[srcyy][srcxx]);
+					srcg =  getg32(srclongbuffer[srcyy][srcxx]);
+					srcb =  getb32(srclongbuffer[srcyy][srcxx]);
+
+					destr =  getr32(destlongbuffer[destyy][destxx]);
+					destg =  getg32(destlongbuffer[destyy][destxx]);
+					destb =  getb32(destlongbuffer[destyy][destxx]);
+					desta =  geta32(destlongbuffer[destyy][destxx]);
+
+					finalr = srcr;
+					finalg = srcg;
+					finalb = srcb;
+
+					finala = 255-(255-srca)*(255-desta)/255;
+					finalr = srca*finalr/finala + desta*destr*(255-srca)/finala/255;
+					finalg = srca*finalg/finala + desta*destg*(255-srca)/finala/255;
+					finalb = srca*finalb/finala + desta*destb*(255-srca)/finala/255;
+					col = makeacol32(finalr, finalg, finalb, finala);
+					destlongbuffer[destyy][destxx] = col;
 				}
+			}
 		}
 	}
-	
+
 	_engine->ReleaseBitmapSurface(src);
 	_engine->ReleaseBitmapSurface(dest);
-
-	
-
 }

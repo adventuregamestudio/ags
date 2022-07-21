@@ -500,16 +500,21 @@ if (AGS_BUILTIN_PLUGINS)
         ../Plugins/ags_snowrain/ags_snowrain.h
 
         ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.cpp
+        ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/CharacterEntry.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/CharacterEntry.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFont.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFont.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFontRenderer.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFontRenderer.h
+        ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFontRendererClifftopGames.cpp
+        ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFontRendererClifftopGames.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthFont.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthFont.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFont.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFont.h
+        ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFontClifftopGames.cpp
+        ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFontClifftopGames.h
         ../Plugins/AGSSpriteFont/AGSSpriteFont/color.cpp
         ../Plugins/AGSSpriteFont/AGSSpriteFont/color.h
 

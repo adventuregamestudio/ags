@@ -747,6 +747,11 @@
 		52F5D8611DA1219D006F8F4B /* inventoryiteminfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52F5D8601DA1219D006F8F4B /* inventoryiteminfo.cpp */; };
 		52F5D8641DA121CC006F8F4B /* version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52F5D8621DA121CC006F8F4B /* version.cpp */; };
 		52F5D8651DA121CC006F8F4B /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 52F5D8631DA121CC006F8F4B /* version.h */; };
+		A3A4659D2866966D00AE0372 /* SpriteFontRendererClifftopGames.h in Headers */ = {isa = PBXBuildFile; fileRef = A3A465982866966D00AE0372 /* SpriteFontRendererClifftopGames.h */; };
+		A3A4659E2866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.h in Headers */ = {isa = PBXBuildFile; fileRef = A3A465992866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.h */; };
+		A3A4659F2866966D00AE0372 /* AGSSpriteFont.h in Headers */ = {isa = PBXBuildFile; fileRef = A3A4659A2866966D00AE0372 /* AGSSpriteFont.h */; };
+		A3A465A02866966D00AE0372 /* SpriteFontRendererClifftopGames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A4659B2866966D00AE0372 /* SpriteFontRendererClifftopGames.cpp */; };
+		A3A465A12866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A4659C2866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1494,6 +1499,11 @@
 		52F5D8601DA1219D006F8F4B /* inventoryiteminfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inventoryiteminfo.cpp; sourceTree = "<group>"; };
 		52F5D8621DA121CC006F8F4B /* version.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = version.cpp; sourceTree = "<group>"; };
 		52F5D8631DA121CC006F8F4B /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
+		A3A465982866966D00AE0372 /* SpriteFontRendererClifftopGames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpriteFontRendererClifftopGames.h; sourceTree = "<group>"; };
+		A3A465992866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VariableWidthSpriteFontClifftopGames.h; sourceTree = "<group>"; };
+		A3A4659A2866966D00AE0372 /* AGSSpriteFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGSSpriteFont.h; sourceTree = "<group>"; };
+		A3A4659B2866966D00AE0372 /* SpriteFontRendererClifftopGames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SpriteFontRendererClifftopGames.cpp; sourceTree = "<group>"; };
+		A3A4659C2866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VariableWidthSpriteFontClifftopGames.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1640,6 +1650,11 @@
 		521C54941D1E572B00BD619E /* AGSSpriteFont */ = {
 			isa = PBXGroup;
 			children = (
+				A3A4659A2866966D00AE0372 /* AGSSpriteFont.h */,
+				A3A4659B2866966D00AE0372 /* SpriteFontRendererClifftopGames.cpp */,
+				A3A465982866966D00AE0372 /* SpriteFontRendererClifftopGames.h */,
+				A3A4659C2866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.cpp */,
+				A3A465992866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.h */,
 				521C54951D1E572B00BD619E /* AGSSpriteFont.cpp */,
 				521C54971D1E572B00BD619E /* CharacterEntry.cpp */,
 				521C54981D1E572B00BD619E /* CharacterEntry.h */,
@@ -2204,7 +2219,6 @@
 				526F25001D3B5CC300EF4E1F /* sprite.cpp */,
 				526F25011D3B5CC300EF4E1F /* sprite.h */,
 				526F25021D3B5CC300EF4E1F /* spritecache_engine.cpp */,
-				526F25031D3B5CC300EF4E1F /* spritelistentry.h */,
 				526F25041D3B5CC300EF4E1F /* statobj */,
 				526F250A1D3B5CC300EF4E1F /* string.cpp */,
 				526F250B1D3B5CC300EF4E1F /* string.h */,
@@ -2828,6 +2842,7 @@
 				526F22F41D3B5C4900EF4E1F /* almp3.h in Headers */,
 				526F22A01D3B5C4900EF4E1F /* audiocliptype.h in Headers */,
 				526F26C81D3B5CC300EF4E1F /* cc_gui.h in Headers */,
+				A3A4659E2866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.h in Headers */,
 				526F23D21D3B5C4900EF4E1F /* file.h in Headers */,
 				526F22C81D3B5C4900EF4E1F /* assert.h in Headers */,
 				526F23C11D3B5C4900EF4E1F /* cc_options.h in Headers */,
@@ -2844,6 +2859,7 @@
 				526F26FE1D3B5CC300EF4E1F /* global_audio.h in Headers */,
 				526F23E11D3B5C4900EF4E1F /* multifilelib.h in Headers */,
 				526F26F31D3B5CC300EF4E1F /* event.h in Headers */,
+				A3A4659F2866966D00AE0372 /* AGSSpriteFont.h in Headers */,
 				526F27D11D3B5CC300EF4E1F /* animatingguibutton.h in Headers */,
 				526F28781D3B5CC300EF4E1F /* audio.h in Headers */,
 				526F28881D3B5CC300EF4E1F /* clip_mystaticogg.h in Headers */,
@@ -2995,9 +3011,9 @@
 				526F26B21D3B5CC300EF4E1F /* draw.h in Headers */,
 				526F22A31D3B5C4900EF4E1F /* common.h in Headers */,
 				526F288A1D3B5CC300EF4E1F /* clip_mywave.h in Headers */,
-				526F27861D3B5CC300EF4E1F /* spritelistentry.h in Headers */,
 				526F286C1D3B5CC300EF4E1F /* maindefines_ex.h in Headers */,
 				526F22E01D3B5C4900EF4E1F /* guidefines.h in Headers */,
+				A3A4659D2866966D00AE0372 /* SpriteFontRendererClifftopGames.h in Headers */,
 				521C54D31D1E572B00BD619E /* agsblend.h in Headers */,
 				526F22F31D3B5C4900EF4E1F /* alfontdll.h in Headers */,
 				526F27821D3B5CC300EF4E1F /* speech.h in Headers */,
@@ -3192,6 +3208,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 521C3BE01D1E545100BD619E;
@@ -3293,6 +3310,7 @@
 				526F27BD1D3B5CC300EF4E1F /* gfxdriverfactory.cpp in Sources */,
 				526F281C1D3B5CC300EF4E1F /* ogg.c in Sources */,
 				526F27DA1D3B5CC300EF4E1F /* mylabel.cpp in Sources */,
+				A3A465A02866966D00AE0372 /* SpriteFontRendererClifftopGames.cpp in Sources */,
 				526F273A1D3B5CC300EF4E1F /* global_translation.cpp in Sources */,
 				526F27921D3B5CC300EF4E1F /* timer.cpp in Sources */,
 				526F270D1D3B5CC300EF4E1F /* global_dynamicsprite.cpp in Sources */,
@@ -3415,6 +3433,7 @@
 				526F27301D3B5CC300EF4E1F /* global_screen.cpp in Sources */,
 				526F23CB1D3B5C4900EF4E1F /* compress.cpp in Sources */,
 				526F26E11D3B5CC300EF4E1F /* scriptfile.cpp in Sources */,
+				A3A465A12866966D00AE0372 /* VariableWidthSpriteFontClifftopGames.cpp in Sources */,
 				526F22D71D3B5C4900EF4E1F /* interactions.cpp in Sources */,
 				526F27AC1D3B5CC300EF4E1F /* mousew32.cpp in Sources */,
 				526F27D41D3B5CC300EF4E1F /* gui_engine.cpp in Sources */,

@@ -1544,7 +1544,7 @@ void game_sprite_updated(int sprnum)
     {
         for (size_t i = 0; i < (size_t)croom->numobj; ++i)
         {
-            if (objs[i].num == sprnum)
+            if (objcache[i].sppic == sprnum)
                 objcache[i].sppic = -1;
         }
     }
@@ -1581,10 +1581,9 @@ void game_sprite_deleted(int sprnum)
         for (size_t i = 0; i < (size_t)croom->numobj; ++i)
         {
             if (objs[i].num == sprnum)
-            {
                 objs[i].num = 0;
+            if (objcache[i].sppic == sprnum)
                 objcache[i].sppic = -1;
-            }
         }
     }
     // character cache

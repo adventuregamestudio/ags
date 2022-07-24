@@ -1097,25 +1097,11 @@ int get_adjusted_spriteheight(int spr) {
 void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
 {
 	__my_setcolor(&colNum, colNum, BaseColorDepth);
-  /*if (thisgame.color_depth > 2) {
-    // convert to 24-bit colour
-    int red = ((colNum >> 11) & 0x1f) * 8;
-    int grn = ((colNum >> 5) & 0x3f) * 4;
-    int blu = (colNum & 0x1f) * 8;
-    colNum = (red << _rgb_r_shift_32) | (grn << _rgb_g_shift_32) | (blu << _rgb_b_shift_32);
-  }*/
-
   Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
   palbmp->Clear (colNum);
   drawBlockScaledAt(hdc, palbmp, x, y, 1);
   delete palbmp;
 }
-
-/* [IKM] 2012-07-08: use the Common implementation
-void NewInteractionCommand::remove () 
-{
-}
-*/
 
 void new_font () {
   FontInfo fi;
@@ -1134,10 +1120,8 @@ bool initialize_native()
     AssetMgr.reset(new AssetManager());
     AssetMgr->AddLibrary("."); // TODO: this is for search in editor program folder, but maybe don't use implicit cwd?
 
-	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
 	thisgame.color_depth = 2;
-	//abuf = Common::BitmapHelper::CreateBitmap(10, 10, 32);
     BaseColorDepth = 32;
 	thisgame.numfonts = 0;
 	new_font();
@@ -1346,8 +1330,6 @@ void sort_out_palette(Common::Bitmap *toimp, RGB*itspal, bool useBgSlots, int tr
 }
 
 void update_abuf_coldepth() {
-//  delete abuf;
-//  abuf = Common::BitmapHelper::CreateBitmap(10, 10, thisgame.color_depth * 8);
     BaseColorDepth = thisgame.color_depth * 8;
 }
 

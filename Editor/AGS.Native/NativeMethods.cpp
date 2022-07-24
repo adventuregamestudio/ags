@@ -412,60 +412,6 @@ namespace AGS
 
 		Bitmap^ NativeMethods::GetBitmapForSprite(int spriteSlot, int width, int height)
 		{
-/*			int spriteWidth = GetSpriteWidth(spriteSlot);
-			int spriteHeight = GetSpriteHeight(spriteSlot);
-			int colDepth = GetSpriteColorDepth(spriteSlot);
-/*			int stride = spriteWidth * ((colDepth + 1) / 8);
-			PixelFormat pFormat;
-			if (colDepth == 8)
-			{
-				pFormat = PixelFormat::Format8bppIndexed;
-			}
-			else if (colDepth == 15)
-			{
-				pFormat = PixelFormat::Format16bppRgb555;
-			}
-			else if (colDepth == 16)
-			{
-				pFormat = PixelFormat::Format16bppRgb565;
-			}
-			else
-			{
-				pFormat = PixelFormat::Format32bppRgb;
-			}
-
-			unsigned char *spriteData = GetRawSpriteData(spriteSlot);
-			/*IntPtr intPtr(spriteData);
-			Bitmap ^newBitmap = gcnew Bitmap(spriteWidth, spriteHeight, stride, pFormat, intPtr);*/
-/*			Bitmap ^newBitmap = gcnew Bitmap(spriteWidth, spriteHeight, pFormat);
-			System::Drawing::Rectangle rect(0, 0, spriteWidth, spriteHeight);
-			BitmapData ^bmpData = newBitmap->LockBits(rect, ImageLockMode::WriteOnly, pFormat);
-			memcpy(bmpData->Scan0.ToPointer(), spriteData, stride * spriteHeight);
-			newBitmap->UnlockBits(bmpData);
-
-			if (pFormat == PixelFormat::Format8bppIndexed)
-			{
-				for each (PaletteEntry^ palEntry in lastPaletteSet)
-				{
-					newBitmap->Palette->Entries[palEntry->Index] = palEntry->Colour;
-				}
-				newBitmap->Palette = newBitmap->Palette;
-			}* /
-			int hBmp = GetSpriteAsHBitmap(spriteSlot);
-			Bitmap^ newBitmap;
-			if (GetSpriteColorDepth(spriteSlot) == 8) 
-			{
-				int hPal = GetPaletteAsHPalette();
-				newBitmap = Bitmap::FromHbitmap((IntPtr)hBmp, (IntPtr)hPal);
-				DeleteObject((HPALETTE)hPal);
-			}
-			else
-			{
-				newBitmap = Bitmap::FromHbitmap((IntPtr)hBmp);
-			}
-			DeleteObject((HBITMAP)hBmp);
-			return newBitmap;
-*/
 			return getSpriteAsBitmap32bit(spriteSlot, width, height);
 		}
 

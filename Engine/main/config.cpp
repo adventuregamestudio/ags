@@ -373,7 +373,7 @@ void apply_config(const ConfigTree &cfg)
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
         // Various system options
-        usetup.multitasking = CfgReadInt(cfg, "misc", "multitasking", 0) != 0;
+        usetup.multitasking = CfgReadInt(cfg, "misc", "background", 0) != 0;
 
         // User's overrides and hacks
         usetup.override_multitasking = CfgReadInt(cfg, "override", "multitasking", -1);

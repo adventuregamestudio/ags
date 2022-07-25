@@ -90,7 +90,7 @@ Locations of two latter files differ between running platforms:
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
   * clear_cache_on_room_change = \[0; 1\] - whether to clear sprite cache on every room change.
   * load_latest_save = \[0; 1\] - whether to load latest save on game launch.
-  * multitasking = \[0; 1\] - whether the game should continue to run when the window does not have an input focus (does not work in exclusive fullscreen mode).
+  * background = \[0; 1\] - whether the game should continue to run in background, when the window does not have an input focus (does not work in exclusive fullscreen mode).
   * show_fps = \[0; 1\] - whether to display fps counter on screen.
 * **\[log\]** - log options, allow to setup logging to the chosen OUTPUT with given log groups and verbosity levels.
   * \[outputname\] = GROUP[:LEVEL][,GROUP[:LEVEL]][,...];
@@ -135,7 +135,8 @@ Following OPTIONS are supported when running from command line:
 
 * -? / --help - prints most useful command line arguments and quits.
 * -v / --version - prints engine version and quits.
-* --clear-cache-on-room-change - clears sprite cache on every room change
+* --background - keep game running in background (does not work in exclusive fullscreen).
+* --clear-cache-on-room-change - clears sprite cache on every room change.
 * --conf \<FILEPATH\> - specify explicit config file to read on startup.
 * --console-attach - write output to the parent process's console (Windows only).
 * --fps - display fps counter.

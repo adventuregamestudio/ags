@@ -77,18 +77,21 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
         return;
 
     // Convert PlayVideo flags to common video flags
-    /*
-    0: the video will be played at original size, with AVI audio
-    1: the video will be stretched to full screen, with appropriate
-       black borders to maintain its aspect ratio and AVI audio.
-    10: original size, with game audio continuing (AVI audio muted)
-    11: stretched to full screen, with game audio continuing (AVI audio muted)
+    /* NOTE: historically using decimal "flags"
+    default (0): the video will be played at original size,
+                 video's own audio is playing, game sounds muted;
+    1: the video will be stretched to full screen;
+    10: keep game audio only, video's own audio muted;
+    -- since 3.6.0:
+    20: play both game audio and video's own audio
     */
     int flags = kVideo_EnableVideo;
     if ((scr_flags % 10) == 1)
         flags |= kVideo_Stretch;
-    if (scr_flags < 10)
+    if ((scr_flags / 10) == 0 || (scr_flags / 10) == 2)
         flags |= kVideo_EnableAudio;
+    if ((scr_flags / 10) > 0)
+        flags |= kVideo_KeepGameAudio;
 
     // if game audio is disabled, then don't play any sound on the video either
     if (!usetup.audio_enabled)
@@ -105,10 +108,17 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
 
 void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip)
 {
+    // Save the game audio parameters, in case we stop these
     int musplaying = play.cur_music_number, i;
     int ambientWas[MAX_GAME_CHANNELS]{0};
     for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
         ambientWas[i] = ambient[i].channel;
+
+    // Optionally stop the game audio
+    if ((flags & kVideo_KeepGameAudio) == 0)
+    {
+        stop_all_sound_and_music();
+    }
 
     if ((strlen(name) > 3) && (ags_stricmp(&name[strlen(name) - 3], "ogv") == 0))
     {
@@ -120,12 +130,12 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
         return;
     }
 
-    if ((flags & kVideo_EnableAudio) != 0)
+    // Restore the game audio if we stopped them before the video playback
+    if ((flags & kVideo_KeepGameAudio) == 0)
     {
         update_music_volume();
-        // restart the music
         if (musplaying >= 0)
-            newmusic (musplaying);
+            newmusic(musplaying);
         for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++) {
             if (ambientWas[i] > 0)
                 PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);

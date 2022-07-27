@@ -99,15 +99,14 @@ void SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth
 {
 	engine->PrintDebugConsole("AGSSpriteFont: SetSpriteFont");
 	fontRenderer->SetSpriteFont(fontNum, sprite, rows, columns, charWidth, charHeight, charMin, charMax, use32bit);
-	engine->ReplaceFontRenderer(fontNum, fontRenderer);
-
+	engine->ReplaceFontRenderer2(fontNum, fontRenderer);
 }
 
 void SetVariableSpriteFont(int fontNum, int sprite)
 {
 	engine->PrintDebugConsole("AGSSpriteFont: SetVariableFont");
 	vWidthRenderer->SetSprite(fontNum, sprite);
-	engine->ReplaceFontRenderer(fontNum, vWidthRenderer);
+	engine->ReplaceFontRenderer2(fontNum, vWidthRenderer);
 }
 
 void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height)

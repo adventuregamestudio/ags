@@ -59,12 +59,26 @@ int VariableWidthSpriteFontRenderer::GetTextHeight(const char *text, int fontNum
 	return 0;
 }
 
+int VariableWidthSpriteFontRenderer::GetFontHeight(int fontNumber)
+{
+	VariableWidthFont *font = getFontFor(fontNumber);
+	if (font->characters.size() > 0)
+	{
+		return font->characters.begin()->second.Height + font->LineHeightAdjust;
+	}
+	return 0;
+}
+
+int VariableWidthSpriteFontRenderer::GetLineSpacing(int fontNumber)
+{
+	VariableWidthFont *font = getFontFor(fontNumber);
+	return font->LineSpacingOverride;
+}
+
 void VariableWidthSpriteFontRenderer::SetSpacing(int fontNum, int spacing)
 {
 	VariableWidthFont *font = getFontFor(fontNum);
 	font->Spacing = spacing;
-
-
 }
 
 void VariableWidthSpriteFontRenderer::SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride)
@@ -73,6 +87,9 @@ void VariableWidthSpriteFontRenderer::SetLineHeightAdjust(int fontNum, int lineH
 	font->LineHeightAdjust = lineHeight;
 	font->LineSpacingAdjust = spacingHeight;
 	font->LineSpacingOverride = spacingOverride;
+
+	if (_engine->version >= 26)
+		_engine->NotifyFontUpdated(fontNum);
 }
 
 void VariableWidthSpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
@@ -95,8 +112,13 @@ void VariableWidthSpriteFontRenderer::SetGlyph(int fontNum, int charNum, int x, 
 {
 	VariableWidthFont *font = getFontFor(fontNum);
 	font->SetGlyph(charNum, x, y, width, height);
-}
 
+	// Only notify engine at the first engine glyph,
+	// that should be enough for calculating font height metrics,
+	// and will reduce work load (sadly there's no Begin/EndUpdate functions).
+	if ((_engine->version >= 26) && (font->characters.size() == 1))
+		_engine->NotifyFontUpdated(fontNum);
+}
 
 void VariableWidthSpriteFontRenderer::SetSprite(int fontNum, int spriteNum)
 {

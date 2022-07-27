@@ -37,7 +37,7 @@ namespace Common
 struct Font
 {
     IAGSFontRenderer   *Renderer = nullptr;
-    IAGSFontRenderer2  *Renderer2 = nullptr;
+    IAGSFontRendererInternal *RendererInt = nullptr;
     FontInfo            Info;
     // Values received from the renderer and saved for the reference
     FontMetrics         Metrics;
@@ -141,16 +141,16 @@ IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* ren
     return nullptr;
   IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
   fonts[fontNumber].Renderer = renderer;
-  fonts[fontNumber].Renderer2 = nullptr;
+  fonts[fontNumber].RendererInt = nullptr;
   font_post_init(fontNumber);
   return oldRender;
 }
 
 bool is_bitmap_font(size_t fontNumber)
 {
-    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer2)
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].RendererInt)
         return false;
-    return fonts[fontNumber].Renderer2->IsBitmapFont();
+    return fonts[fontNumber].RendererInt->IsBitmapFont();
 }
 
 bool font_supports_extended_characters(size_t fontNumber)
@@ -162,9 +162,9 @@ bool font_supports_extended_characters(size_t fontNumber)
 
 const char *get_font_name(size_t fontNumber)
 {
-  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer2)
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].RendererInt)
     return "";
-  const char *name = fonts[fontNumber].Renderer2->GetName(fontNumber);
+  const char *name = fonts[fontNumber].RendererInt->GetName(fontNumber);
   return name ? name : "";
 }
 
@@ -475,12 +475,12 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
   if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
   {
     fonts[fontNumber].Renderer  = &ttfRenderer;
-    fonts[fontNumber].Renderer2 = &ttfRenderer;
+    fonts[fontNumber].RendererInt = &ttfRenderer;
   }
   else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
   {
     fonts[fontNumber].Renderer  = &wfnRenderer;
-    fonts[fontNumber].Renderer2 = &wfnRenderer;
+    fonts[fontNumber].RendererInt = &wfnRenderer;
   }
 
   if (!fonts[fontNumber].Renderer)
@@ -538,8 +538,8 @@ void adjust_fonts_for_render_mode(bool aa_mode)
 {
     for (size_t i = 0; i < fonts.size(); ++i)
     {
-        if (fonts[i].Renderer2 != nullptr)
-            fonts[i].Renderer2->AdjustFontForAntiAlias(i, aa_mode);
+        if (fonts[i].RendererInt)
+            fonts[i].RendererInt->AdjustFontForAntiAlias(i, aa_mode);
     }
 }
 

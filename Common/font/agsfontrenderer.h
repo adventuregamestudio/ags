@@ -51,8 +51,9 @@ struct FontMetrics
     int CompatHeight = 0; // either formal or real height, depending on compat settings
 };
 
-// NOTE: this extending interface is not yet exposed to plugins
-class IAGSFontRenderer2
+// The strictly internal font renderer interface, not to use in plugin API.
+// Contains methods necessary for built-in font renderers.
+class IAGSFontRendererInternal
 {
 public:
   // Tells if this is a bitmap font (otherwise it's a vector font)
@@ -65,8 +66,8 @@ public:
   // Perform any necessary adjustments when the AA mode is toggled
   virtual void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) = 0;
 protected:
-  IAGSFontRenderer2() = default;
-  ~IAGSFontRenderer2() = default;
+  IAGSFontRendererInternal() = default;
+  ~IAGSFontRendererInternal() = default;
 };
 
 #endif // __AC_AGSFONTRENDERER_H

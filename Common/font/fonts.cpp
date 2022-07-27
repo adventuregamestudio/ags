@@ -36,7 +36,11 @@ namespace Common
 
 struct Font
 {
+    // Classic font renderer interface
     IAGSFontRenderer   *Renderer = nullptr;
+    // Extended font renderer interface (optional)
+    IAGSFontRenderer2  *Renderer2 = nullptr;
+    // Internal interface (only for built-in renderers)
     IAGSFontRendererInternal *RendererInt = nullptr;
     FontInfo            Info;
     // Values received from the renderer and saved for the reference
@@ -104,16 +108,25 @@ bool is_font_loaded(size_t fontNumber)
 static void font_post_init(size_t fontNumber)
 {
     Font &font = fonts[fontNumber];
+    // If no font height property was provided, then try several methods,
+    // depending on which interface is available
     if (font.Metrics.Height == 0)
     {
-        // There is no explicit method for getting maximal possible height of any
-        // random font renderer at the moment; the implementations of GetTextHeight
-        // are allowed to return varied results depending on the text parameter.
-        // We use special line of text to get more or less reliable font height.
-        const char *height_test_string = "ZHwypgfjqhkilIK";
-        int height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
-        font.Metrics.Height = height;
-        font.Metrics.RealHeight = height;
+        int height = 0;
+        if (font.Renderer2)
+            height = font.Renderer2->GetFontHeight(fontNumber);
+        if (height <= 0)
+        {
+            // With the old renderer we have to rely on GetTextHeight;
+            // the implementations of GetTextHeight are allowed to return varied
+            // results depending on the text parameter.
+            // We use special line of text to get more or less reliable font height.
+            const char *height_test_string = "ZHwypgfjqhkilIK";
+            height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
+        }
+        
+        font.Metrics.Height = std::max(0, height);
+        font.Metrics.RealHeight = font.Metrics.Height;
     }
     // Use either nominal or real pixel height to define font's logical height
     // and default linespacing; logical height = nominal height is compatible with the old games
@@ -125,25 +138,59 @@ static void font_post_init(size_t fontNumber)
         font.Info.AutoOutlineThickness = 0;
     }
 
-    // If there's no explicit linespacing property set, then calculate
-    // default linespacing from the font height + outline thickness.
+    // If no linespacing property was provided, then try several methods,
+    // depending on which interface is available
     font.LineSpacingCalc = font.Info.LineSpacing;
     if (font.Info.LineSpacing == 0)
     {
-        font.Info.Flags |= FFLG_DEFLINESPACING;
-        font.LineSpacingCalc = font.Metrics.CompatHeight + 2 * font.Info.AutoOutlineThickness;
+        int linespacing = 0;
+        if (font.Renderer2)
+            linespacing = font.Renderer2->GetLineSpacing(fontNumber);
+        if (linespacing > 0)
+        {
+            font.LineSpacingCalc = linespacing;
+        }
+        else
+        {
+            // Calculate default linespacing from the font height + outline thickness.
+            font.Info.Flags |= FFLG_DEFLINESPACING;
+            font.LineSpacingCalc = font.Metrics.CompatHeight + 2 * font.Info.AutoOutlineThickness;
+        }
     }
 }
 
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer)
 {
-  if (fontNumber >= fonts.size())
-    return nullptr;
-  IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
-  fonts[fontNumber].Renderer = renderer;
-  fonts[fontNumber].RendererInt = nullptr;
-  font_post_init(fontNumber);
-  return oldRender;
+    if (fontNumber >= fonts.size())
+        return nullptr;
+    IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
+    fonts[fontNumber].Renderer = renderer;
+    fonts[fontNumber].Renderer2 = nullptr;
+    fonts[fontNumber].RendererInt = nullptr;
+    fonts[fontNumber].Metrics = FontMetrics();
+    font_post_init(fontNumber);
+    return oldRender;
+}
+
+IAGSFontRenderer2* font_replace_renderer(size_t fontNumber, IAGSFontRenderer2* renderer)
+{
+    if (fontNumber >= fonts.size())
+        return nullptr;
+    IAGSFontRenderer2* oldRender = fonts[fontNumber].Renderer2;
+    fonts[fontNumber].Renderer = renderer;
+    fonts[fontNumber].Renderer2 = renderer;
+    fonts[fontNumber].RendererInt = nullptr;
+    fonts[fontNumber].Metrics = FontMetrics();
+    font_post_init(fontNumber);
+    return oldRender;
+}
+
+void font_recalc_metrics(size_t fontNumber)
+{
+    if (fontNumber >= fonts.size())
+        return;
+    fonts[fontNumber].Metrics = FontMetrics();
+    font_post_init(fontNumber);
 }
 
 bool is_bitmap_font(size_t fontNumber)
@@ -162,9 +209,9 @@ bool font_supports_extended_characters(size_t fontNumber)
 
 const char *get_font_name(size_t fontNumber)
 {
-  if (fontNumber >= fonts.size() || !fonts[fontNumber].RendererInt)
+  if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer2)
     return "";
-  const char *name = fonts[fontNumber].RendererInt->GetName(fontNumber);
+  const char *name = fonts[fontNumber].Renderer2->GetFontName(fontNumber);
   return name ? name : "";
 }
 
@@ -474,12 +521,14 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
 
   if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
   {
-    fonts[fontNumber].Renderer  = &ttfRenderer;
+    fonts[fontNumber].Renderer    = &ttfRenderer;
+    fonts[fontNumber].Renderer2   = &ttfRenderer;
     fonts[fontNumber].RendererInt = &ttfRenderer;
   }
   else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
   {
-    fonts[fontNumber].Renderer  = &wfnRenderer;
+    fonts[fontNumber].Renderer    = &wfnRenderer;
+    fonts[fontNumber].Renderer2   = &wfnRenderer;
     fonts[fontNumber].RendererInt = &wfnRenderer;
   }
 

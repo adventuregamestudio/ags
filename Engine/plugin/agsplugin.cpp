@@ -814,6 +814,19 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
     return old_render;
 }
 
+IAGSFontRenderer2* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
+{
+    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
+    GUI::MarkForFontUpdate(fontNumber);
+    return old_render;
+}
+
+void IAGSEngine::NotifyFontUpdated(int fontNumber)
+{
+    font_recalc_metrics(fontNumber);
+    GUI::MarkForFontUpdate(fontNumber);
+}
+
 void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)
 {
     if (desc->Version >= 25)

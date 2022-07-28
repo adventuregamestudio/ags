@@ -410,6 +410,14 @@ float audio_core_slot_get_duration(int slot_handle)
     return dur;
 }
 
+int audio_core_slot_get_freq(int slot_handle)
+{
+    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
+    auto dur = g_acore.slots_[slot_handle]->GetDecoder().GetFreq();
+    g_acore.mixer_cv.notify_all();
+    return dur;
+}
+
 PlaybackState audio_core_slot_get_play_state(int slot_handle)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
@@ -418,12 +426,11 @@ PlaybackState audio_core_slot_get_play_state(int slot_handle)
     return state;
 }
 
-PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float &pos_ms)
+PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos_ms)
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     auto state = g_acore.slots_[slot_handle]->GetPlayState();
     pos_ms = g_acore.slots_[slot_handle]->GetAlSource().GetPositionMs();
-    pos = pos_ms; // TODO: separate pos definition per sound type
     g_acore.mixer_cv.notify_all();
     return state;
 }

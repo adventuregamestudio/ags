@@ -57,9 +57,10 @@ void audio_core_set_master_volume(float newvol);
 void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning);
 
 PlaybackState audio_core_slot_get_play_state(int slot_handle);
-PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos, float &pos_ms);
+PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos_ms);
 float audio_core_slot_get_pos_ms(int slot_handle);
 // Returns sound duration in milliseconds
 float audio_core_slot_get_duration(int slot_handle);
+int audio_core_slot_get_freq(int slot_handle);
 
 #endif // __AGS_EE_MEDIA__AUDIOCORE_H

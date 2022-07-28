@@ -14,10 +14,6 @@
 //
 // Sound decoder accompanied by various SDL-based sound utilities.
 //
-// TODO: support sound data streaming! research what means are available to use
-// along with SDL_Sound and Sound_Sample API;
-// maybe utilizing SDL RWops?
-//
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__SDLDECODER_H
 #define __AGS_EE_MEDIA__SDLDECODER_H

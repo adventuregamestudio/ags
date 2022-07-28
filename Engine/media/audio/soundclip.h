@@ -20,6 +20,13 @@
 // This is to ensure that the clip reference, state and properties don't change
 // in the middle of the script's command sequence.
 //
+// SOUNDCLIP features two position units for pos telling and seek:
+// one is milliseconds, and another a sound type specific position, which is:
+//  * MIDI - the beat number
+//  * MOD / XM / S3M - the pattern number
+//  * WAV / VOC - the sample number
+//  * OGG / MP3 - milliseconds
+//
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override
 // each other, and does not shape a consistent interface.
@@ -50,11 +57,7 @@ public:
     int  play();
     void pause();
     void resume();
-    // Seeks to the position, where pos units depend on the audio type:
-    // MIDI - the beat number
-    // MOD / XM / S3M - the pattern number
-    // WAV / VOC - the sample number
-    // OGG / MP3 - milliseconds
+    // Seeks to the position, where pos units depend on the audio type
     void seek(int pos);
     // Seeks to the position in milliseconds
     void seek_ms(int pos_ms);
@@ -171,8 +174,13 @@ private:
         return final_vol >= 0 ? final_vol : 0;
     }
 
+    int posms_to_pos(int pos_ms);
+    int pos_to_posms(int pos);
+
     // audio core slot handle
     const int slot_;
+    // Frequency, needed for position handling
+    int freq;
     // current playback state
     PlaybackState state;
     // last synced position

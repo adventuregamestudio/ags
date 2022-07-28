@@ -14,6 +14,12 @@
 //
 // SOUNDCLIP - an interface for an audio clip configuration and control.
 //
+// SOUNDCLIP's state and parameter updates sync with the audio core in
+// batches, only when the engine updates the game, never while the user script
+// is being executed. The sync is performed by calling update().
+// This is to ensure that the clip reference, state and properties don't change
+// in the middle of the script's command sequence.
+//
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override
 // each other, and does not shape a consistent interface.
@@ -44,7 +50,14 @@ public:
     int  play();
     void pause();
     void resume();
-    void seek(int);
+    // Seeks to the position, where pos units depend on the audio type:
+    // MIDI - the beat number
+    // MOD / XM / S3M - the pattern number
+    // WAV / VOC - the sample number
+    // OGG / MP3 - milliseconds
+    void seek(int pos);
+    // Seeks to the position in milliseconds
+    void seek_ms(int pos_ms);
     // Synchronize this SOUNDCLIP with the audio subsystem:
     // - start scheduled playback;
     // - apply all accumulated sound parameters;

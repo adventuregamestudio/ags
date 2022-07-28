@@ -67,7 +67,15 @@ void SOUNDCLIP::resume()
     state = PlaybackState::PlayStatePlaying;
 }
 
-void SOUNDCLIP::seek(int pos_ms)
+void SOUNDCLIP::seek(int pos)
+{
+    // TODO: for backward compatibility and MOD/XM music support
+    // need to reimplement seeking to a position which units
+    // are defined according to the sound type
+    seek_ms(pos);
+}
+
+void SOUNDCLIP::seek_ms(int pos_ms)
 {
     if (slot_ < 0) { return; }
     audio_core_slot_pause(slot_);

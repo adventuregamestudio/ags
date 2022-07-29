@@ -209,7 +209,7 @@ namespace AGS.Editor
                 {
                     if (state.WordBeforeLast == "enum")
                     {
-                        state.InsideEnumDefinition = new ScriptEnum(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock);
+                        state.InsideEnumDefinition = new ScriptEnum(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
                     }
                     else if (state.WordBeforeLast == "extends")
                     {
@@ -412,7 +412,7 @@ namespace AGS.Editor
                 if (!string.IsNullOrEmpty(macroName) && (Char.IsLetter(macroName[0])) &&
                     (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE)))
                 {
-                    defines.Add(new ScriptDefine(macroName, state.InsideIfDefBlock, state.InsideIfNDefBlock));
+                    defines.Add(new ScriptDefine(macroName, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex));
                 }
             }
             else if (preProcessorDirective == "undef")

@@ -1924,7 +1924,11 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
 bool OGLGraphicsDriver::SetVsync(bool enabled)
 {
-    _mode.Vsync = SDL_GL_SetSwapInterval(_mode.Vsync ? 1 : 0) == 0;
+    if (SDL_GL_SetSwapInterval(enabled) == 0)
+    {
+        _mode.Vsync = enabled;
+    }
+
     return _mode.Vsync;
 }
 

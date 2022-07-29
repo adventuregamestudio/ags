@@ -86,7 +86,6 @@ private:
     ALenum _alFormat = 0u; // matching OpenAl format
     PlaybackState _playState = PlayStateInitial;
     float _speed = 1.f; // change in playback rate
-    float _positionMs = 0.f;
     float _predictTs = 0.f; // next timestamp prediction
     unsigned _queued = 0u;
 
@@ -101,7 +100,7 @@ private:
         BufferRecord() = default;
         BufferRecord(float ts, float dur, float sp) : Timestamp(ts), Duration(dur), Speed(sp) {}
     };
-    // playback speeds related to queued buffers
+    // Playback parameters related to the queued buffers
     std::deque<BufferRecord> _bufferRecords;
 };
 

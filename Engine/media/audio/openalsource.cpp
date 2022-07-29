@@ -132,14 +132,20 @@ float OpenAlSource::GetPositionMs() const
     float al_offset = 0.f;
     alGetSourcef(_source, AL_SEC_OFFSET, &al_offset);
     dump_al_errors();
-    float off_ms = 0.f;
-    if (_bufferRecords.size() > 0)
-        off_ms = al_offset * _bufferRecords.front().Speed * 1000.f;
-    float pos_ms = _positionMs + off_ms;
+    for (const auto &r : _bufferRecords)
+    {
+        float dur = (r.Duration * 0.001f) / r.Speed;
+        if (al_offset < dur)
+        {
+            float pos_ms = r.Timestamp + (al_offset * 1000.f) * r.Speed;
 #ifdef AUDIO_CORE_DEBUG
-    Debug::Printf("proc:%f plus:%f = %f\n", _positionMs, off_ms, pos_ms);
+            Debug::Printf("OpenAlSource: pos = %f", pos_ms);
 #endif
-    return pos_ms;
+            return pos_ms;
+        }
+        al_offset -= dur;
+    }
+    return 0.f; // error?
 }
 
 size_t OpenAlSource::PutData(const SoundBuffer data)
@@ -203,7 +209,6 @@ void OpenAlSource::Unqueue()
 
         _queued--;
         assert(_bufferRecords.size() > 0);
-        _positionMs = _bufferRecords.front().Timestamp +_bufferRecords.front().Duration;
         _bufferRecords.pop_front();
 
         g_oalint.freeBuffers.push_back(buf_id);
@@ -267,7 +272,6 @@ void OpenAlSource::Stop()
         dump_al_errors();
         Unqueue();
         _playState = PlayStateStopped;
-        _positionMs = 0.f;
         _predictTs = 0.f;
         break;
     default:
@@ -299,7 +303,6 @@ void OpenAlSource::Resume()
 
 void OpenAlSource::SetPlaybackPosMs(float pos_ms)
 {
-    _positionMs = pos_ms;
     _predictTs = pos_ms;
 }
 

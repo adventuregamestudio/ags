@@ -27,6 +27,9 @@ using namespace AGS::Engine;
 // ----------------------------------------------------------------------------
 
 int sys_main_init(/*config*/) {
+    SDL_version version;
+    SDL_GetVersion(&version);
+    Debug::Printf(kDbgMsg_Info, "SDL Version: %d.%d.%d", version.major, version.minor, version.patch);
     // TODO: setup these subsystems in config rather than keep hardcoded?
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());

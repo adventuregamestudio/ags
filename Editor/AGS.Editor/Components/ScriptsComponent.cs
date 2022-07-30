@@ -308,7 +308,13 @@ namespace AGS.Editor.Components
             _lastActivated = scriptEditor;
             ContentDocument document = _editors[chosenItem];
             document.TreeNodeID = GetNodeID(chosenItem);
+            // Note: a chain of calls from AddOrShowPane() ends up calling UpdateScriptObjectWithLatestTextInWindow()
+            // which reassigns the Text property with the side-effect of setting the script as Modified = true
+            // which in turn can trigger "externally changed" notices during compilation due to resaving unmodified scripts.
+            // We'll workaround that issue by restoring the previous Modified state
+            bool wasScriptModified = chosenItem.Modified;
             _guiController.AddOrShowPane(document);
+            chosenItem.Modified = wasScriptModified; 
             if (activateEditor)
             {
             // Hideous hack -- we need to allow the current message to

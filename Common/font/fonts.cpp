@@ -110,7 +110,7 @@ static void font_post_init(size_t fontNumber)
     Font &font = fonts[fontNumber];
     // If no font height property was provided, then try several methods,
     // depending on which interface is available
-    if (font.Metrics.Height == 0)
+    if ((font.Metrics.Height == 0) && font.Renderer)
     {
         int height = 0;
         if (font.Renderer2)
@@ -159,30 +159,43 @@ static void font_post_init(size_t fontNumber)
     }
 }
 
+static void font_replace_renderer(size_t fontNumber,
+    IAGSFontRenderer* renderer, IAGSFontRenderer2* renderer2)
+{
+    fonts[fontNumber].Renderer = renderer;
+    fonts[fontNumber].Renderer2 = renderer2;
+    // If this is one of our built-in font renderers, then correctly
+    // reinitialize interfaces and font metrics
+    if ((renderer == &ttfRenderer) || (renderer == &wfnRenderer))
+    {
+        fonts[fontNumber].RendererInt = static_cast<IAGSFontRendererInternal*>(renderer);
+        fonts[fontNumber].RendererInt->GetFontMetrics(fontNumber, &fonts[fontNumber].Metrics);
+    }
+    // Otherwise, this is probably coming from plugin
+    else
+    {
+        fonts[fontNumber].RendererInt = nullptr;
+        fonts[fontNumber].Metrics = FontMetrics(); // reset to defaults
+    }
+    font_post_init(fontNumber);
+}
+
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer)
 {
     if (fontNumber >= fonts.size())
         return nullptr;
-    IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
-    fonts[fontNumber].Renderer = renderer;
-    fonts[fontNumber].Renderer2 = nullptr;
-    fonts[fontNumber].RendererInt = nullptr;
-    fonts[fontNumber].Metrics = FontMetrics();
-    font_post_init(fontNumber);
-    return oldRender;
+    IAGSFontRenderer* old_render = fonts[fontNumber].Renderer;
+    font_replace_renderer(fontNumber, renderer, nullptr);
+    return old_render;
 }
 
 IAGSFontRenderer2* font_replace_renderer(size_t fontNumber, IAGSFontRenderer2* renderer)
 {
     if (fontNumber >= fonts.size())
         return nullptr;
-    IAGSFontRenderer2* oldRender = fonts[fontNumber].Renderer2;
-    fonts[fontNumber].Renderer = renderer;
-    fonts[fontNumber].Renderer2 = renderer;
-    fonts[fontNumber].RendererInt = nullptr;
-    fonts[fontNumber].Metrics = FontMetrics();
-    font_post_init(fontNumber);
-    return oldRender;
+    IAGSFontRenderer2* old_render = fonts[fontNumber].Renderer2;
+    font_replace_renderer(fontNumber, renderer, renderer);
+    return old_render;
 }
 
 void font_recalc_metrics(size_t fontNumber)

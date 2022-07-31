@@ -196,12 +196,8 @@ public:
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }
-    bool DoesSupportVsyncToggle() override { return false; }
-    bool SetVsync(bool /*enabled*/) override
-    {
-        /* TODO: support toggling; need SDL_RenderSetVSync() from SDL 2.0.18 */
-        return _mode.Vsync;
-    }
+    bool DoesSupportVsyncToggle() override { return SDL_VERSION_ATLEAST(2, 0, 18); }
+    bool SetVsync(bool enabled) override;
     void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }
@@ -223,6 +219,7 @@ private:
     Uint16 _defaultGammaRed[256]{};
     Uint16 _defaultGammaGreen[256]{};
     Uint16 _defaultGammaBlue[256]{};
+    int _gamma = 100;
 
     SDL_RendererFlip _renderFlip = SDL_FLIP_NONE;
     SDL_Renderer *_renderer = nullptr;

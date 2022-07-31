@@ -1338,6 +1338,8 @@ bool engine_try_switch_windowed_gfxmode()
     ActiveDisplaySetting setting = graphics_mode_get_last_setting(windowed);
     DisplayMode last_opposite_mode = setting.Dm;
     FrameScaleDef frame = setting.Frame;
+
+    last_opposite_mode.Vsync = usetup.Screen.Params.VSync = old_dm.Vsync; // normalize vsync in case it has been toggled at runtime
     
     // If there are saved parameters for given mode (fullscreen/windowed)
     // then use them, if there are not, get default setup for the new mode.

@@ -836,7 +836,6 @@ int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  direct3d->AddRef();
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 

@@ -127,7 +127,8 @@ public:
         : _direct3d(direct3d)
         , _pixelFormat(d3dformat)
     {
-        _modeCount = _direct3d ? _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat) : 0;
+        _direct3d->AddRef();
+        _modeCount = _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat);
     }
 
     ~D3DGfxModeList() override
@@ -144,9 +145,9 @@ public:
     bool GetMode(int index, DisplayMode &mode) const override;
 
 private:
-    IDirect3D9 *_direct3d;
+    IDirect3D9 *_direct3d = nullptr;
     D3DFORMAT   _pixelFormat;
-    int         _modeCount;
+    int         _modeCount = 0;
 };
 
 struct CUSTOMVERTEX

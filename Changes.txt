@@ -92,6 +92,7 @@ Editor:
  - Fixed View animation preview stopping at frame 100 (if loop contains over 100 frames).
  - Fixed going to a "find all" result in dialog script did not highlight the found text,
    and sometimes did not scroll down to it.
+ - Fixed "Goto Definition" not working for Enums and Defines (macros).
  - Fixed script autocomplete sometimes was not updated right after opening a script.
  - Fixed script autocomplete for function calls was mistreating commas in strings and inline
    comments as if they were separating actual parameters.
@@ -178,6 +179,9 @@ Script API:
    such speech can be only skipped by a direct command from script.
  - Added AudioClip.PlayOnChannel().
  - Added AudioChannel.Pause() and Resume() functions, and IsPaused property.
+ - Added AudioChannel.SeekMs(), complementing PositionMs (as the Seek() function interprets
+   position differently depending on the audio format).
+ - PlayVideo() now supports an option to play both game's and video's audio track simultaneously.
  - File paths in script now support $DATA$ token, which tells to read files from the game package.
    This only works for read operations. Functions that support this token currently are:
    File.Open(), DynamicSprite.CreateFromFile(), ListBox.FillDirList().
@@ -241,8 +245,9 @@ Engine:
  - Added "cache_size" and "stream_threshold" options to config in "[sound]" category, they setup
    the rules for sound caching and choosing whether to load a clip fully into mem or stream one.
  - Added "load_latest_save" and "show_fps" options to config in "[misc]" category.
- - Added "multitasking" option to config in "[misc]" category, that defines the starting
-   multitasking mode (may later be changed by SetMultitaskingMode in script).
+ - Added "background" option to config in "[misc]" category, that defines the starting
+   run-in-background (aka multitasking) mode (may later be changed by SetMultitaskingMode()).
+   Added "--background" command line option for the same purpose.
  - Added "--sdl-log" command line option for setting up SDL2 library output verbosity. The engine
    log config now has a new "sdl" group meant for SDL2 messages.
  - Support "--user-conf-dir" command-line arg (and "user_conf_dir" config option) superceding
@@ -253,6 +258,8 @@ Engine:
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
+ - Added SpriteFont plugin to the list of builtins, for ports that use ones.
+   SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
  - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
    using "goto-dialog" (a very-very old bug).
  - Fixed potential crash on room load if the walkable area mask contained color values
@@ -272,6 +279,15 @@ Engine:
  - Fixed game fps sped up if SetGameSpeed() is called repeatedly in game script.
  - Fixed game not reacting to system close commands when stuck in script, which made it impossible
    to close the "hanging" game by usual means (other than terminating the process).
+
+Engine Plugin API:
+ - Added IAGSEngine::GetGameInfo() function which returns information about the game, such as
+   its title and GUID.
+ - Added new render callback AGSE_POSTROOMDRAW, for handling drawing inside the room above all
+   room objects.
+ - Added IAGSFontRenderer2 interface, expanding the original font renderer interface, improving
+   font plugins support.
+ - Added ReplaceFontRenderer2() and NotifyFontUpdated() functions.
 
 Compatibility:
  - Fallback to loop 0 if the speech view does not have frames in the current directional loop.

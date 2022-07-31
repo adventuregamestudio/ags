@@ -20,7 +20,7 @@
 
 class WFNFont;
 
-class WFNFontRenderer : public IAGSFontRenderer, public IAGSFontRenderer2 {
+class WFNFontRenderer : public IAGSFontRendererInternal {
 public:
   // IAGSFontRenderer implementation
   bool LoadFromDisk(int fontNumber, int fontSize) override;
@@ -33,10 +33,17 @@ public:
   void EnsureTextValidForFont(char *text, int fontNumber) override;
 
   // IAGSFontRenderer2 implementation
+  int GetVersion() override { return 26; /* first compatible engine API version */ }
+  const char *GetRendererName() override { return "WFNFontRenderer"; }
+  const char *GetFontName(int /*fontNumber*/) override { return ""; }
+  int GetFontHeight(int fontNumber) override { return 0; /* TODO? */ }
+  int GetLineSpacing(int fontNumber) override { return 0; /* no specific spacing */ }
+
+  // IAGSFontRendererInternal implementation
   bool IsBitmapFont() override;
   bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params,
       FontMetrics *metrics) override;
-  const char *GetName(int /*fontNumber*/) override { return ""; }
+  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
 
 private:

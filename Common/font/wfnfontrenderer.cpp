@@ -139,7 +139,7 @@ bool WFNFontRenderer::IsBitmapFont()
 }
 
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
-    const FontRenderParams *params, FontMetrics * /*metrics*/)
+    const FontRenderParams *params, FontMetrics *metrics)
 {
   String file_name;
   Stream *ffi = nullptr;
@@ -167,6 +167,8 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
   }
   _fontData[fontNumber].Font = font;
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();
+  if (metrics)
+    *metrics = FontMetrics();
   return true;
 }
 

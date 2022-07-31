@@ -41,6 +41,8 @@ void SpriteFontRenderer::SetSpriteFont(int fontNum, int sprite, int rows, int co
 	font->CharHeight = charHeight;
 	font->CharWidth = charWidth;
 
+	if (_engine->version >= 26)
+		_engine->NotifyFontUpdated(fontNum);
 }
 
 void SpriteFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
@@ -72,6 +74,12 @@ int SpriteFontRenderer::GetTextWidth(const char *text, int fontNumber)
 }
 
 int SpriteFontRenderer::GetTextHeight(const char *text, int fontNumber)
+{
+	SpriteFont *font = getFontFor(fontNumber);
+	return font->CharHeight;
+}
+
+int SpriteFontRenderer::GetFontHeight(int fontNumber)
 {
 	SpriteFont *font = getFontFor(fontNumber);
 	return font->CharHeight;

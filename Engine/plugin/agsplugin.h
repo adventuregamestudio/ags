@@ -299,10 +299,20 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 protected:
-  IAGSFontRenderer() {};
-  ~IAGSFontRenderer() {};
+  IAGSFontRenderer() = default;
+  ~IAGSFontRenderer() = default;
 };
 
+class IAGSFontRenderer2 : IAGSFontRenderer {
+  virtual int GetVersion() = 0;
+  virtual const char *GetRendererName() = 0;
+  virtual const char *GetFontName(int fontNumber) = 0;
+  virtual int GetFontHeight(int fontNumber) = 0;
+  virtual int GetLineSpacing(int fontNumber) = 0;
+protected:
+  IAGSFontRenderer2() = default;
+  ~IAGSFontRenderer2() = default;
+};
 
 struct AGSRenderMatrixes {
   float WorldMatrix[16];
@@ -580,6 +590,10 @@ public:
   // fills the provided AGSGameInfo struct
   // please note that plugin MUST fill the struct's Version field before passing it into the function!
   AGSIFUNC(void)  GetGameInfo(AGSGameInfo* ginfo);
+  // install a replacement renderer (extended interface) for the specified font number
+  AGSIFUNC(IAGSFontRenderer2*) ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2* newRenderer);
+  // notify the engine that certain custom font has been updated
+  AGSIFUNC(void)  NotifyFontUpdated(int fontNumber);
 };
 
 #ifdef THIS_IS_THE_PLUGIN

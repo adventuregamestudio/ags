@@ -84,14 +84,14 @@ namespace AGS.Types
             return null;
         }
 
-        public ScriptEnum FindEnumValue(string name)
+        public ScriptEnumValue FindEnumValue(string name)
         {
             foreach (ScriptEnum enm in _enums)
             {
-                foreach (string valueName in enm.EnumValues) {
-                    if(valueName == name)
+                foreach (ScriptEnumValue enumValue in enm.EnumValues) {
+                    if(enumValue.Name == name)
                     {
-                        return enm;
+                        return enumValue;
                     }
                 }
             }

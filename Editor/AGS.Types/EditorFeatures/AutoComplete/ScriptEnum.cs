@@ -11,11 +11,11 @@ namespace AGS.Types.AutoComplete
             Name = name;
             IfDefOnly = ifDefOnly;
             IfNDefOnly = ifNDefOnly;
-            EnumValues = new List<string>();
+            EnumValues = new List<ScriptEnumValue>();
             StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
         public string Name;
-        public List<string> EnumValues;
+        public List<ScriptEnumValue> EnumValues;
     }
 }

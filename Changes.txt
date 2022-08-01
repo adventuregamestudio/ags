@@ -1,5 +1,16 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 13, August 2022
+
+Engine:
+ - Fixed room object does not update its texture if it had a dynamic sprite assigned to it,
+   and that sprite was unassigned, modified or recreated with same ID, and then reassigned again, -
+   all within the same game frame.
+ - Fixed normal font renderer is not reinitialized correctly in the engine if a plugin uses
+   IAGSEngine::ReplaceFontRenderer(), passing original renderer's pointer (which it received from
+   the previous ReplaceFontRenderer call).
+
+
 VERSION 3.5.1 - Patch 12, June 2022
 
 Engine:

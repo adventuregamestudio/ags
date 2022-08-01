@@ -36,7 +36,7 @@ namespace Common
 struct Font
 {
     IAGSFontRenderer   *Renderer;
-    IAGSFontRenderer2  *Renderer2;
+    IAGSFontRendererInternal *RendererInt;
     FontInfo            Info;
 
     Font();
@@ -44,7 +44,7 @@ struct Font
 
 Font::Font()
     : Renderer(nullptr)
-    , Renderer2(nullptr)
+    , RendererInt(nullptr)
 {}
 
 } // Common
@@ -100,15 +100,23 @@ IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* ren
     return nullptr;
   IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
   fonts[fontNumber].Renderer = renderer;
-  fonts[fontNumber].Renderer2 = nullptr;
+  // If this is one of our built-in font renderers, then set internal iface
+  if ((renderer == &ttfRenderer) || (renderer == &wfnRenderer))
+  {
+      fonts[fontNumber].RendererInt = static_cast<IAGSFontRendererInternal*>(renderer);
+  }
+  else
+  {
+      fonts[fontNumber].RendererInt = nullptr;
+  }
   return oldRender;
 }
 
 bool is_bitmap_font(size_t fontNumber)
 {
-    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer2)
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].RendererInt)
         return false;
-    return fonts[fontNumber].Renderer2->IsBitmapFont();
+    return fonts[fontNumber].RendererInt->IsBitmapFont();
 }
 
 bool font_supports_extended_characters(size_t fontNumber)
@@ -339,12 +347,12 @@ bool wloadfont_size(size_t fontNumber, const FontInfo &font_info)
   if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params))
   {
     fonts[fontNumber].Renderer  = &ttfRenderer;
-    fonts[fontNumber].Renderer2 = &ttfRenderer;
+    fonts[fontNumber].RendererInt = &ttfRenderer;
   }
   else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, &params))
   {
     fonts[fontNumber].Renderer  = &wfnRenderer;
-    fonts[fontNumber].Renderer2 = &wfnRenderer;
+    fonts[fontNumber].RendererInt = &wfnRenderer;
   }
 
   if (fonts[fontNumber].Renderer)

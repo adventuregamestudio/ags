@@ -45,15 +45,15 @@ struct FontRenderParams
 };
 
 // NOTE: this extending interface is not yet exposed to plugins
-class IAGSFontRenderer2
+class IAGSFontRendererInternal : public IAGSFontRenderer
 {
 public:
   virtual bool IsBitmapFont() = 0;
   // Load font, applying extended font rendering parameters
   virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params) = 0;
 protected:
-  IAGSFontRenderer2() = default;
-  ~IAGSFontRenderer2() = default;
+  IAGSFontRendererInternal() = default;
+  ~IAGSFontRendererInternal() = default;
 };
 
 #endif // __AC_AGSFONTRENDERER_H

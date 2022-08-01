@@ -25,7 +25,6 @@ namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS;
 
 class IAGSFontRenderer;
-class IAGSFontRenderer2;
 struct FontInfo;
 struct FontRenderParams;
 

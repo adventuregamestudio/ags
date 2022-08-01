@@ -70,7 +70,6 @@ bool VideoPlayer::Open(const String &name, int flags)
     // Start the audio stream
     if ((flags & kVideo_EnableAudio) != 0)
     {
-        stop_all_sound_and_music();
         if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
         {
             _audioOut.reset(new OpenAlSource(_audioFormat, _audioChannels, _audioFreq));

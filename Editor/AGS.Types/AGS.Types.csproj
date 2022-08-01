@@ -92,6 +92,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptDefine.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptEnum.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptEnumValue.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptFunction.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptStruct.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptToken.cs" />

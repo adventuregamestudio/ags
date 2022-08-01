@@ -83,10 +83,16 @@ int SDLRendererGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_
     return 32;
 }
 
-IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int /*color_depth*/)
+IGfxModeList *SDLRendererGraphicsDriver::GetSupportedModeList(int color_depth)
 {
     std::vector<DisplayMode> modes;
-    sys_get_desktop_modes(modes);
+    sys_get_desktop_modes(modes, color_depth);
+    if ((modes.size() == 0) && color_depth == 32)
+    {
+        // Pretend that 24-bit are 32-bit
+        sys_get_desktop_modes(modes, 24);
+        for (auto &m : modes) { m.ColorDepth = 32; }
+    }
     return new SDLRendererGfxModeList(modes);
 }
 

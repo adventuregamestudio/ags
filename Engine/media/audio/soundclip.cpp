@@ -37,6 +37,8 @@ SOUNDCLIP::SOUNDCLIP(int slot)
     state = PlaybackState::PlayStateInitial;
     pos = posMs = -1;
     paramsChanged = true;
+
+    freq = audio_core_slot_get_freq(slot_);
 }
 
 SOUNDCLIP::~SOUNDCLIP()
@@ -67,15 +69,52 @@ void SOUNDCLIP::resume()
     state = PlaybackState::PlayStatePlaying;
 }
 
-void SOUNDCLIP::seek(int pos_ms)
+int SOUNDCLIP::posms_to_pos(int pos_ms)
+{
+    switch (soundType)
+    {
+    case MUS_WAVE: // Pos is in samples
+        return static_cast<int>((static_cast<int64_t>(pos_ms) * freq) / 1000);
+    case MUS_MIDI: /* TODO: reimplement */
+    case MUS_MOD:  /* TODO: reimplement */
+        return 0;  /* better say that it does not work than return wrong value */
+    default:
+        return pos_ms;
+    }
+}
+
+int SOUNDCLIP::pos_to_posms(int pos)
+{
+    switch (soundType)
+    {
+    case MUS_WAVE: // Pos is in samples
+        return static_cast<int>((static_cast<int64_t>(pos) * 1000) / freq);
+    case MUS_MIDI: /* TODO: reimplement */
+    case MUS_MOD:  /* TODO: reimplement */
+        return 0;  /* better say that it does not work than return wrong value */
+    default:
+        return pos;
+    }
+}
+
+void SOUNDCLIP::seek(int pos)
+{
+    // TODO: we probably would need a separate implementation eventually
+    seek_ms(pos_to_posms(pos));
+}
+
+void SOUNDCLIP::seek_ms(int pos_ms)
 {
     if (slot_ < 0) { return; }
     audio_core_slot_pause(slot_);
+    // TODO: for backward compatibility and MOD/XM music support
+    // need to reimplement seeking to a position which units
+    // are defined according to the sound type
     audio_core_slot_seek_ms(slot_, (float)pos_ms);
-    float pos_f, posms_f;
-    audio_core_slot_get_play_state(slot_, pos_f, posms_f);
-    pos = static_cast<int>(pos_f);
+    float posms_f;
+    audio_core_slot_get_play_state(slot_, posms_f);
     posMs = static_cast<int>(posms_f);
+    pos = posms_to_pos(posMs);
 }
 
 bool SOUNDCLIP::update()
@@ -100,10 +139,10 @@ bool SOUNDCLIP::update()
         paramsChanged = false;
     }
 
-    float pos_f, posms_f;
-    PlaybackState core_state = audio_core_slot_get_play_state(slot_, pos_f, posms_f);
-    pos = static_cast<int>(pos_f);
+    float posms_f;
+    PlaybackState core_state = audio_core_slot_get_play_state(slot_, posms_f);
     posMs = static_cast<int>(posms_f);
+    pos = posms_to_pos(posMs);
     if (state == core_state || core_state == PlayStateError || core_state == PlayStateFinished)
     {
         state = core_state;

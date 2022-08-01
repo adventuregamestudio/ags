@@ -40,7 +40,7 @@ void sys_set_background_mode(bool on);
 // Queries current desktop resolution.
 int sys_get_desktop_resolution(int &width, int &height);
 // Queries supported desktop modes.
-void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms);
+void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth = 0);
 // Sets output driver for the backend's renderer
 // TODO: consider make part of the SDLRendererGraphicsDriver later
 void sys_renderer_set_output(const String &name);

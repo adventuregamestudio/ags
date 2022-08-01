@@ -126,18 +126,20 @@ public:
 #define AGSE_TRANSITIONOUT   0x400
 // Below are interface 12 and later
 #define AGSE_FINALSCREENDRAW 0x800
-#define AGSE_TRANSLATETEXT  0x1000
+#define AGSE_TRANSLATETEXT   0x1000
 // Below are interface 13 and later
-#define AGSE_SCRIPTDEBUG    0x2000
-#define AGSE_AUDIODECODE    0x4000 // obsolete, no longer supported
+#define AGSE_SCRIPTDEBUG     0x2000
+#define AGSE_AUDIODECODE     0x4000 // obsolete, no longer supported
 // Below are interface 18 and later
-#define AGSE_SPRITELOAD     0x8000
+#define AGSE_SPRITELOAD      0x8000
 // Below are interface 21 and later
-#define AGSE_PRERENDER     0x10000
+#define AGSE_PRERENDER       0x10000
 // Below are interface 24 and later
 #define AGSE_PRESAVEGAME     0x20000
 #define AGSE_POSTRESTOREGAME 0x40000
-#define AGSE_TOOHIGH         0x80000
+// Below are interface 26 and later
+#define AGSE_POSTROOMDRAW    0x80000
+#define AGSE_TOOHIGH         0x100000
 
 // GetFontType font types
 #define FNT_INVALID 0
@@ -188,10 +190,20 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 protected:
-  IAGSFontRenderer() {};
-  ~IAGSFontRenderer() {};
+  IAGSFontRenderer() = default;
+  ~IAGSFontRenderer() = default;
 };
 
+class IAGSFontRenderer2 : IAGSFontRenderer {
+  virtual int GetVersion() = 0;
+  virtual const char *GetRendererName() = 0;
+  virtual const char *GetFontName(int fontNumber) = 0;
+  virtual int GetFontHeight(int fontNumber) = 0;
+  virtual int GetLineSpacing(int fontNumber) = 0;
+protected:
+  IAGSFontRenderer2() = default;
+  ~IAGSFontRenderer2() = default;
+};
 
 struct AGSRenderMatrixes {
   float WorldMatrix[16];
@@ -208,6 +220,18 @@ struct AGSRenderStageDesc {
   AGSRenderMatrixes Matrixes;
 };
 
+// Game info
+struct AGSGameInfo {
+  // Which version of the plugin interface the struct corresponds to;
+  // this field must be filled by a plugin before passing the struct into the engine!
+  int Version;
+  // Game name
+  char GameName[50];
+  // guid
+  char guid[40];
+  // Random key identifying the game
+  int uniqueid;
+};
 
 // The plugin-to-engine interface
 class IAGSEngine {
@@ -452,6 +476,15 @@ public:
   // fills the provided AGSRenderStageDesc struct with current render stage description;
   // please note that plugin MUST fill the struct's Version field before passing it into the function!
   AGSIFUNC(void)  GetRenderStageDesc(AGSRenderStageDesc* desc);
+
+  // *** BELOW ARE INTERFACE VERSION 26 AND ABOVE ONLY
+  // fills the provided AGSGameInfo struct
+  // please note that plugin MUST fill the struct's Version field before passing it into the function!
+  AGSIFUNC(void)  GetGameInfo(AGSGameInfo* ginfo);
+  // install a replacement renderer (extended interface) for the specified font number
+  AGSIFUNC(IAGSFontRenderer2*) ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2* newRenderer);
+  // notify the engine that certain custom font has been updated
+  AGSIFUNC(void)  NotifyFontUpdated(int fontNumber);
 };
 
 #ifdef THIS_IS_THE_PLUGIN

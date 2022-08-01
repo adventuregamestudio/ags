@@ -21,11 +21,14 @@
 #include <windows.h>
 #include <WinBase.h>
 #endif
+#include <string.h>
 
 #define THIS_IS_THE_PLUGIN
 #include "plugin/agsplugin.h"
 #include "SpriteFontRenderer.h"
 #include "VariableWidthSpriteFont.h"
+#include "SpriteFontRendererClifftopGames.h"
+#include "VariableWidthSpriteFontClifftopGames.h"
 
 
 #define DEFAULT_RGB_R_SHIFT_32  16
@@ -91,21 +94,19 @@ IAGSEngine *engine = nullptr;
 SpriteFontRenderer *fontRenderer = nullptr;
 VariableWidthSpriteFontRenderer *vWidthRenderer = nullptr;
 
-                
 
 void SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
 {
 	engine->PrintDebugConsole("AGSSpriteFont: SetSpriteFont");
 	fontRenderer->SetSpriteFont(fontNum, sprite, rows, columns, charWidth, charHeight, charMin, charMax, use32bit);
-	engine->ReplaceFontRenderer(fontNum, fontRenderer);
-
+	engine->ReplaceFontRenderer2(fontNum, fontRenderer);
 }
 
 void SetVariableSpriteFont(int fontNum, int sprite)
 {
 	engine->PrintDebugConsole("AGSSpriteFont: SetVariableFont");
 	vWidthRenderer->SetSprite(fontNum, sprite);
-	engine->ReplaceFontRenderer(fontNum, vWidthRenderer);
+	engine->ReplaceFontRenderer2(fontNum, vWidthRenderer);
 }
 
 void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height)
@@ -119,6 +120,13 @@ void SetSpacing(int fontNum, int spacing)
 	engine->PrintDebugConsole("AGSSpriteFont: SetSpacing");
 	vWidthRenderer->SetSpacing(fontNum, spacing);
 }
+
+void SetLineHeightAdjust(int fontNum, int lineHeight, int spacingHeight, int spacingOverride)
+{
+	engine->PrintDebugConsole("AGSSpriteFont: SetLineHeightAdjust");
+	vWidthRenderer->SetLineHeightAdjust(fontNum, lineHeight, spacingHeight, spacingOverride);
+}
+
 //==============================================================================
 
 #if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
@@ -131,6 +139,7 @@ const char *ourScriptHeader =
   "import void SetVariableSpriteFont(int fontNum, int sprite);\r\n"
   "import void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height);\r\n"
   "import void SetSpacing(int fontNum, int spacing);\r\n"
+  "import void SetLineHeightAdjust(int, int, int, int);\r\n"
   ;
 
 //------------------------------------------------------------------------------
@@ -210,25 +219,53 @@ void AGS_EditorLoadGame(char *buffer, int bufsize)            //*** optional ***
 #define STRINGIFY(s) STRINGIFY_X(s)
 #define STRINGIFY_X(s) #s
 
-
+#if defined(BUILTIN_PLUGINS)
+namespace agsspritefont {
+#endif
 
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
 	engine = lpEngine;
-	engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
-	fontRenderer = new SpriteFontRenderer(engine);
-	engine->PrintDebugConsole("AGSSpriteFont: Init vari width renderer");
-	vWidthRenderer = new VariableWidthSpriteFontRenderer(engine);
+
 	// Make sure it's got the version with the features we need
 	if (engine->version < MIN_ENGINE_VERSION)
 		engine->AbortGame("Plugin needs engine version " STRINGIFY(MIN_ENGINE_VERSION) " or newer.");
-	
+
+	// For Kathy Rain and WOAM instantiate the Clifftop Games version
+	// of the font renderer.
+	bool useClifftopGamesRenderers = false;
+	if (engine->version >= 26) {
+		AGSGameInfo gameInfo;
+		gameInfo.Version = 26;
+		lpEngine->GetGameInfo(&gameInfo);
+		// GUID:
+		// Kathy Rain: {d6795d1c-3cfe-49ec-90a1-85c313bfccaf}
+		// Whispers of a Machine: {5833654f-6f0d-40d9-99e2-65c101c8544a}
+		useClifftopGamesRenderers = strcmp("{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}", gameInfo.guid) == 0 ||
+			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.guid) == 0;
+	}
+	if (useClifftopGamesRenderers)
+	{
+		engine->PrintDebugConsole("AGSSpriteFont: Init Clifftop Games fixed width renderer");
+		fontRenderer = new SpriteFontRendererClifftopGames(engine);
+		engine->PrintDebugConsole("AGSSpriteFont: Init Clifftop Games variable width renderer");
+		vWidthRenderer = new VariableWidthSpriteFontRendererClifftopGames(engine);
+	}
+	else
+	{
+		engine->PrintDebugConsole("AGSSpriteFont: Init fixed width renderer");
+		fontRenderer = new SpriteFontRenderer(engine);
+		engine->PrintDebugConsole("AGSSpriteFont: Init variable width renderer");
+		vWidthRenderer = new VariableWidthSpriteFontRenderer(engine);
+	}
+
 	//register functions
 	engine->PrintDebugConsole("AGSSpriteFont: Register functions");
 	REGISTER(SetSpriteFont)
 	REGISTER(SetVariableSpriteFont)
 	REGISTER(SetGlyph)
 	REGISTER(SetSpacing)
+	REGISTER(SetLineHeightAdjust)
 }
 
 //------------------------------------------------------------------------------
@@ -238,6 +275,8 @@ void AGS_EngineShutdown()
 	// Called by the game engine just before it exits.
 	// This gives you a chance to free any memory and do any cleanup
 	// that you need to do before the engine shuts down.
+	delete fontRenderer;
+	delete vWidthRenderer;
 }
 
 //------------------------------------------------------------------------------
@@ -291,3 +330,7 @@ void AGS_EngineInitGfx(const char *driverID, void *data)      //*** optional ***
 }
 */
 //..............................................................................
+
+#if defined(BUILTIN_PLUGINS)
+}
+#endif

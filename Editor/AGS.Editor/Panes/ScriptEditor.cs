@@ -868,6 +868,18 @@ namespace AGS.Editor
                 {
                     found = script.AutoCompleteData.FindStruct(memberName);
                 }
+                if (found == null)
+                {
+                    found = script.AutoCompleteData.FindEnum(memberName);
+                }
+                if (found == null)
+                {
+                    found = script.AutoCompleteData.FindEnumValue(memberName);
+                }
+                if (found == null)
+                {
+                    found = script.AutoCompleteData.FindDefine(memberName);
+                }
             }
 
             return found;

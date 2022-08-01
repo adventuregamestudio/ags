@@ -2017,9 +2017,9 @@ namespace AGS.Editor
 
         private void AddEnumValuesToAutocompleteList(List<string> list, ScriptEnum se)
         {
-            foreach (string enumValue in se.EnumValues)
+            foreach (ScriptEnumValue enumValue in se.EnumValues)
             {
-                list.Add(enumValue + "?" + IMAGE_INDEX_ENUM);
+                list.Add(enumValue.Name + "?" + IMAGE_INDEX_ENUM);
             }
         }
 

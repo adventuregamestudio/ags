@@ -55,7 +55,7 @@ else
 COMMON := $(wildcard $(addsuffix /*.cpp,$(COMMON_subdirs))) $(wildcard $(addsuffix /*.c,$(COMMON_subdirs)))
 endif
 
-PLUGINS = ../Plugins/AGSflashlight/agsflashlight.cpp ../Plugins/agsblend/AGSBlend.cpp ../Plugins/ags_snowrain/ags_snowrain.cpp ../Plugins/ags_parallax/ags_parallax.cpp ../Plugins/agspalrender/ags_palrender.cpp ../Plugins/agspalrender/raycast.cpp
+PLUGINS = ../Plugins/AGSflashlight/agsflashlight.cpp ../Plugins/agsblend/AGSBlend.cpp ../Plugins/ags_snowrain/ags_snowrain.cpp ../Plugins/ags_parallax/ags_parallax.cpp ../Plugins/agspalrender/ags_palrender.cpp ../Plugins/agspalrender/raycast.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/CharacterEntry.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/color.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFont.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFontRenderer.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/SpriteFontRendererClifftopGames.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthFont.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFont.cpp ../Plugins/AGSSpriteFont/AGSSpriteFont/VariableWidthSpriteFontClifftopGames.cpp
 
 ALFONT = ../Common/libsrc/alfont-2.0.9/alfont.c
 

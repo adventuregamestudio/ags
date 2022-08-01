@@ -753,9 +753,9 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
   ReleaseDisplayMode();
 
-  if (mode.ColorDepth < 15)
+  if (mode.ColorDepth < 32)
   {
-    SDL_SetError("OpenGL driver does not support 256-color display mode");
+    SDL_SetError("OpenGL driver does not support non-32bit display mode");
     return false;
   }
 
@@ -828,10 +828,16 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
     return 32;
 }
 
-IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int /*color_depth*/)
+IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
     std::vector<DisplayMode> modes {};
-    sys_get_desktop_modes(modes);
+    sys_get_desktop_modes(modes, color_depth);
+    if ((modes.size() == 0) && color_depth == 32)
+    {
+        // Pretend that 24-bit are 32-bit
+        sys_get_desktop_modes(modes, 24);
+        for (auto &m : modes) { m.ColorDepth = 32; }
+    }
     return new OGLDisplayModeList(modes);
 }
 

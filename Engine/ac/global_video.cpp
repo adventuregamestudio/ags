@@ -46,25 +46,35 @@ void PlayFlic(int numb, int scr_flags)
         play.screen_is_faded_out = 0;
 
     // Convert PlayFlic flags to common video flags
-    /*
-    0  player can't skip animation
-    1  player can press ESC to skip animation
-    2  player can press any key or click mouse to skip animation
-    +10 (i.e.10,11,12) do not stretch to full-screen, just play at flc size
-    +100 do not clear the screen before starting playback
+    /* NOTE: historically using decimal "flags"
+    default (0): the video will be played stretched to screen;
+        player cannot skip animation; screen will be cleared
+    1: player can press ESC to skip animation
+    2: player can press any key or click mouse to skip animation
+    10: play the video at original size
+    100: do not clear the screen before starting playback
     */
     int flags = kVideo_EnableVideo;
     VideoSkipType skip = VideoSkipNone;
+    // skip type
     switch (scr_flags % 10)
     {
     case 1: skip = VideoSkipEscape; break;
     case 2: skip = VideoSkipKeyOrMouse; break;
-    default: break;
+    default: skip = VideoSkipNone; break;
     }
-    if ((scr_flags % 100) < 10)
-        flags |= kVideo_Stretch;
-    if (scr_flags < 100)
-        flags |= kVideo_ClearScreen;
+    // video size
+    switch ((scr_flags % 100) / 10)
+    {
+    case 1: /* play original size, no flag */ break;
+    default: flags |= kVideo_Stretch;
+    }
+    // clear screen
+    switch ((scr_flags % 1000) / 100)
+    {
+    case 1: /* don't clear screen, no flag */ break;
+    default: flags |= kVideo_ClearScreen;
+    }
 
     play_flc_video(numb, flags, skip);
 }
@@ -77,18 +87,28 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
         return;
 
     // Convert PlayVideo flags to common video flags
-    /*
-    0: the video will be played at original size, with AVI audio
-    1: the video will be stretched to full screen, with appropriate
-       black borders to maintain its aspect ratio and AVI audio.
-    10: original size, with game audio continuing (AVI audio muted)
-    11: stretched to full screen, with game audio continuing (AVI audio muted)
+    /* NOTE: historically using decimal "flags"
+    default (0): the video will be played at original size,
+        video's own audio is playing, game sounds muted;
+    1: the video will be stretched to full screen;
+    10: keep game audio only, video's own audio muted;
+    -- since 3.6.0:
+    20: play both game audio and video's own audio
     */
     int flags = kVideo_EnableVideo;
-    if ((scr_flags % 10) == 1)
-        flags |= kVideo_Stretch;
-    if (scr_flags < 10)
-        flags |= kVideo_EnableAudio;
+    // video size
+    switch (scr_flags % 10)
+    {
+    case 1: flags |= kVideo_Stretch; break;
+    default: break;
+    }
+    // audio option
+    switch ((scr_flags % 100) / 10)
+    {
+    case 1: flags |= kVideo_KeepGameAudio; break;
+    case 2: flags |= kVideo_EnableAudio | kVideo_KeepGameAudio; break;
+    default: flags |= kVideo_EnableAudio; break;
+    }
 
     // if game audio is disabled, then don't play any sound on the video either
     if (!usetup.audio_enabled)
@@ -105,10 +125,17 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
 
 void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip)
 {
+    // Save the game audio parameters, in case we stop these
     int musplaying = play.cur_music_number, i;
     int ambientWas[MAX_GAME_CHANNELS]{0};
     for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
         ambientWas[i] = ambient[i].channel;
+
+    // Optionally stop the game audio
+    if ((flags & kVideo_KeepGameAudio) == 0)
+    {
+        stop_all_sound_and_music();
+    }
 
     if ((strlen(name) > 3) && (ags_stricmp(&name[strlen(name) - 3], "ogv") == 0))
     {
@@ -120,12 +147,12 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
         return;
     }
 
-    if ((flags & kVideo_EnableAudio) != 0)
+    // Restore the game audio if we stopped them before the video playback
+    if ((flags & kVideo_KeepGameAudio) == 0)
     {
         update_music_volume();
-        // restart the music
         if (musplaying >= 0)
-            newmusic (musplaying);
+            newmusic(musplaying);
         for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++) {
             if (ambientWas[i] > 0)
                 PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);

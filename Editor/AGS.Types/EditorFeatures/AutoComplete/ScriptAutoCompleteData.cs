@@ -60,6 +60,44 @@ namespace AGS.Types
 			return null;
 		}
 
+        public ScriptDefine FindDefine(string name)
+        {
+            foreach (ScriptDefine define in _defines)
+            {
+                if (define.Name == name)
+                {
+                    return define;
+                }
+            }
+            return null;
+        }
+
+        public ScriptEnum FindEnum(string name)
+        {
+            foreach (ScriptEnum enm in _enums)
+            {
+                if (enm.Name == name)
+                {
+                    return enm;
+                }
+            }
+            return null;
+        }
+
+        public ScriptEnumValue FindEnumValue(string name)
+        {
+            foreach (ScriptEnum enm in _enums)
+            {
+                foreach (ScriptEnumValue enumValue in enm.EnumValues) {
+                    if(enumValue.Name == name)
+                    {
+                        return enumValue;
+                    }
+                }
+            }
+            return null;
+        }
+
 		public List<ScriptVariable> Variables
         {
             get { return _variables; }

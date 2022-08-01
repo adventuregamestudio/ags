@@ -1677,7 +1677,7 @@ builtin managed struct DialogOptionsRenderingInfo {
 };
 
 builtin managed struct AudioChannel {
-  /// Changes playback to continue from the specified position into the sound.
+  /// Changes playback to continue from the specified position. The position units depend on the audio type.
   import void Seek(int position);
   /// Sets the audio to have its location at (x,y); it will get quieter the further away the player is.
   import void SetRoomLocation(int x, int y);
@@ -1706,6 +1706,8 @@ builtin managed struct AudioChannel {
   import void Pause();
   /// Resumes the paused playback on this channel.
   import void Resume();
+  /// Changes playback to continue from the specified position in milliseconds.
+  import void SeekMs(int position);
   /// Whether this channel is currently paused.
   readonly import attribute bool IsPaused;
 #endif

@@ -700,16 +700,19 @@ void mark_object_changed(int objid)
     objcache[objid].y = -9999;
 }
 
-void reset_objcache_for_sprite(int sprnum)
+void reset_objcache_for_sprite(int sprnum, bool deleted)
 {
-    // Check if this sprite is assigned to any game object, and update them if necessary
+    // Check if this sprite is assigned to any game object, and mark these for update;
+    // if the sprite was deleted, also dispose shared textures
     // room objects cache
     if (croom != nullptr)
     {
         for (size_t i = 0; i < (size_t)croom->numobj; ++i)
         {
-            if (objs[i].num == sprnum)
+            if (objcache[i].sppic == sprnum)
                 objcache[i].sppic = -1;
+            if (deleted && (actsps[i].SpriteID == sprnum))
+                actsps[i] = ObjTexture();
         }
     }
     // character cache
@@ -717,6 +720,8 @@ void reset_objcache_for_sprite(int sprnum)
     {
         if (charcache[i].sppic == sprnum)
             charcache[i].sppic = -1;
+        if (deleted && (actsps[ACTSP_OBJSOFF + i].SpriteID == sprnum))
+            actsps[i] = ObjTexture();
     }
 }
 
@@ -2079,6 +2084,9 @@ void prepare_room_sprites()
         add_thing_to_draw(debugRoomMaskObj.Ddb, 0, 0);
     if ((debugMoveListChar >= 0) && debugMoveListObj.Ddb)
         add_thing_to_draw(debugMoveListObj.Ddb, 0, 0);
+
+    if (pl_any_want_hook(AGSE_POSTROOMDRAW))
+        add_render_stage(AGSE_POSTROOMDRAW);
 }
 
 // Draws the black surface behind (or rather between) the room viewports

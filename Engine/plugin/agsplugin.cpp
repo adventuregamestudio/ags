@@ -81,6 +81,7 @@ using namespace AGS::Engine;
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
 #include "../Plugins/agspalrender/agspalrender.h"
+#include "../Plugins/AGSSpriteFont/AGSSpriteFont/AGSSpriteFont.h"
 #if AGS_PLATFORM_OS_IOS
 #include "../Plugins/agstouch/agstouch.h"
 #endif // AGS_PLATFORM_OS_IOS
@@ -108,7 +109,7 @@ extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 25;
+const int PLUGIN_API_VERSION = 26;
 struct EnginePlugin {
     AGS::Common::String  filename;
     AGS::Engine::Library library;
@@ -810,6 +811,19 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
     return old_render;
 }
 
+IAGSFontRenderer2* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
+{
+    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
+    GUI::MarkForFontUpdate(fontNumber);
+    return old_render;
+}
+
+void IAGSEngine::NotifyFontUpdated(int fontNumber)
+{
+    font_recalc_metrics(fontNumber);
+    GUI::MarkForFontUpdate(fontNumber);
+}
+
 void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)
 {
     if (desc->Version >= 25)
@@ -818,6 +832,15 @@ void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)
     }
 }
 
+void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
+{
+    if (ginfo->Version >= 26)
+    {
+        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename);
+        snprintf(ginfo->guid, sizeof(ginfo->guid), "%s", game.guid);
+        ginfo->uniqueid = game.uniqueid;
+    }
+}
 
 // *********** General plugin implementation **********
 
@@ -943,6 +966,15 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = agspalrender::AGS_EngineOnEvent;
         apl->debugHook = agspalrender::AGS_EngineDebugHook;
         apl->initGfxHook = agspalrender::AGS_EngineInitGfx;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
+    else if (apl->filename.CompareNoCase("agsspritefont") == 0)
+    {
+        apl->engineStartup = agsspritefont::AGS_EngineStartup;
+        apl->engineShutdown = agsspritefont::AGS_EngineShutdown;
+        apl->onEvent = agsspritefont::AGS_EngineOnEvent;
         apl->available = true;
         apl->builtin = true;
         return true;

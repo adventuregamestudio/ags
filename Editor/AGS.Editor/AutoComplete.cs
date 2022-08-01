@@ -209,7 +209,7 @@ namespace AGS.Editor
                 {
                     if (state.WordBeforeLast == "enum")
                     {
-                        state.InsideEnumDefinition = new ScriptEnum(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock);
+                        state.InsideEnumDefinition = new ScriptEnum(state.LastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex);
                     }
                     else if (state.WordBeforeLast == "extends")
                     {
@@ -285,7 +285,7 @@ namespace AGS.Editor
 				{
 					if (state.InsideEnumDefinition != null)
 					{
-						AddEnumValue(state.InsideEnumDefinition, script, state.LastWord);
+						AddEnumValue(state.InsideEnumDefinition, script, state.LastWord, state);
 
                         if (thisWord == "=")
                         {
@@ -329,7 +329,7 @@ namespace AGS.Editor
                     // add the last value (unless it's an empty enum)
                     if (state.LastWord != "{")
                     {
-                        AddEnumValue(state.InsideEnumDefinition, script, state.LastWord);
+                        AddEnumValue(state.InsideEnumDefinition, script, state.LastWord, state);
                     }
 					enums.Add(state.InsideEnumDefinition);
 					state.InsideEnumDefinition = null;
@@ -412,7 +412,7 @@ namespace AGS.Editor
                 if (!string.IsNullOrEmpty(macroName) && (Char.IsLetter(macroName[0])) &&
                     (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE)))
                 {
-                    defines.Add(new ScriptDefine(macroName, state.InsideIfDefBlock, state.InsideIfNDefBlock));
+                    defines.Add(new ScriptDefine(macroName, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex));
                 }
             }
             else if (preProcessorDirective == "undef")
@@ -455,13 +455,13 @@ namespace AGS.Editor
             state.ClearPreviousWords();
         }
 
-        private static void AddEnumValue(ScriptEnum insideEnumDefinition, FastString script, string lastWord)
+        private static void AddEnumValue(ScriptEnum insideEnumDefinition, FastString script, string lastWord, AutoCompleteParserState state)
         {
             if ((lastWord.Length > 0) && (Char.IsLetter(lastWord[0])))
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
-                    insideEnumDefinition.EnumValues.Add(lastWord);
+                    insideEnumDefinition.EnumValues.Add(new ScriptEnumValue(lastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex));
                 }
             }
         }

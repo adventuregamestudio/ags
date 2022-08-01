@@ -6,15 +6,16 @@ namespace AGS.Types.AutoComplete
 {
     public class ScriptEnum : ScriptToken
     {
-        public ScriptEnum(string name, string ifDefOnly, string ifNDefOnly)
+        public ScriptEnum(string name, string ifDefOnly, string ifNDefOnly, int scriptCharacterIndex)
         {
             Name = name;
             IfDefOnly = ifDefOnly;
             IfNDefOnly = ifNDefOnly;
-            EnumValues = new List<string>();
+            EnumValues = new List<ScriptEnumValue>();
+            StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
         public string Name;
-        public List<string> EnumValues;
+        public List<ScriptEnumValue> EnumValues;
     }
 }

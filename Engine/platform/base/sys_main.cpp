@@ -27,6 +27,9 @@ using namespace AGS::Engine;
 // ----------------------------------------------------------------------------
 
 int sys_main_init(/*config*/) {
+    SDL_version version;
+    SDL_GetVersion(&version);
+    Debug::Printf(kDbgMsg_Info, "SDL Version: %d.%d.%d", version.major, version.minor, version.patch);
     // TODO: setup these subsystems in config rather than keep hardcoded?
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
@@ -61,7 +64,7 @@ int sys_get_desktop_resolution(int &width, int &height) {
     return 0;
 }
 
-void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms) {
+void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
     SDL_DisplayMode mode;
     const int display_id = DEFAULT_DISPLAY_INDEX;
     const int count = SDL_GetNumDisplayModes(display_id);
@@ -71,10 +74,14 @@ void sys_get_desktop_modes(std::vector<AGS::Engine::DisplayMode> &dms) {
             Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayMode failed: %s", SDL_GetError());
             continue;
         }
+        const int bitsdepth = SDL_BITSPERPIXEL(mode.format);
+        if ((color_depth == 0) || (bitsdepth != color_depth)) {
+            continue;
+        }
         AGS::Engine::DisplayMode dm;
         dm.Width = mode.w;
         dm.Height = mode.h;
-        dm.ColorDepth = SDL_BITSPERPIXEL(mode.format);
+        dm.ColorDepth = bitsdepth;
         dm.RefreshRate = mode.refresh_rate;
         dms.push_back(dm);
     }

@@ -378,6 +378,8 @@
 		60BC89A8155E969700807358 /* iTunesArtwork in Resources */ = {isa = PBXBuildFile; fileRef = 60BC89A7155E969700807358 /* iTunesArtwork */; };
 		60CE9D9C155272CD00A52D5A /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 60CE9D9B155272CD00A52D5A /* libfreetype.a */; };
 		60F49A4A155131E500A07887 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60F49A49155131E500A07887 /* AudioToolbox.framework */; };
+		A3A465962866964700AE0372 /* VariableWidthSpriteFontClifftopGames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A465922866964700AE0372 /* VariableWidthSpriteFontClifftopGames.cpp */; };
+		A3A465972866964700AE0372 /* SpriteFontRendererClifftopGames.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3A465932866964700AE0372 /* SpriteFontRendererClifftopGames.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1132,6 +1134,11 @@
 		60CE9D9B155272CD00A52D5A /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = ../../nativelibs/fat/lib/libfreetype.a; sourceTree = SOURCE_ROOT; };
 		60F49A49155131E500A07887 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
+		A3A465912866964700AE0372 /* AGSSpriteFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AGSSpriteFont.h; sourceTree = "<group>"; };
+		A3A465922866964700AE0372 /* VariableWidthSpriteFontClifftopGames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VariableWidthSpriteFontClifftopGames.cpp; sourceTree = "<group>"; };
+		A3A465932866964700AE0372 /* SpriteFontRendererClifftopGames.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SpriteFontRendererClifftopGames.cpp; sourceTree = "<group>"; };
+		A3A465942866964700AE0372 /* VariableWidthSpriteFontClifftopGames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VariableWidthSpriteFontClifftopGames.h; sourceTree = "<group>"; };
+		A3A465952866964700AE0372 /* SpriteFontRendererClifftopGames.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpriteFontRendererClifftopGames.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2352,6 +2359,11 @@
 		60898CCC160779DA009E152F /* AGSSpriteFont */ = {
 			isa = PBXGroup;
 			children = (
+				A3A465912866964700AE0372 /* AGSSpriteFont.h */,
+				A3A465932866964700AE0372 /* SpriteFontRendererClifftopGames.cpp */,
+				A3A465952866964700AE0372 /* SpriteFontRendererClifftopGames.h */,
+				A3A465922866964700AE0372 /* VariableWidthSpriteFontClifftopGames.cpp */,
+				A3A465942866964700AE0372 /* VariableWidthSpriteFontClifftopGames.h */,
 				60898CCD160779DA009E152F /* AGSSpriteFont.cpp */,
 				60898CD0160779DA009E152F /* CharacterEntry.cpp */,
 				60898CD1160779DA009E152F /* CharacterEntry.h */,
@@ -2597,6 +2609,7 @@
 				526F1FC91D3B513400EF4E1F /* datetime.cpp in Sources */,
 				526F1FDF1D3B513400EF4E1F /* managedobjectpool.cpp in Sources */,
 				526F204B1D3B513400EF4E1F /* gfxdriverbase.cpp in Sources */,
+				A3A465972866964700AE0372 /* SpriteFontRendererClifftopGames.cpp in Sources */,
 				526F20051D3B513400EF4E1F /* global_record.cpp in Sources */,
 				526F206A1D3B513400EF4E1F /* common.c in Sources */,
 				526F20461D3B513400EF4E1F /* ali3dogl.cpp in Sources */,
@@ -2793,6 +2806,7 @@
 				60898D82160779DB009E152F /* SpriteFontRenderer.cpp in Sources */,
 				526F20EA1D3B513400EF4E1F /* agsplatformdriver.cpp in Sources */,
 				526F20471D3B513400EF4E1F /* ali3dsw.cpp in Sources */,
+				A3A465962866964700AE0372 /* VariableWidthSpriteFontClifftopGames.cpp in Sources */,
 				526F207B1D3B513400EF4E1F /* aaudio.c in Sources */,
 				60898D84160779DB009E152F /* VariableWidthFont.cpp in Sources */,
 				526F1FD91D3B513400EF4E1F /* cc_guiobject.cpp in Sources */,

@@ -178,12 +178,10 @@ void pre_save_sprite(Common::Bitmap *image) {
   fix_block(image);
 }
 
+// Safely gets a sprite, if the sprite does not exist then returns a placeholder (sprite 0)
 Common::Bitmap *get_sprite (int spnr) {
-  if (spnr < 0)
-    return NULL;
-  if (spriteset[spnr] == NULL) {
-    spnr = 0;
-  }
+  if ((spnr < 0) || !spriteset[spnr])
+    return spriteset[0]; // return a placeholder
   return spriteset[spnr];
 }
 
@@ -206,7 +204,7 @@ int GetSpriteAsHBitmap(int slot) {
 }
 
 bool DoesSpriteExist(int slot) {
-	return (spriteset[slot] != NULL);
+    return spriteset.DoesSpriteExist(slot);
 }
 
 int GetMaxSprites() {
@@ -214,21 +212,26 @@ int GetMaxSprites() {
 }
 
 int GetSpriteWidth(int slot) {
+    assert((slot >= 0) && ((size_t)slot < thisgame.SpriteInfos.size()));
+    if (slot < 0 || (size_t)slot >= thisgame.SpriteInfos.size())
+        return 0;
     return thisgame.SpriteInfos[slot].Width;
 }
 
 int GetSpriteHeight(int slot) {
+    assert((slot >= 0) && ((size_t)slot < thisgame.SpriteInfos.size()));
+    if (slot < 0 || (size_t)slot >= thisgame.SpriteInfos.size())
+        return 0;
     return thisgame.SpriteInfos[slot].Height;
 }
 
 void GetSpriteInfo(int slot, ::SpriteInfo &info) {
+    assert((slot >= 0) && ((size_t)slot < thisgame.SpriteInfos.size()));
+    if (slot < 0 || (size_t)slot >= thisgame.SpriteInfos.size())
+        return;
     info.Width = thisgame.SpriteInfos[slot].Width;
     info.Height = thisgame.SpriteInfos[slot].Height;
     info.Flags = thisgame.SpriteInfos[slot].Flags;
-}
-
-unsigned char* GetRawSpriteData(int spriteSlot) {
-  return &get_sprite(spriteSlot)->GetScanLineForWriting(0)[0];
 }
 
 int GetSpriteColorDepth(int slot) {
@@ -256,6 +259,10 @@ void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
 
 void change_sprite_number(int oldNumber, int newNumber) {
 
+  if (!spriteset.DoesSpriteExist(oldNumber))
+    return;
+
+  spriteset.RemoveSprite(newNumber, true);
   spriteset.SetSprite(newNumber, spriteset[oldNumber], thisgame.SpriteInfos[oldNumber].Flags);
   spriteset.RemoveSprite(oldNumber, false);
 
@@ -1667,9 +1674,7 @@ void CreateBuffer(int width, int height)
 }
 
 void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
-	Common::Bitmap *todraw = spriteset[sprNum];
-	if (todraw == NULL)
-	  todraw = spriteset[0];
+    Common::Bitmap *todraw = get_sprite(sprNum);
 
 	if (thisgame.AllowRelativeRes() && thisgame.SpriteInfos[sprNum].IsRelativeRes() &&
         !thisgame.SpriteInfos[sprNum].IsLegacyHiRes() && thisgame.IsLegacyHiRes())
@@ -1753,7 +1758,7 @@ int RemoveLeftoverSprites(SpriteFolder ^folder)
 {
     int removed = 0;
     // NOTE: we do not ever remove sprite 0, because it's used as a placeholder too
-    for (AGS::Common::sprkey_t i = 1; i < spriteset.GetSpriteSlotCount(); ++i)
+    for (AGS::Common::sprkey_t i = 1; (size_t)i < spriteset.GetSpriteSlotCount(); ++i)
     {
         if (!spriteset.DoesSpriteExist(i)) continue;
         if (folder->FindSpriteByID(i, true) == nullptr)

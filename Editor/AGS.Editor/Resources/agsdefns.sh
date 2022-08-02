@@ -1250,6 +1250,10 @@ builtin managed struct File {
   /// Gets current cursor position inside the file.
   readonly import attribute int Position;
 #endif
+#ifdef SCRIPT_API_v360
+  /// Writes a raw 32-bit int to the file.
+  import void WriteRawInt(int value);
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 

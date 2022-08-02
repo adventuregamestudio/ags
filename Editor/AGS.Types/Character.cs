@@ -94,7 +94,7 @@ namespace AGS.Types
         public int NormalView
         {
             get { return _view; }
-            set { _view = value; }
+            set { _view = Math.Max(0, value); }
         }
 
         [Description("The talking view for the character")]
@@ -103,7 +103,7 @@ namespace AGS.Types
         public int SpeechView
         {
             get { return _speechView; }
-            set { _speechView = value; }
+            set { _speechView = Math.Max(0, value); }
         }
 
         [Description("The idle view for the character")]
@@ -112,7 +112,7 @@ namespace AGS.Types
         public int IdleView
         {
             get { return _idleView; }
-            set { _idleView = value; }
+            set { _idleView = Math.Max(0, value); }
         }
 
         [Description("Delay before the idle view activates, in seconds")]
@@ -138,7 +138,7 @@ namespace AGS.Types
         public int ThinkingView
         {
             get { return _thinkingView; }
-            set { _thinkingView = value; }
+            set { _thinkingView = Math.Max(0, value); }
         }
 
         [Description("The blinking view for the character")]
@@ -147,7 +147,7 @@ namespace AGS.Types
         public int BlinkingView
         {
             get { return _blinkingView; }
-            set { _blinkingView = value; }
+            set { _blinkingView = Math.Max(0, value); }
         }
 
         [Description("Room number that the character starts in")]

@@ -129,11 +129,7 @@ namespace AGS.Types
         public int PushedImage
         {
             get { return _pushedImage; }
-            set 
-            { 
-                _pushedImage = value;
-                if (_pushedImage < 0) _pushedImage = 0;
-            }
+            set { _pushedImage = Math.Max(0, value); }
         }
 
         [Description("Image to display when the player moves their mouse over the button")]
@@ -142,11 +138,7 @@ namespace AGS.Types
         public int MouseoverImage
         {
             get { return _mouseoverImage; }
-            set 
-            { 
-                _mouseoverImage = value;
-                if (_mouseoverImage < 0) _mouseoverImage = 0;
-            }
+            set { _mouseoverImage = Math.Max(0, value); }
         }
 
         [Description("Optional image to be displayed on the button")]
@@ -155,11 +147,7 @@ namespace AGS.Types
         public int Image
         {
             get { return _image; }
-            set 
-            { 
-                _image = value;
-                if (_image < 0) _image = 0;
-            }
+            set { _image = Math.Max(0, value); }
         }
 
         public override string ControlType

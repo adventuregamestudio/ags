@@ -54,7 +54,7 @@ namespace AGS.Types
         public int HandleImage
         {
             get { return _handleImage; }
-            set { _handleImage = value; }
+            set { _handleImage = Math.Max(0, value); }
         }
 
         [Description("Pixel offset to draw the handle image at")]
@@ -71,7 +71,7 @@ namespace AGS.Types
 		public int BackgroundImage
         {
             get { return _backgroundImage; }
-            set { _backgroundImage = value; }
+            set { _backgroundImage = Math.Max(0, value); }
         }
 
         [Description("Minimum value that the slider can represent")]

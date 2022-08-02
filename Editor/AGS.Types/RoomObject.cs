@@ -58,7 +58,7 @@ namespace AGS.Types
         public int Image
         {
             get { return _image; }
-            set { _image = Math.Max(value, 0); }  // ignore negative values
+            set { _image = Math.Max(value, 0); }
         }
 
         [Description("Is the object initially visible?")]

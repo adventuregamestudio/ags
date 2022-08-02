@@ -99,22 +99,34 @@ void sys_renderer_set_output(const String &name)
 
 bool sys_audio_init(const String &driver_name)
 {
+    // IMPORTANT: we must use a combination of SDL_setenv and SDL_InitSubSystem
+    // here, and NOT use SDL_AudioInit, because SDL_AudioInit does not increment
+    // subsystem's reference count. Which in turn may cause problems down the
+    // way when initializing any additional SDL-based audio lib or plugin;
+    // at the very least - the mojoAl (OpenAL's implementation we're using).
     bool res = false;
+    // If user config contained a driver request, then apply one for a try
     if (!driver_name.IsEmpty())
+        SDL_setenv("SDL_AUDIODRIVER", driver_name.GetCStr(), 1);
+    const char *env_drv = SDL_getenv("SDL_AUDIODRIVER");
+    Debug::Printf("Requested audio driver: %s", env_drv ? env_drv : "default");
+    res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+    // If there have been an explicit request that failed, then try to force
+    // SDL to go through a list of supported drivers and see if that succeeds.
+    if (!res && env_drv)
     {
-        res = SDL_AudioInit(driver_name.GetCStr()) == 0;
-        if (!res)
-            Debug::Printf(kDbgMsg_Error, "Failed to initialize audio driver %s; error: %s",
-                driver_name.GetCStr(), SDL_GetError());
-    }
-    if (!res)
-    {
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize requested audio driver '%s'; error: %s",
+            env_drv, SDL_GetError());
+        Debug::Printf("Attempt to initialize any audio driver from the known list");
+        SDL_setenv("SDL_AUDIODRIVER", "", 1);
         res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
-        if (!res)
-            Debug::Printf(kDbgMsg_Error, "Failed to initialize audio backend: %s", SDL_GetError());
     }
+
     if (res)
         Debug::Printf(kDbgMsg_Info, "Audio driver: %s", SDL_GetCurrentAudioDriver());
+    else
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver; error: %s",
+            SDL_GetError());
     return res;
 }
 

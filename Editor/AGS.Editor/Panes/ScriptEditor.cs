@@ -175,8 +175,6 @@ namespace AGS.Editor
 
             // Scripts may miss autocomplete cache when they are first opened, so update
             UpdateAutocompleteAndControls(true);
-
-            scintilla.SetText(_script.Text);
         }
 
         public void ActivateWindow()

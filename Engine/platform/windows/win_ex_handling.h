@@ -18,7 +18,7 @@
 
 void setup_malloc_handling();
 int  initialize_engine_with_exception_handling(
-    int (initialize_engine)(const AGS::Common::ConfigTree &startup_opts),
-    const AGS::Common::ConfigTree &startup_opts);
+    int (initialize_engine)(const AGS::Engine::CmdLineOpts::EngineParsedOptions& engineOptions),
+    const AGS::Engine::CmdLineOpts::EngineParsedOptions& engineOptions);
 
 #endif // __AGS_EE_PLATFORM__WIN_EXCEPTION_HANDLING_H

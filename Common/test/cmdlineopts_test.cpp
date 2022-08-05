@@ -13,7 +13,7 @@ TEST(CmdLineOpts, ParserBasics) {
     const char * argv_a[] = {"program","-a","b"};
     int argc_a = 3;
 
-    parseResult = Parse(argc_a, argv_a, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_a, argv_a, optParamsWithValues, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),1);
@@ -26,7 +26,7 @@ TEST(CmdLineOpts, ParserBasics) {
     const char * argv_b[] = {"program","b","-a"};
     int argc_b = 3;
 
-    parseResult = Parse(argc_b, argv_b, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_b, argv_b, optParamsWithValues, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),1);
@@ -39,7 +39,7 @@ TEST(CmdLineOpts, ParserBasics) {
     const char * argv_c[] = {"program","a","-b","--long","pos","-longsingle","--long-double"};
     int argc_c = 7;
 
-    parseResult = Parse(argc_c, argv_c, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_c, argv_c, optParamsWithValues, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),4);
@@ -61,7 +61,7 @@ TEST(CmdLineOpts, ParserRaisedHelp) {
     const char * argv_a[] = {"program","-h","b"};
     int argc_a = 3;
 
-    parseResult = Parse(argc_a, argv_a, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_a, argv_a, optParamsWithValues, {}, {}, {});
 
     ASSERT_TRUE(parseResult.HelpRequested);
     ASSERT_EQ(parseResult.Opt.size(),1);
@@ -74,7 +74,7 @@ TEST(CmdLineOpts, ParserRaisedHelp) {
     const char * argv_b[] = {"program","--help","b"};
     int argc_b = 3;
 
-    parseResult = Parse(argc_b, argv_b, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_b, argv_b, optParamsWithValues, {}, {}, {});
 
     ASSERT_TRUE(parseResult.HelpRequested);
     ASSERT_EQ(parseResult.Opt.size(),1);
@@ -92,7 +92,7 @@ TEST(CmdLineOpts, ParserOptWithValues) {
     const char * argv_a[] = {"program","-a","b"};
     int argc_a = 3;
 
-    parseResult = Parse(argc_a, argv_a, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_a, argv_a, optParamsWithValues, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),0);
@@ -106,7 +106,7 @@ TEST(CmdLineOpts, ParserOptWithValues) {
     const char * argv_b[] = {"program","-ab"};
     int argc_b = 2;
 
-    parseResult = Parse(argc_b, argv_b, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_b, argv_b, optParamsWithValues, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),0);
@@ -120,7 +120,7 @@ TEST(CmdLineOpts, ParserOptWithValues) {
     const char * argv_c[] = {"program","-Db", "-Dccc", "-Dddd", "-D","eee"};
     int argc_c = 6;
 
-    parseResult = Parse(argc_c, argv_c, optParamsWithValues);
+    parseResult = CmdLineOptsParser::Parse(argc_c, argv_c, optParamsWithValues, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),0);

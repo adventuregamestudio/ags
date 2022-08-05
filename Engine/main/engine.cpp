@@ -65,6 +65,7 @@
 #include "main/game_start.h"
 #include "main/engine.h"
 #include "main/engine_setup.h"
+#include "main/engine_cmdline.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "media/audio/audio_core.h"
@@ -77,11 +78,12 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
+using namespace AGS::Engine::CmdLineOpts;
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile bool want_exit, abort_engine;
-extern bool justRunSetup;
+//extern bool justRunSetup;
 extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
@@ -1157,7 +1159,7 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
 // TODO: this function is still a big mess, engine/system-related initialization
 // is mixed with game-related data adjustments. Divide it in parts, move game
 // data init into either InitGameState() or other game method as appropriate.
-int initialize_engine(const ConfigTree &startup_opts)
+int initialize_engine(const EngineParsedOptions &engineOptions)
 {
     if (engine_pre_init_callback) {
         engine_pre_init_callback();
@@ -1179,9 +1181,9 @@ int initialize_engine(const ConfigTree &startup_opts)
     if (!engine_init_gamedata())
         return EXIT_ERROR;
     ConfigTree cfg;
-    engine_prepare_config(cfg, startup_opts);
+    engine_prepare_config(cfg, engineOptions.cfg);
     // Test if need to run built-in setup program (where available)
-    if (!justTellInfo && justRunSetup)
+    if (!justTellInfo && engineOptions.JustRunSetup)
     {
         int res;
         if (!engine_run_setup(cfg, res))
@@ -1299,7 +1301,7 @@ int initialize_engine(const ConfigTree &startup_opts)
 
 	allegro_bitmap_test_init();
 
-    initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
+    initialize_start_and_play_game(engineOptions.OverrideStartRoom, loadSaveGameOnStartup);
 
     return EXIT_NORMAL;
 }

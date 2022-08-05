@@ -55,7 +55,7 @@ extern GameSetupStruct game;
 
 int editor_debugging_enabled = 0;
 int editor_debugging_initialized = 0;
-char editor_debugger_instance_token[100];
+char editor_debugger_instance_token[100]; //TODO: make this a modern string
 IAGSEditorDebugger *editor_debugger = nullptr;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;

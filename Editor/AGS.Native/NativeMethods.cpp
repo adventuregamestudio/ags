@@ -34,7 +34,7 @@ extern void free_old_game_data();
 extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad, System::Text::Encoding ^defEncoding);
 extern void save_crm_file(Room ^roomToSave);
 extern void save_default_crm_file(Room ^roomToSave);
-extern AGSString import_sci_font(const AGSString &filename, int fslot);
+extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
@@ -296,10 +296,10 @@ namespace AGS
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
 			AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
-			AGSString errorMsg = import_sci_font(fileNameAnsi, fontSlot);
-			if (errorMsg != NULL) 
+			HAGSError err = import_sci_font(fileNameAnsi, fontSlot);
+			if (!err) 
 			{
-				throw gcnew AGSEditorException(TextHelper::ConvertUTF8(errorMsg));
+				throw gcnew AGSEditorException(TextHelper::ConvertUTF8(err->FullMessage()));
 			}
 		}
 

@@ -873,69 +873,77 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 	
 }
 
-AGSString import_sci_font(const AGSString &filename, int fslot) {
-  char wgtfontname[100];
-  sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
-  Stream*iii=AGSFile::OpenFileRead(filename);
-  if (iii==NULL) {
-    return "File not found";
-  }
-  if (iii->ReadByte()!=0x87) {
-    delete iii;
-    return "Not a valid SCI font file";
-  }
-  iii->Seek(3);
-  if (iii->ReadInt16()!=0x80) {
-    delete iii; 
-	  return "Invalid SCI font"; 
-  }
-  int lineHeight = iii->ReadInt16();
-  short theiroffs[0x80];
-  iii->ReadArrayOfInt16(theiroffs,0x80);
-  Stream*ooo=AGSFile::CreateFile(wgtfontname);
-  ooo->Write("WGT Font File  ",15);
-  ooo->WriteInt16(0);  // will be table address
-  short coffsets[0x80];
-  char buffer[1000];
-  int aa;
-  for (aa=0;aa<0x80;aa++) 
-  {
-    if (theiroffs[aa] < 100)
+HAGSError import_sci_font(const AGSString &filename, int fslot)
+{
+    // Read SCI font into memory
+    std::unique_ptr<Stream> in(AGSFile::OpenFileRead(filename));
+    if (!in)
+        return new AGSError("File not found");
+    if (in->ReadByte() != 0x87) // format check
+        return new AGSError("Not a valid SCI font file");
+    in->Seek(3);
+    size_t char_count = in->ReadInt16(); // number of characters
+    char_count = min(128, char_count);
+    in->ReadInt16(); // line height (?)
+    int16_t sci_offs[128]; // table of contents
+    in->ReadArrayOfInt16(sci_offs, char_count);
+    soff_t char_data_at = in->GetPosition();
+    std::vector<uint8_t> widths; // char widths
+    std::vector<uint8_t> heights; // char heights
+    std::vector<uint8_t> pxbuf; // pixel data (stored in one line)
+    for (size_t i = 0; i < char_count; ++i)
     {
-      delete iii;
-      delete ooo;
-      unlink(wgtfontname);
-      return "Invalid character found in file";
+        // TODO: find the SCI specs, why offsets have to be shifted by 2 bytes?
+        soff_t off = sci_offs[i] + 2;
+        if (off < char_data_at)
+            return new AGSError("Invalid character offset found in SCI file");
+        in->Seek(off, Common::kSeekBegin);
+        int w = in->ReadByte() - 1; // CHECKME: why has +1 in file?
+        int h = in->ReadByte();
+        widths.push_back(w);
+        heights.push_back(h);
+        if ((w < 1) || (h < 1))
+            continue; // character has zero size
+        size_t row_size = (w / 8) + 1;
+        size_t px_size = row_size * h;
+        pxbuf.resize(pxbuf.size() + px_size);
+        in->Read(&pxbuf[0] + (pxbuf.size() - px_size), px_size);
     }
-    iii->Seek(theiroffs[aa]+2, Common::kSeekBegin);
-    int wwi=iii->ReadByte()-1;
-    int hhi=iii->ReadByte();
-    coffsets[aa]=ooo->GetPosition();
-    ooo->WriteInt16(wwi+1);
-    ooo->WriteInt16(hhi);
-    if ((wwi<1) | (hhi<1)) continue;
-    memset(buffer,0,1000);
-    int bytesPerRow = (wwi/8)+1;
-    iii->ReadArray(buffer, bytesPerRow, hhi);
-    for (int bb=0;bb<hhi;bb++) { 
-      int thisoffs = bb * bytesPerRow;
-      ooo->Write(&buffer[thisoffs], bytesPerRow);
+    in.reset();
+
+    // Write as WFN format on disk
+    // TODO: merge this code with WFNFont class
+    AGSString dst_fn = AGSString::FromFormat("agsfnt%d.wfn", fslot);
+    std::unique_ptr<Stream> out(AGSFile::CreateFile(dst_fn));
+    out->Write("WGT Font File  ", 15);
+    out->WriteInt16(0);  // will be table address
+    int16_t wfn_offs[128];
+    for (size_t i = 0, buf_off = 0; i < char_count; ++i)
+    {
+        wfn_offs[i] = out->GetPosition();
+        int w = widths[i];
+        int h = heights[i];
+        out->WriteInt16(w + 1); // CHECKME: why has +1 in file?
+        out->WriteInt16(h);
+        if ((w < 1) || (h < 1))
+            continue; // character has zero size
+        size_t row_size = (w / 8) + 1;
+        size_t px_size = row_size * h;
+        out->Write(&pxbuf[0] + buf_off, px_size);
+        buf_off += px_size;
     }
-  }
-  long tableat=ooo->GetPosition();
-  ooo->WriteArrayOfInt16(&coffsets[0],0x80);
-  delete ooo;
-  ooo=AGSFile::OpenFile(wgtfontname,Common::kFile_Open,Common::kFile_ReadWrite);
-  ooo->Seek(15, Common::kSeekBegin);
-  ooo->WriteInt16(tableat); 
-  delete ooo;
-  delete iii;
-  FontInfo fi;
-  if (!load_font_size(fslot, fi))
-  {
-    return "Unable to load converted WFN file";
-  }
-  return NULL;
+    // Seek back to the header, and write table position
+    soff_t tableat = out->GetPosition();
+    out->WriteArrayOfInt16(wfn_offs, char_count);
+    out->Seek(15, Common::kSeekBegin);
+    out->WriteInt16(tableat);
+    out.reset();
+
+    // Load and register WFN font
+    FontInfo fi;
+    if (!load_font_size(fslot, fi))
+        return new AGSError("Unable to load converted WFN file");
+    return HAGSError::None();
 }
 
 

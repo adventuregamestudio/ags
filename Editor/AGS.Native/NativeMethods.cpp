@@ -49,7 +49,6 @@ extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitma
 extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
-extern unsigned char* GetRawSpriteData(int spriteSlot);
 extern int find_free_sprite_slot();
 extern int crop_sprite_edges(int numSprites, int *sprites, bool symmetric);
 extern void deleteSprite(int sprslot);

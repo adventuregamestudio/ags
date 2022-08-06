@@ -183,8 +183,11 @@ namespace AGS.Editor
 					{
                         int newWidth, newHeight;
                         Utilities.GetSizeSpriteWillBeRenderedInGame(selectedButton.Image, out newWidth, out newHeight);
-                        selectedButton.Width = newWidth;
-                        selectedButton.Height = newHeight;
+                        if (newWidth > 0 && newHeight > 0)
+                        {
+                            selectedButton.Width = newWidth;
+                            selectedButton.Height = newHeight;
+                        }
 					}
 				}
 			}

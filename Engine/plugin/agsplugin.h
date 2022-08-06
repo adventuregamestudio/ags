@@ -194,7 +194,7 @@ protected:
   ~IAGSFontRenderer() = default;
 };
 
-class IAGSFontRenderer2 : IAGSFontRenderer {
+class IAGSFontRenderer2 : public IAGSFontRenderer {
   virtual int GetVersion() = 0;
   virtual const char *GetRendererName() = 0;
   virtual const char *GetFontName(int fontNumber) = 0;

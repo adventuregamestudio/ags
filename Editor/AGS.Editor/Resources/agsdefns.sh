@@ -937,6 +937,10 @@ builtin managed struct File {
   import int Seek(int offset, FileSeek origin = eSeekCurrent);
   /// Gets current cursor position inside the file.
   readonly import attribute int Position;
+#ifdef SCRIPT_API_v360
+  /// Writes a raw 32-bit int to the file.
+  import void WriteRawInt(int value);
+#endif
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 

@@ -78,7 +78,7 @@ namespace AGS.Types
         public int BackgroundImage
         {
             get { return _bgimage; }
-            set { _bgimage = value; }
+            set { _bgimage = Math.Max(0, value); }
         }
 
         [Description("The blend mode for the GUI")]

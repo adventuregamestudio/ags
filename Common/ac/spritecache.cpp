@@ -104,6 +104,8 @@ void SpriteCache::Reset()
 
 bool SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite, int flags)
 {
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    assert(sprite);
     if (index < 0 || EnlargeTo(index) != index)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: unable to use index %d", index);
@@ -126,6 +128,7 @@ bool SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite, int flags)
 
 void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
 {
+    assert(index >= 0); // out of positive range indexes are valid to fail
     if (index < 0 || EnlargeTo(index) != index)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetEmptySprite: unable to use index %d", index);
@@ -138,6 +141,8 @@ void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
 
 void SpriteCache::SubstituteBitmap(sprkey_t index, Bitmap *sprite)
 {
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    assert(sprite);
     if (!DoesSpriteExist(index))
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SubstituteBitmap: attempt to set for non-existing sprite %d", index);
@@ -149,6 +154,10 @@ void SpriteCache::SubstituteBitmap(sprkey_t index, Bitmap *sprite)
 
 void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
 {
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    if (index < 0 || (size_t)index >= _spriteData.size())
+        return;
+
     if (freeMemory)
         delete _spriteData[index].Image;
     InitNullSpriteParams(index);
@@ -157,6 +166,7 @@ void SpriteCache::RemoveSprite(sprkey_t index, bool freeMemory)
 
 sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 {
+    assert(topmost >= 0);
     if (topmost < 0 || topmost > MAX_SPRITE_INDEX)
         return -1;
     if ((size_t)topmost < _spriteData.size())
@@ -215,6 +225,7 @@ bool SpriteCache::DoesSpriteExist(sprkey_t index) const
 Bitmap *SpriteCache::operator [] (sprkey_t index)
 {
     // invalid sprite slot
+    assert(index >= 0); // out of positive range indexes are valid to fail
     if (index < 0 || (size_t)index >= _spriteData.size())
         return nullptr;
 
@@ -294,6 +305,7 @@ void SpriteCache::DisposeAll()
 
 void SpriteCache::Precache(sprkey_t index)
 {
+    assert(index >= 0); // out of positive range indexes are valid to fail
     if (index < 0 || (size_t)index >= _spriteData.size())
         return;
     if (!_spriteData[index].IsAssetSprite())
@@ -321,6 +333,7 @@ void SpriteCache::Precache(sprkey_t index)
 
 sprkey_t SpriteCache::GetDataIndex(sprkey_t index)
 {
+    assert((index >= 0) && ((size_t)index < _spriteData.size()));
     return (_spriteData[index].Flags & SPRCACHEFLAG_REMAPPED) == 0 ? index : 0;
 }
 
@@ -372,6 +385,7 @@ size_t SpriteCache::LoadSprite(sprkey_t index)
 
 void SpriteCache::RemapSpriteToSprite0(sprkey_t index)
 {
+    assert((index >= 0) && ((size_t)index < _spriteData.size()));
     _sprInfos[index].Flags = _sprInfos[0].Flags;
     _sprInfos[index].Width = _sprInfos[0].Width;
     _sprInfos[index].Height = _sprInfos[0].Height;

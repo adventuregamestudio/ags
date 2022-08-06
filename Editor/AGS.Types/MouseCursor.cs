@@ -72,7 +72,7 @@ namespace AGS.Types
                         _hotspotX = 0;
                         _hotspotY = 0;
                     }
-                    _image = value;
+                    _image = Math.Max(0, value);
                 }
             }
         }
@@ -83,7 +83,7 @@ namespace AGS.Types
         public int View
         {
             get { return _view; }
-            set { _view = value; }
+            set { _view = Math.Max(0, value); }
         }
 
         [Description("Whether the cursor will animate using the specified view")]

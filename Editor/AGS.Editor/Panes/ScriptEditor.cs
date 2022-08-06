@@ -62,10 +62,10 @@ namespace AGS.Editor
             _fileWatcher = new FileWatcher(scriptToEdit.FileName, scriptToEdit, OnFileChangedExternally);
 
             _agsEditor = agsEditor;
-            _script = scriptToEdit;
             _showMatchingScript = showMatchingScript;
             _room = null;
             _roomNumber = 0;
+            Init(scriptToEdit);
 
             this.Load += new EventHandler(ScriptEditor_Load);
             this.Resize += new EventHandler(ScriptEditor_Resize);
@@ -89,7 +89,7 @@ namespace AGS.Editor
             scintilla.ToggleBreakpoint -= scintilla_ToggleBreakpoint;
         }
 
-        private void ScriptEditor_Load(object sender, EventArgs e)
+        private void Init(Script scriptToEdit)
         {
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
             AutoComplete.BackgroundCacheUpdateStatusChanged += _autocompleteUpdateHandler;
@@ -119,8 +119,12 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
 
+            Script = scriptToEdit;
             InitScintilla();
+        }
 
+        private void ScriptEditor_Load(object sender, EventArgs e)
+        {
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
@@ -166,8 +170,6 @@ namespace AGS.Editor
 
             // Scripts may miss autocomplete cache when they are first opened, so update
             UpdateAutocompleteAndControls(true);
-
-            scintilla.SetText(_script.Text);
         }
 
         public void ActivateWindow()

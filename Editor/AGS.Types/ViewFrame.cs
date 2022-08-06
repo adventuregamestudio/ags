@@ -39,7 +39,7 @@ namespace AGS.Types
         public int Image
         {
             get { return _image; }
-            set { _image = value; }
+            set { _image = Math.Max(0, value); }
         }
 
         [Description("Whether the sprite should be flipped left-to-right")]

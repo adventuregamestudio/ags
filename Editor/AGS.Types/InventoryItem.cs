@@ -91,7 +91,7 @@ namespace AGS.Types
                         _hotspotX = 0;
                         _hotspotY = 0;
                     }
-                    _cursorImage = value;
+                    _cursorImage = Math.Max(0, value);
                 }
             }
         }
@@ -102,7 +102,7 @@ namespace AGS.Types
         public int Image
         {
             get { return _image; }
-            set { _image = value; }
+            set { _image = Math.Max(0, value); }
         }
 
         [Description("Description of the item")]

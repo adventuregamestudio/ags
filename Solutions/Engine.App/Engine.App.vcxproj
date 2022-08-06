@@ -27,7 +27,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -39,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'" Label="Configuration">
@@ -87,6 +87,8 @@
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>acwin</TargetName>
+    <IncludePath>C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0;C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\SDL_sound\src;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\SDL2\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files %28x86%29\Windows Kits\10\Lib\10.0.19041.0\ucrt\x86;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\Xiph;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\SDL2\lib\x86;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\SDL_sound\build\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'">
     <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
@@ -181,7 +183,7 @@
     <Link>
       <AdditionalDependencies>Common.lib;SDL2.lib;SDL2main.lib;SDL_sound.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\SDL2\lib\x86;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\SDL_sound\build\Release;C:\Users\ma-beg\Documents\_PERSO\prog\AGS-modern-c++\ags-libs\Xiph;$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
@@ -410,6 +412,7 @@
     <ClCompile Include="..\..\Engine\libsrc\glad\src\glad.c" />
     <ClCompile Include="..\..\Engine\main\config.cpp" />
     <ClCompile Include="..\..\Engine\main\engine.cpp" />
+    <ClCompile Include="..\..\Engine\main\engine_cmdline.cpp" />
     <ClCompile Include="..\..\Engine\main\engine_setup.cpp" />
     <ClCompile Include="..\..\Engine\main\game_file.cpp" />
     <ClCompile Include="..\..\Engine\main\game_run.cpp" />
@@ -678,6 +681,7 @@
     <ClInclude Include="..\..\Engine\libsrc\apeg-1.2.1\mpg123.h" />
     <ClInclude Include="..\..\Engine\main\config.h" />
     <ClInclude Include="..\..\Engine\main\engine.h" />
+    <ClInclude Include="..\..\Engine\main\engine_cmdline.h" />
     <ClInclude Include="..\..\Engine\main\engine_setup.h" />
     <ClInclude Include="..\..\Engine\main\game_file.h" />
     <ClInclude Include="..\..\Engine\main\game_run.h" />

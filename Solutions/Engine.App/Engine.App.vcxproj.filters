@@ -813,6 +813,9 @@
     <ClCompile Include="..\..\Engine\util\sdl2_util.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\main\engine_cmdline.cpp">
+      <Filter>Source Files\main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1636,6 +1639,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\util\sdl2_util.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\main\engine_cmdline.h">
+      <Filter>Header Files\main</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

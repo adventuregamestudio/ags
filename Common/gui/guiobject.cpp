@@ -233,14 +233,26 @@ HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align)
 {
     switch (align)
     {
-    case kLegacyGUIAlign_Left:
-        return kHAlignLeft;
     case kLegacyGUIAlign_Right:
         return kHAlignRight;
     case kLegacyGUIAlign_Center:
         return kHAlignCenter;
+    default:
+        return kHAlignLeft;
     }
-    return kHAlignNone;
+}
+
+LegacyGUIAlignment GetLegacyGUIAlignment(HorAlignment align)
+{
+    switch (align)
+    {
+    case kHAlignRight:
+        return kLegacyGUIAlign_Right;
+    case kHAlignCenter:
+        return kLegacyGUIAlign_Center;
+    default:
+        return kLegacyGUIAlign_Left;
+    }
 }
 
 } // namespace Common

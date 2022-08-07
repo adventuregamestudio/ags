@@ -131,6 +131,7 @@ protected:
 
 // Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)
 HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align);
+LegacyGUIAlignment GetLegacyGUIAlignment(HorAlignment align);
 
 } // namespace Common
 } // namespace AGS

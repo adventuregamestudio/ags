@@ -12,12 +12,10 @@ public:
 	int SpriteNumber;
 	int FontReplaced;
 	int Spacing;
+	std::map<char, CharacterEntry> characters;
+	// Clifftop Games custom plugin support
 	int LineHeightAdjust;
 	int LineSpacingAdjust;
 	int LineSpacingOverride;
-	std::map<char, CharacterEntry> characters;
-
-private:
-	
 };
 

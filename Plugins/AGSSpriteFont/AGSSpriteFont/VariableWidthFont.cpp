@@ -28,4 +28,4 @@ void VariableWidthFont::SetLineHeightAdjust(int lineHeight, int spacingHeight, i
 	LineHeightAdjust = lineHeight;
 	LineSpacingAdjust = spacingHeight;
 	LineSpacingOverride = spacingOverride;
-  }
+}

@@ -191,7 +191,7 @@ static void restore_game_play(Stream *in, RestoredData &r_data)
 static void ReadMoveList_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < game.numcharacters + MAX_ROOM_OBJECTS + 1; ++i)
+    for (int i = 0; i < game.numcharacters + MAX_ROOM_OBJECTS_v300 + 1; ++i)
     {
         mls[i].ReadFromFile_Legacy(&align_s);
         align_s.Reset();
@@ -452,8 +452,6 @@ static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData
 
 HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
-    int vv;
-
     HSaveError err = restore_game_head_dynamic_values(in, r_data);
     if (!err)
         return err;
@@ -475,7 +473,8 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
     WordsDictionary *olddict = game.dict;
     char* mesbk[MAXGLOBALMES];
     int numchwas = game.numcharacters;
-    for (vv=0;vv<MAXGLOBALMES;vv++) mesbk[vv]=game.messages[vv];
+    for (size_t i = 0; i < MAXGLOBALMES; ++i)
+        mesbk[i] = game.messages[i];
     int numdiwas = game.numdialog;
     int numinvwas = game.numinvitems;
     int numviewswas = game.numviews;

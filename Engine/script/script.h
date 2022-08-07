@@ -11,16 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_SCRIPT__SCRIPT_H
 #define __AGS_EE_SCRIPT__SCRIPT_H
 
 #include <vector>
-
-#include "game/roomstruct.h" // MAX_ROOM_OBJECTS
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
 #include "script/nonblockingscriptfunction.h"

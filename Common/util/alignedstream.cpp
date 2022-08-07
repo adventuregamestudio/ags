@@ -13,6 +13,7 @@
 //=============================================================================
 #include "util/alignedstream.h"
 #include <algorithm>
+#include "debug/assert.h"
 
 namespace AGS
 {
@@ -224,6 +225,7 @@ size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
 bool AlignedStream::Seek(soff_t /*offset*/, StreamSeek /*origin*/)
 {
     // TODO: split out Seekable Stream interface
+    assert(!"AlignedStream::Seek not supported");
     return false;
 }
 

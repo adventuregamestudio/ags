@@ -3036,7 +3036,11 @@ builtin managed struct Viewport {
   /// Changes viewport's position on the screen
   import void SetPosition(int x, int y, int width, int height);
   /// Returns the point in room corresponding to the given screen coordinates if seen through this viewport.
-  import Point *ScreenToRoomPoint(int scrx, int scry, bool clipViewport = true);
+  import Point *ScreenToRoomPoint(int scrx, int scry
+  #ifdef SCRIPT_API_v36026
+	, bool restrictToViewport = false
+#endif
+	);
   /// Returns the point on screen corresponding to the given room coordinates if seen through this viewport.
   import Point *RoomToScreenPoint(int roomx, int roomy, bool clipViewport = true);
 };
@@ -3056,7 +3060,7 @@ builtin struct Screen {
   import static readonly attribute int ViewportCount;
 
   /// Returns the point in room which is displayed at the given screen coordinates.
-  import static Point *ScreenToRoomPoint(int sx, int sy);
+  import static Point *ScreenToRoomPoint(int sx, int sy, bool clipViewport = false);
   /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
   import static Point *RoomToScreenPoint(int rx, int ry);
 };

@@ -27,12 +27,11 @@ namespace AGS
 namespace Common
 {
 
-// Needs tuning depending on the platform.
-const auto BufferStreamSize = 8*1024;
-
 class BufferedStream : public FileStream
 {
 public:
+    // Needs tuning depending on the platform.
+    static const size_t BufferSize = 1024u * 8;
     // Represents an open _buffered_ file object
     // The constructor may raise std::runtime_error if 
     // - there is an issue opening the file (does not exist, locked, permissions, etc)

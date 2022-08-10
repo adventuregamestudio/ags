@@ -24,7 +24,7 @@ namespace Common
 {
 
 BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
-        : FileStream(file_name, open_mode, work_mode, stream_endianess), _buffer(BufferStreamSize), _bufferPosition(0), _position(0)
+        : FileStream(file_name, open_mode, work_mode, stream_endianess), _buffer(BufferSize), _bufferPosition(0), _position(0)
 {
     _end = -1;
     if (FileStream::Seek(0, kSeekEnd))
@@ -47,8 +47,10 @@ void BufferedStream::FillBufferFromPosition(soff_t position)
 {
     FileStream::Seek(position, kSeekBegin);
 
-    _buffer.resize(BufferStreamSize);
-    auto sz = FileStream::Read(_buffer.data(), BufferStreamSize);
+    // remember to restrict to the end position!
+    size_t fill_size = std::min(BufferSize, static_cast<size_t>(_end - position));
+    _buffer.resize(fill_size);
+    auto sz = FileStream::Read(_buffer.data(), fill_size);
     _buffer.resize(sz);
 
     _bufferPosition = position;

@@ -23,6 +23,8 @@ namespace AGS
 namespace Common
 {
 
+const size_t BufferedStream::BufferSize;
+
 BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
         : FileStream(file_name, open_mode, work_mode, stream_endianess), _buffer(BufferSize), _bufferPosition(0), _position(0)
 {

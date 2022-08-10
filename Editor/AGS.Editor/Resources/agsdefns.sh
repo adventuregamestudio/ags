@@ -361,7 +361,9 @@ enum eKeyCode
   eKeyF11 = 433,
   eKeyF12 = 434,
 
+#ifdef SCRIPT_API_v36026
   eKeyCodeMask = 0x0FFF
+#endif
 };
 
 #ifdef SCRIPT_API_v360
@@ -1250,7 +1252,7 @@ builtin managed struct File {
   /// Gets current cursor position inside the file.
   readonly import attribute int Position;
 #endif
-#ifdef SCRIPT_API_v360
+#ifdef SCRIPT_API_v36026
   /// Writes a raw 32-bit int to the file.
   import void WriteRawInt(int value);
 #endif
@@ -1607,7 +1609,9 @@ enum EventType {
   eEventAddInventory = 7,
   eEventLoseInventory = 8,
   eEventRestoreGame = 9,
+#ifdef SCRIPT_API_v36026
   eEventEnterRoomAfterFadein = 10
+#endif
 };
 
 #ifdef SCRIPT_API_v350
@@ -2175,10 +2179,12 @@ builtin managed struct AudioChannel {
   import void Pause();
   /// Resumes the paused playback on this channel.
   import void Resume();
-  /// Changes playback to continue from the specified position in milliseconds.
-  import void SeekMs(int position);
   /// Whether this channel is currently paused.
   readonly import attribute bool IsPaused;
+#endif
+#ifdef SCRIPT_API_v36026
+  /// Changes playback to continue from the specified position in milliseconds.
+  import void SeekMs(int position);
 #endif
 };
 
@@ -3036,11 +3042,7 @@ builtin managed struct Viewport {
   /// Changes viewport's position on the screen
   import void SetPosition(int x, int y, int width, int height);
   /// Returns the point in room corresponding to the given screen coordinates if seen through this viewport.
-  import Point *ScreenToRoomPoint(int scrx, int scry
-  #ifdef SCRIPT_API_v36026
-	, bool restrictToViewport = false
-#endif
-	);
+  import Point *ScreenToRoomPoint(int scrx, int scry, bool clipViewport = true);
   /// Returns the point on screen corresponding to the given room coordinates if seen through this viewport.
   import Point *RoomToScreenPoint(int roomx, int roomy, bool clipViewport = true);
 };
@@ -3060,7 +3062,11 @@ builtin struct Screen {
   import static readonly attribute int ViewportCount;
 
   /// Returns the point in room which is displayed at the given screen coordinates.
-  import static Point *ScreenToRoomPoint(int sx, int sy, bool clipViewport = false);
+  import static Point *ScreenToRoomPoint(int sx, int sy
+#ifdef SCRIPT_API_v36026
+	, bool restrictToViewport = false
+#endif
+  );
   /// Returns the point on screen corresponding to the given room coordinates relative to the main viewport.
   import static Point *RoomToScreenPoint(int rx, int ry);
 };

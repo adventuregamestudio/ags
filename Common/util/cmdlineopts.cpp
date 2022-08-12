@@ -34,6 +34,7 @@ ParseResult CmdLineOptsParser::Parse(
 {
     ParseResult parseResult;
 
+    //Remove the program's name from the params, keep only actual params
     std::vector<String> args(argv + 1, argv + argc);
 
     // on windows, a person may use `/?` or `-?` when trying to ask for help to a command line program
@@ -89,7 +90,7 @@ ParseResult CmdLineOptsParser::Parse(
             {
                 if (arg.StartsWith(opt_param_with_value))
                 {
-                    if (i >= args.size()) {
+                    if (i+1 >= args.size()) {
                         parseResult.IsBadlyFormed = true;
                         parseResult.BadlyFormedOption = opt_param_with_value;
                         return parseResult;
@@ -113,7 +114,7 @@ ParseResult CmdLineOptsParser::Parse(
             {
                 if (arg.StartsWith(opt_param_with_value))
                 {
-                    if (i+1 >= args.size()) {
+                    if (i+2 >= args.size()) {
                         parseResult.IsBadlyFormed = true;
                         parseResult.BadlyFormedOption = opt_param_with_value;
                         return parseResult;
@@ -138,7 +139,7 @@ ParseResult CmdLineOptsParser::Parse(
             {
                 if (arg.StartsWith(opt_param_with_value))
                 {
-                    if (i+2 >= args.size()) {
+                    if (i+3 >= args.size()) {
                         parseResult.IsBadlyFormed = true;
                         parseResult.BadlyFormedOption = opt_param_with_value;
                         return parseResult;

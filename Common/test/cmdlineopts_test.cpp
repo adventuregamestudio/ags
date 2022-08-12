@@ -86,52 +86,52 @@ TEST(CmdLineOpts, ParserRaisedHelp) {
 
 TEST(CmdLineOpts, ParserOptWithValues) {
     ParseResult parseResult = {};
-    std::set<String> optParamsWithValues;
+    std::set<String> optParamsWith1Values;
 
-    optParamsWithValues = {"-a"};
+    optParamsWith1Values = {"-a"};
     const char * argv_a[] = {"program","-a","b"};
     int argc_a = 3;
 
-    parseResult = CmdLineOptsParser::Parse(argc_a, argv_a, optParamsWithValues, {}, {}, {});
+    parseResult = CmdLineOptsParser::Parse(argc_a, argv_a, optParamsWith1Values, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),0);
-    ASSERT_EQ(parseResult.OptWithValue.size(),1);
-    ASSERT_STREQ(parseResult.OptWithValue[0].first.GetCStr(),"-a");
-    ASSERT_STREQ(parseResult.OptWithValue[0].second.GetCStr(),"b");
+    ASSERT_EQ(parseResult.OptWith1Value.size(),1);
+    ASSERT_STREQ(parseResult.OptWith1Value[0].first.GetCStr(),"-a");
+    ASSERT_STREQ(parseResult.OptWith1Value[0].second.GetCStr(),"b");
     ASSERT_EQ(parseResult.PosArgs.size(),0);
 
 
-    optParamsWithValues = {"-a"};
+    optParamsWith1Values = {"-a"};
     const char * argv_b[] = {"program","-ab"};
     int argc_b = 2;
 
-    parseResult = CmdLineOptsParser::Parse(argc_b, argv_b, optParamsWithValues, {}, {}, {});
+    parseResult = CmdLineOptsParser::Parse(argc_b, argv_b, optParamsWith1Values, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),0);
-    ASSERT_EQ(parseResult.OptWithValue.size(),1);
-    ASSERT_STREQ(parseResult.OptWithValue[0].first.GetCStr(),"-a");
-    ASSERT_STREQ(parseResult.OptWithValue[0].second.GetCStr(),"b");
+    ASSERT_EQ(parseResult.OptWith1Value.size(),1);
+    ASSERT_STREQ(parseResult.OptWith1Value[0].first.GetCStr(),"-a");
+    ASSERT_STREQ(parseResult.OptWith1Value[0].second.GetCStr(),"b");
     ASSERT_EQ(parseResult.PosArgs.size(),0);
 
 
-    optParamsWithValues = {"-D"};
+    optParamsWith1Values = {"-D"};
     const char * argv_c[] = {"program","-Db", "-Dccc", "-Dddd", "-D","eee"};
     int argc_c = 6;
 
-    parseResult = CmdLineOptsParser::Parse(argc_c, argv_c, optParamsWithValues, {}, {}, {});
+    parseResult = CmdLineOptsParser::Parse(argc_c, argv_c, optParamsWith1Values, {}, {}, {});
 
     ASSERT_EQ(parseResult.HelpRequested,false);
     ASSERT_EQ(parseResult.Opt.size(),0);
-    ASSERT_EQ(parseResult.OptWithValue.size(),4);
-    ASSERT_STREQ(parseResult.OptWithValue[0].first.GetCStr(),"-D");
-    ASSERT_STREQ(parseResult.OptWithValue[0].second.GetCStr(),"b");
-    ASSERT_STREQ(parseResult.OptWithValue[1].first.GetCStr(),"-D");
-    ASSERT_STREQ(parseResult.OptWithValue[1].second.GetCStr(),"ccc");
-    ASSERT_STREQ(parseResult.OptWithValue[2].first.GetCStr(),"-D");
-    ASSERT_STREQ(parseResult.OptWithValue[2].second.GetCStr(),"ddd");
-    ASSERT_STREQ(parseResult.OptWithValue[3].first.GetCStr(),"-D");
-    ASSERT_STREQ(parseResult.OptWithValue[3].second.GetCStr(),"eee");
+    ASSERT_EQ(parseResult.OptWith1Value.size(),4);
+    ASSERT_STREQ(parseResult.OptWith1Value[0].first.GetCStr(),"-D");
+    ASSERT_STREQ(parseResult.OptWith1Value[0].second.GetCStr(),"b");
+    ASSERT_STREQ(parseResult.OptWith1Value[1].first.GetCStr(),"-D");
+    ASSERT_STREQ(parseResult.OptWith1Value[1].second.GetCStr(),"ccc");
+    ASSERT_STREQ(parseResult.OptWith1Value[2].first.GetCStr(),"-D");
+    ASSERT_STREQ(parseResult.OptWith1Value[2].second.GetCStr(),"ddd");
+    ASSERT_STREQ(parseResult.OptWith1Value[3].first.GetCStr(),"-D");
+    ASSERT_STREQ(parseResult.OptWith1Value[3].second.GetCStr(),"eee");
     ASSERT_EQ(parseResult.PosArgs.size(),0);
 }

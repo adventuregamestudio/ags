@@ -247,8 +247,8 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 		// GUID:
 		// Kathy Rain: {d6795d1c-3cfe-49ec-90a1-85c313bfccaf}
 		// Whispers of a Machine: {5833654f-6f0d-40d9-99e2-65c101c8544a}
-		useClifftopGamesRenderers = strcmp("{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}", gameInfo.guid) == 0 ||
-			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.guid) == 0;
+		useClifftopGamesRenderers = strcmp("{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}", gameInfo.Guid) == 0 ||
+			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.Guid) == 0;
 	}
 	if (useClifftopGamesRenderers)
 	{

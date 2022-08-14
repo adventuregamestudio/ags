@@ -3490,7 +3490,11 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 		game->Characters->Add(character);
 
-		ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
+        // Custom properties are only for 2.6.0 and higher
+        if (thisgame.filever >= kGameVersion_260)
+        {
+            ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
+        }
 
 		char scriptFuncPrefix[100];
 		sprintf(scriptFuncPrefix, "character%d_", i);

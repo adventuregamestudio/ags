@@ -814,7 +814,7 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
     return old_render;
 }
 
-IAGSFontRenderer2* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
+IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
 {
     auto *old_render = font_replace_renderer(fontNumber, newRenderer);
     GUI::MarkForFontUpdate(fontNumber);
@@ -840,8 +840,8 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
     if (ginfo->Version >= 26)
     {
         snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename);
-        snprintf(ginfo->guid, sizeof(ginfo->guid), "%s", game.guid);
-        ginfo->uniqueid = game.uniqueid;
+        snprintf(ginfo->Guid, sizeof(ginfo->Guid), "%s", game.guid);
+        ginfo->UniqueId = game.uniqueid;
     }
 }
 

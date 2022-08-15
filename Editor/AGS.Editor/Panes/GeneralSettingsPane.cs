@@ -34,23 +34,6 @@ namespace AGS.Editor
             }
         }
 
-        private string GetEnumValueDescription<T>(T enumValue)
-        {
-            foreach (System.Reflection.FieldInfo fieldInfo in typeof(T).GetFields())
-            {
-                if (fieldInfo.Name == Enum.GetName(typeof(T), enumValue))
-                {
-                    object[] attributes = fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), true);
-                    if (attributes.Length > 0)
-                    {
-                        return ((DescriptionAttribute)attributes[0]).Description;
-                    }
-                }
-            }
-
-            return Enum.GetName(typeof(T), enumValue);
-        }
-
         private void HandleGameResolutionChange(Size oldResolution, Size newResolution)
         {
             if (newResolution == oldResolution)

@@ -35,6 +35,26 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Gets Description attribute of the enum value; if not available returns value name.
+        /// </summary>
+        public static string GetEnumValueDescription<T>(T enumValue)
+        {
+            foreach (System.Reflection.FieldInfo fieldInfo in typeof(T).GetFields())
+            {
+                if (fieldInfo.Name == Enum.GetName(typeof(T), enumValue))
+                {
+                    object[] attributes = fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), true);
+                    if (attributes.Length > 0)
+                    {
+                        return ((DescriptionAttribute)attributes[0]).Description;
+                    }
+                }
+            }
+
+            return Enum.GetName(typeof(T), enumValue);
+        }
+
+        /// <summary>
         /// Finds second maximal value in enumeration Type.
         /// </summary>
         public static T GetSecondMaxEnumValue<T>()

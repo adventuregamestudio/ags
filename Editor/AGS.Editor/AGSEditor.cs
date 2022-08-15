@@ -1146,12 +1146,12 @@ namespace AGS.Editor
                 errors.Add(new CompileError("The game is set to start in room " + _game.PlayerCharacter.StartingRoom + " which does not exist"));
             }
 
-            if (_game.Settings.ColorDepth == GameColorDepth.Palette)
+            if ((_game.Settings.ColorDepth == GameColorDepth.Palette) &&
+                ((_game.DefaultSetup.GraphicsDriver == GraphicsDriver.D3D9) || (_game.DefaultSetup.GraphicsDriver == GraphicsDriver.OpenGL)))
             {
-                if (_game.DefaultSetup.GraphicsDriver == GraphicsDriver.D3D9)
-                    errors.Add(new CompileError("Direct3D graphics driver does not support 256-colour games"));
-                else if (_game.DefaultSetup.GraphicsDriver == GraphicsDriver.OpenGL)
-                    errors.Add(new CompileError("OpenGL graphics driver does not support 256-colour games"));
+                errors.Add(new CompileWarning(
+                    string.Format("{0} selected as a default graphics driver may not be well suited for a 256-colour game. Consider Software driver instead.",
+                        Types.Utilities.GetEnumValueDescription(_game.DefaultSetup.GraphicsDriver))));
             }
 
 			if ((_game.Settings.ColorDepth == GameColorDepth.Palette) &&

@@ -19,6 +19,7 @@
 #include "util/compress.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
 #include "util/lzw.h"
@@ -330,8 +331,12 @@ void skip_rle_bitmap8(Stream *in)
 {
     int w = in->ReadInt16();
     int h = in->ReadInt16();
-    // Skip 8-bit pixel data + RGB palette
-    in->Seek((w * h) + (3 * 256));
+    // Unpack the pixels into temp buf
+    std::vector<uint8_t> buf;
+    buf.resize(w * h);
+    cunpackbitl(&buf[0], w * h, in);
+    // Skip RGB palette
+    in->Seek(3 * 256);
 }
 
 

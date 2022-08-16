@@ -170,6 +170,7 @@ build_macos_task:
     mkdir build_${xcode}_$BUILD_TYPE && cd build_${xcode}_$BUILD_TYPE
     /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
       -DAGS_BUILD_TOOLS=1 \
       -DAGS_TESTS=1 \
       -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"

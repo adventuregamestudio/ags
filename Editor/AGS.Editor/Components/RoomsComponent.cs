@@ -1307,7 +1307,7 @@ namespace AGS.Editor.Components
 
             if (roomNumberToEdit < 0)
             {
-                Match match = Regex.Match(fileName, @"^room(\d+)\.asc$", RegexOptions.IgnoreCase);
+                Match match = Regex.Match(fileName, @"^Rooms\\(\d+)\\room\1\.asc$", RegexOptions.IgnoreCase);
                 if ((match.Success) && (match.Groups.Count == 2))
                 {
                     roomNumberToEdit = Convert.ToInt32(match.Groups[1].Captures[0].Value);

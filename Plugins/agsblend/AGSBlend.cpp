@@ -79,7 +79,7 @@ typedef unsigned char uint8;
 
 #pragma endregion
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 

@@ -23,7 +23,9 @@
 #endif
 #include <string.h>
 
+#if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
+#endif
 #include "plugin/agsplugin.h"
 #include "SpriteFontRenderer.h"
 #include "VariableWidthSpriteFont.h"
@@ -69,7 +71,7 @@
 #pragma endregion
 
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 

@@ -60,7 +60,7 @@ namespace AGS.Types
         private RenderAtScreenResolution _renderAtScreenRes = RenderAtScreenResolution.UserDefined;
         private string _customDataDir = null;
         private int _splitResources = 0;
-        private bool _attachDataToExe = true;
+        private bool _attachDataToExe = false;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
         private bool _scaleMovementSpeedWithMaskRes = false;
@@ -465,7 +465,7 @@ namespace AGS.Types
 
         [DisplayName("Attach game data to exe (Windows only)")]
         [Description("Main game data will be attached to game exe. Otherwise it will be in a separate file called GAMENAME.ags")]
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         [Category("Compiler")]
         public bool AttachDataToExe
         {

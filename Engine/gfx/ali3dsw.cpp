@@ -556,9 +556,18 @@ void SDLRendererGraphicsDriver::BlitToTexture()
     SDL_UnlockTexture(_screenTex);
 }
 
-void SDLRendererGraphicsDriver::Present()
+void SDLRendererGraphicsDriver::Present(int xoff, int yoff, GraphicFlip flip)
 {
     if (!_renderer) { return; }
+
+    SDL_RendererFlip sdl_flip;
+    switch (flip)
+    {
+    case kFlip_Horizontal: sdl_flip = SDL_FLIP_HORIZONTAL; break;
+    case kFlip_Vertical: sdl_flip = SDL_FLIP_VERTICAL; break;
+    case kFlip_Both: sdl_flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL); break;
+    default: sdl_flip = SDL_FLIP_NONE; break;
+    }
 
     BlitToTexture();
 
@@ -566,27 +575,23 @@ void SDLRendererGraphicsDriver::Present()
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderFillRect(_renderer, nullptr);
 
+    int xoff_final = _scaling.X.ScalePt(xoff);
+    int yoff_final = _scaling.Y.ScalePt(yoff);
+
     SDL_Rect dst;
-    dst.x = _dstRect.Left;
-    dst.y = _dstRect.Top;
+    dst.x = _dstRect.Left + xoff_final;
+    dst.y = _dstRect.Top + yoff_final;
     dst.w = _dstRect.GetWidth();
     dst.h = _dstRect.GetHeight();
-    SDL_RenderCopyEx(_renderer, _screenTex, nullptr, &dst, 0.0, nullptr, _renderFlip);
+    SDL_RenderCopyEx(_renderer, _screenTex, nullptr, &dst, 0.0, nullptr, sdl_flip);
 
     SDL_RenderPresent(_renderer);
 }
 
-void SDLRendererGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip flip)
+void SDLRendererGraphicsDriver::Render(int xoff, int yoff, GraphicFlip flip)
 {
-  switch (flip) {
-    case kFlip_Both: _renderFlip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL); break;
-    case kFlip_Horizontal: _renderFlip = SDL_FLIP_HORIZONTAL; break;
-    case kFlip_Vertical: _renderFlip = SDL_FLIP_VERTICAL; break;
-    default: _renderFlip = SDL_FLIP_NONE; break;
-  }
-
-  RenderToBackBuffer();
-  Present();
+    RenderToBackBuffer();
+    Present(xoff, yoff, flip);
 }
 
 void SDLRendererGraphicsDriver::Render()
@@ -656,7 +661,7 @@ bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, b
 	Author: Matthew Leverton
 **/
 void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(),
-    int /*offx*/, int /*offy*/, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+    int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
    Bitmap *bmp_orig = vs;
    const int col_depth = bmp_orig->GetColorDepth();
@@ -692,7 +697,7 @@ void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callbac
 }
 
 void SDLRendererGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(),
-    int /*offx*/, int /*offy*/, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+    int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
     Bitmap *bmp_orig = vs;
     const int col_depth = vs->GetColorDepth();
@@ -775,7 +780,7 @@ void SDLRendererGraphicsDriver::__fade_out_range(int speed, int from, int to, in
 void SDLRendererGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
   if (_srcColorDepth > 8)
   {
-    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, 0, 0, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {
@@ -791,7 +796,7 @@ void SDLRendererGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed
   }
   if (_srcColorDepth > 8)
   {
-    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, 0, 0, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
+    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
   }
   else
   {

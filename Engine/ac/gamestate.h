@@ -298,10 +298,11 @@ struct GameState {
     Point RoomToScreen(int roomx, int roomy);
     int  RoomToScreenX(int roomx);
     int  RoomToScreenY(int roomy);
-    // Converts game screen coordinates to the room coordinates through the room viewport
-    // Try to find if there is any viewport at the given coords and result in failure if there is none.
-    VpPoint ScreenToRoom(int scrx, int scry);
-    // Check for the particular viewport only, and optonally "clip" coordinates with its bounds,
+    // Converts game screen coordinates to the room coordinates through the room viewport.
+    // Tries to find if there is any viewport at the given coords.
+    // If "clip_viewport" parameter is true, then not finding a viewport results in failure,
+    // if it is false, proceeds converting through the primary viewport.
+    VpPoint ScreenToRoom(int scrx, int scry, bool clip_viewport = true);
 
     // Makes sure primary viewport and camera are created and linked together
     void CreatePrimaryViewportAndCamera();

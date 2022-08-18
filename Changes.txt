@@ -229,6 +229,9 @@ Script API:
    also including result of the blocking speech skipping.
  - SkipSpeechStyle now supports eSkipNone mode; when used it will disable any kind of skipping,
    such speech can be only skipped by a direct command from script.
+ - Extended Screen.ScreenToRoomPoint() with an optional "restrictToViewport" argument, which
+   lets to choose whether tests over empty place result in conversion through the default
+   viewport or a null pointer.
  - Added AudioClip.PlayOnChannel().
  - Added AudioChannel.Pause() and Resume() functions, and IsPaused property.
  - Added AudioChannel.SeekMs(), complementing PositionMs (as the Seek() function interprets
@@ -351,6 +354,10 @@ Compatibility:
  - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
    unintentional effect created by the old engines.
  - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
+ - Support Label.TextAlignment with legacy alignment constants for pre-3.5.0 games made with
+   the custom engine from "Clifftop Games".
+ - Support native resolution hack for games made with "Clifftop Games" custom engine, where
+   640x400 games are run as 640x360.
 
 Android:
  - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former

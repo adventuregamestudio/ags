@@ -149,9 +149,9 @@ ScriptViewport* Screen_GetAnyViewport(int index)
     return play.GetScriptViewport(index);
 }
 
-ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry)
+ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
 {
-    VpPoint vpt = play.ScreenToRoom(scrx, scry);
+    VpPoint vpt = play.ScreenToRoom(scrx, scry, restrict);
     if (vpt.second < 0)
         return nullptr;
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
@@ -198,9 +198,16 @@ RuntimeScriptValue Sc_Screen_GetAnyViewport(const RuntimeScriptValue *params, in
     API_SCALL_OBJAUTO_PINT(ScriptViewport, Screen_GetAnyViewport);
 }
 
-RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Screen_ScreenToRoomPoint2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint);
+    ASSERT_PARAM_COUNT(FUNCTION, 2);
+    ScriptUserObject* obj = Screen_ScreenToRoomPoint(params[0].IValue, params[1].IValue, true);
+    return RuntimeScriptValue().SetDynamicObject(obj, obj);
+}
+
+RuntimeScriptValue Sc_Screen_ScreenToRoomPoint3(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3(ScriptUserObject, Screen_ScreenToRoomPoint);
 }
 
 RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
@@ -217,6 +224,7 @@ void RegisterScreenAPI()
     ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
     ccAddExternalStaticFunction("Screen::get_ViewportCount", Sc_Screen_GetViewportCount);
     ccAddExternalStaticFunction("Screen::geti_Viewports", Sc_Screen_GetAnyViewport);
-    ccAddExternalStaticFunction("Screen::ScreenToRoomPoint", Sc_Screen_ScreenToRoomPoint);
+    ccAddExternalStaticFunction("Screen::ScreenToRoomPoint^2", Sc_Screen_ScreenToRoomPoint2);
+    ccAddExternalStaticFunction("Screen::ScreenToRoomPoint^3", Sc_Screen_ScreenToRoomPoint3);
     ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
 }

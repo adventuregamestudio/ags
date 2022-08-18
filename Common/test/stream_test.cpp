@@ -514,14 +514,14 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
     out.WriteInt32(2);
     out.WriteInt32(3);
     // fill in to ensure buffered stream reach buffer size
-    out.WriteByteCount(0, BufferedStream::BufferSize);
+    out.WriteByteCount(0xFF, BufferedStream::BufferSize);
     const auto section1_start = out.GetPosition();
     out.WriteInt32(4);
     out.WriteInt32(5);
     out.WriteInt32(6);
     out.WriteInt32(7);
     const auto section1_end = out.GetPosition();
-    out.WriteByteCount(0, BufferedStream::BufferSize);
+    out.WriteByteCount(0xFF, BufferedStream::BufferSize);
     out.WriteInt32(8);
     out.WriteInt32(9);
     out.WriteInt32(10);
@@ -530,7 +530,7 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
     out.Close();
 
     //-------------------------------------------------------------------------
-    // Read data back
+    // Read data back from section 1 and test read limits
     BufferedSectionStream in(DummyFile, section1_start, section1_end, kFile_Open, kFile_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_EQ(in.GetPosition(), 0);
@@ -541,9 +541,30 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
     ASSERT_EQ(in.ReadInt32(), 7);
     ASSERT_EQ(in.GetPosition(), section1_end - section1_start);
     ASSERT_TRUE(in.EOS());
+    // reading past section end - results in no data
+    char temp[10];
+    ASSERT_EQ(in.ReadByte(), -1);
+    ASSERT_EQ(in.ReadInt32(), 0);
+    ASSERT_EQ(in.Read(temp, sizeof(temp)), 0); // read 0 bytes
+    // must still be at section end
+    ASSERT_EQ(in.GetPosition(), section1_end - section1_start);
+    ASSERT_TRUE(in.EOS());
     in.Close();
 
-    // Test seeks
+    // Test limits - reading large chunks: optimized by reading directly
+    // into the provided user's buffer, without use of internal buffer
+    BufferedSectionStream in3(DummyFile, section1_start, section1_end, kFile_Open, kFile_Read);
+    const size_t try_read = 4 * sizeof(int32_t) + BufferedStream::BufferSize;
+    const size_t must_read = 4 * sizeof(int32_t);
+    char buf[try_read];
+    // must not read past the end
+    ASSERT_EQ(in3.Read(buf, try_read), must_read);
+    // must still be at section end
+    ASSERT_EQ(in3.GetPosition(), section1_end - section1_start);
+    ASSERT_TRUE(in.EOS());
+    in3.Close();
+
+    // Test seeks limited to section 1
     BufferedSectionStream in2(DummyFile, section1_start, section2_end, kFile_Open, kFile_Read);
     ASSERT_TRUE(in2.CanRead());
     ASSERT_TRUE(in2.CanSeek());

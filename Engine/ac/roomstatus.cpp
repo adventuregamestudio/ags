@@ -81,8 +81,8 @@ void RoomStatus::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     FreeScriptData();
     FreeProperties();
 
-    obj.resize(numobj);
-    objProps.resize(numobj);
+    obj.resize(MAX_ROOM_OBJECTS_v300);
+    objProps.resize(MAX_ROOM_OBJECTS_v300);
 
     FreeScriptData();
     FreeProperties();

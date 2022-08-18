@@ -76,10 +76,12 @@ namespace AGS.Editor
         public event ActivateContextMenuHandler ActivateContextMenu;
 
         private bool _isDialogScript = false;
-        // Set keywords
+        // Keyword sets, grouped per type
         private List<string>[] _keywordSets = new List<string>[(int)WordListType.MaxCount];
         // Full keyword list, for convenient use
         private List<string> _keywords = new List<string>();
+        // Full keyword list, dialog-specific
+        private List<string> _dialogKeywords = new List<string>();
         // Autocomplete list
         private List<string> _autoCKeywords = new List<string>();
 
@@ -606,10 +608,10 @@ namespace AGS.Editor
         // We need this to comply to the IScriptEditorControl
         public void SetKeyWords(string keyWords)
         {
-            SetKeyWords(keyWords, WordListType.Keywords);
+            SetKeyWords(keyWords, WordListType.Keywords, false);
         }
 
-        public void SetKeyWords(string keyWords, WordListType type)
+        public void SetKeyWords(string keyWords, WordListType type, bool dialogKeywords = false)
         {
             scintillaControl1.SetKeywords((int)type, keyWords);
 
@@ -621,20 +623,23 @@ namespace AGS.Editor
                     _autoCKeywords.Remove(k);
                 AddAutoCompleteKeyWords(keyWords);
             }
+            // Need to remove keywords from the full list, only corresponding to the given kind and set
+            var thisKeyList = dialogKeywords ? _dialogKeywords : _keywords;
             foreach (var k in _keywordSets[(int)type])
-                _keywords.Remove(k);
+                thisKeyList.Remove(k);
             _keywordSets[(int)type].Clear();
-            SetNormalKeywords(keyWords, type);
+            SetNormalKeywords(keyWords, type, dialogKeywords);
         }
 
-        private void SetNormalKeywords(string keyWords, WordListType type)
+        private void SetNormalKeywords(string keyWords, WordListType type, bool dialogKeywords)
         {
             string[] arr = keyWords.Split(' ');
+            var thisKeyList = dialogKeywords ? _dialogKeywords : _keywords;
             foreach (string s in arr)
             {
                 s.Trim();
                 _keywordSets[(int)type].Add(s);
-                _keywords.Add(s);
+                thisKeyList.Add(s);
             }
         }
 

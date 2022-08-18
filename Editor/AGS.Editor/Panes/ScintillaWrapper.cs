@@ -2484,6 +2484,7 @@ namespace AGS.Editor
             if (start_pos > 0) stylingMode = scintillaControl1.GetStyleAt(start_pos - 1);
 
             bool onNewLine = true;
+            bool atNewWord = true;
             bool onScriptLine = false;
             int i;
             scintillaControl1.StartStyling(start_pos);
@@ -2516,6 +2517,7 @@ namespace AGS.Editor
                 if (c == '\n')
                 {
                     onNewLine = true;
+                    atNewWord = false;
                     onScriptLine = false;
                     if (stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.String)
                     {
@@ -2531,10 +2533,11 @@ namespace AGS.Editor
 
                 if (onNewLine)
                 {
-                    if (c == ' ' || c == '\t')
+                    if (Char.IsWhiteSpace(c))
                     {
                         onScriptLine = true;
                         onNewLine = false;
+                        atNewWord = true;
                         continue;
                     }
                 }
@@ -2551,15 +2554,14 @@ namespace AGS.Editor
                             laststyle = i + 1;
                         }
                     }
-
-                    else if (isNumeric(c))
+                    // Style the numbers only when the digit is the first character in a word
+                    else if (atNewWord && Char.IsDigit(c))
                     {
                         if (stylingMode != Style.Cpp.String && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
                         {
                             scintillaControl1.SetStyling(i - laststyle, stylingMode);
-                            scintillaControl1.SetStyling(1, Style.Cpp.Number);
-                            stylingMode = Style.Cpp.Default;
-                            laststyle = i + 1;
+                            stylingMode = Style.Cpp.Number;
+                            laststyle = i;
                         }
                     }
                     else if (c == '"')
@@ -2571,6 +2573,15 @@ namespace AGS.Editor
                             stylingMode = Style.Cpp.Default;
                         }
                         else stylingMode = Style.Cpp.String;
+                    }
+                    else if (Char.IsWhiteSpace(c) || Char.IsPunctuation(c))
+                    {
+                        if (stylingMode != Style.Cpp.String && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                            stylingMode = Style.Cpp.Default;
+                            laststyle = i;
+                        }
                     }
                 }
                 else
@@ -2618,6 +2629,7 @@ namespace AGS.Editor
                 }
 
                 onNewLine = false;
+                atNewWord = Char.IsWhiteSpace(c) || Char.IsPunctuation(c) || isOperator(c);
             }
 
             scintillaControl1.SetStyling(i - laststyle, stylingMode);
@@ -2647,20 +2659,6 @@ namespace AGS.Editor
                     token == '+' ||
                     token == '=' ||
                     token == '*');
-        }
-
-        private bool isNumeric(int token)
-        {
-            return (token == '0' ||
-                    token == '1' ||
-                    token == '2' ||
-                    token == '3' ||
-                    token == '4' ||
-                    token == '5' ||
-                    token == '6' ||
-                    token == '7' ||
-                    token == '8' ||
-                    token == '9');
         }
     }
 }

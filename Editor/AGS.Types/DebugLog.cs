@@ -9,8 +9,6 @@ namespace AGS.Types
 {
     public class DebugLog : ICustomTypeDescriptor
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         LogLevel _loglevel_main = LogLevel.Error;
         LogLevel _loglevel_game = LogLevel.Error;
         LogLevel _loglevel_script = LogLevel.Info;
@@ -41,10 +39,6 @@ namespace AGS.Types
             _logfilter_manobj = LogLevel.None;
             _logfilter_sdl = LogLevel.None;
         }
-        private void RaisePropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
 
         // Main log group
         [DisplayName("Main")]
@@ -55,7 +49,6 @@ namespace AGS.Types
         {
             get { return _loglevel_main; }
             set { _loglevel_main = value;
-                RaisePropertyChanged("LL_Main");
             }
         }
 
@@ -67,7 +60,6 @@ namespace AGS.Types
         {
             get { return _logfilter_main; }
             set { _logfilter_main = value;
-                RaisePropertyChanged("LF_Main");
             }
         }
 
@@ -81,7 +73,6 @@ namespace AGS.Types
         {
             get { return _loglevel_game; }
             set { _loglevel_game = value;
-                RaisePropertyChanged("LL_Game");
             }
         }
 
@@ -93,7 +84,6 @@ namespace AGS.Types
         {
             get { return _logfilter_game; }
             set { _logfilter_game = value;
-                RaisePropertyChanged("LF_Game");
             }
         }
 
@@ -107,7 +97,6 @@ namespace AGS.Types
         {
             get { return _loglevel_script; }
             set { _loglevel_script = value;
-                RaisePropertyChanged("LL_Script");
             }
         }
 
@@ -119,7 +108,6 @@ namespace AGS.Types
         {
             get { return _logfilter_script; }
             set { _logfilter_script = value;
-                RaisePropertyChanged("LF_Script");
             }
         }
 

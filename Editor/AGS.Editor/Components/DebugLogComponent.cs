@@ -37,10 +37,9 @@ namespace AGS.Editor.Components
             _guiController.SetLogPanel(_logPanel);
 
             _logPanel.ApplyFilters(_logConfig);
-            _logConfig.PropertyChanged += _logConfig_PropertyChanged;
         }
 
-        private void _logConfig_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        public override void PropertyChanged(string propertyName, object oldValue)
         {
             _logPanel.ApplyFilters(_logConfig);
         }

@@ -9,7 +9,7 @@ using AGS.Types.Enums;
 
 namespace AGS.Editor.Components
 {
-    internal class DebugLogComponent : BaseComponent
+    internal class DebugLogComponent : BaseComponent, IPersistUserData
     {
         private LogPanel _logPanel;
         private DebugLog _logConfig;  // Particular settings on logging from the game when running the game in debug mode in the Editor
@@ -67,26 +67,6 @@ namespace AGS.Editor.Components
             return cmd;
         }
 
-        public override void FromXml(XmlNode node)
-        {
-            if (node != null)
-            {
-                try
-                {
-                    _logConfig.FromXml(node);
-                } 
-                catch
-                {
-                    _logConfig.SetDefaults();
-                }
-            }
-        }
-
-        public override void ToXml(XmlTextWriter writer)
-        {
-            _logConfig.ToXml(writer);
-        }
-
         public override void CommandClick(string controlID)
         {
             if (controlID == SHOW_DEBUG_LOG_COMMAND)
@@ -101,6 +81,26 @@ namespace AGS.Editor.Components
             if (Factory.AGSEditor.Settings.StartupPane == StartupPane.StartPage)
             {
                 _guiController.AddOrShowPane(_document);
+            }
+        }
+
+        public void Serialize(XmlTextWriter writer)
+        {
+            _logConfig.ToXml(writer);
+        }
+
+        public void DeSerialize(XmlNode node)
+        {
+            if (node != null)
+            {
+                try
+                {
+                    _logConfig.FromXml(node);
+                }
+                catch
+                {
+                    _logConfig.SetDefaults();
+                }
             }
         }
     }

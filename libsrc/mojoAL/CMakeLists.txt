@@ -14,7 +14,7 @@ target_sources(mojoal
         AL/alc.h
         )
 
-target_link_libraries(mojoal PUBLIC ${SDL2_LIBRARIES})
+target_link_libraries(mojoal PUBLIC ${SDL2_LIBRARY} ${SDL2_LIBRARIES})
 
 target_compile_definitions(mojoal PUBLIC AL_LIBTYPE_STATIC)
 

@@ -70,7 +70,7 @@ namespace AGS.Editor
             for(int i=0; i<(int)LogGroup.NumGroups; i++)
             {
                 LogGroup group = (LogGroup)i;
-                _logBuffer.SetLogLevel(group, debugLog.GetGroupLogFilter(group));
+                _logBuffer.SetLogLevel(group, debugLog.LogFilter.GetGroupLevel(group));
                 _bufferNeedsSync = true;
             }
         }

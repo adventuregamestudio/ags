@@ -56,7 +56,7 @@ namespace AGS.Editor.Components
             for (int i = 0; i < (int)LogGroup.NumGroups; i++)
             {
                 LogGroup group = (LogGroup)i;
-                LogLevel logLevel = _logConfig.GetGroupLogLevel(group);
+                LogLevel logLevel = _logConfig.LogOutput.GetGroupLevel(group);
 
                 cmd += group.ToString().ToLower() + ":" + logLevel.ToString().ToLower();
 

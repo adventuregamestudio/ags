@@ -185,6 +185,7 @@
     <Compile Include="Interfaces\ISpriteFolder.cs" />
     <Compile Include="Interfaces\IViewFolder.cs" />
     <Compile Include="LipSync.cs" />
+    <Compile Include="LogGroups.cs" />
     <Compile Include="OldInteractionVariable.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />

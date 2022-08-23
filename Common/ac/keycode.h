@@ -269,16 +269,25 @@ enum eAGSKeyMod
 };
 
 
-// Combined key code and a textual representation in UTF-8
+// Combined key code and a textual representation in UTF-8;
+// Key and UChar are normally considered mutually exclusive
+// and definea distinction between KEYDOWN and TEXTINPUT events.
+// They might still be set together in the "old key handling" mode.
 struct KeyInput
 {
     const static size_t UTF8_ARR_SIZE = 5;
 
-    eAGSKeyCode Key = eAGSKeyCodeNone; // actual key code
-    eAGSKeyCode CompatKey = eAGSKeyCodeNone; // old-style key code, combined with mods
-    int         Mod = 0; // key modifiers
-    int         UChar = 0; // full character value (supports unicode)
-    char        Text[UTF8_ARR_SIZE]{}; // character in a string format
+    // Actual key code
+    eAGSKeyCode Key = eAGSKeyCodeNone;
+    // Key code combined with mods, old-style (e.g. eAGSKeyCodeCtrlA)
+    // may be used when comparing with the variables set from script.
+    eAGSKeyCode CompatKey = eAGSKeyCodeNone;
+    // Key modifiers (see eAGSKeyMod)
+    int         Mod = 0;
+    // Printable character value (supports unicode)
+    int         UChar = 0;
+    // Printable character in UTF-8 string format
+    char        Text[UTF8_ARR_SIZE]{};
 
     KeyInput() = default;
 };

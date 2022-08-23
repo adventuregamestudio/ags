@@ -38,19 +38,22 @@ int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
 KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
 {
     KeyInput ki;
-    // Printable characters are received only from SDL_TEXTINPUT event,
-    // as it has key presses + mods correctly converted using current system locale already,
-    // so no need to do that manually.
-    // NOTE: keycodes such as SDLK_EXCLAIM ('!') could be misleading, as they are NOT
-    // received when user presses for example Shift + 1 on regular keyboard, but only on
-    // systems where single keypress can produce that symbol.
+    // Normally SDL_TEXTINPUT is meant for handling the printable characters,
+    // and not the actual key presses.
+    // But in the "old key handle" mode we use it also to get the full range
+    // of key codes corresponding to chars, including combos (SHIFT + 3 = #).
+    // TODO: find out if it's feasible to just convert keydown + SHIFT combos
+    // ourselves: then we can utilize SDL_KEYDOWN for both modes and leave
+    // TEXTINPUT for char print only.
     if (event.type == SDL_TEXTINPUT)
     {
         char ascii[sizeof(SDL_TextInputEvent::text)];
         StrUtil::ConvertUtf8ToAscii(event.text.text, "C", &ascii[0], sizeof(ascii));
-        unsigned char textch = ascii[0];
-        if (textch >= 32)
-            ki.Key = ki.CompatKey = static_cast<eAGSKeyCode>(textch);
+        if (old_keyhandle && (ascii[0] >= 32))
+        {
+            ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
+            ki.CompatKey = ki.Key;
+        }
         strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
@@ -61,8 +64,8 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
         ki.Mod = sdl_mod_to_ags_mod(event.key);
         ki.Key = sdl_key_to_ags_key(event.key, old_keyhandle);
         ki.CompatKey = sdl_key_to_ags_key(event.key, true);
-        if (ki.CompatKey == eAGSKeyCodeNone)
-            ki.CompatKey = ki.Key;
+        if (!old_keyhandle && (ki.CompatKey == eAGSKeyCodeNone))
+            ki.CompatKey = ki.Key; // in the new mode also assign letter-range keys
     }
     return ki;
 }
@@ -88,6 +91,10 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
     const SDL_Keysym key = kbevt.keysym;
     const SDL_Keycode sym = key.sym;
     const Uint16 mod = key.mod;
+
+    // NOTE: keycodes such as SDLK_EXCLAIM ('!') may be misleading, as they are NOT
+    // received when user presses for example Shift + 1 on regular keyboard, but only on
+    // systems where single keypress can produce that symbol.
 
     // Old mode: Ctrl and Alt combinations realign the letter code to certain offset
     if (old_keyhandle && (sym >= SDLK_a && sym <= SDLK_z))

@@ -370,11 +370,12 @@ bool run_service_key_controls(KeyInput &out_key)
         return false; // in backward mode the engine does not react to single mod keys
 
     KeyInput ki = ags_keycode_from_sdl(key_evt, old_keyhandle);
-    if (ki.Key == eAGSKeyCodeNone)
+    if ((ki.Key == eAGSKeyCodeNone) && (ki.UChar == 0))
         return false; // should skip this key event
 
-    // Use backward-compatible combined key for special controls
-    eAGSKeyCode agskey = ki.CompatKey;
+    // Use backward-compatible combined key for special controls,
+    // because game variables may store old-style key + mod codes
+    const eAGSKeyCode agskey = ki.CompatKey;
     // LAlt or RAlt + Enter/Return
     if ((cur_mod == KMOD_ALT) && agskey == eAGSKeyCodeReturn)
     {
@@ -383,7 +384,7 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     // Alt+X, abort (but only once game is loaded)
-    if ((displayed_room >= 0) && (agskey == play.abort_key)) {
+    if ((displayed_room >= 0) && (play.abort_key > 0) && (agskey == play.abort_key)) {
         Debug::Printf("Abort key pressed");
         check_dynamic_sprites_at_exit = 0;
         quit("!|");
@@ -479,7 +480,8 @@ static void check_keyboard_controls()
     if (!run_service_key_controls(ki)) {
         return;
     }
-    // Use backward-compatible combined key for special controls
+    // Use backward-compatible combined key for special controls,
+    // because game variables may store old-style key + mod codes
     const eAGSKeyCode agskey = ki.CompatKey;
     // Then, check cutscene skip
     check_skip_cutscene_keypress(agskey);
@@ -523,15 +525,14 @@ static void check_keyboard_controls()
         return;
     }
 
-    int keywasprocessed = 0;
-
-    // determine if a GUI Text Box should steal the click
-    // it should do if a displayable character (32-255) is
-    // pressed, but exclude control characters (<32) and
-    // extended keys (eg. up/down arrow; 256+)
-    if ( (((agskey >= 32) && (agskey <= 255) && (agskey != '[')) ||
-           (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
-        && (all_buttons_disabled < 0)) {
+    bool keywasprocessed = false;
+    // Determine if a GUI Text Box should steal the click:
+    // it should be either a printable character or one of the textbox control keys
+    // TODO: instead of making a preliminary check, just let each gui control
+    // test the key and OnKeyPress return if it was handled?
+    if ((all_buttons_disabled < 0) &&
+        ((ki.UChar > 0) || (agskey >= 32) && (agskey <= 255)) ||
+         (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace)) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
             auto &gui = guis[guiIndex];
 
@@ -548,7 +549,7 @@ static void check_keyboard_controls()
                 if (!guitex->IsEnabled()) { continue; }
                 if (!guitex->IsVisible()) { continue; }
 
-                keywasprocessed = 1;
+                keywasprocessed = true;
 
                 guitex->OnKeyPress(ki);
 
@@ -560,28 +561,30 @@ static void check_keyboard_controls()
         }
     }
 
+    if (keywasprocessed)
+        return;
+
     // Built-in key-presses
-    if (agskey == usetup.key_save_game) {
+    if ((usetup.key_save_game > 0) && (agskey == usetup.key_save_game)) {
         do_save_game_dialog();
         return;
-    } else if (agskey == usetup.key_restore_game) {
+    } else if ((usetup.key_restore_game > 0) && (agskey == usetup.key_restore_game)) {
         do_restore_game_dialog();
         return;
     }
 
-    if (!keywasprocessed) {
-        const int sckey = AGSKeyToScriptKey(ki.Key);
-        const int sckeymod = ki.Mod;
-        if (old_keyhandle || (ki.UChar == 0))
-        {
-            debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
-            setevent(EV_TEXTSCRIPT, TS_KEYPRESS, sckey, sckeymod);
-        }
-        if (!old_keyhandle && (ki.UChar > 0))
-        {
-            debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
-            setevent(EV_TEXTSCRIPT, TS_TEXTINPUT, ki.UChar);
-        }
+    // Pass the key event to the script
+    const int sckey = AGSKeyToScriptKey(ki.Key);
+    const int sckeymod = ki.Mod;
+    if (old_keyhandle || (ki.UChar == 0))
+    {
+        debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
+        setevent(EV_TEXTSCRIPT, TS_KEYPRESS, sckey, sckeymod);
+    }
+    if (!old_keyhandle && (ki.UChar > 0))
+    {
+        debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
+        setevent(EV_TEXTSCRIPT, TS_TEXTINPUT, ki.UChar);
     }
 }
 

@@ -30,6 +30,10 @@ int sys_main_init(/*config*/) {
     SDL_version version;
     SDL_GetVersion(&version);
     Debug::Printf(kDbgMsg_Info, "SDL Version: %d.%d.%d", version.major, version.minor, version.patch);
+    // Disable SDL2's own touch-to-mouse emulation:
+    // we are going to use our own in the engine, and only if requested by the user config
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
     // TODO: setup these subsystems in config rather than keep hardcoded?
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());

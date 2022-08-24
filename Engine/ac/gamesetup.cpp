@@ -28,6 +28,7 @@ GameSetup::GameSetup()
     mouse_ctrl_when = kMouseCtrl_Fullscreen;
     mouse_ctrl_enabled = false;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
+    touch_emulate_mouse = kTouchMouse_OneFingerDrag;
     RenderAtScreenRes = false;
     Supersampling = 1;
     clear_cache_on_room_change = false;

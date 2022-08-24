@@ -16,12 +16,15 @@
 #include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
+#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/timer.h"
 #include "device/mousew32.h"
+#include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/sys_main.h"
 #include "main/engine.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"
@@ -30,6 +33,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
+extern IGraphicsDriver *gfxDriver;
 
 eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle);
 int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
@@ -481,6 +485,117 @@ int ags_check_mouse_wheel() {
 }
 
 
+// ----------------------------------------------------------------------------
+// TOUCH INPUT
+// ----------------------------------------------------------------------------
+
+static int fingers_down = 0;
+
+// Converts touch finger index to the emulated mouse button
+static int tfinger_to_mouse_but(int finger)
+{
+    switch (finger)
+    {
+    case 0: return SDL_BUTTON_LEFT;
+    case 1: return SDL_BUTTON_RIGHT;
+    default: return 0;
+    }
+}
+
+void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
+{
+    fingers_down |= 1 << event.fingerId;
+
+    // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
+    int w = gfxDriver->GetDisplayMode().Width;
+    int h = gfxDriver->GetDisplayMode().Height;
+
+    switch (usetup.touch_emulate_mouse)
+    {
+    case kTouchMouse_OneFingerDrag:
+    {
+        // Touch down means LMB down
+        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        if (mouse_but == SDL_BUTTON_LEFT)
+        {
+            SDL_Event evt = {};
+            evt.type = SDL_MOUSEBUTTONDOWN;
+            evt.button.which = SDL_TOUCH_MOUSEID;
+            evt.button.state = SDL_PRESSED;
+            evt.button.button = mouse_but;
+            evt.button.x = event.x * w;
+            evt.button.y = event.y * h;
+            SDL_PushEvent(&evt);
+        }
+        break;
+    }
+    case kTouchMouse_TwoFingersTap: break; // do nothing else
+    default: break; // do nothing
+    }
+}
+
+void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
+{
+    fingers_down &= ~(1 << event.fingerId);
+
+    // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
+    int w = gfxDriver->GetDisplayMode().Width;
+    int h = gfxDriver->GetDisplayMode().Height;
+
+    switch (usetup.touch_emulate_mouse)
+    {
+    case kTouchMouse_OneFingerDrag:
+    {
+        // Touch up means LMB up
+        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        if (mouse_but == SDL_BUTTON_LEFT)
+        {
+            SDL_Event evt = {};
+            evt.type = SDL_MOUSEBUTTONUP;
+            evt.button.which = SDL_TOUCH_MOUSEID;
+            evt.button.state = SDL_RELEASED;
+            evt.button.button = mouse_but;
+            evt.button.x = event.x * w;
+            evt.button.y = event.y * h;
+            SDL_PushEvent(&evt);
+        }
+        break;
+    }
+    case kTouchMouse_TwoFingersTap: break; // do nothing else
+    default: break; // do nothing
+    }
+}
+
+void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
+{
+    // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
+    int w = gfxDriver->GetDisplayMode().Width;
+    int h = gfxDriver->GetDisplayMode().Height;
+
+    switch (usetup.touch_emulate_mouse)
+    {
+    case kTouchMouse_OneFingerDrag:
+    {
+        // Touch motion means mouse motion
+        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        if (mouse_but == SDL_BUTTON_LEFT)
+        {
+            SDL_Event evt = {};
+            evt.type = SDL_MOUSEMOTION;
+            evt.motion.which = SDL_TOUCH_MOUSEID;
+            evt.motion.x = event.x * w;
+            evt.motion.y = event.y * h;
+            evt.motion.xrel = 0; // TODO?
+            evt.motion.yrel = 0; // TODO?
+            SDL_PushEvent(&evt);
+        }
+    }
+    case kTouchMouse_TwoFingersTap: break; // do nothing else
+    default: break; // do nothing
+    }
+}
+
+
 
 void ags_clear_input_state()
 {
@@ -577,7 +692,7 @@ void sys_evt_process_one(const SDL_Event &event) {
             break;
         }
         break;
-    // INPUT
+    // KEY INPUT
     case SDL_KEYDOWN:
         on_sdl_key_down(event);
         break;
@@ -587,16 +702,35 @@ void sys_evt_process_one(const SDL_Event &event) {
     case SDL_TEXTINPUT:
         on_sdl_textinput(event);
         break;
+    // MOUSE INPUT
     case SDL_MOUSEMOTION:
+        Debug::Printf("SDL_MOUSEMOTION: event.motion.which: %d (%d, %d)", event.motion.which, event.motion.x, event.motion.y);
         on_sdl_mouse_motion(event.motion);
         break;
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
+        Debug::Printf("SDL_MOUSEBUTTONDOWN/UP: event.button.which: %d, button = %d, state = %d (%d, %d)",
+            event.button.which, event.button.button, event.button.state,
+            event.button.x, event.button.y);
         on_sdl_mouse_button(event.button);
         break;
     case SDL_MOUSEWHEEL:
         on_sdl_mouse_wheel(event.wheel);
         break;
+    // TOUCH INPUT
+    case SDL_FINGERDOWN:
+        Debug::Printf("SDL_FINGERDOWN: tfinger: %.3f, %.3f", event.tfinger.x, event.tfinger.y);
+        on_sdl_touch_down(event.tfinger);
+        break;
+    case SDL_FINGERUP:
+        Debug::Printf("SDL_FINGERUP: tfinger: %.3f, %.3f", event.tfinger.x, event.tfinger.y);
+        on_sdl_touch_up(event.tfinger);
+        break;
+    case SDL_FINGERMOTION:
+        Debug::Printf("SDL_FINGERMOTION: tfinger: %.3f, %.3f", event.tfinger.x, event.tfinger.y);
+        on_sdl_touch_motion(event.tfinger);
+        break;
+    default: break;
     }
 }
 

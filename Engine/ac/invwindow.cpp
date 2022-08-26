@@ -352,10 +352,15 @@ bool InventoryScreen::Run()
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
-    KeyInput ki;
-    if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+    // Handle all the buffered key events
+    while (ags_keyevent_ready())
     {
-        return false; // end inventory screen loop
+        KeyInput ki;
+        if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+        {
+            ags_clear_input_buffer();
+            return false; // end inventory screen loop
+        }
     }
 
         update_audio_system_on_game_loop();

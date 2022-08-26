@@ -486,12 +486,16 @@ static bool video_check_user_input(VideoSkipType skip)
     KeyInput key;
     eAGSMouseButton mbut;
     int mwheelz;
-    if (run_service_key_controls(key))
+    // Handle all the buffered key events
+    while (ags_keyevent_ready())
     {
-        if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
-            return true;
-        if (skip >= VideoSkipAnyKey)
-            return true;  // skip on any key
+        if (run_service_key_controls(key))
+        {
+            if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
+                return true;
+            if (skip >= VideoSkipAnyKey)
+                return true;  // skip on any key
+        }
     }
     if (run_service_mb_controls(mbut, mwheelz) && (mbut > kMouseNone) && (skip == VideoSkipKeyOrMouse))
         return true; // skip on mouse click
@@ -522,7 +526,11 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
     {
         sys_evt_process_pending();
         // Check user input skipping the video
-        if (video_check_user_input(skip)) break;
+        if (video_check_user_input(skip))
+        {
+            ags_clear_input_buffer();
+            break;
+        }
         gl_Video->Poll(); // update/render next frame
         UpdateGameAudioOnly(); // update the game and wait for next frame
     }

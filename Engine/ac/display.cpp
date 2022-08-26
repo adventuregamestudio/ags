@@ -292,17 +292,23 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
                     break;
                 }
             }
-            KeyInput ki;
-            if (run_service_key_controls(ki)) {
-                check_skip_cutscene_keypress (ki.Key);
-                if (play.fast_forward)
-                    break;
-                if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
+
+            bool do_break = false;
+            while (!play.fast_forward && !do_break && ags_keyevent_ready())
+            {
+                KeyInput ki;
+                if (run_service_key_controls(ki))
                 {
-                    play.SetWaitKeySkip(ki);
-                    break;
+                    check_skip_cutscene_keypress(ki.Key);
+                    if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
+                    {
+                        play.SetWaitKeySkip(ki);
+                        do_break = true;
+                    }
                 }
             }
+            if (do_break)
+                break;
             
             update_polled_stuff_if_runtime();
 
@@ -354,6 +360,7 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
         GameLoopUntilNoOverlay();
     }
 
+    ags_clear_input_buffer();
     play.messagetime=-1;
     return nullptr;
 }

@@ -869,6 +869,10 @@ struct Mouse {
   /// Returns whether the specified mouse cursor is currently enabled.
   import static bool IsModeEnabled(CursorMode);
 #endif
+#ifdef SCRIPT_API_v36026
+  /// Gets/sets whether the mouse cursor will be automatically locked in the game window.
+  import static attribute bool AutoLock;
+#endif
   /// Gets the current mouse position.
   readonly int  x,y;
 };

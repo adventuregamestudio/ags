@@ -261,6 +261,9 @@ enum eAGSKeyMod
     eAGSModRAlt   = 0x00200000,
     eAGSModNum    = 0x00400000,
     eAGSModCaps   = 0x00800000,
+    eAGSModShift  = 0x00030000,
+    eAGSModCtrl   = 0x000C0000,
+    eAGSModAlt    = 0x00300000,
 
     // Mask defines the key mod position if packed in the int32;
     // the upper 8 bits are reserved for "input type" codes;

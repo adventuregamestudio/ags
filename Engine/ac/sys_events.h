@@ -42,6 +42,22 @@ inline bool is_mod_key(const SDL_Keysym &key)
         key.scancode == SDL_SCANCODE_MODE;
 }
 
+// Makes a mod flag out of the scan code
+inline int make_mod_flag(const SDL_Keysym &key)
+{
+    switch (key.scancode)
+    {
+    case SDL_SCANCODE_LSHIFT: return KMOD_LSHIFT;
+    case SDL_SCANCODE_RSHIFT: return KMOD_RSHIFT;
+    case SDL_SCANCODE_LCTRL: return KMOD_LCTRL;
+    case SDL_SCANCODE_RCTRL: return KMOD_RCTRL;
+    case SDL_SCANCODE_LALT: return KMOD_LALT;
+    case SDL_SCANCODE_RALT: return KMOD_RALT;
+    case SDL_SCANCODE_MODE: return KMOD_MODE;
+    default: return KMOD_NONE;
+    }
+}
+
 // Converts mod key into merged mod (left & right) for easier handling
 inline int make_merged_mod(int mod)
 {
@@ -63,6 +79,11 @@ SDL_Event ags_get_next_keyevent();
 int ags_iskeydown(eAGSKeyCode ags_key);
 // Simulates key press with the given AGS key
 void ags_simulate_keypress(eAGSKeyCode ags_key);
+
+// TODO: hide these later? (bad design with run_service_key_controls,
+// but also need to clear them in ags_clear_input_buffer())
+extern int sys_modkeys; // accumulated mod flags
+extern bool sys_modkeys_fired; // tells whether mod combination had been used for action
 
 
 // Mouse input handling

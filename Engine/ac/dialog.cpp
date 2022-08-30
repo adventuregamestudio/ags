@@ -1040,19 +1040,20 @@ bool DialogOptions::Run()
 bool DialogOptions::RunKeyControls()
 {
     // Handle all the buffered key events
+    bool do_break = false; // continue the loop or end dialog options
     while (ags_keyevent_ready())
     {
         KeyInput ki;
         if (run_service_key_controls(ki) && !play.IsIgnoringInput())
         {
-            if (!RunKey(ki))
+            if (!do_break && !RunKey(ki))
             {
                 ags_clear_input_buffer();
-                return false; // end dialog options running loop
+                do_break = true; // end dialog options
             }
         }
     }
-    return true; // continue running loop
+    return !do_break;
 }
 
 bool DialogOptions::RunKey(const KeyInput &ki)

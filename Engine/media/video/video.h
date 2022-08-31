@@ -24,9 +24,10 @@
 #ifndef __AGS_EE_MEDIA__VIDEO_H
 #define __AGS_EE_MEDIA__VIDEO_H
 #include <atomic>
+#include "media/audio/openalsource.h"
 #include "util/geometry.h"
 #include "util/string.h"
-#include "media/audio/openalsource.h"
+#include "util/error.h"
 
 namespace AGS
 {
@@ -67,7 +68,8 @@ class VideoPlayer
 public:
     virtual ~VideoPlayer();
     // Tries to open a video file of a given name
-    bool Open(const AGS::Common::String &name, int flags);
+    Common::HError Open(const Common::String &name, int flags);
+    virtual bool IsValid() { return false; }
     // Stops the playback, releasing any resources
     void Close();
     // Begins or resumes playback
@@ -89,7 +91,8 @@ public:
 
 protected:
     // Opens the video, implementation-specific; allows to modify flags
-    virtual bool OpenImpl(const String& /*name*/, int& /*flags*/) { return false; };
+    virtual Common::HError OpenImpl(const String& /*name*/, int& /*flags*/)
+        { return new Common::Error("Internal error: operation not implemented"); };
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
     // Retrieves next video frame, implementation-specific
@@ -135,8 +138,8 @@ private:
 } // namespace AGS
 
 
-void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip);
-void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip);
 
 // Pause the active video
 void video_pause();

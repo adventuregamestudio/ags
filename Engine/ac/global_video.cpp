@@ -76,7 +76,9 @@ void PlayFlic(int numb, int scr_flags)
     default: flags |= kVideo_ClearScreen;
     }
 
-    play_flc_video(numb, flags, skip);
+    HError err = play_flc_video(numb, flags, skip);
+    if (!err)
+        debug_script_warn("Failed to play FLIC %n: %s", numb, err->FullMessage().GetCStr());
 }
 
 void PlayVideo(const char* name, int skip, int scr_flags) {
@@ -137,15 +139,10 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
         stop_all_sound_and_music();
     }
 
-    if ((strlen(name) > 3) && (ags_stricmp(&name[strlen(name) - 3], "ogv") == 0))
-    {
-        play_theora_video(name, flags, skip);
-    }
-    else
-    {
-        debug_script_warn("PlayVideo: file '%s' is an unsupported format.", name);
-        return;
-    }
+    // TODO: use extension as a format hint
+    HError err = play_theora_video(name, flags, skip);
+    if (!err)
+        debug_script_warn("Failed to play video '%s': %s", name, err->FullMessage().GetCStr());
 
     // Restore the game audio if we stopped them before the video playback
     if ((flags & kVideo_KeepGameAudio) == 0)

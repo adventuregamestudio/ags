@@ -217,7 +217,9 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     if ((audioType < 0) || ((size_t)audioType >= game.audioClipTypes.size()))
         quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
-    Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %d", audioType, volume, changeType);
+    const char *change_str[3]{"existing", "future", "all"};
+    Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %s", audioType, volume,
+        change_str[changeType - VOL_CHANGEEXISTING]);
     if ((changeType == VOL_CHANGEEXISTING) ||
         (changeType == VOL_BOTH))
     {

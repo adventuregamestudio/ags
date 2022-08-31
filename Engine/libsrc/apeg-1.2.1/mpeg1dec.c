@@ -120,7 +120,10 @@ static int ext_getc(void *_f)
 	unsigned char b;
 
 	if(layer->ext_data.request(&b, 1, layer->ext_data.ptr) == 0)
+	{
+		layer->ext_data.eof = TRUE;
 		return EOF;
+	}
 	return b;
 }
 
@@ -367,6 +370,9 @@ static void setup_stream(APEG_LAYER *layer)
 	// Set stream type
 	check_stream_type(layer);
 
+	if (layer->system_stream_flag == NO_SYSTEM)
+		apeg_error_jump(layer, "Invalid or unsupported format");
+
 	// No frames decoded, frame not updated
 	layer->stream.frame = 0;
 	layer->stream.frame_updated = -1;
@@ -469,6 +475,8 @@ static void check_stream_type(APEG_LAYER *layer)
 
 	/* Get the first start code */
 recheck:
+	if (pack_feof(layer->pf))
+		return;
 	switch(show_bits32(layer))
 	{
 		case VIDEO_ELEMENTARY_STREAM:

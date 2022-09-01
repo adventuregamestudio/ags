@@ -1,5 +1,13 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 14, September 2022
+
+Editor:
+ - Do not error when compiling a 256 colors game if Direct3D or OpenGL are selected as a default
+   graphics driver (display a warning instead).
+ - Fixed crash when trying to import pre-2.60 game projects.
+
+
 VERSION 3.5.1 - Patch 13, August 2022
 
 Engine:

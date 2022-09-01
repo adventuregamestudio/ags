@@ -368,7 +368,7 @@ bool run_service_key_controls(KeyInput &out_key)
     // because game variables may store old-style key + mod codes
     const eAGSKeyCode agskey = ki.CompatKey;
     // LAlt or RAlt + Enter/Return
-    if ((ki.Mod & eAGSModShift) && (agskey == eAGSKeyCodeReturn))
+    if ((ki.Mod & eAGSModAlt) && (agskey == eAGSKeyCodeReturn))
     {
         engine_try_switch_windowed_gfxmode();
         return false;

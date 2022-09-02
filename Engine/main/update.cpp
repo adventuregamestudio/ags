@@ -66,8 +66,8 @@ int do_movelist_move(short*mlnum,int*xx,int*yy) {
   MoveList*cmls; cmls=&mls[mlnum[0]];
   fixed xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
 
-  short targetx=short((cmls->pos[cmls->onstage+1] >> 16) & 0x00ffff);
-  short targety=short(cmls->pos[cmls->onstage+1] & 0x00ffff);
+  int targetx = cmls->pos[cmls->onstage+1].X;
+  int targety = cmls->pos[cmls->onstage+1].Y;
   int xps=xx[0],yps=yy[0];
   if (cmls->doneflag & 1) {
     // if the X-movement has finished, and the Y-per-move is < 1, finish
@@ -150,11 +150,8 @@ int do_movelist_move(short*mlnum,int*xx,int*yy) {
 
   if ((cmls->doneflag & 0x03)==3) {
     // this stage is done, go on to the next stage
-    // signed shorts to ensure that numbers like -20 do not become 65515
-    cmls->fromx=(signed short)((cmls->pos[cmls->onstage+1] >> 16) & 0x000ffff);
-    cmls->fromy=(signed short)(cmls->pos[cmls->onstage+1] & 0x000ffff);
-    if ((cmls->fromx > 65000) || (cmls->fromy > 65000))
-      quit("do_movelist: int to short rounding error");
+    cmls->fromx=cmls->pos[cmls->onstage+1].X;
+    cmls->fromy=cmls->pos[cmls->onstage+1].Y;
 
     cmls->onstage++; cmls->onpart=-1; cmls->doneflag&=0xf0;
     cmls->lastx=-1;

@@ -15,6 +15,7 @@
 #define __AC_MOVE_H
 #include <allegro.h> // fixed math
 #include "game/savegame.h"
+#include "util/geometry.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -24,7 +25,7 @@ using namespace AGS; // FIXME later
 #define MAXNEEDSTAGES_LEGACY 40
 
 struct MoveList {
-    int   pos[MAXNEEDSTAGES]{};
+    Point pos[MAXNEEDSTAGES]{};
     int   numstage = 0;
     fixed xpermove[MAXNEEDSTAGES]{}, ypermove[MAXNEEDSTAGES]{};
     int   fromx = 0, fromy = 0;

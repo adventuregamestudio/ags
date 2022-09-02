@@ -19,28 +19,11 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-void MoveList::ReadFromFile_Legacy(Stream *in)
-{
-    in->ReadArrayOfInt32(pos, MAXNEEDSTAGES_LEGACY);
-    numstage = in->ReadInt32();
-    in->ReadArrayOfInt32(xpermove, MAXNEEDSTAGES_LEGACY);
-    in->ReadArrayOfInt32(ypermove, MAXNEEDSTAGES_LEGACY);
-    fromx = in->ReadInt32();
-    fromy = in->ReadInt32();
-    onstage = in->ReadInt32();
-    onpart = in->ReadInt32();
-    lastx = in->ReadInt32();
-    lasty = in->ReadInt32();
-    doneflag = in->ReadInt8();
-    direct = in->ReadInt8();
-}
-
 HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
     if (cmp_ver < 1)
     {
-        ReadFromFile_Legacy(in);
-        return HSaveError::None();
+        return new SavegameError(kSvgErr_IncompatibleEngine, "Outdated movelist format.");
     }
 
     numstage = in->ReadInt32();
@@ -60,7 +43,11 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
 
-    in->ReadArrayOfInt32(pos, numstage);
+    for (int i = 0; i < numstage; ++i)
+    {
+        pos[i].X = in->ReadInt32();
+        pos[i].Y = in->ReadInt32();
+    }
     in->ReadArrayOfInt32(xpermove, numstage);
     in->ReadArrayOfInt32(ypermove, numstage);
     return HSaveError::None();
@@ -78,7 +65,11 @@ void MoveList::WriteToFile(Stream *out)
     out->WriteInt8(doneflag);
     out->WriteInt8(direct);
 
-    out->WriteArrayOfInt32(pos, numstage);
+    for (int i = 0; i < numstage; ++i)
+    {
+        out->WriteInt32(pos[i].X);
+        out->WriteInt32(pos[i].Y);
+    }
     out->WriteArrayOfInt32(xpermove, numstage);
     out->WriteArrayOfInt32(ypermove, numstage);
 }

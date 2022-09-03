@@ -79,6 +79,7 @@ public:
     virtual size_t      ReadArrayOfInt16(int16_t *buffer, size_t count) = 0;
     virtual size_t      ReadArrayOfInt32(int32_t *buffer, size_t count) = 0;
     virtual size_t      ReadArrayOfInt64(int64_t *buffer, size_t count) = 0;
+    virtual size_t      ReadArrayOfFloat32(float *buffer, size_t count) = 0;
 
     // Convenience methods for writing values of particular size
     virtual size_t      WriteInt8(int8_t val) = 0;;
@@ -92,6 +93,7 @@ public:
     virtual size_t      WriteArrayOfInt16(const int16_t *buffer, size_t count) = 0;
     virtual size_t      WriteArrayOfInt32(const int32_t *buffer, size_t count) = 0;
     virtual size_t      WriteArrayOfInt64(const int64_t *buffer, size_t count) = 0;
+    virtual size_t      WriteArrayOfFloat32(const float *buffer, size_t count) = 0;
 
     virtual bool        Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
 };

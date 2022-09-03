@@ -1812,8 +1812,8 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 }
 
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
-    const fixed xpmove = cmls->xpermove[cmls->onstage];
-    const fixed ypmove = cmls->ypermove[cmls->onstage];
+    const float xpmove = cmls->xpermove[cmls->onstage];
+    const float ypmove = cmls->ypermove[cmls->onstage];
 
     // if not moving, do nothing
     if ((xpmove == 0) && (ypmove == 0))

@@ -43,7 +43,7 @@ namespace RouteFinder {
 static const int MAXNAVPOINTS = MAXNEEDSTAGES;
 static Point navpoints[MAXNAVPOINTS];
 static int num_navpoints;
-static fixed move_speed_x, move_speed_y;
+static float move_speed_x, move_speed_y;
 static Navigation nav;
 static Bitmap *wallscreen;
 static int lastcx, lastcy;
@@ -121,17 +121,17 @@ void set_route_move_speed(int speed_x, int speed_y)
 {
   // negative move speeds like -2 get converted to 1/2
   if (speed_x < 0) {
-    move_speed_x = itofix(1) / (-speed_x);
+    move_speed_x = 1.0 / (-speed_x);
   }
   else {
-    move_speed_x = itofix(speed_x);
+    move_speed_x = speed_x;
   }
 
   if (speed_y < 0) {
-    move_speed_y = itofix(1) / (-speed_y);
+    move_speed_y = 1.0 / (-speed_y);
   }
   else {
-    move_speed_y = itofix(speed_y);
+    move_speed_y = speed_y;
   }
 }
 
@@ -170,10 +170,10 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
     return;
   }
 
-  fixed xdist = itofix(abs(ourx - destx));
-  fixed ydist = itofix(abs(oury - desty));
+  float xdist = abs(ourx - destx);
+  float ydist = abs(oury - desty);
 
-  fixed useMoveSpeed;
+  float useMoveSpeed;
 
   if (move_speed_x == move_speed_y) {
     useMoveSpeed = move_speed_x;
@@ -181,27 +181,28 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
   else {
     // different X and Y move speeds
     // the X proportion of the movement is (x / (x + y))
-    fixed xproportion = fixdiv(xdist, (xdist + ydist));
+    float xproportion = xdist / (xdist + ydist);
 
+    // TODO: Investigate why the following comments are the opposite of what's being done
     if (move_speed_x > move_speed_y) {
       // speed = y + ((1 - xproportion) * (x - y))
-      useMoveSpeed = move_speed_y + fixmul(xproportion, move_speed_x - move_speed_y);
+      useMoveSpeed = move_speed_y + (xproportion * (move_speed_x - move_speed_y));
     }
     else {
       // speed = x + (xproportion * (y - x))
-      useMoveSpeed = move_speed_x + fixmul(itofix(1) - xproportion, move_speed_y - move_speed_x);
+      useMoveSpeed = move_speed_x + ((1 - xproportion) * (move_speed_y - move_speed_x));
     }
   }
 
-  fixed angl = fixatan(fixdiv(ydist, xdist));
+  float angl = atan(ydist / xdist);
 
   // now, since new opp=hyp*sin, work out the Y step size
   //fixed newymove = useMoveSpeed * fsin(angl);
-  fixed newymove = fixmul(useMoveSpeed, fixsin(angl));
+  float newymove = useMoveSpeed * sin(angl);
 
   // since adj=hyp*cos, work out X step size
   //fixed newxmove = useMoveSpeed * fcos(angl);
-  fixed newxmove = fixmul(useMoveSpeed, fixcos(angl));
+  float newxmove = useMoveSpeed * cos(angl);
 
   if (destx < ourx)
     newxmove = -newxmove;

@@ -48,8 +48,8 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
         pos[i].X = in->ReadInt32();
         pos[i].Y = in->ReadInt32();
     }
-    in->ReadArrayOfInt32(xpermove, numstage);
-    in->ReadArrayOfInt32(ypermove, numstage);
+    in->ReadArrayOfFloat32(xpermove, numstage);
+    in->ReadArrayOfFloat32(ypermove, numstage);
     return HSaveError::None();
 }
 
@@ -70,6 +70,6 @@ void MoveList::WriteToFile(Stream *out)
         out->WriteInt32(pos[i].X);
         out->WriteInt32(pos[i].Y);
     }
-    out->WriteArrayOfInt32(xpermove, numstage);
-    out->WriteArrayOfInt32(ypermove, numstage);
+    out->WriteArrayOfFloat32(xpermove, numstage);
+    out->WriteArrayOfFloat32(ypermove, numstage);
 }

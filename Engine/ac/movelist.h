@@ -13,7 +13,6 @@
 //=============================================================================
 #ifndef __AC_MOVE_H
 #define __AC_MOVE_H
-#include <allegro.h> // fixed math
 #include "game/savegame.h"
 #include "util/geometry.h"
 
@@ -22,12 +21,11 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #define MAXNEEDSTAGES 256
-#define MAXNEEDSTAGES_LEGACY 40
 
 struct MoveList {
     Point pos[MAXNEEDSTAGES]{};
     int   numstage = 0;
-    fixed xpermove[MAXNEEDSTAGES]{}, ypermove[MAXNEEDSTAGES]{};
+    float xpermove[MAXNEEDSTAGES]{}, ypermove[MAXNEEDSTAGES]{};
     int   fromx = 0, fromy = 0;
     int   onstage = 0, onpart = 0;
     int   lastx = 0, lasty = 0;
@@ -36,9 +34,6 @@ struct MoveList {
 
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out);
-
-private:
-    void ReadFromFile_Legacy(Common::Stream *in);
 };
 
 #endif // __AC_MOVE_H

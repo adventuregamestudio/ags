@@ -60,11 +60,17 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern IGraphicsDriver *gfxDriver;
 
+// specific implementation for do_movelist_move, until we understand better the algorithm and what precision is required
+bool movelist_float_equals(float a, float b) {
+  return fabs(a - b) < 0.0001;
+}
+
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
   int need_to_fix_sprite=0;
   if (mlnum[0]<1) quit("movelist_move: attempted to move on a non-exist movelist");
   MoveList*cmls; cmls=&mls[mlnum[0]];
-  fixed xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
+  float xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
+  const float delta = 0.0001; // not sure what kind of precision we need in this context
 
   int targetx = cmls->pos[cmls->onstage+1].X;
   int targety = cmls->pos[cmls->onstage+1].Y;
@@ -81,22 +87,22 @@ int do_movelist_move(short*mlnum,int*xx,int*yy) {
 
     int adjAmnt = 3;
     // 2.70: if the X permove is also <=1, don't do the skipping
-    if (((xpermove & 0xffff0000) == 0xffff0000) ||
-        ((xpermove & 0xffff0000) == 0x00000000))
+    if ((trunc(xpermove) == -1) ||
+        (trunc(xpermove) == 0) )
       adjAmnt = 2;
 
     // 2.61 RC1: correct this to work with > -1 as well as < 1
-    if (ypermove == 0) { }
+    if (movelist_float_equals(ypermove, 0)) { }
     // Y per move is < 1, so finish the move
-    else if ((ypermove & 0xffff0000) == 0)
+    else if (trunc(ypermove) == 0)
       targety -= adjAmnt;
     // Y per move is -1 exactly, don't snap to finish
-    else if (ypermove == 0xffff0000) { }
+    else if (movelist_float_equals(ypermove, -1)) { }
     // Y per move is > -1, so finish the move
-    else if ((ypermove & 0xffff0000) == 0xffff0000)
+    else if (trunc(ypermove) == -1)
       targety += adjAmnt;
   }
-  else xps=cmls->fromx+(int)(fixtof(xpermove)*(float)cmls->onpart);
+  else xps=cmls->fromx+(int)(xpermove*(float)cmls->onpart);
 
   if (cmls->doneflag & 2) {
     // Y-movement has finished
@@ -104,25 +110,25 @@ int do_movelist_move(short*mlnum,int*xx,int*yy) {
     int adjAmnt = 3;
 
     // if the Y permove is also <=1, don't skip as far
-    if (((ypermove & 0xffff0000) == 0xffff0000) ||
-        ((ypermove & 0xffff0000) == 0x00000000))
+    if ((trunc(ypermove) == -1) ||
+        (trunc(ypermove) == 0))
       adjAmnt = 2;
 
-    if (xpermove == 0) { }
+    if (movelist_float_equals(xpermove, 0)) { }
     // Y per move is < 1, so finish the move
-    else if ((xpermove & 0xffff0000) == 0)
+    else if (trunc(xpermove) == 0)
       targetx -= adjAmnt;
     // X per move is -1 exactly, don't snap to finish
-    else if (xpermove == 0xffff0000) { }
+    else if (movelist_float_equals(xpermove, -1)) { }
     // X per move is > -1, so finish the move
-    else if ((xpermove & 0xffff0000) == 0xffff0000)
+    else if (trunc(xpermove) == -1)
       targetx += adjAmnt;
 
 /*    int xpmm=(xpermove >> 16) & 0x0000ffff;
 //    if ((xpmm==0) | (xpmm==0xffff)) cmls->doneflag|=1;
     if (xpmm==0) cmls->doneflag|=1;*/
     }
-  else yps=cmls->fromy+(int)(fixtof(ypermove)*(float)cmls->onpart);
+  else yps=cmls->fromy+(int)(ypermove*(float)cmls->onpart);
   // check if finished horizontal movement
   if (((xpermove > 0) && (xps >= targetx)) ||
       ((xpermove < 0) && (xps <= targetx))) {

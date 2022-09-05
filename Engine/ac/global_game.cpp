@@ -208,7 +208,10 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
 
     for (FindFile ff = FindFile::OpenFiles(svg_dir, pattern); !ff.AtEnd(); ff.Next())
     {
-        int saveGameSlot = Path::GetFileExtension(ff.Current()).ToInt();
+        String slotname = ff.Current();
+        if (!svg_suff.IsEmpty())
+            slotname.ClipRight(svg_suff.GetLength());
+        int saveGameSlot = Path::GetFileExtension(slotname).ToInt();
         // only list games .000 to .XXX (to allow higher slots for other perposes)
         if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) > top_index)
             continue;

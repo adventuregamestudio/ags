@@ -77,6 +77,19 @@ namespace AGS.Editor.Preferences
         Windowed = 2
     }
 
+    [Flags]
+    public enum BaseTheme
+    {
+        [Description("VS2005")]
+        VS2005 = 0,
+        [Description("VS2015BlueTheme")]
+        VS2015BlueTheme = 1,
+        [Description("VS2015DarkTheme")]
+        VS2015DarkTheme = 2,
+        [Description("VS2015LightTheme")]
+        VS2015LightTheme = 3
+    }
+
     public class ColorThemeTypeConverter : BaseListSelectTypeConverter<string, string>
     {
         protected override Dictionary<string, string> GetValueList(ITypeDescriptorContext context)
@@ -762,6 +775,25 @@ namespace AGS.Editor.Preferences
             {
                 if (value < 6) value = 6;
                 this["ScriptTipFontSize"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Base Theme")]
+        [Description("Select which base theme the editor should be using.")]
+        [Category("Editor Appearance")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("VS2015BlueTheme")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public BaseTheme BaseTheme
+        {
+            get
+            {
+                return (BaseTheme)(this["BaseTheme"]);
+            }
+            set
+            {
+                this["BaseTheme"] = value;
             }
         }
 

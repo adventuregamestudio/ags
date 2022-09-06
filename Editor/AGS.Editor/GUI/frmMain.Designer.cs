@@ -46,7 +46,16 @@ namespace AGS.Editor
             WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient7 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.mainContainer = new WeifenLuo.WinFormsUI.Docking.DockPanel();
-            this.mainContainer.Theme = new VS2015BlueTheme();
+            switch(Factory.AGSEditor.Settings.BaseTheme)
+            {
+                case Preferences.BaseTheme.VS2015BlueTheme: this.mainContainer.Theme = new VS2015BlueTheme(); break;
+                case Preferences.BaseTheme.VS2015DarkTheme: this.mainContainer.Theme = new VS2015DarkTheme(); break;
+                case Preferences.BaseTheme.VS2015LightTheme: this.mainContainer.Theme = new VS2015LightTheme(); break;
+
+                case Preferences.BaseTheme.VS2005: 
+                default:
+                    this.mainContainer.Theme = new VS2005Theme(); break;
+            }
             WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin1 = this.mainContainer.Theme.Skin;
             this.tabbedDocumentContainer1 = new AGS.Editor.TabbedDocumentManager(mainContainer);
             this.pnlCallStack = new AGS.Editor.CallStackPanel();

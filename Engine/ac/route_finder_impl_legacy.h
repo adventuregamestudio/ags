@@ -26,7 +26,7 @@ namespace RouteFinderLegacy {
 void init_pathfinder();
 void shutdown_pathfinder();
 
-void set_wallscreen(AGS::Common::Bitmap *wallscreen);
+void set_walkablearea(AGS::Common::Bitmap *walkablearea);
 
 int can_see_from(int x1, int y1, int x2, int y2);
 void get_lastcpos(int &lastcx, int &lastcy);

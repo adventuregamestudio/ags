@@ -45,7 +45,7 @@ static Point navpoints[MAXNAVPOINTS];
 static int num_navpoints;
 static float move_speed_x, move_speed_y;
 static Navigation nav;
-static Bitmap *wallscreen;
+static Bitmap *walkablearea;
 static int lastcx, lastcy;
 
 void init_pathfinder()
@@ -56,18 +56,18 @@ void shutdown_pathfinder()
 {
 }
 
-void set_wallscreen(Bitmap *wallscreen_) 
+void set_walkablearea(Bitmap *walkablearea_) 
 {
-  wallscreen = wallscreen_;
+  walkablearea = walkablearea_;
 }
 
-static void sync_nav_wallscreen()
+static void sync_nav_walkablearea()
 {
   // FIXME: this is dumb, but...
-  nav.Resize(wallscreen->GetWidth(), wallscreen->GetHeight());
+  nav.Resize(walkablearea->GetWidth(), walkablearea->GetHeight());
 
-  for (int y=0; y<wallscreen->GetHeight(); y++)
-    nav.SetMapRow(y, wallscreen->GetScanLine(y));
+  for (int y=0; y<walkablearea->GetHeight(); y++)
+    nav.SetMapRow(y, walkablearea->GetScanLine(y));
 }
 
 int can_see_from(int x1, int y1, int x2, int y2)
@@ -78,7 +78,7 @@ int can_see_from(int x1, int y1, int x2, int y2)
   if ((x1 == x2) && (y1 == y2))
     return 1;
 
-  sync_nav_wallscreen();
+  sync_nav_walkablearea();
 
   return !nav.TraceLine(x1, y1, x2, y2, lastcx, lastcy);
 }
@@ -92,7 +92,7 @@ void get_lastcpos(int &lastcx_, int &lastcy_)
 // new routing using JPS
 static int find_route_jps(int fromx, int fromy, int destx, int desty)
 {
-  sync_nav_wallscreen();
+  sync_nav_walkablearea();
 
   static std::vector<int> path, cpath;
   path.clear();
@@ -137,35 +137,35 @@ void set_route_move_speed(int speed_x, int speed_y)
 
 // Calculates the X and Y per game loop, for this stage of the
 // movelist
-void calculate_move_stage(MoveList * mlsp, int aaa)
+void calculate_move_stage(MoveList * mlsp, int index)
 {
   // work out the x & y per move. First, opp/adj=tan, so work out the angle
-  if (mlsp->pos[aaa] == mlsp->pos[aaa + 1]) {
-    mlsp->xpermove[aaa] = 0;
-    mlsp->ypermove[aaa] = 0;
+  if (mlsp->pos[index] == mlsp->pos[index + 1]) {
+    mlsp->xpermove[index] = 0;
+    mlsp->ypermove[index] = 0;
     return;
   }
 
-  int ourx = mlsp->pos[aaa].X;
-  int oury = mlsp->pos[aaa].Y;
-  int destx = mlsp->pos[aaa + 1].X;
-  int desty = mlsp->pos[aaa + 1].Y;
+  int ourx = mlsp->pos[index].X;
+  int oury = mlsp->pos[index].Y;
+  int destx = mlsp->pos[index + 1].X;
+  int desty = mlsp->pos[index + 1].Y;
 
   // Special case for vertical and horizontal movements
   if (ourx == destx) {
-    mlsp->xpermove[aaa] = 0;
-    mlsp->ypermove[aaa] = move_speed_y;
+    mlsp->xpermove[index] = 0;
+    mlsp->ypermove[index] = move_speed_y;
     if (desty < oury)
-      mlsp->ypermove[aaa] = -mlsp->ypermove[aaa];
+      mlsp->ypermove[index] = -mlsp->ypermove[index];
 
     return;
   }
 
   if (oury == desty) {
-    mlsp->xpermove[aaa] = move_speed_x;
-    mlsp->ypermove[aaa] = 0;
+    mlsp->xpermove[index] = move_speed_x;
+    mlsp->ypermove[index] = 0;
     if (destx < ourx)
-      mlsp->xpermove[aaa] = -mlsp->xpermove[aaa];
+      mlsp->xpermove[index] = -mlsp->xpermove[index];
 
     return;
   }
@@ -209,8 +209,8 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
   if (desty < oury)
     newymove = -newymove;
 
-  mlsp->xpermove[aaa] = newxmove;
-  mlsp->ypermove[aaa] = newymove;
+  mlsp->xpermove[index] = newxmove;
+  mlsp->ypermove[index] = newymove;
 }
 
 
@@ -218,7 +218,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
 {
   int i;
 
-  wallscreen = onscreen;
+  walkablearea = onscreen;
 
   num_navpoints = 0;
 
@@ -228,7 +228,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
     navpoints[0] = { srcx, srcy };
     navpoints[1] = { xx, yy };
   } else {
-    if ((nocross == 0) && (wallscreen->GetPixel(xx, yy) == 0))
+    if ((nocross == 0) && (walkablearea->GetPixel(xx, yy) == 0))
       return 0; // clicked on a wall
 
     find_route_jps(srcx, srcy, xx, yy);

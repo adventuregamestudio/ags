@@ -1022,7 +1022,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     Character_StopMoving(chaa);
     int movetox = xx, movetoy = yy;
 
-    set_wallscreen(prepare_walkable_areas(chaa->index_id));
+    set_walkablearea(prepare_walkable_areas(chaa->index_id));
 
     // TODO: hide these conversions, maybe make can_see_from() function do them internally in and out?
     int fromX = room_to_mask_coord(chaa->x);

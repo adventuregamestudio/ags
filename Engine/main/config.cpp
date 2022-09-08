@@ -372,6 +372,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.mouse_speed_def = StrUtil::ParseEnum<MouseSpeedDef>(
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
+        // Touch options
+        usetup.touch_emulate_mouse = CfgReadInt(cfg, "touch", "emulate_mouse", 1);
+
         // Various system options
         usetup.multitasking = CfgReadInt(cfg, "misc", "background", 0) != 0;
 

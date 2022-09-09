@@ -2,7 +2,8 @@ package org.libsdl.app;
 
 import android.content.Context;
 
-import java.lang.reflect.*;
+import java.lang.Class;
+import java.lang.reflect.Method;
 
 /**
     SDL library initialization
@@ -35,7 +36,6 @@ public class SDL {
         return mContext;
     }
 
-    @SuppressWarnings("unchecked") // prevents unchecked or unsafe warning that can be elevated to error by gradle
     public static void loadLibrary(String libraryName) throws UnsatisfiedLinkError, SecurityException, NullPointerException {
 
         if (libraryName == null) {
@@ -52,16 +52,16 @@ public class SDL {
             // To use ReLinker, just add it as a dependency.  For more information, see 
             // https://github.com/KeepSafe/ReLinker for ReLinker's repository.
             //
-            Class relinkClass = mContext.getClassLoader().loadClass("com.getkeepsafe.relinker.ReLinker");
-            Class relinkListenerClass = mContext.getClassLoader().loadClass("com.getkeepsafe.relinker.ReLinker$LoadListener");
-            Class contextClass = mContext.getClassLoader().loadClass("android.content.Context");
-            Class stringClass = mContext.getClassLoader().loadClass("java.lang.String");
+            Class<?> relinkClass = mContext.getClassLoader().loadClass("com.getkeepsafe.relinker.ReLinker");
+            Class<?> relinkListenerClass = mContext.getClassLoader().loadClass("com.getkeepsafe.relinker.ReLinker$LoadListener");
+            Class<?> contextClass = mContext.getClassLoader().loadClass("android.content.Context");
+            Class<?> stringClass = mContext.getClassLoader().loadClass("java.lang.String");
 
             // Get a 'force' instance of the ReLinker, so we can ensure libraries are reinstalled if 
             // they've changed during updates.
             Method forceMethod = relinkClass.getDeclaredMethod("force");
             Object relinkInstance = forceMethod.invoke(null);
-            Class relinkInstanceClass = relinkInstance.getClass();
+            Class<?> relinkInstanceClass = relinkInstance.getClass();
 
             // Actually load the library!
             Method loadMethod = relinkInstanceClass.getDeclaredMethod("loadLibrary", contextClass, stringClass, stringClass, relinkListenerClass);
@@ -78,7 +78,7 @@ public class SDL {
             catch (final SecurityException se) {
                 throw se;
             }
-        }        
+        }
     }
 
     protected static Context mContext;

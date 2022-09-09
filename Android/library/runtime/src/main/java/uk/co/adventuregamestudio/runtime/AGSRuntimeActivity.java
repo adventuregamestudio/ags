@@ -58,7 +58,6 @@ public class AGSRuntimeActivity extends SDLActivity {
     @Override
     protected String[] getLibraries() {
         return new String[] {
-                "hidapi",
                 "SDL2",
                 "engine",
                 "ags"

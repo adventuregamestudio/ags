@@ -1740,6 +1740,11 @@ namespace AGS.Editor.Components
                 _maskCache[mask] = bmp.Clone() as Bitmap;
                 _loadedRoom.Modified = true;
             }
+            else if (!_maskCache.ContainsKey(mask) || _maskCache[mask] == null)
+            {
+                // we can get here while opening a room the first time, and after closing it without saving then reopening
+                _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
+            }
         }
 
         int IRoomController.GetAreaMaskPixel(RoomAreaMaskType maskType, int x, int y)
@@ -1992,8 +1997,20 @@ namespace AGS.Editor.Components
 
         private void RefreshMask(RoomAreaMaskType mask)
         {
-            _maskCache[mask]?.Dispose();
-            _maskCache[mask] = LoadMask(mask);
+            Bitmap bmp = LoadMask(mask);
+
+            if (ValidateMask(mask, bmp))
+            {
+                _maskCache[mask]?.Dispose();
+                _maskCache[mask] = bmp;
+            }
+            else // invalid source, try to recover
+            {
+                if (_maskCache[mask] != null) return; // there's already a previous version in cache, no need to do anything
+
+                // create an empty mask
+                _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
+            }
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 
@@ -2010,6 +2027,12 @@ namespace AGS.Editor.Components
                 _guiController.ShowMessage($"Trying to set an invalid {type} mask, make sure it's an 8-bit image.", MessageBoxIcon.Warning);
                 return false;
             }
+
+            // normalize palette because a png can have partial palettes
+            var temp_bitmap = new Bitmap(1, 1, PixelFormat.Format8bppIndexed); // needed to create a fresh 256 palette, ColorPalette can't be created alone
+            newMask.Palette = temp_bitmap.Palette;
+            temp_bitmap.Dispose();
+            newMask.SetPaletteFromGlobalPalette(); // enforce default mask palette
 
             int maxColor = Room.GetMaskMaxColor(type);
             bool invalidPixel = false;

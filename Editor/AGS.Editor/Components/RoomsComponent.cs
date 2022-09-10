@@ -1812,7 +1812,7 @@ namespace AGS.Editor.Components
                         // if a bright colour, use it, else, draw in red
                         paletteDrawing.Entries[selectedArea] = selectedArea < 15 && selectedArea != 7 && selectedArea != 8
                             ? _agsEditor.CurrentGame.Palette[selectedArea].Colour
-                            : Color.FromArgb(60, 0, 0);
+                            : Color.FromArgb(255, 0, 0);
                     }
                 }
 

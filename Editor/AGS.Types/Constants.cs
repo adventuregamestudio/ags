@@ -10,7 +10,7 @@ namespace AGS.Types
 		public const string AUTOCOMPLETE_ACCEPT_KEYS = "([,.=+-";
         public const string IMAGE_FILE_FILTER = "All supported images (*.bmp; *.gif; *.jpg; *.png; *.tif; *.tiff)|*.bmp;*.gif;*.jpg;*.png;*.tif;*.tiff|Windows bitmap files (*.bmp)|*.bmp|Compuserve Graphics Interchange (*.gif)|*.gif|JPEG (*.jpg)|*.jpg|Portable Network Graphics (*.png)|*.png|Tagged Image File (*.tif; *.tiff)|*.tif;*.tiff";
         public const string FONT_FILE_FILTER = "All supported fonts (font.*; *.ttf; *.wfn)|font.*;*.ttf;*.wfn|TrueType font files (*.ttf)|*.ttf|SCI font files (FONT.*)|font.*|WFN font files (*.wfn)|*.wfn";
-        public const string MASK_IMAGE_FILE_FILTER = "Windows bitmap files (*.bmp)|*.bmp";
+        public const string MASK_IMAGE_FILE_FILTER = "All supported images(*.bmp; *.png)|*.bmp;*.png|Windows bitmap files (*.bmp)|*.bmp|Portable Network Graphics (*.png)|*.png";
         public const string GAME_TEMPLATE_FILE_FILTER = "AGS game template files (*.agt)|*.agt";
         public const string ROOM_TEMPLATE_FILE_FILTER = "AGS room template files (*.art)|*.art";
 	}

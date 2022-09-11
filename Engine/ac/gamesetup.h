@@ -48,10 +48,11 @@ enum TouchMouseEmulation
 {
     // don't emulate mouse
     kTouchMouse_None = 0,
+    // copy default SDL2 behavior:
     // touch down means hold LMB down, no RMB emulation
     kTouchMouse_OneFingerDrag,
     // tap 1,2 fingers means LMB/RMB click;
-    // longpress means stick LMB/RMB down until next tap
+    // double tap + drag 1 finger would drag the cursor with LMB down
     kTouchMouse_TwoFingersTap
 };
 

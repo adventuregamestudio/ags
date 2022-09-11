@@ -512,7 +512,21 @@ namespace AGS.Editor
                 {
                     using (Bitmap bmp = _roomController.GetMask(MaskToDraw))
                     {
-                        bmp.Save(fileName, ImageFormat.Bmp);
+                        string extension = System.IO.Path.GetExtension(fileName).ToLower();
+                        ImageFormat format = null;
+                        switch (extension)
+                        {
+                            case ".bmp": format = ImageFormat.Bmp; break;
+                            case ".png": format = ImageFormat.Png; break;
+                        }
+                        if (format != null)
+                        {
+                            bmp.Save(fileName, format);
+                        }
+                        else
+                        {
+                            Factory.GUIController.ShowMessage("Invalid file extension '" + extension + "'. Format not recognised.", System.Windows.Forms.MessageBoxIcon.Warning);
+                        }
                     }
                 }
             }

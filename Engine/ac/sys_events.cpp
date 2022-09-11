@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/sys_events.h"
+#include <chrono>
 #include <deque>
 #include <SDL.h>
 #include "core/platform.h"
@@ -492,10 +493,16 @@ int ags_check_mouse_wheel() {
 // Accumulated finger bits (a collection of bits shifted by finger index)
 static int fingers_down = 0;
 // For touch-to-mouse emulation:
-// ignore touch motion
 static Point touch_mouse_pos;
 static bool touch_mouse_ignore_motion = false;
 static int touch_mouse_force_button = 0;
+static int touch_mouse_drag_down = 0;
+// Double tap detection
+// The last tapping action timestamp
+static auto touch_last_tap_ts = AGS_Clock::now();
+static auto touch_last_tap_finger = 0;
+static auto touch_tap_count = 0;
+static auto touch_quick_tap_delay = std::chrono::milliseconds(300);
 
 // Converts touch finger index to the emulated mouse button
 static int tfinger_to_mouse_but(int finger)
@@ -532,10 +539,27 @@ static void send_mouse_motion_event(int x, int y, int xrel, int yrel)
     SDL_PushEvent(&evt);
 }
 
+static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
+{
+    auto tap_ts = AGS_Clock::now();
+    if ((touch_last_tap_finger == event.fingerId) &&
+        (tap_ts < (touch_last_tap_ts + touch_quick_tap_delay)))
+    {
+        if (down) touch_tap_count++;
+    }
+    else
+    {
+        touch_tap_count = down ? 1 : 0;
+    }
+    touch_last_tap_ts = tap_ts;
+    touch_last_tap_finger = event.fingerId;
+}
+
 void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 {
     fingers_down |= 1 << event.fingerId;
     Debug::Printf("on_sdl_touch_down: fingers_down = 0x%x", fingers_down);
+    detect_double_tap(event, true);
 
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
     int w = gfxDriver->GetDisplayMode().Width;
@@ -555,9 +579,24 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
     }
     case kTouchMouse_TwoFingersTap:
     {
+        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        // Handle double tap for drag-n-drop movement
+        if ((mouse_but == SDL_BUTTON_LEFT) && (touch_tap_count == 2))
+        {
+            touch_mouse_drag_down = SDL_BUTTON_LEFT;
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, touch_mouse_drag_down,
+                touch_mouse_pos.X, touch_mouse_pos.Y);
+        }
+        // If another finger was down, then unpress the drag
+        else if (touch_mouse_drag_down > 0)
+        {
+            touch_mouse_drag_down = 0;
+            send_mouse_button_event(SDL_MOUSEBUTTONUP, touch_mouse_drag_down,
+                touch_mouse_pos.X, touch_mouse_pos.Y);
+        }
+
         // If only the first finger is down: allow to move the cursor;
         // otherwise, ignore the movement for now
-        int mouse_but = tfinger_to_mouse_but(event.fingerId);
         if ((!touch_mouse_ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
             touch_mouse_pos = Point(event.x * w, event.y * h);
@@ -581,6 +620,7 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
 {
     fingers_down &= ~(1 << event.fingerId);
     Debug::Printf("on_sdl_touch_up: fingers_down = 0x%x", fingers_down);
+    detect_double_tap(event, false);
 
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
     int w = gfxDriver->GetDisplayMode().Width;
@@ -606,11 +646,20 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         if ((mouse_but > 0) &&
             ((touch_mouse_force_button == 0) || (mouse_but == touch_mouse_force_button)))
         {
-            // Perform a "click" (send both mouse button down and up)
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but,
-                touch_mouse_pos.X, touch_mouse_pos.Y);
-            send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but,
-                touch_mouse_pos.X, touch_mouse_pos.Y);
+            // If was dragging, then only release
+            if (touch_mouse_drag_down)
+            {
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, touch_mouse_drag_down,
+                    touch_mouse_pos.X, touch_mouse_pos.Y);
+            }
+            // Else perform a "click" (send both mouse button down and up)
+            else
+            {
+                send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but,
+                    touch_mouse_pos.X, touch_mouse_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but,
+                    touch_mouse_pos.X, touch_mouse_pos.Y);
+            }
         }
         // If all fingers are up, reset the locked mouse motion and forced button
         if (fingers_down == 0)

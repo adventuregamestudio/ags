@@ -464,7 +464,7 @@ namespace AGS.Editor
         {
             try
             {
-                using (Bitmap bmp = new Bitmap(fileName))
+                using (Bitmap bmp = BitmapExtensions.LoadNonLockedBitmap(fileName))
                 {
                     if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height))))
                     {

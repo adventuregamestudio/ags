@@ -494,15 +494,18 @@ int ags_check_mouse_wheel() {
 static int fingers_down = 0;
 // For touch-to-mouse emulation:
 static Point touch_mouse_pos;
+static Point touch_mouse_start_pos;
+const float touch_drag_trigger_dist = 0.05f; // relative to screen size
 static bool touch_mouse_ignore_motion = false;
 static int touch_mouse_force_button = 0;
-static int touch_mouse_drag_down = 0;
+static bool touch_mouse_is_dragging = false; // dragging cursor around
+static int touch_mouse_drag_down = 0; // dragging with emulated button down
 // Double tap detection
 // The last tapping action timestamp
 static auto touch_last_tap_ts = AGS_Clock::now();
 static auto touch_last_tap_finger = 0;
 static auto touch_tap_count = 0;
-static auto touch_quick_tap_delay = std::chrono::milliseconds(300);
+const auto touch_quick_tap_delay = std::chrono::milliseconds(300);
 
 // Converts touch finger index to the emulated mouse button
 static int tfinger_to_mouse_but(int finger)
@@ -590,9 +593,9 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         // If another finger was down, then unpress the drag
         else if (touch_mouse_drag_down > 0)
         {
-            touch_mouse_drag_down = 0;
             send_mouse_button_event(SDL_MOUSEBUTTONUP, touch_mouse_drag_down,
                 touch_mouse_pos.X, touch_mouse_pos.Y);
+            touch_mouse_drag_down = 0;
         }
 
         // If only the first finger is down: allow to move the cursor;
@@ -600,6 +603,8 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         if ((!touch_mouse_ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
             touch_mouse_pos = Point(event.x * w, event.y * h);
+            touch_mouse_start_pos = touch_mouse_pos;
+            touch_mouse_is_dragging = false;
             send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y, 0, 0 /* TODO? */);
         }
         // If more than one finger was down, lock the cursor motion,
@@ -635,6 +640,7 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         if (mouse_but == SDL_BUTTON_LEFT)
         {
             send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, event.x * w, event.y * h);
+            touch_mouse_is_dragging = false;
         }
         break;
     }
@@ -651,9 +657,11 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
             {
                 send_mouse_button_event(SDL_MOUSEBUTTONUP, touch_mouse_drag_down,
                     touch_mouse_pos.X, touch_mouse_pos.Y);
+                touch_mouse_drag_down = 0;
             }
-            // Else perform a "click" (send both mouse button down and up)
-            else
+            // Else, if was not dragging around, then perform a "click"
+            // (send both mouse button down and up)
+            else if (!touch_mouse_is_dragging)
             {
                 send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but,
                     touch_mouse_pos.X, touch_mouse_pos.Y);
@@ -666,6 +674,7 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         {
             touch_mouse_ignore_motion = false;
             touch_mouse_force_button = 0;
+            touch_mouse_is_dragging = false;
         }
         break;
     }
@@ -691,6 +700,11 @@ void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
         {
             touch_mouse_pos = Point(event.x * w, event.y * h);
             send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y, 0, 0 /* TODO? */);
+            Point trigger_dist(w * touch_drag_trigger_dist, h * touch_drag_trigger_dist);
+            if (DistanceBetween(touch_mouse_pos, touch_mouse_start_pos) >= touch_drag_trigger_dist)
+            {
+                touch_mouse_is_dragging = true;
+            }
         }
     }
     default: break; // do nothing

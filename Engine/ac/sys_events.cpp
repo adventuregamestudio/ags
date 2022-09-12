@@ -14,6 +14,7 @@
 #include "ac/sys_events.h"
 #include <chrono>
 #include <deque>
+#include <math.h>
 #include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
@@ -576,7 +577,7 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         int mouse_but = tfinger_to_mouse_but(event.fingerId);
         if (mouse_but == SDL_BUTTON_LEFT)
         {
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but, event.x * w, event.y * h);
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but, std::roundf(event.x * w), std::roundf(event.y * h));
         }
         break;
     }
@@ -602,10 +603,11 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         // otherwise, ignore the movement for now
         if ((!touch_mouse_ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
-            touch_mouse_pos = Point(event.x * w, event.y * h);
+            touch_mouse_pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
             touch_mouse_start_pos = touch_mouse_pos;
             touch_mouse_is_dragging = false;
-            send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y, 0, 0 /* TODO? */);
+            // NOTE: send motion event without dx/dy data, to prevent cursor jumps in relative mode
+            send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y, 0, 0);
         }
         // If more than one finger was down, lock the cursor motion,
         // and force any following emulated clicks to RMB,
@@ -639,7 +641,7 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         int mouse_but = tfinger_to_mouse_but(event.fingerId);
         if (mouse_but == SDL_BUTTON_LEFT)
         {
-            send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, event.x * w, event.y * h);
+            send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, std::roundf(event.x * w), std::roundf(event.y * h));
             touch_mouse_is_dragging = false;
         }
         break;
@@ -698,9 +700,11 @@ void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
         int mouse_but = tfinger_to_mouse_but(event.fingerId);
         if ((!touch_mouse_ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
-            touch_mouse_pos = Point(event.x * w, event.y * h);
-            send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y, 0, 0 /* TODO? */);
-            Point trigger_dist(w * touch_drag_trigger_dist, h * touch_drag_trigger_dist);
+            const Point prev_pos = touch_mouse_pos;
+            touch_mouse_pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
+            send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y,
+                touch_mouse_pos.X - prev_pos.X, touch_mouse_pos.Y - prev_pos.Y);
+            Point trigger_dist(std::roundf(w * touch_drag_trigger_dist), std::roundf(h * touch_drag_trigger_dist));
             if (DistanceBetween(touch_mouse_pos, touch_mouse_start_pos) >= touch_drag_trigger_dist)
             {
                 touch_mouse_is_dragging = true;
@@ -820,7 +824,8 @@ void sys_evt_process_one(const SDL_Event &event) {
         break;
     // MOUSE INPUT
     case SDL_MOUSEMOTION:
-        Debug::Printf("SDL_MOUSEMOTION: event.motion.which: %d (%d, %d)", event.motion.which, event.motion.x, event.motion.y);
+        Debug::Printf("SDL_MOUSEMOTION: event.motion.which: %d (%d, %d) - rel(%d, %d)",
+            event.motion.which, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
         on_sdl_mouse_motion(event.motion);
         break;
     case SDL_MOUSEBUTTONDOWN:
@@ -835,15 +840,16 @@ void sys_evt_process_one(const SDL_Event &event) {
         break;
     // TOUCH INPUT
     case SDL_FINGERDOWN:
-        Debug::Printf("SDL_FINGERDOWN: tfinger: %d at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+        Debug::Printf("SDL_FINGERDOWN: tfinger: %lld at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
         on_sdl_touch_down(event.tfinger);
         break;
     case SDL_FINGERUP:
-        Debug::Printf("SDL_FINGERUP: tfinger: %d at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+        Debug::Printf("SDL_FINGERUP: tfinger: %lld at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
         on_sdl_touch_up(event.tfinger);
         break;
     case SDL_FINGERMOTION:
-        Debug::Printf("SDL_FINGERMOTION: tfinger: %d at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+        Debug::Printf("SDL_FINGERMOTION: tfinger: %lld at %.3f, %.3f; dxy: %.3f, %.3f",
+            event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, event.tfinger.dx, event.tfinger.dy);
         on_sdl_touch_motion(event.tfinger);
         break;
     default: break;

@@ -391,7 +391,7 @@ struct Circle
 // Calculates a distance between two points
 inline float DistanceBetween(const Point &p1, const Point &p2)
 {
-    return std::sqrt(((p2.X - p1.X) ^ 2) + ((p2.Y - p1.Y) ^ 2));
+    return static_cast<float>(std::sqrt(((p2.X - p1.X) ^ 2) + ((p2.Y - p1.Y) ^ 2)));
 }
 
 // Tells if two rectangles intersect (overlap) at least partially

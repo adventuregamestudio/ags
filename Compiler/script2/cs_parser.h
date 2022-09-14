@@ -791,7 +791,7 @@ private:
     // call the attribute function corresponding to LHS.
     void AccessData_AssignTo(SrcList &expression, EvaluationResult eres);
 
-    void SkipToEndOfExpression();
+    void SkipToEndOfExpression(SrcList &src);
 
     // We are parsing the left hand side of a '+=' or similar statement.
     void ParseAssignment_ReadLHSForModification(SrcList &lhs, EvaluationResult &eres);

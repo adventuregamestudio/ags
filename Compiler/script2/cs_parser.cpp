@@ -2773,7 +2773,11 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
         EvaluationResult eres;
 
         SrcList current_param = SrcList(parameters, start_of_current_param, end_of_current_param - start_of_current_param);
-        ParseExpression_Term(current_param, eres);
+        // Note, don't use 'ParseExpression_Term()' here; that function doesn't check
+        // whether its parameter is nothing but an expression.
+        ParseExpression(current_param, eres);
+        if (!current_param.ReachedEOF())
+            Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, current_param.PeekNext());
         EvaluationResultToAx(eres);
 
         if (param_num <= num_func_args) // we know what type to expect
@@ -3867,7 +3871,7 @@ void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult eres
     _src.SetCursor(end_of_rhs_cursor); // move cursor back to end of RHS
 }
 
-void AGS::Parser::SkipToEndOfExpression()
+void AGS::Parser::SkipToEndOfExpression(SrcList &src)
 {
     int nesting_depth = 0;
 
@@ -3881,7 +3885,7 @@ void AGS::Parser::SkipToEndOfExpression()
     int tern_depth = 0;
 
     Symbol peeksym;
-    while (0 <= (peeksym = _src.PeekNext())) // note assignment in while condition
+    while (0 <= (peeksym = src.PeekNext())) // note assignment in while condition
     {
         // Skip over parts that are enclosed in braces, brackets, or parens
         if (kKW_OpenParenthesis == peeksym || kKW_OpenBracket == peeksym || kKW_OpenBrace == peeksym)
@@ -3891,7 +3895,7 @@ void AGS::Parser::SkipToEndOfExpression()
                 break; // this symbol cannot be part of the current expression
         if (nesting_depth > 0)
         {
-            _src.GetNext();
+            src.GetNext();
             continue;
         }
 
@@ -3901,50 +3905,50 @@ void AGS::Parser::SkipToEndOfExpression()
             if (--tern_depth < 0)
                 break;
 
-            _src.GetNext(); // Eat ':'
+            src.GetNext(); // Eat ':'
             continue;
         }
 
         if (kKW_Dot == peeksym)
         {
-            _src.GetNext(); // Eat '.'
-            _src.GetNext(); // Eat following symbol
+            src.GetNext(); // Eat '.'
+            src.GetNext(); // Eat following symbol
             continue;
         }
 
         if (kKW_New == peeksym)
         {   // Only allowed if a type follows   
-            _src.GetNext(); // Eat 'new'
-            Symbol const sym_after_new = _src.PeekNext();
+            src.GetNext(); // Eat 'new'
+            Symbol const sym_after_new = src.PeekNext();
             if (_sym.IsVartype(sym_after_new))
             {
-                _src.GetNext(); // Eat symbol after 'new'
+                src.GetNext(); // Eat symbol after 'new'
                 continue;
             }
-            _src.BackUp(); // spit out 'new'
+            src.BackUp(); // spit out 'new'
             break;
         }
 
         if (kKW_Null == peeksym)
         {   // Allowed.
-            _src.GetNext(); // Eat 'null'
+            src.GetNext(); // Eat 'null'
             continue;
         }
 
         if (kKW_Tern == peeksym)
         {
             tern_depth++;
-            _src.GetNext(); // Eat '?'
+            src.GetNext(); // Eat '?'
             continue;
         }
 
         if (_sym.IsVartype(peeksym))
         {   // Only allowed if a dot follows
-            _src.GetNext(); // Eat the vartype
-            Symbol const nextsym = _src.PeekNext();
+            src.GetNext(); // Eat the vartype
+            Symbol const nextsym = src.PeekNext();
             if (kKW_Dot == nextsym)
                 continue; // Do not eat the dot.
-            _src.BackUp(); // spit out the vartype
+            src.BackUp(); // spit out the vartype
             break;
         }
 
@@ -3952,13 +3956,13 @@ void AGS::Parser::SkipToEndOfExpression()
         if (kKW_NoSymbol != vartype_of_this &&
             0 < _sym[vartype_of_this].VartypeD->Components.count(peeksym))
         {
-            _src.GetNext(); // Eat the peeked symbol
+            src.GetNext(); // Eat the peeked symbol
             continue;
         }
 
         if (!_sym.CanBePartOfAnExpression(peeksym))
             break;
-        _src.GetNext(); // Eat the peeked symbol
+        src.GetNext(); // Eat the peeked symbol
     }
 
     if (nesting_depth > 0)
@@ -3967,15 +3971,15 @@ void AGS::Parser::SkipToEndOfExpression()
 
 void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eres)
 {
-    size_t const expr_start = _src.GetCursor();
-    SkipToEndOfExpression();
-    SrcList expression = SrcList(_src, expr_start, _src.GetCursor() - expr_start);
+    size_t const expr_start = src.GetCursor();
+    SkipToEndOfExpression(src);
+    SrcList expression = SrcList(src, expr_start, src.GetCursor() - expr_start);
     if (0 == expression.Length())
-        UserError("Expected an expression, found '%s' instead", _sym.GetName(_src.GetNext()).c_str());
+        UserError("Expected an expression, found '%s' instead", _sym.GetName(src.GetNext()).c_str());
 
-    size_t const expr_end = _src.GetCursor();
+    size_t const expr_end = src.GetCursor();
     ParseExpression_Term(expression, eres);
-    _src.SetCursor(expr_end);
+    src.SetCursor(expr_end);
     return;
 }
 
@@ -6046,7 +6050,7 @@ void AGS::Parser::ParseAssignmentOrExpression()
 {    
     // Get expression
     size_t const expr_start = _src.GetCursor();
-    SkipToEndOfExpression();
+    SkipToEndOfExpression(_src);
     SrcList expression = SrcList(_src, expr_start, _src.GetCursor() - expr_start);
 
     if (expression.Length() == 0)

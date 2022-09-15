@@ -356,6 +356,7 @@ namespace AGS.CScript.Compiler
 						int endOfString = FindIndexOfMatchingCharacter(text, i, text[i]);
 						if (endOfString < 0)
 						{
+							RecordError(ErrorCode.UnterminatedString, "Unterminated string");
 							break;
 						}
 						endOfString++;

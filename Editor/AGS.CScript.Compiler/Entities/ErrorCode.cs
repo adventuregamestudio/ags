@@ -44,6 +44,7 @@ namespace AGS.CScript.Compiler
         VariableDeclarationNotAllowedHere,
         MemberFunctionNotDefined,
         ParentIsNotAStruct,
-        InvalidUseOfStruct
+        InvalidUseOfStruct,
+        UnterminatedString
 	}
 }

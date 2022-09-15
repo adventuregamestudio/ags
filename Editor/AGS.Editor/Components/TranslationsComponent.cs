@@ -218,6 +218,11 @@ namespace AGS.Editor.Components
         private void DoTranslationUpdate(IList<Translation> translations)
         {
             _agsEditor.SaveGameFiles();
+            
+            // reload current translations, in case the trs files were modified externally
+            foreach (Translation translation in translations)
+                translation.LoadData();
+
             CompileMessages messages = (CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...", new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translations);
             _guiController.ShowOutputPanel(messages);
             if (!messages.HasErrors)

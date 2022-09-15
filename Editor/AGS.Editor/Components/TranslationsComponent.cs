@@ -149,7 +149,11 @@ namespace AGS.Editor.Components
         {
             List<Translation> translations = (List<Translation>)translationList;
             TranslationGenerator generator = new TranslationGenerator();
-            CompileMessages errors = generator.CreateTranslationList(_agsEditor.CurrentGame);
+            CompileMessages messages = generator.CreateTranslationList(_agsEditor.CurrentGame);
+
+            if (messages.HasErrors)
+                return messages; // abort for avoiding corrupting translations
+
             foreach (string line in generator.LinesForTranslation)
             {
                 foreach (Translation translation in translations)
@@ -171,15 +175,18 @@ namespace AGS.Editor.Components
                     }
                 }
             }
-            return errors;
+            return messages;
         }
 
         private void DoTranslationUpdate(IList<Translation> translations)
         {
             _agsEditor.SaveGameFiles();
-            CompileMessages errors = (CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...", new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translations);
-            _guiController.ShowOutputPanel(errors);
-            _guiController.ShowMessage("Translation(s) updated.", MessageBoxIcon.Information);
+            CompileMessages messages = (CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...", new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translations);
+            _guiController.ShowOutputPanel(messages);
+            if (!messages.HasErrors)
+                _guiController.ShowMessage("Translation(s) updated.", MessageBoxIcon.Information);
+            else
+                _guiController.ShowMessage("Translation(s) update failed. Check the output window for details.", MessageBoxIcon.Error);
         }
 
         private void UpdateAllTranslationsWithNewDefaultText(Dictionary<string, string> textChanges, CompileMessages errors)

@@ -2501,3 +2501,22 @@ TEST_F(Compile1, LongMin03) {
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
 }
+
+TEST_F(Compile1, AssignmentInParameterList1)
+{
+    // An expression cannot contain an assignment symbol '='.
+    // Each parameter must comprise an expression, no trailing symbols
+
+    const char *inpl = "\
+        int test(int x)     \n\
+        {                   \n\
+            int i = 0;      \n\
+            test(i = 99);   \n\
+        }                   \n\
+        ";
+    int compile_result = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
+    EXPECT_NE(std::string::npos, msg.find("'\='"));
+}
+

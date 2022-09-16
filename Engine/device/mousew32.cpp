@@ -95,10 +95,8 @@ void mgetgraphpos()
         // Use relative mouse movement; speed factor should already be applied by SDL in this mode
         int rel_x, rel_y;
         ags_mouse_get_relxy(rel_x, rel_y);
-        Point old_pos = Point(real_mouse_x, real_mouse_y);
         real_mouse_x = Math::Clamp(real_mouse_x + rel_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
         real_mouse_y = Math::Clamp(real_mouse_y + rel_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
-        Debug::Printf("mouse control: real was %d,%d; rel = %d,%d; result = %d,%d", old_pos.X, old_pos.Y, rel_x, rel_y, real_mouse_x, real_mouse_y);
     }
     else
     {

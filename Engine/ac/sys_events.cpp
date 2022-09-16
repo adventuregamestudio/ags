@@ -491,22 +491,42 @@ int ags_check_mouse_wheel() {
 // TOUCH INPUT
 // ----------------------------------------------------------------------------
 
-// Accumulated finger bits (a collection of bits shifted by finger index)
-static int fingers_down = 0;
-// For touch-to-mouse emulation:
-static Point touch_mouse_pos;
-static Point touch_mouse_start_pos;
-const float touch_drag_trigger_dist = 0.05f; // relative to screen size
-static bool touch_mouse_ignore_motion = false;
-static int touch_mouse_force_button = 0;
-static bool touch_mouse_is_dragging = false; // dragging cursor around
-static int touch_mouse_drag_down = 0; // dragging with emulated button down
-// Double tap detection
-// The last tapping action timestamp
-static auto touch_last_tap_ts = AGS_Clock::now();
-static auto touch_last_tap_finger = 0;
-static auto touch_tap_count = 0;
-const auto touch_quick_tap_delay = std::chrono::milliseconds(300);
+// Touch input state
+struct TouchState
+{
+    // Accumulated finger bits (a collection of bits shifted by finger index)
+    int fingers_down = 0;
+    // Double tap detection
+    // Max delay between finger actions which will still count as double tap
+    const std::chrono::milliseconds quick_tap_delay = std::chrono::milliseconds(300);
+    // The last tapping action timestamp
+    AGS_Clock::time_point last_tap_ts = AGS_Clock::now();
+    // The last tap's finger index
+    int last_tap_finger = 0;
+    // Same finger consecutive taps counter
+    int tap_count = 0;
+} static touch;
+
+// Touch-to-mouse emulation
+struct Touch2Mouse
+{
+    // Current (last) emulated mouse position
+    Point pos;
+    // Starting emulated mouse position (needed for drag detection)
+    Point start_pos;
+    // Minimal finger motion required to begin cursor drag
+    const float drag_trigger_dist = 0.05f; // relative to screen size
+    // Tells to not translation finger motion events into the emulated mouse
+    bool ignore_motion = false;
+    // Tells to ignore any finger action other than the finger that
+    // emulates given button (SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT etc)
+    int force_button = 0;
+    // Tells that the cursor is being dragged around
+    bool is_dragging = false;
+    // Which emulated mouse button is down while dragging the cursor
+    int drag_down = 0;
+} static t2m;
+
 
 // Converts touch finger index to the emulated mouse button
 static int tfinger_to_mouse_but(int finger)
@@ -546,23 +566,22 @@ static void send_mouse_motion_event(int x, int y, int xrel, int yrel)
 static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
 {
     auto tap_ts = AGS_Clock::now();
-    if ((touch_last_tap_finger == event.fingerId) &&
-        (tap_ts < (touch_last_tap_ts + touch_quick_tap_delay)))
+    if ((touch.last_tap_finger == event.fingerId) &&
+        (tap_ts < (touch.last_tap_ts + touch.quick_tap_delay)))
     {
-        if (down) touch_tap_count++;
+        if (down) touch.tap_count++;
     }
     else
     {
-        touch_tap_count = down ? 1 : 0;
+        touch.tap_count = down ? 1 : 0;
     }
-    touch_last_tap_ts = tap_ts;
-    touch_last_tap_finger = event.fingerId;
+    touch.last_tap_ts = tap_ts;
+    touch.last_tap_finger = event.fingerId;
 }
 
 void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 {
-    fingers_down |= 1 << event.fingerId;
-    Debug::Printf("on_sdl_touch_down: fingers_down = 0x%x", fingers_down);
+    touch.fingers_down |= 1 << event.fingerId;
     detect_double_tap(event, true);
 
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
@@ -585,37 +604,37 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
     {
         int mouse_but = tfinger_to_mouse_but(event.fingerId);
         // Handle double tap for drag-n-drop movement
-        if ((mouse_but == SDL_BUTTON_LEFT) && (touch_tap_count == 2))
+        if ((mouse_but == SDL_BUTTON_LEFT) && (touch.tap_count == 2))
         {
-            touch_mouse_drag_down = SDL_BUTTON_LEFT;
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, touch_mouse_drag_down,
-                touch_mouse_pos.X, touch_mouse_pos.Y);
+            t2m.drag_down = SDL_BUTTON_LEFT;
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, t2m.drag_down,
+                t2m.pos.X, t2m.pos.Y);
         }
         // If another finger was down, then unpress the drag
-        else if (touch_mouse_drag_down > 0)
+        else if (t2m.drag_down > 0)
         {
-            send_mouse_button_event(SDL_MOUSEBUTTONUP, touch_mouse_drag_down,
-                touch_mouse_pos.X, touch_mouse_pos.Y);
-            touch_mouse_drag_down = 0;
+            send_mouse_button_event(SDL_MOUSEBUTTONUP, t2m.drag_down,
+                t2m.pos.X, t2m.pos.Y);
+            t2m.drag_down = 0;
         }
 
         // If only the first finger is down: allow to move the cursor;
         // otherwise, ignore the movement for now
-        if ((!touch_mouse_ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
+        if ((!t2m.ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
-            touch_mouse_pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
-            touch_mouse_start_pos = touch_mouse_pos;
-            touch_mouse_is_dragging = false;
+            t2m.pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
+            t2m.start_pos = t2m.pos;
+            t2m.is_dragging = false;
             // NOTE: send motion event without dx/dy data, to prevent cursor jumps in relative mode
-            send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y, 0, 0);
+            send_mouse_motion_event(t2m.pos.X, t2m.pos.Y, 0, 0);
         }
         // If more than one finger was down, lock the cursor motion,
         // and force any following emulated clicks to RMB,
         // until *all* the fingers are released
-        if (fingers_down != 1)
+        if (touch.fingers_down != 1)
         {
-            touch_mouse_ignore_motion = true;
-            touch_mouse_force_button = SDL_BUTTON_RIGHT;
+            t2m.ignore_motion = true;
+            t2m.force_button = SDL_BUTTON_RIGHT;
         }
         break;
     }
@@ -625,8 +644,7 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 
 void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
 {
-    fingers_down &= ~(1 << event.fingerId);
-    Debug::Printf("on_sdl_touch_up: fingers_down = 0x%x", fingers_down);
+    touch.fingers_down &= ~(1 << event.fingerId);
     detect_double_tap(event, false);
 
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
@@ -642,7 +660,7 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         if (mouse_but == SDL_BUTTON_LEFT)
         {
             send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, std::roundf(event.x * w), std::roundf(event.y * h));
-            touch_mouse_is_dragging = false;
+            t2m.is_dragging = false;
         }
         break;
     }
@@ -652,31 +670,31 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
         // If there's a force button set, then click only if the current button matches it;
         // otherwise use whatever was released
         if ((mouse_but > 0) &&
-            ((touch_mouse_force_button == 0) || (mouse_but == touch_mouse_force_button)))
+            ((t2m.force_button == 0) || (mouse_but == t2m.force_button)))
         {
             // If was dragging, then only release
-            if (touch_mouse_drag_down)
+            if (t2m.drag_down)
             {
-                send_mouse_button_event(SDL_MOUSEBUTTONUP, touch_mouse_drag_down,
-                    touch_mouse_pos.X, touch_mouse_pos.Y);
-                touch_mouse_drag_down = 0;
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, t2m.drag_down,
+                    t2m.pos.X, t2m.pos.Y);
+                t2m.drag_down = 0;
             }
             // Else, if was not dragging around, then perform a "click"
             // (send both mouse button down and up)
-            else if (!touch_mouse_is_dragging)
+            else if (!t2m.is_dragging)
             {
                 send_mouse_button_event(SDL_MOUSEBUTTONDOWN, mouse_but,
-                    touch_mouse_pos.X, touch_mouse_pos.Y);
+                    t2m.pos.X, t2m.pos.Y);
                 send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but,
-                    touch_mouse_pos.X, touch_mouse_pos.Y);
+                    t2m.pos.X, t2m.pos.Y);
             }
         }
         // If all fingers are up, reset the locked mouse motion and forced button
-        if (fingers_down == 0)
+        if (touch.fingers_down == 0)
         {
-            touch_mouse_ignore_motion = false;
-            touch_mouse_force_button = 0;
-            touch_mouse_is_dragging = false;
+            t2m.ignore_motion = false;
+            t2m.force_button = 0;
+            t2m.is_dragging = false;
         }
         break;
     }
@@ -698,16 +716,16 @@ void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
         // Touch motion means mouse motion;
         // move only if it's the first finger, and motion is not ignored
         int mouse_but = tfinger_to_mouse_but(event.fingerId);
-        if ((!touch_mouse_ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
+        if ((!t2m.ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
-            const Point prev_pos = touch_mouse_pos;
-            touch_mouse_pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
-            send_mouse_motion_event(touch_mouse_pos.X, touch_mouse_pos.Y,
-                touch_mouse_pos.X - prev_pos.X, touch_mouse_pos.Y - prev_pos.Y);
-            Point trigger_dist(std::roundf(w * touch_drag_trigger_dist), std::roundf(h * touch_drag_trigger_dist));
-            if (DistanceBetween(touch_mouse_pos, touch_mouse_start_pos) >= touch_drag_trigger_dist)
+            const Point prev_pos = t2m.pos;
+            t2m.pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
+            send_mouse_motion_event(t2m.pos.X, t2m.pos.Y,
+                t2m.pos.X - prev_pos.X, t2m.pos.Y - prev_pos.Y);
+            Point trigger_dist(std::roundf(w * t2m.drag_trigger_dist), std::roundf(h * t2m.drag_trigger_dist));
+            if (DistanceBetween(t2m.pos, t2m.start_pos) >= t2m.drag_trigger_dist)
             {
-                touch_mouse_is_dragging = true;
+                t2m.is_dragging = true;
             }
         }
     }
@@ -824,15 +842,10 @@ void sys_evt_process_one(const SDL_Event &event) {
         break;
     // MOUSE INPUT
     case SDL_MOUSEMOTION:
-        Debug::Printf("SDL_MOUSEMOTION: event.motion.which: %d (%d, %d) - rel(%d, %d)",
-            event.motion.which, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
         on_sdl_mouse_motion(event.motion);
         break;
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
-        Debug::Printf("SDL_MOUSEBUTTONDOWN/UP: event.button.which: %d, button = %d, state = %d (%d, %d)",
-            event.button.which, event.button.button, event.button.state,
-            event.button.x, event.button.y);
         on_sdl_mouse_button(event.button);
         break;
     case SDL_MOUSEWHEEL:
@@ -840,16 +853,12 @@ void sys_evt_process_one(const SDL_Event &event) {
         break;
     // TOUCH INPUT
     case SDL_FINGERDOWN:
-        Debug::Printf("SDL_FINGERDOWN: tfinger: %lld at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
         on_sdl_touch_down(event.tfinger);
         break;
     case SDL_FINGERUP:
-        Debug::Printf("SDL_FINGERUP: tfinger: %lld at %.3f, %.3f", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
         on_sdl_touch_up(event.tfinger);
         break;
     case SDL_FINGERMOTION:
-        Debug::Printf("SDL_FINGERMOTION: tfinger: %lld at %.3f, %.3f; dxy: %.3f, %.3f",
-            event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, event.tfinger.dx, event.tfinger.dy);
         on_sdl_touch_motion(event.tfinger);
         break;
     default: break;

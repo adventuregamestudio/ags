@@ -26,8 +26,8 @@ bool WriteConfiguration(const MobileSetup &setup, const char *filename)
     CfgWriteInt(cfg, "misc", "rotation", setup.rotation);
     CfgWriteString(cfg, "misc", "translation", setup.translation);
 
+    CfgWriteInt(cfg, "controls", "mouse_emulation", setup.mouse_emulation);
     CfgWriteInt(cfg, "controls", "mouse_method", setup.mouse_control_mode);
-    CfgWriteInt(cfg, "controls", "mouse_longclick", setup.mouse_longclick);
 
     CfgWriteInt(cfg, "compatibility", "clear_cache_on_room_change", setup.clear_cache_on_room_change);
 
@@ -95,8 +95,8 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
     setup.gfx_super_sampling = CfgReadBoolInt(cfg, "graphics", "super_sampling", true);
     setup.gfx_smooth_sprites = CfgReadBoolInt(cfg, "graphics", "smooth_sprites", true);
 
+    setup.mouse_emulation = CfgReadInt(cfg, "controls", "mouse_emulation", 0, 2, 1);
     setup.mouse_control_mode = CfgReadInt(cfg, "controls", "mouse_method", 0, 1, 0);
-    setup.mouse_longclick = CfgReadBoolInt(cfg, "controls", "mouse_longclick", true);
 
     return true;
 }
@@ -159,6 +159,11 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
     CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
     CfgWriteInt(cfg, "sound", "cache_size", setup.audio_cachesize);
 
+    // touch-to-mouse emulation mode
+    //    * 0 - off
+    //    * 1 - one finger (holding, dragging)
+    //    * 2 - two fingers (tapping)
+    CfgWriteInt(cfg, "touch", "emulate_mouse", setup.mouse_emulation);
     // mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
     //    * 0 - direct touch mouse control

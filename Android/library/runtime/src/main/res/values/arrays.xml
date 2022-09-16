@@ -13,6 +13,18 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="mouse_emulation">
+        <item>Off</item>
+        <item>One Finger (touch means button down)</item>
+        <item>Two Finger (tap to click)</item>
+    </string-array>
+
+    <string-array name="mouse_emulation_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 
     <string-array name="game_language">
         <item>Default</item>

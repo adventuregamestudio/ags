@@ -94,8 +94,8 @@ const int CONFIG_DEBUG_FPS = 15;
 const int CONFIG_GFX_SMOOTH_SPRITES = 16;
 const int CONFIG_TRANSLATION = 17;
 const int CONFIG_DEBUG_LOGCAT = 18;
-const int CONFIG_MOUSE_METHOD = 19;
-const int CONFIG_MOUSE_LONGCLICK = 20;
+const int CONFIG_MOUSE_EMULATION = 19;
+const int CONFIG_MOUSE_METHOD = 20;
 
 JNIEXPORT jboolean JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
@@ -160,10 +160,10 @@ JNIEXPORT jint JNICALL
       return setup.show_fps;
     case CONFIG_DEBUG_LOGCAT:
       return setup.debug_write_to_logcat;
+    case CONFIG_MOUSE_EMULATION:
+      return setup.mouse_emulation;
     case CONFIG_MOUSE_METHOD:
       return setup.mouse_control_mode;
-    case CONFIG_MOUSE_LONGCLICK:
-      return setup.mouse_longclick;
     default:
       return 0;
   }
@@ -245,11 +245,11 @@ JNIEXPORT void JNICALL
     case CONFIG_DEBUG_LOGCAT:
       setup.debug_write_to_logcat = value;
       break;
+    case CONFIG_MOUSE_EMULATION:
+      setup.mouse_emulation = value;
+      break;
     case CONFIG_MOUSE_METHOD:
       setup.mouse_control_mode = value;
-      break;
-    case CONFIG_MOUSE_LONGCLICK:
-      setup.mouse_longclick = value;
       break;
     default:
       break;
@@ -379,11 +379,6 @@ void AGSAndroid::MainInit()
 
     // Read game specific configuration.
     ::ReadConfiguration(setup, ANDROID_CONFIG_FILENAME, false);
-
-    if (setup.mouse_longclick > 0) {
-        jmethodID method_id = env->GetMethodID(clazz, "AgsEnableLongclick", "()V");
-        env->CallVoidMethod(activity, method_id);
-    }
 
     setup.load_latest_savegame = loadLastSave;
 

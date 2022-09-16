@@ -30,7 +30,8 @@ struct MobileSetup
     AGS::Common::String translation;
 
     // Mouse option
-    int mouse_control_mode = 0;
+    int mouse_emulation = 1; // off, one finger, two fingers
+    int mouse_control_mode = 0; // absolute vs relative
 
     // Graphic options
     int gfx_scaling = 0;
@@ -52,8 +53,6 @@ struct MobileSetup
     int gfx_smooth_sprites = 0;
 
     int debug_write_to_logcat = 0;
-
-    int mouse_longclick = 0;
 
     int show_fps = 0;
 

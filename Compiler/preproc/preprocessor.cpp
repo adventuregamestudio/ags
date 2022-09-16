@@ -190,6 +190,7 @@ namespace Preprocessor {
                     size_t endOfString = text.FindChar(text[i],i);
                     if (endOfString == NOT_FOUND) //size_t is unsigned but it's alright
                     {
+                        LogError(ErrorCode::UnterminatedString, "Unterminated string");
                         break;
                     }
                     endOfString++;

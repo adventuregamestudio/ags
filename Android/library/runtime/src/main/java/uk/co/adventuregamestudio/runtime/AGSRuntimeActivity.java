@@ -279,9 +279,4 @@ public class AGSRuntimeActivity extends SDLActivity {
         return super.dispatchKeyEvent(ev);
     }
 
-    @Keep
-    protected  void AgsEnableLongclick() {
-
-    }
-
 }

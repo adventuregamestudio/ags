@@ -70,8 +70,6 @@ void mgetgraphpos()
 {
     // TODO: review and possibly rewrite whole thing;
     // research what disable_mgetgraphpos does, and is this still necessary?
-    // disable or update mouse speed control to sdl
-    // (does sdl support mouse cursor speed? is it even necessary anymore?);
 
     // TODO: [sonneveld] find out where mgetgraphpos is needed, are events polled before that?
     sys_evt_process_pending();
@@ -208,7 +206,8 @@ void Mouse::SetMovementControl(bool on)
         SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, "1.0");
 #else
     ControlEnabled = false;
-    Debug::Printf(kDbgMsg_Warn, "WARNING: SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE not supported, mouse control can't be enabled");
+    if (on)
+        Debug::Printf(kDbgMsg_Warn, "WARNING: SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE not supported, mouse control can't be enabled");
 #endif
     ags_clear_mouse_movement();
 }

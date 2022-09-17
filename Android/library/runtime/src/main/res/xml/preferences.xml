@@ -36,6 +36,16 @@
     <androidx.preference.PreferenceCategory
         android:key="preference_key_controls"
         android:title="Controls">
+        <androidx.preference.ListPreference
+            android:dependency="@string/CONFIG_ENABLED"
+            android:dialogTitle="Touch-to-mouse emulation scheme"
+            android:entries="@array/mouse_emulation"
+            android:entryValues="@array/mouse_emulation_values"
+            android:key="@string/CONFIG_MOUSE_EMULATION"
+            android:persistent="false"
+            android:shouldDisableView="true"
+            android:summary="A control scheme for emulating mouse actions with touch screen"
+            android:title="Touch-to-mouse emulation" />
         <androidx.preference.CheckBoxPreference
             android:dependency="@string/CONFIG_ENABLED"
             android:key="@string/CONFIG_MOUSE_METHOD"
@@ -43,14 +53,6 @@
             android:shouldDisableView="true"
             android:summary="The mouse gets moved relative to the finger motion"
             android:title="Relative mouse control" />
-
-        <androidx.preference.CheckBoxPreference
-            android:dependency="@string/CONFIG_ENABLED"
-            android:key="@string/CONFIG_MOUSE_LONGCLICK"
-            android:persistent="false"
-            android:shouldDisableView="true"
-            android:summary="A longclick keeps the left mouse button pressed"
-            android:title="Dragging with longclick" />
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory

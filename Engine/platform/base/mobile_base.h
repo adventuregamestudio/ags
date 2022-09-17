@@ -34,28 +34,24 @@ struct MobileSetup
     int mouse_control_mode = 0; // absolute vs relative
 
     // Graphic options
+    int gfx_renderer = 0;
     int gfx_scaling = 0;
     int gfx_smoothing = 0;
+    int gfx_super_sampling = 0;
+    int gfx_smooth_sprites = 0;
 
-    // Audio options from the Allegro library.
-    unsigned int audio_samplerate = 0;
+    // Audio options
     int audio_enabled = 0;
-    int audio_multithreaded = 0;
     int audio_cachesize = 0;
-    int midi_enabled = 0;
-    int midi_preload_patches = 0;
 
     // Video playback options
     int video_framedrop = 0;
 
-    int gfx_renderer = 0;
-    int gfx_super_sampling = 0;
-    int gfx_smooth_sprites = 0;
-
+    // Debug options
     int debug_write_to_logcat = 0;
-
     int show_fps = 0;
 
+    // Misc options
     bool load_latest_savegame = false;
 };
 

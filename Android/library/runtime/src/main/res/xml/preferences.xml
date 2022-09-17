@@ -64,32 +64,6 @@
             android:persistent="false"
             android:shouldDisableView="true"
             android:title="Enabled" />
-        <androidx.preference.CheckBoxPreference
-            android:dependency="@string/CONFIG_ENABLED"
-            android:key="@string/CONFIG_AUDIO_THREADED"
-            android:persistent="false"
-            android:shouldDisableView="true"
-            android:summary="Reduces stuttering but throws off lipsyncing"
-            android:title="Use multithreading" />
-    </androidx.preference.PreferenceCategory>
-
-    <androidx.preference.PreferenceCategory
-        android:key="preference_key_midi"
-        android:title="Midi">
-        <androidx.preference.CheckBoxPreference
-            android:dependency="@string/CONFIG_ENABLED"
-            android:key="@string/CONFIG_MIDI_ENABLED"
-            android:persistent="false"
-            android:shouldDisableView="true"
-            android:summary="Needs MIDI patches on the SD card"
-            android:title="Enabled" />
-        <androidx.preference.CheckBoxPreference
-            android:dependency="@string/CONFIG_ENABLED"
-            android:key="@string/CONFIG_MIDI_PRELOAD"
-            android:persistent="false"
-            android:shouldDisableView="true"
-            android:summary="Less delay between MIDI tracks but causes a startup delay"
-            android:title="Preload patches" />
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory

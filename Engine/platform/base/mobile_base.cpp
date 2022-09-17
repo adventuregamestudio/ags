@@ -31,13 +31,8 @@ bool WriteConfiguration(const MobileSetup &setup, const char *filename)
 
     CfgWriteInt(cfg, "compatibility", "clear_cache_on_room_change", setup.clear_cache_on_room_change);
 
-    CfgWriteInt(cfg, "sound", "samplerate", setup.audio_samplerate);
     CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
-    CfgWriteInt(cfg, "sound", "threaded", setup.audio_multithreaded);
     CfgWriteInt(cfg, "sound", "cache_size", setup.audio_cachesize);
-
-    CfgWriteInt(cfg, "midi", "enabled", setup.midi_enabled);
-    CfgWriteInt(cfg, "midi", "preload_patches", setup.midi_preload_patches);
 
     CfgWriteInt(cfg, "video", "framedrop", setup.video_framedrop);
 
@@ -79,13 +74,8 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
 
     setup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "compatibility", "clear_cache_on_room_change", false);
 
-    setup.audio_samplerate = CfgReadInt(cfg, "sound", "samplerate", 0, 44100, 44100);
     setup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", true);
-    setup.audio_multithreaded = CfgReadBoolInt(cfg, "sound", "threaded", true);
     setup.audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 1, 50, 10);
-
-    setup.midi_enabled = CfgReadBoolInt(cfg, "midi", "enabled", true);
-    setup.midi_preload_patches = CfgReadBoolInt(cfg, "midi", "preload_patches", false);
 
     setup.video_framedrop = CfgReadBoolInt(cfg, "video", "framedrop", true);
 

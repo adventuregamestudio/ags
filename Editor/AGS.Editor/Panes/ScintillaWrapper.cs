@@ -1306,24 +1306,35 @@ namespace AGS.Editor
             return scriptList;
         }
 
+        private ScriptStruct FindGlobalType(IScript script, string type, ref bool staticAccess)
+        {
+            foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
+            {
+                if ((structDef.Name == type) && (structDef.FullDefinition))
+                {
+                    staticAccess = true;
+                    return structDef;
+                }
+            }
+            return null;
+        }
+
         private ScriptStruct FindGlobalVariableOrType(string type, ref bool staticAccess)
         {
             foreach (IScript script in GetAutoCompleteScriptList())
             {
-                foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
-                {
-                    if ((structDef.Name == type) && (structDef.FullDefinition))
-                    {
-                        staticAccess = true;
-                        return structDef;
-                    }
-                }
+                // First try search for a type that has this name
+                var foundType = FindGlobalType(script, type, ref staticAccess);
+                if (foundType != null)
+                    return foundType;
+                // Then, search for a variable that has this name, and try retrieving its type
                 foreach (ScriptVariable varDef in script.AutoCompleteData.Variables)
                 {
                     if (varDef.VariableName == type)
                     {
                         staticAccess = false;
-                        return FindGlobalVariableOrType(varDef.Type);
+                        bool dummy = false;
+                        return FindGlobalType(script, varDef.Type, ref dummy);
                     }
                 }
             }

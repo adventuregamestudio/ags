@@ -1306,13 +1306,16 @@ namespace AGS.Editor
             return scriptList;
         }
 
-        private ScriptStruct FindGlobalType(IScript script, string type)
+        private ScriptStruct FindGlobalType(string type)
         {
-            foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
+            foreach (IScript script in GetAutoCompleteScriptList())
             {
-                if ((structDef.Name == type) && (structDef.FullDefinition))
+                foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
                 {
-                    return structDef;
+                    if ((structDef.Name == type) && (structDef.FullDefinition))
+                    {
+                        return structDef;
+                    }
                 }
             }
             return null;
@@ -1320,22 +1323,23 @@ namespace AGS.Editor
 
         private ScriptStruct FindGlobalVariableOrType(string type, ref bool staticAccess)
         {
+            // First try search for a type that has this name
+            var foundType = FindGlobalType(type);
+            if (foundType != null)
+            {
+                staticAccess = true;
+                return foundType;
+            }
+
+            // Then, search for a variable that has this name, and try retrieving its type
             foreach (IScript script in GetAutoCompleteScriptList())
             {
-                // First try search for a type that has this name
-                var foundType = FindGlobalType(script, type);
-                if (foundType != null)
-                {
-                    staticAccess = true;
-                    return foundType;
-                }
-                // Then, search for a variable that has this name, and try retrieving its type
                 foreach (ScriptVariable varDef in script.AutoCompleteData.Variables)
                 {
                     if (varDef.VariableName == type)
                     {
                         staticAccess = false;
-                        return FindGlobalType(script, varDef.Type);
+                        return FindGlobalType(varDef.Type);
                     }
                 }
             }

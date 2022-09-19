@@ -53,6 +53,15 @@
             android:shouldDisableView="true"
             android:summary="The mouse gets moved relative to the finger motion"
             android:title="Relative mouse control" />
+        <androidx.preference.SeekBarPreference
+            android:dependency="@string/CONFIG_ENABLED"
+            android:key="@string/CONFIG_MOUSE_SPEED"
+            android:persistent="false"
+            android:shouldDisableView="true"
+            android:defaultValue="10"
+            android:max="30"
+            android:summary="Sensibility, 10 is 1.0"
+            android:title="Mouse speed in relative control" />
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory

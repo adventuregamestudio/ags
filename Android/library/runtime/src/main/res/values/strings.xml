@@ -16,6 +16,7 @@
     <string name="CONFIG_DEBUG_LOGCAT">18</string>
     <string name="CONFIG_MOUSE_EMULATION">19</string>
     <string name="CONFIG_MOUSE_METHOD">20</string>
+    <string name="CONFIG_MOUSE_SPEED">21</string>
     <string name="toggle_keyboard">Toggle keyboard</string>
     <string name="exit_game">Exit game</string>
 

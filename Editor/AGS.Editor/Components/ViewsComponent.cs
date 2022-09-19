@@ -78,7 +78,6 @@ namespace AGS.Editor.Components
                 }
                 _agsEditor.CurrentGame.GetAndAllocateViewID(newNumber);
                 viewClicked.ID = newNumber;
-                GetFlatList().Swap(oldNumber - 1, newNumber - 1);
                 OnItemIDChanged(viewClicked);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)

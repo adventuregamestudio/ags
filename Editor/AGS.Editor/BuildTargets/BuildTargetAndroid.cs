@@ -41,24 +41,24 @@ namespace AGS.Editor
             int rotation = (int)setup.Rotation;
 
             NativeProxy.WritePrivateProfileString("misc", "config_enabled", "1", configPath);
+
+            // Misc options
             NativeProxy.WritePrivateProfileString("misc", "rotation", rotation.ToString(), configPath);
             NativeProxy.WritePrivateProfileString("misc", "translation", setup.Translation, configPath);
-
-            NativeProxy.WritePrivateProfileString("controls", "mouse_method", "0", configPath);
-            NativeProxy.WritePrivateProfileString("controls", "mouse_longclick", "1", configPath);
-
             NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", "0", configPath);
 
-            NativeProxy.WritePrivateProfileString("sound", "samplerate", "44100", configPath);
+            // Touch-to-mouse options
+            NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", "1", configPath);
+            NativeProxy.WritePrivateProfileString("controls", "mouse_method", "0", configPath);
+
+            // Sound options
             NativeProxy.WritePrivateProfileString("sound", "enabled", "1", configPath);
-            NativeProxy.WritePrivateProfileString("sound", "threaded", "1", configPath);
             NativeProxy.WritePrivateProfileString("sound", "cache_size", "64", configPath);
 
-            NativeProxy.WritePrivateProfileString("midi", "enabled", "0", configPath);
-            NativeProxy.WritePrivateProfileString("midi", "preload_patches", "0", configPath);
-
+            // Video options
             NativeProxy.WritePrivateProfileString("video", "framedrop", "0", configPath);
 
+            // Graphic options
             if (setup.GraphicsDriver == GraphicsDriver.Software) {
                 NativeProxy.WritePrivateProfileString("graphics", "renderer", "0", configPath);
             } else {
@@ -82,6 +82,7 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("graphics", "super_sampling", "0", configPath);
             NativeProxy.WritePrivateProfileString("graphics", "smooth_sprites", setup.AAScaledSprites ? "1" : "0", configPath);
 
+            // Debug options
             NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
             NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
         }

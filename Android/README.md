@@ -97,24 +97,15 @@ The preferences modifies the `android.cfg` file, either the local or global one.
 
 #### Controls `[controls]`
 
+- **Touch-to-mouse emulation** : Off, One Finger, Two Fingers
+  `mouse_emulation = 0, 1, 2`  
 - **Relative mouse control** : yes or no  
   `mouse_method = 0, 1`  
-- **Dragging with longclick** : yes or no  
-  `mouse_longclick = 0, 1`  
 
 #### Sound `[sound]`
 
 - **Enabled** : yes or no  
   `enabled = 0, 1`  
-- **Use multithreading** : disabled, to be removed  
-  `threaded = 0, 1`  
-  
-#### Midi `[midi]`
-
-- **Enabled** : disabled, to be removed  
-  `enabled = 0, 1`  
-- **Preload patches** : disabled, to be removed  
-  `preload_patches = 0, 1`
 
 #### Video `[video]`
 

@@ -77,12 +77,8 @@ extern "C"
 
 const int CONFIG_IGNORE_ACSETUP = 0;
 const int CONFIG_CLEAR_CACHE = 1;
-const int CONFIG_AUDIO_RATE = 2;
 const int CONFIG_AUDIO_ENABLED = 3;
-const int CONFIG_AUDIO_THREADED = 4;
 const int CONFIG_AUDIO_CACHESIZE = 5;
-const int CONFIG_MIDI_ENABLED = 6;
-const int CONFIG_MIDI_PRELOAD = 7;
 const int CONFIG_VIDEO_FRAMEDROP = 8;
 const int CONFIG_GFX_RENDERER = 9;
 const int CONFIG_GFX_SMOOTHING = 10;
@@ -128,18 +124,10 @@ JNIEXPORT jint JNICALL
       return setup.ignore_acsetup_cfg_file;
     case CONFIG_CLEAR_CACHE:
       return setup.clear_cache_on_room_change;
-    case CONFIG_AUDIO_RATE:
-      return setup.audio_samplerate;
     case CONFIG_AUDIO_ENABLED:
       return setup.audio_enabled;
-    case CONFIG_AUDIO_THREADED:
-      return setup.audio_multithreaded;
     case CONFIG_AUDIO_CACHESIZE:
       return setup.audio_cachesize;
-    case CONFIG_MIDI_ENABLED:
-      return setup.midi_enabled;
-    case CONFIG_MIDI_PRELOAD:
-      return setup.midi_preload_patches;
     case CONFIG_VIDEO_FRAMEDROP:
       return setup.video_framedrop;
     case CONFIG_GFX_RENDERER:
@@ -197,23 +185,11 @@ JNIEXPORT void JNICALL
     case CONFIG_CLEAR_CACHE:
       setup.clear_cache_on_room_change = value;
       break;
-    case CONFIG_AUDIO_RATE:
-      setup.audio_samplerate = value;
-      break;
     case CONFIG_AUDIO_ENABLED:
       setup.audio_enabled = value;
       break;
-    case CONFIG_AUDIO_THREADED:
-      setup.audio_multithreaded = value;
-      break;
     case CONFIG_AUDIO_CACHESIZE:
       setup.audio_cachesize = value;
-      break;
-    case CONFIG_MIDI_ENABLED:
-      setup.midi_enabled = value;
-      break;
-    case CONFIG_MIDI_PRELOAD:
-      setup.midi_preload_patches = value;
       break;
     case CONFIG_VIDEO_FRAMEDROP:
       setup.video_framedrop = value;

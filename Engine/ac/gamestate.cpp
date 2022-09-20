@@ -289,8 +289,7 @@ ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
 
 void GameState::DeleteRoomViewport(int index)
 {
-    // NOTE: viewport 0 can not be deleted
-    if (index <= 0 || (size_t)index >= _roomViewports.size())
+    if (index < 0 || (size_t)index >= _roomViewports.size())
         return;
     auto scobj = _scViewportRefs[index];
     scobj.first->Invalidate();
@@ -354,8 +353,7 @@ ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
 
 void GameState::DeleteRoomCamera(int index)
 {
-    // NOTE: camera 0 can not be deleted
-    if (index <= 0 || (size_t)index >= _roomCameras.size())
+    if (index < 0 || (size_t)index >= _roomCameras.size())
         return;
     auto scobj = _scCameraRefs[index];
     scobj.first->Invalidate();

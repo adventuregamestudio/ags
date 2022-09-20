@@ -514,6 +514,9 @@ struct Touch2Mouse
     Point pos;
     // Starting emulated mouse position (needed for drag detection)
     Point start_pos;
+    // Accumulated relative movement, for higher rounding accuracy
+    float rel_accum_x = 0.f;
+    float rel_accum_y = 0.f;
     // Minimal finger motion required to begin cursor drag
     const float drag_trigger_dist = 0.05f; // relative to screen size
     // Tells to not translation finger motion events into the emulated mouse
@@ -563,6 +566,7 @@ static void send_mouse_motion_event(int x, int y, int xrel, int yrel)
     SDL_PushEvent(&evt);
 }
 
+// Handles double tap detection (multiple touch downs and ups)
 static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
 {
     auto tap_ts = AGS_Clock::now();
@@ -577,6 +581,19 @@ static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
     }
     touch.last_tap_ts = tap_ts;
     touch.last_tap_finger = event.fingerId;
+}
+
+// Calculates relative emulated mouse delta,
+// utilizes speed scale and accumulated touch delta;
+// based on SDL2's GetScaledMouseDelta
+static int calc_relative_delta(float value, float scale, float &accum)
+{
+    if ((value > 0.f) != (accum > 0.f))
+        accum = 0.f; // reset accumulated delta if direction has changed
+    accum += value * scale;
+    value = std::truncf(accum); // get nearest full integer value
+    accum -= value; // subtract used part from accumulation
+    return value;
 }
 
 void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
@@ -718,10 +735,12 @@ void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
         int mouse_but = tfinger_to_mouse_but(event.fingerId);
         if ((!t2m.ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
-            const Point prev_pos = t2m.pos;
+            // Absolute positioning
             t2m.pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
-            send_mouse_motion_event(t2m.pos.X, t2m.pos.Y,
-                t2m.pos.X - prev_pos.X, t2m.pos.Y - prev_pos.Y);
+            // Relative motion
+            int rel_x = calc_relative_delta((event.dx * w), usetup.mouse_speed, t2m.rel_accum_x);
+            int rel_y = calc_relative_delta((event.dy * h), usetup.mouse_speed, t2m.rel_accum_y);
+            send_mouse_motion_event(t2m.pos.X, t2m.pos.Y, rel_x, rel_y);
             Point trigger_dist(std::roundf(w * t2m.drag_trigger_dist), std::roundf(h * t2m.drag_trigger_dist));
             if (DistanceBetween(t2m.pos, t2m.start_pos) >= t2m.drag_trigger_dist)
             {

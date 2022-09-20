@@ -542,6 +542,7 @@ target_link_libraries(engine PUBLIC
     glm::glm
     External::OpenAL
     ${SDL2_LIBRARY}
+    ${SDL2_LIBRARIES}
     SDL2_sound::SDL2_sound
 )
 

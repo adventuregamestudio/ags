@@ -116,10 +116,8 @@ static MessageType SDL_to_MT[SDL_NUM_LOG_PRIORITIES] = {
 };
 // Print SDL message through our own log
 void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, const char *message) {
-    char buf[SDL_MAX_LOG_MESSAGE];
-    snprintf(buf, SDL_MAX_LOG_MESSAGE, "%s: %s: %s",
-        SDL_category[category], SDL_priority[priority], message);
-    DbgMgr.Print(kDbgGroup_SDL, SDL_to_MT[priority], String::Wrapper(buf));
+    DbgMgr.Print(kDbgGroup_SDL, SDL_to_MT[priority],
+        String::FromFormat("%s: %s: %s", SDL_category[category], SDL_priority[priority], message));
 }
 
 // ----------------------------------------------------------------------------

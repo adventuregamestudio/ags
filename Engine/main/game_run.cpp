@@ -284,15 +284,6 @@ static void check_mouse_controls()
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
 }
 
-
-
-// Special flags to OR saved SDL_Keymod flags with:
-// Mod key combination already fired (wait until full mod release)
-#define KEY_MODS_FIRED      0x80000000
-
-int cur_key_mods = 0;
-int old_key_mod = 0; // for saving previous key mods
-
 // Runs service key controls, returns false if service key combinations were handled
 // and no more processing required, otherwise returns true and provides current keycode and key shifts.
 //
@@ -301,14 +292,13 @@ int old_key_mod = 0; // for saving previous key mods
 //   - key + mod combos are merged into one key code for the script callback.
 bool run_service_key_controls(KeyInput &out_key)
 {
+    out_key = KeyInput(); // clear the output
+    if (!ags_keyevent_ready())
+        return false; // there was no key event
+
     const bool old_keyhandle = (game.options[OPT_KEYHANDLEAPI] == 0);
-
+    const SDL_Event key_evt = ags_get_next_keyevent();
     bool handled = false;
-    const bool key_valid = ags_keyevent_ready();
-    const SDL_Event key_evt = key_valid ? ags_get_next_keyevent() : SDL_Event();
-    const bool is_only_mod_key = key_evt.type == SDL_KEYDOWN ? is_mod_key(key_evt.key.keysym) : false;
-
-    out_key = KeyInput(); // reset to default
 
     // Following section is for testing for pushed and released mod-keys.
     // A bit of explanation: some service actions may require combination of
@@ -324,66 +314,68 @@ bool run_service_key_controls(KeyInput &out_key)
     // * if at least one of those gathered mod-keys was released.
     //
     // TODO: maybe split this mod handling into sep procedure and make it easier to use (not that it's used alot)?
-
-    // First, check mods
-    const int cur_mod = make_merged_mod(SDL_GetModState());
-    
-    // If shifts combination have already triggered an action, then do nothing
-    // until new shifts are empty, in which case reset saved shifts
-    if (old_key_mod & KEY_MODS_FIRED)
+    int cur_mod = sys_modkeys;
+    bool is_only_mod_key = false;
+    switch (key_evt.type)
     {
-        if (cur_mod == 0)
-            old_key_mod = 0;
+    case SDL_KEYDOWN:
+        is_only_mod_key = is_mod_key(key_evt.key.keysym);
+        cur_mod |= make_merged_mod(make_mod_flag(key_evt.key.keysym));
+        break;
+    case SDL_KEYUP:
+        is_only_mod_key = is_mod_key(key_evt.key.keysym);
+        cur_mod &= ~make_merged_mod(make_mod_flag(key_evt.key.keysym));
+        break;
     }
-    else
+    
+    // If mods combination have already triggered an action,
+    // then do nothing until all the current mods are released
+    if (!sys_modkeys_fired)
     {
-        // If any non-mod key is pressed, add fired flag to indicate that
+        // If any non-mod key is pressed, add "fired" flag to indicate that
         // this is no longer a pure mod keys combination
-        if (key_valid && !is_only_mod_key)
+        if ((sys_modkeys != 0) && !is_only_mod_key)
         {
-            old_key_mod = cur_mod | KEY_MODS_FIRED;
+            sys_modkeys_fired = true;
         }
-        // If all the previously registered mods are still pressed,
-        // then simply resave new mods state.
-        else if ((old_key_mod & cur_mod) == old_key_mod)
-        {
-            old_key_mod = cur_mod;
-        }
-        // Otherwise some of the mods were released, then run key combo action
-        // and set KEY_MODS_FIRED flag to prevent multiple execution
-        else if (old_key_mod)
+        // If some of the previously pressed mods were released, then run key combo action
+        // and set "fired" flag to prevent multiple execution
+        else if ((sys_modkeys != 0) && ((sys_modkeys & cur_mod) != sys_modkeys))
         {
             // Toggle mouse lock on Ctrl + Alt
-            if (old_key_mod == (KMOD_CTRL | KMOD_ALT))
+            if (sys_modkeys == (KMOD_CTRL | KMOD_ALT))
             {
                 toggle_mouse_lock();
                 handled = true;
             }
-            old_key_mod |= KEY_MODS_FIRED;
+            sys_modkeys_fired = true;
         }
     }
-    cur_key_mods = cur_mod;
+    // Save new mod flags, keep or erase the "fired" flag,
+    // depending on whether there are any mod keys still pressed
+    sys_modkeys = cur_mod;
+    sys_modkeys_fired = sys_modkeys_fired && (cur_mod != 0);
 
-    if (!key_valid)
-        return false; // if there was no key press, finish after handling current mod state
+    // If mods are handled, or is in backward input mode, then stop here
     if (handled || (old_keyhandle && is_only_mod_key))
-        return false; // in backward mode the engine does not react to single mod keys
+        return false;
 
     KeyInput ki = ags_keycode_from_sdl(key_evt, old_keyhandle);
-    if (ki.Key == eAGSKeyCodeNone)
+    if ((ki.Key == eAGSKeyCodeNone) && (ki.UChar == 0))
         return false; // should skip this key event
 
-    // Use backward-compatible combined key for special controls
-    eAGSKeyCode agskey = ki.CompatKey;
+    // Use backward-compatible combined key for special controls,
+    // because game variables may store old-style key + mod codes
+    const eAGSKeyCode agskey = ki.CompatKey;
     // LAlt or RAlt + Enter/Return
-    if ((cur_mod == KMOD_ALT) && agskey == eAGSKeyCodeReturn)
+    if ((ki.Mod & eAGSModAlt) && (agskey == eAGSKeyCodeReturn))
     {
         engine_try_switch_windowed_gfxmode();
         return false;
     }
 
     // Alt+X, abort (but only once game is loaded)
-    if ((displayed_room >= 0) && (agskey == play.abort_key)) {
+    if ((displayed_room >= 0) && (play.abort_key > 0) && (agskey == play.abort_key)) {
         Debug::Printf("Abort key pressed");
         check_dynamic_sprites_at_exit = 0;
         quit("!|");
@@ -445,8 +437,8 @@ bool run_service_key_controls(KeyInput &out_key)
         return false;
     }
 
-    if (((agskey == eAGSKeyCodeCtrlV) && (cur_key_mods & KMOD_ALT) != 0) &&
-        (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until.type == 0)) {
+    if (((agskey == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0)
+        && (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until.type == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
@@ -479,7 +471,8 @@ static void check_keyboard_controls()
     if (!run_service_key_controls(ki)) {
         return;
     }
-    // Use backward-compatible combined key for special controls
+    // Use backward-compatible combined key for special controls,
+    // because game variables may store old-style key + mod codes
     const eAGSKeyCode agskey = ki.CompatKey;
     // Then, check cutscene skip
     check_skip_cutscene_keypress(agskey);
@@ -523,15 +516,14 @@ static void check_keyboard_controls()
         return;
     }
 
-    int keywasprocessed = 0;
-
-    // determine if a GUI Text Box should steal the click
-    // it should do if a displayable character (32-255) is
-    // pressed, but exclude control characters (<32) and
-    // extended keys (eg. up/down arrow; 256+)
-    if ( (((agskey >= 32) && (agskey <= 255) && (agskey != '[')) ||
-           (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
-        && (all_buttons_disabled < 0)) {
+    bool keywasprocessed = false;
+    // Determine if a GUI Text Box should steal the click:
+    // it should be either a printable character or one of the textbox control keys
+    // TODO: instead of making a preliminary check, just let each gui control
+    // test the key and OnKeyPress return if it was handled?
+    if ((all_buttons_disabled < 0) &&
+        ((ki.UChar > 0) || (agskey >= 32) && (agskey <= 255)) ||
+         (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace)) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
             auto &gui = guis[guiIndex];
 
@@ -548,7 +540,7 @@ static void check_keyboard_controls()
                 if (!guitex->IsEnabled()) { continue; }
                 if (!guitex->IsVisible()) { continue; }
 
-                keywasprocessed = 1;
+                keywasprocessed = true;
 
                 guitex->OnKeyPress(ki);
 
@@ -560,28 +552,30 @@ static void check_keyboard_controls()
         }
     }
 
+    if (keywasprocessed)
+        return;
+
     // Built-in key-presses
-    if (agskey == usetup.key_save_game) {
+    if ((usetup.key_save_game > 0) && (agskey == usetup.key_save_game)) {
         do_save_game_dialog();
         return;
-    } else if (agskey == usetup.key_restore_game) {
+    } else if ((usetup.key_restore_game > 0) && (agskey == usetup.key_restore_game)) {
         do_restore_game_dialog();
         return;
     }
 
-    if (!keywasprocessed) {
-        const int sckey = AGSKeyToScriptKey(ki.Key);
-        const int sckeymod = ki.Mod;
-        if (old_keyhandle || (ki.UChar == 0))
-        {
-            debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
-            setevent(EV_TEXTSCRIPT, TS_KEYPRESS, sckey, sckeymod);
-        }
-        if (!old_keyhandle && (ki.UChar > 0))
-        {
-            debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
-            setevent(EV_TEXTSCRIPT, TS_TEXTINPUT, ki.UChar);
-        }
+    // Pass the key event to the script
+    const int sckey = AGSKeyToScriptKey(ki.Key);
+    const int sckeymod = ki.Mod;
+    if (old_keyhandle || (ki.UChar == 0))
+    {
+        debug_script_log("Running on_key_press keycode %d, mod %d", sckey, sckeymod);
+        setevent(EV_TEXTSCRIPT, TS_KEYPRESS, sckey, sckeymod);
+    }
+    if (!old_keyhandle && (ki.UChar > 0))
+    {
+        debug_script_log("Running on_text_input char %s (%d)", ki.Text, ki.UChar);
+        setevent(EV_TEXTSCRIPT, TS_TEXTINPUT, ki.UChar);
     }
 }
 

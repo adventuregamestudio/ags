@@ -56,6 +56,13 @@ RUN apt-get install \
   libwayland-dev \
   libxkbcommon-dev 
 
+# Build and install CMake
+ARG CMAKE_VERSION=3.24.1
+RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
+  cd /tmp/cmake-$CMAKE_VERSION && \
+  ./configure --system-curl && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
+  rm -r /tmp/cmake-$CMAKE_VERSION
+
 # Build newer libogg
 ARG LIBOGG_VERSION=1.3.5
 RUN curl -fLsS "https://github.com/xiph/ogg/releases/download/v${LIBOGG_VERSION}/libogg-${LIBOGG_VERSION}.tar.xz" --output /tmp/libogg-${LIBOGG_VERSION}.tar.xz && \
@@ -79,13 +86,14 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
   rm /tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz 
 
 # Build and install SDL2
-ARG SDL2_VERSION=2.0.12
+ARG SDL2_VERSION=2.24.0
 RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL2_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
-  cd /tmp/SDL-release-$SDL2_VERSION && \
-  ./configure --enable-shared --enable-loadso --enable-sdl-dlopen --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared && \
+  cd /tmp/SDL-release-${SDL2_VERSION} && \
+  ./configure --enable-shared --enable-loadso --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared && \
   make -j$(getconf _NPROCESSORS_ONLN) && make install && \
-  mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL-release-$SDL2_VERSION/debian/copyright /usr/local/share/doc/libSDL2-2.0/copyright && \
-  rm -r /tmp/SDL-release-$SDL2_VERSION
+  ldconfig -n /usr/local/lib && \
+  mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL-release-${SDL2_VERSION}/LICENSE.txt /usr/local/share/doc/libSDL2-2.0/copyright && \
+  rm -r /tmp/SDL-release-${SDL2_VERSION}
   
 # Build newer libtheora - note that encoding support is disabled AND it's directory uses GH repo name instead
 ARG LIBTHEORA_VERSION=1.1.1
@@ -97,13 +105,6 @@ RUN curl -fLsS "https://github.com/xiph/theora/archive/refs/tags/v${LIBTHEORA_VE
   make install && \
   rm -r /tmp/theora-${LIBTHEORA_VERSION} && \
   rm /tmp/libtheora-${LIBTHEORA_VERSION}.tar.gz 
-
-# Build and install CMake
-ARG CMAKE_VERSION=3.14.5
-RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz" | tar -f - -xvzC /tmp && \
-  cd /tmp/cmake-$CMAKE_VERSION && \
-  ./configure --system-curl && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
-  rm -r /tmp/cmake-$CMAKE_VERSION
 
 # Build and install SDL_sound
 ARG SDL2_SOUND_VERSION=495e948b455af48eb45f75cccc060498f1e0e8a2
@@ -117,3 +118,5 @@ RUN cd /tmp && \
   cmake -DSDL2_DIR=/usr/local/lib/cmake/SDL2  -DSDLSOUND_DECODER_MIDI=1 ..  && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
   rm /usr/local/lib/libSDL2_sound.*so* && \
   rm -r /tmp/SDL_sound
+
+RUN ldconfig -v

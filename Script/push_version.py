@@ -17,7 +17,7 @@ def load_version(path):
     return AgsVersion(version, version_friendly, app_id)
 
 def read_file(path, encoding):
-    print path, encoding
+    print(path, encoding)
 
     with codecs.open(path, "r", encoding=encoding) as f:
         return f.read()

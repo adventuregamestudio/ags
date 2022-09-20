@@ -182,7 +182,12 @@ target_sources(common
 	platform/windows/windows.h
 )
 
-target_link_libraries(common PUBLIC ${SDL2_LIBRARY} Allegro::Allegro AlFont::AlFont AAStr::AAStr glm::glm)
+target_link_libraries(common PUBLIC
+        ${SDL2_LIBRARY} ${SDL2_LIBRARIES}
+        Allegro::Allegro
+        AlFont::AlFont
+        AAStr::AAStr
+        glm::glm)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)
@@ -220,8 +225,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Source Files" FILES ${COMM
 add_library(AGS::Common ALIAS common)
 
 if(AGS_TESTS)
-    add_executable(
-        common_test
+    add_executable(common_test
         test/cmdlineopts_test.cpp
         test/gfxdef_test.cpp
         test/inifile_test.cpp
@@ -239,8 +243,7 @@ if(AGS_TESTS)
         C_EXTENSIONS NO
         INTERPROCEDURAL_OPTIMIZATION FALSE
         )
-    target_link_libraries(
-        common_test
+    target_link_libraries(common_test
         common
         gtest_main
     )

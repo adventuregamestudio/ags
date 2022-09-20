@@ -1,7 +1,7 @@
 FetchContent_Declare(
     sdl2_content
-    URL https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.0.12.tar.gz
-    URL_HASH MD5=7ccff5e151cbca26476f6fcaae3ac46c
+    URL https://github.com/libsdl-org/SDL/archive/b6661c016bba98cdeb7bea1ffa67aa0794dc2942.tar.gz
+    URL_HASH MD5=239819387031eb78e8283d738e2d540f
 )
 
 FetchContent_GetProperties(sdl2_content)
@@ -20,8 +20,8 @@ if(NOT sdl2_content_POPULATED)
         set(SDL_STATIC ON)
         set(SDL_STATIC_PIC ON)
         if(LINUX)
-            set(SNDIO_SHARED ON CACHE BOOL "")
-            set(SNDIO_SHARED ON)
+            set(SDL_SNDIO_SHARED ON CACHE BOOL "")
+            set(SDL_SNDIO_SHARED ON)
 
             # SDL Wayland requires xkbcomon>0.5, see https://github.com/libsdl-org/SDL/issues/4645
             if(PKG_CONFIG_FOUND)
@@ -32,25 +32,11 @@ if(NOT sdl2_content_POPULATED)
                 endif()
             endif()
         endif()
-        set(FORCE_STATIC_VCRT ON CACHE BOOL "static windows static vcrc")
+        set(SDL_FORCE_STATIC_VCRT ON CACHE BOOL "static windows static vcrc")
         add_subdirectory(${sdl2_content_SOURCE_DIR} ${sdl2_content_BINARY_DIR} EXCLUDE_FROM_ALL)
         add_library(SDL2::SDL2 ALIAS SDL2-static)
     endif()
     add_library(SDL2::SDL2main ALIAS SDL2main)
-
-    file(GLOB INCLUDE_FILES ${sdl2_content_SOURCE_DIR}/include/*.h)
-    file(GLOB BIN_INCLUDE_FILES ${sdl2_content_BINARY_DIR}/include/*.h)
-    foreach(_FNAME ${BIN_INCLUDE_FILES})
-        get_filename_component(_INCNAME ${_FNAME} NAME)
-        list(REMOVE_ITEM INCLUDE_FILES ${sdl2_content_SOURCE_DIR}/include/${_INCNAME})
-    endforeach()
-    list(APPEND INCLUDE_FILES ${BIN_INCLUDE_FILES})
-
-    if(NOT EXISTS "${sdl2_content_BINARY_DIR}/include/SDL2")
-        file(MAKE_DIRECTORY "${sdl2_content_BINARY_DIR}/include/SDL2")
-        file(COPY ${INCLUDE_FILES}  DESTINATION "${sdl2_content_BINARY_DIR}/include/SDL2")
-    endif()
-    include_directories("${sdl2_content_BINARY_DIR}/include")
 
     if(EXISTS "${sdl2_content_SOURCE_DIR}/android-project")
         file(REMOVE_RECURSE "${sdl2_content_SOURCE_DIR}/android-project")
@@ -58,7 +44,8 @@ if(NOT sdl2_content_POPULATED)
 
     file(COPY CMake/Extra/sdl2-config.cmake DESTINATION ${sdl2_content_BINARY_DIR})
     set(SDL2_DIR ${sdl2_content_BINARY_DIR})
-    list(APPEND SDL2_INCLUDE_DIRS "${sdl2_content_BINARY_DIR}/include/SDL2/")
+    list(APPEND SDL2_INCLUDE_DIRS "${sdl2_content_BINARY_DIR}/include-config-debug/")
+    list(APPEND SDL2_INCLUDE_DIRS "${sdl2_content_BINARY_DIR}/include-config-release/")
     list(APPEND SDL2_INCLUDE_DIRS "${sdl2_content_BINARY_DIR}/include/")
     list(APPEND SDL2_LIBRARY_DIRS "${sdl2_content_BINARY_DIR}/")
     list(APPEND SDL2_LIBRARIES SDL2::SDL2)

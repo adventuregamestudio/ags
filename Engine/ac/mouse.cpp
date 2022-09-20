@@ -323,6 +323,23 @@ void Mouse_EnableControl(bool on)
     usetup.mouse_ctrl_enabled = on; // remember setting in config
 }
 
+bool Mouse_IsAutoLocking()
+{
+    return usetup.mouse_auto_lock;
+}
+
+void Mouse_SetAutoLock(bool on)
+{
+    usetup.mouse_auto_lock = on;
+    if (scsystem.windowed)
+    {
+        if (usetup.mouse_auto_lock)
+            Mouse::TryLockToWindow();
+        else
+            Mouse::UnlockFromWindow();
+    }
+}
+
 //=============================================================================
 
 int GetMouseCursor() {
@@ -587,6 +604,16 @@ RuntimeScriptValue Sc_Mouse_SetControlEnabled(const RuntimeScriptValue *params, 
     API_SCALL_VOID_PBOOL(Mouse_EnableControl);
 }
 
+RuntimeScriptValue Sc_Mouse_GetAutoLock(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(Mouse_IsAutoLocking);
+}
+
+RuntimeScriptValue Sc_Mouse_SetAutoLock(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PBOOL(Mouse_SetAutoLock);
+}
+
 
 RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -620,6 +647,8 @@ void RegisterMouseAPI()
     ccAddExternalStaticFunction("Mouse::Update^0",                  Sc_RefreshMouse);
     ccAddExternalStaticFunction("Mouse::UseDefaultGraphic^0",       Sc_set_default_cursor);
     ccAddExternalStaticFunction("Mouse::UseModeGraphic^1",          Sc_set_mouse_cursor);
+    ccAddExternalStaticFunction("Mouse::get_AutoLock",              Sc_Mouse_GetAutoLock);
+    ccAddExternalStaticFunction("Mouse::set_AutoLock",              Sc_Mouse_SetAutoLock);
     ccAddExternalStaticFunction("Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled);
     ccAddExternalStaticFunction("Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled);
     ccAddExternalStaticFunction("Mouse::get_Mode",                  Sc_GetCursorMode);

@@ -173,7 +173,12 @@ namespace AGS.Types
             get { return _lastSavedAt; }
         }
 
-        public void SaveToDisk(bool force = false)
+        public void SaveToDisk()
+        {
+            SaveToDisk(false);
+        }
+
+        public void SaveToDisk(bool force)
         {
             if (_modified || force)
             {

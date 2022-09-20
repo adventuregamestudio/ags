@@ -107,7 +107,7 @@ void AudioCoreSlot::Poll()
     if (!_bufferPending.Data && !_decoder->EOS())
     { // if no buffer saved, and still something to decode, then read a buffer
         _bufferPending = _decoder->GetData();
-        assert((_bufferPending.Size == 0) || _bufferPending.Data);
+        assert(_bufferPending.Data || (_bufferPending.Size == 0));
     }
     if (_bufferPending.Data && (_bufferPending.Size > 0))
     { // if having a buffer already, then try to put into source

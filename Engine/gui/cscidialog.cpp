@@ -101,7 +101,6 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
         quit("Too many windows created.");
 
     windowcount++;
-    //  ags_domouse(DOMOUSE_DISABLE);
     xx -= 2;
     yy -= 2;
     wid += 4;
@@ -110,7 +109,6 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
     __my_wbutt(ds, 0, 0, wid - 1, hit - 1);    // wbutt goes outside its area
-    //  ags_domouse(DOMOUSE_ENABLE);
     oswi[drawit].oldtop = topwindowhandle;
     topwindowhandle = drawit;
     oswi[drawit].handle = topwindowhandle;
@@ -123,11 +121,9 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
 
 void CSCIEraseWindow(int handl)
 {
-    //  ags_domouse(DOMOUSE_DISABLE);
     ignore_bounds--;
     topwindowhandle = oswi[handl].oldtop;
     oswi[handl].handle = -1;
-    //  ags_domouse(DOMOUSE_ENABLE);
     windowcount--;
     clear_gui_screen();
 }
@@ -136,9 +132,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
 {
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
         if (vobjs[uu] != nullptr) {
-            //      ags_domouse(DOMOUSE_DISABLE);
             vobjs[uu]->drawifneeded();
-            //      ags_domouse(DOMOUSE_ENABLE);
         }
     }
 
@@ -153,6 +147,9 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         cscim->id = -1;
         cscim->code = 0;
         smcode = 0;
+        // NOTE: CSCIWaitMessage is supposed to report only single message,
+        // therefore we cannot process all buffered key presses here
+        // (unless the whole dialog system is rewritten).
         KeyInput ki;
         if (run_service_key_controls(ki) && !play.IsIgnoringInput()) {
             int keywas = ki.Key;
@@ -163,7 +160,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
             } else if (keywas == eAGSKeyCodeEscape) {
                 cscim->id = finddefaultcontrol(CNF_CANCEL);
                 cscim->code = CM_COMMAND;
-            } else if ((keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace)) ;
+            } else if ((uchar == 0) && (keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace)) ;
             else if ((keywas >= eAGSKeyCodeUpArrow) & (keywas <= eAGSKeyCodePageDown) & (finddefaultcontrol(CNT_LISTBOX) >= 0))
                 vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, keywas, 0);
             else if (finddefaultcontrol(CNT_TEXTBOX) >= 0)
@@ -229,9 +226,7 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
 
     vobjs[usec]->typeandflags = typeandflags;
     vobjs[usec]->wlevel = topwindowhandle;
-    //  ags_domouse(DOMOUSE_DISABLE);
     vobjs[usec]->draw( get_gui_screen() );
-    //  ags_domouse(DOMOUSE_ENABLE);
     return usec;
 }
 

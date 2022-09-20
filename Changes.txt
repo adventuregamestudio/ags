@@ -104,6 +104,7 @@ Editor:
    is activated. This is equivalent to the Character.SetIdleView script function.
  - Added Character.IdleAnimationDelay property to let setup idle view's animation speed.
  - Added Cursor.AnimationDelay property to let setup cursor's animation speed.
+ - The TextWindow edges now have distinct names in the dropdown list of the property grid.
  - Rooms created from a Blank template will now have default background of a game's resolution.
  - When creating new room objects they will now have their script names set to some default value.
  - Added Room.BackgroundAnimationEnabled property to let have disabled animation on room load.
@@ -152,6 +153,7 @@ Editor:
    was declared in another header.
  - Fixed script autocomplete was not working for enum names.
  - Fixed structs and enums were not highlighted if declared inside a script's body.
+ - Fixed in dialogs numbers inside names were incorrectly highlighted as numeric values.
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
@@ -196,6 +198,7 @@ Script API:
    GetDrawingSurfaceForWalkbehind(), Hotspot.GetDrawingSurface(), Region.GetDrawingSurface().
  - Added new delay parameter to Mouse.ChangeModeView() to let control cursor's animation speed.
  - Added Game.ChangeSpeechVox() and Game.SpeechVoxFilename, support switching the voice-over pack.
+ - Added Mouse.AutoLock property that toggles automatic mouse lock inside the game window.
  - Added Room.Exists().
  - Added System.Log().
  - Added SkipWait() that skips any active Wait() function.
@@ -382,6 +385,14 @@ WinSetup:
 
 
 ===================================================================================================
+
+
+VERSION 3.5.1 - Patch 14, September 2022
+
+Editor:
+ - Do not error when compiling a 256 colors game if Direct3D or OpenGL are selected as a default
+   graphics driver (display a warning instead).
+ - Fixed crash when trying to import pre-2.60 game projects.
 
 
 VERSION 3.5.1 - Patch 13, August 2022

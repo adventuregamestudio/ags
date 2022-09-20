@@ -44,7 +44,7 @@
 // The AGS editor will cause this to get called when the editor first
 // starts up, and when it shuts down at the end.
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && !defined(BUILTIN_PLUGINS)
 bool APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
                        LPVOID lpReserved) {

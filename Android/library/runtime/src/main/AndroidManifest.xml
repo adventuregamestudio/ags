@@ -36,7 +36,8 @@
             android:alwaysRetainTaskState="true"
             android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:label="@string/app_name"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:exported="true">
         </activity>
         <activity android:configChanges="orientation|keyboardHidden|screenSize" android:name=".PreferencesActivity">
             <intent-filter>

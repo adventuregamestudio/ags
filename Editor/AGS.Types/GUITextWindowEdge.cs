@@ -13,6 +13,13 @@ namespace AGS.Types
         public const string CONTROL_DISPLAY_NAME = "TextWindowEdge";
         public const string SCRIPT_CLASS_TYPE = "Button";
 
+        private static string[] _displayNames = new string[8]
+        {
+            "Top-Left Corner", "Bottom-Left Corner", "Top-Right Corner",
+            "Bottom-Right Corner", "Left Border", "Right Border",
+            "Top Border", "Bottom Border"
+        };
+
         public GUITextWindowEdge(int x, int y, int id)
             : base(x, y, 10, 10)
         {
@@ -44,7 +51,7 @@ namespace AGS.Types
         {
             get
             {
-                return CONTROL_DISPLAY_NAME;
+                return (_id >= 0 && _id < _displayNames.Length) ? _displayNames[_id] : CONTROL_DISPLAY_NAME;
             }
         }
 

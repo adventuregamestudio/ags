@@ -76,10 +76,12 @@ namespace AGS.Editor
         public event ActivateContextMenuHandler ActivateContextMenu;
 
         private bool _isDialogScript = false;
-        // Set keywords
+        // Keyword sets, grouped per type
         private List<string>[] _keywordSets = new List<string>[(int)WordListType.MaxCount];
         // Full keyword list, for convenient use
         private List<string> _keywords = new List<string>();
+        // Full keyword list, dialog-specific
+        private List<string> _dialogKeywords = new List<string>();
         // Autocomplete list
         private List<string> _autoCKeywords = new List<string>();
 
@@ -606,10 +608,10 @@ namespace AGS.Editor
         // We need this to comply to the IScriptEditorControl
         public void SetKeyWords(string keyWords)
         {
-            SetKeyWords(keyWords, WordListType.Keywords);
+            SetKeyWords(keyWords, WordListType.Keywords, false);
         }
 
-        public void SetKeyWords(string keyWords, WordListType type)
+        public void SetKeyWords(string keyWords, WordListType type, bool dialogKeywords = false)
         {
             scintillaControl1.SetKeywords((int)type, keyWords);
 
@@ -621,20 +623,23 @@ namespace AGS.Editor
                     _autoCKeywords.Remove(k);
                 AddAutoCompleteKeyWords(keyWords);
             }
+            // Need to remove keywords from the full list, only corresponding to the given kind and set
+            var thisKeyList = dialogKeywords ? _dialogKeywords : _keywords;
             foreach (var k in _keywordSets[(int)type])
-                _keywords.Remove(k);
+                thisKeyList.Remove(k);
             _keywordSets[(int)type].Clear();
-            SetNormalKeywords(keyWords, type);
+            SetNormalKeywords(keyWords, type, dialogKeywords);
         }
 
-        private void SetNormalKeywords(string keyWords, WordListType type)
+        private void SetNormalKeywords(string keyWords, WordListType type, bool dialogKeywords)
         {
             string[] arr = keyWords.Split(' ');
+            var thisKeyList = dialogKeywords ? _dialogKeywords : _keywords;
             foreach (string s in arr)
             {
                 s.Trim();
                 _keywordSets[(int)type].Add(s);
-                _keywords.Add(s);
+                thisKeyList.Add(s);
             }
         }
 
@@ -1301,7 +1306,7 @@ namespace AGS.Editor
             return scriptList;
         }
 
-        private ScriptStruct FindGlobalVariableOrType(string type, ref bool staticAccess)
+        private ScriptStruct FindGlobalType(string type)
         {
             foreach (IScript script in GetAutoCompleteScriptList())
             {
@@ -1309,16 +1314,32 @@ namespace AGS.Editor
                 {
                     if ((structDef.Name == type) && (structDef.FullDefinition))
                     {
-                        staticAccess = true;
                         return structDef;
                     }
                 }
+            }
+            return null;
+        }
+
+        private ScriptStruct FindGlobalVariableOrType(string type, ref bool staticAccess)
+        {
+            // First try search for a type that has this name
+            var foundType = FindGlobalType(type);
+            if (foundType != null)
+            {
+                staticAccess = true;
+                return foundType;
+            }
+
+            // Then, search for a variable that has this name, and try retrieving its type
+            foreach (IScript script in GetAutoCompleteScriptList())
+            {
                 foreach (ScriptVariable varDef in script.AutoCompleteData.Variables)
                 {
                     if (varDef.VariableName == type)
                     {
                         staticAccess = false;
-                        return FindGlobalVariableOrType(varDef.Type);
+                        return FindGlobalType(varDef.Type);
                     }
                 }
             }
@@ -2484,6 +2505,7 @@ namespace AGS.Editor
             if (start_pos > 0) stylingMode = scintillaControl1.GetStyleAt(start_pos - 1);
 
             bool onNewLine = true;
+            bool atNewWord = true;
             bool onScriptLine = false;
             int i;
             scintillaControl1.StartStyling(start_pos);
@@ -2516,6 +2538,7 @@ namespace AGS.Editor
                 if (c == '\n')
                 {
                     onNewLine = true;
+                    atNewWord = false;
                     onScriptLine = false;
                     if (stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.String)
                     {
@@ -2531,10 +2554,11 @@ namespace AGS.Editor
 
                 if (onNewLine)
                 {
-                    if (c == ' ' || c == '\t')
+                    if (Char.IsWhiteSpace(c))
                     {
                         onScriptLine = true;
                         onNewLine = false;
+                        atNewWord = true;
                         continue;
                     }
                 }
@@ -2551,15 +2575,14 @@ namespace AGS.Editor
                             laststyle = i + 1;
                         }
                     }
-
-                    else if (isNumeric(c))
+                    // Style the numbers only when the digit is the first character in a word
+                    else if (atNewWord && Char.IsDigit(c))
                     {
                         if (stylingMode != Style.Cpp.String && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
                         {
                             scintillaControl1.SetStyling(i - laststyle, stylingMode);
-                            scintillaControl1.SetStyling(1, Style.Cpp.Number);
-                            stylingMode = Style.Cpp.Default;
-                            laststyle = i + 1;
+                            stylingMode = Style.Cpp.Number;
+                            laststyle = i;
                         }
                     }
                     else if (c == '"')
@@ -2571,6 +2594,15 @@ namespace AGS.Editor
                             stylingMode = Style.Cpp.Default;
                         }
                         else stylingMode = Style.Cpp.String;
+                    }
+                    else if (Char.IsWhiteSpace(c) || Char.IsPunctuation(c))
+                    {
+                        if (stylingMode != Style.Cpp.String && stylingMode != Style.Cpp.Comment && stylingMode != Style.Cpp.CommentLine)
+                        {
+                            scintillaControl1.SetStyling(i - laststyle, stylingMode);
+                            stylingMode = Style.Cpp.Default;
+                            laststyle = i;
+                        }
                     }
                 }
                 else
@@ -2618,6 +2650,7 @@ namespace AGS.Editor
                 }
 
                 onNewLine = false;
+                atNewWord = Char.IsWhiteSpace(c) || Char.IsPunctuation(c) || isOperator(c);
             }
 
             scintillaControl1.SetStyling(i - laststyle, stylingMode);
@@ -2647,20 +2680,6 @@ namespace AGS.Editor
                     token == '+' ||
                     token == '=' ||
                     token == '*');
-        }
-
-        private bool isNumeric(int token)
-        {
-            return (token == '0' ||
-                    token == '1' ||
-                    token == '2' ||
-                    token == '3' ||
-                    token == '4' ||
-                    token == '5' ||
-                    token == '6' ||
-                    token == '7' ||
-                    token == '8' ||
-                    token == '9');
         }
     }
 }

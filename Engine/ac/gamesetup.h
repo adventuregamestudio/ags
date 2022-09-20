@@ -44,6 +44,18 @@ enum ScreenRotation
     kNumScreenRotationOptions
 };
 
+enum TouchMouseEmulation
+{
+    // don't emulate mouse
+    kTouchMouse_None = 0,
+    // copy default SDL2 behavior:
+    // touch down means hold LMB down, no RMB emulation
+    kTouchMouse_OneFingerDrag,
+    // tap 1,2 fingers means LMB/RMB click;
+    // double tap + drag 1 finger would drag the cursor with LMB down
+    kTouchMouse_TwoFingersTap
+};
+
 using AGS::Common::String;
 
 // TODO: reconsider the purpose of this struct in the future.
@@ -79,6 +91,9 @@ struct GameSetup
     MouseControlWhen mouse_ctrl_when;
     bool  mouse_ctrl_enabled;
     MouseSpeedDef mouse_speed_def;
+    // touch-to-mouse emulation mode
+    int   touch_emulate_mouse;
+    //
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;
     size_t SpriteCacheSize = 0u;

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -33,6 +34,10 @@ namespace AGS.Editor
             EndUpdate();
 
             SelectedIndex = original.SelectedIndex;
+
+            var eventsField = typeof(System.ComponentModel.Component).GetField("events", BindingFlags.NonPublic | BindingFlags.Instance);
+            var eventHandlerList = eventsField.GetValue(original);
+            eventsField.SetValue(this, eventHandlerList);
         }
 
         protected override void OnCreateControl()

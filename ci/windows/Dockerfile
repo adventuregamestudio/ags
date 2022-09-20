@@ -46,9 +46,9 @@ RUN mkdir Redist && \
   cd Redist && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
 
-ARG SDL_VERSION=2.0.12
+ARG SDL_VERSION=2.24.0
 RUN mkdir Lib\SDL2 && \
-  curl -fLOJ "https://www.libsdl.org/release/SDL2-devel-%SDL_VERSION%-VC.zip" && \
+  curl -fLOJ "https://github.com/libsdl-org/SDL/releases/download/release-%SDL_VERSION%/SDL2-devel-%SDL_VERSION%-VC.zip" && \
   tar -f SDL2-devel-%SDL_VERSION%-VC.zip -xvzC Lib\SDL2\ --strip-components 1  && \
   del /f SDL2-devel-%SDL_VERSION%-VC.zip  && \
   echo set^(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/include"^) > "Lib\SDL2\sdl2-config.cmake" && \

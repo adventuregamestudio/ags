@@ -61,10 +61,11 @@ VideoPlayer::~VideoPlayer()
     Close();
 }
 
-bool VideoPlayer::Open(const String &name, int flags)
+HError VideoPlayer::Open(const String &name, int flags)
 {
-    if (!OpenImpl(name, flags))
-        return false;
+    HError err = OpenImpl(name, flags);
+    if (!err)
+        return err;
 
     _flags = flags;
     // Start the audio stream
@@ -106,7 +107,7 @@ bool VideoPlayer::Open(const String &name, int flags)
 
     _frameTime = 1000 / _frameRate;
     _loop = false;
-    return true;
+    return HError::None();
 }
 
 void VideoPlayer::Close()
@@ -126,6 +127,9 @@ void VideoPlayer::Close()
 
 void VideoPlayer::Play()
 {
+    if (!IsValid())
+        return;
+
     switch (_playState)
     {
     case PlayStatePaused: Resume(); /* fall-through */
@@ -240,10 +244,11 @@ public:
     FlicPlayer() = default;
     ~FlicPlayer();
 
+    bool IsValid() override { return _pf != nullptr; }
     void Restore() override;
 
 private:
-    bool OpenImpl(const AGS::Common::String &name, int &flags) override;
+    HError OpenImpl(const AGS::Common::String &name, int &flags) override;
     void CloseImpl() override;
     bool NextFrame() override;
 
@@ -262,23 +267,21 @@ void FlicPlayer::Restore()
     set_palette_range(fli_palette, 0, 255, 0);
 }
 
-bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int& /*flags*/)
+HError FlicPlayer::OpenImpl(const AGS::Common::String &name, int& /*flags*/)
 {
-    Stream *in = AssetMgr->OpenAsset(name);
+    std::unique_ptr<Stream> in(AssetMgr->OpenAsset(name));
     if (!in)
-        return false;
+        return new Error(String::FromFormat("Failed to open file: %s", name.GetCStr()));
     in->Seek(8);
     const int fliwidth = in->ReadInt16();
     const int fliheight = in->ReadInt16();
-    delete in;
+    in.reset();
 
     PACKFILE *pf = PackfileFromAsset(AssetPath(name, "*"));
     if (open_fli_pf(pf) != FLI_OK)
     {
         pack_fclose(pf);
-        // This is not a fatal error that should prevent the game from continuing
-        Debug::Printf("FLI/FLC animation play error");
-        return false;
+        return new Error("Failed to open FLI/FLC animation; could be an invalid or unsupported format");
     }
     _pf = pf;
 
@@ -288,7 +291,7 @@ bool FlicPlayer::OpenImpl(const AGS::Common::String &name, int& /*flags*/)
     _frameDepth = 8;
     _frameSize = Size(fliwidth, fliheight);
     _frameRate = 1000 / fli_speed;
-    return true;
+    return HError::None();
 }
 
 void FlicPlayer::CloseImpl()
@@ -332,8 +335,10 @@ public:
     TheoraPlayer() = default;
     ~TheoraPlayer();
 
+    bool IsValid() override { return _apegStream != nullptr; }
+
 private:
-    bool OpenImpl(const AGS::Common::String &name, int &flags) override;
+    HError OpenImpl(const AGS::Common::String &name, int &flags) override;
     void CloseImpl() override;
     bool NextFrame() override;
 
@@ -372,9 +377,14 @@ void apeg_stream_skip(int bytes, void *ptr)
 }
 //
 
-bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
+HError TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
 {
     std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
+    if (!video_stream)
+    {
+        return new Error(String::FromFormat("Failed to open file: %s", name.GetCStr()));
+    }
+
     apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
     apeg_set_display_depth(game.GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start
@@ -385,14 +395,12 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     APEG_STREAM* apeg_stream = apeg_open_stream_ex(video_stream.get());
     if (!apeg_stream)
     {
-        debug_script_warn("Unable to load theora video '%s'", name.GetCStr());
-        return false;
+        return new Error(String::FromFormat("Failed to open theora video '%s'; could be an invalid or unsupported format", name.GetCStr()));
     }
     int video_w = apeg_stream->w, video_h = apeg_stream->h;
     if (video_w <= 0 || video_h <= 0)
     {
-        debug_script_warn("Unable to load theora video '%s'", name.GetCStr());
-        return false;
+        return new Error(String::FromFormat("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h));
     }
 
     _apegStream = apeg_stream;
@@ -426,7 +434,7 @@ bool TheoraPlayer::OpenImpl(const AGS::Common::String &name, int &flags)
     _audioFreq = _apegStream->audio.freq;
     _audioFormat = AUDIO_S16SYS;
     apeg_set_error(_apegStream, NULL);
-    return true;
+    return HError::None();
 }
 
 void TheoraPlayer::CloseImpl()
@@ -437,6 +445,7 @@ void TheoraPlayer::CloseImpl()
 
 bool TheoraPlayer::NextFrame()
 {
+    assert(_apegStream);
     // reset some data
     bool has_audio = false, has_video = false;
     _apegStream->frame_updated = -1;
@@ -486,13 +495,20 @@ static bool video_check_user_input(VideoSkipType skip)
     KeyInput key;
     eAGSMouseButton mbut;
     int mwheelz;
-    if (run_service_key_controls(key))
+    // Handle all the buffered key events
+    bool do_break = false;
+    while (ags_keyevent_ready())
     {
-        if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
-            return true;
-        if (skip >= VideoSkipAnyKey)
-            return true;  // skip on any key
+        if (run_service_key_controls(key))
+        {
+            if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
+                do_break = true;
+            if (skip >= VideoSkipAnyKey)
+                do_break = true;  // skip on any key
+        }
     }
+    if (do_break)
+        return true; // skip on key press
     if (run_service_mb_controls(mbut, mwheelz) && (mbut > kMouseNone) && (skip == VideoSkipKeyOrMouse))
         return true; // skip on mouse click
     return false;
@@ -522,7 +538,8 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
     {
         sys_evt_process_pending();
         // Check user input skipping the video
-        if (video_check_user_input(skip)) break;
+        if (video_check_user_input(skip))
+            break;
         gl_Video->Poll(); // update/render next frame
         UpdateGameAudioOnly(); // update the game and wait for next frame
     }
@@ -542,34 +559,34 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
     ags_clear_input_state();
 }
 
-void play_flc_video(int numb, int flags, VideoSkipType skip)
+HError play_flc_video(int numb, int flags, VideoSkipType skip)
 {
     std::unique_ptr<FlicPlayer> video(new FlicPlayer());
     // Try couple of various filename formats
     String flicname = String::FromFormat("flic%d.flc", numb);
-    if (!video->Open(flicname, flags))
+    if (!AssetMgr->DoesAssetExist(flicname))
     {
         flicname.Format("flic%d.fli", numb);
-        if (!video->Open(flicname, flags))
-        {
-            debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
-            return;
-        }
+        if (!AssetMgr->DoesAssetExist(flicname))
+            return new Error(String::FromFormat("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb));
     }
+    HError err = video->Open(flicname, flags);
+    if (!err)
+        return err;
 
     video_run(std::move(video), flags, skip);
+    return HError::None();
 }
 
-void play_theora_video(const char *name, int flags, VideoSkipType skip)
+HError play_theora_video(const char *name, int flags, VideoSkipType skip)
 {
     std::unique_ptr<TheoraPlayer> video(new TheoraPlayer());
-    if (!video->Open(name, flags))
-    {
-        debug_script_warn("Error playing theora video '%s'", name);
-        return;
-    }
+    HError err = video->Open(name, flags);
+    if (!err)
+        return err;
 
     video_run(std::move(video), flags, skip);
+    return HError::None();
 }
 
 void video_pause()

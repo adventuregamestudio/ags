@@ -518,7 +518,9 @@ struct Touch2Mouse
     float rel_accum_x = 0.f;
     float rel_accum_y = 0.f;
     // Minimal finger motion required to begin cursor drag
-    const float drag_trigger_dist = 0.05f; // relative to screen size
+    const float drag_trigger_dist = 0.01f; // relative to screen size
+    // Accumulated drag distance (in absolute value)
+    float drag_dist_accum = 0.f;
     // Tells to not translation finger motion events into the emulated mouse
     bool ignore_motion = false;
     // Tells to ignore any finger action other than the finger that
@@ -641,6 +643,7 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
         {
             t2m.pos = Point(std::roundf(event.x * w), std::roundf(event.y * h));
             t2m.start_pos = t2m.pos;
+            t2m.drag_dist_accum = 0.f;
             t2m.is_dragging = false;
             // NOTE: send motion event without dx/dy data, to prevent cursor jumps in relative mode
             send_mouse_motion_event(t2m.pos.X, t2m.pos.Y, 0, 0);
@@ -741,8 +744,9 @@ void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
             int rel_x = calc_relative_delta((event.dx * w), usetup.mouse_speed, t2m.rel_accum_x);
             int rel_y = calc_relative_delta((event.dy * h), usetup.mouse_speed, t2m.rel_accum_y);
             send_mouse_motion_event(t2m.pos.X, t2m.pos.Y, rel_x, rel_y);
-            Point trigger_dist(std::roundf(w * t2m.drag_trigger_dist), std::roundf(h * t2m.drag_trigger_dist));
-            if (DistanceBetween(t2m.pos, t2m.start_pos) >= t2m.drag_trigger_dist)
+            // Test the absolute value of the touch drag so far
+            t2m.drag_dist_accum += std::sqrt((event.dx * event.dx) + (event.dy * event.dy));;
+            if (t2m.drag_dist_accum > t2m.drag_trigger_dist)
             {
                 t2m.is_dragging = true;
             }

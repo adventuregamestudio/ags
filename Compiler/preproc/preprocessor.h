@@ -19,6 +19,7 @@ namespace Preprocessor {
         EndIfWithoutIf,
         IfWithoutEndIf,
         InvalidVersionNumber,
+        UnterminatedString
     };
 
     class Preprocessor {

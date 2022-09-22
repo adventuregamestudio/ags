@@ -107,6 +107,11 @@ struct Point
     {
         return Point(X + p.X, Y + p.Y);
     }
+
+    inline Point operator -(const Point &p) const
+    {
+        return Point(X - p.X, Y - p.Y);
+    }
 };
 
 struct Line

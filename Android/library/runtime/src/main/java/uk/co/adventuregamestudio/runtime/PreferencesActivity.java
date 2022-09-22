@@ -13,6 +13,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
+import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreference;
 
 import androidx.preference.PreferenceManager;
@@ -20,10 +21,14 @@ import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 
 import java.io.File;
+import java.util.Locale;
+import java.util.Objects;
 
 
 public class PreferencesActivity extends AppCompatActivity
 {
+    private boolean once = false;
+
     public String gameName;
     public String gameFilename;
     public String gamePath;
@@ -34,6 +39,7 @@ public class PreferencesActivity extends AppCompatActivity
 
     public static final int CONFIG_ENABLED = 14;
     public static final int CONFIG_TRANSLATION = 17;
+    public static final int CONFIG_MOUSE_SPEED = 21;
 
     public native boolean readConfigFile(String directory);
     public native boolean writeConfigFile();
@@ -70,8 +76,27 @@ public class PreferencesActivity extends AppCompatActivity
         baseDirectory = extras.getString("directory");
 
         isGlobalConfig = (gameName.length() == 0);
-
     }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        Preference.OnPreferenceChangeListener onMouseSpeedSeekBarChanged = (preference, newValue) -> {
+            final int value = (int) newValue;
+            preference.setSummary(String.format(Locale.US, "Sensibility: %.1f", ((float)value)/10.0));
+            return true;
+        };
+        SeekBarPreference mouseSpeedSeekBar = frag.findPreference(Integer.toString(CONFIG_MOUSE_SPEED));
+        if (mouseSpeedSeekBar != null) {
+            if(!once) {
+                once = true;
+                mouseSpeedSeekBar.setOnPreferenceChangeListener(onMouseSpeedSeekBarChanged);
+            }
+            onMouseSpeedSeekBarChanged.onPreferenceChange(mouseSpeedSeekBar, mouseSpeedSeekBar.getValue());
+        }
+    }
+
 
     public void setTitle(String global_preferences) {
     }
@@ -128,6 +153,16 @@ public class PreferencesActivity extends AppCompatActivity
                 CheckBoxPreference checkBox = (CheckBoxPreference) frag.findPreference(preference.getKey());
                 checkBox.setChecked(value != 0);
             }
+            else if (preference instanceof SeekBarPreference)
+            {
+                String key = preference.getKey();
+                int key_value = Integer.valueOf(key);
+                int value = readIntConfigValue(key_value);
+
+                editor.putInt(preference.getKey(), value);
+                SeekBarPreference seekbar = (SeekBarPreference) frag.findPreference(preference.getKey());
+                seekbar.setValue(value);
+            }
             else if (preference instanceof ListPreference)
             {
                 String key = preference.getKey();
@@ -179,10 +214,18 @@ public class PreferencesActivity extends AppCompatActivity
 
                 setIntConfigValue(key_value, value);
             }
+            else if (preference instanceof SeekBarPreference) {
+                String key = preference.getKey();
+                int key_value = Integer.parseInt(key);
+
+                int value = ((SeekBarPreference) preference).getValue();
+
+                setIntConfigValue(key_value, value);
+            }
             else if (preference instanceof ListPreference)
             {
                 String key = preference.getKey();
-                int key_value = Integer.valueOf(key);
+                int key_value = Integer.parseInt(key);
                 String value_string = ((ListPreference) preference).getValue();
 
                 if (value_string == null)

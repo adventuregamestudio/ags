@@ -28,6 +28,7 @@ bool WriteConfiguration(const MobileSetup &setup, const char *filename)
 
     CfgWriteInt(cfg, "controls", "mouse_emulation", setup.mouse_emulation);
     CfgWriteInt(cfg, "controls", "mouse_method", setup.mouse_control_mode);
+    CfgWriteInt(cfg, "controls", "mouse_speed", setup.mouse_speed);
 
     CfgWriteInt(cfg, "compatibility", "clear_cache_on_room_change", setup.clear_cache_on_room_change);
 
@@ -87,6 +88,7 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
 
     setup.mouse_emulation = CfgReadInt(cfg, "controls", "mouse_emulation", 0, 2, 1);
     setup.mouse_control_mode = CfgReadInt(cfg, "controls", "mouse_method", 0, 1, 0);
+    setup.mouse_speed = CfgReadInt(cfg, "controls", "mouse_speed", 1, 30, 10);
 
     return true;
 }
@@ -158,6 +160,7 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
     //    * 1 - relative mouse touch controls
     //    * 0 - direct touch mouse control
     CfgWriteInt(cfg, "mouse", "control_enabled", setup.mouse_control_mode);
+    CfgWriteFloat(cfg, "mouse", "speed", (float)std::max(setup.mouse_speed, 1)/10.f);
 
     // translations
     CfgWriteString(cfg, "language", "translation", setup.translation);

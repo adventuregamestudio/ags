@@ -46,7 +46,17 @@ namespace AGS.Editor
 		{
 			foreach (IEditorComponent component in _components)
 			{
-				component.EditorShutdown();
+                try
+                {
+                    component.EditorShutdown();
+                }
+                catch(Exception e)
+                {
+                    // TODO: write into the Editor's log or something?
+                    GUIController.Instance.ShowMessage(
+                        string.Format("Editor component {0} was shut down with an exception.\n\n{1}",
+                        component.ComponentID, e.Message), MessageBoxIconType.Warning);
+                }
 			}
 		}
 

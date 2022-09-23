@@ -131,38 +131,4 @@ _note:_ If you don't have Android Studio installed you will need to install java
 
 ## Androig Configuration
 
-`android.cfg`
-
-Below midi is disabled for everyone happiness.
-Rotation 0 allows the player to control rotation - you probably don't want that.
-
-```
-[misc]
-config_enabled = 1
-rotation = 0
-translation = default
-[controls]
-mouse_method = 0
-mouse_longclick = 1
-[compatibility]
-clear_cache_on_room_change = 0
-[sound]
-samplerate = 44100
-enabled = 1
-threaded = 1
-cache_size = 10
-[midi]
-enabled = 0
-preload_patches = 0
-[video]
-framedrop = 0
-[graphics]
-renderer = 0
-smoothing = 0
-scaling = 1
-super_sampling = 0
-smooth_sprites = 0
-[debug]
-show_fps = 0
-logging = 0
-```
+Android's port configuration is looked up in a file called `android.cfg`. See the main [Preferences section](../README.md) in the main Android README for the details.

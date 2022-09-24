@@ -125,6 +125,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("Blur",                         Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("HighPass",                     Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("DrawAdd",                      Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("DrawSprite",                   Sc_PluginStub_Int0);
     return true;
   }
   else if (ags_stricmp(name, "agsflashlight") == 0)

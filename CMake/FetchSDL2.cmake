@@ -38,6 +38,10 @@ if(NOT sdl2_content_POPULATED)
     endif()
     add_library(SDL2::SDL2main ALIAS SDL2main)
 
+    if(EXISTS "${sdl2_content_BINARY_DIR}/include/SDL_config.h")
+        file(REMOVE "${sdl2_content_BINARY_DIR}/include/SDL_config.h")
+    endif()
+
     if(EXISTS "${sdl2_content_SOURCE_DIR}/android-project")
         file(REMOVE_RECURSE "${sdl2_content_SOURCE_DIR}/android-project")
     endif()

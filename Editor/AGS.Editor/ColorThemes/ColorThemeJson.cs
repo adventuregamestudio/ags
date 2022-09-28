@@ -21,28 +21,38 @@ namespace AGS.Editor
 
         public override bool Has(string id)
         {
-            try
-            {
-                return DoTransform(id, t => t != null);
-            }
-            catch {
-                return false;
-            }
+            string[] tokens = id.Replace('.', '/').Split('/');
+            JToken token = _json[tokens[0]];
+            if (token == null) return false;
+
+            bool found = true;
+            tokens.Skip(1).ToList().ForEach(t => {
+                if (!found) return; // can't break from ForEach
+                if (token[t] == null)
+                    found = false;
+                else
+                    token = token[t];
+            });
+            return found;
         }
 
         public override Color GetColor(string id)
         {
-            try
+            JToken token = GetJToken(id, _json);
+            if (token == null) throw new Exception();
+
+            if (token.Type == JTokenType.String)
             {
-                return DoTransform(id, t => {
-                    // null check because (string)t won't throw an error like other cases
-                    if (t == null) throw new Exception("GetColor() Token is null");
-                    return System.Drawing.ColorTranslator.FromHtml((string)t);
-                });
+                return DoTransform(id, t => System.Drawing.ColorTranslator.FromHtml((string)t) );
             }
-            catch { }
+
             // old style compatibility
-            return DoTransform(id, t => Color.FromArgb((int)t["a"], (int)t["r"], (int)t["g"], (int)t["b"]));
+            if (token.Type == JTokenType.Object)
+            {
+                return DoTransform(id, t => Color.FromArgb((int)t["a"], (int)t["r"], (int)t["g"], (int)t["b"]));
+            }
+
+            throw new Exception();
         }
 
         public override int GetInt(string id)

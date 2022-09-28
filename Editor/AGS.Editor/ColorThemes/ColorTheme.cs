@@ -46,7 +46,8 @@ namespace AGS.Editor
         {
             try
             {
-                fn(GetColor(id));
+                if (Has(id))
+                    fn(GetColor(id));
             }
             catch { }
         }
@@ -57,7 +58,8 @@ namespace AGS.Editor
             {
                 try
                 {
-                    fn(GetColor(currentId));
+                    if (Has(currentId))
+                        fn(GetColor(currentId));
                     return;
                 }
                 catch { }
@@ -80,7 +82,8 @@ namespace AGS.Editor
         {
             try
             {
-                fn(GetInt(id));
+                if (Has(id))
+                    fn(GetInt(id));
             }
             catch { }
         }
@@ -91,7 +94,8 @@ namespace AGS.Editor
             {
                 try
                 {
-                    fn(GetInt(currentId));
+                    if (Has(currentId))
+                        fn(GetInt(currentId));
                     return;
                 }
                 catch { }
@@ -114,7 +118,8 @@ namespace AGS.Editor
         {
             try
             {
-                fn(GetBool(id));
+                if (Has(id))
+                    fn(GetBool(id));
             }
             catch { }
         }
@@ -125,7 +130,8 @@ namespace AGS.Editor
             {
                 try
                 {
-                    fn(GetBool(currentId));
+                    if (Has(currentId))
+                        fn(GetBool(currentId));
                     return;
                 }
                 catch { }

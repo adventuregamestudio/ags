@@ -101,8 +101,8 @@ void mgetgraphpos()
     else
     {
         // Save real cursor coordinates provided by system
-        real_mouse_x = sys_mouse_x;
-        real_mouse_y = sys_mouse_y;
+        real_mouse_x = Math::Clamp((int)sys_mouse_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
+        real_mouse_y = Math::Clamp((int)sys_mouse_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
     }
 
     // Set new in-game cursor position

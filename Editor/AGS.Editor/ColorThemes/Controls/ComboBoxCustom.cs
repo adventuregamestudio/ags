@@ -9,12 +9,12 @@ namespace AGS.Editor
     {
         private const int WM_PAINT = 0x000F;
 
-        private readonly IColorThemes _themes;
+        private readonly ColorTheme _theme;
         private readonly string _root;
 
         public ComboBoxCustom(IColorThemes themes, string root, ComboBox original)
         {
-            _themes = themes;
+            _theme = themes.Current;
             _root = root;
 
             Dock = original.Dock;
@@ -46,19 +46,19 @@ namespace AGS.Editor
 
             DrawMode = DrawMode.OwnerDrawVariable;
             FlatStyle = FlatStyle.Flat;
-            BackColor = _themes.Current.GetColor(_root + "/background");
-            ForeColor = _themes.Current.GetColor(_root + "/foreground");
+            BackColor = _theme.GetColor(_root + "/background");
+            ForeColor = _theme.GetColor(_root + "/foreground");
 
             DropDown += (s, a) =>
             {
-                BackColor = _themes.Current.GetColor(_root + "/drop-down/background");
-                ForeColor = _themes.Current.GetColor(_root + "/drop-down/foreground");
+                BackColor = _theme.GetColor(_root + "/drop-down/background");
+                ForeColor = _theme.GetColor(_root + "/drop-down/foreground");
             };
 
             DropDownClosed += (s, a) =>
             {
-                BackColor = _themes.Current.GetColor(_root + "/drop-down-closed/background");
-                ForeColor = _themes.Current.GetColor(_root + "/drop-down-closed/foreground");
+                BackColor = _theme.GetColor(_root + "/drop-down-closed/background");
+                ForeColor = _theme.GetColor(_root + "/drop-down-closed/foreground");
             };
 
             DrawItem += (s, a) =>
@@ -69,17 +69,17 @@ namespace AGS.Editor
 
                     if ((a.State & DrawItemState.Selected) == DrawItemState.Selected)
                     {
-                        a.Graphics.FillRectangle(new SolidBrush(_themes.Current.GetColor(_root + "/item-selected/background")),
+                        a.Graphics.FillRectangle(new SolidBrush(_theme.GetColor(_root + "/item-selected/background")),
                             a.Bounds);
                         a.Graphics.DrawString(Items[a.Index].ToString(), Font,
-                            new SolidBrush(_themes.Current.GetColor(_root + "/item-selected/foreground")), a.Bounds);
+                            new SolidBrush(_theme.GetColor(_root + "/item-selected/foreground")), a.Bounds);
                     }
                     else
                     {
                         a.Graphics.FillRectangle(
-                            new SolidBrush(_themes.Current.GetColor(_root + "/item-not-selected/background")), a.Bounds);
+                            new SolidBrush(_theme.GetColor(_root + "/item-not-selected/background")), a.Bounds);
                         a.Graphics.DrawString(Items[a.Index].ToString(), Font,
-                            new SolidBrush(_themes.Current.GetColor(_root + "/item-not-selected/foreground")), a.Bounds);
+                            new SolidBrush(_theme.GetColor(_root + "/item-not-selected/foreground")), a.Bounds);
                     }
 
                     a.DrawFocusRectangle();
@@ -100,21 +100,21 @@ namespace AGS.Editor
                     Brush arrow = new SolidBrush(SystemColors.ControlText);
                     graphics.SmoothingMode = SmoothingMode.HighQuality;
                     // workaround for ugly borders when not enabled
-                    if (!Enabled) graphics.FillRectangle(new SolidBrush(_themes.Current.GetColor(_root + "/background")), rectBorder);
-                    ControlPaint.DrawBorder(graphics, rectBorder, _themes.Current.GetColor(_root + "/border/background"),
+                    if (!Enabled) graphics.FillRectangle(new SolidBrush(_theme.GetColor(_root + "/background")), rectBorder);
+                    ControlPaint.DrawBorder(graphics, rectBorder, _theme.GetColor(_root + "/border/background"),
                         ButtonBorderStyle.Solid);
 
                     if (DroppedDown)
                     {
                         graphics.FillRectangle(
-                            new SolidBrush(_themes.Current.GetColor(_root + "/button-dropped-down/background")), rectButton);
-                        arrow = new SolidBrush(_themes.Current.GetColor(_root + "/button-dropped-down/foreground"));
+                            new SolidBrush(_theme.GetColor(_root + "/button-dropped-down/background")), rectButton);
+                        arrow = new SolidBrush(_theme.GetColor(_root + "/button-dropped-down/foreground"));
                     }
                     else
                     {
                         graphics.FillRectangle(
-                            new SolidBrush(_themes.Current.GetColor(_root + "/button-not-dropped-down/background")), rectButton);
-                        arrow = new SolidBrush(_themes.Current.GetColor(_root + "/button-not-dropped-down/foreground"));
+                            new SolidBrush(_theme.GetColor(_root + "/button-not-dropped-down/background")), rectButton);
+                        arrow = new SolidBrush(_theme.GetColor(_root + "/button-not-dropped-down/foreground"));
                     }
 
                     GraphicsPath path = new GraphicsPath();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Diagnostics;
 using AGS.Editor.Preferences;
 
 namespace AGS.Editor
@@ -39,6 +40,7 @@ namespace AGS.Editor
                 _current = value;
                 _settings.ColorTheme = Current.Name;
                 _settings.Save();
+                Init(); // required to initialize the theme json
             }
         }
 
@@ -114,5 +116,25 @@ namespace AGS.Editor
                     MessageBoxIcon.Error);
             }
         }
+
+        public void OpenFolder()
+        {
+            if (Directory.Exists(DiskDir))
+            {
+                if (!Directory.Exists(DiskDir))
+                {
+                    Directory.CreateDirectory(DiskDir);
+                }
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    Arguments = DiskDir,
+                    FileName = "explorer.exe"
+                };
+
+                Process.Start(startInfo);
+            }
+        }
+
     }
 }

@@ -688,7 +688,7 @@ void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yof
 void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
 
     if (invi == nullptr)
-        quit("!LoseInventoryFromCharacter: invalid invnetory number");
+        quit("!LoseInventoryFromCharacter: invalid inventory number");
 
     int inum = invi->id;
 

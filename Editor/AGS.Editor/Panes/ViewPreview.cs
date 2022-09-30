@@ -309,14 +309,13 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            mainGroupBox.BackColor = t.GetColor("view-preview/background");
-            mainGroupBox.ForeColor = t.GetColor("view-preview/foreground");
-            udLoop.BackColor = t.GetColor("view-preview/numeric-loop/background");
-            udLoop.ForeColor = t.GetColor("view-preview/numeric-loop/foreground");
-            udFrame.BackColor = t.GetColor("view-preview/numeric-frame/background");
-            udFrame.ForeColor = t.GetColor("view-preview/numeric-frame/foreground");
-            udDelay.BackColor = t.GetColor("view-preview/numeric-delay/background");
-            udDelay.ForeColor = t.GetColor("view-preview/numeric-delay/foreground");
+            t.GroupBoxHelper(mainGroupBox, "view-preview");
+            t.SetColor("view-preview/numeric-loop/background", c => udLoop.BackColor = c);
+            t.SetColor("view-preview/numeric-loop/foreground", c => udLoop.ForeColor = c);
+            t.SetColor("view-preview/numeric-frame/background", c => udFrame.BackColor = c);
+            t.SetColor("view-preview/numeric-frame/foreground", c => udFrame.ForeColor = c);
+            t.SetColor("view-preview/numeric-delay/background", c => udDelay.BackColor = c);
+            t.SetColor("view-preview/numeric-delay/foreground", c => udDelay.ForeColor = c);
         }
 
         private void ViewPreview_Load(object sender, EventArgs e)

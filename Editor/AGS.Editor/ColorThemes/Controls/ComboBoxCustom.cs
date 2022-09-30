@@ -99,6 +99,8 @@ namespace AGS.Editor
                     Rectangle rectButton = new Rectangle(Width - 19, 0, 19, Height);
                     Brush arrow = new SolidBrush(SystemColors.ControlText);
                     graphics.SmoothingMode = SmoothingMode.HighQuality;
+                    // workaround for ugly borders when not enabled
+                    if (!Enabled) graphics.FillRectangle(new SolidBrush(_themes.Current.GetColor(_root + "/background")), rectBorder);
                     ControlPaint.DrawBorder(graphics, rectBorder, _themes.Current.GetColor(_root + "/border/background"),
                         ButtonBorderStyle.Solid);
 

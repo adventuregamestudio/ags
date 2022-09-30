@@ -409,11 +409,7 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            btnNewFrame.BackColor = t.GetColor("view-editor/btn-new-frame/background");
-            btnNewFrame.ForeColor = t.GetColor("view-editor/btn-new-frame/foreground");
-            btnNewFrame.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-frame/flat/style");
-            btnNewFrame.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-frame/flat/border/size");
-            btnNewFrame.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-frame/flat/border/color");
+            t.ButtonHelper(btnNewFrame, "view-editor/btn-new-frame");
         }
 
         public float ZoomLevel

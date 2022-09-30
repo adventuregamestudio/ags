@@ -98,12 +98,12 @@ bool init_voicepak(const String &name)
 {
     if (usetup.no_speech_pack) return false; // voice-over disabled
 
-    play.voice_avail = false;
     String speech_file = name.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", name.GetCStr());
     if (ResPaths.SpeechPak.Name.CompareNoCase(speech_file) == 0)
         return true; // same pak already assigned
 
     // First remove existing voice packs
+    play.voice_avail = false;
     AssetMgr->RemoveLibrary(ResPaths.SpeechPak.Path);
     AssetMgr->RemoveLibrary(ResPaths.VoiceDirSub);
 

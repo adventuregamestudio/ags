@@ -89,6 +89,7 @@ const int CONFIG_TRANSLATION = 17;
 const int CONFIG_DEBUG_LOGCAT = 18;
 const int CONFIG_MOUSE_EMULATION = 19;
 const int CONFIG_MOUSE_METHOD = 20;
+const int CONFIG_MOUSE_SPEED = 21;
 
 JNIEXPORT jboolean JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
@@ -149,6 +150,8 @@ JNIEXPORT jint JNICALL
       return setup.mouse_emulation;
     case CONFIG_MOUSE_METHOD:
       return setup.mouse_control_mode;
+    case CONFIG_MOUSE_SPEED:
+      return setup.mouse_speed;
     default:
       return 0;
   }
@@ -223,6 +226,8 @@ JNIEXPORT void JNICALL
       break;
     case CONFIG_MOUSE_METHOD:
       setup.mouse_control_mode = value;
+    case CONFIG_MOUSE_SPEED:
+      setup.mouse_speed = value;
       break;
     default:
       break;

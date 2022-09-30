@@ -15,6 +15,8 @@ namespace AGS.Editor
 
         void Import(string dir);
 
+        void OpenFolder();
+
         void Init();
 
         void Load();

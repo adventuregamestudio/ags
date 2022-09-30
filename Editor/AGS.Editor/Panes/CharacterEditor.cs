@@ -89,15 +89,9 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("character-editor/background");
-            ForeColor = t.GetColor("character-editor/foreground");
-            groupBox1.BackColor = t.GetColor("character-editor/box/background");
-            groupBox1.ForeColor = t.GetColor("character-editor/box/foreground");
-            btnMakePlayer.BackColor = t.GetColor("character-editor/btn-make/background");
-            btnMakePlayer.ForeColor = t.GetColor("character-editor/btn-make/foreground");
-            btnMakePlayer.FlatStyle = (FlatStyle)t.GetInt("character-editor/btn-make/flat/style");
-            btnMakePlayer.FlatAppearance.BorderSize = t.GetInt("character-editor/btn-make/flat/border/size");
-            btnMakePlayer.FlatAppearance.BorderColor = t.GetColor("character-editor/btn-make/flat/border/color");
+            t.ControlHelper(this, "character-editor");
+            t.GroupBoxHelper(groupBox1, "character-editor/box");
+            t.ButtonHelper(btnMakePlayer, "character-editor/btn-make");
         }
 
         private void CharacterEditor_Load(object sender, EventArgs e)

@@ -307,12 +307,7 @@ namespace AGS.Editor
             float spriteWidthHeightRatio = (float)sprite.Width / (float)sprite.Height;
             int newWidth, newHeight;
 
-            if ((sprite.Width < width / 2) && (sprite.Height < height / 2))
-            {
-                newWidth = sprite.Width * 2;
-                newHeight = sprite.Height * 2;
-            }
-            else if (spriteWidthHeightRatio > targetWidthHeightRatio)
+            if (spriteWidthHeightRatio > targetWidthHeightRatio)
             {
                 newWidth = width;
                 newHeight = (int)(((float)width / (float)sprite.Width) * (float)sprite.Height);

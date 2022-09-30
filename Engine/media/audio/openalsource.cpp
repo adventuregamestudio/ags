@@ -129,6 +129,9 @@ OpenAlSource::~OpenAlSource()
 
 float OpenAlSource::GetPositionMs() const
 {
+    if (_bufferRecords.size() == 0)
+        return _predictTs; // if no records -- return prediction
+
     float al_offset = 0.f;
     alGetSourcef(_source, AL_SEC_OFFSET, &al_offset);
     dump_al_errors();

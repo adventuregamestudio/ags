@@ -72,6 +72,18 @@ namespace AGS.Editor
 				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message, Character.NARRATOR_CHARACTER_ID);
 			}
 
+            if (_errors.HasErrors)
+            {
+                // we're on a different thread here, so Invoke to show the errors
+                if (Factory.GUIController.InvokeRequired)
+                {
+                    Factory.GUIController.Invoke(new Action(() => {
+                        Factory.GUIController.ShowOutputPanel(_errors);
+                    }));
+                };
+                throw new Exception("Errors encountered. Check the output window for details.");
+            }
+
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, _errors);
         }
 

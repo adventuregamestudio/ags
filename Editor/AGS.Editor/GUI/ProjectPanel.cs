@@ -18,10 +18,11 @@ namespace AGS.Editor
 
         public void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("project-panel/background");
-            projectTree.BackColor = t.GetColor("project-panel/project-tree/background");
-            projectTree.ForeColor = t.GetColor("project-panel/project-tree/foreground");
-            projectTree.LineColor = t.GetColor("project-panel/project-tree/line");
+            t.SetColor("project-panel/background", c => BackColor = c);
+            projectTree.BorderStyle = BorderStyle.None;
+            t.SetColor("project-panel/project-tree/background", c => projectTree.BackColor = c);
+            t.SetColor("project-panel/project-tree/foreground", c => projectTree.ForeColor = c);
+            t.SetColor("project-panel/project-tree/line", c => projectTree.LineColor = c);
         }
 
         private void ProjectPanel_Load(object sender, EventArgs e)

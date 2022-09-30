@@ -342,18 +342,9 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("view-editor/background");
-            ForeColor = t.GetColor("view-editor/foreground");
-            btnDeleteLastLoop.BackColor = t.GetColor("view-editor/btn-delete-option/background");
-            btnDeleteLastLoop.ForeColor = t.GetColor("view-editor/btn-delete-option/foreground");
-            btnDeleteLastLoop.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-delete-option/flat/style");
-            btnDeleteLastLoop.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-delete-option/flat/border/size");
-            btnDeleteLastLoop.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-delete-option/flat/border/color");
-            btnNewLoop.BackColor = t.GetColor("view-editor/btn-new-option/background");
-            btnNewLoop.ForeColor = t.GetColor("view-editor/btn-new-option/foreground");
-            btnNewLoop.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-option/flat/style");
-            btnNewLoop.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-option/flat/border/size");
-            btnNewLoop.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-option/flat/border/color");
+            t.ControlHelper(this, "view-editor");
+            t.ButtonHelper(btnDeleteLastLoop, "view-editor/btn-delete-option");
+            t.ButtonHelper(btnNewLoop, "view-editor/btn-new-option");
         }
     }
 }

@@ -273,14 +273,10 @@ namespace AGS.Editor
             _settings.BackupWarningInterval = (chkBackupReminders.Checked ? (int)udBackupInterval.Value : 0);
         }
 
-        private void btnImportColorTheme_Click(object sender, EventArgs e)
+        private void btnOpenThemeFolder_Click(object sender, EventArgs e)
         {
-            OpenFileDialog file = new OpenFileDialog { Filter = "JSON files (*.json)|*.json" };
+            Factory.GUIController.ColorThemes.OpenFolder();
 
-            if (file.ShowDialog() == DialogResult.OK)
-            {
-                Factory.GUIController.ColorThemes.Import(file.FileName);
-            }
         }
 
         private void cmbColorTheme_DropDown(object sender, EventArgs e)

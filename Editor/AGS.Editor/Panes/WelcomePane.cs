@@ -128,16 +128,16 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("welcome/background");
-            ForeColor = t.GetColor("welcome/foreground");
-            panel1.BackColor = t.GetColor("welcome/panel1/background");
-            panel1.ForeColor = t.GetColor("welcome/panel1/foreground");
-            panel2.BackColor = t.GetColor("welcome/panel2/background");
-            panel2.ForeColor = t.GetColor("welcome/panel2/foreground");
-            pnlTipOfTheDay.BackColor = t.GetColor("welcome/pnlTipOfTheDay/background");
-            pnlTipOfTheDay.ForeColor = t.GetColor("welcome/pnlTipOfTheDay/foreground");
-            pnlRight.BackColor = t.GetColor("welcome/pnlRight/background");
-            pnlRight.ForeColor = t.GetColor("welcome/pnlRight/foreground");
+            t.SetColor("welcome/background", c => BackColor = c);
+            t.SetColor("welcome/foreground", c => ForeColor = c);
+            t.SetColor("welcome/panel1/background", c => panel1.BackColor = c);
+            t.SetColor("welcome/panel1/foreground", c => panel1.ForeColor = c);
+            t.SetColor("welcome/panel2/background", c => panel2.BackColor = c);
+            t.SetColor("welcome/panel2/foreground", c => panel2.ForeColor = c);
+            t.SetColor("welcome/pnlTipOfTheDay/background", c => pnlTipOfTheDay.BackColor = c);
+            t.SetColor("welcome/pnlTipOfTheDay/foreground", c => pnlTipOfTheDay.ForeColor = c);
+            t.SetColor("welcome/pnlRight/background", c => pnlRight.BackColor = c);
+            t.SetColor("welcome/pnlRight/foreground", c => pnlRight.ForeColor = c);
 
             // [ivan-mogilko] had to do this try/catch hack for new entries
             // because ColorTheme methods do not have fallback mechanism atm

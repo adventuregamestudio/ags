@@ -62,7 +62,7 @@ namespace AGS.Editor
             this.label8 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.btnImportColorTheme = new System.Windows.Forms.Button();
+            this.btnOpenThemeFolder = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
             this.cmbColorTheme = new System.Windows.Forms.ComboBox();
             this.chkPromptDialogOnTabsClose = new System.Windows.Forms.CheckBox();
@@ -591,7 +591,7 @@ namespace AGS.Editor
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this.btnImportColorTheme);
+            this.groupBox3.Controls.Add(this.btnOpenThemeFolder);
             this.groupBox3.Controls.Add(this.label7);
             this.groupBox3.Controls.Add(this.cmbColorTheme);
             this.groupBox3.Controls.Add(this.chkPromptDialogOnTabsClose);
@@ -610,16 +610,16 @@ namespace AGS.Editor
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Editor appearance";
             // 
-            // btnImportColorTheme
+            // btnOpenThemeFolder
             // 
-            this.btnImportColorTheme.Location = new System.Drawing.Point(190, 121);
-            this.btnImportColorTheme.Margin = new System.Windows.Forms.Padding(4);
-            this.btnImportColorTheme.Name = "btnImportColorTheme";
-            this.btnImportColorTheme.Size = new System.Drawing.Size(254, 29);
-            this.btnImportColorTheme.TabIndex = 12;
-            this.btnImportColorTheme.Text = "Import Color Theme";
-            this.btnImportColorTheme.UseVisualStyleBackColor = true;
-            this.btnImportColorTheme.Click += new System.EventHandler(this.btnImportColorTheme_Click);
+            this.btnOpenThemeFolder.Location = new System.Drawing.Point(190, 121);
+            this.btnOpenThemeFolder.Margin = new System.Windows.Forms.Padding(4);
+            this.btnOpenThemeFolder.Name = "btnOpenThemeFolder";
+            this.btnOpenThemeFolder.Size = new System.Drawing.Size(254, 29);
+            this.btnOpenThemeFolder.TabIndex = 12;
+            this.btnOpenThemeFolder.Text = "Open Theme Folder";
+            this.btnOpenThemeFolder.UseVisualStyleBackColor = true;
+            this.btnOpenThemeFolder.Click += new System.EventHandler(this.btnOpenThemeFolder_Click);
             // 
             // label7
             // 
@@ -1418,7 +1418,7 @@ namespace AGS.Editor
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.Button btnImportColorTheme;
+        private System.Windows.Forms.Button btnOpenThemeFolder;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ComboBox cmbColorTheme;
         private System.Windows.Forms.CheckBox chkPromptDialogOnTabsClose;

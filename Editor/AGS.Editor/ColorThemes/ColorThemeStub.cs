@@ -16,6 +16,11 @@ namespace AGS.Editor
         {
         }
 
+        public override bool Has(string id)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Color GetColor(string id)
         {
             throw new NotImplementedException();

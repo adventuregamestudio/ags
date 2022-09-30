@@ -314,18 +314,9 @@ namespace AGS.Editor
 
         private void LoadColorTheme(ColorTheme t)
         {
-            BackColor = t.GetColor("dialog-editor/background");
-            ForeColor = t.GetColor("dialog-editor/foreground");
-            btnDeleteOption.BackColor = t.GetColor("dialog-editor/btn-delete-option/background");
-            btnDeleteOption.ForeColor = t.GetColor("dialog-editor/btn-delete-option/foreground");
-            btnDeleteOption.FlatStyle = (FlatStyle)t.GetInt("dialog-editor/btn-delete-option/flat/style");
-            btnDeleteOption.FlatAppearance.BorderSize = t.GetInt("dialog-editor/btn-delete-option/flat/border/size");
-            btnDeleteOption.FlatAppearance.BorderColor = t.GetColor("dialog-editor/btn-delete-option/flat/border/color");
-            btnNewOption.BackColor = t.GetColor("dialog-editor/btn-new-option/background");
-            btnNewOption.ForeColor = t.GetColor("dialog-editor/btn-new-option/foreground");
-            btnNewOption.FlatStyle = (FlatStyle)t.GetInt("dialog-editor/btn-new-option/flat/style");
-            btnNewOption.FlatAppearance.BorderSize = t.GetInt("dialog-editor/btn-new-option/flat/border/size");
-            btnNewOption.FlatAppearance.BorderColor = t.GetColor("dialog-editor/btn-new-option/flat/border/color");
+            t.ControlHelper(this, "dialog-editor");
+            t.ButtonHelper(btnDeleteOption, "dialog-editor/btn-delete-option");
+            t.ButtonHelper(btnNewOption, "dialog-editor/btn-new-option");
         }
     }
 }

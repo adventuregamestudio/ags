@@ -62,3 +62,18 @@ This will build the executable `AGS.app` in `the build_Release/` directory. The 
 - `MacOS/`, contains the `AGS` engine binary used to run your game.
 
 - `Resources/`, the directory where your game and its resources, including the icon, are placed.
+
+
+## Using the Xcode project
+
+The Xcode project isn't updated often, so you should prefer the CMake generated project. 
+
+It needs some manual steps to be used.
+
+- Download the [SDL2 Framework](https://github.com/libsdl-org/SDL/releases/download/release-2.24.1/SDL2-2.24.1.dmg) from the SDL2 releases, and place it in `ags/OSX/Xcode/AGSKit` directory
+- Download [SDL_sound](https://github.com/icculus/SDL_sound/archive/8d96d4cc0e1df35835a222ee51a7c32f273ec63e.zip) source code and place it in `ags/libsrc/SDL_sound`
+- Download xiph [theora](https://github.com/xiph/theora/archive/7180717276af1ebc7da15c83162d6c5d6203aabf.tar.gz) source code, and place it in `ags/libsrc/theora`
+- Download xiph [ogg](https://github.com/xiph/ogg/archive/refs/tags/v1.3.5.tar.gz		) source code, and place in `ags/libsrc/ogg`
+- Download xiph [vorbis](https://github.com/xiph/vorbis/archive/84c023699cdf023a32fa4ded32019f194afcdad0.tar.gz) source code, and place in `ags/libsrc/vorbis`
+
+After this, load the `OSX/xcode/ags.xcworkspace` file in Xcode, it will enable building AGSKit, which is a self contained framework like build of AGS Engine, and the `ags` app target, which you can customize with your own game, using the `Resources/` directory, in the same way the CMake build works.

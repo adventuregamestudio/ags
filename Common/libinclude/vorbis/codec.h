@@ -166,11 +166,11 @@ extern void     vorbis_info_init(vorbis_info *vi);
 extern void     vorbis_info_clear(vorbis_info *vi);
 extern int      vorbis_info_blocksize(vorbis_info *vi,int zo);
 extern void     vorbis_comment_init(vorbis_comment *vc);
-extern void     vorbis_comment_add(vorbis_comment *vc, char *comment);
+extern void     vorbis_comment_add(vorbis_comment *vc, const char *comment);
 extern void     vorbis_comment_add_tag(vorbis_comment *vc,
-				       char *tag, char *contents);
-extern char    *vorbis_comment_query(vorbis_comment *vc, char *tag, int count);
-extern int      vorbis_comment_query_count(vorbis_comment *vc, char *tag);
+				       const char *tag, const char *contents);
+extern char    *vorbis_comment_query(vorbis_comment *vc, const char *tag, int count);
+extern int      vorbis_comment_query_count(vorbis_comment *vc, const char *tag);
 extern void     vorbis_comment_clear(vorbis_comment *vc);
 
 extern int      vorbis_block_init(vorbis_dsp_state *v, vorbis_block *vb);

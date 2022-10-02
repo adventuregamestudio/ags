@@ -959,25 +959,33 @@ namespace AGS.Editor
             }
         }
 
-        private Tuple<int, int> GetBraceAndMatchingBracePositions(bool beforeAndAfterCursor)
+        private Tuple<int, int> GetBraceAndMatchingBracePositions(bool beforeCursor, bool afterCursor)
         {
-            if (InsideStringOrComment(false)) return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
-            if (_isDialogScript && !scintillaControl1.Lines[scintillaControl1.CurrentLine].Text.StartsWith(" ")) return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
+            if (InsideStringOrComment(false))
+                return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
+            if (_isDialogScript && !scintillaControl1.Lines[scintillaControl1.CurrentLine].Text.StartsWith(" "))
+                return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
 
-            int currentPos = scintillaControl1.CurrentPosition - 1;
-            int matchPos = scintillaControl1.BraceMatch(currentPos);
-            if ((matchPos < 0) && (beforeAndAfterCursor))
+            int currentPos = scintillaControl1.CurrentPosition;
+            int prevChar = scintillaControl1.GetCharAt(currentPos - 1);
+            int curChar = scintillaControl1.GetCharAt(currentPos);
+            bool isBraceBefore = beforeCursor && (prevChar == '{' || prevChar == '}' || prevChar == '(' || prevChar == ')');
+            bool isBraceAfter = afterCursor && (curChar == '{' || curChar == '}' || curChar == '(' || curChar == ')');
+            
+            if (isBraceBefore)
             {
-                // try the following character instead
-                currentPos++;
-                matchPos = scintillaControl1.BraceMatch(currentPos);
+                return Tuple.Create(currentPos - 1, scintillaControl1.BraceMatch(currentPos - 1));
             }
-            return Tuple.Create(currentPos, matchPos);
+            if (isBraceAfter)
+            {
+                return Tuple.Create(currentPos, scintillaControl1.BraceMatch(currentPos));
+            }
+            return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
         }
 
         public void DoIdentationAlignAfterBrace()
         {
-            Tuple<int, int> pos = GetBraceAndMatchingBracePositions(true);
+            Tuple<int, int> pos = GetBraceAndMatchingBracePositions(true, true);
             int currentPos = pos.Item1;
             int matchPos = pos.Item2;
             if (matchPos >= 0)
@@ -987,9 +995,12 @@ namespace AGS.Editor
             _doAlignIdentation = false;
         }
 
-        public void ShowMatchingBrace(bool beforeAndAfterCursor)
+        private void ShowMatchingBrace(bool beforeCursor, bool afterCursor)
         {
-            Tuple<int, int> pos = GetBraceAndMatchingBracePositions(beforeAndAfterCursor);
+            Tuple<int, int> pos = GetBraceAndMatchingBracePositions(beforeCursor, afterCursor);
+            if (pos.Item1 < 0 && pos.Item2 < 0)
+                return; // no braces found under cursor
+
             int currentPos = pos.Item1;
             int matchPos = pos.Item2;
             if (matchPos >= 0)
@@ -1011,14 +1022,9 @@ namespace AGS.Editor
             scintillaControl1.Lines[lineToAlign].Indentation = indentOfPosToAlignWith;
         }
 
-        private void DoBraceMatchAtCurrentPositionIfPossible()
+        public void ShowMatchingBraceIfPossible()
         {
-            int prevChar = scintillaControl1.GetCharAt(scintillaControl1.CurrentPosition - 1);
-            int curChar = scintillaControl1.GetCharAt(scintillaControl1.CurrentPosition);
-            if ((curChar != '{' && curChar != '}' && curChar != '(' && curChar != ')') &&
-               (prevChar != '{' && prevChar != '}' && prevChar != '(' && prevChar != ')')) return;
-
-            ShowMatchingBrace(true);
+            ShowMatchingBrace(true, true);
         }
 
         private void OnUpdateUI(object sender, EventArgs e)
@@ -1029,7 +1035,7 @@ namespace AGS.Editor
                 _braceMatchVisible = false;
             }
 
-            if(_doAlignIdentation)
+            if (_doAlignIdentation)
             {
                 DoIdentationAlignAfterBrace();
             }
@@ -1065,7 +1071,7 @@ namespace AGS.Editor
             }
             else
             {
-                DoBraceMatchAtCurrentPositionIfPossible();
+                ShowMatchingBraceIfPossible();
             }
         }
 

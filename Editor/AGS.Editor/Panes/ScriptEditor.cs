@@ -630,7 +630,7 @@ namespace AGS.Editor
             }
             else if (command == MATCH_BRACE_COMMAND)
             {
-                scintilla.ShowMatchingBrace(true);
+                scintilla.ShowMatchingBraceIfPossible();
             }
             else if (command == SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND)
             {

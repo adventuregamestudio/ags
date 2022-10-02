@@ -1,5 +1,23 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 15, October 2022
+
+Editor:
+ - Fixed crash that could occur when changing View's ID to an unused number in the middle.
+ - Fixed comments and string literals were styled incorrectly in dialog scripts.
+ - Fixed unterminated string literals in script were not considered as errors when processing
+   scripts for translation update and autonumbering of speech lines, leading to wrong results.
+ - Fixed Editor was updating translation file even if errors were found while scanning the
+   scripts, which could cause a TRS corruption.
+ - Fixed Editor could overwrite changes done manually to TRS while the editor is open and if
+   you run a translation update right after.
+ - Fixed potential program crash on exit in case an editor's plugin has mistakes in "shutdown"
+   callback. Instead editor will report a component's error, but still close properly after.
+
+Script API:
+ - Removed a rule that Viewport and Camera with ID 0 can't be deleted.
+
+
 VERSION 3.5.1 - Patch 14, September 2022
 
 Editor:

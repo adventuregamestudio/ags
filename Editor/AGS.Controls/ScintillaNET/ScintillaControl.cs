@@ -123,51 +123,33 @@ namespace Scintilla
             
         }
 
-        private void Style(int linenum, int end)
+        private void StyleDialogScript(int linenum, int end)
         {
-            
             int line_length = SendMessageDirect(Constants.SCI_LINELENGTH, linenum);
             int start_pos = SendMessageDirect(Constants.SCI_POSITIONFROMLINE, linenum);
             int laststyle = start_pos;
-            
-            Cpp stylingMode;
+
+            Cpp stylingMode = Cpp.Default;
             if (start_pos > 0) stylingMode = (Cpp)GetStyleAt(start_pos - 1);
-            else stylingMode = Cpp.Default;
+
             bool onNewLine = true;
+            bool atNewWord = true;
             bool onScriptLine = false;
             int i;
             SendMessageDirect(Constants.SCI_STARTSTYLING, start_pos, 0x1f);
 
-            for (i = start_pos; i <= end; i ++){
-
+            for (i = start_pos; i < end; i++)
+            {
                 char c = (char)GetCharAt(i);
 
-                if (!Char.IsLetterOrDigit(c) && (stylingMode != Cpp.Comment || stylingMode != Cpp.CommentLine|| stylingMode != Cpp.String))
+                // Handle end of line
+                if (c == '\n')
                 {
-                    string lastword = previousWordFrom(i);
-                    if (lastword.Length != 0)
-                    {
-                        Cpp newMode = stylingMode;
-                        if (onScriptLine && Keywords.Contains(lastword.Trim())) newMode = Cpp.Word;
-                        if (!onScriptLine && stylingMode == Cpp.Word2) // before colon
-                        {
-                            if (lastword.Trim() == "return" || lastword.Trim() == "stop") newMode = Cpp.Word;
-                        }
-
-
-                        if (newMode != stylingMode)
-                        {
-                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle - lastword.Length, (int)stylingMode);
-                            SendMessageDirect(Constants.SCI_SETSTYLING, lastword.Length, (int)newMode);
-                            laststyle = i;
-
-                        }
-                    }
-                }
-
-                if (c == '\n') {
                     onNewLine = true;
+                    atNewWord = false;
                     onScriptLine = false;
+                    // The multiline comments and strings should keep their style;
+                    // everything else is cut of at the end of the line
                     if (stylingMode != Cpp.Comment && stylingMode != Cpp.String)
                     {
                         if (laststyle < i)
@@ -176,76 +158,123 @@ namespace Scintilla
                             laststyle = i;
                         }
                         stylingMode = Cpp.Default;
-
                     }
                     continue;
                 }
 
-                if (onNewLine) {
-                    
-                    if (c == ' ') {
-
+                // Handle new non-empty line
+                if (onNewLine)
+                {
+                    // first whitespace on a new line triggers normal script
+                    if (Char.IsWhiteSpace(c))
+                    {
                         onScriptLine = true;
                         onNewLine = false;
+                        atNewWord = true;
                         continue;
-
                     }
-
-
-
-                }
-
-                if (onScriptLine) {
-
-                    if (isOperator(c))
-                    {
-                        if (stylingMode != Cpp.String && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine)
-                        {
-                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
-                            SendMessageDirect(Constants.SCI_SETSTYLING, 1, (int)Cpp.Operator);
-                            stylingMode = Cpp.Default;
-                            laststyle = i + 1;
-                        }
-                    }
-                    
-                    else if (isNumeric(c))
-                    {
-                        if (stylingMode != Cpp.String && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine)
-                        {
-                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
-                            SendMessageDirect(Constants.SCI_SETSTYLING, 1, (int)Cpp.Number);
-                            stylingMode = Cpp.Default;
-                            laststyle = i + 1;
-                        }
-                    }
-                    else if (c == '"')
-                    {
-                        if (stylingMode == Cpp.String)
-                        {
-                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
-                            laststyle = i + 1;
-                            stylingMode = Cpp.Default;
-                        }
-                        else stylingMode = Cpp.String;
-
-                    }
-
-
-                }
-                else {
-
-                    if (onNewLine && stylingMode != Cpp.Comment)
+                    // first non-whitespace on a new line: switch to dialog script style
+                    // (unless we are inside a multiline comment or string)
+                    else if (stylingMode != Cpp.CommentLine &&
+                        stylingMode != Cpp.String)
                     {
                         SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
                         stylingMode = Cpp.Word2;
                         laststyle = i;
                     }
-                    if (c == ':' && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine) {
-                        
+                    onNewLine = false;
+                    atNewWord = true;
+                }
+
+                // Handle inside comments
+                if (stylingMode == Cpp.CommentLine)
+                {
+                    // if inside a one-line comment, then just skip everything (except EOL)
+                    continue;
+                }
+                else if (stylingMode == Cpp.Comment)
+                {
+                    // if inside a multiline comment, then test for the comment end
+                    if (c == '/' && GetCharAt(i - 1) == '*')
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
+                        stylingMode = Cpp.Default;
+                        laststyle = i + 1;
+                        atNewWord = true;
+                    }
+                    continue;
+                }
+
+                // Handle inside strings
+                if (stylingMode == Cpp.String)
+                {
+                    // test for the string end
+                    if (c == '"')
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
+                        laststyle = i + 1;
+                        stylingMode = Cpp.Default;
+                        atNewWord = true;
+                    }
+                    continue;
+                }
+
+                if (!Char.IsLetterOrDigit(c))
+                {
+                    string lastword = previousWordFrom(i);
+                    if (lastword.Length != 0)
+                    {
+                        Cpp newMode = stylingMode;
+                        if (onScriptLine && _keywords.Contains(lastword.Trim())) newMode = Cpp.Word;
+                        if (!onScriptLine && stylingMode == Cpp.Word2) // before colon
+                        {
+                            if (lastword.Trim() == "return" || lastword.Trim() == "stop") newMode = Cpp.Word;
+                        }
+                        if (newMode != stylingMode)
+                        {
+                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle - lastword.Length, (int)stylingMode);
+                            SendMessageDirect(Constants.SCI_SETSTYLING, lastword.Length, (int)newMode);
+                            laststyle = i;
+                        }
+                    }
+                }
+
+                // Handle regular script
+                if (onScriptLine)
+                {
+                    if (isOperator(c))
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        SendMessageDirect(Constants.SCI_SETSTYLING, 1, (int)Cpp.Operator);
+                        stylingMode = Cpp.Default;
+                        laststyle = i + 1;
+                    }
+                    // Style the numbers only when the digit is the first character in a word
+                    else if (atNewWord && Char.IsDigit(c))
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        stylingMode = Cpp.Number;
+                        laststyle = i;
+                    }
+                    else if (c == '"')
+                    {
+                        stylingMode = Cpp.String;
+                    }
+                    else if (Char.IsWhiteSpace(c) || Char.IsPunctuation(c))
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        stylingMode = Cpp.Default;
+                        laststyle = i;
+                    }
+                }
+                // Handle dialog script
+                else
+                {
+                    if (c == ':')
+                    {
                         SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
                         laststyle = i + 1;
                         stylingMode = Cpp.Number;
-
                     }
                     if (c == '@' && stylingMode == Cpp.Word2)
                     {
@@ -253,64 +282,43 @@ namespace Scintilla
                         stylingMode = Cpp.Number;
                         laststyle = i;
                     }
-
-
-
                 }
 
+                // Handle comment starts
                 if (c == '/')
                 {
-                    if (stylingMode == Cpp.Comment && GetCharAt(i - 1) == '*')
-                    {
-                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
-                        stylingMode = Cpp.Default;
-                        laststyle = i + 1;
-                        
-                    }
-                    else if (GetCharAt(i + 1) == '*' && onScriptLine)
+                    // multiline comment
+                    if (GetCharAt(i + 1) == '*' && onScriptLine)
                     {
                         SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
                         stylingMode = Cpp.Comment;
                         laststyle = i;
                     }
+                    // single-line comment
                     else if (GetCharAt(i + 1) == '/')
                     {
                         SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
                         stylingMode = Cpp.CommentLine;
                         laststyle = i;
-
                     }
-
                 }
 
                 onNewLine = false;
-
-
+                atNewWord = Char.IsWhiteSpace(c) || Char.IsPunctuation(c) || isOperator(c);
             }
 
-         
-
             SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
-          
-            
         }
 
-        public void StyleDialog(SCNotification notify) //THIS NEED REFACTORING OUT OF THIS CLASS
+        public void StyleNeeded(SCNotification notify) //THIS NEED REFACTORING OUT OF THIS CLASS
         {
             if (!IsDialog) return;
 
             int line_number = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, SendMessageDirect(Constants.SCI_GETENDSTYLED));
             int end_pos = notify.position;
-                             
-            Style(line_number, end_pos);
 
-
-                        
-    
-
+            StyleDialogScript(line_number, end_pos);
         }
-
-
 
         public bool InsideString(bool charJustAdded, int position) //need to refactor this out too.
         {
@@ -545,11 +553,7 @@ namespace Scintilla
             {
 
                 case Scintilla.Enums.Events.StyleNeeded:
-
-                        
-                        StyleDialog(notification);
-                       
-
+                    StyleNeeded(notification);
                     break;
                     
                 case Scintilla.Enums.Events.MarginClick:

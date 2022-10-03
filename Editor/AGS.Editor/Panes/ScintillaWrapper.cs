@@ -959,7 +959,7 @@ namespace AGS.Editor
             }
         }
 
-        private Tuple<int, int> GetBraceAndMatchingBracePositions(bool beforeCursor, bool afterCursor)
+        private Tuple<int, int> GetBraceAndMatchingBracePositions()
         {
             if (InsideStringOrComment(false))
                 return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
@@ -969,8 +969,8 @@ namespace AGS.Editor
             int currentPos = scintillaControl1.CurrentPosition;
             int prevChar = scintillaControl1.GetCharAt(currentPos - 1);
             int curChar = scintillaControl1.GetCharAt(currentPos);
-            bool isBraceBefore = beforeCursor && (prevChar == '{' || prevChar == '}' || prevChar == '(' || prevChar == ')');
-            bool isBraceAfter = afterCursor && (curChar == '{' || curChar == '}' || curChar == '(' || curChar == ')');
+            bool isBraceBefore = (prevChar == '{' || prevChar == '}' || prevChar == '(' || prevChar == ')');
+            bool isBraceAfter = (curChar == '{' || curChar == '}' || curChar == '(' || curChar == ')');
             
             if (isBraceBefore)
             {
@@ -985,7 +985,7 @@ namespace AGS.Editor
 
         public void DoIdentationAlignAfterBrace()
         {
-            Tuple<int, int> pos = GetBraceAndMatchingBracePositions(true, true);
+            Tuple<int, int> pos = GetBraceAndMatchingBracePositions();
             int currentPos = pos.Item1;
             int matchPos = pos.Item2;
             if (matchPos >= 0)
@@ -995,9 +995,9 @@ namespace AGS.Editor
             _doAlignIdentation = false;
         }
 
-        private void ShowMatchingBrace(bool beforeCursor, bool afterCursor)
+        public void ShowMatchingBraceIfPossible()
         {
-            Tuple<int, int> pos = GetBraceAndMatchingBracePositions(beforeCursor, afterCursor);
+            Tuple<int, int> pos = GetBraceAndMatchingBracePositions();
             if (pos.Item1 < 0 && pos.Item2 < 0)
                 return; // no braces found under cursor
 
@@ -1020,11 +1020,6 @@ namespace AGS.Editor
             int lineToAlignWith = scintillaControl1.LineFromPosition(posToAlignWith);
             int indentOfPosToAlignWith = scintillaControl1.Lines[lineToAlignWith].Indentation;
             scintillaControl1.Lines[lineToAlign].Indentation = indentOfPosToAlignWith;
-        }
-
-        public void ShowMatchingBraceIfPossible()
-        {
-            ShowMatchingBrace(true, true);
         }
 
         private void OnUpdateUI(object sender, EventArgs e)

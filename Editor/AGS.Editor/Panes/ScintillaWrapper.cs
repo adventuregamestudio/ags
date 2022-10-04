@@ -301,6 +301,7 @@ namespace AGS.Editor
 
             this.scintillaControl1.EolMode = Eol.CrLf;
             this.scintillaControl1.WrapMode = WrapMode.None;
+            this.scintillaControl1.WrapIndentMode = WrapIndentMode.Indent;
             this.scintillaControl1.ClearAll();
             this.scintillaControl1.Lexer = Lexer.Cpp;
             // Disable preprocessor styling for now;
@@ -2760,6 +2761,16 @@ namespace AGS.Editor
                     token == '+' ||
                     token == '=' ||
                     token == '*');
+        }
+
+        public void SetWrapMode(WrapMode wrapmode)
+        {
+            scintillaControl1.WrapMode = wrapmode;
+        }
+
+        public WrapMode GetWrapMode()
+        {
+            return scintillaControl1.WrapMode;
         }
     }
 }

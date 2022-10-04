@@ -63,6 +63,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("ToggleBreakpointMenuIcon", Resources.ResourceManager.GetIcon("togglebreakpoint.ico"));
             _guiController.RegisterIcon("MenuIconGlobalScript", Resources.ResourceManager.GetIcon("menu_file_glscript-asc.ico"));
             _guiController.RegisterIcon("MenuIconGlobalHeader", Resources.ResourceManager.GetIcon("menu_file_glscript-ash.ico"));
+            _guiController.RegisterIcon("WordWrapIcon", Resources.ResourceManager.GetIcon("word-wrap.ico"));
 
             MenuCommands commands = new MenuCommands(GUIController.FILE_MENU_ID, 250);
             commands.Commands.Add(new MenuCommand(COMMAND_OPEN_GLOBAL_HEADER, "Open GlobalS&cript.ash", Keys.Control | Keys.Shift | Keys.H, "MenuIconGlobalHeader"));

@@ -32,6 +32,10 @@ using AGS::Common::GUIMain;
 // also accepts explicit overlay ID >= OVER_CUSTOM
 
 struct ScreenOverlay;
+// Generates a textual image from the given text and parameters (used by _display_main)
+Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought,
+    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
+    bool &alphaChannel);
 // Creates a textual overlay using the given parameters;
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards

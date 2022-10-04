@@ -626,6 +626,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     }
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
+    Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
+    Debug::Printf(kDbgMsg_Info, "Game guid: '%s'", game.guid);
 
     if (game.GetGameRes().IsNull())
         return new MainGameFileError(kMGFErr_InvalidNativeResolution);

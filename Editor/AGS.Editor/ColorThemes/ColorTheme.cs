@@ -59,8 +59,10 @@ namespace AGS.Editor
                 try
                 {
                     if (Has(currentId))
+                    {
                         fn(GetColor(currentId));
-                    return;
+                        return;
+                    }
                 }
                 catch { }
             }
@@ -95,8 +97,10 @@ namespace AGS.Editor
                 try
                 {
                     if (Has(currentId))
+                    {
                         fn(GetInt(currentId));
-                    return;
+                        return;
+                    }
                 }
                 catch { }
             }
@@ -131,8 +135,10 @@ namespace AGS.Editor
                 try
                 {
                     if (Has(currentId))
+                    {
                         fn(GetBool(currentId));
-                    return;
+                        return;
+                    }
                 }
                 catch { }
             }
@@ -242,7 +248,7 @@ namespace AGS.Editor
             SetColor(new string[] { path + "/view/foreground", "global/propertygrid/view/foreground" }, c => grid.ViewForeColor = c);
             SetColor(new string[] { path + "/view/border", "global/propertygrid/view/border" }, c => grid.ViewBorderColor = c);
             SetColor(new string[] { path + "/line", "global/propertygrid/line" }, c => grid.LineColor = c);
-            SetColor(new string[] { path + "/category", "global/propertygrid/category" }, c => grid.CategoryForeColor = c);
+            SetColor(new string[] { path + "/category", path + "/category-fore", "global/propertygrid/category" }, c => grid.CategoryForeColor = c);
             SetColor(new string[] { path + "/splitter", "global/propertygrid/splitter" }, c => grid.CategorySplitterColor = c);
             SetColor(new string[] { path + "/help/background", "global/propertygrid/help/background" }, c => grid.HelpBackColor = c);
             SetColor(new string[] { path + "/help/foreground", "global/propertygrid/help/foreground" }, c => grid.HelpForeColor = c);
@@ -256,9 +262,9 @@ namespace AGS.Editor
 
         public void TextBoxHelper(TextBox textbox, string path)
         {
-            SetColor(new string[] { "palette/color-finder/color-number-box/background", "global/textbox/background" }, c => textbox.BackColor = c);
-            SetColor(new string[] { "palette/color-finder/color-number-box/foreground", "global/textbox/foreground" }, c => textbox.ForeColor = c);
-            SetInt(new string[] { "palette/color-finder/color-number-box/border-style", "global/textbox/border-style" }, i => textbox.BorderStyle = (BorderStyle)i);
+            SetColor(new string[] { path + "/background", "global/textbox/background" }, c => textbox.BackColor = c);
+            SetColor(new string[] { path + "/foreground", "global/textbox/foreground" }, c => textbox.ForeColor = c);
+            SetInt(new string[] { path + "/border-style", "global/textbox/border-style" }, i => textbox.BorderStyle = (BorderStyle)i);
         }
 
         private PropertyInfo getPropertyFromPath(object instance, string path)

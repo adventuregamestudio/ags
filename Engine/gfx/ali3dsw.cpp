@@ -579,8 +579,8 @@ void SDLRendererGraphicsDriver::Present(int xoff, int yoff, GraphicFlip flip)
     int yoff_final = _scaling.Y.ScalePt(yoff);
 
     SDL_Rect dst;
-    dst.x = _dstRect.Left + xoff_final;
-    dst.y = _dstRect.Top + yoff_final;
+    dst.x = xoff_final;
+    dst.y = yoff_final;
     dst.w = _dstRect.GetWidth();
     dst.h = _dstRect.GetHeight();
     SDL_RenderCopyEx(_renderer, _screenTex, nullptr, &dst, 0.0, nullptr, sdl_flip);

@@ -85,7 +85,8 @@ namespace AGS.Editor
         // Autocomplete list
         private List<string> _autoCKeywords = new List<string>();
 
-        private bool _doBraceMatch = false;
+        private bool _skipBraceMatchOnce = false;
+        private bool _doAlignIdentation = false;
         private bool _braceMatchVisible = false;
         private bool _doShowAutocomplete = false;
         private bool _doCalltip = false;
@@ -958,28 +959,52 @@ namespace AGS.Editor
             }
         }
 
-        public void ShowMatchingBrace(bool beforeAndAfterCursor)
+        private Tuple<int, int> GetBraceAndMatchingBracePositions()
         {
-            ShowMatchingBrace(beforeAndAfterCursor, false);
+            if (InsideStringOrComment(false))
+                return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
+            if (_isDialogScript && !scintillaControl1.Lines[scintillaControl1.CurrentLine].Text.StartsWith(" "))
+                return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
+
+            int currentPos = scintillaControl1.CurrentPosition;
+            int prevChar = scintillaControl1.GetCharAt(currentPos - 1);
+            int curChar = scintillaControl1.GetCharAt(currentPos);
+            bool isBraceBefore = (prevChar == '{' || prevChar == '}' || prevChar == '(' || prevChar == ')');
+            bool isBraceAfter = (curChar == '{' || curChar == '}' || curChar == '(' || curChar == ')');
+            
+            if (isBraceBefore)
+            {
+                return Tuple.Create(currentPos - 1, scintillaControl1.BraceMatch(currentPos - 1));
+            }
+            if (isBraceAfter)
+            {
+                return Tuple.Create(currentPos, scintillaControl1.BraceMatch(currentPos));
+            }
+            return Tuple.Create(INVALID_POSITION, INVALID_POSITION);
         }
 
-        public void ShowMatchingBrace(bool beforeAndAfterCursor, bool alignIndentation)
+        public void DoIdentationAlignAfterBrace()
         {
-            int currentPos = scintillaControl1.CurrentPosition - 1;
-            int matchPos = scintillaControl1.BraceMatch(currentPos);
-            if ((matchPos < 0) && (beforeAndAfterCursor))
-            {
-                // try the following character instead
-                currentPos++;
-                matchPos = scintillaControl1.BraceMatch(currentPos);
-            }
+            Tuple<int, int> pos = GetBraceAndMatchingBracePositions();
+            int currentPos = pos.Item1;
+            int matchPos = pos.Item2;
             if (matchPos >= 0)
             {
-                if (alignIndentation)
-                {
-                    AlignIndentation(currentPos, matchPos);
-                    currentPos = scintillaControl1.CurrentPosition - 1;
-                }
+                AlignIndentation(currentPos, matchPos);
+            }
+            _doAlignIdentation = false;
+        }
+
+        public void ShowMatchingBraceIfPossible()
+        {
+            Tuple<int, int> pos = GetBraceAndMatchingBracePositions();
+            if (pos.Item1 < 0 && pos.Item2 < 0)
+                return; // no braces found under cursor
+
+            int currentPos = pos.Item1;
+            int matchPos = pos.Item2;
+            if (matchPos >= 0)
+            {
                 scintillaControl1.BraceHighlight(matchPos, currentPos);
             }
             else
@@ -987,7 +1012,6 @@ namespace AGS.Editor
                 scintillaControl1.BraceBadLight(currentPos);
             }
             _braceMatchVisible = true;
-            _doBraceMatch = false;
         }
 
         private void AlignIndentation(int posToAlign, int posToAlignWith)
@@ -1006,9 +1030,9 @@ namespace AGS.Editor
                 _braceMatchVisible = false;
             }
 
-            if (_doBraceMatch)
+            if (_doAlignIdentation)
             {
-                ShowMatchingBrace(false, _autoDedentClosingBrace);
+                DoIdentationAlignAfterBrace();
             }
 
             if (_doShowAutocomplete)
@@ -1035,6 +1059,15 @@ namespace AGS.Editor
             }
 
             UpdateStatusText();
+
+            if(_skipBraceMatchOnce)
+            {
+                _skipBraceMatchOnce = false;
+            }
+            else
+            {
+                ShowMatchingBraceIfPossible();
+            }
         }
 
         private void UpdateStatusText()
@@ -1057,6 +1090,11 @@ namespace AGS.Editor
             // Reset to normal fillups
             this.scintillaControl1.AutoCSetFillUps(_fillupKeys);
 
+            if((e.Char == '(') || (e.Char == '{'))
+            {
+                _skipBraceMatchOnce = true;
+            }
+
             if (e.Char == 10) // Enter/Return
             {
                 int lineNumber = scintillaControl1.LineFromPosition(scintillaControl1.CurrentPosition);
@@ -1078,7 +1116,7 @@ namespace AGS.Editor
             {
                 if (!InsideStringOrComment(true))
                 {
-                    _doBraceMatch = true;
+                    if (_autoDedentClosingBrace) _doAlignIdentation = true;
                 }
 
                 if (scintillaControl1.CallTipActive)

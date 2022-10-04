@@ -62,6 +62,8 @@ namespace AGS.Editor
             this.label8 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label18 = new System.Windows.Forms.Label();
+            this.cmbBaseTheme = new System.Windows.Forms.ComboBox();
             this.btnOpenThemeFolder = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
             this.cmbColorTheme = new System.Windows.Forms.ComboBox();
@@ -147,14 +149,13 @@ namespace AGS.Editor
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBoxKeystore.SuspendLayout();
             this.SuspendLayout();
-            //
+            // 
             // btnApply
-            //
+            // 
             this.btnApply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnApply.Location = new System.Drawing.Point(13, 610);
-            this.btnApply.Margin = new System.Windows.Forms.Padding(4);
+            this.btnApply.Location = new System.Drawing.Point(10, 510);
             this.btnApply.Name = "btnApply";
-            this.btnApply.Size = new System.Drawing.Size(122, 34);
+            this.btnApply.Size = new System.Drawing.Size(98, 27);
             this.btnApply.TabIndex = 12;
             this.btnApply.Text = "&Apply";
             this.btnApply.UseVisualStyleBackColor = true;
@@ -164,10 +165,9 @@ namespace AGS.Editor
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(143, 610);
-            this.btnOK.Margin = new System.Windows.Forms.Padding(4);
+            this.btnOK.Location = new System.Drawing.Point(114, 510);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(122, 34);
+            this.btnOK.Size = new System.Drawing.Size(98, 27);
             this.btnOK.TabIndex = 0;
             this.btnOK.Text = "&OK";
             this.btnOK.UseVisualStyleBackColor = true;
@@ -177,10 +177,9 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(273, 610);
-            this.btnCancel.Margin = new System.Windows.Forms.Padding(4);
+            this.btnCancel.Location = new System.Drawing.Point(218, 510);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(125, 34);
+            this.btnCancel.Size = new System.Drawing.Size(100, 27);
             this.btnCancel.TabIndex = 1;
             this.btnCancel.Text = "&Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -188,10 +187,11 @@ namespace AGS.Editor
             // tabPageLast
             // 
             this.tabPageLast.Controls.Add(this.propertyGridPreferences);
-            this.tabPageLast.Location = new System.Drawing.Point(4, 26);
+            this.tabPageLast.Location = new System.Drawing.Point(4, 22);
+            this.tabPageLast.Margin = new System.Windows.Forms.Padding(2);
             this.tabPageLast.Name = "tabPageLast";
-            this.tabPageLast.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageLast.Size = new System.Drawing.Size(920, 572);
+            this.tabPageLast.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPageLast.Size = new System.Drawing.Size(734, 479);
             this.tabPageLast.TabIndex = 2;
             this.tabPageLast.Text = "Advanced";
             this.tabPageLast.UseVisualStyleBackColor = true;
@@ -199,9 +199,10 @@ namespace AGS.Editor
             // propertyGridPreferences
             // 
             this.propertyGridPreferences.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGridPreferences.Location = new System.Drawing.Point(3, 3);
+            this.propertyGridPreferences.Location = new System.Drawing.Point(2, 2);
+            this.propertyGridPreferences.Margin = new System.Windows.Forms.Padding(2);
             this.propertyGridPreferences.Name = "propertyGridPreferences";
-            this.propertyGridPreferences.Size = new System.Drawing.Size(914, 566);
+            this.propertyGridPreferences.Size = new System.Drawing.Size(730, 475);
             this.propertyGridPreferences.TabIndex = 0;
             // 
             // tabPageFirst
@@ -213,10 +214,11 @@ namespace AGS.Editor
             this.tabPageFirst.Controls.Add(this.groupBox2);
             this.tabPageFirst.Controls.Add(this.groupBox3);
             this.tabPageFirst.Controls.Add(this.groupBox7);
-            this.tabPageFirst.Location = new System.Drawing.Point(4, 26);
+            this.tabPageFirst.Location = new System.Drawing.Point(4, 22);
+            this.tabPageFirst.Margin = new System.Windows.Forms.Padding(2);
             this.tabPageFirst.Name = "tabPageFirst";
-            this.tabPageFirst.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageFirst.Size = new System.Drawing.Size(920, 572);
+            this.tabPageFirst.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPageFirst.Size = new System.Drawing.Size(734, 479);
             this.tabPageFirst.TabIndex = 0;
             this.tabPageFirst.Text = "Main Preferences";
             this.tabPageFirst.UseVisualStyleBackColor = true;
@@ -224,21 +226,18 @@ namespace AGS.Editor
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.chkRemapBgImport);
-            this.groupBox9.Location = new System.Drawing.Point(462, 422);
-            this.groupBox9.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox9.Location = new System.Drawing.Point(370, 357);
             this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox9.Size = new System.Drawing.Size(451, 65);
+            this.groupBox9.Size = new System.Drawing.Size(361, 52);
             this.groupBox9.TabIndex = 10;
             this.groupBox9.TabStop = false;
             this.groupBox9.Text = "8-bit background import";
             // 
             // chkRemapBgImport
             // 
-            this.chkRemapBgImport.Location = new System.Drawing.Point(18, 20);
-            this.chkRemapBgImport.Margin = new System.Windows.Forms.Padding(4);
+            this.chkRemapBgImport.Location = new System.Drawing.Point(14, 16);
             this.chkRemapBgImport.Name = "chkRemapBgImport";
-            this.chkRemapBgImport.Size = new System.Drawing.Size(433, 38);
+            this.chkRemapBgImport.Size = new System.Drawing.Size(346, 30);
             this.chkRemapBgImport.TabIndex = 8;
             this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
     "games only)";
@@ -254,11 +253,9 @@ namespace AGS.Editor
             this.groupBox5.Controls.Add(this.label11);
             this.groupBox5.Controls.Add(this.radPaintProgram);
             this.groupBox5.Controls.Add(this.radDefaultPaintProgram);
-            this.groupBox5.Location = new System.Drawing.Point(462, 240);
-            this.groupBox5.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox5.Location = new System.Drawing.Point(370, 192);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox5.Size = new System.Drawing.Size(451, 174);
+            this.groupBox5.Size = new System.Drawing.Size(361, 159);
             this.groupBox5.TabIndex = 6;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Sprite editor";
@@ -275,29 +272,26 @@ namespace AGS.Editor
             "Bottom-right pixel",
             "Leave as-is",
             "No transparency"});
-            this.cmbSpriteImportTransparency.Location = new System.Drawing.Point(236, 139);
-            this.cmbSpriteImportTransparency.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbSpriteImportTransparency.Location = new System.Drawing.Point(189, 111);
             this.cmbSpriteImportTransparency.Name = "cmbSpriteImportTransparency";
-            this.cmbSpriteImportTransparency.Size = new System.Drawing.Size(198, 25);
+            this.cmbSpriteImportTransparency.Size = new System.Drawing.Size(159, 21);
             this.cmbSpriteImportTransparency.TabIndex = 9;
             this.cmbSpriteImportTransparency.SelectedIndexChanged += new System.EventHandler(this.cmbSpriteImportTransparency_SelectedIndexChanged);
             // 
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(15, 143);
-            this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label12.Location = new System.Drawing.Point(12, 114);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(222, 17);
+            this.label12.Size = new System.Drawing.Size(176, 13);
             this.label12.TabIndex = 5;
             this.label12.Text = "Default sprite import transparency:";
             // 
             // btnSelectPaintProgram
             // 
-            this.btnSelectPaintProgram.Location = new System.Drawing.Point(401, 107);
-            this.btnSelectPaintProgram.Margin = new System.Windows.Forms.Padding(4);
+            this.btnSelectPaintProgram.Location = new System.Drawing.Point(321, 86);
             this.btnSelectPaintProgram.Name = "btnSelectPaintProgram";
-            this.btnSelectPaintProgram.Size = new System.Drawing.Size(34, 26);
+            this.btnSelectPaintProgram.Size = new System.Drawing.Size(27, 21);
             this.btnSelectPaintProgram.TabIndex = 4;
             this.btnSelectPaintProgram.Text = "...";
             this.btnSelectPaintProgram.UseVisualStyleBackColor = true;
@@ -305,21 +299,19 @@ namespace AGS.Editor
             // 
             // txtPaintProgram
             // 
-            this.txtPaintProgram.Location = new System.Drawing.Point(139, 107);
-            this.txtPaintProgram.Margin = new System.Windows.Forms.Padding(4);
+            this.txtPaintProgram.Location = new System.Drawing.Point(111, 86);
             this.txtPaintProgram.MaxLength = 0;
             this.txtPaintProgram.Name = "txtPaintProgram";
-            this.txtPaintProgram.Size = new System.Drawing.Size(254, 24);
+            this.txtPaintProgram.Size = new System.Drawing.Size(204, 21);
             this.txtPaintProgram.TabIndex = 3;
             // 
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(15, 22);
-            this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label11.MaximumSize = new System.Drawing.Size(438, 0);
+            this.label11.Location = new System.Drawing.Point(12, 18);
+            this.label11.MaximumSize = new System.Drawing.Size(350, 0);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(436, 34);
+            this.label11.Size = new System.Drawing.Size(339, 26);
             this.label11.TabIndex = 2;
             this.label11.Text = "When you double-click a sprite, what program do you want to use to edit it? This " +
     "program must support PNG and BMP files.";
@@ -327,10 +319,9 @@ namespace AGS.Editor
             // radPaintProgram
             // 
             this.radPaintProgram.AutoSize = true;
-            this.radPaintProgram.Location = new System.Drawing.Point(18, 109);
-            this.radPaintProgram.Margin = new System.Windows.Forms.Padding(4);
+            this.radPaintProgram.Location = new System.Drawing.Point(14, 87);
             this.radPaintProgram.Name = "radPaintProgram";
-            this.radPaintProgram.Size = new System.Drawing.Size(115, 21);
+            this.radPaintProgram.Size = new System.Drawing.Size(91, 17);
             this.radPaintProgram.TabIndex = 1;
             this.radPaintProgram.Text = "This program:";
             this.radPaintProgram.UseVisualStyleBackColor = true;
@@ -340,10 +331,9 @@ namespace AGS.Editor
             // 
             this.radDefaultPaintProgram.AutoSize = true;
             this.radDefaultPaintProgram.Checked = true;
-            this.radDefaultPaintProgram.Location = new System.Drawing.Point(18, 81);
-            this.radDefaultPaintProgram.Margin = new System.Windows.Forms.Padding(4);
+            this.radDefaultPaintProgram.Location = new System.Drawing.Point(14, 65);
             this.radDefaultPaintProgram.Name = "radDefaultPaintProgram";
-            this.radDefaultPaintProgram.Size = new System.Drawing.Size(341, 21);
+            this.radDefaultPaintProgram.Size = new System.Drawing.Size(271, 17);
             this.radDefaultPaintProgram.TabIndex = 0;
             this.radDefaultPaintProgram.TabStop = true;
             this.radDefaultPaintProgram.Text = "The default paint program registered with Windows";
@@ -356,11 +346,9 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.cmbTestGameStyle);
-            this.groupBox1.Location = new System.Drawing.Point(3, 4);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox1.Location = new System.Drawing.Point(2, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Size = new System.Drawing.Size(456, 141);
+            this.groupBox1.Size = new System.Drawing.Size(365, 113);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Test game style";
@@ -368,10 +356,9 @@ namespace AGS.Editor
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(15, 65);
-            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label4.Location = new System.Drawing.Point(12, 52);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(214, 17);
+            this.label4.Size = new System.Drawing.Size(166, 13);
             this.label4.TabIndex = 3;
             this.label4.Text = "When running without debugger:";
             // 
@@ -379,22 +366,20 @@ namespace AGS.Editor
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(14, 98);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label3.MaximumSize = new System.Drawing.Size(438, 0);
+            this.label3.Location = new System.Drawing.Point(11, 78);
+            this.label3.MaximumSize = new System.Drawing.Size(350, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(431, 34);
+            this.label3.Size = new System.Drawing.Size(344, 26);
             this.label3.TabIndex = 2;
             this.label3.Text = "NOTE: When using the F5 (Run) option, the game will always run in a window.";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 25);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label1.MaximumSize = new System.Drawing.Size(438, 0);
+            this.label1.Location = new System.Drawing.Point(11, 20);
+            this.label1.MaximumSize = new System.Drawing.Size(350, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(428, 34);
+            this.label1.Size = new System.Drawing.Size(334, 26);
             this.label1.TabIndex = 0;
             this.label1.Text = "Would you like the game to run in a window or full-screen when you test it?";
             // 
@@ -406,10 +391,9 @@ namespace AGS.Editor
             "Use game setup configuration",
             "Always run full screen",
             "Always run in a window"});
-            this.cmbTestGameStyle.Location = new System.Drawing.Point(230, 61);
-            this.cmbTestGameStyle.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbTestGameStyle.Location = new System.Drawing.Point(184, 49);
             this.cmbTestGameStyle.Name = "cmbTestGameStyle";
-            this.cmbTestGameStyle.Size = new System.Drawing.Size(213, 25);
+            this.cmbTestGameStyle.Size = new System.Drawing.Size(171, 21);
             this.cmbTestGameStyle.TabIndex = 1;
             this.cmbTestGameStyle.SelectedIndexChanged += new System.EventHandler(this.cmbTestGameStyle_SelectedIndexChanged);
             // 
@@ -418,19 +402,16 @@ namespace AGS.Editor
             this.groupBox8.Controls.Add(this.udBackupInterval);
             this.groupBox8.Controls.Add(this.label14);
             this.groupBox8.Controls.Add(this.chkBackupReminders);
-            this.groupBox8.Location = new System.Drawing.Point(3, 422);
-            this.groupBox8.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox8.Location = new System.Drawing.Point(2, 357);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox8.Size = new System.Drawing.Size(456, 65);
+            this.groupBox8.Size = new System.Drawing.Size(365, 52);
             this.groupBox8.TabIndex = 9;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Backup reminders";
             // 
             // udBackupInterval
             // 
-            this.udBackupInterval.Location = new System.Drawing.Point(86, 24);
-            this.udBackupInterval.Margin = new System.Windows.Forms.Padding(4);
+            this.udBackupInterval.Location = new System.Drawing.Point(69, 19);
             this.udBackupInterval.Maximum = new decimal(new int[] {
             90,
             0,
@@ -442,7 +423,7 @@ namespace AGS.Editor
             0,
             0});
             this.udBackupInterval.Name = "udBackupInterval";
-            this.udBackupInterval.Size = new System.Drawing.Size(52, 24);
+            this.udBackupInterval.Size = new System.Drawing.Size(42, 21);
             this.udBackupInterval.TabIndex = 10;
             this.udBackupInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.udBackupInterval.Value = new decimal(new int[] {
@@ -455,21 +436,19 @@ namespace AGS.Editor
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(146, 26);
-            this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label14.MaximumSize = new System.Drawing.Size(288, 62);
+            this.label14.Location = new System.Drawing.Point(117, 21);
+            this.label14.MaximumSize = new System.Drawing.Size(230, 50);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(242, 17);
+            this.label14.Size = new System.Drawing.Size(185, 13);
             this.label14.TabIndex = 9;
             this.label14.Text = "days, remind me to back up my game";
             // 
             // chkBackupReminders
             // 
             this.chkBackupReminders.AutoSize = true;
-            this.chkBackupReminders.Location = new System.Drawing.Point(18, 25);
-            this.chkBackupReminders.Margin = new System.Windows.Forms.Padding(4);
+            this.chkBackupReminders.Location = new System.Drawing.Point(14, 20);
             this.chkBackupReminders.Name = "chkBackupReminders";
-            this.chkBackupReminders.Size = new System.Drawing.Size(66, 21);
+            this.chkBackupReminders.Size = new System.Drawing.Size(54, 17);
             this.chkBackupReminders.TabIndex = 8;
             this.chkBackupReminders.Text = "Every";
             this.chkBackupReminders.UseVisualStyleBackColor = true;
@@ -484,21 +463,18 @@ namespace AGS.Editor
             this.groupBox2.Controls.Add(this.label10);
             this.groupBox2.Controls.Add(this.label8);
             this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Location = new System.Drawing.Point(462, 4);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox2.Location = new System.Drawing.Point(370, 3);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox2.Size = new System.Drawing.Size(451, 228);
+            this.groupBox2.Size = new System.Drawing.Size(361, 182);
             this.groupBox2.TabIndex = 3;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Script editor";
             // 
             // lblReloadScriptOnExternalChange
             // 
-            this.lblReloadScriptOnExternalChange.Location = new System.Drawing.Point(14, 26);
-            this.lblReloadScriptOnExternalChange.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblReloadScriptOnExternalChange.Location = new System.Drawing.Point(11, 21);
             this.lblReloadScriptOnExternalChange.Name = "lblReloadScriptOnExternalChange";
-            this.lblReloadScriptOnExternalChange.Size = new System.Drawing.Size(421, 45);
+            this.lblReloadScriptOnExternalChange.Size = new System.Drawing.Size(337, 36);
             this.lblReloadScriptOnExternalChange.TabIndex = 11;
             this.lblReloadScriptOnExternalChange.Text = "If a script file is open for editing and is modified by another program, how shou" +
     "ld this be handled?";
@@ -511,17 +487,15 @@ namespace AGS.Editor
             "Ask what to do",
             "Always reload the file",
             "Never reload the file"});
-            this.cmbScriptReloadOnExternalChange.Location = new System.Drawing.Point(15, 71);
-            this.cmbScriptReloadOnExternalChange.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbScriptReloadOnExternalChange.Location = new System.Drawing.Point(12, 57);
             this.cmbScriptReloadOnExternalChange.Name = "cmbScriptReloadOnExternalChange";
-            this.cmbScriptReloadOnExternalChange.Size = new System.Drawing.Size(222, 25);
+            this.cmbScriptReloadOnExternalChange.Size = new System.Drawing.Size(178, 21);
             this.cmbScriptReloadOnExternalChange.TabIndex = 10;
             this.cmbScriptReloadOnExternalChange.SelectedIndexChanged += new System.EventHandler(this.cmbScriptReloadOnExternalChange_SelectedIndexChanged);
             // 
             // udTabWidth
             // 
-            this.udTabWidth.Location = new System.Drawing.Point(90, 154);
-            this.udTabWidth.Margin = new System.Windows.Forms.Padding(4);
+            this.udTabWidth.Location = new System.Drawing.Point(72, 123);
             this.udTabWidth.Maximum = new decimal(new int[] {
             10,
             0,
@@ -533,7 +507,7 @@ namespace AGS.Editor
             0,
             0});
             this.udTabWidth.Name = "udTabWidth";
-            this.udTabWidth.Size = new System.Drawing.Size(95, 24);
+            this.udTabWidth.Size = new System.Drawing.Size(76, 21);
             this.udTabWidth.TabIndex = 9;
             this.udTabWidth.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.udTabWidth.Value = new decimal(new int[] {
@@ -550,31 +524,28 @@ namespace AGS.Editor
             this.cmbIndentStyle.Items.AddRange(new object[] {
             "Use spaces",
             "Use tabs"});
-            this.cmbIndentStyle.Location = new System.Drawing.Point(90, 186);
-            this.cmbIndentStyle.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbIndentStyle.Location = new System.Drawing.Point(72, 149);
             this.cmbIndentStyle.Name = "cmbIndentStyle";
-            this.cmbIndentStyle.Size = new System.Drawing.Size(222, 25);
+            this.cmbIndentStyle.Size = new System.Drawing.Size(178, 21);
             this.cmbIndentStyle.TabIndex = 8;
             this.cmbIndentStyle.SelectedIndexChanged += new System.EventHandler(this.cmbIndentStyle_SelectedIndexChanged);
             // 
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(11, 190);
-            this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label10.Location = new System.Drawing.Point(9, 152);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(53, 17);
+            this.label10.Size = new System.Drawing.Size(43, 13);
             this.label10.TabIndex = 7;
             this.label10.Text = "Indent:";
             // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(10, 110);
-            this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label8.MaximumSize = new System.Drawing.Size(438, 0);
+            this.label8.Location = new System.Drawing.Point(8, 88);
+            this.label8.MaximumSize = new System.Drawing.Size(350, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(426, 34);
+            this.label8.Size = new System.Drawing.Size(339, 26);
             this.label8.TabIndex = 2;
             this.label8.Text = "Changing the following settings requires you to restart the editor for them to ta" +
     "ke effect.";
@@ -582,15 +553,16 @@ namespace AGS.Editor
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 159);
-            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label2.Location = new System.Drawing.Point(8, 127);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(73, 17);
+            this.label2.Size = new System.Drawing.Size(58, 13);
             this.label2.TabIndex = 0;
             this.label2.Text = "Tab width:";
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.label18);
+            this.groupBox3.Controls.Add(this.cmbBaseTheme);
             this.groupBox3.Controls.Add(this.btnOpenThemeFolder);
             this.groupBox3.Controls.Add(this.label7);
             this.groupBox3.Controls.Add(this.cmbColorTheme);
@@ -601,21 +573,42 @@ namespace AGS.Editor
             this.groupBox3.Controls.Add(this.label9);
             this.groupBox3.Controls.Add(this.cmbEditorStartup);
             this.groupBox3.Controls.Add(this.label5);
-            this.groupBox3.Location = new System.Drawing.Point(3, 152);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox3.Location = new System.Drawing.Point(2, 122);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox3.Size = new System.Drawing.Size(456, 255);
+            this.groupBox3.Size = new System.Drawing.Size(365, 229);
             this.groupBox3.TabIndex = 4;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Editor appearance";
             // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(11, 75);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(69, 13);
+            this.label18.TabIndex = 14;
+            this.label18.Text = "Base Theme:";
+            // 
+            // cmbBaseTheme
+            // 
+            this.cmbBaseTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbBaseTheme.FormattingEnabled = true;
+            this.cmbBaseTheme.Items.AddRange(new object[] {
+            "VS2005",
+            "VS2015BlueTheme",
+            "VS2015DarkTheme",
+            "VS2015LightTheme"});
+            this.cmbBaseTheme.Location = new System.Drawing.Point(152, 72);
+            this.cmbBaseTheme.Name = "cmbBaseTheme";
+            this.cmbBaseTheme.Size = new System.Drawing.Size(203, 21);
+            this.cmbBaseTheme.TabIndex = 13;
+            this.cmbBaseTheme.SelectedIndexChanged += new System.EventHandler(this.cmbBaseTheme_SelectedIndexChanged);
+            // 
             // btnOpenThemeFolder
             // 
-            this.btnOpenThemeFolder.Location = new System.Drawing.Point(190, 121);
-            this.btnOpenThemeFolder.Margin = new System.Windows.Forms.Padding(4);
+            this.btnOpenThemeFolder.Location = new System.Drawing.Point(152, 124);
             this.btnOpenThemeFolder.Name = "btnOpenThemeFolder";
-            this.btnOpenThemeFolder.Size = new System.Drawing.Size(254, 29);
+            this.btnOpenThemeFolder.Size = new System.Drawing.Size(203, 23);
             this.btnOpenThemeFolder.TabIndex = 12;
             this.btnOpenThemeFolder.Text = "Open Theme Folder";
             this.btnOpenThemeFolder.UseVisualStyleBackColor = true;
@@ -624,10 +617,9 @@ namespace AGS.Editor
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(14, 92);
-            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label7.Location = new System.Drawing.Point(11, 101);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(91, 17);
+            this.label7.Size = new System.Drawing.Size(71, 13);
             this.label7.TabIndex = 11;
             this.label7.Text = "Color Theme:";
             // 
@@ -635,10 +627,9 @@ namespace AGS.Editor
             // 
             this.cmbColorTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbColorTheme.FormattingEnabled = true;
-            this.cmbColorTheme.Location = new System.Drawing.Point(190, 89);
-            this.cmbColorTheme.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbColorTheme.Location = new System.Drawing.Point(152, 98);
             this.cmbColorTheme.Name = "cmbColorTheme";
-            this.cmbColorTheme.Size = new System.Drawing.Size(253, 25);
+            this.cmbColorTheme.Size = new System.Drawing.Size(203, 21);
             this.cmbColorTheme.TabIndex = 10;
             this.cmbColorTheme.DropDown += new System.EventHandler(this.cmbColorTheme_DropDown);
             this.cmbColorTheme.SelectedIndexChanged += new System.EventHandler(this.cmbColorTheme_SelectedIndexChanged);
@@ -646,10 +637,9 @@ namespace AGS.Editor
             // chkPromptDialogOnTabsClose
             // 
             this.chkPromptDialogOnTabsClose.AutoSize = true;
-            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(18, 221);
-            this.chkPromptDialogOnTabsClose.Margin = new System.Windows.Forms.Padding(4);
+            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(14, 204);
             this.chkPromptDialogOnTabsClose.Name = "chkPromptDialogOnTabsClose";
-            this.chkPromptDialogOnTabsClose.Size = new System.Drawing.Size(260, 21);
+            this.chkPromptDialogOnTabsClose.Size = new System.Drawing.Size(204, 17);
             this.chkPromptDialogOnTabsClose.TabIndex = 9;
             this.chkPromptDialogOnTabsClose.Text = "Prompt dialog on closing multiple tabs";
             this.chkPromptDialogOnTabsClose.UseVisualStyleBackColor = true;
@@ -658,10 +648,9 @@ namespace AGS.Editor
             // chkKeepHelpOnTop
             // 
             this.chkKeepHelpOnTop.AutoSize = true;
-            this.chkKeepHelpOnTop.Location = new System.Drawing.Point(18, 192);
-            this.chkKeepHelpOnTop.Margin = new System.Windows.Forms.Padding(4);
+            this.chkKeepHelpOnTop.Location = new System.Drawing.Point(14, 181);
             this.chkKeepHelpOnTop.Name = "chkKeepHelpOnTop";
-            this.chkKeepHelpOnTop.Size = new System.Drawing.Size(290, 21);
+            this.chkKeepHelpOnTop.Size = new System.Drawing.Size(230, 17);
             this.chkKeepHelpOnTop.TabIndex = 8;
             this.chkKeepHelpOnTop.Text = "Keep Help window on top of editor window";
             this.chkKeepHelpOnTop.UseVisualStyleBackColor = true;
@@ -670,10 +659,9 @@ namespace AGS.Editor
             // chkAlwaysShowViewPreview
             // 
             this.chkAlwaysShowViewPreview.AutoSize = true;
-            this.chkAlwaysShowViewPreview.Location = new System.Drawing.Point(18, 164);
-            this.chkAlwaysShowViewPreview.Margin = new System.Windows.Forms.Padding(4);
+            this.chkAlwaysShowViewPreview.Location = new System.Drawing.Point(14, 158);
             this.chkAlwaysShowViewPreview.Name = "chkAlwaysShowViewPreview";
-            this.chkAlwaysShowViewPreview.Size = new System.Drawing.Size(301, 21);
+            this.chkAlwaysShowViewPreview.Size = new System.Drawing.Size(242, 17);
             this.chkAlwaysShowViewPreview.TabIndex = 7;
             this.chkAlwaysShowViewPreview.Text = "Show view preview by default in view editors";
             this.chkAlwaysShowViewPreview.UseVisualStyleBackColor = true;
@@ -688,20 +676,18 @@ namespace AGS.Editor
             "When there are warnings or errors",
             "When there are errors",
             "Never"});
-            this.cmbMessageOnCompile.Location = new System.Drawing.Point(190, 58);
-            this.cmbMessageOnCompile.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbMessageOnCompile.Location = new System.Drawing.Point(152, 46);
             this.cmbMessageOnCompile.Name = "cmbMessageOnCompile";
-            this.cmbMessageOnCompile.Size = new System.Drawing.Size(253, 25);
+            this.cmbMessageOnCompile.Size = new System.Drawing.Size(203, 21);
             this.cmbMessageOnCompile.TabIndex = 6;
             this.cmbMessageOnCompile.SelectedIndexChanged += new System.EventHandler(this.cmbMessageOnCompile_SelectedIndexChanged);
             // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(15, 61);
-            this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label9.Location = new System.Drawing.Point(12, 49);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(180, 17);
+            this.label9.Size = new System.Drawing.Size(139, 13);
             this.label9.TabIndex = 5;
             this.label9.Text = "Popup message on compile:";
             // 
@@ -713,20 +699,18 @@ namespace AGS.Editor
             "Show Start Page",
             "Show Game Settings",
             "No panes open"});
-            this.cmbEditorStartup.Location = new System.Drawing.Point(190, 25);
-            this.cmbEditorStartup.Margin = new System.Windows.Forms.Padding(4);
+            this.cmbEditorStartup.Location = new System.Drawing.Point(152, 20);
             this.cmbEditorStartup.Name = "cmbEditorStartup";
-            this.cmbEditorStartup.Size = new System.Drawing.Size(253, 25);
+            this.cmbEditorStartup.Size = new System.Drawing.Size(203, 21);
             this.cmbEditorStartup.TabIndex = 2;
             this.cmbEditorStartup.SelectedIndexChanged += new System.EventHandler(this.cmbEditorStartup_SelectedIndexChanged);
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(15, 29);
-            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label5.Location = new System.Drawing.Point(12, 23);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(171, 17);
+            this.label5.Size = new System.Drawing.Size(135, 13);
             this.label5.TabIndex = 0;
             this.label5.Text = "When the editor starts up:";
             // 
@@ -734,11 +718,9 @@ namespace AGS.Editor
             // 
             this.groupBox7.Controls.Add(this.lnkUsageInfo);
             this.groupBox7.Controls.Add(this.chkUsageInfo);
-            this.groupBox7.Location = new System.Drawing.Point(3, 486);
-            this.groupBox7.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox7.Location = new System.Drawing.Point(2, 410);
             this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox7.Size = new System.Drawing.Size(456, 82);
+            this.groupBox7.Size = new System.Drawing.Size(365, 66);
             this.groupBox7.TabIndex = 8;
             this.groupBox7.TabStop = false;
             this.groupBox7.Text = "Usage statistics";
@@ -747,10 +729,9 @@ namespace AGS.Editor
             // lnkUsageInfo
             // 
             this.lnkUsageInfo.AutoSize = true;
-            this.lnkUsageInfo.Location = new System.Drawing.Point(15, 52);
-            this.lnkUsageInfo.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lnkUsageInfo.Location = new System.Drawing.Point(12, 42);
             this.lnkUsageInfo.Name = "lnkUsageInfo";
-            this.lnkUsageInfo.Size = new System.Drawing.Size(249, 17);
+            this.lnkUsageInfo.Size = new System.Drawing.Size(197, 13);
             this.lnkUsageInfo.TabIndex = 9;
             this.lnkUsageInfo.TabStop = true;
             this.lnkUsageInfo.Text = "What is this and why should I enable it?";
@@ -759,10 +740,9 @@ namespace AGS.Editor
             // chkUsageInfo
             // 
             this.chkUsageInfo.AutoSize = true;
-            this.chkUsageInfo.Location = new System.Drawing.Point(18, 25);
-            this.chkUsageInfo.Margin = new System.Windows.Forms.Padding(4);
+            this.chkUsageInfo.Location = new System.Drawing.Point(14, 20);
             this.chkUsageInfo.Name = "chkUsageInfo";
-            this.chkUsageInfo.Size = new System.Drawing.Size(370, 21);
+            this.chkUsageInfo.Size = new System.Drawing.Size(292, 17);
             this.chkUsageInfo.TabIndex = 8;
             this.chkUsageInfo.Text = "Send anonymous usage information to the AGS website";
             this.chkUsageInfo.UseVisualStyleBackColor = true;
@@ -776,19 +756,21 @@ namespace AGS.Editor
             this.tabControl1.Controls.Add(this.tabPageLast);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Top;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(928, 602);
+            this.tabControl1.Size = new System.Drawing.Size(742, 505);
             this.tabControl1.TabIndex = 11;
             this.tabControl1.Selected += new System.Windows.Forms.TabControlEventHandler(this.tabControl1_Selected);
             // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.flowLayoutPanel1);
-            this.tabPage2.Location = new System.Drawing.Point(4, 26);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(920, 572);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage2.Size = new System.Drawing.Size(734, 479);
             this.tabPage2.TabIndex = 3;
             this.tabPage2.Text = "Default Paths";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -798,9 +780,10 @@ namespace AGS.Editor
             this.flowLayoutPanel1.Controls.Add(this.groupBox4);
             this.flowLayoutPanel1.Controls.Add(this.groupBox6);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(2, 2);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(914, 566);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(730, 475);
             this.flowLayoutPanel1.TabIndex = 10;
             // 
             // groupBox4
@@ -810,21 +793,18 @@ namespace AGS.Editor
             this.groupBox4.Controls.Add(this.label6);
             this.groupBox4.Controls.Add(this.radFolderPath);
             this.groupBox4.Controls.Add(this.radGamePath);
-            this.groupBox4.Location = new System.Drawing.Point(4, 4);
-            this.groupBox4.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox4.Location = new System.Drawing.Point(3, 3);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox4.Size = new System.Drawing.Size(904, 115);
+            this.groupBox4.Size = new System.Drawing.Size(723, 92);
             this.groupBox4.TabIndex = 8;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Import directory";
             // 
             // btnChooseFolder
             // 
-            this.btnChooseFolder.Location = new System.Drawing.Point(401, 75);
-            this.btnChooseFolder.Margin = new System.Windows.Forms.Padding(4);
+            this.btnChooseFolder.Location = new System.Drawing.Point(321, 60);
             this.btnChooseFolder.Name = "btnChooseFolder";
-            this.btnChooseFolder.Size = new System.Drawing.Size(34, 26);
+            this.btnChooseFolder.Size = new System.Drawing.Size(27, 21);
             this.btnChooseFolder.TabIndex = 4;
             this.btnChooseFolder.Text = "...";
             this.btnChooseFolder.UseVisualStyleBackColor = true;
@@ -832,32 +812,29 @@ namespace AGS.Editor
             // 
             // txtImportPath
             // 
-            this.txtImportPath.Location = new System.Drawing.Point(121, 75);
-            this.txtImportPath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtImportPath.Location = new System.Drawing.Point(97, 60);
             this.txtImportPath.MaxLength = 0;
             this.txtImportPath.Name = "txtImportPath";
-            this.txtImportPath.Size = new System.Drawing.Size(272, 24);
+            this.txtImportPath.Size = new System.Drawing.Size(218, 21);
             this.txtImportPath.TabIndex = 3;
             // 
             // label6
             // 
             this.label6.AutoSize = true;
             this.label6.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label6.Location = new System.Drawing.Point(4, 21);
-            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label6.MaximumSize = new System.Drawing.Size(800, 0);
+            this.label6.Location = new System.Drawing.Point(3, 17);
+            this.label6.MaximumSize = new System.Drawing.Size(640, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(348, 17);
+            this.label6.Size = new System.Drawing.Size(273, 13);
             this.label6.TabIndex = 2;
             this.label6.Text = "When you import files, where do you want to look first?";
             // 
             // radFolderPath
             // 
             this.radFolderPath.AutoSize = true;
-            this.radFolderPath.Location = new System.Drawing.Point(18, 78);
-            this.radFolderPath.Margin = new System.Windows.Forms.Padding(4);
+            this.radFolderPath.Location = new System.Drawing.Point(14, 62);
             this.radFolderPath.Name = "radFolderPath";
-            this.radFolderPath.Size = new System.Drawing.Size(94, 21);
+            this.radFolderPath.Size = new System.Drawing.Size(77, 17);
             this.radFolderPath.TabIndex = 1;
             this.radFolderPath.Text = "Default to:";
             this.radFolderPath.UseVisualStyleBackColor = true;
@@ -867,10 +844,9 @@ namespace AGS.Editor
             // 
             this.radGamePath.AutoSize = true;
             this.radGamePath.Checked = true;
-            this.radGamePath.Location = new System.Drawing.Point(18, 49);
-            this.radGamePath.Margin = new System.Windows.Forms.Padding(4);
+            this.radGamePath.Location = new System.Drawing.Point(14, 39);
             this.radGamePath.Name = "radGamePath";
-            this.radGamePath.Size = new System.Drawing.Size(313, 21);
+            this.radGamePath.Size = new System.Drawing.Size(250, 17);
             this.radGamePath.TabIndex = 0;
             this.radGamePath.TabStop = true;
             this.radGamePath.Text = "Default to the game folder when importing files";
@@ -884,21 +860,18 @@ namespace AGS.Editor
             this.groupBox6.Controls.Add(this.label13);
             this.groupBox6.Controls.Add(this.radNewGameSpecificPath);
             this.groupBox6.Controls.Add(this.radNewGameMyDocs);
-            this.groupBox6.Location = new System.Drawing.Point(4, 127);
-            this.groupBox6.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox6.Location = new System.Drawing.Point(3, 101);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox6.Size = new System.Drawing.Size(904, 115);
+            this.groupBox6.Size = new System.Drawing.Size(723, 92);
             this.groupBox6.TabIndex = 9;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "New game directory";
             // 
             // btnNewGameChooseFolder
             // 
-            this.btnNewGameChooseFolder.Location = new System.Drawing.Point(401, 75);
-            this.btnNewGameChooseFolder.Margin = new System.Windows.Forms.Padding(4);
+            this.btnNewGameChooseFolder.Location = new System.Drawing.Point(321, 60);
             this.btnNewGameChooseFolder.Name = "btnNewGameChooseFolder";
-            this.btnNewGameChooseFolder.Size = new System.Drawing.Size(34, 26);
+            this.btnNewGameChooseFolder.Size = new System.Drawing.Size(27, 21);
             this.btnNewGameChooseFolder.TabIndex = 4;
             this.btnNewGameChooseFolder.Text = "...";
             this.btnNewGameChooseFolder.UseVisualStyleBackColor = true;
@@ -906,32 +879,29 @@ namespace AGS.Editor
             // 
             // txtNewGamePath
             // 
-            this.txtNewGamePath.Location = new System.Drawing.Point(121, 75);
-            this.txtNewGamePath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtNewGamePath.Location = new System.Drawing.Point(97, 60);
             this.txtNewGamePath.MaxLength = 0;
             this.txtNewGamePath.Name = "txtNewGamePath";
-            this.txtNewGamePath.Size = new System.Drawing.Size(272, 24);
+            this.txtNewGamePath.Size = new System.Drawing.Size(218, 21);
             this.txtNewGamePath.TabIndex = 3;
             // 
             // label13
             // 
             this.label13.AutoSize = true;
             this.label13.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label13.Location = new System.Drawing.Point(4, 21);
-            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label13.MaximumSize = new System.Drawing.Size(800, 0);
+            this.label13.Location = new System.Drawing.Point(3, 17);
+            this.label13.MaximumSize = new System.Drawing.Size(640, 0);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(375, 17);
+            this.label13.Size = new System.Drawing.Size(293, 13);
             this.label13.TabIndex = 2;
             this.label13.Text = "When you create a new game, where do you want it to go?";
             // 
             // radNewGameSpecificPath
             // 
             this.radNewGameSpecificPath.AutoSize = true;
-            this.radNewGameSpecificPath.Location = new System.Drawing.Point(18, 78);
-            this.radNewGameSpecificPath.Margin = new System.Windows.Forms.Padding(4);
+            this.radNewGameSpecificPath.Location = new System.Drawing.Point(14, 62);
             this.radNewGameSpecificPath.Name = "radNewGameSpecificPath";
-            this.radNewGameSpecificPath.Size = new System.Drawing.Size(94, 21);
+            this.radNewGameSpecificPath.Size = new System.Drawing.Size(77, 17);
             this.radNewGameSpecificPath.TabIndex = 1;
             this.radNewGameSpecificPath.Text = "Default to:";
             this.radNewGameSpecificPath.UseVisualStyleBackColor = true;
@@ -941,10 +911,9 @@ namespace AGS.Editor
             // 
             this.radNewGameMyDocs.AutoSize = true;
             this.radNewGameMyDocs.Checked = true;
-            this.radNewGameMyDocs.Location = new System.Drawing.Point(18, 49);
-            this.radNewGameMyDocs.Margin = new System.Windows.Forms.Padding(4);
+            this.radNewGameMyDocs.Location = new System.Drawing.Point(14, 39);
             this.radNewGameMyDocs.Name = "radNewGameMyDocs";
-            this.radNewGameMyDocs.Size = new System.Drawing.Size(186, 21);
+            this.radNewGameMyDocs.Size = new System.Drawing.Size(146, 17);
             this.radNewGameMyDocs.TabIndex = 0;
             this.radNewGameMyDocs.TabStop = true;
             this.radNewGameMyDocs.Text = "Default to My Documents";
@@ -954,10 +923,11 @@ namespace AGS.Editor
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.flowLayoutPanel2);
-            this.tabPage3.Location = new System.Drawing.Point(4, 26);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(920, 572);
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage3.Size = new System.Drawing.Size(734, 479);
             this.tabPage3.TabIndex = 4;
             this.tabPage3.Text = "Android";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -968,9 +938,10 @@ namespace AGS.Editor
             this.flowLayoutPanel2.Controls.Add(this.groupBoxAndroidSdkPath);
             this.flowLayoutPanel2.Controls.Add(this.splitContainer1);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 3);
+            this.flowLayoutPanel2.Location = new System.Drawing.Point(2, 2);
+            this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(2);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(914, 566);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(730, 475);
             this.flowLayoutPanel2.TabIndex = 0;
             // 
             // groupBoxAndroidJdkPath
@@ -981,21 +952,18 @@ namespace AGS.Editor
             this.groupBoxAndroidJdkPath.Controls.Add(this.label16);
             this.groupBoxAndroidJdkPath.Controls.Add(this.radAndJavaHomePath);
             this.groupBoxAndroidJdkPath.Controls.Add(this.radAndJavaHomeEnv);
-            this.groupBoxAndroidJdkPath.Location = new System.Drawing.Point(4, 4);
-            this.groupBoxAndroidJdkPath.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxAndroidJdkPath.Location = new System.Drawing.Point(3, 3);
             this.groupBoxAndroidJdkPath.Name = "groupBoxAndroidJdkPath";
-            this.groupBoxAndroidJdkPath.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBoxAndroidJdkPath.Size = new System.Drawing.Size(904, 115);
+            this.groupBoxAndroidJdkPath.Size = new System.Drawing.Size(723, 92);
             this.groupBoxAndroidJdkPath.TabIndex = 13;
             this.groupBoxAndroidJdkPath.TabStop = false;
             this.groupBoxAndroidJdkPath.Text = "JDK Path";
             // 
             // btnAndChooseJavaHomePath
             // 
-            this.btnAndChooseJavaHomePath.Location = new System.Drawing.Point(401, 75);
-            this.btnAndChooseJavaHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.btnAndChooseJavaHomePath.Location = new System.Drawing.Point(321, 60);
             this.btnAndChooseJavaHomePath.Name = "btnAndChooseJavaHomePath";
-            this.btnAndChooseJavaHomePath.Size = new System.Drawing.Size(34, 26);
+            this.btnAndChooseJavaHomePath.Size = new System.Drawing.Size(27, 21);
             this.btnAndChooseJavaHomePath.TabIndex = 4;
             this.btnAndChooseJavaHomePath.Text = "...";
             this.btnAndChooseJavaHomePath.UseVisualStyleBackColor = true;
@@ -1003,32 +971,29 @@ namespace AGS.Editor
             // 
             // txtAndJavaHomePath
             // 
-            this.txtAndJavaHomePath.Location = new System.Drawing.Point(121, 75);
-            this.txtAndJavaHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtAndJavaHomePath.Location = new System.Drawing.Point(97, 60);
             this.txtAndJavaHomePath.MaxLength = 0;
             this.txtAndJavaHomePath.Name = "txtAndJavaHomePath";
-            this.txtAndJavaHomePath.Size = new System.Drawing.Size(272, 24);
+            this.txtAndJavaHomePath.Size = new System.Drawing.Size(218, 21);
             this.txtAndJavaHomePath.TabIndex = 3;
             // 
             // label16
             // 
             this.label16.AutoSize = true;
             this.label16.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label16.Location = new System.Drawing.Point(4, 21);
-            this.label16.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label16.MaximumSize = new System.Drawing.Size(800, 0);
+            this.label16.Location = new System.Drawing.Point(3, 17);
+            this.label16.MaximumSize = new System.Drawing.Size(640, 0);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(465, 17);
+            this.label16.Size = new System.Drawing.Size(366, 13);
             this.label16.TabIndex = 2;
             this.label16.Text = "Where is the JDK installation that should be used by Android build process?";
             // 
             // radAndJavaHomePath
             // 
             this.radAndJavaHomePath.AutoSize = true;
-            this.radAndJavaHomePath.Location = new System.Drawing.Point(18, 78);
-            this.radAndJavaHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndJavaHomePath.Location = new System.Drawing.Point(14, 62);
             this.radAndJavaHomePath.Name = "radAndJavaHomePath";
-            this.radAndJavaHomePath.Size = new System.Drawing.Size(94, 21);
+            this.radAndJavaHomePath.Size = new System.Drawing.Size(77, 17);
             this.radAndJavaHomePath.TabIndex = 1;
             this.radAndJavaHomePath.Text = "Default to:";
             this.radAndJavaHomePath.UseVisualStyleBackColor = true;
@@ -1038,10 +1003,9 @@ namespace AGS.Editor
             // 
             this.radAndJavaHomeEnv.AutoSize = true;
             this.radAndJavaHomeEnv.Checked = true;
-            this.radAndJavaHomeEnv.Location = new System.Drawing.Point(18, 49);
-            this.radAndJavaHomeEnv.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndJavaHomeEnv.Location = new System.Drawing.Point(14, 39);
             this.radAndJavaHomeEnv.Name = "radAndJavaHomeEnv";
-            this.radAndJavaHomeEnv.Size = new System.Drawing.Size(300, 21);
+            this.radAndJavaHomeEnv.Size = new System.Drawing.Size(240, 17);
             this.radAndJavaHomeEnv.TabIndex = 0;
             this.radAndJavaHomeEnv.TabStop = true;
             this.radAndJavaHomeEnv.Text = "Default to JAVA_HOME environment variable";
@@ -1056,21 +1020,18 @@ namespace AGS.Editor
             this.groupBoxAndroidSdkPath.Controls.Add(this.label15);
             this.groupBoxAndroidSdkPath.Controls.Add(this.radAndAndroidHomePath);
             this.groupBoxAndroidSdkPath.Controls.Add(this.radAndAndroidHomeEnv);
-            this.groupBoxAndroidSdkPath.Location = new System.Drawing.Point(4, 127);
-            this.groupBoxAndroidSdkPath.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxAndroidSdkPath.Location = new System.Drawing.Point(3, 101);
             this.groupBoxAndroidSdkPath.Name = "groupBoxAndroidSdkPath";
-            this.groupBoxAndroidSdkPath.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBoxAndroidSdkPath.Size = new System.Drawing.Size(904, 115);
+            this.groupBoxAndroidSdkPath.Size = new System.Drawing.Size(723, 92);
             this.groupBoxAndroidSdkPath.TabIndex = 12;
             this.groupBoxAndroidSdkPath.TabStop = false;
             this.groupBoxAndroidSdkPath.Text = "SDK Path";
             // 
             // btnAndChooseAndroidHomePath
             // 
-            this.btnAndChooseAndroidHomePath.Location = new System.Drawing.Point(401, 75);
-            this.btnAndChooseAndroidHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.btnAndChooseAndroidHomePath.Location = new System.Drawing.Point(321, 60);
             this.btnAndChooseAndroidHomePath.Name = "btnAndChooseAndroidHomePath";
-            this.btnAndChooseAndroidHomePath.Size = new System.Drawing.Size(34, 26);
+            this.btnAndChooseAndroidHomePath.Size = new System.Drawing.Size(27, 21);
             this.btnAndChooseAndroidHomePath.TabIndex = 4;
             this.btnAndChooseAndroidHomePath.Text = "...";
             this.btnAndChooseAndroidHomePath.UseVisualStyleBackColor = true;
@@ -1078,32 +1039,29 @@ namespace AGS.Editor
             // 
             // txtAndAndroidHomePath
             // 
-            this.txtAndAndroidHomePath.Location = new System.Drawing.Point(121, 75);
-            this.txtAndAndroidHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtAndAndroidHomePath.Location = new System.Drawing.Point(97, 60);
             this.txtAndAndroidHomePath.MaxLength = 0;
             this.txtAndAndroidHomePath.Name = "txtAndAndroidHomePath";
-            this.txtAndAndroidHomePath.Size = new System.Drawing.Size(272, 24);
+            this.txtAndAndroidHomePath.Size = new System.Drawing.Size(218, 21);
             this.txtAndAndroidHomePath.TabIndex = 3;
             // 
             // label15
             // 
             this.label15.AutoSize = true;
             this.label15.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label15.Location = new System.Drawing.Point(4, 21);
-            this.label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label15.MaximumSize = new System.Drawing.Size(800, 0);
+            this.label15.Location = new System.Drawing.Point(3, 17);
+            this.label15.MaximumSize = new System.Drawing.Size(640, 0);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(452, 17);
+            this.label15.Size = new System.Drawing.Size(353, 13);
             this.label15.TabIndex = 2;
             this.label15.Text = "Where is the Android SDK that should be used by Android build process?";
             // 
             // radAndAndroidHomePath
             // 
             this.radAndAndroidHomePath.AutoSize = true;
-            this.radAndAndroidHomePath.Location = new System.Drawing.Point(18, 78);
-            this.radAndAndroidHomePath.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndAndroidHomePath.Location = new System.Drawing.Point(14, 62);
             this.radAndAndroidHomePath.Name = "radAndAndroidHomePath";
-            this.radAndAndroidHomePath.Size = new System.Drawing.Size(94, 21);
+            this.radAndAndroidHomePath.Size = new System.Drawing.Size(77, 17);
             this.radAndAndroidHomePath.TabIndex = 1;
             this.radAndAndroidHomePath.Text = "Default to:";
             this.radAndAndroidHomePath.UseVisualStyleBackColor = true;
@@ -1113,10 +1071,9 @@ namespace AGS.Editor
             // 
             this.radAndAndroidHomeEnv.AutoSize = true;
             this.radAndAndroidHomeEnv.Checked = true;
-            this.radAndAndroidHomeEnv.Location = new System.Drawing.Point(18, 49);
-            this.radAndAndroidHomeEnv.Margin = new System.Windows.Forms.Padding(4);
+            this.radAndAndroidHomeEnv.Location = new System.Drawing.Point(14, 39);
             this.radAndAndroidHomeEnv.Name = "radAndAndroidHomeEnv";
-            this.radAndAndroidHomeEnv.Size = new System.Drawing.Size(330, 21);
+            this.radAndAndroidHomeEnv.Size = new System.Drawing.Size(262, 17);
             this.radAndAndroidHomeEnv.TabIndex = 0;
             this.radAndAndroidHomeEnv.TabStop = true;
             this.radAndAndroidHomeEnv.Text = "Default to ANDROID_HOME environment variable";
@@ -1127,22 +1084,24 @@ namespace AGS.Editor
             // 
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.IsSplitterFixed = true;
-            this.splitContainer1.Location = new System.Drawing.Point(3, 249);
+            this.splitContainer1.Location = new System.Drawing.Point(2, 198);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(2);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.groupBoxKeystore);
-            this.splitContainer1.Size = new System.Drawing.Size(899, 291);
+            this.splitContainer1.Size = new System.Drawing.Size(719, 233);
             this.splitContainer1.SplitterDistance = 460;
+            this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 0;
             // 
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.tableLayoutPanel1.ColumnCount = 3;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 128F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 270F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 102F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 216F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel1.Controls.Add(this.checkBoxAndroidShowPassword, 1, 4);
             this.tableLayoutPanel1.Controls.Add(this.buttonAndroidGenerateKeystore, 1, 6);
@@ -1157,35 +1116,38 @@ namespace AGS.Editor
             this.tableLayoutPanel1.Controls.Add(this.labelAndKey_KeyPass, 0, 3);
             this.tableLayoutPanel1.Controls.Add(this.textBoxAndKeystoreKeyPassword, 1, 3);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 20);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(2, 16);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 7;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 56F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(454, 268);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(456, 215);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
             // labelAndKey_File
             // 
             this.labelAndKey_File.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_File.AutoSize = true;
-            this.labelAndKey_File.Location = new System.Drawing.Point(94, 0);
+            this.labelAndKey_File.Location = new System.Drawing.Point(73, 0);
+            this.labelAndKey_File.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_File.Name = "labelAndKey_File";
-            this.labelAndKey_File.Size = new System.Drawing.Size(31, 17);
+            this.labelAndKey_File.Size = new System.Drawing.Size(27, 13);
             this.labelAndKey_File.TabIndex = 0;
             this.labelAndKey_File.Text = "File:";
             // 
             // textBoxAndKeystoreFile
             // 
-            this.textBoxAndKeystoreFile.Location = new System.Drawing.Point(131, 3);
-            this.textBoxAndKeystoreFile.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreFile.Location = new System.Drawing.Point(104, 2);
+            this.textBoxAndKeystoreFile.Margin = new System.Windows.Forms.Padding(2);
+            this.textBoxAndKeystoreFile.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreFile.Name = "textBoxAndKeystoreFile";
-            this.textBoxAndKeystoreFile.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreFile.Size = new System.Drawing.Size(209, 21);
             this.textBoxAndKeystoreFile.TabIndex = 1;
             this.textBoxAndKeystoreFile.Validated += new System.EventHandler(this.textBoxAndKeystoreFile_Validated);
             // 
@@ -1193,18 +1155,20 @@ namespace AGS.Editor
             // 
             this.labelAndKey_Pass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_Pass.AutoSize = true;
-            this.labelAndKey_Pass.Location = new System.Drawing.Point(54, 32);
+            this.labelAndKey_Pass.Location = new System.Drawing.Point(43, 25);
+            this.labelAndKey_Pass.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_Pass.Name = "labelAndKey_Pass";
-            this.labelAndKey_Pass.Size = new System.Drawing.Size(71, 17);
+            this.labelAndKey_Pass.Size = new System.Drawing.Size(57, 13);
             this.labelAndKey_Pass.TabIndex = 2;
             this.labelAndKey_Pass.Text = "Password:";
             // 
             // textBoxAndKeystorePassword
             // 
-            this.textBoxAndKeystorePassword.Location = new System.Drawing.Point(131, 35);
-            this.textBoxAndKeystorePassword.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystorePassword.Location = new System.Drawing.Point(104, 27);
+            this.textBoxAndKeystorePassword.Margin = new System.Windows.Forms.Padding(2);
+            this.textBoxAndKeystorePassword.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystorePassword.Name = "textBoxAndKeystorePassword";
-            this.textBoxAndKeystorePassword.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystorePassword.Size = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystorePassword.TabIndex = 3;
             this.textBoxAndKeystorePassword.Validated += new System.EventHandler(this.textBoxAndKeystorePassword_Validated);
             // 
@@ -1212,18 +1176,20 @@ namespace AGS.Editor
             // 
             this.labelAndKey_KeyAlias.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_KeyAlias.AutoSize = true;
-            this.labelAndKey_KeyAlias.Location = new System.Drawing.Point(60, 62);
+            this.labelAndKey_KeyAlias.Location = new System.Drawing.Point(46, 53);
+            this.labelAndKey_KeyAlias.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_KeyAlias.Name = "labelAndKey_KeyAlias";
-            this.labelAndKey_KeyAlias.Size = new System.Drawing.Size(65, 17);
+            this.labelAndKey_KeyAlias.Size = new System.Drawing.Size(54, 13);
             this.labelAndKey_KeyAlias.TabIndex = 4;
             this.labelAndKey_KeyAlias.Text = "Key Alias:";
             // 
             // textBoxAndKeystoreKeyAlias
             // 
-            this.textBoxAndKeystoreKeyAlias.Location = new System.Drawing.Point(131, 65);
-            this.textBoxAndKeystoreKeyAlias.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyAlias.Location = new System.Drawing.Point(104, 55);
+            this.textBoxAndKeystoreKeyAlias.Margin = new System.Windows.Forms.Padding(2);
+            this.textBoxAndKeystoreKeyAlias.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyAlias.Name = "textBoxAndKeystoreKeyAlias";
-            this.textBoxAndKeystoreKeyAlias.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyAlias.Size = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyAlias.TabIndex = 5;
             this.textBoxAndKeystoreKeyAlias.Validated += new System.EventHandler(this.textBoxAndKeystoreKeyAlias_Validated);
             // 
@@ -1231,18 +1197,20 @@ namespace AGS.Editor
             // 
             this.labelAndKey_KeyPass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelAndKey_KeyPass.AutoSize = true;
-            this.labelAndKey_KeyPass.Location = new System.Drawing.Point(27, 92);
+            this.labelAndKey_KeyPass.Location = new System.Drawing.Point(22, 81);
+            this.labelAndKey_KeyPass.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelAndKey_KeyPass.Name = "labelAndKey_KeyPass";
-            this.labelAndKey_KeyPass.Size = new System.Drawing.Size(98, 17);
+            this.labelAndKey_KeyPass.Size = new System.Drawing.Size(78, 13);
             this.labelAndKey_KeyPass.TabIndex = 6;
             this.labelAndKey_KeyPass.Text = "Key Password:";
             // 
             // textBoxAndKeystoreKeyPassword
             // 
-            this.textBoxAndKeystoreKeyPassword.Location = new System.Drawing.Point(131, 95);
-            this.textBoxAndKeystoreKeyPassword.MinimumSize = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyPassword.Location = new System.Drawing.Point(104, 83);
+            this.textBoxAndKeystoreKeyPassword.Margin = new System.Windows.Forms.Padding(2);
+            this.textBoxAndKeystoreKeyPassword.MinimumSize = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyPassword.Name = "textBoxAndKeystoreKeyPassword";
-            this.textBoxAndKeystoreKeyPassword.Size = new System.Drawing.Size(260, 24);
+            this.textBoxAndKeystoreKeyPassword.Size = new System.Drawing.Size(209, 24);
             this.textBoxAndKeystoreKeyPassword.TabIndex = 7;
             this.textBoxAndKeystoreKeyPassword.Validated += new System.EventHandler(this.textBoxAndKeystoreKeyPassword_Validated);
             // 
@@ -1325,17 +1293,16 @@ namespace AGS.Editor
             // PreferencesEditor
             // 
             this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(928, 664);
+            this.ClientSize = new System.Drawing.Size(742, 548);
             this.Controls.Add(this.btnApply);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.tabControl1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "PreferencesEditor";
@@ -1477,5 +1444,7 @@ namespace AGS.Editor
         private System.Windows.Forms.GroupBox groupBoxKeystore;
         private System.Windows.Forms.Label labelJdkOk;
         private System.Windows.Forms.Label labelSdkOk;
+        private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.ComboBox cmbBaseTheme;
     }
 }

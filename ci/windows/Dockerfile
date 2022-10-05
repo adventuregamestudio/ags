@@ -46,7 +46,7 @@ RUN mkdir Redist && \
   cd Redist && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
 
-ARG SDL_VERSION=2.24.0
+ARG SDL_VERSION=2.24.1
 RUN mkdir Lib\SDL2 && \
   curl -fLOJ "https://github.com/libsdl-org/SDL/releases/download/release-%SDL_VERSION%/SDL2-devel-%SDL_VERSION%-VC.zip" && \
   tar -f SDL2-devel-%SDL_VERSION%-VC.zip -xvzC Lib\SDL2\ --strip-components 1  && \

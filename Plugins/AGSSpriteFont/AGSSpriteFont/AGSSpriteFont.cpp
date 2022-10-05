@@ -241,6 +241,9 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 
 	// For certain games instantiate the Clifftop Games version of the font renderer.
 	bool useClifftopGamesRenderers = false;
+#if defined(CLIFFTOPGAMES)
+    useClifftopGamesRenderers = true;
+#elif defined(BUILTIN_PLUGINS) || defined(CLIFFTOPGAMES_AUTODETECT)
 	if (engine->version >= 26) {
 		AGSGameInfo gameInfo;
 		gameInfo.Version = 26;
@@ -254,6 +257,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.Guid) == 0 ||
 			strcmp("{4d1d659d-f5ed-4945-b031-68fedcac7510}", gameInfo.Guid) == 0;
 	}
+#endif
 	if (useClifftopGamesRenderers)
 	{
 		engine->PrintDebugConsole("AGSSpriteFont: Init Clifftop Games fixed width renderer");

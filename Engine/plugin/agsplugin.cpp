@@ -973,7 +973,8 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (apl->filename.CompareNoCase("agsspritefont") == 0)
+    else if (apl->filename.CompareNoCase("agsspritefont") == 0 ||
+             apl->filename.CompareNoCase("agsplugin.spritefont") == 0)
     {
         apl->engineStartup = agsspritefont::AGS_EngineStartup;
         apl->engineShutdown = agsspritefont::AGS_EngineShutdown;

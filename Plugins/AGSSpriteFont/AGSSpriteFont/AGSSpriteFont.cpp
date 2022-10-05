@@ -239,8 +239,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 	if (engine->version < MIN_ENGINE_VERSION)
 		engine->AbortGame("Plugin needs engine version " STRINGIFY(MIN_ENGINE_VERSION) " or newer.");
 
-	// For Kathy Rain and WOAM instantiate the Clifftop Games version
-	// of the font renderer.
+	// For certain games instantiate the Clifftop Games version of the font renderer.
 	bool useClifftopGamesRenderers = false;
 	if (engine->version >= 26) {
 		AGSGameInfo gameInfo;
@@ -249,8 +248,11 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 		// GUID:
 		// Kathy Rain: {d6795d1c-3cfe-49ec-90a1-85c313bfccaf}
 		// Whispers of a Machine: {5833654f-6f0d-40d9-99e2-65c101c8544a}
-		useClifftopGamesRenderers = strcmp("{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}", gameInfo.Guid) == 0 ||
-			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.Guid) == 0;
+		// The Excavation at Hob's Barrow: {4d1d659d-f5ed-4945-b031-68fedcac7510}
+		useClifftopGamesRenderers =
+			strcmp("{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}", gameInfo.Guid) == 0 ||
+			strcmp("{5833654f-6f0d-40d9-99e2-65c101c8544a}", gameInfo.Guid) == 0 ||
+			strcmp("{4d1d659d-f5ed-4945-b031-68fedcac7510}", gameInfo.Guid) == 0;
 	}
 	if (useClifftopGamesRenderers)
 	{

@@ -32,10 +32,20 @@ using AGS::Common::GUIMain;
 // also accepts explicit overlay ID >= OVER_CUSTOM
 
 struct ScreenOverlay;
+// Generates a textual image from the given text and parameters;
+// see _display_main's comment below for parameters description
+Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought,
+    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
+    bool &alphaChannel);
 // Creates a textual overlay using the given parameters;
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
 // pass blocking=2 to create permanent overlay
+// asspch has several meanings, which affect how the message is positioned
+//   == 0 - standard display box
+//   != 0 - text color for a speech or a regular textual overlay, where
+//     < 0 - use text window if applicable
+//     > 0 - suppose it's a classic LA-style speech above character's head
 ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont,
     int asspch, int isThought, int allowShrink, bool overlayPositionFixed, bool roomlayer = false);
 void _display_at(int xx, int yy, int wii, const char *text, int disp_type, int asspch, int isThought, int allowShrink, bool overlayPositionFixed);

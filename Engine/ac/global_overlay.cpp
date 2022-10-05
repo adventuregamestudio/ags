@@ -31,8 +31,10 @@ int CreateGraphicOverlay(int x, int y, int slott, int trans) {
 int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type) {
     int allowShrink = 0;
 
-    if (xx != OVR_AUTOPLACE) {
-        data_to_game_coords(&xx,&yy);
+    if (xx != OVR_AUTOPLACE)
+    {
+        data_to_game_coords(&xx, &yy);
+        // NOTE: this is ugly, but OVR_AUTOPLACE here suggests that width is already in game coords
         wii = data_to_game_coord(wii);
     }
     else  // allow DisplaySpeechBackground to be shrunk

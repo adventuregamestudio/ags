@@ -20,16 +20,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
   body {
-    font-family: arial;
+    font-family: arial,serif;
     margin: 0;
-    padding: none background-color: #000
+    padding: 0;
+    background-color: #000;
   }
 
   .emscripten {
     padding-right: 0;
     margin-left: auto;
     margin-right: auto;
-    display: block
+    display: block;
   }
 
   div.emscripten {
@@ -244,7 +245,7 @@
 
           file_read_count = file_read_count + 1;
 
-          if (file_read_count == file_total_count) {
+          if (file_read_count === file_total_count) {
             hideAll();
             Module.callMain(['/' + game_file, '--windowed']);
           } else {
@@ -256,7 +257,7 @@
     }
 
     for (var i = 0; i < file_total_count; i++) {
-      if ((gamefiles[i] != "winsetup.exe") &&
+      if ((gamefiles[i] !== "winsetup.exe") &&
         (gamefiles[i].endsWith(".exe") ||
           gamefiles[i].endsWith(".ags"))) {
         game_file = gamefiles[i];
@@ -273,12 +274,12 @@
     if (typeof gamefiles !== 'undefined')
       return;
 
-    if (fileInput.files.length == 0)
+    if (fileInput.files.length === 0)
       return;
 
     file_total_count = fileInput.files.length;
     for (var i = 0; i < file_total_count; i++) {
-      if ((fileInput.files[i].name != "winsetup.exe") &&
+      if ((fileInput.files[i].name !== "winsetup.exe") &&
         (fileInput.files[i].name.endsWith(".exe") ||
           fileInput.files[i].name.endsWith(".ags"))) {
         game_file = fileInput.files[i];
@@ -288,7 +289,7 @@
 
     file_read_count = 0;
 
-    if (file_reader_fr == 0) {
+    if (file_reader_fr === 0) {
       file_reader_fr = new FileReader();
     }
 
@@ -301,7 +302,7 @@
 
       file_read_count = file_read_count + 1;
 
-      if (file_read_count == file_total_count) {
+      if (file_read_count === file_total_count) {
         hideAll();
         Module.callMain(['/' + game_file.name, '--windowed']);
       } else {

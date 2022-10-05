@@ -69,8 +69,8 @@ struct ScreenOverlay
     Common::Bitmap *GetImage() const;
     // Get sprite reference id, or -1 if none set
     int GetSpriteNum() const { return _sprnum; }
-    void SetImage(std::unique_ptr<Common::Bitmap> pic);
-    void SetSpriteNum(int sprnum);
+    void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx = 0, int offy = 0);
+    void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
     // Manually marks GUI as graphically changed

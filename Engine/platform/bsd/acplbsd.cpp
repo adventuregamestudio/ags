@@ -16,7 +16,7 @@
 
 #if AGS_PLATFORM_OS_FREEBSD
 
-// *************** LINUX DRIVER ***************
+// *************** FREEBSD DRIVER ***************
 
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/agsplatform_unix.h"

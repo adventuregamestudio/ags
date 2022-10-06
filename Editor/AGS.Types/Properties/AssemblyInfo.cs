@@ -21,7 +21,7 @@ namespace AGS.Types
 {
     public class Version
     {
-        public static readonly bool IS_BETA_VERSION = true;
+        public static readonly bool IS_BETA_VERSION = false;
         public const string AGS_EDITOR_DATE = "October 2022";
         public const string AGS_EDITOR_FRIENDLY_VERSION = "3.6.0";
         public const string AGS_EDITOR_VERSION = "3.6.0.36";

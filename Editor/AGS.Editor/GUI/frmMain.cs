@@ -453,11 +453,11 @@ namespace AGS.Editor
             mainContainer.DockRightPortion = 0.25f;
             mainContainer.DockTopPortion = 0.25f;
             mainContainer.DockBottomPortion = 0.25f;
+            projectPanel.Show(mainContainer, DockState.DockRight);
+            propertiesPanel.Show(projectPanel.Pane, DockAlignment.Bottom, 0.5f);
             pnlCallStack.Show(mainContainer, DockState.DockBottom);
             pnlFindResults.Show(pnlCallStack.Pane, pnlCallStack);
             pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);
-            projectPanel.Show(mainContainer, DockState.DockRight);
-            propertiesPanel.Show(projectPanel.Pane, DockAlignment.Bottom, 0.5f);
         }
 
         private void propertyObjectCombo_SelectedIndexChanged(object sender, EventArgs e)

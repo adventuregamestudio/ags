@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.0, ???
+VERSION 3.6.0 RC - October 2022
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.
@@ -22,6 +22,7 @@ Editor:
  - Editor requires .NET Framework 4.6 to run.
  - Added Android build target support (requires "Android component" installed).
  - Added Web/Emscripten build target support (requires "Web build component" installed).
+ - Expanded UI color theme format, support global color options and allow missing entries.
  - Script editor works in unicode mode.
  - Added "Text format" option in General Settings which lets switching between ASCII/ANSI and
    Unicode (UTF-8) modes. This defines which format the game texts will be written in, when
@@ -63,6 +64,8 @@ Editor:
    sprite descriptions in the project will be kept, letting user to reimport these from sources.
  - Added "File -> Restore all sprites from sources" menu command.
  - Added "Apply" button on editor's Preferences dialog.
+ - In Preferences replaced "Import Color Theme" with a "Open Theme Folder", as a temporary solution
+   for managing theme files.
  - Select script editor's font in the editor's Preferences.
  - Added "Help" option to the editor pane's tab context menu.
  - Upgraded script editor to Scintilla 3.21.1 and ScintillaNET 3.6.3.
@@ -103,8 +106,13 @@ Editor:
  - Fixed script autocomplete was not displaying members of extended structs if the parent struct
    was declared in another header.
  - Fixed script autocomplete was not working for enum names.
+ - Fixed autocomplete crashing the editor if there was an import declared with type and variable
+   having identical names, and user tries to type that variable's name and a dot to access
+   its members.
  - Fixed structs and enums were not highlighted if declared inside a script's body.
  - Fixed in dialogs numbers inside names were incorrectly highlighted as numeric values.
+ - Fixed matching or mismatching braces were not highlighted consistently at all times in
+   regular and dialog scripts.
  - Fixed few editor panes were not opening correct help topics in F1.
 
 Compiler:
@@ -267,16 +275,18 @@ Engine:
  - Added "--clear-cache-on-room-change" command-line arg (and similar config option).
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
+ - Added missing "DrawSprite" function for "agsblend" plugin stubs.
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
  - Added SpriteFont plugin to the list of builtins, for ports that use ones.
    SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
- - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
-   using "goto-dialog" (a very-very old bug).
- - Fixed potential crash on room load if the walkable area mask contained color values
-   above the supported range.
+ - Fixed loading pre-3.5.0 games on big endian systems.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
+ - Fixed potential crash on room load if the walkable area mask contained color values
+   above the supported range.
+ - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
+   using "goto-dialog" (a very-very old bug).
  - Fixed renderer error occuring if room background frames are of different sizes.
  - Fixed AGS_EngineInitGfx plugin callback was not called during OpenGL renderer initialization.
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
@@ -317,6 +327,9 @@ Android:
  - Rewrote universal AGS game launcher/player using up-to-date Google guidelines. The former
    "launcher" is now called "AGS Player".
  - Implemented single game project template meant for building your own signed APK.
+ - Implemented two touch-to-mouse control scheme (selectable in config), for one finger
+   emulating LMB only, and for two fingers emulating LMB and RMB.
+ - Support relative motion speed setting for touch-to-mouse emulation.
  - In AGS Player added "Browse" button to the game folder selection, which opens default system
    file picker.
  - AGS Player now searches for games recursively, in all the subfolders.
@@ -336,6 +349,24 @@ WinSetup:
 
 
 ===================================================================================================
+
+
+VERSION 3.5.1 - Patch 15, October 2022
+
+Editor:
+ - Fixed crash that could occur when changing View's ID to an unused number in the middle.
+ - Fixed comments and string literals were styled incorrectly in dialog scripts.
+ - Fixed unterminated string literals in script were not considered as errors when processing
+   scripts for translation update and autonumbering of speech lines, leading to wrong results.
+ - Fixed Editor was updating translation file even if errors were found while scanning the
+   scripts, which could cause a TRS corruption.
+ - Fixed Editor could overwrite changes done manually to TRS while the editor is open and if
+   you run a translation update right after.
+ - Fixed potential program crash on exit in case an editor's plugin has mistakes in "shutdown"
+   callback. Instead editor will report a component's error, but still close properly after.
+
+Script API:
+ - Removed a rule that Viewport and Camera with ID 0 can't be deleted.
 
 
 VERSION 3.5.1 - Patch 14, September 2022

@@ -18,14 +18,7 @@
 
 // ********* MacOS PLACEHOLDER DRIVER *********
 
-//#include "util/wgt2allg.h"
-//#include "gfx/ali3d.h"
-//#include "ac/runtime_defines.h"
-//#include "main/config.h"
-//#include "plugin/agsplugin.h"
-//#include <libcda.h>
-//#include <pwd.h>
-//#include <sys/stat.h>
+#include <SDL.h>
 #include "platform/base/agsplatformdriver.h"
 #include "util/directory.h"
 #include "ac/common.h"
@@ -40,6 +33,8 @@ static FSLocation commonDataPath;
 
 struct AGSMac : AGSPlatformDriver {
   AGSMac();
+
+  void PreBackendInit() override;
 
   int  CDPlayerCommand(int cmdd, int datt) override;
   void DisplayAlert(const char*, ...) override;
@@ -60,6 +55,13 @@ AGSMac::AGSMac()
   AGSMacInitPaths(libraryApplicationSupport);
   
   commonDataPath = FSLocation(libraryApplicationSupport).Concat("uk.co.adventuregamestudio");
+}
+
+void AGSMac::PreBackendInit()
+{
+  // Simulate right click with Ctrl + LMB
+  // TODO: consider reading this option from user config in the future?
+  SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
 }
 
 int AGSMac::CDPlayerCommand(int cmdd, int datt) {

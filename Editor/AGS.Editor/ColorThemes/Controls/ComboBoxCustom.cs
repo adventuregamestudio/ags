@@ -17,6 +17,13 @@ namespace AGS.Editor
             _theme = themes.Current;
             _root = root;
 
+            // enable flags to reduce flickering
+            this.SetStyle(ControlStyles.DoubleBuffer |
+                ControlStyles.UserPaint |
+                ControlStyles.AllPaintingInWmPaint,
+                true);
+            this.UpdateStyles();
+
             Dock = original.Dock;
             DropDownStyle = original.DropDownStyle;
             FormattingEnabled = original.FormattingEnabled;

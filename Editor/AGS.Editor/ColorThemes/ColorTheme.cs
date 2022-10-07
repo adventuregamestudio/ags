@@ -254,10 +254,14 @@ namespace AGS.Editor
             SetColor(new string[] { path + "/help/foreground", "global/propertygrid/help/foreground" }, c => grid.HelpForeColor = c);
             SetColor(new string[] { path + "/help/border", "global/propertygrid/help/border" }, c => grid.HelpBorderColor = c);
 
-            // these do nothing, but maybe there's a condition to make them matter
-            // propertiesGrid.CommandsBackColor
-            // propertiesGrid.CommandsBorderColor
-            // maybe DrawFlatToolbar is the culprit of the toolbar bottom border
+            if (grid is CustomPropertyGrid)
+            {
+                if (Has("tool-bar"))
+                {
+                    ((CustomPropertyGrid)grid).SetRenderer(GetToolStripRenderer("tool-bar"));
+                }
+            }
+  
         }
 
         public void TextBoxHelper(TextBox textbox, string path)

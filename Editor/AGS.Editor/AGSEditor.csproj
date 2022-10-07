@@ -115,6 +115,9 @@
     <Compile Include="Components\CharacterIDChangedEventArgs.cs" />
     <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
+    <Compile Include="ColorThemes\Controls\CustomPropertyGrid.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Components\CursorsComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
     <Compile Include="Components\FileCommandsComponent.cs" />

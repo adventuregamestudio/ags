@@ -28,7 +28,7 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
-            this.propertyGrid = new System.Windows.Forms.PropertyGrid();
+            this.propertyGrid = new CustomPropertyGrid();
             this.SuspendLayout();
             // 
             // propertyGrid
@@ -54,7 +54,7 @@ namespace AGS.Editor
 
         #endregion
 
-        protected System.Windows.Forms.PropertyGrid propertyGrid;
+        protected CustomPropertyGrid propertyGrid;
 
     }
 }

@@ -52,6 +52,7 @@ namespace AGS.Editor
             this.lvwResults.TabIndex = 2;
             this.lvwResults.UseCompatibleStateImageBehavior = false;
             this.lvwResults.View = System.Windows.Forms.View.Details;
+            this.lvwResults.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.lvwResults.ItemActivate += new System.EventHandler(this.lvwResults_ItemActivate);
             this.lvwResults.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvwResults_MouseUp);
             this.lvwResults.Click += new System.EventHandler(this.lvwResults_Click);

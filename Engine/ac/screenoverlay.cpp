@@ -25,12 +25,13 @@ Bitmap *ScreenOverlay::GetImage() const
         _pic.get();
 }
 
-void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic)
+void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int offy)
 {
     _flags &= ~kOver_SpriteReference;
     _pic = std::move(pic);
     _sprnum = -1;
-    offsetX = offsetY = 0;
+    offsetX = offx;
+    offsetY = offy;
     scaleWidth = scaleHeight = 0;
     const auto *img = GetImage();
     if (img)
@@ -41,12 +42,13 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic)
     MarkChanged();
 }
 
-void ScreenOverlay::SetSpriteNum(int sprnum)
+void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
 {
     _flags |= kOver_SpriteReference;
     _pic.reset();
     _sprnum = sprnum;
-    offsetX = offsetY = 0;
+    offsetX = offx;
+    offsetY = offy;
     scaleWidth = scaleHeight = 0;
     const auto *img = GetImage();
     if (img)

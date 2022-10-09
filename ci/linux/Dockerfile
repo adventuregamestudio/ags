@@ -86,7 +86,7 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
   rm /tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz 
 
 # Build and install SDL2
-ARG SDL2_VERSION=2.24.0
+ARG SDL2_VERSION=2.24.1
 RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL2_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
   cd /tmp/SDL-release-${SDL2_VERSION} && \
   ./configure --enable-shared --enable-loadso --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared && \

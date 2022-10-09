@@ -775,7 +775,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         bool has_bitmap;
         over.ReadFromFile(in, has_bitmap, cmp_ver);
         if (has_bitmap)
-            over.SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)));
+            over.SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)), over.offsetX, over.offsetY);
         if (over.scaleWidth <= 0 || over.scaleHeight <= 0)
         {
             over.scaleWidth = over.GetImage()->GetWidth();

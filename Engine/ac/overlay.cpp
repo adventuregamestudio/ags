@@ -48,25 +48,36 @@ void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
 }
 
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int text_color, const char *text) {
-    int ovri=find_overlay_of_type(scover->overlayId);
-    if (ovri<0)
+void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text)
+{
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
         quit("!Overlay.SetText: invalid overlay ID specified");
-    int xx = screenover[ovri].x;
-    int yy = screenover[ovri].y;
+    auto &over = screenover[ovri];
+    const int x = over.x;
+    const int y = over.y;
 
-    // FIXME: a refactor needed!
-    // these calls to RemoveOverlay and CreateOverlay below are potentially dangerous,
-    // because they may allocate new script objects too under certain conditions.
-    // This did not happen because users only had access to custom overlay pointers before,
-    // but now they also may access internal overlays (such as Say text and portrait).
-    const int disp_type = scover->overlayId;
-    RemoveOverlay(scover->overlayId);
+    // TODO: find a nice way to refactor and share these code pieces
+    // from CreateTextOverlay
+    // allow DisplaySpeechBackground to be shrunk
+    int allow_shrink = (x == OVR_AUTOPLACE) ? 1 : 0;
 
-    int new_ovrid = CreateTextOverlay(xx, yy, wii, fontid, text_color, get_translation(text), disp_type);
-    if (new_ovrid != disp_type)
-        quit("SetTextOverlay internal error: inconsistent type ids");
-    scover->overlayId = new_ovrid;
+    // from Overlay_CreateTextCore
+    if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
+    if (text_color == 0) text_color = 16;
+
+    // Recreate overlay image
+    int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
+    bool has_alpha = false;
+    // NOTE: we pass text_color negated to let optionally use textwindow (if applicable)
+    // this is a generic ugliness of _display_main args, need to refactor later.
+    Bitmap *image = create_textual_image(get_translation(text), -text_color, 0, dummy_x, dummy_y, adj_x, adj_y,
+        width, fontid, allow_shrink, has_alpha);
+
+    // Update overlay properties
+    over.SetImage(std::unique_ptr<Bitmap>(image), adj_x - dummy_x, adj_y - dummy_y);
+    over.SetAlphaChannel(has_alpha);
+    over.ddb = nullptr; // is generated during first draw pass
 }
 
 int Overlay_GetX(ScriptOverlay *scover) {
@@ -419,18 +430,16 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
     ScreenOverlay over;
     if (piccy)
     {
-        over.SetImage(std::unique_ptr<Bitmap>(piccy));
+        over.SetImage(std::unique_ptr<Bitmap>(piccy), pic_offx, pic_offy);
         over.SetAlphaChannel(has_alpha);
     }
     else
     {
-        over.SetSpriteNum(sprnum);
+        over.SetSpriteNum(sprnum, pic_offx, pic_offy);
         over.SetAlphaChannel((game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0);
     }
     over.x=x;
     over.y=y;
-    over.offsetX = pic_offx;
-    over.offsetY = pic_offy;
     // by default draw speech and portraits over GUI, and the rest under GUI
     over.zorder = (roomlayer || type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH) ?
         INT_MAX : INT_MIN;

@@ -89,29 +89,18 @@ ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
     auto* ch = AudioChans::GetChannelIfPlaying(channel->id);
-
-    if (ch)
-    {
-        if (play.fast_forward)
-            return 999999999;
-
-        return ch->get_pos();
-    }
-    return 0;
+    if (!ch)
+        return 0;
+    return ch->get_pos();
+    
 }
 
 int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
 {
     auto* ch = AudioChans::GetChannelIfPlaying(channel->id);
-
-    if (ch)
-    {
-        if (play.fast_forward)
-            return 999999999;
-
-        return ch->get_pos_ms();
-    }
-    return 0;
+    if (!ch)
+        return 0;
+    return ch->get_pos_ms();
 }
 
 int AudioChannel_GetLengthMs(ScriptAudioChannel *channel)

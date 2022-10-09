@@ -181,8 +181,6 @@ void SeekMIDIPosition (int position) {
 }
 
 int GetMIDIPosition () {
-    if (play.fast_forward)
-        return 99999;
     if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
         return -1; // returns -1 on failure according to old manuals
     
@@ -286,9 +284,6 @@ void SeekMP3PosMillis (int posn) {
 }
 
 int GetMP3PosMillis () {
-    // in case they have "while (GetMP3PosMillis() < 5000) "
-    if (play.fast_forward)
-        return 999999;
     if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
         return 0;  // returns 0 on failure according to old manuals
 

@@ -142,18 +142,8 @@ enum HorizontalAlignment {
   eAlignLeft = 1,
   // eq eAlignTopCenter
   eAlignCenter = 2,
-#ifdef SCRIPT_COMPAT_v341
-  eAlignCentre = 2,
-#endif
   // eq eAlignTopRight
   eAlignRight = 4
-};
-#endif
-#ifndef SCRIPT_API_v350
-enum Alignment {
-  eAlignLeft = 1,
-  eAlignCentre = 2,
-  eAlignRight = 3
 };
 #endif
 
@@ -498,16 +488,6 @@ internalstring autoptr builtin managed struct String {
   /// Checks whether this string starts with the specified text.
   import bool    StartsWith(const string startsWithText, StringCompareStyle style = eCaseInsensitive);
 #endif
-#ifndef SCRIPT_API_v350
-  /// Compares this string to the other string.
-  import int     CompareTo(const string otherString, bool caseSensitive = false);
-  /// Checks whether this string ends with the specified text.
-  import bool    EndsWith(const string endsWithText, bool caseSensitive = false);
-  /// Returns a copy of this string with all occurrences of LookForText replaced with ReplaceWithText
-  import String  Replace(const string lookForText, const string replaceWithText, bool caseSensitive = false);
-  /// Checks whether this string starts with the specified text.
-  import bool    StartsWith(const string startsWithText, bool caseSensitive = false);
-#endif
   /// Converts the string to a float.
   readonly import attribute float AsFloat;
   /// Converts the string to an integer.
@@ -608,12 +588,6 @@ builtin managed struct DrawingSurface {
   import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0, int x=0, int y=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
 						int cut_x=0, int cut_y=0, int cut_width=SCR_NO_VALUE, int cut_height=SCR_NO_VALUE);
 #endif
-#ifndef SCRIPT_API_v360
-  /// Draws a sprite onto the surface with its top-left corner at (x,y).
-  import void DrawImage(int x, int y, int spriteSlot, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
-  /// Draws the specified surface onto this surface.
-  import void DrawSurface(DrawingSurface *surfaceToDraw, int transparency=0);
-#endif
 #ifdef SCRIPT_API_v399
   /// Blends a sprite onto the surface with its top-left corner at (x,y).
   import void BlendImage(int x, int y, int spriteSlot, BlendMode mode, int transparency=0, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE,
@@ -635,10 +609,6 @@ builtin managed struct DrawingSurface {
 #ifdef SCRIPT_API_v350
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text);
-#endif
-#ifndef SCRIPT_API_v350
-  /// Draws the text to the surface, wrapping it at the specified width.
-  import void DrawStringWrapped(int x, int y, int width, FontType, Alignment, const string text);
 #endif
   /// Draws a filled triangle onto the surface.
   import void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
@@ -766,10 +736,6 @@ import void DeleteSaveSlot(int slot);
 import void SetRestartPoint();
 /// Gets what type of thing is in the room at the specified co-ordinates.
 import LocationType GetLocationType(int x, int y);
-#ifdef SCRIPT_COMPAT_v350
-/// Returns which walkable area is at the specified position on screen.
-import int  GetWalkableAreaAt(int screenX, int screenY);
-#endif
 #ifdef SCRIPT_API_v3507
 /// Returns which walkable area is at the specified position on screen.
 import int  GetWalkableAreaAtScreen(int screenX, int screenY);
@@ -784,16 +750,6 @@ import DrawingSurface* GetDrawingSurfaceForWalkbehind();
 #endif
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
-#ifdef SCRIPT_COMPAT_v350
-/// Locks the viewport to stop the screen scrolling automatically.
-import void SetViewport(int x, int y);
-/// Allows AGS to scroll the screen automatically to follow the player character.
-import void ReleaseViewport();
-/// Gets the current X offset of the scrolled viewport.
-import int  GetViewportX();
-/// Gets the current Y offset of the scrolled viewport.
-import int  GetViewportY();
-#endif
 /// Returns whether the game is currently paused.
 import int  IsGamePaused();
 import int  GetGraphicalVariable (const string variableName);
@@ -874,15 +830,6 @@ import void UpdateInventory();
 import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
 import int  AreThingsOverlapping(int thing1, int thing2);
-
-#ifdef SCRIPT_COMPAT_v321
-/// Sets whether voice and/or text are used in the game.
-import void SetVoiceMode(eVoiceMode);
-/// Sets how the player can skip speech lines.
-import void SetSkipSpeech(int skipFlag);
-/// Changes the style in which speech is displayed.
-import void SetSpeechStyle(eSpeechStyle);
-#endif
 
 /// Starts a timer, which will expire after the specified number of game loops.
 import void SetTimer(int timerID, int timeout);
@@ -1288,10 +1235,6 @@ builtin managed struct Button extends GUIControl {
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eNoBlock, Direction=eForwards, int frame=0, int volume=100);
 #endif
-#ifndef SCRIPT_API_v360
-  /// Animates the button graphic using the specified view loop.
-  import void Animate(int view, int loop, int delay, RepeatStyle);
-#endif
   /// Gets/sets whether the image is clipped to the size of the control.
   import attribute bool ClipImage;
   /// Gets/sets the font used to display text on the button.
@@ -1396,12 +1339,6 @@ builtin managed struct ListBox extends GUIControl {
 	import void ScrollUp();
 	/// Gets/sets the font used to draw the list items.
 	import attribute FontType Font;
-#ifdef SCRIPT_COMPAT_v341
-	/// Gets/sets whether the border around the list box is hidden.
-	import attribute bool HideBorder;
-	/// Gets/sets whether the clickable scroll arrows are hidden.
-	import attribute bool HideScrollArrows;
-#endif
 	/// Gets the number of items currently in the list.
 	readonly import attribute int ItemCount;
 	/// Accesses the text for the items in the list.
@@ -1753,14 +1690,6 @@ builtin managed struct AudioClip {
 };
 
 builtin struct System {
-#ifdef SCRIPT_COMPAT_v350
-  readonly int  screen_width,screen_height;
-  readonly int  color_depth;
-  readonly int  os;
-  readonly int  windowed;
-  int  vsync;
-  readonly int  viewport_width, viewport_height;
-#endif
   /// Gets whether Caps Lock is currently on.
   readonly import static attribute bool CapsLock;
   /// Gets a specific audio channel instance.
@@ -1777,24 +1706,12 @@ builtin struct System {
   readonly import static attribute bool NumLock;
   /// Gets which operating system the game is running on.
   readonly import static attribute eOperatingSystem OperatingSystem;
-#ifdef SCRIPT_COMPAT_v350
-  /// Gets the screen height of the current resolution.
-  readonly import static attribute int  ScreenHeight;
-  /// Gets the screen width of the current resolution.
-  readonly import static attribute int  ScreenWidth;
-#endif
   /// Gets whether Scroll Lock is currently on.
   readonly import static attribute bool ScrollLock;
   /// Gets whether the player's system supports gamma adjustment.
   readonly import static attribute bool SupportsGammaControl;
   /// Gets the AGS engine version number.
   readonly import static attribute String Version;
-#ifdef SCRIPT_COMPAT_v350
-  /// Gets the height of the visible area in which the game is displayed.
-  readonly import static attribute int  ViewportHeight;
-  /// Gets the width of the visible area in which the game is displayed.
-  readonly import static attribute int  ViewportWidth;
-#endif
   /// Gets/sets the audio output volume, from 0-100.
   import static attribute int  Volume;
   /// Gets/sets whether waiting for the vertical sync is enabled.
@@ -1851,10 +1768,6 @@ builtin managed struct Object {
   /// Sets the object to use the specified view, ahead of doing an animation.
   import function SetView(int view, int loop=0, int frame=0);
 #endif
-#ifndef SCRIPT_API_v360
-  /// Sets the object to use the specified view, ahead of doing an animation.
-  import function SetView(int view, int loop=-1, int frame=-1);
-#endif
   /// Stops any currently running animation on the object.
   import function StopAnimating();
   /// Stops any currently running move on the object.
@@ -1877,14 +1790,6 @@ builtin managed struct Object {
   import attribute int  Graphic;
   /// Gets the object's ID number.
   readonly import attribute int ID;
-#ifdef SCRIPT_COMPAT_v351
-  /// Gets/sets whether the object ignores walkable area scaling.
-  import attribute bool IgnoreScaling;
-#endif
-#ifdef SCRIPT_COMPAT_v340
-  /// Gets/sets whether the object ignores walk-behind areas.
-  import attribute bool IgnoreWalkbehinds;
-#endif
   /// Gets the current loop number during an animation.
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
@@ -1998,10 +1903,6 @@ builtin managed struct Character {
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
   import function LockViewAligned(int view, int loop, HorizontalAlignment, StopMovementStyle=eStopMoving);
 #endif
-#ifndef SCRIPT_API_v350
-  /// Locks the character to this view, and aligns it against one side of the existing sprite.
-  import function LockViewAligned(int view, int loop, Alignment, StopMovementStyle=eStopMoving);
-#endif
   /// Locks the character to the specified view frame
   import function LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
@@ -2072,11 +1973,6 @@ builtin managed struct Character {
   readonly import attribute int IdleView;
   /// Gets/sets whether the character ignores region tints and lighting.
   import attribute bool IgnoreLighting;
-  import attribute bool IgnoreScaling;       // obsolete. $AUTOCOMPLETEIGNORE$
-#ifdef SCRIPT_COMPAT_v340
-  /// Gets/sets whether the character ignores walk-behind areas and is always placed on top.
-  import attribute bool IgnoreWalkbehinds; 
-#endif
   /// Accesses the number of each inventory item that the character currently has.
   import attribute int  InventoryQuantity[];
   /// Gets/sets the character's current loop number within its current view.
@@ -2221,10 +2117,6 @@ builtin struct Game {
   import static bool   SetSaveGameDirectory(const string directory);
   /// Stops all currently playing audio (optionally of the specified type).
   import static void   StopAudio(AudioType audioType=SCR_NO_VALUE);
-#ifndef STRICT_AUDIO
-  /// Stops all currently playing sound effects.
-  import static void   StopSound(bool includeAmbientSounds=false);   // $AUTOCOMPLETEIGNORE$
-#endif
   /// Gets the number of characters in the game.
   readonly import static attribute int CharacterCount;
   /// Gets the number of dialogs in the game.
@@ -2340,12 +2232,7 @@ builtin struct GameState {
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
   int  score_sound;
   int  previous_game_data;
-#ifndef SCRIPT_COMPAT_v341
   readonly int unused__041; // $AUTOCOMPLETEIGNORE$
-#endif
-#ifdef SCRIPT_COMPAT_v341
-  int  replay_hotkey;
-#endif
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
@@ -2367,14 +2254,10 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-#ifndef SCRIPT_COMPAT_v321
   int  reserved__2;   // $AUTOCOMPLETEIGNORE$
-#endif
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-#ifndef SCRIPT_COMPAT_v321
   int  reserved__3;   // $AUTOCOMPLETEIGNORE$
-#endif
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;
@@ -2425,10 +2308,6 @@ builtin struct Speech {
 #ifdef SCRIPT_API_v350
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
   import static attribute HorizontalAlignment TextAlignment;
-#endif
-#ifndef SCRIPT_API_v350
-  /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
-  import static attribute Alignment       TextAlignment;
 #endif
   /// Gets/sets whether speech animation delay should use global setting (or Character setting).
   import static attribute bool            UseGlobalSpeechAnimationDelay;
@@ -2529,18 +2408,12 @@ builtin struct Screen {
 
 import readonly Character *player;
 import Mouse mouse;
-#ifdef SCRIPT_COMPAT_v350
-import System system;
-#endif
 import GameState  game;
 
 import Object object[AGS_MAX_OBJECTS];
 import Hotspot hotspot[AGS_MAX_HOTSPOTS];
 import Region region[AGS_MAX_REGIONS];
 import ColorType palette[PALETTE_SIZE];
-// [OBSOLETE]
-import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
-import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
 
 #undef CursorMode
 #undef FontType

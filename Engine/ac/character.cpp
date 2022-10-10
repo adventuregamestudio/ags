@@ -890,8 +890,7 @@ void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
         quit("!SetCharacterProperty: last parameter must be 0 or 1");
 
     if (flag & CHF_MANUALSCALING) {
-        // backwards compatibility fix
-        Character_SetIgnoreScaling(chaa, yesorno);
+        Character_SetManualScaling(chaa, yesorno);
     }
     else {
         chaa->flags &= ~flag;
@@ -1305,21 +1304,9 @@ void Character_SetIgnoreLighting(CharacterInfo *chaa, int yesorno) {
         chaa->flags |= CHF_NOLIGHTING;
 }
 
-int Character_GetIgnoreScaling(CharacterInfo *chaa) {
+int Character_GetManualScaling(CharacterInfo *chaa) {
 
-    if (chaa->flags & CHF_MANUALSCALING)
-        return 1;
-    return 0;  
-}
-
-void Character_SetIgnoreScaling(CharacterInfo *chaa, int yesorno) {
-
-    if (yesorno) {
-        // when setting IgnoreScaling to 1, should reset zoom level
-        // like it used to in pre-2.71
-        charextra[chaa->index_id].zoom = 100;
-    }
-    Character_SetManualScaling(chaa, yesorno);
+    return (chaa->flags & CHF_MANUALSCALING) ? 1 : 0;
 }
 
 void Character_SetManualScaling(CharacterInfo *chaa, int yesorno) {
@@ -1327,21 +1314,6 @@ void Character_SetManualScaling(CharacterInfo *chaa, int yesorno) {
     chaa->flags &= ~CHF_MANUALSCALING;
     if (yesorno)
         chaa->flags |= CHF_MANUALSCALING;
-}
-
-int Character_GetIgnoreWalkbehinds(CharacterInfo *chaa) {
-
-    if (chaa->flags & CHF_NOWALKBEHINDS)
-        return 1;
-    return 0;
-}
-
-void Character_SetIgnoreWalkbehinds(CharacterInfo *chaa, int yesorno) {
-    if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v350)
-        debug_script_warn("IgnoreWalkbehinds is not recommended for use, consider other solutions");
-    chaa->flags &= ~CHF_NOWALKBEHINDS;
-    if (yesorno)
-        chaa->flags |= CHF_NOWALKBEHINDS;
 }
 
 int Character_GetMovementLinkedToAnimation(CharacterInfo *chaa) {
@@ -3554,30 +3526,6 @@ RuntimeScriptValue Sc_Character_SetIgnoreLighting(void *self, const RuntimeScrip
 }
 
 // int (CharacterInfo *chaa)
-RuntimeScriptValue Sc_Character_GetIgnoreScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(CharacterInfo, Character_GetIgnoreScaling);
-}
-
-// void (CharacterInfo *chaa, int yesorno)
-RuntimeScriptValue Sc_Character_SetIgnoreScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIgnoreScaling);
-}
-
-// int (CharacterInfo *chaa)
-RuntimeScriptValue Sc_Character_GetIgnoreWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(CharacterInfo, Character_GetIgnoreWalkbehinds);
-}
-
-// void (CharacterInfo *chaa, int yesorno)
-RuntimeScriptValue Sc_Character_SetIgnoreWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIgnoreWalkbehinds);
-}
-
-// int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetLoop);
@@ -3589,7 +3537,11 @@ RuntimeScriptValue Sc_Character_SetLoop(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetLoop);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+RuntimeScriptValue Sc_Character_GetManualScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetManualScaling);
+}
+
 RuntimeScriptValue Sc_Character_SetManualScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetManualScaling);
@@ -4006,13 +3958,9 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
 	ccAddExternalObjectFunction("Character::seti_InventoryQuantity",    Sc_Character_SetIInventoryQuantity);
 	ccAddExternalObjectFunction("Character::get_IgnoreLighting",        Sc_Character_GetIgnoreLighting);
 	ccAddExternalObjectFunction("Character::set_IgnoreLighting",        Sc_Character_SetIgnoreLighting);
-	ccAddExternalObjectFunction("Character::get_IgnoreScaling",         Sc_Character_GetIgnoreScaling);
-	ccAddExternalObjectFunction("Character::set_IgnoreScaling",         Sc_Character_SetIgnoreScaling);
-	ccAddExternalObjectFunction("Character::get_IgnoreWalkbehinds",     Sc_Character_GetIgnoreWalkbehinds);
-	ccAddExternalObjectFunction("Character::set_IgnoreWalkbehinds",     Sc_Character_SetIgnoreWalkbehinds);
 	ccAddExternalObjectFunction("Character::get_Loop",                  Sc_Character_GetLoop);
 	ccAddExternalObjectFunction("Character::set_Loop",                  Sc_Character_SetLoop);
-	ccAddExternalObjectFunction("Character::get_ManualScaling",         Sc_Character_GetIgnoreScaling);
+	ccAddExternalObjectFunction("Character::get_ManualScaling",         Sc_Character_GetManualScaling);
 	ccAddExternalObjectFunction("Character::set_ManualScaling",         Sc_Character_SetManualScaling);
 	ccAddExternalObjectFunction("Character::get_MovementLinkedToAnimation",Sc_Character_GetMovementLinkedToAnimation);
 	ccAddExternalObjectFunction("Character::set_MovementLinkedToAnimation",Sc_Character_SetMovementLinkedToAnimation);
@@ -4165,13 +4113,9 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
     ccAddExternalFunctionForPlugin("Character::seti_InventoryQuantity",    (void*)Character_SetIInventoryQuantity);
     ccAddExternalFunctionForPlugin("Character::get_IgnoreLighting",        (void*)Character_GetIgnoreLighting);
     ccAddExternalFunctionForPlugin("Character::set_IgnoreLighting",        (void*)Character_SetIgnoreLighting);
-    ccAddExternalFunctionForPlugin("Character::get_IgnoreScaling",         (void*)Character_GetIgnoreScaling);
-    ccAddExternalFunctionForPlugin("Character::set_IgnoreScaling",         (void*)Character_SetIgnoreScaling);
-    ccAddExternalFunctionForPlugin("Character::get_IgnoreWalkbehinds",     (void*)Character_GetIgnoreWalkbehinds);
-    ccAddExternalFunctionForPlugin("Character::set_IgnoreWalkbehinds",     (void*)Character_SetIgnoreWalkbehinds);
     ccAddExternalFunctionForPlugin("Character::get_Loop",                  (void*)Character_GetLoop);
     ccAddExternalFunctionForPlugin("Character::set_Loop",                  (void*)Character_SetLoop);
-    ccAddExternalFunctionForPlugin("Character::get_ManualScaling",         (void*)Character_GetIgnoreScaling);
+    ccAddExternalFunctionForPlugin("Character::get_ManualScaling",         (void*)Character_GetManualScaling);
     ccAddExternalFunctionForPlugin("Character::set_ManualScaling",         (void*)Character_SetManualScaling);
     ccAddExternalFunctionForPlugin("Character::get_MovementLinkedToAnimation",(void*)Character_GetMovementLinkedToAnimation);
     ccAddExternalFunctionForPlugin("Character::set_MovementLinkedToAnimation",(void*)Character_SetMovementLinkedToAnimation);

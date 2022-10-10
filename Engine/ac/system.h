@@ -22,10 +22,6 @@
 
 int     System_GetColorDepth();
 int     System_GetOS();
-int     System_GetScreenWidth();
-int     System_GetScreenHeight();
-int     System_GetViewportHeight();
-int     System_GetViewportWidth();
 const char *System_GetVersion();
 int     System_GetHardwareAcceleration();
 int     System_GetNumLock();

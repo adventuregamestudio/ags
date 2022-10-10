@@ -60,43 +60,6 @@ int System_GetOS() {
     return scsystem.os;
 }
 
-// [IKM] 2014-09-21
-// IMPORTANT NOTE on System.ScreenWidth and System.ScreenHeight:
-// It appears that in AGS these properties were not defining actual window size
-// in pixels, but rather game frame size, which could include black borders,
-// in 'native' (unscaled) pixels. This was due the specifics of how graphics
-// modes were implemented in previous versions.
-// 
-// Quote from the old manual:
-// "Returns the actual screen width that the game is running at. If a graphic
-//  filter is in use, the resolution returned will be that before any
-//  stretching by the filter has been applied. If widescreen side borders are
-//  enabled, the screen width reported will include the size of these borders."
-//
-// The key words are "the resolution returned will be that BEFORE any
-// stretching by the filter has been applied".
-//
-// Since now the letterbox and pillarbox borders are handled by graphics
-// renderer and are not part of the game anymore, these properties should
-// return strictly native game size. This is required for backwards
-// compatibility.
-//
-int System_GetScreenWidth() {
-    return game.GetGameRes().Width;
-}
-
-int System_GetScreenHeight() {
-    return game.GetGameRes().Height;
-}
-
-int System_GetViewportHeight() {
-    return play.GetMainViewport().GetHeight();
-}
-
-int System_GetViewportWidth() {
-    return play.GetMainViewport().GetWidth();
-}
-
 const char *System_GetVersion() {
     return CreateNewScriptString(EngineVersion.LongString);
 }
@@ -282,18 +245,6 @@ RuntimeScriptValue Sc_System_GetOS(const RuntimeScriptValue *params, int32_t par
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetScreenHeight(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(System_GetScreenHeight);
-}
-
-// int ()
-RuntimeScriptValue Sc_System_GetScreenWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(System_GetScreenWidth);
-}
-
-// int ()
 RuntimeScriptValue Sc_System_GetScrollLock(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetScrollLock);
@@ -309,18 +260,6 @@ RuntimeScriptValue Sc_System_GetSupportsGammaControl(const RuntimeScriptValue *p
 RuntimeScriptValue Sc_System_GetVersion(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ(const char, myScriptStringImpl, System_GetVersion);
-}
-
-// int ()
-RuntimeScriptValue Sc_System_GetViewportHeight(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(System_GetViewportHeight);
-}
-
-// int ()
-RuntimeScriptValue Sc_System_GetViewportWidth(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(System_GetViewportWidth);
 }
 
 // int ()
@@ -402,14 +341,10 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::get_RenderAtScreenResolution", Sc_System_GetRenderAtScreenResolution);
     ccAddExternalStaticFunction("System::set_RenderAtScreenResolution", Sc_System_SetRenderAtScreenResolution);
     ccAddExternalStaticFunction("System::get_RuntimeInfo",          Sc_System_GetRuntimeInfo);
-    ccAddExternalStaticFunction("System::get_ScreenHeight",         Sc_System_GetScreenHeight);
-    ccAddExternalStaticFunction("System::get_ScreenWidth",          Sc_System_GetScreenWidth);
     ccAddExternalStaticFunction("System::get_ScrollLock",           Sc_System_GetScrollLock);
     ccAddExternalStaticFunction("System::get_SupportsGammaControl", Sc_System_GetSupportsGammaControl);
     ccAddExternalStaticFunction("System::get_Version",              Sc_System_GetVersion);
     ccAddExternalStaticFunction("SystemInfo::get_Version",          Sc_System_GetVersion);
-    ccAddExternalStaticFunction("System::get_ViewportHeight",       Sc_System_GetViewportHeight);
-    ccAddExternalStaticFunction("System::get_ViewportWidth",        Sc_System_GetViewportWidth);
     ccAddExternalStaticFunction("System::get_Volume",               Sc_System_GetVolume);
     ccAddExternalStaticFunction("System::set_Volume",               Sc_System_SetVolume);
     ccAddExternalStaticFunction("System::get_VSync",                Sc_System_GetVsync);
@@ -432,14 +367,10 @@ void RegisterSystemAPI()
     ccAddExternalFunctionForPlugin("System::get_NumLock",              (void*)System_GetNumLock);
     ccAddExternalFunctionForPlugin("System::get_OperatingSystem",      (void*)System_GetOS);
     ccAddExternalFunctionForPlugin("System::get_RuntimeInfo",          (void*)System_GetRuntimeInfo);
-    ccAddExternalFunctionForPlugin("System::get_ScreenHeight",         (void*)System_GetScreenHeight);
-    ccAddExternalFunctionForPlugin("System::get_ScreenWidth",          (void*)System_GetScreenWidth);
     ccAddExternalFunctionForPlugin("System::get_ScrollLock",           (void*)System_GetScrollLock);
     ccAddExternalFunctionForPlugin("System::get_SupportsGammaControl", (void*)System_GetSupportsGammaControl);
     ccAddExternalFunctionForPlugin("System::get_Version",              (void*)System_GetVersion);
     ccAddExternalFunctionForPlugin("SystemInfo::get_Version",          (void*)System_GetVersion);
-    ccAddExternalFunctionForPlugin("System::get_ViewportHeight",       (void*)System_GetViewportHeight);
-    ccAddExternalFunctionForPlugin("System::get_ViewportWidth",        (void*)System_GetViewportWidth);
     ccAddExternalFunctionForPlugin("System::get_Volume",               (void*)System_GetVolume);
     ccAddExternalFunctionForPlugin("System::set_Volume",               (void*)System_SetVolume);
     ccAddExternalFunctionForPlugin("System::get_VSync",                (void*)System_GetVsync);

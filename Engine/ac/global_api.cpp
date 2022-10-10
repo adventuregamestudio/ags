@@ -56,7 +56,6 @@
 #include "ac/global_translation.h"
 #include "ac/global_video.h"
 #include "ac/global_viewframe.h"
-#include "ac/global_viewport.h"
 #include "ac/global_walkablearea.h"
 #include "ac/global_walkbehind.h"
 #include "ac/math.h"
@@ -811,18 +810,6 @@ RuntimeScriptValue Sc_GetTranslationName(const RuntimeScriptValue *params, int32
     API_SCALL_INT_POBJ(GetTranslationName, char);
 }
 
-// int  ()
-RuntimeScriptValue Sc_GetViewportX(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetViewportX);
-}
-
-// int  ()
-RuntimeScriptValue Sc_GetViewportY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetViewportY);
-}
-
 RuntimeScriptValue Sc_GetWalkableAreaAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(GetWalkableAreaAtRoom);
@@ -1378,12 +1365,6 @@ extern RuntimeScriptValue Sc_RefreshMouse(const RuntimeScriptValue *params, int3
     API_SCALL_VOID_PINT(ReleaseCharacterView);
 }*/
 
-// void ()
-RuntimeScriptValue Sc_ReleaseViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(ReleaseViewport);
-}
-
 // void (int obj)
 RuntimeScriptValue Sc_RemoveObjectTint(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1932,14 +1913,6 @@ RuntimeScriptValue Sc_SetScreenTransition(const RuntimeScriptValue *params, int3
     API_SCALL_VOID_PINT(SetScreenTransition);
 }
 
-// void  (int newval)
-RuntimeScriptValue Sc_SetSkipSpeech(const RuntimeScriptValue *params, int32_t param_count)
-{
-    ASSERT_PARAM_COUNT(SetSkipSpeech, 1);
-    SetSkipSpeech((SkipSpeechStyle)params[0].IValue);
-    return RuntimeScriptValue((int32_t)0);
-}
-
 // void (int guin,int objn, int valn)
 RuntimeScriptValue Sc_SetSliderValue(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1953,12 +1926,6 @@ RuntimeScriptValue Sc_SetSoundVolume(const RuntimeScriptValue *params, int32_t p
 }
 
 extern RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count);
-
-// void  (int newstyle)
-RuntimeScriptValue Sc_SetSpeechStyle(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetSpeechStyle);
-}
 
 // void (int newvol)
 RuntimeScriptValue Sc_SetSpeechVolume(const RuntimeScriptValue *params, int32_t param_count)
@@ -2003,18 +1970,6 @@ RuntimeScriptValue Sc_SetTextWindowGUI(const RuntimeScriptValue *params, int32_t
 RuntimeScriptValue Sc_script_SetTimer(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(script_SetTimer);
-}
-
-// void (int offsx,int offsy)
-RuntimeScriptValue Sc_SetViewport(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetViewport);
-}
-
-// void  (int newmod)
-RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetVoiceMode);
 }
 
 // void (int wa,int bl)
@@ -2456,10 +2411,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetTime",                  Sc_sc_GetTime);
 	ccAddExternalStaticFunction("GetTranslation",           Sc_get_translation);
 	ccAddExternalStaticFunction("GetTranslationName",       Sc_GetTranslationName);
-	ccAddExternalStaticFunction("GetViewportX",             Sc_GetViewportX);
-	ccAddExternalStaticFunction("GetViewportY",             Sc_GetViewportY);
-    ccAddExternalStaticFunction("GetWalkableAreaAtRoom",    Sc_GetWalkableAreaAtRoom);
-	ccAddExternalStaticFunction("GetWalkableAreaAt",        Sc_GetWalkableAreaAtScreen);
+	ccAddExternalStaticFunction("GetWalkableAreaAtRoom",    Sc_GetWalkableAreaAtRoom);
     ccAddExternalStaticFunction("GetWalkableAreaAtScreen",  Sc_GetWalkableAreaAtScreen);
     ccAddExternalStaticFunction("GetDrawingSurfaceForWalkableArea", Sc_GetDrawingSurfaceForWalkableArea);
     ccAddExternalStaticFunction("GetDrawingSurfaceForWalkbehind", Sc_GetDrawingSurfaceForWalkbehind);
@@ -2552,7 +2504,6 @@ void RegisterGlobalAPI()
 	//ccAddExternalStaticFunction("RawSetColorRGB",           Sc_RawSetColorRGB);// [DEPRECATED]
 	ccAddExternalStaticFunction("RefreshMouse",             Sc_RefreshMouse);
 	//ccAddExternalStaticFunction("ReleaseCharacterView",     Sc_ReleaseCharacterView);// [DEPRECATED]
-	ccAddExternalStaticFunction("ReleaseViewport",          Sc_ReleaseViewport);
 	ccAddExternalStaticFunction("RemoveObjectTint",         Sc_RemoveObjectTint);
 	ccAddExternalStaticFunction("RemoveOverlay",            Sc_RemoveOverlay);
 	ccAddExternalStaticFunction("RemoveWalkableArea",       Sc_RemoveWalkableArea);
@@ -2652,11 +2603,9 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetRegionTint",            Sc_SetRegionTint);
 	ccAddExternalStaticFunction("SetRestartPoint",          Sc_SetRestartPoint);
 	ccAddExternalStaticFunction("SetScreenTransition",      Sc_SetScreenTransition);
-	ccAddExternalStaticFunction("SetSkipSpeech",            Sc_SetSkipSpeech);
 	ccAddExternalStaticFunction("SetSliderValue",           Sc_SetSliderValue);
 	ccAddExternalStaticFunction("SetSoundVolume",           Sc_SetSoundVolume);
 	ccAddExternalStaticFunction("SetSpeechFont",            Sc_SetSpeechFont);
-	ccAddExternalStaticFunction("SetSpeechStyle",           Sc_SetSpeechStyle);
 	ccAddExternalStaticFunction("SetSpeechVolume",          Sc_SetSpeechVolume);
 	//ccAddExternalStaticFunction("SetTalkingColor",          Sc_SetTalkingColor);// [DEPRECATED]
 	ccAddExternalStaticFunction("SetTextBoxFont",           Sc_SetTextBoxFont);
@@ -2664,8 +2613,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetTextOverlay",           Sc_SetTextOverlay);
 	ccAddExternalStaticFunction("SetTextWindowGUI",         Sc_SetTextWindowGUI);
 	ccAddExternalStaticFunction("SetTimer",                 Sc_script_SetTimer);
-	ccAddExternalStaticFunction("SetViewport",              Sc_SetViewport);
-	ccAddExternalStaticFunction("SetVoiceMode",             Sc_SetVoiceMode);
 	ccAddExternalStaticFunction("SetWalkBehindBase",        Sc_SetWalkBehindBase);
 	ccAddExternalStaticFunction("ShakeScreen",              Sc_ShakeScreen);
 	ccAddExternalStaticFunction("ShakeScreenBackground",    Sc_ShakeScreenBackground);
@@ -2829,10 +2776,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetTime",                  (void*)sc_GetTime);
     ccAddExternalFunctionForPlugin("GetTranslation",           (void*)get_translation);
     ccAddExternalFunctionForPlugin("GetTranslationName",       (void*)GetTranslationName);
-    ccAddExternalFunctionForPlugin("GetViewportX",             (void*)GetViewportX);
-    ccAddExternalFunctionForPlugin("GetViewportY",             (void*)GetViewportY);
     ccAddExternalFunctionForPlugin("GetWalkableAreaAtRoom",    (void*)GetWalkableAreaAtRoom);
-    ccAddExternalFunctionForPlugin("GetWalkableAreaAt",        (void*)GetWalkableAreaAtScreen);
     ccAddExternalFunctionForPlugin("GetWalkableAreaAtScreen",  (void*)GetWalkableAreaAtScreen);
     ccAddExternalFunctionForPlugin("GiveScore",                (void*)GiveScore);
     ccAddExternalFunctionForPlugin("HasPlayerBeenInRoom",      (void*)HasPlayerBeenInRoom);
@@ -2924,7 +2868,6 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("RawSetColorRGB",           (void*)RawSetColorRGB);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("RefreshMouse",             (void*)RefreshMouse);
     //ccAddExternalFunctionForPlugin("ReleaseCharacterView",     (void*)ReleaseCharacterView);// [DEPRECATED]
-    ccAddExternalFunctionForPlugin("ReleaseViewport",          (void*)ReleaseViewport);
     ccAddExternalFunctionForPlugin("RemoveObjectTint",         (void*)RemoveObjectTint);
     ccAddExternalFunctionForPlugin("RemoveOverlay",            (void*)RemoveOverlay);
     ccAddExternalFunctionForPlugin("RemoveWalkableArea",       (void*)RemoveWalkableArea);
@@ -3023,11 +2966,9 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetRegionTint",            (void*)SetRegionTint);
     ccAddExternalFunctionForPlugin("SetRestartPoint",          (void*)SetRestartPoint);
     ccAddExternalFunctionForPlugin("SetScreenTransition",      (void*)SetScreenTransition);
-    ccAddExternalFunctionForPlugin("SetSkipSpeech",            (void*)SetSkipSpeech);
     ccAddExternalFunctionForPlugin("SetSliderValue",           (void*)SetSliderValue);
     ccAddExternalFunctionForPlugin("SetSoundVolume",           (void*)SetSoundVolume);
     ccAddExternalFunctionForPlugin("SetSpeechFont",            (void*)SetSpeechFont);
-    ccAddExternalFunctionForPlugin("SetSpeechStyle",           (void*)SetSpeechStyle);
     ccAddExternalFunctionForPlugin("SetSpeechVolume",          (void*)SetSpeechVolume);
     //ccAddExternalFunctionForPlugin("SetTalkingColor",          (void*)SetTalkingColor);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("SetTextBoxFont",           (void*)SetTextBoxFont);
@@ -3035,8 +2976,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetTextOverlay",           (void*)ScPl_SetTextOverlay);
     ccAddExternalFunctionForPlugin("SetTextWindowGUI",         (void*)SetTextWindowGUI);
     ccAddExternalFunctionForPlugin("SetTimer",                 (void*)script_SetTimer);
-    ccAddExternalFunctionForPlugin("SetViewport",              (void*)SetViewport);
-    ccAddExternalFunctionForPlugin("SetVoiceMode",             (void*)SetVoiceMode);
     ccAddExternalFunctionForPlugin("SetWalkBehindBase",        (void*)SetWalkBehindBase);
     ccAddExternalFunctionForPlugin("ShakeScreen",              (void*)ShakeScreen);
     ccAddExternalFunctionForPlugin("ShakeScreenBackground",    (void*)ShakeScreenBackground);

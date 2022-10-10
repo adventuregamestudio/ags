@@ -448,30 +448,6 @@ RuntimeScriptValue Sc_ListBox_SetShowScrollArrows(void *self, const RuntimeScrip
 }
 
 // int (GUIListBox *listbox)
-RuntimeScriptValue Sc_ListBox_GetHideBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIListBox, ListBox_GetHideBorder);
-}
-
-// void (GUIListBox *listbox, int newValue)
-RuntimeScriptValue Sc_ListBox_SetHideBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetHideBorder);
-}
-
-// int (GUIListBox *listbox)
-RuntimeScriptValue Sc_ListBox_GetHideScrollArrows(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(GUIListBox, ListBox_GetHideScrollArrows);
-}
-
-// void (GUIListBox *listbox, int newValue)
-RuntimeScriptValue Sc_ListBox_SetHideScrollArrows(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetHideScrollArrows);
-}
-
-// int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIListBox, ListBox_GetItemCount);
@@ -584,12 +560,6 @@ void RegisterListBoxAPI()
     ccAddExternalObjectFunction("ListBox::set_ShowBorder",      Sc_ListBox_SetShowBorder);
     ccAddExternalObjectFunction("ListBox::get_ShowScrollArrows", Sc_ListBox_GetShowScrollArrows);
     ccAddExternalObjectFunction("ListBox::set_ShowScrollArrows", Sc_ListBox_SetShowScrollArrows);
-    // old "inverted" properties
-    ccAddExternalObjectFunction("ListBox::get_HideBorder",      Sc_ListBox_GetHideBorder);
-    ccAddExternalObjectFunction("ListBox::set_HideBorder",      Sc_ListBox_SetHideBorder);
-    ccAddExternalObjectFunction("ListBox::get_HideScrollArrows", Sc_ListBox_GetHideScrollArrows);
-    ccAddExternalObjectFunction("ListBox::set_HideScrollArrows", Sc_ListBox_SetHideScrollArrows);
-    //
     ccAddExternalObjectFunction("ListBox::get_ItemCount",       Sc_ListBox_GetItemCount);
     ccAddExternalObjectFunction("ListBox::geti_Items",          Sc_ListBox_GetItems);
     ccAddExternalObjectFunction("ListBox::seti_Items",          Sc_ListBox_SetItemText);

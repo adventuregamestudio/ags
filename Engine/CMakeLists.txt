@@ -143,8 +143,6 @@ target_sources(engine
     ac/global_dialog.h
     ac/global_display.cpp
     ac/global_display.h
-    ac/global_drawingsurface.cpp
-    ac/global_drawingsurface.h
     ac/global_dynamicsprite.cpp
     ac/global_dynamicsprite.h
     ac/global_file.cpp
@@ -157,8 +155,6 @@ target_sources(engine
     ac/global_hotspot.h
     ac/global_inventoryitem.cpp
     ac/global_inventoryitem.h
-    ac/global_invwindow.cpp
-    ac/global_invwindow.h
     ac/global_label.cpp
     ac/global_label.h
     ac/global_listbox.cpp
@@ -171,8 +167,6 @@ target_sources(engine
     ac/global_overlay.h
     ac/global_palette.cpp
     ac/global_palette.h
-    ac/global_parser.cpp
-    ac/global_parser.h
     ac/global_plugin.h
     ac/global_region.cpp
     ac/global_region.h
@@ -182,8 +176,6 @@ target_sources(engine
     ac/global_screen.h
     ac/global_slider.cpp
     ac/global_slider.h
-    ac/global_string.cpp
-    ac/global_string.h
     ac/global_textbox.cpp
     ac/global_textbox.h
     ac/global_timer.cpp

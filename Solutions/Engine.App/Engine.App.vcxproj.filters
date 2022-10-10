@@ -243,9 +243,6 @@
     <ClCompile Include="..\..\Engine\ac\global_display.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_drawingsurface.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_dynamicsprite.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -262,9 +259,6 @@
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_inventoryitem.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_invwindow.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_label.cpp">
@@ -285,9 +279,6 @@
     <ClCompile Include="..\..\Engine\ac\global_palette.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_parser.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\plugin\global_plugin.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -301,9 +292,6 @@
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_slider.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_string.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_textbox.cpp">
@@ -887,9 +875,6 @@
     <ClInclude Include="..\..\Engine\ac\global_display.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_drawingsurface.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_dynamicsprite.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
@@ -906,9 +891,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_inventoryitem.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_invwindow.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_label.h">
@@ -929,9 +911,6 @@
     <ClInclude Include="..\..\Engine\ac\global_palette.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_parser.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_plugin.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
@@ -945,9 +924,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_slider.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_string.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_textbox.h">

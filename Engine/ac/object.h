@@ -60,8 +60,6 @@ bool    Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
 void    Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct);
 void    Object_SetClickable(ScriptObject *objj, int clik);
 int     Object_GetClickable(ScriptObject *objj);
-void    Object_SetIgnoreScaling(ScriptObject *objj, int newval);
-int     Object_GetIgnoreScaling(ScriptObject *objj);
 void    Object_SetSolid(ScriptObject *objj, int solid);
 int     Object_GetSolid(ScriptObject *objj);
 void    Object_SetBlockingWidth(ScriptObject *objj, int bwid);

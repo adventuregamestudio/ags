@@ -29,7 +29,7 @@ using namespace AGS; // FIXME later
 #define CHF_ALWAYSIDLE      0x10
 #define CHF_NOLIGHTING      0x20
 #define CHF_NOTURNING       0x40
-#define CHF_NOWALKBEHINDS   0x80
+#define CHF_NOWALKBEHINDS   0x80   // deprecated, forbidden
 #define CHF_FLIPSPRITE      0x100  // ?? Is this used??
 #define CHF_NOBLOCKING      0x200
 #define CHF_SCALEMOVESPEED  0x400

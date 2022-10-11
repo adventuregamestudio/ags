@@ -280,12 +280,6 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 void AnimateObjectEx(int obn, int loopn, int spdd, int rept, int direction, int blocking) {
     AnimateObjectImpl(obn, loopn, spdd, rept, direction, blocking, 0);
 }
-/*
-// [DEPRECATED]
-void AnimateObject(int obn,int loopn,int spdd,int rept) {
-    AnimateObjectImpl(obn, loopn, spdd, rept, 0, 0, 0);
-}
-*/
 
 void MergeObject(int obn) {
     if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");

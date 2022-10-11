@@ -53,12 +53,6 @@ void SetPalRGB(int inndx,int rr,int gg,int bb) {
     wsetrgb(inndx,rr,gg,bb,palette);
     set_palette_range(palette, inndx, inndx, 0);
 }
-/*void scSetPal(color*pptr) {
-wsetpalette(0,255,pptr);
-}
-void scGetPal(color*pptr) {
-get_palette(pptr);
-}*/
 
 void UpdatePalette() {
     if (game.color_depth > 1)

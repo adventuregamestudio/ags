@@ -251,23 +251,6 @@ int GetGlobalInt(int index) {
     return play.globalscriptvars[index];
 }
 
-/*
-// [DEPRECATED]
-void SetGlobalString (int index, const char *newval) {
-    if ((index<0) | (index >= MAXGLOBALSTRINGS))
-        quitprintf("!SetGlobalString: invalid index %d, supported range is %d - %d", index, 0, MAXGLOBALSTRINGS - 1);
-    debug_script_log("GlobalString %d set to '%s'", index, newval);
-    snprintf(play.globalstrings[index], MAX_MAXSTRLEN, "%s", newval);
-}
-*/
-/*
-// [DEPRECATED]
-void GetGlobalString (int index, char *strval) {
-    if ((index<0) | (index >= MAXGLOBALSTRINGS))
-        quitprintf("!GetGlobalString: invalid index %d, supported range is %d - %d", index, 0, MAXGLOBALSTRINGS - 1);
-    snprintf(strval, MAX_MAXSTRLEN, "%s", play.globalstrings[index]);
-}
-*/
 // TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
 int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 
@@ -796,12 +779,6 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
 
     return 0;
 }
-
-// [DEPRECATED]
-/*void GetMessageText (int msg, char *buffer) {
-    VALIDATE_STRING(buffer);
-    get_message_text (msg, buffer, 0);
-}*/
 
 void SetSpeechFont (int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.numfonts))

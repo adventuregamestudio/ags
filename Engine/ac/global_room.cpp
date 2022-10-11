@@ -140,22 +140,6 @@ void NewRoom(int nrnum) {
         gs_to_newroom = nrnum;
 }
 
-/*
-// [DEPRECATED]
-void NewRoomEx(int nrnum,int newx,int newy) {
-    Character_ChangeRoom(playerchar, nrnum, newx, newy);
-}
-
-void NewRoomNPC(int charid, int nrnum, int newx, int newy) {
-    if (!is_valid_character(charid))
-        quit("!NewRoomNPC: invalid character");
-    if (charid == game.playercharacter)
-        quit("!NewRoomNPC: use NewRoomEx with the player character");
-
-    Character_ChangeRoom(&game.chars[charid], nrnum, newx, newy);
-}
-*/
-
 void ResetRoom(int nrnum) {
     if (nrnum == displayed_room)
         quit("!ResetRoom: cannot reset current room");
@@ -202,12 +186,6 @@ int HasBeenToRoom (int roomnum) {
     else
         return 0;
 }
-
-// [DEPRECATED]
-/*void GetRoomPropertyText (const char *property, char *bufer)
-{
-    get_text_property(thisroom.Properties, croom->roomProps, property, bufer);
-}*/
 
 void SetBackgroundFrame(int frnum) {
     if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))

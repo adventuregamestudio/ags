@@ -547,19 +547,6 @@ void unload_game_file()
 }
 
 
-
-
-
-/*
-// [DEPRECATED]
-const char* Game_GetGlobalStrings(int index) {
-    if ((index < 0) || (index >= MAXGLOBALSTRINGS))
-        quit("!Game.GlobalStrings: invalid index");
-
-    return CreateNewScriptString(play.globalstrings[index]);
-}
-*/
-
 // ** GetGameParameter replacement functions
 
 int Game_GetInventoryItemCount() {
@@ -1690,22 +1677,6 @@ RuntimeScriptValue Sc_Game_GetGlobalMessages(const RuntimeScriptValue *params, i
     API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetGlobalMessages);
 }
 
-/*
-// [DEPRECATED] const char* (int index)
-RuntimeScriptValue Sc_Game_GetGlobalStrings(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetGlobalStrings);
-}
-*/
-
-/*
-// [DEPRECATED] void  (int index, char *newval);
-RuntimeScriptValue Sc_SetGlobalString(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(SetGlobalString, const char);
-}
-*/
-
 // int ()
 RuntimeScriptValue Sc_Game_GetGUICount(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1906,8 +1877,6 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_FileName",                           Sc_Game_GetFileName);
     ccAddExternalStaticFunction("Game::get_FontCount",                          Sc_Game_GetFontCount);
     ccAddExternalStaticFunction("Game::geti_GlobalMessages",                    Sc_Game_GetGlobalMessages);
-    //ccAddExternalStaticFunction("Game::geti_GlobalStrings",                     Sc_Game_GetGlobalStrings);// [DEPRECATED]
-    //ccAddExternalStaticFunction("Game::seti_GlobalStrings",                     Sc_SetGlobalString);// [DEPRECATED]
     ccAddExternalStaticFunction("Game::get_GUICount",                           Sc_Game_GetGUICount);
     ccAddExternalStaticFunction("Game::get_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_GetIgnoreUserInputAfterTextTimeoutMs);
     ccAddExternalStaticFunction("Game::set_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_SetIgnoreUserInputAfterTextTimeoutMs);
@@ -1966,8 +1935,6 @@ void RegisterGameAPI()
     ccAddExternalFunctionForPlugin("Game::get_FileName",                           (void*)Game_GetFileName);
     ccAddExternalFunctionForPlugin("Game::get_FontCount",                          (void*)Game_GetFontCount);
     ccAddExternalFunctionForPlugin("Game::geti_GlobalMessages",                    (void*)Game_GetGlobalMessages);
-    //ccAddExternalFunctionForPlugin("Game::geti_GlobalStrings",                     (void*)Game_GetGlobalStrings);// [DEPRECATED]
-    //ccAddExternalFunctionForPlugin("Game::seti_GlobalStrings",                     (void*)SetGlobalString);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("Game::get_GUICount",                           (void*)Game_GetGUICount);
     ccAddExternalFunctionForPlugin("Game::get_IgnoreUserInputAfterTextTimeoutMs",  (void*)Game_GetIgnoreUserInputAfterTextTimeoutMs);
     ccAddExternalFunctionForPlugin("Game::set_IgnoreUserInputAfterTextTimeoutMs",  (void*)Game_SetIgnoreUserInputAfterTextTimeoutMs);
@@ -1997,8 +1964,4 @@ void RegisterStaticObjects()
     ccAddExternalStaticObject("game",&play, &GameStaticManager);
 	ccAddExternalStaticObject("mouse",&scmouse, &scmouse);
 	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager); // TODO: proper manager
-	ccAddExternalStaticObject("system",&scsystem, &scsystem);
-    // [OBSOLETE] legacy arrays
-    ccAddExternalStaticObject("gs_globals", &play.globalvars[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

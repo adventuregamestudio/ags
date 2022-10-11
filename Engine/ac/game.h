@@ -81,8 +81,6 @@ void SetDefaultSaveDirectory();
 int Game_SetSaveGameDirectory(const char *newFolder);
 const char* Game_GetSaveSlotDescription(int slnum);
 
-//const char* Game_GetGlobalStrings(int index);// [DEPRECATED]
-
 int Game_GetInventoryItemCount();
 int Game_GetFontCount();
 int Game_GetMouseCursorCount();

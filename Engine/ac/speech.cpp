@@ -251,7 +251,10 @@ RuntimeScriptValue Sc_Speech_GetStyle(const RuntimeScriptValue *params, int32_t 
     API_VARGET_INT(game.options[OPT_SPEECHTYPE]);
 }
 
-extern RuntimeScriptValue Sc_SetSpeechStyle(const RuntimeScriptValue *params, int32_t param_count);
+RuntimeScriptValue Sc_Speech_SetStyle(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(SetSpeechStyle);
+}
 
 RuntimeScriptValue Sc_Speech_GetSkipKey(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -268,7 +271,12 @@ RuntimeScriptValue Sc_Speech_GetSkipStyle(const RuntimeScriptValue *params, int3
     API_SCALL_INT(GetSkipSpeech);
 }
 
-extern RuntimeScriptValue Sc_SetSkipSpeech(const RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_Speech_SetSkipStyle(const RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_PARAM_COUNT(SetSkipSpeech, 1);
+    SetSkipSpeech((SkipSpeechStyle)params[0].IValue);
+    return RuntimeScriptValue((int32_t)0);
+}
 
 RuntimeScriptValue Sc_Speech_GetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -304,6 +312,11 @@ RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int3
     API_SCALL_INT(GetVoiceMode);
 }
 
+RuntimeScriptValue Sc_Speech_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(SetVoiceMode);
+}
+
 RuntimeScriptValue Sc_Speech_GetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetTextOverlay);
@@ -313,8 +326,6 @@ RuntimeScriptValue Sc_Speech_GetPortraitOverlay(const RuntimeScriptValue *params
 {
     API_SCALL_OBJAUTO(ScriptOverlay, Speech_GetPortraitOverlay);
 }
-
-extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int32_t param_count);
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
@@ -334,9 +345,9 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     ccAddExternalStaticFunction("Speech::get_SkipKey",                Sc_Speech_GetSkipKey);
     ccAddExternalStaticFunction("Speech::set_SkipKey",                Sc_Speech_SetSkipKey);
     ccAddExternalStaticFunction("Speech::get_SkipStyle",              Sc_Speech_GetSkipStyle);
-    ccAddExternalStaticFunction("Speech::set_SkipStyle",              Sc_SetSkipSpeech);
+    ccAddExternalStaticFunction("Speech::set_SkipStyle",              Sc_Speech_SetSkipStyle);
     ccAddExternalStaticFunction("Speech::get_Style",                  Sc_Speech_GetStyle);
-    ccAddExternalStaticFunction("Speech::set_Style",                  Sc_SetSpeechStyle);
+    ccAddExternalStaticFunction("Speech::set_Style",                  Sc_Speech_SetStyle);
     ccAddExternalStaticFunction("Speech::get_TextAlignment",          Sc_Speech_GetTextAlignment);
     if (base_api < kScriptAPI_v350)
         ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment_Old);
@@ -346,7 +357,7 @@ void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
 	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
 	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);
-    ccAddExternalStaticFunction("Speech::set_VoiceMode",              Sc_SetVoiceMode);
+    ccAddExternalStaticFunction("Speech::set_VoiceMode",              Sc_Speech_SetVoiceMode);
 
     /* -- Don't register more unsafe plugin symbols until new plugin interface is designed --*/
 }

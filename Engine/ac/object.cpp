@@ -337,29 +337,20 @@ int Object_GetClickable(ScriptObject *objj) {
     return 1;
 }
 
+bool Object_GetManualScaling(ScriptObject *objj)
+{
+    if (!is_valid_object(objj->id))
+        quit("!Object.ManualScaling: Invalid object specified");
+
+    return !(objs[objj->id].flags & OBJF_USEROOMSCALING);
+}
+
 void Object_SetManualScaling(ScriptObject *objj, bool on)
 {
     if (on) objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
     else objs[objj->id].flags |= OBJF_USEROOMSCALING;
     // clear the cache
     mark_object_changed(objj->id);
-}
-
-void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.IgnoreScaling: Invalid object specified");
-    if (newval)
-        objs[objj->id].zoom = 100; // compatibility, for before manual scaling existed
-    Object_SetManualScaling(objj, newval != 0);
-}
-
-int Object_GetIgnoreScaling(ScriptObject *objj) {
-    if (!is_valid_object(objj->id))
-        quit("!Object.IgnoreScaling: Invalid object specified");
-
-    if (objs[objj->id].flags & OBJF_USEROOMSCALING)
-        return 0;
-    return 1;
 }
 
 int Object_GetScaling(ScriptObject *objj) {
@@ -916,18 +907,6 @@ RuntimeScriptValue Sc_Object_GetID(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_INT(ScriptObject, Object_GetID);
 }
 
-// int (ScriptObject *objj)
-RuntimeScriptValue Sc_Object_GetIgnoreScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreScaling);
-}
-
-// void (ScriptObject *objj, int newval)
-RuntimeScriptValue Sc_Object_SetIgnoreScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreScaling);
-}
-
 // int (ScriptObject *chaa)
 RuntimeScriptValue Sc_Object_GetIgnoreWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -944,6 +923,11 @@ RuntimeScriptValue Sc_Object_SetIgnoreWalkbehinds(void *self, const RuntimeScrip
 RuntimeScriptValue Sc_Object_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptObject, Object_GetLoop);
+}
+
+RuntimeScriptValue Sc_Object_GetManualScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptObject, Object_GetManualScaling);
 }
 
 RuntimeScriptValue Sc_Object_SetManualScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1109,12 +1093,10 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::get_Graphic",              Sc_Object_GetGraphic);
     ccAddExternalObjectFunction("Object::set_Graphic",              Sc_Object_SetGraphic);
     ccAddExternalObjectFunction("Object::get_ID",                   Sc_Object_GetID);
-    ccAddExternalObjectFunction("Object::get_IgnoreScaling",        Sc_Object_GetIgnoreScaling);
-    ccAddExternalObjectFunction("Object::set_IgnoreScaling",        Sc_Object_SetIgnoreScaling);
     ccAddExternalObjectFunction("Object::get_IgnoreWalkbehinds",    Sc_Object_GetIgnoreWalkbehinds);
     ccAddExternalObjectFunction("Object::set_IgnoreWalkbehinds",    Sc_Object_SetIgnoreWalkbehinds);
     ccAddExternalObjectFunction("Object::get_Loop",                 Sc_Object_GetLoop);
-    ccAddExternalObjectFunction("Object::get_ManualScaling",        Sc_Object_GetIgnoreScaling);
+    ccAddExternalObjectFunction("Object::get_ManualScaling",        Sc_Object_GetManualScaling);
     ccAddExternalObjectFunction("Object::set_ManualScaling",        Sc_Object_SetManualScaling);
     ccAddExternalObjectFunction("Object::get_Moving",               Sc_Object_GetMoving);
     ccAddExternalObjectFunction("Object::get_Name",                 Sc_Object_GetName_New);
@@ -1180,8 +1162,6 @@ void RegisterObjectAPI()
     ccAddExternalFunctionForPlugin("Object::get_Graphic",              (void*)Object_GetGraphic);
     ccAddExternalFunctionForPlugin("Object::set_Graphic",              (void*)Object_SetGraphic);
     ccAddExternalFunctionForPlugin("Object::get_ID",                   (void*)Object_GetID);
-    ccAddExternalFunctionForPlugin("Object::get_IgnoreScaling",        (void*)Object_GetIgnoreScaling);
-    ccAddExternalFunctionForPlugin("Object::set_IgnoreScaling",        (void*)Object_SetIgnoreScaling);
     ccAddExternalFunctionForPlugin("Object::get_IgnoreWalkbehinds",    (void*)Object_GetIgnoreWalkbehinds);
     ccAddExternalFunctionForPlugin("Object::set_IgnoreWalkbehinds",    (void*)Object_SetIgnoreWalkbehinds);
     ccAddExternalFunctionForPlugin("Object::get_Loop",                 (void*)Object_GetLoop);

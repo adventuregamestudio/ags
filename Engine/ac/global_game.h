@@ -54,8 +54,6 @@ void UnPauseGame();
 int  IsGamePaused();
 void SetGlobalInt(int index,int valu);
 int  GetGlobalInt(int index);
-//void SetGlobalString (int index, const char *newval);// [DEPRECATED]
-//void GetGlobalString (int index, char *strval);// [DEPRECATED]
 int  RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
 int  GetGameParameter (int parm, int data1, int data2, int data3);
 void QuitGame(int dialog);
@@ -91,8 +89,6 @@ void SetMultitasking (int mode);
 
 void RoomProcessClick(int xx,int yy,int mood);
 int IsInteractionAvailable (int xx,int yy,int mood);
-
-//void GetMessageText (int msg, char *buffer);// [DEPRECATED]
 
 void SetSpeechFont (int fontnum);
 void SetNormalFont (int fontnum);

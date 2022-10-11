@@ -1421,8 +1421,6 @@ namespace AGS.Editor
                     folderToAddTo.Sprites.Add(newSprite);
                 }
             }
-
-            Factory.NativeProxy.SpriteResolutionsChanged(newSprites.ToArray());
         }
     }
 }

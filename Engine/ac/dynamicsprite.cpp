@@ -412,11 +412,6 @@ void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
   spriteset.SetSprite(gotSlot, redin);
 
   game.SpriteInfos[gotSlot].Flags = SPF_DYNAMICALLOC;
-
-  if (redin->GetColorDepth() > 8)
-    game.SpriteInfos[gotSlot].Flags |= SPF_HICOLOR;
-  if (redin->GetColorDepth() > 16)
-    game.SpriteInfos[gotSlot].Flags |= SPF_TRUECOLOR;
   if (hasAlpha)
     game.SpriteInfos[gotSlot].Flags |= SPF_ALPHACHANNEL;
 

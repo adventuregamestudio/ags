@@ -219,12 +219,6 @@ int find_free_sprite_slot() {
   return spriteset.GetFreeIndex();
 }
 
-// CLNUP probably to remove
-void update_sprite_resolution(int spriteNum)
-{
-	thisgame.SpriteInfos[spriteNum].Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
-}
-
 void change_sprite_number(int oldNumber, int newNumber) {
 
   if (!spriteset.DoesSpriteExist(oldNumber))

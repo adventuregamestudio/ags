@@ -53,7 +53,7 @@ namespace AGS.Editor.Components
             commands.Commands.Add(new MenuCommand(OPEN_GAME_COMMAND, "&Open...", Keys.Control | Keys.L, "MenuIconOpen"));
             commands.Commands.Add(GetOpenRecentMenuCommand());
             commands.Commands.Add(new MenuCommand(SAVE_GAME_COMMAND, "&Save", Keys.Control | Keys.S, "MenuIconSave"));
-            commands.Commands.Add(new MenuCommand(GAME_STATS_COMMAND, "&Game statistics", Keys.F2, "MenuIconStatistics"));
+            commands.Commands.Add(new MenuCommand(GAME_STATS_COMMAND, "&Game statistics", Keys.Control | Keys.F2, "MenuIconStatistics"));
             commands.Commands.Add(new MenuCommand(JUMP_TO_EVENTS_TAB_COMMAND, "&Go to Events grid", Keys.F4, "MenuIconGoToEventsGrid"));
             _guiController.AddMenuItems(this, commands);
 

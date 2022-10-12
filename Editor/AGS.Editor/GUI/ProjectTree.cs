@@ -90,13 +90,26 @@ namespace AGS.Editor
             RegisterTreeNode(id, component);
 
             iconKey = SetDefaultIconIfNoneProvided(iconKey);
-            if (_lastAddedNode != null)
+            TreeNodeCollection nodes = (_lastAddedNode != null) ? _lastAddedNode.Nodes : this._projectTree.Nodes;
+            
+            // only audiocomponent requires manual arrangement, and only in the main folder
+            bool foldersOnTop = !(component is Components.AudioComponent && _lastAddedNode != null && _lastAddedNode.Level == 0);
+
+            if (foldersOnTop && iconKey == "GenericFolderIcon")
             {
-                _lastAddedNode = _lastAddedNode.Nodes.Add(id, name, iconKey, iconKey);
+                // find last folder index so we can insert right below it, but above other entries
+                // speech icon canonically stays above
+                int index = 0;
+                
+                for (; index < nodes.Count;index++)
+                {
+                    if (nodes[index].ImageKey != iconKey) break;
+                }
+                _lastAddedNode = nodes.Insert(index, id, name, iconKey, iconKey);
             }
             else
             {
-                _lastAddedNode = this._projectTree.Nodes.Add(id, name, iconKey, iconKey);
+                _lastAddedNode = nodes.Add(id, name, iconKey, iconKey);
             }
             ProjectTreeItem newItem = new ProjectTreeItem(id, _lastAddedNode);
             _lastAddedNode.Tag = newItem;

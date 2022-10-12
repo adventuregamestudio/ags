@@ -351,11 +351,14 @@ namespace AGS.Editor
 
         private void projectTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            ProjectTreeItem treeItem = e.Node.Tag as ProjectTreeItem;
+            ProjectTreeItem treeItem = _projectTree.SelectedNode.Tag as ProjectTreeItem;
+            ProjectTreeItem treeItemReleased = e.Node.Tag as ProjectTreeItem; // this may not be where we started the double click
+            if (treeItem != treeItemReleased) return; // user doubleclicked and dragged away somewhere else, cancel the action
+
             bool acceptDoubleClickWhenExpanding = (treeItem != null && treeItem.AllowDoubleClickWhenExpanding);
 			if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
 			{
-				ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
+				ProcessClickOnNode(treeItem.TreeNode.Name, MouseButtons.Left);
 			}
         }
 

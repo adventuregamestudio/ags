@@ -45,8 +45,8 @@ Point get_overlay_position(const ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
 size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy,
     bool alphaChannel = false, Common::BlendMode blendMode = Common::kBlend_Normal);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, bool has_alpha);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool has_alpha);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy);
 // Creates and registers a managed script object for existing overlay object;
 // optionally adds an internal engine reference to prevent object's disposal
 ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);

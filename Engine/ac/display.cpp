@@ -70,8 +70,7 @@ struct DisplayVars
 
 // Generates a textual image and returns a disposable bitmap
 Bitmap *create_textual_image(const char *text, int asspch, int isThought,
-    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
-    bool &alphaChannel)
+    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink)
 {
     //
     // Configure the textual image
@@ -80,7 +79,6 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     const bool use_speech_textwindow = (asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2);
     const bool use_thought_gui = (isThought) && (game.options[OPT_THOUGHTGUI] > 0);
 
-    alphaChannel = false;
     int usingGui = -1;
     if (use_speech_textwindow)
         usingGui = play.speech_textwindow_gui;
@@ -179,13 +177,7 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
         if (drawBackground)
         {
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
-            if (usingGui > 0)
-            {
-                alphaChannel = guis[usingGui].HasAlphaChannel();
-            }
         }
-        else if ((ShouldAntiAliasText()) && (game.GetColorDepth() >= 24))
-            alphaChannel = true;
 
         for (size_t ee = 0; ee<Lines.Count(); ee++) {
             //int ttxp=wii/2 - get_text_width_outlined(lines[ee], usingfont)/2;
@@ -210,11 +202,6 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     else {
         int xoffs, yoffs, oriwid = wii - padding * 2;
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
-
-        if (game.options[OPT_TWCUSTOM] > 0)
-        {
-            alphaChannel = guis[game.options[OPT_TWCUSTOM]].HasAlphaChannel();
-        }
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
@@ -270,9 +257,8 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
         remove_screen_overlay(play.text_overlay_on);
 
     int adjustedXX, adjustedYY;
-    bool alphaChannel;
     Bitmap *text_window_ds = create_textual_image(text, asspch, isThought,
-        xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink, alphaChannel);
+        xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink);
 
     //
     // Configure and create an overlay object
@@ -287,7 +273,7 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     default: ovrtype = disp_type; break; // must be precreated overlay id
     }
 
-    size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy, alphaChannel);
+    size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy);
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
     // If it's a non-blocking overlay type, then we're done here

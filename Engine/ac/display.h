@@ -35,8 +35,7 @@ struct ScreenOverlay;
 // Generates a textual image from the given text and parameters;
 // see _display_main's comment below for parameters description
 Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought,
-    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
-    bool &alphaChannel);
+    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink);
 // Creates a textual overlay using the given parameters;
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards

@@ -282,7 +282,7 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 // TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
 // conversions, so that we did not have to guess.
 //
-Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
+Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap)
 {
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
@@ -315,10 +315,10 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     //
     // In 32-bit game 32-bit bitmaps should have transparent pixels marked
     // (this adjustment is probably needed for DrawingSurface ops)
-    if (game_col_depth == 32 && bmp_col_depth == 32)
+    if ((game_col_depth == 32) && (bmp_col_depth == 32))
     {
-        if (has_alpha) 
-            set_rgb_mask_using_alpha_channel(new_bitmap);
+        // TODO: find out if this may be removed at some point
+        set_rgb_mask_using_alpha_channel(new_bitmap);
     }
     // In 32-bit game hicolor bitmaps must be converted to the true color
     else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
@@ -326,12 +326,10 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
         new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
     }
     // In non-32-bit game truecolor bitmaps must be downgraded
-    else if (game_col_depth <= 16 && bmp_col_depth > 16)
+    else if ((game_col_depth <= 16) && (bmp_col_depth > 16))
     {
-        if (has_alpha) // if has valid alpha channel, convert it to regular transparency mask
-            new_bitmap = remove_alpha_channel(bitmap);
-        else // else simply convert bitmap
-            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
+        // convert alpha channel to a 8/16-bit transparency mask
+        new_bitmap = remove_alpha_channel(bitmap);
     }
     
     // Finally, if we did not create a new copy already, - convert to driver compatible format
@@ -355,17 +353,17 @@ Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
     return GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, has_alpha);
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
+PBitmap PrepareSpriteForUse(PBitmap bitmap)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get(), has_alpha);
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get());
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 

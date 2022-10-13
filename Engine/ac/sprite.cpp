@@ -145,7 +145,7 @@ void initialize_sprite (int ee) {
         game.SpriteInfos[ee].Width=spriteset[ee]->GetWidth();
         game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
 
-        spriteset.SubstituteBitmap(ee, PrepareSpriteForUse(spriteset[ee], (game.SpriteInfos[ee].Flags & SPF_ALPHACHANNEL) != 0));
+        spriteset.SubstituteBitmap(ee, PrepareSpriteForUse(spriteset[ee]));
 
         if (game.GetColorDepth() < 32) {
             game.SpriteInfos[ee].Flags &= ~SPF_ALPHACHANNEL;

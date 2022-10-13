@@ -57,7 +57,6 @@ class GUIButton : public GUIObject
 public:
     GUIButton();
 
-    bool HasAlphaChannel() const override;
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;

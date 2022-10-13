@@ -60,8 +60,6 @@ public:
 
     void    InitDefaults();
 
-    // Tells if the gui background supports alpha channel
-    bool    HasAlphaChannel() const;
     // Tells if GUI will react on clicking on it
     bool    IsClickable() const;
     // Tells if GUI's visibility is overridden and it won't be displayed on
@@ -266,7 +264,6 @@ extern int gui_inv_pic;
 
 extern int get_adjusted_spritewidth(int spr);
 extern int get_adjusted_spriteheight(int spr);
-extern bool is_sprite_alpha(int spr);
 
 // This function has distinct implementations in Engine and Editor
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y,

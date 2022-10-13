@@ -28,7 +28,6 @@ class GUIListBox : public GUIObject
 public:
     GUIListBox();
 
-    bool HasAlphaChannel() const override;
     bool AreArrowsShown() const;
     bool IsBorderShown() const;
     bool IsSvgIndex() const;

@@ -79,12 +79,6 @@ GUIButton::GUIButton()
     _scEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
-bool GUIButton::HasAlphaChannel() const
-{
-    return ((_currentImage > 0) && is_sprite_alpha(_currentImage)) ||
-        (!_unnamed && is_font_antialiased(Font));
-}
-
 const String &GUIButton::GetText() const
 {
     return _text;

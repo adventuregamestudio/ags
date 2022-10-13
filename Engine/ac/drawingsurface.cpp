@@ -97,7 +97,6 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
             dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmapCopy(sourceBitmap);
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
             newSurface->dynamicSurfaceNumber = i;
-            newSurface->hasAlphaChannel = sds->hasAlphaChannel;
             ccRegisterManagedObject(newSurface, newSurface);
             return newSurface;
         }
@@ -107,9 +106,9 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
     return nullptr;
 }
 
-void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
+static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
     int dst_x, int dst_y, int trans, BlendMode mode, int dst_width, int dst_height,
-    int src_x, int src_y, int src_width, int src_height, int sprite_id, bool src_has_alpha)
+    int src_x, int src_y, int src_width, int src_height, int sprite_id)
 {
     Bitmap *ds = sds->GetBitmapSurface();
     if (src == ds) {} // ignore for now; bitmap lib supports, and may be used for effects
@@ -180,7 +179,7 @@ void DrawingSurface_DrawImageEx(ScriptDrawingSurface* sds,
     if ((slot < 0) || (spriteset[slot] == nullptr))
         quit("!DrawingSurface.DrawImage: invalid sprite slot number specified");
     DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, trans, mode, dst_width, dst_height,
-        src_x, src_y, src_width, src_height, slot, (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
+        src_x, src_y, src_width, src_height, slot);
 }
 
 void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slot, int trans, int width, int height)
@@ -193,7 +192,7 @@ void DrawingSurface_DrawSurfaceEx(ScriptDrawingSurface* target, ScriptDrawingSur
     int src_x, int src_y, int src_width, int src_height)
 {
     DrawingSurface_DrawImageImpl(target, source->GetBitmapSurface(), dst_x, dst_y, trans, mode, dst_width, dst_height,
-        src_x, src_y, src_width, src_height, -1, source->hasAlphaChannel != 0);
+        src_x, src_y, src_width, src_height, -1);
 }
 
 void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int trans)

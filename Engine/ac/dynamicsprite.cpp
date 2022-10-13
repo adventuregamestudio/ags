@@ -59,10 +59,6 @@ ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss)
 {
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->dynamicSpriteNumber = dss->slot;
-
-    if ((game.SpriteInfos[dss->slot].Flags & SPF_ALPHACHANNEL) != 0)
-        surface->hasAlphaChannel = true;
-
     ccRegisterManagedObject(surface, surface);
     return surface;
 }
@@ -109,7 +105,7 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
     delete spriteset[sds->slot];
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    add_dynamic_sprite(sds->slot, newPic);
     game_sprite_updated(sds->slot);
 }
 
@@ -127,7 +123,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
     delete spriteset[sds->slot];
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    add_dynamic_sprite(sds->slot, newPic);
     game_sprite_updated(sds->slot);
 }
 
@@ -150,15 +146,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
     }
 
     // set the target's alpha channel depending on the source
-    bool dst_has_alpha = (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0;
-    bool src_has_alpha = (game.SpriteInfos[sourceSprite].Flags & SPF_ALPHACHANNEL) != 0;
-    game.SpriteInfos[sds->slot].Flags &= ~SPF_ALPHACHANNEL;
-    if (src_has_alpha)
-    {
-        game.SpriteInfos[sds->slot].Flags |= SPF_ALPHACHANNEL;
-    }
-
-    BitmapHelper::CopyTransparency(target, source, dst_has_alpha, src_has_alpha);
+    BitmapHelper::CopyTransparency(target, source, target->GetColorDepth() == 32, source->GetColorDepth() == 32);
     game_sprite_updated(sds->slot);
 }
 
@@ -176,7 +164,7 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     delete spriteset[sds->slot];
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    add_dynamic_sprite(sds->slot, newPic);
     game_sprite_updated(sds->slot);
 }
 
@@ -196,7 +184,7 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int
     delete spriteset[sds->slot];
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    add_dynamic_sprite(sds->slot, newPic);
     game_sprite_updated(sds->slot);
 }
 
@@ -225,7 +213,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
     delete spriteset[sds->slot];
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    add_dynamic_sprite(sds->slot, newPic);
     game_sprite_updated(sds->slot);
 }
 
@@ -238,7 +226,7 @@ void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
 
     delete source;
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
+    add_dynamic_sprite(sds->slot, newPic);
     game_sprite_updated(sds->slot);
 }
 
@@ -312,10 +300,10 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
     if (newPic == nullptr)
         return nullptr;
 
-    bool hasAlpha = (preserveAlphaChannel) && ((game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
+    // TODO: preserveAlphaChannel -- edit bitmap and set full opaque alpha
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(gotSlot, newPic, hasAlpha);
+    add_dynamic_sprite(gotSlot, newPic);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
     return new_spr;
 }
@@ -341,11 +329,12 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
     sds->FinishedDrawingReadOnly();
 
-    add_dynamic_sprite(gotSlot, newPic, (sds->hasAlphaChannel != 0));
+    add_dynamic_sprite(gotSlot, newPic);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
     return new_spr;
 }
 
+// TODO: remove alphaChannel
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChannel) 
 {
     int gotSlot = spriteset.GetFreeIndex();
@@ -357,10 +346,8 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
         return nullptr;
 
     newPic->ClearTransparent();
-    if ((alphaChannel) && (game.GetColorDepth() < 32))
-        alphaChannel = false;
 
-    add_dynamic_sprite(gotSlot, newPic, alphaChannel != 0);
+    add_dynamic_sprite(gotSlot, newPic);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
     return new_spr;
 }
@@ -407,14 +394,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
 //=============================================================================
 
-void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
-
+void add_dynamic_sprite(int gotSlot, Bitmap *redin) {
   spriteset.SetSprite(gotSlot, redin);
-
   game.SpriteInfos[gotSlot].Flags = SPF_DYNAMICALLOC;
-  if (hasAlpha)
-    game.SpriteInfos[gotSlot].Flags |= SPF_ALPHACHANNEL;
-
   game.SpriteInfos[gotSlot].Width = redin->GetWidth();
   game.SpriteInfos[gotSlot].Height = redin->GetHeight();
 }

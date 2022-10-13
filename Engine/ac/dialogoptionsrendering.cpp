@@ -77,12 +77,15 @@ void DialogOptionsRendering_SetHeight(ScriptDialogOptionsRendering *dlgOptRender
 
 int DialogOptionsRendering_GetHasAlphaChannel(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    return dlgOptRender->hasAlphaChannel;
+    // TODO: remove?
+    debug_script_warn("DialogOptionsRendering.AlphaChannel is deprecated");
+    return 0;
 }
 
 void DialogOptionsRendering_SetHasAlphaChannel(ScriptDialogOptionsRendering *dlgOptRender, bool hasAlphaChannel)
 {
-    dlgOptRender->hasAlphaChannel = hasAlphaChannel;
+    // TODO: remove?
+    debug_script_warn("DialogOptionsRendering.AlphaChannel is deprecated");
 }
 
 int DialogOptionsRendering_GetParserTextboxX(ScriptDialogOptionsRendering *dlgOptRender)

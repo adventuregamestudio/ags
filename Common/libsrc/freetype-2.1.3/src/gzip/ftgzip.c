@@ -59,6 +59,14 @@
 
 #endif /* !SYSTEM_ZLIB */
 
+#if (defined(__APPLE__) && defined(__MACH__))
+int z_verbose = 0;
+
+void z_error(/* should be const */char* message)
+{
+    // do nothing
+}
+#endif
 
 /***************************************************************************/
 /***************************************************************************/

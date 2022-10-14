@@ -7,5 +7,6 @@ typedef @USIZE16@ ogg_uint16_t;
 typedef @SIZE32@ ogg_int32_t;
 typedef @USIZE32@ ogg_uint32_t;
 typedef @SIZE64@ ogg_int64_t;
+typedef @USIZE64@ ogg_uint64_t;
 
 #endif

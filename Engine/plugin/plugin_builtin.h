@@ -22,12 +22,13 @@
 
 class IAGSEngine;
 
+namespace AGS { namespace Common { class String; }}
 using namespace AGS; // FIXME later
 
 //  Initial implementation for apps to register their own inbuilt plugins
 
 struct InbuiltPluginDetails {
-    String    filename;
+    AGS::Common::String    filename;
     void      (*engineStartup) (IAGSEngine *);
     void      (*engineShutdown) ();
     int       (*onEvent) (int, int);

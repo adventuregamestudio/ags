@@ -540,7 +540,7 @@ extern void th_comment_init(th_comment *_tc);
  * \param _tc      The #th_comment struct to add the comment to.
  * \param _comment Must be a null-terminated UTF-8 string containing the
  *                  comment in "TAG=the value" form.*/
-extern void th_comment_add(th_comment *_tc, char *_comment);
+extern void th_comment_add(th_comment *_tc, const char *_comment);
 /**Add a comment to an initialized #th_comment structure.
  * \note Neither th_comment_add() nor th_comment_add_tag() support
  *  comments containing null values, although the bitstream format does
@@ -551,7 +551,7 @@ extern void th_comment_add(th_comment *_tc, char *_comment);
  * \param _tag A null-terminated string containing the tag  associated with
  *              the comment.
  * \param _val The corresponding value as a null-terminated string.*/
-extern void th_comment_add_tag(th_comment *_tc,char *_tag,char *_val);
+extern void th_comment_add_tag(th_comment *_tc,const char *_tag,const char *_val);
 /**Look up a comment value by its tag.
  * \param _tc    An initialized #th_comment structure.
  * \param _tag   The tag to look up.
@@ -567,7 +567,7 @@ extern void th_comment_add_tag(th_comment *_tc,char *_tag,char *_val);
  *         It should not be modified or freed by the application, and
  *          modifications to the structure may invalidate the pointer.
  * \retval NULL If no matching tag is found.*/
-extern char *th_comment_query(th_comment *_tc,char *_tag,int _count);
+extern char *th_comment_query(th_comment *_tc,const char *_tag,int _count);
 /**Look up the number of instances of a tag.
  * Call this first when querying for a specific tag and then iterate over the
  *  number of instances with separate calls to th_comment_query() to
@@ -575,7 +575,7 @@ extern char *th_comment_query(th_comment *_tc,char *_tag,int _count);
  * \param _tc    An initialized #th_comment structure.
  * \param _tag   The tag to look up.
  * \return The number on instances of this particular tag.*/
-extern int th_comment_query_count(th_comment *_tc,char *_tag);
+extern int th_comment_query_count(th_comment *_tc,const char *_tag);
 /**Clears a #th_comment structure.
  * This should be called on a #th_comment structure after it is no longer
  *  needed.

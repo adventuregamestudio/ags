@@ -50,7 +50,6 @@ ScriptMouse scmouse;
 int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
-char alpha_blend_cursor = 0;
 Bitmap *dotted_mouse_cursor = nullptr;
 IDriverDependantBitmap *mouseCursor = nullptr;
 Bitmap *blank_mouse_cursor = nullptr;
@@ -395,11 +394,6 @@ void set_new_cursor_graphic (int spriteslot) {
         }
         mousecurs[0] = blank_mouse_cursor;
     }
-
-    if (game.SpriteInfos[spriteslot].Flags & SPF_ALPHACHANNEL)
-        alpha_blend_cursor = 1;
-    else
-        alpha_blend_cursor = 0;
 
     update_cached_mouse_cursor();
 }

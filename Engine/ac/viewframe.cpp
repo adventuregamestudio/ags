@@ -135,11 +135,11 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume)
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend)
+void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
 {
-    if (alpha_blend)
+    Bitmap *vf_bmp = spriteset[vframe->pic];
+    if ((ds->GetColorDepth() == 32) && (vf_bmp->GetColorDepth() == 32))
     {
-        Bitmap *vf_bmp = spriteset[vframe->pic];
         Bitmap *src = vf_bmp;
         if (vframe->flags & VFLG_FLIPSPRITE)
         {
@@ -153,9 +153,9 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha
     else
     {
         if (vframe->flags & VFLG_FLIPSPRITE)
-            ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kFlip_Horizontal);
+            ds->FlipBlt(vf_bmp, x, y, Common::kFlip_Horizontal);
         else
-            ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+            ds->Blit(vf_bmp, x, y, Common::kBitmap_Transparency);
     }
 }
 

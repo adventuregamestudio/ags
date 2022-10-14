@@ -217,8 +217,6 @@ enum GameGuiAlphaRenderingStyle
 
 // Sprite flags (serialized as 8-bit)
 #define SPF_DYNAMICALLOC    0x04  // created by runtime script
-#define SPF_ALPHACHANNEL    0x10  // has alpha-channel
-#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
 
 // General information about sprite (properties, size)
 struct SpriteInfo

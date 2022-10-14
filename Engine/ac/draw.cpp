@@ -1375,14 +1375,14 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
       if (isMirrored) {
           // TODO: "flip self" function may allow to optimize this
           Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(newwidth, newheight, coldept);
-          if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
+          if ((IS_ANTIALIAS_SPRITES) && (src_sprite->GetColorDepth() < 32))
               tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           active_spr->FlipBlt(tempspr, 0, 0, Common::kFlip_Horizontal);
           delete tempspr;
       }
-      else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
+      else if ((IS_ANTIALIAS_SPRITES) && (src_sprite->GetColorDepth() < 32))
           active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
           active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
@@ -1413,7 +1413,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 // Used for software render mode only.
-static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap> &dst,
+static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
     const Size dst_sz, GraphicFlip flip = Common::kFlip_None)
 {
     if ((src->GetSize() == dst_sz) && (flip == kFlip_None))
@@ -1435,7 +1435,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         {
             Bitmap tempbmp;
             tempbmp.CreateTransparent(dst_sz.Width, dst_sz.Height, src->GetColorDepth());
-            if ((IS_ANTIALIAS_SPRITES) && !src_has_alpha)
+            if ((IS_ANTIALIAS_SPRITES) && (src->GetColorDepth() < 32))
                 tempbmp.AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 tempbmp.StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1443,7 +1443,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         }
         else
         {
-            if ((IS_ANTIALIAS_SPRITES) && !src_has_alpha)
+            if ((IS_ANTIALIAS_SPRITES) && (src->GetColorDepth() < 32))
                 dst->AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 dst->StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1468,8 +1468,8 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
 static bool scale_and_flip_sprite(int useindx, int sppic, int newwidth, int newheight, bool hmirror)
 {
     Bitmap *src = spriteset[sppic];
-    Bitmap *result = transform_sprite(src, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0,
-        actsps[useindx].Bmp, Size(newwidth, newheight), hmirror ? kFlip_Horizontal : kFlip_None);
+    Bitmap *result = transform_sprite(src, actsps[useindx].Bmp, Size(newwidth, newheight),
+        hmirror ? kFlip_Horizontal : kFlip_None);
     return result != src;
 }
 

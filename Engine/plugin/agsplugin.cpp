@@ -645,8 +645,8 @@ void IAGSEngine::DeleteDynamicSprite(int32 slot) {
     free_dynamic_sprite(slot);
 }
 int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
-    if (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL)
-        return 1;
+    // [DEPRECATED] TODO: may test for 32-bit? not sure if this function is necessary
+    debug_script_warn("IsSpriteAlphaBlended: this function is deprecated and won't have any effect.");
     return 0;
 }
 
@@ -678,12 +678,9 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     game_sprite_updated(slot);
 }
 
-void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {
-
-    game.SpriteInfos[slot].Flags &= ~SPF_ALPHACHANNEL;
-
-    if (isAlphaBlended)
-        game.SpriteInfos[slot].Flags |= SPF_ALPHACHANNEL;
+void IAGSEngine::SetSpriteAlphaBlended(int32 /*slot*/, int32 /*isAlphaBlended*/) {
+    // [DEPRECATED]
+    debug_script_warn("SetSpriteAlphaBlended: this function is deprecated and won't have any effect.");
 }
 
 void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {

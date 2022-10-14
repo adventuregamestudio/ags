@@ -131,12 +131,6 @@ void initialize_sprite (int ee) {
         int oldeip = our_eip;
         our_eip = 4300;
 
-        if (game.SpriteInfos[ee].Flags & SPF_HADALPHACHANNEL) {
-            // we stripped the alpha channel out last time, put
-            // it back so that we can remove it properly again
-            game.SpriteInfos[ee].Flags |= SPF_ALPHACHANNEL;
-        }
-
         curspr = spriteset[ee];
 
         eip_guinum = ee;
@@ -146,13 +140,6 @@ void initialize_sprite (int ee) {
         game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
 
         spriteset.SubstituteBitmap(ee, PrepareSpriteForUse(spriteset[ee]));
-
-        if (game.GetColorDepth() < 32) {
-            game.SpriteInfos[ee].Flags &= ~SPF_ALPHACHANNEL;
-            // save the fact that it had one for the next time this
-            // is re-loaded from disk
-            game.SpriteInfos[ee].Flags |= SPF_HADALPHACHANNEL;
-        }
 
         pl_run_plugin_hooks(AGSE_SPRITELOAD, ee);
 

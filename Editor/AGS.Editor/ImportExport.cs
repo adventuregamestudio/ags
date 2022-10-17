@@ -48,7 +48,6 @@ namespace AGS.Editor
         private const string GUI_XML_SPRITE_HEIGHT = "Height";
         private const string GUI_XML_SPRITE_RESOLUTION = "Resolution";
 
-        private static int SPRITE_FLAG_ALPHA_CHANNEL = NativeConstants.SPF_ALPHACHANNEL;
         private static int EDITOR_DAT_LATEST_FILE_VERSION = 7;
         private static Dictionary<string, ImageFormat> ImageFileTypes = new Dictionary<string, ImageFormat>();
 
@@ -1120,17 +1119,13 @@ namespace AGS.Editor
             return view;
         }
 
+        // [CLNUP] remove old format?
         private static void WriteOldStyleViewFrame(BinaryWriter writer, ViewFrame frame)
         {
             Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(frame.Image);
             int colDepth = GetColorDepthForPixelFormat(bmp.PixelFormat);
             writer.Write(colDepth);
             int spriteFlags = 0;
-            // TODO: why we are not saving resolution flags?
-            if (bmp.PixelFormat == PixelFormat.Format32bppArgb)
-            {
-                spriteFlags |= SPRITE_FLAG_ALPHA_CHANNEL;
-            }
             writer.Write((byte)spriteFlags);
             writer.Write(bmp.Width);
             writer.Write(bmp.Height);
@@ -1150,6 +1145,7 @@ namespace AGS.Editor
             bmp.Dispose();
         }
 
+        // [CLNUP] remove old format support
         private static Sprite ReadOldStyleViewFrame(BinaryReader reader, ViewLoop loop, ViewFrame frame, Color[] palette)
         {
             int colDepth = reader.ReadInt32();
@@ -1164,7 +1160,7 @@ namespace AGS.Editor
             int height = reader.ReadInt32();
             byte[] spriteData = reader.ReadBytes(width * height * ((colDepth + 1) / 8));
 
-            Sprite newSprite = ImportSpriteFromRawData(colDepth, width, height, (spriteFlags & SPRITE_FLAG_ALPHA_CHANNEL) != 0, spriteData, palette);
+            Sprite newSprite = ImportSpriteFromRawData(colDepth, width, height, false, spriteData, palette);
             return newSprite;
         }
 

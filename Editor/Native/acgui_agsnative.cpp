@@ -16,22 +16,6 @@
 
 extern GameSetupStruct thisgame;
 
-bool AGS::Common::GUIMain::HasAlphaChannel() const
-{
-    if (this->BgImage > 0)
-    {
-        // alpha state depends on background image
-        return is_sprite_alpha(this->BgImage);
-    }
-    if (this->BgColor > 0)
-    {
-        // not alpha transparent if there is a background color
-        return false;
-    }
-    // transparent background, enable alpha blending
-    return thisgame.color_depth * 8 >= 24;
-}
-
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h
 //=============================================================================
@@ -107,11 +91,6 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
     _textToDraw = text;
-}
-
-bool GUIInvWindow::HasAlphaChannel() const
-{
-    return false; // don't do alpha in the editor
 }
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)

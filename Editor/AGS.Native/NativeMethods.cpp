@@ -588,7 +588,6 @@ namespace AGS
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
-            if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
             if (name->Equals("PASSWORD_ENC_STRING"))
             {
                 int len = (int)strlen(passwencstring);

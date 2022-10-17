@@ -53,4 +53,7 @@
    #define ALLEGRO_NO_ASM
 #endif
 
+// used by readbmp
+#define stricmp strcasecmp
+
 #endif //ALIOSCFG_H

@@ -1,74 +1,34 @@
-# Using the engine
+# AGS for iOS
 
-## Installation
+This port was initally done by JJS, when the backend was Allegro4. Currently, it uses SDL2.
 
-A jailbroken iDevice is required!
+iOS thread on the AGS forum: https://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0
 
-Cydia packages for the engine, midi patches and a test game can be obtained
-by adding
-
-    http://jjs.at/cydia/
-
-as a repository to Cydia.
-
-
-## Adding a game
-
-Place the game data under
-
-    /var/mobile/ags/game/
-
-The main game file (the "exe") has to be renamed to "ac2game.dat".
-
-You can change engine settings by placing a file "ios.cfg" into the
-"ags" folder. A sample configuration file can be found in <SOURCE>/misc/.
-
-
-## Controls
-
--   Finger movement: Moving the mouse cursor
--   Single finger tap: Perform a left click
--   Tap with two fingers: Perform a right click
--   Longclick: Hold down the left mouse button until tapping the screen again
--   Holding down one finger for over two seconds: Open/Close the onscreen keyboard
-
-
-# Building the engine
+## Building
 
 The iOS app consists of two parts:
 
 -   iOS app and engine
--   3rd party libraries
+-   SDL2 xcFramework
+
+Currently building both requires Xcode and macOS. Development was originally done in Xcode 14.
 
 
-## iOS app
+## Building SDL2 Framework for iOS
 
-There is an Xcode project in the <SOURCE>/iOS/xcode directory. It requires a
-minimum of the iOS SDK 8.0. The project should build on OS X Mavericks (version
-10.9) or above with Xcode 6.0.1 or above.
+The SDL2 Framework for iOS is not yet provided as release artifacts, so you have to build it yourself. If you are in an arm based mac, you may need to use the xcFramework-iOS instead, but it's not available in a release yet.
 
-To build from command line, change to <SOURCE>/iOS/xcode/ags and run
+1. Download **SDL** and extract it to a directory of your choice
+2. Start **Xcode** and open the SDL project in `Xcode/SDL/SDL.xcodeproj`
+3. In the Xcode title menu, go in **Product**, **Scheme**, **Choose Scheme** and  select **Framework-iOS**
+4. Still in **Product**, go in **Destination** and select **Any iOS Device (arm64)** or select one of the **iOS Simulators** target (e.g. iPhone 14) if you are still going to test in a simulator.
+5. Now in **Product**, **Archive** should be available, hit it to build the xcFramework
+6. Wait for the build to finish, when it's done, in the window that appears, make sure the selected archive is the one you just build and click **Distribute Content**
+7. Now click in **Built Products** and save it somewhere you remember.
 
-    $ xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+After the `SDL2.Framework` is built, navigate to it in Finder and copy it on the directory you cloned the ags source code, in the `<SOURCE>/iOS/xcode/ags/` directory. You can close the SDL xcode project now.
 
+## Building AGS for iOS
 
-## Native 3rd party libraries
+After building the SDL2 Framework and placing it in the indicated directory, open Xcode and load the project in `<SOURCE>/iOS/xcode/ags/ags.xcodeproj`.
 
-You don't have to build these yourself unless you want to change the source code of
-a library.
-
-Change to the <SOURCE>/iOS/buildlibs directory and run
-
-    ./buildall.sh
-    ./makefatlibs.sh
-
-This will patch, build and properly install the required libraries for
-armv7, armv7s, arm64, i386 and x86_64 architectures.
-
-
-
-## Links
-
-Cydia repository: http://jjs.at/cydia/
-
-iOS thread on the AGS forum: http://www.adventuregamestudio.co.uk/yabb/index.php?topic=46040.0

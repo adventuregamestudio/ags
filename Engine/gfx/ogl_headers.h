@@ -19,49 +19,20 @@
 #include "core/platform.h"
 
 #if AGS_OPENGL_ES2
-#include <SDL.h>
-#include <EGL/egl.h>
-#include "glad/glad.h"
+#  include <SDL.h>
+#  if !AGS_PLATFORM_OS_IOS
+#    include <EGL/egl.h>
+#  endif
+#  include "glad/glad.h"
 #elif AGS_PLATFORM_OS_WINDOWS
-#include <SDL.h>
-#include "platform/windows/windows.h"
-#include "glad/glad.h"
-
-#elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD
-#include <SDL.h>
-#include "glad/glad.h"
-
-#elif AGS_PLATFORM_OS_MACOS
-#include "SDL.h"
-#include "glad/glad.h"
-
-#elif AGS_PLATFORM_OS_ANDROID
-
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-// TODO: we probably should not use GLExt since we use GLES2
-#include <GLES/glext.h>
-
-#elif AGS_PLATFORM_OS_IOS
-
-#include <OpenGLES/ES1/gl.h>
-#include <OpenGLES/ES2/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <OpenGLES/ES1/glext.h>
-
+#  include <SDL.h>
+#  include "platform/windows/windows.h"
+#  include "glad/glad.h"
+#elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD || AGS_PLATFORM_OS_MACOS
+#  include <SDL.h>
+#  include "glad/glad.h"
 #else
-
-#error "opengl: unsupported platform"
-
+#  error "opengl: unsupported platform"
 #endif
 
 #ifndef GLAPI

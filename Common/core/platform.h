@@ -150,7 +150,9 @@
                         AGS_PLATFORM_OS_EMSCRIPTEN || \
                         AGS_PLATFORM_OS_FREEBSD    || \
                         AGS_PLATFORM_OS_MACOS)
-#define AGS_OPENGL_ES2 (AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_EMSCRIPTEN)
+#define AGS_OPENGL_ES2 (AGS_PLATFORM_OS_ANDROID    || \
+                        AGS_PLATFORM_OS_EMSCRIPTEN || \
+                        AGS_PLATFORM_OS_IOS)
 
 // Only allow searching around for game data on desktop systems;
 // otherwise use explicit argument either from program wrapper, command-line

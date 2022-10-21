@@ -377,9 +377,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\color.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\dataregi.c">
-      <Filter>Library Sources\allegro</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\dither.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>

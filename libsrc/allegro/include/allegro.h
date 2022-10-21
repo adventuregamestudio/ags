@@ -37,7 +37,6 @@
 #include "allegro/fli.h"
 
 #include "allegro/file.h"
-#include "allegro/datafile.h"
 
 #include "allegro/fixed.h"
 #include "allegro/fmaths.h"

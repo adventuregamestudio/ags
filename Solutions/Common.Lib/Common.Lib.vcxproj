@@ -394,7 +394,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\c\cspr32.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\c\cspr8.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\c\cstretch.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\dataregi.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\dither.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\fli.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\flood.c" />

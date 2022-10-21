@@ -371,9 +371,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\blit.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\bmp.c">
-      <Filter>Library Sources\allegro</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\colblend.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
@@ -402,9 +399,6 @@
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\libc.c">
-      <Filter>Library Sources\allegro</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\pcx.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\polygon.c">

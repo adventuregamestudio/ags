@@ -569,10 +569,6 @@ typedef struct DATAFILE_TYPE
 
 AL_ARRAY(DATAFILE_TYPE, _datafile_type);
 
-/* for readbmp.c */
-AL_FUNC(void, _register_bitmap_file_type_init, (void));
-
-
 
 /* various libc stuff */
 AL_FUNC(void *, _al_sane_realloc, (void *ptr, size_t size));

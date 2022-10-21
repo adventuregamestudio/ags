@@ -42,9 +42,6 @@ AL_FUNC(void, put_backslash, (char *filename));
    #define EOF    (-1)
 #endif
 
-#define F_READ          "r"
-#define F_WRITE         "w"
-
 #define F_BUF_SIZE      4096           /* 4K buffer for caching data */
 
 #define PACKFILE_FLAG_WRITE      1     /* the file is being written */
@@ -56,35 +53,15 @@ AL_FUNC(void, put_backslash, (char *filename));
 typedef struct PACKFILE_VTABLE PACKFILE_VTABLE;
 typedef struct PACKFILE PACKFILE;
 
-struct LZSS_PACK_DATA;
-struct LZSS_UNPACK_DATA;
 
-
-struct _al_normal_packfile_details
-{
-   int hndl;                           /* DOS file handle */
-   int flags;                          /* PACKFILE_FLAG_* constants */
-   unsigned char *buf_pos;             /* position in buffer */
-   int buf_size;                       /* number of bytes in the buffer */
-   long todo;                          /* number of bytes still on the disk */
-   struct PACKFILE *parent;            /* nested, parent file */
-   char *filename;                     /* name of the file */
-   unsigned char buf[F_BUF_SIZE];      /* the actual data buffer */
-};
-
-
-struct PACKFILE                           /* our very own FILE structure... */
+/* The stripped allegro's PACKFILE, left strictly with support for user vtable.
+   We'd remove it completely, but we're still using one or two old
+   Allegro-based libs which require PACKFILE struct for data streaming.
+*/
+struct PACKFILE
 {
    AL_CONST PACKFILE_VTABLE *vtable;
    void *userdata;
-   int is_normal_packfile;
-
-   /* The following is only to be used for the "normal" PACKFILE vtable,
-    * i.e. what is implemented by Allegro itself. If is_normal_packfile is
-    * false then the following is not even allocated. This must be the last
-    * member in the structure.
-    */
-   struct _al_normal_packfile_details normal;
 };
 
 
@@ -107,13 +84,9 @@ struct PACKFILE_VTABLE
 AL_FUNC(void, set_filename_encoding, (int encoding));
 AL_FUNC(int, get_filename_encoding, (void));
 
-AL_FUNC(void, packfile_password, (AL_CONST char *password));
-AL_FUNC(PACKFILE *, pack_fopen, (AL_CONST char *filename, AL_CONST char *mode));
 AL_FUNC(PACKFILE *, pack_fopen_vtable, (AL_CONST PACKFILE_VTABLE *vtable, void *userdata));
 AL_FUNC(int, pack_fclose, (PACKFILE *f));
 AL_FUNC(int, pack_fseek, (PACKFILE *f, int offset));
-AL_FUNC(PACKFILE *, pack_fopen_chunk, (PACKFILE *f, int pack));
-AL_FUNC(PACKFILE *, pack_fclose_chunk, (PACKFILE *f));
 AL_FUNC(int, pack_getc, (PACKFILE *f));
 AL_FUNC(int, pack_putc, (int c, PACKFILE *f));
 AL_FUNC(int, pack_feof, (PACKFILE *f));
@@ -131,7 +104,6 @@ AL_FUNC(long, pack_fwrite, (AL_CONST void *p, long n, PACKFILE *f));
 AL_FUNC(int, pack_ungetc, (int c, PACKFILE *f));
 AL_FUNC(char *, pack_fgets, (char *p, int max, PACKFILE *f));
 AL_FUNC(int, pack_fputs, (AL_CONST char *p, PACKFILE *f));
-AL_FUNC(void *, pack_get_userdata, (PACKFILE *f));
 
 
 
@@ -140,5 +112,3 @@ AL_FUNC(void *, pack_get_userdata, (PACKFILE *f));
 #endif
 
 #endif          /* ifndef ALLEGRO_FILE_H */
-
-

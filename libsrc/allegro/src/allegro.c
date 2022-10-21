@@ -270,11 +270,6 @@ static int _install_allegro(int system_id, int *errno_ptr, int (*atexit_ptr)(voi
    RGB black_rgb = {0, 0, 0, 0};
    int i;
 
-   #ifndef ALLEGRO_USE_CONSTRUCTOR
-      /* call constructor functions manually */
-      _register_bitmap_file_type_init();
-   #endif
-
    if (errno_ptr)
       allegro_errno = errno_ptr;
    else

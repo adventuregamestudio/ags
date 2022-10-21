@@ -144,12 +144,13 @@ static void fli_rewind(int offset)
       fli_mem_pos = offset;
    }
    else {
-      pack_fclose(fli_file);
-      fli_file = pack_fopen(fli_filename, F_READ);
-      if (fli_file)
-	 pack_fseek(fli_file, offset);
-      else
-	 fli_status = FLI_ERROR;
+      if (fli_file) {
+         pack_fseek(fli_file, offset);
+      }
+      else {
+         pack_fclose(fli_file);
+         fli_status = FLI_ERROR;
+      }
    }
 }
 
@@ -868,34 +869,6 @@ static int do_open_fli(void)
       fli_speed = 1000 / 70;
 
    return fli_status;
-}
-
-
-
-/* open_fli:
- *  Opens an FLI file ready for playing.
- */
-int open_fli(AL_CONST char *filename)
-{
-   ASSERT(filename);
-   
-   if (fli_status != FLI_NOT_OPEN)
-      return FLI_ERROR;
-
-   if (fli_filename) {
-      _AL_FREE(fli_filename);
-      fli_filename = NULL;
-   }
-
-   fli_filename = _al_ustrdup(filename);
-   if (!fli_filename)
-      return FLI_ERROR;
-
-   fli_file = pack_fopen(fli_filename, F_READ);
-   if (!fli_file)
-      return FLI_ERROR;
-
-   return do_open_fli();
 }
 
 

@@ -109,16 +109,6 @@ AL_FUNC(int, _al_drive_exists, (int drive));
 AL_FUNC(int, _al_getdrive, (void));
 AL_FUNC(void, _al_getdcwd, (int drive, char *buf, int size));
 
-/* obsolete; only exists for binary compatibility with 4.2.0 */
-AL_FUNC(long, _al_file_size, (AL_CONST char *filename));
-
-
-/* packfile stuff */
-AL_VAR(int, _packfile_filesize);
-AL_VAR(int, _packfile_datasize);
-AL_VAR(int, _packfile_type);
-AL_FUNC(PACKFILE *, _pack_fdopen, (int fd, AL_CONST char *mode));
-
 
 
 #if (defined ALLEGRO_WINDOWS)
@@ -523,55 +513,6 @@ typedef struct POLYGON_EDGE
    struct POLYGON_EDGE *next;
    struct POLYGON_INFO *poly;	    /* father polygon */
 } POLYGON_EDGE;
-
-
-
-/* datafile ID's for compatibility with the old datafile format */
-#define V1_DAT_MAGIC             0x616C6C2EL
-
-#define V1_DAT_DATA              0
-#define V1_DAT_FONT              1
-#define V1_DAT_BITMAP_16         2 
-#define V1_DAT_BITMAP_256        3
-#define V1_DAT_SPRITE_16         4
-#define V1_DAT_SPRITE_256        5
-#define V1_DAT_PALETTE_16        6
-#define V1_DAT_PALETTE_256       7
-#define V1_DAT_FONT_8x8          8
-#define V1_DAT_FONT_PROP         9
-#define V1_DAT_BITMAP            10
-#define V1_DAT_PALETTE           11
-#define V1_DAT_SAMPLE            12
-#define V1_DAT_MIDI              13
-#define V1_DAT_RLE_SPRITE        14
-#define V1_DAT_FLI               15
-#define V1_DAT_C_SPRITE          16
-#define V1_DAT_XC_SPRITE         17
-
-#define OLD_FONT_SIZE            95
-#define LESS_OLD_FONT_SIZE       224
-
-
-/* datafile object loading functions */
-AL_FUNC(void, _unload_datafile_object, (DATAFILE *dat));
-
-
-/* information about a datafile object */
-typedef struct DATAFILE_TYPE
-{
-   int type;
-   AL_METHOD(void *, load, (PACKFILE *f, long size));
-   AL_METHOD(void, destroy, (void *));
-} DATAFILE_TYPE;
-
-
-#define MAX_DATAFILE_TYPES    32
-
-AL_ARRAY(DATAFILE_TYPE, _datafile_type);
-
-/* for readbmp.c */
-AL_FUNC(void, _register_bitmap_file_type_init, (void));
-
 
 
 /* various libc stuff */

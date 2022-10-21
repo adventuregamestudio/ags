@@ -35,10 +35,12 @@ int LoadImageFile(const char *filename)
     Bitmap *loadedFile;
     if (rp.AssetMgr)
     {
-        PACKFILE *pf = PackfileFromAsset(AssetPath(rp.FullPath, "*"));
-        if (!pf)
+        std::unique_ptr<Stream> in_stream ( AssetMgr->OpenAsset(rp.FullPath, "*"));
+        if(in_stream == nullptr) {
             return 0;
-        loadedFile = BitmapHelper::LoadFromFile(pf);
+        }
+        String ext = Path::GetFileExtension(rp.FullPath).Lower();
+        loadedFile = BitmapHelper::LoadBitmap(ext, in_stream.get());
     }
     else
     {

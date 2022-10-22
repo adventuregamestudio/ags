@@ -68,6 +68,17 @@ namespace Memory
     #endif
     }
 
+    // Read only first 3 bytes
+    inline int32_t ReadInt24(const void *ptr)
+    {
+        const uint8_t *b = (const uint8_t *)ptr;
+#if defined (BITBYTE_BIG_ENDIAN)
+            return (b[0] << 16) | (b[1] << 8) | b[2];
+#else
+            return (b[2] << 16) | (b[1] << 8) | b[0];
+#endif
+    }
+
     inline int32_t ReadInt32(const void *ptr)
     {
     #if defined (MEMORY_STRICT_ALIGNMENT)
@@ -112,6 +123,21 @@ namespace Memory
     #else
         *(int16_t*)ptr = value;
     #endif
+    }
+
+    // Write only first 3 bytes
+    inline void WriteInt24(void *ptr, int32_t value)
+    {
+        uint8_t *b = (uint8_t *)ptr;
+#if defined (BITBYTE_BIG_ENDIAN)
+            b[0] = (uint8_t)(value >> 16);
+            b[1] = (uint8_t)(value >> 8);
+            b[2] = (uint8_t)(value);
+#else
+            b[2] = (uint8_t)(value >> 16);
+            b[1] = (uint8_t)(value >> 8);
+            b[0] = (uint8_t)(value);
+#endif
     }
 
     inline void WriteInt32(void *ptr, int32_t value)

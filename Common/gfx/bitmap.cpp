@@ -381,7 +381,7 @@ static void bmp_read_24bit_line(int length, Stream *in, unsigned char* current_l
         c.b = in->ReadInt8();
         c.g = in->ReadInt8();
         c.r = in->ReadInt8();
-        WRITE3BYTES(current_line+i*3, makecol24(c.r, c.g, c.b));
+        Memory::WriteInt24(current_line+i*3, makecol24(c.r, c.g, c.b));
     }
 
     /* padding */
@@ -407,7 +407,7 @@ static void bmp_read_32bit_line(int length, Stream *in, unsigned char* current_l
         c.g = in->ReadInt8();
         c.r = in->ReadInt8();
         a = in->ReadInt8();
-        WRITE3BYTES(current_line+i*4, makeacol32(c.r, c.g, c.b, a));
+        Memory::WriteInt24(current_line+i*4, makeacol32(c.r, c.g, c.b, a));
     }
 }
 

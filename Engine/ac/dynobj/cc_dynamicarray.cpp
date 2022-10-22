@@ -42,7 +42,7 @@ int CCDynamicArray::Dispose(const char *address, bool force) {
         }
     }
 
-    delete address;
+    delete[] address;
     return 1;
 }
 

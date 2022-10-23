@@ -58,12 +58,13 @@ struct GameSetupStructBase {
     int               default_lipsync_frame; // used for unknown chars
     int               invhotdotsprite;
     int               reserved[NUM_INTS_RESERVED];
-    char             *messages[MAXGLOBALMES];
+    Common::String    messages[MAXGLOBALMES];
     WordsDictionary  *dict;
     char             *globalscript;
     CharacterInfo    *chars;
     ccScript         *compiled_script;
 
+    // TODO: refactor to not have this as struct members
     int             *load_messages;
     bool             load_dictionary;
     bool             load_compiled_script;

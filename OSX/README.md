@@ -27,7 +27,11 @@ After you build your game with the Editor, your own game `.ags` and additional f
 In this port, all game resources are taken from `OSX/Resources`, remove the stub files that exist there and replace them with your game files taken from `Compiled/Data/`.
 
 
-## Building your game with CMake and Xcode
+## Building with CMake
+
+Building with CMake is detailed in [`../CMAKE.md`](../CMAKE.md). Follow below for macOS specifics to create your own `.app` bundle with your own game.
+
+### Building your game with CMake and Xcode
 
 At the AGS project root, use CMake to generate the needed Xcode project.
 ```
@@ -43,7 +47,7 @@ The produced binary will be in the `ags/buildXcode/Debug/` directory or `ags/bui
 By default, the name is `AGS.app`.
 
 
-## Building your game with CMake and make
+### Building your game with CMake and make
 
 You can also use CMake and make to build AGS. 
 

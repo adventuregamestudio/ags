@@ -7,15 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2097967128FA32510065C91B /* ags.iconset in Resources */ = {isa = PBXBuildFile; fileRef = 2097967028FA2F7F0065C91B /* ags.iconset */; };
+		2097967628FA35940065C91B /* AGSKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2097967528FA35940065C91B /* AGSKit.framework */; };
 		20E6850228F2202800B95C00 /* acsetup.cfg in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FD28F2202700B95C00 /* acsetup.cfg */; };
 		20E6850328F2202800B95C00 /* game.ags in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FE28F2202700B95C00 /* game.ags */; };
 		20E6850428F2202800B95C00 /* audio.vox in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FF28F2202700B95C00 /* audio.vox */; };
-		20E6850528F2202800B95C00 /* ags.icns in Resources */ = {isa = PBXBuildFile; fileRef = 20E6850028F2202800B95C00 /* ags.icns */; };
 		20E6850628F2202800B95C00 /* speech.vox in Resources */ = {isa = PBXBuildFile; fileRef = 20E6850128F2202800B95C00 /* speech.vox */; };
 		20E6855328F225F800B95C00 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6811C28F1CA1700B95C00 /* SDL2.framework */; };
 		20E6855428F225F800B95C00 /* SDL2.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6811C28F1CA1700B95C00 /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		20E6855528F2260100B95C00 /* AGSKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 523AB9701D27DA40002B98F0 /* AGSKit.framework */; };
-		20E6855628F2260100B95C00 /* AGSKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 523AB9701D27DA40002B98F0 /* AGSKit.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		20E6855828F25AF000B95C00 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6855728F25AF000B95C00 /* AudioToolbox.framework */; };
 		20E6855A28F25AF800B95C00 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6855928F25AF800B95C00 /* AudioUnit.framework */; };
 		20E6855C28F25B0500B95C00 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6855B28F25B0400B95C00 /* CoreAudio.framework */; };
@@ -37,7 +36,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				20E6855428F225F800B95C00 /* SDL2.framework in Copy Frameworks */,
-				20E6855628F2260100B95C00 /* AGSKit.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -46,12 +44,13 @@
 
 /* Begin PBXFileReference section */
 		1D6058910D05DD3D006BFB54 /* AGS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AGS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2097967028FA2F7F0065C91B /* ags.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder.iconset; name = ags.iconset; path = ../../ags.iconset; sourceTree = "<group>"; };
+		2097967528FA35940065C91B /* AGSKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20C76AB428F3488300772CFC /* ags.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ags.entitlements; sourceTree = "<group>"; };
 		20E6811C28F1CA1700B95C00 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../AGSKit/SDL2.framework; sourceTree = "<group>"; };
 		20E684FD28F2202700B95C00 /* acsetup.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = acsetup.cfg; path = ../../Resources/acsetup.cfg; sourceTree = "<group>"; };
 		20E684FE28F2202700B95C00 /* game.ags */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = game.ags; path = ../../Resources/game.ags; sourceTree = "<group>"; };
 		20E684FF28F2202700B95C00 /* audio.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audio.vox; path = ../../Resources/audio.vox; sourceTree = "<group>"; };
-		20E6850028F2202800B95C00 /* ags.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = ags.icns; path = ../../Resources/ags.icns; sourceTree = "<group>"; };
 		20E6850128F2202800B95C00 /* speech.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = speech.vox; path = ../../Resources/speech.vox; sourceTree = "<group>"; };
 		20E6855728F25AF000B95C00 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		20E6855928F25AF800B95C00 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
@@ -64,7 +63,6 @@
 		20E6856828F25B5400B95C00 /* libz.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.tbd; path = usr/lib/libz.1.tbd; sourceTree = SDKROOT; };
 		20E6856E28F25E5B00B95C00 /* libbz2.1.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.1.0.tbd; path = usr/lib/libbz2.1.0.tbd; sourceTree = SDKROOT; };
 		32CA4F630368D1EE00C91783 /* ags_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ags_Prefix.pch; sourceTree = "<group>"; };
-		523AB9701D27DA40002B98F0 /* AGSKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		52C5BFB21D277B98001E3B10 /* plugin_registration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_registration.cpp; sourceTree = "<group>"; };
 		52C5BFB31D277B98001E3B10 /* plugin_registration.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = plugin_registration.hpp; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -75,11 +73,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2097967628FA35940065C91B /* AGSKit.framework in Frameworks */,
 				20E6856928F25B5F00B95C00 /* libz.1.tbd in Frameworks */,
 				20E6856328F25B3000B95C00 /* OpenGL.framework in Frameworks */,
 				20E6856F28F25E5B00B95C00 /* libbz2.1.0.tbd in Frameworks */,
 				20E6856028F25B1D00B95C00 /* CoreVideo.framework in Frameworks */,
-				20E6855528F2260100B95C00 /* AGSKit.framework in Frameworks */,
 				20E6855A28F25AF800B95C00 /* AudioUnit.framework in Frameworks */,
 				20E6856728F25B3F00B95C00 /* Cocoa.framework in Frameworks */,
 				20E6856128F25B2600B95C00 /* IOKit.framework in Frameworks */,
@@ -128,6 +126,7 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				2097967028FA2F7F0065C91B /* ags.iconset */,
 				32CA4F630368D1EE00C91783 /* ags_Prefix.pch */,
 			);
 			name = "Other Sources";
@@ -137,7 +136,6 @@
 			isa = PBXGroup;
 			children = (
 				20E684FD28F2202700B95C00 /* acsetup.cfg */,
-				20E6850028F2202800B95C00 /* ags.icns */,
 				20E684FF28F2202700B95C00 /* audio.vox */,
 				20E684FE28F2202700B95C00 /* game.ags */,
 				20E6850128F2202800B95C00 /* speech.vox */,
@@ -149,6 +147,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2097967528FA35940065C91B /* AGSKit.framework */,
 				20E6856E28F25E5B00B95C00 /* libbz2.1.0.tbd */,
 				20E6856828F25B5400B95C00 /* libz.1.tbd */,
 				20E6856628F25B3E00B95C00 /* Cocoa.framework */,
@@ -160,7 +159,6 @@
 				20E6855928F25AF800B95C00 /* AudioUnit.framework */,
 				20E6855728F25AF000B95C00 /* AudioToolbox.framework */,
 				20E6811C28F1CA1700B95C00 /* SDL2.framework */,
-				523AB9701D27DA40002B98F0 /* AGSKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -222,9 +220,9 @@
 			files = (
 				20E6850428F2202800B95C00 /* audio.vox in Resources */,
 				20E6850628F2202800B95C00 /* speech.vox in Resources */,
+				2097967128FA32510065C91B /* ags.iconset in Resources */,
 				20E6850328F2202800B95C00 /* game.ags in Resources */,
 				20E6850228F2202800B95C00 /* acsetup.cfg in Resources */,
-				20E6850528F2202800B95C00 /* ags.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +244,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "${SOURCE_ROOT}/../../Resources/ags.icns";
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = ags.entitlements;
 				CODE_SIGN_IDENTITY = "-";
@@ -279,7 +278,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "${SOURCE_ROOT}/../../Resources/ags.icns";
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = ags.entitlements;
 				CODE_SIGN_IDENTITY = "-";

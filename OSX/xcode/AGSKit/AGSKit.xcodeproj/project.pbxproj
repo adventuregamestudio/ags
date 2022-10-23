@@ -128,7 +128,6 @@
 		20E67D6528F1BDE000B95C00 /* unicode.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0B28F1BDDF00B95C00 /* unicode.c */; };
 		20E67D6628F1BDE000B95C00 /* blit.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0C28F1BDDF00B95C00 /* blit.c */; };
 		20E67D6728F1BDE000B95C00 /* math.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0D28F1BDDF00B95C00 /* math.c */; };
-		20E67D6828F1BDE000B95C00 /* pcx.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0E28F1BDDF00B95C00 /* pcx.c */; };
 		20E67D6928F1BDE000B95C00 /* fli.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0F28F1BDDF00B95C00 /* fli.c */; };
 		20E67D6A28F1BDE000B95C00 /* rotate.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D1028F1BDDF00B95C00 /* rotate.c */; };
 		20E67D6B28F1BDE000B95C00 /* flood.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D1128F1BDDF00B95C00 /* flood.c */; };
@@ -142,12 +141,10 @@
 		20E67D7528F1BDE000B95C00 /* quantize.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D1D28F1BDDF00B95C00 /* quantize.c */; };
 		20E67D7628F1BDE000B95C00 /* colblend.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D1E28F1BDDF00B95C00 /* colblend.c */; };
 		20E67D7728F1BDE000B95C00 /* dither.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D1F28F1BDDF00B95C00 /* dither.c */; };
-		20E67D7828F1BDE000B95C00 /* dataregi.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2028F1BDDF00B95C00 /* dataregi.c */; };
 		20E67D7928F1BDE000B95C00 /* allegro.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2128F1BDDF00B95C00 /* allegro.c */; };
 		20E67D7A28F1BDE000B95C00 /* vtable15.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2228F1BDDF00B95C00 /* vtable15.c */; };
 		20E67D7B28F1BDE000B95C00 /* readbmp.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2328F1BDDF00B95C00 /* readbmp.c */; };
 		20E67D7C28F1BDE000B95C00 /* file.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2428F1BDDF00B95C00 /* file.c */; };
-		20E67D7D28F1BDE000B95C00 /* bmp.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2528F1BDDF00B95C00 /* bmp.c */; };
 		20E67D7E28F1BDE000B95C00 /* vtable8.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2628F1BDDF00B95C00 /* vtable8.c */; };
 		20E67D7F28F1BDE000B95C00 /* cblit.h in Headers */ = {isa = PBXBuildFile; fileRef = 20E67D2828F1BDDF00B95C00 /* cblit.h */; };
 		20E67D8028F1BDE000B95C00 /* cspr8.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D2928F1BDDF00B95C00 /* cspr8.c */; };
@@ -177,7 +174,6 @@
 		20E67D9828F1BDE000B95C00 /* inline.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D4128F1BDDF00B95C00 /* inline.c */; };
 		20E67D9928F1BDE000B95C00 /* color.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D4228F1BDDF00B95C00 /* color.c */; };
 		20E67D9B28F1BDE000B95C00 /* allegro.h in Headers */ = {isa = PBXBuildFile; fileRef = 20E67D4528F1BDE000B95C00 /* allegro.h */; };
-		20E67D9C28F1BDE000B95C00 /* datafile.h in Headers */ = {isa = PBXBuildFile; fileRef = 20E67D4728F1BDE000B95C00 /* datafile.h */; };
 		20E67D9D28F1BDE000B95C00 /* debug.h in Headers */ = {isa = PBXBuildFile; fileRef = 20E67D4828F1BDE000B95C00 /* debug.h */; };
 		20E67D9E28F1BDE000B95C00 /* fixed.h in Headers */ = {isa = PBXBuildFile; fileRef = 20E67D4928F1BDE000B95C00 /* fixed.h */; };
 		20E67D9F28F1BDE000B95C00 /* file.h in Headers */ = {isa = PBXBuildFile; fileRef = 20E67D4A28F1BDE000B95C00 /* file.h */; };
@@ -1064,7 +1060,6 @@
 		20E67D0B28F1BDDF00B95C00 /* unicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unicode.c; sourceTree = "<group>"; };
 		20E67D0C28F1BDDF00B95C00 /* blit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = blit.c; sourceTree = "<group>"; };
 		20E67D0D28F1BDDF00B95C00 /* math.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = math.c; sourceTree = "<group>"; };
-		20E67D0E28F1BDDF00B95C00 /* pcx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pcx.c; sourceTree = "<group>"; };
 		20E67D0F28F1BDDF00B95C00 /* fli.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fli.c; sourceTree = "<group>"; };
 		20E67D1028F1BDDF00B95C00 /* rotate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rotate.c; sourceTree = "<group>"; };
 		20E67D1128F1BDDF00B95C00 /* flood.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = flood.c; sourceTree = "<group>"; };
@@ -1078,12 +1073,10 @@
 		20E67D1D28F1BDDF00B95C00 /* quantize.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = quantize.c; sourceTree = "<group>"; };
 		20E67D1E28F1BDDF00B95C00 /* colblend.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = colblend.c; sourceTree = "<group>"; };
 		20E67D1F28F1BDDF00B95C00 /* dither.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dither.c; sourceTree = "<group>"; };
-		20E67D2028F1BDDF00B95C00 /* dataregi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dataregi.c; sourceTree = "<group>"; };
 		20E67D2128F1BDDF00B95C00 /* allegro.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = allegro.c; sourceTree = "<group>"; };
 		20E67D2228F1BDDF00B95C00 /* vtable15.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vtable15.c; sourceTree = "<group>"; };
 		20E67D2328F1BDDF00B95C00 /* readbmp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = readbmp.c; sourceTree = "<group>"; };
 		20E67D2428F1BDDF00B95C00 /* file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = file.c; sourceTree = "<group>"; };
-		20E67D2528F1BDDF00B95C00 /* bmp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bmp.c; sourceTree = "<group>"; };
 		20E67D2628F1BDDF00B95C00 /* vtable8.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vtable8.c; sourceTree = "<group>"; };
 		20E67D2828F1BDDF00B95C00 /* cblit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cblit.h; sourceTree = "<group>"; };
 		20E67D2928F1BDDF00B95C00 /* cspr8.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cspr8.c; sourceTree = "<group>"; };
@@ -1113,7 +1106,6 @@
 		20E67D4128F1BDDF00B95C00 /* inline.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = inline.c; sourceTree = "<group>"; };
 		20E67D4228F1BDDF00B95C00 /* color.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = color.c; sourceTree = "<group>"; };
 		20E67D4528F1BDE000B95C00 /* allegro.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = allegro.h; sourceTree = "<group>"; };
-		20E67D4728F1BDE000B95C00 /* datafile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = datafile.h; sourceTree = "<group>"; };
 		20E67D4828F1BDE000B95C00 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug.h; sourceTree = "<group>"; };
 		20E67D4928F1BDE000B95C00 /* fixed.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fixed.h; sourceTree = "<group>"; };
 		20E67D4A28F1BDE000B95C00 /* file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = file.h; sourceTree = "<group>"; };
@@ -2044,7 +2036,6 @@
 				20E67D0B28F1BDDF00B95C00 /* unicode.c */,
 				20E67D0C28F1BDDF00B95C00 /* blit.c */,
 				20E67D0D28F1BDDF00B95C00 /* math.c */,
-				20E67D0E28F1BDDF00B95C00 /* pcx.c */,
 				20E67D0F28F1BDDF00B95C00 /* fli.c */,
 				20E67D1028F1BDDF00B95C00 /* rotate.c */,
 				20E67D1128F1BDDF00B95C00 /* flood.c */,
@@ -2058,12 +2049,10 @@
 				20E67D1D28F1BDDF00B95C00 /* quantize.c */,
 				20E67D1E28F1BDDF00B95C00 /* colblend.c */,
 				20E67D1F28F1BDDF00B95C00 /* dither.c */,
-				20E67D2028F1BDDF00B95C00 /* dataregi.c */,
 				20E67D2128F1BDDF00B95C00 /* allegro.c */,
 				20E67D2228F1BDDF00B95C00 /* vtable15.c */,
 				20E67D2328F1BDDF00B95C00 /* readbmp.c */,
 				20E67D2428F1BDDF00B95C00 /* file.c */,
-				20E67D2528F1BDDF00B95C00 /* bmp.c */,
 				20E67D2628F1BDDF00B95C00 /* vtable8.c */,
 				20E67D2728F1BDDF00B95C00 /* c */,
 				20E67D4028F1BDDF00B95C00 /* vtable24.c */,
@@ -2126,7 +2115,6 @@
 		20E67D4628F1BDE000B95C00 /* allegro */ = {
 			isa = PBXGroup;
 			children = (
-				20E67D4728F1BDE000B95C00 /* datafile.h */,
 				20E67D4828F1BDE000B95C00 /* debug.h */,
 				20E67D4928F1BDE000B95C00 /* fixed.h */,
 				20E67D4A28F1BDE000B95C00 /* file.h */,
@@ -3604,7 +3592,6 @@
 				526F22E81D3B5C4900EF4E1F /* guimain.h in Headers */,
 				526F23191D3B5C4900EF4E1F /* aautil.h in Headers */,
 				526F27061D3B5CC300EF4E1F /* global_debug.h in Headers */,
-				20E67D9C28F1BDE000B95C00 /* datafile.h in Headers */,
 				526F27221D3B5CC300EF4E1F /* global_object.h in Headers */,
 				526F22AA1D3B5C4900EF4E1F /* gamesetupstruct.h in Headers */,
 				526F27CD1D3B5CC300EF4E1F /* gfxmodelist.h in Headers */,
@@ -4340,7 +4327,6 @@
 				20E67D8D28F1BDE000B95C00 /* cstretch.c in Sources */,
 				526F280C1D3B5CC300EF4E1F /* decode_4to1.c in Sources */,
 				20E67D7B28F1BDE000B95C00 /* readbmp.c in Sources */,
-				20E67D7828F1BDE000B95C00 /* dataregi.c in Sources */,
 				20E6823D28F1D2B400B95C00 /* load_umx.c in Sources */,
 				20E6852A28F2219B00B95C00 /* SpriteFontRenderer.cpp in Sources */,
 				205229F428E8F2B700589E91 /* raster.c in Sources */,
@@ -4380,7 +4366,6 @@
 				526F27421D3B5CC300EF4E1F /* global_walkablearea.cpp in Sources */,
 				20522A1D28E8F81C00589E91 /* stdio_compat.c in Sources */,
 				526F28091D3B5CC300EF4E1F /* dct64.c in Sources */,
-				20E67D7D28F1BDE000B95C00 /* bmp.c in Sources */,
 				20522A4428E8F86400589E91 /* scriptviewport.cpp in Sources */,
 				526F28651D3B5CC300EF4E1F /* game_start.cpp in Sources */,
 				205229D628E8EDE100589E91 /* ftmm.c in Sources */,
@@ -4480,7 +4465,6 @@
 				526F27691D3B5CC300EF4E1F /* properties.cpp in Sources */,
 				526F27DC1D3B5CC300EF4E1F /* mylistbox.cpp in Sources */,
 				526F27CB1D3B5CC300EF4E1F /* gfxfilter_scaling.cpp in Sources */,
-				20E67D6828F1BDE000B95C00 /* pcx.c in Sources */,
 				526F27711D3B5CC300EF4E1F /* room.cpp in Sources */,
 				526F27D01D3B5CC300EF4E1F /* animatingguibutton.cpp in Sources */,
 				20E684B328F20CC700B95C00 /* quant.c in Sources */,

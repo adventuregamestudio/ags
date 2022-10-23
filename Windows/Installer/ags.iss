@@ -100,6 +100,7 @@ Source: "Source\Editor\Magick.NET-Q8-x86.dll"; DestDir: "{app}"; Flags: ignoreve
 Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 ; Documentation
 Source: "Source\Docs\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Docs\Changes.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: main

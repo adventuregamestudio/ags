@@ -56,7 +56,6 @@ GameSetupStructBase::GameSetupStructBase()
     memset(paluses, 0, sizeof(paluses));
     memset(defpal, 0, sizeof(defpal));
     memset(reserved, 0, sizeof(reserved));
-    memset(messages, 0, sizeof(messages));
 }
 
 GameSetupStructBase::~GameSetupStructBase()
@@ -68,8 +67,7 @@ void GameSetupStructBase::Free()
 {
     for (int i = 0; i < MAXGLOBALMES; ++i)
     {
-        delete[] messages[i];
-        messages[i] = nullptr;
+        messages[i].Free();
     }
     delete[] load_messages;
     load_messages = nullptr;
@@ -235,7 +233,7 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteArrayOfInt32(reserved, 17);
     for (int i = 0; i < MAXGLOBALMES; ++i)
     {
-        out->WriteInt32(messages[i] ? 1 : 0);
+        out->WriteInt32(!messages[i].IsEmpty() ? 1 : 0);
     }
     out->WriteInt32(dict ? 1 : 0);
     out->WriteInt32(0); // globalscript

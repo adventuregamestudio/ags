@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCT_H
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
+#include <array>
 #include <vector>
 #include "ac/audiocliptype.h"
 #include "ac/characterinfo.h" // TODO: constants to separate header
@@ -153,7 +154,7 @@ struct GameSetupStruct: public GameSetupStructBase {
 
     // Functions for reading and writing appropriate data from/to save game
     void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
-                                   WordsDictionary *olddict, char** mesbk);
+                                   WordsDictionary *olddict, const std::array<Common::String, MAXGLOBALMES> &mesbk);
 
     void ReadFromSavegame(Common::Stream *in);
     void WriteForSavegame(Common::Stream *out);

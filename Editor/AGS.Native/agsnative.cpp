@@ -1670,7 +1670,7 @@ using namespace System::Runtime::InteropServices;
 
 void ThrowManagedException(const char *message) 
 {
-	throw gcnew AGS::Types::AGSEditorException(gcnew String((const char*)message));
+	throw gcnew AGS::Types::AGSEditorException(gcnew String(message));
 }
 
 void CreateBuffer(int width, int height)
@@ -3253,7 +3253,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	{
 		if (thisgame.messages[i] != NULL) 
 		{
-			game->GlobalMessages[i] = gcnew String(thisgame.messages[i]);
+			game->GlobalMessages[i] = gcnew String(thisgame.messages[i].GetCStr());
 		}
 		else
 		{

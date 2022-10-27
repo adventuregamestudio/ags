@@ -106,7 +106,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
         return false;
     int dir_fd = dirfd(dir);
     struct dirent *ent;
-    struct stat f_stat;
+    struct stat f_stat{};
     while ((ent = readdir(dir)) != nullptr)
     {
         if (strcmp(ent->d_name, ".") == 0 ||
@@ -114,7 +114,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
         if (fstatat(dir_fd, ent->d_name, &f_stat, 0) != 0) continue;
         if (S_ISREG(f_stat.st_mode) == is_reg &&
             S_ISDIR(f_stat.st_mode) == is_dir)
-            files.push_back(ent->d_name);
+            files.emplace_back(ent->d_name);
     }
     closedir(dir);
     return true;
@@ -310,7 +310,7 @@ bool FindFile::Next()
     const uint32_t is_reg = _i->attrFile;
     const uint32_t is_dir = _i->attrDir;
     struct dirent *ent;
-    struct stat f_stat;
+    struct stat f_stat{};
     std::cmatch mr;
     _current.Empty();
     while ((ent = readdir(dir)) != nullptr)
@@ -359,7 +359,7 @@ FindFileRecursive FindFileRecursive::Open(const String &path, const String &wild
 
 void FindFileRecursive::Close()
 {
-    while (_fdirs.size()) _fdirs.pop();
+    while (!_fdirs.empty()) _fdirs.pop();
     _fdir.Close();
     _ffile.Close();
 }
@@ -410,7 +410,7 @@ bool FindFileRecursive::PushDir(const String &sub)
 
 bool FindFileRecursive::PopDir()
 {
-    if (_fdirs.size() == 0)
+    if (_fdirs.empty())
         return false; // no more parent levels
     // restore parent level
     _fdir = std::move(_fdirs.top());

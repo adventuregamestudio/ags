@@ -90,15 +90,12 @@ Bitmap *LoadFromFile(const char *filename)
 {
     std::unique_ptr<Stream> in (
             File::OpenFile(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read));
+    if(!in)
+        return nullptr;
 
     RGB in_palette[256];
-
-    if(in == nullptr) return nullptr;
-
     String ext = Path::GetFileExtension(filename).Lower();
-    Bitmap* bmp = BitmapHelper::LoadBitmap(ext, in.get(), in_palette);
-
-    return bmp;
+    return BitmapHelper::LoadBitmap(ext, in.get(), in_palette);
 }
 
 Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height)
@@ -1225,10 +1222,11 @@ bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal)
 {
     std::unique_ptr<Stream> out (
             File::OpenFile(filename, FileOpenMode::kFile_CreateAlways, FileWorkMode::kFile_Write));
+    if (!out)
+        return false;
 
     String ext = Path::GetFileExtension(filename).Lower();
     SaveBitmap(ext, out.get(), bmp, pal);
-
     return out->HasErrors();
 }
 

@@ -1635,14 +1635,25 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("sound", "driver", "", configFilePath); // always default
             NativeProxy.WritePrivateProfileString("sound", "usespeech", _game.DefaultSetup.UseVoicePack ? "1" : "0", configFilePath);
 
+            int control_enabled = (int)_game.DefaultSetup.ControlEnabled;
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
+            NativeProxy.WritePrivateProfileString("mouse", "control_enabled", control_enabled.ToString(), configFilePath);
+
+            int emulate_mouse = (int) _game.DefaultSetup.EmulateMouse;
+            NativeProxy.WritePrivateProfileString("touch", "emulate_mouse", emulate_mouse.ToString(), configFilePath);
+
             // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)
             NativeProxy.WritePrivateProfileString("misc", "cachemax", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);
             WriteCustomPathToConfig("misc", "user_data_dir", configFilePath, _game.DefaultSetup.UseCustomSavePath, _game.DefaultSetup.CustomSavePath);
             WriteCustomPathToConfig("misc", "shared_data_dir", configFilePath, _game.DefaultSetup.UseCustomAppDataPath, _game.DefaultSetup.CustomAppDataPath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);
+
+            if(_game.Settings.DebugMode) // Do not write show_fps in a release build, this is only intended for the developer
+            {
+                NativeProxy.WritePrivateProfileString("misc", "show_fps", _game.DefaultSetup.ShowFPS ? "1" : "0", configFilePath);
+            }
         }
 
         private void SaveUserDataFile()

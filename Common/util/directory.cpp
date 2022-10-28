@@ -137,7 +137,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
         if (strcmp(filename, ".") == 0 ||
             strcmp(filename, "..") == 0) continue;
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == attr_dir)
-            files.push_back(filename);
+            files.emplace_back(filename);
     } while (FindNextFileW(hFind, &findData) != 0);
     FindClose(hFind);
     return true;
@@ -231,7 +231,7 @@ FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file
     StrUtil::ConvertUtf8ToWstr(pattern, wpattern, sizeof(wpattern));
     HANDLE hFind = FindFirstFileW(wpattern, &ffi.fdata);
     if (hFind == INVALID_HANDLE_VALUE)
-        return FindFile(); // return invalid object
+        return {}; // return invalid object
     ffi.ff = hFind;
     ffi.attrFile = do_file ? 1 : 0; // TODO
     ffi.attrDir = do_dir ? FILE_ATTRIBUTE_DIRECTORY : 0;
@@ -252,7 +252,7 @@ FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file
     FindFile ff(std::move(ffi));
     // Try get the first matching entry
     if (!ff.Next())
-        return FindFile(); // return invalid object
+        return {}; // return invalid object
     return ff; // success
 }
 
@@ -344,13 +344,13 @@ FindFileRecursive FindFileRecursive::Open(const String &path, const String &wild
     FindFile fdir = FindFile::OpenDirs(path);
     FindFile ffile = FindFile::OpenFiles(path, wildcard);
     if (ffile.AtEnd() && fdir.AtEnd())
-        return FindFileRecursive(); // return invalid object
+        return {}; // return invalid object
     FindFileRecursive ff;
     ff._fdir = std::move(fdir);
     ff._ffile = std::move(ffile);
     // Try get the first matching entry
     if (ff._ffile.AtEnd() && !ff.Next())
-        return FindFileRecursive(); // return invalid object
+        return {}; // return invalid object
     ff._maxLevel = max_level;
     ff._fullDir = path;
     ff._curFile = ff._ffile.Current();

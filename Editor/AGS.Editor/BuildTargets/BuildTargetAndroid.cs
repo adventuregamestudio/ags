@@ -48,8 +48,12 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", "0", configPath);
 
             // Touch-to-mouse options
-            NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", "1", configPath);
-            NativeProxy.WritePrivateProfileString("controls", "mouse_method", "0", configPath);
+            int mouse_emulation = (int)setup.EmulateMouse;
+            int mouse_speed = (int)Math.Round(setup.MouseSpeed * 10.0f);
+            int mouse_control_mode = (int)setup.ControlEnabled;
+            NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", mouse_emulation.ToString(), configPath);
+            NativeProxy.WritePrivateProfileString("controls", "mouse_speed", mouse_speed.ToString(), configPath);
+            NativeProxy.WritePrivateProfileString("controls", "mouse_method", mouse_control_mode.ToString(), configPath);
 
             // Sound options
             NativeProxy.WritePrivateProfileString("sound", "enabled", "1", configPath);
@@ -83,8 +87,16 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("graphics", "smooth_sprites", setup.AAScaledSprites ? "1" : "0", configPath);
 
             // Debug options
-            NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
-            NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+            if (Factory.AGSEditor.CurrentGame.Settings.DebugMode) // Make sure to not have debug options in production
+            {
+                NativeProxy.WritePrivateProfileString("debug", "show_fps", setup.ShowFPS ? "1" : "0", configPath);
+                NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+            } 
+            else
+            {
+                NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
+                NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+            }
         }
 
         private IconAssetType GetGameIconType()

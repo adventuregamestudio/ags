@@ -7,39 +7,50 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 function get {
     local URL=$1
-    local FILENAME=$(basename $URL)
+    local FILENAME=$2
     if [[ ! -f $FILENAME ]]; then
         echo
         echo ${FILENAME}: $URL
         echo
-        curl -O $URL
+        curl -L $URL --output ${FILENAME}
     fi
 }
 
-# https://github.com/liballeg/allegro5/commits/4.4  - sept 2015
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/allegro-4.4.2.tar.gz
-get http://download.gna.org/allegro/allegro/4.4.2/allegro-4.4.2.tar.gz
+function tarextract {
+    local LIBNAME=$1
+    if [ -d "$LIBNAME" ]; then
+        echo "${LIBNAME}: is already present, delete it to rextract it."
+        return;
+    fi
+    mkdir "$LIBNAME"
+    bsdtar -f "$LIBNAME.tar.gz" -xvzC "$LIBNAME" --strip-components 1
+}
 
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/dumb-0.9.3.tar.gz
-get http://downloads.sourceforge.net/project/dumb/dumb/0.9.3/dumb-0.9.3.tar.gz
+LIBOGG_VERSION=1.3.5
+get https://github.com/xiph/ogg/archive/refs/tags/v${LIBOGG_VERSION}.tar.gz ogg.tar.gz
 
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/libogg-1.3.2.tar.gz
-get http://downloads.xiph.org/releases/ogg/libogg-1.3.2.tar.gz
+LIBVORBIS_VERSION=84c023699cdf023a32fa4ded32019f194afcdad0
+get https://github.com/xiph/vorbis/archive/${LIBVORBIS_VERSION}.tar.gz vorbis.tar.gz
 
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/libvorbis-1.3.5.tar.gz
-get http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.gz
+LIBTHEORA_VERSION=7180717276af1ebc7da15c83162d6c5d6203aabf
+get https://github.com/xiph/theora/archive/${LIBTHEORA_VERSION}.tar.gz theora.tar.gz
 
-#git repo is definitely where new work happens
-#git clone https://git.xiph.org/theora.git
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/libtheora-20150828-gfbb2758.tar.bz2
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/libtheora-20160525-g50df933.tar.bz2
+SDLSOUND_VERSION=8d96d4cc0e1df35835a222ee51a7c32f273ec63e
+get https://github.com/icculus/SDL_sound/archive/${SDLSOUND_VERSION}.tar.gz SDL_sound.tar.gz
 
-#new work in svn
-#svn co http://svn.xiph.org/trunk/Tremor/
-#git clone https://git.xiph.org/tremor.git
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/libtremor-20150108-r19427.tar.bz2
+SDL_VERSION=2.24.1
+# Framework for macOS
+get https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL2-${SDL_VERSION}.dmg SDL2-Framework.dmg
+# Full code for iOS
+get https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL_VERSION}.tar.gz SDL.tar.gz
 
-get https://s3-ap-southeast-2.amazonaws.com/ags-shared/lua-5.1.5.tar.gz
-get http://www.lua.org/ftp/lua-5.1.5.tar.gz
+if ! shasum --check sha1sums; then
+    echo "Checksum failed, are downloads ok?" >&2
+    exit 1
+fi
 
-shasum --check sha1sums
+tarextract ogg
+tarextract vorbis
+tarextract theora
+tarextract SDL_sound
+tarextract SDL

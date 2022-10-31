@@ -483,9 +483,7 @@ void update_gui_disabled_status() {
     if (all_buttons_was != all_buttons_disabled) {
         // As controls become enabled we must notify parent GUIs
         // to let them reset control-under-mouse detection
-        for (int aa = 0; aa < game.numgui; aa++) {
-            guis[aa].MarkControlsChanged();
-        }
+        GUI::MarkAllGUIForUpdate();
         if (GUI::Options.DisabledStyle != kGuiDis_Unchanged) {
             invalidate_screen();
         }

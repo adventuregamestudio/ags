@@ -203,7 +203,7 @@ void Mouse::SetMovementControl(bool on)
     if (on)
         SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, String::FromFormat("%.2f", Mouse::Speed).GetCStr());
     else
-        SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, "1.0");
+        SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE, "");
 #else
     ControlEnabled = false;
     if (on)

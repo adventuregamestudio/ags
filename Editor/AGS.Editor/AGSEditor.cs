@@ -1635,13 +1635,11 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("sound", "driver", "", configFilePath); // always default
             NativeProxy.WritePrivateProfileString("sound", "usespeech", _game.DefaultSetup.UseVoicePack ? "1" : "0", configFilePath);
 
-            int control_enabled = (int)_game.DefaultSetup.ControlEnabled;
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
-            NativeProxy.WritePrivateProfileString("mouse", "control_enabled", control_enabled.ToString(), configFilePath);
 
-            int emulate_mouse = (int) _game.DefaultSetup.EmulateMouse;
+            int emulate_mouse = (int) _game.DefaultSetup.TouchToMouseEmulation;
             NativeProxy.WritePrivateProfileString("touch", "emulate_mouse", emulate_mouse.ToString(), configFilePath);
 
             // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)

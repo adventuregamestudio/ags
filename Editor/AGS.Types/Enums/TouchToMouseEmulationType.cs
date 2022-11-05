@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace AGS.Types
 {
-    public enum EmulateMouseType
+    public enum TouchToMouseEmulationType
     {
         [Description("Off")]
         Off = 0,

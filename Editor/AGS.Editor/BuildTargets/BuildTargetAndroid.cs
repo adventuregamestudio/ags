@@ -48,9 +48,9 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", "0", configPath);
 
             // Touch-to-mouse options
-            int mouse_emulation = (int)setup.EmulateMouse;
+            int mouse_emulation = (int)setup.TouchToMouseEmulation;
             int mouse_speed = (int)Math.Round(setup.MouseSpeed * 10.0f);
-            int mouse_control_mode = (int)setup.ControlEnabled;
+            int mouse_control_mode = (int)setup.TouchToMouseMotionMode;
             NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", mouse_emulation.ToString(), configPath);
             NativeProxy.WritePrivateProfileString("controls", "mouse_speed", mouse_speed.ToString(), configPath);
             NativeProxy.WritePrivateProfileString("controls", "mouse_method", mouse_control_mode.ToString(), configPath);

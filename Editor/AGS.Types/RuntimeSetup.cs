@@ -63,7 +63,7 @@ namespace AGS.Types
             Translation = "";
             AutoLockMouse = false;
             MouseSpeed = 1.0f;
-            EmulateMouse = EmulateMouseType.OneFinger;
+            TouchToMouseEmulation = TouchToMouseEmulationType.OneFinger;
             SpriteCacheSize = 128;
             UseCustomSavePath = false;
             CustomSavePath = "";
@@ -263,17 +263,6 @@ namespace AGS.Types
             get;
             set;
         }
-
-        [DisplayName("Mouse Control Mode")]
-        [Description("Direct is the normal mouse control, but in touch enabled devices, this enables relative mouse mode. In desktop platforms, this relative is the infinite mouse mode.")]
-        [DefaultValue(ControlEnabled.Direct)]
-        [Category("Mouse")]
-        [TypeConverter(typeof(EnumTypeConverter))]
-        public ControlEnabled ControlEnabled
-        {
-            get;
-            set;
-        }
         
         [DisplayName("Mouse cursor speed")]
         [Description("Mouse speed multiplier in fullscreen mode")]
@@ -287,10 +276,21 @@ namespace AGS.Types
 
         [DisplayName("Touch to Mouse Emulation")]
         [Description("Tells AGS if touch events should create emulated mouse events and how this should work.")]
-        [DefaultValue(EmulateMouseType.OneFinger)]
+        [DefaultValue(TouchToMouseEmulationType.OneFinger)]
         [Category("Touch")]
         [TypeConverter(typeof(EnumTypeConverter))]
-        public EmulateMouseType EmulateMouse
+        public TouchToMouseEmulationType TouchToMouseEmulation
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Touch to Mouse motion mode")]
+        [Description("Whether the emulated mouse should directly correspond to a touch position, or only count relative touch movements.")]
+        [DefaultValue(InputMotionMode.Direct)]
+        [Category("Touch")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public InputMotionMode TouchToMouseMotionMode
         {
             get;
             set;

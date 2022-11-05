@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     Stream *in = File::OpenFileRead(src);
     if (!in)
     {
-        printf("Error: failed to open source TRS for reading:\n");
+        printf("Error: failed to open source TRS for reading.\n");
         return -1;
     }
     

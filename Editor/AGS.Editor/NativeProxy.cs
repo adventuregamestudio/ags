@@ -475,6 +475,15 @@ namespace AGS.Editor
             return _native.GetNativeConstant(name);
         }
 
+        // Following helper method is required, because Editor is using WinAPI functions for reading
+        // and writing values in INI files. Hopefully this will be reimplemented at some point.
+        static StringBuilder IniBuf = new StringBuilder(1024);
+        public static string GetIniString(string section, string key, string def, string filePath)
+        {
+            NativeProxy.GetPrivateProfileString(section, key, def.ToString(), IniBuf, 4096, filePath);
+            return IniBuf.ToString();
+        }
+
         public void Dispose()
         {
             _native.Shutdown();

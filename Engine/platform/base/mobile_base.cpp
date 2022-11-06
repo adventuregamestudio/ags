@@ -76,7 +76,7 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
     setup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "compatibility", "clear_cache_on_room_change", false);
 
     setup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", true);
-    setup.audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 1, 50, 10);
+    setup.audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 32 * 1024);
 
     setup.video_framedrop = CfgReadBoolInt(cfg, "video", "framedrop", true);
 

@@ -297,7 +297,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Display FPS on Screen")]
-        [Description("whether to display fps counter on screen, useful for debugging.")]
+        [Description("Whether to display fps counter on screen, useful for debugging.")]
         [DefaultValue(false)]
         [Category("Misc")]
         public bool ShowFPS

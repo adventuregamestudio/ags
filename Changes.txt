@@ -31,6 +31,8 @@ Editor:
    between classic key press handling and new one meant for unicode chars support in scripts.
  - Supports compiling UTF-8 translations. TRS file now has "Encoding" setting that tells
    how to interpret this TRS text.
+ - Added "Touch to Mouse Emulation", "Touch to Mouse motion mode" and "Display FPS on Screen" to
+   Default Setup. Removed few deprecated options.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.

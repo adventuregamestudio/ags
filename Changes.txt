@@ -85,6 +85,7 @@ Editor:
    and marking it for deletion.
  - Fixed editor silently enabling all available Build Targets when upgrading a pre-3.4.0 project.
    This could be very inconvenient as there are several of them supported now.
+ - Fixed open folders in the Project Tree were collapsing whenever you create a new subfolder.
  - Fixed editor was not preventing from entering Character's and AudioClip's ScriptName too long
    for the engine to handle.
  - Fixed Image and View properties in various objects were allowing negative values.

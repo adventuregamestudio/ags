@@ -962,8 +962,6 @@ void save_game(int slotn, const char*descript) {
         return;
     }
 
-    update_polled_stuff_if_runtime();
-
     // Save dynamic game data
     SaveGameState(out.get());
 }

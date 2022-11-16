@@ -3969,8 +3969,3 @@ void quit(const char * message)
 {
 	ThrowManagedException((const char*)message);
 }
-
-void update_polled_stuff_if_runtime()
-{
-	// do nothing
-}

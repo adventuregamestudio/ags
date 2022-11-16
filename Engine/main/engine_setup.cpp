@@ -31,6 +31,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
+#include "main/game_run.h"
 #include "main/graphics_mode.h"
 #include "main/engine_setup.h"
 #include "media/video/video.h"
@@ -162,7 +163,7 @@ void engine_adjust_for_rotation_settings()
 // Setup gfx driver callbacks and options
 void engine_post_gfxmode_driver_setup()
 {
-    gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
+    gfxDriver->SetCallbackForPolling(update_polled_stuff);
     gfxDriver->SetCallbackToDrawScreen(draw_game_screen_callback, construct_engine_overlay);
     gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
 }

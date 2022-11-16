@@ -2013,7 +2013,6 @@ void prepare_room_sprites()
     // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
-        update_polled_stuff_if_runtime();
         roomBackgroundBmp =
             recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
     }

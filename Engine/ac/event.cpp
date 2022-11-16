@@ -23,6 +23,7 @@
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
+#include "main/game_run.h"
 #include "script/cc_common.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -318,7 +319,7 @@ void process_event(const EventHappened *evp) {
                     gfxDriver->EndSpriteBatch();
                 }
                 render_to_screen();
-                update_polled_stuff_if_runtime();
+                update_polled_stuff();
                 WaitForNextFrame();
             }
 
@@ -354,7 +355,7 @@ void process_event(const EventHappened *evp) {
                 gfxDriver->DrawSprite(0, 0, ddb);
                 gfxDriver->EndSpriteBatch();
                 render_to_screen();
-                update_polled_stuff_if_runtime();
+                update_polled_stuff();
                 WaitForNextFrame();
             }
 

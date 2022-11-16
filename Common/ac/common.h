@@ -20,7 +20,6 @@
 void quit(const AGS::Common::String &str);
 void quit(const char *);
 void quitprintf(const char *fmt, ...);
-void update_polled_stuff_if_runtime();
 void set_our_eip(int eip);
 int  get_our_eip();
 

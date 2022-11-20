@@ -160,7 +160,9 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (!is_valid_object(obn)) quit("!SetObjectFrame: invalid object number specified");
     viw--;
     if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
-    if (lop < 0 || lop >= views[viw].numLoops) quitprintf("!SetObjectFrame: invalid loop number used (%d, range is 0 - %d)", lop, views[viw].numLoops - 1);
+    if (views[viw].numLoops == 0) quitprintf("!SetObjectFrame: view %d has no loops", viw);
+    if (lop < 0 || lop >= views[viw].numLoops) quitprintf("!SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
+        viw, lop, views[viw].numLoops - 1);
     // historically AGS let user to pass literally any positive invalid frame value by silently reassigning it to zero...
     if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
     {

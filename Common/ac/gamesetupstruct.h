@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCT_H
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
+#include <array>
 #include <vector>
 #include "ac/audiocliptype.h"
 #include "ac/characterinfo.h" // TODO: constants to separate header

@@ -109,7 +109,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
         if (IsClippingImage())
             return rc;
         // Main button graphic
-        if (spriteset[CurrentImage] != nullptr)
+        if (CurrentImage >= 0 && spriteset[CurrentImage] != nullptr)
             rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(CurrentImage), get_adjusted_spriteheight(CurrentImage)));
         // Optionally merge with the inventory pic
         if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)

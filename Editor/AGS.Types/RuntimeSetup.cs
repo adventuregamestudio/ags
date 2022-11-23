@@ -63,6 +63,7 @@ namespace AGS.Types
             Translation = "";
             AutoLockMouse = false;
             MouseSpeed = 1.0f;
+            TouchToMouseEmulation = TouchToMouseEmulationType.OneFinger;
             SpriteCacheSize = 128;
             UseCustomSavePath = false;
             CustomSavePath = "";
@@ -262,12 +263,44 @@ namespace AGS.Types
             get;
             set;
         }
-
+        
         [DisplayName("Mouse cursor speed")]
         [Description("Mouse speed multiplier in fullscreen mode")]
         [DefaultValue(1.0)]
         [Category("Mouse")]
         public float MouseSpeed
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Touch to Mouse Emulation")]
+        [Description("Tells AGS if touch events should create emulated mouse events and how this should work.")]
+        [DefaultValue(TouchToMouseEmulationType.OneFinger)]
+        [Category("Touch")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public TouchToMouseEmulationType TouchToMouseEmulation
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Touch to Mouse motion mode")]
+        [Description("Whether the emulated mouse should directly correspond to a touch position, or only count relative touch movements.")]
+        [DefaultValue(InputMotionMode.Direct)]
+        [Category("Touch")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public InputMotionMode TouchToMouseMotionMode
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Display FPS on Screen")]
+        [Description("Whether to display fps counter on screen, useful for debugging.")]
+        [DefaultValue(false)]
+        [Category("Misc")]
+        public bool ShowFPS
         {
             get;
             set;

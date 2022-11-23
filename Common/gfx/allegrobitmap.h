@@ -54,13 +54,10 @@ public:
     bool	CreateCopy(Bitmap *src, int color_depth = 0);
     // TODO: a temporary solution for plugin support
     bool    WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
+    void    ForgetAllegroBitmap();
     // Deallocate bitmap
     void	Destroy();
 
-    bool    LoadFromFile(const String &filename)
-            { return LoadFromFile(filename.GetCStr()); }
-    bool    LoadFromFile(const char *filename);
-    bool    LoadFromFile(PACKFILE *pf);
     bool    SaveToFile(const String &filename, const void *palette)
             { return SaveToFile(filename.GetCStr(), palette); }
     bool    SaveToFile(const char *filename, const void *palette);

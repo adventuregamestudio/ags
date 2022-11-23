@@ -106,7 +106,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
         return false;
     int dir_fd = dirfd(dir);
     struct dirent *ent;
-    struct stat f_stat;
+    struct stat f_stat{};
     while ((ent = readdir(dir)) != nullptr)
     {
         if (strcmp(ent->d_name, ".") == 0 ||
@@ -114,7 +114,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
         if (fstatat(dir_fd, ent->d_name, &f_stat, 0) != 0) continue;
         if (S_ISREG(f_stat.st_mode) == is_reg &&
             S_ISDIR(f_stat.st_mode) == is_dir)
-            files.push_back(ent->d_name);
+            files.emplace_back(ent->d_name);
     }
     closedir(dir);
     return true;
@@ -137,7 +137,7 @@ bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
         if (strcmp(filename, ".") == 0 ||
             strcmp(filename, "..") == 0) continue;
         if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == attr_dir)
-            files.push_back(filename);
+            files.emplace_back(filename);
     } while (FindNextFileW(hFind, &findData) != 0);
     FindClose(hFind);
     return true;
@@ -231,7 +231,7 @@ FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file
     StrUtil::ConvertUtf8ToWstr(pattern, wpattern, sizeof(wpattern));
     HANDLE hFind = FindFirstFileW(wpattern, &ffi.fdata);
     if (hFind == INVALID_HANDLE_VALUE)
-        return FindFile(); // return invalid object
+        return {}; // return invalid object
     ffi.ff = hFind;
     ffi.attrFile = do_file ? 1 : 0; // TODO
     ffi.attrDir = do_dir ? FILE_ATTRIBUTE_DIRECTORY : 0;
@@ -252,7 +252,7 @@ FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file
     FindFile ff(std::move(ffi));
     // Try get the first matching entry
     if (!ff.Next())
-        return FindFile(); // return invalid object
+        return {}; // return invalid object
     return ff; // success
 }
 
@@ -310,7 +310,7 @@ bool FindFile::Next()
     const uint32_t is_reg = _i->attrFile;
     const uint32_t is_dir = _i->attrDir;
     struct dirent *ent;
-    struct stat f_stat;
+    struct stat f_stat{};
     std::cmatch mr;
     _current.Empty();
     while ((ent = readdir(dir)) != nullptr)
@@ -344,13 +344,13 @@ FindFileRecursive FindFileRecursive::Open(const String &path, const String &wild
     FindFile fdir = FindFile::OpenDirs(path);
     FindFile ffile = FindFile::OpenFiles(path, wildcard);
     if (ffile.AtEnd() && fdir.AtEnd())
-        return FindFileRecursive(); // return invalid object
+        return {}; // return invalid object
     FindFileRecursive ff;
     ff._fdir = std::move(fdir);
     ff._ffile = std::move(ffile);
     // Try get the first matching entry
     if (ff._ffile.AtEnd() && !ff.Next())
-        return FindFileRecursive(); // return invalid object
+        return {}; // return invalid object
     ff._maxLevel = max_level;
     ff._fullDir = path;
     ff._curFile = ff._ffile.Current();
@@ -359,7 +359,7 @@ FindFileRecursive FindFileRecursive::Open(const String &path, const String &wild
 
 void FindFileRecursive::Close()
 {
-    while (_fdirs.size()) _fdirs.pop();
+    while (!_fdirs.empty()) _fdirs.pop();
     _fdir.Close();
     _ffile.Close();
 }
@@ -410,7 +410,7 @@ bool FindFileRecursive::PushDir(const String &sub)
 
 bool FindFileRecursive::PopDir()
 {
-    if (_fdirs.size() == 0)
+    if (_fdirs.empty())
         return false; // no more parent levels
     // restore parent level
     _fdir = std::move(_fdirs.top());

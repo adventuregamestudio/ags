@@ -80,6 +80,8 @@ Editor:
    between classic key press handling and new one meant for unicode chars support in scripts.
  - Supports compiling UTF-8 translations. TRS file now has "Encoding" setting that tells
    how to interpret this TRS text.
+ - Added "Touch to Mouse Emulation", "Touch to Mouse motion mode" and "Display FPS on Screen" to
+   Default Setup. Removed few deprecated options.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.
@@ -134,6 +136,7 @@ Editor:
    and marking it for deletion.
  - Fixed editor silently enabling all available Build Targets when upgrading a pre-3.4.0 project.
    This could be very inconvenient as there are several of them supported now.
+ - Fixed open folders in the Project Tree were collapsing whenever you create a new subfolder.
  - Fixed editor was not preventing from entering Character's and AudioClip's ScriptName too long
    for the engine to handle.
  - Fixed Image and View properties in various objects were allowing negative values.

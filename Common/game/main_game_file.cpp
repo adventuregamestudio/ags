@@ -470,8 +470,8 @@ void SetDefaultGlmsg(GameSetupStruct &game, int msgnum, const char *val)
     // TODO: find out why the index should be lowered by 500
     // (or rather if we may pass correct index right away)
     msgnum -= 500;
-    if (game.messages[msgnum] == nullptr)
-        game.messages[msgnum] = ags_strdup(val);
+    if (game.messages[msgnum].IsEmpty())
+        game.messages[msgnum] = val;
 }
 
 // CLNUP not to remove yet, global messages may be deprecated but these are used by the engine

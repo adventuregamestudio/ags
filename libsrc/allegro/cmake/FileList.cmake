@@ -1,10 +1,8 @@
 set(ALLEGRO_SRC_FILES
         src/allegro.c
         src/blit.c
-        src/bmp.c
         src/colblend.c
         src/color.c
-        src/dataregi.c
         src/dither.c
         src/file.c
         src/fli.c
@@ -14,7 +12,6 @@ set(ALLEGRO_SRC_FILES
         src/inline.c
         src/libc.c
         src/math.c
-        src/pcx.c
         src/polygon.c
         src/quantize.c
         src/readbmp.c
@@ -59,7 +56,6 @@ set(ALLEGRO_SRC_WIN_FILES
 set(ALLEGRO_INCLUDE_ALLEGRO_FILES
         include/allegro/base.h
         include/allegro/color.h
-        include/allegro/datafile.h
         include/allegro/debug.h
         include/allegro/draw.h
         include/allegro/file.h

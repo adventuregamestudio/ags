@@ -161,7 +161,6 @@ namespace AGS.Editor.Components
             FolderType newFolder = CreateFolderObject("New folder", parentFolder);
             parentFolder.SubFolders.Add(newFolder);
             string newNodeID = AddNodeForFolder(newFolder);
-            RePopulateTreeView();
             _guiController.ProjectTree.BeginLabelEdit(this, newNodeID);
         }
 

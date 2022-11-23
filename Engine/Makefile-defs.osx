@@ -1,8 +1,10 @@
 USE_BUILT_IN_LIBSRC = 1
 USE_MIDI_PATCH = 0
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../OSX/include ../OSX/include/freetype2 ../Engine/libsrc/glad/include ../libsrc/glm 
-LIBDIR = ../OSX/lib
+include Makefile-defs.freetype
+
+INCDIR = ../Engine ../Common ../Common/libinclude ../Common/libsrc/alfont-2.0.9 ../Engine/libsrc/apeg-1.2.1/ ../libsrc/mojoAL ../Plugins ../Engine/libsrc/glad/include ../libsrc/glm $(ALLEGRO_SRCDIR)/include
+LIBDIR =
 
 CFLAGS := -O2 -g \
     -fsigned-char -fno-strict-aliasing -fwrapv \
@@ -13,7 +15,7 @@ CFLAGS := -O2 -g \
     -DALLEGRO_STATICLINK \
     -DMAC_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO \
     -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
-    $(CFLAGS)
+    $(FT_CFLAGS) $(CFLAGS)
 ifdef BUILD_STR
   CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"
 endif
@@ -29,13 +31,27 @@ LIBS := -framework Cocoa \
     -framework AudioToolbox \
     -framework CoreVideo\
     -framework IOKit \
-    -lz -ldl -lpthread -lm -lc -lstdc++ -lbz2 \
-    -lalleg -ltheora -logg -lvorbis -lvorbisfile -lfreetype -logg
+    -lz -ldl -lpthread -lm -lc -lstdc++ -lbz2
 
-ifneq ($(USE_BUILT_IN_LIBSRC), 1)
-ALDUMB :=
-LIBS += -laldmb -ldumb
+LIBS += $(FT_LDFLAGS)
+LIBS += $(shell pkg-config --libs ogg)
+LIBS += $(shell pkg-config --libs theora)
+
+ifeq ($(USE_TREMOR), 1)
+LIBS += -lvorbisidec
+CFLAGS += -DUSE_TREMOR
+else
+LIBS += $(shell pkg-config --libs vorbis)
 endif
+LIBS += $(shell pkg-config --libs vorbisfile)
+
+SDL2_CFLAGS = $(shell sdl2-config --cflags)
+SDL2_LIBS = $(shell sdl2-config --libs)
+
+CFLAGS += $(SDL2_CFLAGS)
+LIBS += $(SDL2_LIBS) -lSDL2_sound
+
+LIBS += -ldl -lpthread -lm
 
 PREFIX ?= /usr/local
 CC ?= gcc

@@ -62,7 +62,7 @@ namespace BitmapHelper
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
 	Bitmap *LoadFromFile(const char *filename);
     inline Bitmap *LoadFromFile(const String &filename) { return LoadFromFile(filename.GetCStr()); }
-    Bitmap *LoadFromFile(PACKFILE *pf);
+    bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal = nullptr);
 
     // Stretches bitmap to the requested size. The new bitmap will have same
     // colour depth. Returns original bitmap if no changes are necessary. 
@@ -77,6 +77,12 @@ namespace BitmapHelper
     // Pitch is given in bytes and defines the length of the source scan line.
     // Offset is optional and defines horizontal offset, in pixels.
     void    ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset = 0);
+
+    // Write to the stream a bitmap, optionally along with the palette
+    void SaveBitmap(const String& ext, Stream *out, const Bitmap *bmp, const RGB* pal = nullptr);
+    // Reads from the stream a bitmap, possibly with palette
+    Bitmap* LoadBitmap(const String& ext, Stream *in, RGB *pal = nullptr);
+
 } // namespace BitmapHelper
 
 } // namespace Common

@@ -551,7 +551,11 @@ int engine_check_font_was_loaded()
 void show_preload()
 {
     RGB temppal[256];
-	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
+
+    std::unique_ptr<Stream> stream (AssetMgr->OpenAsset("preload.pcx"));
+    if(stream == nullptr) return;
+
+    Bitmap *splashsc = BitmapHelper::LoadBitmap("pcx",stream.get(),temppal);
     if (splashsc != nullptr)
     {
         Debug::Printf("Displaying preload image");

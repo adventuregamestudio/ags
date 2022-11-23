@@ -375,7 +375,6 @@
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)al_math.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\blit.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\bmp.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\colblend.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\color.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\c\cblit16.c" />
@@ -394,7 +393,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\c\cspr32.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\c\cspr8.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\c\cstretch.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\dataregi.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\dither.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\fli.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\flood.c" />
@@ -402,7 +400,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\graphics.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\inline.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\libc.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\pcx.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\polygon.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\quantize.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\readbmp.c" />

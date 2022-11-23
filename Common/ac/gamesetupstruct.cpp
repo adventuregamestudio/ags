@@ -217,10 +217,12 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 // CLNUP global messages are supposed to be gone, check later
 void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver)
 {
-    for (int ee=0;ee<MAXGLOBALMES;ee++) {
-        if (!load_messages[ee]) continue;
-        messages[ee] = new char[GLOBALMESLENGTH];
-        read_string_decrypt(in, messages[ee], GLOBALMESLENGTH);
+    char mbuf[GLOBALMESLENGTH];
+    for (int i=0; i < MAXGLOBALMES; ++i)
+    {
+        if (!load_messages[i]) continue;
+        read_string_decrypt(in, mbuf, GLOBALMESLENGTH);
+        messages[i] = mbuf;
     }
     delete [] load_messages;
     load_messages = nullptr;

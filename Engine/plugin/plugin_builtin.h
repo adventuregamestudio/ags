@@ -22,8 +22,9 @@
 
 class IAGSEngine;
 
+namespace AGS { namespace Common { class String; }}
 struct InbuiltPluginDetails {
-    String    filename;
+    AGS::Common::String    filename;
     void      (*engineStartup) (IAGSEngine *);
     void      (*engineShutdown) ();
     int       (*onEvent) (int, int);

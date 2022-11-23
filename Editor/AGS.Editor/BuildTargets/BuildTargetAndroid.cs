@@ -38,25 +38,40 @@ namespace AGS.Editor
             string configPath = Path.Combine(outputDir, ANDROID_CFG);
 
             RuntimeSetup setup = Factory.AGSEditor.CurrentGame.DefaultSetup;
-            int rotation = (int)setup.Rotation;
 
-            NativeProxy.WritePrivateProfileString("misc", "config_enabled", "1", configPath);
+            // These option values are not present in the Setup properties at the moment,
+            // so we read them from the file, in case the file has been modified by a user manually
+            // (this is a temporary measure, to avoid not letting a user to define these values).
+            string config_enabled = NativeProxy.GetIniString("misc", "config_enabled", "1", configPath);
+            string clear_cache = NativeProxy.GetIniString("compatibility", "clear_cache_on_room_change", "0", configPath);
+            string sound_enabled = NativeProxy.GetIniString("sound", "enabled", "1", configPath);
+            string sound_cache_size = NativeProxy.GetIniString("sound", "cache_size", "32768", configPath);
+            string frame_drop = NativeProxy.GetIniString("video", "framedrop", "0", configPath);
+            string super_sampling = NativeProxy.GetIniString("graphics", "super_sampling", "0", configPath);
+            string logging = NativeProxy.GetIniString("debug", "logging", "0", configPath);
+
+            NativeProxy.WritePrivateProfileString("misc", "config_enabled", config_enabled, configPath);
 
             // Misc options
+            int rotation = (int)setup.Rotation;
             NativeProxy.WritePrivateProfileString("misc", "rotation", rotation.ToString(), configPath);
             NativeProxy.WritePrivateProfileString("misc", "translation", setup.Translation, configPath);
-            NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", "0", configPath);
+            NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", clear_cache, configPath);
 
             // Touch-to-mouse options
-            NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", "1", configPath);
-            NativeProxy.WritePrivateProfileString("controls", "mouse_method", "0", configPath);
+            int mouse_emulation = (int)setup.TouchToMouseEmulation;
+            int mouse_speed = (int)Math.Round(setup.MouseSpeed * 10.0f);
+            int mouse_control_mode = (int)setup.TouchToMouseMotionMode;
+            NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", mouse_emulation.ToString(), configPath);
+            NativeProxy.WritePrivateProfileString("controls", "mouse_speed", mouse_speed.ToString(), configPath);
+            NativeProxy.WritePrivateProfileString("controls", "mouse_method", mouse_control_mode.ToString(), configPath);
 
             // Sound options
-            NativeProxy.WritePrivateProfileString("sound", "enabled", "1", configPath);
-            NativeProxy.WritePrivateProfileString("sound", "cache_size", "64", configPath);
+            NativeProxy.WritePrivateProfileString("sound", "enabled", sound_enabled, configPath);
+            NativeProxy.WritePrivateProfileString("sound", "cache_size", sound_cache_size, configPath);
 
             // Video options
-            NativeProxy.WritePrivateProfileString("video", "framedrop", "0", configPath);
+            NativeProxy.WritePrivateProfileString("video", "framedrop", frame_drop, configPath);
 
             // Graphic options
             if (setup.GraphicsDriver == GraphicsDriver.Software) {
@@ -79,12 +94,20 @@ namespace AGS.Editor
                 NativeProxy.WritePrivateProfileString("graphics", "scaling", "0", configPath);
             }
 
-            NativeProxy.WritePrivateProfileString("graphics", "super_sampling", "0", configPath);
+            NativeProxy.WritePrivateProfileString("graphics", "super_sampling", super_sampling, configPath);
             NativeProxy.WritePrivateProfileString("graphics", "smooth_sprites", setup.AAScaledSprites ? "1" : "0", configPath);
 
             // Debug options
-            NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
-            NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+            if (Factory.AGSEditor.CurrentGame.Settings.DebugMode) // Make sure to not have debug options in production
+            {
+                NativeProxy.WritePrivateProfileString("debug", "show_fps", setup.ShowFPS ? "1" : "0", configPath);
+                NativeProxy.WritePrivateProfileString("debug", "logging", logging, configPath);
+            } 
+            else
+            {
+                NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
+                NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+            }
         }
 
         private IconAssetType GetGameIconType()

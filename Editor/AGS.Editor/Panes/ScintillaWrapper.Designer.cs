@@ -97,6 +97,7 @@ namespace AGS.Editor
             this.scintillaControl1.WrapVisualFlagLocation = 0;
             this.scintillaControl1.XOffset = 0;
             this.scintillaControl1.Zoom = 0;
+            this.scintillaControl1.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.Controls.Add(this.scintillaControl1);
             // 
             // ScriptEditor

@@ -90,6 +90,7 @@ namespace AGS.Editor
                 _spManagerIcons.Images.Add("OpenFolder", Resources.ResourceManager.GetIcon("openfldr.ico"));
             }
             folderList.ImageList = _spManagerIcons;
+            folderList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.projectTree_KeyDown);
             SetSpritePreviewMultiplier(2); // default value for sprite multiplier
         }
 
@@ -1665,6 +1666,15 @@ namespace AGS.Editor
             if (!DesignMode)
             {
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
+        }
+
+        private void projectTree_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F2)
+            {
+                if (folderList.SelectedNode != null)
+                    folderList.SelectedNode.BeginEdit();
             }
         }
     }

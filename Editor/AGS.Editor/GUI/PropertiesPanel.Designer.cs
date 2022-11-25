@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PropertiesPanel));
-            this.propertiesGrid = new System.Windows.Forms.PropertyGrid();
+            this.propertiesGrid = new CustomPropertyGrid();
             this.propertyObjectCombo = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
@@ -71,7 +71,7 @@
 
         #endregion
 
-        internal System.Windows.Forms.PropertyGrid propertiesGrid;
+        internal CustomPropertyGrid propertiesGrid;
         internal System.Windows.Forms.ComboBox propertyObjectCombo;
     }
 }

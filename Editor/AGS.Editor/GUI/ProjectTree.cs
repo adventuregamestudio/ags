@@ -42,13 +42,15 @@ namespace AGS.Editor
             _projectTree.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.projectTree_AfterLabelEdit);
             _projectTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.projectTree_AfterSelect);
             _projectTree.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.projectTree_KeyPress);
+            _projectTree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.projectTree_KeyDown);
             _projectTree.BeforeLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.projectTree_BeforeLabelEdit);
 			_projectTree.BeforeExpand += new TreeViewCancelEventHandler(_projectTree_BeforeExpand);
 			_projectTree.BeforeCollapse += new TreeViewCancelEventHandler(_projectTree_BeforeCollapse);
 			_projectTree.ItemDrag += new ItemDragEventHandler(projectTree_ItemDrag);
 			_projectTree.DragOver += new DragEventHandler(projectTree_DragOver);
 			_projectTree.DragDrop += new DragEventHandler(projectTree_DragDrop);
-		}
+
+        }
 
 		private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
@@ -349,11 +351,14 @@ namespace AGS.Editor
 
         private void projectTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            ProjectTreeItem treeItem = e.Node.Tag as ProjectTreeItem;
+            ProjectTreeItem treeItem = _projectTree.SelectedNode.Tag as ProjectTreeItem;
+            ProjectTreeItem treeItemReleased = e.Node.Tag as ProjectTreeItem; // this may not be where we started the double click
+            if (treeItem != treeItemReleased) return; // user doubleclicked and dragged away somewhere else, cancel the action
+
             bool acceptDoubleClickWhenExpanding = (treeItem != null && treeItem.AllowDoubleClickWhenExpanding);
 			if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
 			{
-				ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
+				ProcessClickOnNode(treeItem.TreeNode.Name, MouseButtons.Left);
 			}
         }
 
@@ -362,6 +367,15 @@ namespace AGS.Editor
             if (e.KeyChar == (char)Keys.Return)
             {
                 ProcessClickOnNode(_selectedNode, MouseButtons.Left);
+            }
+        }
+
+        private void projectTree_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F2)
+            {
+                if (_projectTree.SelectedNode != null)
+                    _projectTree.SelectedNode.BeginEdit();
             }
         }
 

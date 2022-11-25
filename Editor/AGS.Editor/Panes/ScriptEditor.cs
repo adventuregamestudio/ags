@@ -33,6 +33,7 @@ namespace AGS.Editor
         private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
         private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
+        private const string TOGGLE_WORD_WRAP = "ToggleWordWrap";
         private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
         private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
         private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
@@ -55,6 +56,8 @@ namespace AGS.Editor
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
         private int _firstVisibleLine;        
+
+        private static bool _lastWordWrap = false; // remember last used for new scripts, could be maybe saved in settings
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
@@ -99,6 +102,7 @@ namespace AGS.Editor
             _toolbarIcons.Add(new MenuCommand(PASTE_COMMAND, "Paste", "PasteIcon"));
             _toolbarIcons.Add(new MenuCommand(UNDO_COMMAND, "Undo", "UndoIcon"));
             _toolbarIcons.Add(new MenuCommand(REDO_COMMAND, "Redo", "RedoIcon"));
+            _toolbarIcons.Add(new MenuCommand(TOGGLE_WORD_WRAP, "Word Wrap", "WordWrapIcon"));
             _extraMenu.Commands.Add(new MenuCommand(UNDO_COMMAND, "Undo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z, "UndoMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(REDO_COMMAND, "Redo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y, "RedoMenuIcon"));
             _extraMenu.Commands.Add(MenuCommand.Separator);
@@ -118,6 +122,7 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
+            _extraMenu.Commands.Add(new MenuCommand(TOGGLE_WORD_WRAP, "Word Wrap"));
 
             Script = scriptToEdit;
             InitScintilla();
@@ -149,6 +154,8 @@ namespace AGS.Editor
         public void InitScintilla()
         {
             scintilla.EnableLineNumbers();
+
+            scintilla.SetWrapMode(_lastWordWrap ? ScintillaNET.WrapMode.Word : ScintillaNET.WrapMode.None);
 
             scintilla.IsModifiedChanged += scintilla_IsModifiedChanged;
             scintilla.AttemptModify += scintilla_AttemptModify;
@@ -627,6 +634,12 @@ namespace AGS.Editor
                     scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
                 }
             }
+            else if (command == TOGGLE_WORD_WRAP)
+            {
+               bool wrap_enabled = !(scintilla.GetWrapMode() != ScintillaNET.WrapMode.None); // toggle
+               _lastWordWrap = wrap_enabled;
+               scintilla.SetWrapMode(wrap_enabled ? ScintillaNET.WrapMode.Word : ScintillaNET.WrapMode.None);
+            }
             UpdateToolbarButtonsIfNecessary();
         }
 
@@ -771,21 +784,25 @@ namespace AGS.Editor
             bool canPaste = scintilla.CanPaste();
             bool canUndo = scintilla.CanUndo();
             bool canRedo = scintilla.CanRedo();
+            bool isWrapEnabled = scintilla.GetWrapMode() != ScintillaNET.WrapMode.None;
             if ((_toolbarIcons[0].Enabled != canCutAndCopy) ||
                 (_toolbarIcons[2].Enabled != canPaste) ||
                 (_toolbarIcons[3].Enabled != canUndo) ||
-                (_toolbarIcons[4].Enabled != canRedo))
+                (_toolbarIcons[4].Enabled != canRedo) ||
+                (_toolbarIcons[5].Checked != isWrapEnabled))
             {
                 _toolbarIcons[0].Enabled = canCutAndCopy;
                 _toolbarIcons[1].Enabled = canCutAndCopy;
                 _toolbarIcons[2].Enabled = canPaste;
                 _toolbarIcons[3].Enabled = canUndo;
                 _toolbarIcons[4].Enabled = canRedo;
+                _toolbarIcons[5].Checked = isWrapEnabled;
                 _extraMenu.Commands[0].Enabled = canUndo;
                 _extraMenu.Commands[1].Enabled = canRedo;
                 _extraMenu.Commands[3].Enabled = canCutAndCopy;
                 _extraMenu.Commands[4].Enabled = canCutAndCopy;
                 _extraMenu.Commands[5].Enabled = canPaste;
+                _extraMenu.Commands[19].Checked = isWrapEnabled;
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }

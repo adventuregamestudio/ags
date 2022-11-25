@@ -27,16 +27,24 @@ namespace AGS.Editor
         // The PropertyGrid doesn't provide a settable SelectedTab property. Well, it does now.
         public static void SetSelectedTabInPropertyGrid(PropertyGrid propGrid, int selectedTabIndex)
         {
+            Type type = propGrid.GetType();
+
+            // Compatibility for derived classes
+            if (type != typeof(PropertyGrid))
+            {
+                type = type.BaseType;
+            }
+
             if ((selectedTabIndex < 0) || (selectedTabIndex >= propGrid.PropertyTabs.Count))
             {
                 throw new ArgumentException("Invalid tab index to select: " + selectedTabIndex);
             }
 
-            FieldInfo buttonsField = propGrid.GetType().GetField("viewTabButtons", BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo buttonsField = type.GetField("viewTabButtons", BindingFlags.NonPublic | BindingFlags.Instance);
             ToolStripButton[] viewTabButtons = (ToolStripButton[])buttonsField.GetValue(propGrid);
             ToolStripButton viewTabButton = viewTabButtons[selectedTabIndex];
 
-            propGrid.GetType().InvokeMember("OnViewTabButtonClick", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod, null, propGrid, new object[] { viewTabButton, EventArgs.Empty });
+            type.InvokeMember("OnViewTabButtonClick", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod, null, propGrid, new object[] { viewTabButton, EventArgs.Empty });
         }
     }
 }

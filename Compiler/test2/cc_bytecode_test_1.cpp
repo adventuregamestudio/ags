@@ -2826,3 +2826,69 @@ TEST_F(Bytecode1, LongMin1) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
+TEST_F(Bytecode1, Linenum01)
+{
+    // Linenum directive must be generated for each declaration
+
+    const char *inpl = "\
+    int game_start()            \n\
+    {                           \n\
+        int a = 1;              \n\
+        int b = 1 + 1;          \n\
+    }                           \n\
+    ";
+
+
+    MessageHandler mh;
+    AGS::ccCompiledScript scrip{ true };
+    int compileResult = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    // WriteOutput("Linenum01", scrip);
+
+    size_t const codesize = 27;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      36,    2,   38,    0,           36,    3,    6,    3,    // 7
+       1,   29,    3,   36,            4,    6,    3,    2,    // 15
+      29,    3,   36,    5,            2,    1,    8,    6,    // 23
+       3,    0,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
+TEST_F(Bytecode1, Linenum02)
+{
+    // Linenum directive must be generated for 'c +=' line
+
+    const char *inpl = "\
+    int game_start()            \n\
+    {                           \n\
+        int c = 0;              \n\
+        c += 1 + 1;             \n\
+        return 0;               \n\
+    }                           \n\
+    ";
+
+    MessageHandler mh;
+    AGS::ccCompiledScript scrip{ true };
+    int compileResult = cc_compile(inpl, 0, scrip, mh);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
+    WriteOutput("Linenum02", scrip);
+}

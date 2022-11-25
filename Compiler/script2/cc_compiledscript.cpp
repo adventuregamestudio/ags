@@ -69,7 +69,6 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
     sectionOffsets = NULL;
 
     LastEmittedLineno = INT_MAX;
-    EmitLineNumbers = emit_line_numbers;
     Functions = {};
     ImportIdx = {};
 }
@@ -320,7 +319,16 @@ void AGS::RestorePoint::Restore()
     if (_scrip.codesize <= static_cast<int>(_rememberedCodeLocation))
         return; // all done
 
+    bool const starts_with_linenum =
+        (_scrip.codesize > _rememberedCodeLocation + 1) &&
+        (SCMD_LINENUM == _scrip.code[_rememberedCodeLocation]);
+
     _scrip.codesize = _rememberedCodeLocation;
+    // If the code at the remembered location begins with a LINENUM
+    // pseudo-command then keep this pseudo-command so that the system knows
+    // that the line has been visited even though no code has been generated for it.
+    if (starts_with_linenum)
+        _scrip.codesize += 2;
 
     while (_scrip.numfixups > 0)
     {

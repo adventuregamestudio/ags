@@ -3984,6 +3984,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     ccAddExternalFunctionForPlugin("Character::GetProperty^1",             (void*)Character_GetProperty);
     ccAddExternalFunctionForPlugin("Character::GetPropertyText^2",         (void*)Character_GetPropertyText);
     ccAddExternalFunctionForPlugin("Character::GetTextProperty^1",         (void*)Character_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Character::SetProperty^2",             (void*)Character_SetProperty);
+    ccAddExternalFunctionForPlugin("Character::SetTextProperty^2",         (void*)Character_SetTextProperty);
     ccAddExternalFunctionForPlugin("Character::HasInventory^1",            (void*)Character_HasInventory);
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithChar^1",     (void*)Character_IsCollidingWithChar);
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithObject^1",   (void*)Character_IsCollidingWithObject);

@@ -263,6 +263,8 @@ void RegisterHotspotAPI()
     ccAddExternalFunctionForPlugin("Hotspot::GetProperty^1",       (void*)Hotspot_GetProperty);
     ccAddExternalFunctionForPlugin("Hotspot::GetPropertyText^2",   (void*)Hotspot_GetPropertyText);
     ccAddExternalFunctionForPlugin("Hotspot::GetTextProperty^1",   (void*)Hotspot_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Hotspot::SetProperty^2",       (void*)Hotspot_SetProperty);
+    ccAddExternalFunctionForPlugin("Hotspot::SetTextProperty^2",   (void*)Hotspot_SetTextProperty);
     ccAddExternalFunctionForPlugin("Hotspot::RunInteraction^1",    (void*)Hotspot_RunInteraction);
     ccAddExternalFunctionForPlugin("Hotspot::get_Enabled",         (void*)Hotspot_GetEnabled);
     ccAddExternalFunctionForPlugin("Hotspot::set_Enabled",         (void*)Hotspot_SetEnabled);

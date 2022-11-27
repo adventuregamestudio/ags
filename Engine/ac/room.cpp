@@ -1230,6 +1230,8 @@ void RegisterRoomAPI()
     ccAddExternalFunctionForPlugin("Room::GetDrawingSurfaceForBackground^1",   (void*)Room_GetDrawingSurfaceForBackground);
     ccAddExternalFunctionForPlugin("Room::GetProperty^1",                      (void*)Room_GetProperty);
     ccAddExternalFunctionForPlugin("Room::GetTextProperty^1",                  (void*)Room_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Room::SetProperty^2",                      (void*)Room_SetProperty);
+    ccAddExternalFunctionForPlugin("Room::SetTextProperty^2",                  (void*)Room_SetTextProperty);
     ccAddExternalFunctionForPlugin("Room::get_BottomEdge",                     (void*)Room_GetBottomEdge);
     ccAddExternalFunctionForPlugin("Room::get_ColorDepth",                     (void*)Room_GetColorDepth);
     ccAddExternalFunctionForPlugin("Room::get_Height",                         (void*)Room_GetHeight);

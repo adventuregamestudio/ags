@@ -2890,5 +2890,31 @@ TEST_F(Bytecode1, Linenum02)
     AGS::ccCompiledScript scrip{ true };
     int compileResult = cc_compile(inpl, 0, scrip, mh);
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
-    WriteOutput("Linenum02", scrip);
+    // WriteOutput("Linenum02", scrip);
+    size_t const codesize = 38;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      36,    2,   38,    0,           36,    3,    6,    3,    // 7
+       0,   29,    3,   36,            4,    6,    3,    2,    // 15
+      29,    3,   51,    8,            7,    3,   30,    4,    // 23
+      11,    3,    4,    8,            3,   36,    5,    6,    // 31
+       3,    0,    2,    1,            4,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
 }

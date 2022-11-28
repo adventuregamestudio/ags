@@ -134,7 +134,7 @@ namespace AGS.Editor.Components
         private void OnItemIDChanged(InventoryItem item)
         {
             // Refresh tree, property grid and open windows
-            RePopulateTreeView();
+            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -207,18 +207,23 @@ namespace AGS.Editor.Components
             RePopulateTreeView();
         }
 
+        private string GetNodeID(InventoryItem item)
+        {
+            return ITEM_COMMAND_PREFIX + item.ID;
+        }
+
+        private string GetNodeLabel(InventoryItem item)
+        {
+            return item.ID.ToString() + ": " + item.Name;
+        }
+
         protected override ProjectTreeItem CreateTreeItemForItem(InventoryItem item)
         {
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
-                (this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "InventoryIcon");
+                (this, GetNodeID(item), GetNodeLabel(item), "InventoryIcon");
             return treeItem;
         }
 
-        private string GetNodeID(InventoryItem item)
-        {
-            return ITEM_COMMAND_PREFIX + item.ID; 
-        }
-        
         private Dictionary<string, object> ConstructPropertyObjectList(InventoryItem item)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();

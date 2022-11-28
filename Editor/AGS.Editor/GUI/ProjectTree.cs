@@ -173,6 +173,15 @@ namespace AGS.Editor
             }
         }
 
+        public void ChangeNodeLabel(IEditorComponent plugin, string id, string newLabelText)
+        {
+            TreeNode[] results = _projectTree.Nodes.Find(id, true);
+            if (results.Length > 0)
+            {
+                results[0].Text = newLabelText;
+            }
+        }
+
         public void ChangeNodeIcon(IEditorComponent plugin, string id, string newIconKey)
         {
             TreeNode[] results = _projectTree.Nodes.Find(id, true);

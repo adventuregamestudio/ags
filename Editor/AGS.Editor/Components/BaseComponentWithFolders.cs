@@ -154,7 +154,12 @@ namespace AGS.Editor.Components
             string newNodeID = AddTreeNodeForItem(item);
             return newNodeID;
         }
-                       
+
+        protected void ChangeItemLabel(string nodeID, string labelText)
+        {
+            _guiController.ProjectTree.ChangeNodeLabel(this, nodeID, labelText);
+        }
+
         protected void CreateSubFolder(string parentNodeID, FolderType parentFolder)
         {
             _guiController.ProjectTree.StartFromNode(this, parentNodeID);

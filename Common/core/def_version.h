@@ -1,9 +1,9 @@
 #ifndef __AGS_CN_CORE__DEFVERSION_H
 #define __AGS_CN_CORE__DEFVERSION_H
 
-#define ACI_VERSION_STR      "3.6.0.37"
+#define ACI_VERSION_STR      "3.6.0.38"
 #if defined (RC_INVOKED) // for MSVC resource compiler
-#define ACI_VERSION_MSRC_DEF  3,6,0,37
+#define ACI_VERSION_MSRC_DEF  3,6,0,38
 #endif
 
 #define SPECIAL_VERSION ""

@@ -1276,7 +1276,6 @@ HSaveError ReadAll(Stream *in, SavegameVersion svg_version, const PreservedParam
                 idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset),
                 err);
         }
-        update_polled_stuff_if_runtime();
         idx++;
     }
     while (!in->EOS());
@@ -1311,7 +1310,6 @@ HSaveError WriteAllCommon(Stream *out)
                 String::FromFormat("Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr()),
                 err);
         }
-        update_polled_stuff_if_runtime();
     }
     WriteFormatTag(out, ComponentListTag, false);
     return HSaveError::None();

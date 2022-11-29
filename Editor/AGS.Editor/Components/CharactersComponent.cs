@@ -157,7 +157,7 @@ namespace AGS.Editor.Components
         private void OnItemIDChanged(Character item)
         {
             // Refresh tree, property grid and open windows
-            RePopulateTreeView();
+            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -299,16 +299,21 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.CharacterFlatList;
         }
 
-        protected override ProjectTreeItem CreateTreeItemForItem(Character item)
-        {
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
-                (this, GetNodeID(item), item.ID.ToString() + ": " + item.ScriptName, "CharacterIcon");            
-            return treeItem;
-        }
-
         private string GetNodeID(Character character)
         {
             return ITEM_COMMAND_PREFIX + character.ID;
+        }
+
+        private string GetNodeLabel(Character item)
+        {
+            return item.ID.ToString() + ": " + item.ScriptName;
+        }
+
+        protected override ProjectTreeItem CreateTreeItemForItem(Character item)
+        {
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
+                (this, GetNodeID(item), GetNodeLabel(item), "CharacterIcon");            
+            return treeItem;
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)

@@ -129,7 +129,6 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     size_t polypoint_areas = in->ReadInt32();
     if (polypoint_areas > 0)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Legacy poly-point areas are no longer supported.");
-
     // Room edges
     room->Edges.Top = in->ReadInt16();
     room->Edges.Bottom = in->ReadInt16();
@@ -234,17 +233,12 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     for (size_t i = 0; i < room->RegionCount; ++i)
         room->Regions[i].Tint = in->ReadInt32();
 
-    update_polled_stuff_if_runtime();
     // Primary background
     room->BgFrames[0].Graphic = load_lzw(in, room->BackgroundBPP, &room->Palette);
     // Area masks
-    update_polled_stuff_if_runtime();
     room->RegionMask = load_rle_bitmap8(in);
-    update_polled_stuff_if_runtime();
     room->WalkAreaMask = load_rle_bitmap8(in);
-    update_polled_stuff_if_runtime();
     room->WalkBehindMask = load_rle_bitmap8(in);
-    update_polled_stuff_if_runtime();
     room->HotspotMask = load_rle_bitmap8(in);
     return HError::None();
 }
@@ -320,7 +314,6 @@ HError ReadAnimBgBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     for (size_t i = 1; i < room->BgFrameCount; ++i)
     {
-        update_polled_stuff_if_runtime();
         room->BgFrames[i].Graphic =
             load_lzw(in, room->BackgroundBPP, &room->BgFrames[i].Palette);
     }

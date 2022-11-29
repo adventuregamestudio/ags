@@ -312,11 +312,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        private string GetNodeIDForAudioClip(AudioClip clip)
-        {
-            return ITEM_COMMAND_PREFIX + clip.ScriptName;
-        }
-
         private AudioClip CreateAudioClipForFile(string sourceFileName)
         {
             string fileExtension = Path.GetExtension(sourceFileName).ToLower();
@@ -618,7 +613,7 @@ namespace AGS.Editor.Components
 
         private void OnItemIDChanged(AudioClip item)
         {
-            RePopulateTreeView();
+            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)
@@ -633,7 +628,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    RePopulateTreeView(GetNodeIDForAudioClip(itemBeingEdited));
+                    RePopulateTreeView(GetNodeID(itemBeingEdited));
                     AudioClipTypeConverter.RefreshAudioClipList();
                 }
             }
@@ -690,11 +685,20 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.AudioClipFlatList;
         }
 
+        private string GetNodeID(AudioClip clip)
+        {
+            return ITEM_COMMAND_PREFIX + clip.ScriptName;
+        }
+
+        private string GetNodeLabel(AudioClip item)
+        {
+            return item.ID.ToString() + ": " + item.ScriptName;
+        }
+
         protected override ProjectTreeItem CreateTreeItemForItem(AudioClip item)
         {
-            string nodeID = GetNodeIDForAudioClip(item);
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID,
-                item.ID.ToString() + ": " + item.ScriptName, GetIconKeyForAudioClip(item));
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item),
+                GetNodeLabel(item), GetIconKeyForAudioClip(item));
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("ScriptName");
             treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("NameAndID");

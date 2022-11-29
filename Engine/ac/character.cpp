@@ -2514,16 +2514,13 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (viewWasLocked)
             charFrameWas = speakingChar->frame;
 
-        // If speech view is missing a loop or the loop does not have frames - use loop 0
-        if (speakingChar->loop >= views[speakingChar->view].numLoops ||
-            views[speakingChar->view].loops[speakingChar->loop].numFrames < 1)
+        if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
+            quitprintf("!Character %s current view %d is invalid, or has no loops.", speakingChar->scrname, speakingChar->view + 1);
+        // If current view is missing a loop - use loop 0
+        if (speakingChar->loop >= views[speakingChar->view].numLoops)
         {
-            String err = String::FromFormat("Character %s speech view %d does not have necessary loop %d or it has no frames",
+            debug_script_warn("WARNING: Character %s current view %d does not have necessary loop %d; switching to loop 0.",
                 speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
-            // is there even a fallback loop?
-            if (views[speakingChar->view].numLoops == 0 || views[speakingChar->view].loops[0].numFrames == 0)
-                quitprintf("!%s; and there's no valid loop to fall back.", err.GetCStr());
-            debug_script_warn("WARNING: %s; switching to loop 0.", err.GetCStr());
             speakingChar->loop = 0;
         }
 
@@ -2774,16 +2771,13 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             speakingChar->frame=0;
             speakingChar->flags|=CHF_FIXVIEW;
 
-            // If speech view is missing a loop or the loop does not have frames - use loop 0
-            if (speakingChar->loop >= views[speakingChar->view].numLoops ||
-                views[speakingChar->view].loops[speakingChar->loop].numFrames < 1)
+            if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
+                quitprintf("!Character %s speech view %d is invalid, or has no loops.", speakingChar->scrname, speakingChar->view + 1);
+            // If speech view is missing a loop - use loop 0
+            if (speakingChar->loop >= views[speakingChar->view].numLoops)
             {
-                String err = String::FromFormat("Character %s speech view %d does not have necessary loop %d or it has no frames",
+                debug_script_warn("WARNING: Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
                     speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
-                // is there even a fallback loop?
-                if (views[speakingChar->view].numLoops == 0 || views[speakingChar->view].loops[0].numFrames == 0)
-                    quitprintf("!%s; and there's no valid loop to fall back.", err.GetCStr());
-                debug_script_warn("WARNING: %s; switching to loop 0.", err.GetCStr());
                 speakingChar->loop = 0;
             }
 
@@ -4038,6 +4032,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
     ccAddExternalFunctionForPlugin("Character::GetProperty^1",             (void*)Character_GetProperty);
     ccAddExternalFunctionForPlugin("Character::GetPropertyText^2",         (void*)Character_GetPropertyText);
     ccAddExternalFunctionForPlugin("Character::GetTextProperty^1",         (void*)Character_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Character::SetProperty^2",             (void*)Character_SetProperty);
+    ccAddExternalFunctionForPlugin("Character::SetTextProperty^2",         (void*)Character_SetTextProperty);
     ccAddExternalFunctionForPlugin("Character::HasInventory^1",            (void*)Character_HasInventory);
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithChar^1",     (void*)Character_IsCollidingWithChar);
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithObject^1",   (void*)Character_IsCollidingWithObject);

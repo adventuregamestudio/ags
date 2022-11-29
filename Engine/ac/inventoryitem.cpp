@@ -254,6 +254,8 @@ void RegisterInventoryItemAPI()
     ccAddExternalFunctionForPlugin("InventoryItem::GetProperty^1",             (void*)InventoryItem_GetProperty);
     ccAddExternalFunctionForPlugin("InventoryItem::GetPropertyText^2",         (void*)InventoryItem_GetPropertyText);
     ccAddExternalFunctionForPlugin("InventoryItem::GetTextProperty^1",         (void*)InventoryItem_GetTextProperty);
+    ccAddExternalFunctionForPlugin("InventoryItem::SetProperty^2",             (void*)InventoryItem_SetProperty);
+    ccAddExternalFunctionForPlugin("InventoryItem::SetTextProperty^2",         (void*)InventoryItem_SetTextProperty);
     ccAddExternalFunctionForPlugin("InventoryItem::RunInteraction^1",          (void*)InventoryItem_RunInteraction);
     ccAddExternalFunctionForPlugin("InventoryItem::SetName^1",                 (void*)InventoryItem_SetName);
     ccAddExternalFunctionForPlugin("InventoryItem::get_CursorGraphic",         (void*)InventoryItem_GetCursorGraphic);

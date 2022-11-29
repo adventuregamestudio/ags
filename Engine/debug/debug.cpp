@@ -32,6 +32,7 @@
 #include "debug/logfile.h"
 #include "debug/messagebuffer.h"
 #include "main/config.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
@@ -585,7 +586,7 @@ void break_into_debugger()
 
     while (game_paused_in_debugger) 
     {
-        update_polled_stuff_if_runtime();
+        update_polled_stuff();
         platform->YieldCPU();
     }
 

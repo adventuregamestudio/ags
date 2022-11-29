@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "ac/common.h" // update_polled_stuff_if_runtime
+#include "ac/common.h" // quit
 #include "game/room_file.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
@@ -254,13 +254,10 @@ void load_room(const String &filename, RoomStruct *room, const std::vector<Sprit
     room->Free();
     room->InitDefaults();
 
-    update_polled_stuff_if_runtime();
-
     RoomDataSource src;
     HRoomFileError err = OpenRoomFileFromAsset(filename, src);
     if (err)
     {
-        update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
         err = ReadRoomData(room, src.InputStream.get(), src.DataVersion);
         if (err)
             err = UpdateRoomData(room, src.DataVersion, sprinfos);

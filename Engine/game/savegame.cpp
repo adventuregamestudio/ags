@@ -41,6 +41,7 @@
 #include "game/savegame.h"
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"
+#include "main/game_run.h"
 #include "main/engine.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
@@ -467,15 +468,11 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     int queuedMusicSize = play.music_queue_size;
     play.music_queue_size = 0;
 
-    update_polled_stuff_if_runtime();
-
     // load the room the game was saved in
     if (displayed_room >= 0)
         load_new_room(displayed_room, nullptr);
     else
         set_room_placeholder();
-
-    update_polled_stuff_if_runtime();
 
     play.gscript_timer=gstimer;
     // restore the correct room volume (they might have modified
@@ -492,8 +489,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     spriteset.Precache(game.mcurs[r_data.CursorID].pic);
 
     sys_window_set_title(play.game_name);
-
-    update_polled_stuff_if_runtime();
 
     if (displayed_room >= 0)
     {
@@ -599,7 +594,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     RestoreViewportsAndCameras(r_data);
 
     play.ClearIgnoreInput(); // don't keep ignored input after save restore
-    update_polled_stuff_if_runtime();
+    update_polled_stuff();
 
     pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 

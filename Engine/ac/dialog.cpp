@@ -391,8 +391,6 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   play.in_conversation ++;
 
-  update_polled_stuff_if_runtime();
-
   if (game.dialog_bullet > 0)
     bullet_wid = game.SpriteInfos[game.dialog_bullet].Width+3;
 
@@ -401,8 +399,6 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
     bullet_wid += get_text_width_outlined("9. ", usingfont);
 
   said_text = 0;
-
-  update_polled_stuff_if_runtime();
 
   const Rect &ui_view = play.GetUIViewport();
   tempScrn = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight(), game.GetColorDepth());
@@ -702,12 +698,8 @@ void DialogOptions::Redraw()
 
     wantRefresh = false;
 
-    update_polled_stuff_if_runtime();
-
     subBitmap = recycle_bitmap(subBitmap,
         gfxDriver->GetCompatibleBitmapFormat(tempScrn->GetColorDepth()), dirtywidth, dirtyheight);
-
-    update_polled_stuff_if_runtime();
 
     if (usingCustomRendering)
     {
@@ -907,7 +899,7 @@ bool DialogOptions::Run()
         }
       }
 
-      update_polled_stuff_if_runtime();
+      update_polled_stuff();
 
       if (!runGameLoopsInBackground && (play.fast_forward == 0))
       { // note if runGameLoopsInBackground then it's called inside UpdateGameOnce

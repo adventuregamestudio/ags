@@ -153,7 +153,7 @@ namespace AGS.Editor.Components
                 _documents[chosenItem] = document;
                 document.SelectedPropertyGridObject = chosenItem;
 			}
-            document.TreeNodeID = GetNodeIDForView(chosenItem);
+            document.TreeNodeID = GetNodeID(chosenItem);
             _guiController.AddOrShowPane(document);
 		}
 
@@ -188,7 +188,7 @@ namespace AGS.Editor.Components
 
         private void OnItemIDChanged(View item)
         {
-            RePopulateTreeView(GetNodeIDForView(item));
+            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
             UpdateOpenWindowTitles();
             ComponentController.Instance.FindComponent<CharactersComponent>()?.UpdateCharacterViews();
         }
@@ -299,9 +299,14 @@ namespace AGS.Editor.Components
 			return null;
 		}
 
-        private string GetNodeIDForView(View item)
+        private string GetNodeID(View item)
         {
             return ITEM_COMMAND_PREFIX + item.ID;
+        }
+
+        private string GetNodeLabel(View item)
+        {
+            return item.ID.ToString() + ": " + item.Name;
         }
 
         protected override ViewFolder GetRootFolder()
@@ -316,7 +321,7 @@ namespace AGS.Editor.Components
 
         protected override ProjectTreeItem CreateTreeItemForItem(View item)
         {
-            string nodeID = GetNodeIDForView(item);
+            string nodeID = GetNodeID(item);
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID, item.ID.ToString() + ": " + item.Name, "ViewIcon");
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("Name");

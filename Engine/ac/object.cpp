@@ -1138,6 +1138,8 @@ void RegisterObjectAPI()
     ccAddExternalFunctionForPlugin("Object::GetProperty^1",            (void*)Object_GetProperty);
     ccAddExternalFunctionForPlugin("Object::GetPropertyText^2",        (void*)Object_GetPropertyText);
     ccAddExternalFunctionForPlugin("Object::GetTextProperty^1",        (void*)Object_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Object::SetProperty^2",            (void*)Object_SetProperty);
+    ccAddExternalFunctionForPlugin("Object::SetTextProperty^2",        (void*)Object_SetTextProperty);
     ccAddExternalFunctionForPlugin("Object::MergeIntoBackground^0",    (void*)Object_MergeIntoBackground);
     ccAddExternalFunctionForPlugin("Object::Move^5",                   (void*)Object_Move);
     ccAddExternalFunctionForPlugin("Object::RemoveTint^0",             (void*)Object_RemoveTint);

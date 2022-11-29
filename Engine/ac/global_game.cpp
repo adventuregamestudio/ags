@@ -188,8 +188,6 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
         RectWH(0, 0, game.SpriteInfos[gotSlot].Width, game.SpriteInfos[gotSlot].Height),
         RectWH(0, 0, width, height));
 
-    update_polled_stuff_if_runtime();
-
     // replace the bitmap in the sprite set
     free_dynamic_sprite(gotSlot);
     add_dynamic_sprite(gotSlot, newPic);
@@ -837,7 +835,7 @@ int WaitMouseKey(int nloops) {
 }
 
 int WaitInput(int input_flags, int nloops) {
-    return WaitImpl(input_flags >> 16 | SKIP_AUTOTIMER, nloops);
+    return WaitImpl((input_flags >> SKIP_RESULT_TYPE_SHIFT) | SKIP_AUTOTIMER, nloops);
 }
 
 void SkipWait() {

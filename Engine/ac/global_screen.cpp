@@ -22,6 +22,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"
+#include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -67,7 +68,7 @@ void ShakeScreen(int severe) {
 
             render_graphics();
 
-            update_polled_stuff_if_runtime();
+            update_polled_stuff();
         }
     }
     else
@@ -81,7 +82,7 @@ void ShakeScreen(int severe) {
             const int yoff = hh % 2 == 0 ? 0 : severe;
             play.shake_screen_yoff = yoff;
             render_to_screen();
-            update_polled_stuff_if_runtime();
+            update_polled_stuff();
         }
         render_to_screen();
     }

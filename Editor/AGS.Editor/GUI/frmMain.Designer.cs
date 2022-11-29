@@ -159,7 +159,6 @@ namespace AGS.Editor
             // 
             this.pnlCallStack.CallStack = null;
             this.pnlCallStack.ClientSize = new System.Drawing.Size(489, 65);
-            this.pnlCallStack.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlCallStack.DockPanel = this.mainContainer;
             this.pnlCallStack.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
             this.pnlCallStack.FloatPane = null;
@@ -179,7 +178,6 @@ namespace AGS.Editor
             // pnlFindResults
             // 
             this.pnlFindResults.ClientSize = new System.Drawing.Size(489, 65);
-            this.pnlFindResults.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlFindResults.DockPanel = this.mainContainer;
             this.pnlFindResults.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
             this.pnlFindResults.FloatPane = null;
@@ -200,7 +198,6 @@ namespace AGS.Editor
             // pnlOutput
             // 
             this.pnlOutput.ClientSize = new System.Drawing.Size(489, 65);
-            this.pnlOutput.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlOutput.DockPanel = this.mainContainer;
             this.pnlOutput.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
             this.pnlOutput.ErrorsToList = null;
@@ -222,7 +219,6 @@ namespace AGS.Editor
             // 
             this.projectPanel.DockPanel = this.mainContainer;
             this.projectPanel.AllowDrop = true;
-            this.projectPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.projectPanel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.projectPanel.Location = new System.Drawing.Point(0, 0);
             this.projectPanel.Name = "projectPanel";
@@ -240,7 +236,6 @@ namespace AGS.Editor
             // propertiesPanel
             // 
             this.propertiesPanel.DockPanel = this.mainContainer;
-            this.propertiesPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertiesPanel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.propertiesPanel.Location = new System.Drawing.Point(0, 0);
             this.propertiesPanel.Name = "propertiesPanel";

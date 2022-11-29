@@ -136,7 +136,8 @@ Editor:
    and marking it for deletion.
  - Fixed editor silently enabling all available Build Targets when upgrading a pre-3.4.0 project.
    This could be very inconvenient as there are several of them supported now.
- - Fixed open folders in the Project Tree were collapsing whenever you create a new subfolder.
+ - Fixed open folders in the Project Tree were collapsing whenever you create a new subfolder or
+   change an object's name in properties.
  - Fixed editor was not preventing from entering Character's and AudioClip's ScriptName too long
    for the engine to handle.
  - Fixed Image and View properties in various objects were allowing negative values.
@@ -362,8 +363,8 @@ Engine Plugin API:
  - Added ReplaceFontRenderer2() and NotifyFontUpdated() functions.
 
 Compatibility:
- - Fallback to loop 0 if the speech view does not have frames in the current directional loop.
- - Set the first loop with frames if current character's loop does not have any for some reason.
+ - Fallback to the first loop with frames if current character's loop does not have any.
+ - Use the dummy frame if current character's speech view loop does not have any.
  - Ignore character having view/loop with no frames while it's not in the current room.
  - Legacy behavior of MoveCharacterBlocking's return value.
  - Fixed walkable area's continuous scaling was broken for high-res rooms in old games.

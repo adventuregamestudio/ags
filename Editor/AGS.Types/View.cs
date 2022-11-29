@@ -51,6 +51,8 @@ namespace AGS.Types
             get { return "View: " + Name; }
         }
 
+        // TODO: remove this; should not be a part of the basic type,
+        // but rather a part of the UI component
         [Browsable(false)]
         [AGSNoSerialize()]
         public string NameAndID

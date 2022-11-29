@@ -196,7 +196,7 @@ namespace AGS.Editor.Components
         private void OnItemIDChanged(GUI item)
         {
             // Refresh tree, property grid and open windows
-            RePopulateTreeView();
+            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -316,10 +316,15 @@ namespace AGS.Editor.Components
             return ITEM_COMMAND_PREFIX + item.ID;
         }
 
+        private string GetNodeLabel(GUI item)
+        {
+            return item.ID.ToString() + ": " + item.Name;
+        }
+
         protected override ProjectTreeItem CreateTreeItemForItem(GUI item)
         {
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
-                (this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "GUIIcon");
+                (this, GetNodeID(item), GetNodeLabel(item), "GUIIcon");
             return treeItem;
         }
 

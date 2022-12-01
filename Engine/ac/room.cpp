@@ -904,7 +904,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=220;
     update_polled_stuff_if_runtime();
     debug_script_log("Now in room %d", displayed_room);
-    GUI::MarkAllGUIForUpdate();
+    GUI::MarkAllGUIForUpdate(true, true);
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
     //  MoveToWalkableArea(game.playercharacter);
     //  MSS_CHECK_ALL_BLOCKS;
@@ -960,7 +960,6 @@ void new_room(int newnum,CharacterInfo*forchar) {
                 gfxDriver->DestroyDDB(guibgbmp[i]);
             guibgbmp[i] = nullptr;
         }
-        GUI::MarkAllGUIForUpdate();
     }
 
     update_polled_stuff_if_runtime();

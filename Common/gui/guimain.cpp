@@ -208,6 +208,14 @@ void GUIMain::ClearChanged()
     _hasChanged = false;
 }
 
+void GUIMain::ResetOverControl()
+{
+    // Force it to re-check for which control is under the mouse
+    MouseWasAt.X = -1;
+    MouseWasAt.Y = -1;
+    MouseOverCtrl = -1;
+}
+
 void GUIMain::AddControl(GUIControlType type, int id, GUIObject *control)
 {
     _ctrlRefs.push_back(std::make_pair(type, id));
@@ -724,11 +732,14 @@ void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_col
     wouttext_outline(ds, x, y, font, text_color, text);
 }
 
-void MarkAllGUIForUpdate()
+void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl)
 {
     for (auto &gui : guis)
     {
-        gui.MarkChanged();
+        if (redraw)
+            gui.MarkChanged();
+        if (reset_over_ctrl)
+            gui.ResetOverControl();
     }
 }
 
@@ -855,7 +866,7 @@ HError ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
         }
         gui.ResortZOrder();
     }
-    MarkAllGUIForUpdate();
+    MarkAllGUIForUpdate(true, true);
     return HError::None();
 }
 

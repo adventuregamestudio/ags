@@ -1,5 +1,21 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 16, December 2022
+
+Editor:
+ - Fixed autocomplete crashing the editor if there was an import declared with type and variable
+   having identical names, and user tries to type that variable's name and a dot to access
+   its members.
+ - Fixed newly created Views taking free IDs in the middle of the list in random order instead of
+   a straight one (after you previously deleted some Views).
+
+Engine:
+ - Added missing "DrawSprite" function for "agsblend" plugin stubs.
+ - Fixed loading pre-3.5.0 games on big endian systems.
+ - Fixed GUI buttons not displaying the mouse-over image if the interface state was toggled
+   to enabled state while the mouse was over the button.
+
+
 VERSION 3.5.1 - Patch 15, October 2022
 
 Editor:

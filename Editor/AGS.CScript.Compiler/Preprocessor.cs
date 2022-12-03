@@ -7,8 +7,6 @@ namespace AGS.CScript.Compiler
 {
 	internal class Preprocessor : IPreprocessor
 	{
-		private const int MAX_LINE_LENGTH = 500;
-
 		private bool _inMultiLineComment = false;
 		private PreprocessorState _state = new PreprocessorState();
 		private Stack<bool> _conditionalStatements = new Stack<bool>();

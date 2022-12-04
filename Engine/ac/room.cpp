@@ -886,7 +886,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=220;
     update_polled_stuff();
     debug_script_log("Now in room %d", displayed_room);
-    GUI::MarkAllGUIForUpdate();
+    GUI::MarkAllGUIForUpdate(true, true);
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
 }
 
@@ -925,7 +925,6 @@ void new_room(int newnum,CharacterInfo*forchar) {
         // Delete all cached resources
         spriteset.DisposeAll();
         soundcache_clear();
-        GUI::MarkAllGUIForUpdate();
     }
 
     load_new_room(newnum,forchar);

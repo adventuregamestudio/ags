@@ -68,8 +68,8 @@ void InterfaceOn(int ifn) {
   debug_script_log("GUI %d turned on", ifn);
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
-  // clear the cached mouse position
   guis[ifn].MarkControlsChanged();
+  guis[ifn].ResetOverControl(); // clear the cached mouse position
   guis[ifn].Poll(mousex, mousey);
 }
 
@@ -84,9 +84,9 @@ void InterfaceOff(int ifn) {
   if (guis[ifn].MouseOverCtrl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off
     guis[ifn].GetControl(guis[ifn].MouseOverCtrl)->OnMouseLeave();
-    guis[ifn].MouseOverCtrl = -1;
   }
   guis[ifn].MarkControlsChanged();
+  guis[ifn].ResetOverControl(); // clear the cached mouse position
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) UnPauseGame();
 }
@@ -202,11 +202,10 @@ void SetGUIBackgroundPic (int guin, int slotn) {
 }
 
 void DisableInterface() {
-  if ((play.disabled_user_interface == 0) && // only if was enabled before
-      (GUI::Options.DisabledStyle != kGuiDis_Unchanged))
-  { // If GUI looks change when disabled, then update them all
-    GUI::MarkAllGUIForUpdate();
-  }
+  // If GUI looks change when disabled, then mark all of them for redraw
+  bool redraw_gui = (play.disabled_user_interface == 0) && // only if was enabled before
+      (GUI::Options.DisabledStyle != kGuiDis_Unchanged);
+  GUI::MarkAllGUIForUpdate(redraw_gui, true);
   play.disabled_user_interface++;
   set_mouse_cursor(CURS_WAIT);
 }
@@ -216,10 +215,8 @@ void EnableInterface() {
   if (play.disabled_user_interface<1) {
     play.disabled_user_interface=0;
     set_default_cursor();
-    if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
-    { // If GUI looks change when disabled, then update them all
-        GUI::MarkAllGUIForUpdate();
-    }
+    // If GUI looks change when disabled, then mark all of them for redraw
+    GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
   }
 }
 // Returns 1 if user interface is enabled, 0 if disabled

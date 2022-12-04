@@ -107,7 +107,7 @@ namespace AGS.Editor.Components
                 }
                 _itemRightClicked.ID = newNumber;
                 GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDChanged(_itemRightClicked);
+                OnItemIDOrNameChanged(_itemRightClicked, false);
                 OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(_itemRightClicked, oldNumber));
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
@@ -115,7 +115,7 @@ namespace AGS.Editor.Components
             {
                 Character chosenItem = _items[controlID];
                 ShowOrAddPane(chosenItem);
-            }            
+            }
         }
 
         private void DeleteCharacter(Character character)
@@ -154,10 +154,13 @@ namespace AGS.Editor.Components
 			_guiController.AddOrShowPane(document);
 		}
 
-        private void OnItemIDChanged(Character item)
+        private void OnItemIDOrNameChanged(Character item, bool name_only)
         {
             // Refresh tree, property grid and open windows
-            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            if (name_only)
+                ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            else
+                RePopulateTreeView(); // currently this is the only way to update tree item ids
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -185,7 +188,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    OnItemIDChanged(itemBeingEdited);
+                    OnItemIDOrNameChanged(itemBeingEdited, true);
                     OnCharacterIDChanged?.Invoke(this, new CharacterIDChangedEventArgs(itemBeingEdited, itemBeingEdited.ID));
                 }
             }

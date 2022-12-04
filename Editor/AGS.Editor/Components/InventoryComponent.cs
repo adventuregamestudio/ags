@@ -77,7 +77,7 @@ namespace AGS.Editor.Components
                 }
                 _itemRightClicked.ID = newNumber;
                 GetFlatList().Swap(oldNumber - 1, newNumber - 1);
-                OnItemIDChanged(_itemRightClicked);
+                OnItemIDOrNameChanged(_itemRightClicked, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
@@ -131,10 +131,13 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
-        private void OnItemIDChanged(InventoryItem item)
+        private void OnItemIDOrNameChanged(InventoryItem item, bool name_only)
         {
             // Refresh tree, property grid and open windows
-            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            if (name_only)
+                ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            else
+                RePopulateTreeView(); // currently this is the only way to update tree item ids
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -157,7 +160,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    OnItemIDChanged(itemToChange);
+                    OnItemIDOrNameChanged(itemToChange, true);
                 }
             }
         }

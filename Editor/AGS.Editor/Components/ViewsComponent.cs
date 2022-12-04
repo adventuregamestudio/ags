@@ -78,7 +78,7 @@ namespace AGS.Editor.Components
                 }
                 _agsEditor.CurrentGame.GetAndAllocateViewID(newNumber);
                 viewClicked.ID = newNumber;
-                OnItemIDChanged(viewClicked);
+                OnItemIDOrNameChanged(viewClicked, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
@@ -186,9 +186,13 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void OnItemIDChanged(View item)
+        private void OnItemIDOrNameChanged(View item, bool name_only)
         {
-            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            if (name_only)
+                ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            else
+                RePopulateTreeView(); // currently this is the only way to update tree item ids
+
             UpdateOpenWindowTitles();
             ComponentController.Instance.FindComponent<CharactersComponent>()?.UpdateCharacterViews();
         }
@@ -205,7 +209,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    OnItemIDChanged(itemBeingEdited);
+                    OnItemIDOrNameChanged(itemBeingEdited, true);
                 }
             }
         }

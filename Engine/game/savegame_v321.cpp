@@ -148,7 +148,7 @@ static void restore_game_room_state(Stream *in)
                 ReadRoomStatus_Aligned(roomstat, in);
                 if (roomstat->tsdatasize > 0)
                 {
-                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
+                    roomstat->tsdata = new char[roomstat->tsdatasize + 8];  // JJS: Why allocate 8 additional bytes?
                     in->Read(&roomstat->tsdata[0], roomstat->tsdatasize);
                 }
             }
@@ -370,7 +370,7 @@ static void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
         ReadRoomStatus_Aligned(&troom, in);
 
         if (troom.tsdatasize > 0) {
-            troom.tsdata=(char*)malloc(troom.tsdatasize+5);
+            troom.tsdata = new char[troom.tsdatasize+5];
             in->Read(&troom.tsdata[0],troom.tsdatasize);
         }
         else

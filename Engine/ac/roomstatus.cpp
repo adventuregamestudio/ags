@@ -46,8 +46,7 @@ RoomStatus::RoomStatus()
     beenhere = 0;
     numobj = 0;
     tsdatasize = 0;
-    tsdata = nullptr;
-    
+
     memset(&region_enabled, 0, sizeof(region_enabled));
     memset(&walkbehind_base, 0, sizeof(walkbehind_base));
     memset(&interactionVariableValues, 0, sizeof(interactionVariableValues));
@@ -55,15 +54,11 @@ RoomStatus::RoomStatus()
 
 RoomStatus::~RoomStatus()
 {
-    if (tsdata)
-        delete [] tsdata;
 }
 
 void RoomStatus::FreeScriptData()
 {
-    if (tsdata)
-        delete [] tsdata;
-    tsdata = nullptr;
+    tsdata.clear();
     tsdatasize = 0;
 }
 
@@ -91,7 +86,7 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
 
     int16_t dummy[MAX_LEGACY_ROOM_FLAGS]; // cannot seek with AlignedStream
     in->ReadArrayOfInt16(dummy, MAX_LEGACY_ROOM_FLAGS); // flagstates (OBSOLETE)
-    tsdatasize = in->ReadInt32();
+    tsdatasize = static_cast<uint32_t>(in->ReadInt32());
     in->ReadInt32(); // tsdata
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
@@ -178,11 +173,11 @@ void RoomStatus::ReadFromSavegame(Stream *in, int save_ver)
         in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
     }
 
-    tsdatasize = in->ReadInt32();
+    tsdatasize = static_cast<uint32_t>(in->ReadInt32());
     if (tsdatasize)
     {
-        tsdata = new char[tsdatasize];
-        in->Read(tsdata, tsdatasize);
+        tsdata.resize(tsdatasize);
+        in->Read(tsdata.data(), tsdatasize);
     }
 }
 
@@ -222,9 +217,9 @@ void RoomStatus::WriteToSavegame(Stream *out) const
         out->WriteArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
     }
 
-    out->WriteInt32(tsdatasize);
+    out->WriteInt32(static_cast<int32_t>(tsdatasize));
     if (tsdatasize)
-        out->Write(tsdata, tsdatasize);
+        out->Write(tsdata.data(), tsdatasize);
 }
 
 // JJS: Replacement for the global roomstats array in the original engine.

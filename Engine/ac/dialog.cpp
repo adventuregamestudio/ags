@@ -72,7 +72,7 @@ ScriptDrawingSurface* dialogOptionsRenderingSurface;
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
 // Old dialog support
-std::vector< std::shared_ptr<unsigned char> > old_dialog_scripts;
+std::vector<std::vector<uint8_t>> old_dialog_scripts;
 std::vector<String> old_speech_lines;
 
 int said_text = 0;
@@ -205,7 +205,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
     if (offse == -1)
       return result;	
 	
-    unsigned char* script = old_dialog_scripts[dialogID].get() + offse;
+    unsigned char* script = old_dialog_scripts[dialogID].data() + offse;
 
     unsigned short param1 = 0;
     unsigned short param2 = 0;

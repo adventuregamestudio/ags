@@ -88,7 +88,7 @@ extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 
 // Old dialog support (defined in ac/dialog)
-extern std::vector< std::shared_ptr<unsigned char> > old_dialog_scripts;
+extern std::vector<std::vector<uint8_t>> old_dialog_scripts;
 extern std::vector<String> old_speech_lines;
 
 // Lipsync

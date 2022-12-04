@@ -282,7 +282,7 @@ void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in
 }
 
 void ReadDialogs(std::vector<DialogTopic> &dialog,
-                 std::vector< std::shared_ptr<unsigned char> > &old_dialog_scripts,
+                 std::vector<std::vector<uint8_t>> &old_dialog_scripts,
                  std::vector<String> &old_dialog_src,
                  std::vector<String> &old_speech_lines,
                  Stream *in, GameDataVersion data_ver, int dlg_count)
@@ -301,8 +301,8 @@ void ReadDialogs(std::vector<DialogTopic> &dialog,
     for (int i = 0; i < dlg_count; ++i)
     {
         // NOTE: originally this was read into dialog[i].optionscripts
-        old_dialog_scripts[i].reset(new unsigned char[dialog[i].codesize], std::default_delete<unsigned char[]>());
-        in->Read(old_dialog_scripts[i].get(), dialog[i].codesize);
+        old_dialog_scripts[i].resize(dialog[i].codesize);
+        in->Read(old_dialog_scripts[i].data(), dialog[i].codesize);
 
         // Encrypted text script
         int script_text_len = in->ReadInt32();
@@ -759,8 +759,8 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
         return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1));
 
     ents.SpriteCount = sprcount;
-    ents.SpriteFlags.reset(new char[sprcount]);
-    in->Read(ents.SpriteFlags.get(), sprcount);
+    ents.SpriteFlags.resize(sprcount);
+    in->Read(ents.SpriteFlags.data(), sprcount);
     return HGameFileError::None();
 }
 

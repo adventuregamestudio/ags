@@ -115,11 +115,6 @@ void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, 
 void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
     Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
-// Generates a transformed sprite, using src image and parameters;
-// * if transformation is necessary - writes into dst and returns dst;
-// * if no transformation is necessary - simply returns src;
-Common::Bitmap *transform_sprite(Common::Bitmap *src, bool src_has_alpha, std::unique_ptr<Common::Bitmap> &dst,
-    const Size dst_sz, Common::GraphicFlip flip = Common::kFlip_None);
 
 // Render game on screen
 void render_to_screen();
@@ -128,10 +123,16 @@ void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
-// create the actsps[aa] image with the object drawn correctly
-// returns 1 if nothing at all has changed and actsps is still
-// intact from last time; 0 otherwise
-int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
+// Create the actsps[aa] image with the object drawn correctly.
+// Returns true if nothing at all has changed and actsps is still
+// intact from last time; false otherwise.
+// Hardware-accelerated do not require altering the raw bitmap itself,
+// so they only detect whether the sprite ID itself has changed.
+// Software renderers modify the cached bitmap whenever any visual
+// effect changes (scaling, tint, etc).
+// * alwaysUseSoftware option forces HW renderers to  construct the image
+// in software mode as well.
+bool construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 // Returns a cached character image prepared for the render
 Common::Bitmap *get_cached_character_image(int charid);
 // Returns a cached object image prepared for the render

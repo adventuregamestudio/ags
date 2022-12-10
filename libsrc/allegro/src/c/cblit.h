@@ -50,7 +50,7 @@ void FUNC_LINEAR_CLEAR_TO_COLOR(BITMAP *dst, int color)
    bmp_select(dst);
 
    for (y = dst->ct; y < dst->cb; y++) {
-      PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, y), dst->cl);
+      PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[y], dst->cl);
 
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(d), x--) {
 	 PUT_PIXEL(d, color);

@@ -2012,15 +2012,11 @@ void prepare_room_sprites()
     // Background sprite is required for the non-software renderers always,
     // and for software renderer in case there are overlapping viewports.
     // Note that software DDB is just a tiny wrapper around bitmap, so overhead is negligible.
-    if (roomBackgroundBmp == nullptr)
+    if (current_background_is_dirty || !roomBackgroundBmp)
     {
         update_polled_stuff_if_runtime();
-        roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
-    }
-    else if (current_background_is_dirty)
-    {
-        update_polled_stuff_if_runtime();
-        gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false);
+        roomBackgroundBmp =
+            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
     }
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {

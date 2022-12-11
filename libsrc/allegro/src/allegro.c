@@ -163,13 +163,6 @@ int gui_bg_color = 0;
 void *_scratch_mem = NULL;
 int _scratch_mem_size = 0;
 
-
-/* SVGA bank switching tables */
-int _last_bank_1 = -1;
-int _last_bank_2 = -1;
-int *_gfx_bank = NULL;
-
-
 /* debugging stuff */
 static int debug_assert_virgin = TRUE;
 static int debug_trace_virgin = TRUE;
@@ -283,9 +276,6 @@ static int _install_allegro(int system_id, int *errno_ptr, int (*atexit_ptr)(voi
       desktop_palette[i] = desktop_palette[i & 15];
 
    /* lock some important variables */
-   LOCK_VARIABLE(_last_bank_1);
-   LOCK_VARIABLE(_last_bank_2);
-   LOCK_VARIABLE(_gfx_bank);
    LOCK_VARIABLE(_drawing_mode);
    LOCK_VARIABLE(_drawing_pattern);
    LOCK_VARIABLE(_drawing_x_anchor);

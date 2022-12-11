@@ -58,16 +58,10 @@ struct RGB;
 #define blender_mode_screen         13
 #define blender_mode_alpha          14
 
-
-typedef AL_METHOD(uintptr_t, _BMP_BANK_SWITCHER, (struct BITMAP *bmp, int lyne));
-typedef AL_METHOD(void, _BMP_UNBANK_SWITCHER, (struct BITMAP *bmp));
-
-
 typedef struct GFX_VTABLE        /* functions for drawing onto bitmaps */
 {
    int color_depth;
    int mask_color;
-   _BMP_UNBANK_SWITCHER unwrite_bank;  /* C function on some machines, asm on i386 */
    AL_METHOD(void, set_clip, (struct BITMAP *bmp));
    AL_METHOD(void, acquire, (struct BITMAP *bmp));
    AL_METHOD(void, release, (struct BITMAP *bmp));
@@ -178,8 +172,6 @@ typedef struct BITMAP            /* a bitmap structure */
    int clip;                     /* flag if clipping is turned on */
    int cl, cr, ct, cb;           /* clip left, right, top and bottom values */
    GFX_VTABLE *vtable;           /* drawing functions */
-   _BMP_BANK_SWITCHER write_bank;/* C func on some machines, asm on i386 */
-   _BMP_BANK_SWITCHER read_bank; /* C func on some machines, asm on i386 */
    void *dat;                    /* the memory we allocated for the bitmap */
    unsigned long id;             /* for identifying sub-bitmaps */
    void *extra;                  /* points to a structure with more info */

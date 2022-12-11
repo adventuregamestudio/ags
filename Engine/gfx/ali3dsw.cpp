@@ -204,8 +204,6 @@ void SDLRendererGraphicsDriver::CreateVirtualScreen()
 
   auto tmpbitmap = create_bitmap_ex(32, 1, 1);
   _fakeTexBitmap->vtable = tmpbitmap->vtable;
-  _fakeTexBitmap->write_bank = tmpbitmap->write_bank;
-  _fakeTexBitmap->read_bank = tmpbitmap->read_bank;
   destroy_bitmap(tmpbitmap);
 
   _lastTexPixels = nullptr;

@@ -126,19 +126,6 @@ AL_FUNC(void, _al_getdcwd, (int drive, char *buf, int size));
 
 
 
-/* caches and tables for svga bank switching */
-AL_VAR(int, _last_bank_1);
-AL_VAR(int, _last_bank_2); 
-
-AL_VAR(int *, _gfx_bank);
-
-/* bank switching routines (these use a non-C calling convention on i386!) */
-AL_FUNC(uintptr_t, _stub_bank_switch, (BITMAP *bmp, int lyne));
-AL_FUNC(void, _stub_unbank_switch, (BITMAP *bmp));
-AL_FUNC(void, _stub_bank_switch_end, (void));
-
-
-
 /* stuff for setting up bitmaps */
 AL_FUNC(GFX_VTABLE *, _get_vtable, (int color_depth));
 

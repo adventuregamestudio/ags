@@ -236,7 +236,6 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     if (!_nullSpriteCallback)
         throw Ali3DException("Unhandled attempt to draw null sprite");
     _stageScreenDirty = false;
-    _stageScreen.Bitmap->ClearTransparent();
     // NOTE: this is not clear whether return value of callback may be
     // relied on. Existing plugins do not seem to return anything but 0,
     // even if they handle this event.
@@ -244,6 +243,7 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     if (_stageScreenDirty)
     {
         UpdateDDBFromBitmap(_stageScreen.DDB, _stageScreen.Bitmap.get(), true);
+        _stageScreen.Bitmap->ClearTransparent();
         return true;
     }
     return false;

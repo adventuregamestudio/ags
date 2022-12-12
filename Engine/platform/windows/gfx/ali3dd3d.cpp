@@ -60,6 +60,12 @@ D3DTextureData::~D3DTextureData()
     }
 }
 
+D3DBitmap::~D3DBitmap()
+{
+    if (_renderSurface)
+        _renderSurface->Release();
+}
+
 static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
 static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
 
@@ -1491,11 +1497,11 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
 
 IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
-  if (color_depth != GetCompatibleBitmapFormat(color_depth))
-    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-  D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
-  ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(width, height, opaque)));
-  return ddb;
+    if (color_depth != GetCompatibleBitmapFormat(color_depth))
+        throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+    D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
+    ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(width, height, opaque)));
+    return ddb;
 }
 
 IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB(std::shared_ptr<TextureData> txdata,
@@ -1507,41 +1513,66 @@ IDriverDependantBitmap *D3DGraphicsDriver::CreateDDB(std::shared_ptr<TextureData
     return ddb;
 }
 
+IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
+{
+    if (color_depth != GetCompatibleBitmapFormat(color_depth))
+        throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+    D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
+    ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(width, height, opaque, true)));
+    // FIXME: this ugly accessing internal texture members
+    IDirect3DTexture9 *tex = ddb->_data->_tiles->texture;
+    HRESULT hr = tex->GetSurfaceLevel(0, &ddb->_renderSurface);
+    assert(hr == D3D_OK);
+    return ddb;
+}
+
 std::shared_ptr<TextureData> D3DGraphicsDriver::GetTextureData(IDriverDependantBitmap *ddb)
 {
     return std::static_pointer_cast<TextureData>((reinterpret_cast<D3DBitmap*>(ddb))->_data);
 }
 
-TextureData *D3DGraphicsDriver::CreateTextureData(int width, int height, bool opaque)
+TextureData *D3DGraphicsDriver::CreateTextureData(int width, int height, bool opaque, bool as_render_target)
 {
   assert(width > 0);
   assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
-  int tilesAcross = 1, tilesDown = 1;
 
-  auto *txdata = new D3DTextureData();
-  // Calculate how many textures will be necessary to
-  // store this image
-  tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
-  tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
-  assert(tilesAcross > 0);
-  assert(tilesDown > 0);
-  tilesAcross = std::max(1, tilesAcross);
-  tilesDown = std::max(1, tilesDown);
+  // Render targets must have D3DUSAGE_RENDERTARGET flag and be
+  // created in a D3DPOOL_DEFAULT
+  const int texture_use = as_render_target ? D3DUSAGE_RENDERTARGET : 0;
+  const D3DPOOL texture_pool = as_render_target ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED;
+
+  int tilesAcross = 1, tilesDown = 1;
+  if (as_render_target)
+  {
+    // For render target - just limit the size by the max texture size
+    allocatedWidth = std::min<DWORD>(allocatedWidth, direct3ddevicecaps.MaxTextureWidth);
+    allocatedHeight = std::min<DWORD>(allocatedHeight, direct3ddevicecaps.MaxTextureHeight);
+  }
+  else
+  {
+    // Calculate how many textures will be necessary to store this image
+    tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
+    tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
+    assert(tilesAcross > 0);
+    assert(tilesDown > 0);
+    tilesAcross = std::max(1, tilesAcross);
+    tilesDown = std::max(1, tilesDown);
+  }
+
   int tileWidth = width / tilesAcross;
   int lastTileExtraWidth = width % tilesAcross;
   int tileHeight = height / tilesDown;
   int lastTileExtraHeight = height % tilesDown;
   int tileAllocatedWidth = tileWidth;
   int tileAllocatedHeight = tileHeight;
-
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
+  auto *txdata = new D3DTextureData();
   int numTiles = tilesAcross * tilesDown;
   D3DTextureTile *tiles = new D3DTextureTile[numTiles];
-
   CUSTOMVERTEX *vertices = NULL;
 
   if ((numTiles == 1) &&
@@ -1615,14 +1646,14 @@ TextureData *D3DGraphicsDriver::CreateTextureData(int width, int height, bool op
 
       // NOTE: pay attention that the texture format depends on the **display mode**'s color format,
       // rather than source bitmap's color depth!
-      D3DFORMAT textureFormat = color_depth_to_d3d_format(_mode.ColorDepth, !opaque);
-      HRESULT hr = direct3ddevice->CreateTexture(thisAllocatedWidth, thisAllocatedHeight, 1, 0, 
-                                      textureFormat,
-                                      D3DPOOL_MANAGED, &thisTile->texture, NULL);
+      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth, !opaque);
+      HRESULT hr = direct3ddevice->CreateTexture(thisAllocatedWidth, thisAllocatedHeight, 1,
+                                      texture_use, texture_fmt,
+                                      texture_pool, &thisTile->texture, NULL);
       if (hr != D3D_OK)
       {
         throw Ali3DException(String::FromFormat(
-            "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code 0x%08X", thisAllocatedWidth, thisAllocatedHeight, textureFormat, hr));
+            "Direct3DDevice9::CreateTexture(X=%d, Y=%d, FMT=%d) failed: error code 0x%08X", thisAllocatedWidth, thisAllocatedHeight, texture_fmt, hr));
       }
 
     }

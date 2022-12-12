@@ -97,6 +97,8 @@ public:
 
     // OpenGL texture data
     std::shared_ptr<OGLTextureData> _data;
+    // Optional frame buffer object (for rendering onto a texture)
+    unsigned int _fbo {};
 
     // Drawing parameters
     bool _flipped;
@@ -127,7 +129,7 @@ public:
     int GetWidthToRender() const { return _stretchToWidth; }
     int GetHeightToRender() const { return _stretchToHeight; }
 
-    ~OGLBitmap() override = default;
+    ~OGLBitmap() override;
 };
 
 // OGL renderer's sprite batch
@@ -210,15 +212,7 @@ public:
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    // Create texture data with the given parameters
-    TextureData *CreateTextureData(int width, int height, bool opaque) override;
-    // Update texture data from the given bitmap
-    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
-    // Create DDB using preexisting texture data
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
-        int width, int height, int color_depth, bool opaque) override;
-    // Retrieve shared texture data object from the given DDB
-    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
@@ -246,6 +240,17 @@ public:
 
     OGLGraphicsDriver();
     ~OGLGraphicsDriver() override;
+
+protected:
+    // Create texture data with the given parameters
+    TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) override;
+    // Update texture data from the given bitmap
+    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
+    // Create DDB using preexisting texture data
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
+        int width, int height, int color_depth, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
 
 private:
     POGLFilter _filter {};

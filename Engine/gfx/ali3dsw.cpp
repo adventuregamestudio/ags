@@ -308,6 +308,12 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *b
   return new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
 }
 
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
+{
+    // For software renderer there's no difference between "texture" types.
+    return new ALSoftwareBitmap(width, height, color_depth, opaque);
+}
+
 void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;

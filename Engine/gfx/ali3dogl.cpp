@@ -84,6 +84,12 @@ OGLTextureData::~OGLTextureData()
     }
 }
 
+OGLBitmap::~OGLBitmap()
+{
+    if (_fbo)
+        glDeleteFramebuffersEXT(1, &_fbo);
+}
+
 
 OGLGraphicsDriver::OGLGraphicsDriver()
 {
@@ -1586,11 +1592,11 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
 IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
 {
-  if (color_depth != GetCompatibleBitmapFormat(color_depth))
-    throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-  OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-  ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque)));
-  return ddb;
+    if (color_depth != GetCompatibleBitmapFormat(color_depth))
+        throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
+    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque)));
+    return ddb;
 }
 
 IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<TextureData> txdata,
@@ -1602,21 +1608,34 @@ IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<TextureData
     return ddb;
 }
 
+IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
+{
+    if (color_depth != GetCompatibleBitmapFormat(color_depth))
+        throw Ali3DException("CreateDDB: bitmap colour depth not supported");
+    OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
+    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque, true)));
+    glGenFramebuffersEXT(1, &ddb->_fbo);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ddb->_fbo);
+    // FIXME: this ugly accessing internal texture members
+    unsigned int tex = ddb->_data->_tiles[0].texture;
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    return ddb;
+}
+
 std::shared_ptr<TextureData> OGLGraphicsDriver::GetTextureData(IDriverDependantBitmap *ddb)
 {
     return std::static_pointer_cast<TextureData>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
 }
 
-TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*opaque*/)
+TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*opaque*/, bool as_render_target)
 {
   assert(width > 0);
   assert(height > 0);
   int allocatedWidth = width;
   int allocatedHeight = height;
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
-  int tilesAcross = 1, tilesDown = 1;
 
-  auto *txdata = new OGLTextureData();
   // Calculate how many textures will be necessary to
   // store this image
   int MaxTextureWidth = 512;
@@ -1624,12 +1643,23 @@ TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureWidth);
   MaxTextureHeight = MaxTextureWidth;
 
-  tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
-  tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
-  assert(tilesAcross > 0);
-  assert(tilesDown > 0);
-  tilesAcross = std::max(1, tilesAcross);
-  tilesDown = std::max(1, tilesDown);
+  int tilesAcross = 1, tilesDown = 1;
+  if (as_render_target)
+  {
+    // For render target - just limit the size by the max texture size
+    allocatedWidth = std::min(allocatedWidth, MaxTextureWidth);
+    allocatedHeight = std::min(allocatedHeight, MaxTextureHeight);
+  }
+  else
+  {
+    tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
+    tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
+    assert(tilesAcross > 0);
+    assert(tilesDown > 0);
+    tilesAcross = std::max(1, tilesAcross);
+    tilesDown = std::max(1, tilesDown);
+  }
+
   int tileWidth = width / tilesAcross;
   int lastTileExtraWidth = width % tilesAcross;
   int tileHeight = height / tilesDown;
@@ -1639,12 +1669,13 @@ TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*
 
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
+  auto *txdata = new OGLTextureData();
   int numTiles = tilesAcross * tilesDown;
   OGLTextureTile *tiles = new OGLTextureTile[numTiles];
-
   OGLCUSTOMVERTEX *vertices = nullptr;
 
-  if ((numTiles == 1) &&
+  if ((!as_render_target) &&
+      (numTiles == 1) &&
       (allocatedWidth == width) &&
       (allocatedHeight == height))
   {
@@ -1681,7 +1712,23 @@ TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
 
-      if (vertices != nullptr)
+      // Render targets has to be inverted compared to the default vertices,
+      // in order to make their contents appear correct on screen (double invertion).
+      // Also they don't need an extra u/v offset, like done for regular textures.
+      if (as_render_target)
+      {
+        for (int i = 0; i < 4; ++i)
+          vertices[i] = defaultVertices[i];
+        vertices[0].position.y = -1.f;
+        vertices[1].position.y = -1.f;
+        vertices[1].tu = (float)thisTile->width / (float)thisAllocatedWidth;
+        vertices[2].position.y = 0.f;
+        vertices[2].tv = (float)thisTile->height / (float)thisAllocatedHeight;
+        vertices[3].position.y = 0.f;
+        vertices[3].tu = (float)thisTile->width / (float)thisAllocatedWidth;
+        vertices[3].tv = (float)thisTile->height / (float)thisAllocatedHeight;
+      }
+      else if (vertices != nullptr)
       {
         const int texxoff = (thisAllocatedWidth - thisTile->width) > 1 ? 1 : 0;
         const int texyoff = (thisAllocatedHeight - thisTile->height) > 1 ? 1 : 0;
@@ -1716,7 +1763,6 @@ TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
       // NOTE: pay attention that the texture format depends on the **display mode**'s format,
       // rather than source bitmap's color depth!
-
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     }
   }

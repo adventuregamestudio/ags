@@ -32,7 +32,6 @@ GFX_VTABLE __linear_vtable16 =
 {
    16,
    MASK_COLOR_16,
-   _stub_unbank_switch,
    NULL,
    NULL,
    NULL,

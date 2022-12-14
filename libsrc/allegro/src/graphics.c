@@ -317,7 +317,6 @@ BITMAP *create_bitmap_ex(int color_depth, int width, int height)
    bitmap->clip = TRUE;
    bitmap->cl = bitmap->ct = 0;
    bitmap->vtable = vtable;
-   bitmap->write_bank = bitmap->read_bank = _stub_bank_switch;
    bitmap->id = 0;
    bitmap->extra = NULL;
    bitmap->x_ofs = 0;
@@ -388,8 +387,6 @@ BITMAP *create_sub_bitmap(BITMAP *parent, int x, int y, int width, int height)
    bitmap->clip = TRUE;
    bitmap->cl = bitmap->ct = 0;
    bitmap->vtable = parent->vtable;
-   bitmap->write_bank = parent->write_bank;
-   bitmap->read_bank = parent->read_bank;
    bitmap->dat = NULL;
    bitmap->extra = NULL;
    bitmap->x_ofs = x + parent->x_ofs;

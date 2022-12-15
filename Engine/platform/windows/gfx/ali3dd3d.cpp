@@ -1275,30 +1275,35 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     glm::mat4 model = glmex::translate(viewport.Left - scaled_offx, -(viewport.Top - scaled_offy));
     model = model * msrt;
 
-    // Then apply global node transformation (flip and offset)
-    int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
+    // Apply node flip: this is implemented as a negative scaling.
     float node_sx = 1.f, node_sy = 1.f;
-    if ((desc.Flip == kFlip_Vertical) || (desc.Flip == kFlip_Both))
+    switch (desc.Flip)
     {
-        int left = _srcRect.GetWidth() - (viewport.Right + 1);
-        viewport.MoveToX(left);
-        node_sx = -1.f;
+    case kFlip_Vertical: node_sx = -node_sx; break;
+    case kFlip_Horizontal: node_sy = -node_sy; break;
+    case kFlip_Both: node_sx = -node_sx; node_sy = -node_sy; break;
+    default: break;
     }
-    if ((desc.Flip == kFlip_Horizontal) || (desc.Flip == kFlip_Both))
-    {
-        int top = _srcRect.GetHeight() - (viewport.Bottom + 1);
-        viewport.MoveToY(top);
-        node_sy = -1.f;
-    }
-    viewport = Rect::MoveBy(viewport, node_tx, node_ty);
-    glm::mat4 mflip_off = glmex::make_transform2d((float)node_tx, (float)-(node_ty), node_sx, node_sy, 0.f);
-    model = mflip_off * model;
+    glm::mat4 mflip = glmex::scale(node_sx, node_sy);
+    model = mflip * model;
 
     // Apply parent batch's settings, if preset
     if (desc.Parent > 0)
     {
         const auto &parent = _spriteBatches[desc.Parent];
         model = parent.Matrix * model;
+        // Transform this node's viewport using parent's matrix
+        glm::mat4 parent_m4 = parent.Matrix;
+        // FIXME: hack, inverse Y coord, viewport is inv to how sprites are drawn?
+        parent_m4[3][1] = -parent_m4[3][1];
+        viewport = glmex::full_transform(viewport, parent_m4);
+        // FIXME: this silly hack (need an extra translate before parent's neg scale,
+        // changing the centering of flip/scale)
+        if (parent.Matrix[0][0] < 0)
+            viewport.MoveToX(viewport.Left + _srcRect.GetWidth() - 1);
+        if (parent.Matrix[1][1] < 0)
+            viewport.MoveToY(viewport.Top + _srcRect.GetHeight() - 1);
+        // Don't let child viewport go outside the parent's bounds
         viewport = ClampToRect(parent.Viewport, viewport);
     }
 

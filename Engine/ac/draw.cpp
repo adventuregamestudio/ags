@@ -904,7 +904,7 @@ void render_to_screen()
     // Stage: final plugin callback (still drawn on game screen
     if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
@@ -919,11 +919,24 @@ void render_to_screen()
     {
         try
         {
-            // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
-            const Rect &viewport = play.GetMainViewport();
-            if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
-                gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
-            gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
+            if (gfxDriver->RequiresFullRedrawEachFrame())
+            {
+                gfxDriver->Render();
+            }
+            else
+            {
+                // NOTE: the shake yoff and global flip here will only be used by a software renderer;
+                // as hw renderers have these as transform parameters for the parent scene nodes.
+                // This may be a matter for the future code improvement.
+                //
+                // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+                if (play.shake_screen_yoff > 0)
+                {
+                    const Rect &viewport = play.GetMainViewport();
+                    gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
+                }
+                gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
+            }
             succeeded = true;
         }
         catch (Ali3DFullscreenLostException e) 
@@ -2429,7 +2442,7 @@ static void construct_room_view()
             0.f);
         if (gfxDriver->RequiresFullRedrawEachFrame())
         { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+            gfxDriver->BeginSpriteBatch(view_rc, room_trans);
         }
         else
         {
@@ -2449,7 +2462,7 @@ static void construct_room_view()
             else
             { // room background is drawn by dirty rects system
                 PBitmap bg_surface = draw_room_background(viewport.get());
-                gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), kFlip_None, bg_surface);
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans, kFlip_None, bg_surface);
             }
         }
         put_sprite_list_on_screen(true);
@@ -2462,7 +2475,7 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs());
     draw_gui_and_overlays();
     gfxDriver->EndSpriteBatch();
     clear_draw_list();
@@ -2550,6 +2563,10 @@ void construct_game_scene(bool full_redraw)
     if (displayed_room >= 0)
         play.UpdateRoomCameras();
 
+    // Begin with the parent scene node, defining global offset and flip
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff),
+        (GraphicFlip)play.screen_flipped);
+
     // Stage: room viewports
     if (play.screen_is_faded_out == 0 && play.complete_overlay_on == 0)
     {
@@ -2572,21 +2589,16 @@ void construct_game_scene(bool full_redraw)
     {
         construct_ui_view();
     }
+
+    // End the parent scene node
+    gfxDriver->EndSpriteBatch();
 }
 
-void construct_game_screen_overlay(bool draw_mouse)
+void update_mouse_cursor()
 {
-    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
-    {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
-        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
-        gfxDriver->EndSpriteBatch();
-    }
-
-    // TODO: find out if it's okay to move cursor animation and state update
-    // to the update loop instead of doing it in the drawing routine
+    // update mouse position (mousex, mousey)
+    ags_domouse();
     // update animating mouse cursor
-    ags_domouse(); // update mouse pos (mousex, mousey)
     if (game.mcurs[cur_cursor].view >= 0) {
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
@@ -2613,11 +2625,26 @@ void construct_game_screen_overlay(bool draw_mouse)
         }
         lastmx = mousex; lastmy = mousey;
     }
+}
 
+void construct_game_screen_overlay(bool draw_mouse)
+{
+    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
+    {
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
+        gfxDriver->EndSpriteBatch();
+    }
+
+    // TODO: find out if it's okay to move cursor animation and state update
+    // to the update loop instead of doing it in the drawing routine
+    update_mouse_cursor();
+
+    // Add mouse cursor pic, and global screen tint effect
     if (play.screen_is_faded_out == 0)
     {
         // Stage: mouse cursor
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         if (draw_mouse && !play.mouse_cursor_hidden)
         {
             gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
@@ -2632,6 +2659,7 @@ void construct_game_screen_overlay(bool draw_mouse)
         render_black_borders();
     }
 
+    // Add global screen fade effect
     if (play.screen_is_faded_out != 0 && gfxDriver->RequiresFullRedrawEachFrame())
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
@@ -2798,7 +2826,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
-        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();

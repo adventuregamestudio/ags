@@ -1312,38 +1312,27 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
 
 void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
-    Rect orig_viewport = desc.Viewport;
-    Rect node_viewport = desc.Viewport;
+    Rect viewport = desc.Viewport;
 
     // Create transformation matrix for this batch
     // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
-    glm::mat4 model = glm::mat4(1.0f);
-
-    // Global node transformation (flip and offset)
-    int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
+    // Apply node flip: this is implemented as a negative scaling.
     float node_sx = 1.f, node_sy = 1.f;
-    if ((desc.Flip == kFlip_Vertical) || (desc.Flip == kFlip_Both))
+    switch (desc.Flip)
     {
-        int left = _srcRect.GetWidth() - (orig_viewport.Right + 1);
-        node_viewport.MoveToX(left);
-        node_sx = -1.f;
+    case kFlip_Vertical: node_sx = -node_sx; break;
+    case kFlip_Horizontal: node_sy = -node_sy; break;
+    case kFlip_Both: node_sx = -node_sx; node_sy = -node_sy; break;
+    default: break;
     }
-    if ((desc.Flip == kFlip_Horizontal) || (desc.Flip == kFlip_Both))
-    {
-        int top = _srcRect.GetHeight() - (orig_viewport.Bottom + 1);
-        node_viewport.MoveToY(top);
-        node_sy = -1.f;
-    }
-    Rect viewport = Rect::MoveBy(node_viewport, node_tx, node_ty);
-    model = glmex::translate(model, node_tx, -(node_ty));
-    model = glmex::scale(model, node_sx, node_sy);
+    glm::mat4 model = glmex::scale(node_sx, node_sy);
 
     // NOTE: before node, translate to viewport position; remove this if this
     // is changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    model = glmex::translate(model, (float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy));
+    model = glmex::translate(model, (float)(viewport.Left - scaled_offx), (float)-(viewport.Top - scaled_offy));
 
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
@@ -1356,7 +1345,19 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     if (desc.Parent > 0)
     {
         const auto &parent = _spriteBatches[desc.Parent];
-        model = model * parent.Matrix;
+        model = parent.Matrix * model;
+        glm::mat4 parent_m4 = parent.Matrix;
+        // Transform this node's viewport using parent's matrix
+        // FIXME: hack, inverse Y coord, viewport is inv to how sprites are drawn?
+        parent_m4[3][1] = -parent_m4[3][1];
+        viewport = glmex::full_transform(viewport, parent_m4);
+        // FIXME: this silly hack (need an extra translate before parent's neg scale,
+        // changing the centering of flip/scale)
+        if (parent.Matrix[0][0] < 0)
+            viewport.MoveToX(viewport.Left + _srcRect.GetWidth() - 1);
+        if (parent.Matrix[1][1] < 0)
+            viewport.MoveToY(viewport.Top + _srcRect.GetHeight() - 1);
+        // Don't let child viewport go outside the parent's bounds
         viewport = ClampToRect(parent.Viewport, viewport);
     }
 
@@ -1366,8 +1367,8 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     _spriteBatches[index] = OGLSpriteBatch(index, viewport, model, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
-    int src_w = orig_viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = orig_viewport.GetHeight() / desc.Transform.ScaleY;
+    int src_w = viewport.GetWidth() / desc.Transform.ScaleX;
+    int src_h = viewport.GetHeight() / desc.Transform.ScaleY;
     CreateStageScreen(index, Size(src_w, src_h));
 
     GLenum err;

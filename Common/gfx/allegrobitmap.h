@@ -23,6 +23,7 @@
 
 #include <allegro.h>
 #include "core/types.h"
+#include "debug/assert.h"
 #include "gfx/bitmap.h"
 
 namespace AGS
@@ -144,7 +145,8 @@ public:
     // Get scanline for direct reading
 	inline const unsigned char *GetScanLine(int index) const
     {
-        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : nullptr;
+        assert(index >= 0 && index < GetHeight());
+        return _alBitmap->line[index];
     }
 
     void    SetMaskColor(color_t color);

@@ -733,7 +733,7 @@ void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
             int rel_y = calc_relative_delta((event.dy * h), usetup.mouse_speed, t2m.rel_accum_y);
             send_mouse_motion_event(t2m.pos.X, t2m.pos.Y, rel_x, rel_y);
             // Test the absolute value of the touch drag so far
-            t2m.drag_dist_accum += std::sqrt((event.dx * event.dx) + (event.dy * event.dy));;
+            t2m.drag_dist_accum += std::sqrt((event.dx * event.dx) + (event.dy * event.dy));
             if (t2m.drag_dist_accum > t2m.drag_trigger_dist)
             {
                 t2m.is_dragging = true;

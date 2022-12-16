@@ -91,7 +91,7 @@ namespace IniUtil
     // Similar to the above, but merges the key-value tree into the provided
     // IniFile object in memory.
     void Merge(IniFile &ini, const ConfigTree &tree);
-};
+}
 
 } // namespace Common
 } // namespace AGS

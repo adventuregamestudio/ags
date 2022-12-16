@@ -67,7 +67,7 @@ namespace MFLUtil
 
     void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
     void     WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
-};
+}
 
 } // namespace Common
 } // namespace AGS

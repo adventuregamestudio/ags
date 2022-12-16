@@ -105,7 +105,7 @@ void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &
                 node; node = node->NextSiblingElement(folder_elem))
             {
                 GetElemsRecursive(node, elems, folder_elem, list_elem, type_elem);
-            };
+            }
         }
         // get to elements inside a folder
         list_node = folder->FirstChildElement(list_elem);
@@ -117,7 +117,7 @@ void EntityListParser::GetElemsRecursive(DocElem folder,  std::vector<DocElem> &
         node; node = node->NextSiblingElement(type_elem))
     {
         elems.push_back(node);
-    };
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -212,7 +212,7 @@ void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
         node; node = node->NextSiblingElement("GlobalVariable"))
     {
         elems.push_back(node);
-    };
+    }
 }
 
 DocElem Game::GetSettings(DocElem elem)

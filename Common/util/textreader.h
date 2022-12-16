@@ -45,4 +45,4 @@ public:
 } // namespace Common
 } // namespace AGS
 
-#endif // __AGS_CN_UTIL__TEXTSTREAM_H
+#endif // __AGS_CN_UTIL__TEXTREADER_H

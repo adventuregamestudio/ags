@@ -51,8 +51,8 @@ soff_t CopyStream(Stream *in, Stream *out, soff_t length)
                 return wrote_num;
             to_write -= wrote;
             wrote_num += wrote;
-        };
-    };
+        }
+    }
     return wrote_num;
 }
 

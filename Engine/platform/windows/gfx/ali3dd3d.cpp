@@ -1265,27 +1265,35 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         (float)desc.Transform.X, (float)-desc.Transform.Y,
         desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
     // Translate scaled node into Top-Left screen coordinates
-    float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
-    float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
+    float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
+    float scaled_offy = _srcRect.GetHeight() * ((1.f - desc.Transform.ScaleY) * 0.5f);
     glm::mat4 model = glmex::translate(-scaled_offx, -(-scaled_offy));
     model = model * msrt;
 
     // Apply node flip: this is implemented as a negative scaling.
-    float node_sx = 1.f, node_sy = 1.f;
+    // TODO: find out if possible to merge with normal scale
+    float flip_sx = 1.f, flip_sy = 1.f;
     switch (desc.Flip)
     {
-    case kFlip_Vertical: node_sx = -node_sx; break;
-    case kFlip_Horizontal: node_sy = -node_sy; break;
-    case kFlip_Both: node_sx = -node_sx; node_sy = -node_sy; break;
+    case kFlip_Vertical: flip_sx = -flip_sx; break;
+    case kFlip_Horizontal: flip_sy = -flip_sy; break;
+    case kFlip_Both: flip_sx = -flip_sx; flip_sy = -flip_sy; break;
     default: break;
     }
-    glm::mat4 mflip = glmex::scale(node_sx, node_sy);
+    glm::mat4 mflip = glmex::scale(flip_sx, flip_sy);
     model = mflip * model;
 
     // Also create separate viewport transformation matrix:
     // it will use a slightly different set of transforms,
     // because the viewport's coordinates origin is different from sprites.
-    glm::mat4 mat_viewport = mflip * msrt;
+    glm::mat4 mat_viewport = glmex::make_transform2d(
+        (float)desc.Transform.X, (float)desc.Transform.Y,
+        desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
+    glm::mat4 vp_flip_off = glmex::translate(
+        _srcRect.GetWidth() * ((1.f - flip_sx) * 0.5f),
+        _srcRect.GetHeight() * ((1.f - flip_sy) * 0.5f));
+    mat_viewport = mflip * mat_viewport;
+    mat_viewport = vp_flip_off * mat_viewport;
 
     // Apply parent batch's settings, if preset
     Rect viewport = desc.Viewport;
@@ -1297,20 +1305,11 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         // Combine viewport's matrix with the parent's
         mat_viewport = parent.ViewportMat * mat_viewport;
 
-        // Transform this node's viewport using (only!) parent's matrix
+        // Transform this node's viewport using (only!) parent's matrix,
+        // and don't let child viewport go outside the parent's bounds.
         if (!viewport.IsEmpty())
         {
-            glm::mat4 viewport_m4 = parent.ViewportMat;
-            // FIXME: hack, inverse Y coord, viewport is inv to how sprites are drawn?
-            viewport_m4[3][1] = -viewport_m4[3][1];
-            viewport = glmex::full_transform(viewport, viewport_m4);
-            // FIXME: this silly hack (need an extra translate before parent's neg scale,
-            // changing the centering of flip/scale)
-            if (parent.ViewportMat[0][0] < 0)
-                viewport.MoveToX(viewport.Left + _srcRect.GetWidth() - 1);
-            if (parent.ViewportMat[1][1] < 0)
-                viewport.MoveToY(viewport.Top + _srcRect.GetHeight() - 1);
-            // Don't let child viewport go outside the parent's bounds
+            viewport = glmex::full_transform(viewport, parent.ViewportMat);
             viewport = ClampToRect(parent.Viewport, viewport);
         }
         else

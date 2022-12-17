@@ -163,8 +163,9 @@ struct D3DSpriteBatch : VMSpriteBatch
     // Add anything D3D specific here
 
     D3DSpriteBatch() = default;
-    D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const SpriteColorTransform &color)
-        : VMSpriteBatch(id, view, matrix, color) {}
+    D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
 };
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;

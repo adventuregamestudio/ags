@@ -2357,7 +2357,7 @@ void draw_gui_and_overlays()
         if (s.id < 0) continue; // not a group parent (gui)
         // Create a sub-batch
         gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, s.ddb->GetWidth(), s.ddb->GetHeight()),
-            SpriteTransform(0, 0, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
+            SpriteTransform(s.x, s.y, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
         const int draw_index = guiobjddbref[s.id];
         for (const auto &obj_id : guis[s.id].GetControlsDrawOrder())
         {
@@ -2434,18 +2434,31 @@ static void construct_room_view()
         auto camera = viewport->GetCamera();
         if (!camera)
             continue;
+
         const Rect &view_rc = play.GetRoomViewportAbs(viewport->GetID());
         const Rect &cam_rc = camera->GetRect();
-        SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
-            (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
-            (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
-            0.f);
+        const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+        const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+
         if (gfxDriver->RequiresFullRedrawEachFrame())
-        { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans);
+        {
+            // For hw renderer we draw everything as a sprite stack;
+            // viewport-camera pair is done as 2 nested scene nodes,
+            // where first defines how camera's image translates into the viewport on screen,
+            // and second - how room's image translates into the camera.
+            gfxDriver->BeginSpriteBatch(view_rc, SpriteTransform(view_rc.Left, view_rc.Top, view_sx, view_sy));
+            gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(-cam_rc.Left, -cam_rc.Top));
+            put_sprite_list_on_screen(true);
+            gfxDriver->EndSpriteBatch();
+            gfxDriver->EndSpriteBatch();
         }
         else
         {
+            // For software renderer - combine viewport and camera in one batch,
+            // due to how the room drawing is implemented currently in the software mode.
+            // TODO: review this later?
+            SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top, view_sx, view_sy, 0.f);
+
             if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
             { // room background is prepended to the sprite stack
               // TODO: here's why we have blit whole piece of background now:
@@ -2464,9 +2477,9 @@ static void construct_room_view()
                 PBitmap bg_surface = draw_room_background(viewport.get());
                 gfxDriver->BeginSpriteBatch(view_rc, room_trans, kFlip_None, bg_surface);
             }
+            put_sprite_list_on_screen(true);
+            gfxDriver->EndSpriteBatch();
         }
-        put_sprite_list_on_screen(true);
-        gfxDriver->EndSpriteBatch();
     }
 
     clear_draw_list();

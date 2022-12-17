@@ -136,8 +136,9 @@ struct OGLSpriteBatch : VMSpriteBatch
     // Add anything OGL specific here
 
     OGLSpriteBatch() = default;
-    OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const SpriteColorTransform &color)
-        : VMSpriteBatch(id, view, matrix, color) {}
+    OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;

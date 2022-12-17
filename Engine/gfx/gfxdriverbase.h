@@ -201,12 +201,15 @@ struct VMSpriteBatch
     Rect Viewport;
     // Transformation matrix, built from the batch description
     glm::mat4 Matrix;
+    // Viewport transformation matrix, necessary, as the coord origin is different
+    glm::mat4 ViewportMat;
     // Batch color transformation
     SpriteColorTransform Color;
 
     VMSpriteBatch() = default;
-    VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const SpriteColorTransform &color)
-        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
+    VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+                  const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
 };
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers

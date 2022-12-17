@@ -1259,20 +1259,15 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
 
 void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
-    Rect viewport = desc.Viewport;
     // Create transformation matrix for this batch
-    // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
-    // the camera's transformation is essentially reverse world transformation. And the operations
-    // are inverse: Translate-Rotate-Scale (here they are double inverse because GLM).
-    glm::mat4 msrt = glmex::make_inv_transform2d(
+    // Classic Scale-Rotate-Translate, but inverse, because it's GLM
+    glm::mat4 msrt = glmex::make_transform2d(
         (float)desc.Transform.X, (float)-desc.Transform.Y,
         desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
-    // Next step is translate to viewport position; remove this if this is
-    // changed to a separate operation at some point
-    // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
+    // Translate scaled node into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    glm::mat4 model = glmex::translate(viewport.Left - scaled_offx, -(viewport.Top - scaled_offy));
+    glm::mat4 model = glmex::translate(-scaled_offx, -(-scaled_offy));
     model = model * msrt;
 
     // Apply node flip: this is implemented as a negative scaling.
@@ -1287,30 +1282,51 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     glm::mat4 mflip = glmex::scale(node_sx, node_sy);
     model = mflip * model;
 
+    // Also create separate viewport transformation matrix:
+    // it will use a slightly different set of transforms,
+    // because the viewport's coordinates origin is different from sprites.
+    glm::mat4 mat_viewport = mflip * msrt;
+
     // Apply parent batch's settings, if preset
+    Rect viewport = desc.Viewport;
     if (desc.Parent > 0)
     {
         const auto &parent = _spriteBatches[desc.Parent];
+        // Combine sprite matrix with the parent's
         model = parent.Matrix * model;
-        // Transform this node's viewport using parent's matrix
-        glm::mat4 parent_m4 = parent.Matrix;
-        // FIXME: hack, inverse Y coord, viewport is inv to how sprites are drawn?
-        parent_m4[3][1] = -parent_m4[3][1];
-        viewport = glmex::full_transform(viewport, parent_m4);
-        // FIXME: this silly hack (need an extra translate before parent's neg scale,
-        // changing the centering of flip/scale)
-        if (parent.Matrix[0][0] < 0)
-            viewport.MoveToX(viewport.Left + _srcRect.GetWidth() - 1);
-        if (parent.Matrix[1][1] < 0)
-            viewport.MoveToY(viewport.Top + _srcRect.GetHeight() - 1);
-        // Don't let child viewport go outside the parent's bounds
-        viewport = ClampToRect(parent.Viewport, viewport);
+        // Combine viewport's matrix with the parent's
+        mat_viewport = parent.ViewportMat * mat_viewport;
+
+        // Transform this node's viewport using (only!) parent's matrix
+        if (!viewport.IsEmpty())
+        {
+            glm::mat4 viewport_m4 = parent.ViewportMat;
+            // FIXME: hack, inverse Y coord, viewport is inv to how sprites are drawn?
+            viewport_m4[3][1] = -viewport_m4[3][1];
+            viewport = glmex::full_transform(viewport, viewport_m4);
+            // FIXME: this silly hack (need an extra translate before parent's neg scale,
+            // changing the centering of flip/scale)
+            if (parent.ViewportMat[0][0] < 0)
+                viewport.MoveToX(viewport.Left + _srcRect.GetWidth() - 1);
+            if (parent.ViewportMat[1][1] < 0)
+                viewport.MoveToY(viewport.Top + _srcRect.GetHeight() - 1);
+            // Don't let child viewport go outside the parent's bounds
+            viewport = ClampToRect(parent.Viewport, viewport);
+        }
+        else
+        {
+            viewport = parent.Viewport;
+        }
+    }
+    else if (viewport.IsEmpty())
+    {
+        viewport = _srcRect;
     }
 
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = D3DSpriteBatch(index, viewport, model, desc.Transform.Color);
+    _spriteBatches[index] = D3DSpriteBatch(index, viewport, model, mat_viewport, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     int src_w = viewport.GetWidth() / desc.Transform.ScaleX;

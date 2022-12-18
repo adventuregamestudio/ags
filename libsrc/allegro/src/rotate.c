@@ -626,7 +626,6 @@ void _parallelogram_map(BITMAP *bmp, BITMAP *spr, fixed xs[4], fixed ys[4],
       #endif
    }
 
-   bmp_unwrite_line(bmp);
 }
 
 

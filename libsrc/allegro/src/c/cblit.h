@@ -57,7 +57,6 @@ void FUNC_LINEAR_CLEAR_TO_COLOR(BITMAP *dst, int color)
       }
    }
 
-   bmp_unwrite_line(dst);
 }
 
 
@@ -95,8 +94,6 @@ void FUNC_LINEAR_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
 #endif
    }
 
-   bmp_unwrite_line(src);
-   bmp_unwrite_line(dst);
 }
 
 
@@ -137,8 +134,6 @@ void FUNC_LINEAR_BLIT_BACKWARD(BITMAP *src, BITMAP *dst, int sx, int sy,
 #endif
    }
 
-   bmp_unwrite_line(src);
-   bmp_unwrite_line(dst);
 }
 
 void FUNC_LINEAR_BLIT_END(void) { }
@@ -176,8 +171,6 @@ void FUNC_LINEAR_MASKED_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
       }
    }
 
-   bmp_unwrite_line(src);
-   bmp_unwrite_line(dst);
 }
 
 #endif /* !__bma_cblit_h */

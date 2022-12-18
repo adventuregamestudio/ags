@@ -557,8 +557,6 @@ _aa_rotate_bitmap (BITMAP *_src, BITMAP *_dst, int _x, int _y, fixed _angle,
       aa_ADVANCE (*rsc, rscinc, rscdd, rsci1, rsci2);
       aa_ADVANCE (rdx, rdxinc, rdxdd, rdxi1, rdxi2);
     }
-
-  bmp_unwrite_line (_dst);
 }
 
 /*

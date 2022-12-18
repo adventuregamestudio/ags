@@ -282,7 +282,6 @@ AL_INLINE(void, _putpixel, (BITMAP *bmp, int x, int y, int color),
    bmp_select(bmp);
    addr = bmp_write_line(bmp, y);
    bmp_write8(addr+x, color);
-   bmp_unwrite_line(bmp);
 })
 
 
@@ -294,7 +293,6 @@ AL_INLINE(int, _getpixel, (BITMAP *bmp, int x, int y),
    bmp_select(bmp);
    addr = bmp_read_line(bmp, y);
    c = bmp_read8(addr+x);
-   bmp_unwrite_line(bmp);
 
    return c;
 })
@@ -307,7 +305,6 @@ AL_INLINE(void, _putpixel15, (BITMAP *bmp, int x, int y, int color),
    bmp_select(bmp);
    addr = bmp_write_line(bmp, y);
    bmp_write15(addr+x*sizeof(short), color);
-   bmp_unwrite_line(bmp);
 })
 
 
@@ -319,7 +316,6 @@ AL_INLINE(int, _getpixel15, (BITMAP *bmp, int x, int y),
    bmp_select(bmp);
    addr = bmp_read_line(bmp, y);
    c = bmp_read15(addr+x*sizeof(short));
-   bmp_unwrite_line(bmp);
 
    return c;
 })
@@ -332,7 +328,6 @@ AL_INLINE(void, _putpixel16, (BITMAP *bmp, int x, int y, int color),
    bmp_select(bmp);
    addr = bmp_write_line(bmp, y);
    bmp_write16(addr+x*sizeof(short), color);
-   bmp_unwrite_line(bmp);
 })
 
 
@@ -344,7 +339,6 @@ AL_INLINE(int, _getpixel16, (BITMAP *bmp, int x, int y),
    bmp_select(bmp);
    addr = bmp_read_line(bmp, y);
    c = bmp_read16(addr+x*sizeof(short));
-   bmp_unwrite_line(bmp);
 
    return c;
 })
@@ -357,7 +351,6 @@ AL_INLINE(void, _putpixel24, (BITMAP *bmp, int x, int y, int color),
    bmp_select(bmp);
    addr = bmp_write_line(bmp, y);
    bmp_write24(addr+x*3, color);
-   bmp_unwrite_line(bmp);
 })
 
 
@@ -369,7 +362,6 @@ AL_INLINE(int, _getpixel24, (BITMAP *bmp, int x, int y),
    bmp_select(bmp);
    addr = bmp_read_line(bmp, y);
    c = bmp_read24(addr+x*3);
-   bmp_unwrite_line(bmp);
 
    return c;
 })
@@ -382,7 +374,6 @@ AL_INLINE(void, _putpixel32, (BITMAP *bmp, int x, int y, int color),
    bmp_select(bmp);
    addr = bmp_write_line(bmp, y);
    bmp_write32(addr+x*sizeof(int32_t), color);
-   bmp_unwrite_line(bmp);
 })
 
 
@@ -394,7 +385,6 @@ AL_INLINE(int, _getpixel32, (BITMAP *bmp, int x, int y),
    bmp_select(bmp);
    addr = bmp_read_line(bmp, y);
    c = bmp_read32(addr+x*sizeof(int32_t));
-   bmp_unwrite_line(bmp);
 
    return c;
 })

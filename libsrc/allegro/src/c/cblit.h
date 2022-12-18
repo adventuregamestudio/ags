@@ -47,10 +47,8 @@ void FUNC_LINEAR_CLEAR_TO_COLOR(BITMAP *dst, int color)
 
    w = dst->cr - dst->cl;
 
-   bmp_select(dst);
-
    for (y = dst->ct; y < dst->cb; y++) {
-      PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, y), dst->cl);
+      PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[y], dst->cl);
 
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(d), x--) {
 	 PUT_PIXEL(d, color);
@@ -76,17 +74,15 @@ void FUNC_LINEAR_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
    ASSERT(dst);
 
    for (y = 0; y < h; y++) {
-      PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(src, sy + y), sx);
-      PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy + y), dx);
+      PIXEL_PTR s = OFFSET_PIXEL_PTR(src->line[sy + y], sx);
+      PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dy + y], dx);
 
 #ifndef USE_MEMMOVE
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
 	 unsigned long c;
 
-	 bmp_select(src);
 	 c = GET_PIXEL(s);
 
-	 bmp_select(dst);
 	 PUT_PIXEL(d, c);
       }
 #else
@@ -114,21 +110,19 @@ void FUNC_LINEAR_BLIT_BACKWARD(BITMAP *src, BITMAP *dst, int sx, int sy,
 
    for (y = h - 1; y >= 0; y--) {
 #ifndef USE_MEMMOVE
-      PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(src, sy + y), sx + w - 1);
-      PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy + y), dx + w - 1);
+      PIXEL_PTR s = OFFSET_PIXEL_PTR(src->line[sy + y], sx + w - 1);
+      PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dy + y], dx + w - 1);
 
       for (x = w - 1; x >= 0; DEC_PIXEL_PTR(s), DEC_PIXEL_PTR(d), x--) {
 	 unsigned long c;
 
-	 bmp_select(src);
 	 c = GET_PIXEL(s);
 
-	 bmp_select(dst);
 	 PUT_PIXEL(d, c);
       }
 #else
-      PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(src, sy + y), sx);
-      PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy + y), dx);
+      PIXEL_PTR s = OFFSET_PIXEL_PTR(src->line[sy + y], sx);
+      PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dy + y], dx);
 
       memmove(d, s, w * sizeof(*s) * PTR_PER_PIXEL);
 #endif
@@ -155,17 +149,15 @@ void FUNC_LINEAR_MASKED_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
    mask_color = bitmap_mask_color(dst);
 
    for (y = 0; y < h; y++) {
-      PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(src, sy + y), sx);
-      PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy + y), dx);
+      PIXEL_PTR s = OFFSET_PIXEL_PTR(src->line[sy + y], sx);
+      PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dy + y], dx);
 
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
 	 unsigned long c;
 
-	 bmp_select(src);
 	 c = GET_PIXEL(s);
 
 	 if (c != mask_color) {
-	    bmp_select(dst);
 	    PUT_PIXEL(d, c);
 	 }
       }

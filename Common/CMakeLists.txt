@@ -179,6 +179,7 @@ target_sources(common
     util/bufferedstream.h
     util/string_compat.c
     util/string_compat.h
+    util/matrix.h
 
 	platform/windows/windows.h
 )
@@ -187,7 +188,8 @@ target_link_libraries(common PUBLIC
         ${SDL2_LIBRARY} ${SDL2_LIBRARIES}
         Allegro::Allegro
         AlFont::AlFont
-        AAStr::AAStr)
+        AAStr::AAStr
+        glm::glm)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

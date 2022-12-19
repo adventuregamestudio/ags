@@ -26,6 +26,7 @@
 #include "gfx/gfxfilter_aaogl.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "util/matrix.h"
 
 // OpenGL Mathematics Library. We could include only the features we need to decrease compilation time.
 #include "glm/glm.hpp"
@@ -1078,16 +1079,14 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     glm::mat4 transform = projection;
     // Origin is at the middle of the surface
     if (_do_render_to_texture)
-      transform = glm::translate(transform, {_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f});
+      transform = glmex::translate(transform, _backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f);
     else
-      transform = glm::translate(transform, {_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f});
+      transform = glmex::translate(transform, _srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f);
 
     // Global batch transform
     transform = transform * matGlobal;
     // Self sprite transform (first scale, then rotate and then translate, reversed)
-    transform = glm::translate(transform, {(float)thisX, (float)thisY, 0.0f});
-    // transform = glm::rotate(transform, 0.f, {0.f, 0.f, 1.f});
-    transform = glm::scale(transform, {widthToScale, heightToScale, 1.0f});
+    transform = glmex::transform2d(transform, (float)thisX, (float)thisY, widthToScale, heightToScale, 0.f);
 
     glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 
@@ -1316,9 +1315,9 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     Rect orig_viewport = desc.Viewport;
     Rect node_viewport = desc.Viewport;
 
-    // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // Create transformation matrix for this batch
     // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
-    glm::mat4 model = glm::mat4(1.0f);  // glLoadIdentity
+    glm::mat4 model = glm::mat4(1.0f);
 
     // Global node transformation (flip and offset)
     int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
@@ -1336,30 +1335,22 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         node_sy = -1.f;
     }
     Rect viewport = Rect::MoveBy(node_viewport, node_tx, node_ty);
-    // glTranslatef(node_tx, -(node_ty), 0.0f);
-    model = glm::translate(model, {(float)node_tx, (float)-(node_ty), 0.0f});
-    // glScalef(node_sx, node_sy, 1.f);
-    model = glm::scale(model, {node_sx, node_sy, 1.f});
+    model = glmex::translate(model, node_tx, -(node_ty));
+    model = glmex::scale(model, node_sx, node_sy);
 
     // NOTE: before node, translate to viewport position; remove this if this
     // is changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    // glTranslatef((float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f);
-    model = glm::translate(model, {(float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f});
+    model = glmex::translate(model, (float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy));
 
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
     // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
-    //glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
-    model = glm::scale(model, {desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f});
-    //glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
-    model = glm::rotate(model, desc.Transform.Rotate, { 0.f, 0.f, 1.f});
-    //glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
-    model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
-    //glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
-    //glLoadIdentity();
+    glm::mat4 msrt = glmex::make_inv_transform2d((float)desc.Transform.X, (float)-desc.Transform.Y,
+        desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
+    model = model * msrt;
 
     // Apply parent batch's settings, if preset
     if (desc.Parent > 0)

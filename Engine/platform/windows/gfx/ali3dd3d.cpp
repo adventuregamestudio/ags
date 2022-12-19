@@ -29,87 +29,12 @@
 #include "gfx/gfxfilter_aad3d.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "util/matrix.h"
 
 using namespace AGS::Common;
 
 // Necessary to update textures from 8-bit bitmaps
 extern RGB palette[256];
-
-//
-// Following functions implement various matrix operations. Normally they are found in the auxiliary d3d9x.dll,
-// but we do not want AGS to be dependent on it.
-// TODO: investigate possibility of using glm here (might need conversion to D3D matrix format)
-//
-// Setup identity matrix
-void MatrixIdentity(D3DMATRIX &m)
-{
-    m = {
-        1.0, 0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0,
-        0.0, 0.0, 0.0, 1.0
-    };
-}
-// Setup translation matrix
-void MatrixTranslate(D3DMATRIX &m, float x, float y, float z)
-{
-    MatrixIdentity(m);
-    m.m[3][0] = x;
-    m.m[3][1] = y;
-    m.m[3][2] = z;
-}
-// Setup scaling matrix
-void MatrixScale(D3DMATRIX &m, float sx, float sy, float sz)
-{
-    MatrixIdentity(m);
-    m.m[0][0] = sx;
-    m.m[1][1] = sy;
-    m.m[2][2] = sz;
-}
-// Setup rotation around Z axis; angle is in radians
-void MatrixRotateZ(D3DMATRIX &m, float angle)
-{
-    MatrixIdentity(m);
-    m.m[0][0] = cos(angle);
-    m.m[1][1] = cos(angle);
-    m.m[0][1] = sin(angle);
-    m.m[1][0] = -sin(angle);
-}
-// Matrix multiplication
-void MatrixMultiply(D3DMATRIX &mr, const D3DMATRIX &m1, const D3DMATRIX &m2)
-{
-    for (int i = 0; i < 4; ++i)
-        for (int j = 0; j < 4; ++j)
-            mr.m[i][j] = m1.m[i][0] * m2.m[0][j] + m1.m[i][1] * m2.m[1][j] + m1.m[i][2] * m2.m[2][j] + m1.m[i][3] * m2.m[3][j];
-}
-// Setup full 2D transformation matrix
-void MatrixTransform2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
-{
-    D3DMATRIX translate;
-    D3DMATRIX rotate;
-    D3DMATRIX scale;
-    MatrixTranslate(translate, x, y, 0.f);
-    MatrixRotateZ(rotate, anglez);
-    MatrixScale(scale, sx, sy, 1.f);
-
-    D3DMATRIX tr1;
-    MatrixMultiply(tr1, scale, rotate);
-    MatrixMultiply(m, tr1, translate);
-}
-// Setup inverse 2D transformation matrix
-void MatrixTransformInverse2D(D3DMATRIX &m, float x, float y, float sx, float sy, float anglez)
-{
-    D3DMATRIX translate;
-    D3DMATRIX rotate;
-    D3DMATRIX scale;
-    MatrixTranslate(translate, x, y, 0.f);
-    MatrixRotateZ(rotate, anglez);
-    MatrixScale(scale, sx, sy, 1.f);
-
-    D3DMATRIX tr1;
-    MatrixMultiply(tr1, translate, rotate);
-    MatrixMultiply(m, tr1, scale);
-}
 
 
 namespace AGS
@@ -1005,13 +930,11 @@ void D3DGraphicsDriver::_reDrawLastFrame()
   RestoreDrawLists();
 }
 
-void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const D3DMATRIX &matGlobal,
+void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
     const SpriteColorTransform &color)
 {
   HRESULT hr;
   D3DBitmap *bmpToDraw = drawListEntry->ddb;
-  D3DMATRIX matSelfTransform;
-  D3DMATRIX matTransform;
 
   const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
 
@@ -1139,9 +1062,11 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       thisX += width;
     }
 
-    // Multiply object's own and global matrixes
-    MatrixTransform2D(matSelfTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale, 0.f);
-    MatrixMultiply(matTransform, matSelfTransform, matGlobal);
+    // Self sprite transform (first scale, then rotate and then translate, reversed)
+    glm::mat4 transform = glmex::make_transform2d(
+        (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale, 0.0f);
+    // Global batch transform
+    transform = matGlobal * transform;
 
     if ((_smoothScaling) && bmpToDraw->_useResampler && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
@@ -1160,7 +1085,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       _filter->SetSamplerStateForStandardSprite(direct3ddevice);
     }
 
-    direct3ddevice->SetTransform(D3DTS_WORLD, &matTransform);
+    direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
     direct3ddevice->SetTexture(0, txdata->_tiles[ti].texture);
 
     hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
@@ -1184,10 +1109,10 @@ void D3DGraphicsDriver::_renderFromTexture()
     float drawAtX = -(_srcRect.GetWidth() / 2);
     float drawAtY = _srcRect.GetHeight() / 2;
 
-    D3DMATRIX matrix;
-    MatrixTransform2D(matrix, (float)drawAtX - _pixelRenderXOffset, (float)drawAtY + _pixelRenderYOffset, width, height, 0.f);
+    glm::mat4 transform = glmex::make_transform2d(
+        (float)drawAtX - _pixelRenderXOffset, (float)drawAtY + _pixelRenderYOffset, width, height, 0.f);
 
-    direct3ddevice->SetTransform(D3DTS_WORLD, &matrix);
+    direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
 
     direct3ddevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
     direct3ddevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
@@ -1297,12 +1222,12 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
         SetScissor(batch.Viewport);
         _stageScreen = GetStageScreen(batch.ID);
-        memcpy(glm::value_ptr(_stageMatrixes.World), batch.Matrix.m, sizeof(float[16]));
+        _stageMatrixes.World = batch.Matrix;
         cur_spr = RenderSpriteBatch(batch, cur_spr);
     }
 
     _stageScreen = GetStageScreen(0);
-    memcpy(glm::value_ptr(_stageMatrixes.World), _spriteBatches[0].Matrix.m, sizeof(float[16]));
+    _stageMatrixes.World = _spriteBatches[0].Matrix;
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 
@@ -1335,21 +1260,20 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
 void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
     Rect viewport = desc.Viewport;
-    // Combine both world transform and viewport transform into one matrix for faster perfomance
-    D3DMATRIX matRoomToViewport, matViewport, matViewportFinal;
+    // Create transformation matrix for this batch
     // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
     // the camera's transformation is essentially reverse world transformation. And the operations
-    // are inverse: Translate-Rotate-Scale
-    MatrixTransformInverse2D(matRoomToViewport,
-        desc.Transform.X, -(desc.Transform.Y),
-        desc.Transform.ScaleX, desc.Transform.ScaleY, desc.Transform.Rotate);
+    // are inverse: Translate-Rotate-Scale (here they are double inverse because GLM).
+    glm::mat4 msrt = glmex::make_inv_transform2d(
+        (float)desc.Transform.X, (float)-desc.Transform.Y,
+        desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
     // Next step is translate to viewport position; remove this if this is
     // changed to a separate operation at some point
     // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
     float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
     float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    MatrixTranslate(matViewport, viewport.Left - scaled_offx, -(viewport.Top - scaled_offy), 0.f);
-    MatrixMultiply(matViewportFinal, matRoomToViewport, matViewport);
+    glm::mat4 model = glmex::translate(viewport.Left - scaled_offx, -(viewport.Top - scaled_offy));
+    model = model * msrt;
 
     // Then apply global node transformation (flip and offset)
     int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
@@ -1367,24 +1291,21 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         node_sy = -1.f;
     }
     viewport = Rect::MoveBy(viewport, node_tx, node_ty);
-    D3DMATRIX matFlip, matFinal;
-    MatrixTransform2D(matFlip, node_tx, -(node_ty), node_sx, node_sy, 0.f);
-    MatrixMultiply(matFinal, matViewportFinal, matFlip);
+    glm::mat4 mflip_off = glmex::make_transform2d((float)node_tx, (float)-(node_ty), node_sx, node_sy, 0.f);
+    model = mflip_off * model;
 
     // Apply parent batch's settings, if preset
     if (desc.Parent > 0)
     {
         const auto &parent = _spriteBatches[desc.Parent];
-        D3DMATRIX matCombined;
-        MatrixMultiply(matCombined, parent.Matrix, matFinal);
-        matFinal = matCombined;
+        model = parent.Matrix * model;
         viewport = ClampToRect(parent.Viewport, viewport);
     }
 
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = D3DSpriteBatch(index, viewport, matFinal, desc.Transform.Color);
+    _spriteBatches[index] = D3DSpriteBatch(index, viewport, model, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     int src_w = viewport.GetWidth() / desc.Transform.ScaleX;

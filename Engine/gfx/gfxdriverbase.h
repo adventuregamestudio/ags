@@ -196,6 +196,22 @@ struct TextureTile
     int width = 0, height = 0;
 };
 
+// Sprite batch's internal parameters for the hardware-accelerated renderer
+struct VMSpriteBatch
+{
+    uint32_t ID = 0;
+    // Clipping viewport
+    Rect Viewport;
+    // Transformation matrix, built from the batch description
+    glm::mat4 Matrix;
+    // Batch color transformation
+    SpriteColorTransform Color;
+
+    VMSpriteBatch() = default;
+    VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
+};
+
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,
 // rather than blitting to flat screen bitmap.

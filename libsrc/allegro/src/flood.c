@@ -110,7 +110,6 @@ static int flooder(BITMAP *bmp, int x, int y, int src_color, int dest_color)
 	 #endif
       }
 
-      bmp_unwrite_line(bmp);
    }
    else {                           /* have to use getpixel() for mode-X */
       /* check start pixel */

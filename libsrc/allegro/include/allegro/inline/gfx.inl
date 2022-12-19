@@ -48,11 +48,6 @@ AL_INLINE(uintptr_t, bmp_read_line, (BITMAP *bmp, int lyne),
 })
 
 
-AL_INLINE(void, bmp_unwrite_line, (BITMAP *bmp),
-{
-   //bmp->vtable->unwrite_bank(bmp);
-})
-
 #endif      /* C vs. inline asm */
 
 

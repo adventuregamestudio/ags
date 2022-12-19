@@ -410,8 +410,7 @@ static void _al_stretch_blit(BITMAP *src, BITMAP *dst,
       else
 	    yc -= ycdec;
    }
-   
-   bmp_unwrite_line(dst);
+
 }
 
 

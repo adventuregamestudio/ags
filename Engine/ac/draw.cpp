@@ -1508,7 +1508,7 @@ bool construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool always
     if ((hardwareAccelerated) && (walkBehindMethod != DrawOverCharSprite))
     {
         // HW acceleration
-        bool has_texture_change = objcache[aa].sppic != objs[aa].num;
+        bool is_texture_intact = objcache[aa].sppic == objs[aa].num;
         objcache[aa].sppic = objs[aa].num;
         objcache[aa].tintamnt = tint_level;
         objcache[aa].tintr = tint_red;
@@ -1518,7 +1518,7 @@ bool construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool always
         objcache[aa].lightlev = light_level;
         objcache[aa].zoom = zoom_level;
         objcache[aa].mirrored = isMirrored;
-        return has_texture_change;
+        return is_texture_intact;
     }
 
     //

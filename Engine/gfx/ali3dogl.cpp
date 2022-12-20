@@ -16,6 +16,7 @@
 #if AGS_HAS_OPENGL
 #include "gfx/ali3dogl.h"
 #include <algorithm>
+#include <stack>
 #include <SDL.h>
 #include "ac/sys_events.h"
 #include "ac/timer.h"
@@ -1244,20 +1245,21 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
   ResetFxPool();
 }
 
-void OGLGraphicsDriver::SetScissor(const Rect &clip)
+void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size)
 {
+    // Adjust a clipping rect to either whole screen, or a target texture
+    Rect scissor;
     if (!clip.IsEmpty())
     {
-        Rect scissor = _do_render_to_texture ? clip : _scaling.ScaleRange(clip);
-        int surface_height = _do_render_to_texture ? _srcRect.GetHeight() : device_screen_physical_height;
-        scissor = ConvertTopDownRect(scissor, surface_height);
-        glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
+        scissor = render_on_texture ? clip : _scaling.ScaleRange(clip);
+        int surface_h = render_on_texture ? surface_size.Height : device_screen_physical_height;
+        scissor = ConvertTopDownRect(scissor, surface_h);
     }
     else
     {
-        Rect main_viewport = _do_render_to_texture ? _srcRect : _viewportRect;
-        glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
+        scissor = render_on_texture ? RectWH(surface_size) : _viewportRect;
     }
+    glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
 }
 
 void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
@@ -1267,25 +1269,62 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     while (_actSpriteBatch > 0)
         EndSpriteBatch();
 
-    // Render all the sprite batches with necessary transformations
     // TODO: see if it's possible to refactor and not enable/disable scissor test
-    // TODO: also maybe sync scissor code logic with D3D renderer
+    // also try to sync scissor code logic with D3D renderer
     if (_do_render_to_texture)
         glEnable(GL_SCISSOR_TEST);
 
-    // Render all the sprite batches with necessary transformations
+    // Render all the sprite batches with necessary transformations;
+    // some of them may be rendered to a separate texture instead.
+    // For these we save pairs of (Batch.ID : Surface) in a stack.
+    // The top of the stack lets us know which batch's RT we are using.
+    std::stack<std::pair<int, unsigned int>> render_fbos;
+    unsigned int back_buffer = _do_render_to_texture ? _fbo : 0u;
+    auto cur_rt = std::make_pair(0, back_buffer);
+    const Size def_surface_sz = _srcRect.GetSize();
+
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
         const OGLSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
-        SetScissor(batch.Viewport);
+        Size surface_sz = def_surface_sz;
+        if (batch.RenderTarget)
+        {
+            // Begin rendering to a separate texture
+            render_fbos.push(cur_rt);
+            cur_rt = std::make_pair(batch.ID, batch.RenderTarget->_fbo);
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, cur_rt.second);
+            glDisable(GL_SCISSOR_TEST);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glEnable(GL_SCISSOR_TEST);
+            surface_sz = Size(batch.RenderTarget->GetWidth(),
+                batch.RenderTarget->GetHeight());
+        }
+
+        bool render_to_texture = (_do_render_to_texture) || (cur_rt.second != back_buffer);
+        SetScissor(batch.Viewport, render_to_texture, surface_sz);
         _stageScreen = GetStageScreen(batch.ID);
         _stageMatrixes.World = batch.Matrix;
         cur_spr = RenderSpriteBatch(batch, cur_spr, projection);
+
+        // Test if we should finish rendering on a texture and switch to the previous
+        // render target: we do this if current RT is not a back buffer,
+        // and the latest sprite was the last sprite of a RT's owning sprite batch.
+        if ((cur_rt.second != back_buffer) && (cur_spr == _spriteBatchRange[cur_rt.first].second))
+        {
+            // Finish render to a separate texture, return to one render buffer back
+            assert((cur_rt.second > 0) && (render_fbos.size() > 0));
+            cur_rt = render_fbos.top();
+            render_fbos.pop();
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, cur_rt.second);
+        }
     }
+
+    assert(render_fbos.empty());
 
     _stageScreen = GetStageScreen(0);
     _stageMatrixes.World = _spriteBatches[0].Matrix;
-    SetScissor(Rect());
+    SetScissor(Rect(), _do_render_to_texture, def_surface_sz); // TODO: simply disable scissor test?
     if (_do_render_to_texture)
         glDisable(GL_SCISSOR_TEST);
 }
@@ -1355,8 +1394,9 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     mat_viewport = vp_flip_off * mat_viewport;
 
     // Apply parent batch's settings, if preset
+    // except when the new batch is started on a separate texture
     Rect viewport = desc.Viewport;
-    if (desc.Parent > 0)
+    if ((desc.Parent > 0) && !desc.RenderTarget)
     {
         const auto &parent = _spriteBatches[desc.Parent];
         // Combine sprite matrix with the parent's
@@ -1384,7 +1424,8 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = OGLSpriteBatch(index, viewport, model, mat_viewport, desc.Transform.Color);
+    _spriteBatches[index] = OGLSpriteBatch(index, (OGLBitmap*)desc.RenderTarget,
+        viewport, model, mat_viewport, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     CreateStageScreen(index, viewport.GetSize());

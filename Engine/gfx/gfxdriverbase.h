@@ -43,20 +43,17 @@ struct SpriteBatchDesc
     Rect                     Viewport;
     // Optional model transformation, to be applied to each sprite
     SpriteTransform          Transform;
-    // Global node offset applied to the whole batch as the last transform
-    Point                    Offset;
-    // Global node flip applied to the whole batch as the last transform
+    // Optional flip, applied to the whole batch as the last transform
     Common::GraphicFlip      Flip = Common::kFlip_None;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     PBitmap                  Surface;
 
     SpriteBatchDesc() = default;
-    SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform, const Point offset = Point(),
+    SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform,
         Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
-        , Offset(offset)
         , Flip(flip)
         , Surface(surface)
     {
@@ -101,7 +98,7 @@ public:
     Rect        GetRenderDestination() const override;
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-                    const Point offset = Point(), Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
+                    Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
     void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 
@@ -194,6 +191,25 @@ struct TextureTile
 {
     int x = 0, y = 0;
     int width = 0, height = 0;
+};
+
+// Sprite batch's internal parameters for the hardware-accelerated renderer
+struct VMSpriteBatch
+{
+    uint32_t ID = 0;
+    // Clipping viewport
+    Rect Viewport;
+    // Transformation matrix, built from the batch description
+    glm::mat4 Matrix;
+    // Viewport transformation matrix, necessary, as the coord origin is different
+    glm::mat4 ViewportMat;
+    // Batch color transformation
+    SpriteColorTransform Color;
+
+    VMSpriteBatch() = default;
+    VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+                  const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
 };
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers

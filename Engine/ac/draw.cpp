@@ -904,7 +904,7 @@ void render_to_screen()
     // Stage: final plugin callback (still drawn on game screen
     if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
@@ -919,11 +919,24 @@ void render_to_screen()
     {
         try
         {
-            // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
-            const Rect &viewport = play.GetMainViewport();
-            if (play.shake_screen_yoff > 0 && !gfxDriver->RequiresFullRedrawEachFrame())
-                gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
-            gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
+            if (gfxDriver->RequiresFullRedrawEachFrame())
+            {
+                gfxDriver->Render();
+            }
+            else
+            {
+                // NOTE: the shake yoff and global flip here will only be used by a software renderer;
+                // as hw renderers have these as transform parameters for the parent scene nodes.
+                // This may be a matter for the future code improvement.
+                //
+                // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+                if (play.shake_screen_yoff > 0)
+                {
+                    const Rect &viewport = play.GetMainViewport();
+                    gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
+                }
+                gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
+            }
             succeeded = true;
         }
         catch (Ali3DFullscreenLostException e) 
@@ -2344,7 +2357,7 @@ void draw_gui_and_overlays()
         if (s.id < 0) continue; // not a group parent (gui)
         // Create a sub-batch
         gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, s.ddb->GetWidth(), s.ddb->GetHeight()),
-            SpriteTransform(0, 0, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
+            SpriteTransform(s.x, s.y, 1.f, 1.f, 0.f, s.ddb->GetAlpha()));
         const int draw_index = guiobjddbref[s.id];
         for (const auto &obj_id : guis[s.id].GetControlsDrawOrder())
         {
@@ -2421,18 +2434,31 @@ static void construct_room_view()
         auto camera = viewport->GetCamera();
         if (!camera)
             continue;
+
         const Rect &view_rc = play.GetRoomViewportAbs(viewport->GetID());
         const Rect &cam_rc = camera->GetRect();
-        SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top,
-            (float)view_rc.GetWidth() / (float)cam_rc.GetWidth(),
-            (float)view_rc.GetHeight() / (float)cam_rc.GetHeight(),
-            0.f);
+        const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
+        const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
+
         if (gfxDriver->RequiresFullRedrawEachFrame())
-        { // we draw everything as a sprite stack
-            gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        {
+            // For hw renderer we draw everything as a sprite stack;
+            // viewport-camera pair is done as 2 nested scene nodes,
+            // where first defines how camera's image translates into the viewport on screen,
+            // and second - how room's image translates into the camera.
+            gfxDriver->BeginSpriteBatch(view_rc, SpriteTransform(view_rc.Left, view_rc.Top, view_sx, view_sy));
+            gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(-cam_rc.Left, -cam_rc.Top));
+            put_sprite_list_on_screen(true);
+            gfxDriver->EndSpriteBatch();
+            gfxDriver->EndSpriteBatch();
         }
         else
         {
+            // For software renderer - combine viewport and camera in one batch,
+            // due to how the room drawing is implemented currently in the software mode.
+            // TODO: review this later?
+            SpriteTransform room_trans(-cam_rc.Left, -cam_rc.Top, view_sx, view_sy, 0.f);
+
             if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
             { // room background is prepended to the sprite stack
               // TODO: here's why we have blit whole piece of background now:
@@ -2449,11 +2475,11 @@ static void construct_room_view()
             else
             { // room background is drawn by dirty rects system
                 PBitmap bg_surface = draw_room_background(viewport.get());
-                gfxDriver->BeginSpriteBatch(view_rc, room_trans, Point(), kFlip_None, bg_surface);
+                gfxDriver->BeginSpriteBatch(view_rc, room_trans, kFlip_None, bg_surface);
             }
+            put_sprite_list_on_screen(true);
+            gfxDriver->EndSpriteBatch();
         }
-        put_sprite_list_on_screen(true);
-        gfxDriver->EndSpriteBatch();
     }
 
     clear_draw_list();
@@ -2462,7 +2488,7 @@ static void construct_room_view()
 // Schedule ui rendering
 static void construct_ui_view()
 {
-    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs());
     draw_gui_and_overlays();
     gfxDriver->EndSpriteBatch();
     clear_draw_list();
@@ -2550,6 +2576,10 @@ void construct_game_scene(bool full_redraw)
     if (displayed_room >= 0)
         play.UpdateRoomCameras();
 
+    // Begin with the parent scene node, defining global offset and flip
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff),
+        (GraphicFlip)play.screen_flipped);
+
     // Stage: room viewports
     if (play.screen_is_faded_out == 0 && play.complete_overlay_on == 0)
     {
@@ -2572,21 +2602,16 @@ void construct_game_scene(bool full_redraw)
     {
         construct_ui_view();
     }
+
+    // End the parent scene node
+    gfxDriver->EndSpriteBatch();
 }
 
-void construct_game_screen_overlay(bool draw_mouse)
+void update_mouse_cursor()
 {
-    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
-    {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
-        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
-        gfxDriver->EndSpriteBatch();
-    }
-
-    // TODO: find out if it's okay to move cursor animation and state update
-    // to the update loop instead of doing it in the drawing routine
+    // update mouse position (mousex, mousey)
+    ags_domouse();
     // update animating mouse cursor
-    ags_domouse(); // update mouse pos (mousex, mousey)
     if (game.mcurs[cur_cursor].view >= 0) {
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
@@ -2613,11 +2638,26 @@ void construct_game_screen_overlay(bool draw_mouse)
         }
         lastmx = mousex; lastmy = mousey;
     }
+}
 
+void construct_game_screen_overlay(bool draw_mouse)
+{
+    if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
+    {
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
+        gfxDriver->EndSpriteBatch();
+    }
+
+    // TODO: find out if it's okay to move cursor animation and state update
+    // to the update loop instead of doing it in the drawing routine
+    update_mouse_cursor();
+
+    // Add mouse cursor pic, and global screen tint effect
     if (play.screen_is_faded_out == 0)
     {
         // Stage: mouse cursor
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         if (draw_mouse && !play.mouse_cursor_hidden)
         {
             gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
@@ -2632,6 +2672,7 @@ void construct_game_screen_overlay(bool draw_mouse)
         render_black_borders();
     }
 
+    // Add global screen fade effect
     if (play.screen_is_faded_out != 0 && gfxDriver->RequiresFullRedrawEachFrame())
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
@@ -2798,7 +2839,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
-        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(), Point(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetUIViewportAbs(), SpriteTransform(0, play.shake_screen_yoff), (GraphicFlip)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();

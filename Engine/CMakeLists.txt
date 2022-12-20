@@ -539,7 +539,6 @@ target_link_libraries(engine PUBLIC
     Threads::Threads 
     Allegro::Allegro 
     Cda::Cda
-    glm::glm
     External::OpenAL
     ${SDL2_LIBRARY}
     ${SDL2_LIBRARIES}

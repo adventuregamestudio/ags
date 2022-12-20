@@ -26,6 +26,7 @@
 #include "gfx/gfxfilter_aaogl.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
+#include "util/matrix.h"
 
 // OpenGL Mathematics Library. We could include only the features we need to decrease compilation time.
 #include "glm/glm.hpp"
@@ -1078,16 +1079,14 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     glm::mat4 transform = projection;
     // Origin is at the middle of the surface
     if (_do_render_to_texture)
-      transform = glm::translate(transform, {_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f});
+      transform = glmex::translate(transform, _backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f);
     else
-      transform = glm::translate(transform, {_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f});
+      transform = glmex::translate(transform, _srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f);
 
     // Global batch transform
     transform = transform * matGlobal;
     // Self sprite transform (first scale, then rotate and then translate, reversed)
-    transform = glm::translate(transform, {(float)thisX, (float)thisY, 0.0f});
-    // transform = glm::rotate(transform, 0.f, {0.f, 0.f, 1.f});
-    transform = glm::scale(transform, {widthToScale, heightToScale, 1.0f});
+    transform = glmex::transform2d(transform, (float)thisX, (float)thisY, widthToScale, heightToScale, 0.f);
 
     glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 
@@ -1313,71 +1312,76 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
 
 void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
-    Rect orig_viewport = desc.Viewport;
-    Rect node_viewport = desc.Viewport;
-
-    // Combine both world transform and viewport transform into one matrix for faster perfomance
+    // Create transformation matrix for this batch
     // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
-    glm::mat4 model = glm::mat4(1.0f);  // glLoadIdentity
-
-    // Global node transformation (flip and offset)
-    int node_tx = desc.Offset.X, node_ty = desc.Offset.Y;
-    float node_sx = 1.f, node_sy = 1.f;
-    if ((desc.Flip == kFlip_Vertical) || (desc.Flip == kFlip_Both))
+    // Apply node flip: this is implemented as a negative scaling.
+    // TODO: find out if possible to merge with normal scale
+    float flip_sx = 1.f, flip_sy = 1.f;
+    switch (desc.Flip)
     {
-        int left = _srcRect.GetWidth() - (orig_viewport.Right + 1);
-        node_viewport.MoveToX(left);
-        node_sx = -1.f;
+    case kFlip_Vertical: flip_sx = -flip_sx; break;
+    case kFlip_Horizontal: flip_sy = -flip_sy; break;
+    case kFlip_Both: flip_sx = -flip_sx; flip_sy = -flip_sy; break;
+    default: break;
     }
-    if ((desc.Flip == kFlip_Horizontal) || (desc.Flip == kFlip_Both))
-    {
-        int top = _srcRect.GetHeight() - (orig_viewport.Bottom + 1);
-        node_viewport.MoveToY(top);
-        node_sy = -1.f;
-    }
-    Rect viewport = Rect::MoveBy(node_viewport, node_tx, node_ty);
-    // glTranslatef(node_tx, -(node_ty), 0.0f);
-    model = glm::translate(model, {(float)node_tx, (float)-(node_ty), 0.0f});
-    // glScalef(node_sx, node_sy, 1.f);
-    model = glm::scale(model, {node_sx, node_sy, 1.f});
+    glm::mat4 mflip = glmex::scale(flip_sx, flip_sy);
+    glm::mat4 model = mflip;
 
-    // NOTE: before node, translate to viewport position; remove this if this
-    // is changed to a separate operation at some point
-    // TODO: find out if this is an optimal way to translate scaled room into Top-Left screen coordinates
-    float scaled_offx = (_srcRect.GetWidth() - desc.Transform.ScaleX * (float)_srcRect.GetWidth()) / 2.f;
-    float scaled_offy = (_srcRect.GetHeight() - desc.Transform.ScaleY * (float)_srcRect.GetHeight()) / 2.f;
-    // glTranslatef((float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f);
-    model = glm::translate(model, {(float)(orig_viewport.Left - scaled_offx), (float)-(orig_viewport.Top - scaled_offy), 0.0f});
+    // Translate scaled node into Top-Left screen coordinates
+    float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
+    float scaled_offy = _srcRect.GetHeight() * ((1.f - desc.Transform.ScaleY) * 0.5f);
+    model = glmex::translate(model, -scaled_offx, -(-scaled_offy));
+    // Classic Scale-Rotate-Translate, but inverse, because it's GLM
+    glm::mat4 msrt = glmex::make_transform2d((float)desc.Transform.X, (float)-desc.Transform.Y,
+        desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
+    model = model * msrt;
 
-    // IMPORTANT: while the sprites are usually transformed in the order of Scale-Rotate-Translate,
-    // the camera's transformation is essentially reverse world transformation. And the operations
-    // are inverse: Translate-Rotate-Scale (here they are double inverse because OpenGL).
-    //glScalef(desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f); // scale camera
-    model = glm::scale(model, {desc.Transform.ScaleX, desc.Transform.ScaleY, 1.f});
-    //glRotatef(Math::RadiansToDegrees(desc.Transform.Rotate), 0.f, 0.f, 1.f); // rotate camera
-    model = glm::rotate(model, desc.Transform.Rotate, { 0.f, 0.f, 1.f});
-    //glTranslatef((float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f); // translate camera
-    model = glm::translate(model, {(float)desc.Transform.X, (float)-desc.Transform.Y, 0.0f});
-    //glGetFloatv(GL_MODELVIEW_MATRIX, _spriteBatches[index].Matrix.m);
-    //glLoadIdentity();
+    // Also create separate viewport transformation matrix:
+    // it will use a slightly different set of transforms,
+    // because the viewport's coordinates origin is different from sprites.
+    glm::mat4 mat_viewport = glmex::make_transform2d(
+        (float)desc.Transform.X, (float)desc.Transform.Y,
+        desc.Transform.ScaleX, desc.Transform.ScaleY, 0.f);
+    glm::mat4 vp_flip_off = glmex::translate(
+        _srcRect.GetWidth() * ((1.f - flip_sx) * 0.5f),
+        _srcRect.GetHeight() * ((1.f - flip_sy) * 0.5f));
+    mat_viewport = mflip * mat_viewport;
+    mat_viewport = vp_flip_off * mat_viewport;
 
     // Apply parent batch's settings, if preset
+    Rect viewport = desc.Viewport;
     if (desc.Parent > 0)
     {
         const auto &parent = _spriteBatches[desc.Parent];
-        model = model * parent.Matrix;
-        viewport = ClampToRect(parent.Viewport, viewport);
+        // Combine sprite matrix with the parent's
+        model = parent.Matrix * model;
+        // Combine viewport's matrix with the parent's
+        mat_viewport = parent.ViewportMat * mat_viewport;
+
+        // Transform this node's viewport using (only!) parent's matrix,
+        // and don't let child viewport go outside the parent's bounds.
+        if (!viewport.IsEmpty())
+        {
+            viewport = glmex::full_transform(viewport, parent.ViewportMat);
+            viewport = ClampToRect(parent.Viewport, viewport);
+        }
+        else
+        {
+            viewport = parent.Viewport;
+        }
+    }
+    else if (viewport.IsEmpty())
+    {
+        viewport = _srcRect;
     }
 
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = OGLSpriteBatch(index, viewport, model, desc.Transform.Color);
+    _spriteBatches[index] = OGLSpriteBatch(index, viewport, model, mat_viewport, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
-    int src_w = orig_viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = orig_viewport.GetHeight() / desc.Transform.ScaleY;
-    CreateStageScreen(index, Size(src_w, src_h));
+    CreateStageScreen(index, viewport.GetSize());
 
     GLenum err;
     for (;;) {

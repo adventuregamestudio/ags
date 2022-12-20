@@ -130,21 +130,18 @@ public:
     ~OGLBitmap() override = default;
 };
 
-typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
-struct OGLSpriteBatch
+// OGL renderer's sprite batch
+struct OGLSpriteBatch : VMSpriteBatch
 {
-    uint32_t ID = 0;
-    // Clipping viewport
-    Rect Viewport;
-    // Transformation matrix, built from the batch description
-    glm::mat4 Matrix;
-    // Batch color transformation
-    SpriteColorTransform Color;
+    // Add anything OGL specific here
 
     OGLSpriteBatch() = default;
-    OGLSpriteBatch(uint32_t id, const Rect view, const glm::mat4 &matrix, const SpriteColorTransform &color)
-        : ID(id), Viewport(view), Matrix(matrix), Color(color) {}
+    OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
 };
+
+typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
 typedef std::vector<OGLSpriteBatch>    OGLSpriteBatches;
 
 

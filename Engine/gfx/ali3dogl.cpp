@@ -1406,6 +1406,7 @@ void OGLGraphicsDriver::ResetAllBatches()
 void OGLGraphicsDriver::ClearDrawBackups()
 {
     _backupBatchDescs.clear();
+    _backupBatchRange.clear();
     _backupBatches.clear();
     _backupSpriteList.clear();
 }
@@ -1413,6 +1414,7 @@ void OGLGraphicsDriver::ClearDrawBackups()
 void OGLGraphicsDriver::BackupDrawLists()
 {
     _backupBatchDescs = _spriteBatchDesc;
+    _backupBatchRange = _spriteBatchRange;
     _backupBatches = _spriteBatches;
     _backupSpriteList = _spriteList;
 }
@@ -1420,6 +1422,7 @@ void OGLGraphicsDriver::BackupDrawLists()
 void OGLGraphicsDriver::RestoreDrawLists()
 {
     _spriteBatchDesc = _backupBatchDescs;
+    _spriteBatchRange = _backupBatchRange;
     _spriteBatches = _backupBatches;
     _spriteList = _backupSpriteList;
     _actSpriteBatch = 0;

@@ -1346,6 +1346,7 @@ void D3DGraphicsDriver::ResetAllBatches()
 void D3DGraphicsDriver::ClearDrawBackups()
 {
     _backupBatchDescs.clear();
+    _backupBatchRange.clear();
     _backupBatches.clear();
     _backupSpriteList.clear();
 }
@@ -1353,6 +1354,7 @@ void D3DGraphicsDriver::ClearDrawBackups()
 void D3DGraphicsDriver::BackupDrawLists()
 {
     _backupBatchDescs = _spriteBatchDesc;
+    _backupBatchRange = _spriteBatchRange;
     _backupBatches = _spriteBatches;
     _backupSpriteList = _spriteList;
 }
@@ -1360,6 +1362,7 @@ void D3DGraphicsDriver::BackupDrawLists()
 void D3DGraphicsDriver::RestoreDrawLists()
 {
     _spriteBatchDesc = _backupBatchDescs;
+    _spriteBatchRange = _backupBatchRange;
     _spriteBatches = _backupBatches;
     _spriteList = _backupSpriteList;
     _actSpriteBatch = 0;

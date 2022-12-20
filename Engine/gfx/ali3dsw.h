@@ -203,6 +203,9 @@ public:
 
     void SetGraphicsFilter(PSDLRenderFilter filter);
 
+protected:
+    size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
+
 private:
     PSDLRenderFilter _filter;
 

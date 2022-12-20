@@ -33,6 +33,7 @@ GraphicsDriverBase::GraphicsDriverBase()
     // Initialize default sprite batch, it will be used when no other batch was activated
     _actSpriteBatch = 0;
     _spriteBatchDesc.push_back(SpriteBatchDesc());
+    _spriteBatchRange.push_back(std::make_pair(0, 0));
 }
 
 bool GraphicsDriverBase::IsModeSet() const
@@ -69,12 +70,14 @@ void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTran
     GraphicFlip flip, PBitmap surface)
 {
     _spriteBatchDesc.push_back(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface));
+    _spriteBatchRange.push_back(std::make_pair(GetLastDrawEntryIndex(), SIZE_MAX));
     _actSpriteBatch = _spriteBatchDesc.size() - 1;
     InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
 }
 
 void GraphicsDriverBase::EndSpriteBatch()
 {
+    _spriteBatchRange[_actSpriteBatch].second = GetLastDrawEntryIndex();
     _actSpriteBatch = _spriteBatchDesc[_actSpriteBatch].Parent;
 }
 
@@ -82,7 +85,10 @@ void GraphicsDriverBase::ClearDrawLists()
 {
     ResetAllBatches();
     _actSpriteBatch = 0;
-    _spriteBatchDesc.resize(1);
+    _spriteBatchDesc.clear();
+    _spriteBatchRange.clear();
+    _spriteBatchDesc.push_back(SpriteBatchDesc());
+    _spriteBatchRange.push_back(std::make_pair(0, 0));
 }
 
 void GraphicsDriverBase::OnInit()

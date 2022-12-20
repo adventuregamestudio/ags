@@ -252,6 +252,9 @@ protected:
     // Retrieve shared texture data object from the given DDB
     std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
 
+protected:
+    size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
+
 private:
     POGLFilter _filter {};
 
@@ -299,7 +302,9 @@ private:
     std::vector<OGLDrawListEntry> _spriteList;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
+    // TODO: if not above, refactor and implement Desc backup in the base class
     SpriteBatchDescs _backupBatchDescs;
+    std::vector<std::pair<size_t, size_t>> _backupBatchRange;
     OGLSpriteBatches _backupBatches;
     std::vector<OGLDrawListEntry> _backupSpriteList;
 

@@ -1328,9 +1328,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     _spriteBatches[index] = D3DSpriteBatch(index, viewport, model, mat_viewport, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
-    int src_w = viewport.GetWidth() / desc.Transform.ScaleX;
-    int src_h = viewport.GetHeight() / desc.Transform.ScaleY;
-    CreateStageScreen(index, Size(src_w, src_h));
+    CreateStageScreen(index, viewport.GetSize());
 }
 
 void D3DGraphicsDriver::ResetAllBatches()

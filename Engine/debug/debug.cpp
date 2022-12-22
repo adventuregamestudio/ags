@@ -49,7 +49,6 @@ using namespace AGS::Engine;
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
 extern RoomStruct thisroom;
-extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile bool want_exit, abort_engine;
 extern GameSetupStruct game;
 
@@ -98,9 +97,8 @@ void send_message_to_debugger(const std::vector<std::pair<String, String>>& tag_
 
     for(const auto& tag_value : tag_values)
     {
-        String tag_line = String::FromFormat("  <%s><![CDATA[%s]]></%s> ",
-                                             tag_value.first.GetCStr(), tag_value.second.GetCStr(), tag_value.first.GetCStr());
-        messageToSend.Append(tag_line);
+        messageToSend.AppendFmt("  <%s><![CDATA[%s]]></%s> ",
+                                tag_value.first.GetCStr(), tag_value.second.GetCStr(), tag_value.first.GetCStr());
     }
 
     messageToSend.Append("</Debugger>\n");
@@ -183,12 +181,12 @@ std::vector<String> parse_log_multigroup(const String &group_str)
     {
         switch (group_str[i])
         {
-        case 'm': grplist.push_back("main"); break;
-        case 'g': grplist.push_back("game"); break;
-        case 's': grplist.push_back("script"); break;
-        case 'c': grplist.push_back("sprcache"); break;
-        case 'o': grplist.push_back("manobj"); break;
-        case 'l': grplist.push_back("sdl"); break;
+        case 'm': grplist.emplace_back("main"); break;
+        case 'g': grplist.emplace_back("game"); break;
+        case 's': grplist.emplace_back("script"); break;
+        case 'c': grplist.emplace_back("sprcache"); break;
+        case 'o': grplist.emplace_back("manobj"); break;
+        case 'l': grplist.emplace_back("sdl"); break;
         }
     }
     return grplist;
@@ -226,7 +224,7 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
 
     if (value.IsEmpty() || value.CompareNoCase("default") == 0)
     {
-        for (const auto opt : def_opts)
+        for (const auto &opt : def_opts)
             dbgout->SetGroupFilter(opt.first, opt.second);
     }
     else
@@ -638,10 +636,10 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     const char *scriptName = ccinst->runningInst->instanceof->GetSectionName(ccinst->pc);
 
-    for (size_t i = 0; i < breakpoints.size(); ++i)
+    for (const auto & breakpoint : breakpoints)
     {
-        if ((breakpoints[i].lineNumber == linenum) &&
-            (strcmp(breakpoints[i].scriptName, scriptName) == 0))
+        if ((breakpoint.lineNumber == linenum) &&
+            (strcmp(breakpoint.scriptName, scriptName) == 0))
         {
             break_into_debugger();
             break;
@@ -655,7 +653,7 @@ void check_debug_keys() {
     if (play.debug_mode) {
         // do the run-time script debugging
 
-        const Uint8 *ks = SDL_GetKeyboardState(NULL);
+        const Uint8 *ks = SDL_GetKeyboardState(nullptr);
         if ((!ks[SDL_SCANCODE_SCROLLLOCK]) && (scrlockWasDown))
             scrlockWasDown = 0;
         else if ((ks[SDL_SCANCODE_SCROLLLOCK]) && (!scrlockWasDown)) {

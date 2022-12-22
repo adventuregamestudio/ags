@@ -91,7 +91,7 @@ build_linux_debian_task:
           exit 1
           ;;
       esac
-      DEB_BUILD_OPTIONS="rpath=$RPATH_PREFIX$bit" fakeroot debian/rules binary
+      DEB_BUILD_OPTIONS="rpath=$RPATH_PREFIX$bit" DEB_LDFLAGS_MAINT_APPEND=-Wl,--disable-new-dtags fakeroot debian/rules binary
       sed -E "/^BI(NDMOUNT|T)=/d" debian/ags+libraries/hooks/B00_copy_libs.sh | BIT=$bit BINDMOUNT=$(pwd) sh
       ar -p ../ags_${version}_$arch.deb data.tar.xz | unxz | tar -f - -xvC data --transform "s/.*ags/ags$bit/" ./usr/bin/ags
       cd data && \

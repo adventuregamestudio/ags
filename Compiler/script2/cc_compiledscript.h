@@ -114,6 +114,8 @@ public:
     // start of the command but the location of its first parameter
     inline static CodeLoc RelativeJumpDist(CodeLoc here, CodeLoc dest) { return dest - here - 1; }
 
+    inline void InvalidateLastEmittedLineno() { LastEmittedLineno = INT_MAX; }
+
     ccCompiledScript(bool emit_line_numbers = true);
     virtual ~ccCompiledScript();
 };

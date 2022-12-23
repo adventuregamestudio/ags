@@ -364,7 +364,7 @@ void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &
     id = item.Id;
 
     // Add a line number opcode so that runtime errors
-    // can show the correct originating source line.
+// can show the correct originating source line.
     if (0u < item.Code.size() && SCMD_LINENUM != item.Code[0u] && 0u < item.SrcLine)
         _scrip.WriteLineno(item.SrcLine);
 
@@ -381,9 +381,7 @@ void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &
             item.Fixups[fixups_idx] + start_of_insert,
             item.FixupTypes[fixups_idx]);
 
-    // Make the last emitted source line number invalid so that the next command will
-    // generate a line number opcode first
-    _scrip.LastEmittedLineno = INT_MAX;
+    _scrip.InvalidateLastEmittedLineno();
 }
 
 AGS::Parser::FuncCallpointMgr::FuncCallpointMgr(Parser &parser)
@@ -406,10 +404,7 @@ void AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLo
     }
 
     // Callpoint not known, so remember this location
-    PatchInfo pinfo;
-    pinfo.ChunkId = kCodeBaseId;
-    pinfo.Offset = loc;
-    pinfo.InSource = in_source;
+    PatchInfo pinfo{ kCodeBaseId, loc, in_source };
     _funcCallpointMap[func].List.push_back(pinfo);
 }
 
@@ -435,7 +430,7 @@ void AGS::Parser::FuncCallpointMgr::UpdateCallListOnYanking(CodeLoc chunk_start,
             patch_info.Offset -= chunk_start;
         }
     }
-}
+    }
 
 void AGS::Parser::FuncCallpointMgr::UpdateCallListOnWriting(CodeLoc start, int id)
 {
@@ -982,7 +977,7 @@ void AGS::Parser::HandleEndOfSwitch()
         _nest.WriteChunk(cases_idx, id);
         _fcm.UpdateCallListOnWriting(codesize, id);
         _fim.UpdateCallListOnWriting(codesize, id);
-
+        
         // "If switch expression equals case expression, jump to case"
         WriteCmd(eq_opcode, SREG_AX, SREG_BX);
         _nest.SwitchCaseStart().at(cases_idx).WriteJump(SCMD_JNZ, _src.GetLineno());
@@ -6171,21 +6166,21 @@ void AGS::Parser::ParseFor()
     // Initialization clause (I)
     ParseFor_InitClause(peeksym);
     Expect(kKW_Semicolon, _src.GetNext(), "Expected ';' after for loop initializer clause");
-    
+
     // Remember where the code of the while condition starts.
     CodeLoc const while_cond_loc = _scrip.codesize;
 
     ParseFor_WhileClause();
     Expect(kKW_Semicolon, _src.GetNext(), "Expected ';' after for loop while clause");
-    
+
     // Remember where the code of the iterate clause starts.
     CodeLoc const iterate_clause_loc = _scrip.codesize;
     size_t const iterate_clause_fixups_start = _scrip.numfixups;
     size_t const iterate_clause_lineno = _src.GetLineno();
-
+    
     ParseFor_IterateClause();
     Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' after for loop iterate clause");
-    
+
     // Inner nesting level
     _nest.Push(NSType::kWhile);
     _nest.Start().Set(while_cond_loc);
@@ -6198,10 +6193,10 @@ void AGS::Parser::ParseFor()
     _nest.YankChunk(iterate_clause_lineno, iterate_clause_loc, iterate_clause_fixups_start, id);
     _fcm.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
     _fim.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
-
-    // Code for "If the expression we just evaluated is false, jump over the loop body."
-    WriteCmd(SCMD_JZ, kDestinationPlaceholder);
-    _nest.JumpOut().AddParam();
+        
+        // Code for "If the expression we just evaluated is false, jump over the loop body."
+        WriteCmd(SCMD_JZ, kDestinationPlaceholder);
+        _nest.JumpOut().AddParam();
 }
 
 void AGS::Parser::ParseSwitch()
@@ -6273,7 +6268,7 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     BackwardJumpDest case_code_start(_scrip);
     case_code_start.Set();
     _nest.SwitchCaseStart().push_back(case_code_start);
-    
+
     if (kKW_Default == case_or_default)
     {
         if (NestingStack::kNoDefault != _nest.SwitchDefaultIdx())
@@ -6303,7 +6298,7 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     _nest.YankChunk(start_of_code_lineno, start_of_code_loc, start_of_fixups, id);
     _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
     _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
-
+    
     return Expect(kKW_Colon, _src.GetNext());
 }
 

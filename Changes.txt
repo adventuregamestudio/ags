@@ -236,10 +236,10 @@ Engine:
  - Improved file writing times (e.g. when doing a game save) by using buffered file stream.
    Initial tests showed 50% faster file writing.
  - Engine now renders GUI controls as separate textures when using hardware accelerated renderers.
-   This may significantly improve perfomance in the high-resolution games and games with large
+   This may significantly improve performance in the high-resolution games and games with large
    number of GUI elements on screen.
  - Engine now shares the video texture data for all game objects on screen sharing same sprite.
-   This improves perfomance in case there are multiple objects which use same image.
+   This improves performance in case there are multiple objects which use same image.
  - Various performance optimizations for both raw drawing and texture updates (Direct3D/OpenGL).
  - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
    game is updated, and not while the game script is running. This prevents situations when
@@ -423,7 +423,7 @@ Editor:
    new source paths without file extension.
 
 Engine:
- - Perfomance fix: GUIs changing Transparency or Visible state should not redraw their surface.
+ - Performance fix: GUIs changing Transparency or Visible state should not redraw their surface.
 
 Compatibility:
  - Allow AudioClip.Play to to place clips on a crossfade channel, which is normally unaccessible
@@ -541,7 +541,7 @@ Editor:
  - Fixed sprite file over 2 GB could not be loaded (regression since the last patch).
 
 Engine:
- - Further improvement to GUI perfomance: don't redraw GUI when the mouse cursor is
+ - Further improvement to GUI performance: don't redraw GUI when the mouse cursor is
    hovering over or interacting with controls not leading to an actual visual change.
  - Fixed ListBox items could become unaccessible if its font or height is changed leading
    to a disabled scrollbar.
@@ -610,10 +610,10 @@ Engine:
  - Support loading audio and video from data packages larger than 2 GB.
  - Improved game data loading times by introducing buffered file stream. Initial tests
    showed 3-4 times faster file reading.
- - Improved game perfomance by not reupdating all of the GUIs each time anything changes, instead
+ - Improved game performance by not reupdating all of the GUIs each time anything changes, instead
    only affected GUI will be updated each time.
- - Some improvement to general script perfomance.
- - Some improvement to script Dictionary and Set types perfomance.
+ - Some improvement to general script performance.
+ - Some improvement to script Dictionary and Set types performance.
  - Room Object's Graphic property now can be assigned a sprite with index over 32767 and
    up to 65535. This restriction is due to internal data format, which cannot be fully fixed
    without breaking compatibility with plugin API. This may still be worked around by assigning

@@ -35,8 +35,9 @@ build_linux_cmake_task:
     dockerfile: ci/linux/Dockerfile
     docker_arguments:
       matrix:
-        - FROM_DEBIAN: debian:buster
-        - FROM_DEBIAN: i386/debian:buster
+        - FROM_PLATFORM: linux/i386
+        - FROM_PLATFORM: linux/amd64
+      FROM_DEBIAN: debian/eol:jessie
   env:
     matrix:
       - BUILD_TYPE: release
@@ -68,8 +69,9 @@ build_linux_debian_task:
     dockerfile: ci/linux/Dockerfile
     docker_arguments:
       matrix:
-        - FROM_DEBIAN: debian:buster
-        - FROM_DEBIAN: i386/debian:buster
+        - FROM_PLATFORM: linux/i386
+        - FROM_PLATFORM: linux/amd64
+      FROM_DEBIAN: debian/eol:jessie
   env:
     matrix:
       - RPATH_PREFIX: lib
@@ -119,8 +121,9 @@ build_linux_make_task:
     dockerfile: ci/linux/Dockerfile
     docker_arguments:
       matrix:
-        - FROM_DEBIAN: debian:buster
-        - FROM_DEBIAN: i386/debian:buster
+        - FROM_PLATFORM: linux/i386
+        - FROM_PLATFORM: linux/amd64
+      FROM_DEBIAN: debian/eol:jessie
   setup_destdir_script: |
     mkdir destdir
     arch=$(dpkg --print-architecture)

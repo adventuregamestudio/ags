@@ -1,5 +1,6 @@
 ARG FROM_DEBIAN=debian:latest
-FROM $FROM_DEBIAN
+ARG FROM_PLATFORM=$BUILDPLATFORM
+FROM --platform=$FROM_PLATFORM $FROM_DEBIAN
 
 # Take default debconf options
 ENV DEBIAN_FRONTEND noninteractive

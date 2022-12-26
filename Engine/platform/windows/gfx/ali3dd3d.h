@@ -221,6 +221,7 @@ public:
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
     bool RequiresFullRedrawEachFrame() override { return true; }
     bool HasAcceleratedTransform() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return true; }
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 

@@ -175,6 +175,8 @@ void engine_pre_gfxmode_driver_cleanup()
     gfxDriver->SetCallbackToDrawScreen(nullptr, nullptr);
     gfxDriver->SetCallbackForNullSprite(nullptr);
     gfxDriver->SetMemoryBackBuffer(nullptr);
+
+    release_drawobj_rendertargets();
 }
 
 // Setup color conversion parameters

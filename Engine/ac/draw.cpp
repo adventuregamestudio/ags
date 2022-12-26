@@ -638,6 +638,20 @@ void clear_drawobj_cache()
     dispose_debug_room_drawdata();
 }
 
+void release_drawobj_rendertargets()
+{
+    if ((gui_render_tex.size() == 0) ||
+        !gfxDriver->ShouldReleaseRenderTargets())
+        return;
+
+    for (auto &tex : gui_render_tex)
+    {
+        if (tex)
+            gfxDriver->DestroyDDB(tex);
+        tex = nullptr;
+    }
+}
+
 void on_mainviewport_changed()
 {
     if (!gfxDriver->RequiresFullRedrawEachFrame())

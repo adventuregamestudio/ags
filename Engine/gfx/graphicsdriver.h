@@ -216,9 +216,15 @@ public:
   // These matrixes will be filled in accordance to the renderer's compatible format;
   // returns false if renderer does not use matrixes (not a 3D renderer).
   virtual bool GetStageMatrixes(RenderMatrixes &rm) = 0;
+  // Tells if this gfx driver has to redraw whole scene each time
   virtual bool RequiresFullRedrawEachFrame() = 0;
+  // Tells if this gfx driver uses GPU to transform sprites
   virtual bool HasAcceleratedTransform() = 0;
+  // Tells if this gfx driver draws on a virtual screen before rendering on real screen.
   virtual bool UsesMemoryBackBuffer() = 0;
+  // Tells if this gfx driver requires releasing render targets
+  // in case of display mode change or reset.
+  virtual bool ShouldReleaseRenderTargets() = 0;
   virtual ~IGraphicsDriver() = default;
 };
 

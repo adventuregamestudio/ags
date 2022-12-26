@@ -193,6 +193,7 @@ public:
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }
     bool UsesMemoryBackBuffer() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return false; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;

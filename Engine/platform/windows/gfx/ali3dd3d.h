@@ -163,11 +163,18 @@ struct CUSTOMVERTEX
 struct D3DSpriteBatch : VMSpriteBatch
 {
     // Add anything D3D specific here
+    // Optional render target (for rendering on texture)
+    D3DBitmap *RenderTarget = nullptr;
 
     D3DSpriteBatch() = default;
     D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
-                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
+    D3DSpriteBatch(uint32_t id, D3DBitmap *render_target, const Rect &view,
+        const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
+        const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
+        , RenderTarget(render_target) {}
 };
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
@@ -303,7 +310,10 @@ private:
     void _renderAndPresent(bool clearDrawListAfterwards);
     void _render(bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    void SetScissor(const Rect &clip);
+    // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
+    // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
+    // otherwise we assume it is set on a whole screen, scaled to the screen coords.
+    void SetScissor(const Rect &clip, bool render_on_texture = false);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
     void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal, const SpriteColorTransform &color);

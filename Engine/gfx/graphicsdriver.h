@@ -150,8 +150,14 @@ public:
   // sprites to this batch's list.
   // Beginning a batch while the previous was not ended will create a sub-batch
   // (think of it as of a child scene node).
+  // TODO: can we merge PBitmap surface and render_target from overriden method?
   virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform = SpriteTransform(),
       Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) = 0;
+  // Begins a sprite batch which will be rendered on a target texture.
+  // This batch will ignore any parent transforms, regardless whether it's nested
+  // or not. Its common child batches will also be rendered on the same texture.
+  virtual void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
+      Common::GraphicFlip flip = Common::kFlip_None) = 0;
   // Ends current sprite batch
   virtual void EndSpriteBatch() = 0;
   // Adds sprite to the active batch

@@ -18,6 +18,7 @@
 
 #include "platform/windows/gfx/ali3dd3d.h"
 #include <algorithm>
+#include <stack>
 #include <SDL.h>
 #include <glm/ext.hpp>
 #include "ac/sys_events.h"
@@ -1148,6 +1149,9 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
   }
   direct3ddevice->ColorFill(pBackBuffer, nullptr, D3DCOLOR_RGBA(0, 0, 0, 255));
 
+  if (direct3ddevice->BeginScene() != D3D_OK)
+    throw Ali3DException("IDirect3DDevice9::BeginScene failed");
+
   if (!_renderSprAtScreenRes) {
     if (direct3ddevice->SetRenderTarget(0, pNativeSurface) != D3D_OK)
     {
@@ -1156,8 +1160,6 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
   }
 
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
-  if (direct3ddevice->BeginScene() != D3D_OK)
-    throw Ali3DException("IDirect3DDevice9::BeginScene failed");
 
   // if showing at 2x size, the sprite can get distorted otherwise
   direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
@@ -1187,27 +1189,19 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
   ResetFxPool();
 }
 
-void D3DGraphicsDriver::SetScissor(const Rect &clip)
+void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
 {
     if (!clip.IsEmpty())
     {
+        // Adjust a clipping rect to either whole screen, or a target texture
+        Rect scissor = render_on_texture ? clip : _scaling.ScaleRange(clip);
+        RECT d3d_scissor;
+        d3d_scissor.left = scissor.Left;
+        d3d_scissor.top = scissor.Top;
+        d3d_scissor.right = scissor.Right + 1;
+        d3d_scissor.bottom = scissor.Bottom + 1;
         direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-        RECT scissor;
-        if (_renderSprAtScreenRes)
-        {
-            scissor.left = _scaling.X.ScalePt(clip.Left);
-            scissor.top = _scaling.Y.ScalePt(clip.Top);
-            scissor.right = _scaling.X.ScalePt(clip.Right + 1);
-            scissor.bottom = _scaling.Y.ScalePt(clip.Bottom + 1);
-        }
-        else
-        {
-            scissor.left = clip.Left;
-            scissor.top = clip.Top;
-            scissor.right = clip.Right + 1;
-            scissor.bottom = clip.Bottom + 1;
-        }
-        direct3ddevice->SetScissorRect(&scissor);
+        direct3ddevice->SetScissorRect(&d3d_scissor);
     }
     else
     {
@@ -1222,15 +1216,50 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     while (_actSpriteBatch > 0)
         EndSpriteBatch();
 
-    // Render all the sprite batches with necessary transformations
+    // Render all the sprite batches with necessary transformations;
+    // some of them may be rendered to a separate texture instead.
+    // For these we save pairs of (Batch.ID : Surface) in a stack.
+    // The top of the stack lets us know which batch's RT we are using.
+    IDirect3DSurface9 *back_buffer = nullptr;
+    direct3ddevice->GetRenderTarget(0, &back_buffer);
+    std::stack<std::pair<int, IDirect3DSurface9*>> render_surfs;
+    auto cur_rt = std::make_pair(0, back_buffer);
+
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
         const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
-        SetScissor(batch.Viewport);
+        if (batch.RenderTarget)
+        {
+            // Begin rendering to a separate texture
+            render_surfs.push(cur_rt);
+            cur_rt = std::make_pair(batch.ID, batch.RenderTarget->_renderSurface);
+            HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
+            assert(hr == D3D_OK);
+            direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+        }
+        
+        bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt.second != back_buffer);
+        SetScissor(batch.Viewport, render_to_texture);
         _stageScreen = GetStageScreen(batch.ID);
         _stageMatrixes.World = batch.Matrix;
         cur_spr = RenderSpriteBatch(batch, cur_spr);
+
+        // Test if we should finish rendering on a texture and switch to the previous
+        // render target: we do this if current RT is not a back buffer,
+        // and the latest sprite was the last sprite of a RT's owning sprite batch.
+        if ((cur_rt.second != back_buffer) && (cur_spr == _spriteBatchRange[cur_rt.first].second))
+        {
+            // Finish render to a separate texture, return to one render buffer back
+            assert(render_surfs.size() > 0);
+            cur_rt = render_surfs.top();
+            render_surfs.pop();
+            HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
+            assert(hr == D3D_OK);
+        }
     }
+
+    assert(render_surfs.empty());
+    back_buffer->Release();
 
     _stageScreen = GetStageScreen(0);
     _stageMatrixes.World = _spriteBatches[0].Matrix;
@@ -1301,9 +1330,10 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     mat_viewport = mflip * mat_viewport;
     mat_viewport = vp_flip_off * mat_viewport;
 
-    // Apply parent batch's settings, if preset
+    // Apply parent batch's settings, if preset;
+    // except when the new batch is started on a separate texture
     Rect viewport = desc.Viewport;
-    if (desc.Parent > 0)
+    if ((desc.Parent > 0) && !desc.RenderTarget)
     {
         const auto &parent = _spriteBatches[desc.Parent];
         // Combine sprite matrix with the parent's
@@ -1331,7 +1361,8 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = D3DSpriteBatch(index, viewport, model, mat_viewport, desc.Transform.Color);
+    _spriteBatches[index] = D3DSpriteBatch(index, (D3DBitmap*)desc.RenderTarget, viewport,
+        model, mat_viewport, desc.Transform.Color);
 
     // create stage screen for plugin raw drawing
     CreateStageScreen(index, viewport.GetSize());

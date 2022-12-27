@@ -37,7 +37,7 @@ using Common::PlaneScaling;
 // Sprite batch, defines viewport and an optional model transformation for the list of sprites
 struct SpriteBatchDesc
 {
-    uint32_t                 Parent = 0;
+    uint32_t                 Parent = 0u;
     // View rectangle for positioning and clipping, in resolution coordinates
     // (this may be screen or game frame resolution, depending on circumstances)
     Rect                     Viewport;
@@ -46,7 +46,10 @@ struct SpriteBatchDesc
     // Optional flip, applied to the whole batch as the last transform
     Common::GraphicFlip      Flip = Common::kFlip_None;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
+    // TODO: merge with the RenderTexture?
     PBitmap                  Surface;
+    // Optional texture to render sprites to. Used by hardware-accelerated renderers.
+    IDriverDependantBitmap*  RenderTarget = nullptr;
 
     SpriteBatchDesc() = default;
     SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform,
@@ -56,6 +59,17 @@ struct SpriteBatchDesc
         , Transform(transform)
         , Flip(flip)
         , Surface(surface)
+    {
+    }
+    // TODO: this does not need a parent?
+    SpriteBatchDesc(uint32_t parent, IDriverDependantBitmap *render_target,
+        const Rect viewport, const SpriteTransform &transform,
+        Common::GraphicFlip flip = Common::kFlip_None)
+        : Parent(parent)
+        , Viewport(viewport)
+        , Transform(transform)
+        , Flip(flip)
+        , RenderTarget(render_target)
     {
     }
 };
@@ -99,6 +113,8 @@ public:
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
+    virtual void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
+                    Common::GraphicFlip flip = Common::kFlip_None) override;
     void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 
@@ -136,7 +152,8 @@ protected:
     // Clears sprite lists
     virtual void ResetAllBatches() = 0;
 
-    void         OnScalingChanged();
+    void BeginSpriteBatch(const SpriteBatchDesc &desc);
+    void OnScalingChanged();
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect

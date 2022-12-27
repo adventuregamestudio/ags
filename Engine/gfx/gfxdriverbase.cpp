@@ -69,7 +69,19 @@ Rect GraphicsDriverBase::GetRenderDestination() const
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
     GraphicFlip flip, PBitmap surface)
 {
-    _spriteBatchDesc.push_back(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface));
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface));
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(IDriverDependantBitmap *render_target,
+    const Rect &viewport, const SpriteTransform &transform,
+    GraphicFlip flip)
+{
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, render_target, viewport, transform, flip));
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(const SpriteBatchDesc &desc)
+{
+    _spriteBatchDesc.push_back(desc);
     _spriteBatchRange.push_back(std::make_pair(GetLastDrawEntryIndex(), SIZE_MAX));
     _actSpriteBatch = _spriteBatchDesc.size() - 1;
     InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);

@@ -197,6 +197,7 @@ protected:
     virtual ~BaseDDB() = default;
 };
 
+
 // A base parent for the otherwise opaque texture data object;
 // TextureData refers to the pixel data itself, with no additional
 // properties. It may be shared between multiple sprites if necessary.
@@ -213,6 +214,13 @@ struct TextureTile
 {
     int x = 0, y = 0;
     int width = 0, height = 0;
+};
+
+// Special render hints for textures
+enum TextureHint
+{
+    kTxHint_Normal,
+    kTxHint_PremulAlpha  // texture pixels contain premultiplied alpha
 };
 
 // Sprite batch's internal parameters for the hardware-accelerated renderer
@@ -233,6 +241,7 @@ struct VMSpriteBatch
                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
 };
+
 
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,

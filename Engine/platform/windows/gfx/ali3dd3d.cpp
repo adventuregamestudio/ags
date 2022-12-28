@@ -87,8 +87,10 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
     return false;
 }
 
+
 // The custom FVF, which describes the custom vertex structure.
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
+
 
 D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
@@ -506,6 +508,20 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   return true;
 }
 
+void D3DGraphicsDriver::SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
+{
+    direct3ddevice->SetRenderState(D3DRS_BLENDOP, blend_op);
+    direct3ddevice->SetRenderState(D3DRS_SRCBLEND, src_factor);
+    direct3ddevice->SetRenderState(D3DRS_DESTBLEND, dst_factor);
+}
+
+void D3DGraphicsDriver::SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor)
+{
+    direct3ddevice->SetRenderState(D3DRS_BLENDOPALPHA, blend_op);
+    direct3ddevice->SetRenderState(D3DRS_SRCBLENDALPHA, src_factor);
+    direct3ddevice->SetRenderState(D3DRS_DESTBLENDALPHA, dst_factor);
+}
+
 void D3DGraphicsDriver::InitializeD3DState()
 {
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
@@ -517,8 +533,7 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 
   direct3ddevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-  direct3ddevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-  direct3ddevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+  SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 
   direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
   direct3ddevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER); 
@@ -1095,12 +1110,25 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
     direct3ddevice->SetTexture(0, txdata->_tiles[ti].texture);
 
+    // Treat special render modes
+    switch (bmpToDraw->_renderHint)
+    {
+    case kTxHint_PremulAlpha:
+        direct3ddevice->SetRenderState(D3DRS_BLENDFACTOR, D3DCOLOR_RGBA(alpha, alpha, alpha, 255));
+        SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_BLENDFACTOR, D3DBLEND_INVSRCALPHA);
+        break;
+    default:
+        break;
+    }
+
     hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
     if (hr != D3D_OK) 
     {
       throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
     }
 
+    // Restore default blending mode
+    SetBlendOp(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
   }
 }
 
@@ -1236,6 +1264,11 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
             assert(hr == D3D_OK);
             direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+
+            // Configure rules for merging sprite alpha values onto a
+            // render target, which also contains alpha channel.
+            direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_INVDESTALPHA, D3DBLEND_ONE);
         }
         
         bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt.second != back_buffer);
@@ -1255,6 +1288,9 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             render_surfs.pop();
             HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
             assert(hr == D3D_OK);
+
+            // Disable alpha merging rules, return back to default settings
+            direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
         }
     }
 
@@ -1557,6 +1593,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int 
     IDirect3DTexture9 *tex = ddb->_data->_tiles->texture;
     HRESULT hr = tex->GetSurfaceLevel(0, &ddb->_renderSurface);
     assert(hr == D3D_OK);
+    ddb->_renderHint = kTxHint_PremulAlpha;
     return ddb;
 }
 

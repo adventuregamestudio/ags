@@ -89,6 +89,7 @@ public:
     std::shared_ptr<D3DTextureData> _data;
     // Optional surface for rendering onto a texture
     IDirect3DSurface9 *_renderSurface {};
+    TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
     bool _flipped;
@@ -318,6 +319,10 @@ private:
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
     void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal, const SpriteColorTransform &color);
     void _renderFromTexture();
+    // Helper method for setting blending parameters
+    void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Helper method for setting exclusive alpha blending parameters
+    void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
 };
 
 

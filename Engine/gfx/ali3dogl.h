@@ -99,6 +99,7 @@ public:
     std::shared_ptr<OGLTextureData> _data;
     // Optional frame buffer object (for rendering onto a texture)
     unsigned int _fbo {};
+    TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
     bool _flipped;
@@ -314,6 +315,13 @@ private:
     OGLSpriteBatches _backupBatches;
     std::vector<OGLDrawListEntry> _backupSpriteList;
 
+    // Saved blend settings exclusive for alpha channel; for convenience,
+    // because GL does not have functions for setting ONLY RGB or ONLY alpha ops.
+    GLenum _blendOpAlpha{};
+    GLenum _blendSrcAlpha{};
+    GLenum _blendDstAlpha{};
+
+
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
     void ResetAllBatches() override;
 
@@ -346,6 +354,13 @@ private:
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
+    // Sets uniform GL blend settings, same for both RGB and alpha component
+    void SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor);
+    // Sets GL blend settings for RGB only, and keeps saved alpha blend settings
+    void SetBlendOpRGB(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor);
+    // Sets GL blend settings with separate op for alpha, and saves used alpha params
+    void SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor,
+        GLenum alpha_op, GLenum sa_factor, GLenum da_factor);
 
     // Backup all draw lists in the temp storage
     void BackupDrawLists();

@@ -199,6 +199,27 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
+void OGLGraphicsDriver::SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor)
+{
+    SetBlendOpRGBAlpha(blend_op, src_factor, dst_factor, blend_op, src_factor, dst_factor);
+}
+
+void OGLGraphicsDriver::SetBlendOpRGB(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor)
+{
+    glBlendEquationSeparate(rgb_op, _blendOpAlpha);
+    glBlendFuncSeparate(srgb_factor, drgb_factor, _blendSrcAlpha, _blendDstAlpha);
+}
+
+void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor,
+    GLenum alpha_op, GLenum sa_factor, GLenum da_factor)
+{
+    glBlendEquationSeparate(rgb_op, alpha_op);
+    glBlendFuncSeparate(srgb_factor, drgb_factor, sa_factor, da_factor);
+    _blendOpAlpha = alpha_op;
+    _blendSrcAlpha = sa_factor;
+    _blendDstAlpha = da_factor;
+}
+
 bool OGLGraphicsDriver::FirstTimeInit()
 {
   String ogl_v_str;
@@ -247,11 +268,10 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   glDisable(GL_DEPTH_TEST);
 
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-
 
   bool vsyncEnabled = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
   if (mode.Vsync && !vsyncEnabled)
@@ -1140,7 +1160,20 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
         glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
     }
 
+    // Treat special render modes
+    switch (bmpToDraw->_renderHint)
+    {
+    case kTxHint_PremulAlpha:
+        glBlendColor(alpha / 255.0f, alpha / 255.0f, alpha / 255.0f, 1.0);
+        SetBlendOpRGB(GL_FUNC_ADD, GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+        break;
+    default: break;
+    }
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // Restore default blending mode
+    SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
   glUseProgram(0);
 }
@@ -1167,6 +1200,7 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
@@ -1176,6 +1210,7 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
   else
   {
     glDisable(GL_SCISSOR_TEST);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_SCISSOR_TEST);
 
@@ -1226,6 +1261,7 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     GLint a_TexCoord = glGetAttribLocation(program.Program, "a_TexCoord");
     glVertexAttribPointer(a_TexCoord, 2, GL_FLOAT, GL_FALSE, 0, _backbuffer_texture_coordinates);
 
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -1299,6 +1335,11 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             glEnable(GL_SCISSOR_TEST);
             surface_sz = Size(batch.RenderTarget->GetWidth(),
                 batch.RenderTarget->GetHeight());
+
+            // Configure rules for merging sprite alpha values onto a
+            // render target, which also contains alpha channel.
+            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
         }
 
         bool render_to_texture = (_do_render_to_texture) || (cur_rt.second != back_buffer);
@@ -1317,6 +1358,9 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             cur_rt = render_fbos.top();
             render_fbos.pop();
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, cur_rt.second);
+
+            // Disable alpha merging rules, return back to default settings
+            SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
     }
 
@@ -1664,6 +1708,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
     unsigned int tex = ddb->_data->_tiles[0].texture;
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    ddb->_renderHint = kTxHint_PremulAlpha;
     return ddb;
 }
 

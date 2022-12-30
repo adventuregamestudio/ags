@@ -131,7 +131,7 @@ namespace AGS
 			char fileNameChars[MAX_PATH];
 			TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
-      HMODULE module = LoadLibrary(fileNameChars);
+      HMODULE module = LoadLibraryEx(fileNameChars, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
       if (module == NULL)
       {
         throw gcnew AGSEditorException("LoadLibrary failed");

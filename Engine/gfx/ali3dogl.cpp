@@ -1335,6 +1335,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             glEnable(GL_SCISSOR_TEST);
             surface_sz = Size(batch.RenderTarget->GetWidth(),
                 batch.RenderTarget->GetHeight());
+            glViewport(0, 0, surface_sz.Width, surface_sz.Height);
 
             // Configure rules for merging sprite alpha values onto a
             // render target, which also contains alpha channel.
@@ -1358,6 +1359,10 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             cur_rt = render_fbos.top();
             render_fbos.pop();
             glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, cur_rt.second);
+            if (_do_render_to_texture)
+                glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
+            else
+                glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
 
             // Disable alpha merging rules, return back to default settings
             SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

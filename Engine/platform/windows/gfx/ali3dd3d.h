@@ -317,8 +317,9 @@ private:
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture = false);
     void RenderSpriteBatches();
-    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
-    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal, const SpriteColorTransform &color);
+    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
+    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color, const Size &surface_size);
     void _renderFromTexture();
     // Helper method for setting blending parameters
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);

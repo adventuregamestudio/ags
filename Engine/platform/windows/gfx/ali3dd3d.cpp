@@ -596,23 +596,12 @@ void D3DGraphicsDriver::SetupViewport()
   const float disp_height = _mode.Height;
 
   // Setup orthographic projection matrix
-  D3DMATRIX matOrtho = {
-    (2.0f / src_width), 0.0, 0.0, 0.0,
-    0.0, (2.0f / src_height), 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-  };
+  glm::mat4 identity(1.f);
+  glm::mat4 mat_ortho = glmex::ortho_d3d(src_width, src_height);
 
-  D3DMATRIX matIdentity = {
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 1.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-  };
-
-  direct3ddevice->SetTransform(D3DTS_WORLD, &matIdentity);
-  direct3ddevice->SetTransform(D3DTS_VIEW, &matIdentity);
-  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
+  direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(identity));
+  direct3ddevice->SetTransform(D3DTS_VIEW, (D3DMATRIX*)glm::value_ptr(identity));
+  direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
@@ -638,8 +627,8 @@ void D3DGraphicsDriver::SetupViewport()
   viewport_rect.bottom = _dstRect.Bottom + 1;
 
   // View and Projection matrixes are currently fixed in Direct3D renderer
-  memcpy(glm::value_ptr(_stageMatrixes.View), &matIdentity, sizeof(float[16]));
-  memcpy(glm::value_ptr(_stageMatrixes.Projection), &matOrtho, sizeof(float[16]));
+  _stageMatrixes.View = identity;
+  _stageMatrixes.Projection = mat_ortho;
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
@@ -953,7 +942,7 @@ void D3DGraphicsDriver::_reDrawLastFrame()
 }
 
 void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
-    const SpriteColorTransform &color)
+    const SpriteColorTransform &color, const Size &surface_size)
 {
   HRESULT hr;
   D3DBitmap *bmpToDraw = drawListEntry->ddb;
@@ -1069,8 +1058,8 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       xOffs = txdata->_tiles[ti].x * xProportion;
     float thisX = drawAtX + xOffs;
     float thisY = drawAtY + yOffs;
-    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
-    thisY = (_srcRect.GetHeight() / 2) - thisY;
+    thisX = (-(surface_size.Width / 2)) + thisX;
+    thisY = (surface_size.Height / 2) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1252,10 +1241,12 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     direct3ddevice->GetRenderTarget(0, &back_buffer);
     std::stack<std::pair<int, IDirect3DSurface9*>> render_surfs;
     auto cur_rt = std::make_pair(0, back_buffer);
+    const Size def_surface_sz = _srcRect.GetSize();
 
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
         const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
+        Size surface_sz = def_surface_sz;
         if (batch.RenderTarget)
         {
             // Begin rendering to a separate texture
@@ -1264,6 +1255,10 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
             assert(hr == D3D_OK);
             direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+            surface_sz = Size(batch.RenderTarget->GetWidth(),
+                batch.RenderTarget->GetHeight());
+            glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
+            direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
 
             // Configure rules for merging sprite alpha values onto a
             // render target, which also contains alpha channel.
@@ -1275,7 +1270,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         SetScissor(batch.Viewport, render_to_texture);
         _stageScreen = GetStageScreen(batch.ID);
         _stageMatrixes.World = batch.Matrix;
-        cur_spr = RenderSpriteBatch(batch, cur_spr);
+        cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
 
         // Test if we should finish rendering on a texture and switch to the previous
         // render target: we do this if current RT is not a back buffer,
@@ -1288,6 +1283,8 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             render_surfs.pop();
             HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
             assert(hr == D3D_OK);
+            glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
+            direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
 
             // Disable alpha merging rules, return back to default settings
             direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
@@ -1302,7 +1299,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 
-size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from)
+size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size)
 {
     for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
@@ -1317,11 +1314,11 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
             if (DoNullSpriteCallback(e.x, (int)direct3ddevice))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
-                _renderSprite(&stageEntry, batch.Matrix, batch.Color);
+                _renderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
             }
             break;
         default:
-            _renderSprite(&e, batch.Matrix, batch.Color);
+            _renderSprite(&e, batch.Matrix, batch.Color, surface_size);
             break;
         }
     }
@@ -1391,7 +1388,9 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     }
     else if (viewport.IsEmpty())
     {
-        viewport = _srcRect;
+        viewport = desc.RenderTarget ?
+            RectWH(0, 0, desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight()) :
+            _srcRect;
     }
 
     // Assign the new spritebatch

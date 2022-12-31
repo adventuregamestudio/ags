@@ -109,8 +109,8 @@ void SpriteFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *de
 	//BITMAP *vScreen = _engine->GetVirtualScreen();
 	
 	//_engine->SetVirtualScreen(destination);
-	
-	for(size_t i = 0; i < strlen(text); i++)
+	size_t len_text =  strlen(text);
+	for(size_t i = 0; i < len_text; i++)
 	{
 		char c = text[i];
 		c -= font->MinChar;

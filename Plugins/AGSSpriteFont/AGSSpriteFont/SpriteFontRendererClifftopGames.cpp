@@ -23,8 +23,8 @@ void SpriteFontRendererClifftopGames::RenderText(const char *text, int fontNumbe
 	//BITMAP *vScreen = _engine->GetVirtualScreen();
 
 	//_engine->SetVirtualScreen(destination);
-
-	for (int i = 0; i < (int)strlen(text); i++)
+	size_t len_text = strlen(text);
+	for (int i = 0; i < len_text; i++)
 	{
 		char c = text[i];
 		c -= font->MinChar;

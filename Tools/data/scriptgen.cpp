@@ -68,6 +68,8 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
     String header;
     String name;
     String buf;
+    size_t len_prefix = 0;
+    if(check_prefix) len_prefix = strlen(check_prefix);
     for (const auto &ent : ents)
     {
         String name = ent.ScriptName;
@@ -77,7 +79,7 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
         {
             if (!name.StartsWith(check_prefix))
                 continue;
-            name.ClipLeft(strlen(check_prefix));
+            name.ClipLeft(len_prefix);
         }
         // skip if the name is empty or begins with non-alpha character
         if (name.IsEmpty() || !std::isalpha(name[0]))

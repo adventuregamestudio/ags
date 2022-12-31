@@ -1151,7 +1151,7 @@ void IterateStars (int slot)
                 stars[i].x = (float)((rand () %sw)<<1)-sw;
 				if (stars[i].x < 1.0 && stars[i].x > -1.0) stars[i].x = (float)sw;
 				stars[i].y = (float)((rand () %sh)<<1)-sh;
-				if (stars[i].y < 1.0 && stars[i].y > 1.0) stars[i].y = (float)sh;
+				if (stars[i].y < 1.0 && stars[i].y > -1.0) stars[i].y = (float)sh;
                 stars[i].z = (float)MAX_DEPTH;
 				//stars[i].color = (rand () %240);
         }
@@ -1308,7 +1308,7 @@ void DrawStars (int slot, int maskslot)
                    stars[i].x = (float)((rand () %sw)<<1)-sw;
 				   if (stars[i].x < 1.0 && stars[i].x > -1.0) stars[i].x = (float)sw;
 				   stars[i].y = (float)((rand () %sh)<<1)-sh;
-				   if (stars[i].y < 1.0 && stars[i].y > 1.0) stars[i].y = (float)sh;
+				   if (stars[i].y < 1.0 && stars[i].y > -1.0) stars[i].y = (float)sh;
                    stars[i].z = (float)MAX_DEPTH;
 				   //stars[i].color = (rand () %240);
             }
@@ -1577,9 +1577,9 @@ int GetCharacterReflected (int id)
 	return Reflection.Characters[id].reflect;
 }
 
-void GetObjectReflected (int id)
+int GetObjectReflected (int id)
 {
-	Reflection.Objects[id].reflect;	
+	return Reflection.Objects[id].reflect;
 }
 
 void ReplaceCharacterReflectionView (int id,int view)

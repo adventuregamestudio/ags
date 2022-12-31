@@ -214,25 +214,23 @@ int Compile(const CompilerOptions& comp_opts)
 
     String script_input;
     const char* src = nullptr;
-    if(!comp_opts.InputScriptFile.empty())
-    {
-        if (comp_opts.InputScriptFile.empty())
-        {
-            std::cerr << "Error: empty script filename." << std::endl;
-            return -1;
-        }
 
-        src = comp_opts.InputScriptFile.c_str();
-        std::unique_ptr<Stream> in (File::OpenFileRead(src));
-        if (!in)
-        {
-            std::cerr << "Error: failed to open script for reading: " << src << std::endl;
-            return -1;
-        }
-        TextStreamReader sr(in.get());
-        script_input = sr.ReadAll();
-        sr.ReleaseStream();
+    if (comp_opts.InputScriptFile.empty())
+    {
+        std::cerr << "Error: empty script filename." << std::endl;
+        return -1;
     }
+
+    src = comp_opts.InputScriptFile.c_str();
+    std::unique_ptr<Stream> in (File::OpenFileRead(src));
+    if (!in)
+    {
+        std::cerr << "Error: failed to open script for reading: " << src << std::endl;
+        return -1;
+    }
+    TextStreamReader sr(in.get());
+    script_input = sr.ReadAll();
+    sr.ReleaseStream();
 
     //-----------------------------------------------------------------------//
     // Preprocess headers and set them for use when compiling

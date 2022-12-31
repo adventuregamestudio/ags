@@ -351,7 +351,7 @@ private:
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color);
+        const SpriteColorTransform &color, const Size &surface_size);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
@@ -375,7 +375,8 @@ private:
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     void RenderSpriteBatches(const glm::mat4 &projection);
-    size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection);
+    size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
+        const Size &surface_size);
     void _reDrawLastFrame();
 };
 

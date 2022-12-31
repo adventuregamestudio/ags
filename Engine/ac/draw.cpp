@@ -2377,10 +2377,10 @@ void draw_gui_and_overlays()
             if (!gui_ddb) continue;
             if (draw_controls_as_textures)
             {
-                // FIXME: our render-to-texures are filling the whole native res
+                // FIXME: recycle render target (recreate if different size)
                 if (!gui_render_tex[index])
                     gui_render_tex[index] = gfxDriver->CreateRenderTargetDDB(
-                        game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(), false);
+                        gui_ddb->GetWidth(), gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
                 // Render control textures onto the GUI texture
                 draw_gui_controls_batch(index);
                 // Replace gui bg ddb with a render target texture,

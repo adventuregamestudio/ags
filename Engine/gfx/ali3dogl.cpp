@@ -36,7 +36,6 @@
 
 #if AGS_OPENGL_ES2
 
-#define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
@@ -988,7 +987,8 @@ void OGLGraphicsDriver::_reDrawLastFrame()
 }
 
 void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
-    const glm::mat4 &projection, const glm::mat4 &matGlobal, const SpriteColorTransform &color)
+    const glm::mat4 &projection, const glm::mat4 &matGlobal,
+    const SpriteColorTransform &color, const Size &surface_size)
 {
   OGLBitmap *bmpToDraw = drawListEntry->ddb;
 
@@ -998,7 +998,6 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
 
   const bool do_tint = bmpToDraw->_tintSaturation > 0 && _tintShader.Program > 0;
   const bool do_light = bmpToDraw->_tintSaturation == 0 && bmpToDraw->_lightLevel > 0 && _lightShader.Program > 0;
-  // const bool can_do_transp_shader =_transparencyShader.Program > 0; if this fails, the whole renderer can't work.
   if (do_tint)
   {
     // Use tinting shader
@@ -1085,8 +1084,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
       xOffs = txdata->_tiles[ti].x * xProportion;
     int thisX = drawAtX + xOffs;
     int thisY = drawAtY + yOffs;
-    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
-    thisY = (_srcRect.GetHeight() / 2) - thisY;
+    thisX = (-(surface_size.Width / 2)) + thisX;
+    thisY = (surface_size.Height / 2) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1105,10 +1104,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     //
     glm::mat4 transform = projection;
     // Origin is at the middle of the surface
-    if (_do_render_to_texture)
-      transform = glmex::translate(transform, _backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f);
-    else
-      transform = glmex::translate(transform, _srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f);
+    transform = glmex::translate(transform, surface_size.Width / 2.0f, surface_size.Height / 2.0f);
 
     // Global batch transform
     transform = transform * matGlobal;
@@ -1323,6 +1319,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     {
         const OGLSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
         Size surface_sz = def_surface_sz;
+        glm::mat4 use_projection = projection;
         if (batch.RenderTarget)
         {
             // Begin rendering to a separate texture
@@ -1335,6 +1332,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             glEnable(GL_SCISSOR_TEST);
             surface_sz = Size(batch.RenderTarget->GetWidth(),
                 batch.RenderTarget->GetHeight());
+            use_projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
             glViewport(0, 0, surface_sz.Width, surface_sz.Height);
 
             // Configure rules for merging sprite alpha values onto a
@@ -1347,7 +1345,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
         SetScissor(batch.Viewport, render_to_texture, surface_sz);
         _stageScreen = GetStageScreen(batch.ID);
         _stageMatrixes.World = batch.Matrix;
-        cur_spr = RenderSpriteBatch(batch, cur_spr, projection);
+        cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
 
         // Test if we should finish rendering on a texture and switch to the previous
         // render target: we do this if current RT is not a back buffer,
@@ -1378,7 +1376,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
         glDisable(GL_SCISSOR_TEST);
 }
 
-size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection)
+size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from,
+    const glm::mat4 &projection, const Size &surface_size)
 {
     for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
@@ -1393,11 +1392,11 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
             if (DoNullSpriteCallback(e.x, e.y))
             {
                 auto stageEntry = OGLDrawListEntry((OGLBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
-                _renderSprite(&stageEntry, projection, batch.Matrix, batch.Color);
+                _renderSprite(&stageEntry, projection, batch.Matrix, batch.Color, surface_size);
             }
             break;
         default:
-            _renderSprite(&e, projection, batch.Matrix, batch.Color);
+            _renderSprite(&e, projection, batch.Matrix, batch.Color, surface_size);
             break;
         }
     }
@@ -1467,7 +1466,9 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     }
     else if (viewport.IsEmpty())
     {
-        viewport = _srcRect;
+        viewport = desc.RenderTarget ?
+            RectWH(0, 0, desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight()) :
+            _srcRect;
     }
 
     // Assign the new spritebatch

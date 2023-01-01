@@ -1051,6 +1051,15 @@ Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitma
     return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
 }
 
+IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
+{
+    if (ddb && (ddb->GetWidth() == width) && (ddb->GetHeight() == height))
+        return ddb;
+    if (ddb)
+        gfxDriver->DestroyDDB(ddb);
+    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
+}
+
 void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
 {
     Bitmap *use_bmp = obj.Bmp.get() ? obj.Bmp.get() : spriteset[obj.SpriteID];
@@ -2377,10 +2386,8 @@ void draw_gui_and_overlays()
             if (!gui_ddb) continue;
             if (draw_controls_as_textures)
             {
-                // FIXME: recycle render target (recreate if different size)
-                if (!gui_render_tex[index])
-                    gui_render_tex[index] = gfxDriver->CreateRenderTargetDDB(
-                        gui_ddb->GetWidth(), gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
+                gui_render_tex[index] = recycle_render_target(gui_render_tex[index],
+                    gui_ddb->GetWidth(), gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
                 // Render control textures onto the GUI texture
                 draw_gui_controls_batch(index);
                 // Replace gui bg ddb with a render target texture,

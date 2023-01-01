@@ -53,6 +53,9 @@ void dispose_game_drawdata();
 void dispose_room_drawdata();
 // Releases all the cached textures of game objects
 void clear_drawobj_cache();
+// Releases all the textures used as render targets, if necessary;
+// (this is primarily for resetting display mode of certain renderers).
+void release_drawobj_rendertargets();
 // Updates drawing settings depending on main viewport's size and position on screen
 void on_mainviewport_changed();
 // Notifies that a new room viewport was created

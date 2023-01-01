@@ -601,6 +601,7 @@ void graphics_mode_on_window_changed(const Size &sz)
 {
     if (!gfxDriver)
         return; // nothing to update
+    release_drawobj_rendertargets();
     gfxDriver->UpdateDeviceScreen(sz);
     graphics_mode_update_render_frame();
 }

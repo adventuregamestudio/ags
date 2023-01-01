@@ -156,6 +156,7 @@ public:
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
@@ -192,6 +193,7 @@ public:
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }
     bool UsesMemoryBackBuffer() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return false; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;
@@ -201,6 +203,9 @@ public:
     typedef std::shared_ptr<SDLRendererGfxFilter> PSDLRenderFilter;
 
     void SetGraphicsFilter(PSDLRenderFilter filter);
+
+protected:
+    size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:
     PSDLRenderFilter _filter;

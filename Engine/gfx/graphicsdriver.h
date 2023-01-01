@@ -125,11 +125,17 @@ public:
   // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
   // Engine needs to have game bitmaps brought to the certain range of formats, easing conversion into the video bitmaps.
   virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
-  // Creates a "raw" DDB, without pixel initialization
+
+  // Creates a "raw" DDB, without pixel initialization.
   virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;
-  // Creates DDB, initializes from the given bitmap
+  // Creates DDB, initializes from the given bitmap.
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;
+  // Creates DDB intended to be used as a render target (allow render other DDBs on it).
+  virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque = false) = 0;
+  // Updates DBB using the given bitmap; bitmap must have same size and format
+  // as the one that this DDB was initialized with.
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool hasAlpha) = 0;
+  // Destroy the DDB.
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
   // Get shared texture from cache, or create from bitmap and assign ID
@@ -144,8 +150,14 @@ public:
   // sprites to this batch's list.
   // Beginning a batch while the previous was not ended will create a sub-batch
   // (think of it as of a child scene node).
+  // TODO: can we merge PBitmap surface and render_target from overriden method?
   virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform = SpriteTransform(),
       Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) = 0;
+  // Begins a sprite batch which will be rendered on a target texture.
+  // This batch will ignore any parent transforms, regardless whether it's nested
+  // or not. Its common child batches will also be rendered on the same texture.
+  virtual void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
+      Common::GraphicFlip flip = Common::kFlip_None) = 0;
   // Ends current sprite batch
   virtual void EndSpriteBatch() = 0;
   // Adds sprite to the active batch
@@ -204,9 +216,15 @@ public:
   // These matrixes will be filled in accordance to the renderer's compatible format;
   // returns false if renderer does not use matrixes (not a 3D renderer).
   virtual bool GetStageMatrixes(RenderMatrixes &rm) = 0;
+  // Tells if this gfx driver has to redraw whole scene each time
   virtual bool RequiresFullRedrawEachFrame() = 0;
+  // Tells if this gfx driver uses GPU to transform sprites
   virtual bool HasAcceleratedTransform() = 0;
+  // Tells if this gfx driver draws on a virtual screen before rendering on real screen.
   virtual bool UsesMemoryBackBuffer() = 0;
+  // Tells if this gfx driver requires releasing render targets
+  // in case of display mode change or reset.
+  virtual bool ShouldReleaseRenderTargets() = 0;
   virtual ~IGraphicsDriver() = default;
 };
 

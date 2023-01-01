@@ -97,6 +97,9 @@ public:
 
     // OpenGL texture data
     std::shared_ptr<OGLTextureData> _data;
+    // Optional frame buffer object (for rendering onto a texture)
+    unsigned int _fbo {};
+    TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
     bool _flipped;
@@ -127,18 +130,24 @@ public:
     int GetWidthToRender() const { return _stretchToWidth; }
     int GetHeightToRender() const { return _stretchToHeight; }
 
-    ~OGLBitmap() override = default;
+    ~OGLBitmap() override;
 };
 
 // OGL renderer's sprite batch
 struct OGLSpriteBatch : VMSpriteBatch
 {
     // Add anything OGL specific here
+    // Optional render target (for rendering on texture)
+    OGLBitmap *RenderTarget = nullptr;
 
     OGLSpriteBatch() = default;
     OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
                    const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
+    OGLSpriteBatch(uint32_t id, OGLBitmap *render_target, const Rect view,
+        const glm::mat4 &matrix, const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
+        , RenderTarget(render_target) {}
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
@@ -210,15 +219,7 @@ public:
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    // Create texture data with the given parameters
-    TextureData *CreateTextureData(int width, int height, bool opaque) override;
-    // Update texture data from the given bitmap
-    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
-    // Create DDB using preexisting texture data
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
-        int width, int height, int color_depth, bool opaque) override;
-    // Retrieve shared texture data object from the given DDB
-    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
@@ -237,6 +238,7 @@ public:
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
     bool RequiresFullRedrawEachFrame() override { return true; }
     bool HasAcceleratedTransform() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return false; }
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
 
@@ -246,6 +248,20 @@ public:
 
     OGLGraphicsDriver();
     ~OGLGraphicsDriver() override;
+
+protected:
+    // Create texture data with the given parameters
+    TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) override;
+    // Update texture data from the given bitmap
+    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
+    // Create DDB using preexisting texture data
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
+        int width, int height, int color_depth, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+
+protected:
+    size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:
     POGLFilter _filter {};
@@ -294,9 +310,18 @@ private:
     std::vector<OGLDrawListEntry> _spriteList;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
+    // TODO: if not above, refactor and implement Desc backup in the base class
     SpriteBatchDescs _backupBatchDescs;
+    std::vector<std::pair<size_t, size_t>> _backupBatchRange;
     OGLSpriteBatches _backupBatches;
     std::vector<OGLDrawListEntry> _backupSpriteList;
+
+    // Saved blend settings exclusive for alpha channel; for convenience,
+    // because GL does not have functions for setting ONLY RGB or ONLY alpha ops.
+    GLenum _blendOpAlpha{};
+    GLenum _blendSrcAlpha{};
+    GLenum _blendDstAlpha{};
+
 
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
     void ResetAllBatches() override;
@@ -326,10 +351,17 @@ private:
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color);
+        const SpriteColorTransform &color, const Size &surface_size);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
     Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
+    // Sets uniform GL blend settings, same for both RGB and alpha component
+    void SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor);
+    // Sets GL blend settings for RGB only, and keeps saved alpha blend settings
+    void SetBlendOpRGB(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor);
+    // Sets GL blend settings with separate op for alpha, and saves used alpha params
+    void SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor,
+        GLenum alpha_op, GLenum sa_factor, GLenum da_factor);
 
     // Backup all draw lists in the temp storage
     void BackupDrawLists();
@@ -338,9 +370,13 @@ private:
     // Deletes draw list backups
     void ClearDrawBackups();
     void _render(bool clearDrawListAfterwards);
-    void SetScissor(const Rect &clip);
+    // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
+    // Optionally pass surface_size if the rendering is done to texture, in native coords,
+    // otherwise we assume it is set on a whole screen, scaled to the screen coords.
+    void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     void RenderSpriteBatches(const glm::mat4 &projection);
-    size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection);
+    size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
+        const Size &surface_size);
     void _reDrawLastFrame();
 };
 

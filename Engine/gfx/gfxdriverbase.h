@@ -37,7 +37,7 @@ using Common::PlaneScaling;
 // Sprite batch, defines viewport and an optional model transformation for the list of sprites
 struct SpriteBatchDesc
 {
-    uint32_t                 Parent = 0;
+    uint32_t                 Parent = 0u;
     // View rectangle for positioning and clipping, in resolution coordinates
     // (this may be screen or game frame resolution, depending on circumstances)
     Rect                     Viewport;
@@ -46,7 +46,10 @@ struct SpriteBatchDesc
     // Optional flip, applied to the whole batch as the last transform
     Common::GraphicFlip      Flip = Common::kFlip_None;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
+    // TODO: merge with the RenderTexture?
     PBitmap                  Surface;
+    // Optional texture to render sprites to. Used by hardware-accelerated renderers.
+    IDriverDependantBitmap*  RenderTarget = nullptr;
 
     SpriteBatchDesc() = default;
     SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform,
@@ -56,6 +59,17 @@ struct SpriteBatchDesc
         , Transform(transform)
         , Flip(flip)
         , Surface(surface)
+    {
+    }
+    // TODO: this does not need a parent?
+    SpriteBatchDesc(uint32_t parent, IDriverDependantBitmap *render_target,
+        const Rect viewport, const SpriteTransform &transform,
+        Common::GraphicFlip flip = Common::kFlip_None)
+        : Parent(parent)
+        , Viewport(viewport)
+        , Transform(transform)
+        , Flip(flip)
+        , RenderTarget(render_target)
     {
     }
 };
@@ -99,6 +113,8 @@ public:
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
+    virtual void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
+                    Common::GraphicFlip flip = Common::kFlip_None) override;
     void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 
@@ -131,10 +147,13 @@ protected:
     virtual void OnSetFilter();
     // Initialize sprite batch and allocate necessary resources
     virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) = 0;
+    // Gets the index of a last draw entry (sprite)
+    virtual size_t GetLastDrawEntryIndex() = 0;
     // Clears sprite lists
     virtual void ResetAllBatches() = 0;
 
-    void         OnScalingChanged();
+    void BeginSpriteBatch(const SpriteBatchDesc &desc);
+    void OnScalingChanged();
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect
@@ -151,7 +170,10 @@ protected:
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
 
     // Sprite batch parameters
-    SpriteBatchDescs _spriteBatchDesc; // sprite batches list
+    SpriteBatchDescs _spriteBatchDesc;
+    // The range of sprites in this sprite batch (counting nested sprites):
+    // the last of the previous batch, and the last of the current.
+    std::vector<std::pair<size_t, size_t>> _spriteBatchRange;
     size_t _actSpriteBatch; // active batch index
 };
 
@@ -175,6 +197,7 @@ protected:
     virtual ~BaseDDB() = default;
 };
 
+
 // A base parent for the otherwise opaque texture data object;
 // TextureData refers to the pixel data itself, with no additional
 // properties. It may be shared between multiple sprites if necessary.
@@ -191,6 +214,13 @@ struct TextureTile
 {
     int x = 0, y = 0;
     int width = 0, height = 0;
+};
+
+// Special render hints for textures
+enum TextureHint
+{
+    kTxHint_Normal,
+    kTxHint_PremulAlpha  // texture pixels contain premultiplied alpha
 };
 
 // Sprite batch's internal parameters for the hardware-accelerated renderer
@@ -212,6 +242,7 @@ struct VMSpriteBatch
         : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
 };
 
+
 // VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
 // which drawing method is based on passing the sprite stack into GPU,
 // rather than blitting to flat screen bitmap.
@@ -227,7 +258,9 @@ public:
     Bitmap* GetStageBackBuffer(bool mark_dirty) override;
     bool GetStageMatrixes(RenderMatrixes &rm) override;
 
+    // Creates new texture using given parameters
     IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque) = 0;
+    // Creates new texture and copy bitmap contents over
     IDriverDependantBitmap *CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque = false) override;
     // Get shared texture from cache, or create from bitmap and assign ID
     IDriverDependantBitmap *GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool hasAlpha, bool opaque) override;
@@ -239,7 +272,7 @@ public:
 
 protected:
     // Create texture data with the given parameters
-    virtual TextureData *CreateTextureData(int width, int height, bool opaque) = 0;
+    virtual TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) = 0;
     // Update texture data from the given bitmap
     virtual void UpdateTextureData(TextureData *txdata, Bitmap *bmp, bool opaque, bool hasAlpha) = 0;
     // Create DDB using preexisting texture data

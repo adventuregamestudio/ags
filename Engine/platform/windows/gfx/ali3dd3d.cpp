@@ -612,14 +612,7 @@ void D3DGraphicsDriver::SetupViewport()
   ClearScreenRect(RectWH(0, 0, _mode.Width, _mode.Height), nullptr);
 
   // Set Viewport.
-  ZeroMemory(&_d3dViewport, sizeof(D3DVIEWPORT9));
-  _d3dViewport.X = _dstRect.Left;
-  _d3dViewport.Y = _dstRect.Top;
-  _d3dViewport.Width = _dstRect.GetWidth();
-  _d3dViewport.Height = _dstRect.GetHeight();
-  _d3dViewport.MinZ = 0.0f;
-  _d3dViewport.MaxZ = 1.0f;
-  direct3ddevice->SetViewport(&_d3dViewport);
+  SetD3DViewport(_dstRect);
 
   viewport_rect.left   = _dstRect.Left;
   viewport_rect.right  = _dstRect.Right + 1;
@@ -1190,7 +1183,7 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
-    direct3ddevice->SetViewport(&_d3dViewport);
+    SetD3DViewport(_dstRect);
     _renderFromTexture();
   }
 
@@ -1204,6 +1197,19 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     ClearDrawLists();
   }
   ResetFxPool();
+}
+
+void D3DGraphicsDriver::SetD3DViewport(const Rect &rc)
+{
+    D3DVIEWPORT9 view;
+    ZeroMemory(&view, sizeof(D3DVIEWPORT9));
+    view.X = rc.Left;
+    view.Y = rc.Top;
+    view.Width = rc.GetWidth();
+    view.Height = rc.GetHeight();
+    view.MinZ = 0.0f;
+    view.MaxZ = 1.0f;
+    direct3ddevice->SetViewport(&view);
 }
 
 void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
@@ -1257,6 +1263,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
             surface_sz = Size(batch.RenderTarget->GetWidth(),
                 batch.RenderTarget->GetHeight());
+            SetD3DViewport(RectWH(surface_sz));
             glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
             direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
 
@@ -1283,6 +1290,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             render_surfs.pop();
             HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
             assert(hr == D3D_OK);
+            SetD3DViewport(_renderSprAtScreenRes ? _dstRect : _srcRect);
             glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
             direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
 

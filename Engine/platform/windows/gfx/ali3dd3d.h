@@ -281,8 +281,6 @@ private:
     D3DSpriteBatches _backupBatches;
     std::vector<D3DDrawListEntry> _backupSpriteList;
 
-    D3DVIEWPORT9 _d3dViewport;
-
     // Called after new mode was successfully initialized
     void OnModeSet(const DisplayMode &mode) override;
     void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) override;
@@ -312,6 +310,8 @@ private:
     void _renderAndPresent(bool clearDrawListAfterwards);
     void _render(bool clearDrawListAfterwards);
     void _reDrawLastFrame();
+    // Sets a Direct3D viewport for the current render target.
+    void SetD3DViewport(const Rect &rc);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
     // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.

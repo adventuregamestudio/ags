@@ -1479,13 +1479,6 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
 
     // create stage screen for plugin raw drawing
     CreateStageScreen(index, viewport.GetSize());
-
-    GLenum err;
-    for (;;) {
-      err = glGetError();
-      if (err == GL_NO_ERROR) { break; }
-      Debug::Printf(kDbgMsg_Error, "OGLGraphicsDriver::InitSpriteBatch glerror: %d", err);
-    }
 }
 
 void OGLGraphicsDriver::ResetAllBatches()

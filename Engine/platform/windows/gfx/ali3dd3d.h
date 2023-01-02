@@ -243,8 +243,6 @@ protected:
         int width, int height, int color_depth, bool opaque) override;
     // Retrieve shared texture data object from the given DDB
     std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
-
-protected:
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:

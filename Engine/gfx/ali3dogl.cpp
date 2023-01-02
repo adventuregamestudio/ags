@@ -114,6 +114,8 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
+
+  _rendSpriteBatch = UINT32_MAX;
 }
 
 
@@ -819,9 +821,8 @@ void OGLGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsNativeSizeValid())
     return;
-  // create initial stage screen for plugin raw drawing
-  CreateStageScreen(0, _srcRect.GetSize());
-  _stageScreen = GetStageScreen(0);
+  // Preset initial stage screen for plugin raw drawing
+  SetStageScreen(0, _srcRect.GetSize());
 }
 
 bool OGLGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
@@ -1318,6 +1319,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
         const OGLSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
+        _rendSpriteBatch = batch.ID;
         Size surface_sz = def_surface_sz;
         glm::mat4 use_projection = projection;
         if (batch.RenderTarget)
@@ -1343,7 +1345,6 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 
         bool render_to_texture = (_do_render_to_texture) || (cur_rt.second != back_buffer);
         SetScissor(batch.Viewport, render_to_texture, surface_sz);
-        _stageScreen = GetStageScreen(batch.ID);
         _stageMatrixes.World = batch.Matrix;
         cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
 
@@ -1369,7 +1370,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 
     assert(render_fbos.empty());
 
-    _stageScreen = GetStageScreen(0);
+    _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     SetScissor(Rect(), _do_render_to_texture, def_surface_sz); // TODO: simply disable scissor test?
     if (_do_render_to_texture)
@@ -1389,9 +1390,9 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
-            if (DoNullSpriteCallback(e.x, e.y))
+            if (auto *ddb = DoNullSpriteCallback(e.x, 0))
             {
-                auto stageEntry = OGLDrawListEntry((OGLBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
+                auto stageEntry = OGLDrawListEntry((OGLBitmap*)ddb, batch.ID, 0, 0);
                 _renderSprite(&stageEntry, projection, batch.Matrix, batch.Color, surface_size);
             }
             break;
@@ -1477,8 +1478,8 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     _spriteBatches[index] = OGLSpriteBatch(index, (OGLBitmap*)desc.RenderTarget,
         viewport, model, mat_viewport, desc.Transform.Color);
 
-    // create stage screen for plugin raw drawing
-    CreateStageScreen(index, viewport.GetSize());
+    // Preset stage screen for plugin raw drawing
+    SetStageScreen(index, viewport.GetSize());
 }
 
 void OGLGraphicsDriver::ResetAllBatches()

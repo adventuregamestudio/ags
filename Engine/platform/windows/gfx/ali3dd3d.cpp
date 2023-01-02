@@ -115,6 +115,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   D3DGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
+  _rendSpriteBatch = UINT32_MAX;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -715,9 +716,8 @@ void D3DGraphicsDriver::CreateVirtualScreen()
 
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 
-  // create initial stage screen for plugin raw drawing
-  CreateStageScreen(0, _srcRect.GetSize());
-  _stageScreen = GetStageScreen(0);
+  // Preset initial stage screen for plugin raw drawing
+  SetStageScreen(0, _srcRect.GetSize());
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -1252,6 +1252,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
         const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
+        _rendSpriteBatch = batch.ID;
         Size surface_sz = def_surface_sz;
         if (batch.RenderTarget)
         {
@@ -1275,7 +1276,6 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         
         bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt.second != back_buffer);
         SetScissor(batch.Viewport, render_to_texture);
-        _stageScreen = GetStageScreen(batch.ID);
         _stageMatrixes.World = batch.Matrix;
         cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
 
@@ -1302,7 +1302,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     assert(render_surfs.empty());
     back_buffer->Release();
 
-    _stageScreen = GetStageScreen(0);
+    _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
@@ -1319,9 +1319,9 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
-            if (DoNullSpriteCallback(e.x, (int)direct3ddevice))
+            if (auto *ddb = DoNullSpriteCallback(e.x, (int)direct3ddevice))
             {
-                auto stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB, batch.ID, 0, 0);
+                auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, 0, 0);
                 _renderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
             }
             break;
@@ -1407,8 +1407,8 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     _spriteBatches[index] = D3DSpriteBatch(index, (D3DBitmap*)desc.RenderTarget, viewport,
         model, mat_viewport, desc.Transform.Color);
 
-    // create stage screen for plugin raw drawing
-    CreateStageScreen(index, viewport.GetSize());
+    // Preset stage screen for plugin raw drawing
+    SetStageScreen(index, viewport.GetSize());
 }
 
 void D3DGraphicsDriver::ResetAllBatches()

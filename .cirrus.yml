@@ -136,16 +136,16 @@ build_linux_make_task:
 
 build_macos_task:
   only_if: $CIRRUS_RELEASE == ''
-  osx_instance:
+  macos_instance:
     matrix:
-      - image: monterey-xcode-13.2 # newest minor release of previous version
-      - image: big-sur-xcode-12.3  # oldest xcode image available in cirrus
+      - image: ghcr.io/cirruslabs/macos-ventura-xcode:latest # newest release of current version
+      - image: ghcr.io/cirruslabs/macos-monterey-xcode:latest # newest release of previous version
   env:
     matrix:
       - BUILD_TYPE: debug
       - BUILD_TYPE: release
     CMAKE_VERSION: 3.22.3
-    NINJA_VERSION: 1.10.2
+    NINJA_VERSION: 1.11.1
   macos_dependencies_cache:
     folder: dep_cache
     fingerprint_script: echo "$CMAKE_VERSION $NINJA_VERSION"
@@ -158,6 +158,7 @@ build_macos_task:
       echo "Downloading CMake from $url"
       curl -fLSs "$url" | bsdtar -f - -xvzC app --strip-components 1
   install_dependencies_script: |
+    sudo chown $USER /usr/local/bin
     cd dep_cache
     pushd app && cp -R CMake.app /Applications/CMake.app && popd
     cd bin && cp ninja /usr/local/bin/ninja

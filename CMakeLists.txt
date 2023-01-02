@@ -173,11 +173,8 @@ if(EMSCRIPTEN)
 		-s EXIT_RUNTIME=1  \
 		-s EMULATE_FUNCTION_POINTER_CASTS=1 ")
 
-    #    set(EMSDK_FLAGS "${EMSDK_FLAGS} \
-    #        -g4 \
-    #        -fsanitize=null -fsanitize-minimal-runtime \
-    #        --emit-symbol-map \
-    #        --source-map-base http://0.0.0.0:8000/../ ")
+    # set(EMSDK_DEBUG_CFLAGS "-gsource-map -fsanitize=null -fsanitize-minimal-runtime ")
+    # set(EMSDK_DEBUG_LINKER_FLAGS "--emit-symbol-map --source-map-base http://127.0.0.1:8000/../ ")
 
     set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} \
         -s FULL_ES2=1 \
@@ -185,11 +182,11 @@ if(EMSCRIPTEN)
         -s EXPORTED_FUNCTIONS=['_main'] \
         -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','callMain']")
 
-    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")
+    set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} ${EMSDK_DEBUG_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER}")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER} ${EMSDK_DEBUG_CFLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_COMPILER} ${EMSDK_DEBUG_CFLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} ${EMSDK_FLAGS_LINKER}")
 
     add_compile_options(-fexceptions)
@@ -269,9 +266,7 @@ endif()
 ###############################################################################
 # dependencies we download the source or not depending on settings
 
-if(EMSCRIPTEN)
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
-elseif(NOT AGS_USE_LOCAL_SDL2)
+if(NOT AGS_USE_LOCAL_SDL2 AND NOT EMSCRIPTEN)
     include(FetchSDL2)
 else()
     find_package(SDL2 REQUIRED)

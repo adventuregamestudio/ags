@@ -1,5 +1,6 @@
 ARG FROM_DEBIAN=debian:latest
-FROM $FROM_DEBIAN
+ARG FROM_PLATFORM=$BUILDPLATFORM
+FROM --platform=$FROM_PLATFORM $FROM_DEBIAN
 
 # Take default debconf options
 ENV DEBIAN_FRONTEND noninteractive
@@ -89,7 +90,7 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
 ARG SDL2_VERSION=2.24.1
 RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL2_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
   cd /tmp/SDL-release-${SDL2_VERSION} && \
-  ./configure --enable-shared --enable-loadso --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared && \
+  ./configure --enable-shared --enable-loadso --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared --enable-rpath=no && \
   make -j$(getconf _NPROCESSORS_ONLN) && make install && \
   ldconfig -n /usr/local/lib && \
   mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL-release-${SDL2_VERSION}/LICENSE.txt /usr/local/share/doc/libSDL2-2.0/copyright && \

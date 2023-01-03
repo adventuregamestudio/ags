@@ -337,13 +337,13 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     ScreenFx &fx = _fxPool[_fxIndex];
     if (fx.DDB == nullptr)
     {
-        fx.Raw = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-        fx.DDB = CreateDDBFromBitmap(fx.Raw, false, true);
+        fx.Raw.reset(new Bitmap(16, 16, _mode.ColorDepth));
+        fx.DDB = CreateDDBFromBitmap(fx.Raw.get(), false, true);
     }
     if (r != fx.Red || g != fx.Green || b != fx.Blue)
     {
         fx.Raw->Clear(makecol_depth(fx.Raw->GetColorDepth(), r, g, b));
-        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw, false);
+        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get(), false);
         fx.Red = r;
         fx.Green = g;
         fx.Blue = b;
@@ -363,7 +363,6 @@ void VideoMemoryGraphicsDriver::DestroyFxPool()
     {
         if (fx.DDB)
             DestroyDDB(fx.DDB);
-        delete fx.Raw;
     }
     _fxPool.clear();
     _fxIndex = 0;

@@ -346,7 +346,7 @@ private:
     // Fx quads pool (for screen overlay effects)
     struct ScreenFx
     {
-        Bitmap *Raw = nullptr;
+        std::unique_ptr<Bitmap> Raw;
         IDriverDependantBitmap *DDB = nullptr;
         int Red = -1;
         int Green = -1;

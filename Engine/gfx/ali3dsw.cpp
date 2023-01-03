@@ -454,8 +454,8 @@ size_t SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, 
     const auto &sprite = _spriteList[from];
     if (sprite.ddb == nullptr)
     {
-      if (_nullSpriteCallback)
-        _nullSpriteCallback(sprite.x, sprite.y);
+      if (_spriteEvtCallback)
+        _spriteEvtCallback(sprite.x, sprite.y);
       else
         throw Ali3DException("Unhandled attempt to draw null sprite");
 

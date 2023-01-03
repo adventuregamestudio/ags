@@ -122,7 +122,7 @@ public:
     void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) override
                 { _drawScreenCallback = callback; _drawPostScreenCallback = post_callback; }
     void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
-    void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) override { _nullSpriteCallback = callback; }
+    void        SetCallbackOnSpriteEvt(GFXDRV_CLIENTCALLBACKEVT callback) override { _spriteEvtCallback = callback; }
 
 protected:
     // Special internal values, applied to DrawListEntry
@@ -166,7 +166,7 @@ protected:
     GFXDRV_CLIENTCALLBACK _pollingCallback;
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
     GFXDRV_CLIENTCALLBACK _drawPostScreenCallback;
-    GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
+    GFXDRV_CLIENTCALLBACKEVT _spriteEvtCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
 
     // Sprite batch parameters
@@ -298,10 +298,10 @@ protected:
     IDriverDependantBitmap *UpdateStageScreenDDB(size_t index);
     // Disposes all the stage screen raw bitmaps and DDBs.
     void DestroyAllStageScreens();
-    // Use engine callback to acquire replacement for the null sprite;
+    // Use engine callback to pass a render event;
     // returns a DDB if the sprite was provided onto the virtual screen,
     // and nullptr if this entry should be skipped.
-    IDriverDependantBitmap *DoNullSpriteCallback(int x, int y);
+    IDriverDependantBitmap *DoSpriteEvtCallback(int evt, int data);
 
     // Prepare and get fx item from the pool
     IDriverDependantBitmap *MakeFx(int r, int g, int b);

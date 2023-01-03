@@ -266,7 +266,7 @@ void VideoMemoryGraphicsDriver::SetStageScreen(size_t index, const Size &sz)
 {
     if (_stageScreens.size() <= index)
         _stageScreens.resize(index + 1);
-    _stageScreens[index].Size = sz;
+    _stageScreens[index].PresetSize = sz;
 }
 
 Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
@@ -276,31 +276,31 @@ Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
         return nullptr;
 
     auto &scr = _stageScreens[index];
-    const Size sz = scr.Size;
-    if (scr.Bitmap && (scr.Bitmap->GetSize() != sz))
+    const Size sz = scr.PresetSize;
+    if (scr.Raw && (scr.Raw->GetSize() != sz))
     {
-        scr.Bitmap.reset();
+        scr.Raw.reset();
         if (scr.DDB)
             DestroyDDB(scr.DDB);
         scr.DDB = nullptr;
     }
-    if (!scr.Bitmap && !sz.IsNull())
+    if (!scr.Raw && !sz.IsNull())
     {
-        scr.Bitmap.reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
+        scr.Raw.reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
         scr.DDB = CreateDDB(sz.Width, sz.Height, _mode.ColorDepth, false);
     }
-    return scr.Bitmap.get();
+    return scr.Raw.get();
 }
 
 IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t index)
 {
     assert((index < _stageScreens.size()) && _stageScreens[index].DDB);
-    if ((_stageScreens.size() <= index) || !_stageScreens[index].Bitmap || !_stageScreens[index].DDB)
+    if ((_stageScreens.size() <= index) || !_stageScreens[index].Raw || !_stageScreens[index].DDB)
         return nullptr;
 
     auto &scr = _stageScreens[index];
-    UpdateDDBFromBitmap(scr.DDB, scr.Bitmap.get(), true);
-    scr.Bitmap->ClearTransparent();
+    UpdateDDBFromBitmap(scr.DDB, scr.Raw.get(), true);
+    scr.Raw->ClearTransparent();
     return scr.DDB;
 }
 

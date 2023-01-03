@@ -334,8 +334,8 @@ private:
     // pair, and subbitmaps for raw drawing on separate stages.
     struct StageScreen
     {
-        Size Size; // Size preset (bitmap may be created later)
-        std::unique_ptr<Bitmap> Bitmap;
+        Size PresetSize; // bitmap size preset (bitmap may be created later)
+        std::unique_ptr<Bitmap> Raw;
         IDriverDependantBitmap *DDB = nullptr;
     };
     std::vector<StageScreen> _stageScreens;

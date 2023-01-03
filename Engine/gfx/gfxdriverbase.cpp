@@ -328,7 +328,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, i
     {
         return UpdateStageScreenDDB(_rendSpriteBatch);
     }
-    return false;
+    return nullptr;
 }
 
 IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)

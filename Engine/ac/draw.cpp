@@ -2490,6 +2490,7 @@ static void construct_room_view()
             // and second - how room's image translates into the camera.
             gfxDriver->BeginSpriteBatch(view_rc, SpriteTransform(view_rc.Left, view_rc.Top, view_sx, view_sy));
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(-cam_rc.Left, -cam_rc.Top));
+            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
             put_sprite_list_on_screen(true);
             gfxDriver->EndSpriteBatch();
             gfxDriver->EndSpriteBatch();

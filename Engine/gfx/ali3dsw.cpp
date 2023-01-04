@@ -399,6 +399,11 @@ void SDLRendererGraphicsDriver::SetScreenTint(int red, int green, int blue)
     }
 }
 
+void SDLRendererGraphicsDriver::SetStageScreen(const Size & /*sz*/, int /*x*/, int /*y*/)
+{
+    // unsupported, as using _stageVirtualScreen instead
+}
+
 void SDLRendererGraphicsDriver::RenderToBackBuffer()
 {
     // Close unended batches, and issue a warning

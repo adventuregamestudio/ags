@@ -1390,9 +1390,10 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
-            if (auto *ddb = DoSpriteEvtCallback(e.x, 0))
+            int sx, sy;
+            if (auto *ddb = DoSpriteEvtCallback(e.x, 0, sx, sy))
             {
-                auto stageEntry = OGLDrawListEntry((OGLBitmap*)ddb, batch.ID, 0, 0);
+                auto stageEntry = OGLDrawListEntry((OGLBitmap*)ddb, batch.ID, sx, sy);
                 _renderSprite(&stageEntry, projection, batch.Matrix, batch.Color, surface_size);
             }
             break;

@@ -1319,9 +1319,10 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
-            if (auto *ddb = DoSpriteEvtCallback(e.x, (int)direct3ddevice))
+            int sx, sy;
+            if (auto *ddb = DoSpriteEvtCallback(e.x, (int)direct3ddevice, sx, sy))
             {
-                auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, 0, 0);
+                auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, sx, sy);
                 _renderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
             }
             break;

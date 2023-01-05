@@ -114,8 +114,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 16;
   _vmem_a_shift_32 = 24;
-
-  _rendSpriteBatch = UINT32_MAX;
 }
 
 

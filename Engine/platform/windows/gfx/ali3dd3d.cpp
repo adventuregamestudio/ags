@@ -115,7 +115,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
 
   // Initialize default sprite batch, it will be used when no other batch was activated
   D3DGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
-  _rendSpriteBatch = UINT32_MAX;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()

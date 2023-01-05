@@ -429,6 +429,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         const Rect &viewport = batch_desc.Viewport;
         const SpriteTransform &transform = batch_desc.Transform;
 
+        _rendSpriteBatch = batch.ID;
         virtualScreen->SetClip(viewport);
         Bitmap *surface = batch.Surface.get();
         const int view_offx = viewport.Left;
@@ -449,6 +450,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         }
         _stageVirtualScreen = virtualScreen;
     }
+    _rendSpriteBatch = UINT32_MAX;
     ClearDrawLists();
 }
 

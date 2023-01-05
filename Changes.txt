@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.0 RC - October 2022
+VERSION 3.6.0 RC - January 2023
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.
@@ -278,8 +278,6 @@ Engine:
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
- - Added SpriteFont plugin to the list of builtins, for ports that use ones.
-   SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
@@ -291,6 +289,8 @@ Engine:
  - Fixed software renderer may have an unpainted black line at the bottom, if there's a GUI or
    Overlay positioned partially offscreen.
  - Fixed AGS_EngineInitGfx plugin callback was not called during OpenGL renderer initialization.
+ - Fixed Direct3D/OpenGL renderers were displaying plugin's raw drawings in a wrong position in
+   the scrolling rooms, if the drawing was done on AGSE_PRESCREENDRAW or AGSE_POSTROOMDRAW events.
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed ListBox.RowCount reporting 0 if called before the control was displayed once.
@@ -346,6 +346,11 @@ Web / Emscripten:
 
 Windows:
  - Installer will create program links with three-digit version in the name.
+ 
+Plugins:
+ - Fixed SnowRain plugin drawing particles only in 320x200 bounds.
+ - Added SpriteFont plugin to the list of builtins, for ports that use ones.
+   SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.

@@ -315,9 +315,6 @@ private:
     std::vector<std::pair<size_t, size_t>> _backupBatchRange;
     OGLSpriteBatches _backupBatches;
     std::vector<OGLDrawListEntry> _backupSpriteList;
-    // An index of a currently rendered sprite batch
-    // (or -1 / UINT32_MAX if we are outside of the render pass)
-    uint32_t _rendSpriteBatch;
 
     // Saved blend settings exclusive for alpha channel; for convenience,
     // because GL does not have functions for setting ONLY RGB or ONLY alpha ops.

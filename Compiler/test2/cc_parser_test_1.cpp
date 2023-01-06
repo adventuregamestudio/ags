@@ -35,7 +35,7 @@ TEST_F(Compile1, Sections) {
     // "__NEWSCRIPTSTART..." begins a line #0,
     // so the error must be reported on line 3.
 
-    const char *inpl = "\
+    char const *inpl = "\
         \"__NEWSCRIPTSTART_globalscript.ash\"   \n\
         int main()                              \n\
         {                                       \n\
@@ -54,7 +54,7 @@ TEST_F(Compile1, Autoptr) {
 
     // String is autoptr so should not print as "String *"
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed autoptr builtin struct String   \n\
         {};                                     \n\
         int main()                              \n\
@@ -74,7 +74,7 @@ TEST_F(Compile1, BinaryNot)
 
     // '!' can't be binary
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = 15 ! 2;                   \n\
@@ -91,7 +91,7 @@ TEST_F(Compile1, UnaryDivideBy) {
 
     // '/' can't be unary
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = (/ 2);                    \n\
@@ -108,7 +108,7 @@ TEST_F(Compile1, UnaryPlus) {
 
     // '/' can't be unary
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return +42;                         \n\
@@ -124,7 +124,7 @@ TEST_F(Compile1, FloatInt1) {
 
     // Can't mix float and int
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = 4 / 2.0;                  \n\
@@ -141,7 +141,7 @@ TEST_F(Compile1, FloatInt2) {
 
     // Can't negate float
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = !2.0;                     \n\
@@ -158,7 +158,7 @@ TEST_F(Compile1, StringInt1) {
 
     // Can't mix string and int
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int Var = (\"Holzschuh\" == 2);     \n\
@@ -175,7 +175,7 @@ TEST_F(Compile1, ExpressionVoid) {
 
     // Can't mix void
 
-    const char *inpl = "\
+    char const *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -193,7 +193,7 @@ TEST_F(Compile1, ExpressionLoneUnary1) {
 
     // Unary -, nothing following
 
-    const char *inpl = "\
+    char const *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -212,7 +212,7 @@ TEST_F(Compile1, ExpressionLoneUnary2) {
 
     // Unary ~, nothing following
 
-    const char *inpl = "\
+    char const *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -231,7 +231,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
 
     // Binary %, nothing following
 
-    const char *inpl = "\
+    char const *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -248,7 +248,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
 
 TEST_F(Compile1, LocalTypes1)
 {
-    const char *inpl = "\
+    char const *inpl = "\
         void Test1()            \n\
         {                       \n\
             struct MyStruct     \n\
@@ -257,6 +257,7 @@ TEST_F(Compile1, LocalTypes1)
             };                  \n\
         }                       \n\
         ";
+
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
@@ -265,7 +266,7 @@ TEST_F(Compile1, LocalTypes1)
 
 TEST_F(Compile1, LocalTypes2)
 {
-    const char *inpl = "\
+    char const *inpl = "\
         void Test1()            \n\
         {                       \n\
             enum Foo            \n\
@@ -274,6 +275,7 @@ TEST_F(Compile1, LocalTypes2)
             };                  \n\
         }                       \n\
         ";
+
     int compileResult = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : msg.c_str());
@@ -284,7 +286,7 @@ TEST_F(Compile1, StaticArrayIndex1) {
 
     // Constant array index, is out ouf bounds
 
-    const char *inpl = "\
+    char const *inpl = "\
         enum E                          \n\
         {                               \n\
             MinusFive = -5,             \n\
@@ -306,7 +308,7 @@ TEST_F(Compile1, StaticArrayIndex2) {
 
     // Constant array index, is out ouf bounds
 
-    const char *inpl = "\
+    char const *inpl = "\
         enum E                          \n\
         {                               \n\
             MinusFive = -5,             \n\
@@ -328,7 +330,7 @@ TEST_F(Compile1, ExpressionArray1) {
 
     // Can't mix void
 
-    const char *inpl = "\
+    char const *inpl = "\
         import void Func();                     \n\
         int main()                              \n\
         {                                       \n\
@@ -347,7 +349,7 @@ TEST_F(Compile1, FuncTypeClash1) {
 
     // Can't use func here except in a func call
 
-    const char *inpl = "\
+    char const *inpl = "\
         int Func()                              \n\
         {                                       \n\
         }                                       \n\
@@ -368,7 +370,7 @@ TEST_F(Compile1, FloatOutOfBounds) {
 
     // Too small
 
-    const char *inpl = "\
+    char const *inpl = "\
         int Func()                              \n\
         {                                       \n\
         }                                       \n\
@@ -389,7 +391,7 @@ TEST_F(Compile1, DoWhileSemicolon) {
 
     // ';' missing
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int I = 1;                          \n\
@@ -409,7 +411,7 @@ TEST_F(Compile1, ExtenderExtender1) {
 
     // No extending a struct with a compound function
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Struct1                      \n\
         {                                   \n\
             void Func();                    \n\
@@ -432,7 +434,7 @@ TEST_F(Compile1, ExtenderExtender2) {
 
     // No extending a struct with a compound function
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Struct1                      \n\
         {                                   \n\
         };                                  \n\
@@ -452,7 +454,7 @@ TEST_F(Compile1, NonManagedStructParameter) {
 
     // Can't pass a non-managed struct as a function parameter
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Struct                           \n\
         {                                       \n\
         };                                      \n\
@@ -471,7 +473,7 @@ TEST_F(Compile1, StrangeParameterName) {
 
     // Can't use keyword as parameter name
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(int while)                    \n\
         {                                       \n\
         }                                       \n\
@@ -487,7 +489,7 @@ TEST_F(Compile1, DoubleParameterName) {
 
     // Can't use keyword as parameter name
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(int PI, float PI)             \n\
         {                                       \n\
         }                                       \n\
@@ -503,7 +505,7 @@ TEST_F(Compile1, FuncParamDefaults1) {
 
     // Either give no defaults or give them all
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(int i = 5, float j = 6.0);    \n\
         void Func(int i = 5, float j)           \n\
         {                                       \n\
@@ -520,7 +522,7 @@ TEST_F(Compile1, FuncParamDefaults2) {
 
     // All parameters that follow a default parameter must have a default
 
-    const char *inpl = "\
+    char const *inpl = "\
         import void Func(int i = 5, float j);   \n\
         ";
     
@@ -534,7 +536,7 @@ TEST_F(Compile1, FuncParamDefaults3) {
 
     // Can't give a parameter a default here, not a default there
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(int i, float j);          \n\
         void Func(int i, float j = 6.0)     \n\
         {                                       \n\
@@ -551,7 +553,7 @@ TEST_F(Compile1, FuncParamDefaults4) {
 
     // Can't give a parameter differing defaults
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(float J = -6.0);              \n\
         void Func(float J = 6.0)                \n\
         {                                       \n\
@@ -568,7 +570,7 @@ TEST_F(Compile1, FuncParamNumber1) {
 
     // Differing number of parameters
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(int, float);                  \n\
         void Func(int I, float J, short K)      \n\
         {                                       \n\
@@ -585,7 +587,7 @@ TEST_F(Compile1, FuncParamNumber2) {
 
     // Instantiation has number of parameters than is different from declaration
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Test                                         \n\
         {                                                   \n\
             import void Func(int a, int b, int c, int d);   \n\
@@ -606,7 +608,7 @@ TEST_F(Compile1, FuncVariadicCollision) {
 
     // Variadic / non-variadic
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Func(int, float, short, ...);      \n\
         void Func(int I, float J, short K)      \n\
         {                                       \n\
@@ -623,7 +625,7 @@ TEST_F(Compile1, FuncReturnVartypes) {
 
     // Return vartypes
 
-    const char *inpl = "\
+    char const *inpl = "\
         int Func(int, float, short);            \n\
         short Func(int I, float J, short K)     \n\
         {                                       \n\
@@ -640,7 +642,7 @@ TEST_F(Compile1, FuncReturnStruct1) {
 
     // Return vartype must be managed when it is a struct
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Struct {  };                     \n\
         Struct Func()                           \n\
         {                                       \n\
@@ -658,7 +660,7 @@ TEST_F(Compile1, FuncReturnStruct2) {
     // Compiler will imply the '*'
     // but should be slightly unhappy about the missing return statement
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Struct {  }; \n\
         Struct Func()               \n\
         {                           \n\
@@ -676,7 +678,7 @@ TEST_F(Compile1, FuncReturnStruct3) {
 
     // Compiler should be slightly unhappy about the missing return statement
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Struct {  };             \n\
         Struct[] Func()                         \n\
         {                                       \n\
@@ -695,7 +697,7 @@ TEST_F(Compile1, FuncReturn1) {
     // Should detect that the 'I' define can't be reached
     // Should not warn about a missing return at end of function body.
 
-    const char *inpl = "\
+    char const *inpl = "\
         import int Random(int); \n\
         float Func()            \n\
         {                       \n\
@@ -719,7 +721,7 @@ TEST_F(Compile1, FuncReturn2) {
     // Should detect that the 'I' assignment can't be reached
     // Should warn about a missing return at end of function body.
 
-    const char *inpl = "\
+    char const *inpl = "\
         import int Random(int); \n\
         float Func()            \n\
         {                       \n\
@@ -745,7 +747,7 @@ TEST_F(Compile1, FuncDouble) {
 
     // No two equally-named functions with body
 
-    const char *inpl = "\
+    char const *inpl = "\
         int Func()                              \n\
         {                                       \n\
         }                                       \n\
@@ -764,7 +766,7 @@ TEST_F(Compile1, FuncProtected) {
 
     // Protected functions must be part of a struct
 
-    const char *inpl = "\
+    char const *inpl = "\
         protected void Func(int I = 6)          \n\
         {                                       \n\
         }                                       \n\
@@ -780,7 +782,7 @@ TEST_F(Compile1, FuncNameClash1) {
 
     // Function name mustn't equal a variable name.
 
-    const char *inpl = "\
+    char const *inpl = "\
         int Func;                               \n\
         void Func(int I = 6)                    \n\
         {                                       \n\
@@ -795,7 +797,7 @@ TEST_F(Compile1, FuncNameClash1) {
 
 TEST_F(Compile1, FuncDeclWrong1) {
 
-    const char *inpl = "\
+    char const *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -828,7 +830,7 @@ TEST_F(Compile1, FuncDeclWrong1) {
 TEST_F(Compile1, FuncDeclWrong2) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
         float Payload1;             \n\
@@ -862,7 +864,7 @@ TEST_F(Compile1, FuncDeclReturnVartype) {
 
     // Should compile.
 
-    const char *inpl = "\
+    char const *inpl = "\
     managed struct DynamicSprite                                    \n\
     {                                                               \n\
     };                                                              \n\
@@ -888,7 +890,7 @@ TEST_F(Compile1, FuncHeader1) {
 
     // Can't have a specific array size in func parameters
 
-    const char *inpl = "\
+    char const *inpl = "\
         void main(int a[15])                   \n\
         {                                      \n\
              return;                           \n\
@@ -905,7 +907,7 @@ TEST_F(Compile1, FuncHeader2) {
 
     // Default for float parameter, an int value. Should fail
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Foo(float Param = 7);              \n\
         {                                      \n\
              return;                           \n\
@@ -921,7 +923,7 @@ TEST_F(Compile1, FuncHeader2) {
 TEST_F(Compile1, FuncHeader3) {
 
     // Integer default for managed parameter. Should fail
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Payload                  \n\
         {                                       \n\
             float foo;                          \n\
@@ -941,7 +943,7 @@ TEST_F(Compile1, FuncHeader3) {
 
 TEST_F(Compile1, FuncExtenderHeaderFault1a) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -962,7 +964,7 @@ TEST_F(Compile1, FuncExtenderHeaderFault1b) {
 
     // A comma or paren should follow 'Weapon'
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -981,7 +983,7 @@ TEST_F(Compile1, FuncExtenderHeaderFault1b) {
 
 TEST_F(Compile1, FuncExtenderHeaderFault1c) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -1000,7 +1002,7 @@ TEST_F(Compile1, FuncExtenderHeaderFault1c) {
 
 TEST_F(Compile1, FuncExtenderHeaderFault2) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
         };                                     \n\
@@ -1022,7 +1024,7 @@ TEST_F(Compile1, FuncDoubleExtender) {
 
     // Must not define a function with body twice.
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Weapon {                         \n\
             int Damage;                         \n\
         };                                      \n\
@@ -1046,7 +1048,7 @@ TEST_F(Compile1, FuncDoubleExtender) {
 
 TEST_F(Compile1, FuncDoubleNonExtender) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         int Foo(int Bar)                       \n\
         {                                      \n\
             return 1;                          \n\
@@ -1067,7 +1069,7 @@ TEST_F(Compile1, FuncUndeclaredStruct1) {
 
     // Should fail, Struct doesn't have Func
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Struct                       \n\
         {                                           \n\
             int Component;                          \n\
@@ -1088,7 +1090,7 @@ TEST_F(Compile1, FuncUndeclaredStruct2) {
 
     // Should succeed, Struct has Func
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Struct::Func(int Param)                \n\
         {                                           \n\
         }                                           \n\
@@ -1107,7 +1109,7 @@ TEST_F(Compile1, TypeEqComponent) {
 
     // A struct component may have the same name as a type.
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct Room             \n\
         {                                       \n\
         };                                      \n\
@@ -1127,7 +1129,7 @@ TEST_F(Compile1, ExtenderFuncClash) {
 
     // Don't remember the struct of extender functions past their definition (and body, if applicable)
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin struct Maths 							\n\
         { 												\n\
         }; 												\n\
@@ -1144,7 +1146,7 @@ TEST_F(Compile1, MissingSemicolonAfterStruct1) {
 
     // Missing ";" after struct declaration; isn't a var decl either
 
-    const char *inpl = "\
+    char const *inpl = "\
         enum bool { false = 0, true = 1 };      \n\
         struct CameraEx                         \n\
         {                                       \n\
@@ -1167,7 +1169,7 @@ TEST_F(Compile1, NewBuiltin1) {
 
     // Cannot do "new X;" when X is a builtin type
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct DynamicSprite            \n\
         {                                               \n\
         };                                              \n\
@@ -1195,7 +1197,7 @@ TEST_F(Compile1, NewArrayBuiltin1) {
     // Can do "new X[77];" when X is a builtin type because this will only
     // allocate a dynarray of pointers, not of X chunks
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct DynamicSprite            \n\
         {                                               \n\
         };                                              \n\
@@ -1222,7 +1224,7 @@ TEST_F(Compile1, MissingFunc) {
     // Must either import or define a function with body if you want to call it.
     // Also, check that the section is set correctly.
 
-    const char *inpl = "\
+    char const *inpl = "\
 \"__NEWSCRIPTSTART_HauntedHouse\"                       \n\
         int main()                                      \n\
         {                                               \n\
@@ -1243,7 +1245,7 @@ TEST_F(Compile1, FixupMismatch) {
     // Code cells that have an "import" fixup must point to the corresponding imports.
     // (This used to fail in combination with linenumbers turned on)
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct InventoryItem    \n\
         {                                       \n\
             readonly int reserved[2];           \n\
@@ -1292,7 +1294,7 @@ TEST_F(Compile1, ComponentOfNonStruct1) {
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct MyStruct             \n\
         {                           \n\
             int i;                  \n\
@@ -1316,7 +1318,7 @@ TEST_F(Compile1, ComponentOfNonStruct2) {
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
 
-    const char *inpl = "\
+    char const *inpl = "\
         void Test()     \n\
         {               \n\
             int i;      \n\
@@ -1334,7 +1336,7 @@ TEST_F(Compile1, EmptySection) {
 
     // An empty last section should not result in an endless loop.
 
-    const char *inpl = "\
+    char const *inpl = "\
 \"__NEWSCRIPTSTART_FOO\"     \n\
 \"__NEWSCRIPTSTART_BAR\"      \n\
         ";
@@ -1347,7 +1349,7 @@ TEST_F(Compile1, EmptySection) {
 TEST_F(Compile1, AutoptrDisplay) {
 
     // Autopointered types should not be shown with trailing ' ' in messages
-    const char *inpl = "\
+    char const *inpl = "\
         internalstring autoptr builtin      \n\
             managed struct String           \n\
         {                                   \n\
@@ -1367,7 +1369,7 @@ TEST_F(Compile1, ReadonlyObjectWritableAttribute)
 {
     // player is readonly, but player.InventoryQuantity[...] can be written to.
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct Character                \n\
         {                                               \n\
             import attribute int InventoryQuantity[];   \n\
@@ -1380,6 +1382,7 @@ TEST_F(Compile1, ReadonlyObjectWritableAttribute)
             player.InventoryQuantity[15] = 0;           \n\
         }                                               \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1389,7 +1392,7 @@ TEST_F(Compile1, ImportAutoptr1) {
 
     // Import decls of funcs with autopointered returns must be processed correctly.
 
-    const char *inpl = "\
+    char const *inpl = "\
         internalstring autoptr builtin      \n\
             managed struct String           \n\
         {                                   \n\
@@ -1402,6 +1405,7 @@ TEST_F(Compile1, ImportAutoptr1) {
             return null;                    \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1411,7 +1415,7 @@ TEST_F(Compile1, ImportAutoptr2) {
 
     // Import decls of autopointered variables must be processed correctly.
 
-    const char *inpl = "\
+    char const *inpl = "\
         internalstring autoptr builtin      \n\
             managed struct String           \n\
         {                                   \n\
@@ -1420,6 +1424,7 @@ TEST_F(Compile1, ImportAutoptr2) {
         import String foo;                  \n\
         String foo;                         \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1429,7 +1434,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch1)
 {
     // It is an error to assign a Dynpointer to a Dynarray variable
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
             int Payload;                    \n\
@@ -1440,6 +1445,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch1)
             Strct *o[] = new Strct;         \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1450,7 +1456,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch1a)
 {
     // It is an error to assign a Dynpointer to a Dynarray variable
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
             int Payload;                    \n\
@@ -1462,6 +1468,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch1a)
             o= new Strct;                   \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1472,7 +1479,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
 {
     // It is an error to assign a Dynarray to a Dynpointer variable
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct Object       \n\
         {                                   \n\
             int Payload;                    \n\
@@ -1483,6 +1490,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
             Object *o = new Object[10];     \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1496,7 +1504,7 @@ TEST_F(Compile1, ZeroMemoryAllocation1)
     // to allocate. However, it _is_ legal to allocate a dynarray for the
     // struct. (Its elements could be initialized via other means than new.)
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
         };                                  \n\
@@ -1506,6 +1514,7 @@ TEST_F(Compile1, ZeroMemoryAllocation1)
             Strct *o[] = new Strct[10];     \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1516,7 +1525,7 @@ TEST_F(Compile1, ZeroMemoryAllocation2)
     // If a struct type doesn't contain any variables then there are zero
     // bytes to allocate. The Engine really doesn't like allocating 0 bytes
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
         };                                  \n\
@@ -1526,6 +1535,7 @@ TEST_F(Compile1, ZeroMemoryAllocation2)
             Strct *o = new Strct;           \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1537,13 +1547,14 @@ TEST_F(Compile1,ForwardStructManaged)
     // Forward-declared structs must be 'managed', so the
     // actual declaration must have the 'managed' keyword
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Object;              \n\
         struct Object                       \n\
         {                                   \n\
             import attribute int Graphic;   \n\
         } obj;                              \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1555,23 +1566,25 @@ TEST_F(Compile1, ForwardStructBuiltin)
     // Either the forward decl and the actual decl must both be 'builtin'
     // or both be non-'builtin'.
 
-    const char *inpl1 = "\
+    char const *inpl1 = "\
         managed struct Object;              \n\
         managed builtin struct Object       \n\
         {                                   \n\
         };                                  \n\
         ";
+
     int compile_result1 = cc_compile(inpl1, scrip);
     std::string msg1 = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
     EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
 
-    const char *inpl2 = "\
+    char const *inpl2 = "\
         builtin managed struct Object;      \n\
         managed struct Object               \n\
         {                                   \n\
         };                                  \n\
         ";
+
     int compile_result2 = cc_compile(inpl2, scrip);
     std::string msg2 = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
@@ -1583,23 +1596,25 @@ TEST_F(Compile1, ForwardStructAutoptr)
     // Either the forward decl and the actual decl must both be 'autoptr'
     // or both be non-'autoptr'.
 
-    const char *inpl1 = "\
+    char const *inpl1 = "\
         managed struct Object;              \n\
         managed builtin struct Object       \n\
         {                                   \n\
         };                                  \n\
         ";
+
     int compile_result1 = cc_compile(inpl1, scrip);
     std::string msg1 = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result1 >= 0) ? "Ok" : msg1.c_str());
     EXPECT_NE(std::string::npos, msg1.find("'builtin'"));
 
-    const char *inpl2 = "\
+    char const *inpl2 = "\
         builtin managed struct Object;      \n\
         managed struct Object               \n\
         {                                   \n\
         };                                  \n\
         ";
+
     int compile_result2 = cc_compile(inpl2, scrip);
     std::string msg2 = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
@@ -1611,7 +1626,7 @@ TEST_F(Compile1, FuncThenAssign)
     // A function symbol in front of an assignment
     // The compiler should complain about a missing '('  
 
-    const char *inpl2 = "\
+    char const *inpl2 = "\
         import int GetTextHeight                    \n\
             (const string text, int, int width);    \n\
                                                     \n\
@@ -1628,6 +1643,7 @@ TEST_F(Compile1, FuncThenAssign)
             player.Baseline = 1;                    \n\
         }                                           \n\
         ";
+
     int compile_result2 = cc_compile(inpl2, scrip);
     std::string msg2 = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result2 >= 0) ? "Ok" : msg2.c_str());
@@ -1638,12 +1654,13 @@ TEST_F(Compile1, BuiltinForbidden)
 {
     // Function names must not start with '__Builtin_'.
 
-    const char *inpl = "\
+    char const *inpl = "\
         void __Builtin_TestFunc()   \n\
         {                           \n\
             return;                 \n\
         }                           \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1655,7 +1672,7 @@ TEST_F(Compile1, ReadonlyParameters1) {
     // Parameters may be declared "readonly" so that they cannot be
     // assigned to within the function.
 
-    const char *inpl = "\
+    char const *inpl = "\
         int foo(readonly int bar)           \n\
         {                                   \n\
             bar++;                          \n\
@@ -1667,6 +1684,7 @@ TEST_F(Compile1, ReadonlyParameters1) {
             return foo(5);                  \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1684,7 +1702,7 @@ TEST_F(Compile1, ReadonlyParameters2) {
     // "Readonly" does NOT imply "const".
     // All the assignments in the function should be allowed.
 
-    const char *inpl = "\
+    char const *inpl = "\
         int ReadonlyTest2(readonly int ReadOnly)    \n\
         {                                   \n\
             readonly int A = ReadOnly;      \n\
@@ -1694,6 +1712,7 @@ TEST_F(Compile1, ReadonlyParameters2) {
             return ReadOnly;                \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -1703,7 +1722,7 @@ TEST_F(Compile1, BinaryCompileTimeEval1) {
 
     // Checks binary compile time evaluations for integers.
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (4 + 3) / 0;                 \n\
@@ -1742,7 +1761,7 @@ TEST_F(Compile1, BinaryCompileTimeEval1) {
 TEST_F(Compile1, CTEvalIntPlus) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (4 + 3) / 0;                 \n\
@@ -1781,7 +1800,7 @@ TEST_F(Compile1, CTEvalIntPlus) {
 TEST_F(Compile1, CTEvalIntMinus) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (83 - 95) / 0;               \n\
@@ -1820,7 +1839,7 @@ TEST_F(Compile1, CTEvalIntMinus) {
 TEST_F(Compile1, CTEvalIntMultiply) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (33 * -39) / 0;              \n\
@@ -1859,7 +1878,7 @@ TEST_F(Compile1, CTEvalIntMultiply) {
 TEST_F(Compile1, CTEvalIntDivide) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (52 / 8) / 0;                \n\
@@ -1875,7 +1894,7 @@ TEST_F(Compile1, CTEvalIntDivide) {
 TEST_F(Compile1, CTEvalIntModulo) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (95 % 17) / 0;               \n\
@@ -1893,6 +1912,7 @@ TEST_F(Compile1, CTEvalIntModulo) {
             return (46341 % -0);                \n\
         }                                       \n\
         ";
+
     compileResult = cc_compile(inpl, scrip);
     msg = last_seen_cc_error();
     ASSERT_STRNE("Ok2", (compileResult >= 0) ? "Ok2" : msg.c_str());
@@ -1902,7 +1922,7 @@ TEST_F(Compile1, CTEvalIntModulo) {
 TEST_F(Compile1, CTEvalIntShiftLeft) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (60 << 3) / 0;               \n\
@@ -1966,7 +1986,7 @@ TEST_F(Compile1, CTEvalIntShiftLeft) {
 TEST_F(Compile1, CTEvalIntShiftRight) {
 
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (60 >> 3) / 0;               \n\
@@ -2019,7 +2039,7 @@ TEST_F(Compile1, CTEvalIntComparisons) {
 
     // Will fail as soon as any one of those comparisons go awry
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                          \n\
         {                                   \n\
             return                          \n\
@@ -2052,7 +2072,7 @@ TEST_F(Compile1, CTEvalIntComparisons) {
 
 TEST_F(Compile1, CTEvalBitOps) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                        \n\
         {                                 \n\
             return                        \n\
@@ -2079,7 +2099,7 @@ TEST_F(Compile1, CTEvalBitOps) {
 
 TEST_F(Compile1, CTEvalBitNeg) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                        \n\
         {                                 \n\
             return (~660753869) / 0;      \n\
@@ -2094,7 +2114,7 @@ TEST_F(Compile1, CTEvalBitNeg) {
 
 TEST_F(Compile1, CTEvalLogicalOps) {
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (  100000000 *   (!!7) +     \n\
@@ -2119,7 +2139,7 @@ TEST_F(Compile1, EnumConstantExpressions)
 {
     // Enum values to be evaluated at compile time
 
-    const char *inpl = "\
+    char const *inpl = "\
         enum Bytes              \n\
         {                       \n\
             zero = 1 << 0,      \n\
@@ -2131,6 +2151,7 @@ TEST_F(Compile1, EnumConstantExpressions)
             int i = two / 0;    \n\
         }                       \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2141,13 +2162,14 @@ TEST_F(Compile1, IncrementReadonly)
 {
     // No incrementing readonly vars
 
-    const char *inpl = "\
+    char const *inpl = "\
         readonly int I;         \n\
                                 \n\
         int main() {            \n\
             return ++I;         \n\
         }                       \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2158,11 +2180,12 @@ TEST_F(Compile1, SpuriousExpression)
 {
     // Warn that '77' doesn't have any effect
 
-    const char *inpl = "\
+    char const *inpl = "\
         int main() {            \n\
             77;                 \n\
         }                       \n\
         ";
+
     MessageHandler mh;
     int compile_result = cc_compile(inpl, 0, scrip, mh);
     std::string msg = last_seen_cc_error();
@@ -2172,12 +2195,13 @@ TEST_F(Compile1, SpuriousExpression)
 
 TEST_F(Compile1, CompileTimeConstant1)
 {
-    const char *inpl = "\
+    char const *inpl = "\
         const int CI = 4711;                    \n\
         const float Euler = 2.718281828459045;  \n\
         const float AroundOne = Euler / Euler;  \n\
         float Array[CI];                        \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2185,7 +2209,7 @@ TEST_F(Compile1, CompileTimeConstant1)
 
 TEST_F(Compile1, CompileTimeConstant2)
 {
-    const char *inpl = "\
+    char const *inpl = "\
         int main() {                            \n\
             while (1)                           \n\
             {                                   \n\
@@ -2194,6 +2218,7 @@ TEST_F(Compile1, CompileTimeConstant2)
             float CI2;                          \n\
         }                                       \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2201,7 +2226,7 @@ TEST_F(Compile1, CompileTimeConstant2)
 
 TEST_F(Compile1, CompileTimeConstant3)
 {
-    const char *inpl = "\
+    char const *inpl = "\
         struct Str                          \n\
         {                                   \n\
             int stuff;                      \n\
@@ -2214,6 +2239,7 @@ TEST_F(Compile1, CompileTimeConstant3)
             return s.foo;                   \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2221,17 +2247,19 @@ TEST_F(Compile1, CompileTimeConstant3)
 
 TEST_F(Compile1, CompileTimeConstant4)
 {
-    const char *inpl = "\
+    char const *inpl = "\
         import const int C = 42; \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("import"));
 
-    const char *inpl2 = "\
+    char const *inpl2 = "\
         readonly const int C = 42; \n\
         ";
+
     compile_result = cc_compile(inpl2, scrip);
     msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2242,27 +2270,30 @@ TEST_F(Compile1, CompileTimeConstant5)
 {
     // Cannot define a compile-time constant of type 'short'
 
-    const char *inpl = "\
+    char const *inpl = "\
         const short S = 42; \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'short'"));
 
     // Cannot define a compile-time constant array
-    const char *inpl2 = "\
+    char const *inpl2 = "\
         const int C[]; \n\
         ";
+
     compile_result = cc_compile(inpl2, scrip);
     msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("array"));
 
     // Misplaced '[]'
-    const char *inpl3 = "\
+    char const *inpl3 = "\
         const int[] C; \n\
         ";
+
     compile_result = cc_compile(inpl3, scrip);
     msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2271,12 +2302,13 @@ TEST_F(Compile1, CompileTimeConstant5)
 
 TEST_F(Compile1, CompileTimeConstant6)
 {
-    const char *inpl = "\
+    char const *inpl = "\
             const float pi = 3.14;  \n\
         int main() {                \n\
             float pi = 3.141;       \n\
         }                           \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2289,13 +2321,14 @@ TEST_F(Compile1, StaticThisExtender)
     // This declaration should be written
     //     "import int foo (static Struct);"
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Struct                   \n\
         {                                       \n\
             int Payload;                        \n\
         };                                      \n\
         import static int Foo(this Struct *);   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2306,7 +2339,7 @@ TEST_F(Compile1, ReachabilityAndSwitch1)
 {
     // Mustn't complain about unreachable code at the end of a switch case
 
-    const char *inpl = "\n\
+    char const *inpl = "\
         int main()          \n\
         {                   \n\
             int i;          \n\
@@ -2321,6 +2354,7 @@ TEST_F(Compile1, ReachabilityAndSwitch1)
             }               \n\
         }                   \n\
         ";
+
     AGS::MessageHandler mh;
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
     std::string msg = last_seen_cc_error();
@@ -2332,7 +2366,7 @@ TEST_F(Compile1, IfClauseFloat)
 {
     // Should complain that the if clause isn't vartype 'int'
 
-    const char *inpl = "\
+    char const *inpl = "\
         managed struct Strct                \n\
         {                                   \n\
         };                                  \n\
@@ -2344,6 +2378,7 @@ TEST_F(Compile1, IfClauseFloat)
             return 0.1;                     \n\
         }                                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2356,7 +2391,7 @@ TEST_F(Compile1, SideEffectExpression1)
     // the expression has a side effect.
     // Compiler shouldn't warn about an expression without side effects
 
-    const char *inpl = "\
+    char const *inpl = "\
         builtin managed struct Character {              \n\
             int Payload;                                \n\
         };                                              \n\
@@ -2368,6 +2403,7 @@ TEST_F(Compile1, SideEffectExpression1)
             character[i++].Payload;                     \n\
         }                                               \n\
         ";
+
     AGS::MessageHandler mh;
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
@@ -2380,7 +2416,7 @@ TEST_F(Compile1, SideEffectExpression2)
     // that should have side effects.
     // Compiler should complain about 'SaveTheWorld;'
 
-    const char *inpl = "\
+    char const *inpl = "\
         import int SaveTheWorld();      \n\
                                         \n\
         int game_start()                \n\
@@ -2388,6 +2424,7 @@ TEST_F(Compile1, SideEffectExpression2)
             SaveTheWorld;               \n\
         }                               \n\
         ";
+
     AGS::MessageHandler mh;
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
@@ -2400,7 +2437,7 @@ TEST_F(Compile1, SideEffectExpression3)
     // that should have side effects.
     // Compiler should complain about 'Initialize;' in the 'for' loop
 
-    const char *inpl = "\
+    char const *inpl = "\
         import int Initialize();        \n\
                                         \n\
         int game_start()                \n\
@@ -2409,6 +2446,7 @@ TEST_F(Compile1, SideEffectExpression3)
             { }                         \n\
         }                               \n\
         ";
+
     AGS::MessageHandler mh;
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
@@ -2421,7 +2459,7 @@ TEST_F(Compile1, SideEffectExpression4)
     // that should have side effects.
     // Compiler should complain about 'Increment' in the 'for' loop
 
-    const char *inpl = "\
+    char const *inpl = "\
         import int Increment();         \n\
                                         \n\
         int game_start()                \n\
@@ -2430,6 +2468,7 @@ TEST_F(Compile1, SideEffectExpression4)
             { }                         \n\
         }                               \n\
         ";
+
     AGS::MessageHandler mh;
     int const compile_result = cc_compile(inpl, 0, scrip, mh);
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : mh.GetError().Message.c_str());
@@ -2439,12 +2478,13 @@ TEST_F(Compile1, DisallowStaticVariables)
 {
     // AGS does not have static variables.
 
-    const char *inpl = "\
+    char const *inpl = "\
         struct Struct       \n\
         {                   \n\
             static int Var; \n\
         };                  \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
@@ -2456,7 +2496,7 @@ TEST_F(Compile1, LongMin01) {
 
     // LONG_MAX + 1 is too large (when there isn't a '-' in front)
 
-    char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int i = 2147483648;                 \n\
@@ -2473,7 +2513,7 @@ TEST_F(Compile1, LongMin02) {
 
     // LONG_MAX + 1 is too large (when there isn't a UNARY '-' in front)
 
-    char *inpl = "\
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             int i = (5 - 2147483648);           \n\
@@ -2490,7 +2530,7 @@ TEST_F(Compile1, LongMin03) {
 
     // Can subtract LONG_MIN from LONG_MIN (result is 0)
 
-    char *inpl = "\
+    char const *inpl = "\
         int main()                                  \n\
         {                                           \n\
             int i = (- 2147483648 - -2147483648);   \n\
@@ -2507,13 +2547,14 @@ TEST_F(Compile1, AssignmentInParameterList1)
     // An expression cannot contain an assignment symbol '='.
     // Each parameter must comprise an expression, no trailing symbols
 
-    const char *inpl = "\
+    char const *inpl = "\
         int test(int x)     \n\
         {                   \n\
             int i = 0;      \n\
             test(i = 99);   \n\
         }                   \n\
         ";
+
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());

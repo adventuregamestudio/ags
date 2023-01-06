@@ -92,6 +92,9 @@ public:
 
     // Direct3D texture data
     std::shared_ptr<D3DTextureData> _data;
+    // Optional surface for rendering onto a texture
+    IDirect3DSurface9 *_renderSurface {};
+    TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
     bool _flipped;
@@ -127,7 +130,7 @@ public:
     int GetWidthToRender() const { return _stretchToWidth; }
     int GetHeightToRender() const { return _stretchToHeight; }
 
-    ~D3DBitmap() override = default;
+    ~D3DBitmap() override;
 };
 
 class D3DGfxModeList : public IGfxModeList
@@ -171,11 +174,18 @@ struct CUSTOMVERTEX
 struct D3DSpriteBatch : VMSpriteBatch
 {
     // Add anything D3D specific here
+    // Optional render target (for rendering on texture)
+    D3DBitmap *RenderTarget = nullptr;
 
     D3DSpriteBatch() = default;
     D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
-                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
+    D3DSpriteBatch(uint32_t id, D3DBitmap *render_target, const Rect &view,
+        const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
+        const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
+        , RenderTarget(render_target) {}
 };
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
@@ -200,15 +210,7 @@ public:
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    // Create texture data with the given parameters
-    TextureData *CreateTextureData(int width, int height, bool opaque) override;
-    // Update texture data from the given bitmap
-    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
-    // Create DDB using preexisting texture data
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
-        int width, int height, int color_depth, bool opaque) override;
-    // Retrieve shared texture data object from the given DDB
-    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
     void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
@@ -231,6 +233,7 @@ public:
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
     bool RequiresFullRedrawEachFrame() override { return true; }
     bool HasAcceleratedTransform() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return true; }
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 
@@ -241,6 +244,18 @@ public:
 
     D3DGraphicsDriver(IDirect3D9 *d3d);
     ~D3DGraphicsDriver() override;
+
+protected:
+    // Create texture data with the given parameters
+    TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) override;
+    // Update texture data from the given bitmap
+    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
+    // Create DDB using preexisting texture data
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
+        int width, int height, int color_depth, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:
     PD3DFilter _filter;
@@ -270,11 +285,11 @@ private:
     std::vector<D3DDrawListEntry> _spriteList;
     // TODO: these draw list backups are needed only for the fade-in/out effects
     // find out if it's possible to reimplement these effects in main drawing routine.
+    // TODO: if not above, refactor and implement Desc backup in the base class
     SpriteBatchDescs _backupBatchDescs;
+    std::vector<std::pair<size_t, size_t>> _backupBatchRange;
     D3DSpriteBatches _backupBatches;
     std::vector<D3DDrawListEntry> _backupSpriteList;
-
-    D3DVIEWPORT9 _d3dViewport;
 
     // Called after new mode was successfully initialized
     void OnModeSet(const DisplayMode &mode) override;
@@ -305,11 +320,21 @@ private:
     void _renderAndPresent(bool clearDrawListAfterwards);
     void _render(bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    void SetScissor(const Rect &clip);
+    // Sets a Direct3D viewport for the current render target.
+    void SetD3DViewport(const Rect &rc);
+    // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
+    // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
+    // otherwise we assume it is set on a whole screen, scaled to the screen coords.
+    void SetScissor(const Rect &clip, bool render_on_texture = false);
     void RenderSpriteBatches();
-    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from);
-    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal, const SpriteColorTransform &color);
+    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
+    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color, const Size &surface_size);
     void _renderFromTexture();
+    // Helper method for setting blending parameters
+    void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Helper method for setting exclusive alpha blending parameters
+    void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
 };
 
 

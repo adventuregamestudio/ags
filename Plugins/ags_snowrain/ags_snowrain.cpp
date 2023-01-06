@@ -786,7 +786,6 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RegisterScriptFunction("srSetBaseline", (void*)&srSetBaseline);
 
   engine->RequestEventHook(AGSE_PREGUIDRAW);
-  engine->RequestEventHook(AGSE_PRESCREENDRAW);
   engine->RequestEventHook(AGSE_ENTERROOM);
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
@@ -813,6 +812,9 @@ int AGS_EngineOnEvent(int event, int data)
   }
   else if (event == AGSE_ENTERROOM)
   {
+    // Get screen size when entering a room
+    engine->GetScreenDimensions(&screen_width, &screen_height, &screen_color_depth);
+    srSetBaseline(0, screen_height);
     rain->EnterRoom();
     snow->EnterRoom();
   }
@@ -825,12 +827,6 @@ int AGS_EngineOnEvent(int event, int data)
   {
     rain->SaveGame(data);
     snow->SaveGame(data);
-  }
-  else if (event == AGSE_PRESCREENDRAW)
-  {
-    // Get screen size once here
-    engine->GetScreenDimensions(&screen_width, &screen_height, &screen_color_depth);
-    engine->UnrequestEventHook(AGSE_PRESCREENDRAW);
   }
   
   return 0;

@@ -27,12 +27,14 @@ namespace Engine
 GraphicsDriverBase::GraphicsDriverBase()
     : _pollingCallback(nullptr)
     , _drawScreenCallback(nullptr)
-    , _nullSpriteCallback(nullptr)
+    , _spriteEvtCallback(nullptr)
     , _initGfxCallback(nullptr)
 {
     // Initialize default sprite batch, it will be used when no other batch was activated
     _actSpriteBatch = 0;
     _spriteBatchDesc.push_back(SpriteBatchDesc());
+    _spriteBatchRange.push_back(std::make_pair(0, 0));
+    _rendSpriteBatch = UINT32_MAX;
 }
 
 bool GraphicsDriverBase::IsModeSet() const
@@ -68,13 +70,27 @@ Rect GraphicsDriverBase::GetRenderDestination() const
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
     GraphicFlip flip, PBitmap surface)
 {
-    _spriteBatchDesc.push_back(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface));
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface));
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(IDriverDependantBitmap *render_target,
+    const Rect &viewport, const SpriteTransform &transform,
+    GraphicFlip flip)
+{
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, render_target, viewport, transform, flip));
+}
+
+void GraphicsDriverBase::BeginSpriteBatch(const SpriteBatchDesc &desc)
+{
+    _spriteBatchDesc.push_back(desc);
+    _spriteBatchRange.push_back(std::make_pair(GetLastDrawEntryIndex(), SIZE_MAX));
     _actSpriteBatch = _spriteBatchDesc.size() - 1;
     InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
 }
 
 void GraphicsDriverBase::EndSpriteBatch()
 {
+    _spriteBatchRange[_actSpriteBatch].second = GetLastDrawEntryIndex();
     _actSpriteBatch = _spriteBatchDesc[_actSpriteBatch].Parent;
 }
 
@@ -82,7 +98,10 @@ void GraphicsDriverBase::ClearDrawLists()
 {
     ResetAllBatches();
     _actSpriteBatch = 0;
-    _spriteBatchDesc.resize(1);
+    _spriteBatchDesc.clear();
+    _spriteBatchRange.clear();
+    _spriteBatchDesc.push_back(SpriteBatchDesc());
+    _spriteBatchRange.push_back(std::make_pair(0, 0));
 }
 
 void GraphicsDriverBase::OnInit()
@@ -172,8 +191,10 @@ void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap* /*backBuffer*/)
 
 Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer(bool mark_dirty)
 {
+    if (_rendSpriteBatch == UINT32_MAX)
+        return nullptr;
     _stageScreenDirty |= mark_dirty;
-    return _stageScreen.Bitmap.get();
+    return GetStageScreenRaw(_rendSpriteBatch);
 }
 
 bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
@@ -241,66 +262,82 @@ void VideoMemoryGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
         _txRefs.erase(found);
 }
 
-VideoMemoryGraphicsDriver::StageScreen
-    VideoMemoryGraphicsDriver::CreateStageScreen(size_t index, const Size &sz)
+void VideoMemoryGraphicsDriver::SetStageScreen(const Size &sz, int x, int y)
+{
+    SetStageScreen(_actSpriteBatch, sz, x, y);
+}
+
+void VideoMemoryGraphicsDriver::SetStageScreen(size_t index, const Size &sz, int x, int y)
 {
     if (_stageScreens.size() <= index)
         _stageScreens.resize(index + 1);
-
-    if (sz.IsNull())
-    {
-        _stageScreens[index].Bitmap.reset();
-        if (_stageScreens[index].DDB)
-            DestroyDDB(_stageScreens[index].DDB);
-        _stageScreens[index].DDB = nullptr;
-    }
-    else if (_stageScreens[index].Bitmap == nullptr || _stageScreens[index].Bitmap->GetSize() != sz)
-    {
-        if (_stageScreens[index].DDB)
-            DestroyDDB(_stageScreens[index].DDB);
-        _stageScreens[index].Bitmap.reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
-        _stageScreens[index].DDB = CreateDDB(sz.Width, sz.Height, _mode.ColorDepth, false);
-    }
-    return _stageScreens[index];
+    _stageScreens[index].Position = RectWH(x, y, sz.Width, sz.Height);
 }
 
-VideoMemoryGraphicsDriver::StageScreen
-    VideoMemoryGraphicsDriver::GetStageScreen(size_t index)
+Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
 {
-    if (index < _stageScreens.size())
-        return _stageScreens[index];
-    return StageScreen();
+    assert(index < _stageScreens.size());
+    if (_stageScreens.size() <= index)
+        return nullptr;
+
+    auto &scr = _stageScreens[index];
+    const Size sz = scr.Position.GetSize();
+    if (scr.Raw && (scr.Raw->GetSize() != sz))
+    {
+        scr.Raw.reset();
+        if (scr.DDB)
+            DestroyDDB(scr.DDB);
+        scr.DDB = nullptr;
+    }
+    if (!scr.Raw && !sz.IsNull())
+    {
+        scr.Raw.reset(new Bitmap(sz.Width, sz.Height, _mode.ColorDepth));
+        scr.DDB = CreateDDB(sz.Width, sz.Height, _mode.ColorDepth, false);
+    }
+    return scr.Raw.get();
+}
+
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t index,
+    int &x, int &y)
+{
+    assert((index < _stageScreens.size()) && _stageScreens[index].DDB);
+    if ((_stageScreens.size() <= index) || !_stageScreens[index].Raw || !_stageScreens[index].DDB)
+        return nullptr;
+
+    auto &scr = _stageScreens[index];
+    UpdateDDBFromBitmap(scr.DDB, scr.Raw.get(), true);
+    scr.Raw->ClearTransparent();
+    x = scr.Position.Left;
+    y = scr.Position.Top;
+    return scr.DDB;
 }
 
 void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
 {
     for (size_t i = 0; i < _stageScreens.size(); ++i)
     {
-        _stageScreens[i].Bitmap.reset();
         if (_stageScreens[i].DDB)
             DestroyDDB(_stageScreens[i].DDB);
-        _stageScreens[i].DDB = nullptr;
     }
-    _stageScreen.Bitmap.reset();
-    _stageScreen.DDB = nullptr;
+    _stageScreens.clear();
 }
 
-bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, int data,
+    int &x, int &y)
 {
-    if (!_nullSpriteCallback)
+    if (!_spriteEvtCallback)
         throw Ali3DException("Unhandled attempt to draw null sprite");
     _stageScreenDirty = false;
     // NOTE: this is not clear whether return value of callback may be
     // relied on. Existing plugins do not seem to return anything but 0,
-    // even if they handle this event.
-    _stageScreenDirty |= _nullSpriteCallback(x, y) != 0;
+    // even if they handle this event. This is why we also set
+    // _stageScreenDirty in certain plugin API function implementations.
+    _stageScreenDirty |= _spriteEvtCallback(evt, data) != 0;
     if (_stageScreenDirty)
     {
-        UpdateDDBFromBitmap(_stageScreen.DDB, _stageScreen.Bitmap.get(), true);
-        _stageScreen.Bitmap->ClearTransparent();
-        return true;
+        return UpdateStageScreenDDB(_rendSpriteBatch, x, y);
     }
-    return false;
+    return nullptr;
 }
 
 IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
@@ -309,13 +346,13 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     ScreenFx &fx = _fxPool[_fxIndex];
     if (fx.DDB == nullptr)
     {
-        fx.Raw = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-        fx.DDB = CreateDDBFromBitmap(fx.Raw, false, true);
+        fx.Raw.reset(new Bitmap(16, 16, _mode.ColorDepth));
+        fx.DDB = CreateDDBFromBitmap(fx.Raw.get(), false, true);
     }
     if (r != fx.Red || g != fx.Green || b != fx.Blue)
     {
         fx.Raw->Clear(makecol_depth(fx.Raw->GetColorDepth(), r, g, b));
-        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw, false);
+        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get(), false);
         fx.Red = r;
         fx.Green = g;
         fx.Blue = b;
@@ -335,7 +372,6 @@ void VideoMemoryGraphicsDriver::DestroyFxPool()
     {
         if (fx.DDB)
             DestroyDDB(fx.DDB);
-        delete fx.Raw;
     }
     _fxPool.clear();
     _fxIndex = 0;

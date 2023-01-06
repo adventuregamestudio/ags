@@ -227,4 +227,15 @@ void RegisterScreenAPI()
     ccAddExternalStaticFunction("Screen::ScreenToRoomPoint^2", Sc_Screen_ScreenToRoomPoint2);
     ccAddExternalStaticFunction("Screen::ScreenToRoomPoint^3", Sc_Screen_ScreenToRoomPoint3);
     ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Screen::get_Height", (void*)Screen_GetScreenHeight);
+    ccAddExternalFunctionForPlugin("Screen::get_Width", (void*)Screen_GetScreenWidth);
+    ccAddExternalFunctionForPlugin("Screen::get_AutoSizeViewportOnRoomLoad", (void*)Screen_GetAutoSizeViewport);
+    ccAddExternalFunctionForPlugin("Screen::set_AutoSizeViewportOnRoomLoad", (void*)Screen_SetAutoSizeViewport);
+    ccAddExternalFunctionForPlugin("Screen::get_Viewport", (void*)Screen_GetViewport);
+    ccAddExternalFunctionForPlugin("Screen::get_ViewportCount", (void*)Screen_GetViewportCount);
+    ccAddExternalFunctionForPlugin("Screen::geti_Viewports", (void*) Screen_GetAnyViewport);
+    ccAddExternalFunctionForPlugin("Screen::RoomToScreenPoint", (void*)Screen_RoomToScreenPoint);
 }

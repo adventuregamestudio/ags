@@ -90,7 +90,7 @@ void engine_post_gfxmode_driver_setup()
 {
     gfxDriver->SetCallbackForPolling(update_polled_stuff);
     gfxDriver->SetCallbackToDrawScreen(draw_game_screen_callback, construct_engine_overlay);
-    gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
+    gfxDriver->SetCallbackOnSpriteEvt(GfxDriverSpriteEvtCallback);
 }
 
 // Reset gfx driver callbacks
@@ -98,8 +98,10 @@ void engine_pre_gfxmode_driver_cleanup()
 {
     gfxDriver->SetCallbackForPolling(nullptr);
     gfxDriver->SetCallbackToDrawScreen(nullptr, nullptr);
-    gfxDriver->SetCallbackForNullSprite(nullptr);
+    gfxDriver->SetCallbackOnSpriteEvt(nullptr);
     gfxDriver->SetMemoryBackBuffer(nullptr);
+
+    release_drawobj_rendertargets();
 }
 
 // Setup color conversion parameters

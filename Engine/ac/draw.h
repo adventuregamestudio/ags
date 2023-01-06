@@ -53,6 +53,9 @@ void dispose_game_drawdata();
 void dispose_room_drawdata();
 // Releases all the cached textures of game objects
 void clear_drawobj_cache();
+// Releases all the textures used as render targets, if necessary;
+// (this is primarily for resetting display mode of certain renderers).
+void release_drawobj_rendertargets();
 // Updates drawing settings depending on main viewport's size and position on screen
 void on_mainviewport_changed();
 // Notifies that a new room viewport was created
@@ -91,6 +94,7 @@ Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitma
     Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
 inline Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false)
     { return recycle_ddb_sprite(ddb, UINT32_MAX, source, has_alpha, opaque); }
+inline Engine::IDriverDependantBitmap* recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque = false);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer
@@ -119,7 +123,7 @@ void render_to_screen();
 // Callbacks for the graphics driver
 void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
-bool GfxDriverNullSpriteCallback(int x, int y);
+bool GfxDriverSpriteEvtCallback(int evt, int data);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // Create the actsps[aa] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still

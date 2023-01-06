@@ -99,6 +99,9 @@ Engine/ags
 **/.lib
 **/.test
 
+# Force git to NOT ignore this source folder
+!Engine/debug
+
 
 # Tools output and temporary files
 libsrc/*.tar*

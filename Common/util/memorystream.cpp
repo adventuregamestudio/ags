@@ -130,7 +130,7 @@ bool MemoryStream::Seek(soff_t offset, StreamSeek origin)
         return false;
     }
     _pos = static_cast<size_t>(std::max<soff_t>(0, pos));
-    _pos = static_cast<size_t>(std::min<soff_t>(_len, pos)); // clamp to EOS
+    _pos = std::min(_len, _pos); // clamp to EOS
     return true;
 }
 

@@ -70,6 +70,17 @@ namespace glmex
         return inv_transform2d(glmex::identity(), x, y, sx, sy, anglez, pivotx, pivoty);
     }
 
+    // Setup Direct3D-compatible orthographic projection
+    // CHECKME: glm seem to supply some ortho variants meant for Direct3D,
+    // but none of them worked right in the engine.
+    inline glm::mat4 ortho_d3d(float width, float height)
+    {
+        return glm::mat4((2.f / width), 0.f, 0.f, 0.f,
+                         0.f, (2.f / height), 0.f, 0.f,
+                         0.f, 0.f, 0.f, 0.f,
+                         0.f, 0.f, 0.f, 1.f);
+    }
+
 
     // Linearly transform a rectangle using the given matrix;
     // This is an optimized case where rotation is not expected.

@@ -170,6 +170,8 @@ std::vector<ObjTexture> walkbehindobj;
 std::vector<ObjTexture> guibg;
 // Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
 std::vector<std::unique_ptr<Bitmap>> guihelpbg;
+// GUI render texture, for rendering all controls on same texture buffer
+std::vector<IDriverDependantBitmap*> gui_render_tex;
 // GUI control surfaces
 std::vector<ObjTexture> guiobjbg;
 // first control texture index of each GUI
@@ -467,6 +469,7 @@ void init_game_drawdata()
     actsps.resize(actsps_num);
     guihelpbg.resize(game.numgui);
     guibg.resize(game.numgui);
+    gui_render_tex.resize(game.numgui);
     size_t guio_num = 0;
     // Prepare GUI cache lists and build the quick reference for controls cache
     guiobjddbref.resize(game.numgui);
@@ -487,6 +490,7 @@ void dispose_game_drawdata()
     walkbehindobj.clear();
     guihelpbg.clear();
     guibg.clear();
+    gui_render_tex.clear();
     guiobjbg.clear();
     guiobjddbref.clear();
 }
@@ -523,6 +527,12 @@ void clear_drawobj_cache()
     for (auto &o : walkbehindobj) o = ObjTexture();
     // cleanup GUI and controls textures
     for (auto &o : guibg) o = ObjTexture();
+    for (auto &tex : gui_render_tex)
+    {
+        if (tex)
+            gfxDriver->DestroyDDB(tex);
+        tex = nullptr;
+    }
     for (auto &o : guiobjbg) o = ObjTexture();
     for (int i = 0; i < game.numgui; ++i)
         guihelpbg[i].reset();
@@ -530,6 +540,20 @@ void clear_drawobj_cache()
     overlaybmp.clear();
 
     dispose_debug_room_drawdata();
+}
+
+void release_drawobj_rendertargets()
+{
+    if ((gui_render_tex.size() == 0) ||
+        !gfxDriver->ShouldReleaseRenderTargets())
+        return;
+
+    for (auto &tex : gui_render_tex)
+    {
+        if (tex)
+            gfxDriver->DestroyDDB(tex);
+        tex = nullptr;
+    }
 }
 
 void on_mainviewport_changed()
@@ -914,6 +938,15 @@ Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitma
     // have to recreate ddb
     gfxDriver->DestroyDDB(ddb);
     return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
+}
+
+IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
+{
+    if (ddb && (ddb->GetWidth() == width) && (ddb->GetHeight() == height))
+        return ddb;
+    if (ddb)
+        gfxDriver->DestroyDDB(ddb);
+    return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
 }
 
 void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
@@ -2213,8 +2246,8 @@ void draw_fps(const Rect &viewport)
     invalidate_sprite_glob(1, yp, ddb);
 }
 
-// Draw GUI controls as separate sprites
-void draw_gui_controls(GUIMain &gui)
+// Draw GUI controls as separate sprites, each on their own texture
+static void construct_guictrl_tex(GUIMain &gui)
 {
     if (all_buttons_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
@@ -2239,6 +2272,37 @@ void draw_gui_controls(GUIMain &gui)
         objbg.Off = Point(obj_surf.GetLT());
         obj->ClearChanged();
     }
+}
+
+// Push gui bg & controls textures for the render to the corresponding render target
+static void draw_gui_controls_batch(int gui_id)
+{
+    auto *gui_rtex =  gui_render_tex[gui_id];
+    assert(gui_rtex);
+    const auto &gui = guis[gui_id];
+    auto *gui_bg = guibg[gui_id].Ddb;
+    // Create a sub-batch
+    gfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()),
+        SpriteTransform(), kFlip_None);
+    // Add GUI itself
+    gfxDriver->DrawSprite(0, 0, gui_bg);
+    // Add all the GUI controls
+    const int draw_index = guiobjddbref[gui_id];
+    for (const auto &obj_id : gui.GetControlsDrawOrder())
+    {
+        GUIObject *obj = gui.GetControl(obj_id);
+        if (!obj->IsVisible() ||
+            (obj->Width <= 0 || obj->Height <= 0) ||
+            (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
+            continue;
+        const auto &obj_tx = guiobjbg[draw_index + obj_id];
+        auto *obj_ddb = obj_tx.Ddb;
+        assert(obj_ddb); // Test for missing texture, might happen if not marked for update
+        if (!obj_ddb) continue;
+        obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
+        gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
+    }
+    gfxDriver->EndSpriteBatch();
 }
 
 // Draw GUI and overlays of all kinds, anything outside the room space
@@ -2339,11 +2403,12 @@ void draw_gui_and_overlays()
                 }
                 
                 our_eip = 373;
-
-                if (!draw_with_controls && gui.HasControlsChanged())
+                // Update control textures, if they have changed themselves
+                if (draw_controls_as_textures && gui.HasControlsChanged())
                 {
-                    draw_gui_controls(gui);
+                    construct_guictrl_tex(gui);
                 }
+
 
                 our_eip = 374;
                 gui.ClearChanged();
@@ -2366,10 +2431,20 @@ void draw_gui_and_overlays()
             auto *gui_ddb = guibg[index].Ddb;
             assert(gui_ddb); // Test for missing texture, might happen if not marked for update
             if (!gui_ddb) continue;
-            gui_ddb->SetOrigin(0.f, 0.f);
-            gui_ddb->SetRotation(gui.Rotation);
+            if (draw_controls_as_textures)
+            {
+                gui_render_tex[index] = recycle_render_target(gui_render_tex[index],
+                    gui_ddb->GetWidth(), gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
+                // Render control textures onto the GUI texture
+                draw_gui_controls_batch(index);
+                // Replace gui bg ddb with a render target texture,
+                // and push it to the sprite list instead
+                gui_ddb = gui_render_tex[index];
+            }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
             gui_ddb->SetBlendMode(gui.BlendMode);
+            gui_ddb->SetOrigin(0.f, 0.f);
+            gui_ddb->SetRotation(gui.Rotation);
             add_to_sprite_list(gui_ddb, gui.X, gui.Y,
                 gui.GetGraphicSpace().AABB(), gui.ZOrder, false, index);
         }
@@ -2391,45 +2466,9 @@ void draw_gui_and_overlays()
         }
     }
 
-    // If not adding gui controls as textures, simply move the resulting sprlist to render
-    if (!draw_controls_as_textures ||
-        (all_buttons_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
-    {
-        draw_sprite_list(false);
-        put_sprite_list_on_screen(false);
-        return;
-    }
-    // If adding control textures, sort the ui list, and then pass into renderer,
-    // adding controls and creating sub-batches as necessary
-    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
-    for (const auto &s : sprlist)
-    {
-        invalidate_sprite(s.x, s.y, s.ddb, false);
-        gfxDriver->DrawSprite(s.x, s.y, s.ddb);
-        if (s.id < 0) continue; // not a group parent (gui)
-        // Create a sub-batch
-        gfxDriver->BeginSpriteBatch(RectWH(s.x, s.y, guis[s.id].Width, guis[s.id].Height),
-            SpriteTransform(s.x, s.y, 1.f, 1.f, guis[s.id].Rotation,
-                Point(guis[s.id].Width / 2, guis[s.id].Height / 2),
-                s.ddb->GetAlpha()));
-        const int draw_index = guiobjddbref[s.id];
-        for (const auto &obj_id : guis[s.id].GetControlsDrawOrder())
-        {
-            GUIObject *obj = guis[s.id].GetControl(obj_id);
-            if (!obj->IsVisible() ||
-                (obj->Width <= 0 || obj->Height <= 0) ||
-                (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
-                continue;
-            const auto &obj_tx = guiobjbg[draw_index + obj_id];
-            auto *obj_ddb = obj_tx.Ddb;
-            assert(obj_ddb); // Test for missing texture, might happen if not marked for update
-            if (!obj_ddb) continue;
-            obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
-            gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
-        }
-        gfxDriver->EndSpriteBatch();
-    }
-
+    // Move the resulting sprlist with guis and overlays to render
+    draw_sprite_list(false);
+    put_sprite_list_on_screen(false);
     our_eip = 1099;
 }
 
@@ -2459,14 +2498,14 @@ void put_sprite_list_on_screen(bool in_room)
     our_eip = 1100;
 }
 
-bool GfxDriverNullSpriteCallback(int x, int y)
+bool GfxDriverSpriteEvtCallback(int evt, int data)
 {
     if (displayed_room < 0)
     {
         // if no room loaded, various stuff won't be initialized yet
         return 1;
     }
-    return (pl_run_plugin_hooks(x, y) != 0);
+    return (pl_run_plugin_hooks(evt, data) != 0);
 }
 
 void GfxDriverOnInitCallback(void *data)
@@ -2504,6 +2543,7 @@ static void construct_room_view()
             gfxDriver->BeginSpriteBatch(view_rc, SpriteTransform(view_rc.Left, view_rc.Top, view_sx, view_sy));
             gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(-cam_rc.Left, -cam_rc.Top,
                 1.f, 1.f, camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2)));
+            gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
             put_sprite_list_on_screen(true);
             gfxDriver->EndSpriteBatch();
             gfxDriver->EndSpriteBatch();

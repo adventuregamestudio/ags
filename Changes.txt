@@ -48,8 +48,7 @@ Script API:
 
 ===================================================================================================
 
-
-VERSION 3.6.0 RC - October 2022
+VERSION 3.6.0 RC - January 2023
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.
@@ -285,10 +284,10 @@ Engine:
  - Improved file writing times (e.g. when doing a game save) by using buffered file stream.
    Initial tests showed 50% faster file writing.
  - Engine now renders GUI controls as separate textures when using hardware accelerated renderers.
-   This may significantly improve perfomance in the high-resolution games and games with large
+   This may significantly improve performance in the high-resolution games and games with large
    number of GUI elements on screen.
  - Engine now shares the video texture data for all game objects on screen sharing same sprite.
-   This improves perfomance in case there are multiple objects which use same image.
+   This improves performance in case there are multiple objects which use same image.
  - Various performance optimizations for both raw drawing and texture updates (Direct3D/OpenGL).
  - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
    game is updated, and not while the game script is running. This prevents situations when
@@ -327,8 +326,6 @@ Engine:
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
- - Added SpriteFont plugin to the list of builtins, for ports that use ones.
-   SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
@@ -340,6 +337,8 @@ Engine:
  - Fixed software renderer may have an unpainted black line at the bottom, if there's a GUI or
    Overlay positioned partially offscreen.
  - Fixed AGS_EngineInitGfx plugin callback was not called during OpenGL renderer initialization.
+ - Fixed Direct3D/OpenGL renderers were displaying plugin's raw drawings in a wrong position in
+   the scrolling rooms, if the drawing was done on AGSE_PRESCREENDRAW or AGSE_POSTROOMDRAW events.
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed ListBox.RowCount reporting 0 if called before the control was displayed once.
@@ -395,6 +394,11 @@ Web / Emscripten:
 
 Windows:
  - Installer will create program links with three-digit version in the name.
+ 
+Plugins:
+ - Fixed SnowRain plugin drawing particles only in 320x200 bounds.
+ - Added SpriteFont plugin to the list of builtins, for ports that use ones.
+   SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
 
 WinSetup:
  - Added "Fullscreen as borderless window" checkbox.
@@ -472,7 +476,7 @@ Editor:
    new source paths without file extension.
 
 Engine:
- - Perfomance fix: GUIs changing Transparency or Visible state should not redraw their surface.
+ - Performance fix: GUIs changing Transparency or Visible state should not redraw their surface.
 
 Compatibility:
  - Allow AudioClip.Play to to place clips on a crossfade channel, which is normally unaccessible
@@ -590,7 +594,7 @@ Editor:
  - Fixed sprite file over 2 GB could not be loaded (regression since the last patch).
 
 Engine:
- - Further improvement to GUI perfomance: don't redraw GUI when the mouse cursor is
+ - Further improvement to GUI performance: don't redraw GUI when the mouse cursor is
    hovering over or interacting with controls not leading to an actual visual change.
  - Fixed ListBox items could become unaccessible if its font or height is changed leading
    to a disabled scrollbar.
@@ -659,10 +663,10 @@ Engine:
  - Support loading audio and video from data packages larger than 2 GB.
  - Improved game data loading times by introducing buffered file stream. Initial tests
    showed 3-4 times faster file reading.
- - Improved game perfomance by not reupdating all of the GUIs each time anything changes, instead
+ - Improved game performance by not reupdating all of the GUIs each time anything changes, instead
    only affected GUI will be updated each time.
- - Some improvement to general script perfomance.
- - Some improvement to script Dictionary and Set types perfomance.
+ - Some improvement to general script performance.
+ - Some improvement to script Dictionary and Set types performance.
  - Room Object's Graphic property now can be assigned a sprite with index over 32767 and
    up to 65535. This restriction is due to internal data format, which cannot be fully fixed
    without breaking compatibility with plugin API. This may still be worked around by assigning

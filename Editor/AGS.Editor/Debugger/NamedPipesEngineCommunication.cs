@@ -18,6 +18,8 @@ namespace AGS.Editor
         private Thread _messageSender;
         private Queue _messageQueue = Queue.Synchronized(new Queue());
         private string _instanceIdentifier;
+        private const string _separator_string = "<?xml version=\"1.0\"";
+        private string[] _separator = new[] { _separator_string };
 
         public NamedPipesEngineCommunication()
         {
@@ -46,10 +48,22 @@ namespace AGS.Editor
                 {
                     if (MessageReceived != null)
                     {
-                        XmlDocument doc = new XmlDocument();
-                        string receivedXml = (string)_messageQueue.Dequeue();
-                        doc.LoadXml(receivedXml);
-                        MessageReceived(doc);
+                        string received_message = (string)_messageQueue.Dequeue();
+
+                        // if more than one <?xml tag is on the string, it won't work. We now split using `<? xml version =\"1.0\"` as a separator string
+                        // if somehow the message content contains this, it will crash, but lets hope this is not a problem.
+                        string[] receivedXmls = received_message.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (string receivedXml in receivedXmls)
+                        {
+                            if (string.IsNullOrEmpty(receivedXml)) continue;
+
+                            XmlDocument doc = new XmlDocument();
+                            string xmlString = _separator_string + receivedXml;
+
+                            doc.LoadXml(xmlString);
+
+                            MessageReceived(doc);
+                        }
                     }
                 }
                 else

@@ -1065,8 +1065,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
-  float xProportion = (float)width / (float)bmpToDraw->_width;
-  float yProportion = (float)height / (float)bmpToDraw->_height;
+  float xProportion = width / (float)bmpToDraw->_width;
+  float yProportion = height / (float)bmpToDraw->_height;
   int drawAtX = drawListEntry->x;
   int drawAtY = drawListEntry->y;
 
@@ -1087,8 +1087,8 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     thisY = (surface_size.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
-    float widthToScale = (float)width;
-    float heightToScale = (float)height;
+    float widthToScale = width;
+    float heightToScale = height;
     if (bmpToDraw->_flipped)
     {
       // The usual transform changes 0..1 into 0..width
@@ -1108,7 +1108,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     // Global batch transform
     transform = transform * matGlobal;
     // Self sprite transform (first scale, then rotate and then translate, reversed)
-    transform = glmex::transform2d(transform, (float)thisX, (float)thisY, widthToScale, heightToScale, 0.f);
+    transform = glmex::transform2d(transform, thisX, thisY, widthToScale, heightToScale, 0.f);
 
     glUniformMatrix4fv(program.MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
 

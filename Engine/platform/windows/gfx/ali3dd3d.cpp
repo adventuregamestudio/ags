@@ -1054,8 +1054,8 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
     thisY = (surface_size.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
-    float widthToScale = (float)width;
-    float heightToScale = (float)height;
+    float widthToScale = width;
+    float heightToScale = height;
     if (bmpToDraw->_flipped)
     {
       // The usual transform changes 0..1 into 0..width
@@ -1126,7 +1126,7 @@ void D3DGraphicsDriver::_renderFromTexture()
     float drawAtY = _srcRect.GetHeight() / 2;
 
     glm::mat4 transform = glmex::make_transform2d(
-        (float)drawAtX - _pixelRenderXOffset, (float)drawAtY + _pixelRenderYOffset, width, height, 0.f);
+        drawAtX - _pixelRenderXOffset, drawAtY + _pixelRenderYOffset, width, height, 0.f);
 
     direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
 

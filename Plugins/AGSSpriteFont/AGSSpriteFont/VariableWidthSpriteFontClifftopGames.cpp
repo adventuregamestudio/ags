@@ -16,7 +16,8 @@ void VariableWidthSpriteFontRendererClifftopGames::RenderText(const char *text, 
 {
 	VariableWidthFont *font = getFontFor(fontNumber);
 	int totalWidth = 0;
-	for(size_t i = 0; i < strlen(text); i++)
+	size_t len_text = strlen(text);
+	for(size_t i = 0; i < len_text; i++)
 	{
 		char c = text[i];
 

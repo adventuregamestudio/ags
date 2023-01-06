@@ -74,6 +74,29 @@ AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
     ImportIdx = {};
 }
 
+void AGS::ccCompiledScript::ReplaceLabels()
+{
+    std::vector<CodeLoc> RemainingLabels;
+
+    for (size_t idx = 0; idx < Labels.size(); idx++)
+    {
+        CodeLoc const loc = Labels[idx];
+        if (loc >= codesize)
+            continue;
+        try
+        {
+            CodeCell value = Label2Value.at(code[loc]);
+            code[loc] = value;
+        }
+        catch (const std::exception)
+        {
+            // Can't resolve the label at 'loc', so hang on to this location
+            RemainingLabels.push_back(loc);
+        }
+    }
+    Labels.assign(RemainingLabels.begin(), RemainingLabels.end());
+}
+
 AGS::ccCompiledScript::~ccCompiledScript()
 {
     FreeExtra();
@@ -313,24 +336,85 @@ void AGS::ccCompiledScript::FreeExtra()
     Functions.shrink_to_fit();
     ImportIdx.clear();
     ExportIdx.clear();
+    Labels.clear();
+    Labels.shrink_to_fit();
 }
 
-void AGS::RestorePoint::Restore()
+void AGS::Snippet::Paste(ccCompiledScript &scrip)
 {
-    if (_scrip.codesize <= static_cast<int>(_rememberedCodeLocation))
-        return; // all done
+    CodeLoc const code_start = scrip.codesize;
+    // Don't generate additional LINUM directives, that would throw off the fixups and labels
+    for (size_t idx = 0; idx < Code.size(); idx++)
+        scrip.WriteCode(Code[idx]);
+    for (size_t idx = 0; idx < Fixups.size(); idx++)
+        scrip.AddFixup(code_start + Fixups[idx], FixupTypes[idx]);
+    for (size_t idx = 0; idx < Labels.size(); idx++)
+        scrip.Labels.push_back(code_start + Labels[idx]);
+}
 
-    _scrip.codesize = _rememberedCodeLocation;
-
-    while (_scrip.numfixups > 0)
+bool AGS::Snippet::IsEmpty()
+{
+    for (size_t idx = 0; idx < Code.size(); idx++)
     {
-        size_t const last_fixup = _scrip.numfixups - 1;
-        if (_scrip.fixups[last_fixup] < static_cast<int>(_rememberedCodeLocation))
-            return;
-        _scrip.fixups[last_fixup] = 0;
-        _scrip.fixuptypes[last_fixup] = '\0';
-        --_scrip.numfixups;
+        if (SCMD_LINENUM != Code[idx])
+            return false; // found some content
+        idx++; // skip the parameter of the 'linenum' pseudo-directive
     }
+    return true;
+}
+
+void AGS::RestorePoint::Cut(Snippet &snippet, bool const keep_starting_linum)
+{
+    int32_t const orig_codesize = _scrip.codesize;
+
+    // Reset the code to the remembered location.
+    CodeLoc rcl = _rememberedCodeLocation;
+    if (keep_starting_linum)
+    {
+        if (_scrip.code[rcl] == SCMD_LINENUM) // 
+            rcl += 2; // skip the linenum pseudo-directive
+    }
+    if (_scrip.codesize <= rcl)
+        return; // all done
+    _scrip.codesize = rcl;
+
+    // Save the code including leading LINUM directives, if any, into the snippet
+    snippet.Code.clear();
+    for (int idx = _rememberedCodeLocation; idx < orig_codesize; idx++)
+        snippet.Code.push_back(_scrip.code[idx]);
+
+    // Assume fixups are ordered by location. Find the first fixup that has been cut out.
+    int first_cut_fixup;
+    for (first_cut_fixup = _scrip.numfixups - 1; first_cut_fixup >= 0; first_cut_fixup--)
+        if (_scrip.fixups[first_cut_fixup] < rcl)
+            break;
+    first_cut_fixup++;
+
+    // Save the fixups into the snippet and delete them out of _scrip
+    snippet.Fixups.clear();
+    snippet.FixupTypes.clear();
+    for (int idx = first_cut_fixup; idx < _scrip.numfixups; idx++)
+    {
+        snippet.Fixups.push_back(_scrip.fixups[idx] - _rememberedCodeLocation);
+        _scrip.fixups[idx] = 0;
+        snippet.FixupTypes.push_back(_scrip.fixuptypes[idx]);
+        _scrip.fixuptypes[idx] = '\0';
+        
+    }
+    _scrip.numfixups = first_cut_fixup;
+
+    // Assume label locations are ordered by location. Find the first location that has been cut out.
+    int first_cut_label;
+    for (first_cut_label = _scrip.Labels.size() - 1; first_cut_label >= 0; first_cut_label--)
+        if (_scrip.Labels[first_cut_label] < rcl)
+            break;
+    first_cut_label++;
+
+    // Save the labels into the snippet and delete them out of _scrip.
+    snippet.Labels.clear();
+    for (size_t idx = first_cut_label; idx < _scrip.Labels.size(); idx++)
+        snippet.Labels.push_back(_scrip.Labels[idx] - _rememberedCodeLocation);
+    _scrip.Labels.resize(first_cut_label);
 }
 
 void AGS::ForwardJump::AddParam(int offset)
@@ -345,9 +429,9 @@ void AGS::ForwardJump::AddParam(int offset)
     _jumpDestParamLocs.push_back(_scrip.codesize + offset);
 }
 
-void AGS::ForwardJump::Patch(size_t cur_line)
+void AGS::ForwardJump::Patch(size_t cur_line, bool keep_linenum)
 {
-    if (!_jumpDestParamLocs.empty())
+    if (!keep_linenum && !_jumpDestParamLocs.empty())
     {
         // There are two ways of reaching the bytecode that will be emitted next:
         // through the jump or from the previous bytecode command. If the source line
@@ -375,4 +459,3 @@ void AGS::BackwardJumpDest::WriteJump(CodeCell jump_op, size_t cur_line)
     }
     _scrip.WriteCmd(jump_op, _scrip.RelativeJumpDist(_scrip.codesize + 1, _dest));
 }
-

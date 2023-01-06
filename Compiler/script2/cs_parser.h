@@ -55,60 +55,29 @@ class Parser
 {
 public:
     // Needs to be public because the manager is initialized outside of Parser
-    class FuncCallpointMgr
+    class FuncLabelMgr
     {
     private:
-        int const kCodeBaseId = 0;  // Magic number, means: This is in codebase, not in a yanked piece of code
-        int const kPatchedId = -1;  // Magic number, means: This is in codebase and has already been patched in
-
-        Parser &_parser;
-
-        struct PatchInfo
-        {
-            int ChunkId;
-            CodeLoc Offset;
-            size_t InSource;    // where the reference happens
-        };
-        typedef std::vector<PatchInfo> PatchList;
-
-        struct CallpointInfo
-        {
-            CodeLoc Callpoint;
-            PatchList List;
-
-            CallpointInfo();
-        };
-
-        typedef std::map<Symbol, CallpointInfo> CallMap;
-        CallMap _funcCallpointMap;
+        ccCompiledScript &_scrip;
+        size_t _kind;
 
     public:
-        FuncCallpointMgr(Parser &parser);
-        void Reset();
+        const size_t _size = 10;
 
-        // Enter a code location where a function is called that hasn't been defined yet.
-        void TrackForwardDeclFuncCall(Symbol func, CodeLoc idx, size_t in_source);
+        // 'kind' differentiates between kinds of labels and must be an non-negative integer lower than '_size'.
+        // Different function managers must be initialized with different kinds.
+        FuncLabelMgr(ccCompiledScript &scrip, int kind);
 
-        // When code is ripped out of the codebase: 
-        // Update list of calls to forward declared functions 
-        void UpdateCallListOnYanking(CodeLoc start, size_t len, int id);
+        // Get the label of a function, in order to insert it into the code,
+        // this label will be replaced by its value later on
+        CodeCell Function2Label(Symbol func) { return func * _size + _kind; }
 
-        // When code is inserted into the codebase:
-        // Update list of calls to forward declared functions
-        void UpdateCallListOnWriting(CodeLoc start, int id);
+        // Keep track of the location of a label that needs to be replaced later on
+        void TrackLabelLoc(Symbol func, CodeLoc loc);
 
-        // Set the address that must be called to call the function.
-        // Patch all the function calls of the given function to point to dest
-        // These codecells contained a dummy value before, now they get the proper address
-        void SetFuncCallpoint(Symbol func, CodeLoc dest);
-
-        inline bool HasFuncCallpoint(Symbol func) { return (_funcCallpointMap[func].Callpoint >= 0); }
-
-        // Give an error message and return a value < 0 iff there are still callpoints
-        // without a location
-        void CheckForUnresolvedFuncs();
+        // Give the label that corresponds to 'func' the value 'val'
+        void SetLabelValue(Symbol func, CodeCell val);
     };
-    friend FuncCallpointMgr;
 
 private:
     // Thrown whenever a compiling run is aborted
@@ -170,16 +139,6 @@ private:
     private:
         static int _chunkIdCtr; // for assigning unique IDs to chunks
 
-        // A section of compiled code that needs to be moved or copied to a new location
-        struct Chunk
-        {
-            std::vector<CodeCell> Code;
-            std::vector<CodeLoc> Fixups;
-            std::vector<char> FixupTypes;
-            size_t SrcLine;
-            int Id;
-        };
-
         // All data that is associated with a level of the nested compound statements
         struct NestingInfo
         {
@@ -201,7 +160,7 @@ private:
             std::vector<BackwardJumpDest> SwitchCaseStart; // when switch: code locations of the case labels
             size_t SwitchDefaultIdx; // when switch: code location of the default: label
             ForwardJump SwitchJumptable; // when switch: code location of the "jumptable"
-            std::vector<Chunk> Chunks; // Bytecode chunks that must be moved (FOR loops and SWITCH)
+            std::vector<Snippet> Snippets; // Bytecode snippets that must be moved (FOR loops and SWITCH)
             // Symbols defined on the current level, if applicable together with the respective old definition they hide
             std::map<Symbol, SymbolTableEntry> OldDefinitions;
 
@@ -254,25 +213,17 @@ private:
         // If the nesting at the given level is a SWITCH, the location of the  jump table
         inline ForwardJump &SwitchJumptable(size_t level) { return _stack.at(level).SwitchJumptable; }
 
-        // Whether the innermost nesting contains code chunks that must be moved around (e.g., in FOR loops)
-        inline bool ChunksExist() const { return !_stack.back().Chunks.empty(); }
-        inline bool ChunksExist(size_t level) const { return !_stack.at(level).Chunks.empty(); }
+        // Whether the innermost nesting contains code snippets that must be moved around
+        inline bool SnippetsExist() const { return !_stack.back().Snippets.empty(); }
+        inline bool SnippetsExist(size_t level) const { return !_stack.at(level).Snippets.empty(); }
 
-        // Code chunks that must be moved around (e.g., in FOR, DO loops)
-        inline std::vector<Chunk> Chunks() { return _stack.back().Chunks; };
-        inline std::vector<Chunk> Chunks(size_t level) { return _stack.at(level).Chunks; };
+        // Code snippets that must be moved around (e.g., in 'do' loops)
+        inline std::vector<Snippet> &Snippets() { return _stack.back().Snippets; };
+        inline std::vector<Snippet> &Snippets(size_t level) { return _stack.at(level).Snippets; };
 
         inline void Push(NSType type) { _stack.emplace_back(type, _scrip); }
         inline void Pop() { _stack.pop_back(); };
 
-        // Rip a generated chunk of code out of the codebase and stash it away for later 
-        // At end of function call, id will contain the unique ID of this code
-        void YankChunk(size_t src_line, CodeLoc code_start, size_t fixups_start, int &id);
-
-        // Write chunk of code back into the codebase that has been stashed in level given, at index
-        void WriteChunk(size_t level, size_t chunk_idx, int &id);
-        // Write chunk of code back into the codebase stashed in the innermost level, at index
-        inline void WriteChunk(size_t chunk_idx, int &id) { WriteChunk(TopLevel(), chunk_idx, id); };
     } _nest;
     typedef NestingStack::NSType NSType;
 
@@ -410,12 +361,11 @@ private:
     // Receives the errors and warnings
     MessageHandler &_msgHandler;
 
-    // Manage a map of all the functions that have bodies (in the current source).
-    FuncCallpointMgr _fcm;
+    // For functions that have local bodies, manage their start locations
+    FuncLabelMgr _callpointLabels = FuncLabelMgr{ _scrip, 0 };
 
-    // Manage a map of all imported functions where the import decl comes after the function
-    // The "Callpoint" of such a function is the index in the import table.
-    FuncCallpointMgr _fim; // i for import
+    // For imported functions, manage their import numbers 
+    FuncLabelMgr _importLabels = FuncLabelMgr{ _scrip, 1 };
 
     // Track a forward-declared struct and one of its references to it.
     std::map<Symbol, size_t> _structRefs;

@@ -1050,8 +1050,8 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       xOffs = txdata->_tiles[ti].x * xProportion;
     float thisX = drawAtX + xOffs;
     float thisY = drawAtY + yOffs;
-    thisX = (-(surface_size.Width / 2)) + thisX;
-    thisY = (surface_size.Height / 2) - thisY;
+    thisX = (-(surface_size.Width / 2.0f)) + thisX;
+    thisY = (surface_size.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1067,7 +1067,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
 
     // Self sprite transform (first scale, then rotate and then translate, reversed)
     glm::mat4 transform = glmex::make_transform2d(
-        (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale, 0.0f);
+        thisX - _pixelRenderXOffset, thisY + _pixelRenderYOffset, widthToScale, heightToScale, 0.0f);
     // Global batch transform
     transform = matGlobal * transform;
 

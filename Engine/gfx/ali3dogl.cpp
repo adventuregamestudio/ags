@@ -1081,10 +1081,10 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
       xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
       xOffs = txdata->_tiles[ti].x * xProportion;
-    int thisX = drawAtX + xOffs;
-    int thisY = drawAtY + yOffs;
-    thisX = (-(surface_size.Width / 2)) + thisX;
-    thisY = (surface_size.Height / 2) - thisY;
+    float thisX = drawAtX + xOffs;
+    float thisY = drawAtY + yOffs;
+    thisX = (-(surface_size.Width / 2.0f)) + thisX;
+    thisY = (surface_size.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;

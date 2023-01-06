@@ -529,7 +529,6 @@ target_link_libraries(engine PUBLIC
     ${CMAKE_DL_LIBS} 
     Threads::Threads 
     Allegro::Allegro
-    glm::glm
     External::OpenAL
     ${SDL2_LIBRARY}
     ${SDL2_LIBRARIES}

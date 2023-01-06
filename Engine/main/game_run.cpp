@@ -955,10 +955,8 @@ static int UpdateWaitMode()
     auto was_disabled_for = restrict_until.disabled_for;
 
     set_default_cursor();
-    if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
-    { // If GUI looks change when disabled, then update them all
-        GUI::MarkAllGUIForUpdate();
-    }
+    // If GUI looks change when disabled, then mark all of them for redraw
+    GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
     play.disabled_user_interface--;
     restrict_until.disabled_for = 0;
 
@@ -997,10 +995,9 @@ static int GameTick()
 
 static void SetupLoopParameters(int untilwhat, const void* data_ptr = nullptr, int data1 = 0, int data2 = 0) {
     play.disabled_user_interface++;
-    if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
-    { // If GUI looks change when disabled, then update them all
-        GUI::MarkAllGUIForUpdate();
-    }
+    // If GUI looks change when disabled, then mark all of them for redraw
+    GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+
     // Only change the mouse cursor if it hasn't been specifically changed first
     // (or if it's speech, always change it)
     if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&

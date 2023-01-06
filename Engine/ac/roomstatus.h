@@ -39,8 +39,8 @@ struct RoomStatus {
     int   beenhere;
     uint32_t numobj;
     std::vector<RoomObject> obj;
-    int   tsdatasize;
-    char* tsdata;
+    uint32_t tsdatasize;
+    std::vector<char> tsdata;
 
     Common::StringIMap roomProps;
     Common::StringIMap hsProps[MAX_ROOM_HOTSPOTS];

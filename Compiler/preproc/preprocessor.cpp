@@ -81,9 +81,6 @@ namespace Preprocessor {
                 case ErrorCode::MacroNameMissing:
                     cc_error("Macro name expected");
                     break;
-                case ErrorCode::LineTooLong:
-                    cc_error("Line too long (max line length = " STRINGIFY(MAX_LINE_LENGTH) ")");
-                    break;
                 case ErrorCode::EndIfWithoutIf:
                     cc_error("#endif has no matching #if");
                     break;

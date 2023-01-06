@@ -190,7 +190,7 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
         case StreamSeek::kSeekCurrent:  want_pos = _position   + offset; break;
         case StreamSeek::kSeekBegin:    want_pos = _start      + offset; break;
         case StreamSeek::kSeekEnd:      want_pos = _end        + offset; break;
-        break;
+        default: return false;
     }
 
     // clamp

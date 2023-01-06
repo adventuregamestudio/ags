@@ -109,17 +109,26 @@ static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_
     const uint8_t bpp = image->GetBPP();
     const size_t dst_size = image->GetWidth() * image->GetHeight() * image->GetBPP();
     uint8_t *dst = image->GetDataForWriting(), *dst_end = dst + dst_size;
-    for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp)
+
+    switch (bpp)
     {
-        uint8_t index = data[p];
-        assert(index < pal_count);
-        uint32_t color = (index < pal_count) ? palette[index] : palette[0];
-        switch (bpp)
-        {
-        case 2: *((uint16_t*)dst) = color; break;
-        case 4: *((uint32_t*)dst) = color; break;
+        case 2:
+            for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+                uint8_t index = data[p];
+                assert(index < pal_count);
+                uint32_t color = palette[(index < pal_count) ? index : 0];
+                *((uint16_t *) dst) = color;
+            }
+        break;
+        case 4:
+            for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+                uint8_t index = data[p];
+                assert(index < pal_count);
+                uint32_t color = palette[(index < pal_count) ? index : 0];
+                *((uint32_t*)dst) = color;
+            }
+        break;
         default: assert(0); return;
-        }
     }
 }
 
@@ -434,7 +443,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
         {
         case kSprCompress_RLE: rle_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get());
             break;
-        case kSprCompress_LZW: lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get());
+        case kSprCompress_LZW: lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get(), in_data_size);
             break;
         default: assert(!"Unsupported compression type!"); break;
         }

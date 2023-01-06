@@ -178,6 +178,7 @@ target_sources(common
     util/bufferedstream.h
     util/string_compat.c
     util/string_compat.h
+    util/matrix.h
 
 	platform/windows/windows.h
 )

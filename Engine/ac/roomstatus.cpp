@@ -46,23 +46,18 @@ RoomStatus::RoomStatus()
     beenhere = 0;
     numobj = 0;
     tsdatasize = 0;
-    tsdata = nullptr;
-    
+
     memset(&region_enabled, 0, sizeof(region_enabled));
     memset(&walkbehind_base, 0, sizeof(walkbehind_base));
 }
 
 RoomStatus::~RoomStatus()
 {
-    if (tsdata)
-        delete [] tsdata;
 }
 
 void RoomStatus::FreeScriptData()
 {
-    if (tsdata)
-        delete [] tsdata;
-    tsdata = nullptr;
+    tsdata.clear();
     tsdatasize = 0;
 }
 
@@ -112,11 +107,11 @@ void RoomStatus::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 
     Properties::ReadValues(roomProps, in);
 
-    tsdatasize = in->ReadInt32();
+    tsdatasize = static_cast<uint32_t>(in->ReadInt32());
     if (tsdatasize)
     {
-        tsdata = new char[tsdatasize];
-        in->Read(tsdata, tsdatasize);
+        tsdata.resize(tsdatasize);
+        in->Read(tsdata.data(), tsdatasize);
     }
 }
 
@@ -145,9 +140,9 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 
     Properties::WriteValues(roomProps, out);
 
-    out->WriteInt32(tsdatasize);
+    out->WriteInt32(static_cast<int32_t>(tsdatasize));
     if (tsdatasize)
-        out->Write(tsdata, tsdatasize);
+        out->Write(tsdata.data(), tsdatasize);
 }
 
 // JJS: Replacement for the global roomstats array in the original engine.

@@ -159,9 +159,6 @@ Editor:
  - Fixed script autocomplete was not displaying members of extended structs if the parent struct
    was declared in another header.
  - Fixed script autocomplete was not working for enum names.
- - Fixed autocomplete crashing the editor if there was an import declared with type and variable
-   having identical names, and user tries to type that variable's name and a dot to access
-   its members.
  - Fixed structs and enums were not highlighted if declared inside a script's body.
  - Fixed in dialogs numbers inside names were incorrectly highlighted as numeric values.
  - Fixed matching or mismatching braces were not highlighted consistently at all times in
@@ -292,6 +289,7 @@ Engine:
    number of GUI elements on screen.
  - Engine now shares the video texture data for all game objects on screen sharing same sprite.
    This improves perfomance in case there are multiple objects which use same image.
+ - Various performance optimizations for both raw drawing and texture updates (Direct3D/OpenGL).
  - Engine now ensures that in threaded audio mode the AudioChannel's state only changes once the
    game is updated, and not while the game script is running. This prevents situations when
    the clip could begin playing before all properties are set in script, or when AudioChannel's
@@ -328,11 +326,9 @@ Engine:
  - Added "--clear-cache-on-room-change" command-line arg (and similar config option).
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
- - Added missing "DrawSprite" function for "agsblend" plugin stubs.
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
  - Added SpriteFont plugin to the list of builtins, for ports that use ones.
    SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
- - Fixed loading pre-3.5.0 games on big endian systems.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
@@ -341,10 +337,14 @@ Engine:
  - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
    using "goto-dialog" (a very-very old bug).
  - Fixed renderer error occuring if room background frames are of different sizes.
+ - Fixed software renderer may have an unpainted black line at the bottom, if there's a GUI or
+   Overlay positioned partially offscreen.
  - Fixed AGS_EngineInitGfx plugin callback was not called during OpenGL renderer initialization.
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed ListBox.RowCount reporting 0 if called before the control was displayed once.
+ - Fixed Parser.Said() could lead to a program crash in case there are space-separated words
+   following the comma (e.g. "climb,get in bed").
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed scheduled sound fadeout effect was not cancelled by skipping a cutscene.
@@ -402,6 +402,21 @@ WinSetup:
 
 
 ===================================================================================================
+
+VERSION 3.5.1 - Patch 16, December 2022
+
+Editor:
+ - Fixed autocomplete crashing the editor if there was an import declared with type and variable
+   having identical names, and user tries to type that variable's name and a dot to access
+   its members.
+ - Fixed newly created Views taking free IDs in the middle of the list in random order instead of
+   a straight one (after you previously deleted some Views).
+
+Engine:
+ - Added missing "DrawSprite" function for "agsblend" plugin stubs.
+ - Fixed loading pre-3.5.0 games on big endian systems.
+ - Fixed GUI buttons not displaying the mouse-over image if the interface state was toggled
+   to enabled state while the mouse was over the button.
 
 
 VERSION 3.5.1 - Patch 15, October 2022

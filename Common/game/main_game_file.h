@@ -123,7 +123,7 @@ struct LoadedGameEntities
 
     // Original sprite data (when it was read into const-sized arrays)
     size_t                  SpriteCount;
-    std::unique_ptr<char[]> SpriteFlags;
+    std::vector<uint8_t>    SpriteFlags; // SPF_* flags
 
     LoadedGameEntities(GameSetupStruct &game);
     ~LoadedGameEntities();

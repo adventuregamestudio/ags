@@ -120,7 +120,7 @@ namespace AGS.Editor.Components
                 }
                 clipClicked.ID = newNumber;
                 GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDChanged(clipClicked);
+                OnItemIDOrNameChanged(clipClicked, false);
             }
             else if (controlID == SPEECH_NODE_ID)
             {
@@ -611,9 +611,13 @@ namespace AGS.Editor.Components
             return _iconMappings[clip.FileType];
         }
 
-        private void OnItemIDChanged(AudioClip item)
+        private void OnItemIDOrNameChanged(AudioClip item, bool name_only)
         {
-            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            if (name_only)
+                ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            else
+                RePopulateTreeView(); // currently this is the only way to update tree item ids
+            AudioClipTypeConverter.RefreshAudioClipList();
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)

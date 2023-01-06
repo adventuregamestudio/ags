@@ -405,7 +405,6 @@ void FUNC_LINEAR_DRAW_TRANS_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 }
       }
 
-      bmp_unwrite_line(dst);
    }
    else {
       for (y = 0; y < h; y++) {
@@ -494,7 +493,6 @@ void FUNC_LINEAR_DRAW_TRANS_RGBA_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy
       }
    }
 
-   bmp_unwrite_line(dst);
 }
 
 #endif

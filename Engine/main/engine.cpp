@@ -156,7 +156,7 @@ static void fill_game_properties(StringOrderMap &map)
     map["guid"] = game.guid;
     map["legacy_uniqueid"] = StrUtil::IntToString(game.uniqueid);
     map["legacy_resolution"] = StrUtil::IntToString(game.GetResolutionType());
-    map["legacy_letterbox"] = StrUtil::IntToString(game.options[OPT_LETTERBOX]);;
+    map["legacy_letterbox"] = StrUtil::IntToString(game.options[OPT_LETTERBOX]);
     map["resolution_width"] = StrUtil::IntToString(game.GetGameRes().Width);
     map["resolution_height"] = StrUtil::IntToString(game.GetGameRes().Height);
     map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());

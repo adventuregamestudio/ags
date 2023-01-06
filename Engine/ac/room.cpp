@@ -213,8 +213,8 @@ void save_room_data_segment () {
     
     croom->tsdatasize = roominst->globaldatasize;
     if (croom->tsdatasize > 0) {
-        croom->tsdata=(char*)malloc(croom->tsdatasize+10);
-        memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
+        croom->tsdata.resize(croom->tsdatasize);
+        memcpy(croom->tsdata.data(),&roominst->globaldata[0],croom->tsdatasize);
     }
 
 }
@@ -598,7 +598,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         if (croom->tsdatasize>0) {
             if (croom->tsdatasize != roominst->globaldatasize)
                 quit("room script data segment size has changed");
-            memcpy(&roominst->globaldata[0],croom->tsdata,croom->tsdatasize);
+            memcpy(&roominst->globaldata[0],croom->tsdata.data(),croom->tsdatasize);
         }
     }
     our_eip=207;
@@ -763,7 +763,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=220;
     update_polled_stuff();
     debug_script_log("Now in room %d", displayed_room);
-    GUI::MarkAllGUIForUpdate();
+    GUI::MarkAllGUIForUpdate(true, true);
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
 }
 
@@ -802,7 +802,6 @@ void new_room(int newnum,CharacterInfo*forchar) {
         // Delete all cached resources
         spriteset.DisposeAll();
         soundcache_clear();
-        GUI::MarkAllGUIForUpdate();
     }
 
     load_new_room(newnum,forchar);

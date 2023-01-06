@@ -69,7 +69,6 @@ void FUNC_LINEAR_PUTPIXEL(BITMAP *dst, int dx, int dy, int color)
       }
    }
 
-   bmp_unwrite_line(dst);
 }
 
 
@@ -89,7 +88,6 @@ int FUNC_LINEAR_GETPIXEL(BITMAP *src, int sx, int sy)
 
       bmp_select(src);
       c = GET_PIXEL(s);
-      bmp_unwrite_line(src);
 
       return c;
    }
@@ -213,7 +211,6 @@ void FUNC_LINEAR_HLINE(BITMAP *dst, int dx1, int dy, int dx2, int color)
       }
    }
 
-   bmp_unwrite_line(dst);
 }
 
 
@@ -247,7 +244,6 @@ void FUNC_LINEAR_VLINE(BITMAP *dst, int dx, int dy1, int dy2, int color)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, y), dx);
 	 PUT_PIXEL(d, color);
       }
-      bmp_unwrite_line(dst);
    }
    else {
       int clip = dst->clip;

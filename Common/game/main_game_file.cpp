@@ -523,8 +523,8 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
         return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1));
 
     ents.SpriteCount = sprcount;
-    ents.SpriteFlags.reset(new char[sprcount]);
-    in->Read(ents.SpriteFlags.get(), sprcount);
+    ents.SpriteFlags.resize(sprcount);
+    in->Read(ents.SpriteFlags.data(), sprcount);
     return HGameFileError::None();
 }
 

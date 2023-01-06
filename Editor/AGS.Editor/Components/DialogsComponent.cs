@@ -83,7 +83,7 @@ namespace AGS.Editor.Components
                 }
                 _itemRightClicked.ID = newNumber;
                 GetFlatList().Swap(oldNumber, newNumber);
-                OnItemIDChanged(_itemRightClicked);
+                OnItemIDOrNameChanged(_itemRightClicked, false);
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
@@ -123,10 +123,13 @@ namespace AGS.Editor.Components
             DeleteDialog(item);
         }
 
-        private void OnItemIDChanged(Dialog item)
+        private void OnItemIDOrNameChanged(Dialog item, bool name_only)
         {
             // Refresh tree, property grid and open windows
-            ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            if (name_only)
+                ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
+            else
+                RePopulateTreeView(); // currently this is the only way to update tree item ids
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -155,7 +158,7 @@ namespace AGS.Editor.Components
                 }
                 else
                 {
-                    OnItemIDChanged(itemBeingEdited);
+                    OnItemIDOrNameChanged(itemBeingEdited, true);
                 }
             }
             if (propertyName == "UniformMovementSpeed")

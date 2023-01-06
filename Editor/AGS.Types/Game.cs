@@ -64,7 +64,7 @@ namespace AGS.Types
         private Dictionary<int, int> _audioClipIndexMapping;
         private string _directoryPath;
 		private bool _roomsAddedOrRemoved = false;
-		private Dictionary<int, object> _deletedViewIDs;
+		private SortedDictionary<int, object> _deletedViewIDs;
 		private string _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
         private string _savedXmlEditorVersion = null;
@@ -95,7 +95,7 @@ namespace AGS.Types
             _propertySchema = new CustomPropertySchema();
             _globalVariables = new GlobalVariables();
             _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
-			_deletedViewIDs = new Dictionary<int, object>();
+			_deletedViewIDs = new SortedDictionary<int, object>();
             _scripts = new ScriptFolders(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
             _scriptsToCompile = new ScriptsAndHeaders();
             ScriptAndHeader globalScript = new ScriptAndHeader(

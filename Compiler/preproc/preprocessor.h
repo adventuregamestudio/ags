@@ -13,7 +13,6 @@ namespace Preprocessor {
         MacroDoesNotExist,
         MacroAlreadyExists,
         MacroNameInvalid,
-        LineTooLong,
         UnknownPreprocessorDirective,
         UserDefinedError,
         EndIfWithoutIf,

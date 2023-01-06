@@ -32,7 +32,6 @@ GFX_VTABLE __linear_vtable15 =
 {
    15,
    MASK_COLOR_15,
-   _stub_unbank_switch,
    NULL,
    NULL,
    NULL,

@@ -11,6 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// LZW (un)compression functions.
+//
+//=============================================================================
 #ifndef __AGS_CN_UTIL__LZW_H
 #define __AGS_CN_UTIL__LZW_H
 
@@ -20,6 +24,8 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 bool lzwcompress(Common::Stream *lzw_in, Common::Stream *out);
-bool lzwexpand(Common::Stream *lzw_in, Common::Stream *out, size_t out_size);
+// Expands lzw-compressed data from src to dst.
+// the dst buffer should be large enough, or the uncompression will not be complete.
+bool lzwexpand(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz);
 
 #endif // __AGS_CN_UTIL__LZW_H

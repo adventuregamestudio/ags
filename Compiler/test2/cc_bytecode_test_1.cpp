@@ -1692,7 +1692,7 @@ TEST_F(Bytecode1, MemInitPtr1) {
     int compileResult = cc_compile(inpl, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("MemInitPtr1", scrip);
+    // WriteOutput("MemInitPtr1", scrip);
 
     size_t const codesize = 123;
     EXPECT_EQ(codesize, scrip.codesize);
@@ -2694,7 +2694,7 @@ TEST_F(Bytecode1, DynarrayLength1) {
     int compileResult = cc_compile(inpl, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("DynarrayLength1", scrip);
+    // WriteOutput("DynarrayLength1", scrip);
 
     size_t const codesize = 38;
     EXPECT_EQ(codesize, scrip.codesize);
@@ -2745,7 +2745,7 @@ TEST_F(Bytecode1, DynarrayLength2) {
     int compileResult = cc_compile(inpl, scrip);
     EXPECT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
-    WriteOutput("DynarrayLength2", scrip);
+    // WriteOutput("DynarrayLength2", scrip);
 
     size_t const codesize = 52;
     EXPECT_EQ(codesize, scrip.codesize);

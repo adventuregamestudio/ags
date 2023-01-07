@@ -100,7 +100,11 @@ class Weather
     void SetDefaultView(int view, int loop);
     void SetTransparency(int min_value, int max_value);
     void SetWindSpeed(int value);
+    // Sets baseline and marks baseline as fixed
     void SetBaseline(int top, int bottom);
+    // Resets baselines to the (0, screen_height);
+    // marks baseline for auto-update on screen change
+    void ResetBaseline();
     void SetAmount(int amount);
     void SetFallSpeed(int min_value, int max_value);
 
@@ -126,6 +130,7 @@ class Weather
     
     float mWindSpeed;
     
+    bool mBaselineFixed;
     int mTopBaseline;
     int mBottomBaseline;
     int mDeltaBaseline;
@@ -348,6 +353,10 @@ bool Weather::IsActive()
 void Weather::EnterRoom()
 {
   mAmount = mTargetAmount;
+
+  // If baseline is not fixed, reset and clamp to the new screen_height
+  if (!mBaselineFixed)
+    ResetBaseline();
 }
 
 
@@ -368,8 +377,8 @@ void Weather::Initialize()
     
   SetTransparency(0, 0);  
   SetWindSpeed(0);  
-  SetBaseline(0, 200);  
-  
+  ResetBaseline();  
+
   if (mIsSnow)
     SetFallSpeed(10, 70);
   else
@@ -578,6 +587,17 @@ void Weather::SetBaseline(int top, int bottom)
   
   if (mDeltaBaseline == 0)
     mDeltaBaseline = 1;
+
+  mBaselineFixed = true;
+}
+
+
+void Weather::ResetBaseline()
+{
+  mTopBaseline = 0;
+  mBottomBaseline = screen_height;
+  mDeltaBaseline = screen_height;
+  mBaselineFixed = false;
 }
 
 
@@ -804,7 +824,6 @@ int AGS_EngineOnEvent(int event, int data)
   {
     // Get screen size when entering a room
     engine->GetScreenDimensions(&screen_width, &screen_height, &screen_color_depth);
-    srSetBaseline(0, screen_height);
     rain->EnterRoom();
     snow->EnterRoom();
   }

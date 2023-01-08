@@ -215,7 +215,8 @@ public:
 	// Gets scanline for directly writing into it
     inline unsigned char *GetScanLineForWriting(int index)
     {
-        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : nullptr;
+        assert(index >= 0 && index < GetHeight());
+        return _alBitmap->line[index];
     }
     inline unsigned char *GetDataForWriting()
     {

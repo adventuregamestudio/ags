@@ -283,7 +283,7 @@ build_editor_task:
   build_debug_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     set "UseEnv=true" &&
-    copy C:\Lib\irrKlang\*.dll Editor\References\ &&
+    copy C:\Lib\irrKlang\x86\*.dll Editor\References\ &&
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86;!LIB!" &&
     set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&
@@ -291,7 +291,7 @@ build_editor_task:
   build_release_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     set "UseEnv=true" &&
-    copy C:\Lib\irrKlang\*.dll Editor\References\ &&
+    copy C:\Lib\irrKlang\x86\*.dll Editor\References\ &&
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86;!LIB!" &&
     set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&

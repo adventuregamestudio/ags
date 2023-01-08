@@ -23,7 +23,7 @@ struct MyPushButton:public NewControl
   MyPushButton(int xx, int yy, int wi, int hi, const char *tex);
   void draw(Common::Bitmap *ds) override;
   int pressedon(int mx, int my) override;
-  int processmessage(int mcode, int wParam, long lParam) override;
+  int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
 
 #endif // __AC_PUSHBUTTON_H

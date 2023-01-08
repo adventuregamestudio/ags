@@ -237,11 +237,11 @@ void CSCIDeleteControl(int haa)
     vobjs[haa] = nullptr;
 }
 
-int CSCISendControlMessage(int haa, int mess, int wPar, long lPar)
+int CSCISendControlMessage(int haa, int mess, int wPar, intptr_t ipPar)
 {
     if (vobjs[haa] == nullptr)
         return -1;
-    return vobjs[haa]->processmessage(mess, wPar, lPar);
+    return vobjs[haa]->processmessage(mess, wPar, ipPar);
 }
 
 void multiply_up_to_game_res(int *x, int *y)

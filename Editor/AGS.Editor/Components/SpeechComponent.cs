@@ -16,7 +16,9 @@ namespace AGS.Editor.Components
     {
         public const string SPEECH_DIRECTORY = "Speech";
         private const string PAMELA_FILE_FILTER = "*.pam";
+        private const string PAMELA_FILE_EXTENSION = ".pam";
         private const string PAPAGAYO_FILE_FILTER = "*.dat";
+        private const string PAPAGAYO_FILE_EXTENSION = ".dat";
         private const string OGG_VORBIS_FILE_FILTER = "*.ogg";
         private const string MP3_FILE_FILTER = "*.mp3";
         private const string WAVEFORM_FILE_FILTER = "*.wav";
@@ -93,7 +95,7 @@ namespace AGS.Editor.Components
             string datFileName = Path.Combine(sourceDir, outputName);
             if (DoesTargetFileNeedRebuild(datFileName, pamFileList, fileTimes))
             {
-                CompileLipSyncFiles(sourceDir, datFileName, errors);
+                CompileLipSyncFiles(datFileName, pamFileList, errors);
                 UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, fileTimes);
             }
         }
@@ -254,22 +256,25 @@ namespace AGS.Editor.Components
             return syncDataForThisFile;
         }
 
-        private void CompileLipSyncFiles(string sourceDir, string outputName, CompileMessages errors)
+        private void CompileLipSyncFiles(string outputName, string[] datFileList, CompileMessages errors)
         {
-            List<SpeechLipSyncLine> lipSyncDataLines = new List<SpeechLipSyncLine>();
+            string[] pamFileList = datFileList.Where(name => name.EndsWith(PAMELA_FILE_EXTENSION)).ToArray();
+            string[] pgyFileList = datFileList.Where(name => name.EndsWith(PAPAGAYO_FILE_EXTENSION)).ToArray();
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(sourceDir, PAMELA_FILE_FILTER))
+            // Compile and gather sync lines
+            List<SpeechLipSyncLine> lipSyncDataLines = new List<SpeechLipSyncLine>();
+            foreach (string fileName in pamFileList)
             {
                 lipSyncDataLines.Add(CompilePamelaFile(fileName, errors));
             }
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(sourceDir, PAPAGAYO_FILE_FILTER))
+            foreach (string fileName in pgyFileList)
             {
                 lipSyncDataLines.Add(CompilePapagayoFile(fileName, errors));
             }
 
+            // Write output file, using gathered lines
             Utilities.TryDeleteFile(outputName);
-
             if ((!errors.HasErrors) && (lipSyncDataLines.Count > 0))
             {
                 BinaryWriter bw = new BinaryWriter(new FileStream(outputName, FileMode.Create, FileAccess.Write));
@@ -326,7 +331,9 @@ namespace AGS.Editor.Components
 			List<string> files = new List<string>();
 			Utilities.AddAllMatchingFiles(files, sourceDir, PAMELA_FILE_FILTER, true);
 			Utilities.AddAllMatchingFiles(files, sourceDir, PAPAGAYO_FILE_FILTER, true);
-			return files.ToArray();
+            // Remove "syncdata.dat", which matches papagayo filter, unfortunately
+            files.Remove(Path.Combine(sourceDir, LIP_SYNC_DATA_OUTPUT));
+            return files.ToArray();
 		}
 
 		private bool DoesTargetFileNeedRebuild(string targetFile, string[] filesOnDisk, Dictionary<string, DateTime> fileStatuses)

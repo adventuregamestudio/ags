@@ -174,6 +174,10 @@ Bitmap *VideoMemoryGraphicsDriver::GetStageBackBuffer(bool mark_dirty)
     return _stageScreen.Bitmap.get();
 }
 
+void VideoMemoryGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
+{ // do nothing, video-memory drivers don't support this
+}
+
 bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
 {
     rm = _stageMatrixes;

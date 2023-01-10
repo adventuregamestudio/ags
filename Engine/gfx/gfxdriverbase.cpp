@@ -36,6 +36,7 @@ GraphicsDriverBase::GraphicsDriverBase()
     // Initialize default sprite batch, it will be used when no other batch was activated
     _actSpriteBatch = 0;
     _spriteBatchDesc.push_back(SpriteBatchDesc());
+    _rendSpriteBatch = UINT32_MAX;
 }
 
 bool GraphicsDriverBase::IsModeSet() const

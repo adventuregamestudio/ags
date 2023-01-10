@@ -150,6 +150,9 @@ protected:
     // Sprite batch parameters
     SpriteBatchDescs _spriteBatchDesc; // sprite batches list
     size_t _actSpriteBatch; // active batch index
+    // The index of a currently rendered sprite batch
+    // (or -1 / UINT32_MAX if we are outside of the render pass)
+    uint32_t _rendSpriteBatch;
 };
 
 

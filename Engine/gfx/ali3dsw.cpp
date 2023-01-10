@@ -412,8 +412,10 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
     {
         // We need this subbitmap for plugins, which use _stageVirtualScreen and are unaware of possible multiple viewports;
         // TODO: there could be ways to optimize this further, but best is to update plugin rendering hooks (and upgrade plugins)
-        if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h
-            || batch.Surface->GetSubOffset() != desc.Viewport.GetLT())
+        if (!batch.Surface || !batch.IsVirtualScreen ||
+            (batch.Surface->GetWidth() != src_w) || (batch.Surface->GetHeight() != src_h) ||
+            (!batch.Surface->IsSameBitmap(virtualScreen)) ||
+            (batch.Surface->GetSubOffset() != desc.Viewport.GetLT()))
         {
             Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
             batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
@@ -432,6 +434,8 @@ void ALSoftwareGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDe
 
 void ALSoftwareGraphicsDriver::ResetAllBatches()
 {
+    // NOTE: we don't release batches themselves here, only sprite lists.
+    // This is because we cache batch surfaces, for perfomance reasons.
     for (ALSpriteBatches::iterator it = _spriteBatches.begin(); it != _spriteBatches.end(); ++it)
         it->List.clear();
 }
@@ -474,6 +478,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         const SpriteTransform &transform = _spriteBatchDesc[i].Transform;
         const ALSpriteBatch &batch = _spriteBatches[i];
 
+        _rendSpriteBatch = i;
         virtualScreen->SetClip(viewport);
         Bitmap *surface = batch.Surface.get();
         const int view_offx = viewport.Left;
@@ -494,6 +499,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
         }
         _stageVirtualScreen = virtualScreen;
     }
+    _rendSpriteBatch = UINT32_MAX;
     ClearDrawLists();
 }
 
@@ -605,7 +611,11 @@ void ALSoftwareGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
   }
   _stageVirtualScreen = virtualScreen;
 
-  // Reset old virtual screen's subbitmaps
+  // Reset old virtual screen's subbitmaps;
+  // NOTE: this MUST NOT be called in the midst of the RenderSpriteBatches!
+  assert(_rendSpriteBatch == UINT32_MAX);
+  if (_rendSpriteBatch != UINT32_MAX)
+    return;
   for (auto &batch : _spriteBatches)
   {
     if (batch.IsVirtualScreen)

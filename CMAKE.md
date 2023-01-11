@@ -38,8 +38,8 @@ Building:
 
 There are multiple options from command line or IDE:
 
-   - cmake --build . --config Debug --parallel
-   - cmake --build . --config Release --parallel
+   - cmake --build . --config Debug
+   - cmake --build . --config Release
    - use XCode to open AGS.xcodeproj
 
 
@@ -52,7 +52,7 @@ CMake can create Makefile and Ninja projects. These are single config systems so
  - mkdir build-debug
  - cd build-debug  # otherwise your build artifacts will be in the source directory!
  - cmake .. -DCMAKE_BUILD_TYPE=Debug
- - cmake --build . --parallel
+ - cmake --build .
 
 
 ## Example Building on Windows

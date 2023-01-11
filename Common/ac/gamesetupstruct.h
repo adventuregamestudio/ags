@@ -141,7 +141,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
     void read_messages(Common::Stream *in, GameDataVersion data_ver);
 
-    void ReadCharacters_Aligned(Common::Stream *in);
+    void ReadCharacters_Aligned(Common::Stream *in, bool is_save);
     void WriteCharacters_Aligned(Common::Stream *out);
     //------------------------------
     // Part 3

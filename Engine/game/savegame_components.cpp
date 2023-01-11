@@ -555,7 +555,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         return err;
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].ReadFromFile(in);
+        game.chars[i].ReadFromFile(in, kGameVersion_Undefined, cmp_ver);
         charextra[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(play.charProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)

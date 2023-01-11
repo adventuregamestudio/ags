@@ -87,7 +87,6 @@ extern CCAudioChannel ccDynamicAudio;
 extern volatile int switching_away_from_game;
 
 ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
 void calculate_reserved_channel_count()

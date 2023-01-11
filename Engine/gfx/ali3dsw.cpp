@@ -374,7 +374,8 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
 
 void SDLRendererGraphicsDriver::ResetAllBatches()
 {
-    _spriteBatches.clear();
+    // NOTE: we don't release batches themselves here, only sprite lists.
+    // This is because we cache batch surfaces, for perfomance reasons.
     _spriteList.clear();
 }
 

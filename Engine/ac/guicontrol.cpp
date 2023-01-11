@@ -62,6 +62,9 @@ void GUIControl_SetVisible(GUIObject *guio, int visible)
   if (on != guio->IsVisible())
   {
     guio->SetVisible(on);
+    // Make sure that the overpic is turned off when the GUI goes off
+    if (!on && (guis[guio->ParentId].MouseOverCtrl == guio->Id))
+        guio->OnMouseLeave();
     guis[guio->ParentId].OnControlPositionChanged();
   }
 }

@@ -199,6 +199,9 @@ int add_screen_overlay(int x, int y, int type, Bitmap *piccy, bool alphaChannel)
 
 int add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool alphaChannel)
 {
+    if (numscreenover == MAX_SCREEN_OVERLAYS)
+        quitprintf("!Too many screen overlays."); // safety fix, easier this way
+
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
     if (type==OVER_CUSTOM) {

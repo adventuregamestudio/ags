@@ -43,6 +43,7 @@ void HotspotState::WriteToSavegame(Common::Stream *out) const
 
 RoomStatus::RoomStatus()
 {
+    contentFormat = kRoomStatSvgVersion_Current; // set current to avoid fixups
     beenhere = 0;
     numobj = 0;
     tsdatasize = 0;
@@ -77,6 +78,7 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     FreeScriptData();
     FreeProperties();
 
+    contentFormat = kRoomStatSvgVersion_Initial;
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
     obj.resize(MAX_ROOM_OBJECTS_v300);
@@ -131,7 +133,7 @@ void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
     }
 }
 
-void RoomStatus::ReadFromSavegame(Stream *in, int save_ver)
+void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion save_ver)
 {
     FreeScriptData();
     FreeProperties();
@@ -179,6 +181,15 @@ void RoomStatus::ReadFromSavegame(Stream *in, int save_ver)
         tsdata.resize(tsdatasize);
         in->Read(tsdata.data(), tsdatasize);
     }
+
+    contentFormat = save_ver;
+    if (save_ver >= kRoomStatSvgVersion_36041)
+    {
+        contentFormat = (RoomStatSvgVersion)in->ReadInt32();
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void RoomStatus::WriteToSavegame(Stream *out) const
@@ -220,6 +231,12 @@ void RoomStatus::WriteToSavegame(Stream *out) const
     out->WriteInt32(static_cast<int32_t>(tsdatasize));
     if (tsdatasize)
         out->Write(tsdata.data(), tsdatasize);
+
+    // kRoomStatSvgVersion_36041
+    out->WriteInt32(contentFormat);
+    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 // JJS: Replacement for the global roomstats array in the original engine.

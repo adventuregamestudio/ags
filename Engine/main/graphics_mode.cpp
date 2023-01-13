@@ -34,7 +34,7 @@
 #include "platform/base/sys_main.h"
 
 // Don't try to figure out the window size on the these ports because the port resizes itself.
-#if AGS_PLATFORM_OS_IOS || AGS_PLATFORM_OS_ANDROID
+#if AGS_PLATFORM_MOBILE
 #define USE_SIMPLE_GFX_INIT
 #endif
 

@@ -937,8 +937,9 @@ HSaveError ReadScriptModules(Stream *in, int32_t /*cmp_ver*/, const PreservedPar
     if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data"))
         return err;
     r_data.GlobalScript.Len = data_len;
-    r_data.GlobalScript.Data.reset(new char[data_len]);
-    in->Read(r_data.GlobalScript.Data.get(), data_len);
+    r_data.GlobalScript.Data.resize(data_len);
+    if (data_len > 0)
+        in->Read(&r_data.GlobalScript.Data.front(), data_len);
 
     if (!AssertGameContent(err, in->ReadInt32(), numScriptModules, "Script Modules"))
         return err;
@@ -949,8 +950,9 @@ HSaveError ReadScriptModules(Stream *in, int32_t /*cmp_ver*/, const PreservedPar
         if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))
             return err;
         r_data.ScriptModules[i].Len = data_len;
-        r_data.ScriptModules[i].Data.reset(new char[data_len]);
-        in->Read(r_data.ScriptModules[i].Data.get(), data_len);
+        r_data.ScriptModules[i].Data.resize(data_len);
+        if (data_len > 0)
+            in->Read(&r_data.ScriptModules[i].Data.front(), data_len);
     }
     return err;
 }

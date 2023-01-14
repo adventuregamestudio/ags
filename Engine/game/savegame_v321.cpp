@@ -98,8 +98,9 @@ static HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, Re
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching size of global script data.");
     }
     r_data.GlobalScript.Len = gdatasize;
-    r_data.GlobalScript.Data.reset(new char[gdatasize]);
-    in->Read(r_data.GlobalScript.Data.get(), gdatasize);
+    r_data.GlobalScript.Data.resize(gdatasize);
+    if (gdatasize > 0)
+        in->Read(&r_data.GlobalScript.Data.front(), gdatasize);
 
     if ((uint32_t)in->ReadInt32() != numScriptModules)
     {
@@ -114,8 +115,9 @@ static HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, Re
             return new SavegameError(kSvgErr_GameContentAssertion, String::FromFormat("Mismatching size of script module data, module %d.", i));
         }
         r_data.ScriptModules[i].Len = module_size;
-        r_data.ScriptModules[i].Data.reset(new char[module_size]);
-        in->Read(r_data.ScriptModules[i].Data.get(), module_size);
+        r_data.ScriptModules[i].Data.resize(module_size);
+        if (module_size > 0)
+            in->Read(&r_data.ScriptModules[i].Data.front(), module_size);
     }
     return HSaveError::None();
 }

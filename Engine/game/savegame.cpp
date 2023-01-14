@@ -520,15 +520,15 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
 
     // read the global data into the newly created script
-    if (r_data.GlobalScript.Data.get())
-        memcpy(gameinst->globaldata, r_data.GlobalScript.Data.get(),
+    if (!r_data.GlobalScript.Data.empty())
+        memcpy(gameinst->globaldata, &r_data.GlobalScript.Data.front(),
                 std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
 
     // restore the script module data
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        if (r_data.ScriptModules[i].Data.get())
-            memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(),
+        if (!r_data.ScriptModules[i].Data.empty())
+            memcpy(moduleInst[i]->globaldata, &r_data.ScriptModules[i].Data.front(),
                     std::min((size_t)moduleInst[i]->globaldatasize, r_data.ScriptModules[i].Len));
     }
 

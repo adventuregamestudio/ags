@@ -4,16 +4,16 @@ plugins {
 }
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 33
+    buildToolsVersion "33.0.1"
     // the android plugin has a bug that requires specifying ndkVersion in every module, even when unused
     // this version should match what is installed in the CI
-    ndkVersion '21.3.6528147'
+    ndkVersion '25.1.8937393'
 
     defaultConfig {
         applicationId "uk.co.adventuregamestudio.agsplayer"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
@@ -38,6 +38,7 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    namespace 'uk.co.adventuregamestudio.agsplayer'
 }
 
 dependencies {

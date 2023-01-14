@@ -212,7 +212,7 @@ namespace AGS.Editor
         {
             string prjDir = GetAndroidProjectInCompiledDir();
 
-            string packages = "\"build-tools;30.0.3\" \"ndk;21.3.6528147\" \"platforms;android-29\"";
+            string packages = "\"build-tools;33.0.1\" \"ndk;25.1.8937393\" \"platforms;android-33\"";
 
             AndroidUtilities.RunSdkManager(packages, prjDir);
         }

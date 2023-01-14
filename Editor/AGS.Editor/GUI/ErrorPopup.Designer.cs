@@ -35,35 +35,40 @@ namespace AGS.Editor
             // 
             // lblErrorMessage
             // 
-            this.lblErrorMessage.AutoSize = true;
+            this.lblErrorMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblErrorMessage.BackColor = System.Drawing.Color.Yellow;
             this.lblErrorMessage.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblErrorMessage.Location = new System.Drawing.Point(15, 74);
-            this.lblErrorMessage.MaximumSize = new System.Drawing.Size(250, 100);
+            this.lblErrorMessage.Location = new System.Drawing.Point(22, 111);
+            this.lblErrorMessage.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblErrorMessage.Name = "lblErrorMessage";
-            this.lblErrorMessage.Size = new System.Drawing.Size(244, 54);
+            this.lblErrorMessage.Size = new System.Drawing.Size(412, 130);
             this.lblErrorMessage.TabIndex = 1;
             this.lblErrorMessage.Text = "the error message text goes here the error message text goes here the error messa" +
-                "ge text goes here the error message text goes here the error message text goes h" +
-                "ere ";
+    "ge text goes here the error message text goes here the error message text goes h" +
+    "ere ";
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 9);
-            this.label1.MaximumSize = new System.Drawing.Size(250, 0);
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.Location = new System.Drawing.Point(18, 14);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(247, 52);
+            this.label1.Size = new System.Drawing.Size(416, 87);
             this.label1.TabIndex = 2;
             this.label1.Text = "AGS had a problem running your game. The error can be seen below, and is most lik" +
-                "ely due to a scripting problem. The line in the script where this occurred is hi" +
-                "ghlighted for you.";
+    "ely due to a scripting problem. The line in the script where this occurred is hi" +
+    "ghlighted for you.";
             // 
             // btnCloseGame
             // 
-            this.btnCloseGame.Location = new System.Drawing.Point(15, 175);
+            this.btnCloseGame.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnCloseGame.Location = new System.Drawing.Point(22, 262);
+            this.btnCloseGame.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.btnCloseGame.Name = "btnCloseGame";
-            this.btnCloseGame.Size = new System.Drawing.Size(253, 29);
+            this.btnCloseGame.Size = new System.Drawing.Size(380, 44);
             this.btnCloseGame.TabIndex = 3;
             this.btnCloseGame.Text = "I\'ve finished examining the error, close the game";
             this.btnCloseGame.UseVisualStyleBackColor = true;
@@ -71,24 +76,24 @@ namespace AGS.Editor
             // 
             // ErrorPopup
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(144F, 144F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(298, 216);
+            this.ClientSize = new System.Drawing.Size(447, 324);
             this.Controls.Add(this.btnCloseGame);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblErrorMessage);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "ErrorPopup";
-            this.Opacity = 0.85;
+            this.Opacity = 0.85D;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "An error has occurred";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.ErrorPopup_FormClosed);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.ErrorPopup_Paint);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 

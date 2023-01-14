@@ -3147,10 +3147,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	for (i = 0; i < numThisgamePlugins; i++) 
 	{
 		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].DataLen);
-		const char *data_ptr = thisgamePlugins[i].Data.get();
 		for (size_t j = 0; j < thisgamePlugins[i].DataLen; j++) 
 		{
-			pluginData[j] = data_ptr[j];
+			pluginData[j] = thisgamePlugins[i].Data[j];
 		}
 		
 		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(TextHelper::ConvertASCII(thisgamePlugins[i].Name), pluginData);

@@ -1,5 +1,29 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 17, January 2023
+
+Editor:
+ - Fixed GUI.Visible property was resetting to false when PopupStyle is switched to Modal.
+
+Engine:
+ - Performance improvement in Direct3D/OpenGL renderers, related to plugins which subscribe to
+   render events.
+ - Fixed renderer error occuring if room background frames are of different sizes.
+ - Fixed software renderer may have an unpainted black line at the bottom, if there's a GUI or
+   Overlay positioned partially offscreen.
+ - Fixed GUI buttons could retain mouse-over pic after interface is disabled then enabled
+   (this is a regression since recent patch).
+ - Fixed crash occuring when user creates too many Overlays in script;
+   will report a scripting error instead.
+ - Fixed memory leak occuring when the TTF font is drawn partially outside the DrawingSurface.
+ - Fixed Parser.Said() could lead to a program crash in case there are space-separated words
+   following the comma (e.g. "climb,get in bed").
+ - Fixed crash occuring if a plugin tried to call SetVirtualScreen().
+
+Plugins:
+ - Fixed SnowRain plugin drawing particles only in 320x200 bounds.
+
+
 VERSION 3.5.1 - Patch 16, December 2022
 
 Editor:

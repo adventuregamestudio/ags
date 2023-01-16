@@ -115,6 +115,8 @@ Editor:
  - Fixed matching or mismatching braces were not highlighted consistently at all times in
    regular and dialog scripts.
  - Fixed few editor panes were not opening correct help topics in F1.
+ - (Possibly) fixed error message text in the runtime error popup could be drawn partially beyond
+   the popup borders if the user's system has text scaling option enabled.
 
 Compiler:
  - Support unicode character literals.
@@ -285,17 +287,12 @@ Engine:
    above the supported range.
  - Fixed dialog script's "goto-previous" command not working if used from the first sub-topic run
    using "goto-dialog" (a very-very old bug).
- - Fixed renderer error occuring if room background frames are of different sizes.
- - Fixed software renderer may have an unpainted black line at the bottom, if there's a GUI or
-   Overlay positioned partially offscreen.
  - Fixed AGS_EngineInitGfx plugin callback was not called during OpenGL renderer initialization.
  - Fixed Direct3D/OpenGL renderers were displaying plugin's raw drawings in a wrong position in
    the scrolling rooms, if the drawing was done on AGSE_PRESCREENDRAW or AGSE_POSTROOMDRAW events.
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed ListBox.RowCount reporting 0 if called before the control was displayed once.
- - Fixed Parser.Said() could lead to a program crash in case there are space-separated words
-   following the comma (e.g. "climb,get in bed").
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed scheduled sound fadeout effect was not cancelled by skipping a cutscene.
@@ -348,7 +345,6 @@ Windows:
  - Installer will create program links with three-digit version in the name.
  
 Plugins:
- - Fixed SnowRain plugin drawing particles only in 320x200 bounds.
  - Added SpriteFont plugin to the list of builtins, for ports that use ones.
    SpriteFont plugin is updated to support custom "Clifftop Games" font variants.
 
@@ -358,6 +354,30 @@ WinSetup:
 
 
 ===================================================================================================
+
+VERSION 3.5.1 - Patch 17, January 2023
+
+Editor:
+ - Fixed GUI.Visible property was resetting to false when PopupStyle is switched to Modal.
+
+Engine:
+ - Performance improvement in Direct3D/OpenGL renderers, related to plugins which subscribe to
+   render events.
+ - Fixed renderer error occuring if room background frames are of different sizes.
+ - Fixed software renderer may have an unpainted black line at the bottom, if there's a GUI or
+   Overlay positioned partially offscreen.
+ - Fixed GUI buttons could retain mouse-over pic after interface is disabled then enabled
+   (this is a regression since recent patch).
+ - Fixed crash occuring when user creates too many Overlays in script;
+   will report a scripting error instead.
+ - Fixed memory leak occuring when the TTF font is drawn partially outside the DrawingSurface.
+ - Fixed Parser.Said() could lead to a program crash in case there are space-separated words
+   following the comma (e.g. "climb,get in bed").
+ - Fixed crash occuring if a plugin tried to call SetVirtualScreen().
+
+Plugins:
+ - Fixed SnowRain plugin drawing particles only in 320x200 bounds.
+
 
 VERSION 3.5.1 - Patch 16, December 2022
 

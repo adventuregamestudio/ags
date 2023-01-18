@@ -202,6 +202,7 @@ namespace AGS.Editor.Utils
         public static bool RunSdkManager(string parameters, string working_dir)
         {
             string sdkManager = GetSdkManagerPath();
+            if (String.IsNullOrEmpty(sdkManager)) return false;
 
             string cmd = GetPrefixEnv();
             cmd += sdkManager + " " + parameters;
@@ -243,9 +244,28 @@ namespace AGS.Editor.Utils
             return GetEnvironmentPreferences("ANDROID_HOME", settings.AndroidHome);
         }
 
+        private static List<string> GetPossibleSdkManagerPaths(string sdk_home_path)
+        {
+            List<string> possible_paths = new List<string>();
+            possible_paths.Add(Path.Combine(sdk_home_path, "cmdline-tools\\latest\\bin\\sdkmanager"));
+            possible_paths.Add(Path.Combine(sdk_home_path, "cmdline-tools\\bin\\sdkmanager"));
+            possible_paths.Add(Path.Combine(sdk_home_path, "tools\\bin\\sdkmanager"));
+            return possible_paths;
+        }
+
+        private static string FindSdkManager(string sdk_home_path)
+        {
+            List<string> possible_paths = GetPossibleSdkManagerPaths(sdk_home_path);
+            foreach (var path in possible_paths)
+            {
+                if (IsExecutableAvailable(path)) return path;
+            }
+            return String.Empty;
+        }
+
         private static string GetSdkManagerPath()
         {
-            return Path.Combine(GetAndroidHome(), "tools\\bin\\sdkmanager");
+            return FindSdkManager(GetAndroidHome());
         }
 
         private static string GetJavacPath()
@@ -283,7 +303,7 @@ namespace AGS.Editor.Utils
 
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return false;
 
-            return IsExecutableAvailable(Path.Combine(path, "tools\\bin\\sdkmanager"));
+            return !String.IsNullOrEmpty(FindSdkManager(path));
         }
 
         private static bool IsJavacAvailable()
@@ -293,7 +313,7 @@ namespace AGS.Editor.Utils
 
         private static bool IsSdkManagerAvailable()
         {
-            return IsExecutableAvailable(GetSdkManagerPath());
+            return !String.IsNullOrEmpty(GetSdkManagerPath());
         }
 
         private static string FilterString(string st)

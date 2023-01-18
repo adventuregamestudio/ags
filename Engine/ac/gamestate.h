@@ -25,6 +25,7 @@
 #include "ac/timer.h"
 #include "game/roomstruct.h"
 #include "game/viewport.h"
+#include "gfx/graphicsdriver.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
@@ -262,21 +263,22 @@ struct GameState {
     // Viewports are positioned in game screen coordinates, related to the "game size",
     // while cameras are positioned in room coordinates.
     //
-    // Tells if the room viewport should be adjusted automatically each time a new room is loaded
-    bool IsAutoRoomViewport() const;
     // Returns main (game's) viewport position on screen, this is the overall game view
     const Rect &GetMainViewport() const;
     // Returns UI viewport position on screen, within the main viewport
     const Rect &GetUIViewport() const;
+    // Returns SpriteTransform corresponding to the global screen offsets
+    AGS::Engine::SpriteTransform GetGlobalTransform(bool full_frame_rend) const;
+    // Tells if the room viewport should be adjusted automatically each time a new room is loaded
+    bool IsAutoRoomViewport() const;
     // Returns Room viewport object by it's main index
     PViewport  GetRoomViewport(int index) const;
     // Returns Room viewport object by index in z-order
     const std::vector<PViewport> &GetRoomViewportsZOrdered() const;
     // Finds room viewport at the given screen coordinates; returns nullptr if non found
     PViewport  GetRoomViewportAt(int x, int y) const;
-    // Returns UI viewport position in absolute coordinates (with main viewport offset)
-    Rect       GetUIViewportAbs() const;
-    // Returns Room viewport position in absolute coordinates (with main viewport offset)
+    // Returns Room viewport position in absolute coordinates (with main viewport offset);
+    // this is a helper function, meant for peculiar cases.
     Rect       GetRoomViewportAbs(int index) const;
     // Sets if the room viewport should be adjusted automatically each time a new room is loaded
     void SetAutoRoomViewport(bool on);

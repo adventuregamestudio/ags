@@ -82,11 +82,11 @@ extern GameSetupStruct game;
 extern GameState play;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
+extern CCAudioChannel ccDynamicAudio;
 
 extern volatile int switching_away_from_game;
 
 ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
 void calculate_reserved_channel_count()
@@ -509,6 +509,16 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
 void stop_and_destroy_channel(int chid)
 {
     stop_and_destroy_channel_ex(chid, true);
+}
+
+void export_missing_audiochans()
+{
+    for (int i = 0; i < game.numCompatGameChannels; ++i)
+    {
+        int h = ccGetObjectHandleFromAddress(&scrAudioChannel[i]);
+        if (h <= 0)
+            ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
+    }
 }
 
 

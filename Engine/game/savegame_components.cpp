@@ -472,7 +472,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         return err;
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].ReadFromFile(in);
+        game.chars[i].ReadFromFile(in, kGameVersion_Undefined, cmp_ver);
         charextra[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(play.charProps[i], in);
         // character movement path cache
@@ -848,8 +848,9 @@ HSaveError ReadScriptModules(Stream *in, int32_t /*cmp_ver*/, const PreservedPar
     if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data"))
         return err;
     r_data.GlobalScript.Len = data_len;
-    r_data.GlobalScript.Data.reset(new char[data_len]);
-    in->Read(r_data.GlobalScript.Data.get(), data_len);
+    r_data.GlobalScript.Data.resize(data_len);
+    if (data_len > 0)
+        in->Read(&r_data.GlobalScript.Data.front(), data_len);
 
     if (!AssertGameContent(err, in->ReadInt32(), numScriptModules, "Script Modules"))
         return err;
@@ -860,8 +861,9 @@ HSaveError ReadScriptModules(Stream *in, int32_t /*cmp_ver*/, const PreservedPar
         if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))
             return err;
         r_data.ScriptModules[i].Len = data_len;
-        r_data.ScriptModules[i].Data.reset(new char[data_len]);
-        in->Read(r_data.ScriptModules[i].Data.get(), data_len);
+        r_data.ScriptModules[i].Data.resize(data_len);
+        if (data_len > 0)
+            in->Read(&r_data.ScriptModules[i].Data.front(), data_len);
     }
     return err;
 }
@@ -906,7 +908,7 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, const PreservedParams& /*
             if (!AssertFormatTagStrict(err, in, "RoomState", true))
                 return err;
             RoomStatus *roomstat = getRoomStatus(id);
-            roomstat->ReadFromSavegame(in, cmp_ver);
+            roomstat->ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
             if (!AssertFormatTagStrict(err, in, "RoomState", false))
                 return err;
         }
@@ -1010,7 +1012,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())
-        troom.ReadFromSavegame(in, cmp_ver);
+        troom.ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
 
     return HSaveError::None();
 }
@@ -1150,15 +1152,15 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        10,
-        0,
+        kRoomStatSvgVersion_39999,
+        kRoomStatSvgVersion_Initial,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
-        10, // should correspond to "Room States"
-        0,
+        kRoomStatSvgVersion_39999, // must correspond to "Room States"
+        kRoomStatSvgVersion_Initial,
         WriteThisRoom,
         ReadThisRoom
     },

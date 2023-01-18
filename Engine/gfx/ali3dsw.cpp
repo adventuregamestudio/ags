@@ -357,8 +357,10 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
     {
         // We need this subbitmap for plugins, which use _stageVirtualScreen and are unaware of possible multiple viewports;
         // TODO: there could be ways to optimize this further, but best is to update plugin rendering hooks (and upgrade plugins)
-        if (!batch.Surface || !batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h
-            || batch.Surface->GetSubOffset() != desc.Viewport.GetLT())
+        if (!batch.Surface || !batch.IsVirtualScreen ||
+            (batch.Surface->GetWidth() != src_w) || (batch.Surface->GetHeight() != src_h) ||
+            (!batch.Surface->IsSameBitmap(virtualScreen)) ||
+            (batch.Surface->GetSubOffset() != desc.Viewport.GetLT()))
         {
             Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
             batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
@@ -386,7 +388,8 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
 
 void SDLRendererGraphicsDriver::ResetAllBatches()
 {
-    _spriteBatches.clear();
+    // NOTE: we don't release batches themselves here, only sprite lists.
+    // This is because we cache batch surfaces, for perfomance reasons.
     _spriteList.clear();
 }
 
@@ -488,8 +491,8 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         {
             cur_spr = RenderSpriteBatch(batch, cur_spr, virtualScreen, view_x + transform.X, view_y + transform.Y);
         }
-        _stageVirtualScreen = virtualScreen;
     }
+    _stageVirtualScreen = virtualScreen;
     _rendSpriteBatch = UINT32_MAX;
     ClearDrawLists();
 }
@@ -505,7 +508,8 @@ size_t SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, 
         _spriteEvtCallback(sprite.x, sprite.y);
       else
         throw Ali3DException("Unhandled attempt to draw null sprite");
-
+      // Stage surface could have been replaced by plugin
+      surface = _stageVirtualScreen;
       continue;
     }
     else if (sprite.ddb == reinterpret_cast<ALSoftwareBitmap*>(DRAWENTRY_TINT))
@@ -612,32 +616,51 @@ void SDLRendererGraphicsDriver::Render()
 
 Bitmap *SDLRendererGraphicsDriver::GetMemoryBackBuffer()
 {
-  return virtualScreen;
+    return virtualScreen;
 }
 
 void SDLRendererGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
 {
-  if (backBuffer)
-  {
-    virtualScreen = backBuffer;
-  }
-  else
-  {
-    virtualScreen = _origVirtualScreen.get();
-  }
-  _stageVirtualScreen = virtualScreen;
+    // We need to also test internal AL BITMAP pointer, because we may receive it raw from plugin,
+    // in which case the Bitmap object may be a different wrapper over our own virtual screen.
+    if (backBuffer && (backBuffer->GetAllegroBitmap() != _origVirtualScreen->GetAllegroBitmap()))
+    {
+        virtualScreen = backBuffer;
+    }
+    else
+    {
+        virtualScreen = _origVirtualScreen.get();
+    }
+    _stageVirtualScreen = virtualScreen;
 
-  // Reset old virtual screen's subbitmaps
-  for (auto &batch : _spriteBatches)
-  {
-    if (batch.IsVirtualScreen)
-      batch.Surface.reset();
-  }
+    // Reset old virtual screen's subbitmaps;
+    // NOTE: this MUST NOT be called in the midst of the RenderSpriteBatches!
+    assert(_rendSpriteBatch == UINT32_MAX);
+    if (_rendSpriteBatch != UINT32_MAX)
+        return;
+    for (auto &batch : _spriteBatches)
+    {
+        if (batch.IsVirtualScreen)
+            batch.Surface.reset();
+    }
 }
 
 Bitmap *SDLRendererGraphicsDriver::GetStageBackBuffer(bool /*mark_dirty*/)
 {
     return _stageVirtualScreen;
+}
+
+void SDLRendererGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
+{
+    Bitmap *cur_stage = (_rendSpriteBatch == UINT32_MAX) ?
+        virtualScreen :
+        _spriteBatches[_rendSpriteBatch].Surface.get();
+    // We need to also test internal AL BITMAP pointer, because we may receive it raw from plugin,
+    // in which case the Bitmap object may be a different wrapper over our own virtual screen.
+    if (backBuffer && (backBuffer->GetAllegroBitmap() != cur_stage->GetAllegroBitmap()))
+        _stageVirtualScreen = backBuffer;
+    else
+        _stageVirtualScreen = cur_stage;
 }
 
 bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)

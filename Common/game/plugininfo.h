@@ -35,7 +35,7 @@ struct PluginInfo
     // (File)name of plugin
     String      Name;
     // Custom data for plugin
-    std::shared_ptr<char> Data;
+    std::vector<char> Data;
     size_t      DataLen;
 
     PluginInfo() : DataLen(0) {}

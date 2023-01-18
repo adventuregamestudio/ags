@@ -358,7 +358,7 @@ void DoBeforeRestore(PreservedParams &pp)
     free_do_once_tokens();
 
     // unregister gui controls from API exports
-    // TODO: find out why are we doing this here? is this really necessary?
+    // CHECKME: find out why are we doing this here? why only to gui controls?
     for (int i = 0; i < game.numgui; ++i)
     {
         unexport_gui_controls(i);
@@ -433,8 +433,13 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         dynamicallyCreatedSurfaces[i] = r_data.DynamicSurfaces[i];
     }
 
+    // Re-export any missing audio channel script objects, e.g. if restoring old save
+    export_missing_audiochans();
+
+    // CHECKME: find out why are we doing this here? why only to gui controls?
     for (int i = 0; i < game.numgui; ++i)
         export_gui_controls(i);
+
     update_gui_zorder();
 
     if (create_global_script())
@@ -445,15 +450,15 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
 
     // read the global data into the newly created script
-    if (r_data.GlobalScript.Data.get())
-        memcpy(gameinst->globaldata, r_data.GlobalScript.Data.get(),
+    if (!r_data.GlobalScript.Data.empty())
+        memcpy(gameinst->globaldata, &r_data.GlobalScript.Data.front(),
                 std::min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
 
     // restore the script module data
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        if (r_data.ScriptModules[i].Data.get())
-            memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(),
+        if (!r_data.ScriptModules[i].Data.empty())
+            memcpy(moduleInst[i]->globaldata, &r_data.ScriptModules[i].Data.front(),
                     std::min((size_t)moduleInst[i]->globaldatasize, r_data.ScriptModules[i].Len));
     }
 

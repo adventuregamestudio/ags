@@ -476,7 +476,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (croom->beenhere > 0)
     {
         // Always copy object and hotspot names for < 3.6.0 games, because they were not settable
-        if (loaded_game_file_version < kGameVersion_360_16)
+        if ((loaded_game_file_version < kGameVersion_360_16) ||
+            (croom->contentFormat < kRoomStatSvgVersion_36025))
         {
             for (size_t cc = 0; cc < thisroom.Objects.size(); ++cc)
                 croom->obj[cc].name = thisroom.Objects[cc].Name;
@@ -533,6 +534,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->beenhere=1;
         in_new_room=2;
     }
+    // Reset contentFormat hint to avoid doing fixups later
+    croom->contentFormat = kRoomStatSvgVersion_Current;
 
     objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
 

@@ -1014,14 +1014,16 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
     add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder, isWalkBehind);
 }
 
-// z-order sorting function for sprites
+// Sprite drawing order sorting function,
+// where equal zorder is resolved by comparing optional IDs too.
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
-    return (e1.zorder < e2.zorder);
+    return (e1.zorder < e2.zorder) ||
+        (e1.zorder == e2.zorder) && (e1.id < e2.id);
 }
 
-// room-specialized function to sort the sprites into baseline order
-// has special handling for walk-behinds (this is complicated...)
+// Room-specialized function to sort the sprites into baseline order;
+// does not account for IDs, but has special handling for walk-behinds.
 static bool spritelistentry_room_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
     if (e1.zorder == e2.zorder)

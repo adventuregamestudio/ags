@@ -134,10 +134,10 @@ extern int smcode;
     needredraw = 1;
   }
 
-  int MyListBox::processmessage(int mcode, int wParam, long lParam)
+  int MyListBox::processmessage(int mcode, int wParam, intptr_t ipParam)
   {
     if (mcode == CLB_ADDITEM) {
-      additem((char *)lParam);
+      additem((char *)ipParam);
     } else if (mcode == CLB_CLEAR)
       clearlist();
     else if (mcode == CLB_GETCURSEL)
@@ -153,12 +153,12 @@ extern int smcode;
         topitem = (selected + 1) - numonscreen;
     }
     else if (mcode == CLB_GETTEXT)
-      strcpy((char *)lParam, itemnames[wParam]);
+      strcpy((char *)ipParam, itemnames[wParam]);
     else if (mcode == CLB_SETTEXT) {
       if (wParam < items)
         free(itemnames[wParam]);
 
-      char *newstri = (char *)lParam;
+      char *newstri = (char *)ipParam;
       itemnames[wParam] = (char *)malloc(strlen(newstri) + 2);
       strcpy(itemnames[wParam], newstri);
 

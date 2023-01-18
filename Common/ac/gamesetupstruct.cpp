@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/audiocliptype.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/wordsdictionary.h"
@@ -206,7 +205,7 @@ void GameSetupStruct::read_characters(Common::Stream *in)
 {
     chars = new CharacterInfo[numcharacters];
 
-    ReadCharacters_Aligned(in);
+    ReadCharacters_Aligned(in, false);
 }
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
@@ -228,12 +227,12 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
     load_messages = nullptr;
 }
 
-void GameSetupStruct::ReadCharacters_Aligned(Stream *in)
+void GameSetupStruct::ReadCharacters_Aligned(Stream *in, bool is_save)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
-        chars[iteratorCount].ReadFromFile(&align_s);
+        chars[iteratorCount].ReadFromFile(&align_s, is_save ? kGameVersion_Undefined : loaded_game_file_version, 0);
         align_s.Reset();
     }
 }

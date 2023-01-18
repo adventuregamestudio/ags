@@ -24,7 +24,7 @@ struct MyTextBox:public NewControl
   MyTextBox(int xx, int yy, int wii, const char *tee);
   void draw(Common::Bitmap *ds) override;
   int pressedon(int mx, int my) override;
-  int processmessage(int mcode, int wParam, long lParam) override;
+  int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
 
 #endif // __AC_MYTEXTBOX_H

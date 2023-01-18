@@ -349,18 +349,18 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
     if (!gfxDriver->UsesMemoryBackBuffer())
     {
         debug_script_warn("SetVirtualScreen: this plugin requires software graphics driver to work correctly.");
-        // we let it continue since gfxDriver is supposed to ignore this request without throwing an exception
+        return;
     }
 
     if (bmp)
     {
         glVirtualScreenWrap.WrapAllegroBitmap(bmp, true);
-        gfxDriver->SetMemoryBackBuffer(&glVirtualScreenWrap);
+        gfxDriver->SetStageBackBuffer(&glVirtualScreenWrap);
     }
     else
     {
         glVirtualScreenWrap.Destroy();
-        gfxDriver->SetMemoryBackBuffer(nullptr);
+        gfxDriver->SetStageBackBuffer(nullptr);
     }
 }
 
@@ -1034,10 +1034,10 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         EnginePlugin *apl = &plugins[numPlugins++];
         // Copy plugin info
         apl->filename = name;
-        if (info.DataLen)
+        if (info.DataLen > 0)
         {
             apl->savedata = (char*)malloc(info.DataLen);
-            memcpy(apl->savedata, info.Data.get(), info.DataLen);
+            memcpy(apl->savedata, &info.Data.front(), info.DataLen);
         }
         apl->savedatasize = info.DataLen;
 

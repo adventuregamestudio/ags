@@ -74,6 +74,11 @@ public:
     {
         return is_sub_bitmap(_alBitmap) != 0;
     }
+    // Do both bitmaps share same data (usually: subbitmaps, or parent/subbitmap)
+    inline bool IsSameBitmap(Bitmap *other) const
+    {
+        return is_same_bitmap(_alBitmap, other->_alBitmap) != 0;
+    }
     // Checks if bitmap cannot be used
     inline bool IsNull() const
     {
@@ -219,7 +224,8 @@ public:
 	// Gets scanline for directly writing into it
     inline unsigned char *GetScanLineForWriting(int index)
     {
-        return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : nullptr;
+        assert(index >= 0 && index < GetHeight());
+        return _alBitmap->line[index];
     }
     inline unsigned char *GetDataForWriting()
     {

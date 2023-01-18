@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <numeric>
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
@@ -502,8 +503,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         label.SetClickable(false);
     }
     play.gui_draw_order.resize(game.numgui);
-    for (int i = 0; i < game.numgui; ++i)
-        play.gui_draw_order[i] = i;
+    std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
     update_gui_zorder();
     calculate_reserved_channel_count();
 

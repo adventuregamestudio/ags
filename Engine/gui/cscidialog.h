@@ -26,7 +26,7 @@ void CSCIEraseWindow(int handl);
 int  CSCIWaitMessage(CSCIMessage * cscim);
 int  CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title);
 void CSCIDeleteControl(int haa);
-int  CSCISendControlMessage(int haa, int mess, int wPar, long lPar);
+int  CSCISendControlMessage(int haa, int mess, int wPar, intptr_t ipPar);
 int  checkcontrols();
 int  finddefaultcontrol(int flagmask);
 int  GetBaseWidth ();

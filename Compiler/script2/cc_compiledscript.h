@@ -44,6 +44,9 @@ public:
     std::unordered_map<std::string, int> ImportIdx = {};
     std::unordered_map<std::string, int> ExportIdx = {};
 
+    std::vector<CodeLoc> Labels; // Code locations that will receive their actual value later on
+    std::unordered_map<CodeCell, CodeCell> Label2Value; // map labels to actual values
+
     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
     size_t OffsetToLocalVarBlock = 0u;
 
@@ -98,24 +101,44 @@ public:
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
         { WriteCode(op); WriteCode(p1); WriteCode(p2); WriteCode(p3); };
 
-    // Write Bytecode that couples this point of the Bytecode with the source code line lno
+    // Write a Linenum pseudo-command, coupling this point of the Bytecode with the source code line 'lno'
     void WriteLineno(size_t lno);
     // Only write Bytecode for source line no if it differs from the last emitted
     inline void RefreshLineno(size_t lno) { if (LastEmittedLineno != lno) WriteLineno(lno); }
 
-    // write a PUSH command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
+    // write a 'push' command; track in 'OffsetToLocalVarBlock' the number of bytes pushed to the stack
     void PushReg(CodeCell regg);
-    // write a POP command; track in OffsetToLocalVarBlock the number of bytes pushed to the stack
+    // write a 'pop' command; track in 'OffsetToLocalVarBlock' the number of bytes pushed to the stack
     void PopReg(CodeCell regg);
 
     // Returns the relative distance in a jump instruction
-    // "here" is the location of the bytecode that will contain
-    // the (relative) destination.It is not the location of the
-    // start of the command but the location of its first parameter
+    // 'here' is the location of the bytecode that will contain the (relative) destination. 
+    // It is not the location of the start of the command but the location of its first parameter
     inline static CodeLoc RelativeJumpDist(CodeLoc here, CodeLoc dest) { return dest - here - 1; }
+
+    inline void InvalidateLastEmittedLineno() { LastEmittedLineno = INT_MAX; }
+
+    // In code, replace those labels whose value is known.
+    void ReplaceLabels();
 
     ccCompiledScript(bool emit_line_numbers = true);
     virtual ~ccCompiledScript();
+};
+
+// A section of compiled code that needs to be moved or copied to a new location
+class Snippet
+{
+public:
+    std::vector<CodeCell> Code;
+    std::vector<CodeLoc> Fixups;
+    std::vector<char> FixupTypes;
+    std::vector<CodeLoc> Labels; // Locations of code cells that will receive their true value later
+
+    // Paste this snippet to the end of the code of 'script' 
+    void Paste(ccCompiledScript &scrip);
+
+    // Whether code is in the snippet, ignoring starting linenum directives
+    bool IsEmpty();
 };
 
 // Encapusulates a point of generated code.
@@ -123,7 +146,7 @@ class RestorePoint
 {
 private:
     ccCompiledScript &_scrip;
-    size_t _rememberedCodeLocation;
+    CodeLoc _rememberedCodeLocation;
 
 public:
     RestorePoint(ccCompiledScript &scrip)
@@ -131,12 +154,17 @@ public:
         , _rememberedCodeLocation(scrip.codesize)
     { }
 
-    // Discard all code that has been generated since the object was created
-    // Also discard the corresponding fixups
-    // This is useful if code is generated and it turns out later that it was in vain.
-    void Restore();
+    // Cut the code that has been generated since the object has been created into the snippet
+    // However, if 'keep_starting_linum' and the generated code begins with a 'linenum' pseudo-directive
+    // then don't discard this directive.
+    void Cut(Snippet &snippet, bool keep_starting_linum = true);
 
-    inline bool IsEmpty() const { return _scrip.codesize <= static_cast<int>(_rememberedCodeLocation); }
+    // Discard all code that has been generated since the object has been created
+    // However, if 'keep_starting_linum' and the generated code starts with a 'linenum' directive,
+    // then don't cut out this directive.
+    inline void Restore(bool keep_starting_linum = true) { Snippet _dummy; Cut(_dummy, keep_starting_linum); }
+
+    inline bool IsEmpty() const { return _scrip.codesize <= _rememberedCodeLocation; }
     inline CodeLoc CodeLocation() const { return _rememberedCodeLocation; }
 };
 
@@ -160,7 +188,10 @@ public:
     void AddParam(int offset = -1);
 
     // Patch all the forward jump parameters to point to _scrip.codesize
-    void Patch(size_t cur_line);
+    // If not 'keep_linenum' then the patch command will determine whether
+    // there can be more than one path to the next statement; if it can,
+    // then it will force a 'linenum' directive to be emitted next.
+    void Patch(size_t cur_line, bool keep_linenum = false);
 };
 
 // Remember a point of the bytecode that is going to be the destination

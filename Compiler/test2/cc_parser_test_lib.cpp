@@ -12,7 +12,7 @@ void clear_error()
     last_cc_error_buf.clear();
 }
 
-const char *last_seen_cc_error()
+char const *last_seen_cc_error()
 {
     return last_cc_error_buf.c_str();
 }

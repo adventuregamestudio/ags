@@ -306,13 +306,10 @@ AGS::Parser::NestingStack::NestingInfo::NestingInfo(NSType stype, ccCompiledScri
     , SwitchCaseStart(std::vector<BackwardJumpDest>{})
     , SwitchDefaultIdx(kNoDefault)
     , SwitchJumptable(ForwardJump{ scrip })
-    , Chunks(std::vector<Chunk>{})
+    , Snippets(std::vector<Snippet>{})
     , OldDefinitions({})
 {
 }
-
-// For assigning unique IDs to chunks
-int AGS::Parser::NestingStack::_chunkIdCtr = 0;
 
 AGS::Parser::NestingStack::NestingStack(ccCompiledScript &scrip)
     :_scrip(scrip)
@@ -330,177 +327,21 @@ bool AGS::Parser::NestingStack::AddOldDefinition(Symbol s, SymbolTableEntry cons
     return false;
 }
 
-// Rip the code that has already been generated, starting from codeoffset, out of scrip
-// and move it into the vector at list, instead.
-void AGS::Parser::NestingStack::YankChunk(size_t src_line, CodeLoc code_start, size_t fixups_start, int &id)
-{
-    Chunk item;
-    item.SrcLine = src_line;
-
-    size_t const codesize = std::max<int>(0, _scrip.codesize);
-    for (size_t code_idx = code_start; code_idx < codesize; code_idx++)
-        item.Code.push_back(_scrip.code[code_idx]);
-
-    size_t numfixups = std::max<int>(0, _scrip.numfixups);
-    for (size_t fixups_idx = fixups_start; fixups_idx < numfixups; fixups_idx++)
-    {
-        CodeLoc const code_idx = _scrip.fixups[fixups_idx];
-        item.Fixups.push_back(code_idx - code_start);
-        item.FixupTypes.push_back(_scrip.fixuptypes[fixups_idx]);
-    }
-    item.Id = id = ++_chunkIdCtr;
-
-    _stack.back().Chunks.push_back(item);
-
-    // Cut out the code that has been pushed
-    _scrip.codesize = code_start;
-    _scrip.numfixups = static_cast<decltype(_scrip.numfixups)>(fixups_start);
-}
-
-// Copy the code in the chunk to the end of the bytecode vector 
-void AGS::Parser::NestingStack::WriteChunk(size_t level, size_t chunk_idx, int &id)
-{
-    Chunk const item = Chunks(level).at(chunk_idx);
-    id = item.Id;
-
-    // Add a line number opcode so that runtime errors
-    // can show the correct originating source line.
-    if (0u < item.Code.size() && SCMD_LINENUM != item.Code[0u] && 0u < item.SrcLine)
-        _scrip.WriteLineno(item.SrcLine);
-
-    // The fixups are stored relative to the start of the insertion,
-    // so remember what that is
-    size_t const start_of_insert = _scrip.codesize;
-    size_t const code_size = item.Code.size();
-    for (size_t code_idx = 0u; code_idx < code_size; code_idx++)
-        _scrip.WriteCode(item.Code[code_idx]);
-
-    size_t const fixups_size = item.Fixups.size();
-    for (size_t fixups_idx = 0u; fixups_idx < fixups_size; fixups_idx++)
-        _scrip.AddFixup(
-            item.Fixups[fixups_idx] + start_of_insert,
-            item.FixupTypes[fixups_idx]);
-
-    // Make the last emitted source line number invalid so that the next command will
-    // generate a line number opcode first
-    _scrip.LastEmittedLineno = INT_MAX;
-}
-
-AGS::Parser::FuncCallpointMgr::FuncCallpointMgr(Parser &parser)
-    : _parser(parser)
+AGS::Parser::FuncLabelMgr::FuncLabelMgr(ccCompiledScript &scrip, int kind)
+    : _scrip(scrip)
+    , _kind(kind)
 { }
 
-void AGS::Parser::FuncCallpointMgr::Reset()
+void AGS::Parser::FuncLabelMgr::TrackLabelLoc(Symbol func, CodeLoc loc)
 {
-    _funcCallpointMap.clear();
+    _scrip.Labels.push_back(loc);
 }
 
-void AGS::Parser::FuncCallpointMgr::TrackForwardDeclFuncCall(Symbol func, CodeLoc loc, size_t in_source)
+
+void AGS::Parser::FuncLabelMgr::SetLabelValue(Symbol const func, CodeCell const val)
 {
-    // Patch callpoint in when known
-    CodeCell const callpoint = _funcCallpointMap[func].Callpoint;
-    if (callpoint >= 0)
-    {
-        _parser._scrip.code[loc] = callpoint;
-        return;
-    }
-
-    // Callpoint not known, so remember this location
-    PatchInfo pinfo;
-    pinfo.ChunkId = kCodeBaseId;
-    pinfo.Offset = loc;
-    pinfo.InSource = in_source;
-    _funcCallpointMap[func].List.push_back(pinfo);
+    _scrip.Label2Value[Function2Label(func)] = val;
 }
-
-void AGS::Parser::FuncCallpointMgr::UpdateCallListOnYanking(CodeLoc chunk_start, size_t chunk_len, int id)
-{
-    size_t const chunk_end = chunk_start + chunk_len;
-
-    for (CallMap::iterator func_it = _funcCallpointMap.begin();
-        func_it != _funcCallpointMap.end();
-        ++func_it)
-    {
-        PatchList &pl = func_it->second.List;
-        size_t const pl_size = pl.size();
-        for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
-        {
-            PatchInfo &patch_info = pl[pl_idx];
-            if (kCodeBaseId != patch_info.ChunkId)
-                continue;
-            if (patch_info.Offset < chunk_start || patch_info.Offset >= static_cast<decltype(patch_info.Offset)>(chunk_end))
-                continue; // This address isn't yanked
-
-            patch_info.ChunkId = id;
-            patch_info.Offset -= chunk_start;
-        }
-    }
-}
-
-void AGS::Parser::FuncCallpointMgr::UpdateCallListOnWriting(CodeLoc start, int id)
-{
-    for (CallMap::iterator func_it = _funcCallpointMap.begin();
-        func_it != _funcCallpointMap.end();
-        ++func_it)
-    {
-        PatchList &pl = func_it->second.List;
-        size_t const size = pl.size();
-        for (size_t pl_idx = 0; pl_idx < size; ++pl_idx)
-        {
-            PatchInfo &patch_info = pl[pl_idx];
-            if (patch_info.ChunkId != id)
-                continue; // Not our concern this time
-
-            // We cannot repurpose patch_info since it may be written multiple times.
-            PatchInfo cb_patch_info;
-            cb_patch_info.ChunkId = kCodeBaseId;
-            cb_patch_info.Offset = patch_info.Offset + start;
-            pl.push_back(cb_patch_info);
-        }
-    }
-}
-
-void AGS::Parser::FuncCallpointMgr::SetFuncCallpoint(Symbol func, CodeLoc dest)
-{
-    _funcCallpointMap[func].Callpoint = dest;
-    PatchList &pl = _funcCallpointMap[func].List;
-    size_t const pl_size = pl.size();
-    bool yanked_patches_exist = false;
-    for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
-        if (kCodeBaseId == pl[pl_idx].ChunkId)
-        {
-            _parser._scrip.code[pl[pl_idx].Offset] = dest;
-            pl[pl_idx].ChunkId = kPatchedId;
-        }
-        else if (kPatchedId != pl[pl_idx].ChunkId)
-        {
-            yanked_patches_exist = true;
-        }
-    if (!yanked_patches_exist)
-        pl.clear();
-}
-
-void AGS::Parser::FuncCallpointMgr::CheckForUnresolvedFuncs()
-{
-    for (auto fcm_it = _funcCallpointMap.begin(); fcm_it != _funcCallpointMap.end(); ++fcm_it)
-    {
-        PatchList &pl = fcm_it->second.List;
-        size_t const pl_size = pl.size();
-        for (size_t pl_idx = 0; pl_idx < pl_size; ++pl_idx)
-        {
-            if (kCodeBaseId != pl[pl_idx].ChunkId)
-                continue;
-            _parser._src.SetCursor(pl[pl_idx].InSource);
-            _parser.UserError(
-                _parser.ReferenceMsgSym("The called function '%s()' isn't defined with body nor imported", fcm_it->first).c_str(),
-                _parser._sym.GetName(fcm_it->first).c_str());
-        }
-    }
-}
-
-AGS::Parser::FuncCallpointMgr::CallpointInfo::CallpointInfo()
-    : Callpoint(-1)
-{ }
 
 AGS::Parser::MarMgr::MarMgr(Parser &parser)
     : _parser(parser)
@@ -618,8 +459,8 @@ AGS::Parser::Parser(SrcList &src, FlagSet options, ccCompiledScript &scrip, Symb
     , _options(options)
     , _scrip(scrip)
     , _msgHandler(mh)
-    , _fcm(*this)
-    , _fim(*this)
+    , _callpointLabels(scrip, 0)
+    , _importLabels(scrip, 1)
     , _structRefs({})
 {
     _givm.clear();
@@ -969,22 +810,21 @@ void AGS::Parser::HandleEndOfSwitch()
     CodeCell const eq_opcode =
         _sym.IsAnyStringVartype(_nest.SwitchExprVartype()) ? SCMD_STRINGSEQUAL : SCMD_ISEQUAL;
 
-    const size_t number_of_cases = _nest.Chunks().size();
+    const size_t number_of_cases = _nest.Snippets().size();
     const size_t default_idx = _nest.SwitchDefaultIdx();
     for (size_t cases_idx = 0; cases_idx < number_of_cases; ++cases_idx)
     {
         if (cases_idx == default_idx)
             continue;
 
-        int id;
         CodeLoc const codesize = _scrip.codesize;
         // Emit the code for the case expression of the current case. Result will be in AX
-        _nest.WriteChunk(cases_idx, id);
-        _fcm.UpdateCallListOnWriting(codesize, id);
-        _fim.UpdateCallListOnWriting(codesize, id);
+        _nest.Snippets().at(cases_idx).Paste(_scrip);
 
         // "If switch expression equals case expression, jump to case"
-        WriteCmd(eq_opcode, SREG_AX, SREG_BX);
+        // Don't auto-generate a 'linenum' directive here: It will point to the end of the switch
+        // construct instead of to the respective 'case'/'default', and that is incorrect.
+        _scrip.WriteCmd(eq_opcode, SREG_AX, SREG_BX);
         _nest.SwitchCaseStart().at(cases_idx).WriteJump(SCMD_JNZ, _src.GetLineno());
     }
 
@@ -1483,7 +1323,7 @@ void AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool bo
         if (function_soffs < 0)
             UserError("Max. number of functions exceeded");
 		
-        _fcm.SetFuncCallpoint(name_of_func, function_soffs);
+        _callpointLabels.SetLabelValue(name_of_func, function_soffs);
         return;
     }
 
@@ -1581,7 +1421,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
         strcat(_scrip.imports[imports_idx], appendage);
     }
 
-    _fim.SetFuncCallpoint(name_of_func, imports_idx);
+    _importLabels.SetLabelValue(name_of_func, imports_idx);
 }
 
 void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows)
@@ -2560,7 +2400,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
     eres.Modifiable = false;
 }
 
-void AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expression, EvaluationResult &eres)
 {
     RestorePoint start_of_term(_scrip);
     Symbol const operator_sym = expression[op_idx];
@@ -2575,47 +2415,60 @@ void AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, Eva
     EvaluationResultToAx(eres);
    
     ForwardJump to_exit(_scrip);
-    
+
+    bool lazy_evaluation = false;
     if (kKW_And == operator_sym)
     {
-        // "&&" operator lazy evaluation: if AX is 0 then the AND has failed, 
-        // so just jump directly to the end of the term; 
+        // if AX is 0 then the AND has failed, so just jump directly to the end of the term
         // AX will still be 0 so that will do as the result of the calculation
+        lazy_evaluation = true;
+        expression.SetCursor(op_idx + 1);
         WriteCmd(SCMD_JZ, kDestinationPlaceholder);
         to_exit.AddParam();
     }
     else if (kKW_Or == operator_sym)
     {
-        // "||" operator lazy evaluation: if AX is non-zero then the OR has succeeded, 
-        // so just jump directly to the end of the term; 
+        // If AX is non-zero then the OR has succeeded, so just jump directly to the end of the term; 
         // AX will still be non-zero so that will do as the result of the calculation
+        lazy_evaluation = true;
+        expression.SetCursor(op_idx + 1);
         WriteCmd(SCMD_JNZ, kDestinationPlaceholder);
         to_exit.AddParam();
     }
+    else
+    {
+        // Hang on to the intermediate result
+        PushReg(SREG_AX);
+    }
 
-    PushReg(SREG_AX);
     SrcList rhs = SrcList(expression, op_idx + 1, expression.Length());
     if (0 == rhs.Length())
+    {
         // there is no right hand side for the expression
+        expression.SetCursor(op_idx + 1);
         UserError("Binary operator '%s' doesn't have a right hand side", _sym.GetName(operator_sym).c_str());
+    }
 
     ParseExpression_Term(rhs, eres);
+    size_t const expression_end_idx = expression.GetCursor();
 
     EvaluationResult eres_rhs = eres;
     EvaluationResultToAx(eres);
 
-    PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
-    _reg_track.SetRegister(SREG_BX);
-    // now the result of the left side is in BX, of the right side is in AX
+    if (!lazy_evaluation)
+    {
+        expression.SetCursor(op_idx + 1);
+        PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
+        _reg_track.SetRegister(SREG_BX);
+        // now the result of the left side is in BX, of the right side is in AX
+        CodeCell const opcode = GetOpcode(operator_sym, eres_lhs.Vartype, eres_rhs.Vartype);
+        WriteCmd(opcode, SREG_BX, SREG_AX);
+        WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
+    }
 
-    CodeCell const opcode = GetOpcode(operator_sym, eres_lhs.Vartype, eres_rhs.Vartype);
-    
-    WriteCmd(opcode, SREG_BX, SREG_AX);
-    WriteCmd(SCMD_REGTOREG, SREG_BX, SREG_AX);
-    _reg_track.SetRegister(SREG_BX);
     _reg_track.SetRegister(SREG_AX);
     eres.Location = EvaluationResult::kLOC_AX;
-
+    expression.SetCursor(expression_end_idx);
     to_exit.Patch(_src.GetLineno());
 
     if (_sym.IsBooleanOperator(operator_sym))
@@ -2628,11 +2481,11 @@ void AGS::Parser::ParseExpression_Binary(size_t op_idx, SrcList &expression, Eva
 
     if (kKW_And == operator_sym || kKW_Or == operator_sym)
     {
-        bool const left = (0 != _sym[eres_lhs.Symbol].LiteralD->Value);
+        bool const condition = (0 != _sym[eres_lhs.Symbol].LiteralD->Value);
         if (kKW_And == operator_sym)
-            eres = left ? eres_rhs : eres_lhs;
+            eres = condition ? eres_rhs : eres_lhs;
         else // kKW_Or
-            eres = left ? eres_lhs : eres_rhs;
+            eres = condition ? eres_lhs : eres_rhs;
         
         if (!_sym.IsAnyIntegerVartype(_sym[eres.Symbol].LiteralD->Vartype))
         {   // Swap an int literal in (note: Don't change the vartype of the pre-existing literal)
@@ -2883,8 +2736,13 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     {   
         _scrip.FixupPrevious(kFx_Import);
         if (!_scrip.IsImport(_sym.GetName(name_of_func)))
-            _fim.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
-        
+        {
+            // We don't know the import number of this function yet, so put a label here
+            // and keep track of the location in order to patch in the proper import number later on
+            _scrip.code[_scrip.codesize - 1] = _importLabels.Function2Label(name_of_func);
+            _importLabels.TrackLabelLoc(name_of_func, _scrip.codesize - 1);
+        }
+
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
         _reg_track.SetAllRegisters();
         // At runtime, we will arrive here when the function call has returned: Restore the stack
@@ -2896,8 +2754,12 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     // Func is non-import
     _scrip.FixupPrevious(kFx_Code);
     if (_sym[name_of_func].FunctionD->Offset < 0)
-        _fcm.TrackForwardDeclFuncCall(name_of_func, _scrip.codesize - 1, _src.GetCursor());
-    
+    {
+        // We don't know yet at which address the function is going to start, so put a label here
+        // and keep track of the location in order to patch in the correct address later on
+        _scrip.code[_scrip.codesize - 1] = _callpointLabels.Function2Label(name_of_func);
+        _callpointLabels.TrackLabelLoc(name_of_func, _scrip.codesize - 1);
+    }
     WriteCmd(SCMD_CALL, SREG_AX);  // Do the call
     _reg_track.SetAllRegisters();
 
@@ -3528,12 +3390,15 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
     if (_sym.IsVartype(this_vartype) && _sym[this_vartype].VartypeD->Components.count(first_sym))
     {
         // Fake a "this." here
+        // Eat the component, pretend that it is 'this'. We need to do this in order 
+        // to force the code that will be emitted to be connected to the proper place in the source.
+        expression.GetNext(); 
         AccessData_This(eres);
 
         // Going forward, the code should imply "this."
         // with the '.' already read in.
         implied_this_dot = true;
-        // Then the component needs to be read again.
+        // Then back up so that the component will be read again as the next symbol.
         expression.BackUp();
         return;
     }
@@ -3793,7 +3658,6 @@ void AGS::Parser::AccessData_AssignTo(SrcList &expression, EvaluationResult eres
     EvaluationResult rhs_eres = eres;
     if (EvaluationResult::kTY_Literal != rhs_eres.Type)
         EvaluationResultToAx(rhs_eres);
-
 
     // Get the LHS of the assignment for writing.
     // Protect the register from being clobbered that contains the result of the RHS.
@@ -6000,23 +5864,13 @@ void AGS::Parser::ParseWhile()
 
 void AGS::Parser::HandleEndOfWhile()
 {
-    // if it's the inner level of a 'for' loop,
-    // drop the yanked chunk (loop increment) back in
-    if (_nest.ChunksExist())
-    {
-        int id;
-        CodeLoc const write_start = _scrip.codesize;
-        _nest.WriteChunk(0u, id);
-        _fcm.UpdateCallListOnWriting(write_start, id);
-        _fim.UpdateCallListOnWriting(write_start, id);
-        _nest.Chunks().clear();
-    }
-
     // jump back to the start location
     _nest.Start().WriteJump(SCMD_JMP, _src.GetLineno());
 
-    // This ends the loop
-    _nest.JumpOut().Patch(_src.GetLineno());
+    // This ends the loop.
+    // Don't emit a 'linenum' directive: We can guarantee that we will only reach this place
+    // from the 'while' clause line of the 'for', which has been emitted in the last 'linenum'.
+    _nest.JumpOut().Patch(_src.GetLineno(), true);
     _nest.Pop();
 
     if (NSType::kFor != _nest.Type())
@@ -6127,21 +5981,20 @@ void AGS::Parser::ParseFor_InitClause(Symbol peeksym)
 
 void AGS::Parser::ParseFor_WhileClause()
 {
-    // Make the last emitted line number invalid so that a linenumber bytecode is emitted
-    _scrip.LastEmittedLineno = INT_MAX;
     if (kKW_Semicolon == _src.PeekNext())
-    {
-        // Not having a while clause is tantamount to the while condition "true".
-        // So let's write "true" to the AX register.
-        WriteCmd(SCMD_LITTOREG, SREG_AX, 1);
-        _reg_track.SetRegister(SREG_AX);
+        // Not having a while clause means no check
         return;
-    }
 
+    // Make sure that a linenumber bytecode is emitted
+    _scrip.InvalidateLastEmittedLineno();
     EvaluationResult eres;
     ParseExpression(_src, eres);
     EvaluationResultToAx(eres);
-    CheckVartypeMismatch(eres.Vartype, kKW_Int, true, "Second clause in 'for' statement");
+    CheckVartypeMismatch(
+        eres.Vartype,
+        kKW_Int,
+        true,
+        "Second clause in 'for' statement");
 }
 
 void AGS::Parser::ParseFor_IterateClause()
@@ -6149,17 +6002,23 @@ void AGS::Parser::ParseFor_IterateClause()
     if (kKW_CloseParenthesis == _src.PeekNext())
         return; // iterate clause is empty
 
+    // Make sure that a linenum pseudo-directive is emitted
+    _scrip.InvalidateLastEmittedLineno();
     return ParseAssignmentOrExpression();
 }
 
 void AGS::Parser::ParseFor()
 {
     // "for (I; E; C) {...}" is equivalent to "{ I; while (E) {...; C} }"
-    // We implement this with TWO levels of the nesting stack.
+    // We implement this with TWO levels of the nesting stack: an outer and an inner level.
     // The outer level contains "I"
-    // The inner level contains "while (E) { ...; C}"
+    // Then execution jumps to E
+    // The inner level starts with C E
+    // If E fails, execution exits the inner level to the rest of the outer level.
+    // At the end of the inner level, execution jumps back up to C
+    // The rest of the outer level frees I.
 
-    // Outer level
+    // Outer nesting level
     _nest.Push(NSType::kFor);
 
     Expect(kKW_OpenParenthesis, _src.GetNext());
@@ -6170,44 +6029,67 @@ void AGS::Parser::ParseFor()
 
     // Initialization clause (I)
     ParseFor_InitClause(peeksym);
-    Expect(kKW_Semicolon, _src.GetNext(), "Expected ';' after for loop initializer clause");
-    
-    // Remember where the code of the while condition starts.
-    CodeLoc const while_cond_loc = _scrip.codesize;
+    Expect(
+        kKW_Semicolon,
+        _src.GetNext(),
+        "Expected ';' after the initializer clause of the 'for' loop ");
 
-    ParseFor_WhileClause();
-    Expect(kKW_Semicolon, _src.GetNext(), "Expected ';' after for loop while clause");
-    
-    // Remember where the code of the iterate clause starts.
-    CodeLoc const iterate_clause_loc = _scrip.codesize;
-    size_t const iterate_clause_fixups_start = _scrip.numfixups;
-    size_t const iterate_clause_lineno = _src.GetLineno();
-
-    ParseFor_IterateClause();
-    Expect(kKW_CloseParenthesis, _src.GetNext(), "Expected ')' after for loop iterate clause");
-    
     // Inner nesting level
     _nest.Push(NSType::kWhile);
-    _nest.Start().Set(while_cond_loc);
+    _nest.Start().Set();
 
-    // We've just generated code for getting to the next loop iteration.
-     // But we don't need that code right here; we need it at the bottom of the loop.
-     // So rip it out of the bytecode base and save it into our nesting stack.
-    int id;
-    size_t const yank_size = _scrip.codesize - iterate_clause_loc;
-    _nest.YankChunk(iterate_clause_lineno, iterate_clause_loc, iterate_clause_fixups_start, id);
-    _fcm.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
-    _fim.UpdateCallListOnYanking(iterate_clause_loc, yank_size, id);
+    // Parse the 'while' clause, then cut out its code and save it
+    RestorePoint while_clause_start(_scrip);
+    Snippet while_clause_snippet;
+    ParseFor_WhileClause();
+    Expect(
+        kKW_Semicolon,
+        _src.GetNext(),
+        "Expected ';' after the condition clause of the 'for' loop");
+    while_clause_start.Cut(while_clause_snippet, false);
 
-    // Code for "If the expression we just evaluated is false, jump over the loop body."
-    WriteCmd(SCMD_JZ, kDestinationPlaceholder);
-    _nest.JumpOut().AddParam();
+    // Parse the 'iterate' clause, then cut out its code and save it
+    RestorePoint iterate_clause_start(_scrip);
+    Snippet iterate_clause_snippet;
+    ParseFor_IterateClause();
+    Expect(
+        kKW_CloseParenthesis,
+        _src.GetNext(),
+        "Expected ')' after the iterator clause of the 'for' loop ");
+    iterate_clause_start.Cut(iterate_clause_snippet, false);
+
+    if (iterate_clause_snippet.IsEmpty())
+    {
+        // At the end of the 'for' construct or at a 'continue', 
+        // we need to jump directly to the code of the 'while' clause (which will be inserted _here_).
+        _nest.Start().Set();
+    }
+    else
+    {
+        // We need to insert a jump over the code for the 'iterate' clause
+        // so that it won't be executed the first time that the 'for' construct runs.
+        ForwardJump after_iterate_clause(_scrip);
+        WriteCmd(SCMD_JMP, kDestinationPlaceholder);
+        after_iterate_clause.AddParam();
+
+        // At the end of the 'for' construct or at a 'continue',
+        // we need to jump to the start of the 'iterate' clause (which will be inserted _here_)
+        _nest.Start().Set();
+        iterate_clause_snippet.Paste(_scrip);
+        after_iterate_clause.Patch(_src.GetCursor()); 
+    }
+
+    // An empty 'while' clause is tantamount to a no-op, so only do things if it isn't empty.
+    if (!while_clause_snippet.IsEmpty())
+    {
+        while_clause_snippet.Paste(_scrip);
+        _scrip.WriteCmd(SCMD_JZ, kDestinationPlaceholder); // Don't emit a 'linenum' here
+        _nest.JumpOut().AddParam();
+    }
 }
 
 void AGS::Parser::ParseSwitch()
 {
-    RestorePoint rp{ _scrip };
-
     // Get the switch expression
     EvaluationResult eres;
     ParseDelimitedExpression(_src, kKW_OpenParenthesis, eres);
@@ -6216,7 +6098,8 @@ void AGS::Parser::ParseSwitch()
     if (kKW_CloseBrace == _src.PeekNext())
     {
         // A switch without any clauses, tantamount to a NOP
-        rp.Restore();
+        // Don't throw away the code that was generated for the switch expression:
+        // It might have side effects!
         _src.GetNext(); // Eat '}'
         return;
     }
@@ -6246,6 +6129,7 @@ void AGS::Parser::ParseSwitchFallThrough()
 
 void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 {
+    RestorePoint switch_label_start(_scrip);
     CodeLoc const start_of_code_loc = _scrip.codesize;
     size_t const start_of_fixups = _scrip.numfixups;
     size_t const start_of_code_lineno = _src.GetLineno();
@@ -6273,7 +6157,7 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     BackwardJumpDest case_code_start(_scrip);
     case_code_start.Set();
     _nest.SwitchCaseStart().push_back(case_code_start);
-    
+
     if (kKW_Default == case_or_default)
     {
         if (NestingStack::kNoDefault != _nest.SwitchDefaultIdx())
@@ -6298,12 +6182,15 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     }
 
     // Rip out the already generated code for the case expression and store it with the switch
-    int id;
-    size_t const yank_size = _scrip.codesize - start_of_code_loc;
-    _nest.YankChunk(start_of_code_lineno, start_of_code_loc, start_of_fixups, id);
-    _fcm.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
-    _fim.UpdateCallListOnYanking(start_of_code_loc, yank_size, id);
-
+    // In order to process sequences of 'case'/'default' statements without intervening code,
+    //      don't keep the starting 'linenum' directive in the code
+    //          that the 'case'/'default' may have generated,
+    //      but do invalidate line numbers so that a 'linenum' directive
+    //          will be generated as soon as "real" code comes up.
+    Snippet snippet;
+    switch_label_start.Cut(snippet, false);
+    _nest.Snippets().push_back(snippet);
+    _scrip.InvalidateLastEmittedLineno();
     return Expect(kKW_Colon, _src.GetNext());
 }
 
@@ -6355,7 +6242,7 @@ void AGS::Parser::ParseBreak()
     Expect(kKW_Semicolon, _src.GetNext());
     
     // Find the (level of the) looping construct to which the break applies
-    // Note that this is similar, but _different_ from "continue".
+    // Note that this is similar, but _different_ from what happens at 'continue'.
     size_t nesting_level;
     for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
     {
@@ -6377,8 +6264,8 @@ void AGS::Parser::ParseBreak()
     WriteCmd(SCMD_JMP, kDestinationPlaceholder);
     _nest.JumpOut(nesting_level).AddParam();
 
-    // The locals only disappear if control flow actually follows the "break"
-    // statement. Otherwise, below the statement, the locals remain on the stack.
+    // The locals only disappear if control flow actually follows the 'break' statement. 
+    // Otherwise, i.e., below the statement, the locals remain on the stack.
     // So restore the OffsetToLocalVarBlock.
     _scrip.OffsetToLocalVarBlock = save_offset;
 }
@@ -6387,8 +6274,8 @@ void AGS::Parser::ParseContinue()
 {
     Expect(kKW_Semicolon, _src.GetNext());
     
-    // Find the level of the looping construct to which the break applies
-    // Note that this is similar, but _different_ from "break".
+    // Find the level of the looping construct to which the 'continue' applies
+    // Note that this is similar, but _different_ from what happens at 'break'.
     size_t nesting_level;
     for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
     {
@@ -6406,22 +6293,12 @@ void AGS::Parser::ParseContinue()
     FreeDynpointersOfLocals(nesting_level + 1);
     RemoveLocalsFromStack(nesting_level + 1);
 
-    // if it's a for loop, drop the yanked loop increment chunk in
-    if (_nest.ChunksExist(nesting_level))
-    {
-        int id;
-        CodeLoc const write_start = _scrip.codesize;
-        _nest.WriteChunk(nesting_level, 0u, id);
-        _fcm.UpdateCallListOnWriting(write_start, id);
-        _fim.UpdateCallListOnWriting(write_start, id);
-    }
-
     // Jump to the start of the loop
     _nest.Start(nesting_level).WriteJump(SCMD_JMP, _src.GetLineno());
 
-    // The locals only disappear if control flow actually follows the "continue"
-    // statement. Otherwise, below the statement, the locals remain on the stack.
-     // So restore the OffsetToLocalVarBlock.
+    // The locals only disappear if control flow actually follows the 'continue' statement. 
+    // Otherwise, i.e., below the statement, the locals remain on the stack.
+    // So restore the OffsetToLocalVarBlock.
     _scrip.OffsetToLocalVarBlock = save_offset;
 }
 
@@ -6539,7 +6416,7 @@ void AGS::Parser::RegisterGuard(RegisterList const &guarded_registers, std::func
     // Save the current MAR manager in case it gets clobbered and needs to be restored
     MarMgr save_mar_state(_marMgr);
 
-    RegisterTracking::TickT register_set_point[CC_NUM_REGISTERS];
+    RegisterTracking::TickT register_set_point[CC_NUM_REGISTERS] = {};
     for (auto it = guarded_registers.begin(); it != guarded_registers.end(); ++it)
         register_set_point[*it] = _reg_track.GetRegister(*it);
 
@@ -6786,8 +6663,6 @@ void AGS::Parser::Parse_PreAnalyzePhase()
 
     _pp = PP::kPreAnalyze;
     ParseInput();
-    
-    _fcm.Reset();
 
     // Keep (just) the headers of functions that have a body to the main symbol table
     // Reset everything else in the symbol table,
@@ -6861,9 +6736,15 @@ void AGS::Parser::Parse()
         
         _src.SetCursor(start_of_input);
         Parse_MainPhase();
-        
-        _fcm.CheckForUnresolvedFuncs();
-        _fim.CheckForUnresolvedFuncs();
+
+        _scrip.ReplaceLabels();
+        if (!_scrip.Labels.empty())
+        {
+            UserError(
+                "Function '%s' has been referenced in this file but never defined",
+                _sym.GetName(_scrip.Labels[0] / 10).c_str());
+        }
+
         Parse_CheckForUnresolvedStructForwardDecls();
         if (FlagIsSet(_options, SCOPT_EXPORTALL))
 			Parse_ExportAllFunctions();

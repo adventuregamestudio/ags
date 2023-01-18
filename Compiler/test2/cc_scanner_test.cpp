@@ -106,7 +106,7 @@ TEST_F(Scan, ShortInputString1) {
 
     // String literal isn't ended
 
-    const char *Input = "\"Supercalifragilisticexpialidocious";
+    char const *Input = "\"Supercalifragilisticexpialidocious";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -118,7 +118,7 @@ TEST_F(Scan, ShortInputString2) {
 
     // String literal isn't ended
 
-    const char *Input = "\"Donaudampfschiffahrtskapitaen\\";
+    char const *Input = "\"Donaudampfschiffahrtskapitaen\\";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -130,7 +130,7 @@ TEST_F(Scan, ShortInputString3) {
 
     // String literal isn't ended
 
-    const char *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
+    char const *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -238,6 +238,7 @@ TEST_F(Scan, Strings)
     std::string Input =
         "\"ABC\"\n'G' \
          \"\nH\" flurp";
+
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
     size_t lno;
     std::string errorstring;
@@ -299,7 +300,7 @@ TEST_F(Scan, StringCollect)
 
 TEST_F(Scan, LiteralInt1)
 {
-    const char *inp = "15 3 05 ";
+    char const *inp = "15 3 05 ";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -322,7 +323,7 @@ TEST_F(Scan, LiteralInt1)
 TEST_F(Scan, LiteralInt2)
 {
     // Accept LONG_MIN written in decimal (will yield 2 symbols)
-    const char *inp = "-2147483648";
+    char const *inp = "-2147483648";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -333,7 +334,7 @@ TEST_F(Scan, LiteralInt2)
 TEST_F(Scan, LiteralInt3)
 {
     // Accept large hexadecimal, treat as negative number (will yield 1 symbol)
-    const char *inp = "0XFF000000";
+    char const *inp = "0XFF000000";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -346,7 +347,7 @@ TEST_F(Scan, LiteralInt3)
 TEST_F(Scan, LiteralInt4)
 {
     // Accept LONG_MIN written as hexadecimal (will yield 1 symbol)
-    const char *inp = "0x80000000";
+    char const *inp = "0x80000000";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -358,7 +359,7 @@ TEST_F(Scan, LiteralInt4)
 TEST_F(Scan, LiteralInt5)
 {
     // Leading zeroes in hex literal
-    const char *inp = "0x000000001234";
+    char const *inp = "0x000000001234";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -370,7 +371,7 @@ TEST_F(Scan, LiteralInt5)
 TEST_F(Scan, LiteralInt6a)
 {
     // Huge hexadecimal, too many significant hex digits
-    const char *inp = "0x000123456789";
+    char const *inp = "0x000123456789";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -380,7 +381,7 @@ TEST_F(Scan, LiteralInt6a)
 TEST_F(Scan, LiteralInt6b)
 {
     // Huge decimal 
-    const char *inp = "1234567890123456789012345678901234567890123456789012345678901234567890"
+    char const *inp = "1234567890123456789012345678901234567890123456789012345678901234567890"
                       "1234567890123456789012345678901234567890123456789012345678901234567890"
                       "1234567890123456789012345678901234567890123456789012345678901234567890";
 
@@ -393,7 +394,7 @@ TEST_F(Scan, LiteralInt7)
 {
     // Accept number that begins with '0' but not '0x';
     // interpret such a number in decimal (!) notation
-    const char *inp = "0123";
+    char const *inp = "0123";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -405,7 +406,7 @@ TEST_F(Scan, LiteralInt7)
 TEST_F(Scan, LiteralIntLimits)
 {
     // Should correctly parse INT32_MAX and INT32_MIN
-    const char *inp1 = "-2147483648 2147483647";
+    char const *inp1 = "-2147483648 2147483647";
 
     AGS::Scanner scanner(inp1, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -427,14 +428,14 @@ TEST_F(Scan, LiteralIntLimits)
 TEST_F(Scan, LiteralIntOverflow)
 {
     // Should detect int32 overflow
-    const char *inp1 = "-2147483649";
+    char const *inp1 = "-2147483649";
     
     AGS::Scanner scanner1(inp1, token_list, string_collector, sym, mh);
     scanner1.Scan();
     ASSERT_TRUE(mh.HasError());
 
     // The scanner won't catch this, but the parser will.
-    // const char *inp2 = "2147483648";
+    // char const *inp2 = "2147483648";
     // AGS::Scanner scanner2(inp2, token_list, string_collector, sym, mh);
     // scanner2.Scan();
     // ASSERT_TRUE(mh.HasError());
@@ -442,7 +443,7 @@ TEST_F(Scan, LiteralIntOverflow)
 
 TEST_F(Scan, LiteralIntHex)
 {
-    const char *inp = "0x7FFFFFFF 0xFFFFFFFF";
+    char const *inp = "0x7FFFFFFF 0xFFFFFFFF";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -460,7 +461,7 @@ TEST_F(Scan, LiteralIntHex)
 TEST_F(Scan, LiteralFloat)
 {
     //           0u 1u  2u  3u  4u   5u    6u   7u    8u   9u    10u
-    const char *inp = "3. 3.0 0.0 0.3 33E5 3e-15 3.E5 3.E-5 .3E5 .3E-5 3.14E+2";
+    char const *inp = "3. 3.0 0.0 0.3 33E5 3e-15 3.E5 3.E-5 .3E5 .3E-5 3.14E+2";
 
     AGS::Scanner scanner(inp, token_list, string_collector, sym, mh);
     scanner.Scan();
@@ -602,7 +603,7 @@ TEST_F(Scan, BackslashBracketInChar) {
 
     // Character literal '\[' is forbidden ('[' is okay)
 
-    const char *Input = "int i = '\\[';";
+    char const *Input = "int i = '\\[';";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     scanner.Scan();
@@ -615,7 +616,7 @@ TEST_F(Scan, BackslashOctal1) {
 
     // "\19" is equivalent to "\1" + "9" because 9 isn't an octal digit
 
-    const char *Input = "String s = \"Boom\\19 Box\";";
+    char const *Input = "String s = \"Boom\\19 Box\";";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -635,7 +636,7 @@ TEST_F(Scan, BackslashOctal2) {
     // '/' is just below the lowest digit '0'; "\7/" is equivalent to "\7" + "/"
     // Octal 444 is too large for a character, so this is equivalent to "\44" + "4"
 
-    const char *Input = "String s = \"Boom\\7/Box\\444/Borg\";";
+    char const *Input = "String s = \"Boom\\7/Box\\444/Borg\";";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -652,7 +653,7 @@ TEST_F(Scan, BackslashOctal3) {
 
     // '\102' is 66 corresponds to 'B'; '\234' is 156u is -100
 
-    const char *Input = "\"b\\102b\" '\\234'";
+    char const *Input = "\"b\\102b\" '\\234'";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
     
@@ -668,7 +669,7 @@ TEST_F(Scan, BackslashHex1) {
 
     // Expect a hex digit after '\x'
 
-    const char *Input = "\"Le\\xicon\"";
+    char const *Input = "\"Le\\xicon\"";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -685,7 +686,7 @@ TEST_F(Scan, BackslashHex2) {
     // End hex when 'g' is encountered; that's directly after 'F'
     // End hex after two hex digits
 
-    const char *Input = "\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"";
+    char const *Input = "\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"";
 
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
@@ -700,7 +701,7 @@ TEST_F(Scan, BackslashOctHex) {
     
     // Test all combinations of upper and lower letters and numbers
 
-    const char *Input =
+    char const *Input =
         "\" \\x19 \\x2a \\x3A \\xb4 \\xcd \\xeB \\xC5 \\xDf \\xEF \""
         "\" \\31 \\52 \\72 \\264 \\315 \\353 \\305 \\337 \\357 \"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
@@ -718,7 +719,7 @@ TEST_F(Scan, BackslashCSym) {
     
     // Test different symbol characters after '\'
 
-    const char *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
+    char const *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -731,7 +732,7 @@ TEST_F(Scan, BackslashBackslash) {
     
     // Backslash Backslash in strings or char literals converts to backslash.
 
-    const char *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
+    char const *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
@@ -763,7 +764,7 @@ TEST_F(Scan, UnknownKeywordAfterReadonly) {
     // Now, semantic struct parsing has been completely relocated into the parser,
     // and thus this sequence should not pose problems.
 
-    const char *inpl =   "struct MyStruct \
+    char const *inpl =   "struct MyStruct \
                     {\
                       readonly int2 a; \
                       readonly int2 b; \
@@ -885,7 +886,7 @@ TEST_F(Scan, MatchBraceParen5)
     // The scanner checks that nested (), [], {} match.
     // Opener without closer
 
-    const char *Input = "\
+    char const *Input = "\
             struct MyStruct \n\
             {               \n\
                 int i;      \n\
@@ -894,6 +895,7 @@ TEST_F(Scan, MatchBraceParen5)
             {               \n\
                 S.          \n\
         ";
+
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
@@ -907,7 +909,7 @@ TEST_F(Scan, MatchBraceParen6)
     // The scanner checks that nested (), [], {} match.
     // Opener without closer
 
-    const char *Input = "\
+    char const *Input = "\
             struct MyStruct \n\
             {               \n\
                 int i;      \n\
@@ -916,6 +918,7 @@ TEST_F(Scan, MatchBraceParen6)
                 S.          \n\
             }               \n\
         ";
+
     AGS::Scanner scanner = { Input, token_list, string_collector, sym, mh };
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
@@ -946,11 +949,12 @@ TEST_F(Scan, ConsecutiveStringLiterals2)
     // Literals that start with __NEWSCRIPTSTART_ are section start markers
     // and must NOT be concatenated.
 
-    const char *input = " \
+    char const *input = " \
         \"__NEWSCRIPTSTART_File1\" \
         \"xyzzy\" \
         \"__NEWSCRIPTSTART_File2\" \
         ";
+
     AGS::Scanner scanner(input, token_list, string_collector, sym, mh);
 
     EXPECT_EQ(0, scanner.GetNextSymstringT(symstring, sct, value));

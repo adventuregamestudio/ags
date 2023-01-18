@@ -14,12 +14,12 @@ repositories {
 
 android {
     useLibrary 'org.apache.http.legacy'
-    compileSdkVersion = 28
-    buildToolsVersion = '28.0.3'
+    compileSdkVersion = 33
+    buildToolsVersion = '33.0.1'
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 33
     }
 
     buildTypes {
@@ -27,6 +27,7 @@ android {
             minifyEnabled false
         }
     }
+    namespace 'com.google.android.vending.licensing'
 }
 
 dependencies {

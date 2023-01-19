@@ -449,6 +449,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         }
         else
         {
+            _stageVirtualScreen = virtualScreen;
             cur_spr = RenderSpriteBatch(batch, cur_spr, virtualScreen, view_offx + transform.X, view_offy + transform.Y);
         }
     }

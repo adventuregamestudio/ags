@@ -231,7 +231,7 @@ enum TextureHint
 struct VMSpriteBatch
 {
     uint32_t ID = 0;
-    // Clipping viewport
+    // Clipping viewport, in *absolute* (screen) coordinates
     Rect Viewport;
     // Transformation matrix, built from the batch description
     glm::mat4 Matrix;

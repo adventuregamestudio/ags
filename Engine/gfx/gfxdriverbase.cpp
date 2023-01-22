@@ -30,10 +30,7 @@ GraphicsDriverBase::GraphicsDriverBase()
     , _spriteEvtCallback(nullptr)
     , _initGfxCallback(nullptr)
 {
-    // Initialize default sprite batch, it will be used when no other batch was activated
-    _actSpriteBatch = 0;
-    _spriteBatchDesc.push_back(SpriteBatchDesc());
-    _spriteBatchRange.push_back(std::make_pair(0, 0));
+    _actSpriteBatch = UINT32_MAX;
     _rendSpriteBatch = UINT32_MAX;
 }
 
@@ -90,6 +87,9 @@ void GraphicsDriverBase::BeginSpriteBatch(const SpriteBatchDesc &desc)
 
 void GraphicsDriverBase::EndSpriteBatch()
 {
+    assert(_actSpriteBatch != UINT32_MAX);
+    if (_actSpriteBatch == UINT32_MAX)
+        return;
     _spriteBatchRange[_actSpriteBatch].second = GetLastDrawEntryIndex();
     _actSpriteBatch = _spriteBatchDesc[_actSpriteBatch].Parent;
 }
@@ -97,11 +97,9 @@ void GraphicsDriverBase::EndSpriteBatch()
 void GraphicsDriverBase::ClearDrawLists()
 {
     ResetAllBatches();
-    _actSpriteBatch = 0;
+    _actSpriteBatch = UINT32_MAX;
     _spriteBatchDesc.clear();
     _spriteBatchRange.clear();
-    _spriteBatchDesc.push_back(SpriteBatchDesc());
-    _spriteBatchRange.push_back(std::make_pair(0, 0));
 }
 
 void GraphicsDriverBase::OnInit()
@@ -138,10 +136,6 @@ void GraphicsDriverBase::OnSetNativeRes(const GraphicResolution &native_res)
     _srcRect = RectWH(0, 0, native_res.Width, native_res.Height);
     _srcColorDepth = native_res.ColorDepth;
     OnScalingChanged();
-
-    // Adjust default sprite batch making it comply to native size
-    _spriteBatchDesc[0].Viewport = RectWH(native_res);
-    InitSpriteBatch(_actSpriteBatch, _spriteBatchDesc[_actSpriteBatch]);
 }
 
 void GraphicsDriverBase::OnSetRenderFrame(const Rect &dst_rect)

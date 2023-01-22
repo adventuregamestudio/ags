@@ -112,9 +112,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _vmem_r_shift_32 = 16;
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 0;
-
-  // Initialize default sprite batch, it will be used when no other batch was activated
-  D3DGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -1234,8 +1231,8 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
 void D3DGraphicsDriver::RenderSpriteBatches()
 {
     // Close unended batches, and issue a warning
-    assert(_actSpriteBatch == 0);
-    while (_actSpriteBatch > 0)
+    assert(_actSpriteBatch == UINT32_MAX);
+    while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
 
     // Render all the sprite batches with necessary transformations;
@@ -1374,7 +1371,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Apply parent batch's settings, if preset;
     // except when the new batch is started on a separate texture
     Rect viewport = desc.Viewport;
-    if ((desc.Parent > 0) && !desc.RenderTarget)
+    if ((desc.Parent != UINT32_MAX) && !desc.RenderTarget)
     {
         const auto &parent = _spriteBatches[desc.Parent];
         // Combine sprite matrix with the parent's
@@ -1439,7 +1436,7 @@ void D3DGraphicsDriver::RestoreDrawLists()
     _spriteBatchRange = _backupBatchRange;
     _spriteBatches = _backupBatches;
     _spriteList = _backupSpriteList;
-    _actSpriteBatch = 0;
+    _actSpriteBatch = UINT32_MAX;
 }
 
 void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)

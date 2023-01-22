@@ -59,9 +59,6 @@ SDLRendererGraphicsDriver::SDLRendererGraphicsDriver()
   _origVirtualScreen = nullptr;
   virtualScreen = nullptr;
   _stageVirtualScreen = nullptr;
-
-  // Initialize default sprite batch, it will be used when no other batch was activated
-  SDLRendererGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -338,7 +335,7 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
     Rect viewport = desc.Viewport;
     SpriteTransform transform = desc.Transform;
     Bitmap *parent_surf = virtualScreen;
-    if (desc.Parent > 0u)
+    if (desc.Parent != UINT32_MAX)
     {
         const auto &parent = _spriteBatches[desc.Parent];
         if (parent.Surface)
@@ -443,8 +440,8 @@ void SDLRendererGraphicsDriver::SetStageScreen(const Size & /*sz*/, int /*x*/, i
 void SDLRendererGraphicsDriver::RenderToBackBuffer()
 {
     // Close unended batches, and issue a warning
-    assert(_actSpriteBatch == 0);
-    while (_actSpriteBatch > 0)
+    assert(_actSpriteBatch == UINT32_MAX);
+    while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
 
     // Render all the sprite batches with necessary transformations
@@ -479,7 +476,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
             const auto &batch = _spriteBatches[cur_bat];
             const auto &batch_desc = _spriteBatchDesc[cur_bat];
             Bitmap *surface = batch.Surface.get();
-            Bitmap *parent_surf = ((batch_desc.Parent > 0u) && _spriteBatches[batch_desc.Parent].Surface) ?
+            Bitmap *parent_surf = ((batch_desc.Parent != UINT32_MAX) && _spriteBatches[batch_desc.Parent].Surface) ?
                 _spriteBatches[batch_desc.Parent].Surface.get() : virtualScreen;
             const Rect &viewport = batch.Viewport;
             const SpriteTransform &transform = batch.Transform;
@@ -509,7 +506,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
             const auto &batch = _spriteBatches[cur_bat];
             const auto &batch_desc = _spriteBatchDesc[cur_bat];
             Bitmap *surface = batch.Surface.get();
-            Bitmap *parent_surf = ((batch_desc.Parent > 0u) && _spriteBatches[batch_desc.Parent].Surface) ?
+            Bitmap *parent_surf = ((batch_desc.Parent != UINT32_MAX) && _spriteBatches[batch_desc.Parent].Surface) ?
                 _spriteBatches[batch_desc.Parent].Surface.get() : virtualScreen;
             const Rect &viewport = batch.Viewport;
 
@@ -533,7 +530,7 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         }
     }
 
-    assert(rend_batches.size() <= 1); // FIXME: can't assert empty, because there's some oversight with EndSpriteBatch()
+    assert(rend_batches.empty());
     _stageVirtualScreen = virtualScreen;
     _rendSpriteBatch = UINT32_MAX;
     ClearDrawLists();

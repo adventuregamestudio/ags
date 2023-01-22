@@ -229,9 +229,6 @@ bool OGLGraphicsDriver::FirstTimeInit()
 #endif
   Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
-  // Initialize default sprite batch, it will be used when no other batch was activated
-  OGLGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
-
   TestRenderToTexture();
 
   if(!CreateShaders()) { // requires glad Load successful
@@ -1296,8 +1293,8 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, con
 void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 {
     // Close unended batches, and issue a warning
-    assert(_actSpriteBatch == 0);
-    while (_actSpriteBatch > 0)
+    assert(_actSpriteBatch == UINT32_MAX);
+    while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
 
     // TODO: see if it's possible to refactor and not enable/disable scissor test
@@ -1444,7 +1441,7 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Apply parent batch's settings, if preset
     // except when the new batch is started on a separate texture
     Rect viewport = desc.Viewport;
-    if ((desc.Parent > 0) && !desc.RenderTarget)
+    if ((desc.Parent != UINT32_MAX) && !desc.RenderTarget)
     {
         const auto &parent = _spriteBatches[desc.Parent];
         // Combine sprite matrix with the parent's
@@ -1509,7 +1506,7 @@ void OGLGraphicsDriver::RestoreDrawLists()
     _spriteBatchRange = _backupBatchRange;
     _spriteBatches = _backupBatches;
     _spriteList = _backupSpriteList;
-    _actSpriteBatch = 0;
+    _actSpriteBatch = UINT32_MAX;
 }
 
 void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)

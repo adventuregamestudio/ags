@@ -63,5 +63,14 @@ namespace AGS.Editor
         {
             lstTemplates.Focus();
         }
+
+        private void lstTemplates_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            if (e.IsSelected && e.ItemIndex >= 0)
+                tbDescription.Text = string.IsNullOrWhiteSpace(_templates[e.ItemIndex].Description)
+                    ? "No description available." : _templates[e.ItemIndex].Description;
+            else
+                tbDescription.Text = "";
+        }
     }
 }

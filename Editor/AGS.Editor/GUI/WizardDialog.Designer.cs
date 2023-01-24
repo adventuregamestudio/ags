@@ -49,7 +49,9 @@ namespace AGS.Editor
             // 
             // groupBox1
             // 
-            this.groupBox1.Location = new System.Drawing.Point(12, 295);
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Location = new System.Drawing.Point(12, 389);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(516, 10);
             this.groupBox1.TabIndex = 0;
@@ -57,7 +59,8 @@ namespace AGS.Editor
             // 
             // btnNext
             // 
-            this.btnNext.Location = new System.Drawing.Point(353, 311);
+            this.btnNext.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnNext.Location = new System.Drawing.Point(353, 405);
             this.btnNext.Name = "btnNext";
             this.btnNext.Size = new System.Drawing.Size(83, 27);
             this.btnNext.TabIndex = 1;
@@ -67,8 +70,9 @@ namespace AGS.Editor
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(445, 311);
+            this.btnCancel.Location = new System.Drawing.Point(445, 405);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(83, 27);
             this.btnCancel.TabIndex = 2;
@@ -77,7 +81,8 @@ namespace AGS.Editor
             // 
             // btnBack
             // 
-            this.btnBack.Location = new System.Drawing.Point(264, 311);
+            this.btnBack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBack.Location = new System.Drawing.Point(264, 405);
             this.btnBack.Name = "btnBack";
             this.btnBack.Size = new System.Drawing.Size(83, 27);
             this.btnBack.TabIndex = 3;
@@ -87,25 +92,29 @@ namespace AGS.Editor
             // 
             // panel1
             // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.White;
             this.panel1.Controls.Add(this.pnlMainPages);
             this.panel1.Controls.Add(this.lblIntroText);
             this.panel1.Controls.Add(this.lblTitle);
             this.panel1.Controls.Add(this.pictureBox1);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(540, 300);
+            this.panel1.Size = new System.Drawing.Size(540, 394);
             this.panel1.TabIndex = 5;
             // 
             // pnlMainPages
             // 
+            this.pnlMainPages.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlMainPages.BackColor = System.Drawing.SystemColors.Control;
             this.pnlMainPages.Controls.Add(this.pnlHeader);
-            this.pnlMainPages.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMainPages.Location = new System.Drawing.Point(0, 0);
             this.pnlMainPages.Name = "pnlMainPages";
-            this.pnlMainPages.Size = new System.Drawing.Size(540, 300);
+            this.pnlMainPages.Size = new System.Drawing.Size(540, 394);
             this.pnlMainPages.TabIndex = 8;
             // 
             // pnlHeader
@@ -145,7 +154,7 @@ namespace AGS.Editor
             this.lblIntroText.Size = new System.Drawing.Size(291, 199);
             this.lblIntroText.TabIndex = 7;
             this.lblIntroText.Text = "This wizard will guide you through doing something or other, and if youér lucky s" +
-                "omething else.";
+    "omething else.";
             // 
             // lblTitle
             // 
@@ -173,8 +182,9 @@ namespace AGS.Editor
             this.AcceptButton = this.btnNext;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.AutoSize = true;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(540, 343);
+            this.ClientSize = new System.Drawing.Size(540, 437);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.btnBack);
             this.Controls.Add(this.btnCancel);

@@ -91,6 +91,7 @@ const char *old_editor_main_game_file = "ac2game.dta";
 const char *TEMPLATE_LOCK_FILE = "template.dta";
 const char *TEMPLATE_ICON_FILE = "template.ico";
 const char *GAME_ICON_FILE = "user.ico";
+const char *TEMPLATE_DESC_FILE = "template.txt";
 const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
@@ -451,7 +452,8 @@ static bool load_asset_data(AssetManager *mgr, const char *asset_name, std::vect
     return true;
 }
 
-bool load_template_file(const AGSString &fileName, std::vector<char> &iconDataBuffer, bool isRoomTemplate)
+bool load_template_file(const AGSString &fileName, AGSString &description,
+    std::vector<char> &iconDataBuffer, bool isRoomTemplate)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());
@@ -504,6 +506,13 @@ bool load_template_file(const AGSString &fileName, std::vector<char> &iconDataBu
 		    }
             in.reset();
 	    }
+
+        if (templateMgr->DoesAssetExist(TEMPLATE_DESC_FILE))
+        {
+            std::vector<char> desc_data;
+            load_asset_data(templateMgr.get(), TEMPLATE_DESC_FILE, desc_data);
+            description.SetString(&desc_data.front(), desc_data.size());
+        }
 
       int useIcon = 0;
       const char *iconName = TEMPLATE_ICON_FILE;

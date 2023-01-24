@@ -10,12 +10,14 @@ namespace AGS.Types
 	{
 		protected string _fileName;
 		protected string _friendlyName;
-		protected Icon _icon;
+        protected string _description;
+        protected Icon _icon;
 
-		public BaseTemplate(string fileName, Icon icon)
+        public BaseTemplate(string fileName, string description, Icon icon)
 		{
 			_fileName = fileName;
-			_icon = icon;
+            _description = description;
+            _icon = icon;
 			if (_fileName != null)
 			{
 				_friendlyName = Path.GetFileNameWithoutExtension(_fileName);
@@ -31,6 +33,11 @@ namespace AGS.Types
 		{
 			get { return _friendlyName; }
 		}
+
+        public string Description
+        {
+            get { return _description; }
+        }
 
 		public Icon Icon
 		{

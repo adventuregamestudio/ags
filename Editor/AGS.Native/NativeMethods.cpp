@@ -59,7 +59,8 @@ extern int GetSpriteColorDepth(int slot);
 extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
-extern bool load_template_file(const AGSString &fileName, std::vector<char> &iconDataBuffer, bool isRoomTemplate);
+extern bool load_template_file(const AGSString &fileName, AGSString &description,
+    std::vector<char> &iconDataBuffer, bool isRoomTemplate);
 extern HAGSError extract_template_files(const AGSString &templateFileName);
 extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
@@ -458,9 +459,10 @@ namespace AGS
     BaseTemplate^ NativeMethods::LoadTemplateFile(String ^fileName, bool isRoomTemplate)
     {
       AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
+      AGSString description;
       std::vector<char> iconDataBuffer;
 
-      int success = load_template_file(fileNameAnsi, iconDataBuffer, isRoomTemplate);
+      int success = load_template_file(fileNameAnsi, description, iconDataBuffer, isRoomTemplate);
 			if (success) 
 			{
 				Icon ^icon = nullptr;
@@ -485,7 +487,7 @@ namespace AGS
         }
         else
         {
-				  return gcnew GameTemplate(fileName, nullptr, icon);
+				  return gcnew GameTemplate(fileName, TextHelper::ConvertUTF8(description), icon);
         }
 			}
 			return nullptr;

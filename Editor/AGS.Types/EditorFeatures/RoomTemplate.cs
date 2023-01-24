@@ -9,12 +9,12 @@ namespace AGS.Types
 	public class RoomTemplate : BaseTemplate
 	{
 		public RoomTemplate(string fileName, Icon icon)
-			: base(fileName, icon)
+			: base(fileName, null, icon)
 		{
 		}
 
 		public RoomTemplate(string fileName, Icon icon, string friendlyName)
-			: base(fileName, icon)
+			: base(fileName, null, icon)
 		{
 			_friendlyName = friendlyName;
 		}

@@ -28,6 +28,13 @@ namespace AGS.Editor
             this.btnBack.Enabled = false;
             _pageNumber = 0;
             _pages = pages;
+            foreach (var page in pages)
+            {
+                if (page.MinimumSize.Width > pnlMainPages.Width)
+                    pnlMainPages.Width = page.MinimumSize.Width;
+                if (page.MinimumSize.Height > pnlMainPages.Height - pnlHeader.Height)
+                    pnlMainPages.Height = page.MinimumSize.Height + pnlHeader.Height;
+            }
             Utilities.CheckLabelWidthsOnForm(this);
         }
 

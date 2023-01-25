@@ -457,15 +457,13 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
     // that here would slow things down significantly, so if we ever go that way sprite caching will
     // be required (similarily to how AGS caches flipped/scaled object sprites now for).
     //
-    std::stack<uint32_t> rend_batches;
-    const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
 
+    const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
     for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
         // Test if we are entering this batch (and not continuing after coming back from nested)
         if (cur_spr == _spriteBatchRange[cur_bat].first)
         {
-            rend_batches.push(cur_bat);
             const auto &batch = _spriteBatches[cur_bat];
             // Prepare the transparent surface
             if (batch.Surface && !batch.Opaque)
@@ -500,9 +498,8 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
         // Test if we're exiting current batch (and not going into nested ones):
         // if there's no sprites belonging to this batch (direct, or nested),
         // and if there's no nested batches (even if empty ones)
-        // FIXME: compating cur_spr >= range.second, because there's some oversight with EndSpriteBatch()
         const uint32_t was_bat = cur_bat;
-        while (!rend_batches.empty() && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
+        while ((cur_bat != UINT32_MAX) && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
                 ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
         {
             const auto &batch = _spriteBatches[cur_bat];
@@ -519,20 +516,18 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
                 parent_surf->StretchBlt(surface, viewport, batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
             }
 
-            // Pop the saved batch ID
-            rend_batches.pop();
-            cur_bat = rend_batches.empty() ? UINT32_MAX : rend_batches.top();
+            // Back to the parent batch
+            cur_bat = batch_desc.Parent;
         }
 
         // If we stayed at the same batch, this means that there are still nested batches;
         // if there's no batches in the stack left, this means we got to move forward anyway.
-        if ((was_bat == cur_bat) || rend_batches.empty())
+        if ((was_bat == cur_bat) || (cur_bat == UINT32_MAX))
         {
             cur_bat = ++last_bat;
         }
     }
 
-    assert(rend_batches.empty());
     _stageVirtualScreen = virtualScreen;
     _rendSpriteBatch = UINT32_MAX;
     ClearDrawLists();

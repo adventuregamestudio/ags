@@ -413,6 +413,7 @@ void SDLRendererGraphicsDriver::ResetAllBatches()
 
 void SDLRendererGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, _actSpriteBatch, x, y));
 }
 
@@ -424,6 +425,7 @@ void SDLRendererGraphicsDriver::SetScreenFade(int /*red*/, int /*green*/, int /*
 
 void SDLRendererGraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     _tint_red = red; _tint_green = green; _tint_blue = blue;
     if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0)) && (_srcColorDepth > 8))
     {

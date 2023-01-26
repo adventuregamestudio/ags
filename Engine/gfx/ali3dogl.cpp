@@ -1313,6 +1313,10 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
+        assert(_spriteList[cur_spr].node != UINT32_MAX);
+        if (_spriteList[cur_spr].node == UINT32_MAX)
+            continue; // FIXME: ensure the sprite gets to *some* batch to avoid extra check?
+
         const OGLSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
         _rendSpriteBatch = batch.ID;
         Size surface_sz = def_surface_sz;
@@ -1511,6 +1515,7 @@ void OGLGraphicsDriver::RestoreDrawLists()
 
 void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
@@ -1981,6 +1986,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
@@ -1990,6 +1996,7 @@ void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 
 void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     if (red == 0 && green == 0 && blue == 0) return;
     OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),

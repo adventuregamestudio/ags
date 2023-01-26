@@ -1247,6 +1247,10 @@ void D3DGraphicsDriver::RenderSpriteBatches()
 
     for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
     {
+        assert(_spriteList[cur_spr].node != UINT32_MAX);
+        if (_spriteList[cur_spr].node == UINT32_MAX)
+            continue; // FIXME: ensure the sprite gets to *some* batch to avoid extra check?
+
         const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
         _rendSpriteBatch = batch.ID;
         Size surface_sz = def_surface_sz;
@@ -1441,6 +1445,7 @@ void D3DGraphicsDriver::RestoreDrawLists()
 
 void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     _spriteList.push_back(D3DDrawListEntry((D3DBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
@@ -1870,6 +1875,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
 void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
         _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
@@ -1879,6 +1885,7 @@ void D3DGraphicsDriver::SetScreenFade(int red, int green, int blue)
 
 void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 { 
+    assert(_actSpriteBatch != UINT32_MAX);
     if (red == 0 && green == 0 && blue == 0) return;
     D3DBitmap *ddb = static_cast<D3DBitmap*>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),

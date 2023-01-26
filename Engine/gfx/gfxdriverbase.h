@@ -230,7 +230,10 @@ enum TextureHint
 // Sprite batch's internal parameters for the hardware-accelerated renderer
 struct VMSpriteBatch
 {
-    uint32_t ID = 0;
+    // Batch's uid
+    uint32_t ID = 0u;
+    // Optional render target (for rendering on texture)
+    IDriverDependantBitmap *RenderTarget = nullptr;
     // Clipping viewport, in *absolute* (screen) coordinates
     Rect Viewport;
     // Transformation matrix, built from the batch description
@@ -244,6 +247,12 @@ struct VMSpriteBatch
     VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
+    VMSpriteBatch(uint32_t id, IDriverDependantBitmap *render_target,
+                  const Rect view, const glm::mat4 &matrix,
+        const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : ID(id), RenderTarget(render_target),
+          Viewport(view), Matrix(matrix),
+          ViewportMat(vp_matrix), Color(color) {}
 };
 
 

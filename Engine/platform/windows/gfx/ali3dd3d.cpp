@@ -1228,6 +1228,38 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
     }
 }
 
+void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch,
+    IDirect3DSurface9 *back_buffer, Size &surface_sz)
+{
+    if (batch && batch->RenderTarget)
+    {
+        // Assign an arbitrary render target, and setup render params
+        HRESULT hr = direct3ddevice->SetRenderTarget(0, batch->RenderSurface);
+        assert(hr == D3D_OK);
+        direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+        surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
+        SetD3DViewport(RectWH(surface_sz));
+        glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
+        direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
+        // Configure rules for merging sprite alpha values onto a
+        // render target, which also contains alpha channel.
+        direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+        SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_INVDESTALPHA, D3DBLEND_ONE);
+    }
+    else
+    {
+        // Assign the default backbuffer
+        HRESULT hr = direct3ddevice->SetRenderTarget(0, back_buffer);
+        assert(hr == D3D_OK);
+        surface_sz = _srcRect.GetSize();
+        SetD3DViewport(_renderSprAtScreenRes ? _dstRect : _srcRect);
+        glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
+        direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
+        // Disable alpha merging rules, return back to default settings
+        direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+    }
+}
+
 void D3DGraphicsDriver::RenderSpriteBatches()
 {
     // Close unended batches, and issue a warning
@@ -1237,71 +1269,70 @@ void D3DGraphicsDriver::RenderSpriteBatches()
 
     // Render all the sprite batches with necessary transformations;
     // some of them may be rendered to a separate texture instead.
-    // For these we save pairs of (Batch.ID : Surface) in a stack.
+    // For these we save their IDs in a stack (rt_parents).
     // The top of the stack lets us know which batch's RT we are using.
+    std::stack<uint32_t> rt_parents;
     IDirect3DSurface9 *back_buffer = nullptr;
     direct3ddevice->GetRenderTarget(0, &back_buffer);
-    std::stack<std::pair<int, IDirect3DSurface9*>> render_surfs;
-    auto cur_rt = std::make_pair(0, back_buffer);
-    const Size def_surface_sz = _srcRect.GetSize();
+    assert(back_buffer);
+    IDirect3DSurface9 *cur_rt = back_buffer; // current render target
+    Size surface_sz = _srcRect.GetSize(); // current rt surface size
 
-    for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
+    const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
+    for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
-        assert(_spriteList[cur_spr].node != UINT32_MAX);
-        if (_spriteList[cur_spr].node == UINT32_MAX)
-            continue; // FIXME: ensure the sprite gets to *some* batch to avoid extra check?
-
-        const D3DSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
-        _rendSpriteBatch = batch.ID;
-        Size surface_sz = def_surface_sz;
-        if (batch.RenderTarget)
+        // Test if we are entering this batch (and not continuing after coming back from nested)
+        const auto &batch = _spriteBatches[cur_bat];
+        if (cur_spr == _spriteBatchRange[cur_bat].first)
         {
-            // Begin rendering to a separate texture
-            render_surfs.push(cur_rt);
-            cur_rt = std::make_pair(batch.ID, batch.RenderTarget->_renderSurface);
-            HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
-            assert(hr == D3D_OK);
-            direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
-            surface_sz = Size(batch.RenderTarget->GetWidth(),
-                batch.RenderTarget->GetHeight());
-            SetD3DViewport(RectWH(surface_sz));
-            glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
-            direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
-
-            // Configure rules for merging sprite alpha values onto a
-            // render target, which also contains alpha channel.
-            direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
-            SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_INVDESTALPHA, D3DBLEND_ONE);
+            // If batch introduces a new render target, or the first using backbuffer, then remember it
+            if (rt_parents.empty() || batch.RenderTarget)
+                rt_parents.push(cur_bat); // push new RT parent
+            else
+                rt_parents.push(rt_parents.top()); // copy same current parent
         }
-        
-        bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt.second != back_buffer);
-        SetScissor(batch.Viewport, render_to_texture);
-        _stageMatrixes.World = batch.Matrix;
-        cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
 
-        // Test if we should finish rendering on a texture and switch to the previous
-        // render target: we do this if current RT is not a back buffer,
-        // and the latest sprite was the last sprite of a RT's owning sprite batch.
-        if ((cur_rt.second != back_buffer) && (cur_spr == _spriteBatchRange[cur_rt.first].second))
+        // If render target is different in this batch, then set it up
+        const auto &rt_parent = _spriteBatches[rt_parents.top()];
+        if (rt_parent.RenderSurface && (cur_rt != rt_parent.RenderSurface) ||
+            !rt_parent.RenderSurface && (cur_rt != back_buffer))
         {
-            // Finish render to a separate texture, return to one render buffer back
-            assert(render_surfs.size() > 0);
-            cur_rt = render_surfs.top();
-            render_surfs.pop();
-            HRESULT hr = direct3ddevice->SetRenderTarget(0, cur_rt.second);
-            assert(hr == D3D_OK);
-            SetD3DViewport(_renderSprAtScreenRes ? _dstRect : _srcRect);
-            glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
-            direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
+            cur_rt = batch.RenderSurface ? batch.RenderSurface : back_buffer;
+            SetRenderTarget(&batch, back_buffer, surface_sz);
+        }
 
-            // Disable alpha merging rules, return back to default settings
-            direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+        // Render immediate batch sprites, if any, update cur_spr iterator
+        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        {
+            bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt != back_buffer);
+            SetScissor(batch.Viewport, render_to_texture);
+            _stageMatrixes.World = batch.Matrix;
+            _rendSpriteBatch = batch.ID;
+            cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
+        }
+
+        // Test if we're exiting current batch (and not going into nested ones):
+        // if there's no sprites belonging to this batch (direct, or nested),
+        // and if there's no nested batches (even if empty ones)
+        const uint32_t was_bat = cur_bat;
+        while ((cur_bat != UINT32_MAX) && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
+            ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
+        {
+            rt_parents.pop(); // pop RT ref from the history
+            // Back to the parent batch
+            cur_bat = _spriteBatchDesc[cur_bat].Parent;
+        }
+
+        // If we stayed at the same batch, this means that there are still nested batches;
+        // if there's no batches in the stack left, this means we got to move forward anyway.
+        if ((was_bat == cur_bat) || (cur_bat == UINT32_MAX))
+        {
+            cur_bat = ++last_bat;
         }
     }
 
-    assert(render_surfs.empty());
+    SetRenderTarget(nullptr, back_buffer, surface_sz);
     back_buffer->Release();
-
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);

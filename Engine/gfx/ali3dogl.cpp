@@ -1290,6 +1290,45 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, con
     glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
 }
 
+void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection)
+{
+    if (batch && batch->RenderTarget)
+    {
+        // Assign an arbitrary render target, and setup render params
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, batch->Fbo);
+        glDisable(GL_SCISSOR_TEST);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_SCISSOR_TEST);
+        surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
+        projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
+        glViewport(0, 0, surface_sz.Width, surface_sz.Height);
+        // Configure rules for merging sprite alpha values onto a
+        // render target, which also contains alpha channel.
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+            GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+    }
+    else
+    {
+        // Assign the default backbuffer
+        if (_do_render_to_texture)
+        {
+            surface_sz = _backRenderSize;
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
+            glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
+        }
+        else
+        {
+            surface_sz = _srcRect.GetSize();
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0u);
+            glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
+        }
+        projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
+        // Disable alpha merging rules, return back to default settings
+        SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+}
+
 void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 {
     // Close unended batches, and issue a warning
@@ -1304,74 +1343,71 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
 
     // Render all the sprite batches with necessary transformations;
     // some of them may be rendered to a separate texture instead.
-    // For these we save pairs of (Batch.ID : Surface) in a stack.
+    // For these we save their IDs in a stack (rt_parents).
     // The top of the stack lets us know which batch's RT we are using.
-    std::stack<std::pair<int, unsigned int>> render_fbos;
+    std::stack<unsigned> rt_parents;
     unsigned int back_buffer = _do_render_to_texture ? _fbo : 0u;
-    auto cur_rt = std::make_pair(0, back_buffer);
-    const Size def_surface_sz = _srcRect.GetSize();
+    unsigned cur_rt = back_buffer; // current render target
+    Size surface_sz = _srcRect.GetSize(); // current rt surface size
+    glm::mat4 use_projection = projection;
 
-    for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
+    const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
+    for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
-        assert(_spriteList[cur_spr].node != UINT32_MAX);
-        if (_spriteList[cur_spr].node == UINT32_MAX)
-            continue; // FIXME: ensure the sprite gets to *some* batch to avoid extra check?
-
-        const OGLSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
-        _rendSpriteBatch = batch.ID;
-        Size surface_sz = def_surface_sz;
-        glm::mat4 use_projection = projection;
-        if (batch.RenderTarget)
+        // Test if we are entering this batch (and not continuing after coming back from nested)
+        const auto &batch = _spriteBatches[cur_bat];
+        if (cur_spr == _spriteBatchRange[cur_bat].first)
         {
-            // Begin rendering to a separate texture
-            render_fbos.push(cur_rt);
-            cur_rt = std::make_pair(batch.ID, batch.RenderTarget->_fbo);
-            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, cur_rt.second);
-            glDisable(GL_SCISSOR_TEST);
-            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-            glEnable(GL_SCISSOR_TEST);
-            surface_sz = Size(batch.RenderTarget->GetWidth(),
-                batch.RenderTarget->GetHeight());
-            use_projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
-            glViewport(0, 0, surface_sz.Width, surface_sz.Height);
-
-            // Configure rules for merging sprite alpha values onto a
-            // render target, which also contains alpha channel.
-            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+            // If batch introduces a new render target, or the first using backbuffer, then remember it
+            if (rt_parents.empty() || batch.RenderTarget)
+                rt_parents.push(cur_bat); // push new RT parent
+            else
+                rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        bool render_to_texture = (_do_render_to_texture) || (cur_rt.second != back_buffer);
-        SetScissor(batch.Viewport, render_to_texture, surface_sz);
-        _stageMatrixes.World = batch.Matrix;
-        cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
-
-        // Test if we should finish rendering on a texture and switch to the previous
-        // render target: we do this if current RT is not a back buffer,
-        // and the latest sprite was the last sprite of a RT's owning sprite batch.
-        if ((cur_rt.second != back_buffer) && (cur_spr == _spriteBatchRange[cur_rt.first].second))
+        // If render target is different in this batch, then set it up
+        const auto &rt_parent = _spriteBatches[rt_parents.top()];
+        if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
+            (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
         {
-            // Finish render to a separate texture, return to one render buffer back
-            assert((cur_rt.second > 0) && (render_fbos.size() > 0));
-            cur_rt = render_fbos.top();
-            render_fbos.pop();
-            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, cur_rt.second);
-            if (_do_render_to_texture)
-                glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
-            else
-                glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
+            cur_rt = (batch.Fbo > 0u) ? batch.Fbo : back_buffer;
+            SetRenderTarget(&batch, surface_sz, use_projection);
+        }
+        
+        // Render immediate batch sprites, if any, update cur_spr iterator
+        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        {
+            bool render_to_texture = (_do_render_to_texture) || (cur_rt != back_buffer);
+            SetScissor(batch.Viewport, render_to_texture, surface_sz);
+            _stageMatrixes.World = batch.Matrix;
+            _rendSpriteBatch = batch.ID;
+            cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
+        }
 
-            // Disable alpha merging rules, return back to default settings
-            SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // Test if we're exiting current batch (and not going into nested ones):
+        // if there's no sprites belonging to this batch (direct, or nested),
+        // and if there's no nested batches (even if empty ones)
+        const uint32_t was_bat = cur_bat;
+        while ((cur_bat != UINT32_MAX) && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
+            ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
+        {
+            rt_parents.pop(); // pop RT ref from the history
+            // Back to the parent batch
+            cur_bat = _spriteBatchDesc[cur_bat].Parent;
+        }
+
+        // If we stayed at the same batch, this means that there are still nested batches;
+        // if there's no batches in the stack left, this means we got to move forward anyway.
+        if ((was_bat == cur_bat) || (cur_bat == UINT32_MAX))
+        {
+            cur_bat = ++last_bat;
         }
     }
 
-    assert(render_fbos.empty());
-
+    SetRenderTarget(nullptr, surface_sz, use_projection);
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
-    SetScissor(Rect(), _do_render_to_texture, def_surface_sz); // TODO: simply disable scissor test?
+    SetScissor(Rect(), _do_render_to_texture, _srcRect.GetSize()); // TODO: simply disable scissor test?
     if (_do_render_to_texture)
         glDisable(GL_SCISSOR_TEST);
 }

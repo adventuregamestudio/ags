@@ -137,8 +137,8 @@ public:
 struct OGLSpriteBatch : VMSpriteBatch
 {
     // Add anything OGL specific here
-    // Optional render target (for rendering on texture)
-    OGLBitmap *RenderTarget = nullptr;
+    // Optional render target's frame buffer
+    uint32_t Fbo = 0u;
 
     OGLSpriteBatch() = default;
     OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
@@ -146,8 +146,8 @@ struct OGLSpriteBatch : VMSpriteBatch
         : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
     OGLSpriteBatch(uint32_t id, OGLBitmap *render_target, const Rect view,
         const glm::mat4 &matrix, const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
-        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
-        , RenderTarget(render_target) {}
+        : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
+        , Fbo(render_target ? render_target->_fbo : 0u) {}
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
@@ -374,6 +374,8 @@ private:
     // Optionally pass surface_size if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
+    // Configures rendering mode for the render target, depending on its properties
+    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection);
     void RenderSpriteBatches(const glm::mat4 &projection);
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);

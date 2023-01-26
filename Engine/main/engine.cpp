@@ -20,6 +20,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdexcept>
 #if AGS_PLATFORM_OS_WINDOWS
 #include <process.h>  // _spawnl
 #endif

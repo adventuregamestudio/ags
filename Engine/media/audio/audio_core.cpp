@@ -20,6 +20,7 @@
 #include <math.h>
 #include <condition_variable>
 #include <mutex>
+#include <stdexcept>
 #include <thread>
 #include <unordered_map>
 #include "debug/out.h"

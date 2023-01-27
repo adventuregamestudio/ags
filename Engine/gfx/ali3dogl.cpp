@@ -1356,7 +1356,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     {
         // Test if we are entering this batch (and not continuing after coming back from nested)
         const auto &batch = _spriteBatches[cur_bat];
-        if (cur_spr == _spriteBatchRange[cur_bat].first)
+        if (cur_spr <= _spriteBatchRange[cur_bat].first)
         {
             // If batch introduces a new render target, or the first using backbuffer, then remember it
             if (rt_parents.empty() || batch.RenderTarget)

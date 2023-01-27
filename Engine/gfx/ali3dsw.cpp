@@ -446,6 +446,12 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
     while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
 
+    if (_spriteBatchDesc.size() == 0)
+    {
+        ClearDrawLists();
+        return; // no batches - no render
+    }
+
     // Render all the sprite batches with necessary transformations
     //
     // NOTE: that's not immediately clear whether it would be faster to first draw upon a camera-sized

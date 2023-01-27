@@ -1336,6 +1336,11 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
 
+    if (_spriteBatchDesc.size() == 0)
+    {
+        return; // no batches - no render
+    }
+
     // TODO: see if it's possible to refactor and not enable/disable scissor test
     // also try to sync scissor code logic with D3D renderer
     if (_do_render_to_texture)

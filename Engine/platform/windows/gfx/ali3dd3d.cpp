@@ -1267,6 +1267,11 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
 
+    if (_spriteBatchDesc.size() == 0)
+    {
+        return; // no batches - no render
+    }
+
     // Render all the sprite batches with necessary transformations;
     // some of them may be rendered to a separate texture instead.
     // For these we save their IDs in a stack (rt_parents).

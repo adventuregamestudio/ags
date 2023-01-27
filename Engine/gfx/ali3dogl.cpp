@@ -1370,19 +1370,19 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
                 rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        // If render target is different in this batch, then set it up
-        const auto &rt_parent = _spriteBatches[rt_parents.top()];
-        if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
-            (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
-        {
-            cur_rt = (batch.Fbo > 0u) ? batch.Fbo : back_buffer;
-            SetRenderTarget(&batch, surface_sz, use_projection);
-        }
-        
         // Render immediate batch sprites, if any, update cur_spr iterator
         if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
         {
-            bool render_to_texture = (_do_render_to_texture) || (cur_rt != back_buffer);
+            // If render target is different in this batch, then set it up
+            const auto &rt_parent = _spriteBatches[rt_parents.top()];
+            if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
+                (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
+            {
+                cur_rt = (batch.Fbo > 0u) ? batch.Fbo : back_buffer;
+                SetRenderTarget(&batch, surface_sz, use_projection);
+            }
+            // Now set clip (scissor), and render sprites
+            const bool render_to_texture = (_do_render_to_texture) || (cur_rt != back_buffer);
             SetScissor(batch.Viewport, render_to_texture, surface_sz);
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;

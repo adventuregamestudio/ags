@@ -1297,19 +1297,19 @@ void D3DGraphicsDriver::RenderSpriteBatches()
                 rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        // If render target is different in this batch, then set it up
-        const auto &rt_parent = _spriteBatches[rt_parents.top()];
-        if (rt_parent.RenderSurface && (cur_rt != rt_parent.RenderSurface) ||
-            !rt_parent.RenderSurface && (cur_rt != back_buffer))
-        {
-            cur_rt = batch.RenderSurface ? batch.RenderSurface : back_buffer;
-            SetRenderTarget(&batch, back_buffer, surface_sz);
-        }
-
         // Render immediate batch sprites, if any, update cur_spr iterator
         if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
         {
-            bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt != back_buffer);
+            // If render target is different in this batch, then set it up
+            const auto &rt_parent = _spriteBatches[rt_parents.top()];
+            if (rt_parent.RenderSurface && (cur_rt != rt_parent.RenderSurface) ||
+                !rt_parent.RenderSurface && (cur_rt != back_buffer))
+            {
+                cur_rt = batch.RenderSurface ? batch.RenderSurface : back_buffer;
+                SetRenderTarget(&batch, back_buffer, surface_sz);
+            }
+            // Now set clip (scissor), and render sprites
+            const bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt != back_buffer);
             SetScissor(batch.Viewport, render_to_texture);
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;

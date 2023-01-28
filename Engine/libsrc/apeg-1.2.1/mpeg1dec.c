@@ -617,14 +617,14 @@ int apeg_get_video_frame(APEG_STREAM *stream)
 
 int apeg_display_video_frame(APEG_STREAM *stream)
 {
-	int ret;
+	int ret = APEG_OK;
 	APEG_LAYER *layer = (APEG_LAYER*)stream;
 	if ((ret = setjmp(layer->jmp_buffer)) != 0)
 		return ret;
 	if (layer->picture)
-	{
 		apeg_display_frame(layer, layer->picture);
-	}
+	else
+		ret = APEG_EOF;
 	layer->picture = NULL;
-	return APEG_OK;
+	return ret;
 }

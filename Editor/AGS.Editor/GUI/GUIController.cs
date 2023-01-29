@@ -21,7 +21,6 @@ namespace AGS.Editor
         public const string FILE_MENU_ID = "fileToolStripMenuItem";
         public const string HELP_MENU_ID = "HelpMenu";
         private const string CONTROL_ID_SPLIT = "^!^";
-        private const string TEMPLATE_INTRO_FILE = "template.txt";
 		private const string ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 		private const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 
@@ -1052,14 +1051,6 @@ namespace AGS.Editor
                         _agsEditor.CompileGame(true, false);
 
                         Factory.AGSEditor.Settings.MessageBoxOnCompile = oldMessageBoxSetting;
-                    }
-                    if (File.Exists(TEMPLATE_INTRO_FILE))
-                    {
-                        StreamReader sr = new StreamReader(TEMPLATE_INTRO_FILE);
-                        string introText = sr.ReadToEnd();
-                        sr.Close();
-
-                        Factory.GUIController.ShowMessage(introText, MessageBoxIcon.Information);
                     }
                     createdSuccessfully = true;
                 }

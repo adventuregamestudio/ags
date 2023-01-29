@@ -36,10 +36,10 @@ object FileUtil {
 
     private fun getVolumePath(volumeId: String?, context: Context): String? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
-//        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) getVolumePathForAndroid11AndAbove(
-//            volumeId,
-//            context
-//        )
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) getVolumePathForAndroid11AndAbove(
+            volumeId,
+            context
+        )
         else return getVolumePathBeforeAndroid11(volumeId, context)
     }
 
@@ -70,27 +70,27 @@ object FileUtil {
         }
     }
 
-//    @TargetApi(Build.VERSION_CODES.R)
-//    private fun getVolumePathForAndroid11AndAbove(volumeId: String?, context: Context): String? {
-//        return try {
-//            val mStorageManager: StorageManager =
-//                context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
-//            val storageVolumes: List<StorageVolume> = mStorageManager.getStorageVolumes()
-//            for (storageVolume in storageVolumes) {
-//                // primary volume?
-//                if (storageVolume.isPrimary() && PRIMARY_VOLUME_NAME == volumeId) return storageVolume.getDirectory()
-//                    .getPath()
-//
-//                // other volumes?
-//                val uuid: String = storageVolume.getUuid()
-//                if (uuid != null && uuid == volumeId) return storageVolume.getDirectory().getPath()
-//            }
-//            // not found.
-//            null
-//        } catch (ex: Exception) {
-//            null
-//        }
-//    }
+    @TargetApi(Build.VERSION_CODES.R)
+    private fun getVolumePathForAndroid11AndAbove(volumeId: String?, context: Context): String? {
+        return try {
+            val mStorageManager: StorageManager =
+                context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+            val storageVolumes: List<StorageVolume> = mStorageManager.getStorageVolumes()
+            for (storageVolume in storageVolumes) {
+                // primary volume?
+                if (storageVolume.isPrimary() && PRIMARY_VOLUME_NAME == volumeId) return storageVolume.getDirectory()
+                    ?.getPath()
+
+                // other volumes?
+                val uuid: String = storageVolume.getUuid().toString()
+                if (uuid != null && uuid == volumeId) return storageVolume.getDirectory()?.getPath()
+            }
+            // not found.
+            null
+        } catch (ex: Exception) {
+            null
+        }
+    }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private fun getVolumeIdFromTreeUri(treeUri: Uri): String? {

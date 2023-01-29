@@ -487,7 +487,11 @@ namespace AGS
         }
         else
         {
-				  return gcnew GameTemplate(fileName, TextHelper::ConvertUTF8(description), icon);
+            // Bring linebreaks in description to the uniform "\r\n" format.
+            String ^uniDescription = TextHelper::ConvertUTF8(description);
+            uniDescription = System::Text::RegularExpressions::Regex
+                ::Replace(uniDescription, "(?<!\r)\n", "\r\n");
+            return gcnew GameTemplate(fileName, uniDescription, icon);
         }
 			}
 			return nullptr;

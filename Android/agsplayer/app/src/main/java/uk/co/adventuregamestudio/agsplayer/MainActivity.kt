@@ -267,10 +267,10 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         val tempFilename = searchForGames()
         if(tempFilename != null) {
             filename = tempFilename
-                if (filename.isNotEmpty() && filename.length > 1) {
-                    startGame(filename, false)
-                    return
-                }
+            if (filename.isNotEmpty() && filename.length > 1) {
+                startGame(filename, false)
+                return
+            }
         }
         if (folderList.isNotEmpty() && folderList.size > 0) {
             folderList.forEachIndexed { index, folder ->

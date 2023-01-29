@@ -644,6 +644,7 @@ void release_drawobj_rendertargets()
         !gfxDriver->ShouldReleaseRenderTargets())
         return;
 
+    gfxDriver->ClearDrawLists(); // force clear to ensure nothing stays cached
     for (auto &tex : gui_render_tex)
     {
         if (tex)

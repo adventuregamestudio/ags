@@ -4,6 +4,7 @@ import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ internal class GameListRecyclerViewAdapter(private var gamesList: List<GameModel
         View.OnClickListener, View.OnCreateContextMenuListener  {
         var name: TextView = view.findViewById(R.id.tvGameName)
         var filename: TextView = view.findViewById(R.id.tvGameFileName)
+        var game_options: ImageView = view.findViewById(R.id.ivGameOptions)
         override fun onClick(view: View) {
             mClickListener?.onItemClick(view, adapterPosition)
         }
@@ -25,6 +27,10 @@ internal class GameListRecyclerViewAdapter(private var gamesList: List<GameModel
         init {
             itemView.setOnClickListener(this)
             itemView.setOnCreateContextMenuListener(this)
+            game_options.setOnClickListener {
+                // clicked on the item own three dots button
+                itemView.showContextMenu();
+            }
         }
 
         override fun onCreateContextMenu(

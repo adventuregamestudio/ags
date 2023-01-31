@@ -3,6 +3,7 @@ package uk.co.adventuregamestudio.agsplayer;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -17,14 +18,15 @@ public class AGSPlayerRuntimeActivity extends AGSRuntimeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if(!hasExternalStoragePermission())
-        {
-            showExternalStoragePermissionMissingDialog();
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            if (!hasExternalStoragePermission()) {
+                showExternalStoragePermissionMissingDialog();
+            }
         }
 
         super.onCreate(savedInstanceState);
     }
-
 
     public void showExternalStoragePermissionMissingDialog() {
         AlertDialog dialog = new AlertDialog.Builder(mSingleton)
@@ -38,20 +40,20 @@ public class AGSPlayerRuntimeActivity extends AGSRuntimeActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (grantResults.length > 0) {
-            Log.d("AGSRuntimeActivity", "Received a request permission result");
+            Log.d("AGSPlayerRuntimeActivit", "Received a request permission result");
 
             switch (requestCode) {
                 case EXTERNAL_STORAGE_REQUEST_CODE: {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        Log.d("AGSRuntimeActivity", "Permission granted");
+                        Log.d("AGSPlayerRuntimeActivit", "Permission granted");
                     } else {
-                        Log.d("AGSRuntimeActivity", "Did not get permission.");
+                        Log.d("AGSPlayerRuntimeActivit", "Did not get permission.");
                         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
                             showExternalStoragePermissionMissingDialog();
                         }
                     }
 
-                    Log.d("AGSRuntimeActivity", "Unlocking AGS thread");
+                    Log.d("AGSPlayerRuntimeActivit", "Unlocking AGS thread");
                     synchronized (externalStorageRequestDummy) {
                         externalStorageRequestDummy[0] = grantResults[0];
                         externalStorageRequestDummy.notify();
@@ -73,14 +75,14 @@ public class AGSPlayerRuntimeActivity extends AGSRuntimeActivity {
             return true;
         }
 
-        Log.d("AGSRuntimeActivity", "Requesting permission and locking AGS thread until we have an answer.");
+        Log.d("AGSPlayerRuntimeActivit", "Requesting permission and locking AGS thread until we have an answer.");
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_REQUEST_CODE);
 
         synchronized (externalStorageRequestDummy) {
             try {
                 externalStorageRequestDummy.wait();
             } catch (InterruptedException e) {
-                Log.d("AGSRuntimeActivity", "requesting external storage permission", e);
+                Log.d("AGSPlayerRuntimeActivit", "requesting external storage permission", e);
                 return false;
             }
         }

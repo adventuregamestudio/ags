@@ -59,7 +59,8 @@ extern int GetSpriteColorDepth(int slot);
 extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
-extern int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate);
+extern bool load_template_file(const AGSString &fileName, AGSString &description,
+    std::vector<char> &iconDataBuffer, bool isRoomTemplate);
 extern HAGSError extract_template_files(const AGSString &templateFileName);
 extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
@@ -458,18 +459,17 @@ namespace AGS
     BaseTemplate^ NativeMethods::LoadTemplateFile(String ^fileName, bool isRoomTemplate)
     {
       AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
-      char *iconDataBuffer = NULL;
-      long iconDataSize = 0;
+      AGSString description;
+      std::vector<char> iconDataBuffer;
 
-      int success = load_template_file(fileNameAnsi, &iconDataBuffer, &iconDataSize, isRoomTemplate);
+      int success = load_template_file(fileNameAnsi, description, iconDataBuffer, isRoomTemplate);
 			if (success) 
 			{
 				Icon ^icon = nullptr;
-				if (iconDataBuffer != NULL)
+				if (!iconDataBuffer.empty())
 				{
-          cli::array<unsigned char>^ managedArray = gcnew cli::array<unsigned char>(iconDataSize);
-          Marshal::Copy(IntPtr(iconDataBuffer), managedArray, 0, iconDataSize);
-          ::free(iconDataBuffer);
+          cli::array<unsigned char>^ managedArray = gcnew cli::array<unsigned char>(iconDataBuffer.size());
+          Marshal::Copy(IntPtr(&iconDataBuffer.front()), managedArray, 0, iconDataBuffer.size());
           System::IO::MemoryStream^ ms = gcnew System::IO::MemoryStream(managedArray);
           try 
           {
@@ -487,7 +487,11 @@ namespace AGS
         }
         else
         {
-				  return gcnew GameTemplate(fileName, icon);
+            // Bring linebreaks in description to the uniform "\r\n" format.
+            String ^uniDescription = TextHelper::ConvertUTF8(description);
+            uniDescription = System::Text::RegularExpressions::Regex
+                ::Replace(uniDescription, "(?<!\r)\n", "\r\n");
+            return gcnew GameTemplate(fileName, uniDescription, icon);
         }
 			}
 			return nullptr;

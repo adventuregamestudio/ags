@@ -89,6 +89,9 @@ const char *old_editor_data_file = "editor.dat";
 const char *new_editor_data_file = "game.agf";
 const char *old_editor_main_game_file = "ac2game.dta";
 const char *TEMPLATE_LOCK_FILE = "template.dta";
+const char *TEMPLATE_ICON_FILE = "template.ico";
+const char *GAME_ICON_FILE = "user.ico";
+const char *TEMPLATE_DESC_FILE = "template.txt";
 const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
@@ -435,54 +438,49 @@ HAGSError extract_template_files(const AGSString &templateFileName)
   return HAGSError::None();
 }
 
-void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char **iconDataBuffer, long *bufferSize)
+static bool load_asset_data(AssetManager *mgr, const char *asset_name, std::vector<char> &data, const size_t data_limit = SIZE_MAX)
 {
-  // make sure we get the icon from the file
-  templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
-  Stream* inpu = templateMgr->OpenAsset (iconName);
-  const size_t sizey = inpu->GetLength();
-  if ((inpu != NULL) && (sizey > 0))
-  {
-    char *iconbuffer = (char*)malloc(sizey);
-    inpu->Read (iconbuffer, sizey);
-    delete inpu;
-    *iconDataBuffer = iconbuffer;
-    *bufferSize = sizey;
-  }
-  else
-  {
-    *iconDataBuffer = NULL;
-    *bufferSize = 0;
-  }
+    std::unique_ptr<Stream> in(mgr->OpenAsset(asset_name));
+    if (!in)
+        return false;
+    const size_t data_sz = std::min(static_cast<size_t>(in->GetLength()), data_limit);
+    if (data_sz >= 0)
+    {
+        data.resize(data_sz);
+        in->Read(&data.front(), data_sz);
+    }
+    return true;
 }
 
-int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
+bool load_template_file(const AGSString &fileName, AGSString &description,
+    std::vector<char> &iconDataBuffer, bool isRoomTemplate)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());
+  templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
   if (templateMgr->AddLibrary(fileName, &lib) == Common::kAssetNoError)
   {
     if (isRoomTemplate)
     {
       if (templateMgr->DoesAssetExist(ROOM_TEMPLATE_ID_FILE))
       {
-        Stream *inpu = templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE);
-        if (inpu->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
-        {
-          delete inpu;
-          return 0;
-        }
-        int roomNumber = inpu->ReadInt32();
-        delete inpu;
+        std::unique_ptr<Stream> in(templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE));
+        if (!in)
+            return false;
+        if (in->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
+            return false;
+        int roomNumber = in->ReadInt32();
+        in.reset();
+
         char iconName[MAX_PATH];
         sprintf(iconName, "room%d.ico", roomNumber);
         if (templateMgr->DoesAssetExist(iconName))
         {
-          extract_icon_from_template(templateMgr.get(), iconName, iconDataBuffer, iconDataSize);
+          load_asset_data(templateMgr.get(), iconName, iconDataBuffer);
         }
-        return 1;
+        return true;
       }
-      return 0;
+      return false;
     }
 	  else if ((templateMgr->DoesAssetExist(old_editor_data_file)) || (templateMgr->DoesAssetExist(new_editor_data_file)))
 	  {
@@ -492,36 +490,42 @@ int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *i
           (oriname.FindString(".ags") != -1))
       {
         // wasn't originally meant as a template
-	      return 0;
+	      return false;
       }
 
-	    Stream *inpu = templateMgr->OpenAsset(old_editor_main_game_file);
-	    if (inpu != NULL) 
+	    std::unique_ptr<Stream> in(templateMgr->OpenAsset(old_editor_main_game_file));
+	    if (in) 
 	    {
-		    inpu->Seek(30);
-		    int gameVersion = inpu->ReadInt32();
-		    delete inpu;
+		    in->Seek(30);
+		    int gameVersion = in->ReadInt32();
             // TODO: check this out, in theory we still support pre-2.72 game import
-		    if (gameVersion != 32)
+		    if (gameVersion != 32) // CHECKME: why we use `!=` and not `>=` ? also what's 32?
 		    {
 			    // older than 2.72 template
-			    return 0;
+			    return false;
 		    }
+            in.reset();
 	    }
 
+        if (templateMgr->DoesAssetExist(TEMPLATE_DESC_FILE))
+        {
+            std::vector<char> desc_data;
+            load_asset_data(templateMgr.get(), TEMPLATE_DESC_FILE, desc_data);
+            description.SetString(&desc_data.front(), desc_data.size());
+        }
+
       int useIcon = 0;
-      char *iconName = "template.ico";
+      const char *iconName = TEMPLATE_ICON_FILE;
       if (!templateMgr->DoesAssetExist(iconName))
-        iconName = "user.ico";
-      // the file is a CLIB file, so let's extract the icon to display
+        iconName = GAME_ICON_FILE;
       if (templateMgr->DoesAssetExist(iconName))
       {
-        extract_icon_from_template(templateMgr.get(), iconName, iconDataBuffer, iconDataSize);
+        load_asset_data(templateMgr.get(), iconName, iconDataBuffer);
       }
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {

@@ -8,7 +8,8 @@ namespace AGS.Types
 {
     public class GameTemplate : BaseTemplate
     {
-        public GameTemplate(string fileName, Icon icon) : base(fileName, icon)
+        public GameTemplate(string fileName, string description, Icon icon)
+            : base(fileName, description, icon)
         {
         }
     }

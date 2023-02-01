@@ -290,7 +290,7 @@ JNIEXPORT jint JNICALL
 }
 
 JNIEXPORT void JNICALL
-Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv* env, jobject object, jobjectArray translations)
+Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv* env, jclass clazz)
 {
   SDL_StartTextInput();
 }

@@ -6,23 +6,16 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
-import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.SeekBarPreference;
-import androidx.preference.SwitchPreference;
-
-import androidx.preference.PreferenceManager;
 
 import androidx.preference.PreferenceScreen;
 
-import java.io.File;
 import java.util.Locale;
-import java.util.Objects;
 
 
 public class PreferencesActivity extends AppCompatActivity
@@ -42,7 +35,7 @@ public class PreferencesActivity extends AppCompatActivity
     public static final int CONFIG_MOUSE_SPEED = 21;
 
     public native boolean readConfigFile(String directory);
-    public native boolean writeConfigFile();
+    public native boolean writeConfigFile(String directory);
 
     public static native int readIntConfigValue(int id);
     public native void setIntConfigValue(int id, int value);
@@ -257,7 +250,7 @@ public class PreferencesActivity extends AppCompatActivity
     {
         savePreferencesRecursively( frag.getPreferenceScreen());
 
-        writeConfigFile();
+        frag.writeContigFile();
 
         frag = null;
 

@@ -98,19 +98,31 @@ JNIEXPORT jboolean JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
 {
   const char* cdirectory = env->GetStringUTFChars(directory, NULL);
-  chdir(cdirectory);
+  String dir = cdirectory;
   env->ReleaseStringUTFChars(directory, cdirectory);
+
+  String config_file_path = ANDROID_CONFIG_FILENAME;
+  if(!dir.IsEmpty())
+    config_file_path = Path::ConcatPaths(dir, config_file_path);
 
   ResetConfiguration(AGSAndroid::GetMobileSetup());
 
-  return ReadConfiguration(AGSAndroid::GetMobileSetup(), ANDROID_CONFIG_FILENAME, true);
+  return ReadConfiguration(AGSAndroid::GetMobileSetup(), config_file_path.GetCStr(), true);
 }
 
 
 JNIEXPORT jboolean JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object)
+  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object, jstring directory)
 {
-  return WriteConfiguration(AGSAndroid::GetMobileSetup(), ANDROID_CONFIG_FILENAME);
+  const char* cdirectory = env->GetStringUTFChars(directory, NULL);
+  String dir = cdirectory;
+  env->ReleaseStringUTFChars(directory, cdirectory);
+
+  String config_file_path = ANDROID_CONFIG_FILENAME;
+  if(!dir.IsEmpty())
+    config_file_path = Path::ConcatPaths(dir, config_file_path);
+
+  return WriteConfiguration(AGSAndroid::GetMobileSetup(), config_file_path.GetCStr());
 }
 
 
@@ -290,7 +302,7 @@ JNIEXPORT jint JNICALL
 }
 
 JNIEXPORT void JNICALL
-Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv* env, jobject object, jobjectArray translations)
+Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv* env, jclass clazz)
 {
   SDL_StartTextInput();
 }
@@ -345,20 +357,22 @@ void AGSAndroid::MainInit()
     // Reset configuration.
     ResetConfiguration(setup);
 
-    // Read general configuration.
-    ::ReadConfiguration(setup, ANDROID_CONFIG_FILENAME, true);
+    // Read general configuration. (in single game package, this is the config read)
+    String general_config_file = Path::ConcatPaths(android_base_directory, ANDROID_CONFIG_FILENAME);
+    ::ReadConfiguration(setup, general_config_file.GetCStr(), true);
 
     // Get the games path.
     String path = setup.game_file_name;
     path = Path::GetDirectoryPath(path);
     if(path != "./" && path.GetLength() > 1) {
+      // We are using AGS Player and passing a specific game
+
       chdir(path.GetCStr());
+      // TODO: this is an ancient GUS patch fix for MIDI playback, is this still relevant?
       setenv("ULTRADIR", "..", 1);
-    } else {
-      chdir(_android_base_directory);
     }
 
-    // Read game specific configuration.
+    // Read game specific configuration. (this does nothing in single game package)
     ::ReadConfiguration(setup, ANDROID_CONFIG_FILENAME, false);
 
     setup.load_latest_savegame = loadLastSave;

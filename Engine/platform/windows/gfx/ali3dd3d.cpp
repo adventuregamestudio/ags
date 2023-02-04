@@ -426,6 +426,10 @@ void D3DGraphicsDriver::ResetDeviceIfNecessary()
     CreateVirtualScreen();
     direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
   }
+  else if (hr != D3D_OK)
+  {
+    throw Ali3DException(String::FromFormat("IDirect3DDevice9::TestCooperativeLevel: failed: error code: 0x%08X", hr));
+  }
 }
 
 bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)

@@ -1,5 +1,12 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 18, February 2023
+
+Engine:
+ - Fixed background speech and textual overlays may disable GUI when being continuously
+   created in repeatedly_execute* kind of functions. (Regression since previous patch)
+
+
 VERSION 3.5.1 - Patch 17, January 2023
 
 Editor:

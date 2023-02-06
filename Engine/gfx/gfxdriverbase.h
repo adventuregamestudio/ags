@@ -215,6 +215,7 @@ protected:
 struct TextureData
 {
     uint32_t ID = UINT32_MAX;
+    bool RenderTarget = false; // replace with flags later
     virtual ~TextureData() = default;
 protected:
     TextureData() = default;

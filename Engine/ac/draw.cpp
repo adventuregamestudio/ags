@@ -534,8 +534,7 @@ void clear_drawobj_cache()
         tex = nullptr;
     }
     for (auto &o : guiobjbg) o = ObjTexture();
-    for (int i = 0; i < game.numgui; ++i)
-        guihelpbg[i].reset();
+    for (auto &hbg : guihelpbg) hbg.reset();
     // cleanup Overlay intermediate bitmaps
     overlaybmp.clear();
 

@@ -67,6 +67,15 @@ D3DBitmap::~D3DBitmap()
         _renderSurface->Release();
 }
 
+void D3DBitmap::ReleaseTextureData()
+{
+    if (_renderSurface)
+        _renderSurface->Release();
+    _renderSurface = nullptr;
+    _data.reset();
+}
+
+
 static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
 static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
 
@@ -722,22 +731,67 @@ void D3DGraphicsDriver::CreateVirtualScreen()
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
 {
-  // Direct3D documentation:
-  // Before calling the IDirect3DDevice9::Reset method for a device,
-  // an application should release any explicit render targets, depth stencil
-  // surfaces, additional swap chains, state blocks, and D3DPOOL_DEFAULT
-  // resources associated with the device.
-  if (pNativeSurface != NULL)
-  {
-    pNativeSurface->Release();
-    pNativeSurface = NULL;
-  }
-  if (pNativeTexture != NULL)
-  {
-      pNativeTexture->Release();
-      pNativeTexture = NULL;
-  }
-  return direct3ddevice->Reset(&d3dpp);
+    // Direct3D documentation:
+    // Before calling the IDirect3DDevice9::Reset method for a device,
+    // an application should release any explicit render targets, depth stencil
+    // surfaces, additional swap chains, state blocks, and D3DPOOL_DEFAULT
+    // resources associated with the device.
+    if (pNativeSurface)
+    {
+        pNativeSurface->Release();
+        pNativeSurface = nullptr;
+    }
+    if (pNativeTexture)
+    {
+        pNativeTexture->Release();
+        pNativeTexture = nullptr;
+    }
+    ReleaseRenderTargetData();
+    HRESULT hr = direct3ddevice->Reset(&d3dpp);
+    if (hr != D3D_OK)
+        return hr;
+    RecreateRenderTargets();
+    return D3D_OK;
+}
+
+void D3DGraphicsDriver::ReleaseRenderTargetData()
+{
+    // Remove RT surface ref from all the existing batches
+    for (auto &batch : _spriteBatches)
+    {
+        if (batch.RenderSurface)
+        {
+            batch.RenderSurface = nullptr;
+        }
+    }
+    // Release the RTs internal data
+    for (auto &ddb : _renderTargets)
+    {
+        ddb->ReleaseTextureData();
+    }
+}
+
+void D3DGraphicsDriver::RecreateRenderTargets()
+{
+    for (auto &ddb : _renderTargets)
+    {
+        ddb->ReleaseTextureData();
+        // FIXME: this ugly accessing internal texture members
+        ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(ddb->_width, ddb->_height, ddb->_opaque, true)));
+        ddb->_data->RenderTarget = true;
+        IDirect3DTexture9 *tex = ddb->_data->_tiles->texture;
+        HRESULT hr = tex->GetSurfaceLevel(0, &ddb->_renderSurface);
+        assert(hr == D3D_OK);
+    }
+    // Reappoint RT surfaces in existing batches
+    for (auto &batch : _spriteBatches)
+    {
+        if (batch.RenderTarget)
+        {
+            assert(!batch.RenderSurface);
+            batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->_renderSurface;
+        }
+    }
 }
 
 bool D3DGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
@@ -1491,6 +1545,14 @@ void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 
 void D3DGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 {
+    // Remove from render targets
+    // FIXME: this ugly accessing internal texture members
+    if (((D3DBitmap*)ddb)->_data->RenderTarget)
+    {
+        auto it = std::find(_renderTargets.begin(), _renderTargets.end(), ddb);
+        assert(it != _renderTargets.end());
+        _renderTargets.erase(it);
+    }
     // Remove deleted DDB from backups
     for (auto &backup_spr : _backupSpriteList)
     {
@@ -1637,12 +1699,14 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(width, height, opaque, true)));
     // FIXME: this ugly accessing internal texture members
+    ddb->_data.reset(reinterpret_cast<D3DTextureData*>(CreateTextureData(width, height, opaque, true)));
+    ddb->_data->RenderTarget = true;
     IDirect3DTexture9 *tex = ddb->_data->_tiles->texture;
     HRESULT hr = tex->GetSurfaceLevel(0, &ddb->_renderSurface);
     assert(hr == D3D_OK);
     ddb->_renderHint = kTxHint_PremulAlpha;
+    _renderTargets.push_back(ddb);
     return ddb;
 }
 

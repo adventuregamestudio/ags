@@ -39,7 +39,10 @@
             android:launchMode="singleInstance"
             android:exported="true">
         </activity>
-        <activity android:configChanges="orientation|keyboardHidden|screenSize" android:name=".PreferencesActivity">
+        <activity
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:name=".PreferencesActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>

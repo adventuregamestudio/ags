@@ -13,7 +13,7 @@
 //=============================================================================
 #include "core/platform.h"
 
-#if (AGS_PLATFORM_OS_ANDROID) || (AGS_PLATFORM_OS_IOS)
+#if AGS_PLATFORM_MOBILE
 
 #include "util/ini_util.h"
 

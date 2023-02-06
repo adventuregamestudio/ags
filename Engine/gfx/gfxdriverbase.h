@@ -37,7 +37,7 @@ using Common::PlaneScaling;
 // Sprite batch, defines viewport and an optional model transformation for the list of sprites
 struct SpriteBatchDesc
 {
-    uint32_t                 Parent = 0u;
+    uint32_t                 Parent = UINT32_MAX;
     // View rectangle for positioning and clipping, in resolution coordinates
     // (this may be screen or game frame resolution, depending on circumstances)
     Rect                     Viewport;
@@ -237,8 +237,11 @@ enum TextureHint
 // Sprite batch's internal parameters for the hardware-accelerated renderer
 struct VMSpriteBatch
 {
-    uint32_t ID = 0;
-    // Clipping viewport
+    // Batch's uid
+    uint32_t ID = 0u;
+    // Optional render target (for rendering on texture)
+    IDriverDependantBitmap *RenderTarget = nullptr;
+    // Clipping viewport, in *absolute* (screen) coordinates
     Rect Viewport;
     // Transformation matrix, built from the batch description
     glm::mat4 Matrix;
@@ -251,6 +254,12 @@ struct VMSpriteBatch
     VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
+    VMSpriteBatch(uint32_t id, IDriverDependantBitmap *render_target,
+                  const Rect view, const glm::mat4 &matrix,
+        const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
+        : ID(id), RenderTarget(render_target),
+          Viewport(view), Matrix(matrix),
+          ViewportMat(vp_matrix), Color(color) {}
 };
 
 

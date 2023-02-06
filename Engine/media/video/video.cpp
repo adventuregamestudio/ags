@@ -473,7 +473,7 @@ bool TheoraPlayer::NextFrame()
 
         // Update the display frame
         _apegStream->frame_updated = 0;
-        apeg_display_video_frame(_apegStream);
+        ret = apeg_display_video_frame(_apegStream);
         has_video = ret != APEG_EOF;
     }
 

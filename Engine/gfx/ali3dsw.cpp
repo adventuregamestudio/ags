@@ -14,6 +14,7 @@
 #define NOMINMAX
 #include "gfx/ali3dsw.h"
 #include <algorithm>
+#include <stack>
 #include "ac/sys_events.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_sdl_renderer.h"
@@ -59,9 +60,6 @@ SDLRendererGraphicsDriver::SDLRendererGraphicsDriver()
   _origVirtualScreen = nullptr;
   virtualScreen = nullptr;
   _stageVirtualScreen = nullptr;
-
-  // Initialize default sprite batch, it will be used when no other batch was activated
-  SDLRendererGraphicsDriver::InitSpriteBatch(0, _spriteBatchDesc[0]);
 }
 
 bool SDLRendererGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -335,55 +333,86 @@ void SDLRendererGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchD
         _spriteBatches.resize(index + 1);
     ALSpriteBatch &batch = _spriteBatches[index];
     batch.ID = index;
-    // TODO: correct offsets to have pre-scale (source) and post-scale (dest) offsets!
-    const int src_w = desc.Viewport.GetWidth() / desc.Transform.ScaleX;
-    const int src_h = desc.Viewport.GetHeight() / desc.Transform.ScaleY;
-    // Surface was prepared externally (common for room cameras)
-    if (desc.Surface != nullptr)
+
+    // Apply parent batch's settings, if preset;
+    Rect viewport = desc.Viewport;
+    SpriteTransform transform = desc.Transform;
+    Bitmap *parent_surf = virtualScreen;
+    if (desc.Parent != UINT32_MAX)
     {
-        batch.Surface = std::static_pointer_cast<Bitmap>(desc.Surface);
+        const auto &parent = _spriteBatches[desc.Parent];
+        if (parent.Surface)
+            parent_surf = parent.Surface.get();
+        // NOTE: we prioritize parent's surface size as a dest viewport,
+        // because parent may have a scheduled scaled blit.
+        if (viewport.IsEmpty())
+            viewport = parent_surf ? RectWH(parent_surf->GetSize()) : RectWH(parent.Viewport.GetSize());
+    }
+    else if (viewport.IsEmpty())
+    {
+        viewport = _srcRect;
+    }
+
+    // Calculate expected source surf size, based on dest viewport and scaling
+    const int src_w = viewport.GetWidth() / transform.ScaleX;
+    const int src_h = viewport.GetHeight() / transform.ScaleY;
+
+    // Initialize batch surface, depending on the batch description.
+    // Surface was prepared externally (common for room cameras)
+    if (desc.Surface)
+    {
+        batch.Surface = desc.Surface;
         batch.Opaque = true;
-        batch.IsVirtualScreen = false;
+        batch.IsParentRegion = false;
     }
     // In case something was not initialized
     else if (desc.Viewport.IsEmpty() || !virtualScreen)
     {
         batch.Surface.reset();
         batch.Opaque = false;
-        batch.IsVirtualScreen = false;
+        batch.IsParentRegion = false;
     }
-    // Drawing directly on a viewport without transformation (other than offset)
-    else if (desc.Transform.ScaleX == 1.f && desc.Transform.ScaleY == 1.f && desc.Transform.Rotate == 0.f)
+    // Drawing directly on a viewport without transformation (other than offset):
+    // then make a subbitmap of the parent surface (virtualScreen or else).
+    else if (transform.ScaleX == 1.f && transform.ScaleY == 1.f && transform.Rotate == 0.f)
     {
         // We need this subbitmap for plugins, which use _stageVirtualScreen and are unaware of possible multiple viewports;
         // TODO: there could be ways to optimize this further, but best is to update plugin rendering hooks (and upgrade plugins)
-        if (!batch.Surface || !batch.IsVirtualScreen ||
-            (batch.Surface->GetWidth() != src_w) || (batch.Surface->GetHeight() != src_h) ||
-            (!batch.Surface->IsSameBitmap(virtualScreen)) ||
-            (batch.Surface->GetSubOffset() != desc.Viewport.GetLT()))
+        if (!batch.Surface || !batch.IsParentRegion ||
+            (!batch.Surface->IsSameBitmap(parent_surf)) ||
+            (batch.Surface->GetSize() != Size(src_w, src_h)) ||
+            (batch.Surface->GetSubOffset() != viewport.GetLT()))
         {
-            Rect rc = RectWH(desc.Viewport.Left, desc.Viewport.Top, desc.Viewport.GetWidth(), desc.Viewport.GetHeight());
-            batch.Surface.reset(BitmapHelper::CreateSubBitmap(virtualScreen, rc));
+            batch.Surface.reset(BitmapHelper::CreateSubBitmap(parent_surf, viewport));
         }
         batch.Opaque = true;
-        batch.IsVirtualScreen = true;
+        batch.IsParentRegion = true;
+        // Because we sub-bitmap to viewport, render offsets should account for that
+        transform.X -= viewport.Left;
+        transform.Y -= viewport.Top;
     }
-    // No surface prepared and has transformation other than offset
-    else if (!batch.Surface || batch.IsVirtualScreen || batch.Surface->GetWidth() != src_w || batch.Surface->GetHeight() != src_h)
+    // No surface prepared and has transformation other than offset:
+    // then create exclusive intermediate bitmap.
+    else
     {
-        batch.Surface.reset(new Bitmap(src_w, src_h, _srcColorDepth));
+        if (!batch.Surface || batch.IsParentRegion || (batch.Surface->GetSize() != Size(src_w, src_h)))
+        {
+            batch.Surface.reset(new Bitmap(src_w, src_h, _srcColorDepth));
+        }
         batch.Opaque = false;
-        batch.IsVirtualScreen = false;
+        batch.IsParentRegion = false;
     }
 
     // If there's a rotation tranform: prepare a helper surface
-    if (desc.Transform.Rotate != 0.f)
+    if (transform.Rotate != 0.f)
     {
         int max_size = std::max(batch.Surface->GetWidth(), batch.Surface->GetHeight());
-        Size rot_sz = RotateSize(Size(max_size, max_size), (int)desc.Transform.Rotate);
+        Size rot_sz = RotateSize(Size(max_size, max_size), (int)transform.Rotate);
         if (batch.HelpSurface == nullptr || batch.HelpSurface->GetSize() != rot_sz)
             batch.HelpSurface.reset(new Bitmap(rot_sz.Width, rot_sz.Height));
     }
+    batch.Viewport = viewport;
+    batch.Transform = transform;
 }
 
 void SDLRendererGraphicsDriver::ResetAllBatches()
@@ -395,6 +424,7 @@ void SDLRendererGraphicsDriver::ResetAllBatches()
 
 void SDLRendererGraphicsDriver::DrawSprite(int /*ox*/, int /*oy*/, int ltx, int lty, IDriverDependantBitmap* bitmap)
 { // Note we are only interested in left-top coords for software renderer
+    assert(_actSpriteBatch != UINT32_MAX);
     _spriteList.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, _actSpriteBatch, ltx, lty));
 }
 
@@ -406,6 +436,7 @@ void SDLRendererGraphicsDriver::SetScreenFade(int /*red*/, int /*green*/, int /*
 
 void SDLRendererGraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
+    assert(_actSpriteBatch != UINT32_MAX);
     _tint_red = red; _tint_green = green; _tint_blue = blue;
     if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0)) && (_srcColorDepth > 8))
     {
@@ -422,9 +453,15 @@ void SDLRendererGraphicsDriver::SetStageScreen(const Size & /*sz*/, int /*x*/, i
 void SDLRendererGraphicsDriver::RenderToBackBuffer()
 {
     // Close unended batches, and issue a warning
-    assert(_actSpriteBatch == 0);
-    while (_actSpriteBatch > 0)
+    assert(_actSpriteBatch == UINT32_MAX);
+    while (_actSpriteBatch != UINT32_MAX)
         EndSpriteBatch();
+
+    if (_spriteBatchDesc.size() == 0)
+    {
+        ClearDrawLists();
+        return; // no batches - no render
+    }
 
     // Render all the sprite batches with necessary transformations
     //
@@ -437,38 +474,69 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
     // that here would slow things down significantly, so if we ever go that way sprite caching will
     // be required (similarily to how AGS caches flipped/scaled object sprites now for).
     //
-    for (size_t cur_spr = 0; cur_spr < _spriteList.size();)
-    {
-        const auto &batch_desc = _spriteBatchDesc[_spriteList[cur_spr].node];
-        const ALSpriteBatch &batch = _spriteBatches[_spriteList[cur_spr].node];
-        const Rect &viewport = batch_desc.Viewport;
-        const SpriteTransform &transform = batch_desc.Transform;
 
-        _rendSpriteBatch = batch.ID;
-        virtualScreen->SetClip(viewport);
-        Bitmap *surface = batch.Surface.get();
-        const int view_x = viewport.Left;
-        const int view_y = viewport.Top;
-        const int view_w = viewport.GetWidth();
-        const int view_h = viewport.GetHeight();
-        // If there's an intermediate surface ready then draw sprite batch
-        // on that surface, then draw the surface onto virtual screen using
-        // its own transformation.
-        if (surface)
+    const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
+    for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
+    {
+        // Test if we are entering this batch (and not continuing after coming back from nested)
+        if (cur_spr <= _spriteBatchRange[cur_bat].first)
         {
-            if (!batch.Opaque)
-                surface->ClearTransparent();
-            _stageVirtualScreen = surface;
-            cur_spr = RenderSpriteBatch(batch, cur_spr, surface, transform.X, transform.Y);
-            // Blit batch surface over to the virtual screen
-            if (!batch.IsVirtualScreen)
+            const auto &batch = _spriteBatches[cur_bat];
+            // Prepare the transparent surface
+            if (batch.Surface && !batch.Opaque)
+                batch.Surface->ClearTransparent();
+        }
+
+        // Render immediate batch sprites, if any, update cur_spr iterator
+        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        {
+            const auto &batch = _spriteBatches[cur_bat];
+            const auto &batch_desc = _spriteBatchDesc[cur_bat];
+            Bitmap *surface = batch.Surface.get();
+            Bitmap *parent_surf = ((batch_desc.Parent != UINT32_MAX) && _spriteBatches[batch_desc.Parent].Surface) ?
+                _spriteBatches[batch_desc.Parent].Surface.get() : virtualScreen;
+            const Rect &viewport = batch.Viewport;
+            const SpriteTransform &transform = batch.Transform;
+
+            _rendSpriteBatch = batch.ID;
+            parent_surf->SetClip(viewport); // CHECKME: this is not exactly correct?
+            if (surface && !batch.IsParentRegion)
+            {
+                _stageVirtualScreen = surface;
+                cur_spr = RenderSpriteBatch(batch, cur_spr, surface, transform.X, transform.Y);
+            }
+            else
+            {
+                _stageVirtualScreen = surface ? surface : parent_surf;
+                cur_spr = RenderSpriteBatch(batch, cur_spr, _stageVirtualScreen, transform.X, transform.Y);
+            }
+        }
+
+        // Test if we're exiting current batch (and not going into nested ones):
+        // if there's no sprites belonging to this batch (direct, or nested),
+        // and if there's no nested batches (even if empty ones)
+        const uint32_t was_bat = cur_bat;
+        while ((cur_bat != UINT32_MAX) && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
+                ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
+        {
+            const auto &batch = _spriteBatches[cur_bat];
+            const auto &batch_desc = _spriteBatchDesc[cur_bat];
+            Bitmap *surface = batch.Surface.get();
+            Bitmap *parent_surf = ((batch_desc.Parent != UINT32_MAX) && _spriteBatches[batch_desc.Parent].Surface) ?
+                _spriteBatches[batch_desc.Parent].Surface.get() : virtualScreen;
+            const Rect &viewport = batch.Viewport;
+
+            // If we're not drawing directly to the subregion of a parent surface,
+            // then blit our own surface to the parent's
+            if (surface && !batch.IsParentRegion)
             {
                 Bitmap *blit_from = surface;
                 const int src_w = surface->GetWidth();
                 const int src_h = surface->GetHeight();
                 int dst_w = surface->GetWidth();
                 int dst_h = surface->GetHeight();
-                if (transform.Rotate != 0.f)
+                const float rotate = batch_desc.Transform.Rotate;
+                if (rotate != 0.f)
                 {
                     Bitmap *helpsurf = batch.HelpSurface.get();
                     dst_w = helpsurf->GetWidth();
@@ -476,22 +544,27 @@ void SDLRendererGraphicsDriver::RenderToBackBuffer()
                     helpsurf->Clear(0); // TODO: check later, might create problems with multi-viewports
                     // (+ width%2 fixes one pixel offset problem)
                     helpsurf->RotateBlt(surface, dst_w / 2 + dst_w % 2, dst_h / 2,
-                        src_w / 2, src_h / 2, (int)transform.Rotate); // clockwise
+                        src_w / 2, src_h / 2, (int)rotate); // clockwise
                     blit_from = helpsurf;
                 }
-                virtualScreen->StretchBlt(blit_from,
+                parent_surf->StretchBlt(blit_from,
                     RectWH((dst_w - src_w) / 2, (dst_h - src_h) / 2, src_w, src_h), // source rect
-                    RectWH(view_x, view_y, view_w, view_h), // destination
+                    viewport, // destination
                     batch.Opaque ? kBitmap_Copy : kBitmap_Transparency);
             }
+
+            // Back to the parent batch
+            cur_bat = batch_desc.Parent;
         }
-        // If not intermediate surface is ready then draw sprite batch
-        // directly onto the virtual screen (no batch transformation)
-        else
+
+        // If we stayed at the same batch, this means that there are still nested batches;
+        // if there's no batches in the stack left, this means we got to move forward anyway.
+        if ((was_bat == cur_bat) || (cur_bat == UINT32_MAX))
         {
-            cur_spr = RenderSpriteBatch(batch, cur_spr, virtualScreen, view_x + transform.X, view_y + transform.Y);
+            cur_bat = ++last_bat;
         }
     }
+
     _stageVirtualScreen = virtualScreen;
     _rendSpriteBatch = UINT32_MAX;
     ClearDrawLists();
@@ -640,7 +713,7 @@ void SDLRendererGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
         return;
     for (auto &batch : _spriteBatches)
     {
-        if (batch.IsVirtualScreen)
+        if (batch.IsParentRegion)
             batch.Surface.reset();
     }
 }

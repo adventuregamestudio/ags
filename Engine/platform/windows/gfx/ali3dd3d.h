@@ -174,8 +174,8 @@ struct CUSTOMVERTEX
 struct D3DSpriteBatch : VMSpriteBatch
 {
     // Add anything D3D specific here
-    // Optional render target (for rendering on texture)
-    D3DBitmap *RenderTarget = nullptr;
+    // Optional render target's surface
+    IDirect3DSurface9 *RenderSurface = nullptr;
 
     D3DSpriteBatch() = default;
     D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
@@ -184,8 +184,8 @@ struct D3DSpriteBatch : VMSpriteBatch
     D3DSpriteBatch(uint32_t id, D3DBitmap *render_target, const Rect &view,
         const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
         const SpriteColorTransform &color)
-        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
-        , RenderTarget(render_target) {}
+        : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
+        , RenderSurface(render_target ? render_target->_renderSurface : nullptr) {}
 };
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
@@ -326,6 +326,8 @@ private:
     // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture = false);
+    // Configures rendering mode for the render target, depending on its properties
+    void SetRenderTarget(const D3DSpriteBatch *batch, IDirect3DSurface9 *back_buffer, Size &surface_sz);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
     void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,

@@ -9,8 +9,8 @@ def projectProperties = new Properties()
 projectProperties.load(new FileInputStream(projectPropertiesFile))
 
 android {
-    compileSdkVersion = 29
-    buildToolsVersion = '30.0.3'
+    compileSdkVersion = 33
+    buildToolsVersion = '33.0.1'
     def appIdParts = projectProperties['applicationId'].split(/\./)
     def nameCount = appIdParts.size()
     def appIdLastPart = appIdParts[nameCount-1]
@@ -21,7 +21,7 @@ android {
         applicationId projectProperties['applicationId']
         archivesBaseName = "app-" + appIdLastPart
         minSdkVersion 19
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode Integer.parseInt(projectProperties.getProperty('versionCode'))
         versionName projectProperties['versionName']
     }
@@ -46,6 +46,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.mystudioname.mygamename'
 }
 
 dependencies {

@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.DocumentsContract
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
 
     var filename: String = ""
 
+    private var resumedOnce: Boolean = false;
     private var lastSelectedPosition: Int = 0
     private val folderList = ArrayList<String>()
     private val filenameList = ArrayList<String>()
@@ -76,6 +78,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         recyclerView.adapter = gameListRecyclerViewAdapter
 
         // Build game list
+        Log.d("AGSPlayer.MainActivity", "onCreate()")
         buildGamesListIfPossible()
     }
 
@@ -97,6 +100,8 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         // The launcher will accept paths that don't start with a slash, but
         // the engine cannot find the game later.
         if (!baseDirectory!!.startsWith("/")) baseDirectory = "/$baseDirectory"
+
+        Log.d("AGSPlayer.MainActivity", "setAgsBaseDirFromUri()")
         buildGamesListIfPossible()
     }
 
@@ -104,9 +109,10 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_TREE && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                setAgsBaseDirFromUri(it)
-            }
+            data?.data?.let {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    setAgsBaseDirFromUri(it)
+                }
             }
         }
     }
@@ -139,6 +145,8 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
                 // The launcher will accept paths that don't start with a slash, but
                 // the engine cannot find the game later.
                 if (!baseDirectory!!.startsWith("/")) baseDirectory = "/$baseDirectory"
+
+                Log.d("AGSPlayer.MainActivity", "onOptionsItemSelected()")
                 buildGamesListIfPossible()
             }
             alert.setNegativeButton("Cancel",
@@ -193,7 +201,6 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         val intent =
             Intent(this, CreditsActivity::class.java)
         startActivity(intent)
-
     }
 
     private  fun showPreferences(position: Int) {
@@ -235,8 +242,44 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
     }
 
     private fun buildGamesListIfPossible() {
-        if(hasExternalStoragePermission()) {
-            buildGamesList();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:R:hasAllFilesPermission()")
+            if (hasAllFilesPermission()) {
+                Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:buildGamesList()")
+                buildGamesList();
+            } else {
+                Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:Ask ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION")
+                val uri = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+
+                // this request is asynchronous, we should really use registerForActivityResult to launch this
+                // but this means we no longer have an action bar for the app since we inherit from CoponentActivity instead
+                startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        uri
+                    )
+                )
+            }
+        } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:M:hasStoragePermission()")
+            if (hasStoragePermission()) {
+                Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:buildGamesList()")
+                buildGamesList();
+            } else {
+                Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:Ask READ_EXTERNAL_STORAGE")
+
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    EXTERNAL_STORAGE_REQUEST_CODE
+                )
+            }
+        } else {
+            Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible::hasExternalStoragePermission()")
+            if(hasExternalStoragePermission()) {
+                Log.d("AGSPlayer.MainActivity", "buildGamesListIfPossible:buildGamesList()")
+                buildGamesList();
+            }
         }
     }
 
@@ -249,7 +292,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         if (searchDirectory.isDirectory) {
             val tempList =
                 searchDirectory.list { dir, filename -> File("$dir/$filename").isDirectory }
-            for (subpath in tempList) {
+            for (subpath in tempList!!) {
                 var entry = subpath
                 if (path != null) {
                     entry = "$path/$entry"
@@ -267,12 +310,12 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         val tempFilename = searchForGames()
         if(tempFilename != null) {
             filename = tempFilename
-                if (filename.isNotEmpty() && filename.length > 1) {
-                    startGame(filename, false)
-                    return
-                }
+            if (filename.isNotEmpty() && filename.length > 1) {
+                startGame(filename, false)
+                return
+            }
         }
-        if (folderList.isNotEmpty() && folderList.size > 0) {
+        if (folderList.isNotEmpty()) {
             folderList.forEachIndexed { index, folder ->
                 val game = GameModel(folder,filenameList[index],folder,false)
                 gameList.add(game)
@@ -324,6 +367,13 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         return null
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun hasAllFilesPermission() = Environment.isExternalStorageManager()
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun hasStoragePermission() =
+        checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED
 
     fun showExternalStoragePermissionMissingDialog() {
         val dialog =
@@ -340,23 +390,23 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        if (grantResults.size > 0) {
-            Log.d("AGSRuntimeActivity", "Received a request permission result")
+        if (grantResults.isNotEmpty()) {
+            Log.d("AGSPlayer.MainActivity", "Received a request permission result")
             when (requestCode) {
                 this.EXTERNAL_STORAGE_REQUEST_CODE -> {
                     if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        Log.d("AGSRuntimeActivity", "Permission granted")
+                        Log.d("AGSPlayer.MainActivity", "Permission granted")
                     } else {
-                        Log.d("AGSRuntimeActivity", "Did not get permission.")
+                        Log.d("AGSPlayer.MainActivity", "Did not get permission.")
                         if (ActivityCompat.shouldShowRequestPermissionRationale(
                                 this,
-                                Manifest.permission.READ_EXTERNAL_STORAGE
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
                             )
                         ) {
                             showExternalStoragePermissionMissingDialog()
                         }
                     }
-                    Log.d("AGSRuntimeActivity", "Unlocking AGS thread")
+                    Log.d("AGSPlayer.MainActivity", "Unlocking AGS thread")
                     synchronized(externalStorageRequestDummy) {
                         externalStorageRequestDummy[0] = grantResults[0]
                     }
@@ -369,15 +419,23 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
     override fun onResume() {
         super.onResume()
 
-        buildGamesListIfPossible()
+        Log.d("AGSPlayer.MainActivity", "onResume()")
+        if(resumedOnce) {
+            buildGamesListIfPossible()
+        }
+        resumedOnce = true;
     }
-
 
     @Keep
     fun hasExternalStoragePermission(): Boolean {
+        return hasPermissionSpecific(Manifest.permission.WRITE_EXTERNAL_STORAGE, this.EXTERNAL_STORAGE_REQUEST_CODE, "external storage")
+    }
+
+    @Keep
+    fun hasPermissionSpecific(permission: String, request_code: Int, permission_description: String): Boolean {
         if (ActivityCompat.checkSelfPermission(
                 this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                permission
             )
             == PackageManager.PERMISSION_GRANTED
         ) {
@@ -389,8 +447,8 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         )
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-            this.EXTERNAL_STORAGE_REQUEST_CODE
+            arrayOf(permission),
+            request_code
         )
         synchronized(externalStorageRequestDummy) {
             try {
@@ -398,7 +456,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
             } catch (e: InterruptedException) {
                 Log.d(
                     "AGSRuntimeActivity",
-                    "requesting external storage permission",
+                    "requesting $permission_description permission",
                     e
                 )
                 return false
@@ -406,7 +464,7 @@ class MainActivity : AppCompatActivity(), GameListRecyclerViewAdapter.ItemClickL
         }
         return ActivityCompat.checkSelfPermission(
             this,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            permission
         ) == PackageManager.PERMISSION_GRANTED
     }
 

@@ -11,6 +11,9 @@ import androidx.preference.PreferenceManager;
 import java.io.File;
 
 public class AgsSettingsFragment extends PreferenceFragmentCompat {
+
+    String configDirectory;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
@@ -36,7 +39,8 @@ public class AgsSettingsFragment extends PreferenceFragmentCompat {
                 prefAct.gamePath = prefAct.baseDirectory;
         }
 
-        boolean hasCustomConfig = prefAct.readConfigFile(prefAct.gamePath);
+        configDirectory = prefAct.gamePath;
+        boolean hasCustomConfig = prefAct.readConfigFile(configDirectory);
 
         if (!prefAct.isGlobalConfig) {
             // Get available translations from the engine
@@ -57,5 +61,12 @@ public class AgsSettingsFragment extends PreferenceFragmentCompat {
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
         prefAct.loadPreferencesRecursively(getPreferenceScreen(), editor);
         editor.commit();
+    }
+
+    public void writeContigFile()
+    {
+        PreferencesActivity prefAct = (PreferencesActivity) getActivity();
+        assert prefAct != null;
+        prefAct.writeConfigFile(configDirectory);
     }
 }

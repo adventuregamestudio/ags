@@ -341,6 +341,7 @@ Engine:
  - Fixed overlay may fail to be created sometimes, if previously another overlay had been
    forcefully removed when changing rooms (this is an ancient bug which existed for many years).
  - Fixed ListBox.RowCount reporting 0 if called before the control was displayed once.
+ - Fixed GetTextWidth would still return a size of an outline for an empty text string.
  - Fixed text may be misaligned in gui controls, as its outline thickness is not counted.
  - Fixed some TTF fonts could be cut at the bottom when the speech is displayed.
  - Fixed scheduled sound fadeout effect was not cancelled by skipping a cutscene.
@@ -382,6 +383,7 @@ Android:
  - In AGS Player added "Browse" button to the game folder selection, which opens default system
    file picker.
  - AGS Player now searches for games recursively, in all the subfolders.
+ - AGS Player now has preference button per each game, which opens individual game's settings.
 
 OSX:
  - OpenGL renderer is now supported on MacOS.

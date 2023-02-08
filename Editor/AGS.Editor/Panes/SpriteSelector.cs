@@ -1126,12 +1126,12 @@ namespace AGS.Editor
                     if (dialog.UseRootFolder)
                     {
                         SpriteTools.ExportSprites(dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipIf, dialog.UpdateSpriteSource);
+                            dialog.SkipIf, dialog.UpdateSpriteSource, dialog.ResetTileSettings);
                     }
                     else
                     {
                         SpriteTools.ExportSprites(_currentFolder, dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipIf, dialog.UpdateSpriteSource);
+                            dialog.SkipIf, dialog.UpdateSpriteSource, dialog.ResetTileSettings);
                     }
                 }
                 catch (Exception ex)
@@ -1154,7 +1154,8 @@ namespace AGS.Editor
                 {
                     SpriteTools.ExportSprites(Path.Combine(folder, "%Number%"), recurse: true,
                         skipIf: SpriteTools.SkipIf.SourceLocal,
-                        updateSourcePath: true);
+                        updateSourcePath: true,
+                        resetTileSettings: true);
                 }
                 catch (Exception ex)
                 {

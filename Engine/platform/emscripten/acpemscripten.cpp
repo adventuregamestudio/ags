@@ -65,9 +65,15 @@ void AGSEmscripten::DisplayAlert(const char *text, ...)
     vsprintf(displbuf, text, ap);
     va_end(ap);
     if (_logToStdErr)
+    {
         fprintf(stderr, "%s\n", displbuf);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "AGS Error", displbuf, nullptr);
+    }
     else
+    {
         fprintf(stdout, "%s\n", displbuf);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "AGS Alert", displbuf, nullptr);
+    }
 }
 
 static void DetermineDataDirectories()

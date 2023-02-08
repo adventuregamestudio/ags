@@ -80,7 +80,7 @@
             this.chkRecurse.Location = new System.Drawing.Point(11, 67);
             this.chkRecurse.Name = "chkRecurse";
             this.chkRecurse.Size = new System.Drawing.Size(115, 17);
-            this.chkRecurse.TabIndex = 2;
+            this.chkRecurse.TabIndex = 3;
             this.chkRecurse.Text = "Include sub-folders";
             this.chkRecurse.UseVisualStyleBackColor = true;
             // 
@@ -90,7 +90,7 @@
             this.radRootFolder.Location = new System.Drawing.Point(11, 43);
             this.radRootFolder.Name = "radRootFolder";
             this.radRootFolder.Size = new System.Drawing.Size(105, 17);
-            this.radRootFolder.TabIndex = 1;
+            this.radRootFolder.TabIndex = 2;
             this.radRootFolder.Text = "Root sprite folder";
             this.radRootFolder.UseVisualStyleBackColor = true;
             // 
@@ -101,7 +101,7 @@
             this.radThisFolder.Location = new System.Drawing.Point(11, 19);
             this.radThisFolder.Name = "radThisFolder";
             this.radThisFolder.Size = new System.Drawing.Size(102, 17);
-            this.radThisFolder.TabIndex = 0;
+            this.radThisFolder.TabIndex = 1;
             this.radThisFolder.TabStop = true;
             this.radThisFolder.Text = "This sprite folder";
             this.radThisFolder.UseVisualStyleBackColor = true;
@@ -112,7 +112,7 @@
             this.chkIfSpriteSourceLocal.Location = new System.Drawing.Point(11, 42);
             this.chkIfSpriteSourceLocal.Name = "chkIfSpriteSourceLocal";
             this.chkIfSpriteSourceLocal.Size = new System.Drawing.Size(226, 17);
-            this.chkIfSpriteSourceLocal.TabIndex = 4;
+            this.chkIfSpriteSourceLocal.TabIndex = 6;
             this.chkIfSpriteSourceLocal.Text = "Sprite source file is inside the project folder";
             this.chkIfSpriteSourceLocal.UseVisualStyleBackColor = true;
             // 
@@ -122,7 +122,7 @@
             this.chkIfSpriteSourceValid.Location = new System.Drawing.Point(11, 19);
             this.chkIfSpriteSourceValid.Name = "chkIfSpriteSourceValid";
             this.chkIfSpriteSourceValid.Size = new System.Drawing.Size(139, 17);
-            this.chkIfSpriteSourceValid.TabIndex = 3;
+            this.chkIfSpriteSourceValid.TabIndex = 5;
             this.chkIfSpriteSourceValid.Text = "Sprite source file is valid";
             this.chkIfSpriteSourceValid.UseVisualStyleBackColor = true;
             // 
@@ -138,7 +138,7 @@
             this.groupBoxSaveAs.Location = new System.Drawing.Point(12, 194);
             this.groupBoxSaveAs.Name = "groupBoxSaveAs";
             this.groupBoxSaveAs.Size = new System.Drawing.Size(410, 78);
-            this.groupBoxSaveAs.TabIndex = 1;
+            this.groupBoxSaveAs.TabIndex = 7;
             this.groupBoxSaveAs.TabStop = false;
             this.groupBoxSaveAs.Text = "Save as";
             // 
@@ -148,7 +148,7 @@
             this.btnBrowse.Location = new System.Drawing.Point(358, 47);
             this.btnBrowse.Name = "btnBrowse";
             this.btnBrowse.Size = new System.Drawing.Size(46, 21);
-            this.btnBrowse.TabIndex = 4;
+            this.btnBrowse.TabIndex = 10;
             this.btnBrowse.Text = "...";
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
@@ -161,7 +161,7 @@
             this.txtFolder.Location = new System.Drawing.Point(63, 47);
             this.txtFolder.Name = "txtFolder";
             this.txtFolder.Size = new System.Drawing.Size(290, 20);
-            this.txtFolder.TabIndex = 3;
+            this.txtFolder.TabIndex = 9;
             // 
             // contextMenuStripExport
             // 
@@ -216,7 +216,7 @@
             this.txtFilename.Location = new System.Drawing.Point(63, 20);
             this.txtFilename.Name = "txtFilename";
             this.txtFilename.Size = new System.Drawing.Size(341, 20);
-            this.txtFilename.TabIndex = 2;
+            this.txtFilename.TabIndex = 8;
             this.txtFilename.Text = "%Number%";
             // 
             // lblFolder
@@ -244,7 +244,7 @@
             this.chkUpdateSpriteSource.Location = new System.Drawing.Point(11, 19);
             this.chkUpdateSpriteSource.Name = "chkUpdateSpriteSource";
             this.chkUpdateSpriteSource.Size = new System.Drawing.Size(179, 17);
-            this.chkUpdateSpriteSource.TabIndex = 5;
+            this.chkUpdateSpriteSource.TabIndex = 12;
             this.chkUpdateSpriteSource.Text = "Set exported file as sprite source";
             this.chkUpdateSpriteSource.UseVisualStyleBackColor = true;
             // 
@@ -255,7 +255,7 @@
             this.btnClose.Location = new System.Drawing.Point(93, 354);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
-            this.btnClose.TabIndex = 2;
+            this.btnClose.TabIndex = 15;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
             // 
@@ -266,7 +266,7 @@
             this.btnExport.Location = new System.Drawing.Point(12, 354);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(75, 23);
-            this.btnExport.TabIndex = 3;
+            this.btnExport.TabIndex = 14;
             this.btnExport.Text = "Export";
             this.btnExport.UseVisualStyleBackColor = true;
             // 
@@ -279,7 +279,7 @@
             this.groupBoxSpriteProperties.Location = new System.Drawing.Point(12, 278);
             this.groupBoxSpriteProperties.Name = "groupBoxSpriteProperties";
             this.groupBoxSpriteProperties.Size = new System.Drawing.Size(410, 67);
-            this.groupBoxSpriteProperties.TabIndex = 6;
+            this.groupBoxSpriteProperties.TabIndex = 11;
             this.groupBoxSpriteProperties.TabStop = false;
             this.groupBoxSpriteProperties.Text = "Sprite properties";
             // 
@@ -290,7 +290,7 @@
             this.groupBoxExportIf.Location = new System.Drawing.Point(12, 116);
             this.groupBoxExportIf.Name = "groupBoxExportIf";
             this.groupBoxExportIf.Size = new System.Drawing.Size(410, 72);
-            this.groupBoxExportIf.TabIndex = 7;
+            this.groupBoxExportIf.TabIndex = 4;
             this.groupBoxExportIf.TabStop = false;
             this.groupBoxExportIf.Text = "Skip if...";
             // 
@@ -300,7 +300,7 @@
             this.chkResetTileSettings.Location = new System.Drawing.Point(11, 43);
             this.chkResetTileSettings.Name = "chkResetTileSettings";
             this.chkResetTileSettings.Size = new System.Drawing.Size(109, 17);
-            this.chkResetTileSettings.TabIndex = 6;
+            this.chkResetTileSettings.TabIndex = 13;
             this.chkResetTileSettings.Text = "Reset tile settings";
             this.chkResetTileSettings.UseVisualStyleBackColor = true;
             // 

@@ -18,7 +18,17 @@ namespace AGS.Editor.Utils
         {
             // We have to use this stream code because using "new Bitmap(filename)"
             // keeps the file open until the Bitmap is disposed
-            FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            FileStream fileStream;
+
+            try
+            {
+                fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            }
+            catch
+            {
+                throw new Types.InvalidDataException($"Unable to open file '{fileName}'");
+            }
+
             Bitmap loadedBmp;
 
             try

@@ -11,7 +11,7 @@
 
 #include "cs_parser.h"
 
-ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, long const options, MessageHandler &mh)
+ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options, MessageHandler &mh)
 {
     ccCompiledScript *compiled_script =
         new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));

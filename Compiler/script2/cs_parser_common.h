@@ -12,7 +12,7 @@ namespace AGS
 typedef int Symbol; // A symbol (result of scanner preprocessing)
 typedef std::vector<Symbol> SymbolList;
 typedef std::vector<size_t> RegisterList;
-typedef long FlagSet; // Collection of bits that are set and reset
+typedef uint64_t FlagSet; // Collection of bits that are set and reset
 typedef int Vartype; // e.g., "int"
 typedef int32_t CodeCell; // A Bytecode cell (content) or an opcode
 typedef int32_t CodeLoc; // An offset to code[0], may be negative
@@ -33,8 +33,8 @@ constexpr size_t STRUCT_ALIGNTO = 4;
 
 constexpr size_t MAX_FUNCTION_PARAMETERS = 15;
 
-inline static bool FlagIsSet(AGS::FlagSet fl_set, long flag) { return 0 != (fl_set & flag); }
-inline static void SetFlag(AGS::FlagSet &fl_set, long flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
+inline static bool FlagIsSet(AGS::FlagSet fl_set, uint64_t flag) { return 0 != (fl_set & flag); }
+inline static void SetFlag(AGS::FlagSet &fl_set, uint64_t flag, bool val) { if (val) fl_set |= flag; else fl_set &= ~flag; }
 
 enum ErrorType
 {

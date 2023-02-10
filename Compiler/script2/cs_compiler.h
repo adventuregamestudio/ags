@@ -17,6 +17,6 @@
 
 // compile the script supplied, returns nullptr on failure
 // cc_error() gets called.
-extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, long options, MessageHandler &mh);
+extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t options, MessageHandler &mh);
 
 #endif // __CS_COMPILER2_H

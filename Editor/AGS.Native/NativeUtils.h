@@ -32,6 +32,8 @@ public:
     System::String^ Convert(const AGS::Common::String &str);
     // Convert managed string to native using current encoding
     AGSString Convert(System::String^ clr_str);
+    // Convert managed string to native std::string using current encoding
+    std::string ConvertToStd(System::String^ clr_str);
 
 private:
     System::Text::Encoding^ _encoding = nullptr;
@@ -70,6 +72,8 @@ namespace TextHelper
     System::String^ Convert(const AGS::Common::String &str, System::Text::Encoding^ enc);
     // Convert managed to native using given encoder
     AGSString Convert(System::String^ clr_str, System::Text::Encoding^ enc);
+    // Convert managed to native std::string using given encoder
+    std::string ConvertToStd(System::String^ clr_str, System::Text::Encoding^ enc);
 };
 
 extern AGSString editorVersionNumber;

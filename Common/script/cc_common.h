@@ -20,16 +20,17 @@
 
 #include "util/string.h"
 
-#define SCOPT_EXPORTALL      1   // export all functions automatically
-#define SCOPT_SHOWWARNINGS   2   // printf warnings to console
-#define SCOPT_LINENUMBERS    4   // include line numbers in compiled code
-#define SCOPT_AUTOIMPORT     8   // when creating instance, export funcs to other scripts
-#define SCOPT_DEBUGRUN    0x10   // write instructions as they are procssed to log file
+#define SCOPT_EXPORTALL     0x0001   // export all functions automatically
+#define SCOPT_SHOWWARNINGS  0x0002   // printf warnings to console
+#define SCOPT_LINENUMBERS   0x0004   // include line numbers in compiled code
+#define SCOPT_AUTOIMPORT    0x0008   // when creating instance, export funcs to other scripts
+#define SCOPT_DEBUGRUN      0x0010   // write instructions as they are procssed to log file
 // TODO: this flag might have to be removed as it makes inconsistent rules for distinct scripts
-#define SCOPT_NOIMPORTOVERRIDE 0x20 // do not allow an import to be re-declared
-//#define SCOPT_LEFTTORIGHT 0x40   // left-to-right operator precedance
-#define SCOPT_OLDSTRINGS  0x80   // allow old-style strings
-#define SCOPT_UTF8        0x100  // UTF-8 text mode
+#define SCOPT_NOIMPORTOVERRIDE 0x0020 // do not allow an import to be re-declared
+//#define SCOPT_LEFTTORIGHT 0x40   // left-to-right operator precedance (DEPRECATED)
+#define SCOPT_OLDSTRINGS    0x0080   // allow old-style strings
+#define SCOPT_UTF8          0x0100  // UTF-8 text mode
+#define SCOPT_HIGHEST       SCOPT_UTF8
 
 extern void ccSetOption(int, int);
 extern int ccGetOption(int);

@@ -113,6 +113,13 @@ AGSString TextConverter::Convert(System::String^ clr_str)
     return TextHelper::Convert(clr_str, _encoding);
 }
 
+std::string TextConverter::ConvertToStd(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
+        return std::string();
+    return TextHelper::ConvertToStd(clr_str, _encoding);
+}
+
 AGSString TextHelper::ConvertASCII(System::String^ clr_str)
 {
     if (clr_str == nullptr)
@@ -146,15 +153,29 @@ AGSString TextHelper::ConvertUTF8(System::String^ clr_str)
     return Convert(clr_str, System::Text::Encoding::UTF8);
 }
 
-AGSString TextHelper::Convert(System::String^ clr_str, System::Text::Encoding^ enc)
+static IntPtr ConvertImpl(System::String^ clr_str, System::Text::Encoding^ enc)
 {
     int len = enc->GetByteCount(clr_str);
     cli::array<unsigned char>^ buf = gcnew cli::array<unsigned char>(len + 1);
     enc->GetBytes(clr_str, 0, clr_str->Length, buf, 0);
     IntPtr dest_ptr = Marshal::AllocHGlobal(buf->Length);
     Marshal::Copy(buf, 0, dest_ptr, buf->Length);
-    AGSString str = (const char*)dest_ptr.ToPointer();
-    Marshal::FreeHGlobal(dest_ptr);
+    return dest_ptr;
+}
+
+AGSString TextHelper::Convert(System::String^ clr_str, System::Text::Encoding^ enc)
+{
+    IntPtr intptr = ConvertImpl(clr_str, enc);
+    AGSString str = (const char*)intptr.ToPointer();
+    Marshal::FreeHGlobal(intptr);
+    return str;
+}
+
+std::string TextHelper::ConvertToStd(System::String^ clr_str, System::Text::Encoding^ enc)
+{
+    IntPtr intptr = ConvertImpl(clr_str, enc);
+    std::string str = (const char*)intptr.ToPointer();
+    Marshal::FreeHGlobal(intptr);
     return str;
 }
 

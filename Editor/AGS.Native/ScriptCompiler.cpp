@@ -28,35 +28,35 @@ namespace AGS
 {
 	namespace Native
 	{
-    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^messages)
+    void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts,
+        Game ^game, CompileMessages ^messages)
     {
-			TextConverter^ tcv = NativeMethods::GetGameTextConverter();
-
         if (script->CompiledData != nullptr)
-            script->CompiledData = nullptr;
+            script->CompiledData = nullptr; // clear up previous data, if present
+
+        std::unique_ptr<ccScript> cc_script;
+        // Prepare to convert script texts to native strings, in UTF-8 format
+        TextConverter^ tcv = NativeMethods::GetGameTextConverter();
+        // Set up compiler options
+        uint64_t const cc_options =
+                SCOPT_EXPORTALL |
+                SCOPT_LINENUMBERS |
+                SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
+                SCOPT_UTF8 * (game->UnicodeMode) |
+                false;
 
         if (game->Settings->ExtendedCompiler)
         {
-            ccScript *scrpt = nullptr;
-
             // Concatenate the whole thing together
             String^ all_the_script = "";
             for each (String^ header in preProcessedScripts)
                 all_the_script += header;
 
-            long const options =
-                SCOPT_EXPORTALL |
-                SCOPT_LINENUMBERS |
-                SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
-                false;
-
             AGS::MessageHandler mh;
 
-            char *mainScript = (char *) System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(all_the_script).ToPointer();
-            char *mainScriptName = (char *) System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(script->FileName).ToPointer();
-            scrpt = ccCompileText2(mainScript, mainScriptName, options, mh);
-            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScript));
-            System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(mainScriptName));
+            std::string mainScript = tcv->ConvertToStd(all_the_script);
+            std::string mainScriptName = tcv->ConvertToStd(script->FileName);
+            cc_script.reset(ccCompileText2(mainScript, mainScriptName, cc_options, mh));
 
             auto compiler_messages = mh.GetMessages();
             for (auto msg = compiler_messages.begin(); msg != compiler_messages.end(); msg++)
@@ -73,10 +73,8 @@ namespace AGS
 
             if (mh.HasError())
             {
-                delete scrpt;
                 return;
             }
-            script->CompiledData = gcnew CompiledScript(PScript(scrpt));
         }
         else
         {
@@ -88,7 +86,6 @@ namespace AGS
             scriptHeaders.resize(preProcessedScripts->Length - 1);
             AGSString mainScript;
             AGSString mainScriptName;
-            ccScript *scrpt = NULL;
             int headerCount = 0;
 
             for each (String^ header in preProcessedScripts)
@@ -107,17 +104,15 @@ namespace AGS
             }
 
             ccSetSoftwareVersion(editorVersionNumber.GetCStr());
-            ccSetOption(SCOPT_EXPORTALL, 1);
-            ccSetOption(SCOPT_LINENUMBERS, 1);
-            ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
-			  ccSetOption(SCOPT_UTF8, game->UnicodeMode);
+            for (uint64_t opt_bit = 1; opt_bit <= SCOPT_HIGHEST; opt_bit <<= 1)
+                ccSetOption(opt_bit, (cc_options & opt_bit) != 0);
 
             if (compile_error == nullptr)
             {
                 mainScript = tcv->Convert(preProcessedScripts[preProcessedScripts->Length - 1]);
                 mainScriptName = tcv->Convert(script->FileName);
-                scrpt = ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr());
-                if ((scrpt == NULL) || (cc_has_error()))
+                cc_script.reset(ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr()));
+                if (!cc_script || cc_has_error())
                 {
                     auto &error = cc_get_error();
                     compile_error = gcnew CompileError(tcv->Convert(error.ErrorString), TextHelper::ConvertASCII(ccCurScriptName), error.Line);
@@ -126,13 +121,12 @@ namespace AGS
 
             if (compile_error != nullptr)
             {
-                delete scrpt;
                 messages->Add(compile_error);
-                return;
             }
-
-            script->CompiledData = gcnew CompiledScript(PScript(scrpt));
         }
+
+        // Success, create new CompiledData
+        script->CompiledData = gcnew CompiledScript(PScript(cc_script.release()));
     }
 
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)

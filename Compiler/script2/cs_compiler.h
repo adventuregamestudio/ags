@@ -12,9 +12,13 @@
 #ifndef __CS_COMPILER2_H
 #define __CS_COMPILER2_H
 
+#include <string>
+#include <vector>
 #include "script/cc_script.h"
 #include "cs_message_handler.h"
 
+// Get a list of compiler extensions.
+extern void ccGetExtensions2(std::vector<std::string> &exts);
 // compile the script supplied, returns nullptr on failure
 // cc_error() gets called.
 extern ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t options, MessageHandler &mh);

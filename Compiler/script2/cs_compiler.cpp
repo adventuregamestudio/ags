@@ -11,6 +11,14 @@
 
 #include "cs_parser.h"
 
+void ccGetExtensions2(std::vector<std::string> &exts)
+{
+    // A generic "AGS 4.0" extension, for easier detection
+    // of a new compiler. Feel free to add more, specifying each
+    // new added feature individually.
+    exts.push_back("AGS4");
+}
+
 ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options, MessageHandler &mh)
 {
     ccCompiledScript *compiled_script =

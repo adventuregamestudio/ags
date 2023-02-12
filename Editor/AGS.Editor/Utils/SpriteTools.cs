@@ -422,7 +422,7 @@ namespace AGS.Editor.Utils
                 return m.Value; });
         }
 
-        public static void ExportSprite(Sprite sprite, string path, bool updateSourcePath)
+        public static void ExportSprite(Sprite sprite, string path, bool updateSourcePath, bool resetTileSettings)
         {
             path = ExpandExportPath(sprite, path);
 
@@ -456,6 +456,13 @@ namespace AGS.Editor.Utils
             {
                 sprite.SourceFile = Utilities.GetRelativeToProjectPath(path);
             }
+
+            if (resetTileSettings)
+            {
+                sprite.ImportAsTile = false;
+                sprite.OffsetX = 0;
+                sprite.OffsetY = 0;
+            }
         }
 
         [Flags]
@@ -466,7 +473,7 @@ namespace AGS.Editor.Utils
         }
 
         public static void ExportSprites(SpriteFolder folder, string path, bool recurse,
-            SkipIf skipIf, bool updateSourcePath)
+            SkipIf skipIf, bool updateSourcePath, bool resetTileSettings)
         {
             foreach(Sprite sprite in folder.Sprites)
             {
@@ -488,23 +495,23 @@ namespace AGS.Editor.Utils
                     }
                 }
 
-                ExportSprite(sprite, path, updateSourcePath);
+                ExportSprite(sprite, path, updateSourcePath, resetTileSettings);
             }
 
             if (recurse)
             {
                 foreach (SpriteFolder subFolder in folder.SubFolders)
                 {
-                    ExportSprites(subFolder, path, recurse, skipIf, updateSourcePath);
+                    ExportSprites(subFolder, path, recurse, skipIf, updateSourcePath, resetTileSettings);
                 }
             }
         }
 
         public static void ExportSprites(string path, bool recurse,
-            SkipIf skipIf, bool updateSourcePath)
+            SkipIf skipIf, bool updateSourcePath, bool resetTileSettings)
         {
             SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
-            ExportSprites(folder, path, recurse, skipIf, updateSourcePath);
+            ExportSprites(folder, path, recurse, skipIf, updateSourcePath, resetTileSettings);
         }
 
         public static Bitmap GetPlaceHolder(int width = 12, int height = 7)

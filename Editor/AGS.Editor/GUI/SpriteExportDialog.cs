@@ -42,6 +42,11 @@ namespace AGS.Editor
             }
         }
 
+        public bool ResetTileSettings
+        {
+            get { return chkResetTileSettings.Checked; }
+        }
+
         public bool UpdateSpriteSource
         {
             get { return chkUpdateSpriteSource.Checked; }

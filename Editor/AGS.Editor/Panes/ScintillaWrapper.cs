@@ -558,15 +558,15 @@ namespace AGS.Editor
         public int[] GetLineNumbersForAllBreakpoints()
         {
             List<int> breakpointLines = new List<int>();
-            int currentLineOffset = 0;
-            while (currentLineOffset >= 0)
+            int line = 0;
+            while (line >= 0)
             {
-                currentLineOffset = scintillaControl1.Lines[currentLineOffset].MarkerNext(MARKER_MASK_BREAKPOINT);
-                if (currentLineOffset >= 0)
-                {
-                    breakpointLines.Add(currentLineOffset + 1);
-                    currentLineOffset++;
-                }
+                int next_line = scintillaControl1.Lines[line].MarkerNext(MARKER_MASK_BREAKPOINT);
+                if (next_line <= line) break;
+
+                line = next_line + 1;
+                breakpointLines.Add(line);
+
             }
             return breakpointLines.ToArray();
         }

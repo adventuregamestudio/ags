@@ -17,6 +17,13 @@ std::vector<const char*> defaultHeaderNames;
 
 MacroTable predefinedMacros;
 
+void ccGetExtensions(std::vector<std::string> &exts)
+{
+    // TODO: we may consider creating a managed user object an extension, etc,
+    // although it was introduced years ago when extensions were not declared.
+    return;
+}
+
 int ccAddDefaultHeader(const char* nhead, const char *nName)
 {
     defaultheaders.push_back(nhead);

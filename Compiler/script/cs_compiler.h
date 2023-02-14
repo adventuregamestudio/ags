@@ -13,9 +13,14 @@
 #ifndef __CS_COMPILER_H
 #define __CS_COMPILER_H
 
+#include <string>
+#include <vector>
 #include "script/cc_script.h"  // ccScript
 
 // ********* SCRIPT COMPILATION FUNCTIONS **************
+// Get a list of compiler extensions.
+extern void ccGetExtensions(std::vector<std::string> &exts);
+
 // add a script that will be compiled as a header into every compilation
 // 'name' is the name of the header, used in error reports
 // (only the pointer is stored so don't free the memory)

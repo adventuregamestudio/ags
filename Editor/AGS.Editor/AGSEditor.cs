@@ -947,12 +947,21 @@ namespace AGS.Editor
             }
         }
 
-		/// <summary>
-		/// Preprocesses and then compiles the script using the supplied headers.
+        private void DefineMacrosFromCompiler(IPreprocessor preprocessor)
+        {
+            var exts = Factory.NativeProxy.GetCompilerExtensions(_game);
+            foreach (var ext in exts)
+            {
+                preprocessor.DefineMacro("SCRIPT_EXT_" + ext, "1");
+            }
+        }
+
+        /// <summary>
+        /// Preprocesses and then compiles the script using the supplied headers.
         /// Warnings and errors are collected in 'messages'.
-		/// Will _not_ throw whenever compiling results in an error.
-		/// </summary>
-		public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
+        /// Will _not_ throw whenever compiling results in an error.
+        /// </summary>
+        public void CompileScript(Script script, List<Script> headers, CompileMessages messages)
 		{
 			messages = messages ?? new CompileMessages();
             List<string> preProcessedCode;
@@ -971,6 +980,7 @@ namespace AGS.Editor
         {
             IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
             DefineMacrosAccordingToGameSettings(preprocessor);
+            DefineMacrosFromCompiler(preprocessor);
 
             preProcessedCode = new List<string>();
             foreach (Script header in headers)

@@ -70,6 +70,7 @@ namespace Native
             void ReplaceSpriteFile(String ^srcFileName);
             void SaveDefaultRoomFile(Room ^roomToSave);
 			String ^LoadRoomScript(String ^roomFileName);
+            List<String^>^ GetCompilerExtensions(bool new_compiler);
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, CompileMessages ^errors);
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);

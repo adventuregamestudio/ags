@@ -28,6 +28,25 @@ namespace AGS
 {
 	namespace Native
 	{
+
+    List<String^>^ NativeMethods::GetCompilerExtensions(bool new_compiler)
+    {
+        std::vector<std::string> cc_exts;
+        if (new_compiler)
+        {
+            ccGetExtensions2(cc_exts);
+        }
+        else
+        {
+            ccGetExtensions(cc_exts);
+        }
+
+        List<String^>^ exts = gcnew List<String^>();
+        for (const auto &s : cc_exts)
+            exts->Add(gcnew String(s.c_str()));
+        return exts;
+    }
+
     void NativeMethods::CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts,
         Game ^game, CompileMessages ^messages)
     {

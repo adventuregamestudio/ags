@@ -39,10 +39,32 @@ namespace AGS.Editor
             newItem.ImageKey = imageKey;
         }
 
+        /// <summary>
+        /// Comparison method that puts errors first in the message list.
+        /// </summary>
+        private static int SortErrorsFirst(CompileMessage message1, CompileMessage message2)
+        {
+            bool is_error1 = (message1 is CompileError);
+            bool is_error2 = (message2 is CompileError);
+            if (is_error1 && !is_error2)
+                return -1;
+            if (!is_error1 && is_error2)
+                return 1;
+            return message1.Index - message2.Index;
+        }
+
         public CompileMessages ErrorsToList
         {
             get { return _errors; }
-            set { _errors = value; RefreshList();  }
+            set
+            {
+                _errors = value;
+                // For user convenience: mention errors first;
+                // This is a temporary measure, as there's no "message type" column in the list
+                if (_errors != null)
+                    _errors.Sort(SortErrorsFirst);
+                RefreshList();
+            }
         }
 
         private void RefreshList()

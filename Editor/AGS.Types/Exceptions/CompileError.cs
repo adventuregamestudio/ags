@@ -6,7 +6,12 @@ namespace AGS.Types
 {
 	public class CompileError : CompileMessage
 	{
-		public CompileError(string message, string scriptName, int lineNumber)
+        public CompileError(int id, string message, string scriptName, int lineNumber)
+            : base(id, message, scriptName, lineNumber)
+        {
+        }
+
+        public CompileError(string message, string scriptName, int lineNumber)
             : base(message, scriptName, lineNumber)
         {
         }

@@ -6,7 +6,12 @@ namespace AGS.Types
 {
 	public class CompileWarning : CompileMessage
 	{
-		public CompileWarning(string message, string scriptName, int lineNumber)
+        public CompileWarning(int id, string message, string scriptName, int lineNumber)
+            : base(id, message, scriptName, lineNumber)
+        {
+        }
+
+        public CompileWarning(string message, string scriptName, int lineNumber)
 			: base(message, scriptName, lineNumber)
 		{
 		}

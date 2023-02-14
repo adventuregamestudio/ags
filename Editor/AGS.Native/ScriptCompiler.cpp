@@ -78,14 +78,17 @@ namespace AGS
             cc_script.reset(ccCompileText2(mainScript, mainScriptName, cc_options, mh));
 
             auto compiler_messages = mh.GetMessages();
+            int message_index = 0;
             for (auto msg = compiler_messages.begin(); msg != compiler_messages.end(); msg++)
                 if (msg->Severity >= mh.kSV_UserError)
                     messages->Add(gcnew CompileError(
+                        message_index++,
                         gcnew String (msg->Message.c_str()),
                         gcnew String (msg->Section.c_str()),
                         static_cast<int>(msg->Lineno)));
                 else
                     messages->Add(gcnew CompileWarning(
+                        message_index++,
                         gcnew String(msg->Message.c_str()),
                         gcnew String(msg->Section.c_str()),
                         static_cast<int>(msg->Lineno)));

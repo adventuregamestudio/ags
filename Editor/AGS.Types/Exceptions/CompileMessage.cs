@@ -6,8 +6,17 @@ namespace AGS.Types
 {
     public abstract class CompileMessage : ApplicationException
     {
-        private string _scriptName;
-        private int _lineNumber;
+        private int _id = 0;
+        private string _scriptName = string.Empty;
+        private int _lineNumber = 0;
+
+        public CompileMessage(int id, string message, string scriptName, int lineNumber)
+            : base(message)
+        {
+            _id = id;
+            _scriptName = scriptName;
+            _lineNumber = lineNumber;
+        }
 
         public CompileMessage(string message, string scriptName, int lineNumber)
             : base(message)
@@ -19,21 +28,22 @@ namespace AGS.Types
         public CompileMessage(string message)
             : base(message)
         {
-            _scriptName = string.Empty;
-            _lineNumber = 0;
         }
 
         public CompileMessage(string message, Exception innerException)
             : base(message, innerException)
         {
-            _scriptName = string.Empty;
-            _lineNumber = 0;
         }
 
         public CompileMessage(CompileMessage other) : base(other.Message)
         {
             _lineNumber = other.LineNumber;
             _scriptName = other.ScriptName;
+        }
+
+        public int Index
+        {
+            get { return _id; }
         }
 
         public string ScriptName

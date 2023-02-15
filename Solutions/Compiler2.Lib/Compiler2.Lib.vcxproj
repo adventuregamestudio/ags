@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\script\cc_common.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_reflect.cpp" />
     <ClCompile Include="..\..\Common\script\cc_script.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
     <ClCompile Include="..\..\Compiler\script2\cc_compiledscript.cpp" />
@@ -175,6 +176,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_error.h" />
     <ClInclude Include="..\..\Common\script\cc_options.h" />
+    <ClInclude Include="..\..\Common\script\cc_reflect.h" />
     <ClInclude Include="..\..\Common\script\cc_script.h" />
     <ClInclude Include="..\..\Common\script\script_common.h" />
     <ClInclude Include="..\..\Common\util\string.h" />

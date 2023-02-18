@@ -23,7 +23,10 @@
 #include <chrono>
 #include <allegro.h>
 #include "SDL.h"
+#include "main/graphics_mode.h"
+#include "main/engine.h"
 #include "ac/runtime_defines.h"
+#include "ac/system.h"
 #include "ac/timer.h"
 #include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"
@@ -51,6 +54,16 @@ extern "C"
   void ext_syncfs_done(void)
   {
     ags_syncfs_running = false;
+  }
+
+  int ext_get_windowed(void)
+  {
+    return System_GetWindowed();
+  }
+
+  int ext_toggle_fullscreen(void)
+  {
+    return engine_try_switch_windowed_gfxmode() ? 1 : 0;
   }
 } // END of Extern "C"
 

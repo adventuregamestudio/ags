@@ -82,6 +82,13 @@
     border: 2px solid #2A7FFF;
   }
 
+  .button:disabled,
+  .button[disabled]{
+    border: 2px solid #999999;
+    background-color: #cccccc;
+    color: #666666;
+  }
+
   #textmsgs {
     left: 50%;
     top: 50%;
@@ -282,6 +289,7 @@
     <div class="modal-body">
       <br>
       <button id="btnClearPF" class="button" type="button">Clear persistent files</button><br><br>
+      <button id="btnToggleFS" class="button" type="button" disabled>Toggle Fullscreen</button>
     </div>
   </div>
 </div>
@@ -307,14 +315,38 @@
   var game_file = "";
   file_read_count = 0;
 
+  var btnClearPF = document.getElementById("btnClearPF");
+  var btnToggleFS = document.getElementById("btnToggleFS");
+  var cfgModal = document.getElementById("cfgModal");
+  var gearBtn = document.getElementById("gearBtn");
+  var cfgClose = document.getElementById("cfgClose");
+
   // capture focus for websites serving game in iframe
   window.onload = function () { window.focus(); };
   window.onclick = function () { window.focus(); };
 
-  var btnClearPF = document.getElementById("btnClearPF");  
-  var cfgModal = document.getElementById("cfgModal");
-  var gearBtn = document.getElementById("gearBtn");
-  var cfgClose = document.getElementById("cfgClose");
+  document.addEventListener('fullscreenchange', exitHandler);
+  document.addEventListener('webkitfullscreenchange', exitHandler);
+  document.addEventListener('mozfullscreenchange', exitHandler);
+  document.addEventListener('MSFullscreenChange', exitHandler);
+
+  // when exiting fullscreen, if it's by Esc key, we send a toggle so the engine knows it's windowed
+  function exitHandler() {
+    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+      if(Module['_ext_get_windowed']() == 0) {
+        Module['_ext_toggle_fullscreen']();
+        window.dispatchEvent(new Event("resize"));
+      }
+    }
+  }
+
+  btnToggleFS.onclick = function() {
+    if(game_file !== "") {
+      Module['_ext_toggle_fullscreen']();
+      closeCfg();
+      window.dispatchEvent(new Event("resize"));
+    }
+  }
 
   gearBtn.onclick = function() {
     cfgModal.hidden = false;
@@ -392,6 +424,7 @@
   }
   
   function hideAll() {
+    btnToggleFS.disabled = false;
     closeCfg();
     ctrlsElement.hidden = true;
     ctrlsElement.style.display = "none";

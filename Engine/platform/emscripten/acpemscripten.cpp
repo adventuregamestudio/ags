@@ -49,6 +49,7 @@ struct AGSEmscripten : AGSPlatformDriver {
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
   void ShutdownCDPlayer() override;
+  void MainInit() override;
 };
 
 
@@ -76,24 +77,18 @@ void AGSEmscripten::DisplayAlert(const char *text, ...)
     }
 }
 
-static void DetermineDataDirectories()
-{
-    if (UserDataDirectory.IsValid())
-        return;
-
+void AGSEmscripten::MainInit() {
     UserDataDirectory = FSLocation("/home/web_user").Concat("ags");
     CommonDataDirectory = FSLocation("/home/web_user").Concat("common");
 }
 
 FSLocation AGSEmscripten::GetAllUsersDataDirectory()
 {
-    DetermineDataDirectories();
     return CommonDataDirectory;
 }
 
 FSLocation AGSEmscripten::GetUserSavedgamesDirectory()
 {
-    DetermineDataDirectories();
     return UserDataDirectory;
 }
 
@@ -109,7 +104,6 @@ FSLocation AGSEmscripten::GetUserGlobalConfigDirectory()
 
 FSLocation AGSEmscripten::GetAppOutputDirectory()
 {
-    DetermineDataDirectories();
     return UserDataDirectory;
 }
 

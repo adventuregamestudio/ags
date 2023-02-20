@@ -18,6 +18,7 @@
 
 // ********* EMSCRIPTEN PLACEHOLDER DRIVER *********
 
+#include <emscripten.h>
 #include <stdio.h>
 #include <chrono>
 #include <allegro.h>
@@ -27,17 +28,31 @@
 #include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/filestream.h"
+#include "util/path.h"
 #include "util/string.h"
 
 #include <pwd.h>
 #include <sys/stat.h>
 
 using AGS::Common::String;
+using AGS::Common::FileStream;
 
 FSLocation CommonDataDirectory;
 FSLocation UserDataDirectory;
+FSLocation SavedGamesDirectory;
 
 const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
+static bool ags_syncfs_running = false;
+
+// We need this to export for Emscripten due to C++ name mangling
+extern "C" 
+{
+  void ext_syncfs_done(void)
+  {
+    ags_syncfs_running = false;
+  }
+} // END of Extern "C"
 
 struct AGSEmscripten : AGSPlatformDriver {
 
@@ -56,6 +71,12 @@ struct AGSEmscripten : AGSPlatformDriver {
   int  InitializeCDPlayer() override;
   void ShutdownCDPlayer() override;
   void MainInit() override;
+
+  // new members
+  void SyncEmscriptenFS();
+  void ScheduleSyncFS();
+  void CheckNeedToSyncFS();
+  int NeededSyncFS;
 };
 
 
@@ -83,16 +104,68 @@ void AGSEmscripten::DisplayAlert(const char *text, ...)
     }
 }
 
-void AGSEmscripten::MainInit() {
-    UserDataDirectory = FSLocation("/home/web_user").Concat("ags");
-    CommonDataDirectory = FSLocation("/home/web_user").Concat("common");
+void AGSEmscripten::SyncEmscriptenFS()
+{
+    if (ags_syncfs_running)
+    {
+        EM_ASM(
+            console.log("INFO: FS.syncfs needed but already running");
+        );
+        return;
+    }
+
+    ags_syncfs_running = true;
+
+    // Sync files
+    EM_ASM(
+        FS.syncfs(false, function (err) {
+            if (err) {
+                console.error("ERROR: IDBFS syncfs failed with" + err + "(errno:" + err.errno + ")");
+            } else {
+                console.log("INFO: IDBFS synced game files.");
+            }
+            _ext_syncfs_done();
+        });
+    );
 }
 
-void AGSEmscripten::YieldCPU() {
+void AGSEmscripten::ScheduleSyncFS()
+{
+    NeededSyncFS++;
+}
+
+void AGSEmscripten::CheckNeedToSyncFS()
+{
+    if(NeededSyncFS == 0) return;
+
+    NeededSyncFS = 0;
+    SyncEmscriptenFS();
+}
+
+void AGSEmscripten::MainInit()
+{
+    SavedGamesDirectory = FSLocation("/home/web_user").Concat("saved_games");
+    UserDataDirectory = FSLocation("/home/web_user").Concat("ags");
+    CommonDataDirectory = FSLocation("/home/web_user").Concat("common");
+
+    NeededSyncFS = 0;
+    ags_syncfs_running = false;
+
+    FileStream::FileCloseNotify = [this](const FileStream::CloseNotifyArgs &args){
+        if(args.WorkMode == Common::FileWorkMode::kFile_Read) return;
+        if(!Common::Path::IsSameOrSubDir(SavedGamesDirectory.FullDir,args.Filepath)) return;
+        ScheduleSyncFS();
+    };
+}
+
+void AGSEmscripten::YieldCPU()
+{
     this->Delay(1);
 }
 
-void AGSEmscripten::Delay(int millis) {
+void AGSEmscripten::Delay(int millis)
+{
+    CheckNeedToSyncFS();
     if(millis < 0) {
         // if negative we just want a regular SDL_delay in Emscripten
         millis = -millis;
@@ -124,7 +197,7 @@ FSLocation AGSEmscripten::GetAllUsersDataDirectory()
 
 FSLocation AGSEmscripten::GetUserSavedgamesDirectory()
 {
-    return UserDataDirectory;
+    return SavedGamesDirectory;
 }
 
 FSLocation AGSEmscripten::GetUserConfigDirectory()

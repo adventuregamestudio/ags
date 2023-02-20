@@ -178,9 +178,10 @@ if(EMSCRIPTEN)
 
     set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} \
         -s FULL_ES2=1 \
-        -s FORCE_FILESYSTEM=1 -lidbfs.js  \
-        -s EXPORTED_FUNCTIONS=['_main'] \
-        -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','callMain']")
+        -s FORCE_FILESYSTEM=1 -lidbfs.js \
+        --post-js ${CMAKE_SOURCE_DIR}/Emscripten/post.js \
+        -s EXPORTED_FUNCTIONS=['_main','_ext_syncfs_done'] \
+        -s EXPORTED_RUNTIME_METHODS=['ccall','callMain']")
 
     set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} ${EMSDK_DEBUG_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")
 

@@ -218,56 +218,67 @@
   var game_file = "";
 
   file_read_count = 0;
+  
+  
+  function mountSavedGamesDir( callback ) {
+    console.log("INFO: try to mount `/home/web_user/saved_games`");
+    Module['FS_mkdir']('/home/web_user/saved_games');
+    Module['FS_mount'](IDBFS, {}, '/home/web_user/saved_games');
+    Module['FS_syncfs'](true, callback);
+  }
 
   function doPostRun() {
-    if (typeof gamefiles === 'undefined') 
-      return;
+    mountSavedGamesDir(function() {
+      if (typeof gamefiles === 'undefined') 
+        return;
 
-    file_total_count = gamefiles.length;
+      file_total_count = gamefiles.length;
 
-    function loadGameFile(filename) {
-      file_being_loaded = filename;
-      writeMsgOnCanvas('loading ' + filename + '...');
-      var oReq = new XMLHttpRequest();
-      oReq.open("GET", filename, true);
-      oReq.responseType = "arraybuffer";
-      oReq.onprogress = function(e) {
-        if (e.lengthComputable) {
-          writeMsgOnCanvas('loading ' + file_being_loaded + ' ' + Math.round((e.loaded / e.total) * 100) + '% ...');
-        }
-      }
-      oReq.onload = function(oEvent) {
-        var arrayBuffer = oReq.response; // Note: not oReq.responseText
-        if (arrayBuffer) {
-          var data = new Uint8Array(arrayBuffer);
-
-          Module['FS_createDataFile']('/', gamefiles[file_read_count], data, true, true, true);
-
-          file_read_count = file_read_count + 1;
-
-          if (file_read_count === file_total_count) {
-            hideAll();
-            Module.callMain(['/' + game_file, '--windowed']);
-          } else {
-            loadGameFile(gamefiles[file_read_count]);
+      function loadGameFile(filename) {
+        file_being_loaded = filename;
+        writeMsgOnCanvas('loading ' + filename + '...');
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", filename, true);
+        oReq.responseType = "arraybuffer";
+        oReq.onprogress = function(e) {
+          if (e.lengthComputable) {
+            writeMsgOnCanvas('loading ' + file_being_loaded + ' ' + Math.round((e.loaded / e.total) * 100) + '% ...');
           }
         }
-      };
-      oReq.send(null);
-    }
+        oReq.onload = function(oEvent) {
+          var arrayBuffer = oReq.response; // Note: not oReq.responseText
+          if (arrayBuffer) {
+            var data = new Uint8Array(arrayBuffer);
 
-    for (var i = 0; i < file_total_count; i++) {
-      if ((gamefiles[i] !== "winsetup.exe") &&
-        (gamefiles[i].endsWith(".exe") ||
-          gamefiles[i].endsWith(".ags"))) {
-        game_file = gamefiles[i];
-        break;
+            Module['FS_createDataFile']('/', gamefiles[file_read_count], data, true, true, true);
+
+            file_read_count = file_read_count + 1;
+
+            if (file_read_count === file_total_count) {
+              hideAll();
+              Module.callMain(['/' + game_file, '--windowed']);
+            } else {
+              loadGameFile(gamefiles[file_read_count]);
+            }
+          }
+        };
+        oReq.send(null);
       }
-    }
 
-    bcupElement.className = "bluecup levitate";
-    bcupElement.hidden = false
-    loadGameFile(gamefiles[0]);
+      for (var i = 0; i < file_total_count; i++) {
+        if ((gamefiles[i] !== "winsetup.exe") &&
+          (gamefiles[i].endsWith(".exe") ||
+            gamefiles[i].endsWith(".ags"))) {
+          game_file = gamefiles[i];
+          break;
+        }
+      }
+
+      bcupElement.className = "bluecup levitate";
+      bcupElement.hidden = false
+
+      loadGameFile(gamefiles[0]);
+    });
   }
 
   function agsAttachFileInput(fileInput) {
@@ -304,6 +315,7 @@
 
       if (file_read_count === file_total_count) {
         hideAll();
+        
         Module.callMain(['/' + game_file.name, '--windowed']);
       } else {
         file_reader_fr.readAsArrayBuffer(fileInput.files[file_read_count]);

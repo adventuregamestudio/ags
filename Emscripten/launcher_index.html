@@ -20,10 +20,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
   body {
-    font-family: arial,serif;
+    font-family: 'Lucida Console', Monaco, monospace;
+    font-size: 200%;
     margin: 0;
     padding: 0;
     background-color: #000;
+  }
+  
+  button {
+    font-family: 'Lucida Console', Monaco, monospace;
+    font-size: 100%;
   }
 
   .emscripten {
@@ -56,10 +62,34 @@
     background-color: #000;
     z-index: 1;
   }
+  
+  .button {
+    appearance: none;
+    background: #0000D4;
+    border-radius: 0.25em;
+    color: white;
+    cursor: pointer;
+    display: inline-block;
+    height: 3em;
+    line-height: 3em;
+    padding: 0 1em;
+    border: 2px solid #0000D4;
+    white-space: normal;
+  }
+
+  .button:hover {
+    background-color: #2A7FFF;
+    border: 2px solid #2A7FFF;
+  }
+
+  .button:disabled,
+  .button[disabled]{
+    border: 2px solid #999999;
+    background-color: #cccccc;
+    color: #666666;
+  }
 
   #textmsgs {
-    font-family: 'Lucida Console', Monaco, monospace;
-    font-size: 200%;
     left: 50%;
     top: 50%;
     -ms-transform: translate(-50%, -50%);
@@ -120,6 +150,22 @@
   50%  { transform: rotate(30deg);  }
   100% { transform: rotate(-30deg); }
   }
+  
+  .gears {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -0.5 12 14' shape-rendering='crispEdges'%3E%3Cpath stroke='%23000000' d='M4 0h4M2 1h3M7 1h3M1 2h1M4 2h1M7 2h1M10 2h1M1 3h1M10 3h1M1 4h1M10 4h1M0 5h1M11 5h1M0 6h1M3 6h1M5 6h2M8 6h1M11 6h1M0 7h1M11 7h1M0 8h2M10 8h2M1 9h1M10 9h1M1 10h1M4 10h1M7 10h1M10 10h1M1 11h4M7 11h4M2 12h8M4 13h4' /%3E%3Cpath stroke='%23ffffff' d='M5 1h2M2 2h2M5 2h2M8 2h2M2 3h3M7 3h3M3 4h1M5 4h2M8 4h1M1 5h2M4 5h1M7 5h1M9 5h2M1 6h2M4 6h1M7 6h1M9 6h2M3 7h1M5 7h2M8 7h1M2 8h3M7 8h3M2 9h2M5 9h2M8 9h2M5 10h2' /%3E%3Cpath stroke='%23847e87' d='M5 3h2M2 4h1M4 4h1M7 4h1M9 4h1M3 5h1M5 5h2M8 5h1M1 7h2M4 7h1M7 7h1M9 7h2M5 8h2M4 9h1M7 9h1M2 10h2M8 10h2M5 11h2' /%3E%3C/svg%3E");
+    right: 2%;
+    bottom: 2%;
+    width: 48px;
+    height: 56px;
+    margin: 0 auto;
+    position: absolute;
+    z-index: 1000;
+    opacity: .1;
+  } 
+
+  .gears:hover{
+    opacity: .9;
+  }
 
   .bluecup {
     background-image: url("data:image/svg+xml,%3Csvg width='96' height='64' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cg shape-rendering='crispEdges'%3E%3Crect style='fill:%23fff%3Bfill-rule:evenodd' width='10' height='7'/%3E%3Crect style='fill:%23fff' width='12' height='5' y='1'/%3E%3Crect style='fill:%23fff' width='8' height='8' x='1'/%3E%3Crect style='fill:%232a7fff' width='8' height='5' x='1' y='1'/%3E%3Crect style='fill:%232a7fff' width='6' height='1' x='2' y='6'/%3E%3Crect style='fill:%232a7fff' width='2' height='3' x='9' y='2'/%3E%3Crect style='fill:%23fff' width='1' height='1' x='9' y='3'/%3E%3Crect style='fill:%230000d4' width='6' height='3' x='2' y='2'/%3E%3Crect style='fill:%230000d4' width='4' height='1' x='3' y='5'/%3E%3Crect style='fill:%23fff' width='6' height='1' x='2' y='1'/%3E%3C/g%3E%3C/svg%3E");
@@ -147,7 +193,6 @@
     animation: levitate 4s ease-in-out infinite;
   }
 
-
   #status {
     display: inline-block;
     vertical-align: top;
@@ -158,10 +203,8 @@
   }
 
   #controls {
-    font-family: 'Lucida Console', Monaco, monospace;
-    font-size: 200%;
     left: 50%;
-    top: 10%;
+    top: 32%;
     -ms-transform: translate(-50%, -50%);
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
@@ -172,6 +215,64 @@
     color: #787878;
     z-index: 100;
   }
+  
+  .modal {
+    display: none; 
+    position: fixed; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+    z-index: 1001;
+  }
+
+  .modal-content {
+    left: 50%;
+    top: 50%;
+    -ms-transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+    margin: auto;
+    position: absolute;
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 64%;
+  }
+  
+  .modal-header {padding: 2px 16px;}
+  
+  .modal-header-content {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+  }
+
+  .modal-body {padding: 2px 16px;}
+
+  .modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 200%;
+    font-weight: bold;
+  }
+
+  .modal-close:hover,
+  .modal-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
 </style>
 </head>
 
@@ -179,10 +280,23 @@
 <body>
 <div class="bluecup rotate" id=bcup></div>
 <div class=emscripten id=status>Downloading...</div>
+<div id="cfgModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span id="cfgClose" class="modal-close">&times;</span>
+      <div class="modal-header-content">Options</div>
+    </div>
+    <div class="modal-body">
+      <br>
+      <button id="btnClearPF" class="button" type="button">Clear persistent files</button><br><br>
+      <button id="btnToggleFS" class="button" type="button" disabled>Toggle Fullscreen</button>
+    </div>
+  </div>
+</div>
 <span id=controls hidden>
   <span>
-    <input type="file" id="agsgamepkgid" name="agsgamepkg" multiple="multiple" onchange="agsAttachFileInput(this);" accept="*/*">
-    <label for="agsgamepkgid">Select the .ags game and files.</label>
+    <input type="file" id="agsgamepkgid" name="agsgamepkg" multiple="multiple" onchange="agsAttachFileInput(this);" accept="*/*" hidden>
+    <label for="agsgamepkgid" class="button">Select .ags game and files</label>
   </span>
   <span hidden><input id=resize type=checkbox checked>Resize canvas</span>
   <span hidden><input id=pointerLock type=checkbox checked>Lock/hide mouse pointer</span>
@@ -190,11 +304,117 @@
 <div class=emscripten></div>
 <div class=emscripten_border><canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1></canvas></div>
 <div id=textmsgs></div>
+<div class="gears" id=gearBtn></div>
 <script src=my_game_files.js></script>
 <script>
+  var saved_games_path = '/home/web_user/saved_games';
+  var file_being_loaded = "";
+  var fileresulthere = {};
+  var file_read_count = 0;
+  var file_total_count = 1;
+  var game_file = "";
+  file_read_count = 0;
+
+  var btnClearPF = document.getElementById("btnClearPF");
+  var btnToggleFS = document.getElementById("btnToggleFS");
+  var cfgModal = document.getElementById("cfgModal");
+  var gearBtn = document.getElementById("gearBtn");
+  var cfgClose = document.getElementById("cfgClose");
+
   // capture focus for websites serving game in iframe
   window.onload = function () { window.focus(); };
   window.onclick = function () { window.focus(); };
+
+  document.addEventListener('fullscreenchange', exitHandler);
+  document.addEventListener('webkitfullscreenchange', exitHandler);
+  document.addEventListener('mozfullscreenchange', exitHandler);
+  document.addEventListener('MSFullscreenChange', exitHandler);
+
+  // when exiting fullscreen, if it's by Esc key, we send a toggle so the engine knows it's windowed
+  function exitHandler() {
+    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+      if(Module['_ext_get_windowed']() == 0) {
+        Module['_ext_toggle_fullscreen']();
+        window.dispatchEvent(new Event("resize"));
+      }
+    }
+  }
+
+  btnToggleFS.onclick = function() {
+    if(game_file !== "") {
+      Module['_ext_toggle_fullscreen']();
+      closeCfg();
+      window.dispatchEvent(new Event("resize"));
+    }
+  }
+
+  gearBtn.onclick = function() {
+    cfgModal.hidden = false;
+    cfgModal.style.display = "block";
+  }
+
+  function closeCfg() {
+    cfgModal.hidden = true;
+    cfgModal.style.display = "none";
+  }
+
+  cfgClose.onclick = closeCfg;
+  cfgModal.onclick = function(event) {
+    if (event.target == cfgModal) {
+      closeCfg();
+    }
+  }
+
+  function force_rmdir(path) {
+    FS.readdir(path).forEach(function(f) {
+      if (f === '.' || f === '..') return;
+
+      var fpath = path + '/' + f;
+      if (FS.analyzePath(fpath).object.isFolder) {
+        force_rmdir(fpath);
+        FS.rmdir(fpath);
+      } else {
+        FS.unlink(fpath);
+      }
+    });
+  }
+  
+  function delete_saved_games() {
+    console.log("INFO: try to clear `/home/web_user/saved_games`");
+    var likely_dirs = FS.readdir(saved_games_path);
+    var any_error = false;
+    for(i in likely_dirs) {
+      var d = likely_dirs[i];
+      if(d == '.' || d == '..') continue;
+      var dir = saved_games_path + '/' + d;
+      if(!(FS.analyzePath(dir).object.isFolder)) continue;
+      try {
+        force_rmdir(dir);
+      } catch  (e) {
+        console.log(e);
+        any_error = true;
+      }
+      try {
+        FS.rmdir(dir);
+      } catch  (e) {
+        console.log(e);
+        any_error = true;
+      }
+    }
+    return any_error;
+  }
+
+  btnClearPF.onclick = function() {
+    if (!window.confirm('Are you sure you want to delete all saved game files and config files?')) {
+      return;
+    }
+    if(!delete_saved_games()) {
+      Module['FS_syncfs'](false, function(err){});
+      alert('Files removed sucessfully.');
+    } else {
+      alert('Some errors ocurred when removing files, try again after reloading the game web page.');
+    }
+  }
 
   var ctrlsElement = document.getElementById("controls");
   
@@ -203,7 +423,9 @@
     txtmsg.innerHTML = textToWrtOnCnv;
   }
   
-  function hideAll() { 
+  function hideAll() {
+    btnToggleFS.disabled = false;
+    closeCfg();
     ctrlsElement.hidden = true;
     ctrlsElement.style.display = "none";
     bcupElement.hidden = true;
@@ -211,63 +433,65 @@
     writeMsgOnCanvas("");
   }
 
-  var file_being_loaded = "";
-  var fileresulthere = {};
-  var file_read_count = 0;
-  var file_total_count = 1;
-  var game_file = "";
-
-  file_read_count = 0;
+  function mountSavedGamesDir( callback ) {
+    console.log("INFO: try to mount `/home/web_user/saved_games`");
+    Module['FS_mkdir'](saved_games_path);
+    Module['FS_mount'](IDBFS, {}, saved_games_path);
+    Module['FS_syncfs'](true, callback);
+  }
 
   function doPostRun() {
-    if (typeof gamefiles === 'undefined') 
-      return;
+    mountSavedGamesDir(function() {
+      if (typeof gamefiles === 'undefined') 
+        return;
 
-    file_total_count = gamefiles.length;
+      file_total_count = gamefiles.length;
 
-    function loadGameFile(filename) {
-      file_being_loaded = filename;
-      writeMsgOnCanvas('loading ' + filename + '...');
-      var oReq = new XMLHttpRequest();
-      oReq.open("GET", filename, true);
-      oReq.responseType = "arraybuffer";
-      oReq.onprogress = function(e) {
-        if (e.lengthComputable) {
-          writeMsgOnCanvas('loading ' + file_being_loaded + ' ' + Math.round((e.loaded / e.total) * 100) + '% ...');
-        }
-      }
-      oReq.onload = function(oEvent) {
-        var arrayBuffer = oReq.response; // Note: not oReq.responseText
-        if (arrayBuffer) {
-          var data = new Uint8Array(arrayBuffer);
-
-          Module['FS_createDataFile']('/', gamefiles[file_read_count], data, true, true, true);
-
-          file_read_count = file_read_count + 1;
-
-          if (file_read_count === file_total_count) {
-            hideAll();
-            Module.callMain(['/' + game_file, '--windowed']);
-          } else {
-            loadGameFile(gamefiles[file_read_count]);
+      function loadGameFile(filename) {
+        file_being_loaded = filename;
+        writeMsgOnCanvas('loading ' + filename + '...');
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", filename, true);
+        oReq.responseType = "arraybuffer";
+        oReq.onprogress = function(e) {
+          if (e.lengthComputable) {
+            writeMsgOnCanvas('loading ' + file_being_loaded + ' ' + Math.round((e.loaded / e.total) * 100) + '% ...');
           }
         }
-      };
-      oReq.send(null);
-    }
+        oReq.onload = function(oEvent) {
+          var arrayBuffer = oReq.response; // Note: not oReq.responseText
+          if (arrayBuffer) {
+            var data = new Uint8Array(arrayBuffer);
 
-    for (var i = 0; i < file_total_count; i++) {
-      if ((gamefiles[i] !== "winsetup.exe") &&
-        (gamefiles[i].endsWith(".exe") ||
-          gamefiles[i].endsWith(".ags"))) {
-        game_file = gamefiles[i];
-        break;
+            Module['FS_createDataFile']('/', gamefiles[file_read_count], data, true, true, true);
+
+            file_read_count = file_read_count + 1;
+
+            if (file_read_count === file_total_count) {
+              hideAll();
+              Module.callMain(['/' + game_file, '--windowed']);
+            } else {
+              loadGameFile(gamefiles[file_read_count]);
+            }
+          }
+        };
+        oReq.send(null);
       }
-    }
 
-    bcupElement.className = "bluecup levitate";
-    bcupElement.hidden = false
-    loadGameFile(gamefiles[0]);
+      for (var i = 0; i < file_total_count; i++) {
+        if ((gamefiles[i] !== "winsetup.exe") &&
+          (gamefiles[i].endsWith(".exe") ||
+            gamefiles[i].endsWith(".ags"))) {
+          game_file = gamefiles[i];
+          break;
+        }
+      }
+
+      bcupElement.className = "bluecup levitate";
+      bcupElement.hidden = false
+
+      loadGameFile(gamefiles[0]);
+    });
   }
 
   function agsAttachFileInput(fileInput) {
@@ -304,6 +528,7 @@
 
       if (file_read_count === file_total_count) {
         hideAll();
+        
         Module.callMain(['/' + game_file.name, '--windowed']);
       } else {
         file_reader_fr.readAsArrayBuffer(fileInput.files[file_read_count]);

@@ -19,6 +19,7 @@
 #define __AGS_CN_UTIL__FILESTREAM_H
 
 #include <stdio.h>
+#include <functional>
 
 #include "util/datastream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
@@ -31,6 +32,16 @@ namespace Common
 class FileStream : public DataStream
 {
 public:
+    struct CloseNotifyArgs
+    {
+        String Filepath;
+        FileWorkMode WorkMode;
+    };
+
+    // definition of function called when file closes
+    typedef std::function<void(const CloseNotifyArgs &args)> FFileCloseNotify;
+
+    static FFileCloseNotify FileCloseNotify;
 
     // Represents an open file object
     // The constructor may raise std::runtime_error if 
@@ -81,6 +92,7 @@ private:
     bool                 _ownHandle;
     const FileOpenMode  _openMode;
     const FileWorkMode  _workMode;
+    String              _fileName;
 };
 
 } // namespace Common

@@ -19,9 +19,11 @@
 // ********* EMSCRIPTEN PLACEHOLDER DRIVER *********
 
 #include <stdio.h>
+#include <chrono>
 #include <allegro.h>
 #include "SDL.h"
 #include "ac/runtime_defines.h"
+#include "ac/timer.h"
 #include "gfx/gfxdefines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -35,10 +37,14 @@ using AGS::Common::String;
 FSLocation CommonDataDirectory;
 FSLocation UserDataDirectory;
 
+const auto MaximumDelayBetweenPolling = std::chrono::milliseconds(16);
+
 struct AGSEmscripten : AGSPlatformDriver {
 
   int  CDPlayerCommand(int cmdd, int datt) override;
   void DisplayAlert(const char*, ...) override;
+  void Delay(int millis) override;
+  void YieldCPU() override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserSavedgamesDirectory() override;
   FSLocation GetUserConfigDirectory() override;
@@ -80,6 +86,35 @@ void AGSEmscripten::DisplayAlert(const char *text, ...)
 void AGSEmscripten::MainInit() {
     UserDataDirectory = FSLocation("/home/web_user").Concat("ags");
     CommonDataDirectory = FSLocation("/home/web_user").Concat("common");
+}
+
+void AGSEmscripten::YieldCPU() {
+    this->Delay(1);
+}
+
+void AGSEmscripten::Delay(int millis) {
+    if(millis < 0) {
+        // if negative we just want a regular SDL_delay in Emscripten
+        millis = -millis;
+        SDL_Delay(millis);
+    }
+
+    auto now = AGS_Clock::now();
+    auto delayUntil = now + std::chrono::milliseconds(millis);
+
+    for (;;) {
+        if (now >= delayUntil) { break; }
+
+        auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
+        SDL_Delay(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
+        now = AGS_Clock::now(); // update now
+
+        if (now >= delayUntil) { break; }
+
+        // don't allow it to check for debug messages, since this Delay()
+        // call might be from within a debugger polling loop
+        now = AGS_Clock::now(); // update now
+    }
 }
 
 FSLocation AGSEmscripten::GetAllUsersDataDirectory()

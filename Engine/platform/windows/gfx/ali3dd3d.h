@@ -214,8 +214,8 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
-    bool DoesSupportVsyncToggle() override { return false; }
-    bool SetVsync(bool /*enabled*/) override { return _mode.Vsync; /* TODO: support toggling */ }
+    bool DoesSupportVsyncToggle() override { return true; }
+    bool SetVsync(bool enabled) override;
     void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;

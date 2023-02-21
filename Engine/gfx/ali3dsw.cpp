@@ -288,6 +288,8 @@ void SDLRendererGraphicsDriver::SetGamma(int newGamma)
     gamma_blue[i] = std::min(((int)_defaultGammaBlue[i] * newGamma) / 100, 0xffff);
   }
 
+  _gamma = newGamma;
+
   SDL_SetWindowGammaRamp(sys_get_window(), gamma_red, gamma_green, gamma_blue);
 }
 
@@ -952,6 +954,24 @@ static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, un
    return res | g;
 }
 
+bool SDLRendererGraphicsDriver::SetVsync(bool enabled)
+{
+    // do nothing if already applied, necessary to prevent a reset loop when going fullscreen
+    if (_mode.Vsync == enabled)
+    {
+        return _mode.Vsync;
+    }
+
+    #if SDL_VERSION_ATLEAST(2, 0, 18)
+    if (!SDL_RenderSetVSync(_renderer, enabled)) // 0 on success
+    {
+        _mode.Vsync = enabled;
+        SetGamma(_gamma); // gamma might be lost after changing vsync mode at fullscreen
+    }
+    #endif
+
+    return _mode.Vsync;
+}
 
 SDLRendererGraphicsFactory *SDLRendererGraphicsFactory::_factory = nullptr;
 

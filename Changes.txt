@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.0 RC - January 2023
+VERSION 3.6.0 RC - February 2023
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.
@@ -75,9 +75,12 @@ Editor:
  - Dialog scripts now too can open help topics for keywords or script functions under cursor on F1.
  - Added zoom controls for the Sprite Manager, Character, Cursor, Inventory and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
- - In sprite manager's "export all" dialog added "skip if local" option.
  - In sprite manager's context menu added command "Create source files for all sprites with missing
     / external sources..."
+ - In sprite manager's context menu added (restored) command "Replace sprite using previous files".
+   Also made "previous file" remembered consistently whenever a sprite is imported or replaced.
+ - In sprite manager's "export all" dialog added "skip if inside project's folder" option.
+ - In sprite manager's "export all" dialog added "reset tile settings" option.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
  - Editor no longer errors and fails when opening a game project with some script files missing.
  - Editor no longer errors on empty translations when compiling the game.
@@ -100,6 +103,7 @@ Editor:
  - Fixed a recently imported sprite could be displayed incorrectly scaled up in the room editor
    for high-resolution games, if the "Allow relative asset resolutions" was enabled in General
    Settings, and the sprite 0 had "Resolution" property set to "Low".
+ - Fixed program crash occuring on sprite's import if failed to open a source file for any reason.
  - Fixed View animation preview stopping at frame 100 (if loop contains over 100 frames).
  - Fixed going to a "find all" result in dialog script did not highlight the found text,
    and sometimes did not scroll down to it.
@@ -114,6 +118,7 @@ Editor:
  - Fixed in dialogs numbers inside names were incorrectly highlighted as numeric values.
  - Fixed matching or mismatching braces were not highlighted consistently at all times in
    regular and dialog scripts.
+ - Fixed crash occuring when user was trying to set breakpoint on the very last line in script.
  - Fixed few editor panes were not opening correct help topics in F1.
  - (Possibly) fixed error message text in the runtime error popup could be drawn partially beyond
    the popup borders if the user's system has text scaling option enabled.
@@ -218,6 +223,8 @@ Engine:
    Only OGG/OGV videos are kept supported at this point.
  - Support resizing game window on desktop systems.
  - Support "borderless full-screen window" mode in addition to the real (exclusive) fullscreen.
+ - Support for switching vertical sync at runtime with Direct3D/OpenGL renderers.
+   Also enable vsync in windowed mode too.
  - Unicode (UTF-8) text support: engine can now switch between ASCII and UTF-8 text mode.
    This is controlled by both game's OPT_GAMETEXTENCODING setting and translation's "Encoding"
    setting: they tells whether to interpret game texts as UTF-8 or ASCII/ANSI.
@@ -356,6 +363,13 @@ WinSetup:
 
 
 ===================================================================================================
+
+VERSION 3.5.1 - Patch 18, February 2023
+
+Engine:
+ - Fixed background speech and textual overlays may disable GUI when being continuously
+   created in repeatedly_execute* kind of functions. (Regression since previous patch)
+
 
 VERSION 3.5.1 - Patch 17, January 2023
 

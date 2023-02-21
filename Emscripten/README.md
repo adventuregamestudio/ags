@@ -118,8 +118,6 @@ If you want to fully integrate the IDE to the Chrome tools, the only one current
   - If you enable threads, editing the `CMakeLists.txt` to have `set(AGS_DISABLE_THREADS FALSE)`, you are going to fall in Emscripten Pthreads
     - Your browser need to be served both COOP, COEP and also the webpage has to be HTTPS with a valid certificate! This requires a webserver you are fully in control currently.
     - see more info here: https://emscripten.org/docs/porting/pthreads.html
-- Alt+tab/out of focus: I had to hide the existing mechanism for this because it halted the webpage running the game, it does work now, but AGS Script won't detect it's out of focus.
-- FreeType version used is not the one in the AGS repository, instead the current version used is the one from [Emscripten ports](https://github.com/emscripten-ports/FreeType), latest FreeType is compatible too with Emscripten and could easily be swapped in too. Some fonts may present with slightly differences (`LucasFan-Font.ttf` won't work correctly).
 
 It's important to think of the browser tab with the game and the JS/WASM machine to be running in a single thread, so this means at some point the browser must be in focus so it can process inputs and draw in the screen!
 

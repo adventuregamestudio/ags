@@ -146,7 +146,7 @@ if(EMSCRIPTEN)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Emscripten")
 
     set(AGS_OPENGLES2 TRUE)
-    set(USE_FLAGS " -sUSE_SDL=2  -sUSE_FREETYPE=1  -sUSE_VORBIS=1  -sUSE_OGG=1 ")
+    set(USE_FLAGS " -sUSE_SDL=2  -sUSE_VORBIS=1  -sUSE_OGG=1 ")
     set(AGS_DISABLE_THREADS TRUE)
     if(AGS_DISABLE_THREADS)
         add_compile_definitions("AGS_DISABLE_THREADS=1")
@@ -313,10 +313,10 @@ add_subdirectory(libsrc/glm                     EXCLUDE_FROM_ALL)
 add_subdirectory(libsrc/tinyxml2                EXCLUDE_FROM_ALL)
 
 add_subdirectory(Common/libsrc/aastr-0.1.1      EXCLUDE_FROM_ALL)
-if(NOT EMSCRIPTEN)
-    add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
-    set(FREETYPE_LIBRARIES FreeType::FreeType)
-endif()
+
+add_subdirectory(Common/libsrc/freetype-2.1.3   EXCLUDE_FROM_ALL)
+set(FREETYPE_LIBRARIES FreeType::FreeType)
+
 add_subdirectory(Common/libsrc/alfont-2.0.9     EXCLUDE_FROM_ALL)
 add_subdirectory(Common)
 

@@ -2461,7 +2461,9 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
             return -1;
           }
           const size_t size = sym.entries[symlist[oploc + 1]].ssize;
-          scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+          // TODO: switch between old and new "new", depending on option in compiler
+          //scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+          scrip->write_cmd3(SCMD_NEWUSEROBJECT2, SREG_AX, symlist[oploc + 1], size);
           scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
       }
 

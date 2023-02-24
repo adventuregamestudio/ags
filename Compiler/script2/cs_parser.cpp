@@ -1957,10 +1957,17 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         // The Engine really doesn't like that (division by zero error)
         InternalError("Trying to emit allocation of zero dynamic memory");
 
+    // TODO: switch between old and new "new", depending on option in compiler
+    /*
     if (with_bracket_expr)
         WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
     else
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
+    */
+    if (with_bracket_expr)
+        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed); // TODO: array2 cmd
+    else
+        WriteCmd(SCMD_NEWUSEROBJECT2, SREG_AX, element_vartype, element_size);
     _reg_track.SetRegister(SREG_AX);
 
     eres.Type = eres.kTY_RunTimeValue;

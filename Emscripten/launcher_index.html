@@ -328,10 +328,13 @@
   var gearBtn = document.getElementById("gearBtn");
   var cfgClose = document.getElementById("cfgClose");
 
+  // additional focus fix in iframe, from https://github.com/emscripten-core/emscripten/pull/7631
+  document.getElementById('canvas').addEventListener('mouseenter', function(e) { window.focus(); });
+  document.getElementById('canvas').addEventListener('click', function(e) { window.focus(); });
+  
   // capture focus for websites serving game in iframe
   window.onload = function () { window.focus(); };
-  window.onclick = function () { window.focus(); };
-
+  
   document.addEventListener('fullscreenchange', exitHandler);
   document.addEventListener('webkitfullscreenchange', exitHandler);
   document.addEventListener('mozfullscreenchange', exitHandler);

@@ -29,6 +29,7 @@
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "gfx/gfxdefines.h"
+#include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/filestream.h"
@@ -41,6 +42,8 @@
 using AGS::Common::String;
 using AGS::Common::FileStream;
 
+extern AGS::Engine::IGraphicsDriver *gfxDriver;
+
 FSLocation CommonDataDirectory;
 FSLocation UserDataDirectory;
 FSLocation SavedGamesDirectory;
@@ -51,6 +54,18 @@ static bool ags_syncfs_running = false;
 // We need this to export for Emscripten due to C++ name mangling
 extern "C" 
 {
+  int ext_gfxmode_get_width()
+  {
+      DisplayMode rdm = gfxDriver->GetDisplayMode();
+      return rdm.Width;
+  }
+
+  int ext_gfxmode_get_height()
+  {
+      DisplayMode rdm = gfxDriver->GetDisplayMode();
+      return rdm.Height;
+  }
+
   void ext_syncfs_done(void)
   {
     ags_syncfs_running = false;

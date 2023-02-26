@@ -180,7 +180,7 @@ if(EMSCRIPTEN)
         -s FULL_ES2=1 \
         -s FORCE_FILESYSTEM=1 -lidbfs.js \
         --post-js ${CMAKE_SOURCE_DIR}/Emscripten/post.js \
-        -s EXPORTED_FUNCTIONS=['_main','_ext_syncfs_done','_ext_toggle_fullscreen','_ext_get_windowed'] \
+        -s EXPORTED_FUNCTIONS=['_main','_ext_syncfs_done','_ext_toggle_fullscreen','_ext_get_windowed','_ext_gfxmode_get_width','_ext_gfxmode_get_height'] \
         -s EXPORTED_RUNTIME_METHODS=['ccall','callMain']")
 
     set(EMSDK_FLAGS_LINKER "${EMSDK_FLAGS_LINKER} ${EMSDK_DEBUG_LINKER_FLAGS} --shell-file ${CMAKE_SOURCE_DIR}/Emscripten/launcher_index.html ")

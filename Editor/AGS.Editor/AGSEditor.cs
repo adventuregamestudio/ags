@@ -1692,8 +1692,6 @@ namespace AGS.Editor
 
         private object SaveGameFilesProcess(IWorkProgress progress, object parameter)
         {
-			WriteConfigFile(Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY));
-
             SaveUserDataFile();
 
             StringWriter sw = new StringWriter();

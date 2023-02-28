@@ -373,7 +373,8 @@ void apply_config(const ConfigTree &cfg)
             mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, usetup.mouse_speed_def);
 
         // Touch options
-        usetup.touch_emulate_mouse = CfgReadInt(cfg, "touch", "emulate_mouse", 1);
+        usetup.touch_emulate_mouse = (TouchMouseEmulation)CfgReadInt(cfg, "touch", "emulate_mouse", 1);
+        usetup.touch_motion_relative = CfgReadBoolInt(cfg, "touch", "emul_mouse_relative");
 
         // Various system options
         usetup.multitasking = CfgReadInt(cfg, "misc", "background", 0) != 0;

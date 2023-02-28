@@ -499,12 +499,15 @@ struct TouchState
 // Touch-to-mouse emulation
 struct Touch2Mouse
 {
+    TouchMouseEmulation mode = kTouchMouse_None;
+    // Relative mode switch
+    bool is_relative = false;
+    // Speed of the relative movement
+    float speed = 1.f;
     // Current (last) received touch position
     Point pos;
     // Starting touch position (needed for drag detection)
     Point start_pos;
-    // Relative mode switch
-    bool is_relative = false;
     // Tells if the emulated mouse position has been initialized
     bool emul_pos_init = false;
     // Current emulated mouse position (eq to pos in absolute mode)
@@ -529,6 +532,14 @@ struct Touch2Mouse
     int drag_down = 0;
 } static t2m;
 
+
+void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
+    bool relative, float speed)
+{
+    t2m.mode = mode;
+    t2m.is_relative = relative;
+    t2m.speed = speed;
+}
 
 // Converts touch finger index to the emulated mouse button
 static int tfinger_to_mouse_but(int finger)
@@ -615,8 +626,8 @@ static void set_t2m_pos(float x, float y, float dx, float dy)
     else
     {
         // TODO: add a separate t2m speed setting
-        int rel_x = calc_relative_delta((dx * w), usetup.mouse_speed, t2m.rel_accum_x);
-        int rel_y = calc_relative_delta((dy * h), usetup.mouse_speed, t2m.rel_accum_y);
+        int rel_x = calc_relative_delta((dx * w), t2m.speed, t2m.rel_accum_x);
+        int rel_y = calc_relative_delta((dy * h), t2m.speed, t2m.rel_accum_y);
         t2m.emul_delta = Point(rel_x, rel_y);
     }
 
@@ -637,12 +648,12 @@ static void set_t2m_pos(float x, float y, float dx, float dy)
     t2m.emul_pos_init = true;
 }
 
-void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
+static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 {
     touch.fingers_down |= 1 << event.fingerId;
     detect_double_tap(event, true);
 
-    switch (usetup.touch_emulate_mouse)
+    switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
     {
@@ -698,7 +709,7 @@ void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
     }
 }
 
-void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
+static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
 {
     touch.fingers_down &= ~(1 << event.fingerId);
     detect_double_tap(event, false);
@@ -707,7 +718,7 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     int w = gfxDriver->GetDisplayMode().Width;
     int h = gfxDriver->GetDisplayMode().Height;
 
-    switch (usetup.touch_emulate_mouse)
+    switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
     {
@@ -757,9 +768,9 @@ void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     }
 }
 
-void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
+static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
 {
-    switch (usetup.touch_emulate_mouse)
+    switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
     case kTouchMouse_TwoFingersTap:

@@ -251,6 +251,9 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     Mouse_EnableControl(usetup.mouse_ctrl_enabled);
     Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
         usetup.mouse_ctrl_enabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+    Mouse::SetTouch2MouseMode(usetup.touch_emulate_mouse, usetup.touch_motion_relative, usetup.mouse_speed);
+    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse motion mode: %s",
+        usetup.touch_motion_relative ? "relative" : "absolute");
 
     on_coordinates_scaling_changed();
 

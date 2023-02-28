@@ -190,6 +190,11 @@ bool Mouse::IsControlEnabled()
     return ControlEnabled;
 }
 
+void Mouse::SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float speed)
+{
+    ags_touch_set_mouse_emulation(mode, relative, speed);
+}
+
 void Mouse::SetSpeedUnit(float f)
 {
     SpeedUnit = f;

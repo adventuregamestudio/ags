@@ -159,7 +159,7 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
     // mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
     //    * 0 - direct touch mouse control
-    CfgWriteInt(cfg, "mouse", "control_enabled", setup.mouse_control_mode);
+    CfgWriteInt(cfg, "touch", "emul_mouse_relative", setup.mouse_control_mode);
     CfgWriteFloat(cfg, "mouse", "speed", (float)std::max(setup.mouse_speed, 1)/10.f);
 
     // translations

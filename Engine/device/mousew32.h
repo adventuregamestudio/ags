@@ -11,16 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// MOUSELIBW32.CPP
-//
-// Library of mouse functions for graphics and text mode
-//
-// (c) 1994 Chris Jones
-// Win32 (allegro) update (c) 1999 Chris Jones
-//
-//=============================================================================
-
+#include "ac/sys_events.h"
 #include "util/geometry.h"
 
 #define MAXCURSORS 20
@@ -51,6 +42,8 @@ namespace Mouse
     void SetMovementControl(bool on);
     // Tell if the mouse movement control is enabled
     bool IsControlEnabled();
+    // Set the touch2mouse motion mode: absolute/relative
+    void SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float speed);
     // Set base speed factor, which would serve as a mouse speed unit
     void SetSpeedUnit(float f);
     // Get base speed factor

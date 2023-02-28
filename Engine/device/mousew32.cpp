@@ -39,7 +39,6 @@ int mousex = 0, mousey = 0, numcurso = -1, hotx = 0, hoty = 0;
 // real mouse coordinates and bounds
 static int real_mouse_x = 0, real_mouse_y = 0;
 static int boundx1 = 0, boundx2 = 99999, boundy1 = 0, boundy2 = 99999;
-static int disable_mgetgraphpos = 0;
 char ignore_bounds = 0;
 extern char alpha_blend_cursor ;
 Bitmap *mousecurs[MAXCURSORS];
@@ -68,29 +67,13 @@ namespace Mouse
 
 void mgetgraphpos()
 {
-    // TODO: review and possibly rewrite whole thing;
-    // research what disable_mgetgraphpos does, and is this still necessary?
-
     // TODO: [sonneveld] find out where mgetgraphpos is needed, are events polled before that?
     sys_evt_process_pending();
 
-    if (disable_mgetgraphpos)
-    {
-        // The cursor coordinates are provided from alternate source;
-        // in this case we completely ignore actual cursor movement.
-        if (!ignore_bounds &&
-            // When applying script bounds we only do so while cursor is inside game viewport
-            Mouse::ControlRect.IsInside(mousex, mousey) &&
-            (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
-        {
-            mousex = Math::Clamp(mousex, boundx1, boundx2);
-            mousey = Math::Clamp(mousey, boundy1, boundy2);
-            msetgraphpos(mousex, mousey);
-        }
+    if (switched_away)
         return;
-    }
 
-    if (!switched_away && Mouse::ControlEnabled)
+    if (Mouse::ControlEnabled)
     {
         // Use relative mouse movement; speed factor should already be applied by SDL in this mode
         int rel_x, rel_y;

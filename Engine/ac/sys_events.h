@@ -118,7 +118,8 @@ enum TouchMouseEmulation
     kTouchMouse_OneFingerDrag,
     // tap 1,2 fingers means LMB/RMB click;
     // double tap + drag 1 finger would drag the cursor with LMB down
-    kTouchMouse_TwoFingersTap
+    kTouchMouse_TwoFingersTap,
+    kNumTouchMouseModes
 };
 // Configures touch to mouse emulation
 void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,

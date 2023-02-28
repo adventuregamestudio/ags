@@ -169,6 +169,13 @@ namespace AGS.Editor
             return sourcePath;
         }
 
+        public static bool PathsAreEqual(string path1, string path2)
+        {
+            Uri uri1 = new Uri(path1);
+            Uri uri2 = new Uri(path2);
+            return uri1.Equals(uri2);
+        }
+
         /// <summary>
         /// Tells if the given path equals to or subdirectory of a basepath.
         /// </summary>

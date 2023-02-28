@@ -334,11 +334,6 @@ static void on_sdl_textinput(const SDL_Event &event)
 // ----------------------------------------------------------------------------
 // MOUSE INPUT
 // ----------------------------------------------------------------------------
-volatile int sys_mouse_x = 0; // mouse x position
-volatile int sys_mouse_y = 0; // mouse y position
-volatile int sys_mouse_z = 0; // mouse wheel position
-
-
 // TODO: check later, if this may be useful in other places (then move to header)
 enum eAGSMouseButtonMask
 {
@@ -370,7 +365,13 @@ Instead we accumulate button presses over a couple of timer loops.
 static int mouse_button_state = 0;
 static int mouse_accum_button_state = 0;
 static auto mouse_clear_at_time = AGS_Clock::now();
-// For accumulating relative mouse movement to be applied at a poll
+// Accumulated absolute and relative mouse device motion.
+// May be retrieved by calling *acquire_absxy and *acquire_relxy functions,
+// after which these are reset, until next motion event is received.
+volatile int sys_mouse_x = 0; // mouse x position
+volatile int sys_mouse_y = 0; // mouse y position
+volatile int sys_mouse_z = 0; // mouse wheel position
+// Relative x and y deltas
 static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 
 // Returns accumulated mouse button state and clears internal cache by timer
@@ -450,7 +451,7 @@ eAGSMouseButton ags_mgetbutton()
     return mgetbutton();
 }
 
-void ags_mouse_get_relxy(int &x, int &y) {
+void ags_mouse_acquire_relxy(int &x, int &y) {
     x = mouse_accum_relx;
     y = mouse_accum_rely;
     mouse_accum_relx = 0;
@@ -755,8 +756,7 @@ void ags_clear_input_state()
     mouse_button_state = 0;
     mouse_accum_button_state = 0;
     mouse_clear_at_time = AGS_Clock::now();
-    mouse_accum_relx = 0;
-    mouse_accum_rely = 0;
+    ags_clear_mouse_movement();
 }
 
 void ags_clear_input_buffer()
@@ -767,9 +767,8 @@ void ags_clear_input_buffer()
     sys_modkeys_fired = false;
     // accumulated state only helps to not miss clicks
     mouse_accum_button_state = 0;
-    // forget about recent mouse relative movement too
-    mouse_accum_relx = 0;
-    mouse_accum_rely = 0;
+    // forget about accumulated mouse movement too
+    ags_clear_mouse_movement();
 }
 
 void ags_clear_mouse_movement()

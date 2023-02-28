@@ -73,25 +73,14 @@ void mgetgraphpos()
     if (switched_away)
         return;
 
-    if (Mouse::ControlEnabled)
-    {
-        // Use relative mouse movement; speed factor should already be applied by SDL in this mode
-        int rel_x, rel_y;
-        ags_mouse_get_relxy(rel_x, rel_y);
-        real_mouse_x = Math::Clamp(real_mouse_x + rel_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
-        real_mouse_y = Math::Clamp(real_mouse_y + rel_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
-    }
-    else
-    {
-        // Save real cursor coordinates provided by system
-        real_mouse_x = Math::Clamp((int)sys_mouse_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
-        real_mouse_y = Math::Clamp((int)sys_mouse_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
-    }
+    // Save absolute cursor coordinates provided by system
+    // NOTE: relative motion and the speed factor should already be applied by SDL2 or our custom devices.
+    real_mouse_x = Math::Clamp((int)sys_mouse_x, Mouse::ControlRect.Left, Mouse::ControlRect.Right);
+    real_mouse_y = Math::Clamp((int)sys_mouse_y, Mouse::ControlRect.Top, Mouse::ControlRect.Bottom);
 
-    // Set new in-game cursor position
+    // Set new in-game cursor position, convert to the in-game logic coordinates
     mousex = real_mouse_x;
     mousey = real_mouse_y;
-
     if (!ignore_bounds &&
         // When applying script bounds we only do so while cursor is inside game viewport
         Mouse::ControlRect.IsInside(mousex, mousey) &&
@@ -101,7 +90,6 @@ void mgetgraphpos()
         mousey = Math::Clamp(mousey, boundy1, boundy2);
         msetgraphpos(mousex, mousey);
     }
-
     // Convert to virtual coordinates
     Mouse::WindowToGame(mousex, mousey);
 }
@@ -116,6 +104,8 @@ void msetcursorlimit(int x1, int y1, int x2, int y2)
 
 void msetgraphpos(int xa, int ya)
 {
+  sys_mouse_x = xa;
+  sys_mouse_y = ya;
   real_mouse_x = xa;
   real_mouse_y = ya;
   sys_window_set_mouse(real_mouse_x, real_mouse_y);

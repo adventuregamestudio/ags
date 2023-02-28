@@ -92,8 +92,8 @@ extern bool sys_modkeys_fired; // tells whether mod combination had been used fo
 bool ags_misbuttondown(eAGSMouseButton but);
 // Returns mouse button code
 eAGSMouseButton ags_mgetbutton();
-// Returns recent relative mouse movement
-void ags_mouse_get_relxy(int &x, int &y);
+// Returns recent relative mouse movement; resets accumulated values
+void ags_mouse_acquire_relxy(int &x, int &y);
 // Updates mouse cursor position in game
 void ags_domouse();
 // Returns -1 for wheel down and +1 for wheel up

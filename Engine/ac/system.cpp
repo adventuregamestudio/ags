@@ -188,6 +188,9 @@ void System_SetVolume(int newvol)
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
 
+    if (newvol == play.digital_master_volume)
+        return;
+
     play.digital_master_volume = newvol;
     auto newvol_f = static_cast<float>(newvol) / 100.0;
     audio_core_set_master_volume(newvol_f);

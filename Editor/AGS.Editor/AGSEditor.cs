@@ -1627,8 +1627,8 @@ namespace AGS.Editor
             bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
                 _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
             NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", render_at_screenres ? "1" : "0", configFilePath);
-            int rotation = (int)_game.DefaultSetup.Rotation;
-            NativeProxy.WritePrivateProfileString("graphics", "rotation", rotation.ToString(), configFilePath);
+            string[] rotation_str = new string[] { "unlocked", "portrait", "landscape" };
+            NativeProxy.WritePrivateProfileString("graphics", "rotation", rotation_str[(int)_game.DefaultSetup.Rotation], configFilePath);
 
             bool audio_enabled = _game.DefaultSetup.DigitalSound != RuntimeAudioDriver.Disabled;
             NativeProxy.WritePrivateProfileString("sound", "enabled", audio_enabled ? "1" : "0", configFilePath);

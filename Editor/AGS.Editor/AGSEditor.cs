@@ -1582,13 +1582,10 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Writes up-to-date game information into configuration file.
-        /// This updates only values that strongly depend on game properties,
-        /// and does not affect user settings.
+        /// Writes the config file using particular game Settings and DefaultSetup options.
         /// </summary>
-		public void WriteConfigFile(string outputDir, bool resetFile = true)
+		public void WriteConfigFile(string configFilePath, bool resetFile = true)
 		{
-            string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
             if (resetFile)
                 Utilities.TryDeleteFile(configFilePath);
 
@@ -1692,8 +1689,6 @@ namespace AGS.Editor
 
         private object SaveGameFilesProcess(IWorkProgress progress, object parameter)
         {
-			WriteConfigFile(Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY));
-
             SaveUserDataFile();
 
             StringWriter sw = new StringWriter();

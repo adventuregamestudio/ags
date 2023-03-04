@@ -182,7 +182,7 @@ namespace AGS.Editor
             Utilities.TryDeleteFile(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
+            GenerateConfigFile(GetCompiledPath());
             return true;
         }
 

@@ -130,7 +130,7 @@ namespace AGS.Editor
                 }
             }
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(GetCompiledPath(LINUX_DATA_DIR));
+            GenerateConfigFile(GetCompiledPath(LINUX_DATA_DIR));
 
             foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())
             {

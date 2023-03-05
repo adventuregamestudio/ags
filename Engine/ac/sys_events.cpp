@@ -388,7 +388,11 @@ static int mouse_button_poll()
     return result;
 }
 
-static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event) {
+// Syncs all the emulated mouse devices with the real sys_mouse_* coords
+static void sync_sys_mouse_pos();
+
+static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event)
+{
     if (event.which == disabled_mouse_device)
         return;
 
@@ -396,6 +400,7 @@ static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event) {
     sys_mouse_y = event.y;
     mouse_accum_relx += event.xrel;
     mouse_accum_rely += event.yrel;
+    sync_sys_mouse_pos();
 }
 
 static void on_sdl_mouse_button(const SDL_MouseButtonEvent &event)
@@ -656,7 +661,17 @@ static void set_t2m_pos(float x, float y, float dx, float dy)
         t2m.emul_pos = t2m.pos;
     }
 
+    t2m.emul_pos = Point::Clamp(t2m.emul_pos, Point(), Point(w - 1, h - 1));
     t2m.emul_pos_init = true;
+}
+
+// Syncs all the emulated mouse devices with the real sys_mouse_* coords
+static void sync_sys_mouse_pos()
+{
+    if (t2m.emul_pos_init)
+    {
+        t2m.emul_pos = Point(sys_mouse_x, sys_mouse_y);
+    }
 }
 
 static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)

@@ -1,5 +1,12 @@
 REVISION HISTORY
 ================
+VERSION 3.5.1 - Patch 19, March 2023
+
+Engine:
+ - Fixed System.Volume is not correctly applied after restoring the save.
+   (Regression since at least 3.4.0)
+
+
 VERSION 3.5.1 - Patch 18, February 2023
 
 Engine:

@@ -373,6 +373,8 @@ volatile int sys_mouse_y = 0; // mouse y position
 volatile int sys_mouse_z = 0; // mouse wheel position
 // Relative x and y deltas
 static int mouse_accum_relx = 0, mouse_accum_rely = 0;
+// ID of a device, which mouse events will be ignored (for easier testing)
+static int disabled_mouse_device = UINT32_MAX - 10;
 
 // Returns accumulated mouse button state and clears internal cache by timer
 static int mouse_button_poll()
@@ -387,6 +389,9 @@ static int mouse_button_poll()
 }
 
 static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event) {
+    if (event.which == disabled_mouse_device)
+        return;
+
     sys_mouse_x = event.x;
     sys_mouse_y = event.y;
     mouse_accum_relx += event.xrel;
@@ -395,6 +400,9 @@ static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event) {
 
 static void on_sdl_mouse_button(const SDL_MouseButtonEvent &event)
 {
+    if (event.which == disabled_mouse_device)
+        return;
+
     sys_mouse_x = event.x;
     sys_mouse_y = event.y;
 
@@ -409,6 +417,9 @@ static void on_sdl_mouse_button(const SDL_MouseButtonEvent &event)
 
 static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
 {
+    if (event.which == disabled_mouse_device)
+        return;
+
     sys_mouse_z += event.y;
 }
 

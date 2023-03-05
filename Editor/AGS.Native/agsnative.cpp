@@ -948,11 +948,15 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
 
 
 int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
-  
+  assert(fontnum < thisgame.numfonts);
   if (fontnum >= thisgame.numfonts)
   {
     return 0;
   }
+
+  assert(width > 0);
+  if (width <= 0)
+    return 0;
 
   if (!is_font_loaded(fontnum))
     reload_font(fontnum);

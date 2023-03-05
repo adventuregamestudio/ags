@@ -1636,8 +1636,12 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
 
-            int emulate_mouse = (int) _game.DefaultSetup.TouchToMouseEmulation;
-            NativeProxy.WritePrivateProfileString("touch", "emulate_mouse", emulate_mouse.ToString(), configFilePath);
+            // Touch input
+            string[] emulate_mouse_str = new string[] { "off", "one_finger", "two_fingers" };
+            NativeProxy.WritePrivateProfileString("touch", "emul_mouse_mode",
+                emulate_mouse_str[(int)_game.DefaultSetup.TouchToMouseEmulation], configFilePath);
+            NativeProxy.WritePrivateProfileString("touch", "emul_mouse_relative",
+                ((int)_game.DefaultSetup.TouchToMouseMotionMode).ToString(), configFilePath);
 
             // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)
             NativeProxy.WritePrivateProfileString("misc", "cachemax", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);

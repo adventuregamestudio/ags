@@ -155,11 +155,12 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
     //    * 0 - off
     //    * 1 - one finger (holding, dragging)
     //    * 2 - two fingers (tapping)
-    CfgWriteInt(cfg, "touch", "emulate_mouse", setup.mouse_emulation);
+    const char *emul_mode_str[] = { "off", "one_finger", "two_fingers" };
+    CfgWriteString(cfg, "touch", "emul_mouse_mode", emul_mode_str[std::max(0, std::min(2, setup.mouse_emulation))]);
     // mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
     //    * 0 - direct touch mouse control
-    CfgWriteInt(cfg, "mouse", "control_enabled", setup.mouse_control_mode);
+    CfgWriteInt(cfg, "touch", "emul_mouse_relative", setup.mouse_control_mode);
     CfgWriteFloat(cfg, "mouse", "speed", (float)std::max(setup.mouse_speed, 1)/10.f);
 
     // translations

@@ -17,8 +17,8 @@
 //=============================================================================
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
 #define __AGS_EE_AC__SYS_EVENTS_H
-#include "ac/keycode.h"
 #include <SDL_keyboard.h>
+#include "ac/keycode.h"
 
 // Keyboard input handling
 //
@@ -92,8 +92,8 @@ extern bool sys_modkeys_fired; // tells whether mod combination had been used fo
 bool ags_misbuttondown(eAGSMouseButton but);
 // Returns mouse button code
 eAGSMouseButton ags_mgetbutton();
-// Returns recent relative mouse movement
-void ags_mouse_get_relxy(int &x, int &y);
+// Returns recent relative mouse movement; resets accumulated values
+void ags_mouse_acquire_relxy(int &x, int &y);
 // Updates mouse cursor position in game
 void ags_domouse();
 // Returns -1 for wheel down and +1 for wheel up
@@ -104,6 +104,26 @@ int  ags_check_mouse_wheel();
 extern volatile int sys_mouse_x; // mouse x position
 extern volatile int sys_mouse_y; // mouse y position
 extern volatile int sys_mouse_z; // mouse wheel position
+
+// Touch input handling
+// currently only performs touch-to-mouse emulation
+//
+// Touch-to-mouse emulation mode
+enum TouchMouseEmulation
+{
+    // don't emulate mouse
+    kTouchMouse_None = 0,
+    // copy default SDL2 behavior:
+    // touch down means hold LMB down, no RMB emulation
+    kTouchMouse_OneFingerDrag,
+    // tap 1,2 fingers means LMB/RMB click;
+    // double tap + drag 1 finger would drag the cursor with LMB down
+    kTouchMouse_TwoFingersTap,
+    kNumTouchMouseModes
+};
+// Configures touch to mouse emulation
+void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
+    bool relative, float speed);
 
 
 // Other input utilities

@@ -26,26 +26,37 @@
 #include <wchar.h>
 #include <ctype.h>
 
+// This is a pure mbstowcs placeholder that copies src to dest,
+// not a real implementation
 size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t max)
 {
   size_t count = 0;
+  // Copy until reached the end of dest buffer, or 0
   while ((count < max) && (*mbstr != 0))
   {
     *wcstr++ = *mbstr++;
     count++;
   }
+  // Terminate the string, if possible
+  if (count < max)
+    *wcstr = 0;
   return count;
-
 }
 
+// This is a pure wcstombs placeholder that copies src to dest,
+// not a real implementation
 size_t wcstombs(char* mbstr, const wchar_t *wcstr, size_t max)
 {
   size_t count = 0;
+  // Copy until reached the end of dest buffer, or 0
   while ((count < max) && (*wcstr != 0))
   {
     *mbstr++ = *wcstr++;
     count++;
   }
+  // Terminate the string, if possible
+  if (count < max)
+    *mbstr = 0;
   return count;
 }
 

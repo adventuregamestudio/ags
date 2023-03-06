@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.0 RC - February 2023
+VERSION 3.6.0 RC - March 2023
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.
@@ -31,11 +31,12 @@ Editor:
    between classic key press handling and new one meant for unicode chars support in scripts.
  - Supports compiling UTF-8 translations. TRS file now has "Encoding" setting that tells
    how to interpret this TRS text.
- - Added "Touch to Mouse Emulation", "Touch to Mouse motion mode" and "Display FPS on Screen" to
-   Default Setup. Removed few deprecated options.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.
+ - Editor now copies a acsetup.cfg file from the project's root folder (if one is provided by)
+   as a base for generating default config file. Settings from Default Setup will be written over,
+   but other found options won't be removed.
  - Added "Sprite file compression" option in General Settings, replacing "Compress the sprite file"
    option. The new option allows a selection of compression algorithm used for sprites. Currently
    supported: None, RLE (old default compression) and LZW.
@@ -47,6 +48,8 @@ Editor:
  - Added "TTF fonts height used in the game logic" option to the General Settings, that makes
    your game use real font's pixel height when arranging text and text-based UI elements,
    as opposed to the nominal font's size.
+ - Added "Touch to Mouse Emulation", "Touch to Mouse motion mode" and "Display FPS on Screen" to
+   Default Setup. Removed few deprecated options.
  - Added "TTF font adjustment" property to Fonts, as well as to General Settings where it serves
    as a project default for the new fonts. This property lets you choose between "no changes" and
    backward compatible TTF fixup meant to keep fonts made for AGS displayed as they were meant to.
@@ -271,6 +274,7 @@ Engine:
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
+ - Added "emul_mouse_mode" and "emul_mouse_relative" options to config in "[touch]" category.
  - Added "cache_size" and "stream_threshold" options to config in "[sound]" category, they setup
    the rules for sound caching and choosing whether to load a clip fully into mem or stream one.
  - Added "load_latest_save" and "show_fps" options to config in "[misc]" category.
@@ -287,6 +291,7 @@ Engine:
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
+ - Added stubs for agsappopenurl plugin.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
@@ -327,6 +332,9 @@ Compatibility:
  - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
    unintentional effect created by the old engines.
  - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
+ - For pre-3.5.0 games support old behavior of coincidental dynamic sprite replacement
+   on GUI backgrounds (and few other places) without explicit assignment; that is - when the new
+   DynamicSprite is created right after deleting an old one.
  - Support Label.TextAlignment with legacy alignment constants for pre-3.5.0 games made with
    the custom engine from "Clifftop Games".
  - Support native resolution hack for games made with "Clifftop Games" custom engine, where
@@ -363,6 +371,13 @@ WinSetup:
 
 
 ===================================================================================================
+
+VERSION 3.5.1 - Patch 19, March 2023
+
+Engine:
+ - Fixed System.Volume is not correctly applied after restoring the save.
+   (Regression since at least 3.4.0)
+
 
 VERSION 3.5.1 - Patch 18, February 2023
 

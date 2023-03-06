@@ -12,13 +12,16 @@
 //
 //=============================================================================
 //
-// Implementations for missing libc functions
+// Implementations for missing libc functions.
+// Some of these were required for old mobile SDK/NDKs, which missed
+// particular string functions. Make certain to keep this updated,
+// and link STRICTLY on platforms that require these.
 //
 //=============================================================================
 
 #include "core/platform.h"
 
-#if ! AGS_PLATFORM_OS_WINDOWS
+#if (0)
 
 #include <string.h>
 #include <stdio.h>
@@ -60,4 +63,4 @@ size_t wcstombs(char* mbstr, const wchar_t *wcstr, size_t max)
   return count;
 }
 
-#endif // ! AGS_PLATFORM_OS_WINDOWS
+#endif // ! 0

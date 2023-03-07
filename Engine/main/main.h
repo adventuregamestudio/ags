@@ -38,7 +38,7 @@ extern AGS::Common::String appDirectory;
 extern AGS::Common::String cmdGameDataPath;
 
 // Startup flags, set from parameters to engine
-extern int override_start_room;
+//extern int override_start_room;
 extern bool justTellInfo;
 extern AGS::Common::String loadSaveGameOnStartup;
 

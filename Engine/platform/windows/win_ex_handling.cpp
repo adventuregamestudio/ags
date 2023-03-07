@@ -61,13 +61,13 @@ static void DisplayException()
 }
 
 int initialize_engine_with_exception_handling(
-    int (initialize_engine)(const AGS::Common::ConfigTree &startup_opts),
-    const ConfigTree &startup_opts)
+    int (initialize_engine)(const AGS::Engine::CmdLineOpts::EngineParsedOptions& engineOptions),
+    const AGS::Engine::CmdLineOpts::EngineParsedOptions& engineOptions)
 {
     __try
     {
         Debug::Printf(kDbgMsg_Info, "Installing exception handler");
-        return initialize_engine(startup_opts);
+        return initialize_engine(engineOptions);
     }
     __except (CustomExceptionHandler(GetExceptionInformation()))
     {

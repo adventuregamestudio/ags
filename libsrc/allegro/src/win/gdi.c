@@ -523,9 +523,9 @@ HBITMAP convert_bitmap_to_hbitmap(BITMAP *bitmap)
    holdpal = SelectPalette(hdc, hpal, TRUE);
    RealizePalette(hdc);
    hbmp = CreateDIBitmap(hdc, &bi->bmiHeader, CBM_INIT, pixels, bi, DIB_RGB_COLORS);
-   ReleaseDC(NULL, hdc);
 
    SelectPalette(hdc, holdpal, TRUE);
+   ReleaseDC(NULL, hdc);
    DeleteObject(hpal);
 
    _AL_FREE(pixels);

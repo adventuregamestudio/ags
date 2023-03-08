@@ -588,6 +588,17 @@ void draw_gui_sprite(Common::Bitmap *g, bool use_alpha, int atxp, int atyp,
     draw_gui_sprite_impl(g, -1, blptr, atxp, atyp);
 }
 
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode, bool is_flipped) 
+{
+    // not implemented in the editor
+}
+void draw_gui_sprite_flipped(Common::Bitmap *ds, bool use_alpha, int x, int y,
+    Common::Bitmap *image, bool src_has_alpha,
+    Common::BlendMode blend_mode, int alpha, bool is_flipped)
+{
+    // not implemented in the editor
+}
+
 void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
   // FIXME later

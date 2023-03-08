@@ -39,10 +39,13 @@ std::vector<AnimatingGUIButton> animbuts;
 // Update the actual button's image from the current animation frame
 void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
+    const bool frame_is_flipped = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags & VFLG_FLIPSPRITE;
     guibuts[abtn.buttonid].Image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
-    if (guibuts[abtn.buttonid].CurrentImage != guibuts[abtn.buttonid].Image)
+    
+    if (guibuts[abtn.buttonid].CurrentImage != guibuts[abtn.buttonid].Image || guibuts[abtn.buttonid].IsFlipped != frame_is_flipped)
     {
         guibuts[abtn.buttonid].CurrentImage = guibuts[abtn.buttonid].Image;
+        guibuts[abtn.buttonid].IsFlipped = frame_is_flipped;
         guibuts[abtn.buttonid].MarkChanged();
     }
     guibuts[abtn.buttonid].PushedImage = 0;

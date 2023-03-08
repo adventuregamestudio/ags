@@ -133,6 +133,7 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume)
     
 }
 
+// Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend)
 {

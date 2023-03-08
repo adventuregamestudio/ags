@@ -96,6 +96,7 @@ public:
 
     bool        IsPushed;
     bool        IsMouseOver;
+    bool        IsFlipped;
 
 private:
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);

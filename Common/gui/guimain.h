@@ -275,6 +275,11 @@ extern void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int x, int y,
                             Common::Bitmap *image, bool src_has_alpha,
                             Common::BlendMode blend_mode, int alpha);
 
+extern void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode, bool is_flipped);
+extern void draw_gui_sprite_flipped(Common::Bitmap *ds, bool use_alpha, int x, int y,
+    Common::Bitmap *image, bool src_has_alpha,
+    Common::BlendMode blend_mode, int alpha, bool is_flipped);
+
 // Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 

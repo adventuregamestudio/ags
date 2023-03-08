@@ -69,6 +69,7 @@ GUIButton::GUIButton()
 
     IsPushed = false;
     IsMouseOver = false;
+    IsFlipped = false;
     _placeholder = kButtonPlace_None;
     _unnamed = true;
 
@@ -367,8 +368,9 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // NOTE: the CLIP flag only clips the image, not the text
     if (IsClippingImage() && !GUI::Options.ClipControls)
         ds->SetClip(RectWH(x, y, Width, Height));
+
     if (spriteset[CurrentImage] != nullptr)
-        draw_gui_sprite(ds, CurrentImage, x, y, true);
+        draw_gui_sprite_flipped(ds, CurrentImage, x, y, true, kBlend_Normal, IsFlipped);
 
     // Draw active inventory item
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)

@@ -1087,6 +1087,34 @@ void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, b
     }
 }
 
+void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode, bool is_flipped)
+{
+    draw_gui_sprite_flipped(ds, use_alpha, x, y, spriteset[pic],
+        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode, 0xFF, is_flipped);
+}
+
+void draw_gui_sprite_flipped(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
+    BlendMode blend_mode, int alpha, bool is_flipped)
+{
+    if (alpha <= 0)
+        return;
+
+    if (is_flipped) {
+        Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth());
+        tempspr->FlipBlt(sprite, 0, 0, Common::kFlip_Horizontal);
+        sprite = tempspr;
+    }
+
+    const bool ds_has_alpha = (ds->GetColorDepth() == 32);
+    if (use_alpha)
+    {
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+    }
+    else
+    {
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y, alpha);
+    }
+}
 
 // Avoid freeing and reallocating the memory if possible
 Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent) {

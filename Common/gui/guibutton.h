@@ -68,7 +68,7 @@ public:
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetClipImage(bool on);
     void SetText(const String &text);
-    void SetCurrentImage(int32_t image, bool flipped = false);
+    void SetCurrentImage(int32_t image, uint32_t flags = 0);
 
     // Events
     bool OnMouseDown() override;
@@ -97,10 +97,10 @@ public:
 
     bool        IsPushed;
     bool        IsMouseOver;
-    bool        IsImageFlipped;
 
 private:
     int32_t     _currentImage;
+    uint32_t    _imageFlags;
 
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);

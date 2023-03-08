@@ -14,6 +14,7 @@
 #include "gui/guibutton.h"
 #include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
+#include "ac/view.h"
 #include "font/fonts.h"
 #include "gui/guimain.h" // TODO: extract helper functions
 #include "util/stream.h"
@@ -59,6 +60,7 @@ GUIButton::GUIButton()
     MouseOverImage = -1;
     PushedImage = -1;
     _currentImage = -1;
+    _imageFlags = 0;
     Font = 0;
     TextColor = 0;
     TextAlignment = kAlignTopCenter;
@@ -69,7 +71,6 @@ GUIButton::GUIButton()
 
     IsPushed = false;
     IsMouseOver = false;
-    IsImageFlipped = false;
     _placeholder = kButtonPlace_None;
     _unnamed = true;
 
@@ -213,13 +214,13 @@ int32_t GUIButton::CurrentImage() const
     return _currentImage;
 }
 
-void GUIButton::SetCurrentImage(int32_t new_image, bool flipped)
+void GUIButton::SetCurrentImage(int32_t new_image, uint32_t flags)
 {
-    if (_currentImage == new_image && IsImageFlipped == flipped)
+    if (_currentImage == new_image && _imageFlags == flags)
         return;
     
     _currentImage = new_image;
-    IsImageFlipped = flipped;
+    _imageFlags = flags;
     MarkChanged();
 }
 
@@ -354,7 +355,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         TextAlignment = (FrameAlignment)in->ReadInt32();
     // Dynamic state
     _currentImage = in->ReadInt32();
-    IsImageFlipped = (svg_ver >= kGuiSvgVersion_3991 ? in->ReadByte() : false);
+    _imageFlags = (svg_ver >= kGuiSvgVersion_3991 ? in->ReadInt32() : false);
 
     // Update current state after reading
     IsPushed = false;
@@ -375,7 +376,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
     // Dynamic state
     out->WriteInt32(_currentImage);
     //since kGuiSvgVersion_3991
-    out->WriteByte(IsImageFlipped);
+    out->WriteInt32(_imageFlags);
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -388,7 +389,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         ds->SetClip(RectWH(x, y, Width, Height));
 
     if (spriteset[_currentImage] != nullptr)
-        draw_gui_sprite_flipped(ds, _currentImage, x, y, true, kBlend_Normal, IsImageFlipped);
+        draw_gui_sprite_flipped(ds, _currentImage, x, y, true, kBlend_Normal, _imageFlags & VFLG_FLIPSPRITE);
 
     // Draw active inventory item
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)

@@ -1099,10 +1099,11 @@ void draw_gui_sprite_flipped(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *s
     if (alpha <= 0)
         return;
 
+    std::unique_ptr<Bitmap> tempspr;
     if (is_flipped) {
-        Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth());
+        tempspr.reset(new Bitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth()));
         tempspr->FlipBlt(sprite, 0, 0, Common::kFlip_Horizontal);
-        sprite = tempspr;
+        sprite = tempspr.get();
     }
 
     const bool ds_has_alpha = (ds->GetColorDepth() == 32);

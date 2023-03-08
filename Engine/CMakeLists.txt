@@ -527,13 +527,16 @@ endif()
 target_link_libraries(engine PUBLIC 
     AGS::Common 
     ${CMAKE_DL_LIBS} 
-    Threads::Threads 
     Allegro::Allegro
     External::OpenAL
     ${SDL2_LIBRARY}
     ${SDL2_LIBRARIES}
     SDL2_sound::SDL2_sound
 )
+
+if(NOT AGS_DISABLE_THREADS)
+    target_link_libraries(engine PUBLIC Threads::Threads)
+endif()
 
 if (AGS_OPENGLES2)
     target_link_libraries(engine PUBLIC EGL GLESv2 Glad::GladGLES2)

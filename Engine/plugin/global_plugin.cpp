@@ -70,6 +70,12 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("ShellExecute",                 Sc_PluginStub_Void);
     return true;
   }
+  else if (ags_stricmp(name, "agsappopenurl") == 0)
+  {
+    // agsappopenurl.dll
+    ccAddExternalStaticFunction("AppOpenURL",                 Sc_PluginStub_Int0);
+   return true;
+  }
   else if (ags_stricmp(name, "ags_snowrain") == 0)
   {
     // ags_snowrain.dll

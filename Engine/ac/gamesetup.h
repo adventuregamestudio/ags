@@ -14,6 +14,7 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
+#include "ac/sys_events.h"
 #include "main/graphics_mode.h"
 #include "util/string.h"
 
@@ -42,18 +43,6 @@ enum ScreenRotation
     kScreenRotation_Portrait,         // screen can only be in portrait orientation
     kScreenRotation_Landscape,        // screen can only be in landscape orientation
     kNumScreenRotationOptions
-};
-
-enum TouchMouseEmulation
-{
-    // don't emulate mouse
-    kTouchMouse_None = 0,
-    // copy default SDL2 behavior:
-    // touch down means hold LMB down, no RMB emulation
-    kTouchMouse_OneFingerDrag,
-    // tap 1,2 fingers means LMB/RMB click;
-    // double tap + drag 1 finger would drag the cursor with LMB down
-    kTouchMouse_TwoFingersTap
 };
 
 using AGS::Common::String;
@@ -91,8 +80,10 @@ struct GameSetup
     MouseControlWhen mouse_ctrl_when;
     bool  mouse_ctrl_enabled;
     MouseSpeedDef mouse_speed_def;
-    // touch-to-mouse emulation mode
-    int   touch_emulate_mouse;
+    // touch-to-mouse emulation mode (how the touches are handled overall)
+    TouchMouseEmulation touch_emulate_mouse;
+    // touch control abs/relative mode
+    bool  touch_motion_relative;
     //
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;

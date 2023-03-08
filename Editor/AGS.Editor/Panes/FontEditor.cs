@@ -56,12 +56,14 @@ namespace AGS.Editor
                 return;
             }
 
-            if (imagePanel.ClientSize.Width == 0)
+            if (imagePanel.ClientSize.Width <= 0)
                 return; // sometimes occurs during automatic rearrangement of controls
 
             int height = Factory.NativeProxy.DrawFont(IntPtr.Zero, 0, 0, imagePanel.ClientSize.Width, _item.ID);
-            Bitmap bmp = new Bitmap(imagePanel.ClientSize.Width, height);
+            if (height <= 0)
+                return; // something went wrong when calculating needed height
 
+            Bitmap bmp = new Bitmap(imagePanel.ClientSize.Width, height);
             Graphics g = Graphics.FromImage(bmp);
             Factory.NativeProxy.DrawFont(g.GetHdc(), 0, 0, imagePanel.ClientSize.Width, _item.ID);
             g.ReleaseHdc();

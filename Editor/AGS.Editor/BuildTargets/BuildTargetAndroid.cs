@@ -547,7 +547,7 @@ namespace AGS.Editor
             }
 
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(assetsDir);
+            GenerateConfigFile(assetsDir);
             WriteAndroidCfg(assetsDir);
 
             foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())

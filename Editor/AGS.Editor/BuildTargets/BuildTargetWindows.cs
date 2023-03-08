@@ -137,7 +137,7 @@ namespace AGS.Editor
             // Copy DLLs
             File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, "SDL2.dll"), Path.Combine(GetCompiledPath(), "SDL2.dll"), true);
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
+            GenerateConfigFile(GetCompiledPath());
             // Copy Windows plugins
             CopyPlugins(errors);
             return true;

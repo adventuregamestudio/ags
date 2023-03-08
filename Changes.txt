@@ -48,7 +48,7 @@ Script API:
 
 ===================================================================================================
 
-VERSION 3.6.0 RC - January 2023
+VERSION 3.6.0 RC - March 2023
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.
@@ -79,11 +79,12 @@ Editor:
    between classic key press handling and new one meant for unicode chars support in scripts.
  - Supports compiling UTF-8 translations. TRS file now has "Encoding" setting that tells
    how to interpret this TRS text.
- - Added "Touch to Mouse Emulation", "Touch to Mouse motion mode" and "Display FPS on Screen" to
-   Default Setup. Removed few deprecated options.
  - Added support for building multiple speech voxes, by taking files from the Speech subfolders.
  - Added support for adding custom files into the game package. This is done by assigning
    a list of directories to "Package custom data folder" option in General Settings.
+ - Editor now copies a acsetup.cfg file from the project's root folder (if one is provided by)
+   as a base for generating default config file. Settings from Default Setup will be written over,
+   but other found options won't be removed.
  - Added "Sprite file compression" option in General Settings, replacing "Compress the sprite file"
    option. The new option allows a selection of compression algorithm used for sprites. Currently
    supported: None, RLE (old default compression) and LZW.
@@ -95,6 +96,8 @@ Editor:
  - Added "TTF fonts height used in the game logic" option to the General Settings, that makes
    your game use real font's pixel height when arranging text and text-based UI elements,
    as opposed to the nominal font's size.
+ - Added "Touch to Mouse Emulation", "Touch to Mouse motion mode" and "Display FPS on Screen" to
+   Default Setup. Removed few deprecated options.
  - Added "TTF font adjustment" property to Fonts, as well as to General Settings where it serves
    as a project default for the new fonts. This property lets you choose between "no changes" and
    backward compatible TTF fixup meant to keep fonts made for AGS displayed as they were meant to.
@@ -123,9 +126,12 @@ Editor:
  - Dialog scripts now too can open help topics for keywords or script functions under cursor on F1.
  - Added zoom controls for the Sprite Manager, Character, Cursor, Inventory and View panes.
  - Sprites may now be imported by drag'n'drop into the Sprite manager.
- - In sprite manager's "export all" dialog added "skip if local" option.
  - In sprite manager's context menu added command "Create source files for all sprites with missing
     / external sources..."
+ - In sprite manager's context menu added (restored) command "Replace sprite using previous files".
+   Also made "previous file" remembered consistently whenever a sprite is imported or replaced.
+ - In sprite manager's "export all" dialog added "skip if inside project's folder" option.
+ - In sprite manager's "export all" dialog added "reset tile settings" option.
  - On the View pane the frames having set delay and linked sound will be now indicated with icons.
  - Editor no longer errors and fails when opening a game project with some script files missing.
  - Editor no longer errors on empty translations when compiling the game.
@@ -148,6 +154,7 @@ Editor:
  - Fixed a recently imported sprite could be displayed incorrectly scaled up in the room editor
    for high-resolution games, if the "Allow relative asset resolutions" was enabled in General
    Settings, and the sprite 0 had "Resolution" property set to "Low".
+ - Fixed program crash occuring on sprite's import if failed to open a source file for any reason.
  - Fixed View animation preview stopping at frame 100 (if loop contains over 100 frames).
  - Fixed going to a "find all" result in dialog script did not highlight the found text,
    and sometimes did not scroll down to it.
@@ -162,6 +169,7 @@ Editor:
  - Fixed in dialogs numbers inside names were incorrectly highlighted as numeric values.
  - Fixed matching or mismatching braces were not highlighted consistently at all times in
    regular and dialog scripts.
+ - Fixed crash occuring when user was trying to set breakpoint on the very last line in script.
  - Fixed few editor panes were not opening correct help topics in F1.
  - (Possibly) fixed error message text in the runtime error popup could be drawn partially beyond
    the popup borders if the user's system has text scaling option enabled.
@@ -266,6 +274,8 @@ Engine:
    Only OGG/OGV videos are kept supported at this point.
  - Support resizing game window on desktop systems.
  - Support "borderless full-screen window" mode in addition to the real (exclusive) fullscreen.
+ - Support for switching vertical sync at runtime with Direct3D/OpenGL renderers.
+   Also enable vsync in windowed mode too.
  - Unicode (UTF-8) text support: engine can now switch between ASCII and UTF-8 text mode.
    This is controlled by both game's OPT_GAMETEXTENCODING setting and translation's "Encoding"
    setting: they tells whether to interpret game texts as UTF-8 or ASCII/ANSI.
@@ -312,6 +322,7 @@ Engine:
  - Engine config now has graphic modes defined as a simplier string options:
    "[graphics] fullscreen" for the fullscreen mode setup, and "[graphics] window" for the windowed.
    Fullscreen option can explicitly define a "borderless full-screen window" mode.
+ - Added "emul_mouse_mode" and "emul_mouse_relative" options to config in "[touch]" category.
  - Added "cache_size" and "stream_threshold" options to config in "[sound]" category, they setup
    the rules for sound caching and choosing whether to load a clip fully into mem or stream one.
  - Added "load_latest_save" and "show_fps" options to config in "[misc]" category.
@@ -328,6 +339,7 @@ Engine:
  - Don't error when DrawingSurface.DrawImage has bad transparency parameter (warning instead).
  - Don't error when detecting bad format in File.Read* functions (warning instead).
  - Added stubs for agsshell plugin (a contemporary cross-platform variant of ags_shell).
+ - Added stubs for agsappopenurl plugin.
  - Fixed potential crashes if a room-related API function has been called in "game_start";
    this is achieved by having a dummy room placeholder object. Still results of such calls are
    undefined and should not be relied upon.
@@ -368,6 +380,9 @@ Compatibility:
  - In pre-3.* games force player to walkable area after changing rooms, this is to emulate an
    unintentional effect created by the old engines.
  - Fixed pre-3.4.1 anti-aliased TTF fonts display (their vertical position was broken).
+ - For pre-3.5.0 games support old behavior of coincidental dynamic sprite replacement
+   on GUI backgrounds (and few other places) without explicit assignment; that is - when the new
+   DynamicSprite is created right after deleting an old one.
  - Support Label.TextAlignment with legacy alignment constants for pre-3.5.0 games made with
    the custom engine from "Clifftop Games".
  - Support native resolution hack for games made with "Clifftop Games" custom engine, where
@@ -404,6 +419,20 @@ WinSetup:
 
 
 ===================================================================================================
+
+VERSION 3.5.1 - Patch 19, March 2023
+
+Engine:
+ - Fixed System.Volume is not correctly applied after restoring the save.
+   (Regression since at least 3.4.0)
+
+
+VERSION 3.5.1 - Patch 18, February 2023
+
+Engine:
+ - Fixed background speech and textual overlays may disable GUI when being continuously
+   created in repeatedly_execute* kind of functions. (Regression since previous patch)
+
 
 VERSION 3.5.1 - Patch 17, January 2023
 

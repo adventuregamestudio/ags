@@ -78,6 +78,12 @@ Locations of two latter files differ between running platforms:
     * absolute - use precisely the speed value provided by config;
     * current_display - keep cursor's speed by screen size relation by increasing actual cursor speed when running game in low resolution and decreasing when running in higher than the current user's dekstop resolution (this is default).
   * speed = \[real\] - mouse cursor speed (default is 1.0).
+* **\[touch\]** - touch input options
+  * emul_mouse_mode = \[string | integer\] - touch-to-mouse emulation (whether touch input should emulate the mouse input and how):
+    * off (0) - disabled;
+    * one_finger (1) - one finger maps directly to left click;
+    * two_fingers (2) - tap 1 finger for left click, hold 1st finger and tap 2nd for right click, double tap 1 finger for drag mode.
+  * emul_mouse_relative = \[0; 1\] - enable or disable relative emulated mouse movement.
 * **\[language\]** - language options
   * translation = \[string\] - name of the translation to use. A \<name\>.tra file should be present in the game directory.
 * **\[misc\]** - various options

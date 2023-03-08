@@ -90,6 +90,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     }
 
     // Translation read successfully
+    Debug::Printf("Translation loaded: %s", trans_filename.GetCStr());
     // Configure new game settings
     if (trans.NormalFont >= 0)
         SetNormalFont(trans.NormalFont);
@@ -111,6 +112,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
         set_uformat(U_UTF8);
     else
         set_uformat(U_ASCII);
+    String encoding_msg = !encoding.IsEmpty() ? encoding : "presume ASCII";
+    Debug::Printf("Translation's encoding: %s", encoding_msg.GetCStr());
 
     // Mixed encoding support: 
     // original text unfortunately may contain extended ASCII chars (> 127);
@@ -123,10 +126,12 @@ bool init_translation(const String &lang, const String &fallback_lang)
         String key_enc = (game_codepage > 0) ?
             String::FromFormat(".%d", game_codepage) :
             trans.StrOptions["gameencoding"];
+        Debug::Printf("Game's source encoding hint: own: %d, from TRA: %s", game_codepage, trans.StrOptions["gameencoding"].GetCStr());
         if (!key_enc.IsEmpty())
         {
             StringMap conv_map;
             std::vector<char> ascii; // ascii buffer
+            Debug::Printf("Converting UTF-8 TRA keys to the game's encoding (%s)", key_enc.GetCStr());
             for (const auto &item : trans.Dict)
             {
                 ascii.resize(item.first.GetLength() + 1); // ascii len will be <= utf-8 len
@@ -135,9 +140,13 @@ bool init_translation(const String &lang, const String &fallback_lang)
             }
             trans.Dict = conv_map;
         }
+        else
+        {
+            Debug::Printf(kDbgMsg_Warn, "WARNING: UTF-8 translation in the ASCII/ANSI game, but no encoding hint for TRA keys conversion");
+        }
     }
 
-    Debug::Printf("Translation initialized: %s", trans_filename.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(), encoding_msg.GetCStr());
     return true;
 }
 

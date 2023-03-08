@@ -43,6 +43,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_COPY_TO_CLIPBOARD = "CopyToClipboard";
         private const string MENU_ITEM_EXPORT_SPRITE = "ExportSprite";
         private const string MENU_ITEM_REPLACE_FROM_FILE = "ReplaceFromFile";
+        private const string MENU_ITEM_REPLACE_FROM_PREVIOUS = "ReplaceFromPreviousFiles";
         private const string MENU_ITEM_REPLACE_FROM_CLIPBOARD = "ReplaceFromClipboard";
         private const string MENU_ITEM_OPEN_FILE_EXPLORER = "OpenFileExplorer";
         private const string MENU_ITEM_DELETE_SPRITE = "DeleteSprite";
@@ -508,8 +509,22 @@ namespace AGS.Editor
             impWin.Dispose();
         }
 
+        private void ReplaceSprite(Sprite sprite, string[] filenames)
+        {
+            _lastImportedFilenames = filenames;
+            SpriteImportWindow impWin = new SpriteImportWindow(filenames, sprite);
+
+            if (impWin.ShowDialog() == DialogResult.OK)
+            {
+                RefreshSpriteDisplay();
+            }
+
+            impWin.Dispose();
+        }
+
         private void ReplaceSprite(Sprite sprite, string filename)
         {
+            _lastImportedFilenames = new string[] { filename };
             SpriteImportWindow impWin = new SpriteImportWindow(new string[] { filename }, sprite);
 
             if (impWin.ShowDialog() == DialogResult.OK)
@@ -641,6 +656,11 @@ namespace AGS.Editor
                     Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
                     ReplaceSpriteUsingImportWindow(fileName, sprite);
                 }
+            }
+            else if (item.Name == MENU_ITEM_REPLACE_FROM_PREVIOUS)
+            {
+                Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
+                ReplaceSpriteUsingImportWindow(_lastImportedFilenames, sprite);
             }
             else if (item.Name == MENU_ITEM_REPLACE_FROM_CLIPBOARD)
             {
@@ -1127,12 +1147,12 @@ namespace AGS.Editor
                     if (dialog.UseRootFolder)
                     {
                         SpriteTools.ExportSprites(dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipIf, dialog.UpdateSpriteSource);
+                            dialog.SkipIf, dialog.UpdateSpriteSource, dialog.ResetTileSettings);
                     }
                     else
                     {
                         SpriteTools.ExportSprites(_currentFolder, dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipIf, dialog.UpdateSpriteSource);
+                            dialog.SkipIf, dialog.UpdateSpriteSource, dialog.ResetTileSettings);
                     }
                 }
                 catch (Exception ex)
@@ -1155,7 +1175,8 @@ namespace AGS.Editor
                 {
                     SpriteTools.ExportSprites(Path.Combine(folder, "%Number%"), recurse: true,
                         skipIf: SpriteTools.SkipIf.SourceLocal,
-                        updateSourcePath: true);
+                        updateSourcePath: true,
+                        resetTileSettings: true);
                 }
                 catch (Exception ex)
                 {
@@ -1184,6 +1205,18 @@ namespace AGS.Editor
                         Factory.GUIController.ShowMessage("Unable to display sprite " + spriteNumberToFind.ToString() + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
                     }
                 }
+            }
+        }
+
+        private void ReplaceSpriteUsingImportWindow(string[] fileNames, Sprite sprite)
+        {
+            try
+            {
+                ReplaceSprite(sprite, fileNames);
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage("There was an error importing the file. The error message was: '" + ex.Message + "'. Please try again", MessageBoxIcon.Warning);
             }
         }
 
@@ -1228,7 +1261,11 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripMenuItem("Export sprite to file...", null, onClick, MENU_ITEM_EXPORT_SPRITE));
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add(new ToolStripMenuItem("Replace sprite from file...", null, onClick, MENU_ITEM_REPLACE_FROM_FILE));
-
+                menu.Items.Add(new ToolStripMenuItem("Replace sprite using previous files...", null, onClick, MENU_ITEM_REPLACE_FROM_PREVIOUS));
+                if (_lastImportedFilenames == null)
+                {
+                    menu.Items[menu.Items.Count - 1].Enabled = false;
+                }
                 if (Factory.AGSEditor.CurrentGame.Settings.ColorDepth != GameColorDepth.Palette)
                 {
                     menu.Items.Add(new ToolStripMenuItem("Replace sprite from clipboard...", null, onClick, MENU_ITEM_REPLACE_FROM_CLIPBOARD));

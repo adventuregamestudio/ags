@@ -58,7 +58,7 @@ namespace AGS.Editor
             my_game_files_text += "];";
 
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(GetCompiledPath(WEB_DIR));
+            GenerateConfigFile(GetCompiledPath(WEB_DIR));
 
             string compiled_web_path = GetCompiledPath(WEB_DIR);
             string editor_web_prebuilt = Path.Combine(Factory.AGSEditor.EditorDirectory, WEB_DIR);

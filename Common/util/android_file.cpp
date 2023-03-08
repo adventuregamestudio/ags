@@ -120,6 +120,7 @@ String AndroidADir::Next()
 {
     if (_dir)
         return AAssetDir_getNextFileName(_dir);
+    return "";
 }
 
 String AndroidADir::Next(const std::regex &pattern)

@@ -977,12 +977,14 @@ static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, un
 bool SDLRendererGraphicsDriver::SetVsync(bool enabled)
 {
     // do nothing if already applied, necessary to prevent a reset loop when going fullscreen
-    if (_mode.Vsync == enabled) {
+    if (_mode.Vsync == enabled)
+    {
         return _mode.Vsync;
     }
 
     #if SDL_VERSION_ATLEAST(2, 0, 18)
-    if (!SDL_RenderSetVSync(_renderer, enabled)) { // 0 on success
+    if (!SDL_RenderSetVSync(_renderer, enabled)) // 0 on success
+    {
         _mode.Vsync = enabled;
         SetGamma(_gamma); // gamma might be lost after changing vsync mode at fullscreen
     }

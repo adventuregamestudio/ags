@@ -93,6 +93,12 @@ struct Point
         Y = y;
     }
 
+    inline static Point Clamp(const Point &p, const Point &floor, const Point &ceil)
+    {
+        return Point(AGSMath::Clamp(p.X, floor.X, ceil.X),
+                    AGSMath::Clamp(p.Y, floor.Y, ceil.Y));
+    }
+
     inline bool operator ==(const Point &p) const
     {
         return X == p.X && Y == p.Y;

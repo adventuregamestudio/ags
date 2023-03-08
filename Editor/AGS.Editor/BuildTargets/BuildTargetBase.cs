@@ -125,5 +125,30 @@ namespace AGS.Editor
                 return Path.Combine(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY), OutputDirectory);
             }
         }
+
+        /// <summary>
+        /// Generates a common config file in two steps:
+        /// 1) copies a custom config from the project root, if one was provided by user;
+        /// 2) writes over DefaultSetup, overwriting any matching entries, but not removing other contents.
+        /// </summary>
+        protected void GenerateConfigFile(string destDir)
+        {
+            string gameDir = AGSEditor.Instance.GameDirectory;
+            destDir = Path.Combine(gameDir, destDir); // resolve to the absolute path for Uri check
+            string customCfg = Path.Combine(gameDir, AGSEditor.CONFIG_FILE_NAME);
+            string destPath = Path.Combine(destDir, AGSEditor.CONFIG_FILE_NAME);
+            if (!Utilities.PathsAreEqual(destDir, gameDir))
+            {
+                try
+                {
+                    if (File.Exists(customCfg))
+                        File.Copy(customCfg, destPath, true);
+                    else
+                        Utilities.TryDeleteFile(destPath);
+                }
+                catch (Exception) { }
+            }
+            AGSEditor.Instance.WriteConfigFile(destPath, false);
+        }
     }
 }

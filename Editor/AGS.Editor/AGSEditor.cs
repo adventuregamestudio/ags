@@ -1612,13 +1612,10 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Writes up-to-date game information into configuration file.
-        /// This updates only values that strongly depend on game properties,
-        /// and does not affect user settings.
+        /// Writes the config file using particular game Settings and DefaultSetup options.
         /// </summary>
-		public void WriteConfigFile(string outputDir, bool resetFile = true)
+		public void WriteConfigFile(string configFilePath, bool resetFile = true)
 		{
-            string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
             if (resetFile)
                 Utilities.TryDeleteFile(configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "game_width", _game.Settings.CustomResolution.Width.ToString(), configFilePath);
@@ -1644,8 +1641,8 @@ namespace AGS.Editor
             bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
                 _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
             NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", render_at_screenres ? "1" : "0", configFilePath);
-            int rotation = (int)_game.DefaultSetup.Rotation;
-            NativeProxy.WritePrivateProfileString("graphics", "rotation", rotation.ToString(), configFilePath);
+            string[] rotation_str = new string[] { "unlocked", "portrait", "landscape" };
+            NativeProxy.WritePrivateProfileString("graphics", "rotation", rotation_str[(int)_game.DefaultSetup.Rotation], configFilePath);
 
             bool audio_enabled = _game.DefaultSetup.DigitalSound != RuntimeAudioDriver.Disabled;
             NativeProxy.WritePrivateProfileString("sound", "enabled", audio_enabled ? "1" : "0", configFilePath);
@@ -1656,8 +1653,12 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
 
-            int emulate_mouse = (int) _game.DefaultSetup.TouchToMouseEmulation;
-            NativeProxy.WritePrivateProfileString("touch", "emulate_mouse", emulate_mouse.ToString(), configFilePath);
+            // Touch input
+            string[] emulate_mouse_str = new string[] { "off", "one_finger", "two_fingers" };
+            NativeProxy.WritePrivateProfileString("touch", "emul_mouse_mode",
+                emulate_mouse_str[(int)_game.DefaultSetup.TouchToMouseEmulation], configFilePath);
+            NativeProxy.WritePrivateProfileString("touch", "emul_mouse_relative",
+                ((int)_game.DefaultSetup.TouchToMouseMotionMode).ToString(), configFilePath);
 
             // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)
             NativeProxy.WritePrivateProfileString("misc", "cachemax", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);
@@ -1709,8 +1710,6 @@ namespace AGS.Editor
 
         private object SaveGameFilesProcess(IWorkProgress progress, object parameter)
         {
-			WriteConfigFile(Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY));
-
             SaveUserDataFile();
 
             StringWriter sw = new StringWriter();

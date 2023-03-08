@@ -439,6 +439,10 @@ void D3DGraphicsDriver::ResetDeviceIfNecessary()
     CreateVirtualScreen();
     direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
   }
+  else if (hr != D3D_OK)
+  {
+    throw Ali3DException(String::FromFormat("IDirect3DDevice9::TestCooperativeLevel: failed: error code: 0x%08X", hr));
+  }
 }
 
 bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
@@ -2068,7 +2072,8 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 bool D3DGraphicsDriver::SetVsync(bool enabled) 
 {
     // do nothing if already applied, necessary to prevent a reset loop when going fullscreen
-    if (_mode.Vsync == enabled) {
+    if (_mode.Vsync == enabled)
+    {
         return _mode.Vsync;
     }
     
@@ -2082,6 +2087,7 @@ bool D3DGraphicsDriver::SetVsync(bool enabled)
         Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
         return _mode.Vsync;
     }
+    // TODO: refactor, to not duplicate these 3-4 calls everytime ResetDevice is called
     InitializeD3DState();
     CreateVirtualScreen();
     direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);

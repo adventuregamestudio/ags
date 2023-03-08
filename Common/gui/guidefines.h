@@ -189,7 +189,8 @@ enum GuiSvgVersion
     kGuiSvgVersion_36020,
     kGuiSvgVersion_36023,
     kGuiSvgVersion_36025,
-    kGuiSvgVersion_399      = 10
+    kGuiSvgVersion_399      = 10,
+    kGuiSvgVersion_3991
 };
 
 enum GuiDisableStyle

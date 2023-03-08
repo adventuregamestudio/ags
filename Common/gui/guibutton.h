@@ -61,12 +61,14 @@ public:
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
+    int32_t CurrentImage() const;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetClipImage(bool on);
     void SetText(const String &text);
+    void SetCurrentImage(int32_t image, bool flipped = false);
 
     // Events
     bool OnMouseDown() override;
@@ -85,7 +87,6 @@ public:
     int32_t     Image;
     int32_t     MouseOverImage;
     int32_t     PushedImage;
-    int32_t     CurrentImage;
     int32_t     Font;
     color_t     TextColor;
     FrameAlignment TextAlignment;
@@ -96,9 +97,11 @@ public:
 
     bool        IsPushed;
     bool        IsMouseOver;
-    bool        IsFlipped;
+    bool        IsImageFlipped;
 
 private:
+    int32_t     _currentImage;
+
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled);

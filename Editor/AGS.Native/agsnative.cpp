@@ -2140,7 +2140,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.TextColor = button->TextColor;
           nbut.Font = button->Font;
           nbut.Image = button->Image;
-          nbut.CurrentImage = nbut.Image;
+          nbut.SetCurrentImage(nbut.Image);
           nbut.MouseOverImage = button->MouseoverImage;
           nbut.PushedImage = button->PushedImage;
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
@@ -2220,7 +2220,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUIButton nbut;
           nbut.Image = textwindowedge->Image;
-          nbut.CurrentImage = nbut.Image;
+          nbut.SetCurrentImage(nbut.Image);
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());

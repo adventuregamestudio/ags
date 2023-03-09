@@ -38,6 +38,18 @@ class RTTI
 {
     friend RTTIBuilder;
 public:
+    enum TypeFlags
+    {
+        kType_Struct      = 0x0001,
+        kType_Managed     = 0x0002
+    };
+
+    enum FieldFlags
+    {
+        kField_ManagedPtr = 0x0001,
+        kField_Array      = 0x0002
+    };
+
     struct Field;
 
     // Type's info

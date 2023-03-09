@@ -11,6 +11,7 @@
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
 	std::string sname;
+    int section; // section index this symbol was declared in
 	short stype;
 	long flags;
 	short vartype;
@@ -49,6 +50,8 @@ struct symbolTable {
 
 	// properties for symbols, size is numsymbols
 	std::vector<SymbolTableEntry> entries;
+    // section names filled by tokenizer, required for RTTI
+    std::vector<std::string> sections;
 
     symbolTable();
     void reset();    // clears table

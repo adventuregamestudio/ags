@@ -6786,16 +6786,19 @@ int cc_parse(AGS::SrcList &src, AGS::FlagSet options, AGS::ccCompiledScript &scr
 
 int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScript &scrip, AGS::MessageHandler &mh)
 {
+    AGS::SymbolTable local_symt;
+    return cc_compile(inpl, options, scrip, local_symt, mh);
+}
+
+int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScript &scrip,
+    AGS::SymbolTable &symt, AGS::MessageHandler &mh)
+{
     std::vector<AGS::Symbol> symbols;
     AGS::LineHandler lh;
     size_t cursor = 0u;
     AGS::SrcList src = AGS::SrcList(symbols, lh, cursor);
     src.NewSection("UnnamedSection");
     src.NewLine(1u);
-
-    AGS::SymbolTable symt;
-
-    ccCurScriptName = nullptr;
 
     int error_code = cc_scan(inpl, src, scrip, symt, mh);
     if (error_code >= 0)

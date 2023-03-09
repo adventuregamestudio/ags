@@ -653,6 +653,14 @@ AGS::Symbol AGS::SymbolTable::FindStructComponent(Symbol strct, Symbol const com
     return kKW_NoSymbol;
 }
 
+AGS::Vartype AGS::SymbolTable::GetFirstBaseVartype(AGS::Vartype vartype) const
+{
+    // TODO: extra safety checks?
+    for (const auto *ste = &entries[vartype]; ste->VartypeD && (ste->VartypeD->BaseVartype > 0);
+        vartype = ste->VartypeD->BaseVartype, ste = &entries[vartype]) { }
+    return vartype;
+}
+
 AGS::ScopeType AGS::SymbolTable::GetScopeType(Symbol s) const
 {
     if (0 < entries.at(s).Scope)

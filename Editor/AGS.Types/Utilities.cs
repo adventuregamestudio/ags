@@ -211,5 +211,24 @@ namespace AGS.Types
                 return Utilities.UTF8; // UTF-8 w/o BOM
             return Encoding.GetEncoding(name);
         }
+
+        /// <summary>
+        /// Writes contents of a file into the given stream.
+        /// TODO: we might need another library for utilities that are not related to AGS.Types.
+        /// </summary>
+        public static bool CopyFileContents(string sourceFileName, FileStream output)
+        {
+            FileStream input = File.OpenRead(sourceFileName);
+            if (input == null)
+                return false;
+            byte[] buffer = new byte[65536];
+            int bytesRead;
+            while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write(buffer, 0, bytesRead);
+            }
+            input.Close();
+            return true;
+        }
     }
 }

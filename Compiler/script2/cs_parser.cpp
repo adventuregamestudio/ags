@@ -6786,6 +6786,14 @@ int cc_parse(AGS::SrcList &src, AGS::FlagSet options, AGS::ccCompiledScript &scr
 
 int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScript &scrip, AGS::MessageHandler &mh)
 {
+    AGS::SymbolTable local_symt;
+    AGS::SectionList local_secs;
+    return cc_compile(inpl, options, scrip, local_symt, local_secs, mh);
+}
+
+int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScript &scrip,
+    AGS::SymbolTable &symt, AGS::SectionList &sections, AGS::MessageHandler &mh)
+{
     std::vector<AGS::Symbol> symbols;
     AGS::LineHandler lh;
     size_t cursor = 0u;
@@ -6793,12 +6801,9 @@ int cc_compile(std::string const &inpl, AGS::FlagSet options, AGS::ccCompiledScr
     src.NewSection("UnnamedSection");
     src.NewLine(1u);
 
-    AGS::SymbolTable symt;
-
-    ccCurScriptName = nullptr;
-
     int error_code = cc_scan(inpl, src, scrip, symt, mh);
     if (error_code >= 0)
         error_code = cc_parse(src, options, scrip, symt, mh);
+    sections = lh.CreateSectionList();
     return error_code;
 }

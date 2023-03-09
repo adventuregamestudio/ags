@@ -109,6 +109,8 @@ target_sources(common
     script/cc_common.cpp
     script/cc_common.h
     script/cc_internal.h
+    script/cc_reflect.cpp
+    script/cc_reflect.h
     script/cc_script.cpp
     script/cc_script.h
     util/aasset_stream.cpp

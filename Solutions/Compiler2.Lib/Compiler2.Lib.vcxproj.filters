@@ -34,6 +34,9 @@
     <ClCompile Include="..\..\Common\script\cc_common.cpp">
       <Filter>Source Files\cs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_reflect.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_error.h">
@@ -76,6 +79,9 @@
       <Filter>Header Files\script</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\script2\cs_message_handler.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_reflect.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
   </ItemGroup>

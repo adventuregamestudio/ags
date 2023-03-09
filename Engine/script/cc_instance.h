@@ -151,6 +151,7 @@ public:
     static ccInstance *CreateFromScript(PScript script);
     static ccInstance *CreateEx(PScript scri, ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
+    static const JointRTTI *GetRTTI() { return _rtti.get(); }
 
     ccInstance();
     ~ccInstance();
@@ -220,6 +221,15 @@ private:
     // Function call stack processing
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
+
+    // RTTI tables
+    static std::unique_ptr<JointRTTI> _rtti;
+    // Full name to global id (global id is an actual index in the joint rtti table)
+    static std::unordered_map<Common::String, uint32_t> _rttiLookup;
+    // Map local script's location id to global (program-wide)
+    std::unordered_map<uint32_t, uint32_t> _locidLocal2Global;
+    // Map local script's type id to global (program-wide)
+    std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

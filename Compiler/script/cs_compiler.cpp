@@ -1,4 +1,5 @@
-
+#include <algorithm>
+#include <set>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,6 +39,55 @@ void ccRemoveDefaultHeaders() {
 
 void ccSetSoftwareVersion(const char *versionNumber) {
     ccSoftwareVersion = versionNumber;
+}
+
+// Compiles RTTI table for the given script.
+static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
+{
+    RTTIBuilder rtb;
+    std::string buf; // for constructing names
+
+    // Add sections as locations
+    // CHECKME: do we have to add all?
+    for (size_t l = 0; l < sym.sections.size(); ++l)
+    {
+        rtb.AddLocation(sym.sections[l], l);
+    }
+
+    // Add "no type" with id 0
+    rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
+    // Scan through all the symbols and save type infos,
+    // and gather preliminary data on type fields and strings
+    for (size_t t = 0; t < sym.entries.size(); ++t)
+    {
+        const SymbolTableEntry &ste = sym.entries[t];
+
+        if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
+            ((ste.flags & SFLG_MANAGED) != 0))
+        {
+            uint32_t flags = 0u; // TODO
+            if ((ste.flags & SFLG_STRUCTTYPE))
+                flags = RTTI::kType_Struct;
+            if ((ste.flags & SFLG_MANAGED))
+                flags = RTTI::kType_Managed;
+            rtb.AddType(ste.sname, t, ste.section, ste.extends, flags, ste.ssize);
+        }
+        else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
+            ((ste.flags & SFLG_PROPERTY) == 0))
+        {
+            buf = ste.sname.substr(ste.sname.rfind(":") + 1);
+            uint32_t flags = 0u;
+            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
+                flags |= RTTI::kField_ManagedPtr;
+            if (ste.flags & SFLG_ARRAY)
+                flags |= RTTI::kField_Array;
+            rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags,
+                static_cast<uint32_t>(ste.arrsize));
+        }
+    }
+
+    return std::unique_ptr<RTTI>(
+        new RTTI(std::move(rtb.Finalize())));
 }
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
@@ -115,6 +165,11 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
             }
 
         }
+    }
+
+    // Construct RTTI
+    if (ccGetOption(SCOPT_RTTI)) {
+        cctemp->rtti = ccCompileRTTI(sym);
     }
 
     cctemp->free_extra();

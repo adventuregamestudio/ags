@@ -44,6 +44,15 @@ void AGS::LineHandler::AddLineAt(size_t offset, size_t lineno)
     _cacheLineEnd = 0;
 }
 
+AGS::SectionList AGS::LineHandler::CreateSectionList() const
+{
+    std::vector<std::string> sections = _sections;
+    std::map<size_t, size_t> off2sec;
+    for (const auto &item : _lineStartTable)
+        off2sec[item.first] = item.second.SectionId;
+    return AGS::SectionList(std::move(sections), std::move(off2sec));
+}
+
 AGS::SrcList::SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor)
     : _script(script)
     , _lineHandler(line_handler)

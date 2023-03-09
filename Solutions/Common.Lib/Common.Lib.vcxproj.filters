@@ -515,6 +515,9 @@
     <ClCompile Include="..\..\Common\script\cc_common.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_reflect.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h">
@@ -831,6 +834,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\matrix.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_reflect.h">
+      <Filter>Header Files\script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

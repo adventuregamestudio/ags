@@ -171,11 +171,11 @@ const char *get_member_func_name(int structSym, int funcSym) {
     return constructedFunctionName.c_str();
 }
 
-
-int sym_find_or_add(symbolTable &sym, const char *sname) {
+int sym_find_or_add(symbolTable &sym, const char *sname, int section_index = -1) {
     int symdex = sym.find(sname);
     if (symdex < 0) {
         symdex = sym.add(sname);
+        sym.entries[symdex].section = section_index;
     }
     return symdex;
 }
@@ -183,6 +183,7 @@ int sym_find_or_add(symbolTable &sym, const char *sname) {
 int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     // *** create the symbol table and parse the text code into symbol code
     int linenum=1,in_struct_declr=-1,bracedepth = 0, last_time=0;
+    int section_index = -1;
     int parenthesisdepth = 0;
     FMEM*iii=fmem_open(inpl);
     targ->write_meta(SMETA_LINENUM,1);
@@ -237,7 +238,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             thissymbol = get_mangled_name(thissymbol.c_str());
         }
 
-        int towrite = sym_find_or_add(sym, thissymbol.c_str());
+        int towrite = sym_find_or_add(sym, thissymbol.c_str(), section_index);
         if (towrite < 0) {
             cc_error("symbol table overflow - could not ensure new symbol.");
             return -1;
@@ -301,7 +302,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                     (sym.entries[last_time].stype != SYM_OPENBRACKET) &&
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
-                        towrite = sym_find_or_add(sym, new_name);
+                        towrite = sym_find_or_add(sym, new_name, section_index);
                         if (towrite < 0) {
                             cc_error("symbol table error - could not ensure new struct symbol.");
                             return -1;
@@ -325,6 +326,9 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
 
                 linenum = 0;
                 currentline = 0;
+
+                section_index = sym.sections.size();
+                sym.sections.push_back(ccCurScriptName);
             }
         }
         targ->write(towrite);

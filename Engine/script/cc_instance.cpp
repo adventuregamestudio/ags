@@ -213,6 +213,10 @@ struct FunctionCallStack
 };
 
 
+std::unique_ptr<JointRTTI> ccInstance::_rtti;
+std::unordered_map<String, uint32_t> ccInstance::_rttiLookup;
+
+
 unsigned ccInstance::_timeoutCheckMs = 60u;
 unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
@@ -238,6 +242,13 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
         return nullptr;
     }
 
+    // Join RTTI
+    if (scri->rtti && !scri->rtti->IsEmpty())
+    {
+        if (!ccInstance::_rtti)
+            ccInstance::_rtti.reset(new JointRTTI());
+        ccInstance::_rtti->Join(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
+    }
     return cinst;
 }
 

@@ -18,8 +18,10 @@
 #ifndef __CC_INTERNAL_H
 #define __CC_INTERNAL_H
 
-#define SCOM_VERSION 90
-#define SCOM_VERSIONSTR "0.90"
+#define SCOM_VERSION_OLD  90
+#define SCOM_VERSION_EXT  95
+#define SCOM_VERSION      SCOM_VERSION_EXT
+#define SCOM_VERSIONSTR   "0.95"
 
 // virtual CPU registers
 #define SREG_SP           1     // stack pointer

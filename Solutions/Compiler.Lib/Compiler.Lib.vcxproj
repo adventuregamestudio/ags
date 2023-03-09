@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\script\cc_common.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_reflect.cpp" />
     <ClCompile Include="..\..\Common\util\version.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +177,7 @@
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\script\cc_reflect.h" />
     <ClInclude Include="..\..\Common\util\version.h" />
   </ItemGroup>
   <ItemGroup>

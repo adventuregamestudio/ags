@@ -1049,12 +1049,13 @@ extern int cc_compile(
     AGS::FlagSet options,            // as defined in cc_options 
     AGS::ccCompiledScript &scrip,    // store for the compiled text
     AGS::MessageHandler &mh);        // warnings and the error   
-// Compile the input, additionally return gathered symbol table
+// Compile the input, additionally return gathered symbols and other source info
 extern int cc_compile(
     std::string const &source,  // preprocessed text to be compiled
     AGS::FlagSet options,            // as defined in cc_options 
     AGS::ccCompiledScript &scrip,    // store for the compiled text
     AGS::SymbolTable &symt,          // store for the parsed symbols
+    AGS::SectionList &sections,      // store for the list of sections
     AGS::MessageHandler &mh);        // warnings and the error   
 
 #endif // __CS_PARSER_H

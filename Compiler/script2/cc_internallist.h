@@ -9,6 +9,38 @@
 
 namespace AGS
 {
+// A helper class that contains post-parsed list of sections,
+// and a offset-to-section map, useful for finding a symbol's location.
+class SectionList
+{
+    // list of sections
+    std::vector<std::string> _sections;
+    // starting line offset to section index
+    std::map<size_t, size_t> _off2sec;
+public:
+    SectionList() = default;
+    SectionList(const std::vector<std::string> &sections,
+                const std::map<size_t, size_t> &off2sec)
+        : _sections(sections)
+        , _off2sec(off2sec)
+    {}
+    SectionList(const std::vector<std::string> &&sections,
+                const std::map<size_t, size_t> &&off2sec)
+        : _sections(std::move(sections))
+        , _off2sec(std::move(off2sec))
+    {}
+
+    // Returns a full list of sections
+    inline const std::vector<std::string> &GetSections() const { return _sections; }
+    // Maps given line-start offset to the section; returns SIZE_MAX on failure
+    inline size_t GetSectionIdAt(size_t off) const
+    {
+        auto it = _off2sec.upper_bound(off);
+        return it != _off2sec.end() ? (--it)->second : SIZE_MAX;
+    }
+};
+
+
 class LineHandler
 {
     // stores section names as strings
@@ -44,6 +76,9 @@ public:
         
     // Get the code line that corresponds to the offset
     inline size_t GetLinenoAt(size_t offset) const {  UpdateCacheIfNecessary(offset); return _cacheSectionLine.Lineno; }
+
+    // Generate a SectionList object, copying collected data
+    SectionList CreateSectionList() const;
 };
 
 // A list of input tokens. Only _len tokens, beginning at _offset, are taken into

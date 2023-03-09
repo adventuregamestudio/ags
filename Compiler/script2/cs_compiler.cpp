@@ -22,13 +22,18 @@ void ccGetExtensions2(std::vector<std::string> &exts)
 
 
 // Compiles RTTI table for the given script.
-static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
+static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const SectionList &seclist)
 {
     RTTIBuilder rtb;
-    std::string buf; // for constructing full qualified names
+    std::string buf; // for constructing names
 
-    // Add "dummy" location for safety
-    rtb.AddLocation("", 0u);
+    // Add sections as locations
+    // CHECKME: do we have to add all?
+    const auto &sections = seclist.GetSections();
+    for (size_t l = 0; l < sections.size(); ++l)
+    {
+        rtb.AddLocation(sections[l], l);
+    }
 
     // Add "no type" with id 0
     rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
@@ -42,15 +47,15 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
         // ignore all the compound types (derived from "real" types).
         if (ste.VartypeD && (ste.VartypeD->BaseVartype == 0))
         {
-            // TODO: fully qualified name with section?
-            // token_list.SectionId2Section(token_list.GetSectionIdAt(ste.Declared));
-            buf = ste.Name;
+            uint32_t section_id = 0u;
+            if (ste.Declared < INT_MAX)
+                section_id = seclist.GetSectionIdAt(ste.Declared);
             uint32_t flags = 0u;
             if (ste.VartypeD->Flags[VTF::kManaged])
                 flags |= RTTI::kType_Managed;
             if (ste.VartypeD->Flags[VTF::kStruct])
                 flags |= RTTI::kType_Struct;
-            rtb.AddType(buf, t, 0u, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
+            rtb.AddType(ste.Name, t, section_id, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
         }
         // Detect a struct's mem field (not function or attribute, etc)
         else if (ste.ComponentD && ste.VariableD)
@@ -81,9 +86,10 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
     ccCompiledScript *compiled_script =
         new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));
     SymbolTable symt; // for gathering rtti
+    SectionList seclist;
 
     compiled_script->StartNewSection(scriptName.empty() ? scriptName : "Unnamed script");
-    cc_compile(script, options, *compiled_script, symt, mh);
+    cc_compile(script, options, *compiled_script, symt, seclist, mh);
     if (mh.HasError())
     {
         auto const &err = mh.GetError();
@@ -115,7 +121,7 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
         return NULL;
     }
 
-    compiled_script->rtti = ccCompileRTTI(symt);
+    compiled_script->rtti = ccCompileRTTI(symt, seclist);
 
     ccCurScriptName = nullptr;
     cc_clear_error();

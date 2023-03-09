@@ -789,6 +789,9 @@
     <ClCompile Include="..\..\Engine\util\sdl2_util.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\script\cc_reflecthelper.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1588,6 +1591,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\util\sdl2_util.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h">
+      <Filter>Header Files\script</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

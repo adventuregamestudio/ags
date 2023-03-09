@@ -59,6 +59,9 @@ public:
         kField_Array      = 0x0002
     };
 
+    // Size of a "pointer" in the script memory
+    const static size_t PointerSize = sizeof(uint32_t);
+
     struct Field;
 
     // Location info: a context, in which a symbol

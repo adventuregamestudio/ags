@@ -40,6 +40,7 @@
 
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
+using namespace AGS::Engine;
 
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
@@ -214,6 +215,7 @@ struct FunctionCallStack
 
 std::unique_ptr<JointRTTI> ccInstance::_rtti;
 std::unordered_map<String, uint32_t> ccInstance::_rttiLookup;
+std::unique_ptr<RTTIHelper> ccInstance::_rttiHelper;
 
 
 unsigned ccInstance::_timeoutCheckMs = 60u;
@@ -247,6 +249,11 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
         if (!ccInstance::_rtti)
             ccInstance::_rtti.reset(new JointRTTI());
         ccInstance::_rtti->Join(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
+        if (!ccInstance::_rttiHelper)
+            ccInstance::_rttiHelper.reset(new RTTIHelper());
+        // TODO: optimize by either generating only after all scripts are loaded,
+        // or updating only newly joint types
+        ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
     }
     return cinst;
 }

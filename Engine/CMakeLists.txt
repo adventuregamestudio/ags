@@ -408,6 +408,8 @@ target_sources(engine
     resource/resource.h
     script/cc_instance.cpp
     script/cc_instance.h
+    script/cc_reflecthelper.cpp
+    script/cc_reflecthelper.h
     script/executingscript.cpp
     script/executingscript.h
     script/exports.cpp

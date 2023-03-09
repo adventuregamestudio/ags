@@ -648,6 +648,7 @@
     <ClCompile Include="..\..\Engine\plugin\global_plugin.cpp" />
     <ClCompile Include="..\..\Engine\plugin\pluginobjectreader.cpp" />
     <ClCompile Include="..\..\Engine\script\cc_instance.cpp" />
+    <ClCompile Include="..\..\Engine\script\cc_reflecthelper.cpp" />
     <ClCompile Include="..\..\Engine\script\executingscript.cpp" />
     <ClCompile Include="..\..\Engine\script\exports.cpp" />
     <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
@@ -911,6 +912,7 @@
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />
     <ClInclude Include="..\..\Engine\resource\resource.h" />
     <ClInclude Include="..\..\Engine\script\cc_instance.h" />
+    <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h" />
     <ClInclude Include="..\..\Engine\script\executingscript.h" />
     <ClInclude Include="..\..\Engine\script\exports.h" />
     <ClInclude Include="..\..\Engine\script\nonblockingscriptfunction.h" />

@@ -72,12 +72,13 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
             ((ste.flags & SFLG_PROPERTY) == 0))
         {
-            uint32_t flags = 0u; // TODO
+            buf = ste.sname.substr(ste.sname.rfind(":") + 1);
+            uint32_t flags = 0u;
             if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
                 flags |= RTTI::kField_ManagedPtr;
             if (ste.flags & SFLG_ARRAY)
                 flags |= RTTI::kField_Array;
-            rtb.AddField(ste.extends, ste.sname, ste.soffs, ste.vartype, flags,
+            rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags,
                 static_cast<uint32_t>(ste.arrsize));
         }
     }

@@ -52,6 +52,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
         // Detect a struct's mem field (not function or attribute, etc)
         else if (ste.ComponentD && ste.VariableD)
         {
+            buf = ste.Name.substr(ste.Name.rfind(":") + 1);
             uint32_t flags = 0u;
             const auto &field_type = symt.entries[ste.VariableD->Vartype];
             if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
@@ -62,7 +63,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
                 num_elems += sz; // CHECKME if correct
-            rtb.AddField(ste.ComponentD->Parent, ste.Name, ste.ComponentD->Offset,
+            rtb.AddField(ste.ComponentD->Parent, buf, ste.ComponentD->Offset,
                 symt.GetFirstBaseVartype(ste.VariableD->Vartype), flags, num_elems);
         }
     }

@@ -29,8 +29,9 @@
 #define SCOPT_NOIMPORTOVERRIDE 0x0020 // do not allow an import to be re-declared
 //#define SCOPT_LEFTTORIGHT 0x40   // left-to-right operator precedance (DEPRECATED)
 #define SCOPT_OLDSTRINGS    0x0080   // allow old-style strings
-#define SCOPT_UTF8          0x0100  // UTF-8 text mode
-#define SCOPT_HIGHEST       SCOPT_UTF8
+#define SCOPT_UTF8          0x0100   // UTF-8 text mode
+#define SCOPT_RTTI          0x0200   // generate and export RTTI
+#define SCOPT_HIGHEST       SCOPT_RTTI
 
 extern void ccSetOption(int, int);
 extern int ccGetOption(int);

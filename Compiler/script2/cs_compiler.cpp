@@ -121,7 +121,11 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
         return NULL;
     }
 
-    compiled_script->rtti = ccCompileRTTI(symt, seclist);
+    // Construct RTTI
+    if (FlagIsSet(options, SCOPT_RTTI))
+    {
+        compiled_script->rtti = ccCompileRTTI(symt, seclist);
+    }
 
     ccCurScriptName = nullptr;
     cc_clear_error();

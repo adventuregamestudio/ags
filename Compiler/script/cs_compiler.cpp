@@ -168,7 +168,9 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     }
 
     // Construct RTTI
-    cctemp->rtti = ccCompileRTTI(sym);
+    if (ccGetOption(SCOPT_RTTI)) {
+        cctemp->rtti = ccCompileRTTI(sym);
+    }
 
     cctemp->free_extra();
     return cctemp;

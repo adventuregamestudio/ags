@@ -62,6 +62,7 @@ namespace AGS
                 SCOPT_LINENUMBERS |
                 SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
                 SCOPT_UTF8 * (game->UnicodeMode) |
+                SCOPT_RTTI |
                 false;
 
         if (game->Settings->ExtendedCompiler)

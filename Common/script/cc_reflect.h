@@ -173,6 +173,13 @@ private:
     std::unordered_map<AGS::Common::String, uint32_t> _rttiLookup;
 };
 
+
+
+// Prints RTTI types and their fields into the string.
+// TODO: provide TextWriter instead of returning a String,
+// but need to implement a TextWriter that writes into the engine's log
+AGS::Common::String PrintRTTI(const RTTI &rtti);
+
 } // namespace AGS
 
 #endif // __CC_REFLECT_H

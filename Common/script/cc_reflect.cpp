@@ -342,4 +342,47 @@ void JointRTTI::Join(const RTTI &rtti,
     CreateQuickRefs();
 }
 
+
+String PrintRTTI(const RTTI &rtti)
+{
+    const auto &types = rtti.GetTypes();
+
+    const char *hr =   "-------------------------------------------------------------------------------";
+    const char *dbhr = "===============================================================================";
+    String fullstr;
+    fullstr.AppendFmt("%s\nRTTI\n%s\n", dbhr, dbhr);
+
+    for (const auto &ti : types)
+    {
+        fullstr.AppendFmt("%-12s(%-3u) %s\n", "Type:", ti.this_id, ti.fullname);
+        if (ti.parent_id > 0u)
+        {
+            fullstr.AppendFmt("%-12s(%-3u) %s\n", "Parent:", ti.parent->this_id, ti.parent->fullname);
+        }
+        else
+        {
+            fullstr.AppendFmt("%-12snone\n", "Parent:");
+        }
+
+        if (ti.field_num > 0u)
+        {
+            fullstr.Append("Fields:\n");
+            uint32_t index = 0u;
+            for (const auto *fi = ti.first_field; fi; fi = fi->next_field, ++index)
+            {
+                fullstr.AppendFmt("%+4u |%+4u: %-24s: (%-3u) %s\n", index, fi->offset,
+                    fi->name, fi->type->this_id, fi->type->fullname);
+            }
+        }
+        else
+        {
+            fullstr.AppendFmt("%-12snone\n", "Fields:");
+        }
+        fullstr.AppendFmt("%s\n", hr);
+    }
+
+    fullstr.Append(dbhr);
+    return fullstr;
+}
+
 } // namespace AGS

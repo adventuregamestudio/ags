@@ -95,6 +95,7 @@ extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
 extern RGB palette[256];
 extern int mouse_z_was;
+extern bool logScriptRTTI;
 
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
@@ -409,6 +410,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (!err)
         quitprintf("!Unable to load '%s'. Error: %s", room_filename.GetCStr(),
             err->FullMessage().GetCStr());
+
+    // Optionally dump joint RTTI into the log
+    if (logScriptRTTI && ccInstance::GetRTTI())
+    {
+        Debug::Printf(PrintRTTI(ccInstance::GetRTTI()->AsConstRTTI()));
+    }
 
     our_eip=201;
 

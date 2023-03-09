@@ -16,6 +16,7 @@
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
 #include "script/cc_script.h"
+#include "util/data_ext.h"
 #include "util/stream.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -24,6 +25,34 @@ using namespace AGS::Common;
 
 // script file format signature
 const char scfilesig[5] = "SCOM";
+
+
+// ScriptExtReader reads script data's extension blocks
+class ScriptExtReader : public DataExtReader
+{
+public:
+    ScriptExtReader(ccScript &script, Stream *in)
+        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
+        , _script(script)
+        {}
+
+protected:
+    HError ReadBlock(int block_id, const String &ext_id,
+        soff_t block_len, bool &read_next) override
+    {
+        read_next = true;
+        if (ext_id.CompareNoCase("rtti") == 0)
+        {
+            _script.rtti.reset(new RTTI());
+            _script.rtti->Read(_in);
+            return HError::None();
+        }
+        return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
+    }
+
+    ccScript &_script;
+};
+
 
 
 ccScript *ccScript::CreateFromStream(Stream *in)
@@ -200,6 +229,19 @@ void ccScript::Write(Stream *out) {
         StrUtil::WriteCStr(sectionNames[n], out);
         out->WriteInt32(sectionOffsets[n]);
     }
+
+    //-------------------------------------------------------------------------
+    // Extended data
+    //-------------------------------------------------------------------------
+    const auto *rtti = ccScript::rtti.get();
+    if (rtti && !rtti->IsEmpty())
+    {
+        WriteExtBlock("rtti", [rtti](Stream *out){ rtti->Write(out); },
+                      kDataExt_NumID8 | kDataExt_File64, out);
+    }
+    // Write ending
+    out->WriteInt8(static_cast<uint8_t>(0xFF));
+
     out->WriteInt32(ENDFILESIG);
 }
 
@@ -270,7 +312,7 @@ bool ccScript::Read(Stream *in)
     export_addr[n] = in->ReadInt32();
   }
 
-  if (fileVer >= 83) {
+  if (fileVer >= 83) { // TODO: make a version constant
     // read in the Sections
     numSections = in->ReadInt32();
     sectionNames = (char**)malloc(numSections * sizeof(char*));
@@ -287,8 +329,20 @@ bool ccScript::Read(Stream *in)
     sectionOffsets = nullptr;
   }
 
+  //-------------------------------------------------------------------------
+  // Extended data
+  //-------------------------------------------------------------------------
+  if (fileVer >= SCOM_VERSION_EXT) {
+    ScriptExtReader reader(*this, in);
+    HError err = reader.Read();
+    if (!err) {
+      cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
+      return false;
+    }
+  }
+
   if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG) {
-    cc_error("!internal error rebuilding script");
+    cc_error("!internal error reading script: end file signature not found");
     return false;
   }
   return true;
@@ -349,6 +403,8 @@ void ccScript::Free()
     numimports = 0;
     numexports = 0;
     numSections = 0;
+
+    rtti.reset();
 }
 
 const char* ccScript::GetSectionName(int32_t offs) const {

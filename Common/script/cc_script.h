@@ -12,15 +12,16 @@
 //
 //=============================================================================
 //
-// 'C'-style script compiler
+// Compiled script object. A result of AGS script compilation,
+// loaded and run by the engine. A single game may have multiple scripts.
 //
 //=============================================================================
-
 #ifndef __CC_SCRIPT_H
 #define __CC_SCRIPT_H
 
 #include <memory>
 #include "core/types.h"
+#include "script/cc_reflect.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -51,6 +52,8 @@ public:
     int32_t *sectionOffsets;
     int numSections;
     int capacitySections;
+
+    std::unique_ptr<RTTI> rtti;
 
     static ccScript *CreateFromStream(Common::Stream *in);
 

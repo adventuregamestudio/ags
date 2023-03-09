@@ -27,6 +27,8 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
     RTTIBuilder rtb;
     std::string buf; // for constructing full qualified names
 
+    // Add "no type" with id 0
+    rtb.AddType("", 0u, 0u, 0u, 0u);
     // Scan through all the symbols and save type infos,
     // and gather preliminary data on type fields and strings
     for (size_t t = 0; t < symt.entries.size(); t++)

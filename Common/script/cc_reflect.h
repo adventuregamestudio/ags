@@ -59,27 +59,41 @@ public:
 
     struct Field;
 
+    // Location info: a context, in which a symbol
+    // (type, function, variable) may be defined.
+    struct Location
+    {
+        friend RTTI; friend RTTIBuilder; friend JointRTTI;
+    public:
+        uint32_t id = 0u; // location's id
+        const char *name = nullptr;
+    private:
+        // Internal references
+        uint32_t name_stri = 0u; // location's name (string table offset)
+    };
+
     // Type's info
     struct Type
     {
         friend RTTI; friend RTTIBuilder; friend JointRTTI;
     public:
         uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
+        uint32_t loc_id = 0u; // type location's id (script or header)
         uint32_t parent_id = 0u; // parent type's id
         uint32_t flags = 0u; // type flags
         uint32_t size = 0u; // type size in bytes
         uint32_t field_num = 0u; // number of fields, if any
         // Quick-access links
-        const char *fullname = nullptr;
+        // Type's name; along with location's name will create a
+        // "fully qualified name" suitable for uniquely identify this type
+        // in the global scope ("locationname::typename").
+        const char *name = nullptr;
+        const Location *location = nullptr;
         const Type *parent = nullptr;
         const Field *first_field = nullptr;
     private:
         // Internal references
-        // Fully qualified name, suitable for uniquely identify this type
-        // in the global scope. Format is "unitname::typename".
-        // TODO: write section index instead, use section name from script data?
-        // (save mem on repeated section name)
-        uint32_t fullname_stri = 0u; // type's name (string table offset)
+        uint32_t name_stri = 0u; // type's name (string table offset)
         uint32_t field_index = 0u; // first field index in the fields table
     };
 
@@ -106,6 +120,8 @@ public:
     RTTI() = default;
 
     bool IsEmpty() const { return _types.empty(); }
+    // Returns list of locations.
+    const std::vector<Location> &GetLocations() const { return _locs; }
     // Returns list of types. Please be aware that the order of them
     // in collection is not defined, and an index in the list is not
     // guaranteed to match typeid at all.
@@ -118,7 +134,8 @@ private:
     // Generates quick reference fields, binding table entries between each other
     void CreateQuickRefs();
 
-    // The primary RTTI collection
+    // Location (type context) definitions
+    std::vector<Location> _locs;
     // Type descriptions
     std::vector<Type> _types;
     // Type fields' descriptions
@@ -133,9 +150,11 @@ private:
 class RTTIBuilder
 {
 public:
+    // Adds a location entry
+    void AddLocation(const std::string &name, uint32_t loc_id);
     // Adds a type entry
-    void AddType(const std::string &name, uint32_t type_id, uint32_t parent_id,
-        uint32_t flags, uint32_t size);
+    void AddType(const std::string &name, uint32_t type_id, uint32_t loc_id,
+        uint32_t parent_id, uint32_t flags, uint32_t size);
     // Adds a type's field entry
     void AddField(uint32_t owner_id, const std::string &name, uint32_t offset,
         uint32_t f_typeid, uint32_t flags, uint32_t num_elems);
@@ -161,11 +180,15 @@ public:
     const RTTI &AsConstRTTI() const { return *this; }
 
     using RTTI::IsEmpty;
+    using RTTI::GetLocations;
     using RTTI::GetTypes;
     using RTTI::Write;
 
-    // Merges one rtti into another; skips type duplicates using fully qualified names
+    // Merges one rtti into another; skips type duplicates using fully qualified names.
+    // Writes location and type local-to-global maps, which may be used by the
+    // external user to match local script's type with a global one.
     void Join(const RTTI &rtti,
+        std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
 private:

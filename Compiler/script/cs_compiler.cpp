@@ -45,29 +45,32 @@ void ccSetSoftwareVersion(const char *versionNumber) {
 static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
 {
     RTTIBuilder rtb;
-    std::string buf; // for constructing full qualified names
+    std::string buf; // for constructing names
+
+    // Add sections as locations
+    // CHECKME: do we have to add all?
+    for (size_t l = 0; l < sym.sections.size(); ++l)
+    {
+        rtb.AddLocation(sym.sections[l], l);
+    }
 
     // Add "no type" with id 0
-    rtb.AddType("", 0u, 0u, 0u, 0u);
+    rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
     // Scan through all the symbols and save type infos,
     // and gather preliminary data on type fields and strings
-    for (size_t t = 0; t < sym.entries.size(); t++)
+    for (size_t t = 0; t < sym.entries.size(); ++t)
     {
         const SymbolTableEntry &ste = sym.entries[t];
 
         if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
             ((ste.flags & SFLG_MANAGED) != 0))
         {
-            if (ste.section >= 0)
-                buf.assign(sym.sections[ste.section]).append("::").append(ste.sname);
-            else
-                buf = ste.sname;
             uint32_t flags = 0u; // TODO
             if ((ste.flags & SFLG_STRUCTTYPE))
                 flags = RTTI::kType_Struct;
             if ((ste.flags & SFLG_MANAGED))
                 flags = RTTI::kType_Managed;
-            rtb.AddType(buf, t, ste.extends, flags, ste.ssize);
+            rtb.AddType(ste.sname, t, ste.section, ste.extends, flags, ste.ssize);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
             ((ste.flags & SFLG_PROPERTY) == 0))

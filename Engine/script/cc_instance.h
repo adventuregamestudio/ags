@@ -226,6 +226,8 @@ private:
     static std::unique_ptr<JointRTTI> _rtti;
     // Full name to global id (global id is an actual index in the joint rtti table)
     static std::unordered_map<Common::String, uint32_t> _rttiLookup;
+    // Map local script's location id to global (program-wide)
+    std::unordered_map<uint32_t, uint32_t> _locidLocal2Global;
     // Map local script's type id to global (program-wide)
     std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
 

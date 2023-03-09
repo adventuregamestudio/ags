@@ -247,7 +247,7 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
     {
         if (!ccInstance::_rtti)
             ccInstance::_rtti.reset(new JointRTTI());
-        ccInstance::_rtti->Join(*scri->rtti, cinst->_typeidLocal2Global);
+        ccInstance::_rtti->Join(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
     }
     return cinst;
 }

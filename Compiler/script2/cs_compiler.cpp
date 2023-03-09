@@ -27,8 +27,11 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
     RTTIBuilder rtb;
     std::string buf; // for constructing full qualified names
 
+    // Add "dummy" location for safety
+    rtb.AddLocation("", 0u);
+
     // Add "no type" with id 0
-    rtb.AddType("", 0u, 0u, 0u, 0u);
+    rtb.AddType("", 0u, 0u, 0u, 0u, 0u);
     // Scan through all the symbols and save type infos,
     // and gather preliminary data on type fields and strings
     for (size_t t = 0; t < symt.entries.size(); t++)
@@ -47,7 +50,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt)
                 flags |= RTTI::kType_Managed;
             if (ste.VartypeD->Flags[VTF::kStruct])
                 flags |= RTTI::kType_Struct;
-            rtb.AddType(buf, t, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
+            rtb.AddType(buf, t, 0u, ste.VartypeD->Parent, flags, ste.VartypeD->Size);
         }
         // Detect a struct's mem field (not function or attribute, etc)
         else if (ste.ComponentD && ste.VariableD)

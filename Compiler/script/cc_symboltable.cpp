@@ -57,6 +57,7 @@ void symbolTable::reset() {
 	nameGenCache.clear();
 
 	entries.clear();
+    sections.clear();
 
     stringStructSym = 0;
     symbolTree.clear();

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "script/cc_reflect.h"
+#include <algorithm>
 #include <string> // std::string
 #include <string.h> // memcpy etc
 #include "util/stream.h"
@@ -57,6 +58,9 @@ static uint32_t StrTableCopy(std::vector<char> &new_table,
 //  uint32 | format                 | for expanding the rtti format
 //  uint32 | header size            | size in bytes (counting from "format")
 //  uint32 | full rtti data size    | size in bytes (counting from "format")
+//  uint32 | loc entry size         | fixed size of a location info in bytes
+//  uint32 | locs table offset      | a relative pos of a locations table
+//  uint32 | num locations          | number of locations in table
 //  uint32 | type entry size        | fixed size of a type info in bytes
 //  uint32 | types table offset     | a relative pos of a types table
 //  uint32 | num types              | number of types in table
@@ -66,10 +70,16 @@ static uint32_t StrTableCopy(std::vector<char> &new_table,
 //  uint32 | string table offset    | a relative pos of a strings table
 //  uint32 | string table size      | size of a string table, in bytes
 //
+// Location Info:
+// ----------------
+//  uint32 | local id               | local location ID (sic)
+//  uint32 | name                   | an offset in a string table
+//
 // Type Info:
 // ----------------
-//  uint32 | fully qualified name   | an offset in a string table
 //  uint32 | local id               | local type ID
+//  uint32 | name                   | an offset in a string table
+//  uint32 | location id            | local location's ID
 //  uint32 | parent type (local id) | local type ID; 0? if no parent
 //  uint32 | type flags             |
 //  uint32 | type size              | in bytes
@@ -93,6 +103,9 @@ void RTTI::Read(Stream *in)
     const uint32_t format = in->ReadInt32();
     const size_t head_sz = (uint32_t)in->ReadInt32();
     const size_t full_sz = (uint32_t)in->ReadInt32();
+    const size_t loc_sz = (uint32_t)in->ReadInt32();
+    const size_t loc_table_off = (uint32_t)in->ReadInt32();
+    const size_t loc_table_len = (uint32_t)in->ReadInt32();
     const size_t typei_sz = (uint32_t)in->ReadInt32();
     const uint32_t typei_table_off = (uint32_t)in->ReadInt32();
     const uint32_t typei_table_len = (uint32_t)in->ReadInt32();
@@ -102,18 +115,30 @@ void RTTI::Read(Stream *in)
     const uint32_t str_table_off = (uint32_t)in->ReadInt32();
     const size_t str_table_sz = (uint32_t)in->ReadInt32();
 
+    const soff_t loc_soff = rtti_soff + loc_table_off;
     const soff_t typei_soff = rtti_soff + typei_table_off;
     const soff_t fieldi_soff = rtti_soff + fieldi_table_off;
     const soff_t str_soff = rtti_soff + str_table_off;
     const soff_t end_soff = rtti_soff + full_sz;
+
+    // Location Infos
+    in->Seek(loc_soff, kSeekBegin);
+    for (size_t i = 0; i < loc_table_len; ++i)
+    {
+        RTTI::Location l;
+        l.id = (uint32_t)in->ReadInt32();
+        l.name_stri = (uint32_t)in->ReadInt32();
+        _locs.push_back(l);
+    }
 
     // Type Infos
     in->Seek(typei_soff, kSeekBegin);
     for (size_t i = 0; i < typei_table_len; ++i)
     {
         RTTI::Type t;
-        t.fullname_stri = (uint32_t)in->ReadInt32();
         t.this_id = (uint32_t)in->ReadInt32();
+        t.name_stri = (uint32_t)in->ReadInt32();
+        t.loc_id = (uint32_t)in->ReadInt32();
         t.parent_id = (uint32_t)in->ReadInt32();
         t.flags = (uint32_t)in->ReadInt32();
         t.size = (uint32_t)in->ReadInt32();
@@ -153,14 +178,23 @@ void RTTI::Write(Stream *out) const
 {
     // RTTI Header placeholder
     const soff_t rtti_soff = out->GetPosition();
-    out->WriteByteCount(0, 11 * sizeof(uint32_t));
+    out->WriteByteCount(0, 14 * sizeof(uint32_t));
+
+    // Location Infos
+    const soff_t loc_soff = out->GetPosition();
+    for (const auto &l : _locs)
+    {
+        out->WriteInt32(l.id);
+        out->WriteInt32(l.name_stri);
+    }
 
     // Type Infos
     const soff_t typei_soff = out->GetPosition();
     for (const auto &t : _types)
     {
-        out->WriteInt32(t.fullname_stri);
         out->WriteInt32(t.this_id);
+        out->WriteInt32(t.name_stri);
+        out->WriteInt32(t.loc_id);
         out->WriteInt32(t.parent_id);
         out->WriteInt32(t.flags);
         out->WriteInt32(t.size);
@@ -192,7 +226,10 @@ void RTTI::Write(Stream *out) const
     out->WriteInt32(0); // format
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // header size
     out->WriteInt32((uint32_t)(end_soff - rtti_soff)); // full size
-    out->WriteInt32(7 * sizeof(uint32_t)); // type info size
+    out->WriteInt32(2 * sizeof(uint32_t)); // location info size
+    out->WriteInt32((uint32_t)(loc_soff - rtti_soff)); // locations table offset
+    out->WriteInt32(_locs.size()); // number of locations
+    out->WriteInt32(8 * sizeof(uint32_t)); // type info size
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // types table offset
     out->WriteInt32(_types.size()); // number of types
     out->WriteInt32(5 * sizeof(uint32_t)); // field info size
@@ -213,9 +250,15 @@ void RTTI::CreateQuickRefs()
         typeid_to_type[_types[i].this_id] = i;
     }
 
+    for (auto &loc : _locs)
+    {
+        loc.name = &_strings[loc.name_stri];
+    }
+
     for (auto &ti : _types)
     {
-        ti.fullname = &_strings[ti.fullname_stri];
+        ti.name = &_strings[ti.name_stri];
+        ti.location = &_locs[ti.loc_id];
         if (ti.parent_id > 0u)
             ti.parent = &_types[typeid_to_type[ti.parent_id]];
         if (ti.field_num > 0u)
@@ -234,12 +277,21 @@ void RTTI::CreateQuickRefs()
     }
 }
 
+void RTTIBuilder::AddLocation(const std::string &name, uint32_t loc_id)
+{
+    RTTI::Location loc;
+    loc.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    loc.id = loc_id;
+    _rtti._locs.push_back(loc);
+}
+
 void RTTIBuilder::AddType(const std::string &name, uint32_t type_id,
-    uint32_t parent_id, uint32_t flags, uint32_t size)
+    uint32_t loc_id, uint32_t parent_id, uint32_t flags, uint32_t size)
 {
     RTTI::Type ti;
-    ti.fullname_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    ti.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
     ti.this_id = type_id;
+    ti.loc_id = loc_id;
     ti.parent_id = parent_id;
     ti.flags = flags;
     ti.size = size;
@@ -287,15 +339,44 @@ RTTI &&RTTIBuilder::Finalize()
 }
 
 void JointRTTI::Join(const RTTI &rtti,
+    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
     std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
+    struct CompareLocs : public std::unary_function<const Location&, bool>
+    {
+      explicit CompareLocs(const Location &loc) : _loc(loc) {}
+      bool operator() (const Location &arg) const { return strcmp(arg.name, _loc.name) == 0; }
+      const Location &_loc;
+    };
+
+    // Merge in new locations
+    const size_t new_loc_begin = _locs.size();
+    for (const auto &local_loc : rtti._locs)
+    {
+        auto global_it = std::find_if(_locs.begin(), _locs.end(), CompareLocs(local_loc));
+        if (global_it != _locs.end())
+        { // add a local2global match for existing loc, and skip the rest
+            loc_l2g.insert(std::make_pair(local_loc.id, global_it->id));
+        }
+        else
+        {
+            const uint32_t global_id = _locs.size();
+            Location loc = local_loc;
+            loc.id = global_id;
+            loc_l2g.insert(std::make_pair(local_loc.id, global_id));
+            _locs.push_back(loc);
+        }
+    }
+    const size_t new_loc_end = _locs.size();
+
     // Merge in new types (no overrides!) and assign new global type IDs
     const size_t new_type_begin = _types.size();
     for (const auto &local_type : rtti._types)
     {
         // For the type lookups, construct the "fully qualified name"
         // by combining the location's name, and the type's own name.
-        const String fullname = local_type.fullname;
+        const String fullname = String::FromFormat("%s::%s",
+            rtti._locs[local_type.loc_id].name, local_type.name);
         auto global_it = _rttiLookup.find(fullname);
         if (global_it != _rttiLookup.end())
         { // add a local2global match for existing type, and skip the rest
@@ -323,13 +404,20 @@ void JointRTTI::Join(const RTTI &rtti,
     }
     const size_t new_type_end = _types.size();
 
+    // Resolve strings in the joint locations
+    for (size_t index = new_loc_begin; index < new_loc_end; ++index)
+    {
+        RTTI::Location &loc = _locs[index];
+        loc.name_stri = StrTableCopy(_strings, rtti._strings, loc.name_stri);
+    }
     // Resolve ID refs and string offsets in the newly merged types
     for (size_t index = new_type_begin; index < new_type_end; ++index)
     {
         RTTI::Type &type = _types[index];
+        type.loc_id = loc_l2g[type.loc_id];
         if (type.parent_id > 0)
             type.parent_id = type_l2g[type.parent_id];
-        type.fullname_stri = StrTableCopy(_strings, rtti._strings, type.fullname_stri);
+        type.name_stri = StrTableCopy(_strings, rtti._strings, type.name_stri);
         // Resolve fields too
         for (uint32_t findex = 0; findex < type.field_num; ++findex)
         {
@@ -345,6 +433,7 @@ void JointRTTI::Join(const RTTI &rtti,
 
 String PrintRTTI(const RTTI &rtti)
 {
+    const auto &locs = rtti.GetLocations();
     const auto &types = rtti.GetTypes();
 
     const char *hr =   "-------------------------------------------------------------------------------";
@@ -354,10 +443,11 @@ String PrintRTTI(const RTTI &rtti)
 
     for (const auto &ti : types)
     {
-        fullstr.AppendFmt("%-12s(%-3u) %s\n", "Type:", ti.this_id, ti.fullname);
+        fullstr.AppendFmt("%-12s(%-3u) %s\n", "Type:", ti.this_id, ti.name);
+        fullstr.AppendFmt("%-12s(%-3u) %s\n", "Location:", ti.location->id, ti.location->name);
         if (ti.parent_id > 0u)
         {
-            fullstr.AppendFmt("%-12s(%-3u) %s\n", "Parent:", ti.parent->this_id, ti.parent->fullname);
+            fullstr.AppendFmt("%-12s(%-3u) %s\n", "Parent:", ti.parent->this_id, ti.parent->name);
         }
         else
         {
@@ -371,7 +461,7 @@ String PrintRTTI(const RTTI &rtti)
             for (const auto *fi = ti.first_field; fi; fi = fi->next_field, ++index)
             {
                 fullstr.AppendFmt("%+4u |%+4u: %-24s: (%-3u) %s\n", index, fi->offset,
-                    fi->name, fi->type->this_id, fi->type->fullname);
+                    fi->name, fi->type->this_id, fi->type->name);
             }
         }
         else

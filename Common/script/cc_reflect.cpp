@@ -37,6 +37,18 @@ static uint32_t StrTableAdd(std::map<std::string, uint32_t> &table,
     return last_len;
 }
 
+// Copies a string from one string table to another at a new location.
+// Returns the string's offset in the new_table.
+static uint32_t StrTableCopy(std::vector<char> &new_table,
+    const std::vector<char> &old_table, uint32_t old_pos)
+{
+    const size_t old_packsz = new_table.size();
+    const size_t new_strsz = strlen(&old_table[old_pos]) + 1; // count null-terminator
+    new_table.resize(new_table.size() + new_strsz);
+    memcpy(&new_table.front() + old_packsz, &old_table[old_pos], new_strsz);
+    return static_cast<uint32_t>(old_packsz);
+}
+
 //*****************************************************************************
 // RTTI serialization
 //
@@ -272,6 +284,62 @@ RTTI &&RTTIBuilder::Finalize()
     _rtti.CreateQuickRefs();
 
     return std::move(_rtti);
+}
+
+void JointRTTI::Join(const RTTI &rtti,
+    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+{
+    // Merge in new types (no overrides!) and assign new global type IDs
+    const size_t new_type_begin = _types.size();
+    for (const auto &local_type : rtti._types)
+    {
+        // For the type lookups, construct the "fully qualified name"
+        // by combining the location's name, and the type's own name.
+        const String fullname = local_type.fullname;
+        auto global_it = _rttiLookup.find(fullname);
+        if (global_it != _rttiLookup.end())
+        { // add a local2global match for existing type, and skip the rest
+            type_l2g.insert(std::make_pair(local_type.this_id, global_it->second));
+            continue;
+        }
+
+        const uint32_t global_id = _types.size();
+        _rttiLookup.insert(std::make_pair(fullname, global_id));
+        RTTI::Type type = local_type;
+        type.this_id = global_id;
+        type_l2g.insert(std::make_pair(local_type.this_id, global_id));
+        if (type.field_num > 0)
+        {
+            uint32_t joint_fields_idx = _fields.size();
+            // Add new fields here, since we know which type to skip or not
+            for (uint32_t findex = 0; findex < type.field_num; ++findex)
+            {
+                RTTI::Field field = rtti._fields[type.field_index + findex];
+                _fields.push_back(field);
+            }
+            type.field_index = joint_fields_idx;
+        }
+        _types.push_back(type);
+    }
+    const size_t new_type_end = _types.size();
+
+    // Resolve ID refs and string offsets in the newly merged types
+    for (size_t index = new_type_begin; index < new_type_end; ++index)
+    {
+        RTTI::Type &type = _types[index];
+        if (type.parent_id > 0)
+            type.parent_id = type_l2g[type.parent_id];
+        type.fullname_stri = StrTableCopy(_strings, rtti._strings, type.fullname_stri);
+        // Resolve fields too
+        for (uint32_t findex = 0; findex < type.field_num; ++findex)
+        {
+            RTTI::Field &field = _fields[type.field_index + findex];
+            field.f_typeid = type_l2g[field.f_typeid];
+            field.name_stri = StrTableCopy(_strings, rtti._strings, field.name_stri);
+        }
+    }
+
+    CreateQuickRefs();
 }
 
 } // namespace AGS

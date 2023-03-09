@@ -31,11 +31,18 @@ namespace AGS
 namespace Common { class Stream; }
 
 class RTTIBuilder;
+class JointRTTI;
 
 // Runtime type information for the AGS script:
 // contains tables of types and their inner fields.
+// Type ids are arbitrary numbers that strictly correspond to the particular
+// context (such as individual script, for instance), and not necessarily
+// sequential (may have gaps). For a globally unique identifier -
+// use a "fully qualified name" instead: in a format of "locname::typename",
+// where "locname" is a name of location and "typename" is a name of type.
 class RTTI
 {
+    friend JointRTTI;
     friend RTTIBuilder;
 public:
     enum TypeFlags
@@ -55,7 +62,7 @@ public:
     // Type's info
     struct Type
     {
-        friend RTTI; friend RTTIBuilder;
+        friend RTTI; friend RTTIBuilder; friend JointRTTI;
     public:
         uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
         uint32_t parent_id = 0u; // parent type's id
@@ -79,7 +86,7 @@ public:
     // Type's field info
     struct Field
     {
-        friend RTTI; friend RTTIBuilder;
+        friend RTTI; friend RTTIBuilder; friend JointRTTI;
     public:
         uint32_t offset = 0u; // relative offset of this field, in bytes
         uint32_t f_typeid = 0u; // field's type id
@@ -99,6 +106,9 @@ public:
     RTTI() = default;
 
     bool IsEmpty() const { return _types.empty(); }
+    // Returns list of types. Please be aware that the order of them
+    // in collection is not defined, and an index in the list is not
+    // guaranteed to match typeid at all.
     const std::vector<Type> &GetTypes() const { return _types; }
 
     void Read(AGS::Common::Stream *in);
@@ -138,6 +148,29 @@ private:
     std::multimap<uint32_t, RTTI::Field> _fieldIdx; // type id to fields list
     std::map<std::string, uint32_t> _strtable; // string to offset
     uint32_t _strpackedLen = 0u; // packed string table size
+};
+
+// A class which supports merging RTTI collections together.
+// Internally remaps typeids from individual (aka local) rtti collection to
+// a joint (aka global) one.
+// Guarantees that the types' indexes in collection are matching their typeid
+// (unlike common RTTI).
+class JointRTTI : private RTTI
+{
+public:
+    const RTTI &AsConstRTTI() const { return *this; }
+
+    using RTTI::IsEmpty;
+    using RTTI::GetTypes;
+    using RTTI::Write;
+
+    // Merges one rtti into another; skips type duplicates using fully qualified names
+    void Join(const RTTI &rtti,
+        std::unordered_map<uint32_t, uint32_t> &type_l2g);
+
+private:
+    // Map fully-qualified type name to a joint (global) typeid
+    std::unordered_map<AGS::Common::String, uint32_t> _rttiLookup;
 };
 
 } // namespace AGS

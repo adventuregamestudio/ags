@@ -13,7 +13,9 @@
 //=============================================================================
 #include <memory.h>
 #include "scriptuserobject.h"
+#include "ac/dynobj/managedobjectpool.h"
 #include "script/cc_script.h"
+#include "script/cc_instance.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -58,6 +60,15 @@ void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, si
 
 int ScriptUserObject::Dispose(const char* /*address*/, bool /*force*/)
 {
+    // Unref all managed pointers within the struct
+    const auto *helper = ccInstance::GetRTTIHelper();
+    const auto fref = helper->GetManagedOffsetsForType(_typeid);
+    for (auto it = fref.first; it < fref.second; ++it)
+    {
+        int32_t handle = *(int32_t*)(_data + *it);
+        pool.SubRef(handle);
+    }
+
     delete this;
     return 1;
 }

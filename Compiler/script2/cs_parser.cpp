@@ -1964,8 +1964,9 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     else
         WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
     */
+    element_vartype = _sym.GetFirstBaseVartype(element_vartype);
     if (with_bracket_expr)
-        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed); // TODO: array2 cmd
+        WriteCmd(SCMD_NEWARRAY2, SREG_AX, element_vartype, element_size);
     else
         WriteCmd(SCMD_NEWUSEROBJECT2, SREG_AX, element_vartype, element_size);
     _reg_track.SetRegister(SREG_AX);

@@ -2447,7 +2447,9 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
             return -1;
           }
 
-          scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
+          // TODO: switch between old and new "new", depending on option in compiler
+          //scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
+          scrip->write_cmd3(SCMD_NEWARRAY2, SREG_AX, arrayType, size);
           scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
 
           if (isManagedType)

@@ -22,6 +22,9 @@ void ccGetExtensions(std::vector<std::string> &exts)
 {
     // TODO: we may consider creating a managed user object an extension, etc,
     // although it was introduced years ago when extensions were not declared.
+
+    // Managed ptr in managed structs
+    exts.push_back("NESTEDPOINTERS");
     return;
 }
 

@@ -1957,18 +1957,23 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         // The Engine really doesn't like that (division by zero error)
         InternalError("Trying to emit allocation of zero dynamic memory");
 
-    // TODO: switch between old and new "new", depending on option in compiler
-    /*
-    if (with_bracket_expr)
-        WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+    // Choose between "old" and new "new" opcode, depending on RTTI presence
+    if (FlagIsSet(_options, SCOPT_RTTIOPS))
+    {
+        element_vartype = _sym.GetFirstBaseVartype(element_vartype);
+        if (with_bracket_expr)
+            WriteCmd(SCMD_NEWARRAY2, SREG_AX, element_vartype, element_size);
+        else
+            WriteCmd(SCMD_NEWUSEROBJECT2, SREG_AX, element_vartype, element_size);
+    }
     else
-        WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
-    */
-    element_vartype = _sym.GetFirstBaseVartype(element_vartype);
-    if (with_bracket_expr)
-        WriteCmd(SCMD_NEWARRAY2, SREG_AX, element_vartype, element_size);
-    else
-        WriteCmd(SCMD_NEWUSEROBJECT2, SREG_AX, element_vartype, element_size);
+    {
+        if (with_bracket_expr)
+            WriteCmd(SCMD_NEWARRAY, SREG_AX, element_size, is_managed);
+        else
+            WriteCmd(SCMD_NEWUSEROBJECT, SREG_AX, element_size);
+    }
+
     _reg_track.SetRegister(SREG_AX);
 
     eres.Type = eres.kTY_RunTimeValue;
@@ -4937,9 +4942,10 @@ void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype
     if (tqs[TQ::kImport])
         UserError("Cannot import struct component variables; import the whole struct instead");
     
-    if (_sym.IsManagedVartype(vartype) && _sym.IsManagedVartype(name_of_struct))
-        // This is an Engine restriction
-        UserError("Cannot currently have managed variable components in managed struct");
+    if (!FlagIsSet(_options, SCOPT_RTTIOPS) &&
+            (_sym.IsManagedVartype(vartype) && _sym.IsManagedVartype(name_of_struct)))
+        // Cannot allow nested managed pointers without RTTI support (will cause memory leaks at runtime)
+        UserError("Cannot have managed variable components in managed struct (RTTI is not enabled)");
 
     if (_sym.IsBuiltinVartype(vartype) && !_sym.IsManagedVartype(vartype))
         // Non-managed built-in vartypes do exist

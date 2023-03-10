@@ -588,6 +588,17 @@ void draw_gui_sprite(Common::Bitmap *g, bool use_alpha, int atxp, int atyp,
     draw_gui_sprite_impl(g, -1, blptr, atxp, atyp);
 }
 
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode, bool is_flipped) 
+{
+    draw_gui_sprite_impl(ds, pic, get_sprite(pic), x, y);
+}
+void draw_gui_sprite_flipped(Common::Bitmap *ds, bool use_alpha, int x, int y,
+    Common::Bitmap *image, bool src_has_alpha,
+    Common::BlendMode blend_mode, int alpha, bool is_flipped)
+{
+    draw_gui_sprite_impl(ds, -1, image, x, y);
+}
+
 void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
   // FIXME later
@@ -2133,7 +2144,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.TextColor = button->TextColor;
           nbut.Font = button->Font;
           nbut.Image = button->Image;
-          nbut.CurrentImage = nbut.Image;
+          nbut.SetCurrentImage(nbut.Image);
           nbut.MouseOverImage = button->MouseoverImage;
           nbut.PushedImage = button->PushedImage;
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
@@ -2213,7 +2224,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  {
           Common::GUIButton nbut;
           nbut.Image = textwindowedge->Image;
-          nbut.CurrentImage = nbut.Image;
+          nbut.SetCurrentImage(nbut.Image);
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());

@@ -59,9 +59,9 @@ int GetButtonPic(int guin, int objn, int ptype) {
 
     if (ptype == 0) {
         // currently displayed pic
-        if (guil->CurrentImage < 0)
+        if (guil->CurrentImage() < 0)
             return guil->Image;
-        return guil->CurrentImage;
+        return guil->CurrentImage();
     }
     else if (ptype==1) {
         // nomal pic

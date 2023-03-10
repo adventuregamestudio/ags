@@ -14,6 +14,7 @@
 #include "gui/guibutton.h"
 #include "ac/gamestructdefines.h"
 #include "ac/spritecache.h"
+#include "ac/view.h"
 #include "font/fonts.h"
 #include "gui/guimain.h" // TODO: extract helper functions
 #include "util/stream.h"
@@ -58,7 +59,8 @@ GUIButton::GUIButton()
     Image = -1;
     MouseOverImage = -1;
     PushedImage = -1;
-    CurrentImage = -1;
+    _currentImage = -1;
+    _imageFlags = 0;
     Font = 0;
     TextColor = 0;
     TextAlignment = kAlignTopCenter;
@@ -79,7 +81,7 @@ GUIButton::GUIButton()
 
 bool GUIButton::HasAlphaChannel() const
 {
-    return ((CurrentImage > 0) && is_sprite_alpha(CurrentImage)) ||
+    return ((_currentImage > 0) && is_sprite_alpha(_currentImage)) ||
         (!_unnamed && is_font_antialiased(Font));
 }
 
@@ -109,8 +111,8 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
         if (IsClippingImage())
             return rc;
         // Main button graphic
-        if (CurrentImage >= 0 && spriteset[CurrentImage] != nullptr)
-            rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(CurrentImage), get_adjusted_spriteheight(CurrentImage)));
+        if (_currentImage >= 0 && spriteset[_currentImage] != nullptr)
+            rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(_currentImage), get_adjusted_spriteheight(_currentImage)));
         // Optionally merge with the inventory pic
         if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
         {
@@ -162,11 +164,11 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
 
 
     // TODO: should only change properties in reaction to particular events
-    if (CurrentImage <= 0 || draw_disabled)
-        CurrentImage = Image;
+    if (_currentImage <= 0 || draw_disabled)
+        _currentImage = Image;
 
     // No need to check Image after the assignment directly above
-    if (CurrentImage > 0)
+    if (_currentImage > 0)
         DrawImageButton(ds, x, y, draw_disabled);
 
     // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
@@ -207,12 +209,27 @@ void GUIButton::SetText(const String &text)
     MarkChanged();
 }
 
+int32_t GUIButton::CurrentImage() const
+{
+    return _currentImage;
+}
+
+void GUIButton::SetCurrentImage(int32_t new_image, uint32_t flags)
+{
+    if (_currentImage == new_image && _imageFlags == flags)
+        return;
+    
+    _currentImage = new_image;
+    _imageFlags = flags;
+    MarkChanged();
+}
+
 bool GUIButton::OnMouseDown()
 {
-    int new_image = (PushedImage > 0) ? PushedImage : CurrentImage;
-    if (CurrentImage != new_image || !IsImageButton())
+    int new_image = (PushedImage > 0) ? PushedImage : _currentImage;
+    if (!IsImageButton())
         MarkChanged();
-    CurrentImage = new_image;
+    SetCurrentImage(new_image);
     IsPushed = true;
     return false;
 }
@@ -221,21 +238,21 @@ void GUIButton::OnMouseEnter()
 {
     int new_image = (IsPushed && PushedImage > 0) ? PushedImage :
         (MouseOverImage > 0) ? MouseOverImage : Image;
-    if ((CurrentImage != new_image) || (IsPushed && !IsImageButton()))
+    if (IsPushed && !IsImageButton())
     {
-        CurrentImage = new_image;
         MarkChanged();
     }
+    SetCurrentImage(new_image);
     IsMouseOver = true;
 }
 
 void GUIButton::OnMouseLeave()
 {
-    if ((CurrentImage != Image) || (IsPushed && !IsImageButton()))
+    if (IsPushed && !IsImageButton())
     {
-        CurrentImage = Image;
         MarkChanged();
     }
+    SetCurrentImage(Image);
     IsMouseOver = false;
 }
 
@@ -250,11 +267,11 @@ void GUIButton::OnMouseUp()
             IsActivated = true;
     }
 
-    if ((CurrentImage != new_image) || (IsPushed && !IsImageButton()))
+    if (IsPushed && !IsImageButton())
     {
-        CurrentImage = new_image;
         MarkChanged();
     }
+    SetCurrentImage(new_image);
     IsPushed = false;
 }
 
@@ -285,7 +302,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     PushedImage = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
     { // NOTE: reading into actual variables only for old savegame support
-        CurrentImage = in->ReadInt32();
+        _currentImage = in->ReadInt32();
         IsPushed = in->ReadInt32() != 0;
         IsMouseOver = in->ReadInt32() != 0;
     }
@@ -319,7 +336,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (TextColor == 0)
         TextColor = 16;
-    CurrentImage = Image;
+    _currentImage = Image;
     // All buttons are translated at the moment
     Flags |= kGUICtrl_Translated;
 }
@@ -337,7 +354,8 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         TextAlignment = (FrameAlignment)in->ReadInt32();
     // Dynamic state
-    CurrentImage = in->ReadInt32();
+    _currentImage = in->ReadInt32();
+    _imageFlags = (svg_ver >= kGuiSvgVersion_3991 ? in->ReadInt32() : false);
 
     // Update current state after reading
     IsPushed = false;
@@ -356,7 +374,9 @@ void GUIButton::WriteToSavegame(Stream *out) const
     StrUtil::WriteString(GetText(), out);
     out->WriteInt32(TextAlignment);
     // Dynamic state
-    out->WriteInt32(CurrentImage);
+    out->WriteInt32(_currentImage);
+    //since kGuiSvgVersion_3991
+    out->WriteInt32(_imageFlags);
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
@@ -367,8 +387,9 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // NOTE: the CLIP flag only clips the image, not the text
     if (IsClippingImage() && !GUI::Options.ClipControls)
         ds->SetClip(RectWH(x, y, Width, Height));
-    if (spriteset[CurrentImage] != nullptr)
-        draw_gui_sprite(ds, CurrentImage, x, y, true);
+
+    if (spriteset[_currentImage] != nullptr)
+        draw_gui_sprite_flipped(ds, _currentImage, x, y, true, kBlend_Normal, _imageFlags & VFLG_FLIPSPRITE);
 
     // Draw active inventory item
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
@@ -398,8 +419,8 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
     if ((draw_disabled) && (GUI::Options.DisabledStyle == kGuiDis_Greyout))
     {
         GUI::DrawDisabledEffect(ds, RectWH(x, y,
-            spriteset[CurrentImage]->GetWidth(),
-            spriteset[CurrentImage]->GetHeight()));
+            spriteset[_currentImage]->GetWidth(),
+            spriteset[_currentImage]->GetHeight()));
     }
 
     // Don't print Text of (INV) (INVSHR) (INVNS)

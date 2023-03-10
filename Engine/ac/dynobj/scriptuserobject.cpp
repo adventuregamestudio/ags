@@ -13,6 +13,7 @@
 //=============================================================================
 #include <memory.h>
 #include "scriptuserobject.h"
+#include "script/cc_script.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -23,30 +24,25 @@ const char *ScriptUserObject::GetType()
     return "UserObject";
 }
 
-ScriptUserObject::ScriptUserObject()
-    : _size(0)
-    , _data(nullptr)
-{
-}
-
 ScriptUserObject::~ScriptUserObject()
 {
     delete [] _data;
 }
 
-/* static */ ScriptUserObject *ScriptUserObject::CreateManaged(size_t size)
+/* static */ ScriptUserObject *ScriptUserObject::CreateManaged(uint32_t type_id, size_t size)
 {
     ScriptUserObject *suo = new ScriptUserObject();
-    suo->Create(nullptr, nullptr, size);
+    suo->Create(nullptr, nullptr, type_id, size);
     ccRegisterManagedObject(suo, suo);
     return suo;
 }
 
-void ScriptUserObject::Create(const char *data, Stream *in, size_t size)
+void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, size_t size)
 {
     delete [] _data;
     _data = nullptr;
 
+    _typeid = type_id;
     _size = size;
     if (_size > 0)
     {
@@ -68,9 +64,15 @@ int ScriptUserObject::Dispose(const char* /*address*/, bool /*force*/)
 
 int ScriptUserObject::Serialize(const char* /*address*/, char *buffer, int bufsize)
 {
-    if (_size > bufsize)
-        // buffer not big enough, ask for a bigger one
-        return -_size;
+    // If buffer not big enough, ask for a bigger one
+    // NOTE: the managed object interface's Serialize() function requires
+    // the object to return negative value of size in case the provided
+    // buffer was not large enough. Since this interface is also a part of
+    // Plugin API, we cannot modify that without more significant changes.
+    // This means that if the size is larger than INT32_MAX, Serialize()
+    // will work unreliably.
+    if ((bufsize <= 0) || (_size > static_cast<size_t>(bufsize)))
+        return -static_cast<int32_t>(_size);
 
     memcpy(buffer, _data, _size);
     return _size;
@@ -78,7 +80,7 @@ int ScriptUserObject::Serialize(const char* /*address*/, char *buffer, int bufsi
 
 void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    Create(nullptr, in, data_sz);
+    Create(nullptr, in, RTTI::NoType, data_sz); // FIXME: need a format change
     ccRegisterUnserializedObject(index, this, this);
 }
 
@@ -141,7 +143,8 @@ void ScriptUserObject::WriteFloat(const char* /*address*/, intptr_t offset, floa
 // Allocates managed struct containing two ints: X and Y
 ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
 {
-    ScriptUserObject *suo = ScriptUserObject::CreateManaged(sizeof(int32_t) * 2);
+    // FIXME: type id! (is it possible to RTTI?)
+    ScriptUserObject *suo = ScriptUserObject::CreateManaged(RTTI::NoType, sizeof(int32_t) * 2);
     suo->WriteInt32((const char*)suo, 0, x);
     suo->WriteInt32((const char*)suo, sizeof(int32_t), y);
     return suo;

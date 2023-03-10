@@ -59,6 +59,8 @@ public:
         kField_Array      = 0x0002
     };
 
+    // An "undefined type" id value
+    const static uint32_t NoType = 0u;
     // Size of a "pointer" in the script memory
     const static size_t PointerSize = sizeof(uint32_t);
 

@@ -153,6 +153,7 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg )
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -1490,13 +1491,29 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_NEWUSEROBJECT:
           {
               auto &reg1 = registers[codeOp.Arg1i()];
-              const auto arg_size = codeOp.Arg2i();
-              if (arg_size < 0)
+              const uint32_t arg_size = static_cast<uint32_t>(codeOp.Arg2i());
+              if (arg_size > INT32_MAX)
               {
-                  cc_error("Invalid size for user object; requested: %d (or %d), range: 0..%d", arg_size, arg_size, INT_MAX);
+                  cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
                   return -1;
               }
-              ScriptUserObject *suo = ScriptUserObject::CreateManaged(arg_size);
+              ScriptUserObject *suo = ScriptUserObject::CreateManaged(RTTI::NoType, arg_size);
+              reg1.SetDynamicObject(suo, suo);
+              break;
+          }
+      case SCMD_NEWUSEROBJECT2:
+          {
+              auto &reg1 = registers[codeOp.Arg1i()];
+              const uint32_t arg_typeid = codeOp.Arg2i();
+              const uint32_t arg_size = codeOp.Arg3i();
+              if (arg_size > INT32_MAX)
+              {
+                  cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
+                  return -1;
+              }
+              assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
+              const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
+              ScriptUserObject *suo = ScriptUserObject::CreateManaged(global_tid, arg_size);
               reg1.SetDynamicObject(suo, suo);
               break;
           }

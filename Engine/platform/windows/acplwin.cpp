@@ -94,7 +94,7 @@ struct AGSWin32 : AGSPlatformDriver {
   void WriteStdErr(const char *fmt, ...) override;
   void PauseApplication() override;
   void ResumeApplication() override;
-  void ValidateWindowSize(int &x, int &y, bool borderless) const override;
+  Size ValidateWindowSize(const Size &sz, bool borderless) const override;
   SDL_Surface *CreateWindowIcon() override;
 
   // Returns command line argument in a UTF-8 format
@@ -434,23 +434,26 @@ void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
 }
 
-void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
+Size AGSWin32::ValidateWindowSize(const Size &sz, bool borderless) const
 {
+    // Limit the window's client size by the two metrics:
+    // * system's window size limit,
+    // * work space (visible area);
+    // if the window style includes a border, then subtract it from the limits
     RECT wa_rc, nc_rc;
     // This is the size of the available workspace on user's desktop
     SystemParametersInfo(SPI_GETWORKAREA, 0, &wa_rc, 0);
     // This is the maximal size that OS can reliably resize the window to (including any frame)
     const Size max_win(GetSystemMetrics(SM_CXMAXTRACK), GetSystemMetrics(SM_CYMAXTRACK));
     // This is the size of window's non-client area (frame, caption, etc)
-    LONG winstyle = borderless ? WS_POPUP : WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
+    LONG winstyle = borderless ? WS_POPUP : (WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX);
     SetRectEmpty(&nc_rc);
     AdjustWindowRect(&nc_rc, winstyle, FALSE);
-    // Limit the window's full size to the system's window size limit,
-    // and limit window's client size to the work space (visible area)
-    x = std::min(x, (int)(max_win.Width - (nc_rc.right - nc_rc.left)));
-    y = std::min(y, (int)(max_win.Height - (nc_rc.bottom - nc_rc.top)));
-    x = Math::Clamp(x, 1, (int)(wa_rc.right - wa_rc.left));
-    y = Math::Clamp(y, 1, (int)(wa_rc.bottom - wa_rc.top));
+    // Calculate the clamped size
+    Size win_ceil(std::min(static_cast<int>(wa_rc.right - wa_rc.left), (max_win.Width)),
+                  std::min(static_cast<int>(wa_rc.bottom - wa_rc.top), (max_win.Height)));
+    win_ceil = win_ceil - Size(nc_rc.right - nc_rc.left, nc_rc.bottom - nc_rc.top);
+    return Size::Clamp(sz, Size(1, 1), win_ceil);
 }
 
 SDL_Surface *AGSWin32::CreateWindowIcon()

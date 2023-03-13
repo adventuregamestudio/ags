@@ -47,7 +47,6 @@ Locations of two latter files differ between running platforms:
   * filter = \[string\] - id of the scaling filter to use. Supported filter names are:
     * none - run in native game size;
     * stdscale - nearest-neighbour scaling;
-    * hqx - high quality scaling filter; only usable in 32-bit games with software renderer;
     * linear - anti-aliased scaling; only usable with hardware-accelerated renderer.
   * refresh = \[integer\] - refresh rate for the display mode.
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;

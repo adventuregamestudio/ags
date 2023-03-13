@@ -631,8 +631,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hMouseSpeedText        = GetDlgItem(_hwnd, IDC_MOUSESPEED_TEXT);
 
     _desktopSize = get_desktop_size();
-    _maxWindowSize = _desktopSize;
-    AGSPlatformDriver::GetDriver()->ValidateWindowSize(_maxWindowSize.Width, _maxWindowSize.Height, false);
+    _maxWindowSize = AGSPlatformDriver::GetDriver()->ValidateWindowSize(_desktopSize, false);
 
     _winCfg.Load(_cfgIn);
 

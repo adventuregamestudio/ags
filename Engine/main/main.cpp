@@ -314,21 +314,25 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["graphics"]["driver"] = argv[++ee];
         else if ((ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
-            // NOTE: we make an assumption here that if user provides scaling factor,
-            // this factor means to be applied to windowed mode only.
             cfg["graphics"]["filter"] = argv[++ee];
-            String scale_style = "round";
-            String scale_value;
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
             {
-                scale_value = argv[++ee];
+                // NOTE: we make an assumption here that if user provides scaling
+                // multiplier, then it's meant to be applied to windowed mode only;
+                // Otherwise the scaling style is applied to both.
+                String scale_value = argv[++ee];
+                int scale_mul = StrUtil::StringToInt(scale_value);
+                if (scale_mul > 0)
+                {
+                    cfg["graphics"]["window"] = String::FromFormat("x%d", scale_mul);
+                    cfg["graphics"]["game_scale_win"] = "round";
+                }
+                else
+                {
+                    cfg["graphics"]["game_scale_fs"] = scale_value;
+                    cfg["graphics"]["game_scale_win"] = scale_value;
+                }
             }
-            int scale_mul = StrUtil::StringToInt(scale_value);
-            if (scale_mul > 0)
-                cfg["graphics"]["window"] = String::FromFormat("x%d", scale_mul);
-            else
-                scale_style = scale_value;
-            cfg["graphics"]["game_scale_win"] = scale_style;
         }
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
             cfg["language"]["translation"] = argv[++ee];

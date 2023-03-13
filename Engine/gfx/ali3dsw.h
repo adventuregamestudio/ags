@@ -190,7 +190,6 @@ public:
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }
     bool DoesSupportVsyncToggle() override { return SDL_VERSION_ATLEAST(2, 0, 18); }
-    bool SetVsync(bool enabled) override;
     void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }
@@ -208,6 +207,7 @@ public:
     void SetGraphicsFilter(PSDLRenderFilter filter);
 
 protected:
+    bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:

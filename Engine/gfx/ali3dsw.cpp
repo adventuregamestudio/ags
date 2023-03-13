@@ -954,23 +954,21 @@ static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, un
    return res | g;
 }
 
-bool SDLRendererGraphicsDriver::SetVsync(bool enabled)
+bool SDLRendererGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
-    // do nothing if already applied, necessary to prevent a reset loop when going fullscreen
-    if (_mode.Vsync == enabled)
-    {
-        return _mode.Vsync;
-    }
-
     #if SDL_VERSION_ATLEAST(2, 0, 18)
     if (!SDL_RenderSetVSync(_renderer, enabled)) // 0 on success
     {
-        _mode.Vsync = enabled;
-        SetGamma(_gamma); // gamma might be lost after changing vsync mode at fullscreen
+        // gamma might be lost after changing vsync mode at fullscreen
+        SetGamma(_gamma);
+        SDL_RendererInfo info;
+        SDL_GetRendererInfo(_renderer, &info);
+        vsync_res = (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0;
+        return true;
     }
+    Debug::Printf(kDbgMsg_Error, "SDLRenderer: SetVsync (%d) failed: %s", enabled, SDL_GetError());
     #endif
-
-    return _mode.Vsync;
+    return false;
 }
 
 SDLRendererGraphicsFactory *SDLRendererGraphicsFactory::_factory = nullptr;

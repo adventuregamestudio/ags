@@ -2047,14 +2047,15 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 }
 
 
-bool OGLGraphicsDriver::SetVsync(bool enabled)
+bool OGLGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
-    if (SDL_GL_SetSwapInterval(enabled) == 0)
+    if (SDL_GL_SetSwapInterval(enabled) != 0)
     {
-        _mode.Vsync = enabled;
+        Debug::Printf(kDbgMsg_Error, "OGL: SetVsync (%d) failed: %s", enabled, SDL_GetError());
+        return false;
     }
-
-    return _mode.Vsync;
+    vsync_res = SDL_GL_GetSwapInterval() != 0;
+    return true;
 }
 
 OGLGraphicsFactory *OGLGraphicsFactory::_factory = nullptr;

@@ -38,9 +38,8 @@ Locations of two latter files differ between running platforms:
     * desktop - will try to create largest possible resizing window, while keeping game scaling style (see `game_scale_win`);
     * default - use engine defaults, which is `desktop`.
   * windowed = \[0; 1\] - whether to start the game in windowed mode.
-  * game_scale_fs = \[string | integer\] - game scaling rule for fullscreen mode, and...
-  * game_scale_win = \[string | integer\] - game scaling rule for windowed mode, where
-    * any integer number - positive number means upscale multiplier, negative number means downscale divisor;
+  * game_scale_fs = \[string\] - game scaling rule for fullscreen mode, and...
+  * game_scale_win = \[string\] - game scaling rule for windowed mode, where
     * max_round - deduce maximal integer multiplier that fits in current desktop/device size;
     * stretch - stretch to current desktop/device size;
     * proportional - similar to stretch, but keep game's aspect ratio.

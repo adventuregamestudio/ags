@@ -452,6 +452,12 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
     sys_window_create("", mode.Width, mode.Height, mode.Mode);
   }
 
+  D3DCAPS9 caps;
+  direct3ddevice->GetDeviceCaps(&caps);
+  _capsVsync = (caps.PresentationIntervals & D3DPRESENT_INTERVAL_ONE) != 0;
+  if (mode.Vsync && !_capsVsync)
+    Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync is not supported. Setting will be kept at driver default.");
+
   HWND hwnd = (HWND)sys_win_get_window();
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
@@ -466,7 +472,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  if(mode.Vsync)
+  if (_capsVsync && mode.Vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;

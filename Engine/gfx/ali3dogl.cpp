@@ -269,9 +269,9 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  bool vsyncEnabled = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
-  if (mode.Vsync && !vsyncEnabled)
-    Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync could not be enabled. Setting will be kept at driver default.");
+  _capsVsync = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
+  if (mode.Vsync && !_capsVsync)
+    Debug::Printf(kDbgMsg_Warn, "OGL: SetVsync (%d) failed: %s", mode.Vsync, SDL_GetError());
 
 #if AGS_PLATFORM_OS_IOS
   // Setup library mouse to have 1:1 coordinate transformation.
@@ -2051,7 +2051,7 @@ bool OGLGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
     if (SDL_GL_SetSwapInterval(enabled) != 0)
     {
-        Debug::Printf(kDbgMsg_Error, "OGL: SetVsync (%d) failed: %s", enabled, SDL_GetError());
+        Debug::Printf(kDbgMsg_Warn, "OGL: SetVsync (%d) failed: %s", enabled, SDL_GetError());
         return false;
     }
     vsync_res = SDL_GL_GetSwapInterval() != 0;

@@ -163,7 +163,8 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode
     case kWnd_FullDesktop: flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; break;
     }
     flags |= ex_flags;
-#if(AGS_PLATFORM_MOBILE)
+#if (AGS_PLATFORM_MOBILE)
+    // Resizable flag is necessary for fullscreen app rotation
     flags |= SDL_WINDOW_RESIZABLE;
 #endif
     window = SDL_CreateWindow(
@@ -174,6 +175,15 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode
         h,
         flags
     );
+#if (AGS_PLATFORM_DESKTOP)
+    // CHECKME: this is done because SDL2 has some bug(s) during
+    // centering. See: https://github.com/libsdl-org/SDL/issues/6875
+    // TODO: SDL2 docs mentioned that on some systems the window border size
+    // may be known only after the window is displayed, which means that
+    // this may have to be called with a short delay (but how to know when?)
+    if (mode == kWnd_Windowed)
+        sys_window_center();
+#endif
     return window;
 }
 
@@ -248,12 +258,37 @@ bool sys_window_set_size(int w, int h, bool center) {
     if (window) {
         SDL_SetWindowSize(window, w, h);
         if (center)
-            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            sys_window_center();
         int new_w, new_h;
         SDL_GetWindowSize(window, &new_w, &new_h);
         return new_w == w && new_h == h;
     }
     return false;
+}
+
+void sys_window_center() {
+    if (!window)
+        return;
+#if (AGS_PLATFORM_DESKTOP)
+    // CHECKME:
+    // There seem to be a bug in SDL2 where it either does not assume
+    // the working area & taskbars when centering the window, or ignores
+    // the size of the window borders.
+    // Until that is fixed, try centering it ourselves
+    // See: https://github.com/libsdl-org/SDL/issues/6875
+    SDL_Rect bounds;
+    int w, h;
+    int bx1, by1, bx2, by2;
+    SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(window), &bounds);
+    SDL_GetWindowSize(window, &w, &h);
+    SDL_GetWindowBordersSize(window, &by1, &bx1, &by2, &bx2);
+    // CHECKME: SDL_SetWindowPosition aligns the client rect to this pos???
+    int x = bounds.x + bx1 + (bounds.w - (w + bx1 + bx2)) / 2;
+    int y = bounds.y + by1 + (bounds.h - (h + by1 + by2)) / 2;
+    SDL_SetWindowPosition(window, x, y);
+#else // !AGS_PLATFORM_DESKTOP
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+#endif
 }
 
 #if AGS_PLATFORM_OS_WINDOWS

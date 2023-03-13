@@ -22,7 +22,7 @@ Locations of two latter files differ between running platforms:
 
 * **\[graphics\]** - display mode and various graphics options
   * driver = \[string\] - id of the graphics renderer to use. Supported names are:
-    * D3D9 - Direct3D9 (MS Windows version only);
+    * D3D9 - Direct3D9 (MS Windows only);
     * OGL - OpenGL;
     * Software - software renderer.
   * software_driver = \[string\] - *optional* id of the SDL2 driver to use for the final output in software mode, leave empty for default. IDs are provided by SDL2, not all of these will work on any system:
@@ -46,7 +46,7 @@ Locations of two latter files differ between running platforms:
   * filter = \[string\] - id of the scaling filter to use. Supported filter names are:
     * none - run in native game size;
     * stdscale - nearest-neighbour scaling;
-    * linear - anti-aliased scaling; only usable with hardware-accelerated renderer.
+    * linear - anti-aliased scaling; not usable with software renderer.
   * refresh = \[integer\] - refresh rate for the display mode.
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;
   * supersampling = \[integer\] - supersampling multiplier, default is 1, used with render_at_screenres = 0 (currently supported only by OpenGL renderer);
@@ -145,8 +145,18 @@ Following OPTIONS are supported when running from command line:
 * --console-attach - write output to the parent process's console (Windows only).
 * --fps - display fps counter.
 * --fullscreen - run in fullscreen mode.
-* --gfxdriver \<name\> - use specified graphics driver (see list above).
-* --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor (see explanation above).
+* --gfxdriver \<name\> - use specified graphics driver:
+  * d3d9 - Direct3D9 (MS Windows only);
+  * ogl - OpenGL;
+  * software - software renderer.
+* --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor.
+  * filter names:
+    * none - run in native game size;
+    * stdscale - nearest-neighbour scaling;
+    * linear - anti-aliased scaling; not usable with software renderer.
+  * game scaling:
+    * proportional, round, stretch,
+    * or an explicit integer multiplier.
 * --loadsavedgame \<filepath\> - load savegame on startup.
 * --localuserconf - read and write user config in the game's directory rather than using standard system path. Game directory must be writeable.
 * --log-OUTPUT=GROUP[:LEVEL][,GROUP[:LEVEL]][,...];

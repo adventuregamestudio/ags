@@ -129,9 +129,13 @@ int System_GetVsync() {
 
 void System_SetVsync(int newValue) {
     if (gfxDriver->DoesSupportVsyncToggle()) {
-        scsystem.vsync = newValue;
-        usetup.Screen.Params.VSync = newValue != 0;
+        System_SetVSyncInternal(newValue != 0);
     }
+}
+
+void System_SetVSyncInternal(bool vsync) {
+    scsystem.vsync = vsync;
+    usetup.Screen.Params.VSync = vsync;
 }
 
 int System_GetWindowed() {

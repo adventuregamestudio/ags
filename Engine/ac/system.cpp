@@ -177,7 +177,7 @@ int System_GetAudioChannelCount()
 ScriptAudioChannel* System_GetAudioChannels(int index)
 {
     if ((index < 0) || (index >= game.numGameChannels))
-        quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", 0, game.numGameChannels);
+        quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", index, 0, game.numGameChannels);
 
     return &scrAudioChannel[index];
 }

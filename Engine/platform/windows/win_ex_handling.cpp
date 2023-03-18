@@ -85,7 +85,7 @@ int malloc_fail_handler(size_t amountwanted)
     CreateMiniDump(NULL);
 #endif
     free(printfworkingspace);
-    snprintf(tempmsg, sizeof(tempmsg), "Out of memory: failed to allocate %ld bytes (at PP=%d)", amountwanted, our_eip);
+    snprintf(tempmsg, sizeof(tempmsg), "Out of memory: failed to allocate %zu bytes (at PP=%d)", amountwanted, our_eip);
     quit(tempmsg);
     return 0;
 }

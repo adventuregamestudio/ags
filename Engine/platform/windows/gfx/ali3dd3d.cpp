@@ -452,6 +452,12 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
     sys_window_create("", mode.Width, mode.Height, mode.Mode);
   }
 
+  D3DCAPS9 caps;
+  direct3ddevice->GetDeviceCaps(&caps);
+  _capsVsync = (caps.PresentationIntervals & D3DPRESENT_INTERVAL_ONE) != 0;
+  if (mode.Vsync && !_capsVsync)
+    Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync is not supported. Setting will be kept at driver default.");
+
   HWND hwnd = (HWND)sys_win_get_window();
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
@@ -466,7 +472,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  if(mode.Vsync)
+  if (_capsVsync && mode.Vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -1998,31 +2004,24 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _spriteList.push_back(D3DDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
-bool D3DGraphicsDriver::SetVsync(bool enabled) 
+bool D3DGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res) 
 {
-    // do nothing if already applied, necessary to prevent a reset loop when going fullscreen
-    if (_mode.Vsync == enabled)
-    {
-        return _mode.Vsync;
-    }
-    
-    _mode.Vsync = enabled;
-    
-    d3dpp.PresentationInterval = _mode.Vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+    d3dpp.PresentationInterval = enabled ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
     // D3D requires a Reset() in order to apply a new D3DPRESENT_INTERVAL value
     HRESULT hr = ResetD3DDevice();
     if (hr != D3D_OK)
     {
-        Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
-        return _mode.Vsync;
+        Debug::Printf(kDbgMsg_Error, "D3D: SetVsync (%d): failed to reset D3D device", enabled);
+        return false;
     }
     // TODO: refactor, to not duplicate these 3-4 calls everytime ResetDevice is called
     InitializeD3DState();
     CreateVirtualScreen();
     direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
     SetupViewport();
-
-    return _mode.Vsync;
+    // CHECKME: is there a need to test that vsync was actually set (ask d3d api)?
+    vsync_res = d3dpp.PresentationInterval != D3DPRESENT_INTERVAL_IMMEDIATE;
+    return true;
 }
 
 

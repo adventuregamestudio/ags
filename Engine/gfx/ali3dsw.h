@@ -189,7 +189,7 @@ public:
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }
-    bool DoesSupportVsyncToggle() override { return SDL_VERSION_ATLEAST(2, 0, 18); }
+    bool DoesSupportVsyncToggle() override { return (SDL_VERSION_ATLEAST(2, 0, 18)) && _capsVsync; }
     void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }

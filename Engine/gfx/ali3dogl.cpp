@@ -1562,6 +1562,20 @@ void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 
 void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 {
+    // Remove from render targets
+    // FIXME: this ugly accessing internal texture members
+    if (((OGLBitmap*)ddb)->_data->RenderTarget)
+    {
+        // Remove deleted DDB from batches backup
+        for (auto &backup_rt : _backupBatches)
+        {
+            if (backup_rt.RenderTarget == ddb)
+            {
+                backup_rt.RenderTarget = nullptr;
+                backup_rt.Fbo = 0u;
+            }
+        }
+    }
     // Remove deleted DDB from backups
     for (auto &backup_spr : _backupSpriteList)
     {

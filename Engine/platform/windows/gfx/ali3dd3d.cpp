@@ -1556,8 +1556,17 @@ void D3DGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
         auto it = std::find(_renderTargets.begin(), _renderTargets.end(), ddb);
         assert(it != _renderTargets.end());
         _renderTargets.erase(it);
+        // Remove deleted DDB from batches backup
+        for (auto &backup_rt : _backupBatches)
+        {
+            if (backup_rt.RenderTarget == ddb)
+            {
+                backup_rt.RenderTarget = nullptr;
+                backup_rt.RenderSurface = nullptr;
+            }
+        }
     }
-    // Remove deleted DDB from backups
+    // Remove deleted DDB from spritelist backup
     for (auto &backup_spr : _backupSpriteList)
     {
         if (backup_spr.ddb == ddb)

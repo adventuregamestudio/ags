@@ -112,9 +112,9 @@ bool SDLDecoder::Open(float pos_ms)
 
     _sample = std::move(sample);
     int dur = Sound_GetDuration(_sample.get()); // may return -1 for unknown
-    _durationMs = dur > 0 ? static_cast<uint32_t>(dur) : 0;
+    _durationMs = dur > 0 ? static_cast<float>(dur) : 0.f;
     _posBytes = 0u;
-    _posMs = 0u;
+    _posMs = 0.f;
     if (pos_ms > 0.f) {
         Seek(pos_ms);
     }
@@ -131,10 +131,10 @@ void SDLDecoder::Close()
 float SDLDecoder::Seek(float pos_ms)
 {
     if (!_sample || pos_ms < 0.f)
-        return static_cast<float>(_posMs);
+        return _posMs;
     if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) == 0)
-        return static_cast<float>(_posMs); // old pos on failure (CHECKME?)
-    _posMs = static_cast<uint32_t>(pos_ms);
+        return _posMs; // old pos on failure (CHECKME?)
+    _posMs = pos_ms;
     _posBytes = SoundHelper::BytesPerMs(_posMs,
         _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
     return pos_ms; // new pos on success
@@ -144,7 +144,7 @@ SoundBuffer SDLDecoder::GetData()
 {
     if (!_sample || _EOS)
         return SoundBuffer();
-    uint32_t old_pos = _posMs;
+    float old_pos = _posMs;
     size_t sz = 0;
     do
     {
@@ -163,12 +163,12 @@ SoundBuffer SDLDecoder::GetData()
             else if (_repeat) {
                 _EOS = Sound_Rewind(_sample.get()) == 0;
                 _posBytes = 0u;
-                _posMs = 0u;
+                _posMs = 0.f;
             }
         }
     } while (!_EOS && (sz == 0));
-    return SoundBuffer(_sample->buffer, sz, static_cast<float>(old_pos), static_cast<float>(
-        SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
+    return SoundBuffer(_sample->buffer, sz, old_pos,
+        SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate));
 }
 
 } // namespace Engine

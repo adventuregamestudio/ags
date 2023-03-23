@@ -129,8 +129,35 @@ OpenAlSource::~OpenAlSource()
 
 float OpenAlSource::GetPositionMs() const
 {
+    float pos_ms, ts_ms;
+    GetPosMsImpl(pos_ms, ts_ms);
+    // Sometimes there may be minor diffs in float math between our
+    // timestamps and the OpenAL's AL_SEC_OFFSET; these diffs commonly happen
+    // after crossing from one buf to the next one, so account for that here
+    // (but only in case we moved to the further timestamp, not rewinded).
+    if (_lastTs < ts_ms)
+    {
+#ifdef AUDIO_CORE_DEBUG
+        if (_lastPosMs > pos_ms)
+            Debug::Printf("OpenAlSource::GetPositionMs: FIXUP pos_ms %f -> %f", pos_ms, _lastPosMs);
+#endif
+        _lastPosMs = std::max(pos_ms, _lastPosMs);
+    }
+    else
+    {
+        _lastPosMs = pos_ms;
+    }
+    return _lastPosMs;
+}
+
+void OpenAlSource::GetPosMsImpl(float &pos_ms, float &ts_ms) const
+{
+    // If no buf records, then return next TS prediction
     if (_bufferRecords.size() == 0)
-        return _predictTs; // if no records -- return prediction
+    {
+        pos_ms = ts_ms = _predictTs;
+        return;
+    }
 
     float al_offset = 0.f;
     alGetSourcef(_source, AL_SEC_OFFSET, &al_offset);
@@ -140,15 +167,18 @@ float OpenAlSource::GetPositionMs() const
         float dur = (r.Duration * 0.001f) / r.Speed;
         if (al_offset < dur)
         {
-            float pos_ms = r.Timestamp + (al_offset * 1000.f) * r.Speed;
+            ts_ms = r.Timestamp;
+            pos_ms = r.Timestamp + (al_offset * 1000.f) * r.Speed;
 #ifdef AUDIO_CORE_DEBUG
-            Debug::Printf("OpenAlSource: pos = %f", pos_ms);
+            Debug::Printf("OpenAlSource::GetPosMsImpl: pos = %f", pos_ms);
 #endif
-            return pos_ms;
+            return;
         }
         al_offset -= dur;
     }
-    return 0.f; // error?
+    // error? offset overflows buf records: return next prediction
+    pos_ms = ts_ms = _predictTs;
+    return;
 }
 
 size_t OpenAlSource::PutData(const SoundBuffer data)
@@ -212,6 +242,7 @@ void OpenAlSource::Unqueue()
 
         _queued--;
         assert(_bufferRecords.size() > 0);
+        _lastTs = _bufferRecords.front().Timestamp;
         _bufferRecords.pop_front();
 
         g_oalint.freeBuffers.push_back(buf_id);
@@ -276,6 +307,8 @@ void OpenAlSource::Stop()
         Unqueue();
         _playState = PlayStateStopped;
         _predictTs = 0.f;
+        _lastTs = 0.f;
+        _lastPosMs = 0.f;
         break;
     default:
         break;

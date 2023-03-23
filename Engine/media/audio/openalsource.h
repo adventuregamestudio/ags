@@ -77,9 +77,6 @@ public:
     void SetVolume(float volume);
 
 private:
-    // Gets current playback position; internal implementation
-    // returns current position, and nearest buffer timestamp (ts_ms <= pos_ms)
-    void GetPosMsImpl(float &pos_ms, float &ts_ms) const;
     // Unqueues processed buffers
     void Unqueue();
 
@@ -90,8 +87,6 @@ private:
     PlaybackState _playState = PlayStateInitial;
     float _speed = 1.f; // change in playback rate
     float _predictTs = 0.f; // next timestamp prediction
-    float _lastTs = 0.f; // timestamp of the last processed buffer, for assertions
-    float mutable _lastPosMs = 0.f; // last reported posMs, for assertion & fixup only
     unsigned _queued = 0u;
 
     // SDL resampler state, in case dynamic resampling in necessary

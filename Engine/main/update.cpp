@@ -190,17 +190,23 @@ void update_cycling_views()
   }
 }
 
-void update_shadow_areas()
+// Updates the view of the player character
+void update_player_view()
 {
-	// shadow areas
-  int onwalkarea = get_walkable_area_at_character (game.playercharacter);
-  if (onwalkarea<0) ;
-  else if (playerchar->flags & CHF_FIXVIEW) ;
-  else { onwalkarea=thisroom.WalkAreas[onwalkarea].Light;
-    if (onwalkarea>0) playerchar->view=onwalkarea-1;
-    else if (thisroom.Options.PlayerView==0) playerchar->view=playerchar->defview;
-    else playerchar->view=thisroom.Options.PlayerView-1;
-  }
+    if (playerchar->flags & CHF_FIXVIEW)
+        return; // view is locked
+
+    int onwalkarea = get_walkable_area_at_character(game.playercharacter);
+    if (onwalkarea < 0)
+        return; // error?
+
+    int areaview = thisroom.WalkAreas[onwalkarea].PlayerView;
+    if (areaview > 0)
+        playerchar->view = areaview - 1; // convert to 0-based id
+    else if (thisroom.Options.PlayerView > 0) 
+        playerchar->view = thisroom.Options.PlayerView - 1; // convert to 0-based id
+    else
+        playerchar->view = playerchar->defview;
 }
 
 void update_character_move_and_anim(std::vector<int> &followingAsSheep)
@@ -467,7 +473,7 @@ void update_stuff() {
 
   our_eip = 21;
 
-  update_shadow_areas();
+  update_player_view();
   
   our_eip = 22;
 

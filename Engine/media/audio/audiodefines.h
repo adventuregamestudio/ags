@@ -24,6 +24,7 @@
 // Media playback status
 enum PlaybackState
 {
+    PlayStateInvalid,   // was not initialized
     PlayStateInitial,   // initialized, but not started
     PlayStatePlaying,   // playing
     PlayStatePaused,    // paused
@@ -31,6 +32,19 @@ enum PlaybackState
     PlayStateFinished,  // stopped by reaching the end
     PlayStateError      // stopped due to the error
 };
+
+// Tells if the playback state defines a valid and ready state
+inline bool IsPlaybackReady(PlaybackState state)
+{
+    return state == PlayStateInitial || state == PlayStatePlaying || state == PlayStatePaused;
+}
+
+// Tells if the playback state defines an invalid or completed state
+inline bool IsPlaybackDone(PlaybackState state)
+{
+    return state == PlayStateInvalid || state == PlayStateStopped ||
+        state == PlayStateFinished || state == PlayStateError;
+}
 
 // Max channels that are distributed among game's audio types
 #define MAX_GAME_CHANNELS         16

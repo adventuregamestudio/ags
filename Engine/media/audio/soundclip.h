@@ -77,7 +77,7 @@ public:
     // Gets if the clip is valid (playing or ready to play)
     inline bool is_ready() const
     {
-        return state == PlayStateInitial || state == PlayStatePlaying || state == PlayStatePaused;
+        return IsPlaybackReady(state);
     }
     // Gets if the clip is currently paused
     inline bool is_paused() const

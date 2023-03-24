@@ -85,6 +85,7 @@ extern CharacterInfo*playerchar;
 extern CCAudioChannel ccDynamicAudio;
 
 extern volatile int switching_away_from_game;
+extern int frames_per_second; // for queue "hack"
 
 ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 int reserved_channel_count = 0;
@@ -153,7 +154,8 @@ void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudio
     }
 }
 
-static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority)
+static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority,
+    bool for_queue = true)
 {
     int lowestPrioritySoFar = 9999999;
     int lowestPriorityID = -1;
@@ -191,6 +193,20 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
         {
             lowestPrioritySoFar = ch->priority;
             lowestPriorityID = i;
+        }
+        // NOTE: This is a "hack" for starting queued clips;
+        // since having a new audio system (3.6.0 onwards), the audio timing
+        // changed a little, and queued sounds have to start bit earlier
+        // if we want them to sound seamless with the previous clips.
+        // TODO: investigate better solutions? may require reimplementation of the sound queue.
+        if (for_queue && (ch->sourceClipType == clip->type))
+        { // try to start queued sounds 1 frame earlier
+            const float trigger_pos = (1000.f / frames_per_second) * 1.f;
+            if (ch->get_pos_ms() >= (ch->get_length_ms() - trigger_pos))
+            {
+                lowestPrioritySoFar = priority;
+                lowestPriorityID = i;
+            }
         }
     }
 
@@ -304,7 +320,7 @@ static void audio_update_polled_stuff()
         for (int i = 0; i < play.new_music_queue_size; i++)
         {
             ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
-            int channel = find_free_audio_channel(clip, clip->defaultPriority, false);
+            int channel = find_free_audio_channel(clip, clip->defaultPriority, false, true);
             if (channel >= 0)
             {
                 QueuedAudioItem itemToPlay = play.new_music_queue[i];
@@ -457,7 +473,7 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
 
-    int channel = find_free_audio_channel(clip, priority, !queueIfNoChannel);
+    int channel = find_free_audio_channel(clip, priority, !queueIfNoChannel, queueIfNoChannel);
     if (channel < 0)
     {
         if (queueIfNoChannel)
@@ -853,7 +869,22 @@ void update_volume_drop_if_voiceover()
 // (this should only be called once per game loop)
 void update_audio_system_on_game_loop ()
 {
-	update_polled_stuff ();
+    update_polled_stuff();
+
+    // Sync logical game channels with the audio backend
+    // NOTE: we update twice, first time here - because we need to know
+    // which clips are still playing before updating the sound transitions
+    // and queues, then second time later - because we need to apply any
+    // changes to channels / parameters.
+    // TODO: investigate options for optimizing this.
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    { // update the playing channels, and dispose the finished / invalid ones
+        auto *ch = AudioChans::GetChannelIfPlaying(i);
+        if (ch && !ch->update())
+        {
+            AudioChans::DeleteClipOnChannel(i);
+        }
+    }
 
     process_scheduled_music_update();
 
@@ -890,22 +921,20 @@ void update_audio_system_on_game_loop ()
         }
     }
 
-    if (loopcounter % 5 == 0)
+    if (loopcounter % 5 == 0) // TODO: investigate why we do this each 5 frames?
     {
         update_ambient_sound_vol();
         update_directional_sound_vol();
     }
 
-    // Update and sync logical game channels with the audio backend
+    // Sync logical game channels with the audio backend:
+    // startup new assigned clips, apply changed parameters.
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    {
-        auto *ch = AudioChans::GetChannel(i);
-        if (ch)
-        { // update the playing channel, and if it's finished then dispose it
-            if (ch->is_ready() && !ch->update())
-            {
-                AudioChans::DeleteClipOnChannel(i);
-            }
+    { // update the playing channels, and dispose the finished / invalid ones
+        auto *ch = AudioChans::GetChannelIfPlaying(i);
+        if (ch && !ch->update())
+        {
+            AudioChans::DeleteClipOnChannel(i);
         }
     }
 }

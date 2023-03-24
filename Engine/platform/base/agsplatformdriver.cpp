@@ -15,9 +15,10 @@
 // AGS Platform-specific functions
 //
 //=============================================================================
+#include "platform/base/agsplatformdriver.h"
 #include <stdio.h>
 #include <thread>
-#include "platform/base/agsplatformdriver.h"
+#include <SDL.h>
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
 #include "util/string_utils.h"
@@ -42,7 +43,19 @@ AGSPlatformDriver *platform = nullptr;
 void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
-void AGSPlatformDriver::ValidateWindowSize(int & /*x*/, int & /*y*/, bool /*borderless*/) const {}
+
+Size AGSPlatformDriver::ValidateWindowSize(const Size &sz, bool borderless) const
+{
+    // TODO: Ideally we should also test for the minimal / maximal
+    // allowed size of the window in current system here;
+    // and more importantly: subtract window's border size.
+    // SDL2 currently does not allow to get window border size
+    // without creating a window first. But this potentially may be
+    // acquired, at least on some platforms (e.g. Windows).
+    SDL_Rect rc;
+    SDL_GetDisplayUsableBounds(0, &rc);
+    return Size::Clamp(sz, Size(1, 1), Size(rc.w, rc.h));
+}
 
 const char* AGSPlatformDriver::GetBackendFailUserHint()
 {

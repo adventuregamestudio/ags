@@ -24,6 +24,7 @@
 #include "ac/datetime.h"
 #include "ac/path_helper.h"
 #include "debug/outputhandler.h"
+#include "util/geometry.h"
 #include "util/ini_util.h"
 
 struct SDL_Surface;
@@ -114,8 +115,8 @@ public:
     virtual void PauseApplication();
     // Called when the application is being resumed.
     virtual void ResumeApplication();
-    // Adjust window size to ensure it is in the supported limits
-    virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
+    // Adjust window's * client size * to ensure it is in the supported limits
+    virtual Size ValidateWindowSize(const Size &sz, bool borderless) const;
     // Either set window icon using system API directly, or create a SDL_Surface
     // for the SDL backend to set an icon instead.
     virtual SDL_Surface *CreateWindowIcon() { return nullptr; }

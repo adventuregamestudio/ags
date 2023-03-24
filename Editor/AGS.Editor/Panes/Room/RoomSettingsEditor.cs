@@ -424,7 +424,7 @@ namespace AGS.Editor
                 (_room.BackgroundCount < Room.MAX_BACKGROUNDS))
             {
                 if ((_room.BackgroundCount > 1) ||
-                    (Factory.GUIController.ShowQuestion("You are about to import an extra background into this room, thus creating animated backgrounds. Are you sure this is what you want to do?\n\nIf you just want to change the background image, use the 'Change' button instead.", MessageBoxIcon.Question) == DialogResult.Yes))
+                    (Factory.GUIController.ShowQuestion("You are about to import an extra background into this room; this is used for switching backgrounds in game, or creating full-size background animations. Are you sure this is what you want to do?\n\nIf you just want to change the background image, use the 'Change' button instead.", MessageBoxIcon.Question) == DialogResult.Yes))
                 {
                     ImportBackground(cmbBackgrounds.SelectedIndex);
                     RepopulateBackgroundList(_room.BackgroundCount - 1);

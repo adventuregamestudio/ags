@@ -204,6 +204,16 @@ struct Size
         return Width < other.Width || (Width == other.Width && Height < other.Height);
     }
 
+    inline Size operator +(const Size &size) const
+    {
+        return Size(Width + size.Width, Height + size.Height);
+    }
+
+    inline Size operator -(const Size &size) const
+    {
+        return Size(Width - size.Width, Height - size.Height);
+    }
+
     inline Size operator *(int x) const
     {
         return Size(Width * x, Height * x);

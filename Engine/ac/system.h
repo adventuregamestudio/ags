@@ -29,6 +29,7 @@ int     System_GetCapsLock();
 int     System_GetScrollLock();
 int     System_GetVsync();
 void    System_SetVsync(int newValue);
+void    System_SetVSyncInternal(bool vsync);
 int     System_GetWindowed();
 int     System_GetSupportsGammaControl();
 int     System_GetGamma();

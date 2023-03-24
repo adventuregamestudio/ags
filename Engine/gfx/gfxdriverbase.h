@@ -111,6 +111,9 @@ public:
     Size        GetNativeSize() const override;
     Rect        GetRenderDestination() const override;
 
+    bool        SetVsync(bool enabled) override;
+    bool        GetVsync() const override;
+
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
     void        BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
@@ -145,6 +148,11 @@ protected:
     virtual void OnSetRenderFrame(const Rect &dst_rect);
     // Called when the new filter is set
     virtual void OnSetFilter();
+
+    // Try changing vsync setting; fills new current mode in vsync_res,
+    // returns whether the new setting was set successfully.
+    virtual bool SetVsyncImpl(bool vsync, bool &vsync_res) { return false; }
+
     // Initialize sprite batch and allocate necessary resources
     virtual void InitSpriteBatch(size_t index, const SpriteBatchDesc &desc) = 0;
     // Gets the index of a last draw entry (sprite)
@@ -161,6 +169,9 @@ protected:
     Rect                _dstRect;       // rendering destination rect
     Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;       // native -> render dest coordinate transformation
+
+    // Capability flags
+    bool                _capsVsync = false; // is vsync available
 
     // Callbacks
     GFXDRV_CLIENTCALLBACK _pollingCallback;

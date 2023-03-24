@@ -499,7 +499,7 @@ namespace AGS.Editor.Utils
                     }
                     else if (skipIf.HasFlag(SkipIf.SourceLocal) &&
                         File.Exists(checkPath) &&
-                        Utilities.PathsAreSameOrNested(sprite.SourceFile, Factory.AGSEditor.CurrentGame.DirectoryPath))
+                        Utilities.PathsAreSameOrNested(checkPath, Factory.AGSEditor.CurrentGame.DirectoryPath))
                     {
                         continue; // skip if source is valid and local (inside the project folder)
                     }

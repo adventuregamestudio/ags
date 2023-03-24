@@ -127,6 +127,8 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   if (!IsModeSupported(mode))
     return false;
 
+  _capsVsync = true; // reset vsync flag, allow to try setting again
+
   SDL_Window *window = sys_get_window();
   if (!window)
   {
@@ -147,6 +149,15 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
       for (Uint32 i = 0; i < rinfo.num_texture_formats; i++) {
         Debug::Printf("\t- %s", SDL_GetPixelFormatName(rinfo.texture_formats[i]));
       }
+      // NOTE: SDL_RendererInfo::flags only contains VSYNC if it was requested
+      if (rendererFlags & SDL_RENDERER_PRESENTVSYNC)
+      {
+        _capsVsync = (rinfo.flags & SDL_RENDERER_PRESENTVSYNC) != 0;
+        if (!_capsVsync)
+          Debug::Printf(kDbgMsg_Warn, "WARNING: Vertical sync is not supported. Setting will be kept at driver default.");
+      }
+    } else {
+      Debug::Printf("SDLRenderer: failed to query renderer info: %s", SDL_GetError());
     }
   }
   else
@@ -974,23 +985,21 @@ static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, un
    return res | g;
 }
 
-bool SDLRendererGraphicsDriver::SetVsync(bool enabled)
+bool SDLRendererGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
-    // do nothing if already applied, necessary to prevent a reset loop when going fullscreen
-    if (_mode.Vsync == enabled)
-    {
-        return _mode.Vsync;
-    }
-
     #if SDL_VERSION_ATLEAST(2, 0, 18)
-    if (!SDL_RenderSetVSync(_renderer, enabled)) // 0 on success
+    if (SDL_RenderSetVSync(_renderer, enabled) == 0) // 0 on success
     {
-        _mode.Vsync = enabled;
-        SetGamma(_gamma); // gamma might be lost after changing vsync mode at fullscreen
+        // gamma might be lost after changing vsync mode at fullscreen
+        SetGamma(_gamma);
+        SDL_RendererInfo info;
+        SDL_GetRendererInfo(_renderer, &info);
+        vsync_res = (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0;
+        return true;
     }
+    Debug::Printf(kDbgMsg_Warn, "SDLRenderer: SetVsync (%d) failed: %s", enabled, SDL_GetError());
     #endif
-
-    return _mode.Vsync;
+    return false;
 }
 
 SDLRendererGraphicsFactory *SDLRendererGraphicsFactory::_factory = nullptr;

@@ -37,6 +37,7 @@
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/string_compat.h"
+#include "util/string_utils.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/win_ex_handling.h"
@@ -149,9 +150,11 @@ void main_print_help() {
 #endif
            "  --gfxfilter FILTER [SCALING]\n"
            "                               Request graphics filter. Available options:\n"           
-           "                                 linear, none, stdscale\n"
-           "                                 (support differs between graphic drivers);\n"
-           "                                 scaling is specified by integer number\n"
+           "                                 none, linear, stdscale\n"
+           "                               (support may differ between graphic drivers);\n"
+           "                               Scaling is specified as:\n"
+           "                                 proportional, round, stretch,\n"
+           "                                 or an explicit integer multiplier.\n"
            "  --help                       Print this help message and stop\n"
            "  --loadsavedgame FILEPATH     Load savegame on startup\n"
            "  --localuserconf              Read and write user config in the game's \n"
@@ -313,13 +316,25 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             cfg["graphics"]["driver"] = argv[++ee];
         else if ((ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {
-            // NOTE: we make an assumption here that if user provides scaling factor,
-            // this factor means to be applied to windowed mode only.
             cfg["graphics"]["filter"] = argv[++ee];
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
-                cfg["graphics"]["game_scale_win"] = argv[++ee];
-            else
-                cfg["graphics"]["game_scale_win"] = "max_round";
+            {
+                // NOTE: we make an assumption here that if user provides scaling
+                // multiplier, then it's meant to be applied to windowed mode only;
+                // Otherwise the scaling style is applied to both.
+                String scale_value = argv[++ee];
+                int scale_mul = StrUtil::StringToInt(scale_value);
+                if (scale_mul > 0)
+                {
+                    cfg["graphics"]["window"] = String::FromFormat("x%d", scale_mul);
+                    cfg["graphics"]["game_scale_win"] = "round";
+                }
+                else
+                {
+                    cfg["graphics"]["game_scale_fs"] = scale_value;
+                    cfg["graphics"]["game_scale_win"] = scale_value;
+                }
+            }
         }
         else if ((ags_stricmp(arg, "--translation") == 0) && (argc > ee + 1))
             cfg["language"]["translation"] = argv[++ee];

@@ -71,7 +71,7 @@ Size get_max_display_size(bool windowed)
 {
     Size device_size = get_desktop_size();
     if (windowed)
-        platform->ValidateWindowSize(device_size.Width, device_size.Height, false);
+        device_size = platform->ValidateWindowSize(device_size, false);
     return device_size;
 }
 
@@ -429,6 +429,8 @@ bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayMode
         setup.Windowed ? "yes" : "no",
         ws.Size.Width, ws.Size.Height,
         scale_option.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Graphic settings: refresh rate (optional): %d, vsync: %d",
+        setup.Params.RefreshRate, setup.Params.VSync);
 
     // Prepare the list of available gfx factories, having the one requested by user at first place
     // TODO: make factory & driver IDs case-insensitive!
@@ -519,6 +521,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: %d x %d (%d-bit) %s",
         rdm.Width, rdm.Height, rdm.ColorDepth,
         rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"));
+    Debug::Printf(kDbgMsg_Info, "Graphics mode set: refresh rate (optional): %d, vsync: %d", rdm.RefreshRate, rdm.Vsync);
     return true;
 }
 

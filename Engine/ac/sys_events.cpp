@@ -308,6 +308,8 @@ void ags_simulate_keypress(eAGSKeyCode ags_key)
     sdlevent.key.keysym.sym = SDL_GetKeyFromScancode(scan[0]);
     sdlevent.key.keysym.scancode = scan[0];
     SDL_PushEvent(&sdlevent);
+    sdlevent.type = SDL_KEYUP;
+    SDL_PushEvent(&sdlevent);
 }
 
 static void on_sdl_key_down(const SDL_Event &event)

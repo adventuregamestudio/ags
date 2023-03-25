@@ -76,12 +76,8 @@ int MyPushButton::pressedon(int mx, int my)
         state = mouseisinarea(mx, my);
         update_polled_stuff();
         if (wasstat != state) {
-            //        ags_domouse(DOMOUSE_DISABLE);
             draw(get_gui_screen());
-            //ags_domouse(DOMOUSE_ENABLE);
         }
-
-        //      ags_domouse(DOMOUSE_UPDATE);
 
         refresh_gui_screen();
 
@@ -89,9 +85,7 @@ int MyPushButton::pressedon(int mx, int my)
     }
     wasstat = state;
     state = 0;
-    //    ags_domouse(DOMOUSE_DISABLE);
     draw(get_gui_screen());
-    //  ags_domouse(DOMOUSE_ENABLE);
     return wasstat;
 }
 

@@ -143,7 +143,7 @@ bool SOUNDCLIP::update()
     PlaybackState core_state = audio_core_slot_get_play_state(slot_, posms_f);
     posMs = static_cast<int>(posms_f);
     pos = posms_to_pos(posMs);
-    if (state == core_state || core_state == PlayStateError || core_state == PlayStateFinished)
+    if (state == core_state || IsPlaybackDone(core_state))
     {
         state = core_state;
         return is_ready();

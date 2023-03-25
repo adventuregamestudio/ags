@@ -26,6 +26,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "debug/debug_log.h"
+#include "main/game_run.h"
 #include "util/path.h"
 
 using namespace AGS::Common;
@@ -100,6 +101,7 @@ void clear_gui_screen()
 void refresh_gui_screen()
 {
     gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer, false);
+    update_cursor_and_dependent();
     render_graphics(dialogDDB, windowPosX, windowPosY);
 }
 

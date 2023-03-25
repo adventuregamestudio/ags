@@ -130,7 +130,7 @@ OpenAlSource::~OpenAlSource()
 float OpenAlSource::GetPositionMs() const
 {
     if (_bufferRecords.size() == 0)
-        return _predictTs; // if no records -- return prediction
+        return _predictTs; // if no buf records: return ts prediction
 
     float al_offset = 0.f;
     alGetSourcef(_source, AL_SEC_OFFSET, &al_offset);
@@ -148,7 +148,8 @@ float OpenAlSource::GetPositionMs() const
         }
         al_offset -= dur;
     }
-    return 0.f; // error?
+    // error? offset overflows buf records: return next ts prediction
+    return _predictTs;
 }
 
 size_t OpenAlSource::PutData(const SoundBuffer data)
@@ -174,8 +175,8 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     SoundBuffer input_buf = data;
     // use provided timestamp, or calc our own
     const float use_ts = data.Ts >= 0.f ? data.Ts : _predictTs;
-    const float dur_ms = static_cast<float>(
-        SoundHelper::MillisecondsFromBytes(data.Size, _inputFmt.format, _inputFmt.channels, _inputFmt.rate));
+    const float dur_ms = 
+        SoundHelper::MillisecondsFromBytes(data.Size, _inputFmt.format, _inputFmt.channels, _inputFmt.rate);
     if (_resampler.HasConversion())
     {
         size_t conv_sz;

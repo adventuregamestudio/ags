@@ -477,7 +477,7 @@ void ags_mouse_acquire_relxy(int &x, int &y) {
 }
 
 void ags_domouse() {
-    mgetgraphpos();
+    Mouse::Poll();
 }
 
 int ags_check_mouse_wheel() {
@@ -498,9 +498,67 @@ int ags_check_mouse_wheel() {
 // TOUCH INPUT
 // ----------------------------------------------------------------------------
 
+// SDL_FingerIDs are unique for down-motion-up events, but beyond this there is no cross-platform guarantee
+// this struct tracks currently active fingers on the touch screen, and matches a slot index for each
+// we will use this to implement the logic in this example
+// - first finger down (consider LMB, index 0);
+// - second finger down (consider RMB, index 1);
+// - first finger up (consider LMB up);
+// - second finger is still pressed and still considered RMB;
+// - third(?) finger down, takes the free role of LMB (index 0).
+struct Fingers
+{
+public:
+    static const int MAX_FINGERS = 2;
+    static const int NO_INDEX = -1;
+
+    // store fingerId, return given finger index
+    int push(SDL_FingerID fingerId)
+    {
+        if (contains(fingerId))
+            return NO_INDEX; // invalid, fingerId already present
+
+        auto it = std::find(_fingers.begin(), _fingers.end(), NO_ID);
+        if(it == _fingers.end())
+            return NO_INDEX; // no slot for new finger
+
+        *it = fingerId;
+        return it - _fingers.begin();
+    };
+
+    int get_index(SDL_FingerID fingerId) const
+    {
+        auto it = std::find(_fingers.begin(), _fingers.end(), fingerId);
+        if(it != _fingers.end())
+            return it - _fingers.begin();
+
+        return NO_INDEX;
+    };
+
+    void pop(SDL_FingerID fingerId)
+    {
+        int idx = get_index(fingerId);
+        assert(idx != NO_INDEX);
+        if (idx != NO_INDEX) {
+            _fingers[idx] = NO_ID;
+        }
+    };
+
+private:
+    const SDL_FingerID NO_ID = -1; // std::find reads by reference, can't be static
+    std::array<SDL_FingerID, MAX_FINGERS> _fingers{{NO_ID, NO_ID}};
+
+    bool contains(SDL_FingerID fingerId) const
+    {
+        return std::find(_fingers.begin(), _fingers.end(), fingerId) != _fingers.end();
+    }
+};
+
 // Touch input state
 struct TouchState
 {
+    // on-screen fingers, used to remember the finger's role until all of them are released
+    Fingers fingers;
     // Accumulated finger bits (a collection of bits shifted by finger index)
     int fingers_down = 0;
     // Double tap detection
@@ -560,9 +618,9 @@ void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
 }
 
 // Converts touch finger index to the emulated mouse button
-static int tfinger_to_mouse_but(int finger)
+static int tfinger_to_mouse_but(int finger_index)
 {
-    switch (finger)
+    switch (finger_index)
     {
     case 0: return SDL_BUTTON_LEFT;
     case 1: return SDL_BUTTON_RIGHT;
@@ -678,7 +736,10 @@ static void sync_sys_mouse_pos()
 
 static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 {
-    touch.fingers_down |= 1 << event.fingerId;
+    int finger_index = touch.fingers.push(event.fingerId);
+    if(finger_index == Fingers::NO_INDEX) return;
+
+    touch.fingers_down |= 1 << finger_index;
     detect_double_tap(event, true);
 
     switch (t2m.mode)
@@ -686,7 +747,7 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
     case kTouchMouse_OneFingerDrag:
     {
         // Touch down means LMB down
-        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        int mouse_but = tfinger_to_mouse_but(finger_index);
         if (mouse_but == SDL_BUTTON_LEFT)
         {
             set_t2m_pos(event.x, event.y, 0.f, 0.f);
@@ -698,7 +759,7 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
     }
     case kTouchMouse_TwoFingersTap:
     {
-        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        int mouse_but = tfinger_to_mouse_but(finger_index);
         // Handle double tap for drag-n-drop movement
         if ((mouse_but == SDL_BUTTON_LEFT) && (touch.tap_count == 2))
         {
@@ -739,7 +800,10 @@ static void on_sdl_touch_down(const SDL_TouchFingerEvent &event)
 
 static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
 {
-    touch.fingers_down &= ~(1 << event.fingerId);
+    int finger_index = touch.fingers.get_index(event.fingerId);
+    if(finger_index == Fingers::NO_INDEX) return;
+
+    touch.fingers_down &= ~(1 << finger_index);
     detect_double_tap(event, false);
 
     // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
@@ -751,7 +815,7 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     case kTouchMouse_OneFingerDrag:
     {
         // Touch up means LMB up
-        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        int mouse_but = tfinger_to_mouse_but(finger_index);
         if (mouse_but == SDL_BUTTON_LEFT)
         {
             send_mouse_button_event(SDL_MOUSEBUTTONUP, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
@@ -762,7 +826,7 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     }
     case kTouchMouse_TwoFingersTap:
     {
-        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        int mouse_but = tfinger_to_mouse_but(finger_index);
         // If there's a force button set, then click only if the current button matches it;
         // otherwise use whatever was released
         if ((mouse_but > 0) &&
@@ -794,10 +858,14 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     }
     default: break; // do nothing
     }
+    touch.fingers.pop(event.fingerId);
 }
 
 static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
 {
+    int finger_index = touch.fingers.get_index(event.fingerId);
+    if(finger_index == Fingers::NO_INDEX) return;
+
     switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:
@@ -805,7 +873,7 @@ static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
     {
         // Touch motion means mouse motion;
         // move only if it's the first finger, and motion is not ignored
-        int mouse_but = tfinger_to_mouse_but(event.fingerId);
+        int mouse_but = tfinger_to_mouse_but(finger_index);
         if ((!t2m.ignore_motion) && (mouse_but == SDL_BUTTON_LEFT))
         {
             // Absolute positioning

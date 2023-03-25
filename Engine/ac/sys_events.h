@@ -90,7 +90,7 @@ extern bool sys_modkeys_fired; // tells whether mod combination had been used fo
 //
 // Tells if the mouse button is currently down
 bool ags_misbuttondown(eAGSMouseButton but);
-// Returns mouse button code
+// Returns last "clicked" mouse button
 eAGSMouseButton ags_mgetbutton();
 // Returns recent relative mouse movement; resets accumulated values
 void ags_mouse_acquire_relxy(int &x, int &y);

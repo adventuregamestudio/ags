@@ -121,9 +121,9 @@ public:
     // Tells if the data reading has reached EOS
     bool EOS() const { return _EOS; }
     // Gets current reading position, in ms
-    float GetPositionMs() const { return static_cast<float>(_posMs); }
+    float GetPositionMs() const { return _posMs; }
     // Gets total duration, in ms
-    float GetDurationMs() const { return static_cast<float>(_durationMs); }
+    float GetDurationMs() const { return _durationMs; }
 
     // Try initializing the sound sample, returns the result
     bool Open(float pos_ms = 0.f);
@@ -139,11 +139,11 @@ private:
     std::shared_ptr<std::vector<uint8_t>> _sampleData{};
     String _sampleExt = "";
     SoundSampleUniquePtr _sample = nullptr;
-    uint32_t _durationMs = 0u;
+    float _durationMs = 0.f;
     bool _repeat = false;
     bool _EOS = false;
     size_t _posBytes = 0u;
-    uint32_t _posMs = 0u;
+    float _posMs = 0.f;
 };
 
 
@@ -152,16 +152,16 @@ namespace SoundHelper
     // Tells bytes per sample from SDL_Audio format
     inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format); }
     // Calculate number of bytes of sound data per millisecond
-    inline size_t BytesPerMs(uint32_t ms, SDL_AudioFormat format, int chans, int freq)
+    inline size_t BytesPerMs(float ms, SDL_AudioFormat format, int chans, int freq)
     {
         return static_cast<size_t>(
-            (static_cast<uint64_t>(ms) * SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000));
+            (static_cast<double>(ms) * SDL_AUDIO_BITSIZE(format) * chans * freq) / (8 * 1000));
     }
     // Calculate number of milliseconds from given number of bytes of sound data
-    inline uint32_t MillisecondsFromBytes(size_t bytes, SDL_AudioFormat format, int chans, int freq)
+    inline float MillisecondsFromBytes(size_t bytes, SDL_AudioFormat format, int chans, int freq)
     {
-        return static_cast<uint32_t>(
-            (static_cast<uint64_t>(bytes) * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq));
+        return static_cast<float>
+            (static_cast<double>(bytes) * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq);
     }
 } // namespace SoundHelper
 

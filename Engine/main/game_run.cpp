@@ -44,6 +44,7 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
+#include "ac/viewframe.h"
 #include "ac/walkbehind.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
@@ -663,45 +664,96 @@ static void game_loop_update_animated_buttons()
     }
 }
 
-static void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
+// Updates GUI reaction to the cursor position change
+// TODO: possibly may be merged with gui_on_mouse_move()
+static void update_cursor_over_gui()
 {
-    if (!play.fast_forward) {
-        int mwasatx=mousex,mwasaty=mousey;
-
-        // Only do this if we are not skipping a cutscene
-        render_graphics(extraBitmap, extraX, extraY);
-
-        // Check Mouse Moves Over Hotspot event
-        // TODO: move this out of render related function? find out why we remember mwasatx and mwasaty before render
-        // TODO: do not use static variables!
-        // TODO: if we support rotation then we also need to compare full transform!
-        if (displayed_room < 0)
-            return;
-        auto view = play.GetRoomViewportAt(mousex, mousey);
-        auto cam = view ? view->GetCamera() : nullptr;
-        if (cam)
-        {
-        // NOTE: all cameras are in same room right now, so their positions are in same coordinate system;
-        // therefore we may use this as an indication that mouse is over different camera too.
-        static int offsetxWas = -1000, offsetyWas = -1000;
-        int offsetx = cam->GetRect().Left;
-        int offsety = cam->GetRect().Top;
-
-        if (((mwasatx!=mousex) || (mwasaty!=mousey) ||
-            (offsetxWas != offsetx) || (offsetyWas != offsety))) 
-        {
-            // mouse moves over hotspot
-            if (__GetLocationType(mousex, mousey, 1) == LOCTYPE_HOTSPOT) {
-                int onhs = getloctype_index;
-
-                setevent(EV_RUNEVBLOCK, EVB_HOTSPOT, onhs, EVHOT_MOUSEOVER);
-            }
-        }
-
-        offsetxWas = offsetx;
-        offsetyWas = offsety;
-        } // camera found under mouse
+    if (((debug_flags & DBG_NOIFACE) != 0) || (displayed_room < 0))
+        return; // GUI is disabled (debug flag) or room is not loaded
+    if (!IsInterfaceEnabled())
+        return; // interface is disabled (by script or blocking action)
+    // Poll guis
+    for (auto &gui : guis)
+    {
+        if (!gui.IsDisplayed()) continue; // not on screen
+        // Don't touch GUI if "GUIs Turn Off When Disabled"
+        if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
+            (all_buttons_disabled >= 0) &&
+            (gui.PopupStyle != kGUIPopupNoAutoRemove))
+            continue;
+        gui.Poll(mousex, mousey);
     }
+}
+
+extern int lastmx, lastmy;
+extern int mouse_frame, mouse_delay;
+extern std::vector<ViewStruct> views;
+
+static void update_cursor_view()
+{
+    // update animating mouse cursor
+    if (game.mcurs[cur_cursor].view >= 0) {
+        // only on mousemove, and it's not moving
+        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
+            (mousex == lastmx) && (mousey == lastmy));
+        // only on hotspot, and it's not on one
+        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT) != 0) &&
+            (GetLocationType(mousex, mousey) == 0))
+            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
+        else if (mouse_delay>0) mouse_delay--;
+        else {
+            int viewnum = game.mcurs[cur_cursor].view;
+            int loopnum = 0;
+            if (loopnum >= views[viewnum].numLoops)
+                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
+            if (views[viewnum].loops[loopnum].numFrames < 1)
+                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
+
+            mouse_frame++;
+            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
+                mouse_frame = 0;
+            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
+            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + game.mcurs[cur_cursor].animdelay;
+            CheckViewFrame(viewnum, loopnum, mouse_frame);
+        }
+        lastmx = mousex; lastmy = mousey;
+    }
+}
+
+static void update_cursor_over_location(int mwasatx, int mwasaty)
+{
+    if (play.fast_forward)
+        return;
+    if (displayed_room < 0)
+        return;
+
+    // Check Mouse Moves Over Hotspot event
+    auto view = play.GetRoomViewportAt(mousex, mousey);
+    auto cam = view ? view->GetCamera() : nullptr;
+    if (!cam)
+        return;
+
+    // NOTE: all cameras are in same room right now, so their positions are in same coordinate system;
+    // therefore we may use this as an indication that mouse is over different camera too.
+    // TODO: do not use static variables!
+    // TODO: if we support rotation then we also need to compare full transform!
+    static int offsetxWas = -1000, offsetyWas = -1000;
+    int offsetx = cam->GetRect().Left;
+    int offsety = cam->GetRect().Top;
+
+    if (((mwasatx!=mousex) || (mwasaty!=mousey) ||
+        (offsetxWas != offsetx) || (offsetyWas != offsety))) 
+    {
+        // mouse moves over hotspot
+        if (__GetLocationType(mousex, mousey, 1) == LOCTYPE_HOTSPOT) {
+            int onhs = getloctype_index;
+
+            setevent(EV_RUNEVBLOCK, EVB_HOTSPOT, onhs, EVHOT_MOUSEOVER);
+        }
+    }
+
+    offsetxWas = offsetx;
+    offsetyWas = offsety;
 }
 
 static void game_loop_update_events()
@@ -818,10 +870,21 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     check_debug_keys();
 
+    // Handle player's input
+    // remember old mouse pos, needed for update_cursor_over_location() later
+    const int mwasatx = mousex, mwasaty = mousey;
+    // update mouse position (mousex, mousey)
+    ags_domouse();
+    // update gui under mouse; this also updates gui control focus;
+    // atm we must call this before "check_controls", because GUI interaction
+    // relies on remembering which control was focused by the cursor prior
+    update_cursor_over_gui();
+    // handle actual input (keys, mouse, and so forth)
     game_loop_check_controls(checkControls);
 
     our_eip=2;
 
+    // do the overall game state update
     game_loop_do_update();
 
     game_loop_update_animated_buttons();
@@ -830,7 +893,12 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     update_audio_system_on_game_loop();
 
-    game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
+    update_cursor_over_location(mwasatx, mwasaty);
+    update_cursor_view();
+
+    // Only render if we are not skipping a cutscene
+    if (!play.fast_forward)
+        render_graphics(extraBitmap, extraX, extraY);
 
     our_eip=6;
 
@@ -1090,6 +1158,15 @@ void RunGameUntilAborted()
             load_new_game = 0;
         }
     }
+}
+
+void update_cursor_and_dependent()
+{
+    const int mwasatx = mousex, mwasaty = mousey;
+    ags_domouse();
+    update_cursor_over_gui();
+    update_cursor_over_location(mwasatx, mwasaty);
+    update_cursor_view();
 }
 
 void update_polled_stuff()

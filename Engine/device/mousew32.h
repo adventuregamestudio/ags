@@ -20,17 +20,11 @@
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
-void msetgraphpos(int,int);
-void mgetgraphpos();
-// Sets the area of the game frame (zero-based coordinates) where the mouse cursor is allowed to move;
-// this function was meant to be used to achieve gameplay effect
-void msetcursorlimit(int x1, int y1, int x2, int y2);
-void msetgraphpos(int xa, int ya);
-void msethotspot(int xx, int yy);
-int minstalled();
-
 namespace Mouse
 {
+    // Tells the number of supported mouse buttons
+    int  GetButtonCount();
+
     // Get if mouse is locked to the game window
     bool IsLockedToWindow();
     // Try locking mouse to the game window
@@ -52,18 +46,20 @@ namespace Mouse
     void SetSpeed(float speed);
     // Get speed factor
     float GetSpeed();
-}
 
-namespace Mouse
-{
     // Updates limits of the area inside which the standard OS cursor is not shown;
     // uses game's main viewport (in native coordinates) to calculate real area on screen
     void UpdateGraphicArea();
     // Limits the area where the game cursor can move on virtual screen;
     // parameter must be in native game coordinates
     void SetMoveLimit(const Rect &r);
-    // Set actual OS cursor position on screen; parameter must be in native game coordinates
-    void SetPosition(const Point p);
+
+    // Polls the cursor position, updates mousex, mousey
+    void Poll();
+    // Set actual OS cursor position on screen; in native game coordinates
+    void SetPosition(const Point &p);
+    // Sets the relative position of the cursor's hotspot, in native pixels
+    void SetHotspot(int x, int y);
 }
 
 

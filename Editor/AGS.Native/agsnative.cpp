@@ -2889,7 +2889,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		area->ID = i;
-		area->AreaSpecificView = rs.WalkAreas[i].Light;
+		area->AreaSpecificView = rs.WalkAreas[i].PlayerView;
 		area->UseContinuousScaling = !(rs.WalkAreas[i].ScalingNear == NOT_VECTOR_SCALED);
 		area->ScalingLevel = rs.WalkAreas[i].ScalingFar + 100;
 		area->MinScalingLevel = rs.WalkAreas[i].ScalingFar + 100;
@@ -3020,7 +3020,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.WalkAreaCount; ++i)
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
-		rs.WalkAreas[i].Light = area->AreaSpecificView;
+		rs.WalkAreas[i].PlayerView = area->AreaSpecificView;
 		
 		if (area->UseContinuousScaling) 
 		{

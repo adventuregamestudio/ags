@@ -188,7 +188,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
         room->WalkAreas[i].ScalingFar = in->ReadInt16();
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
-        room->WalkAreas[i].Light = in->ReadInt16();
+        room->WalkAreas[i].PlayerView = in->ReadInt16();
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
         room->WalkAreas[i].ScalingNear = in->ReadInt16();
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
@@ -226,8 +226,9 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     if (fullanim_count > 0)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Room animations are no longer supported.");
 
+    // NOTE: this WA value was written for the second time here, for some weird reason
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
-        room->WalkAreas[i].Light = in->ReadInt16();
+        room->WalkAreas[i].PlayerView = in->ReadInt16();
     for (size_t i = 0; i < room->RegionCount; ++i)
         room->Regions[i].Light = in->ReadInt16();
     for (size_t i = 0; i < room->RegionCount; ++i)
@@ -584,7 +585,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingFar);
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
-        out->WriteInt16(room->WalkAreas[i].Light);
+        out->WriteInt16(room->WalkAreas[i].PlayerView);
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingNear);
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
@@ -613,8 +614,9 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
 
     out->WriteInt16(0); // legacy room animations
 
+    // NOTE: this WA value was written for the second time here, for some weird reason
     for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
-        out->WriteInt16(room->WalkAreas[i].Light);
+        out->WriteInt16(room->WalkAreas[i].PlayerView);
     for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt16(room->Regions[i].Light);
     for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)

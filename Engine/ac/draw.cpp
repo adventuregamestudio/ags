@@ -82,8 +82,6 @@ extern int displayed_room;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
-extern int mouse_frame,mouse_delay;
-extern int lastmx,lastmy;
 extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
@@ -2398,22 +2396,6 @@ void draw_gui_and_overlays()
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
             add_to_sprite_list(gui_ddb, gui.X, gui.Y, gui.ZOrder, false, index);
         }
-
-        // Poll the GUIs
-        // TODO: move this out of the draw routine into game update!!
-        if (IsInterfaceEnabled()) // only poll if the interface is enabled
-        {
-            for (auto &gui : guis)
-            {
-                if (!gui.IsDisplayed()) continue; // not on screen
-                // Don't touch GUI if "GUIs Turn Off When Disabled"
-                if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-                    (all_buttons_disabled >= 0) &&
-                    (gui.PopupStyle != kGUIPopupNoAutoRemove))
-                    continue;
-                gui.Poll(mousex, mousey);
-            }
-        }
     }
 
     // Move the resulting sprlist with guis and overlays to render
@@ -2656,39 +2638,6 @@ void construct_game_scene(bool full_redraw)
     gfxDriver->EndSpriteBatch();
 }
 
-void update_mouse_cursor()
-{
-    // update mouse position (mousex, mousey)
-    ags_domouse();
-    // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view >= 0) {
-        // only on mousemove, and it's not moving
-        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE) != 0) &&
-            (mousex == lastmx) && (mousey == lastmy));
-        // only on hotspot, and it's not on one
-        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT) != 0) &&
-            (GetLocationType(game_to_data_coord(mousex), game_to_data_coord(mousey)) == 0))
-            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
-        else if (mouse_delay>0) mouse_delay--;
-        else {
-            int viewnum = game.mcurs[cur_cursor].view;
-            int loopnum = 0;
-            if (loopnum >= views[viewnum].numLoops)
-                quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);
-            if (views[viewnum].loops[loopnum].numFrames < 1)
-                quitprintf("An animating mouse cursor is using view %d which has no frames in loop %d", viewnum + 1, loopnum);
-
-            mouse_frame++;
-            if (mouse_frame >= views[viewnum].loops[loopnum].numFrames)
-                mouse_frame = 0;
-            set_new_cursor_graphic(views[viewnum].loops[loopnum].frames[mouse_frame].pic);
-            mouse_delay = views[viewnum].loops[loopnum].frames[mouse_frame].speed + game.mcurs[cur_cursor].animdelay;
-            CheckViewFrame(viewnum, loopnum, mouse_frame);
-        }
-        lastmx = mousex; lastmy = mousey;
-    }
-}
-
 void construct_game_screen_overlay(bool draw_mouse)
 {
     const bool full_frame_rend = gfxDriver->RequiresFullRedrawEachFrame();
@@ -2698,10 +2647,6 @@ void construct_game_screen_overlay(bool draw_mouse)
     {
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
     }
-
-    // TODO: find out if it's okay to move cursor animation and state update
-    // to the update loop instead of doing it in the drawing routine
-    update_mouse_cursor();
 
     // Add mouse cursor pic, and global screen tint effect
     if (play.screen_is_faded_out == 0)

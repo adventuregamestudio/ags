@@ -397,9 +397,8 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 }
 
 void IAGSEngine::PollSystem () {
-
-    ags_domouse();
     update_polled_stuff();
+    ags_domouse();
     eAGSMouseButton mbut;
     int mwheelz;
     if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone && !play.IsIgnoringInput())

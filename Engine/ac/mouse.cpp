@@ -105,7 +105,7 @@ void SetMouseBounds(int x1, int y1, int x2, int y2)
 // set_mouse_cursor: changes visual appearance to specified cursor
 void set_mouse_cursor(int newcurs) {
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
-    msethotspot(hotspotx, hotspoty);
+    Mouse::SetHotspot(hotspotx, hotspoty);
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
     if (newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 &&

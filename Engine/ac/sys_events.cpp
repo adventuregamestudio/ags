@@ -477,7 +477,7 @@ void ags_mouse_acquire_relxy(int &x, int &y) {
 }
 
 void ags_domouse() {
-    mgetgraphpos();
+    Mouse::Poll();
 }
 
 int ags_check_mouse_wheel() {

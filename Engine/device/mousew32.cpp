@@ -36,7 +36,7 @@ using namespace AGS::Engine;
 char currentcursor = 0;
 // virtual mouse cursor coordinates
 int mousex = 0, mousey = 0, numcurso = -1, hotx = 0, hoty = 0;
-// real mouse coordinates and bounds
+// real mouse coordinates and bounds (in window coords)
 static int real_mouse_x = 0, real_mouse_y = 0;
 static int boundx1 = 0, boundx2 = 99999, boundy1 = 0, boundy2 = 99999;
 char ignore_bounds = 0;
@@ -63,9 +63,11 @@ namespace Mouse
 
     // Converts real window coordinates to native game coords
     void WindowToGame(int &x, int &y);
+    // Sets mouse position in system coordinates, syncs with the real mouse cursor
+    void SetSysPosition(int x, int y);
 }
 
-void mgetgraphpos()
+void Mouse::Poll()
 {
     // TODO: [sonneveld] find out where mgetgraphpos is needed, are events polled before that?
     sys_evt_process_pending();
@@ -88,40 +90,32 @@ void mgetgraphpos()
     {
         mousex = Math::Clamp(mousex, boundx1, boundx2);
         mousey = Math::Clamp(mousey, boundy1, boundy2);
-        msetgraphpos(mousex, mousey);
+        Mouse::SetSysPosition(mousex, mousey);
     }
     // Convert to virtual coordinates
     Mouse::WindowToGame(mousex, mousey);
 }
 
-void msetcursorlimit(int x1, int y1, int x2, int y2)
+void Mouse::SetSysPosition(int x, int y)
 {
-  boundx1 = x1;
-  boundy1 = y1;
-  boundx2 = x2;
-  boundy2 = y2;
+    sys_mouse_x = x;
+    sys_mouse_y = y;
+    real_mouse_x = x;
+    real_mouse_y = y;
+    sys_window_set_mouse(real_mouse_x, real_mouse_y);
 }
 
-void msetgraphpos(int xa, int ya)
+void Mouse::SetHotspot(int x, int y)
 {
-  sys_mouse_x = xa;
-  sys_mouse_y = ya;
-  real_mouse_x = xa;
-  real_mouse_y = ya;
-  sys_window_set_mouse(real_mouse_x, real_mouse_y);
+    hotx = x;
+    hoty = y;
 }
 
-void msethotspot(int xx, int yy)
+int Mouse::GetButtonCount()
 {
-  hotx = xx;  // mousex -= hotx; mousey -= hoty;
-  hoty = yy;  // mousex += hotx; mousey += hoty;
-}
-
-int minstalled()
-{
-  // TODO: can SDL tell number of available/supported buttons at all, or whether mouse is present?
-  // this is not that critical, but maybe some game devs would like to detect if player has or not a mouse.
-  return 3; // SDL *theoretically* support 3 mouse buttons, but that does not mean they are physically present...
+    // TODO: can SDL tell number of available/supported buttons at all, or whether mouse is present?
+    // this is not that critical, but maybe some game devs would like to detect if player has or not a mouse.
+    return 3; // SDL *theoretically* support 3 mouse buttons, but that does not mean they are physically present...
 }
 
 void Mouse::WindowToGame(int &x, int &y)
@@ -142,12 +136,17 @@ void Mouse::SetMoveLimit(const Rect &r)
 {
     Rect src_r = OffsetRect(r, play.GetMainViewport().GetLT());
     Rect dst_r = GameScaling.ScaleRange(src_r);
-    msetcursorlimit(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
+    boundx1 = dst_r.Left;
+    boundy1 = dst_r.Top;
+    boundx2 = dst_r.Right;
+    boundy2 = dst_r.Bottom;
 }
 
-void Mouse::SetPosition(const Point p)
+void Mouse::SetPosition(const Point &p)
 {
-    msetgraphpos(GameScaling.X.ScalePt(p.X + play.GetMainViewport().Left), GameScaling.Y.ScalePt(p.Y + play.GetMainViewport().Top));
+    Mouse::SetSysPosition(
+        GameScaling.X.ScalePt(p.X + play.GetMainViewport().Left),
+        GameScaling.Y.ScalePt(p.Y + play.GetMainViewport().Top));
 }
 
 bool Mouse::IsLockedToWindow()

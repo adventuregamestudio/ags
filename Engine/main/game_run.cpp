@@ -1160,6 +1160,15 @@ void RunGameUntilAborted()
     }
 }
 
+void update_cursor_and_dependent()
+{
+    const int mwasatx = mousex, mwasaty = mousey;
+    ags_domouse();
+    update_cursor_over_gui();
+    update_cursor_over_location(mwasatx, mwasaty);
+    update_cursor_view();
+}
+
 void update_polled_stuff()
 {
     if (want_exit) {

@@ -5,12 +5,20 @@
   <PropertyGroup>
     <_PropertySheetDisplayName>libsdl2</_PropertySheetDisplayName>
   </PropertyGroup>
-  <ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(AGS_SDL_INCLUDE);$(AGS_SDL_SOUND_INCLUDE);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(AGS_SDL_LIB);$(AGS_SDL_SOUND_LIB);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>  
+  <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(AGS_SDL_INCLUDE);$(AGS_SDL_SOUND_INCLUDE);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(AGS_SDL_LIB_X64);$(AGS_SDL_SOUND_LIB_X64);$(AGS_SDL_LIB)\..\x64;$(AGS_SDL_SOUND_LIB)\..\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

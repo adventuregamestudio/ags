@@ -65,25 +65,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
     <TargetName>Compiler_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
     <TargetName>Compiler</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_MD|Win32'">
-    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
     <TargetName>Compiler_md</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'">
-    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
     <TargetName>Compiler_md_d</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

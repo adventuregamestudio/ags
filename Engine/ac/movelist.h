@@ -33,7 +33,7 @@ struct MoveList {
     char  direct = 0;  // MoveCharDirect was used or not
 
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #endif // __AC_MOVE_H

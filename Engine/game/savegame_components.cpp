@@ -451,6 +451,30 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
     return err;
 }
 
+HSaveError WriteMoveLists(Stream *out)
+{
+    out->WriteInt32(static_cast<int32_t>(mls.size()));
+    for (const auto &movelist : mls)
+    {
+        movelist.WriteToFile(out);
+    }
+    return HSaveError::None();
+}
+
+HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+{
+    size_t movelist_count = in->ReadInt32();
+    //mls.resize(movelist_count);
+    HSaveError err = HSaveError::None();
+    for (size_t i = 0; i < movelist_count; ++i)
+    {
+        err = mls[i].ReadFromFile(in, cmp_ver);
+        if (!err)
+            return err;
+    }
+    return err;
+}
+
 HSaveError WriteCharacters(Stream *out)
 {
     out->WriteInt32(game.numcharacters);
@@ -459,8 +483,6 @@ HSaveError WriteCharacters(Stream *out)
         game.chars[i].WriteToFile(out);
         charextra[i].WriteToSavegame(out);
         Properties::WriteValues(play.charProps[i], out);
-        // character movement path cache
-        mls[CHMLSOFFS + i].WriteToFile(out);
     }
     return HSaveError::None();
 }
@@ -475,10 +497,6 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         game.chars[i].ReadFromFile(in, kGameVersion_Undefined, cmp_ver);
         charextra[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(play.charProps[i], in);
-        // character movement path cache
-        err = mls[CHMLSOFFS + i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0);
-        if (!err)
-            return err;
     }
     return err;
 }
@@ -945,14 +963,6 @@ HSaveError WriteThisRoom(Stream *out)
         out->WriteInt32(thisroom.WalkAreas[i].ScalingNear);
     }
 
-    // room object movement paths cache
-    // CHECKME: not sure why it saves (object count + 1) move lists
-    out->WriteInt32(thisroom.Objects.size() + 1);
-    for (size_t i = 0; i < thisroom.Objects.size() + 1; ++i)
-    {
-        mls[i].WriteToFile(out);
-    }
-
     // room music volume
     out->WriteInt32(thisroom.Options.MusicVolume);
 
@@ -994,17 +1004,6 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
     {
         r_data.RoomZoomLevels1[i] = in->ReadInt32();
         r_data.RoomZoomLevels2[i] = in->ReadInt32();
-    }
-
-    // room object movement paths cache
-    int objmls_count = in->ReadInt32();
-    if (!AssertCompatLimit(err, objmls_count, CHMLSOFFS, "room object move lists"))
-        return err;
-    for (int i = 0; i < objmls_count; ++i)
-    {
-        err = mls[i].ReadFromFile(in, cmp_ver > 0 ? 1 : 0); // FIXME cmp_ver, ugly
-        if (!err)
-            return err;
     }
 
     // save the new room music vol for later use
@@ -1068,8 +1067,8 @@ ComponentHandler ComponentHandlers[] =
 {
     {
         "Game State",
-        kGSSvgVersion_350_10,
-        kGSSvgVersion_Initial,
+        kGSSvgVersion_399,
+        kGSSvgVersion_399,
         WriteGameState,
         ReadGameState
     },
@@ -1083,7 +1082,7 @@ ComponentHandler ComponentHandlers[] =
     {
         "Characters",
         10,
-        0,
+        10,
         WriteCharacters,
         ReadCharacters
     },
@@ -1153,14 +1152,14 @@ ComponentHandler ComponentHandlers[] =
     {
         "Room States",
         kRoomStatSvgVersion_39999,
-        kRoomStatSvgVersion_Initial,
+        kRoomStatSvgVersion_39999,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
         kRoomStatSvgVersion_39999, // must correspond to "Room States"
-        kRoomStatSvgVersion_Initial,
+        kRoomStatSvgVersion_39999,
         WriteThisRoom,
         ReadThisRoom
     },
@@ -1177,6 +1176,13 @@ ComponentHandler ComponentHandlers[] =
         0,
         WritePluginData,
         ReadPluginData
+    },
+    {
+        "Move Lists",
+        0,
+        0,
+        WriteMoveLists,
+        ReadMoveLists
     },
     { nullptr, 0, 0, nullptr, nullptr } // end of array
 };

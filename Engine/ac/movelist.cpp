@@ -21,11 +21,6 @@ using namespace AGS::Engine;
 
 HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
-    if (cmp_ver < 1)
-    {
-        return new SavegameError(kSvgErr_IncompatibleEngine, "Outdated movelist format.");
-    }
-
     numstage = in->ReadInt32();
     // TODO: reimplement MoveList stages as vector to avoid these limits
     if (numstage > MAXNEEDSTAGES)
@@ -53,7 +48,7 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     return HSaveError::None();
 }
 
-void MoveList::WriteToFile(Stream *out)
+void MoveList::WriteToFile(Stream *out) const
 {
     out->WriteInt32(numstage);
     out->WriteInt32(fromx);

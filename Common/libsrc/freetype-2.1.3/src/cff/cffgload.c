@@ -815,9 +815,10 @@
     decoder->read_width = 1;
 
     /* compute random seed from stack address of parameter */
-    seed = (FT_Fixed)(char*)&seed           ^
-           (FT_Fixed)(char*)&decoder        ^
-           (FT_Fixed)(char*)&charstring_base;
+    /* FIXME: [ikm] had to cast to uintptr_t first, supress warnings on Winx64 */
+    seed = (FT_Fixed)(uintptr_t)(char*)&seed           ^
+           (FT_Fixed)(uintptr_t)(char*)&decoder        ^
+           (FT_Fixed)(uintptr_t)(char*)&charstring_base;
     seed = ( seed ^ ( seed >> 10 ) ^ ( seed >> 20 ) ) & 0xFFFF;
     if ( seed == 0 )
       seed = 0x7384;

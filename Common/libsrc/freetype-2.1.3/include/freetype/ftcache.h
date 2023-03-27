@@ -183,7 +183,11 @@ FT_BEGIN_HEADER
             (f1)->pix_width  == (f2)->pix_width  && \
             (f1)->pix_height == (f2)->pix_height )
 
-#define FT_POINTER_TO_ULONG( p )  ((FT_ULong)(FT_Pointer)(p))
+  /* FIXME: [ikm] had to cast to uintptr_t first, supress warnings on Winx64 
+            the cast intent is unclear;
+            this version of FreeType seem to be implying 16/32-bit addresses.
+  */
+#define FT_POINTER_TO_ULONG( p )  ((FT_ULong)(uintptr_t)(FT_Pointer)(p))
 
 #define FTC_FACE_ID_HASH( i )                              \
           ((FT_UInt32)(( FT_POINTER_TO_ULONG( i ) >> 3 ) ^ \

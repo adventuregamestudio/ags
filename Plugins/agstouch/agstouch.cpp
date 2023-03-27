@@ -29,9 +29,9 @@ IAGSEngine* engine;
 
 extern "C"
 {
-  void ios_show_keyboard();
-  void ios_hide_keyboard();
-  int ios_is_keyboard_visible();
+  //void ios_show_keyboard();
+  //void ios_hide_keyboard();
+  //int ios_is_keyboard_visible();
 }
 
 #endif
@@ -46,7 +46,7 @@ extern "C"
 void TouchShowKeyboard()
 {
 #if defined(IOS_VERSION)
-  ios_show_keyboard();
+  //ios_show_keyboard();
 #endif
 }
 
@@ -54,7 +54,7 @@ void TouchShowKeyboard()
 void TouchHideKeyboard()
 {
 #if defined(IOS_VERSION)
-  ios_hide_keyboard();
+ // ios_hide_keyboard();
 #endif
 }
 
@@ -62,10 +62,10 @@ void TouchHideKeyboard()
 bool TouchIsKeyboardVisible()
 {
 #if defined(IOS_VERSION)
-  return (ios_is_keyboard_visible() != 0);
+ // return (ios_is_keyboard_visible() != 0);
 #else
-  return false;
 #endif
+    return false;
 }
 
 

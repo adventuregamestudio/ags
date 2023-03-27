@@ -1873,7 +1873,7 @@ int has_hit_another_character(int sourceChar) {
 int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
-    if (do_movelist_move(&chi->walking,&chi->x,&chi->y) == 2) 
+    if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
     {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
             fix_player_sprite(&mls[chi->walking], chi);

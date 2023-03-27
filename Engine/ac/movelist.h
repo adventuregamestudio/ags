@@ -22,6 +22,13 @@ using namespace AGS; // FIXME later
 
 #define MAXNEEDSTAGES 256
 
+enum MoveListDoneFlags
+{
+    kMoveListDone_X = 0x01,
+    kMoveListDone_Y = 0x02,
+    kMoveListDone_XY = kMoveListDone_X | kMoveListDone_Y
+};
+
 struct MoveList {
     Point pos[MAXNEEDSTAGES]{};
     int   numstage = 0;

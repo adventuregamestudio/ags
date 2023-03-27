@@ -14,11 +14,11 @@
 #include "core/platform.h"
 
 #if AGS_PLATFORM_OS_IOS
-
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
 #include <ctype.h>
+#include <SDL.h>
 
 #include <allegro.h>
 #include "platform/base/agsplatformdriver.h"
@@ -27,12 +27,18 @@
 #include "main/config.h"
 #include "plugin/agsplugin.h"
 #include "util/string_utils.h"
+#include "util/string_compat.h"
+#include "ac/gamesetup.h"
+#include "util/path.h"
+#include "util/directory.h"
+
 
 using namespace AGS::Common;
 
 #define IOS_CONFIG_FILENAME "ios.cfg"
 
-extern char* ios_document_directory;
+String ios_log_directory = "";
+String ios_save_directory = "";
 
 extern int main(int argc,char*argv[]);
 
@@ -57,11 +63,15 @@ const int CONFIG_MOUSE_SPEED = 21;
 
 
 struct AGSIOS : AGSPlatformDriver {
+  void MainInit() override;
   const char *GetGameDataFile() override;
   void ReadConfiguration(ConfigTree &cfg) override;
   int  CDPlayerCommand(int cmdd, int datt) override;
   void Delay(int millis) override;
   void DisplayAlert(const char*, ...) override;
+  FSLocation GetAllUsersDataDirectory() override;
+  FSLocation GetUserSavedgamesDirectory() override;
+  FSLocation GetUserGlobalConfigDirectory() override;
   FSLocation GetAppOutputDirectory() override;
   unsigned long GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
@@ -226,7 +236,6 @@ void setStringConfigValue(int id, const char* value)
   }
 }
 
-/*
 int getAvailableTranslations(char* translations)
 {
   int i = 0;
@@ -247,7 +256,7 @@ int getAvailableTranslations(char* translations)
         {
           memset(buffer, 0, 200);
           strncpy(buffer, entry->d_name, length - 4);
-          env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0]));
+          //env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0])); // figure out how to pass the string to iOS back
           i++;
         }
       }
@@ -257,9 +266,8 @@ int getAvailableTranslations(char* translations)
 
   return i;
 }
-*/
 
-extern void ios_show_message_box(char* buffer);
+//extern void ios_show_message_box(char* buffer);
 volatile int ios_wait_for_ui = 0;
 
 
@@ -302,6 +310,33 @@ void startEngine(char* filename, char* directory, int loadLastSave)
     exit(0);
 }
 
+static void MakeGameSaveDirectory()
+{
+    String gamename = Path::RemoveExtension(Path::GetFilename(usetup.main_data_file));
+    if(gamename.IsNullOrSpace() || gamename.IsEmpty()) {
+        gamename = "save";
+    }
+    String prefpath = SDL_GetPrefPath("AdventureGameStudio","AGS");
+    ios_save_directory = Path::ConcatPaths(prefpath, gamename);
+    ios_log_directory = Path::ConcatPaths(prefpath, "log");
+    Directory::CreateAllDirectories(prefpath, gamename);
+    Directory::CreateAllDirectories(prefpath, "log");
+}
+
+
+void AGSIOS::MainInit()
+{
+    auto &setup = AGSIOS::GetMobileSetup();
+    
+    MakeGameSaveDirectory();
+    
+    // Reset configuration.
+    ResetConfiguration(setup);
+
+    // Read general configuration.
+    readConfigFile(SDL_GetBasePath());
+    
+}
 
 
 const char *AGSIOS::GetGameDataFile()
@@ -322,13 +357,13 @@ void AGSIOS::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
   va_list ap;
   va_start(ap, text);
-  vsprintf(displbuf, text, ap);
+  vsnprintf(displbuf, 2000, text, ap);
   va_end(ap);
   printf("%s", displbuf);
-  ios_show_message_box(displbuf);
+//  ios_show_message_box(displbuf);
   
-  while (ios_wait_for_ui)
-    usleep(200);
+  //while (ios_wait_for_ui)
+  //  usleep(200);
 }
 
 void AGSIOS::Delay(int millis) {
@@ -352,9 +387,25 @@ void AGSIOS::ShutdownCDPlayer() {
   //cd_exit();
 }
 
+FSLocation AGSIOS::GetAllUsersDataDirectory()
+{
+  return FSLocation(ios_save_directory);
+}
+
+FSLocation AGSIOS::GetUserSavedgamesDirectory()
+{
+  return FSLocation(ios_save_directory);
+}
+
+FSLocation AGSIOS::GetUserGlobalConfigDirectory()
+{
+  return FSLocation(SDL_GetBasePath());
+}
+
+
 FSLocation AGSIOS::GetAppOutputDirectory()
 {
-  return FSLocation(ios_document_directory);
+  return FSLocation(ios_log_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

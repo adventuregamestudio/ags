@@ -27,6 +27,7 @@
 #include "main/config.h"
 #include "plugin/agsplugin.h"
 #include "util/string_utils.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 
@@ -226,7 +227,6 @@ void setStringConfigValue(int id, const char* value)
   }
 }
 
-/*
 int getAvailableTranslations(char* translations)
 {
   int i = 0;
@@ -247,7 +247,7 @@ int getAvailableTranslations(char* translations)
         {
           memset(buffer, 0, 200);
           strncpy(buffer, entry->d_name, length - 4);
-          env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0]));
+          //env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0])); // figure out how to pass the string to iOS back
           i++;
         }
       }
@@ -257,9 +257,8 @@ int getAvailableTranslations(char* translations)
 
   return i;
 }
-*/
 
-extern void ios_show_message_box(char* buffer);
+//extern void ios_show_message_box(char* buffer);
 volatile int ios_wait_for_ui = 0;
 
 
@@ -322,13 +321,13 @@ void AGSIOS::DisplayAlert(const char *text, ...) {
   char displbuf[2000];
   va_list ap;
   va_start(ap, text);
-  vsprintf(displbuf, text, ap);
+  vsnprintf(displbuf, 2000, text, ap);
   va_end(ap);
   printf("%s", displbuf);
-  ios_show_message_box(displbuf);
+//  ios_show_message_box(displbuf);
   
-  while (ios_wait_for_ui)
-    usleep(200);
+  //while (ios_wait_for_ui)
+  //  usleep(200);
 }
 
 void AGSIOS::Delay(int millis) {
@@ -354,7 +353,8 @@ void AGSIOS::ShutdownCDPlayer() {
 
 FSLocation AGSIOS::GetAppOutputDirectory()
 {
-  return FSLocation(ios_document_directory);
+    //return FSLocation(ios_document_directory);
+    return FSLocation();
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

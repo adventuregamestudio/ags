@@ -18,7 +18,7 @@
       <AdditionalIncludeDirectories>$(AGS_SDL_INCLUDE);$(AGS_SDL_SOUND_INCLUDE);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(AGS_SDL_LIB)\..\x64;$(AGS_SDL_SOUND_LIB)\..\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(AGS_SDL_LIB_X64);$(AGS_SDL_SOUND_LIB_X64);$(AGS_SDL_LIB)\..\x64;$(AGS_SDL_SOUND_LIB)\..\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

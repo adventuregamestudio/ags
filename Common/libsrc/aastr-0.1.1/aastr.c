@@ -29,9 +29,9 @@ _aa_stretch_blit (BITMAP *_src, BITMAP *_dst,
   int xi1, xi2, xdd, yxdd;
   int yi1, yi2, ydd;
   int dxbeg, dxend, dybeg, dyend;
-  unsigned long num;
-  void (*add) (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num);
-  void (*put) (unsigned long _addr, int _x);
+  uint32_t num;
+  void (*add) (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num);
+  void (*put) (uintptr_t _addr, int _x);
 
   if ((_dw <= 0) || (_dh <= 0) || (_sw <= 0) || (_sh <= 0))
     return;
@@ -169,7 +169,7 @@ _aa_stretch_blit (BITMAP *_src, BITMAP *_dst,
   /* Stretch all non-clipped lines.  */
   for (; dy < dyend; dy++)
     {
-      unsigned long daddr = bmp_write_line (_dst, dy);
+      uintptr_t daddr = bmp_write_line (_dst, dy);
 
       for (dx = ydx, sx = ysx, xdd = yxdd; dx < dxend; dx++)
 	{

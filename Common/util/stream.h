@@ -24,7 +24,7 @@
 #ifndef __AGS_CN_UTIL__STREAM_H
 #define __AGS_CN_UTIL__STREAM_H
 
-#include "api/stream_api.h"
+#include "util/iagsstream.h"
 
 namespace AGS
 {

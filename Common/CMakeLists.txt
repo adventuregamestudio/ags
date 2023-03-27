@@ -48,7 +48,6 @@ target_sources(common
     ac/view.h
     ac/wordsdictionary.cpp
     ac/wordsdictionary.h
-    api/stream_api.h
     core/asset.cpp
     core/asset.h
     core/assetmanager.cpp
@@ -137,6 +136,7 @@ target_sources(common
     util/filestream.h
     util/geometry.cpp
     util/geometry.h
+    util/iagsstream.h
     util/ini_util.cpp
     util/ini_util.h
     util/inifile.cpp

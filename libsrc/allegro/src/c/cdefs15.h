@@ -32,8 +32,8 @@
 #define GET_PIXEL(p)           bmp_read15((uintptr_t) (p))
 #define GET_MEMORY_PIXEL(p)    (*(p))
 
-#define IS_MASK(c)             ((unsigned long) (c) == MASK_COLOR_15)
-#define IS_SPRITE_MASK(b,c)    ((unsigned long) (c) == MASK_COLOR_15)
+#define IS_MASK(c)             ((uint32_t) (c) == MASK_COLOR_15)
+#define IS_SPRITE_MASK(b,c)    ((uint32_t) (c) == MASK_COLOR_15)
 
 /* Blender for putpixel (DRAW_MODE_TRANS).  */
 #define PP_BLENDER             BLENDER_FUNC

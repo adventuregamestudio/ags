@@ -596,7 +596,7 @@ void _blit_between_formats(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x,
  */
 static void blit_to_self(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, int d_y, int w, int h)
 {
-   unsigned long sx, sy, dx, dy;
+   uint32_t sx, sy, dx, dy;
    BITMAP *tmp;
 
    if (dest->id & BMP_ID_NOBLIT) {

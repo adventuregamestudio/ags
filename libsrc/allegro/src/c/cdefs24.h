@@ -32,8 +32,8 @@
 #define PUT_RGB(p,r,g,b)       bmp_write24((uintptr_t) (p), makecol24((r), (g), (b)))
 #define GET_PIXEL(p)           bmp_read24((uintptr_t) (p))
 #define GET_MEMORY_PIXEL(p)    READ3BYTES((p))
-#define IS_MASK(c)             ((unsigned long) (c) == MASK_COLOR_24)
-#define IS_SPRITE_MASK(b,c)    ((unsigned long) (c) == MASK_COLOR_24)
+#define IS_MASK(c)             ((uint32_t) (c) == MASK_COLOR_24)
+#define IS_SPRITE_MASK(b,c)    ((uint32_t) (c) == MASK_COLOR_24)
 
 /* Blender for putpixel (DRAW_MODE_TRANS).  */
 #define PP_BLENDER             BLENDER_FUNC
@@ -68,7 +68,7 @@
                                                 ((x) - _drawing_x_anchor) & _drawing_x_mask))
 
 #define RLE_PTR                int32_t*
-#define RLE_IS_EOL(c)          ((unsigned long) (c) == MASK_COLOR_24)
+#define RLE_IS_EOL(c)          ((uint32_t) (c) == MASK_COLOR_24)
 
 #define FUNC_LINEAR_CLEAR_TO_COLOR          _linear_clear_to_color24
 #define FUNC_LINEAR_BLIT                    _linear_blit24

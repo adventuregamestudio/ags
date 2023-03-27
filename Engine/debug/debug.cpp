@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <limits>
+#include <inttypes.h>
 #include <memory>
 #include <stdio.h>
 #include "core/platform.h"
@@ -92,7 +93,7 @@ void send_message_to_debugger(const std::vector<std::pair<String, String>>& tag_
 {
     String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="Windows-1252"?><Debugger Command="%s">)", command.GetCStr());
 #if AGS_PLATFORM_OS_WINDOWS
-    messageToSend.Append(String::FromFormat("  <EngineWindow>%d</EngineWindow> ", (int)sys_win_get_window()));
+    messageToSend.Append(String::FromFormat("  <EngineWindow>%" PRIdPTR "</EngineWindow> ", sys_win_get_window()));
 #endif
 
     for(const auto& tag_value : tag_values)

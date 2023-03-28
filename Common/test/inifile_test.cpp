@@ -77,18 +77,18 @@ TEST(IniFile, ReadAndQuery) {
     // Assertions
 
     // there are explicit sections and 1 implicit global one
-    const int section_count = 5;
+    const size_t section_count = 5;
     ASSERT_TRUE(ini.GetSectionCount() == section_count);
     IniFile::ConstSectionIterator sec = ini.CBegin();
 
-    ASSERT_TRUE(sec->GetItemCount() == 1);
+    ASSERT_TRUE(sec->GetItemCount() == 1u);
     IniFile::ConstItemIterator item = sec->CBegin();
     ASSERT_TRUE(item->GetKey() == "global_item");
     ASSERT_TRUE(item->GetValue() == "global_value");
 
     ++sec;
     ASSERT_TRUE(sec->GetName() == "section1");
-    ASSERT_TRUE(sec->GetItemCount() == 5);
+    ASSERT_TRUE(sec->GetItemCount() == 5u);
     item = sec->CBegin();
     ASSERT_TRUE(item->GetKey() == "item1");
     ASSERT_TRUE(item->GetValue() == "");
@@ -106,7 +106,7 @@ TEST(IniFile, ReadAndQuery) {
 
     ++sec;
     ASSERT_TRUE(sec->GetName() == "this_section_should_be_deleted");
-    ASSERT_TRUE(sec->GetItemCount() == 3);
+    ASSERT_TRUE(sec->GetItemCount() == 3u);
     item = sec->CBegin();
     ASSERT_TRUE(item->GetKey() == "item1");
     ASSERT_TRUE(item->GetValue() == "value1");
@@ -118,7 +118,7 @@ TEST(IniFile, ReadAndQuery) {
 
     ++sec;
     ASSERT_TRUE(sec->GetName() == "section3");
-    ASSERT_TRUE(sec->GetItemCount() == 2);
+    ASSERT_TRUE(sec->GetItemCount() == 2u);
     item = sec->CBegin();
     ASSERT_TRUE(item->GetKey() == "item_to_be_deleted");
     ASSERT_TRUE(item->GetValue() == "value");
@@ -128,7 +128,7 @@ TEST(IniFile, ReadAndQuery) {
 
     ++sec;
     ASSERT_TRUE(sec->GetName() == "section4");
-    ASSERT_TRUE(sec->GetItemCount() == 1);
+    ASSERT_TRUE(sec->GetItemCount() == 1u);
     item = sec->CBegin();
     ASSERT_TRUE(item->GetKey() == "item1");
     ASSERT_TRUE(item->GetValue() == "value");
@@ -159,7 +159,7 @@ TEST(IniFile, ReadAndModify) {
     // Assertions
 
     // there are explicit sections and 1 implicit global one
-    const int section_count = 5;
+    const size_t section_count = 5u;
     // Modiying item values
     IniFile::SectionIterator sec = ini.Begin();
     ++sec;
@@ -176,7 +176,7 @@ TEST(IniFile, ReadAndModify) {
     // Removing a section
     sec = ini.Begin(); ++sec; ++sec;
     ini.RemoveSection(sec);
-    ASSERT_TRUE(ini.GetSectionCount() == section_count - 1);
+    ASSERT_TRUE(ini.GetSectionCount() == section_count - 1u);
 
     // Removing an item
     sec = ini.Begin(); ++sec; ++sec;
@@ -238,7 +238,7 @@ TEST(IniFile, ReadKeyValueTree) {
     //-----------------------------------------------------
     // Assertions
 
-    ASSERT_TRUE(tree.size() == 5);
+    ASSERT_TRUE(tree.size() == 5u);
     ASSERT_TRUE(tree.find("") != tree.end()); // global section
     ASSERT_TRUE(tree.find("section1") != tree.end());
     ASSERT_TRUE(tree.find("section3") != tree.end());
@@ -249,7 +249,7 @@ TEST(IniFile, ReadKeyValueTree) {
     ASSERT_TRUE(sub_tree.find("global_item") != sub_tree.end());
     ASSERT_TRUE(sub_tree["global_item"] == "global_value");
     sub_tree = tree["section1"];
-    ASSERT_TRUE(sub_tree.size() == 4);
+    ASSERT_TRUE(sub_tree.size() == 4u);
     ASSERT_TRUE(sub_tree.find("item1") != sub_tree.end());
     ASSERT_TRUE(sub_tree.find("item2") != sub_tree.end());
     ASSERT_TRUE(sub_tree.find("item3") != sub_tree.end());
@@ -259,11 +259,11 @@ TEST(IniFile, ReadKeyValueTree) {
     ASSERT_TRUE(sub_tree["item3"] == "value3");
     ASSERT_TRUE(sub_tree["new_item"] == "new_value");
     sub_tree = tree["section3"];
-    ASSERT_TRUE(sub_tree.size() == 1);
+    ASSERT_TRUE(sub_tree.size() == 1u);
     ASSERT_TRUE(sub_tree.find("item_to_be_kept") != sub_tree.end());
     ASSERT_TRUE(sub_tree["item_to_be_kept"] == "another value");
     sub_tree = tree["section4"];
-    ASSERT_TRUE(sub_tree.size() == 3);
+    ASSERT_TRUE(sub_tree.size() == 3u);
     ASSERT_TRUE(sub_tree.find("new_item1") != sub_tree.end());
     ASSERT_TRUE(sub_tree.find("item1") != sub_tree.end());
     ASSERT_TRUE(sub_tree.find("new_item2") != sub_tree.end());
@@ -271,7 +271,7 @@ TEST(IniFile, ReadKeyValueTree) {
     ASSERT_TRUE(sub_tree["item1"] == "value");
     ASSERT_TRUE(sub_tree["new_item2"] == "new_value2");
     sub_tree = tree["section5"];
-    ASSERT_TRUE(sub_tree.size() == 3);
+    ASSERT_TRUE(sub_tree.size() == 3u);
     ASSERT_TRUE(sub_tree.find("item5_1") != sub_tree.end());
     ASSERT_TRUE(sub_tree.find("item5_2") != sub_tree.end());
     ASSERT_TRUE(sub_tree.find("item5_3") != sub_tree.end());

@@ -35,10 +35,15 @@ class IniFile
 public:
     // Position of a string in the line of text:
     // is defined by a pair of first and next-after-last character indices
-    typedef std::pair<int, int> StrPos;
+    typedef std::pair<size_t, size_t> StrPos;
     // Location of section in the array of text lines:
     // is defined by a pair of first and next-after-last line indices
-    typedef std::pair<int, int> SectionPos;
+    typedef std::pair<size_t, size_t> SectionPos;
+
+    inline static bool IsValidStrPos(const StrPos &pos)
+    {
+        return pos.first < pos.second;
+    }
 
     // Item definition
     // Valid key indicates a key-value line; no key means unparsed
@@ -47,18 +52,19 @@ public:
     {
     public:
         ItemDef(const String &key, const String &value);
-        ItemDef(const String &line, const StrPos &key, const StrPos &value, int sep_at);
+        ItemDef(const String &line, const StrPos &key, const StrPos &value, size_t sep_at);
         String GetLine()  const { return Line; }
         String GetKey()   const { return SubString(Line, Key); }
         String GetValue() const { return SubString(Line, Value); }
-        bool   IsKeyValue() const { return Key.second - Key.first > 0; }
+        // Tells if this is a valid key/value item, which means that it has a valid key
+        bool   IsKeyValue() const { return IsValidStrPos(Key); }
         void SetKey(const String &key);
         void SetValue(const String &value);
 
     private:
         String  Line;  // actual text
         StrPos  Key;   // position of item key
-        int     SepAt; // position of the separator (assignment) symbol
+        size_t  SepAt; // position of the separator (assignment) symbol
         StrPos  Value; // position of item value
     };
     // Linked list of items
@@ -75,7 +81,8 @@ public:
         String GetLine() const { return Header; }
         String GetName() const { return SubString(Header, Name); }
         size_t GetItemCount() const { return Items.size(); }
-        bool   IsGlobal() const { return Name.second - Name.first <= 0; }
+        // Tells if this is a "global" section, which means that it has no name
+        bool   IsGlobal() const { return !IsValidStrPos(Name); }
         ItemIterator Begin() { return Items.begin(); }
         ItemIterator End()   { return Items.end(); }
         ConstItemIterator CBegin() const { return Items.begin(); }

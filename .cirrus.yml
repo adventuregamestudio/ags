@@ -78,7 +78,7 @@ build_linux_debian_task:
       - RPATH_PREFIX:
   build_script: |
     arch=$(dpkg --print-architecture)
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
     sed -i -s "s/ags \(.*\)(.*)/ags \($version\)\1/" debian/changelog
     if [ -n "$RPATH_PREFIX" ]; then
       case $arch in
@@ -216,7 +216,7 @@ build_emscripten_task:
     cd Emscripten && ./build.sh
   package_emscripten_build_script: |
     tmp=/tmp/bundle$$
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
     pushd Emscripten && mkdir -p $tmp && cp my_game_files.js $tmp && pushd build-release && mv ags.js ags.wasm ags.html $tmp && popd && popd
     mv $tmp/ags.html $tmp/index.html
     bsdtar -f ags_${version}_web.tar.gz -cvzC $tmp index.html ags.js ags.wasm my_game_files.js
@@ -272,7 +272,7 @@ linux_packaging_task:
     cp -v debian/copyright $tmp/data/licenses/ags-copyright
     cp -v debian/ags+libraries/startgame $tmp/
     awk 'BEGIN { RS="" } !/make_ags/ { if (NR>1) print RS; print }' debian/ags+libraries/README > $tmp/README
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
     bsdtar -f ags_${version}_linux.tar.gz -cvzC $tmp data startgame README
   binaries_artifacts:
     path: ags_*.tar.gz
@@ -372,7 +372,7 @@ pdb_packaging_task:
       rm /tmp/tmp_pdb.zip
     done
   make_pdb_archive_script: |
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
     bsdtar -f AGS-${version}-pdb.zip -acv --strip-components 3 /tmp/pdb
   archive_artifacts:
     path: AGS-*-pdb.zip
@@ -412,7 +412,7 @@ make_release_task:
   install_packages_script: apk add --no-cache curl git libarchive-tools outils-sha256
   git_submodules_script: git submodule update --init --recursive
   create_source_archives_script: |
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
     mkdir -p /tmp/github_release && \
     for ext in tar.bz2 tar.gz tar.xz zip; do
       echo Writing $ext archive...
@@ -423,7 +423,7 @@ make_release_task:
         .;
     done
   download_release_files_script: |
-    version=$(awk -F"[ \"]+" '{ if ($1=="#define" && $2=="ACI_VERSION_STR") { print $3; exit } }' Common/core/def_version.h)
+    version=$(awk -F'[ "]+' '$1=="#define" && $2=="ACI_VERSION_STR" { print $3; exit }' Common/core/def_version.h)
     baseurl="https://api.cirrus-ci.com/v1/artifact/build/$CIRRUS_BUILD_ID"
     mkdir -p /tmp/github_release && \
     cd /tmp/github_release && \

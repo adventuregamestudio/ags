@@ -1,0 +1,2 @@
+repo: https://github.com/icculus/mojoAL
+commit: bfaf2f24034c5776c930a5575e115ee561f372b7

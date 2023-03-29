@@ -26,7 +26,7 @@ public:
 
     virtual void init_pathfinder() = 0;
     virtual void shutdown_pathfinder() = 0;
-    virtual void set_wallscreen(Bitmap *wallscreen) = 0;
+    virtual void set_walkablearea(Bitmap *walkablearea) = 0;
     virtual int can_see_from(int x1, int y1, int x2, int y2) = 0;
     virtual void get_lastcpos(int &lastcx, int &lastcy) = 0;
     virtual void set_route_move_speed(int speed_x, int speed_y) = 0;
@@ -45,9 +45,9 @@ public:
     { 
         AGS::Engine::RouteFinder::shutdown_pathfinder(); 
     }
-    void set_wallscreen(Bitmap *wallscreen) override
+    void set_walkablearea(Bitmap *walkablearea) override
     { 
-        AGS::Engine::RouteFinder::set_wallscreen(wallscreen);
+        AGS::Engine::RouteFinder::set_walkablearea(walkablearea);
     }
     int can_see_from(int x1, int y1, int x2, int y2) override
     { 
@@ -82,9 +82,9 @@ public:
     { 
         AGS::Engine::RouteFinderLegacy::shutdown_pathfinder(); 
     }
-    void set_wallscreen(Bitmap *wallscreen) override
+    void set_walkablearea(Bitmap *walkablearea) override
     { 
-        AGS::Engine::RouteFinderLegacy::set_wallscreen(wallscreen); 
+        AGS::Engine::RouteFinderLegacy::set_walkablearea(walkablearea); 
     }
     int can_see_from(int x1, int y1, int x2, int y2) override
     { 
@@ -132,9 +132,9 @@ void shutdown_pathfinder()
         route_finder_impl->shutdown_pathfinder();
 }
 
-void set_wallscreen(Bitmap *wallscreen)
+void set_walkablearea(Bitmap *walkablearea)
 {
-    route_finder_impl->set_wallscreen(wallscreen);
+    route_finder_impl->set_walkablearea(walkablearea);
 }
 
 int can_see_from(int x1, int y1, int x2, int y2)

@@ -778,8 +778,8 @@ int IAGSEngine::GetMovementPathLastWaypoint(int32 pathId) {
 }
 
 void IAGSEngine::GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y) {
-    *x = (mls[pathId % TURNING_AROUND].pos[waypoint] >> 16) & 0x0000ffff;
-    *y = (mls[pathId % TURNING_AROUND].pos[waypoint] & 0x0000ffff);
+    *x = mls[pathId % TURNING_AROUND].pos[waypoint].X;
+    *y = mls[pathId % TURNING_AROUND].pos[waypoint].Y;
 }
 
 void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed) {

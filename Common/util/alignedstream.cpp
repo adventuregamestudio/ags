@@ -154,6 +154,14 @@ size_t AlignedStream::ReadArrayOfInt64(int64_t *buffer, size_t count)
     return count;
 }
 
+size_t AlignedStream::ReadArrayOfFloat32(float *buffer, size_t count)
+{
+    ReadPadding(sizeof(float));
+    count = _stream->ReadArrayOfFloat32(buffer, count);
+    _block += count * sizeof(float);
+    return count;
+}
+
 size_t AlignedStream::Write(const void *buffer, size_t size)
 {
     WritePadding(sizeof(int8_t));
@@ -243,6 +251,14 @@ size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
     WritePadding(sizeof(int64_t));
     count = _stream->WriteArrayOfInt64(buffer, count);
     _block += count * sizeof(int64_t);
+    return count;
+}
+
+size_t AlignedStream::WriteArrayOfFloat32(const float *buffer, size_t count)
+{
+    WritePadding(sizeof(float));
+    count = _stream->WriteArrayOfFloat32(buffer, count);
+    _block += count * sizeof(float);
     return count;
 }
 

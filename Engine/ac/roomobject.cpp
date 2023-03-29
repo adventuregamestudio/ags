@@ -77,8 +77,8 @@ void RoomObject::UpdateCyclingView(int ref_id)
 {
 	if (on != 1) return;
     if (moving>0) {
-      do_movelist_move(&moving,&x,&y);
-      }
+      do_movelist_move(moving, x, y);
+    }
     if (cycling==0) return;
     if (view == RoomObject::NoView) return;
     if (wait>0) { wait--; return; }

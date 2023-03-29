@@ -70,6 +70,12 @@ public:
             ReadAndConvertArrayOfInt64(buffer, count) : ReadArray(buffer, sizeof(int64_t), count);
     }
 
+    size_t ReadArrayOfFloat32(float *buffer, size_t count) override
+    {
+        return MustSwapBytes() ?
+            ReadAndConvertArrayOfFloat32(buffer, count) : ReadArray(buffer, sizeof(float), count);
+    }
+
     size_t  WriteInt8(int8_t val) override;
     size_t  WriteInt16(int16_t val) override;
     size_t  WriteInt32(int32_t val) override;
@@ -99,6 +105,12 @@ public:
             WriteAndConvertArrayOfInt64(buffer, count) : WriteArray(buffer, sizeof(int64_t), count);
     }
 
+    size_t WriteArrayOfFloat32(const float *buffer, size_t count) override
+    {
+        return MustSwapBytes() ?
+            WriteAndConvertArrayOfFloat32(buffer, count) : WriteArray(buffer, sizeof(float), count);
+    }
+
 protected:
     DataEndianess _streamEndianess;
 
@@ -107,9 +119,11 @@ protected:
     size_t  ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count);
+    size_t  ReadAndConvertArrayOfFloat32(float *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count);
+    size_t  WriteAndConvertArrayOfFloat32(const float *buffer, size_t count);
 
     inline bool MustSwapBytes()
     {

@@ -953,9 +953,8 @@ void convert_move_path_to_room_resolution(MoveList *ml)
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        uint16_t lowPart = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
-        uint16_t highPart = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
-        ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
+        ml->pos[i].X = mask_to_room_coord(ml->pos[i].X);
+        ml->pos[i].Y = mask_to_room_coord(ml->pos[i].Y);
     }
 
     if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)

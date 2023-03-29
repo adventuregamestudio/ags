@@ -34,7 +34,7 @@
 
 typedef struct FLI_HEADER
 {
-   long              size;
+   int32_t           size;
    unsigned short    type;
    unsigned short    frame_count;
    unsigned short    width;
@@ -42,8 +42,8 @@ typedef struct FLI_HEADER
    unsigned short    bits_a_pixel;
    unsigned short    flags;
    unsigned short    speed;
-   long              next_head;
-   long              frames_in_table;
+   int32_t           next_head;
+   int32_t           frames_in_table;
    char              reserved[102];
 } FLI_HEADER;
 
@@ -53,7 +53,7 @@ typedef struct FLI_HEADER
 
 typedef struct FLI_FRAME
 {
-   unsigned long     size;
+   uint32_t          size;
    unsigned short    type;
    unsigned short    chunks;
    char              pad[8];
@@ -65,7 +65,7 @@ typedef struct FLI_FRAME
 
 typedef struct FLI_CHUNK 
 {
-   unsigned long     size;
+   uint32_t          size;
    unsigned short    type;
 } FLI_CHUNK;
 
@@ -218,24 +218,24 @@ static signed short _fli_read_short_nc(unsigned char **p)
       return (signed short) t;
 }
 
-static unsigned long _fli_read_ulong_nc(unsigned char **p)
+static uint32_t _fli_read_ulong_nc(unsigned char **p)
 {
-   unsigned long t;
-   t = (((unsigned long) *((unsigned char*) (*p)))
-	| ((unsigned long) *((unsigned char*) (*p) + 1) << 8)
-	| ((unsigned long) *((unsigned char*) (*p) + 2) << 16)
-	| ((unsigned long) *((unsigned char*) (*p) + 3) << 24));
+   uint32_t t;
+   t = (((uint32_t) *((unsigned char*) (*p)))
+	| ((uint32_t) *((unsigned char*) (*p) + 1) << 8)
+	| ((uint32_t) *((unsigned char*) (*p) + 2) << 16)
+	| ((uint32_t) *((unsigned char*) (*p) + 3) << 24));
    *p += 4;
    return t;
 }
 
-static signed long _fli_read_long_nc(unsigned char **p)
+static int32_t _fli_read_long_nc(unsigned char **p)
 {
-   unsigned long t = _fli_read_ulong_nc(p);
-   if (t & (unsigned long) 0x80000000L)
-      return -(signed long) (~(t - 1) & (unsigned long) 0x7FFFFFFFL);
+   uint32_t t = _fli_read_ulong_nc(p);
+   if (t & (uint32_t) 0x80000000L)
+      return -(int32_t) (~(t - 1) & (uint32_t) 0x7FFFFFFFL);
    else
-      return (signed long) t;
+      return (int32_t) t;
 }
 
 #define READ_WORD_NC(p)  _fli_read_word_nc(&(p))
@@ -690,7 +690,7 @@ static int _fli_read_frame(FLI_FRAME *frame)
 /* _fli_parse_chunk:
  *  Parses one FLI chunk.
  */
-static int _fli_parse_chunk(FLI_CHUNK *chunk, unsigned char *p, unsigned long frame_size)
+static int _fli_parse_chunk(FLI_CHUNK *chunk, unsigned char *p, uint32_t frame_size)
 {
    if (frame_size < sizeof_FLI_CHUNK)
       return -1;
@@ -861,9 +861,9 @@ static int do_open_fli(void)
    fli_status = FLI_OK;
 
    if (fli_header.type == FLI_MAGIC1)
-      fli_speed = (1000 * (long)fli_header.speed) / 70;
+      fli_speed = (1000 * (int)fli_header.speed) / 70;
    else
-      fli_speed = (long)fli_header.speed;
+      fli_speed = (int)fli_header.speed;
 
    if (fli_speed == 0)
       fli_speed = 1000 / 70;

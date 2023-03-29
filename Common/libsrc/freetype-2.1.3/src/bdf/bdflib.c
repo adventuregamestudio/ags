@@ -1022,7 +1022,7 @@
                     bdf_font_t*  font )
   {
     hashnode       hn;
-    unsigned long  propid;
+    uintptr_t      propid;
 
 
     if ( name == 0 || *name == 0 )
@@ -1031,7 +1031,7 @@
     if ( ( hn = hash_lookup( name, &(font->proptbl) ) ) == 0 )
       return 0;
 
-    propid = (unsigned long)hn->data;
+    propid = (uintptr_t)hn->data;
     if ( propid >= _num_bdf_properties )
       return font->user_props + ( propid - _num_bdf_properties );
 
@@ -1262,7 +1262,7 @@
                      char*        name,
                      char*        value )
   {
-    unsigned long   propid;
+    uintptr_t       propid;
     hashnode        hn;
     int             len;
     bdf_property_t  *prop, *fp;
@@ -1275,7 +1275,7 @@
     {
       /* The property already exists in the font, so simply replace */
       /* the value of the property with the current value.          */
-      fp = font->props + (unsigned long)hn->data;
+      fp = font->props + (uintptr_t)hn->data;
 
       switch ( fp->format )
       {
@@ -1345,7 +1345,7 @@
       font->props_size++;
     }
 
-    propid = (unsigned long)hn->data;
+    propid = (uintptr_t)hn->data;
     if ( propid >= _num_bdf_properties )
       prop = font->user_props + ( propid - _num_bdf_properties );
     else
@@ -2429,7 +2429,7 @@
 
     hn = hash_lookup( name, (hashtable *)font->internal );
 
-    return hn ? ( font->props + (unsigned long)hn->data ) : 0;
+    return hn ? ( font->props + (uintptr_t)hn->data ) : 0;
   }
 
 

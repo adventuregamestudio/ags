@@ -774,7 +774,7 @@ int pack_igetw(PACKFILE *f)
 /* pack_igetl:
  *  Reads a 32 bit long from a file, using intel byte ordering.
  */
-long pack_igetl(PACKFILE *f)
+int32_t pack_igetl(PACKFILE *f)
 {
    int b1, b2, b3, b4;
    ASSERT(f);
@@ -783,8 +783,8 @@ long pack_igetl(PACKFILE *f)
       if ((b2 = pack_getc(f)) != EOF)
 	 if ((b3 = pack_getc(f)) != EOF)
 	    if ((b4 = pack_getc(f)) != EOF)
-	       return (((long)b4 << 24) | ((long)b3 << 16) |
-		       ((long)b2 << 8) | (long)b1);
+	       return (((int32_t)b4 << 24) | ((int32_t)b3 << 16) |
+		       ((int32_t)b2 << 8) | (int32_t)b1);
 
    return EOF;
 }
@@ -814,7 +814,7 @@ int pack_iputw(int w, PACKFILE *f)
 /* pack_iputl:
  *  Writes a 32 bit long to a file, using intel byte ordering.
  */
-long pack_iputl(long l, PACKFILE *f)
+int32_t pack_iputl(int32_t l, PACKFILE *f)
 {
    int b1, b2, b3, b4;
    ASSERT(f);
@@ -855,7 +855,7 @@ int pack_mgetw(PACKFILE *f)
 /* pack_mgetl:
  *  Reads a 32 bit long from a file, using motorola byte-ordering.
  */
-long pack_mgetl(PACKFILE *f)
+int32_t pack_mgetl(PACKFILE *f)
 {
    int b1, b2, b3, b4;
    ASSERT(f);
@@ -864,8 +864,8 @@ long pack_mgetl(PACKFILE *f)
       if ((b2 = pack_getc(f)) != EOF)
 	 if ((b3 = pack_getc(f)) != EOF)
 	    if ((b4 = pack_getc(f)) != EOF)
-	       return (((long)b1 << 24) | ((long)b2 << 16) |
-		       ((long)b3 << 8) | (long)b4);
+	       return (((int32_t)b1 << 24) | ((int32_t)b2 << 16) |
+		       ((int32_t)b3 << 8) | (int32_t)b4);
 
    return EOF;
 }

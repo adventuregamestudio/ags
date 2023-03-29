@@ -459,8 +459,8 @@ Size AGSWin32::ValidateWindowSize(const Size &sz, bool borderless) const
 SDL_Surface *AGSWin32::CreateWindowIcon()
 {
     // Don't mess with SDL surface, and set an icon simply using WinAPI
-    SetClassLongW((HWND)sys_win_get_window(), GCLP_HICON,
-        (LONG)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
+    SetClassLongPtr((HWND)sys_win_get_window(), GCLP_HICON,
+        (LONG_PTR)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
     return nullptr;
 }
 

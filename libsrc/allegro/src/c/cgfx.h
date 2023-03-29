@@ -37,18 +37,18 @@ void FUNC_LINEAR_PUTPIXEL(BITMAP *dst, int dx, int dy, int color)
    else if (_drawing_mode == DRAW_MODE_XOR) {
       PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(dst, dy), dx);
       PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy), dx);
-      unsigned long c = GET_PIXEL(s) ^ color;
+      uint32_t c = GET_PIXEL(s) ^ color;
       PUT_PIXEL(d, c);
    }
    else if (_drawing_mode == DRAW_MODE_TRANS) {
       PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(dst, dy), dx);
       PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy), dx);
       PP_BLENDER blender = MAKE_PP_BLENDER(color);
-      unsigned long c = PP_BLEND(blender, GET_PIXEL(s), color);
+      uint32_t c = PP_BLEND(blender, GET_PIXEL(s), color);
       PUT_PIXEL(d, c);
    }
    else {
-      unsigned long c = GET_PATTERN_PIXEL(dx, dy);
+      uint32_t c = GET_PATTERN_PIXEL(dx, dy);
       PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy), dx);
 
       if (_drawing_mode == DRAW_MODE_COPY_PATTERN) {
@@ -84,7 +84,7 @@ int FUNC_LINEAR_GETPIXEL(BITMAP *src, int sx, int sy)
       return -1;
    else {
       PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(src, sy), sx);
-      unsigned long c;
+      uint32_t c;
 
       bmp_select(src);
       c = GET_PIXEL(s);
@@ -133,7 +133,7 @@ void FUNC_LINEAR_HLINE(BITMAP *dst, int dx1, int dy, int dx2, int color)
       PIXEL_PTR s = OFFSET_PIXEL_PTR(bmp_read_line(dst, dy), dx1);
       PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy), dx1);
       do {
-	 unsigned long c = GET_PIXEL(s) ^ color;
+	 uint32_t c = GET_PIXEL(s) ^ color;
 	 PUT_PIXEL(d, c);
 	 INC_PIXEL_PTR(s);
 	 INC_PIXEL_PTR(d);
@@ -144,7 +144,7 @@ void FUNC_LINEAR_HLINE(BITMAP *dst, int dx1, int dy, int dx2, int color)
       PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, dy), dx1);
       PP_BLENDER blender = MAKE_PP_BLENDER(color);
       do {
-	 unsigned long c = PP_BLEND(blender, GET_PIXEL(s), color);
+	 uint32_t c = PP_BLEND(blender, GET_PIXEL(s), color);
 	 PUT_PIXEL(d, c);
 	 INC_PIXEL_PTR(s);
 	 INC_PIXEL_PTR(d);
@@ -167,7 +167,7 @@ void FUNC_LINEAR_HLINE(BITMAP *dst, int dx1, int dy, int dx2, int color)
 	 do {
 	    w -= curw;
 	    do {
-	       unsigned long c = GET_MEMORY_PIXEL(s);
+	       uint32_t c = GET_MEMORY_PIXEL(s);
 	       PUT_PIXEL(d, c);
 	       INC_PIXEL_PTR(s);
 	       INC_PIXEL_PTR(d);
@@ -180,7 +180,7 @@ void FUNC_LINEAR_HLINE(BITMAP *dst, int dx1, int dy, int dx2, int color)
 	 do {
 	    w -= curw;
 	    do {
-	       unsigned long c = GET_MEMORY_PIXEL(s);
+	       uint32_t c = GET_MEMORY_PIXEL(s);
 	       if (!IS_MASK(c)) {
 		  PUT_PIXEL(d, color);
 	       }
@@ -198,7 +198,7 @@ void FUNC_LINEAR_HLINE(BITMAP *dst, int dx1, int dy, int dx2, int color)
 	 do {
 	    w -= curw;
 	    do {
-	       unsigned long c = GET_MEMORY_PIXEL(s);
+	       uint32_t c = GET_MEMORY_PIXEL(s);
 	       if (!IS_MASK(c)) {
 		  PUT_PIXEL(d, color);
 	       }

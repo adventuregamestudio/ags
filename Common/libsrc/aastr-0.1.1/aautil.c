@@ -44,7 +44,7 @@ _aa_prepare_for_24bpp (void)
  * Add r, g, b values of pixels.
  */
 void
-_aa_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned char *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -176,7 +176,7 @@ _aa_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lon
 }
 #ifdef ALLEGRO_COLOR16
 void
-_aa_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned short *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -307,7 +307,7 @@ _aa_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
     }
 }
 void
-_aa_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned short *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -440,7 +440,7 @@ _aa_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
 #endif
 #ifdef ALLEGRO_COLOR24
 void
-_aa_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned char *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -563,7 +563,7 @@ _aa_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
 #endif
 #ifdef ALLEGRO_COLOR32
 void
-_aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned int *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -699,32 +699,32 @@ _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
  * Putting pixel to destination bitmap.
  */
 void
-_aa_put_rgb8 (unsigned long _addr, int _x)
+_aa_put_rgb8 (uintptr_t _addr, int _x)
 {
   bmp_write8 (_addr + _x, makecol8 (_aa.r, _aa.g, _aa.b));
 }
 #ifdef ALLEGRO_COLOR16
 void
-_aa_put_rgb15 (unsigned long _addr, int _x)
+_aa_put_rgb15 (uintptr_t _addr, int _x)
 {
   bmp_write15 (_addr + sizeof (short) * _x, makecol15 (_aa.r, _aa.g, _aa.b));
 }
 void
-_aa_put_rgb16 (unsigned long _addr, int _x)
+_aa_put_rgb16 (uintptr_t _addr, int _x)
 {
   bmp_write16 (_addr + sizeof (short) * _x, makecol16 (_aa.r, _aa.g, _aa.b));
 }
 #endif
 #ifdef ALLEGRO_COLOR24
 void
-_aa_put_rgb24 (unsigned long _addr, int _x)
+_aa_put_rgb24 (uintptr_t _addr, int _x)
 {
   bmp_write24 (_addr + 3 * _x, makecol24 (_aa.r, _aa.g, _aa.g));
 }
 #endif
 #ifdef ALLEGRO_COLOR32
 void
-_aa_put_rgb32 (unsigned long _addr, int _x)
+_aa_put_rgb32 (uintptr_t _addr, int _x)
 {
   bmp_write32 (_addr + sizeof (int) * _x, makecol32 (_aa.r, _aa.g, _aa.b));
 }
@@ -734,14 +734,14 @@ _aa_put_rgb32 (unsigned long _addr, int _x)
  * Add masked r, g, b values of pixels.
  */
 void
-_aa_masked_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_masked_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned char *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
   int sy, sy1i, sy1f, sy2i, sy2f;
-  unsigned long r1, g1, b1, t1;
-  unsigned long r2, g2, b2, t2;
-  unsigned long scolor;
+  uint32_t r1, g1, b1, t1;
+  uint32_t r2, g2, b2, t2;
+  uint32_t scolor;
 
   sy1i = _sy1 >> aa_BITS;
   sy = sy1i;
@@ -928,7 +928,7 @@ _aa_masked_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsig
 }
 #ifdef ALLEGRO_COLOR16
 void
-_aa_masked_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_masked_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned short *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -1121,7 +1121,7 @@ _aa_masked_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
     _aa.transparent = 1;
 }
 void
-_aa_masked_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_masked_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned short *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -1316,7 +1316,7 @@ _aa_masked_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
 #endif
 #ifdef ALLEGRO_COLOR24
 void
-_aa_masked_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_masked_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned char *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -1574,7 +1574,7 @@ _aa_masked_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
 #endif
 #ifdef ALLEGRO_COLOR32
 void
-_aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
+_aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num)
 {
   unsigned int *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
@@ -1772,20 +1772,20 @@ _aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
  * Putting pixel to destination bitmap.
  */
 void
-_aa_masked_put_rgb8 (unsigned long _addr, int _x)
+_aa_masked_put_rgb8 (uintptr_t _addr, int _x)
 {
   if (!_aa.transparent)
     bmp_write8 (_addr + _x, makecol8 (_aa.r, _aa.g, _aa.b));
 }
 #ifdef ALLEGRO_COLOR16
 void
-_aa_masked_put_rgb15 (unsigned long _addr, int _x)
+_aa_masked_put_rgb15 (uintptr_t _addr, int _x)
 {
   if (!_aa.transparent)
     bmp_write15 (_addr + sizeof (short) * _x, makecol15 (_aa.r, _aa.g, _aa.b));
 }
 void
-_aa_masked_put_rgb16 (unsigned long _addr, int _x)
+_aa_masked_put_rgb16 (uintptr_t _addr, int _x)
 {
   if (!_aa.transparent)
     bmp_write16 (_addr + sizeof (short) * _x, makecol16 (_aa.r, _aa.g, _aa.b));
@@ -1793,7 +1793,7 @@ _aa_masked_put_rgb16 (unsigned long _addr, int _x)
 #endif
 #ifdef ALLEGRO_COLOR24
 void
-_aa_masked_put_rgb24 (unsigned long _addr, int _x)
+_aa_masked_put_rgb24 (uintptr_t _addr, int _x)
 {
   if (!_aa.transparent)
     bmp_write24 (_addr + 3 * _x, makecol24 (_aa.r, _aa.g, _aa.b));
@@ -1801,7 +1801,7 @@ _aa_masked_put_rgb24 (unsigned long _addr, int _x)
 #endif
 #ifdef ALLEGRO_COLOR32
 void
-_aa_masked_put_rgb32 (unsigned long _addr, int _x)
+_aa_masked_put_rgb32 (uintptr_t _addr, int _x)
 {
   if (!_aa.transparent)
     bmp_write32 (_addr + sizeof (int) * _x, makecol32 (_aa.r, _aa.g, _aa.b));

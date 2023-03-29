@@ -289,7 +289,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -309,7 +309,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -330,7 +330,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -350,7 +350,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -370,7 +370,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -391,7 +391,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -412,7 +412,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -433,7 +433,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -453,7 +453,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -474,7 +474,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -494,7 +494,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>
@@ -514,7 +514,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4013; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4013; 4311; 4150; 4477; 4715</TreatSpecificWarningsAsErrors>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
     </ClCompile>
     <Lib>

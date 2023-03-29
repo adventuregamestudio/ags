@@ -137,7 +137,7 @@ static void stretch_masked_linex(uintptr_t dptr, unsigned char *sptr)
       outportw(0x3C4, (0x100 << (dptr & 3)) | 2);
 
       for (; d < dend; d++, s += 4 * _al_stretch.sxinc) {
-	 unsigned long color = *s;
+	 uint32_t color = *s;
 	 if (color != 0)
 	    bmp_write8(d, color);
 	 if (xc <= 0) s++, xc += _al_stretch.xcinc;

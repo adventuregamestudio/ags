@@ -31,7 +31,7 @@ namespace ALSW
 
 using namespace Common;
 
-static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
+static uint32_t _trans_alpha_blender32(uint32_t x, uint32_t y, uint32_t n);
 RGB faded_out_palette[256];
 
 
@@ -945,9 +945,9 @@ void SDLRendererGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int de
 
 // add the alpha values together, used for compositing alpha images
 // TODO: why is this here, move to gfx/blender? check if there's already similar function there
-static unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n)
+static uint32_t _trans_alpha_blender32(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long res, g;
+   uint32_t res, g;
 
    n = (n * geta32(x)) / 256;
 

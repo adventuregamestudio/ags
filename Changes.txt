@@ -372,6 +372,15 @@ WinSetup:
 
 ===================================================================================================
 
+VERSION 3.5.1 - Patch 20, March 2023
+
+Engine:
+ - Fixed AudioClip.Play allowing to place clips on a crossfade channel in general case;
+   there's still a backward-compatible case where it's allowed to do so for audio types
+   with reserved channels that exceed the normal channel limit.
+   (Regression since 3.5.1 Patch 11)
+
+
 VERSION 3.5.1 - Patch 19, March 2023
 
 Engine:

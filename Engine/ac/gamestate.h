@@ -48,7 +48,7 @@ struct ScriptOverlay;
 
 #define GAME_STATE_RESERVED_INTS 5
 
-// Savegame data format
+// GameState struct's runtime save format
 enum GameStateSvgVersion
 {
     kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
@@ -56,7 +56,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_350_9     = 2,
     kGSSvgVersion_350_10    = 3,
-    kGSSvgVersion_399       = 4,
+    kGSSvgVersion_399       = 10,
 };
 
 

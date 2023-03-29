@@ -34,8 +34,7 @@ struct HotspotState
     void WriteToSavegame(Common::Stream *out) const;
 };
 
-// Savegame data format for RoomStatus
-// TODO: fill in other versions (lookup the code history)
+// RoomStatus runtime save format
 enum RoomStatSvgVersion
 {
     kRoomStatSvgVersion_Initial  = 0,

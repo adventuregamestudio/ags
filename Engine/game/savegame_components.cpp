@@ -463,9 +463,10 @@ HSaveError WriteMoveLists(Stream *out)
 
 HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
 {
+    HSaveError err;
     size_t movelist_count = in->ReadInt32();
-    //mls.resize(movelist_count);
-    HSaveError err = HSaveError::None();
+    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists"))
+        return err;
     for (size_t i = 0; i < movelist_count; ++i)
     {
         err = mls[i].ReadFromFile(in, cmp_ver);

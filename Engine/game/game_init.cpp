@@ -454,10 +454,10 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %zu, max: %zu", game.audioClipTypes.size(), (size_t)MAX_AUDIO_TYPES));
 
     //
-    // CLNUP: this stage is removed
     // 3. Allocate and init game objects
     //
     charextra.resize(game.numcharacters);
+    // NOTE: movelists have 1 extra slot 0 which assumes a role of "undefined" list
     mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
     init_game_drawdata();
     views = std::move(ents.Views);

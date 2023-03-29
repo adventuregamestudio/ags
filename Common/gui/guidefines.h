@@ -180,7 +180,7 @@ enum GUITextBoxFlags
     kTextBox_OldFmtXorMask = kTextBox_ShowBorder
 };
 
-// Savegame data format
+// GUI runtime save format
 // TODO: move to the engine code
 enum GuiSvgVersion
 {

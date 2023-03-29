@@ -427,7 +427,7 @@ void engine_init_debug()
 void atexit_handler() {
     if (proper_exit==0) {
         platform->DisplayAlert("Error: the program has exited without requesting it.\n"
-            "Program pointer: %+03d  (write this number down), ACI version %s\n"
+            "Program pointer: %+03d  (write this number down), engine version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "developers. Otherwise, note down any other information displayed.",
             our_eip, EngineVersion.LongString.GetCStr());
@@ -1410,10 +1410,27 @@ const char *get_engine_name()
     return "Adventure Game Studio run-time engine";
 }
 
-const char *get_engine_version() {
+const char *get_engine_version()
+{
     return EngineVersion.LongString.GetCStr();
 }
 
-void engine_set_pre_init_callback(t_engine_pre_init_callback callback) {
+String get_engine_version_and_build()
+{
+    const char *bit = (AGS_PLATFORM_64BIT) ? "64-bit" : "32-bit";
+    const char *end = (AGS_PLATFORM_ENDIAN_LITTLE) ? "LE" : "BE";
+#ifdef BUILD_STR
+    return String::FromFormat("%s (Build: %s), %s %s",
+        EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr(),
+        bit, end);
+#else
+    return String::FromFormat("%s, %s %s",
+        EngineVersion.LongString.GetCStr(),
+        bit, end);
+#endif
+}
+
+void engine_set_pre_init_callback(t_engine_pre_init_callback callback)
+{
     engine_pre_init_callback = callback;
 }

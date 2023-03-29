@@ -51,7 +51,7 @@ extern int miniDumpResultCode;
 static void DisplayException()
 {
     const auto &sc_error = cc_get_error();
-    snprintf(printfworkingspace, PRINT_WORKSPACE_SIZE, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%0*" PRIXPTR "; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
+    snprintf(printfworkingspace, PRINT_WORKSPACE_SIZE, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%0*" PRIXPTR "; program pointer is %+d, engine version %s, gtags (%d,%d)\n\n"
         "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and contact the game author for support "
         "or post these details on the AGS Technical Forum.\n\n%s\n\n"
         "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",

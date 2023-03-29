@@ -32,6 +32,7 @@
 #include "script/cc_common.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "main/engine.h"
 #include "main/main.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
@@ -64,11 +65,13 @@ String GetRuntimeInfo()
     const size_t max_normspr = spriteset.GetMaxCacheSize() - total_lockspr;
     const unsigned norm_spr_filled = (uint64_t)total_normspr * 100 / max_normspr;
     String runtimeInfo = String::FromFormat(
-        "Adventure Game Studio run-time engine[ACI version %s"
+        "%s[Engine version %s"
         "[Game resolution %d x %d (%d-bit)"
         "[Running %d x %d at %d-bit%s[GFX: %s; %s[Draw frame %d x %d["
         "Sprite cache KB: %zu, norm: %zu / %zu (%u%%), locked: %zu",
-        EngineVersion.LongString.GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
+        get_engine_name(),
+        get_engine_version_and_build().GetCStr(),
+        game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
         mode.Width, mode.Height, mode.ColorDepth,
         (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")),
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),

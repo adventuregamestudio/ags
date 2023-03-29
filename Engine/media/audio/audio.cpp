@@ -204,7 +204,8 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
         {
             startAtChannel += game.audioClipTypes[i].reservedChannels;
         }
-        // NOTE: we allow to place sound on a crossfade channel for backward compatibility
+        // NOTE: we allow to place sound on a crossfade channel for backward compatibility,
+        // but ONLY for the case of audio type with reserved channels (weird quirk).
         endBeforeChannel = std::min(MAX_SOUND_CHANNELS + 1,
             startAtChannel + game.audioClipTypes[clip->type].reservedChannels);
     }

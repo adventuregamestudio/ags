@@ -66,9 +66,6 @@
     <Filter Include="Header Files\gfx">
       <UniqueIdentifier>{66e1c3d5-ab0d-479d-bbbe-665775b69bb1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\api">
-      <UniqueIdentifier>{ab6ff25c-ca75-4343-894e-73d873916798}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\game">
       <UniqueIdentifier>{44be5689-ac12-482b-b7c7-7bd671f8d7a5}</UniqueIdentifier>
     </Filter>
@@ -727,9 +724,6 @@
     <ClInclude Include="..\..\common\gfx\gfx_def.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\api\stream_api.h">
-      <Filter>Header Files\api</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\game\customproperties.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
@@ -827,6 +821,9 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\matrix.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\iagsstream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>

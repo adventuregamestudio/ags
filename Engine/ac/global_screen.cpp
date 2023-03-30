@@ -128,14 +128,20 @@ void TintScreen(int red, int grn, int blu) {
     play.screen_tint = red + (grn << 8) + (blu << 16);
 }
 
-void my_fade_out(int spdd) {
+void FadeOut(int sppd) {
     EndSkippingUntilCharStops();
 
     if (play.fast_forward)
         return;
 
+    fadeout_impl(sppd);
+}
+
+void fadeout_impl(int spdd) {
     if (play.screen_is_faded_out == 0)
+    {
         gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+    }
 
     if (game.color_depth > 1)
         play.screen_is_faded_out = 1;
@@ -175,5 +181,5 @@ void FadeIn(int sppd) {
     if (play.fast_forward)
         return;
 
-    my_fade_in(palette,sppd);
+    fadein_impl(palette,sppd);
 }

@@ -36,7 +36,7 @@ extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
-void my_fade_in(PALETTE p, int speed) {
+void fadein_impl(PALETTE p, int speed) {
     if (game.color_depth > 1) {
         set_palette (p);
 
@@ -69,7 +69,7 @@ void current_fade_out_effect () {
     }
     else if (theTransition == FADE_NORMAL)
     {
-        my_fade_out(5);
+        fadeout_impl(5);
     }
     else if (theTransition == FADE_BOXOUT) 
     {

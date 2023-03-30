@@ -22,7 +22,6 @@
 
 enum PostScriptAction {
     ePSANewRoom,
-    ePSAInvScreen,
     ePSARestoreGame,
     ePSARestoreGameDialog,
     ePSARunAGSGame,

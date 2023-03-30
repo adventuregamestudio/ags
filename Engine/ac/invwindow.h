@@ -42,7 +42,5 @@ ScriptInvItem*  InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index);
 //=============================================================================
 
 int				offset_over_inv(GUIInvWindow *inv);
-// NOTE: This function is valid for AGS 2.72 and lower
-int             invscreen();
 
 #endif // __AGS_EE_AC__INVWINDOW_H

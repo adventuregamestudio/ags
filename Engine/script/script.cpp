@@ -523,9 +523,6 @@ void post_script_cleanup() {
         else
             curscript->queue_action(ePSANewRoom, thisData, "NewRoom");
         break;
-    case ePSAInvScreen:
-        invscreen();
-        break;
     case ePSARestoreGame:
         cancel_all_scripts();
         try_restore_save(thisData);

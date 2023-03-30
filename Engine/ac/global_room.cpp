@@ -39,7 +39,6 @@ extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern int in_enters_screen;
 extern int in_leaves_screen;
-extern int in_inv_screen, inv_screen_newroom;
 extern int gs_to_newroom;
 extern bool new_room_placeonwalkable;
 extern RoomStruct thisroom;
@@ -106,10 +105,6 @@ void NewRoom(int nrnum) {
     }
     else if (in_enters_screen) {
         setevent(EV_NEWROOM,nrnum);
-        return;
-    }
-    else if (in_inv_screen) {
-        inv_screen_newroom = nrnum;
         return;
     }
     else if ((inside_script==0) & (in_graph_script==0)) {

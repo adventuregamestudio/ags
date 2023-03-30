@@ -6,9 +6,17 @@ AGS 4 WIP (3.99.*.*)
 Editor:
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
    component has its own separate file (room data, backgrounds, masks and scripts).
+ - Support room backgrounds and masks as PNGs.
+ - General panel look enhancements.
+ - Support built-in Base Color Themes that have the custom themes applied over them.
+ - Game template selection now displays template's description right in the dialog.
+ - F2 is now a hotkey for editing labels in the Project Tree. "Game statistics" are now displayed
+   by Ctrl + F2.
+ - Script editor supports "word wrap" mode.
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
  - Added BlendMode property to Characters, GUI and Room Objects.
+ - Fixed faulty double-click on project items in case user dragged the cursor away.
 
 Compiler:
  - The new extended script compiler is available.
@@ -39,11 +47,20 @@ Compiler:
  - Two sequenced string literals ("text" "text") are now automatically concatenated.
 
 Script API:
+ - Most of the deprecated API is now removed completely.
+ - Added SCRIPT_EXT_AGS4 which tells whether extended script syntax is supported by the compiler.
  - Added BlendMode enum.
  - Added Character.BlendMode, GUI.BlendMode, Object.BlendMode, Overlay.BlendMode.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
    Overlay.Rotation.
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
+ - AudioChannel.Position and PositionMs no longer return a very large value while skipping
+   cutscene.
+
+Engine:
+ - Animated buttons now display flipped frames correctly.
+ - (possibly) Fixed characters sometimes keep walking animation for a short time after arriving
+   to their destination.
 
 
 ===================================================================================================

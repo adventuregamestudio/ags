@@ -26,7 +26,9 @@ public:
 
     struct Header
     {
+        // Type id of elements, refering the RTTI
         // May contain ARRAY_MANAGED_TYPE_FLAG
+        uint32_t TypeID = 0u;
         uint32_t ElemCount = 0u;
         // TODO: refactor and store "elem size" instead
         uint32_t TotalSize = 0u;
@@ -45,7 +47,10 @@ public:
     int Serialize(const char *address, char *buffer, int bufsize) override;
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
     // Create managed array object and return a pointer to the beginning of a buffer
-    DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
+    DynObjectRef CreateOld(uint32_t elem_count, uint32_t elem_size, bool isManagedType)
+        { return CreateImpl(0u, isManagedType, elem_count, elem_size); }
+    DynObjectRef CreateNew(uint32_t type_id, uint32_t elem_count, uint32_t elem_size)
+        { return CreateImpl(type_id, false, elem_count, elem_size); }
 
     // Legacy support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;
@@ -62,9 +67,11 @@ public:
 
 private:
     // The size of the array's header in memory, prepended to the element data
-    static const size_t MemHeaderSz = sizeof(uint32_t) * 2;
+    static const size_t MemHeaderSz = sizeof(uint32_t) * 3;
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t) * 2;
+
+    DynObjectRef CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size);
 };
 
 extern CCDynamicArray globalDynamicArray;

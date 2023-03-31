@@ -153,7 +153,8 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg )
+    ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_NEWARRAY2       , "newarray2"         , 3, kScOpOneArgIsReg ),
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -1117,15 +1118,14 @@ int ccInstance::Run(int32_t curpc)
               if ((reg1.IValue < 0) ||
                   (static_cast<uint32_t>(reg1.IValue) >= hdr.TotalSize))
               {
-                      int elem_count = hdr.ElemCount & (~ARRAY_MANAGED_TYPE_FLAG);
-                      if (elem_count <= 0)
+                      if (hdr.ElemCount <= 0)
                       {
-                          cc_error("!Array has an invalid size (%d) and cannot be accessed", elem_count);
+                          cc_error("!Array has an invalid size (%d) and cannot be accessed", hdr.ElemCount);
                       }
                       else
                       {
-                          int elementSize = (hdr.TotalSize / elem_count);
-                          cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, elem_count - 1);
+                          int elementSize = (hdr.TotalSize / hdr.ElemCount);
+                          cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, hdr.ElemCount - 1);
                       }
                       return -1;
               }
@@ -1476,15 +1476,32 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_NEWARRAY:
           {
               auto &reg1 = registers[codeOp.Arg1i()];
-              const auto arg_elsize = codeOp.Arg2i();
-              const auto arg_managed = codeOp.Arg3().GetAsBool();
-              int numElements = reg1.IValue;
-              if (numElements < 1)
+              const int arg_elnum = reg1.IValue;
+              const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg2i());
+              const bool arg_managed = codeOp.Arg3().GetAsBool();
+              if (arg_elnum < 1)
               {
-                  cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", numElements, INT32_MAX);
+                  cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
                   return -1;
               }
-              DynObjectRef ref = globalDynamicArray.Create(numElements, arg_elsize, arg_managed);
+              DynObjectRef ref = globalDynamicArray.CreateOld(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
+              reg1.SetDynamicObject(ref.second, &globalDynamicArray);
+              break;
+          }
+      case SCMD_NEWARRAY2:
+          {
+              auto &reg1 = registers[codeOp.Arg1i()];
+              const int arg_elnum = reg1.IValue;
+              const uint32_t arg_typeid = static_cast<uint32_t>(codeOp.Arg2i());
+              const uint32_t arg_elsize = static_cast<uint32_t>(codeOp.Arg3i());
+              if (arg_elnum < 1)
+              {
+                  cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
+                  return -1;
+              }
+              assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
+              const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
+              DynObjectRef ref = globalDynamicArray.CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
               reg1.SetDynamicObject(ref.second, &globalDynamicArray);
               break;
           }

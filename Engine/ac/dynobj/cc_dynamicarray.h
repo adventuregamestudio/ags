@@ -69,7 +69,7 @@ private:
     // The size of the array's header in memory, prepended to the element data
     static const size_t MemHeaderSz = sizeof(uint32_t) * 3;
     // The size of the serialized header
-    static const size_t FileHeaderSz = sizeof(uint32_t) * 2;
+    static const size_t FileHeaderSz = sizeof(uint32_t) * 3;
 
     DynObjectRef CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size);
 };

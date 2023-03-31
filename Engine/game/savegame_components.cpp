@@ -1051,6 +1051,13 @@ HSaveError ReadPluginData(Stream *in, int32_t /*cmp_ver*/, const PreservedParams
 }
 
 
+// TODO: move elsewhere later
+enum ManagedPoolSavegameVersion
+{
+    kManagedPoolSvgVersion_Initial = 0,
+    kManagedPoolSvgVersion_39999   = 10
+};
+
 // Description of a supported game state serialization component
 struct ComponentHandler
 {
@@ -1164,8 +1171,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Managed Pool",
-        0,
-        0,
+        kManagedPoolSvgVersion_39999,
+        kManagedPoolSvgVersion_Initial,
         WriteManagedPool,
         ReadManagedPool
     },

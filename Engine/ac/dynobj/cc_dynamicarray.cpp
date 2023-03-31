@@ -20,7 +20,7 @@
 
 using namespace AGS::Common;
 
-const char *CCDynamicArray::TypeName = "CCDynamicArray";
+const char *CCDynamicArray::TypeName = "CCDynamicArr2";
 
 // return the type name of the object
 const char *CCDynamicArray::GetType()
@@ -86,19 +86,23 @@ int CCDynamicArray::Serialize(const char *address, char *buffer, int bufsize)
         return -sizeToWrite;
     }
     MemoryStream mems(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write);
+    mems.WriteInt32(hdr.TypeID);
     mems.WriteInt32(hdr.ElemCount);
-    mems.WriteInt32(hdr.TotalSize);
+    mems.WriteInt32(hdr.TotalSize / hdr.ElemCount); // elem size
     mems.Write(address, hdr.TotalSize); // elements
     return static_cast<int32_t>(mems.GetPosition());
 }
 
 void CCDynamicArray::Unserialize(int index, const char *serializedData, int dataSize)
 {
+    // TODO: should we support older save versions here?
+    // might have to use class name (GetType) to distinguish save formats in UnSerializer
     char *new_arr = new char[(dataSize - FileHeaderSz) + MemHeaderSz];
     MemoryStream mems(reinterpret_cast<const uint8_t*>(serializedData), dataSize);
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
+    hdr.TypeID = mems.ReadInt32();
     hdr.ElemCount = mems.ReadInt32();
-    hdr.TotalSize = mems.ReadInt32();
+    hdr.TotalSize = hdr.ElemCount * mems.ReadInt32(); // elem size
     memcpy(new_arr + MemHeaderSz, serializedData + FileHeaderSz, dataSize - FileHeaderSz);
     ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
 }

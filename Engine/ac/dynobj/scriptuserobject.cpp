@@ -16,6 +16,7 @@
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/cc_script.h"
 #include "script/cc_instance.h"
+#include "util/memorystream.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -23,7 +24,7 @@ using namespace AGS::Common;
 // return the type name of the object
 const char *ScriptUserObject::GetType()
 {
-    return "UserObject";
+    return "UserObj2";
 }
 
 ScriptUserObject::~ScriptUserObject()
@@ -75,6 +76,8 @@ int ScriptUserObject::Dispose(const char* /*address*/, bool /*force*/)
 
 int ScriptUserObject::Serialize(const char* /*address*/, char *buffer, int bufsize)
 {
+    const size_t hdr_sz = sizeof(uint32_t) * 2;
+    const size_t total_sz = _size + hdr_sz;
     // If buffer not big enough, ask for a bigger one
     // NOTE: the managed object interface's Serialize() function requires
     // the object to return negative value of size in case the provided
@@ -82,16 +85,23 @@ int ScriptUserObject::Serialize(const char* /*address*/, char *buffer, int bufsi
     // Plugin API, we cannot modify that without more significant changes.
     // This means that if the size is larger than INT32_MAX, Serialize()
     // will work unreliably.
-    if ((bufsize <= 0) || (_size > static_cast<size_t>(bufsize)))
-        return -static_cast<int32_t>(_size);
+    if ((bufsize <= 0) || (total_sz > static_cast<size_t>(bufsize)))
+        return -static_cast<int32_t>(total_sz);
 
-    memcpy(buffer, _data, _size);
-    return _size;
+    MemoryStream mems(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write);
+    mems.WriteInt32(hdr_sz); // header size, reserve for the future
+    mems.WriteInt32(_typeid); // type id
+    mems.Write(_data, _size); // main data
+    return static_cast<int32_t>(mems.GetPosition());
 }
 
 void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    Create(nullptr, in, RTTI::NoType, data_sz); // FIXME: need a format change
+    // TODO: should we support older save versions here?
+    // might have to use class name (GetType) to distinguish save formats in UnSerializer
+    size_t hdr_sz = static_cast<uint32_t>(in->ReadInt32());
+    _typeid = static_cast<uint32_t>(in->ReadInt32());
+    Create(nullptr, in, _typeid, data_sz - hdr_sz);
     ccRegisterUnserializedObject(index, this, this);
 }
 

@@ -135,7 +135,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     {
         Camera_Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "UserObject") == 0) {
+    else if (strcmp(objectType, "UserObj2") == 0) {
         ScriptUserObject *suo = new ScriptUserObject();
         suo->Unserialize(index, &mems, data_sz);
     }

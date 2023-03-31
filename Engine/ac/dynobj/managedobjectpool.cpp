@@ -241,7 +241,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                             serializeBuffer.resize(numBytes);
                         }
                         in->Read(&serializeBuffer.front(), numBytes);
-                        if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0) {
+                        if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
                             globalDynamicArray.Unserialize(i, &serializeBuffer.front(), numBytes);
                         } else {
                             reader->Unserialize(i, typeNameBuffer, &serializeBuffer.front(), numBytes);
@@ -266,7 +266,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                         serializeBuffer.resize(numBytes);
                     }
                     in->Read(&serializeBuffer.front(), numBytes);
-                    if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0) {
+                    if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
                         globalDynamicArray.Unserialize(handle, &serializeBuffer.front(), numBytes);
                     } else {
                         reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);

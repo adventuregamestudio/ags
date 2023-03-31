@@ -137,7 +137,7 @@ namespace AGS.Editor
             this.lblUpgradingInfo3.Location = new System.Drawing.Point(15, 150);
             this.lblUpgradingInfo3.MaximumSize = new System.Drawing.Size(340, 0);
             this.lblUpgradingInfo3.Name = "lblUpgradingInfo3";
-            this.lblUpgradingInfo3.Size = new System.Drawing.Size(340, 210);
+            this.lblUpgradingInfo3.Size = new System.Drawing.Size(261, 140);
             this.lblUpgradingInfo3.TabIndex = 3;
             this.lblUpgradingInfo3.Text = resources.GetString("lblUpgradingInfo3.Text");
             // 
@@ -147,21 +147,23 @@ namespace AGS.Editor
             this.lblUpgradingInfo.Location = new System.Drawing.Point(12, 39);
             this.lblUpgradingInfo.MaximumSize = new System.Drawing.Size(300, 0);
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
-            this.lblUpgradingInfo.Size = new System.Drawing.Size(298, 28);
+            this.lblUpgradingInfo.Size = new System.Drawing.Size(273, 14);
             this.lblUpgradingInfo.TabIndex = 2;
             this.lblUpgradingInfo.Text = "With AGS 3.6 you can build your game for Web!";
             // 
             // lnkUpgrading
             // 
             this.lnkUpgrading.AutoSize = true;
-            this.lnkUpgrading.LinkArea = new System.Windows.Forms.LinkArea(146, 22);
+            this.lnkUpgrading.LinkArea = new System.Windows.Forms.LinkArea(103, 22);
             this.lnkUpgrading.Location = new System.Drawing.Point(15, 77);
             this.lnkUpgrading.MaximumSize = new System.Drawing.Size(400, 0);
             this.lnkUpgrading.Name = "lnkUpgrading";
-            this.lnkUpgrading.Size = new System.Drawing.Size(398, 63);
+            this.lnkUpgrading.Size = new System.Drawing.Size(400, 48);
             this.lnkUpgrading.TabIndex = 1;
             this.lnkUpgrading.TabStop = true;
-            this.lnkUpgrading.Text = resources.GetString("lnkUpgrading.Text");
+            this.lnkUpgrading.Text = "If you\'ve come from an older version of AGS be sure to read \"Upgrading to ...\" ar" +
+    "ticles in the manual. \"Upgrading to AGS 3.6\" page gives insight into most import" +
+    "ant changes in current version.";
             this.lnkUpgrading.UseCompatibleTextRendering = true;
             this.lnkUpgrading.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgrading_LinkClicked);
             // 

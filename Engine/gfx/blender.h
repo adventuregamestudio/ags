@@ -67,23 +67,23 @@ void set_argb2any_blender();
 // [AVD] Custom blenders for software BlendMode implementation
 // If we ditch software rendering we can remove this whole section
 // not very pretty but forces the original alpha of "x" to "blender_result"
-unsigned long _blender_mask_alpha24(unsigned long blender_result, unsigned long x, unsigned long y, unsigned long n);
-unsigned long _my_blender_dodge24(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _my_blender_burn24(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _my_blender_lighten24(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _my_blender_darken24(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _my_blender_exclusion24(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _my_blender_subtract24(unsigned long x, unsigned long y, unsigned long n);
+uint32_t _blender_mask_alpha24(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n);
+uint32_t _my_blender_dodge24(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _my_blender_burn24(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _my_blender_lighten24(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _my_blender_darken24(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _my_blender_exclusion24(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _my_blender_subtract24(uint32_t x, uint32_t y, uint32_t n);
 
-unsigned long _blender_masked_add32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_dodge32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_burn32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_lighten32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_darken32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_exclusion32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_subtract32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_screen32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _blender_masked_multiply32(unsigned long x, unsigned long y, unsigned long n);
+uint32_t _blender_masked_add32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_dodge32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_burn32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_lighten32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_darken32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_exclusion32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_subtract32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_screen32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _blender_masked_multiply32(uint32_t x, uint32_t y, uint32_t n);
 // ===============================
 
 #endif // __AC_BLENDER_H

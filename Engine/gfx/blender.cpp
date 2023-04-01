@@ -306,92 +306,92 @@ void set_argb2any_blender()
 #define _BLENDOP_EXCLUSION(B,L) (B + L - 2 * B * L / 255)
 #define _BLENDOP_SUBTRACT(B,L) (L - B < 0) ? 0:(L - B)
 
-unsigned long _blender_mask_alpha24(unsigned long blender_result, unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_mask_alpha24(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long src_alpha = geta32(x);
-    const unsigned long alphainv = 255 - src_alpha;
-    const unsigned long r = (getr24(blender_result)*src_alpha + alphainv*getr24(y)) / 255;
-    const unsigned long g = (getg24(blender_result)*src_alpha + alphainv*getg24(y)) / 255;
-    const unsigned long b = (getb24(blender_result)*src_alpha + alphainv*getb24(y)) / 255;
+    const uint32_t src_alpha = geta32(x);
+    const uint32_t alphainv = 255 - src_alpha;
+    const uint32_t r = (getr24(blender_result)*src_alpha + alphainv*getr24(y)) / 255;
+    const uint32_t g = (getg24(blender_result)*src_alpha + alphainv*getg24(y)) / 255;
+    const uint32_t b = (getb24(blender_result)*src_alpha + alphainv*getb24(y)) / 255;
     return r | g << 8 | b << 16;
 }
 // alegro's dodge blend was wrong, mine is not perfect either
-unsigned long _my_blender_dodge24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _my_blender_dodge24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long h = (getr24(y)*n) / (256 - getr24(x));
-    const unsigned long j = (getg24(y)*n) / (256 - getg24(x));
-    const unsigned long k = (getb24(y)*n) / (256 - getb24(x));
+    const uint32_t h = (getr24(y)*n) / (256 - getr24(x));
+    const uint32_t j = (getg24(y)*n) / (256 - getg24(x));
+    const uint32_t k = (getb24(y)*n) / (256 - getb24(x));
     return BLEND(24, h>255 ? 255 : h, j>255 ? 255 : j, k>255 ? 255 : k);
 }
-unsigned long _my_blender_burn24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _my_blender_burn24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long h = _BLENDOP_BURN(getr24(x), getr24(y));
-    const unsigned long j = _BLENDOP_BURN(getg24(x), getg24(y));
-    const unsigned long k = _BLENDOP_BURN(getb24(x), getb24(y));
+    const uint32_t h = _BLENDOP_BURN(getr24(x), getr24(y));
+    const uint32_t j = _BLENDOP_BURN(getg24(x), getg24(y));
+    const uint32_t k = _BLENDOP_BURN(getb24(x), getb24(y));
     return BLEND(24, h, j, k);
 }
-unsigned long _my_blender_lighten24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _my_blender_lighten24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long h = _BLENDOP_LIGHTEN(getr24(x), getr24(y));
-    const unsigned long j = _BLENDOP_LIGHTEN(getg24(x), getg24(y));
-    const unsigned long k = _BLENDOP_LIGHTEN(getb24(x), getb24(y));
+    const uint32_t h = _BLENDOP_LIGHTEN(getr24(x), getr24(y));
+    const uint32_t j = _BLENDOP_LIGHTEN(getg24(x), getg24(y));
+    const uint32_t k = _BLENDOP_LIGHTEN(getb24(x), getb24(y));
     return BLEND(24, h, j, k);
 }
-unsigned long _my_blender_darken24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _my_blender_darken24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long h = _BLENDOP_DARKEN(getr24(x), getr24(y));
-    const unsigned long j = _BLENDOP_DARKEN(getg24(x), getg24(y));
-    const unsigned long k = _BLENDOP_DARKEN(getb24(x), getb24(y));
+    const uint32_t h = _BLENDOP_DARKEN(getr24(x), getr24(y));
+    const uint32_t j = _BLENDOP_DARKEN(getg24(x), getg24(y));
+    const uint32_t k = _BLENDOP_DARKEN(getb24(x), getb24(y));
     return BLEND(24, h, j, k);
 }
-unsigned long _my_blender_exclusion24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _my_blender_exclusion24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long h = _BLENDOP_EXCLUSION(getr24(x), getr24(y));
-    const unsigned long j = _BLENDOP_EXCLUSION(getg24(x), getg24(y));
-    const unsigned long k = _BLENDOP_EXCLUSION(getb24(x), getb24(y));
+    const uint32_t h = _BLENDOP_EXCLUSION(getr24(x), getr24(y));
+    const uint32_t j = _BLENDOP_EXCLUSION(getg24(x), getg24(y));
+    const uint32_t k = _BLENDOP_EXCLUSION(getb24(x), getb24(y));
     return BLEND(24, h, j, k);
 }
-unsigned long _my_blender_subtract24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _my_blender_subtract24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const unsigned long h = _BLENDOP_SUBTRACT(getr24(x), getr24(y));
-    const unsigned long j = _BLENDOP_SUBTRACT(getg24(x), getg24(y));
-    const unsigned long k = _BLENDOP_SUBTRACT(getb24(x), getb24(y));
+    const uint32_t h = _BLENDOP_SUBTRACT(getr24(x), getr24(y));
+    const uint32_t j = _BLENDOP_SUBTRACT(getg24(x), getg24(y));
+    const uint32_t k = _BLENDOP_SUBTRACT(getb24(x), getb24(y));
     return BLEND(24, h, j, k);
 }
 
-unsigned long _blender_masked_add32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_add32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_blender_add24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_dodge32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_dodge32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_my_blender_dodge24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_burn32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_burn32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_my_blender_burn24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_lighten32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_lighten32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_my_blender_lighten24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_darken32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_darken32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_my_blender_darken24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_exclusion32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_exclusion32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_my_blender_exclusion24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_subtract32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_subtract32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_my_blender_subtract24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_screen32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_screen32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_blender_screen24(x, y, n), x, y, n);
 }
-unsigned long _blender_masked_multiply32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_masked_multiply32(uint32_t x, uint32_t y, uint32_t n)
 {
     return _blender_mask_alpha24(_blender_multiply24(x, y, n), x, y, n);
 }

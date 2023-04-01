@@ -209,64 +209,64 @@ AL_VAR(int, _blender_col_32);
 
 AL_VAR(int, _blender_alpha);
 
-AL_FUNC(unsigned long, _blender_black, (unsigned long x, unsigned long y, unsigned long n));
+AL_FUNC(uint32_t, _blender_black, (uint32_t x, uint32_t y, uint32_t n));
 
 #ifdef ALLEGRO_COLOR16
 
-AL_FUNC(unsigned long, _blender_trans15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_add15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_burn15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_color15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_difference15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_dissolve15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_dodge15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_hue15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_invert15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_luminance15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_multiply15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_saturation15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_screen15, (unsigned long x, unsigned long y, unsigned long n));
+AL_FUNC(uint32_t, _blender_trans15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_add15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_burn15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_color15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_difference15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_dissolve15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_dodge15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_hue15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_invert15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_luminance15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_multiply15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_saturation15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_screen15, (uint32_t x, uint32_t y, uint32_t n));
 
-AL_FUNC(unsigned long, _blender_trans16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_add16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_burn16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_color16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_difference16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_dissolve16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_dodge16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_hue16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_invert16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_luminance16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_multiply16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_saturation16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_screen16, (unsigned long x, unsigned long y, unsigned long n));
+AL_FUNC(uint32_t, _blender_trans16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_add16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_burn16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_color16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_difference16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_dissolve16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_dodge16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_hue16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_invert16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_luminance16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_multiply16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_saturation16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_screen16, (uint32_t x, uint32_t y, uint32_t n));
 
 #endif
 
 #if (defined ALLEGRO_COLOR24) || (defined ALLEGRO_COLOR32)
 
-AL_FUNC(unsigned long, _blender_trans24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_add24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_burn24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_color24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_difference24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_dissolve24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_dodge24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_hue24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_invert24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_luminance24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_multiply24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_saturation24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_screen24, (unsigned long x, unsigned long y, unsigned long n));
+AL_FUNC(uint32_t, _blender_trans24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_add24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_burn24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_color24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_difference24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_dissolve24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_dodge24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_hue24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_invert24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_luminance24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_multiply24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_saturation24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_screen24, (uint32_t x, uint32_t y, uint32_t n));
 
 #endif
 
-AL_FUNC(unsigned long, _blender_alpha15, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_alpha16, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_alpha24, (unsigned long x, unsigned long y, unsigned long n));
-AL_FUNC(unsigned long, _blender_alpha32, (unsigned long x, unsigned long y, unsigned long n));
+AL_FUNC(uint32_t, _blender_alpha15, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_alpha16, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_alpha24, (uint32_t x, uint32_t y, uint32_t n));
+AL_FUNC(uint32_t, _blender_alpha32, (uint32_t x, uint32_t y, uint32_t n));
 
-AL_FUNC(unsigned long, _blender_write_alpha, (unsigned long x, unsigned long y, unsigned long n));
+AL_FUNC(uint32_t, _blender_write_alpha, (uint32_t x, uint32_t y, uint32_t n));
 
 
 /* graphics drawing routines */

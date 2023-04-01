@@ -662,7 +662,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     soff_t env_pos = out->GetPosition();
     out->WriteInt32(0);
     // Enviroment information
-    StrUtil::WriteString("Adventure Game Studio run-time engine", out);
+    StrUtil::WriteString(get_engine_name(), out);
     StrUtil::WriteString(EngineVersion.LongString, out);
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);

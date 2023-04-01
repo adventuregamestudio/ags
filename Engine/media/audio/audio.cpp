@@ -164,9 +164,8 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
     if (!interruptEqualPriority)
         priority--;
 
-    // NOTE: in backward compat mode we allow to place sound on a crossfade channel
     int startAtChannel = reserved_channel_count;
-    int endBeforeChannel = game.numCompatGameChannels;
+    int endBeforeChannel = game.numGameChannels;
 
     if (game.audioClipTypes[clip->type].reservedChannels > 0)
     {
@@ -175,6 +174,8 @@ static int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool int
         {
             startAtChannel += game.audioClipTypes[i].reservedChannels;
         }
+        // NOTE: we allow to place sound on a crossfade channel for backward compatibility,
+        // but ONLY for the case of audio type with reserved channels (weird quirk).
         endBeforeChannel = std::min(game.numCompatGameChannels,
             startAtChannel + game.audioClipTypes[clip->type].reservedChannels);
     }
@@ -863,6 +864,20 @@ void update_volume_drop_if_voiceover()
     apply_volume_drop_modifier(play.speech_has_voice);
 }
 
+// Sync logical game channels with the audio backend:
+// startup new assigned clips, apply changed parameters.
+void sync_audio_playback()
+{
+    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
+    { // update the playing channels, and dispose the finished / invalid ones
+        auto *ch = AudioChans::GetChannelIfPlaying(i);
+        if (ch && !ch->update())
+        {
+            AudioChans::DeleteClipOnChannel(i);
+        }
+    }
+}
+
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop)
 void update_audio_system_on_game_loop ()
@@ -875,14 +890,7 @@ void update_audio_system_on_game_loop ()
     // and queues, then second time later - because we need to apply any
     // changes to channels / parameters.
     // TODO: investigate options for optimizing this.
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    { // update the playing channels, and dispose the finished / invalid ones
-        auto *ch = AudioChans::GetChannelIfPlaying(i);
-        if (ch && !ch->update())
-        {
-            AudioChans::DeleteClipOnChannel(i);
-        }
-    }
+    sync_audio_playback();
 
     process_scheduled_music_update();
 
@@ -925,16 +933,8 @@ void update_audio_system_on_game_loop ()
         update_directional_sound_vol();
     }
 
-    // Sync logical game channels with the audio backend:
-    // startup new assigned clips, apply changed parameters.
-    for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
-    { // update the playing channels, and dispose the finished / invalid ones
-        auto *ch = AudioChans::GetChannelIfPlaying(i);
-        if (ch && !ch->update())
-        {
-            AudioChans::DeleteClipOnChannel(i);
-        }
-    }
+    // Sync logical game channels with the audio backend again
+    sync_audio_playback();
 }
 
 void stopmusic()

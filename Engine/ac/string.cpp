@@ -323,12 +323,16 @@ size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, i
     return lines.Count();
 }
 
+// FIXME!!
+// This is a ugly "safety fix" that tests whether the script tries
+// to write inside the Character's struct (e.g. char.name?), and truncates
+// the write limit... except it does not use full length anymore (40 now).
 size_t MAXSTRLEN = MAX_MAXSTRLEN;
 void check_strlen(char*ptt) {
     MAXSTRLEN = MAX_MAXSTRLEN;
-    long charstart = (long)&game.chars[0];
-    long charend = charstart + sizeof(CharacterInfo)*game.numcharacters;
-    if (((long)&ptt[0] >= charstart) && ((long)&ptt[0] <= charend))
+    uintptr_t charstart = (uintptr_t)&game.chars[0];
+    uintptr_t charend = charstart + sizeof(CharacterInfo)*game.numcharacters;
+    if (((uintptr_t)&ptt[0] >= charstart) && ((uintptr_t)&ptt[0] <= charend))
         MAXSTRLEN=30;
 }
 

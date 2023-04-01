@@ -79,7 +79,7 @@ void FUNC_LINEAR_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
 
 #ifndef USE_MEMMOVE
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
-	 unsigned long c;
+	 uint32_t c;
 
 	 c = GET_PIXEL(s);
 
@@ -114,7 +114,7 @@ void FUNC_LINEAR_BLIT_BACKWARD(BITMAP *src, BITMAP *dst, int sx, int sy,
       PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dy + y], dx + w - 1);
 
       for (x = w - 1; x >= 0; DEC_PIXEL_PTR(s), DEC_PIXEL_PTR(d), x--) {
-	 unsigned long c;
+	 uint32_t c;
 
 	 c = GET_PIXEL(s);
 
@@ -141,7 +141,7 @@ void FUNC_LINEAR_MASKED_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
 			     int dx, int dy, int w, int h)
 {
    int x, y;
-   unsigned long mask_color;
+   uint32_t mask_color;
 
    ASSERT(src);
    ASSERT(dst);
@@ -153,7 +153,7 @@ void FUNC_LINEAR_MASKED_BLIT(BITMAP *src, BITMAP *dst, int sx, int sy,
       PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dy + y], dx);
 
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
-	 unsigned long c;
+	 uint32_t c;
 
 	 c = GET_PIXEL(s);
 

@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "util/inifile.h"
 #include <cctype>
 #include <string.h>
-#include "util/inifile.h"
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
 
@@ -47,7 +46,7 @@ IniFile::ItemDef::ItemDef(const String &key, const String &value)
     Value.second = Value.first + value.GetLength();
 }
 
-IniFile::ItemDef::ItemDef(const String &line, const StrPos &key, const StrPos &value, int sep_at)
+IniFile::ItemDef::ItemDef(const String &line, const StrPos &key, const StrPos &value, size_t sep_at)
 {
     Line = line;
     Key = key;
@@ -62,7 +61,7 @@ void IniFile::ItemDef::SetKey(const String &key)
 
     if (IsKeyValue())
     {
-        int diff = key.GetLength() - (Key.second - Key.first);
+        size_t diff = key.GetLength() - (Key.second - Key.first);
         ReplaceSubString(Line, Key, key);
         Key.second += diff;
         Value.first += diff;
@@ -79,9 +78,9 @@ void IniFile::ItemDef::SetValue(const String &value)
     if (!IsKeyValue())
         return; // no key
 
-    if (SepAt > 0)
+    if (SepAt != String::NoIndex)
     {   // replacing existing value
-        int diff = static_cast<int>(value.GetLength()) - (Value.second - Value.first);
+        size_t diff = value.GetLength() - (Value.second - Value.first);
         ReplaceSubString(Line, Value, value);
         Value.second += diff;
     }
@@ -97,7 +96,7 @@ IniFile::SectionDef::SectionDef(const String &name)
     if (name.IsEmpty())
     {
         // global section
-        Name = StrPos(0,0);
+        Name = StrPos(0, 0);
     }
     else
     {
@@ -119,7 +118,7 @@ void IniFile::SectionDef::SetName(const String &sec_name)
     if (sec_name.IsEmpty())
         return;
 
-    int diff = sec_name.GetLength() - (Name.second - Name.first);
+    size_t diff = sec_name.GetLength() - (Name.second - Name.first);
     ReplaceSubString(Header, Name, sec_name);
     Name.second += diff;
 }
@@ -231,8 +230,8 @@ void IniFile::Read(Stream *in)
         if ((endl - pstr >= 2 && *pstr == '/' && *(pstr + 1) == '/') ||
             (endl - pstr >= 1 && (*pstr == '#' || *pstr == ';')))
         {
-            StrPos nullpos(0,0);
-            cur_section->InsertItem(cur_section->End(), ItemDef(line, nullpos, nullpos, -1));
+            StrPos nullpos(0u, 0u);
+            cur_section->InsertItem(cur_section->End(), ItemDef(line, nullpos, nullpos, String::NoIndex));
             continue;
         }
 
@@ -267,8 +266,8 @@ void IniFile::Read(Stream *in)
                 continue; // inappropriate data or empty string
             // Create an item and parse value, if any
             StrPos keypos(str_at - cstr, str_end - cstr);
-            StrPos valpos(0, 0);
-            int sep_at = -1;
+            StrPos valpos(0u, 0u);
+            size_t sep_at = String::NoIndex;
             if (pstr != endl)
             {
                 sep_at = pstr - cstr;

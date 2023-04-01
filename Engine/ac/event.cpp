@@ -226,7 +226,7 @@ void process_event(const EventHappened *evp) {
             // transition type was not crossfade/dissolve when the screen faded out,
             // but it is now when the screen fades in (Eg. a save game was restored
             // with a different setting). Therefore just fade normally.
-            my_fade_out(5);
+            fadeout_impl(5);
             theTransition = FADE_NORMAL;
         }
 
@@ -238,7 +238,7 @@ void process_event(const EventHappened *evp) {
             set_palette_range(palette, 0, 255, 0);
         else if (theTransition == FADE_NORMAL)
         {
-            my_fade_in(palette,5);
+            fadein_impl(palette, 5);
         }
         else if (theTransition == FADE_BOXOUT) 
         {

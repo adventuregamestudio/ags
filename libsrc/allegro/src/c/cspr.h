@@ -67,7 +67,7 @@ void FUNC_LINEAR_DRAW_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg + y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 	    if (!IS_SPRITE_MASK(src, c)) {
 	       PUT_MEMORY_PIXEL(d, c);
 	    }
@@ -133,7 +133,7 @@ void FUNC_LINEAR_DRAW_256_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg + y], dxbeg);
 
 	 for (x = w - 1; x >= 0; s++, INC_PIXEL_PTR(d), x--) {
-	    unsigned long c = *s;
+	    uint32_t c = *s;
 	    if (c != 0) {
 	       c = table[c];
 	       PUT_MEMORY_PIXEL(d, c);
@@ -197,7 +197,7 @@ void FUNC_LINEAR_DRAW_SPRITE_V_FLIP(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg - y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 	    if (!IS_SPRITE_MASK(src, c)) {
 	       PUT_MEMORY_PIXEL(d, c);
 	    }
@@ -260,7 +260,7 @@ void FUNC_LINEAR_DRAW_SPRITE_H_FLIP(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg + y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), DEC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 	    if (!IS_SPRITE_MASK(src, c)) {
 	       PUT_MEMORY_PIXEL(d, c);
 	    }
@@ -327,7 +327,7 @@ void FUNC_LINEAR_DRAW_SPRITE_VH_FLIP(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg - y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), DEC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 	    if (!IS_SPRITE_MASK(src, c)) {
 	       PUT_MEMORY_PIXEL(d, c);
 	    }
@@ -392,7 +392,7 @@ void FUNC_LINEAR_DRAW_TRANS_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR dd = OFFSET_PIXEL_PTR(bmp_write_line(dst, dybeg + y), dxbeg);
 
 	 for (x = w - 1; x >= 0; s++, INC_PIXEL_PTR(ds), INC_PIXEL_PTR(dd), x--) {
-	    unsigned long c = *s;
+	    uint32_t c = *s;
 #if PP_DEPTH == 8
 	    c = DTS_BLEND(blender, GET_PIXEL(ds), c);
 	    PUT_PIXEL(dd, c);
@@ -412,7 +412,7 @@ void FUNC_LINEAR_DRAW_TRANS_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy)
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg + y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 #if PP_DEPTH == 8
 	    c = DTS_BLEND(blender, GET_MEMORY_PIXEL(d), c);
 	    PUT_MEMORY_PIXEL(d, c);
@@ -484,7 +484,7 @@ void FUNC_LINEAR_DRAW_TRANS_RGBA_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy
       PIXEL_PTR dd = OFFSET_PIXEL_PTR(bmp_write_line(dst, dybeg + y), dxbeg);
 
       for (x = w - 1; x >= 0; s++, INC_PIXEL_PTR(ds), INC_PIXEL_PTR(dd), x--) {
-	 unsigned long c = *s;
+	 uint32_t c = *s;
 
 	 if (c != MASK_COLOR_32) {
 	    c = RGBA_BLEND(blender, GET_PIXEL(ds), c);
@@ -550,7 +550,7 @@ void FUNC_LINEAR_DRAW_LIT_SPRITE(BITMAP *dst, BITMAP *src, int dx, int dy, int c
 	 PIXEL_PTR d = OFFSET_PIXEL_PTR(dst->line[dybeg + y], dxbeg);
 
 	 for (x = w - 1; x >= 0; INC_PIXEL_PTR(s), INC_PIXEL_PTR(d), x--) {
-	    unsigned long c = GET_MEMORY_PIXEL(s);
+	    uint32_t c = GET_MEMORY_PIXEL(s);
 
 	    if (!IS_MASK(c)) {
 	       c = DLS_BLEND(blender, color, c);

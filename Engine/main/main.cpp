@@ -120,12 +120,9 @@ String get_engine_string()
 {
     return String::FromFormat("Adventure Game Studio v%s Interpreter\n"
         "Copyright (c) 1999-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others\n"
-#ifdef BUILD_STR
-        "ACI version %s (Build: %s)\n",
-        EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
-#else
-        "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
-#endif
+        "Engine version %s\n",
+        EngineVersion.ShortString.GetCStr(),
+        get_engine_version_and_build().GetCStr());
 }
 
 void main_print_help() {

@@ -262,7 +262,7 @@ RuntimeScriptValue Sc_FadeIn(const RuntimeScriptValue *params, int32_t param_cou
 // void (int spdd)
 RuntimeScriptValue Sc_my_fade_out(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(my_fade_out);
+    API_SCALL_VOID_PINT(FadeOut);
 }
 
 // void (int handle)
@@ -1969,7 +1969,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("EnableRegion",             (void*)EnableRegion);
     ccAddExternalFunctionForPlugin("EndCutscene",              (void*)EndCutscene);
     ccAddExternalFunctionForPlugin("FadeIn",                   (void*)FadeIn);
-    ccAddExternalFunctionForPlugin("FadeOut",                  (void*)my_fade_out);
+    ccAddExternalFunctionForPlugin("FadeOut",                  (void*)FadeOut);
     ccAddExternalFunctionForPlugin("FileClose",                (void*)FileClose);
     ccAddExternalFunctionForPlugin("FileIsEOF",                (void*)FileIsEOF);
     ccAddExternalFunctionForPlugin("FileIsError",              (void*)FileIsError);

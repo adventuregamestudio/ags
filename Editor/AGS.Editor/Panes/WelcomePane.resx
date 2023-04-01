@@ -120,17 +120,14 @@
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
     <value>Some of the new features in AGS 3.6 include:
 * Engine backend now uses SDL2
+* Multiplatform support extended
 * Unicode support
 * New game package options
 * Multiple speech voxes
 * New sprite compression options
-* Multiplatform support extended
-* New Room Overlays and Overlays properties
+* Room Overlays and new Overlay properties
 * Room objects limit increased
 * And loads more!
 </value>
-  </data>
-  <data name="lnkUpgrading.Text" xml:space="preserve">
-    <value>If you've come from a much older version of AGS (especially from AGS 2.72 and earlier) be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 3.6" page gives insight into most important changes in current version.</value>
   </data>
 </root>

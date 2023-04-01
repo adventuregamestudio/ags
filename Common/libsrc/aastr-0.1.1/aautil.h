@@ -77,60 +77,60 @@ extern "C" {
   void _aa_prepare_for_24bpp (void);
 
   /* Add r,g,b values from source bitmap.  */
-  void _aa_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num);
+  void _aa_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num);
 #ifdef ALLEGRO_COLOR16
-  void _aa_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num);
-  void _aa_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num);
+  void _aa_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num);
+  void _aa_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num);
 #endif
 #ifdef ALLEGRO_COLOR24
-  void _aa_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num);
+  void _aa_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num);
 #endif
 #ifdef ALLEGRO_COLOR32
-  void _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num);
+  void _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, uint32_t _num);
 #endif
 
   /* Put pixel to destination bitmap.  */
-  void _aa_put_rgb8 (unsigned long _addr, int _x);
+  void _aa_put_rgb8 (uintptr_t _addr, int _x);
 #ifdef ALLEGRO_COLOR16
-  void _aa_put_rgb15 (unsigned long _addr, int _x);
-  void _aa_put_rgb16 (unsigned long _addr, int _x);
+  void _aa_put_rgb15 (uintptr_t _addr, int _x);
+  void _aa_put_rgb16 (uintptr_t _addr, int _x);
 #endif
 #ifdef ALLEGRO_COLOR24
-  void _aa_put_rgb24 (unsigned long _addr, int _x);
+  void _aa_put_rgb24 (uintptr_t _addr, int _x);
 #endif
 #ifdef ALLEGRO_COLOR32
-  void _aa_put_rgb32 (unsigned long _addr, int _x);
+  void _aa_put_rgb32 (uintptr_t _addr, int _x);
 #endif
 
   /* Add r,g,b and transparency values from source bitmap.  */
   void _aa_masked_add_rgb8 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2,
-			    unsigned long _num);
+			     uint32_t _num);
 #ifdef ALLEGRO_COLOR16
   void _aa_masked_add_rgb15 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2,
-			     unsigned long _num);
+			     uint32_t _num);
   void _aa_masked_add_rgb16 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2,
-			     unsigned long _num);
+			     uint32_t _num);
 #endif
 #ifdef ALLEGRO_COLOR24
   void _aa_masked_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2,
-			     unsigned long _num);
+			     uint32_t _num);
 #endif
 #ifdef ALLEGRO_COLOR32
   void _aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2,
-			     unsigned long _num);
+			     uint32_t _num);
 #endif
 
   /* Put masked pixel to destination bitmap.  */
-  void _aa_masked_put_rgb8 (unsigned long _addr, int _x);
+  void _aa_masked_put_rgb8 (uintptr_t _addr, int _x);
 #ifdef ALLEGRO_COLOR16
-  void _aa_masked_put_rgb15 (unsigned long _addr, int _x);
-  void _aa_masked_put_rgb16 (unsigned long _addr, int _x);
+  void _aa_masked_put_rgb15 (uintptr_t _addr, int _x);
+  void _aa_masked_put_rgb16 (uintptr_t _addr, int _x);
 #endif
 #ifdef ALLEGRO_COLOR24
-  void _aa_masked_put_rgb24 (unsigned long _addr, int _x);
+  void _aa_masked_put_rgb24 (uintptr_t _addr, int _x);
 #endif
 #ifdef ALLEGRO_COLOR32
-  void _aa_masked_put_rgb32 (unsigned long _addr, int _x);
+  void _aa_masked_put_rgb32 (uintptr_t _addr, int _x);
 #endif
 
 #ifdef __cplusplus

@@ -23,6 +23,7 @@
 #include "ac/screen.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
+#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -59,6 +60,9 @@ void ShakeScreen(int severe) {
     play.shakesc_amount = severe;
     play.mouse_cursor_hidden++;
 
+    // FIXME: we have to sync audio here explicitly, because ShakeScreen
+    // does not call any game update function while it works
+    sync_audio_playback();
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
         for (int hh = 0; hh < 40; hh++)
@@ -86,6 +90,7 @@ void ShakeScreen(int severe) {
         }
         render_to_screen();
     }
+    sync_audio_playback();
 
     play.mouse_cursor_hidden--;
     play.shakesc_length = 0;
@@ -117,14 +122,24 @@ void TintScreen(int red, int grn, int blu) {
     play.screen_tint = red + (grn << 8) + (blu << 16);
 }
 
-void my_fade_out(int spdd) {
+void FadeOut(int sppd) {
     EndSkippingUntilCharStops();
 
     if (play.fast_forward)
         return;
 
+    // FIXME: we have to sync audio here explicitly, because FadeOut
+    // does not call any game update function while it works
+    sync_audio_playback();
+    fadeout_impl(sppd);
+    sync_audio_playback();
+}
+
+void fadeout_impl(int spdd) {
     if (play.screen_is_faded_out == 0)
+    {
         gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+    }
 
     if (game.color_depth > 1)
         play.screen_is_faded_out = 1;
@@ -164,5 +179,9 @@ void FadeIn(int sppd) {
     if (play.fast_forward)
         return;
 
-    my_fade_in(palette,sppd);
+    // FIXME: we have to sync audio here explicitly, because FadeIn
+    // does not call any game update function while it works
+    sync_audio_playback();
+    fadein_impl(palette,sppd);
+    sync_audio_playback();
 }

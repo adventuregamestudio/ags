@@ -54,7 +54,8 @@ namespace AGS.Editor
             "Now available on the NHS",
             "Satisfaction guaranteed, or your money back",
             "Chuck Norris made it happen",
-            "\"Scary, but exciting!\"" // quoting Remigiusz Michalski :)
+            "\"Scary, but exciting!\"", // quoting Remigiusz Michalski :)
+            "AGS is the best program in the world right now for making AGS games", // from AGS Discord
         };
         /* Never quite finished implementing this april fool
         private readonly string[] TagLinesChristian = new string[] {

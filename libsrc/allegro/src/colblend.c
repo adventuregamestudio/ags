@@ -32,7 +32,7 @@
 /* _blender_black:
  *  Fallback routine for when we don't have anything better to do.
  */
-unsigned long _blender_black(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_black(uint32_t x, uint32_t y, uint32_t n)
 {
    return 0;
 }
@@ -50,9 +50,9 @@ unsigned long _blender_black(unsigned long x, unsigned long y, unsigned long n)
 /* _blender_trans24:
  *  24 bit trans blender function.
  */
-unsigned long _blender_trans24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_trans24(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long res, g;
+   uint32_t res, g;
 
    if (n)
       n++;
@@ -76,10 +76,10 @@ unsigned long _blender_trans24(unsigned long x, unsigned long y, unsigned long n
 /* _blender_alpha24:
  *  Combines a 32 bit RGBA sprite with a 24 bit RGB destination.
  */
-unsigned long _blender_alpha24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha24(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long xx = makecol24(getr32(x), getg32(x), getb32(x));
-   unsigned long res, g;
+   uint32_t xx = makecol24(getr32(x), getg32(x), getb32(x));
+   uint32_t res, g;
 
    n = geta32(x);
 
@@ -102,9 +102,9 @@ unsigned long _blender_alpha24(unsigned long x, unsigned long y, unsigned long n
 /* _blender_alpha32:
  *  Combines a 32 bit RGBA sprite with a 32 bit RGB destination.
  */
-unsigned long _blender_alpha32(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha32(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long res, g;
+   uint32_t res, g;
 
    n = geta32(x);
 
@@ -128,9 +128,9 @@ unsigned long _blender_alpha32(unsigned long x, unsigned long y, unsigned long n
  *  Combines a 32 bit RGBA sprite with a 24 bit RGB destination, optimised
  *  for when one is in a BGR format and the other is RGB.
  */
-unsigned long _blender_alpha24_bgr(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha24_bgr(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long res, g;
+   uint32_t res, g;
 
    n = x >> 24;
 
@@ -348,9 +348,9 @@ unsigned long _blender_screen24(unsigned long x, unsigned long y, unsigned long 
 /* _blender_trans16:
  *  16 bit trans blender function.
  */
-unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_trans16(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    if (n)
       n = (n + 1) / 8;
@@ -368,9 +368,9 @@ unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n
 /* _blender_alpha16:
  *  Combines a 32 bit RGBA sprite with a 16 bit RGB destination.
  */
-unsigned long _blender_alpha16(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha16(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    n = geta32(x);
 
@@ -393,9 +393,9 @@ unsigned long _blender_alpha16(unsigned long x, unsigned long y, unsigned long n
  *  Combines a 32 bit RGBA sprite with a 16 bit RGB destination, optimised
  *  for when both pixels are in an RGB layout.
  */
-unsigned long _blender_alpha16_rgb(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha16_rgb(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    n = x >> 24;
 
@@ -418,9 +418,9 @@ unsigned long _blender_alpha16_rgb(unsigned long x, unsigned long y, unsigned lo
  *  Combines a 32 bit RGBA sprite with a 16 bit RGB destination, optimised
  *  for when one pixel is in an RGB layout and the other is BGR.
  */
-unsigned long _blender_alpha16_bgr(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha16_bgr(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    n = x >> 24;
 
@@ -441,9 +441,9 @@ unsigned long _blender_alpha16_bgr(unsigned long x, unsigned long y, unsigned lo
 /* _blender_trans15:
  *  15 bit trans blender function.
  */
-unsigned long _blender_trans15(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_trans15(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    if (n)
       n = (n + 1) / 8;
@@ -461,9 +461,9 @@ unsigned long _blender_trans15(unsigned long x, unsigned long y, unsigned long n
 /* _blender_alpha15:
  *  Combines a 32 bit RGBA sprite with a 15 bit RGB destination.
  */
-unsigned long _blender_alpha15(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha15(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    n = geta32(x);
 
@@ -486,9 +486,9 @@ unsigned long _blender_alpha15(unsigned long x, unsigned long y, unsigned long n
  *  Combines a 32 bit RGBA sprite with a 15 bit RGB destination, optimised
  *  for when both pixels are in an RGB layout.
  */
-unsigned long _blender_alpha15_rgb(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha15_rgb(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    n = x >> 24;
 
@@ -511,9 +511,9 @@ unsigned long _blender_alpha15_rgb(unsigned long x, unsigned long y, unsigned lo
  *  Combines a 32 bit RGBA sprite with a 15 bit RGB destination, optimised
  *  for when one pixel is in an RGB layout and the other is BGR.
  */
-unsigned long _blender_alpha15_bgr(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_alpha15_bgr(uint32_t x, uint32_t y, uint32_t n)
 {
-   unsigned long result;
+   uint32_t result;
 
    n = x >> 24;
 

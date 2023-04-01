@@ -17,20 +17,20 @@
 
 extern "C" {
     // Fallback routine for when we don't have anything better to do.
-    unsigned long _blender_black(unsigned long x, unsigned long y, unsigned long n);
+    uint32_t _blender_black(uint32_t x, uint32_t y, uint32_t n);
     // Standard Allegro 4 trans blenders for 16 and 15-bit color modes
-    unsigned long _blender_trans15(unsigned long x, unsigned long y, unsigned long n);
-    unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n);
+    uint32_t _blender_trans15(uint32_t x, uint32_t y, uint32_t n);
+    uint32_t _blender_trans16(uint32_t x, uint32_t y, uint32_t n);
     // Standard Allegro 4 alpha blenders for 16 and 15-bit color modes
-    unsigned long _blender_alpha15(unsigned long x, unsigned long y, unsigned long n);
-    unsigned long _blender_alpha16(unsigned long x, unsigned long y, unsigned long n);
-    unsigned long _blender_alpha24(unsigned long x, unsigned long y, unsigned long n);
+    uint32_t _blender_alpha15(uint32_t x, uint32_t y, uint32_t n);
+    uint32_t _blender_alpha16(uint32_t x, uint32_t y, uint32_t n);
+    uint32_t _blender_alpha24(uint32_t x, uint32_t y, uint32_t n);
 }
 
 
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color15_light(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _myblender_color15_light(uint32_t x, uint32_t y, uint32_t n)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -50,7 +50,7 @@ unsigned long _myblender_color15_light(unsigned long x, unsigned long y, unsigne
 
 // Take hue and saturation of blend colour, luminance of image
 // n is the last parameter passed to draw_lit_sprite
-unsigned long _myblender_color16_light(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _myblender_color16_light(uint32_t x, uint32_t y, uint32_t n)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -69,7 +69,7 @@ unsigned long _myblender_color16_light(unsigned long x, unsigned long y, unsigne
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color32_light(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _myblender_color32_light(uint32_t x, uint32_t y, uint32_t n)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -88,7 +88,7 @@ unsigned long _myblender_color32_light(unsigned long x, unsigned long y, unsigne
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long /*n*/)
+uint32_t _myblender_color15(uint32_t x, uint32_t y, uint32_t /*n*/)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -103,7 +103,7 @@ unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long /*n*/)
+uint32_t _myblender_color16(uint32_t x, uint32_t y, uint32_t /*n*/)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -118,7 +118,7 @@ unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long
 }
 
 // Take hue and saturation of blend colour, luminance of image
-unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long /*n*/)
+uint32_t _myblender_color32(uint32_t x, uint32_t y, uint32_t /*n*/)
 {
     float xh, xs, xv;
     float yh, ys, yv;
@@ -133,9 +133,9 @@ unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long
 }
 
 // trans24 blender, but preserve alpha channel from image
-unsigned long _myblender_alpha_trans24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _myblender_alpha_trans24(uint32_t x, uint32_t y, uint32_t n)
 {
-    unsigned long res, g, alph;
+    uint32_t res, g, alph;
 
     if (n)
         n++;
@@ -163,18 +163,18 @@ void set_my_trans_blender(int r, int g, int b, int a)
 
 // plain copy source to destination
 // assign new alpha value as a summ of alphas.
-unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, unsigned long /*n*/)
+uint32_t _additive_alpha_copysrc_blender(uint32_t x, uint32_t y, uint32_t /*n*/)
 {
-    unsigned long newAlpha = ((x & 0xff000000) >> 24) + ((y & 0xff000000) >> 24);
+    uint32_t newAlpha = ((x & 0xff000000) >> 24) + ((y & 0xff000000) >> 24);
 
     if (newAlpha > 0xff) newAlpha = 0xff;
 
     return (newAlpha << 24) | (x & 0x00ffffff);
 }
 
-FORCEINLINE unsigned long argb2argb_blend_core(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
+FORCEINLINE uint32_t argb2argb_blend_core(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
 {
-    unsigned long dst_g, dst_alpha;
+    uint32_t dst_g, dst_alpha;
     src_alpha++;
     dst_alpha = geta32(dst_col);
     if (dst_alpha)
@@ -208,7 +208,7 @@ FORCEINLINE unsigned long argb2argb_blend_core(unsigned long src_col, unsigned l
 // assign new alpha value as a multiplication of translucenses.
 // combined_alpha = front.alpha + back.alpha * (1 - front.alpha);
 // combined_rgb = (front.rgb * front.alpha + back.rgb * (1 - front.alpha) * back.alpha) / combined_alpha;
-unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
+uint32_t _argb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
 {
     if (src_alpha > 0)
         src_alpha = geta32(src_col) * ((src_alpha & 0xFF) + 1) / 256;
@@ -219,16 +219,16 @@ unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, u
     return argb2argb_blend_core(src_col, dst_col, src_alpha);
 }
 
-unsigned long _rgb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
+uint32_t _rgb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
 {
     if (src_alpha == 0 || src_alpha == 0xFF)
         return src_col | 0xFF000000;
     return argb2argb_blend_core(src_col | 0xFF000000, dst_col, src_alpha);
 }
 
-unsigned long _argb2rgb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
+uint32_t _argb2rgb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
 {
-   unsigned long res, g;
+   uint32_t res, g;
 
    if (src_alpha > 0)
         src_alpha = geta32(src_col) * ((src_alpha & 0xFF) + 1) / 256;
@@ -249,9 +249,9 @@ unsigned long _argb2rgb_blender(unsigned long src_col, unsigned long dst_col, un
 }
 
 // Based on _blender_alpha16, but keep source pixel if dest is transparent
-unsigned long skiptranspixels_blender_alpha16(unsigned long x, unsigned long y, unsigned long n)
+uint32_t skiptranspixels_blender_alpha16(uint32_t x, uint32_t y, uint32_t n)
 {
-    unsigned long result;
+    uint32_t result;
     if ((y & 0xFFFF) == 0xF81F)
         return x;
     n = geta32(x);
@@ -275,7 +275,7 @@ void set_argb2argb_blender(int alpha)
 }
 
 // sets the alpha channel to opaque. used when drawing a non-alpha sprite onto an alpha-sprite
-unsigned long _opaque_alpha_blender(unsigned long x, unsigned long /*y*/, unsigned long /*n*/)
+uint32_t _opaque_alpha_blender(uint32_t x, uint32_t /*y*/, uint32_t /*n*/)
 {
     return x | 0xff000000;
 }

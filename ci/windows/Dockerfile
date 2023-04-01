@@ -24,15 +24,23 @@ RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \
 RUN pushd %TEMP% && \
   mkdir Lib\Xiph && \
   pushd Lib\Xiph && \
-  nuget install ericoporto.xiph-for-ags -Version 2021.8.3 && \
+  nuget install ericoporto.xiph-for-ags -Version 2022.12.23 && \
   popd && \
   popd && \
   mkdir Lib\Xiph && \
-  pushd Lib\Xiph && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libogg_static.lib libogg_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libtheora_static.lib libtheora_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libvorbis_static.lib libvorbis_static.lib && \
-  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2021.8.3\native\lib\libvorbisfile_static.lib libvorbisfile_static.lib && \
+  mkdir Lib\Xiph\x86 && \
+  pushd Lib\Xiph\x86 && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x86\libogg_static.lib libogg_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x86\libtheora_static.lib libtheora_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x86\libvorbis_static.lib libvorbis_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x86\libvorbisfile_static.lib libvorbisfile_static.lib && \
+  popd && \
+  mkdir Lib\Xiph\x64 && \
+  pushd Lib\Xiph\x64 && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x64\libogg_static.lib libogg_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x64\libtheora_static.lib libtheora_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x64\libvorbis_static.lib libvorbis_static.lib && \
+  copy %TEMP%\Lib\Xiph\ericoporto.xiph-for-ags.2022.12.23\native\lib\x64\libvorbisfile_static.lib libvorbisfile_static.lib && \
   popd && \
   rd /s /q %TEMP%\Lib
 
@@ -62,11 +70,19 @@ RUN mkdir Lib\SDL2 && \
  
 ARG SDL_SOUND_VERSION=495e948b455af48eb45f75cccc060498f1e0e8a2
 RUN mkdir Lib\SDL_sound && \
-  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\SDL_sound\build ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild.bat && \
-  mkdir Lib\SDL_sound\build  && \
+  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\SDL_sound\build_x86 ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild_x86.bat && \
+  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64 ^&^& pushd Lib\SDL_sound\build_x64 ^&^& msbuild SDL_sound.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo ^&^& popd > sdlsoundvcbuild_x64.bat && \
+  mkdir Lib\SDL_sound\build_x86  && \
+  mkdir Lib\SDL_sound\build_x64  && \
   curl -fLSs "https://github.com/icculus/SDL_sound/archive/%SDL_SOUND_VERSION%.tar.gz" | tar -f - -xvzC Lib\SDL_sound --strip-components 1 && \
   set SDL2_DIR=%cd%\Lib\SDL2 && \
-  cmake -DCMAKE_SYSTEM_VERSION=8.1 -S Lib\SDL_sound -B Lib\SDL_sound\build -G "Visual Studio 14 2015" -T"v140" -A"Win32" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
-  sdlsoundvcbuild.bat && \
-  copy Lib\SDL_sound\build\Release\SDL2_sound-static.lib Lib\SDL_sound\build\Release\SDL_sound.lib 
+  cmake -DCMAKE_SYSTEM_VERSION=8.1 -S Lib\SDL_sound -B Lib\SDL_sound\build_x86 -G "Visual Studio 14 2015" -T"v140" -A"Win32" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
+  sdlsoundvcbuild_x86.bat && \
+  cmake -DCMAKE_SYSTEM_VERSION=8.1 -S Lib\SDL_sound -B Lib\SDL_sound\build_x64 -G "Visual Studio 14 2015" -T"v140" -A"x64" -DCMAKE_PREFIX_PATH=Lib\SDL2  -DSDLSOUND_DECODER_MIDI=1 && \
+  sdlsoundvcbuild_x64.bat && \
+  mkdir Lib\SDL_sound\lib && \
+  mkdir Lib\SDL_sound\lib\x86 && \
+  mkdir Lib\SDL_sound\lib\x64 && \
+  copy Lib\SDL_sound\build_x86\Release\SDL2_sound-static.lib Lib\SDL_sound\lib\x86\SDL_sound.lib && \
+  copy Lib\SDL_sound\build_x64\Release\SDL2_sound-static.lib Lib\SDL_sound\lib\x64\SDL_sound.lib 
 

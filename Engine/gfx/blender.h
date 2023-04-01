@@ -15,9 +15,10 @@
 // AGS specific color blending routines for transparency and tinting effects
 //
 //=============================================================================
-
 #ifndef __AC_BLENDER_H
 #define __AC_BLENDER_H
+
+#include <core/types.h>
 
 //
 // Allegro's standard alpha blenders result in:
@@ -31,12 +32,12 @@
 void set_alpha_blender();
 */
 
-unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _myblender_color15_light(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _myblender_color16_light(unsigned long x, unsigned long y, unsigned long n);
-unsigned long _myblender_color32_light(unsigned long x, unsigned long y, unsigned long n);
+uint32_t _myblender_color15(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _myblender_color16(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _myblender_color32(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _myblender_color15_light(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _myblender_color16_light(uint32_t x, uint32_t y, uint32_t n);
+uint32_t _myblender_color32_light(uint32_t x, uint32_t y, uint32_t n);
 // Customizable alpha blender that uses the supplied alpha value as src alpha,
 // and preserves destination's alpha channel (if there was one);
 void set_my_trans_blender(int r, int g, int b, int a);
@@ -45,14 +46,14 @@ void set_my_trans_blender(int r, int g, int b, int a);
 // The final alpha is calculated by multiplying two translucences (1 - .alpha).
 // Custom alpha parameter, when not zero, is treated as fraction of source
 // alpha that has to be used in color blending.
-unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha);
+uint32_t _argb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
 // Argb2rgb blender combines RGBs proportionally to src alpha, but discards alpha in the end.
 // It is almost a clone of Allegro's _blender_alpha32, except it also applies optional overall alpha.
-unsigned long _argb2rgb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha);
+uint32_t _argb2rgb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
 // Rgb2argb blender treats all src pixels as if having opaque alpha.
-unsigned long _rgb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha);
+uint32_t _rgb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
 // Sets the alpha channel to opaque. Used when drawing a non-alpha sprite onto an alpha-sprite.
-unsigned long _opaque_alpha_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha);
+uint32_t _opaque_alpha_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha);
 
 // Additive alpha blender plain copies src over, applying a summ of src and
 // dst alpha values.

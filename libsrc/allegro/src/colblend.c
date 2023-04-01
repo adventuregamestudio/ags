@@ -155,7 +155,7 @@ uint32_t _blender_alpha24_bgr(uint32_t x, uint32_t y, uint32_t n)
 /* _blender_add24:
  *  24 bit additive blender function.
  */
-unsigned long _blender_add24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_add24(uint32_t x, uint32_t y, uint32_t n)
 {
    int r = getr24(y) + getr24(x) * n / 256;
    int g = getg24(y) + getg24(x) * n / 256;
@@ -173,7 +173,7 @@ unsigned long _blender_add24(unsigned long x, unsigned long y, unsigned long n)
 /* _blender_burn24:
  *  24 bit burn blender function.
  */
-unsigned long _blender_burn24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_burn24(uint32_t x, uint32_t y, uint32_t n)
 {
    return BLEND(24, MAX(getr24(x) - getr24(y), 0),
 		    MAX(getg24(x) - getg24(y), 0),
@@ -185,7 +185,7 @@ unsigned long _blender_burn24(unsigned long x, unsigned long y, unsigned long n)
 /* _blender_color24:
  *  24 bit color blender function.
  */
-unsigned long _blender_color24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_color24(uint32_t x, uint32_t y, uint32_t n)
 {
    float xh, xs, xv;
    float yh, ys, yv;
@@ -207,7 +207,7 @@ unsigned long _blender_color24(unsigned long x, unsigned long y, unsigned long n
 /* _blender_difference24:
  *  24 bit difference blender function.
  */
-unsigned long _blender_difference24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_difference24(uint32_t x, uint32_t y, uint32_t n)
 {
    return BLEND(24, ABS(getr24(y) - getr24(x)),
 		    ABS(getg24(y) - getg24(x)),
@@ -219,7 +219,7 @@ unsigned long _blender_difference24(unsigned long x, unsigned long y, unsigned l
 /* _blender_dissolve24:
  *  24 bit dissolve blender function.
  */
-unsigned long _blender_dissolve24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_dissolve24(uint32_t x, uint32_t y, uint32_t n)
 {
    if (n == 255)
       return x;
@@ -232,7 +232,7 @@ unsigned long _blender_dissolve24(unsigned long x, unsigned long y, unsigned lon
 /* _blender_dodge24:
  *  24 bit dodge blender function.
  */
-unsigned long _blender_dodge24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_dodge24(uint32_t x, uint32_t y, uint32_t n)
 {
    return BLEND(24, getr24(x) + (getr24(y) * n / 256),
 		    getg24(x) + (getg24(y) * n / 256),
@@ -244,7 +244,7 @@ unsigned long _blender_dodge24(unsigned long x, unsigned long y, unsigned long n
 /* _blender_hue24:
  *  24 bit hue blender function.
  */
-unsigned long _blender_hue24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_hue24(uint32_t x, uint32_t y, uint32_t n)
 {
    float xh, xs, xv;
    float yh, ys, yv;
@@ -265,7 +265,7 @@ unsigned long _blender_hue24(unsigned long x, unsigned long y, unsigned long n)
 /* _blender_invert24:
  *  24 bit invert blender function.
  */
-unsigned long _blender_invert24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_invert24(uint32_t x, uint32_t y, uint32_t n)
 {
    return BLEND(24, 255-getr24(x), 255-getg24(x), 255-getb24(x));
 }
@@ -275,7 +275,7 @@ unsigned long _blender_invert24(unsigned long x, unsigned long y, unsigned long 
 /* _blender_luminance24:
  *  24 bit luminance blender function.
  */
-unsigned long _blender_luminance24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_luminance24(uint32_t x, uint32_t y, uint32_t n)
 {
    float xh, xs, xv;
    float yh, ys, yv;
@@ -296,7 +296,7 @@ unsigned long _blender_luminance24(unsigned long x, unsigned long y, unsigned lo
 /* _blender_multiply24:
  *  24 bit multiply blender function.
  */
-unsigned long _blender_multiply24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_multiply24(uint32_t x, uint32_t y, uint32_t n)
 {
    return BLEND(24, getr24(x) * getr24(y) / 256, 
 		    getg24(x) * getg24(y) / 256, 
@@ -308,7 +308,7 @@ unsigned long _blender_multiply24(unsigned long x, unsigned long y, unsigned lon
 /* _blender_saturation24:
  *  24 bit saturation blender function.
  */
-unsigned long _blender_saturation24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_saturation24(uint32_t x, uint32_t y, uint32_t n)
 {
    float xh, xs, xv;
    float yh, ys, yv;
@@ -329,7 +329,7 @@ unsigned long _blender_saturation24(unsigned long x, unsigned long y, unsigned l
 /* _blender_screen24:
  *  24 bit screen blender function.
  */
-unsigned long _blender_screen24(unsigned long x, unsigned long y, unsigned long n)
+uint32_t _blender_screen24(uint32_t x, uint32_t y, uint32_t n)
 {
    return BLEND(24, 255 - ((255 - getr24(x)) * (255 - getr24(y))) / 256,
 		    255 - ((255 - getg24(x)) * (255 - getg24(y))) / 256,

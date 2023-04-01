@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.0 RC - March 2023
+VERSION 3.6.0, April 2023
 
 Common features:
  - Full Unicode support for all game texts: game properties, scripts, translations, input.

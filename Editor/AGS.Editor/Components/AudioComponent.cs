@@ -281,6 +281,7 @@ namespace AGS.Editor.Components
                 _editor.SelectedItem = itemToEdit;
                 _document.SelectedPropertyGridObject = itemToEdit;
                 _document.TreeNodeID = _rightClickedID;
+                UpdateAudioClipFromPreview(itemToEdit as AudioClip, _editor);
                 _guiController.AddOrShowPane(_document);
             }
         }
@@ -324,6 +325,7 @@ namespace AGS.Editor.Components
                 newClip.SourceFileName = Utilities.GetRelativeToProjectPath(sourceFileName);
                 newClip.FileType = _fileTypeMappings[fileExtension];
                 newClip.FileLastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
+                newClip.Length = TimeSpan.MinValue;
                 Utilities.CopyFileAndSetDestinationWritable(sourceFileName, newClip.CacheFileName);
                 Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                     Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
@@ -331,6 +333,15 @@ namespace AGS.Editor.Components
                 return newClip;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Updates certain preview-only properties from the AudioEditor,
+        /// for displaying them in the property grid.
+        /// </summary>
+        private void UpdateAudioClipFromPreview(AudioClip clip, AudioEditor editor)
+        {
+            clip.Length = TimeSpan.FromMilliseconds(editor.LengthMs);
         }
 
         private string EnsureScriptNameIsUnique(string nameToTry, int truncateToLength = Int32.MaxValue)

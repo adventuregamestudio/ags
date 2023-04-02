@@ -55,8 +55,13 @@ void ShakeScreen(int severe) {
     // TODO: rely on game speed setting? and/or provide frequency and duration args
     // TODO: unify blocking and non-blocking shake update
 
-    play.shakesc_length = 10;
-    play.shakesc_delay = 2;
+    // FIXME: keeping hardcoded 40 shakes with ~50 ms delay between shakes for now,
+    // only use this is a factor, and calculate delay and duration params from this.
+    int compat_shake_delay = static_cast<int>(50.f / (1000.f / GetGameSpeed()));
+    int compat_duration = static_cast<int>(40 * (50.f / (1000.f / GetGameSpeed())));
+
+    play.shakesc_length = compat_duration;
+    play.shakesc_delay = 2 * compat_shake_delay;
     play.shakesc_amount = severe;
     play.mouse_cursor_hidden++;
 
@@ -65,14 +70,12 @@ void ShakeScreen(int severe) {
     sync_audio_playback();
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        for (int hh = 0; hh < 40; hh++)
+        for (int hh = 0; hh < play.shakesc_length; hh++)
         {
             loopcounter++;
-            platform->Delay(50);
-
             render_graphics();
-
             update_polled_stuff();
+            WaitForNextFrame();
         }
     }
     else
@@ -80,13 +83,13 @@ void ShakeScreen(int severe) {
         // Optimized variant for software render: create game scene once and shake it
         construct_game_scene();
         gfxDriver->RenderToBackBuffer();
-        for (int hh = 0; hh < 40; hh++)
+        for (int hh = 0; hh < play.shakesc_length; hh++)
         {
-            platform->Delay(50);
             const int yoff = hh % 2 == 0 ? 0 : severe;
             play.shake_screen_yoff = yoff;
             render_to_screen();
             update_polled_stuff();
+            WaitForNextFrame();
         }
         render_to_screen();
     }

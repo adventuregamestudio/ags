@@ -58,7 +58,7 @@ AGS Editor is currently only supported on Windows, although it may be run using 
 
 This repository now holds two generations of AGS, referred to as "AGS 3" and "AGS 4".
 
-**The 3rd generation** of AGS may be currently found in the `master` branch. Its specifics are:
+**The 3rd generation** of AGS may be currently found in the `master` branch (also `ags3`). Its specifics are:
 
 - Supports (imports into the editor and runs by the engine) all versions of AGS games made with AGS 2.50 and up. Note that there may still be compatibility issues with very old games that were not uncovered and fixed yet.
 
@@ -67,6 +67,8 @@ This repository now holds two generations of AGS, referred to as "AGS 3" and "AG
 - Game saves are compatible between the different platforms if they are created with the same version of the engine. Latest 3.\* engine should normally read saves made by engine 3.2.0 and above, but that has not been tested for a while.
 
 - Certain games may require engine plugins. If there's no plugin version for a particular platform or a platform-independent replacement, then the game will not load on that platform.
+
+- As of AGS 3.6.0 the Windows engine no longer supports playing **AVI/MPG videos**. The decision to drop this feature was made while moving to a new SDL2 backend, primarily because its implementation was based on using DirectShow interface (Windows-only) and relied on codecs installed on player's system. Other ports were not supporting this ever. If the game tries to play such video, it will simply be skipped. The existing workaround is to convert the avi/mpg video file to OGV, while keeping the full original filename (*including the extension!*): then this file will be instead opened by the integrated OGV player.
 
 **The 4th generation** is found in [`ags4`][ags4-br] branch. It formally supports importing games made with AGS 3.4.1 and above, but only if these do not use any legacy features. The 4.x engine should be able to read saves made with the 3.5.0 engine and above.
 

@@ -113,6 +113,8 @@ Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitma
 Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
     Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
 Engine::IDriverDependantBitmap* recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque = false);
+// Updates shakescreen render offset
+void update_shakescreen();
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer

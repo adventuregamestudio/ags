@@ -2805,7 +2805,7 @@ void construct_engine_overlay()
     gfxDriver->EndSpriteBatch();
 }
 
-static void update_shakescreen()
+void update_shakescreen()
 {
     // TODO: unify blocking and non-blocking shake update
     play.shake_screen_yoff = 0;

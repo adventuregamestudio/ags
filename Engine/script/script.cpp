@@ -143,12 +143,12 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 // (eg. a room change occured)
 int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny) {
 
-    if ((nint->ScriptFuncNames[evnt] == nullptr) || (nint->ScriptFuncNames[evnt][0u] == 0)) {
+    if ((nint->ScriptFuncNames.size() <= evnt) || nint->ScriptFuncNames[evnt].IsEmpty()) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
-        else if ((nint->ScriptFuncNames[chkAny] != nullptr) && (nint->ScriptFuncNames[chkAny][0u] != 0))
+        else if (!nint->ScriptFuncNames[chkAny].IsEmpty())
             return 0;
 
         // Otherwise, run unhandled_event

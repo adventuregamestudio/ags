@@ -23,6 +23,7 @@
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/cc_common.h"
 #include "platform/base/agsplatformdriver.h"
@@ -47,6 +48,7 @@ extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern RGB old_palette[256];
+extern int displayed_room;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -200,6 +202,7 @@ void process_event(const EventHappened *evp) {
             in_enters_screen --;
     }
     else if (evp->type==EV_FADEIN) {
+        debug_script_log("Transition-in in room %d", displayed_room);
         // if they change the transition type before the fadein, make
         // sure the screen doesn't freeze up
         play.screen_is_faded_out = 0;

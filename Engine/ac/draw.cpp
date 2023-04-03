@@ -821,7 +821,10 @@ void mark_object_changed(int objid)
 void reset_objcache_for_sprite(int sprnum, bool deleted)
 {
     // Check if this sprite is assigned to any game object, and mark these for update;
-    // if the sprite was deleted, also dispose shared textures
+    // if the sprite was deleted, also mark texture objects as invalid.
+    // IMPORTANT!!: do NOT dispose textures themselves here.
+    // * if the next valid image is of the same size, then the texture will be reused;
+    // * BACKWARD COMPAT: keep last images during room transition out!
     // room objects cache
     if (croom != nullptr)
     {
@@ -830,7 +833,7 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
             if (objcache[i].sppic == sprnum)
                 objcache[i].sppic = -1;
             if (deleted && (actsps[i].SpriteID == sprnum))
-                actsps[i] = ObjTexture();
+                actsps[i].SpriteID = UINT32_MAX; // invalid sprite ref
         }
     }
     // character cache
@@ -839,7 +842,7 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
         if (charcache[i].sppic == sprnum)
             charcache[i].sppic = -1;
         if (deleted && (actsps[ACTSP_OBJSOFF + i].SpriteID == sprnum))
-            actsps[i] = ObjTexture();
+            actsps[i].SpriteID = UINT32_MAX; // invalid sprite ref
     }
 }
 

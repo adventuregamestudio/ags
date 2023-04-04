@@ -74,6 +74,7 @@ static uint32_t StrTableCopy(std::vector<char> &new_table,
 // ----------------
 //  uint32 | local id               | local location ID (sic)
 //  uint32 | name                   | an offset in a string table
+//  uint32 | flags                  |
 //
 // Type Info:
 // ----------------
@@ -128,6 +129,7 @@ void RTTI::Read(Stream *in)
         RTTI::Location l;
         l.id = (uint32_t)in->ReadInt32();
         l.name_stri = (uint32_t)in->ReadInt32();
+        l.flags = (uint32_t)in->ReadInt32();
         _locs.push_back(l);
     }
 
@@ -186,6 +188,7 @@ void RTTI::Write(Stream *out) const
     {
         out->WriteInt32(l.id);
         out->WriteInt32(l.name_stri);
+        out->WriteInt32(l.flags);
     }
 
     // Type Infos
@@ -226,13 +229,13 @@ void RTTI::Write(Stream *out) const
     out->WriteInt32(0); // format
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // header size
     out->WriteInt32((uint32_t)(end_soff - rtti_soff)); // full size
-    out->WriteInt32(2 * sizeof(uint32_t)); // location info size
+    out->WriteInt32(Location::FileSize); // location info size
     out->WriteInt32((uint32_t)(loc_soff - rtti_soff)); // locations table offset
     out->WriteInt32(_locs.size()); // number of locations
-    out->WriteInt32(8 * sizeof(uint32_t)); // type info size
+    out->WriteInt32(Type::FileSize); // type info size
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // types table offset
     out->WriteInt32(_types.size()); // number of types
-    out->WriteInt32(5 * sizeof(uint32_t)); // field info size
+    out->WriteInt32(Field::FileSize); // field info size
     out->WriteInt32((uint32_t)(fieldi_soff - rtti_soff)); // fields table offset
     out->WriteInt32(_fields.size()); // number of fields
     out->WriteInt32((uint32_t)(str_soff - rtti_soff)); // strings table offset

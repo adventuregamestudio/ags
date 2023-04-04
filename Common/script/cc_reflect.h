@@ -65,7 +65,10 @@ public:
     {
         friend RTTI; friend RTTIBuilder; friend JointRTTI;
     public:
+        const static size_t FileSize = 3 * sizeof(uint32_t);
         uint32_t id = 0u; // location's id
+        uint32_t flags = 0u; // location flags
+        // Quick-access links
         const char *name = nullptr;
     private:
         // Internal references
@@ -77,6 +80,7 @@ public:
     {
         friend RTTI; friend RTTIBuilder; friend JointRTTI;
     public:
+        const static size_t FileSize = 8 * sizeof(uint32_t);
         uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
         uint32_t loc_id = 0u; // type location's id (script or header)
         uint32_t parent_id = 0u; // parent type's id
@@ -102,6 +106,7 @@ public:
     {
         friend RTTI; friend RTTIBuilder; friend JointRTTI;
     public:
+        const static size_t FileSize = 5 * sizeof(uint32_t);
         uint32_t offset = 0u; // relative offset of this field, in bytes
         uint32_t f_typeid = 0u; // field's type id
         uint32_t flags = 0u; // field flags

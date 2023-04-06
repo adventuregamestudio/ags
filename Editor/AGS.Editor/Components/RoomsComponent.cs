@@ -1278,39 +1278,28 @@ namespace AGS.Editor.Components
 
         private int GetRoomNumberForFileName(string fileName, bool isDebugExecutionPoint)
         {
+            int roomNumberToEdit = -1;
             if ((fileName == Script.CURRENT_ROOM_SCRIPT_FILE_NAME) &&
                (_loadedRoom != null))
             {
-                fileName = _loadedRoom.ScriptFileName;
+                roomNumberToEdit = _loadedRoom.Number;
+            }
+            else
+            {
+                // FIXME: backslashes will work only on MS Windows!
+                Match match = Regex.Match(fileName, @"^Rooms\\+(\d+)\\+room\1\.asc$", RegexOptions.IgnoreCase);
+                if ((match.Success) && (match.Groups.Count == 2))
+                {
+                    roomNumberToEdit = Convert.ToInt32(match.Groups[1].Captures[0].Value);
+                }
             }
 
-            int roomNumberToEdit = -1;
-
+            // CHECKME: find out why is was necessary, and comment
             foreach (ContentDocument doc in _roomScriptEditors.Values)
             {
                 if (isDebugExecutionPoint)
                 {
                     ((ScriptEditor)doc.Control).RemoveExecutionPointMarker();
-                }
-
-                if (((ScriptEditor)doc.Control).Script.FileName == fileName)
-                {
-                    roomNumberToEdit = ((ScriptEditor)doc.Control).RoomNumber;
-                }
-            }
-
-            if ((roomNumberToEdit < 0) && (_loadedRoom != null) &&
-                (fileName == _loadedRoom.ScriptFileName))
-            {
-                roomNumberToEdit = _loadedRoom.Number;
-            }
-
-            if (roomNumberToEdit < 0)
-            {
-                Match match = Regex.Match(fileName, @"^Rooms\\(\d+)\\room\1\.asc$", RegexOptions.IgnoreCase);
-                if ((match.Success) && (match.Groups.Count == 2))
-                {
-                    roomNumberToEdit = Convert.ToInt32(match.Groups[1].Captures[0].Value);
                 }
             }
 

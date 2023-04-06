@@ -51,7 +51,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
     // CHECKME: do we have to add all?
     for (size_t l = 0; l < sym.sections.size(); ++l)
     {
-        rtb.AddLocation(sym.sections[l], l);
+        rtb.AddLocation(sym.sections[l], l, 0u);
     }
 
     // Add "no type" with id 0

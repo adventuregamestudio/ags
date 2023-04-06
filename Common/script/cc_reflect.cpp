@@ -283,11 +283,12 @@ void RTTI::CreateQuickRefs()
     }
 }
 
-void RTTIBuilder::AddLocation(const std::string &name, uint32_t loc_id)
+void RTTIBuilder::AddLocation(const std::string &name, uint32_t loc_id, uint32_t flags)
 {
     RTTI::Location loc;
     loc.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
     loc.id = loc_id;
+    loc.flags = flags;
     _rtti._locs.push_back(loc);
 }
 

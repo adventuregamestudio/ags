@@ -165,7 +165,7 @@ class RTTIBuilder
 {
 public:
     // Adds a location entry
-    void AddLocation(const std::string &name, uint32_t loc_id);
+    void AddLocation(const std::string &name, uint32_t loc_id, uint32_t flags);
     // Adds a type entry
     void AddType(const std::string &name, uint32_t type_id, uint32_t loc_id,
         uint32_t parent_id, uint32_t flags, uint32_t size);

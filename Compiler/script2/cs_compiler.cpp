@@ -32,7 +32,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
     const auto &sections = seclist.GetSections();
     for (size_t l = 0; l < sections.size(); ++l)
     {
-        rtb.AddLocation(sections[l], l);
+        rtb.AddLocation(sections[l], l, 0u);
     }
 
     // Add "no type" with id 0

@@ -97,8 +97,10 @@ static uint32_t StrTableCopy(std::vector<char> &new_table,
 //
 //*****************************************************************************
 
-void RTTI::Read(Stream *in)
+RTTI RTTISerializer::Read(Stream *in)
 {
+    RTTI rtti;
+
     // RTTI Header
     const soff_t rtti_soff = in->GetPosition();
     const uint32_t format = in->ReadInt32();
@@ -130,7 +132,7 @@ void RTTI::Read(Stream *in)
         l.id = (uint32_t)in->ReadInt32();
         l.name_stri = (uint32_t)in->ReadInt32();
         l.flags = (uint32_t)in->ReadInt32();
-        _locs.push_back(l);
+        rtti._locs.push_back(l);
     }
 
     // Type Infos
@@ -146,7 +148,7 @@ void RTTI::Read(Stream *in)
         t.size = (uint32_t)in->ReadInt32();
         t.field_num = (uint32_t)in->ReadInt32();
         t.field_index = (uint32_t)in->ReadInt32();
-        _types.push_back(t);
+        rtti._types.push_back(t);
     }
 
     // Field Infos
@@ -159,24 +161,25 @@ void RTTI::Read(Stream *in)
         f.f_typeid = (uint32_t)in->ReadInt32();
         f.flags = (uint32_t)in->ReadInt32();
         f.num_elems = (uint32_t)in->ReadInt32();
-        _fields.push_back(f);
+        rtti._fields.push_back(f);
     }
 
     // String Table
     in->Seek(str_soff, kSeekBegin);
     if (str_table_sz > 0)
     {
-        _strings.resize(str_table_sz);
-        in->Read(&_strings.front(), str_table_sz);
+        rtti._strings.resize(str_table_sz);
+        in->Read(&rtti._strings.front(), str_table_sz);
     }
 
     // Finish
     in->Seek(end_soff, kSeekBegin);
 
-    CreateQuickRefs();
+    rtti.CreateQuickRefs();
+    return std::move(rtti);
 }
 
-void RTTI::Write(Stream *out) const
+void RTTISerializer::Write(const RTTI &rtti, Stream *out)
 {
     // RTTI Header placeholder
     const soff_t rtti_soff = out->GetPosition();
@@ -184,7 +187,7 @@ void RTTI::Write(Stream *out) const
 
     // Location Infos
     const soff_t loc_soff = out->GetPosition();
-    for (const auto &l : _locs)
+    for (const auto &l : rtti._locs)
     {
         out->WriteInt32(l.id);
         out->WriteInt32(l.name_stri);
@@ -193,7 +196,7 @@ void RTTI::Write(Stream *out) const
 
     // Type Infos
     const soff_t typei_soff = out->GetPosition();
-    for (const auto &t : _types)
+    for (const auto &t : rtti._types)
     {
         out->WriteInt32(t.this_id);
         out->WriteInt32(t.name_stri);
@@ -207,7 +210,7 @@ void RTTI::Write(Stream *out) const
 
     // Field Infos
     const soff_t fieldi_soff = out->GetPosition();
-    for (const auto &f : _fields)
+    for (const auto &f : rtti._fields)
     {
         out->WriteInt32(f.offset);
         out->WriteInt32(f.name_stri);
@@ -218,9 +221,9 @@ void RTTI::Write(Stream *out) const
 
     // String Table
     const soff_t str_soff = out->GetPosition();
-    if (_strings.size() > 0)
+    if (rtti._strings.size() > 0)
     {
-        out->Write(&_strings.front(), _strings.size());
+        out->Write(&rtti._strings.front(), rtti._strings.size());
     }
 
     // Finalize, write actual RTTI header
@@ -229,17 +232,17 @@ void RTTI::Write(Stream *out) const
     out->WriteInt32(0); // format
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // header size
     out->WriteInt32((uint32_t)(end_soff - rtti_soff)); // full size
-    out->WriteInt32(Location::FileSize); // location info size
+    out->WriteInt32(RTTI::Location::FileSize); // location info size
     out->WriteInt32((uint32_t)(loc_soff - rtti_soff)); // locations table offset
-    out->WriteInt32(_locs.size()); // number of locations
-    out->WriteInt32(Type::FileSize); // type info size
+    out->WriteInt32(rtti._locs.size()); // number of locations
+    out->WriteInt32(RTTI::Type::FileSize); // type info size
     out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // types table offset
-    out->WriteInt32(_types.size()); // number of types
-    out->WriteInt32(Field::FileSize); // field info size
+    out->WriteInt32(rtti._types.size()); // number of types
+    out->WriteInt32(RTTI::Field::FileSize); // field info size
     out->WriteInt32((uint32_t)(fieldi_soff - rtti_soff)); // fields table offset
-    out->WriteInt32(_fields.size()); // number of fields
+    out->WriteInt32(rtti._fields.size()); // number of fields
     out->WriteInt32((uint32_t)(str_soff - rtti_soff)); // strings table offset
-    out->WriteInt32(_strings.size()); // string table size
+    out->WriteInt32(rtti._strings.size()); // string table size
     out->Seek(end_soff, kSeekBegin);
 }
 

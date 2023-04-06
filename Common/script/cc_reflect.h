@@ -31,6 +31,7 @@ namespace AGS
 namespace Common { class Stream; }
 
 class RTTIBuilder;
+class RTTISerializer;
 class JointRTTI;
 
 // Runtime type information for the AGS script:
@@ -42,8 +43,9 @@ class JointRTTI;
 // where "locname" is a name of location and "typename" is a name of type.
 class RTTI
 {
-    friend JointRTTI;
     friend RTTIBuilder;
+    friend RTTISerializer;
+    friend JointRTTI;
 public:
     enum TypeFlags
     {
@@ -63,7 +65,7 @@ public:
     // (type, function, variable) may be defined.
     struct Location
     {
-        friend RTTI; friend RTTIBuilder; friend JointRTTI;
+        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
     public:
         const static size_t FileSize = 3 * sizeof(uint32_t);
         uint32_t id = 0u; // location's id
@@ -78,7 +80,7 @@ public:
     // Type's info
     struct Type
     {
-        friend RTTI; friend RTTIBuilder; friend JointRTTI;
+        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
     public:
         const static size_t FileSize = 8 * sizeof(uint32_t);
         uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
@@ -104,7 +106,7 @@ public:
     // Type's field info
     struct Field
     {
-        friend RTTI; friend RTTIBuilder; friend JointRTTI;
+        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
     public:
         const static size_t FileSize = 5 * sizeof(uint32_t);
         uint32_t offset = 0u; // relative offset of this field, in bytes
@@ -132,9 +134,6 @@ public:
     // guaranteed to match typeid at all.
     const std::vector<Type> &GetTypes() const { return _types; }
 
-    void Read(AGS::Common::Stream *in);
-    void Write(AGS::Common::Stream *out) const;
-
 private:
     // Generates quick reference fields, binding table entries between each other
     void CreateQuickRefs();
@@ -147,6 +146,16 @@ private:
     std::vector<Field> _fields;
     // All RTTI strings packed, separated by null-terminators
     std::vector<char> _strings;
+};
+
+// A helper class that implements RTTI serialization in the dedicated format.
+class RTTISerializer
+{
+public:
+    // Reads the RTTI collection from the stream
+    static RTTI Read(AGS::Common::Stream *in);
+    // Writes the RTTI collection to the stream
+    static void Write(const RTTI &rtti, AGS::Common::Stream *out);
 };
 
 // A helper class that lets you generate RTTI collection.
@@ -187,7 +196,6 @@ public:
     using RTTI::IsEmpty;
     using RTTI::GetLocations;
     using RTTI::GetTypes;
-    using RTTI::Write;
 
     // Merges one rtti into another; skips type duplicates using fully qualified names.
     // Writes location and type local-to-global maps, which may be used by the

@@ -43,8 +43,7 @@ protected:
         read_next = true;
         if (ext_id.CompareNoCase("rtti") == 0)
         {
-            _script.rtti.reset(new RTTI());
-            _script.rtti->Read(_in);
+            _script.rtti.reset(new RTTI(std::move(RTTISerializer::Read(_in))));
             return HError::None();
         }
         return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
@@ -236,7 +235,7 @@ void ccScript::Write(Stream *out) {
     const auto *rtti = ccScript::rtti.get();
     if (rtti && !rtti->IsEmpty())
     {
-        WriteExtBlock("rtti", [rtti](Stream *out){ rtti->Write(out); },
+        WriteExtBlock("rtti", [rtti](Stream *out){ RTTISerializer::Write(*rtti, out); },
                       kDataExt_NumID8 | kDataExt_File64, out);
     }
     // Write ending

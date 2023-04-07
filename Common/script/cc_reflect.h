@@ -47,10 +47,20 @@ class RTTI
     friend RTTISerializer;
     friend JointRTTI;
 public:
+    enum LocationFlags
+    {
+        // We use "generated" flag to mark locs that are created at runtime
+        // and are intended to be replaced by "true" locs with the same id
+        kLoc_Generated    = 0x80000000
+    };
+
     enum TypeFlags
     {
         kType_Struct      = 0x0001,
-        kType_Managed     = 0x0002
+        kType_Managed     = 0x0002,
+        // We use "generated" flag to mark types that are created at runtime
+        // and are intended to be replaced by "true" types with the same id
+        kType_Generated   = 0x80000000
     };
 
     enum FieldFlags
@@ -129,7 +139,10 @@ public:
         uint32_t name_stri = 0u; // field's name (string table offset)
     };
 
-    RTTI() = default;
+    RTTI()
+    {
+        _strings.push_back(0); // guarantee zero-len string at index 0
+    }
 
     bool IsEmpty() const { return _types.empty(); }
     // Returns list of locations.
@@ -169,6 +182,7 @@ public:
 class RTTIBuilder
 {
 public:
+    RTTIBuilder() = default;
     // Adds a location entry
     void AddLocation(const std::string &name, uint32_t loc_id, uint32_t flags);
     // Adds a type entry
@@ -178,7 +192,8 @@ public:
     void AddField(uint32_t owner_id, const std::string &name, uint32_t offset,
         uint32_t f_typeid, uint32_t flags, uint32_t num_elems);
     // Finalizes the RTTI, generates remaining data based on collected one
-    RTTI &&Finalize();
+    RTTI Finalize();
+
 private:
     // RTTI that is being built
     RTTI _rtti;
@@ -212,6 +227,12 @@ public:
 private:
     // Map fully-qualified type name to a joint (global) typeid
     std::unordered_map<AGS::Common::String, uint32_t> _rttiLookup;
+
+    uint32_t JoinLocation(const Location &loc, uint32_t uid, const char *name,
+        std::unordered_map<uint32_t, uint32_t> &loc_l2g);
+    uint32_t JoinType(const Type &type, uint32_t uid, const char *name,
+        const std::vector<Field> &src_fields, const std::vector<char> &src_strings,
+        std::unordered_map<uint32_t, uint32_t> &type_l2g);
 };
 
 

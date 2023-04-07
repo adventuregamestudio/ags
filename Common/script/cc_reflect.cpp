@@ -38,15 +38,21 @@ static uint32_t StrTableAdd(std::map<std::string, uint32_t> &table,
     return last_len;
 }
 
-// Copies a string from one string table to another at a new location.
-// Returns the string's offset in the new_table.
-static uint32_t StrTableCopy(std::vector<char> &new_table,
-    const std::vector<char> &old_table, uint32_t old_pos)
+// Copies a string to a string table at a new location.
+// Returns the string's offset in the str_table.
+static uint32_t StrTableCopy(std::vector<char> &str_table, const char *string)
 {
-    const size_t old_packsz = new_table.size();
-    const size_t new_strsz = strlen(&old_table[old_pos]) + 1; // count null-terminator
-    new_table.resize(new_table.size() + new_strsz);
-    memcpy(&new_table.front() + old_packsz, &old_table[old_pos], new_strsz);
+    if (!string || !string[0])
+        return 0u; // assume string table starts with "null-terminator" slot
+    // If the string belongs to our string table already, then return existing offset;
+    // otherwise - copy this string over to our strings
+    if (!str_table.empty() && (string >= &str_table.front() && string <= &str_table.back()))
+        return string - &str_table.front();
+
+    const size_t old_packsz = str_table.size();
+    const size_t new_strsz = strlen(string) + 1; // count null-terminator
+    str_table.resize(str_table.size() + new_strsz);
+    memcpy(&str_table.front() + old_packsz, string, new_strsz);
     return static_cast<uint32_t>(old_packsz);
 }
 
@@ -317,7 +323,7 @@ void RTTIBuilder::AddField(uint32_t owner_id, const std::string &name,
     _fieldIdx.insert(std::make_pair(owner_id, fi)); // match field to owner type
 }
 
-RTTI &&RTTIBuilder::Finalize()
+RTTI RTTIBuilder::Finalize()
 {
     // Save complete string data
     _rtti._strings.resize(_strpackedLen);
@@ -342,7 +348,61 @@ RTTI &&RTTIBuilder::Finalize()
 
     _rtti.CreateQuickRefs();
 
-    return std::move(_rtti);
+    RTTI rtti = std::move(_rtti);
+    _rtti = RTTI(); // reset, in case user will want to create a new collection
+    return rtti;
+}
+
+uint32_t JointRTTI::JoinLocation(const Location &loc, uint32_t uid, const char *name,
+    std::unordered_map<uint32_t, uint32_t> &loc_l2g)
+{
+    if (uid <= _locs.size())
+        _locs.resize(uid + 1);
+    Location new_loc = loc;
+    new_loc.id = uid;
+    new_loc.name_stri = StrTableCopy(_strings, name);
+    _locs[uid] = new_loc;
+    loc_l2g.insert(std::make_pair(loc.id, new_loc.id));
+    return new_loc.id;
+}
+
+uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name,
+    const std::vector<Field> &src_fields, const std::vector<char> &src_strings,
+    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+{
+    if (uid <= _types.size())
+        _types.resize(uid + 1);
+    auto &type_slot = _types[uid];
+    Type new_type = type;
+    new_type.this_id = uid;
+    new_type.name_stri = StrTableCopy(_strings, name);
+    // Add new type's fields
+    if (type.field_num > 0)
+    {
+        // If replaced type already has fields, and there's enough space in them,
+        // then reuse that space; otherwise add to the end of fields array.
+        // (avoid shifting fields here, TODO: perhaps have a "squash" method in JointRTTI?)
+        // FIXME: we also currently assume that "placeholder" fields do not have
+        // any strings assigned; if they will do eventually, we'll need to extra check for dups
+        // using some kind of a map?, otherwise the string table would grow indefinitely;
+        // another option is to use the aforementioned "squash" method periodically.
+        uint32_t joint_fields_idx = _fields.size();
+        if (type_slot.field_num >= type.field_num)
+            joint_fields_idx = type_slot.field_index;
+        else
+            _fields.resize(_fields.size() + type.field_num);
+
+        for (uint32_t findex = 0; findex < type.field_num; ++findex)
+        {
+            Field field = src_fields[type.field_index + findex];
+            field.name_stri = StrTableCopy(_strings, &src_strings[field.name_stri]);
+            _fields[joint_fields_idx + findex] = field;
+        }
+        new_type.field_index = joint_fields_idx;
+    }
+    type_slot = new_type;
+    type_l2g.insert(std::make_pair(type.this_id, new_type.this_id));
+    return new_type.this_id;
 }
 
 void JointRTTI::Join(const RTTI &rtti,
@@ -356,81 +416,78 @@ void JointRTTI::Join(const RTTI &rtti,
       const Location &_loc;
     };
 
-    // Merge in new locations
-    const size_t new_loc_begin = _locs.size();
+    // Will gather new entries for the cross-references post-resolution
+    std::vector<uint32_t> new_types;
+
+    // Merge in new locations and assign new global IDs
     for (const auto &local_loc : rtti._locs)
     {
+        // TODO: refactor adding new and replacing old entries
         auto global_it = std::find_if(_locs.begin(), _locs.end(), CompareLocs(local_loc));
         if (global_it != _locs.end())
-        { // add a local2global match for existing loc, and skip the rest
-            loc_l2g.insert(std::make_pair(local_loc.id, global_it->id));
+        { // only override if the existing loc was marked as "generated"
+            if ((global_it->flags & kLoc_Generated) == 0)
+            { // add a local2global match for existing loc, and skip the rest
+                loc_l2g.insert(std::make_pair(local_loc.id, global_it->id));
+                continue;
+            }
+            // replace existing entry; keep existing name string
+            JoinLocation(local_loc, global_it->id, &_strings[global_it->name_stri], loc_l2g);
         }
         else
         {
-            const uint32_t global_id = _locs.size();
-            Location loc = local_loc;
-            loc.id = global_id;
-            loc_l2g.insert(std::make_pair(local_loc.id, global_id));
-            _locs.push_back(loc);
+            // add a new location
+            JoinLocation(local_loc, _locs.size(), &rtti._strings[local_loc.name_stri], loc_l2g);
         }
     }
-    const size_t new_loc_end = _locs.size();
 
-    // Merge in new types (no overrides!) and assign new global type IDs
-    const size_t new_type_begin = _types.size();
+    // Merge in new types and assign new global IDs
     for (const auto &local_type : rtti._types)
     {
         // For the type lookups, construct the "fully qualified name"
         // by combining the location's name, and the type's own name.
         const String fullname = String::FromFormat("%s::%s",
             rtti._locs[local_type.loc_id].name, local_type.name);
+        // TODO: refactor adding new and replacing old entries
         auto global_it = _rttiLookup.find(fullname);
         if (global_it != _rttiLookup.end())
-        { // add a local2global match for existing type, and skip the rest
-            type_l2g.insert(std::make_pair(local_type.this_id, global_it->second));
-            continue;
-        }
-
-        const uint32_t global_id = _types.size();
-        _rttiLookup.insert(std::make_pair(fullname, global_id));
-        RTTI::Type type = local_type;
-        type.this_id = global_id;
-        type_l2g.insert(std::make_pair(local_type.this_id, global_id));
-        if (type.field_num > 0)
-        {
-            uint32_t joint_fields_idx = _fields.size();
-            // Add new fields here, since we know which type to skip or not
-            for (uint32_t findex = 0; findex < type.field_num; ++findex)
-            {
-                RTTI::Field field = rtti._fields[type.field_index + findex];
-                _fields.push_back(field);
+        { // only override if the existing loc was marked as "generated"
+            if ((_types[global_it->second].flags & kType_Generated) == 0)
+            { // add a local2global match for existing type, and skip the rest
+                type_l2g.insert(std::make_pair(local_type.this_id, global_it->second));
+                continue;
             }
-            type.field_index = joint_fields_idx;
+            // replace existing entry; keep existing name string
+            const Type &gl_type = _types[global_it->second];
+            new_types.push_back(
+                JoinType(local_type, gl_type.this_id, &_strings[gl_type.name_stri],
+                    rtti._fields, rtti._strings, type_l2g));
         }
-        _types.push_back(type);
+        else
+        {
+            // add a new type
+            new_types.push_back(
+                JoinType(local_type, _types.size(), &rtti._strings[local_type.name_stri],
+                    rtti._fields, rtti._strings, type_l2g));
+            // add new type to a global lookup
+            _rttiLookup.insert(std::make_pair(fullname, new_types.back()));
+        }
     }
-    const size_t new_type_end = _types.size();
 
-    // Resolve strings in the joint locations
-    for (size_t index = new_loc_begin; index < new_loc_end; ++index)
-    {
-        RTTI::Location &loc = _locs[index];
-        loc.name_stri = StrTableCopy(_strings, rtti._strings, loc.name_stri);
-    }
-    // Resolve ID refs and string offsets in the newly merged types
-    for (size_t index = new_type_begin; index < new_type_end; ++index)
+    // Resolve (remap) ID refs in the newly merged types;
+    // only do this after all the new items are merged, because the types may
+    // go in any order (parent may be listed after the child)
+    for (uint32_t index : new_types)
     {
         RTTI::Type &type = _types[index];
         type.loc_id = loc_l2g[type.loc_id];
         if (type.parent_id > 0)
             type.parent_id = type_l2g[type.parent_id];
-        type.name_stri = StrTableCopy(_strings, rtti._strings, type.name_stri);
         // Resolve fields too
         for (uint32_t findex = 0; findex < type.field_num; ++findex)
         {
             RTTI::Field &field = _fields[type.field_index + findex];
             field.f_typeid = type_l2g[field.f_typeid];
-            field.name_stri = StrTableCopy(_strings, rtti._strings, field.name_stri);
         }
     }
 

@@ -23,6 +23,7 @@
 using namespace AGS::Common;
 
 const auto OBJECT_CACHE_MAGIC_NUMBER = 0xa30b;
+const auto OBJECT_CACHE_SAVE_VERSION = 2;
 const auto SERIALIZE_BUFFER_SIZE = 10240;
 const auto GARBAGE_COLLECTION_INTERVAL = 1024;
 const auto RESERVED_SIZE = 2048;
@@ -180,7 +181,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
     out->WriteInt32(OBJECT_CACHE_MAGIC_NUMBER);
-    out->WriteInt32(2);  // version
+    out->WriteInt32(OBJECT_CACHE_SAVE_VERSION);
 
     int size = 0;
     for (int i = 1; i < nextHandle; i++) {
@@ -218,7 +219,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
 
 int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     if (in->ReadInt32() != OBJECT_CACHE_MAGIC_NUMBER) {
-        cc_error("Data was not written by ccSeralize");
+        cc_error("Invalid data format");
         return -1;
     }
 
@@ -227,58 +228,29 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
     auto version = in->ReadInt32();
+    if (version < OBJECT_CACHE_SAVE_VERSION || version > OBJECT_CACHE_SAVE_VERSION) {
+        cc_error("Data version %d is not supported", version);
+        return -1;
+    }
 
-    switch (version) {
-        case 1:
-            {
-                // IMPORTANT: numObjs is "nextHandleId", which is why we iterate from 1 to numObjs-1
-                int numObjs = in->ReadInt32();
-                for (int i = 1; i < numObjs; i++) {
-                    StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
-                    if (typeNameBuffer[0] != 0) {
-                        size_t numBytes = in->ReadInt32();
-                        if (numBytes > serializeBuffer.size()) {
-                            serializeBuffer.resize(numBytes);
-                        }
-                        in->Read(&serializeBuffer.front(), numBytes);
-                        if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
-                            globalDynamicArray.Unserialize(i, &serializeBuffer.front(), numBytes);
-                        } else {
-                            reader->Unserialize(i, typeNameBuffer, &serializeBuffer.front(), numBytes);
-                        }
-                        objects[i].refCount = in->ReadInt32();
-                        ManagedObjectLog("Read handle = %d", objects[i].handle);
-                    }
-                }
-            }
-            break;
-        case 2:
-            {
-                // This is actually number of objects written.
-                int objectsSize = in->ReadInt32();
-                for (int i = 0; i < objectsSize; i++) {
-                    auto handle = in->ReadInt32();
-                    assert (handle >= 1);
-                    StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
-                    assert (typeNameBuffer[0] != 0);
-                    size_t numBytes = in->ReadInt32();
-                    if (numBytes > serializeBuffer.size()) {
-                        serializeBuffer.resize(numBytes);
-                    }
-                    in->Read(&serializeBuffer.front(), numBytes);
-                    if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
-                        globalDynamicArray.Unserialize(handle, &serializeBuffer.front(), numBytes);
-                    } else {
-                        reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
-                    }
-                    objects[handle].refCount = in->ReadInt32();
-                    ManagedObjectLog("Read handle = %d", objects[i].handle);
-                }
-            }
-            break;
-        default:
-            cc_error("Invalid data version: %d", version);
-            return -1;
+    int objectsSize = in->ReadInt32();
+    for (int i = 0; i < objectsSize; i++) {
+        auto handle = in->ReadInt32();
+        assert (handle >= 1);
+        StrUtil::ReadCStr(typeNameBuffer, in, sizeof(typeNameBuffer));
+        assert (typeNameBuffer[0] != 0);
+        size_t numBytes = in->ReadInt32();
+        if (numBytes > serializeBuffer.size()) {
+            serializeBuffer.resize(numBytes);
+        }
+        in->Read(&serializeBuffer.front(), numBytes);
+        if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
+            globalDynamicArray.Unserialize(handle, &serializeBuffer.front(), numBytes);
+        } else {
+            reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
+        }
+        objects[handle].refCount = in->ReadInt32();
+        ManagedObjectLog("Read handle = %d", objects[i].handle);
     }
 
     // re-adjust next handles. (in case saved in random order)

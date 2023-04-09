@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cstdio>
+#include <vector>
 #include "ac/gui.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -56,7 +57,7 @@ using namespace AGS::Engine;
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
-extern ScriptGUI *scrGui;
+extern std::vector<ScriptGUI> scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;

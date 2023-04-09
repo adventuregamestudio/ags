@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <vector>
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -31,7 +32,7 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern ScriptGUI *scrGui;
+extern std::vector<ScriptGUI> scrGui;
 
 int IsGUIOn (int guinum) {
     if ((guinum < 0) || (guinum >= game.numgui))

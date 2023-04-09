@@ -12,12 +12,13 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_gui.h"
+#include <vector>
 #include "ac/dynobj/scriptgui.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
-extern ScriptGUI *scrGui;
+extern std::vector<ScriptGUI> scrGui;
 
 // return the type name of the object
 const char *CCGUI::GetType() {

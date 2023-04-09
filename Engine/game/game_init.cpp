@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <numeric>
+#include <vector>
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
@@ -65,7 +66,7 @@ extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
 extern ScriptString myScriptStringImpl;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern ScriptGUI    *scrGui;
+extern std::vector<ScriptGUI> scrGui;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
@@ -182,7 +183,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game)
 // Initializes dialog and registers them in the script system
 void InitAndRegisterDialogs(GameSetupStruct &game)
 {
-    scrDialog = new ScriptDialog[game.numdialog];
+    scrDialog.resize(std::max(1, game.numdialog)); // ensure at least 1 element, we must register buffer
     for (int i = 0; i < game.numdialog; ++i)
     {
         scrDialog[i].id = i;
@@ -208,7 +209,7 @@ void InitAndRegisterDialogOptions()
 // Initializes gui and registers them in the script system
 HError InitAndRegisterGUI(GameSetupStruct &game)
 {
-    scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
+    scrGui.resize(std::max(1, game.numgui)); // ensure at least 1 element, we must register buffer
     for (int i = 0; i < game.numgui; ++i)
     {
         scrGui[i].id = -1;

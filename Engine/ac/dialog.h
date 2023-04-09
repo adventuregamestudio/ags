@@ -31,7 +31,7 @@ void Dialog_Start(ScriptDialog *sd);
 void do_conversation(int dlgnum);
 int  show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) ;
 
-extern ScriptDialog *scrDialog;
+extern std::vector<ScriptDialog> scrDialog;
 extern std::vector<DialogTopic> dialog;
 
 #endif // __AGS_EE_AC__DIALOG_H

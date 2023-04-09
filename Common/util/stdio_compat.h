@@ -39,8 +39,9 @@ int ags_directory_exists(const char *path);
 int ags_path_exists(const char *path);
 file_off_t ags_file_size(const char *path);
 
-int ags_remove(const char *path);
-int ags_rename(const char *src, const char *dst);
+int ags_file_remove(const char *path);
+int ags_file_rename(const char *src, const char *dst);
+int ags_file_copy(const char *src, const char *dst, int overwrite);
 
 #ifdef __cplusplus
 }

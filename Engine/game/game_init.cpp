@@ -94,7 +94,7 @@ extern std::vector<std::vector<uint8_t>> old_dialog_scripts;
 extern std::vector<String> old_speech_lines;
 
 // Lipsync
-extern SpeechLipSyncLine *splipsync;
+extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 StaticArray StaticCharacterArray;
@@ -372,15 +372,15 @@ void LoadLipsyncData()
     }
     else {
         numLipLines = speechsync->ReadInt32();
-        splipsync = (SpeechLipSyncLine*)malloc(sizeof(SpeechLipSyncLine) * numLipLines);
+        splipsync.resize(numLipLines);
         for (int ee = 0; ee < numLipLines; ee++)
         {
             splipsync[ee].numPhonemes = speechsync->ReadInt16();
             speechsync->Read(splipsync[ee].filename, 14);
-            splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhonemes * sizeof(int));
-            speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhonemes);
-            splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhonemes * sizeof(short));
-            speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhonemes);
+            splipsync[ee].endtimeoffs.resize(splipsync[ee].numPhonemes);
+            speechsync->ReadArrayOfInt32(&splipsync[ee].endtimeoffs.front(), splipsync[ee].numPhonemes);
+            splipsync[ee].frame.resize(splipsync[ee].numPhonemes);
+            speechsync->ReadArrayOfInt16(&splipsync[ee].frame.front(), splipsync[ee].numPhonemes);
         }
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");

@@ -72,7 +72,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-extern SpeechLipSyncLine *splipsync;
+extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 extern int obj_lowest_yp, char_lowest_yp;
@@ -490,18 +490,9 @@ void unload_game_file()
 
     views.clear();
 
-    if (splipsync != nullptr)
-    {
-        for (int i = 0; i < numLipLines; ++i)
-        {
-            free(splipsync[i].endtimeoffs);
-            free(splipsync[i].frame);
-        }
-        free(splipsync);
-        splipsync = nullptr;
-        numLipLines = 0;
-        curLipLine = -1;
-    }
+    splipsync.clear();
+    numLipLines = 0;
+    curLipLine = -1;
 
     for (auto &dlg : dialog)
     {

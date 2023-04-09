@@ -35,7 +35,7 @@ using namespace AGS::Common;
 extern GameState play;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
-extern SpeechLipSyncLine *splipsync;
+extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 void StopAmbientSound (int channel) {

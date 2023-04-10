@@ -167,6 +167,13 @@ public:
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
     static const JointRTTI *GetRTTI() { return _rtti.get(); }
     static const Engine::RTTIHelper *GetRTTIHelper() { return _rttiHelper.get(); }
+    // Joins custom provided RTTI into the global collection;
+    // fills in maps for locid and typeid remap which may be used to know
+    // which *global* ids were assigned to this particular rtti's entries.
+    // Updates RTTIHelper correspondingly.
+    static void JoinRTTI(const RTTI &rtti,
+        std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+        std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
     ccInstance();
     ~ccInstance();

@@ -20,7 +20,7 @@
 
 #include "ac/dynobj/cc_dynamicobject.h"
 
-struct ScriptUserObject final : ICCDynamicObject
+struct ScriptUserObject final : ICCDynamicObject, ICCTypeidBased
 {
 public:
     static const char *TypeName;
@@ -41,6 +41,10 @@ public:
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
+
+    // Remap typeid fields using the provided map
+    void RemapTypeids(const char *address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
 
     // Support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;

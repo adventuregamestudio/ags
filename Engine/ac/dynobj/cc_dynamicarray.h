@@ -15,11 +15,12 @@
 #define __CC_DYNAMICARRAY_H
 
 #include <vector>
+#include <unordered_map>
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
 
-struct CCDynamicArray final : ICCDynamicObject
+struct CCDynamicArray final : ICCDynamicObject, ICCTypeidBased
 {
 public:
     static const char *TypeName;
@@ -51,6 +52,10 @@ public:
         { return CreateImpl(0u, isManagedType, elem_count, elem_size); }
     DynObjectRef CreateNew(uint32_t type_id, uint32_t elem_count, uint32_t elem_size)
         { return CreateImpl(type_id, false, elem_count, elem_size); }
+
+    // Remap typeid fields using the provided map
+    void RemapTypeids(const char* address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
 
     // Legacy support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;

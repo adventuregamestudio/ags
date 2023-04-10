@@ -11,17 +11,25 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_SERIALIZER_H
 #define __AC_SERIALIZER_H
 
+#include <vector>
 #include "ac/dynobj/cc_dynamicobject.h"
+#include "managedobjectpool.h"
 
 struct AGSDeSerializer : ICCObjectReader {
 
     void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) override;
-};
 
-extern AGSDeSerializer ccUnserializer;
+    // Remaps typeids for the recently deserialized managed objects
+    // that contain typeid fields; uses provided typeid maps
+    void RemapTypeids(ManagedObjectPool &pool, const std::unordered_map<uint32_t, uint32_t> &typeid_map) const;
+
+private:
+    // A list of deserialized typeid-based objects,
+    // that is - objects that might require typeid remap after load
+    std::vector<int> _typeidBasedObjs;
+};
 
 #endif // __AC_SERIALIZER_H

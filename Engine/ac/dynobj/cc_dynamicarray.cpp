@@ -128,6 +128,15 @@ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint3
     return DynObjectRef(handle, obj_ptr);
 }
 
+void CCDynamicArray::RemapTypeids(const char *address,
+    const std::unordered_map<uint32_t, uint32_t> &typeid_map)
+{
+    Header &hdr = (Header&)GetHeader(address);
+    const auto it = typeid_map.find(hdr.TypeID);
+    assert(it != typeid_map.end());
+    hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
+}
+
 
 const char* CCDynamicArray::GetFieldPtr(const char *address, intptr_t offset)
 {

@@ -248,16 +248,22 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
     // Join RTTI
     if (scri->rtti && !scri->rtti->IsEmpty())
     {
-        if (!ccInstance::_rtti)
-            ccInstance::_rtti.reset(new JointRTTI());
-        ccInstance::_rtti->Join(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
-        if (!ccInstance::_rttiHelper)
-            ccInstance::_rttiHelper.reset(new RTTIHelper());
-        // TODO: optimize by either generating only after all scripts are loaded,
-        // or updating only newly joint types
-        ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
+        JoinRTTI(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
     }
     return cinst;
+}
+
+void ccInstance::JoinRTTI(const RTTI &rtti,
+    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+{
+    if (!ccInstance::_rtti)
+        ccInstance::_rtti.reset(new JointRTTI());
+    ccInstance::_rtti->Join(rtti, loc_l2g, type_l2g);
+    if (!ccInstance::_rttiHelper)
+        ccInstance::_rttiHelper.reset(new RTTIHelper());
+    // TODO: optimize by updating only newly joint types
+    ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
 }
 
 void ccInstance::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms,

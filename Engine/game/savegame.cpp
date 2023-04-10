@@ -31,6 +31,7 @@
 #include "ac/spritecache.h"
 #include "ac/system.h"
 #include "ac/timer.h"
+#include "ac/dynobj/cc_serializer.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -470,6 +471,12 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         load_new_room(displayed_room, nullptr);
     else
         set_room_placeholder();
+
+    // Apply restored RTTI placeholder, after current room was loaded;
+    // remap typeids in the deserialized managed objects, where necessary
+    std::unordered_map<uint32_t, uint32_t> loc_l2g, type_l2g;
+    ccInstance::JoinRTTI(r_data.GenRTTI, loc_l2g, type_l2g);
+    r_data.ManObjReader.RemapTypeids(pool, type_l2g);
 
     play.gscript_timer=gstimer;
 

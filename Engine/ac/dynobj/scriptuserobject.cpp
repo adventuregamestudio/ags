@@ -107,6 +107,14 @@ void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, this, this);
 }
 
+void ScriptUserObject::RemapTypeids(const char* /*address*/,
+    const std::unordered_map<uint32_t, uint32_t> &typeid_map)
+{
+    const auto it = typeid_map.find(_typeid);
+    assert(it != typeid_map.end());
+    _typeid = (it != typeid_map.end()) ? it->second : 0u;
+}
+
 const char* ScriptUserObject::GetFieldPtr(const char* /*address*/, intptr_t offset)
 {
     return _data + offset;

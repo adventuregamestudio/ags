@@ -18,6 +18,7 @@
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
+#include <unordered_map>
 #include <utility>
 #include "core/types.h"
 
@@ -77,12 +78,24 @@ protected:
     ~ICCDynamicObject() = default;
 };
 
+// Managed String class interface
+struct ICCStringClass {
+    virtual DynObjectRef CreateString(const char *fromText) = 0;
+};
+
+// Interface of the managed object that contains typeid fields.
+// Provides means for remapping typeid, e.g. upon save restoration.
+struct ICCTypeidBased {
+    // Remap typeid fields using the provided map
+    virtual void RemapTypeids(const char *address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) = 0;
+};
+
+// Managed object deserializer interface.
+// Is supposed to create an object based on object type, and add one to the managed pool
 struct ICCObjectReader {
     // TODO: pass savegame format version
     virtual void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) = 0;
-};
-struct ICCStringClass {
-    virtual DynObjectRef CreateString(const char *fromText) = 0;
 };
 
 // set the class that will be used for dynamic strings

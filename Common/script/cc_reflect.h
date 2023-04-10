@@ -19,6 +19,7 @@
 #define __CC_REFLECT_H
 
 #include <map>
+#include <string>
 #include <unordered_map>
 #include <vector>
 #include "core/types.h"
@@ -66,7 +67,10 @@ public:
     enum FieldFlags
     {
         kField_ManagedPtr = 0x0001,
-        kField_Array      = 0x0002
+        kField_Array      = 0x0002,
+        // We use "generated" flag to mark fields that are created at runtime
+        // and are intended to be replaced by "true" fields later
+        kField_Generated  = 0x80000000
     };
 
     // An "undefined type" id value

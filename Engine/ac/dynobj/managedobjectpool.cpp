@@ -14,10 +14,10 @@
 #include <vector>
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "debug/out.h"
 #include "util/string_utils.h"               // fputstring, etc
 #include "script/cc_common.h"
+#include "util/memorystream.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -226,15 +226,15 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
         return -1;
     }
 
-    char typeNameBuffer[200];
-    std::vector<char> serializeBuffer;
-    serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
-
     auto version = in->ReadInt32();
     if (version < OBJECT_CACHE_SAVE_VERSION || version > OBJECT_CACHE_SAVE_VERSION) {
         cc_error("Data version %d is not supported", version);
         return -1;
     }
+
+    char typeNameBuffer[200];
+    std::vector<char> serializeBuffer;
+    serializeBuffer.resize(SERIALIZE_BUFFER_SIZE);
 
     int objectsSize = in->ReadInt32();
     for (int i = 0; i < objectsSize; i++) {
@@ -247,11 +247,8 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
             serializeBuffer.resize(numBytes);
         }
         in->Read(&serializeBuffer.front(), numBytes);
-        if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
-            globalDynamicArray.Unserialize(handle, &serializeBuffer.front(), numBytes);
-        } else {
-            reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
-        }
+        // Delegate work to ICCObjectReader
+        reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
         objects[handle].refCount = in->ReadInt32();
         ManagedObjectLog("Read handle = %d", objects[i].handle);
     }

@@ -45,7 +45,7 @@ public:
     // serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
-    virtual void Unserialize(int index, const char *serializedData, int dataSize);
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
     // Create managed array object and return a pointer to the beginning of a buffer
     DynObjectRef CreateOld(uint32_t elem_count, uint32_t elem_size, bool isManagedType)
         { return CreateImpl(0u, isManagedType, elem_count, elem_size); }

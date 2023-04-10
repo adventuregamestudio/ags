@@ -93,17 +93,14 @@ int CCDynamicArray::Serialize(const char *address, char *buffer, int bufsize)
     return static_cast<int32_t>(mems.GetPosition());
 }
 
-void CCDynamicArray::Unserialize(int index, const char *serializedData, int dataSize)
+void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    // TODO: should we support older save versions here?
-    // might have to use class name (GetType) to distinguish save formats in UnSerializer
-    char *new_arr = new char[(dataSize - FileHeaderSz) + MemHeaderSz];
-    MemoryStream mems(reinterpret_cast<const uint8_t*>(serializedData), dataSize);
+    char *new_arr = new char[(data_sz - FileHeaderSz) + MemHeaderSz];
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
-    hdr.TypeID = mems.ReadInt32();
-    hdr.ElemCount = mems.ReadInt32();
-    hdr.TotalSize = hdr.ElemCount * mems.ReadInt32(); // elem size
-    memcpy(new_arr + MemHeaderSz, serializedData + FileHeaderSz, dataSize - FileHeaderSz);
+    hdr.TypeID = in->ReadInt32();
+    hdr.ElemCount = in->ReadInt32();
+    hdr.TotalSize = hdr.ElemCount * in->ReadInt32(); // elem size
+    in->Read(new_arr + MemHeaderSz, data_sz - FileHeaderSz);
     ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
 }
 

@@ -53,9 +53,7 @@ private:
     std::vector<ManagedObject> objects;
     std::unordered_map<const char *, int32_t> handleByAddress;
 
-    void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);
-    int Remove(ManagedObject &o, bool force = false); 
-
+    int Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
 
 public:

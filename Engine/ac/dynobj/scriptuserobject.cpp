@@ -21,10 +21,12 @@
 
 using namespace AGS::Common;
 
+const char *ScriptUserObject::TypeName = "UserObj2";
+
 // return the type name of the object
 const char *ScriptUserObject::GetType()
 {
-    return "UserObj2";
+    return TypeName;
 }
 
 ScriptUserObject::~ScriptUserObject()

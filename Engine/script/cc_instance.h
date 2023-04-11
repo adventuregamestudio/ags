@@ -150,7 +150,9 @@ public:
     // create a runnable instance of the supplied script
     static ccInstance *CreateFromScript(PScript script);
     static ccInstance *CreateEx(PScript scri, ccInstance * joined);
-    static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
+    // Sets execution timeout parameters;
+    // currently: number of sequential loop iterations without returning back to the engine
+    static void SetExecTimeout(unsigned abort_loops);
 
     ccInstance();
     ~ccInstance();
@@ -221,14 +223,6 @@ private:
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
-    // Minimal timeout: how much time may pass without any engine update
-    // before we want to check on the situation and do system poll
-    static unsigned _timeoutCheckMs;
-    // Critical timeout: how much time may pass without any engine update
-    // before we abort or post a warning
-    static unsigned _timeoutAbortMs;
-    // Last time the script was noted of being "alive"
-    AGS_Clock::time_point _lastAliveTs;
     // Maximal while loops without any engine update in between,
     // after which the interpreter will abort
     static unsigned _maxWhileLoops;

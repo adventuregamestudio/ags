@@ -213,8 +213,6 @@ struct FunctionCallStack
 };
 
 
-unsigned ccInstance::_timeoutCheckMs = 60u;
-unsigned ccInstance::_timeoutAbortMs = 0u;
 unsigned ccInstance::_maxWhileLoops = 0u;
 
 
@@ -241,11 +239,8 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
     return cinst;
 }
 
-void ccInstance::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms,
-    unsigned abort_loops)
+void ccInstance::SetExecTimeout(unsigned abort_loops)
 {
-    _timeoutCheckMs = sys_poll_ms;
-    _timeoutAbortMs = abort_ms;
     _maxWhileLoops = abort_loops;
 }
 
@@ -475,11 +470,6 @@ int ccInstance::Run(int32_t curpc)
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
     ScriptOperation codeOp;
     FunctionCallStack func_callstack;
-
-    const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
-    const auto timeout_abort = std::chrono::milliseconds(_timeoutAbortMs);
-    _lastAliveTs = AGS_Clock::now();
-    bool timeout_warn = false;
 
     while ((flags & INSTF_ABORTED) == 0) {
         /*
@@ -840,42 +830,17 @@ int ccInstance::Run(int32_t curpc)
           pc += arg1.IValue;
 
           // Make sure it's not stuck in a While loop
-          if (arg1.IValue < 0)
+          if ((arg1.IValue < 0) && (_maxWhileLoops > 0) && (loopIterationCheckDisabled == 0))
           {
-              auto now = AGS_Clock::now();
-              auto test_dur = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastAliveTs);
               if (flags & INSTF_RUNNING)
               { // was notified still running, don't do anything
                   flags &= ~INSTF_RUNNING;
-                  _lastAliveTs = now;
-                  timeout_warn = false;
                   loopIterations = 0;
               }
-              else if ((loopIterationCheckDisabled == 0) && (_maxWhileLoops > 0) &&
-                  (++loopIterations > _maxWhileLoops))
+              else if (++loopIterations > _maxWhileLoops)
               {
                   cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
                   return -1;
-              }
-              else if (test_dur > timeout)
-              { // minimal timeout occured
-                  if ((timeout_abort.count() > 0) && (test_dur.count() > timeout_abort.count()))
-                  { // critical timeout occured
-                      /* CHECKME: disabled, because not working well
-                      if (loopIterationCheckDisabled == 0)
-                      {
-                          cc_error("!Script appears to be hung (no game update for %lld ms). The problem may be in a calling function; check the call stack.", test_dur.count());
-                          return -1;
-                      }
-                      */
-                      if (!timeout_warn)
-                      {
-                          debug_script_warn("WARNING: script execution hung? (%lld ms)", test_dur.count());
-                          timeout_warn = true;
-                      }
-                  }
-                  // at least let user to manipulate the game window
-                  sys_evt_process_pending();
               }
           }
           break;

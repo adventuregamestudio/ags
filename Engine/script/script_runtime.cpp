@@ -113,10 +113,9 @@ void *ccGetSymbolAddressForPlugin(const String &name)
 new_line_hook_type new_line_hook = nullptr;
 
 
-void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout,
-    unsigned abort_loops)
+void ccSetScriptAliveTimer(unsigned abort_loops)
 {
-    ccInstance::SetExecTimeout(sys_poll_timeout, abort_timeout, abort_loops);
+    ccInstance::SetExecTimeout(abort_loops);
 }
 
 void ccNotifyScriptStillAlive () {

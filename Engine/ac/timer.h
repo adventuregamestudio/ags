@@ -27,6 +27,7 @@ using AGS_Clock = std::conditional<
         std::chrono::high_resolution_clock::is_steady,
         std::chrono::high_resolution_clock, std::chrono::steady_clock
       >::type;
+using AGS_FastClock = std::chrono::system_clock;
 
 // Sleeps for time remaining until the next game frame, updates next frame timestamp
 extern void WaitForNextFrame();

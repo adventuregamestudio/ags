@@ -620,7 +620,7 @@ size_t SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, 
     }
     else
     {
-        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, false, true, bitmap->_alpha);
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, bitmap->_alpha);
     }
   }
   return from;

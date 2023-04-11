@@ -134,7 +134,6 @@ void set_mouse_cursor(int newcurs) {
 
             if (game.invhotdotsprite > 0) {
                 draw_sprite_slot_support_alpha(dotted_mouse_cursor,
-                    (game.SpriteInfos[game.mcurs[newcurs].pic].Flags & SPF_ALPHACHANNEL) != 0,
                     hotspotx - game.SpriteInfos[game.invhotdotsprite].Width / 2,
                     hotspoty - game.SpriteInfos[game.invhotdotsprite].Height / 2,
                     game.invhotdotsprite);

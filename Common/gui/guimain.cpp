@@ -266,7 +266,7 @@ void GUIMain::DrawSelf(Bitmap *ds)
     SET_EIP(378);
 
     if (BgImage > 0 && spriteset[BgImage] != nullptr)
-        draw_gui_sprite(ds, BgImage, 0, 0, false);
+        draw_gui_sprite(ds, BgImage, 0, 0);
 
     SET_EIP(379);
 }
@@ -305,8 +305,8 @@ void GUIMain::DrawWithControls(Bitmap *ds)
             const Rect rc = objToDraw->CalcGraphicRect(GUI::Options.ClipControls && objToDraw->IsContentClipped());
             tempbmp.CreateTransparent(rc.GetWidth(), rc.GetHeight());
             objToDraw->Draw(&tempbmp, -rc.Left, -rc.Top);
-            draw_gui_sprite(ds, true, objToDraw->X + rc.Left, objToDraw->Y + rc.Top,
-                &tempbmp, objToDraw->HasAlphaChannel(), kBlend_Normal,
+            draw_gui_sprite(ds, objToDraw->X + rc.Left, objToDraw->Y + rc.Top,
+                &tempbmp, kBlend_Normal,
                 GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
 

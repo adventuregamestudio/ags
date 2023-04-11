@@ -895,20 +895,19 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
     ds->FillRect(Rect(xx, yy, xx, yy), col);
 }
 
-void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha,
+void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image,
                                BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
         return;
 
-    GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+    GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, alpha);
 }
 
-void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
+void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot,
                                     BlendMode blend_mode, int alpha)
 {
-    draw_sprite_support_alpha(ds, ds_has_alpha, xpos, ypos, spriteset[src_slot], (game.SpriteInfos[src_slot].Flags & SPF_ALPHACHANNEL) != 0,
-        blend_mode, alpha);
+    draw_sprite_support_alpha(ds, xpos, ypos, spriteset[src_slot], blend_mode, alpha);
 }
 
 
@@ -1064,22 +1063,20 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 // used by GUI renderer to draw images
 // NOTE: use_alpha arg is for backward compatibility (legacy draw modes)
-void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode)
+void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode)
 {
-    draw_gui_sprite(ds, use_alpha, x, y, spriteset[pic],
-        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode);
+    draw_gui_sprite(ds, x, y, spriteset[pic], blend_mode);
 }
 
-void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
-    BlendMode blend_mode, int alpha)
+void draw_gui_sprite(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
         return;
 
-    const bool ds_has_alpha = (ds->GetColorDepth() == 32);
+    const bool use_alpha = (ds->GetColorDepth() == 32);
     if (use_alpha)
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, alpha);
     }
     else
     {
@@ -1087,13 +1084,13 @@ void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, b
     }
 }
 
-void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode, bool is_flipped)
+void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode, bool is_flipped)
 {
-    draw_gui_sprite_flipped(ds, use_alpha, x, y, spriteset[pic],
-        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode, 0xFF, is_flipped);
+    draw_gui_sprite_flipped(ds, x, y, spriteset[pic],
+        blend_mode, 0xFF, is_flipped);
 }
 
-void draw_gui_sprite_flipped(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
+void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
     BlendMode blend_mode, int alpha, bool is_flipped)
 {
     if (alpha <= 0)
@@ -1106,10 +1103,9 @@ void draw_gui_sprite_flipped(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *s
         sprite = tempspr.get();
     }
 
-    const bool ds_has_alpha = (ds->GetColorDepth() == 32);
-    if (use_alpha)
+    if (ds->GetColorDepth() == 32) // ds has alpha?
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, alpha);
     }
     else
     {

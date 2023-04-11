@@ -74,7 +74,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     for (int item = TopItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y, true);
+        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y);
         at_x += ItemWidth;
 
         // go to next row when appropriate

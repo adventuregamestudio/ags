@@ -164,8 +164,7 @@ void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
             debug_script_warn("DrawImage: Source image colour depth %d-bit not same as background depth %d-bit", src->GetColorDepth(), ds->GetColorDepth());
     }
 
-    draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, dst_x, dst_y, src, src_has_alpha,
-        mode, GfxDef::Trans100ToAlpha255(trans));
+    draw_sprite_support_alpha(ds, dst_x, dst_y, src, mode, GfxDef::Trans100ToAlpha255(trans));
 
     sds->FinishedDrawing();
 

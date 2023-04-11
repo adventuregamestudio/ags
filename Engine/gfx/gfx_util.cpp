@@ -43,72 +43,48 @@ Bitmap *ConvertBitmap(Bitmap *src, int dst_color_depth)
 }
 
 
-typedef BLENDER_FUNC PfnBlenderCb;
-
-struct BlendModeSetter
-{
-    // Blender setter for destination with and without alpha channel;
-    // assign null pointer if not supported
-    PfnBlenderCb AllAlpha;       // src w alpha   -> dst w alpha
-    PfnBlenderCb AlphaToOpaque;  // src w alpha   -> dst w/o alpha
-    PfnBlenderCb OpaqueToAlpha;  // src w/o alpha -> dst w alpha
-    PfnBlenderCb OpaqueToAlphaNoTrans; // src w/o alpha -> dst w alpha (opt-ed for no transparency)
-    PfnBlenderCb AllOpaque;      // src w/o alpha -> dst w/o alpha
-};
-
 // Array of blender descriptions
 // NOTE: set NULL function pointer to fallback to common image blitting
-static const BlendModeSetter BlendModeSets[kNumBlendModes] =
+typedef BLENDER_FUNC PfnBlenderCb;
+static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
 {
-    { _argb2argb_blender, _argb2rgb_blender, _rgb2argb_blender, _opaque_alpha_blender, nullptr }, // kBlend_Alpha
-    { nullptr, _blender_masked_add32, _blender_add24, _blender_add24, nullptr }, // kBlend_Add
-    { nullptr, _blender_masked_darken32, _my_blender_darken24, _my_blender_darken24, nullptr }, // kBlend_Darken
-    { nullptr, _blender_masked_lighten32, _my_blender_lighten24, _my_blender_lighten24, nullptr }, // kBlend_Lighten
-    { nullptr, _blender_masked_multiply32, _blender_multiply24, _blender_multiply24, nullptr }, // kBlend_Multiply
-    { nullptr, _blender_masked_screen32, _blender_screen24, _blender_screen24, nullptr }, // kBlend_Screen
-    { nullptr, _blender_masked_burn32, _my_blender_burn24, _my_blender_burn24, nullptr }, // kBlend_Burn
-    { nullptr, _blender_masked_subtract32, _my_blender_subtract24, nullptr }, // kBlend_Subtract
-    { nullptr, _blender_masked_exclusion32, _my_blender_exclusion24, _my_blender_exclusion24, nullptr }, // kBlend_Exclusion
-    { nullptr, _blender_masked_dodge32, _my_blender_dodge24, _my_blender_dodge24, nullptr }, // kBlend_Dodge
-    // NOTE: add new modes here
+    _argb2argb_blender,             // kBlend_Alpha
+    _blender_masked_add32,          // kBlend_Add
+    _blender_masked_darken32,       // kBlend_Darken
+    _blender_masked_lighten32,      // kBlend_Lighten
+    _blender_masked_multiply32,     // kBlend_Multiply
+    _blender_masked_screen32,       // kBlend_Screen
+    _blender_masked_burn32,         // kBlend_Burn
+    _blender_masked_subtract32,     // kBlend_Subtract
+    _blender_masked_exclusion32,    // kBlend_Exclusion
+    _blender_masked_dodge32,        // kBlend_Dodge
 };
 
-bool SetBlender(BlendMode blend_mode, bool dst_has_alpha, bool src_has_alpha, int blend_alpha)
+static bool SetBlender(BlendMode blend_mode, int alpha)
 {
     if (blend_mode < 0 || blend_mode > kNumBlendModes)
         return false;
-    const BlendModeSetter &set = BlendModeSets[blend_mode];
-    PfnBlenderCb blender;
-    if (dst_has_alpha)
-        blender = src_has_alpha ? set.AllAlpha :
-            (blend_alpha == 0xFF ? set.OpaqueToAlphaNoTrans : set.OpaqueToAlpha);
-    else
-        blender = src_has_alpha ? set.AlphaToOpaque : set.AllOpaque;
-
-    if (blender)
-    {
-        set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, blend_alpha);
-        return true;
-    }
-    return false;
+    const auto &blender = BlendModeSets[blend_mode];
+    set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, alpha);
+    return true;
 }
 
 void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
-                       BlendMode blend_mode,  bool dst_has_alpha, bool src_has_alpha, int blend_alpha)
+                       BlendMode blend_mode, int alpha)
 {
-    if (blend_alpha <= 0)
+    if (alpha <= 0)
         return; // do not draw 100% transparent image
 
-    if (// support only 32-bit blending at the moment
-        ds->GetColorDepth() == 32 && sprite->GetColorDepth() == 32 &&
+    // support only 32-bit blending at the moment
+    if ((ds->GetColorDepth() == 32) && (sprite->GetColorDepth() == 32) &&
         // set blenders if applicable and tell if succeeded
-        SetBlender(blend_mode, dst_has_alpha, src_has_alpha, blend_alpha))
+        SetBlender(blend_mode, alpha))
     {
         ds->TransBlendBlt(sprite, ds_at.X, ds_at.Y);
     }
     else
     {
-        GfxUtil::DrawSpriteWithTransparency(ds, sprite, ds_at.X, ds_at.Y, blend_alpha);
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, ds_at.X, ds_at.Y, alpha);
     }
 }
 

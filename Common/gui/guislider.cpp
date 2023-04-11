@@ -169,7 +169,7 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
         // draw the tiled background image
         do
         {
-            draw_gui_sprite(ds, BgImage, cx, cy, true);
+            draw_gui_sprite(ds, BgImage, cx, cy);
             cx += x_inc;
             cy += y_inc;
             // done as a do..while so that at least one of the image is drawn
@@ -193,7 +193,7 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
     const int handle_im = ((HandleImage > 0) && spriteset[HandleImage]) ? HandleImage : 0;
     if (handle_im > 0) // handle is a sprite
     {
-        draw_gui_sprite(ds, handle_im, handle.Left, handle.Top, true);
+        draw_gui_sprite(ds, handle_im, handle.Left, handle.Top);
     }
     else // handle is a drawn rectangle
     {

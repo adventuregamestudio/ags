@@ -109,18 +109,17 @@ void debug_draw_room_mask(RoomAreaMask mask);
 void debug_draw_movelist(int charnum);
 void update_room_debug();
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,
+void draw_sprite_support_alpha(Common::Bitmap *ds, int xpos, int ypos, Common::Bitmap *image,
                                Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
+void draw_sprite_slot_support_alpha(Common::Bitmap *ds, int xpos, int ypos, int src_slot,
                                     Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
-void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
-//void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlend_Alpha);
-void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
-    Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode, bool is_flipped);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
-    Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF, bool is_flipped = false);
+void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode);
+void draw_gui_sprite(Common::Bitmap *ds, int xpos, int ypos,
+    Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, bool is_flipped);
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos,
+    Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF, bool is_flipped = false);
 
 // Render game on screen
 void render_to_screen();

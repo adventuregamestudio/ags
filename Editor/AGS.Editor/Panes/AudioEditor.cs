@@ -36,6 +36,16 @@ namespace AGS.Editor
             set { _selectedItem = value; SetupForNewItem(value); }
         }
 
+        public int LengthMs
+        {
+            get
+            {
+                if (_selectedItem != null && _previewer != null)
+                    return _previewer.GetLengthMs();
+                return 0;
+            }
+        }
+
         private AudioClip SelectedClip
         {
             get { return (AudioClip)_selectedItem; }

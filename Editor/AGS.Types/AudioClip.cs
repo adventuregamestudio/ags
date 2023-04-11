@@ -21,6 +21,7 @@ namespace AGS.Types
         private AudioFileBundlingType _bundlingType = AudioFileBundlingType.InGameEXE;
         private AudioClipFileType _fileType;
         private DateTime _fileLastModifiedDate = DateTime.MinValue;
+        private TimeSpan _fileLength = TimeSpan.MinValue;
         private int _volume = -1;
         private AudioClipPriority _priority = AudioClipPriority.Inherit;
         private InheritableBool _repeat = InheritableBool.Inherit;
@@ -122,6 +123,15 @@ namespace AGS.Types
         {
             get { return _fileLastModifiedDate; }
             set { _fileLastModifiedDate = value; }
+        }
+
+        [AGSNoSerialize]
+        [Description("The audio file's length (hh:mm:ss.ms)")]
+        [ReadOnly(true)]
+        public TimeSpan Length
+        {
+            get { return _fileLength; }
+            set { _fileLength = value; }
         }
 
         [Description("The volume (0..100) that this clip will play at, if the script does not specify it. -1 inherits from parent folder.")]

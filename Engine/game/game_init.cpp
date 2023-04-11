@@ -493,7 +493,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // NOTE: we must do this before plugin start, because some plugins may
     // require access to script API at initialization time.
     //
-    ccSetScriptAliveTimer(10u, 1000u, 150000u);
+    ccSetScriptAliveTimer(150000u);
     ccSetStringClassImpl(&myScriptStringImpl);
     setup_script_exports(base_api, compat_api);
 

@@ -174,11 +174,12 @@ public:
     void    DumpInstruction(const ScriptOperation &op) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
+    // Notifies that the game was being updated (script not hanging)
+    void    NotifyAlive();
 
     // For each import, find the instance that corresponds to it and save it
     // in resolved_imports[]. Return whether the function is successful
     bool    ResolveScriptImports(const ccScript *scri);
-
     // Using resolved_imports[], resolve the IMPORT fixups
     // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
     bool    ResolveImportFixups(const ccScript *scri);
@@ -227,11 +228,11 @@ private:
     // Critical timeout: how much time may pass without any engine update
     // before we abort or post a warning
     static unsigned _timeoutAbortMs;
-    // Last time the script was noted of being "alive"
-    AGS_Clock::time_point _lastAliveTs;
     // Maximal while loops without any engine update in between,
     // after which the interpreter will abort
     static unsigned _maxWhileLoops;
+    // Last time the script was noted of being "alive"
+    AGS_FastClock::time_point _lastAliveTs;
 };
 
 #endif // __CC_INSTANCE_H

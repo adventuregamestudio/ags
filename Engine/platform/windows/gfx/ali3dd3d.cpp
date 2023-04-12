@@ -1934,7 +1934,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
-  blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
+  blackSquare->Clear(makeacol32(targetColourRed, targetColourGreen, targetColourBlue, 0xFF));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, true);
   delete blackSquare;
   BeginSpriteBatch(_srcRect, SpriteTransform());

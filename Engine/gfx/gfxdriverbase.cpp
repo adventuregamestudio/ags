@@ -378,7 +378,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     }
     if (r != fx.Red || g != fx.Green || b != fx.Blue)
     {
-        fx.Raw->Clear(makecol_depth(fx.Raw->GetColorDepth(), r, g, b));
+        fx.Raw->Clear(makeacol_depth(fx.Raw->GetColorDepth(), r, g, b, 0xFF));
         this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get());
         fx.Red = r;
         fx.Green = g;

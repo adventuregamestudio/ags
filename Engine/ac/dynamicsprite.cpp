@@ -286,8 +286,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     return new_spr;
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel) {
-
+ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot)
+{
     int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;
@@ -299,8 +299,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
     Bitmap *newPic = BitmapHelper::CreateBitmapCopy(spriteset[slot]);
     if (newPic == nullptr)
         return nullptr;
-
-    // TODO: preserveAlphaChannel -- edit bitmap and set full opaque alpha
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);
@@ -334,8 +332,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     return new_spr;
 }
 
-// TODO: remove alphaChannel
-ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChannel) 
+ScriptDynamicSprite* DynamicSprite_Create(int width, int height) 
 {
     int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
@@ -350,11 +347,6 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     add_dynamic_sprite(gotSlot, newPic);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
     return new_spr;
-}
-
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite_Old(int slot) 
-{
-    return DynamicSprite_CreateFromExistingSprite(slot, 0);
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height) {
@@ -512,10 +504,9 @@ RuntimeScriptValue Sc_DynamicSprite_GetWidth(void *self, const RuntimeScriptValu
     API_OBJCALL_INT(ScriptDynamicSprite, DynamicSprite_GetWidth);
 }
 
-// ScriptDynamicSprite* (int width, int height, int alphaChannel)
 RuntimeScriptValue Sc_DynamicSprite_Create(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_Create);
+    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_Create);
 }
 
 // ScriptDynamicSprite* (int frame, int x1, int y1, int width, int height)
@@ -530,16 +521,9 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromDrawingSurface(const RuntimeScript
     API_SCALL_OBJAUTO_POBJ_PINT4(ScriptDynamicSprite, DynamicSprite_CreateFromDrawingSurface, ScriptDrawingSurface);
 }
 
-// ScriptDynamicSprite* (int slot)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite_Old(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite_Old);
-}
-
-// ScriptDynamicSprite* (int slot, int preserveAlphaChannel)
 RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite);
+    API_SCALL_OBJAUTO_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite);
 }
 
 // ScriptDynamicSprite* (const char *filename)
@@ -577,11 +561,10 @@ void RegisterDynamicSpriteAPI()
     ccAddExternalObjectFunction("DynamicSprite::get_Graphic",               Sc_DynamicSprite_GetGraphic);
     ccAddExternalObjectFunction("DynamicSprite::get_Height",                Sc_DynamicSprite_GetHeight);
     ccAddExternalObjectFunction("DynamicSprite::get_Width",                 Sc_DynamicSprite_GetWidth);
-    ccAddExternalStaticFunction("DynamicSprite::Create^3",                  Sc_DynamicSprite_Create);
+    ccAddExternalStaticFunction("DynamicSprite::Create^2",                  Sc_DynamicSprite_Create);
     ccAddExternalStaticFunction("DynamicSprite::CreateFromBackground",      Sc_DynamicSprite_CreateFromBackground);
     ccAddExternalStaticFunction("DynamicSprite::CreateFromDrawingSurface^5", Sc_DynamicSprite_CreateFromDrawingSurface);
-    ccAddExternalStaticFunction("DynamicSprite::CreateFromExistingSprite^1", Sc_DynamicSprite_CreateFromExistingSprite_Old);
-    ccAddExternalStaticFunction("DynamicSprite::CreateFromExistingSprite^2", Sc_DynamicSprite_CreateFromExistingSprite);
+    ccAddExternalStaticFunction("DynamicSprite::CreateFromExistingSprite^1", Sc_DynamicSprite_CreateFromExistingSprite);
     ccAddExternalStaticFunction("DynamicSprite::CreateFromFile",            Sc_DynamicSprite_CreateFromFile);
     ccAddExternalStaticFunction("DynamicSprite::CreateFromSaveGame",        Sc_DynamicSprite_CreateFromSaveGame);
     ccAddExternalStaticFunction("DynamicSprite::CreateFromScreenShot",      Sc_DynamicSprite_CreateFromScreenShot);
@@ -602,11 +585,10 @@ void RegisterDynamicSpriteAPI()
     ccAddExternalFunctionForPlugin("DynamicSprite::get_Graphic",               (void*)DynamicSprite_GetGraphic);
     ccAddExternalFunctionForPlugin("DynamicSprite::get_Height",                (void*)DynamicSprite_GetHeight);
     ccAddExternalFunctionForPlugin("DynamicSprite::get_Width",                 (void*)DynamicSprite_GetWidth);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Create^3",                  (void*)DynamicSprite_Create);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Create^2",                  (void*)DynamicSprite_Create);
     ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromBackground",      (void*)DynamicSprite_CreateFromBackground);
     ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromDrawingSurface^5", (void*)DynamicSprite_CreateFromDrawingSurface);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^1", (void*)DynamicSprite_CreateFromExistingSprite_Old);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^2", (void*)DynamicSprite_CreateFromExistingSprite);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^1", (void*)DynamicSprite_CreateFromExistingSprite);
     ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromFile",            (void*)DynamicSprite_CreateFromFile);
     ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromSaveGame",        (void*)DynamicSprite_CreateFromSaveGame);
     ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromScreenShot",      (void*)DynamicSprite_CreateFromScreenShot);

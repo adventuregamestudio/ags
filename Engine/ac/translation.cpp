@@ -96,15 +96,21 @@ bool init_translation(const String &lang, const String &fallback_lang)
         SetNormalFont(trans.NormalFont);
     if (trans.SpeechFont >= 0)
         SetSpeechFont(trans.SpeechFont);
-    if (trans.RightToLeft == 1)
+    // Convert TextDirection from TRA format to OPT_TEXTDIRECTION
+    const char *text_dir_names[] = { "left-to-right", "right-to-left", "right-to-left reversed" };
+    const char *text_dir_name = "default";
+    if (trans.TextDirection > 0)
     {
-        play.text_align = kHAlignLeft;
-        game.options[OPT_RIGHTLEFTWRITE] = 0;
-    }
-    else if (trans.RightToLeft == 2)
-    {
-        play.text_align = kHAlignRight;
-        game.options[OPT_RIGHTLEFTWRITE] = 1;
+        TextDirection text_dir = (TextDirection)(trans.TextDirection - 1);
+        if (text_dir > kTextDir_RightToLeftRev)
+        {
+            Debug::Printf(kDbgMsg_Warn, "Translation's text direction not supported (%d)", trans.TextDirection);
+            text_dir = kTextDir_LeftToRight;
+        }
+
+        play.text_align = TextDirectionToAlign(text_dir);
+        text_dir_name = text_dir_names[text_dir];
+        game.options[OPT_TEXTDIRECTION] = text_dir;
     }
     // Setup a text encoding mode depending on the translation data hint
     String encoding = trans.StrOptions["encoding"];
@@ -146,7 +152,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
         }
     }
 
-    Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(), encoding_msg.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s, text dir: %s)",
+        trans_name.GetCStr(), encoding_msg.GetCStr(), text_dir_name);
     return true;
 }
 

@@ -299,27 +299,28 @@ size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, i
     if (wii < 3)
         return 0;
 
-    int line_length;
+    const TextDirection text_dir = (TextDirection)game.options[OPT_TEXTDIRECTION];
 
-    split_lines(todis, lines, wii, fonnt, max_lines);
+    split_lines(todis, text_dir == kTextDir_RightToLeftRev, lines, wii, fonnt, max_lines);
 
-    // Right-to-left just means reverse the text then
-    // write it as normal
-    if (game.options[OPT_RIGHTLEFTWRITE])
-        for (size_t rr = 0; rr < lines.Count(); rr++) {
+    switch (text_dir) {
+    case kTextDir_LeftToRight:
+    /* case kTextDir_RightToLeftRev: */
+        for (size_t rr = 0; rr < lines.Count(); ++rr) {
+            longestline = std::max(longestline, get_text_width_outlined(lines[rr].GetCStr(), fonnt));
+        }
+        break;
+    case kTextDir_RightToLeft:
+    case kTextDir_RightToLeftRev: /* FIXME !!! -- optimize, by refactoring line split instead */
+        // Reverse each split line
+        for (size_t rr = 0; rr < lines.Count(); ++rr) {
             (get_uformat() == U_UTF8) ?
                 lines[rr].ReverseUTF8() :
                 lines[rr].Reverse();
-            line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
-            if (line_length > longestline)
-                longestline = line_length;
+            longestline = std::max(longestline, get_text_width_outlined(lines[rr].GetCStr(), fonnt));
         }
-    else
-        for (size_t rr = 0; rr < lines.Count(); rr++) {
-            line_length = get_text_width_outlined(lines[rr].GetCStr(), fonnt);
-            if (line_length > longestline)
-                longestline = line_length;
-        }
+        break;
+    }
     return lines.Count();
 }
 

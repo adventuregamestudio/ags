@@ -111,7 +111,7 @@ bool ShouldAntiAliasText();
 // subsequent memory (de)allocations if used often during game loops
 // and drawing. For that reason it is not equivalent to std::vector,
 // but keeps constructed String buffers intact for most time.
-// TODO: implement proper strings pool.
+// TODO: implement proper strings pool, with std iterator support.
 class SplitLines
 {
 public:
@@ -135,8 +135,10 @@ private:
 };
 
 // Break up the text into lines restricted by the given width;
-// returns number of lines, or 0 if text cannot be split well to fit in this width
-size_t split_lines(const char *texx, SplitLines &lines, int width, int fontNumber, size_t max_lines = -1);
+// returns number of lines, or 0 if text cannot be split well to fit in this width;
+// * read_reverse - scan the text in reverse (right-to-left)
+size_t split_lines(const char *texx, bool read_reverse,
+    SplitLines &lines, int width, int fontNumber, size_t max_lines = -1);
 
 namespace AGS { namespace Common { extern SplitLines Lines; } }
 

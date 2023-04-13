@@ -23,6 +23,7 @@
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h" // MAXLINE
 #include "util/string_utils.h"
+#include "util/utf8.h"
 
 
 extern int get_fixed_pixel_size(int pixels);
@@ -404,7 +405,8 @@ void unescape_script_string(const char *cstr, std::vector<char> &out)
 }
 
 // Break up the text into lines
-size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
+size_t split_lines(const char *todis, bool read_reverse,
+    SplitLines &lines, int wii, int fonnt, size_t max_lines) {
     // NOTE: following hack accomodates for the legacy math mistake in split_lines.
     // It's hard to tell how cruicial it is for the game looks, so research may be needed.
     // TODO: IMHO this should rely not on game format, but script API level, because it
@@ -416,8 +418,15 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
 
     lines.Reset();
     unescape_script_string(todis, lines.LineBuf);
-    char *theline = &lines.LineBuf.front();
+    if (read_reverse)
+    {
+        /* FIXME !!! -- optimize, by refactoring line split instead */
+        std::vector<char> buf; buf.resize(lines.LineBuf.size());
+        Utf8::Reverse(&lines.LineBuf.front(), lines.LineBuf.size() - 1, &buf.front(), buf.size());
+        memcpy(&lines.LineBuf.front(), &buf.front(), lines.LineBuf.size());
+    }
 
+    char *theline = &lines.LineBuf.front();
     char *scan_ptr = theline;
     char *prev_ptr = theline;
     char *last_whitespace = nullptr;

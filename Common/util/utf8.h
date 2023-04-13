@@ -106,6 +106,30 @@ inline size_t GetLength(const char *c)
     return len;
 }
 
+// Reverses utf8 string, reads from src, writes into dst which is limited by dst_sz bytes;
+// ensures null-terminator in the end
+// FIXME: use dst_sz!
+inline void Reverse(const char *src, size_t src_len, char *dst, size_t dst_sz)
+{
+    for (const char *fw = src, *fw2 = src + 1,
+              *bw = src + src_len - 1, *bw2 = src + src_len;
+        fw <= bw; // FIXME: <= catches odd middle char, optimize?
+        fw = fw2++, bw2 = bw--)
+    {
+        // find end of next character forwards
+        for (; (fw2 < bw) && ((*fw2 & 0xC0) == 0x80); ++fw2);
+        // find beginning of the prev character backwards
+        for (; (bw > fw) && ((*bw & 0xC0) == 0x80); --bw);
+        // put these in opposite sides on the new buffer
+        char *fw_place = dst + (src + src_len - bw2);
+        char *bw_place = dst + src_len - (fw2 - src);
+        memcpy(fw_place, bw, bw2 - bw);
+        if (fw != bw) // FIXME, optimize?
+            memcpy(bw_place, fw, fw2 - fw);
+    }
+    dst[dst_sz - 1] = 0; // ensure terminator
+}
+
 } // namespace Utf8
 
 #endif // __AGS_CN_UTIL__UTF8_H

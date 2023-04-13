@@ -16,12 +16,6 @@
 
 #include "ac/common_defines.h"
 
-// xalleg.h pulls in an Allegro-internal definition of MAX_TIMERS which
-// conflicts with the definition in runtime_defines.h. Forget it.
-#ifdef MAX_TIMERS
-#undef MAX_TIMERS
-#endif
-
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
 #define MAXGLOBALVARS 50

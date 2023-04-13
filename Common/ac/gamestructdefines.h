@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// Various global game constants
 //
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
@@ -215,6 +215,27 @@ enum GameGuiAlphaRenderingStyle
     kGuiAlphaRender_AdditiveAlpha,
     kGuiAlphaRender_Proper
 };
+
+// Text display direction (used in OPT_TEXTDIRECTION)
+enum TextDirection
+{
+    kTextDir_LeftToRight = 0, 
+    kTextDir_RightToLeft = 1,
+    kTextDir_RightToLeftRev = 2, // pre-reversed R2L text
+};
+
+// Convert TextDirection to the suggested text alignment
+inline HorAlignment TextDirectionToAlign(TextDirection dir)
+{
+    switch (dir)
+    {
+    case kTextDir_RightToLeft:
+    case kTextDir_RightToLeftRev:
+        return kHAlignRight;
+    default:
+        return kHAlignLeft;
+    }
+}
 
 
 // Sprite flags (serialized as 8-bit)

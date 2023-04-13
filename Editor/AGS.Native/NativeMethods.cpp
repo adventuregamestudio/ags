@@ -773,7 +773,7 @@ namespace AGS
             if (name->Equals("OPT_ANTIALIASFONTS")) return OPT_ANTIALIASFONTS;
             if (name->Equals("OPT_THOUGHTGUI")) return OPT_THOUGHTGUI;
             if (name->Equals("OPT_TURNTOFACELOC")) return OPT_TURNTOFACELOC;
-            if (name->Equals("OPT_RIGHTLEFTWRITE")) return OPT_RIGHTLEFTWRITE;
+            if (name->Equals("OPT_TEXTDIRECTION")) return OPT_TEXTDIRECTION;
             if (name->Equals("OPT_DUPLICATEINV")) return OPT_DUPLICATEINV;
             if (name->Equals("OPT_SAVESCREENSHOT")) return OPT_SAVESCREENSHOT;
             if (name->Equals("OPT_PORTRAITSIDE")) return OPT_PORTRAITSIDE;

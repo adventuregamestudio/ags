@@ -111,7 +111,7 @@ namespace AGS.Editor
             public static readonly int OPT_ANTIALIASFONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIALIASFONTS");
             public static readonly int OPT_THOUGHTGUI = (int)Factory.NativeProxy.GetNativeConstant("OPT_THOUGHTGUI");
             public static readonly int OPT_TURNTOFACELOC = (int)Factory.NativeProxy.GetNativeConstant("OPT_TURNTOFACELOC");
-            public static readonly int OPT_RIGHTLEFTWRITE = (int)Factory.NativeProxy.GetNativeConstant("OPT_RIGHTLEFTWRITE");
+            public static readonly int OPT_TEXTDIRECTION = (int)Factory.NativeProxy.GetNativeConstant("OPT_TEXTDIRECTION");
             public static readonly int OPT_DUPLICATEINV = (int)Factory.NativeProxy.GetNativeConstant("OPT_DUPLICATEINV");
             public static readonly int OPT_SAVESCREENSHOT = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAVESCREENSHOT");
             public static readonly int OPT_PORTRAITSIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_PORTRAITSIDE");

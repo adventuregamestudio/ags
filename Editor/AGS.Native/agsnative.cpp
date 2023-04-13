@@ -3069,7 +3069,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->AntiAliasFonts = (thisgame.options[OPT_ANTIALIASFONTS] != 0);
 	game->Settings->AntiGlideMode = (thisgame.options[OPT_ANTIGLIDE] != 0);
 	game->Settings->AutoMoveInWalkMode = !thisgame.options[OPT_NOWALKMODE];
-	game->Settings->BackwardsText = (thisgame.options[OPT_RIGHTLEFTWRITE] != 0);
+	game->Settings->TextDirection = (AGS::Types::TextDirection)thisgame.options[OPT_TEXTDIRECTION];
 	game->Settings->ColorDepth = (GameColorDepth)thisgame.color_depth;
 	game->Settings->CompressSpritesType = (SpriteCompression)thisgame.options[OPT_COMPRESSSPRITES];
 	game->Settings->CrossfadeMusic = (CrossfadeSpeed)thisgame.options[OPT_CROSSFADEMUSIC];

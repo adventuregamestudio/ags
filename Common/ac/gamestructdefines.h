@@ -56,7 +56,7 @@
 #define OPT_ANTIALIASFONTS  25
 #define OPT_THOUGHTGUI      26
 #define OPT_TURNTOFACELOC   27
-#define OPT_RIGHTLEFTWRITE  28  // right-to-left text writing
+#define OPT_TEXTDIRECTION   28  // text direction (LTR, RTL, extra modes)
 #define OPT_DUPLICATEINV    29  // if they have 2 of the item, draw it twice
 #define OPT_SAVESCREENSHOT  30
 #define OPT_PORTRAITSIDE    31

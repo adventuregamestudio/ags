@@ -103,7 +103,7 @@ namespace AGS.Types
         private FontHeightDefinition _ttfHeightDefinedBy = FontHeightDefinition.NominalHeight;
         private FontMetricsFixup _ttfMetricsFixup = FontMetricsFixup.None;
         private int _thoughtGUI = 0;
-        private bool _backwardsText = false;
+        private TextDirection _textDirection = TextDirection.LeftToRight;
         private int _uniqueID;
 		private Guid _guid;
         private bool _hasMODMusic = false;
@@ -1009,14 +1009,22 @@ namespace AGS.Types
             set { _thoughtGUI = value; }
         }
 
-        [DisplayName("Write game text Right-to-Left")]
-        [Description("The game will draw text right-to-left, used by languages such as Hebrew")]
-        [DefaultValue(false)]
-        [Category("Text output")]
+        [Obsolete]
+        [Browsable(false)]
         public bool BackwardsText
         {
-            get { return _backwardsText; }
-            set { _backwardsText = value; }
+            get { return _textDirection != TextDirection.LeftToRight; }
+            set { TextDirection = value ? TextDirection.RightToLeft : TextDirection.LeftToRight; }
+        }
+
+        [DisplayName("Text direction")]
+        [Description("Which direction the game will draw texts (left-to-right, right-to-left)")]
+        [DefaultValue(TextDirection.LeftToRight)]
+        [Category("Text output")]
+        public TextDirection TextDirection
+        {
+            get { return _textDirection; }
+            set { _textDirection = value; }
         }
 
         [DisplayName("Maximum possible score")]

@@ -35,6 +35,7 @@ const String GAMEENCODING_TAG("//#GameEncoding=");
 const char *TAG_DEFAULT = "DEFAULT";
 const char *TAG_DIRECTION_LEFT = "LEFT";
 const char *TAG_DIRECTION_RIGHT = "RIGHT";
+const char *TAG_DIRECTION_RIGHTREV = "RIGHTREV";
 
 static int ReadOptionalInt(const String &text)
 {
@@ -58,15 +59,19 @@ static void ReadSpecialTags(Translation &tra, const String &line)
         String directionText = line.Mid(TEXT_DIRECTION_TAG.GetLength());
         if (directionText == TAG_DIRECTION_LEFT)
         {
-            tra.RightToLeft = 1;
+            tra.TextDirection = 1;
         }
         else if (directionText == TAG_DIRECTION_RIGHT)
         {
-            tra.RightToLeft = 2;
+            tra.TextDirection = 2;
+        }
+        else if (directionText == TAG_DIRECTION_RIGHTREV)
+        {
+            tra.TextDirection = 3;
         }
         else
         {
-            tra.RightToLeft = -1;
+            tra.TextDirection = -1;
         }
     }
     // TODO: make a generic dictionary instead and save any option

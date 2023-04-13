@@ -100,7 +100,7 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     case kTraFblk_TextOpts:
         tra.NormalFont = in->ReadInt32();
         tra.SpeechFont = in->ReadInt32();
-        tra.RightToLeft = in->ReadInt32();
+        tra.TextDirection = in->ReadInt32();
         return HError::None();
     case kTraFblk_None:
         // continue reading extensions with string ID
@@ -236,7 +236,7 @@ void WriteTextOpts(const Translation &tra, Stream *out)
 {
     out->WriteInt32(tra.NormalFont);
     out->WriteInt32(tra.SpeechFont);
-    out->WriteInt32(tra.RightToLeft);
+    out->WriteInt32(tra.TextDirection);
 }
 
 void WriteStrOptions(const Translation &tra, Stream *out)

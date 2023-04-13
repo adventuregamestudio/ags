@@ -154,7 +154,15 @@ namespace AGS.Editor.Components
                 bw.Write((int)12);
                 bw.Write(translation.NormalFont ?? -1);
                 bw.Write(translation.SpeechFont ?? -1);
-                bw.Write((translation.RightToLeftText == true) ? 2 : ((translation.RightToLeftText == false) ? 1 : -1));
+                if (translation.TextDirection.HasValue)
+                {
+                    // convert from TextDir enum to TRA format
+                    bw.Write((int)translation.TextDirection + 1);
+                }
+                else
+                {
+                    bw.Write(-1);
+                }
 
                 bw.Write((int)0); // required for compatibility
                 DataFileWriter.WriteString(TRANSLATION_BLOCK_STROPTIONS, 16, bw);

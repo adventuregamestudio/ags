@@ -18,13 +18,14 @@ namespace AGS.Types
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
         private const string TAG_DIRECTION_RIGHT = "RIGHT";
+        private const string TAG_DIRECTION_RIGHTREV = "RIGHTREV";
 
         private string _name;
         private string _fileName;
         private bool _modified;
         private int? _normalFont;
         private int? _speechFont;
-        private bool? _rightToLeftText;
+        private TextDirection? _textDirection;
         private string _encodingHint;
         private Encoding _encoding;
         private Dictionary<string, string> _translatedLines;
@@ -35,7 +36,7 @@ namespace AGS.Types
             _modified = false;
             _normalFont = null;
             _speechFont = null;
-            _rightToLeftText = null;
+            _textDirection = null;
             EncodingHint = "UTF-8";
         }
 
@@ -71,9 +72,9 @@ namespace AGS.Types
             get { return _speechFont; }
         }
 
-        public bool? RightToLeftText
+        public TextDirection? TextDirection
         {
-            get { return _rightToLeftText; }
+            get { return _textDirection; }
         }
 
         public string EncodingHint
@@ -108,7 +109,7 @@ namespace AGS.Types
             _modified = false;
             _normalFont = null;
             _speechFont = null;
-            _rightToLeftText = null;
+            _textDirection = null;
             _encodingHint = null;
             _encoding = Encoding.Default;
             LoadData();
@@ -138,8 +139,16 @@ namespace AGS.Types
                 sw.WriteLine("//#NormalFont=" + WriteOptionalInt(_normalFont));
                 sw.WriteLine("// The speech font to use - DEFAULT or font number");
                 sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
-                sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
-                sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
+                sw.WriteLine("// Text direction - DEFAULT, LEFT, RIGHT, RIGHTREV");
+                string dirText;
+                switch (_textDirection)
+                {
+                    case Types.TextDirection.LeftToRight: dirText = TAG_DIRECTION_LEFT; break;
+                    case Types.TextDirection.RightToLeft: dirText = TAG_DIRECTION_RIGHT; break;
+                    case Types.TextDirection.RightToLeftReversed: dirText = TAG_DIRECTION_RIGHTREV; break;
+                    default: dirText = TAG_DEFAULT; break;
+                }
+                sw.WriteLine("//#TextDirection=" + dirText);
                 sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
                 sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
                 sw.WriteLine("//  ");
@@ -206,15 +215,19 @@ namespace AGS.Types
                 string directionText = line.Substring(TEXT_DIRECTION_TAG.Length);
                 if (directionText == TAG_DIRECTION_LEFT)
                 {
-                    _rightToLeftText = false;
+                    _textDirection = Types.TextDirection.LeftToRight;
                 }
                 else if (directionText == TAG_DIRECTION_RIGHT)
                 {
-                    _rightToLeftText = true;
+                    _textDirection = Types.TextDirection.RightToLeft;
+                }
+                else if (directionText == TAG_DIRECTION_RIGHTREV)
+                {
+                    _textDirection = Types.TextDirection.RightToLeftReversed;
                 }
                 else
                 {
-                    _rightToLeftText = null;
+                    _textDirection = null;
                 }
             }
             // TODO: make a generic dictionary instead and save any option

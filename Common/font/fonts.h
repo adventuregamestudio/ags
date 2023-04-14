@@ -14,6 +14,7 @@
 #ifndef __AC_FONT_H
 #define __AC_FONT_H
 
+#include <string>
 #include <vector>
 #include "ac/gamestructdefines.h"
 #include "util/string.h"
@@ -126,8 +127,8 @@ public:
         _pool[_count++].SetString(cstr);
     }
 
-    // An auxiliary line processing buffer
-    std::vector<char> LineBuf;
+    // Auxiliary line processing buffers
+    std::string LineBuf[2];
 
 private:
     std::vector<Common::String> _pool;

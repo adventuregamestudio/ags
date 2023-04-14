@@ -371,7 +371,7 @@ int get_text_lines_surf_height(size_t fontNumber, size_t numlines)
 namespace AGS { namespace Common { SplitLines Lines; } }
 
 // Replaces AGS-specific linebreak tags with common '\n'
-void unescape_script_string(const char *cstr, std::vector<char> &out)
+static void unescape_script_string(const char *cstr, std::string &out)
 {
     out.clear();
     // Handle the special case of the first char
@@ -417,29 +417,42 @@ size_t split_lines(const char *todis, bool read_reverse,
     wii -= 1;
 
     lines.Reset();
-    unescape_script_string(todis, lines.LineBuf);
+
+    // Do all necessary preliminary conversions: unescape, etc
+    unescape_script_string(todis, lines.LineBuf[0]);
     if (read_reverse)
     {
-        /* FIXME !!! -- optimize, by refactoring line split instead */
-        std::vector<char> buf; buf.resize(lines.LineBuf.size());
-        Utf8::Reverse(&lines.LineBuf.front(), lines.LineBuf.size() - 1, &buf.front(), buf.size());
-        memcpy(&lines.LineBuf.front(), &buf.front(), lines.LineBuf.size());
+        /* FIXME !!! -- optimize, by doing a reverse line split (need a very good refactor) */
+        lines.LineBuf[1].resize(lines.LineBuf[0].size());
+        Utf8::Reverse(&lines.LineBuf[0].front(), lines.LineBuf[0].size() - 1,
+            &lines.LineBuf[1].front(), lines.LineBuf[1].size());
     }
 
-    char *theline = &lines.LineBuf.front();
-    char *scan_ptr = theline;
-    char *prev_ptr = theline;
-    char *last_whitespace = nullptr;
-    while (1) {
-        char *split_at = nullptr;
+    // TODO: we NEED a proper utf8 string class, and refact all this mess!!
+    // in this case we perhaps could use custom ITERATOR types that read
+    // and write utf8 chars in std::strings or similar containers.
+    std::string &line_buf = read_reverse ? lines.LineBuf[1] : lines.LineBuf[0];
+    std::string &test_buf = lines.LineBuf[2];
+    test_buf.clear();
+    const char *end_ptr = &line_buf.back(); // buffer end ptr
+    const char *theline = &line_buf.front(); // sub-line ptr
+    const char *scan_ptr = theline; // a moving scan pos
+    const char *prev_ptr = scan_ptr; // previous scan pos
+    const char *last_whitespace = nullptr; // last found whitespace
 
-        if (*scan_ptr == 0) {
+    while (true) {
+        const char *split_at = nullptr;
+
+        if (scan_ptr == end_ptr) {
             // end of the text, add the last line if necessary
             if (scan_ptr > theline) {
-                lines.Add(theline);
+                lines.Add(&test_buf.front());
             }
             break;
         }
+
+        // Save "previous scan pos" before possibly moving the scan_ptr
+        prev_ptr = scan_ptr;
 
         if (*scan_ptr == ' ')
             last_whitespace = scan_ptr;
@@ -447,15 +460,14 @@ size_t split_lines(const char *todis, bool read_reverse,
         // force end of line with the \n character
         if (*scan_ptr == '\n') {
             split_at = scan_ptr;
+            ugetxc(&scan_ptr); // advance by char
         // otherwise, see if we are too wide
         } else {
-            // temporarily terminate the line in the *next* char and test its width
-            char *next_ptr = scan_ptr;
-            ugetx(&next_ptr);
-            const int next_chwas = ugetc(next_ptr);
-            *next_ptr = 0;
-
-            if (get_text_width_outlined(theline, fonnt) > wii) {
+            // copy next character to the test buffer and calculate its width
+            char uch[Utf8::UtfSz + 1]{};
+            usetc(uch, ugetxc(&scan_ptr));
+            test_buf.append(uch);
+            if (get_text_width_outlined(&test_buf.front(), fonnt) > wii) {
                 // line is too wide, order the split
                 if (last_whitespace)
                     // revert to the last whitespace
@@ -464,26 +476,19 @@ size_t split_lines(const char *todis, bool read_reverse,
                     // single very wide word, display as much as possible
                     split_at = prev_ptr;
             }
-
-            // restore the character that was there before
-            usetc(next_ptr, next_chwas);
         }
 
-        if (split_at == nullptr) {
-            prev_ptr = scan_ptr;
-            ugetx(&scan_ptr);
-        } else {
+        if (split_at != nullptr) {
             // check if even one char cannot fit...
             if (split_at == theline && !((*theline == ' ') || (*theline == '\n'))) {
-              // cannot split with current width restriction
-              lines.Reset();
-              break;
+                // cannot split with current width restriction
+                lines.Reset();
+                break;
             }
-            // add this line; do the temporary terminator trick again
-            const int next_chwas = ugetc(split_at);
-            *split_at = 0;
-            lines.Add(theline);
-            usetc(split_at, next_chwas);
+            // add this line, saved into the test buffer
+            test_buf.resize(split_at - theline); // cut the buffer at the split index
+            lines.Add(&test_buf.front());
+            test_buf.clear();
             // check if too many lines
             if (lines.Count() >= max_lines) {
                 lines[lines.Count() - 1].Append("...");
@@ -493,7 +498,7 @@ size_t split_lines(const char *todis, bool read_reverse,
             theline = split_at;
             // skip the space or new line that caused the line break
             if ((*theline == ' ') || (*theline == '\n'))
-                theline++;
+                ugetxc(&theline); // advance by char
             scan_ptr = theline;
             prev_ptr = theline;
             last_whitespace = nullptr;

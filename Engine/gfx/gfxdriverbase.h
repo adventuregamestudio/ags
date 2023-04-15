@@ -211,7 +211,6 @@ public:
     int _width = 0, _height = 0;
     float _originX = 0.f, _originY = 0.f;
     int _colDepth = 0;
-    bool _hasAlpha = false; // has meaningful alpha channel
     bool _opaque = false; // no mask color
 
 protected:
@@ -294,13 +293,13 @@ public:
     // Creates new texture using given parameters
     IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque) = 0;
     // Creates new texture and copy bitmap contents over
-    IDriverDependantBitmap *CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque = false) override;
+    IDriverDependantBitmap *CreateDDBFromBitmap(Bitmap *bitmap, bool opaque) override;
     // Get shared texture from cache, or create from bitmap and assign ID
-    IDriverDependantBitmap *GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    IDriverDependantBitmap *GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool opaque) override;
     // Removes the shared texture reference, will force the texture to recreate next time
     void ClearSharedDDB(uint32_t sprite_id) override;
     // Updates shared texture data, but only if it is present in the cache
-    void UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    void UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap, bool opaque) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Sets stage screen parameters for the current batch.
@@ -308,9 +307,9 @@ public:
 
 protected:
     // Create texture data with the given parameters
-    virtual TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) = 0;
+    virtual TextureData *CreateTextureData(int width, int height, bool as_render_target) = 0;
     // Update texture data from the given bitmap
-    virtual void UpdateTextureData(TextureData *txdata, Bitmap *bmp, bool opaque, bool hasAlpha) = 0;
+    virtual void UpdateTextureData(TextureData *txdata, Bitmap *bmp, bool opaque) = 0;
     // Create DDB using preexisting texture data
     virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
         int width, int height, int color_depth, bool opaque) = 0;
@@ -344,10 +343,10 @@ protected:
     void DestroyFxPool();
 
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
-    void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
+    void BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
                             char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
     // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
-    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
+    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
         char *dst_ptr, const int dst_pitch);
 
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;

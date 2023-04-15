@@ -404,8 +404,8 @@ void create_blank_image(int coldepth)
     {
         Bitmap *blank = CreateCompatBitmap(16, 16, coldepth);
         blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        blankImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
+        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
         delete blank;
     }
     catch (Ali3DException gfxException)
@@ -915,11 +915,11 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 
 
 Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
-    Common::Bitmap *source, bool has_alpha, bool opaque)
+    Common::Bitmap *source, bool opaque)
 {
     // no ddb, - get or create shared object
     if (!ddb)
-        return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
+        return gfxDriver->GetSharedDDB(sprite_id, source, opaque);
     // same sprite id, - use existing
     if ((sprite_id != UINT32_MAX) && (ddb->GetRefID() == sprite_id))
         return ddb;
@@ -929,12 +929,12 @@ Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitma
         (ddb->GetColorDepth() == source->GetColorDepth()) &&
         (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))
     {
-        gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
+        gfxDriver->UpdateDDBFromBitmap(ddb, source);
         return ddb;
     }
     // have to recreate ddb
     gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
+    return gfxDriver->GetSharedDDB(sprite_id, source, opaque);
 }
 
 IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
@@ -946,10 +946,11 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
     return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
 }
 
-void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
+// FIXME: make opaque a property of ObjTexture?!
+static void sync_object_texture(ObjTexture &obj, bool opaque = false)
 {
     Bitmap *use_bmp = obj.Bmp.get() ? obj.Bmp.get() : spriteset[obj.SpriteID];
-    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, has_alpha, opaque);
+    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, opaque);
 }
 
 //------------------------------------------------------------------------
@@ -1726,7 +1727,7 @@ void prepare_objects_for_drawing() {
 
         if ((!actspsIntact) || (actsp.Ddb == nullptr))
         {
-            sync_object_texture(actsp, (game.SpriteInfos[objs[aa].num].Flags & SPF_ALPHACHANNEL) != 0);
+            sync_object_texture(actsp);
         }
 
         actsp.Ddb->SetOrigin(0.f, 1.f);
@@ -2044,7 +2045,7 @@ void prepare_characters_for_drawing() {
 
         if ((!usingCachedImage) || (actsp.Ddb == nullptr))
         {
-            sync_object_texture(actsp, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0);
+            sync_object_texture(actsp);
         }
 
         actsp.Ddb->SetOrigin(0.5f, 1.f);
@@ -2121,7 +2122,7 @@ void prepare_room_sprites()
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
         roomBackgroundBmp =
-            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
+            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), true /*opaque*/);
     }
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
@@ -2266,9 +2267,9 @@ void draw_fps(const Rect &viewport)
     wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, font, text_color, loop_buffer);
 
     if (ddb)
-        gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
+        gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay);
     else
-        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
+        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay);
     int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite_glob(1, yp, ddb);
@@ -2296,7 +2297,7 @@ static void construct_guictrl_tex(GUIMain &gui)
         recycle_bitmap(objbg.Bmp, game.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
         obj->Draw(objbg.Bmp.get(), -obj_surf.Left, -obj_surf.Top);
 
-        sync_object_texture(objbg, obj->HasAlphaChannel());
+        sync_object_texture(objbg);
         objbg.Off = Point(obj_surf.GetLT());
         obj->ClearChanged();
     }
@@ -2418,15 +2419,14 @@ void draw_gui_and_overlays()
                         }
                     }
 
-                    const bool isAlpha = gui.HasAlphaChannel();
                     IDriverDependantBitmap *&ddb = guibg[index].Ddb;
                     if (ddb != nullptr)
                     {
-                        gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final, isAlpha);
+                        gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final);
                     }
                     else
                     {
-                        ddb = gfxDriver->CreateDDBFromBitmap(guibg_final, isAlpha);
+                        ddb = gfxDriver->CreateDDBFromBitmap(guibg_final);
                     }
                 }
                 
@@ -2649,7 +2649,7 @@ static void construct_overlays()
                 use_bmp = use_cache.get();
             }
 
-            over.ddb = recycle_ddb_sprite(over.ddb, over.GetSpriteNum(), use_bmp, over.HasAlphaChannel());
+            over.ddb = recycle_ddb_sprite(over.ddb, over.GetSpriteNum(), use_bmp);
             over.ClearChanged();
         }
 
@@ -2790,9 +2790,9 @@ void construct_engine_overlay()
         }
 
         if (debugConsole == nullptr)
-            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
+            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, true /*opaque*/);
         else
-            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
+            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer);
 
         gfxDriver->DrawSprite(0, 0, debugConsole);
         invalidate_sprite_glob(0, 0, debugConsole);
@@ -2843,7 +2843,7 @@ void debug_draw_room_mask(RoomAreaMask mask)
         bmp = debugRoomMaskObj.Bmp.get();
     }
 
-    debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, false, true);
+    debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, true /*opaque*/);
     debugRoomMaskObj.Ddb->SetAlpha(150);
     debugRoomMaskObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
 }
@@ -2866,7 +2866,7 @@ void update_room_debug()
             debugRoomMaskObj.Bmp->StretchBlt(bmp, RectWH(0, 0, thisroom.Width, thisroom.Height));
             bmp = debugRoomMaskObj.Bmp.get();
         }
-        debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, false, true);
+        debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, true /*opaque*/);
         debugRoomMaskObj.Ddb->SetAlpha(150);
         debugRoomMaskObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
     }

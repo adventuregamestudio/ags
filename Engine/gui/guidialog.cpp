@@ -80,7 +80,7 @@ Bitmap *prepare_gui_screen(int x, int y, int width, int height, bool opaque)
     {
         windowBuffer = CreateCompatBitmap(windowPosWidth, windowPosHeight);
     }
-    dialogDDB = recycle_ddb_bitmap(dialogDDB, windowBuffer, false, opaque);
+    dialogDDB = recycle_ddb_bitmap(dialogDDB, windowBuffer, opaque);
     return windowBuffer;
 }
 
@@ -100,7 +100,7 @@ void clear_gui_screen()
 
 void refresh_gui_screen()
 {
-    gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer, false);
+    gfxDriver->UpdateDDBFromBitmap(dialogDDB, windowBuffer);
     update_cursor_and_dependent();
     render_graphics(dialogDDB, windowPosX, windowPosY);
 }

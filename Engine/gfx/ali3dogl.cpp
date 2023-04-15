@@ -1657,7 +1657,7 @@ void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 }
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
@@ -1691,9 +1691,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   fixedTile.width = std::min(tile->width, tileWidth);
   fixedTile.height = std::min(tile->height, tileHeight);
   if (opaque)
-    BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, memPtr, pitch);
+    BitmapToVideoMemOpaque(bitmap, &fixedTile, memPtr, pitch);
   else
-    BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, &fixedTile, memPtr, pitch, usingLinearFiltering);
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
@@ -1740,7 +1740,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   delete []origPtr;
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
   if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
@@ -1749,11 +1749,10 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   if (color_depth != target->_colDepth)
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
-  target->_hasAlpha = hasAlpha;
-  UpdateTextureData(target->_data.get(), bitmap, target->_opaque, hasAlpha);
+  UpdateTextureData(target->_data.get(), bitmap, target->_opaque);
 }
 
-void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque)
 {
   const int color_depth = bitmap->GetColorDepth();
   if (color_depth == 8)
@@ -1762,7 +1761,7 @@ void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, b
   auto *ogldata = reinterpret_cast<OGLTextureData*>(txdata);
   for (size_t i = 0; i < ogldata->_numTiles; ++i)
   {
-    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque, hasAlpha);
+    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque);
   }
 
   if (color_depth == 8)
@@ -1810,7 +1809,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque)));
+    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, false)));
     return ddb;
 }
 
@@ -1828,7 +1827,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque, true)));
+    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, true)));
     glGenFramebuffersEXT(1, &ddb->_fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ddb->_fbo);
     // FIXME: this ugly accessing internal texture members
@@ -1844,7 +1843,7 @@ std::shared_ptr<TextureData> OGLGraphicsDriver::GetTextureData(IDriverDependantB
     return std::static_pointer_cast<TextureData>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
 }
 
-TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*opaque*/, bool as_render_target)
+TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool as_render_target)
 {
   assert(width > 0);
   assert(height > 0);
@@ -2002,7 +2001,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
-  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
+  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, true);
   delete blackSquare;
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
@@ -2054,7 +2053,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();
-  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
+  IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, true);
   delete blackSquare;
   BeginSpriteBatch(_srcRect, SpriteTransform());
   d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);

@@ -91,9 +91,10 @@ void mark_current_background_dirty();
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);
 Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
-    Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
-inline Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false)
-    { return recycle_ddb_sprite(ddb, UINT32_MAX, source, has_alpha, opaque); }
+    Common::Bitmap *source, bool opaque = false);
+inline Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb,
+    Common::Bitmap *source, bool opaque = false)
+    { return recycle_ddb_sprite(ddb, UINT32_MAX, source, opaque); }
 inline Engine::IDriverDependantBitmap* recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque = false);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);

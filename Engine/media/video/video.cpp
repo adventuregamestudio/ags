@@ -212,18 +212,18 @@ bool VideoPlayer::RenderVideo()
     {
         if (gfxDriver->HasAcceleratedTransform())
         {
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf);
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
         }
         else
         {
             _targetBitmap->StretchBlt(usebuf, RectWH(_dstRect.GetSize()));
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, _targetBitmap.get(), false);
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, _targetBitmap.get());
         }
     }
     else
     {
-        gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf, false);
+        gfxDriver->UpdateDDBFromBitmap(_videoDDB, usebuf);
     }
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
     gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);

@@ -380,7 +380,7 @@ void update_cached_mouse_cursor()
 {
     if (mouseCursor != nullptr)
         gfxDriver->DestroyDDB(mouseCursor);
-    mouseCursor = gfxDriver->CreateDDBFromBitmap(mousecurs[0], alpha_blend_cursor != 0);
+    mouseCursor = gfxDriver->CreateDDBFromBitmap(mousecurs[0]);
 }
 
 void set_new_cursor_graphic (int spriteslot) {

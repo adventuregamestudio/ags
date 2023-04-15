@@ -720,9 +720,9 @@ void DialogOptions::Redraw()
     }
     
     if (ddb == nullptr)
-      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap, options_surface_has_alpha, false);
+      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap);
     else
-      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, options_surface_has_alpha);
+      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap);
 
     if (runGameLoopsInBackground)
     {

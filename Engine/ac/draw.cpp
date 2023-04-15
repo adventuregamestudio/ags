@@ -1060,7 +1060,8 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
     return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
 }
 
-void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
+// FIXME: make has_alpha and opaque properties of ObjTexture?!
+static void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
 {
     Bitmap *use_bmp = obj.Bmp.get() ? obj.Bmp.get() : spriteset[obj.SpriteID];
     obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, has_alpha, opaque);

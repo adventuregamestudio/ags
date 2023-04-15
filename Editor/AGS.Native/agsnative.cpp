@@ -3067,7 +3067,7 @@ void save_default_crm_file(Room ^room)
     convert_room_to_native(room, rs);
     // Insert default backgrounds and masks
     for (size_t i = 0; i < rs.BgFrameCount; ++i) // FIXME use of thisgame.color_depth
-        rs.BgFrames[i].Graphic.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8));
+        rs.BgFrames[i].Graphic.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8, makeacol32(0, 0, 0, 255)));
     rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));

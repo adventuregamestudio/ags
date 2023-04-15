@@ -309,6 +309,18 @@ static int unicode_isok(int c)
 
 
 
+/* utf8_validate:
+ *  Tests a UTF-8 character, resets to "invalid char" code if invalid.
+ */
+inline int utf8_validate(int c)
+{
+   if (c < 0 || c > 0x10FFFF || (0xD800 <= c && c <= 0xDFFF))
+      return 0xFFFD;
+   return c;
+}
+
+
+
 /* utf8_getc:
  *  Reads a character from a UTF-8 string.
  */
@@ -334,7 +346,7 @@ static int unicode_isok(int c)
       }
    }
 
-   return c;
+   return utf8_validate(c);
 }
 
 
@@ -366,7 +378,7 @@ static int unicode_isok(int c)
       }
    }
 
-   return c;
+   return utf8_validate(c);
 }
 
 
@@ -378,6 +390,7 @@ static int unicode_isok(int c)
 {
    int size, bits, b, i;
 
+   c = utf8_validate(c);
    if (c < 128) {
       *s = c;
       return 1;
@@ -436,6 +449,7 @@ static int unicode_isok(int c)
 {
    int size, bits, b;
 
+   c = utf8_validate(c);
    if (c < 128)
       return 1;
 
@@ -461,7 +475,7 @@ static int unicode_isok(int c)
  */
 /*static*/ int utf8_isok(int c)
 {
-   return TRUE;
+   return utf8_validate(c) == c;
 }
 
 

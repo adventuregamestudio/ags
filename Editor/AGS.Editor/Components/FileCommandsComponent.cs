@@ -150,7 +150,8 @@ namespace AGS.Editor.Components
             }
             else if (controlID == RECREATE_SPRITEFILE_COMMAND)
             {
-                if (_guiController.ShowQuestion("This will recreate game's spritefile using sprite source files if they are available. All sprites will be updated from their sources.\n\nNOTE: sprites that don't have source file references, or which source files are missing, - will remain untouched.\n\nAre you sure you want to do this?") == DialogResult.Yes)
+                if (_guiController.ShowQuestion("This will recreate game's spritefile using sprite source files if they are available. All sprites will be updated from their sources.\n\nNOTE: sprites that don't have source file references, or which source files are missing, - will remain untouched.\n\nAre you sure you want to do this?",
+                    MessageBoxIcon.Warning) == DialogResult.Yes)
                 {
                     Tasks.RecreateSpriteFileFromSources();
                 }

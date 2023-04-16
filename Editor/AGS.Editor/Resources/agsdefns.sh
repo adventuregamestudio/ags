@@ -1129,7 +1129,10 @@ enum EventType {
   eEventLoseInventory = 8,
   eEventRestoreGame = 9,
 #ifdef SCRIPT_API_v36026
-  eEventEnterRoomAfterFadein = 10
+  eEventEnterRoomAfterFadein = 10,
+#endif
+#ifdef SCRIPT_API_v399
+  eEventLeaveRoomAfterFadeout = 11,
 #endif
 };
 

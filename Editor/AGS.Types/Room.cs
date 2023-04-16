@@ -71,10 +71,11 @@ namespace AGS.Types
                 "Enters room before fade-in",
                 "Repeatedly execute",
                 "Enters room after fade-in",
-                "Leaves room",
+                "Leaves room before fade-out",
+                "Leaves room after fade-out"
             },
                 new string[] { "LeaveLeft", "LeaveRight", "LeaveBottom", "LeaveTop", 
-                    "FirstLoad", EVENT_SUFFIX_ROOM_LOAD, "RepExec", "AfterFadeIn", "Leave" });
+                    "FirstLoad", EVENT_SUFFIX_ROOM_LOAD, "RepExec", "AfterFadeIn", "Leave", "Unload" });
         }
 
         public Room(int roomNumber) : base(roomNumber)

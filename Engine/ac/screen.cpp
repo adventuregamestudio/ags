@@ -21,6 +21,7 @@
 #include "ac/screen.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/dynobj/scriptuserobject.h"
+#include "debug/debug_log.h"
 #include "script/script_runtime.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -35,6 +36,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
+extern int displayed_room;
 
 void fadein_impl(PALETTE p, int speed) {
     if (game.color_depth > 1) {
@@ -53,6 +55,7 @@ void fadein_impl(PALETTE p, int speed) {
 Bitmap *saved_viewport_bitmap = nullptr;
 RGB old_palette[256];
 void current_fade_out_effect () {
+    debug_script_log("Transition-out in room %d", displayed_room);
     if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
         return;
 

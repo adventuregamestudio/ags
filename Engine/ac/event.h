@@ -22,16 +22,17 @@
 #include "script/runtimescriptvalue.h"
 
 // parameters to run_on_event
-#define GE_LEAVE_ROOM 1
-#define GE_ENTER_ROOM 2
+#define GE_LEAVE_ROOM    1
+#define GE_ENTER_ROOM    2
 // #define GE_MAN_DIES 3 // ancient obsolete event
-#define GE_GOT_SCORE  4
+#define GE_GOT_SCORE     4
 #define GE_GUI_MOUSEDOWN 5
 #define GE_GUI_MOUSEUP   6
 #define GE_ADD_INV       7
 #define GE_LOSE_INV      8
 #define GE_RESTORE_GAME  9
 #define GE_ENTER_ROOM_AFTERFADE 10
+#define GE_LEAVE_ROOM_AFTERFADE 11
 
 // Game event types:
 // common script callback
@@ -74,6 +75,10 @@
 #define EVROM_REPEXEC      6
 // after fade-in
 #define EVROM_AFTERFADEIN  7
+// leave room (before fade-out)
+#define EVROM_LEAVE        8
+// unload room; aka after fade-out
+#define EVROM_AFTERFADEOUT 9
 // Hotspot event types:
 // player stands on hotspot
 #define EVHOT_STANDSON  0

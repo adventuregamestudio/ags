@@ -225,9 +225,14 @@ void unload_old_room() {
     if (displayed_room < 0)
         return;
 
-    debug_script_log("Unloading room %d", displayed_room);
-
     current_fade_out_effect();
+
+    // room unloaded callback
+    run_room_event(EVROM_AFTERFADEOUT);
+    // global room unloaded event
+    run_on_event(GE_LEAVE_ROOM_AFTERFADE, RuntimeScriptValue().SetInt32(displayed_room));
+
+    debug_script_log("Unloading room %d", displayed_room);
 
     dispose_room_drawdata();
 
@@ -787,7 +792,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     in_leaves_screen = newnum;
 
     // player leaves screen event
-    run_room_event(8);
+    run_room_event(EVROM_LEAVE);
     // Run the global OnRoomLeave event
     run_on_event (GE_LEAVE_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
 

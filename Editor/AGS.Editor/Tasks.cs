@@ -207,6 +207,8 @@ namespace AGS.Editor
 
             Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
             File.Delete(tempFilename);
+
+            Factory.Events.OnSpritesImported(null);
         }
 
         private void SetDefaultValuesForNewFeatures(Game game)

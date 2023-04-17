@@ -2350,6 +2350,9 @@ void set_opaque_alpha_channel(Common::Bitmap *image)
 Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
     bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
+    // If the input format does not have alpha - disable alpha channel flag
+    alphaChannel &= System::Drawing::Bitmap::IsAlphaPixelFormat(bmp->PixelFormat);
+
     RGB imgPalBuf[256];
     int importedColourDepth;
     Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);

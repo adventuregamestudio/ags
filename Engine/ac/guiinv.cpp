@@ -31,13 +31,6 @@ namespace AGS
 namespace Common
 {
 
-bool GUIInvWindow::HasAlphaChannel() const
-{
-    // We would have to test every inventory item's graphic to tell precisely,
-    // so just test game color depth instead:
-    return game.GetColorDepth() == 32;
-}
-
 int GUIInvWindow::GetCharacterId() const
 {
     if (CharId < 0)
@@ -74,7 +67,7 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     for (int item = TopItem; item < lastItem; ++item)
     {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y, true);
+        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y);
         at_x += ItemWidth;
 
         // go to next row when appropriate

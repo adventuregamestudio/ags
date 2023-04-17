@@ -984,7 +984,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
         if (slot > 0)
         {
             // add it into the sprite set
-            add_dynamic_sprite(slot, PrepareSpriteForUse(desc.UserImage.release(), false));
+            add_dynamic_sprite(slot, PrepareSpriteForUse(desc.UserImage.release()));
             want_shot = slot;
         }
     }
@@ -1426,8 +1426,7 @@ bool unserialize_audio_script_object(int index, const char *objectType, Stream *
 void game_sprite_updated(int sprnum)
 {
     // update the shared texture (if exists)
-    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum],
-        (game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0, false);
+    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum]);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum, false);
     // gui backgrounds

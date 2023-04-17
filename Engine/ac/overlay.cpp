@@ -68,15 +68,13 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
 
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
-    bool has_alpha = false;
     // NOTE: we pass text_color negated to let optionally use textwindow (if applicable)
     // this is a generic ugliness of _display_main args, need to refactor later.
     Bitmap *image = create_textual_image(get_translation(text), -text_color, 0, dummy_x, dummy_y, adj_x, adj_y,
-        width, fontid, allow_shrink, has_alpha);
+        width, fontid, allow_shrink);
 
     // Update overlay properties
     over.SetImage(std::unique_ptr<Bitmap>(image), adj_x - dummy_x, adj_y - dummy_y);
-    over.SetAlphaChannel(has_alpha);
     over.ddb = nullptr; // is generated during first draw pass
 }
 
@@ -209,8 +207,7 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
     {
         Bitmap *screeno = BitmapHelper::CreateTransparentBitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth());
         screeno->Blit(spriteset[slot], 0, 0, transparent ? kBitmap_Transparency : kBitmap_Copy);
-        overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, screeno,
-            (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
+        overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, screeno);
     }
     else
     {
@@ -418,8 +415,8 @@ int find_overlay_of_type(int type)
     return -1;
 }
 
-size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
-    int pic_offx, int pic_offy, bool has_alpha)
+static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
+    int pic_offx, int pic_offy)
 {
     if (type == OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
@@ -431,12 +428,10 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
     if (piccy)
     {
         over.SetImage(std::unique_ptr<Bitmap>(piccy), pic_offx, pic_offy);
-        over.SetAlphaChannel(has_alpha);
     }
     else
     {
         over.SetSpriteNum(sprnum, pic_offx, pic_offy);
-        over.SetAlphaChannel((game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0);
     }
     over.x=x;
     over.y=y;
@@ -473,17 +468,17 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
 
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum)
 {
-    return add_screen_overlay_impl(roomlayer, x, y, type, sprnum, nullptr, 0, 0, false);
+    return add_screen_overlay_impl(roomlayer, x, y, type, sprnum, nullptr, 0, 0);
 }
 
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Bitmap *piccy, bool has_alpha)
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Bitmap *piccy)
 {
-    return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, 0, 0, has_alpha);
+    return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, 0, 0);
 }
 
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy, bool has_alpha)
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy)
 {
-    return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, pic_offx, pic_offy, has_alpha);
+    return add_screen_overlay_impl(roomlayer, x, y, type, -1, piccy, pic_offx, pic_offy);
 }
 
 Point get_overlay_position(const ScreenOverlay &over)

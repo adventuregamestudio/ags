@@ -38,14 +38,13 @@ int		DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm);
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename);
 ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height);
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel);
+ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot);
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height);
-ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChannel);
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite_Old(int slot);
+ScriptDynamicSprite* DynamicSprite_Create(int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
 
 
-void	add_dynamic_sprite(int gotSlot, Common::Bitmap *redin, bool hasAlpha = false);
+void	add_dynamic_sprite(int gotSlot, Common::Bitmap *redin);
 void	free_dynamic_sprite (int gotSlot);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

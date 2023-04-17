@@ -79,12 +79,6 @@ GUIButton::GUIButton()
     _scEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
-bool GUIButton::HasAlphaChannel() const
-{
-    return ((_currentImage > 0) && is_sprite_alpha(_currentImage)) ||
-        (!_unnamed && is_font_antialiased(Font));
-}
-
 const String &GUIButton::GetText() const
 {
     return _text;
@@ -389,7 +383,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         ds->SetClip(RectWH(x, y, Width, Height));
 
     if (spriteset[_currentImage] != nullptr)
-        draw_gui_sprite_flipped(ds, _currentImage, x, y, true, kBlend_Normal, _imageFlags & VFLG_FLIPSPRITE);
+        draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, _imageFlags & VFLG_FLIPSPRITE);
 
     // Draw active inventory item
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
@@ -411,8 +405,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         {
             draw_gui_sprite(ds, gui_inv_pic,
                 x + Width / 2 - inv_sz.Width / 2,
-                y + Height / 2 - inv_sz.Height / 2,
-                true);
+                y + Height / 2 - inv_sz.Height / 2);
         }
     }
 

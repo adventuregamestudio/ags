@@ -334,7 +334,7 @@ void process_event(const EventHappened *evp) {
                         saved_viewport_bitmap->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
                     }
                 }
-                gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
+                gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap);
                 construct_game_scene(true);
                 construct_game_screen_overlay(false);
                 gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());

@@ -113,7 +113,7 @@ bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
-SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
+SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw);
 
 // jibbles the sprite around to fix hi-color problems, by swapping
 // the red and blue elements
@@ -217,12 +217,6 @@ int GetPaletteAsHPalette() {
 
 int find_free_sprite_slot() {
   return spriteset.GetFreeIndex();
-}
-
-// CLNUP probably to remove
-void update_sprite_resolution(int spriteNum)
-{
-	thisgame.SpriteInfos[spriteNum].Flags &= ~(SPF_HIRES | SPF_VAR_RESOLUTION);
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {
@@ -577,24 +571,23 @@ void draw_gui_sprite_impl(Common::Bitmap *g, int sprnum, Common::Bitmap *blptr, 
   if (needtofree) delete towrite;
 }
 
-void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha, Common::BlendMode blend_mode)
+void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, Common::BlendMode blend_mode)
 {
     draw_gui_sprite_impl(g, sprnum, get_sprite(sprnum), atxp, atyp);
 }
 
-void draw_gui_sprite(Common::Bitmap *g, bool use_alpha, int atxp, int atyp,
-    Common::Bitmap *blptr, bool src_has_alpha, Common::BlendMode blend_mode, int alpha)
+void draw_gui_sprite(Common::Bitmap *g, int atxp, int atyp,
+    Common::Bitmap *blptr, Common::BlendMode blend_mode, int alpha)
 {
     draw_gui_sprite_impl(g, -1, blptr, atxp, atyp);
 }
 
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode, bool is_flipped) 
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, bool is_flipped) 
 {
     draw_gui_sprite_impl(ds, pic, get_sprite(pic), x, y);
 }
-void draw_gui_sprite_flipped(Common::Bitmap *ds, bool use_alpha, int x, int y,
-    Common::Bitmap *image, bool src_has_alpha,
-    Common::BlendMode blend_mode, int alpha, bool is_flipped)
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int x, int y,
+    Common::Bitmap *image, Common::BlendMode blend_mode, int alpha, bool is_flipped)
 {
     draw_gui_sprite_impl(ds, -1, image, x, y);
 }
@@ -1365,11 +1358,8 @@ void UpdateNativeSprites(SpriteFolder ^folder, std::vector<int> &missing)
             missing.push_back(sprite->Number);
             spriteset.SetEmptySprite(sprite->Number, true); // mark as an asset to prevent disposal on reload
         }
-
-        int flags = 0;
-		if (sprite->AlphaChannel)
-            flags |= SPF_ALPHACHANNEL;
-        thisgame.SpriteInfos[sprite->Number].Flags = flags;
+        // Reset/update flags
+        thisgame.SpriteInfos[sprite->Number].Flags = 0;
 	}
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
@@ -1920,14 +1910,13 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
     int flags = 0;
     if (alphaChannel)
     {
-        flags |= SPF_ALPHACHANNEL;
         if (tempsprite->GetColorDepth() == 32)
-        {
+        { // change pixels with alpha 0 to MASK_COLOR_32
             set_rgb_mask_from_alpha_channel(tempsprite);
         }
     }
     else if (tempsprite->GetColorDepth() == 32)
-    {
+    { // ensure that every pixel has full alpha (0xFF)
         set_opaque_alpha_channel(tempsprite);
     }
 
@@ -1962,21 +1951,22 @@ void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
 	//bmp->MakeTransparent(bmpPalette[0]);
 }
 
-System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel) 
+System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw) 
 {
   fix_block(todraw);
 
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
-  if ((todraw->GetColorDepth() == 32) && (useAlphaChannel))
-	  pixFormat = PixelFormat::Format32bppArgb;
-  else if (todraw->GetColorDepth() == 24)
-    pixFormat = PixelFormat::Format24bppRgb;
-  else if (todraw->GetColorDepth() == 16)
-    pixFormat = PixelFormat::Format16bppRgb565;
-  else if (todraw->GetColorDepth() == 15)
-    pixFormat = PixelFormat::Format16bppRgb555;
-  else if (todraw->GetColorDepth() == 8)
-    pixFormat = PixelFormat::Format8bppIndexed;
+  switch (todraw->GetColorDepth())
+  {
+  case 8: pixFormat = PixelFormat::Format8bppIndexed; break;
+  case 15: pixFormat = PixelFormat::Format16bppRgb555; break;
+  case 16: pixFormat = PixelFormat::Format16bppRgb565; break;
+  case 24: pixFormat = PixelFormat::Format24bppRgb; break;
+  case 32:
+  default:
+      pixFormat = PixelFormat::Format32bppArgb; break;
+  }
+
   int bytesPerPixel = (todraw->GetColorDepth() + 1) / 8;
 
   System::Drawing::Bitmap ^bmp = gcnew System::Drawing::Bitmap(todraw->GetWidth(), todraw->GetHeight(), pixFormat);
@@ -1996,7 +1986,7 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAl
   return bmp;
 }
 
-System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int width, int height, bool useAlphaChannel) 
+System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int width, int height) 
 {
   Common::Bitmap *tempBlock = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), 32);
   if (!tempBlock)
@@ -2026,7 +2016,7 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
   fix_block(tempBlock);
 
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
-  if ((todraw->GetColorDepth() == 32) && (useAlphaChannel))
+  if (todraw->GetColorDepth() == 32)
 	  pixFormat = PixelFormat::Format32bppArgb;
 
   System::Drawing::Bitmap ^bmp = gcnew System::Drawing::Bitmap(width, height, pixFormat);
@@ -2067,7 +2057,7 @@ System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(Common::Bitmap *mask)
 
 System::Drawing::Bitmap^ getSpriteAsBitmap(int spriteNum) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
-  return ConvertBlockToBitmap(todraw, (thisgame.SpriteInfos[spriteNum].Flags & SPF_ALPHACHANNEL) != 0);
+  return ConvertBlockToBitmap(todraw);
 }
 
 System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height) {
@@ -2076,7 +2066,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   {
 	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap32bit: Unable to find sprite {0}", spriteNum));
   }
-  return ConvertBlockToBitmap32(todraw, width, height, (thisgame.SpriteInfos[spriteNum].Flags & SPF_ALPHACHANNEL) != 0);
+  return ConvertBlockToBitmap32(todraw, width, height);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
@@ -2265,6 +2255,7 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scal
   drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale);
 }
 
+// [CLNUP] remove old game import
 Dictionary<int, Sprite^>^ load_sprite_dimensions()
 {
 	Dictionary<int, Sprite^>^ sprites = gcnew Dictionary<int, Sprite^>();
@@ -2274,8 +2265,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(),
-                (thisgame.SpriteInfos[i].Flags & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), false));
 		}
 	}
 
@@ -3077,7 +3067,7 @@ void save_default_crm_file(Room ^room)
     convert_room_to_native(room, rs);
     // Insert default backgrounds and masks
     for (size_t i = 0; i < rs.BgFrameCount; ++i) // FIXME use of thisgame.color_depth
-        rs.BgFrames[i].Graphic.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8));
+        rs.BgFrames[i].Graphic.reset(BitmapHelper::CreateClearBitmap(rs.Width, rs.Height, thisgame.color_depth * 8, makeacol32(0, 0, 0, 255)));
     rs.WalkAreaMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.HotspotMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));
     rs.RegionMask.reset(BitmapHelper::CreateClearBitmap(rs.Width / rs.MaskResolution, rs.Height / rs.MaskResolution, 8));

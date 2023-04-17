@@ -56,7 +56,7 @@ int LoadImageFile(const char *filename)
     if (gotSlot <= 0)
         return 0;
 
-    add_dynamic_sprite(gotSlot, PrepareSpriteForUse(loadedFile, false));
+    add_dynamic_sprite(gotSlot, PrepareSpriteForUse(loadedFile));
 
     return gotSlot;
 }

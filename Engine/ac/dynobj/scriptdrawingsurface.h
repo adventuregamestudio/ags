@@ -32,8 +32,6 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject {
     int currentColour;
     int currentColourScript;
     int modified;
-    int hasAlphaChannel;
-    //Common::Bitmap* abufBackup;
 
     int Dispose(const char *address, bool force) override;
     const char *GetType() override;

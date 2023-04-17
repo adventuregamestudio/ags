@@ -77,8 +77,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     }
     else
     {
-        if (in->ReadBool()) // has alpha
-            _flags |= kOver_AlphaChannel;
+        in->ReadBool(); // [DEPRECATED] has alpha
         if (!(in->ReadBool())) // screen relative position
             _flags |= kOver_PositionAtRoomXY;
     }

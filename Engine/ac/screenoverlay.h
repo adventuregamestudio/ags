@@ -32,7 +32,6 @@ using namespace AGS; // FIXME later
 
 enum OverlayFlags
 {
-    kOver_AlphaChannel     = 0x0001,
     kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteReference  = 0x0008, // reference persistent sprite
@@ -65,11 +64,9 @@ struct ScreenOverlay
 
     // Returns Overlay's graphic space params
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
-    bool HasAlphaChannel() const { return (_flags & kOver_AlphaChannel) != 0; }
     bool IsSpriteReference() const { return (_flags & kOver_SpriteReference) != 0; }
     bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
-    void SetAlphaChannel(bool on) { on ? _flags |= kOver_AlphaChannel : _flags &= ~kOver_AlphaChannel; }
     void SetRoomRelative(bool on) { on ? _flags |= kOver_PositionAtRoomXY : _flags &= ~kOver_PositionAtRoomXY; }
     void SetRoomLayer(bool on)
     {

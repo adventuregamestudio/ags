@@ -91,7 +91,7 @@ void ScriptDrawingSurface::Serialize(const char* /*address*/, Stream *out) {
     out->WriteInt32(currentColourScript);
     out->WriteInt32(0); // unused, was highResCoordinates
     out->WriteInt32(modified);
-    out->WriteInt32(hasAlphaChannel);
+    out->WriteInt32(0); // unused, was hasAlphaChannel
     out->WriteInt32(isLinkedBitmapOnly ? 1 : 0);
 }
 
@@ -108,7 +108,7 @@ void ScriptDrawingSurface::Unserialize(int index, Stream *in, size_t /*data_sz*/
     currentColourScript = in->ReadInt32();
     in->ReadInt32(); // unused, was highResCoordinates
     modified = in->ReadInt32();
-    hasAlphaChannel = in->ReadInt32();
+    in->ReadInt32(); // unused, was hasAlphaChannel
     isLinkedBitmapOnly = (in->ReadInt32() != 0);
     ccRegisterUnserializedObject(index, this, this);
 }
@@ -124,5 +124,4 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     currentColour = play.raw_color;
     currentColourScript = 0;
     modified = 0;
-    hasAlphaChannel = 0;
 }

@@ -50,7 +50,6 @@ ScriptMouse scmouse;
 int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
-char alpha_blend_cursor = 0;
 Bitmap *dotted_mouse_cursor = nullptr;
 IDriverDependantBitmap *mouseCursor = nullptr;
 Bitmap *blank_mouse_cursor = nullptr;
@@ -134,7 +133,6 @@ void set_mouse_cursor(int newcurs) {
 
             if (game.invhotdotsprite > 0) {
                 draw_sprite_slot_support_alpha(dotted_mouse_cursor,
-                    (game.SpriteInfos[game.mcurs[newcurs].pic].Flags & SPF_ALPHACHANNEL) != 0,
                     hotspotx - game.SpriteInfos[game.invhotdotsprite].Width / 2,
                     hotspoty - game.SpriteInfos[game.invhotdotsprite].Height / 2,
                     game.invhotdotsprite);
@@ -380,7 +378,7 @@ void update_cached_mouse_cursor()
 {
     if (mouseCursor != nullptr)
         gfxDriver->DestroyDDB(mouseCursor);
-    mouseCursor = gfxDriver->CreateDDBFromBitmap(mousecurs[0], alpha_blend_cursor != 0);
+    mouseCursor = gfxDriver->CreateDDBFromBitmap(mousecurs[0]);
 }
 
 void set_new_cursor_graphic (int spriteslot) {
@@ -396,11 +394,6 @@ void set_new_cursor_graphic (int spriteslot) {
         }
         mousecurs[0] = blank_mouse_cursor;
     }
-
-    if (game.SpriteInfos[spriteslot].Flags & SPF_ALPHACHANNEL)
-        alpha_blend_cursor = 1;
-    else
-        alpha_blend_cursor = 0;
 
     update_cached_mouse_cursor();
 }

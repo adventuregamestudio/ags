@@ -44,6 +44,6 @@ void precache_view(int view);
 // sound_volume is an optional relative factor, -1 means not use
 void CheckViewFrame(int view, int loop, int frame, int sound_volume = -1);
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend = false);
+void DrawViewFrame(Common::Bitmap *ds, const ViewFrame *vframe, int x, int y);
 
 #endif // __AGS_EE_AC__VIEWFRAME_H

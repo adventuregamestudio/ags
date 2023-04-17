@@ -32,7 +32,6 @@ public:
     bool IsOverControl(int x, int y, int leeway) const override;
     // Compatibility: sliders are not clipped as of 3.6.0
     bool IsContentClipped() const override { return false; }
-    bool HasAlphaChannel() const override;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;

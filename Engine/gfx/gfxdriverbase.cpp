@@ -230,15 +230,15 @@ bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
     return true;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool opaque)
 {
     IDriverDependantBitmap *ddb = CreateDDB(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), opaque);
     if (ddb)
-        UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
+        UpdateDDBFromBitmap(ddb, bitmap);
     return ddb;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool opaque)
 {
     const auto found = _txRefs.find(sprite_id);
     if (found != _txRefs.end())
@@ -249,9 +249,9 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::GetSharedDDB(uint32_t sprite_
     }
 
     // Create and add a new element
-    std::shared_ptr<TextureData> txdata(CreateTextureData(bitmap->GetWidth(), bitmap->GetHeight(), opaque));
+    std::shared_ptr<TextureData> txdata(CreateTextureData(bitmap->GetWidth(), bitmap->GetHeight(), false));
     txdata->ID = sprite_id;
-    UpdateTextureData(txdata.get(), bitmap, opaque, hasAlpha);
+    UpdateTextureData(txdata.get(), bitmap, opaque);
     // only add into the map when has valid sprite ID
     if (sprite_id != UINT32_MAX)
     {
@@ -261,14 +261,14 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::GetSharedDDB(uint32_t sprite_
     return CreateDDB(txdata, bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), opaque);
 }
 
-void VideoMemoryGraphicsDriver::UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap, bool hasAlpha, bool opaque)
+void VideoMemoryGraphicsDriver::UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap, bool opaque)
 {
     const auto found = _txRefs.find(sprite_id);
     if (found != _txRefs.end())
     {
         auto txdata = found->second.Data.lock();
         if (txdata)
-            UpdateTextureData(txdata.get(), bitmap, opaque, hasAlpha);
+            UpdateTextureData(txdata.get(), bitmap, opaque);
     }
 }
 
@@ -332,7 +332,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t i
         return nullptr;
 
     auto &scr = _stageScreens[index];
-    UpdateDDBFromBitmap(scr.DDB, scr.Raw.get(), true);
+    UpdateDDBFromBitmap(scr.DDB, scr.Raw.get());
     scr.Raw->ClearTransparent();
     x = scr.Position.Left;
     y = scr.Position.Top;
@@ -374,12 +374,12 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
     if (fx.DDB == nullptr)
     {
         fx.Raw.reset(new Bitmap(16, 16, _mode.ColorDepth));
-        fx.DDB = CreateDDBFromBitmap(fx.Raw.get(), false, true);
+        fx.DDB = CreateDDBFromBitmap(fx.Raw.get(), false);
     }
     if (r != fx.Red || g != fx.Green || b != fx.Blue)
     {
-        fx.Raw->Clear(makecol_depth(fx.Raw->GetColorDepth(), r, g, b));
-        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get(), false);
+        fx.Raw->Clear(makeacol_depth(fx.Raw->GetColorDepth(), r, g, b, 0xFF));
+        this->UpdateDDBFromBitmap(fx.DDB, fx.Raw.get());
         fx.Red = r;
         fx.Green = g;
         fx.Blue = b;
@@ -457,7 +457,7 @@ __inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *
     ( (((a) & 0xFF) << _vmem_a_shift_32) | (((r) & 0xFF) << _vmem_r_shift_32) | (((g) & 0xFF) << _vmem_g_shift_32) | (((b) & 0xFF) << _vmem_b_shift_32) )
 
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
+void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
     char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering)
 {
     const int src_depth = bitmap->GetColorDepth();
@@ -599,18 +599,9 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
                                 memPtrLong[x] = 0;
                         }
                         lastPixelWasTransparent = true;
-                    } else if (has_alpha) {
-                        memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData),
-                                                       algeta32(*srcData));
                     } else {
                         memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData),
-                                                       0xFF);
-                        if (lastPixelWasTransparent) {
-                            // update the colour of the previous tranparent pixel, to
-                            // stop black outlines when linear filtering
-                            memPtrLong[x - 1] = memPtrLong[x] & 0x00FFFFFF;
-                            lastPixelWasTransparent = false;
-                        }
+                                                       algeta32(*srcData));
                     }
                 }
                 dst_ptr += dst_pitch;
@@ -622,7 +613,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const boo
     }
 }
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
+void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
     char *dst_ptr, const int dst_pitch)
 {
     const int src_depth = bitmap->GetColorDepth();
@@ -658,30 +649,16 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, con
         }
         break;
         case 32: {
-            if (has_alpha) {
-                for (int y = 0; y < tile->height; y++) {
-                    const uint8_t* scanline_at = bitmap->GetScanLine(y + tile->y);
-                    unsigned int* memPtrLong = (unsigned int*)dst_ptr;
+            for (int y = 0; y < tile->height; y++) {
+                const uint8_t* scanline_at = bitmap->GetScanLine(y + tile->y);
+                unsigned int* memPtrLong = (unsigned int*)dst_ptr;
 
-                    for (int x = 0; x < tile->width; x++) {
-                        unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
-                        memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData),
-                            algeta32(*srcData));
-                    }
-                    dst_ptr += dst_pitch;
+                for (int x = 0; x < tile->width; x++) {
+                    unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
+                    memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData),
+                        0xFF);
                 }
-            } else {
-                for (int y = 0; y < tile->height; y++) {
-                    const uint8_t* scanline_at = bitmap->GetScanLine(y + tile->y);
-                    unsigned int* memPtrLong = (unsigned int*)dst_ptr;
-
-                    for (int x = 0; x < tile->width; x++) {
-                        unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) * sizeof(int)];
-                        memPtrLong[x] = VMEMCOLOR_RGBA(algetr32(*srcData), algetg32(*srcData), algetb32(*srcData),
-                            0xFF);
-                    }
-                    dst_ptr += dst_pitch;
-                }
+                dst_ptr += dst_pitch;
             }
         }
         break;

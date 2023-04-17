@@ -27,7 +27,6 @@ class GUIInvWindow : public GUIObject
 public:
     GUIInvWindow();
 
-    bool HasAlphaChannel() const override;
     // This function has distinct implementations in Engine and Editor
     int GetCharacterId() const;
 

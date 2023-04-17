@@ -216,13 +216,7 @@ enum GameGuiAlphaRenderingStyle
 
 
 // Sprite flags (serialized as 8-bit)
-#define SPF_HIRES           0x01  // sized for high native resolution (legacy option)
-#define SPF_HICOLOR         0x02  // is 16-bit
 #define SPF_DYNAMICALLOC    0x04  // created by runtime script
-#define SPF_TRUECOLOR       0x08  // is 32-bit
-#define SPF_ALPHACHANNEL    0x10  // has alpha-channel
-#define SPF_VAR_RESOLUTION  0x20  // variable resolution (refer to SPF_HIRES)
-#define SPF_HADALPHACHANNEL 0x80  // the saved sprite on disk has one
 
 // General information about sprite (properties, size)
 struct SpriteInfo

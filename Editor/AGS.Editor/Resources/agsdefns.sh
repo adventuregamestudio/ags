@@ -974,13 +974,13 @@ builtin managed struct Overlay {
 
 builtin managed struct DynamicSprite {
   /// Creates a blank dynamic sprite of the specified size.
-  import static DynamicSprite* Create(int width, int height, bool hasAlphaChannel=false);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* Create(int width, int height);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a room background.
   import static DynamicSprite* CreateFromBackground(int frame=SCR_NO_VALUE, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a drawing surface.
   import static DynamicSprite* CreateFromDrawingSurface(DrawingSurface* surface, int x, int y, int width, int height);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of an existing sprite.
-  import static DynamicSprite* CreateFromExistingSprite(int slot, bool preserveAlphaChannel=0);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromExistingSprite(int slot);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a BMP or PCX file.
   import static DynamicSprite* CreateFromFile(const string filename);              // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a save game screenshot.
@@ -1620,8 +1620,6 @@ builtin managed struct DialogOptionsRenderingInfo {
   import attribute int X;
   /// The Y co-ordinate of the top-left corner of the dialog options
   import attribute int Y;
-  /// Should the drawing surface have alpha channel
-  import attribute bool HasAlphaChannel;
   /// Runs the active dialog option
   import bool RunActiveOption();
   /// Forces dialog options to redraw itself

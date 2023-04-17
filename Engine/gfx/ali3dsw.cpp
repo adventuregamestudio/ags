@@ -315,9 +315,9 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int heig
   return new ALSoftwareBitmap(width, height, color_depth, opaque);
 }
 
-IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool opaque)
 {
-  return new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
+  return new ALSoftwareBitmap(bitmap, opaque);
 }
 
 IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
@@ -326,11 +326,10 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int wid
     return new ALSoftwareBitmap(width, height, color_depth, opaque);
 }
 
-void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
   alSwBmp->_bmp = bitmap;
-  alSwBmp->_hasAlpha = hasAlpha;
 }
 
 void SDLRendererGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
@@ -621,7 +620,7 @@ size_t SDLRendererGraphicsDriver::RenderSpriteBatch(const ALSpriteBatch &batch, 
     }
     else
     {
-        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, false, true, bitmap->_alpha);
+        GfxUtil::DrawSpriteBlend(surface, Point(drawAtX, drawAtY), bitmap->_bmp, bitmap->_blendMode, bitmap->_alpha);
     }
   }
   return from;

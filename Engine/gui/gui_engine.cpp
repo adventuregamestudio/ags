@@ -41,22 +41,6 @@ extern void replace_macro_tokens(const char*, String&);
 extern SpriteCache spriteset; // in ac_runningame
 extern GameSetupStruct game;
 
-bool GUIMain::HasAlphaChannel() const
-{
-    if (this->BgImage > 0)
-    {
-        // alpha state depends on background image
-        return is_sprite_alpha(this->BgImage);
-    }
-    if (this->BgColor > 0)
-    {
-        // not alpha transparent if there is a background color
-        return false;
-    }
-    // transparent background, enable alpha blending
-    return game.GetColorDepth() >= 24;
-}
-
 //=============================================================================
 // Engine-specific implementation split out of acgui.cpp
 //=============================================================================
@@ -69,11 +53,6 @@ int get_adjusted_spritewidth(int spr)
 int get_adjusted_spriteheight(int spr)
 {
   return spriteset[spr]->GetHeight();
-}
-
-bool is_sprite_alpha(int spr)
-{
-  return ((game.SpriteInfos[spr].Flags & SPF_ALPHACHANNEL) != 0);
 }
 
 void set_eip_guiobj(int eip)

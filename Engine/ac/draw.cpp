@@ -282,7 +282,7 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 // TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
 // conversions, so that we did not have to guess.
 //
-Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
+Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap)
 {
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
@@ -315,10 +315,10 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     //
     // In 32-bit game 32-bit bitmaps should have transparent pixels marked
     // (this adjustment is probably needed for DrawingSurface ops)
-    if (game_col_depth == 32 && bmp_col_depth == 32)
+    if ((game_col_depth == 32) && (bmp_col_depth == 32))
     {
-        if (has_alpha) 
-            set_rgb_mask_using_alpha_channel(new_bitmap);
+        // TODO: find out if this may be removed at some point
+        set_rgb_mask_using_alpha_channel(new_bitmap);
     }
     // In 32-bit game hicolor bitmaps must be converted to the true color
     else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
@@ -326,12 +326,10 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
         new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
     }
     // In non-32-bit game truecolor bitmaps must be downgraded
-    else if (game_col_depth <= 16 && bmp_col_depth > 16)
+    else if ((game_col_depth <= 16) && (bmp_col_depth > 16))
     {
-        if (has_alpha) // if has valid alpha channel, convert it to regular transparency mask
-            new_bitmap = remove_alpha_channel(bitmap);
-        else // else simply convert bitmap
-            new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
+        // convert alpha channel to a 8/16-bit transparency mask
+        new_bitmap = remove_alpha_channel(bitmap);
     }
     
     // Finally, if we did not create a new copy already, - convert to driver compatible format
@@ -355,17 +353,17 @@ Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
     return GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, has_alpha);
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
+PBitmap PrepareSpriteForUse(PBitmap bitmap)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get(), has_alpha);
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get());
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
@@ -404,8 +402,8 @@ void create_blank_image(int coldepth)
     {
         Bitmap *blank = CreateCompatBitmap(16, 16, coldepth);
         blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        blankImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
+        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
         delete blank;
     }
     catch (Ali3DException gfxException)
@@ -897,29 +895,28 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
     ds->FillRect(Rect(xx, yy, xx, yy), col);
 }
 
-void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha,
+void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image,
                                BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
         return;
 
-    GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+    GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, alpha);
 }
 
-void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
+void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot,
                                     BlendMode blend_mode, int alpha)
 {
-    draw_sprite_support_alpha(ds, ds_has_alpha, xpos, ypos, spriteset[src_slot], (game.SpriteInfos[src_slot].Flags & SPF_ALPHACHANNEL) != 0,
-        blend_mode, alpha);
+    draw_sprite_support_alpha(ds, xpos, ypos, spriteset[src_slot], blend_mode, alpha);
 }
 
 
 Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
-    Common::Bitmap *source, bool has_alpha, bool opaque)
+    Common::Bitmap *source, bool opaque)
 {
     // no ddb, - get or create shared object
     if (!ddb)
-        return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
+        return gfxDriver->GetSharedDDB(sprite_id, source, opaque);
     // same sprite id, - use existing
     if ((sprite_id != UINT32_MAX) && (ddb->GetRefID() == sprite_id))
         return ddb;
@@ -929,12 +926,12 @@ Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitma
         (ddb->GetColorDepth() == source->GetColorDepth()) &&
         (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))
     {
-        gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
+        gfxDriver->UpdateDDBFromBitmap(ddb, source);
         return ddb;
     }
     // have to recreate ddb
     gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
+    return gfxDriver->GetSharedDDB(sprite_id, source, opaque);
 }
 
 IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
@@ -946,10 +943,11 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
     return gfxDriver->CreateRenderTargetDDB(width, height, col_depth, opaque);
 }
 
-void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
+// FIXME: make opaque a property of ObjTexture?!
+static void sync_object_texture(ObjTexture &obj, bool opaque = false)
 {
     Bitmap *use_bmp = obj.Bmp.get() ? obj.Bmp.get() : spriteset[obj.SpriteID];
-    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, has_alpha, opaque);
+    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, opaque);
 }
 
 //------------------------------------------------------------------------
@@ -1065,22 +1063,20 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 // used by GUI renderer to draw images
 // NOTE: use_alpha arg is for backward compatibility (legacy draw modes)
-void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode)
+void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode)
 {
-    draw_gui_sprite(ds, use_alpha, x, y, spriteset[pic],
-        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode);
+    draw_gui_sprite(ds, x, y, spriteset[pic], blend_mode);
 }
 
-void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
-    BlendMode blend_mode, int alpha)
+void draw_gui_sprite(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
         return;
 
-    const bool ds_has_alpha = (ds->GetColorDepth() == 32);
+    const bool use_alpha = (ds->GetColorDepth() == 32);
     if (use_alpha)
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, alpha);
     }
     else
     {
@@ -1088,13 +1084,13 @@ void draw_gui_sprite(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, b
     }
 }
 
-void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode, bool is_flipped)
+void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode, bool is_flipped)
 {
-    draw_gui_sprite_flipped(ds, use_alpha, x, y, spriteset[pic],
-        (game.SpriteInfos[pic].Flags & SPF_ALPHACHANNEL) != 0, blend_mode, 0xFF, is_flipped);
+    draw_gui_sprite_flipped(ds, x, y, spriteset[pic],
+        blend_mode, 0xFF, is_flipped);
 }
 
-void draw_gui_sprite_flipped(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *sprite, bool src_has_alpha,
+void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
     BlendMode blend_mode, int alpha, bool is_flipped)
 {
     if (alpha <= 0)
@@ -1107,10 +1103,9 @@ void draw_gui_sprite_flipped(Bitmap *ds, bool use_alpha, int x, int y, Bitmap *s
         sprite = tempspr.get();
     }
 
-    const bool ds_has_alpha = (ds->GetColorDepth() == 32);
-    if (use_alpha)
+    if (ds->GetColorDepth() == 32) // ds has alpha?
     {
-        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, alpha);
     }
     else
     {
@@ -1380,14 +1375,14 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
       if (isMirrored) {
           // TODO: "flip self" function may allow to optimize this
           Bitmap *tempspr = BitmapHelper::CreateTransparentBitmap(newwidth, newheight, coldept);
-          if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
+          if ((IS_ANTIALIAS_SPRITES) && (src_sprite->GetColorDepth() < 32))
               tempspr->AAStretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               tempspr->StretchBlt (src_sprite, RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           active_spr->FlipBlt(tempspr, 0, 0, Common::kFlip_Horizontal);
           delete tempspr;
       }
-      else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) == 0))
+      else if ((IS_ANTIALIAS_SPRITES) && (src_sprite->GetColorDepth() < 32))
           active_spr->AAStretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
           active_spr->StretchBlt(src_sprite,RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
@@ -1418,7 +1413,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level, float rotati
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 // Used for software render mode only.
-static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr<Bitmap> &dst,
+static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
     const Size dst_sz, GraphicFlip flip = Common::kFlip_None)
 {
     if ((src->GetSize() == dst_sz) && (flip == kFlip_None))
@@ -1440,7 +1435,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         {
             Bitmap tempbmp;
             tempbmp.CreateTransparent(dst_sz.Width, dst_sz.Height, src->GetColorDepth());
-            if ((IS_ANTIALIAS_SPRITES) && !src_has_alpha)
+            if ((IS_ANTIALIAS_SPRITES) && (src->GetColorDepth() < 32))
                 tempbmp.AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 tempbmp.StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1448,7 +1443,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         }
         else
         {
-            if ((IS_ANTIALIAS_SPRITES) && !src_has_alpha)
+            if ((IS_ANTIALIAS_SPRITES) && (src->GetColorDepth() < 32))
                 dst->AAStretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
             else
                 dst->StretchBlt(src, RectWH(dst_sz), kBitmap_Transparency);
@@ -1473,8 +1468,8 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
 static bool scale_and_flip_sprite(int useindx, int sppic, int newwidth, int newheight, bool hmirror)
 {
     Bitmap *src = spriteset[sppic];
-    Bitmap *result = transform_sprite(src, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0,
-        actsps[useindx].Bmp, Size(newwidth, newheight), hmirror ? kFlip_Horizontal : kFlip_None);
+    Bitmap *result = transform_sprite(src, actsps[useindx].Bmp, Size(newwidth, newheight),
+        hmirror ? kFlip_Horizontal : kFlip_None);
     return result != src;
 }
 
@@ -1726,7 +1721,7 @@ void prepare_objects_for_drawing() {
 
         if ((!actspsIntact) || (actsp.Ddb == nullptr))
         {
-            sync_object_texture(actsp, (game.SpriteInfos[objs[aa].num].Flags & SPF_ALPHACHANNEL) != 0);
+            sync_object_texture(actsp);
         }
 
         actsp.Ddb->SetOrigin(0.f, 1.f);
@@ -2044,7 +2039,7 @@ void prepare_characters_for_drawing() {
 
         if ((!usingCachedImage) || (actsp.Ddb == nullptr))
         {
-            sync_object_texture(actsp, (game.SpriteInfos[sppic].Flags & SPF_ALPHACHANNEL) != 0);
+            sync_object_texture(actsp);
         }
 
         actsp.Ddb->SetOrigin(0.5f, 1.f);
@@ -2121,7 +2116,7 @@ void prepare_room_sprites()
     if (current_background_is_dirty || !roomBackgroundBmp)
     {
         roomBackgroundBmp =
-            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), false, true);
+            recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), true /*opaque*/);
     }
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
@@ -2266,9 +2261,9 @@ void draw_fps(const Rect &viewport)
     wouttext_outline(fpsDisplay, viewport.GetWidth() / 2, 1, font, text_color, loop_buffer);
 
     if (ddb)
-        gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay, false);
+        gfxDriver->UpdateDDBFromBitmap(ddb, fpsDisplay);
     else
-        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
+        ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay);
     int yp = viewport.GetHeight() - fpsDisplay->GetHeight();
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite_glob(1, yp, ddb);
@@ -2296,7 +2291,7 @@ static void construct_guictrl_tex(GUIMain &gui)
         recycle_bitmap(objbg.Bmp, game.GetColorDepth(), obj_surf.GetWidth(), obj_surf.GetHeight(), true);
         obj->Draw(objbg.Bmp.get(), -obj_surf.Left, -obj_surf.Top);
 
-        sync_object_texture(objbg, obj->HasAlphaChannel());
+        sync_object_texture(objbg);
         objbg.Off = Point(obj_surf.GetLT());
         obj->ClearChanged();
     }
@@ -2418,15 +2413,14 @@ void draw_gui_and_overlays()
                         }
                     }
 
-                    const bool isAlpha = gui.HasAlphaChannel();
                     IDriverDependantBitmap *&ddb = guibg[index].Ddb;
                     if (ddb != nullptr)
                     {
-                        gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final, isAlpha);
+                        gfxDriver->UpdateDDBFromBitmap(ddb, guibg_final);
                     }
                     else
                     {
-                        ddb = gfxDriver->CreateDDBFromBitmap(guibg_final, isAlpha);
+                        ddb = gfxDriver->CreateDDBFromBitmap(guibg_final);
                     }
                 }
                 
@@ -2649,7 +2643,7 @@ static void construct_overlays()
                 use_bmp = use_cache.get();
             }
 
-            over.ddb = recycle_ddb_sprite(over.ddb, over.GetSpriteNum(), use_bmp, over.HasAlphaChannel());
+            over.ddb = recycle_ddb_sprite(over.ddb, over.GetSpriteNum(), use_bmp);
             over.ClearChanged();
         }
 
@@ -2790,9 +2784,9 @@ void construct_engine_overlay()
         }
 
         if (debugConsole == nullptr)
-            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
+            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, true /*opaque*/);
         else
-            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
+            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer);
 
         gfxDriver->DrawSprite(0, 0, debugConsole);
         invalidate_sprite_glob(0, 0, debugConsole);
@@ -2843,7 +2837,7 @@ void debug_draw_room_mask(RoomAreaMask mask)
         bmp = debugRoomMaskObj.Bmp.get();
     }
 
-    debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, false, true);
+    debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, true /*opaque*/);
     debugRoomMaskObj.Ddb->SetAlpha(150);
     debugRoomMaskObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
 }
@@ -2866,7 +2860,7 @@ void update_room_debug()
             debugRoomMaskObj.Bmp->StretchBlt(bmp, RectWH(0, 0, thisroom.Width, thisroom.Height));
             bmp = debugRoomMaskObj.Bmp.get();
         }
-        debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, false, true);
+        debugRoomMaskObj.Ddb = recycle_ddb_bitmap(debugRoomMaskObj.Ddb, bmp, true /*opaque*/);
         debugRoomMaskObj.Ddb->SetAlpha(150);
         debugRoomMaskObj.Ddb->SetStretch(thisroom.Width, thisroom.Height);
     }

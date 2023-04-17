@@ -39,7 +39,6 @@ void ScriptDialogOptionsRendering::Reset()
     y = 0;
     width = 0;
     height = 0;
-    hasAlphaChannel = false;
     parserTextboxX = 0;
     parserTextboxY = 0;
     parserTextboxWidth = 0;

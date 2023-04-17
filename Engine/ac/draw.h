@@ -91,9 +91,10 @@ void mark_current_background_dirty();
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);
 Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
-    Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
-inline Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false)
-    { return recycle_ddb_sprite(ddb, UINT32_MAX, source, has_alpha, opaque); }
+    Common::Bitmap *source, bool opaque = false);
+inline Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb,
+    Common::Bitmap *source, bool opaque = false)
+    { return recycle_ddb_sprite(ddb, UINT32_MAX, source, opaque); }
 inline Engine::IDriverDependantBitmap* recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque = false);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
@@ -108,18 +109,17 @@ void debug_draw_room_mask(RoomAreaMask mask);
 void debug_draw_movelist(int charnum);
 void update_room_debug();
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Common::Bitmap *image, bool src_has_alpha,
+void draw_sprite_support_alpha(Common::Bitmap *ds, int xpos, int ypos, Common::Bitmap *image,
                                Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
+void draw_sprite_slot_support_alpha(Common::Bitmap *ds, int xpos, int ypos, int src_slot,
                                     Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
 // CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
-void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
-//void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlend_Alpha);
-void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
-    Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode, bool is_flipped);
-void draw_gui_sprite_flipped(Common::Bitmap *ds, bool use_alpha, int xpos, int ypos,
-    Common::Bitmap *image, bool src_has_alpha, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF, bool is_flipped = false);
+void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode);
+void draw_gui_sprite(Common::Bitmap *ds, int xpos, int ypos,
+    Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF);
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, bool is_flipped);
+void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos,
+    Common::Bitmap *image, Common::BlendMode blend_mode = Common::kBlend_Normal, int alpha = 0xFF, bool is_flipped = false);
 
 // Render game on screen
 void render_to_screen();
@@ -164,9 +164,9 @@ Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 // in AGS sprite operations. Also handles number of certain special cases
 // (old systems or uncommon gfx modes, and similar stuff).
 // Original bitmap **gets deleted** if a new bitmap had to be created.
-Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
+Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap);
 // Same as above, but compatible for std::shared_ptr.
-Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
+Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);

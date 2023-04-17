@@ -305,7 +305,7 @@ void MergeObject(int obn) {
     int xpos = objs[obn].x;
     int ypos = (objs[obn].y - theHeight);
 
-    draw_sprite_support_alpha(bg_frame.get(), false, xpos, ypos, actsp, (game.SpriteInfos[objs[obn].num].Flags & SPF_ALPHACHANNEL) != 0);
+    draw_sprite_support_alpha(bg_frame.get(), xpos, ypos, actsp);
     invalidate_screen();
     mark_current_background_dirty();
 

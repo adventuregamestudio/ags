@@ -214,7 +214,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
   return result;
 }
 
-int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
+int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
     int bullet_wid, int usingfont, DialogTopic*dtop, int*disporder, short*dispyp,
     int linespacing, int utextcol, int padding) {
   int ww;
@@ -242,7 +242,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
     dispyp[ww]=curyp;
     if (game.dialog_bullet > 0)
     {
-        draw_gui_sprite(ds, game.dialog_bullet, dlgxp, curyp, ds_has_alpha);
+        draw_gui_sprite(ds, game.dialog_bullet, dlgxp, curyp);
     }
     if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering) {
       char tempbfr[20];
@@ -546,15 +546,11 @@ void DialogOptions::Redraw()
     dlgyp = oriyp;
     const Rect &ui_view = play.GetUIViewport();
 
-    bool options_surface_has_alpha = false;
-
     if (usingCustomRendering)
     {
       ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
       ccDialogOptionsRendering.surfaceAccessed = false;
       dialogOptionsRenderingSurface->linkedBitmapOnly = tempScrn;
-      dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
-      options_surface_has_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
 
       renderDialogOptionsFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
@@ -603,7 +599,6 @@ void DialogOptions::Redraw()
       // needs to draw the right text window, not the default
       Bitmap *text_window_ds = nullptr;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,nullptr,needheight, game.options[OPT_DIALOGIFACE]);
-      options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
       // since draw_text_window incrases the width, restore it
       areawid = savedwid;
 
@@ -622,7 +617,7 @@ void DialogOptions::Redraw()
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      curyp = write_dialog_options(ds, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
       if (parserInput)
         parserInput->X = txoffs;
     }
@@ -652,13 +647,11 @@ void DialogOptions::Redraw()
         GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
         dirtyheight = guib->Height;
         dirtyy = dlgyp;
-        options_surface_has_alpha = guib->HasAlphaChannel();
       }
       else
       {
         dirtyy = dlgyp - 1;
         dirtyheight = needheight + 1;
-        options_surface_has_alpha = false;
       }
 
       dlgxp += play.dialog_options_x;
@@ -670,7 +663,7 @@ void DialogOptions::Redraw()
         dirtyy = dlgyp;
 
       curyp = dlgyp;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
+      curyp = write_dialog_options(ds, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
 
       if (parserInput)
         parserInput->X = dlgxp;
@@ -686,7 +679,7 @@ void DialogOptions::Redraw()
 
       if (game.dialog_bullet)  // the parser X will get moved in a second
       {
-          draw_gui_sprite(ds, game.dialog_bullet, parserInput->X, parserInput->Y, options_surface_has_alpha);
+          draw_gui_sprite(ds, game.dialog_bullet, parserInput->X, parserInput->Y);
       }
 
       parserInput->Width -= bullet_wid;
@@ -720,9 +713,9 @@ void DialogOptions::Redraw()
     }
     
     if (ddb == nullptr)
-      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap, options_surface_has_alpha, false);
+      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap);
     else
-      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, options_surface_has_alpha);
+      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap);
 
     if (runGameLoopsInBackground)
     {

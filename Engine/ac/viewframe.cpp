@@ -135,27 +135,27 @@ void CheckViewFrame(int view, int loop, int frame, int sound_volume)
 
 // Note: the following function is only used for speech views in update_sierra_speech() and _displayspeech()
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend)
+void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y)
 {
-    if (alpha_blend)
+    Bitmap *vf_bmp = spriteset[vframe->pic];
+    if ((ds->GetColorDepth() == 32) && (vf_bmp->GetColorDepth() == 32))
     {
-        Bitmap *vf_bmp = spriteset[vframe->pic];
         Bitmap *src = vf_bmp;
         if (vframe->flags & VFLG_FLIPSPRITE)
         {
             src = new Bitmap(vf_bmp->GetWidth(), vf_bmp->GetHeight(), vf_bmp->GetColorDepth());
             src->FlipBlt(vf_bmp, 0, 0, Common::kFlip_Horizontal);
         }
-        draw_sprite_support_alpha(ds, true, x, y, src, (game.SpriteInfos[vframe->pic].Flags & SPF_ALPHACHANNEL) != 0);
+        draw_sprite_support_alpha(ds, x, y, src);
         if (src != vf_bmp)
             delete src;
     }
     else
     {
         if (vframe->flags & VFLG_FLIPSPRITE)
-            ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kFlip_Horizontal);
+            ds->FlipBlt(vf_bmp, x, y, Common::kFlip_Horizontal);
         else
-            ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+            ds->Blit(vf_bmp, x, y, Common::kBitmap_Transparency);
     }
 }
 

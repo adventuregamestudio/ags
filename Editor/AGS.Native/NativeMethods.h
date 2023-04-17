@@ -56,7 +56,6 @@ namespace Native
 			bool CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric);
 			bool DoesSpriteExist(int spriteNumber);
 			void ChangeSpriteNumber(Sprite^ sprite, int newNumber);
-			void SpriteResolutionsChanged(cli::array<Sprite^>^ sprites);
 			void Shutdown();
 			Game^ ImportOldGameFile(String^ fileName);
 			void ImportSCIFont(String ^fileName, int fontSlot);

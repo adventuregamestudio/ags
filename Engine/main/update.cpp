@@ -456,17 +456,14 @@ void update_sierra_speech()
       }
 
       const ViewFrame *face_vf = &views[facetalkview].loops[facetalkloop].frames[facetalkframe];
-      bool face_has_alpha = (game.SpriteInfos[face_vf->pic].Flags & SPF_ALPHACHANNEL) != 0;
       DrawViewFrame(frame_pic, face_vf, view_frame_x, view_frame_y);
 
       if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
         ViewFrame *blink_vf = &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe];
-        face_has_alpha |= (game.SpriteInfos[blink_vf->pic].Flags & SPF_ALPHACHANNEL) != 0;
         // draw the blinking sprite on top
-        DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y, face_has_alpha);
+        DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y);
       }
 
-      screenover[face_talking].SetAlphaChannel(face_has_alpha);
       screenover[face_talking].MarkChanged();
     }  // end if updatedFrame
   }

@@ -64,7 +64,6 @@ extern bool load_template_file(const AGSString &fileName, AGSString &description
 extern HAGSError extract_template_files(const AGSString &templateFileName);
 extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
-extern void update_sprite_resolution(int spriteNum);
 extern void SaveNativeSprites(Settings^ gameSettings);
 extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
 extern HAGSError reset_sprite_file();
@@ -367,14 +366,6 @@ namespace AGS
 			sprite->Number = newNumber;
 		}
 
-		void NativeMethods::SpriteResolutionsChanged(cli::array<Sprite^>^ sprites)
-		{
-			for each (Sprite^ sprite in sprites)
-			{
-				update_sprite_resolution(sprite->Number);
-			}
-		}
-
         static int GetCurrentlyLoadedRoomNumber()
         {
             return 0; // FIXME: not working after moved to open room format
@@ -597,9 +588,6 @@ namespace AGS
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
             if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
-            if (name->Equals("SPF_VAR_RESOLUTION")) return SPF_VAR_RESOLUTION;
-            if (name->Equals("SPF_HIRES")) return SPF_HIRES;
-            if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
             if (name->Equals("PASSWORD_ENC_STRING"))
             {
                 int len = (int)strlen(passwencstring);

@@ -12,8 +12,8 @@ using SysBitmap = System::Drawing::Bitmap;
 
 
 AGSBitmap *CreateBlockFromBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);
-extern SysBitmap^ ConvertBlockToBitmap32(AGSBitmap *todraw, int width, int height, bool useAlphaChannel);
-extern SysBitmap^ ConvertBlockToBitmap(AGSBitmap *todraw, bool useAlphaChannel);
+extern SysBitmap^ ConvertBlockToBitmap32(AGSBitmap *todraw, int width, int height);
+extern SysBitmap^ ConvertBlockToBitmap(AGSBitmap *todraw);
 extern void convert_room_from_native(const RoomStruct &rs, AGS::Types::Room ^room, System::Text::Encoding ^defEncoding);
 extern void convert_room_to_native(Room ^room, RoomStruct &rs);
 extern AGSString load_room_file(RoomStruct &rs, const AGSString &filename);
@@ -65,7 +65,7 @@ SysBitmap ^NativeRoom::GetBackground(int bgnum)
         throw gcnew AGSEditorException(System::String::Format(
             "Invalid background number {0}", bgnum));
     }
-    return ConvertBlockToBitmap32(_rs->BgFrames[bgnum].Graphic.get(), _rs->Width, _rs->Height, false);
+    return ConvertBlockToBitmap32(_rs->BgFrames[bgnum].Graphic.get(), _rs->Width, _rs->Height);
 }
 
 SysBitmap ^NativeRoom::GetAreaMask(AGS::Types::RoomAreaMaskType maskType)
@@ -77,7 +77,7 @@ SysBitmap ^NativeRoom::GetAreaMask(AGS::Types::RoomAreaMaskType maskType)
     }
 
     AGSBitmap *mask = _rs->GetMask(nativeType);
-    SysBitmap^ managedMask = ConvertBlockToBitmap(mask, false);
+    SysBitmap^ managedMask = ConvertBlockToBitmap(mask);
     // Palette entry 0 alpha value is hardcoded to 0, probably because it's convenient
     // for rendering area 0 as invisible? However it creates issues when exporting 8-bit
     // image with transparency to different image formats (tested with .png). To make things

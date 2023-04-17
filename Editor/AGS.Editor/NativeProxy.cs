@@ -169,11 +169,6 @@ namespace AGS.Editor
             _native.ChangeSpriteNumber(sprite, newNumber);
         }
 
-        public void SpriteResolutionsChanged(Sprite[] sprites)
-        {
-            _native.SpriteResolutionsChanged(sprites);
-        }
-
         public Bitmap GetBitmapForSprite(int spriteSlot, int width, int height)
         {
 			lock (_spriteSetLock)

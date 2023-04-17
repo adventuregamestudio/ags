@@ -23,6 +23,7 @@ int cc_compile(std::string const &inpl, AGS::ccCompiledScript &scrip)
         (0 != ccGetOption(SCOPT_DEBUGRUN)) * SCOPT_DEBUGRUN |
         (0 != ccGetOption(SCOPT_NOIMPORTOVERRIDE)) * SCOPT_NOIMPORTOVERRIDE |
         (0 != ccGetOption(SCOPT_OLDSTRINGS)) * SCOPT_OLDSTRINGS |
+        (0 != ccGetOption(SCOPT_RTTIOPS)) * SCOPT_RTTIOPS |
         false;
 
     int const error_code = cc_compile(inpl, options, scrip, mh);
@@ -969,10 +970,12 @@ TEST_F(Compile0, StructForwardDeclareNew) {
     EXPECT_NE(std::string::npos, lsce.find("Bang"));
 }
 
-TEST_F(Compile0, StructManaged1a)
+TEST_F(Compile0, StructManaged1a_NoRTTIOPS)
 {
+    // NO SCOPT_RTTIOPS:
     // Cannot have managed components in managed struct.
     // This is an Engine restriction.
+    ccSetOption(SCOPT_RTTIOPS, 0);
 
     char const *inpl = "\
         managed struct Managed1 \n\
@@ -990,10 +993,12 @@ TEST_F(Compile0, StructManaged1a)
     EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
-TEST_F(Compile0, StructManaged1b)
+TEST_F(Compile0, StructManaged1b_NoRTTIOPS)
 {
+    // NO SCOPT_RTTIOPS:
     // Cannot have managed components in managed struct.
     // This is an Engine restriction.
+    ccSetOption(SCOPT_RTTIOPS, 0);
 
     char const *inpl = "\
         managed struct Managed1 \n\
@@ -1010,10 +1015,47 @@ TEST_F(Compile0, StructManaged1b)
     EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
-TEST_F(Compile0, StructManaged2)
+TEST_F(Compile0, StructManaged2a_RTTIOPS)
 {
-    // Cannot have managed components in managed struct.
-    // This is an Engine restriction.
+    // + SCOPT_RTTIOPS:
+    // Can have managed components in managed struct.
+    ccSetOption(SCOPT_RTTIOPS, 1);
+
+    char const *inpl = "\
+        managed struct Managed1 \n\
+        { };                    \n\
+        managed struct Managed  \n\
+        {                       \n\
+            Managed1 compo;     \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StructManaged2b_RTTIOPS)
+{
+    // + SCOPT_RTTIOPS:
+    // Can have managed components in managed struct.
+    ccSetOption(SCOPT_RTTIOPS, 1);
+
+    char const *inpl = "\
+        managed struct Managed1 \n\
+        { };                    \n\
+        managed struct Managed  \n\
+        {                       \n\
+            Managed1 compo[];   \n\
+        };                      \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
+TEST_F(Compile0, StructNonManagedPointer)
+{
+    // Cannot use '*' on a non-managed type
 
     char const *inpl = "\
         managed struct Managed  \n\
@@ -1025,7 +1067,7 @@ TEST_F(Compile0, StructManaged2)
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     std::string err = last_seen_cc_error();
-    EXPECT_EQ(std::string::npos, err.find("xception"));
+    EXPECT_NE(std::string::npos, err.find("non-managed type"));
 }
 
 TEST_F(Compile0, StructRecursiveComponent01)

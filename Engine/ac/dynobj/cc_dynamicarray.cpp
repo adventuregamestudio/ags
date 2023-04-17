@@ -40,7 +40,10 @@ int CCDynamicArray::Dispose(const char *address, bool force)
         bool is_managed = (hdr.TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0;
         const RTTI::Type *ti = nullptr;
         if (type_id > 0)
-             ti = &ccInstance::GetRTTI()->GetTypes()[type_id];
+        {
+            assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
+            ti = &ccInstance::GetRTTI()->GetTypes()[type_id];
+        }
 
         if (is_managed)
         { // Dynamic array of managed pointers: subref them directly

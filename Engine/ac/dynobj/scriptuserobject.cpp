@@ -64,12 +64,16 @@ void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, si
 int ScriptUserObject::Dispose(const char* /*address*/, bool /*force*/)
 {
     // Unref all managed pointers within the struct
-    const auto *helper = ccInstance::GetRTTIHelper();
-    const auto fref = helper->GetManagedOffsetsForType(_typeid);
-    for (auto it = fref.first; it < fref.second; ++it)
+    if (_typeid > 0)
     {
-        int32_t handle = *(int32_t*)(_data + *it);
-        pool.SubRef(handle);
+        assert(ccInstance::GetRTTI()->GetTypes().size() > _typeid);
+        const auto *helper = ccInstance::GetRTTIHelper();
+        const auto fref = helper->GetManagedOffsetsForType(_typeid);
+        for (auto it = fref.first; it < fref.second; ++it)
+        {
+            int32_t handle = *(int32_t*)(_data + *it);
+            pool.SubRef(handle);
+        }
     }
 
     delete this;

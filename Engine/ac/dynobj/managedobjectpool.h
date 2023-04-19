@@ -15,6 +15,7 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
+#include <list>
 #include <vector>
 #include <queue>
 #include <unordered_map>
@@ -28,15 +29,19 @@ using namespace AGS; // FIXME later
 
 struct ManagedObjectPool final {
 private:
-    // TODO: find out if we can make handle size_t
+    struct GCObject;
+    // TODO: find out if we can make handle unsigned
     struct ManagedObject {
-        ScriptValueType obj_type;
-        int32_t handle;
-        // TODO: this makes no sense having this as "const char*",
+        ScriptValueType obj_type = kScValUndefined;
+        int32_t handle = 0; // TODO: find out if may not store this here?
+        // FIXME: this makes no sense having this as "const char*",
         // void* will be proper (and in all related functions)
-        const char *addr;
-        ICCDynamicObject *callback;
-        int refCount;
+        const char *addr = nullptr;
+        ICCDynamicObject *callback = nullptr;
+        int refCount = 0;
+        // For GC
+        // TODO: optimize the object storage...
+        int gcRefCount = 0; // for scan & sweep algorithm
 
         bool isUsed() const { return obj_type != kScValUndefined; }
 
@@ -52,6 +57,18 @@ private:
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
     std::unordered_map<const char *, int32_t> handleByAddress;
+
+    // Scan lists for the garbage collection;
+    // TODO: this is bit inefficient, because of certain mem duplication, and extra
+    // cross-references; ideally this should be merged with ManagedObject (and maybe even ICCDynamicObject)!
+    struct GCObject
+    {
+        int32_t handle = 0;
+
+        GCObject(int32_t h) : handle(h) {}
+    };
+    std::list<GCObject> gcUsedList;
+    std::list<GCObject> gcRemList;
 
     int Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();

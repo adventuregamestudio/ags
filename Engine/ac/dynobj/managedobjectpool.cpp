@@ -31,8 +31,19 @@ const auto RESERVED_SIZE = 2048;
 int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     if (!o.isUsed()) { return 1; } // already removed
 
+    o.refCount = 0; // mark as disposing, to avoid any access
     bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force) != 0;
     if (!(canBeRemovedFromPool || force)) { return 0; }
+
+    // FIXME: this is VERY inefficient
+    for (auto it = gcUsedList.begin(); it != gcUsedList.end(); ++it)
+    {
+        if (it->handle == o.handle)
+        {
+            gcUsedList.erase(it);
+            break;
+        }
+    }
 
     available_ids.push(o.handle);
     handleByAddress.erase(o.addr);
@@ -46,7 +57,7 @@ int32_t ManagedObjectPool::AddRef(int32_t handle) {
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
 
-    o.refCount += 1;
+    o.refCount++;
     ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", currentline, o.handle, o.refCount);
     return o.refCount;
 }
@@ -63,8 +74,7 @@ int32_t ManagedObjectPool::SubRef(int32_t handle) {
     if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
-
-    assert(o.refCount >= 0); // FIXME
+    if (o.refCount <= 0) { return 0; } // already disposed / disposing
 
     o.refCount--;
     auto newRefCount = o.refCount;
@@ -124,13 +134,85 @@ void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 
 void ManagedObjectPool::RunGarbageCollection()
 {
-    for (int i = 1; i < nextHandle; i++) {
-        auto & o = objects[i];
-        if (!o.isUsed()) { continue; }
-        if (o.refCount < 1) {
+    //
+    // Proper GC resolving detached objects and circular dependencies
+    //
+    // Step 0: remove objects that have 0 refs already
+    // Step 1: copy current ref counts
+    for (auto &o : objects)
+    {
+        if (!o.isUsed()) continue;
+        if (o.refCount == 0)
             Remove(o);
+        else
+            o.gcRefCount = o.refCount;
+    }
+    // Step 2: remove all internal references: that is references
+    // which are stored in objects themselves
+    for (auto &gco : gcUsedList)
+    {
+        auto &objs = objects;
+        assert(gco.handle == 0 || objects[gco.handle].refCount > 0);
+        objects[gco.handle].callback->TraverseRefs(objects[gco.handle].addr,
+            [&objs](int handle)
+        {
+            objs[handle].gcRefCount--;
+        });
+    }
+    // Step 3: move all gc objects with 0 remaining counter to the removal list
+    for (auto it = gcUsedList.begin(); it != gcUsedList.end(); )
+    {
+        if (objects[it->handle].gcRefCount == 0)
+        {
+            auto move_it = it++;
+            gcRemList.splice(gcRemList.end(), gcUsedList, move_it);
+        }
+        else
+        {
+            ++it;
         }
     }
+    // Step 4: add internal references for all objects remaining
+    // in the normal list
+    for (auto &gco : gcUsedList)
+    {
+        auto &objs = objects;
+        objects[gco.handle].callback->TraverseRefs(objects[gco.handle].addr,
+            [&objs](int handle)
+        {
+            objs[handle].gcRefCount++;
+        });
+    }
+    // Step 5: move all gc objects with > 0 counter back from the removal list
+    // FIXME: is there way to optimize this?
+    int times_moved = 0;
+    do
+    {
+        auto &objs = objects;
+        times_moved = 0;
+        for (auto it = gcRemList.begin(); it != gcRemList.end(); )
+        {
+            auto test_it = it++;
+            if (objects[test_it->handle].gcRefCount > 0)
+            {
+                gcUsedList.splice(gcUsedList.end(), gcRemList, test_it);
+                objects[test_it->handle].callback->TraverseRefs(objects[test_it->handle].addr,
+                    [&objs](int handle)
+                {
+                    objs[handle].gcRefCount++;
+                });
+                times_moved = 1;
+            }
+        }
+    } while (times_moved > 0);
+    // Step 6: dispose those remaining in the removal list
+    for (auto it = gcRemList.begin(); it != gcRemList.end(); )
+    {
+        auto rem_it = it++;
+        Remove(objects[rem_it->handle]);
+        gcRemList.erase(rem_it);
+    }
+    assert(gcRemList.empty());
     ManagedObjectLog("Ran garbage collection");
 }
 
@@ -156,6 +238,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
     handleByAddress.insert({address, o.handle});
     if (!persistent) { // if persistent - do not add to the GC scan
+        gcUsedList.push_back(GCObject(o.handle));
         objectCreationCounter++;
     }
     ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
@@ -178,6 +261,7 @@ int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObje
 
     handleByAddress.insert({address, o.handle});
     if (!persistent) { // if persistent - do not add to the GC scan
+        gcUsedList.push_back(GCObject(o.handle));
         objectCreationCounter++;
     }
     ManagedObjectLog("Allocated unserialized managed object handle=%d, type=%s", o.handle, callback->GetType());

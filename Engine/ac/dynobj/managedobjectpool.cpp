@@ -134,7 +134,8 @@ void ManagedObjectPool::RunGarbageCollection()
     ManagedObjectLog("Ran garbage collection");
 }
 
-int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object) 
+int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback,
+    bool plugin_object, bool persistent) 
 {
     int32_t handle;
 
@@ -154,13 +155,16 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
     o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
 
     handleByAddress.insert({address, o.handle});
-    objectCreationCounter++;
-    ManagedObjectLog("Allocated managed object handle=%d, type=%s", handle, callback->GetType());
+    if (!persistent) { // if persistent - do not add to the GC scan
+        objectCreationCounter++;
+    }
+    ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
     return o.handle;
 }
 
 
-int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle) 
+int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback, int handle,
+    bool plugin_object, bool persistent) 
 {
     if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     if ((size_t)handle >= objects.size()) {
@@ -173,6 +177,9 @@ int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObje
     o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
 
     handleByAddress.insert({address, o.handle});
+    if (!persistent) { // if persistent - do not add to the GC scan
+        objectCreationCounter++;
+    }
     ManagedObjectLog("Allocated unserialized managed object handle=%d, type=%s", o.handle, callback->GetType());
     return o.handle;
 }

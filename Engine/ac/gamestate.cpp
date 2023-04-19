@@ -278,8 +278,7 @@ ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
     auto scview = new ScriptViewport(index);
     if (handle == 0)
     {
-        handle = ccRegisterManagedObject(scview, scview);
-        ccAddObjectReference(handle); // one reference for the GameState
+        handle = ccRegisterManagedObjectAndRef(scview, scview); // one ref for GameState
     }
     else
     {
@@ -348,8 +347,7 @@ ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
     auto sccamera = new ScriptCamera(index);
     if (handle == 0)
     {
-        handle = ccRegisterManagedObject(sccamera, sccamera);
-        ccAddObjectReference(handle); // one reference for the GameState
+        handle = ccRegisterManagedObjectAndRef(sccamera, sccamera); // one ref for GameState
     }
     else
     {

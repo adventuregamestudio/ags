@@ -516,7 +516,7 @@ void export_missing_audiochans()
     {
         int h = ccGetObjectHandleFromAddress(&scrAudioChannel[i]);
         if (h <= 0)
-            ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
+            ccRegisterPersistentObject(&scrAudioChannel[i], &ccDynamicAudio); // add internal ref
     }
 }
 

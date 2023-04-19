@@ -66,8 +66,9 @@ public:
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
-    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle);
+    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, int handle,
+        bool plugin_object, bool persistent);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();

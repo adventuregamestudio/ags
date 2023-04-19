@@ -48,6 +48,13 @@ struct ICCDynamicObject {
     // TODO: pass savegame format version
     virtual int Serialize(const char *address, char *buffer, int bufsize) = 0;
 
+    //
+    // Interface of a managed object that contains typeid fields.
+    // Remap typeid fields using the provided map
+    virtual void RemapTypeids(const char *address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) = 0;
+
+
     // Legacy support for reading and writing object values by their relative offset.
     // WARNING: following were never a part of plugin API, therefore these methods
     // should **never** be called for kScValPluginObject script objects!
@@ -81,14 +88,6 @@ protected:
 // Managed String class interface
 struct ICCStringClass {
     virtual DynObjectRef CreateString(const char *fromText) = 0;
-};
-
-// Interface of the managed object that contains typeid fields.
-// Provides means for remapping typeid, e.g. upon save restoration.
-struct ICCTypeidBased {
-    // Remap typeid fields using the provided map
-    virtual void RemapTypeids(const char *address,
-        const std::unordered_map<uint32_t, uint32_t> &typeid_map) = 0;
 };
 
 // Managed object deserializer interface.

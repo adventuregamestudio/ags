@@ -73,6 +73,10 @@ public:
     void reset();
     ManagedObjectPool();
 
+    // Remaps typeids for the managed objects that contain typeid fields;
+    // uses provided typeid maps
+    void RemapTypeids(const std::unordered_map<uint32_t, uint32_t> &typeid_map);
+
     const char* disableDisposeForObject {nullptr};
 };
 

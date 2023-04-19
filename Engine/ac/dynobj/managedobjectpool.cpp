@@ -286,4 +286,14 @@ ManagedObjectPool::ManagedObjectPool() : objectCreationCounter(0), nextHandle(1)
     handleByAddress.reserve(RESERVED_SIZE);
 }
 
+void ManagedObjectPool::RemapTypeids(const std::unordered_map<uint32_t, uint32_t> &typeid_map)
+{
+    for (const auto &o : objects)
+    {
+        if (!o.isUsed()) continue;
+        o.callback->RemapTypeids(o.addr, typeid_map);
+    }
+}
+
+
 ManagedObjectPool pool;

@@ -38,6 +38,9 @@ struct sc_File final : ICCDynamicObject {
     const char *GetType() override;
 
     int Serialize(const char *address, char *buffer, int bufsize) override;
+    // Remap typeid fields using the provided map
+    void RemapTypeids(const char *address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override { /* do nothing */ }
 
     int OpenFile(const char *filename, int mode);
     void Close();

@@ -30,6 +30,9 @@ public:
     int Serialize(const char *address, char *buffer, int bufsize) override;
     // Try unserializing the object from the given input stream
     virtual void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) = 0;
+    // Remap typeid fields using the provided map
+    void RemapTypeids(const char *address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override { /* do nothing */}
 
     // Legacy support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;

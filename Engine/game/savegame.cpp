@@ -476,7 +476,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // remap typeids in the deserialized managed objects, where necessary
     std::unordered_map<uint32_t, uint32_t> loc_l2g, type_l2g;
     ccInstance::JoinRTTI(r_data.GenRTTI, loc_l2g, type_l2g);
-    r_data.ManObjReader.RemapTypeids(pool, type_l2g);
+    pool.RemapTypeids(type_l2g);
 
     play.gscript_timer=gstimer;
 

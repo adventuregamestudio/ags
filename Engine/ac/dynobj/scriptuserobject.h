@@ -20,7 +20,7 @@
 
 #include "ac/dynobj/cc_dynamicobject.h"
 
-struct ScriptUserObject final : ICCDynamicObject, ICCTypeidBased
+struct ScriptUserObject final : ICCDynamicObject
 {
 public:
     static const char *TypeName;

@@ -66,12 +66,10 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     // might have to use older class names to distinguish save formats
     if (strcmp(objectType, CCDynamicArray::TypeName) == 0) {
         globalDynamicArray.Unserialize(index, &mems, data_sz);
-        _typeidBasedObjs.push_back(index);
     }
     else if (strcmp(objectType, ScriptUserObject::TypeName) == 0) {
         ScriptUserObject *suo = new ScriptUserObject();
         suo->Unserialize(index, &mems, data_sz);
-        _typeidBasedObjs.push_back(index);
     }
     else if (strcmp(objectType, "GUIObject") == 0) {
         ccDynamicGUIObject.Unserialize(index, &mems, data_sz);
@@ -162,29 +160,5 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
             }
         }
         quitprintf("Unserialise: unknown object type: '%s'", objectType);
-    }
-}
-
-void AGSDeSerializer::RemapTypeids(ManagedObjectPool &pool,
-    const std::unordered_map<uint32_t, uint32_t> &typeid_map) const
-{
-    // FIXME! Reimplement this in a safer and, possibly, faster way.
-    // Idea: store not the handles, but the object/manager pointer pairs;
-    // add ref to keep these existing as long as deserializer is in use;
-    // sub ref after remapping typeids.
-    // note: ScriptUserObject does not have a global manager? impl one instead??
-    // implement ManagedPool methods that accept vectors, along with single
-    // handles, for faster operations over list of items(?)
-    void *object;
-    ICCDynamicObject *manager;
-    for (auto &handle : _typeidBasedObjs)
-    {
-        pool.HandleToAddressAndManager(handle, object, manager);
-        assert(object);
-        const char *type = manager->GetType();
-        if (strcmp(type, CCDynamicArray::TypeName) == 0)
-            globalDynamicArray.RemapTypeids((const char*)object, typeid_map);
-        else if (strcmp(type, ScriptUserObject::TypeName) == 0)
-            ((ScriptUserObject*)manager)->RemapTypeids((const char*)object, typeid_map);
     }
 }

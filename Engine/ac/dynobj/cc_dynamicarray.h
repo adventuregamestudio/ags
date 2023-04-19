@@ -20,7 +20,7 @@
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
 
-struct CCDynamicArray final : ICCDynamicObject, ICCTypeidBased
+struct CCDynamicArray final : ICCDynamicObject
 {
 public:
     static const char *TypeName;

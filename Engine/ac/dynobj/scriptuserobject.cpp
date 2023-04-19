@@ -66,7 +66,7 @@ int ScriptUserObject::Dispose(const char* address, bool force)
     // Unref all managed pointers within the struct
     if (!force && (_typeid > 0))
     {
-        TraverseRefs(address, [](int handle) { pool.SubRef(handle); });
+        TraverseRefs(address, [](int handle) { pool.SubRefNoCheck(handle); });
     }
 
     delete this;

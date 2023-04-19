@@ -35,7 +35,7 @@ int CCDynamicArray::Dispose(const char *address, bool force)
     // in which case just ignore these.
     if (!force)
     {
-        TraverseRefs(address, [](int handle) { pool.SubRef(handle); });
+        TraverseRefs(address, [](int handle) { pool.SubRefNoCheck(handle); });
     }
 
     delete[] (address - MemHeaderSz);

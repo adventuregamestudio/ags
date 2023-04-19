@@ -141,5 +141,5 @@ int ccReleaseObjectReference(int32_t handle) {
         return -1;
     }
 
-    return pool.SubRef(handle);
+    return pool.SubRefCheckDispose(handle);
 }

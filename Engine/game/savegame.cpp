@@ -357,7 +357,7 @@ void DoBeforeRestore(PreservedParams &pp)
     free_do_once_tokens();
 
     // unregister gui controls from API exports
-    // CHECKME: find out why are we doing this here? why only to gui controls?
+    // FIXME: find out why are we doing this here??! why only to gui controls??!
     for (int i = 0; i < game.numgui; ++i)
     {
         unexport_gui_controls(i);

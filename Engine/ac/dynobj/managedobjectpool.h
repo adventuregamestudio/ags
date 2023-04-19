@@ -32,7 +32,7 @@ private:
     struct GCObject;
     // TODO: find out if we can make handle unsigned
     struct ManagedObject {
-        ScriptValueType obj_type = kScValUndefined;
+        ScriptValueType obj_type = kScValUndefined; // TODO: find out if this may be get rid of
         int32_t handle = 0; // TODO: find out if may not store this here?
         // FIXME: this makes no sense having this as "const char*",
         // void* will be proper (and in all related functions)
@@ -40,7 +40,9 @@ private:
         ICCDynamicObject *callback = nullptr;
         int refCount = 0;
         // For GC
-        // TODO: optimize the object storage...
+        // FIXME: optimize the object storage...
+        std::list<GCObject>::iterator gcItUsed{}; // for quick removal from a list
+        static const int GC_FLAG_EXCLUDED = 0x80000000; // flag an object excluded from GC
         int gcRefCount = 0; // for scan & sweep algorithm
 
         bool isUsed() const { return obj_type != kScValUndefined; }
@@ -70,17 +72,23 @@ private:
     std::list<GCObject> gcUsedList;
     std::list<GCObject> gcRemList;
 
-    int Remove(ManagedObject &o, bool force = false);
+    int  Add(int handle, const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
+    int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
 
 public:
-
+    // Adds a reference count
     int32_t AddRef(int32_t handle);
+    // "Shallow" subref, does not try to dispose
+    int32_t SubRefNoCheck(int32_t handle);
+    // Subtracts a reference count and tests for disposal if count is zero
+    int32_t SubRefCheckDispose(int32_t handle);
+    // Explicitly tests an object for disposal
     int CheckDispose(int32_t handle);
-    int32_t SubRef(int32_t handle);
     int32_t AddressToHandle(const char *addr);
     const char* HandleToAddress(int32_t handle);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
+    // Forcefully remove the object, regardless of the current ref count
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
     int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);

@@ -32,19 +32,7 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     if (!o.isUsed()) { return 1; } // already removed
 
     o.refCount = 0; // mark as disposing, to avoid any access
-    bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force) != 0;
-    if (!(canBeRemovedFromPool || force)) { return 0; }
-
-    // FIXME: this is VERY inefficient
-    for (auto it = gcUsedList.begin(); it != gcUsedList.end(); ++it)
-    {
-        if (it->handle == o.handle)
-        {
-            gcUsedList.erase(it);
-            break;
-        }
-    }
-
+    o.callback->Dispose(o.addr, force); // we always dispose and remove now!
     available_ids.push(o.handle);
     handleByAddress.erase(o.addr);
     ManagedObjectLog("Line %d Disposed managed object handle=%d", currentline, o.handle);
@@ -67,10 +55,11 @@ int ManagedObjectPool::CheckDispose(int32_t handle) {
     auto & o = objects[handle];
     if (!o.isUsed()) { return 1; }
     if (o.refCount >= 1) { return 0; }
+    gcUsedList.erase(o.gcItUsed);
     return Remove(o);
 }
 
-int32_t ManagedObjectPool::SubRef(int32_t handle) {
+int32_t ManagedObjectPool::SubRefCheckDispose(int32_t handle) {
     if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
@@ -85,6 +74,17 @@ int32_t ManagedObjectPool::SubRef(int32_t handle) {
     // object could be removed at this point, don't use any values.
     ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d canBeDisposed=%d", currentline, handle, newRefCount, canBeDisposed);
     return newRefCount;
+}
+
+int32_t ManagedObjectPool::SubRefNoCheck(int32_t handle)
+{
+    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
+    auto & o = objects[handle];
+    if (!o.isUsed()) { return 0; }
+    if (o.refCount <= 0) { return 0; } // already disposed / disposing
+    o.refCount--;
+    ManagedObjectLog("Line %d SubRefNoCheck: handle=%d new refcount=%d", currentline, handle, o.refCount);
+    return o.refCount;
 }
 
 int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
@@ -122,6 +122,8 @@ int ManagedObjectPool::RemoveObject(const char *address) {
     if (it == handleByAddress.end()) { return 0; }
 
     auto & o = objects[it->second];
+    if ((o.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0)
+        gcUsedList.erase(o.gcItUsed);
     return Remove(o, true);
 }
 
@@ -139,21 +141,29 @@ void ManagedObjectPool::RunGarbageCollection()
     //
     // Step 0: remove objects that have 0 refs already
     // Step 1: copy current ref counts
-    for (auto &o : objects)
+    for (auto it = gcUsedList.begin(); it != gcUsedList.end(); )
     {
-        if (!o.isUsed()) continue;
-        if (o.refCount == 0)
-            Remove(o);
+        assert(it->handle != 0);
+        auto test_it = it++;
+        auto &obj = objects[test_it->handle];
+        if (obj.refCount == 0)
+        {
+            gcUsedList.erase(test_it);
+            Remove(obj);
+        }
         else
-            o.gcRefCount = o.refCount;
+        {
+            obj.gcRefCount = obj.refCount;
+        }
     }
     // Step 2: remove all internal references: that is references
     // which are stored in objects themselves
     for (auto &gco : gcUsedList)
     {
         auto &objs = objects;
-        assert(gco.handle == 0 || objects[gco.handle].refCount > 0);
-        objects[gco.handle].callback->TraverseRefs(objects[gco.handle].addr,
+        auto &obj = objects[gco.handle];
+        assert((gco.handle != 0) && (obj.refCount > 0));
+        objects[gco.handle].callback->TraverseRefs(obj.addr,
             [&objs](int handle)
         {
             objs[handle].gcRefCount--;
@@ -196,6 +206,7 @@ void ManagedObjectPool::RunGarbageCollection()
             if (objects[test_it->handle].gcRefCount > 0)
             {
                 gcUsedList.splice(gcUsedList.end(), gcRemList, test_it);
+                objects[test_it->handle].gcItUsed = test_it; // ugh... scary
                 objects[test_it->handle].callback->TraverseRefs(objects[test_it->handle].addr,
                     [&objs](int handle)
                 {
@@ -216,6 +227,25 @@ void ManagedObjectPool::RunGarbageCollection()
     ManagedObjectLog("Ran garbage collection");
 }
 
+int ManagedObjectPool::Add(int handle, const char *address, ICCDynamicObject *callback,
+    bool plugin_object, bool persistent)
+{
+    auto & o = objects[handle];
+    if (o.isUsed()) { cc_error("used: %d", handle); return 0; }
+
+    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
+
+    handleByAddress.insert({address, o.handle});
+    if (persistent) { // mark persistent object as excluded from GC
+        o.gcRefCount = ManagedObject::GC_FLAG_EXCLUDED;
+    } else { // if regular - then add to the GC scan
+        o.gcItUsed = gcUsedList.insert(gcUsedList.end(), GCObject(o.handle));
+        objectCreationCounter++;
+    }
+    ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
+    return handle;
+}
+
 int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback,
     bool plugin_object, bool persistent) 
 {
@@ -231,18 +261,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
         }
     }
 
-    auto & o = objects[handle];
-    if (o.isUsed()) { cc_error("used: %d", handle); return 0; }
-
-    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
-
-    handleByAddress.insert({address, o.handle});
-    if (!persistent) { // if persistent - do not add to the GC scan
-        gcUsedList.push_back(GCObject(o.handle));
-        objectCreationCounter++;
-    }
-    ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
-    return o.handle;
+    return Add(handle, address, callback, plugin_object, persistent);
 }
 
 
@@ -254,18 +273,7 @@ int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObje
         objects.resize(handle + 1024, ManagedObject());
     }
 
-    auto & o = objects[handle];
-    if (o.isUsed()) { cc_error("bad save. used: %d", o.handle); return 0; }
-
-    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
-
-    handleByAddress.insert({address, o.handle});
-    if (!persistent) { // if persistent - do not add to the GC scan
-        gcUsedList.push_back(GCObject(o.handle));
-        objectCreationCounter++;
-    }
-    ManagedObjectLog("Allocated unserialized managed object handle=%d, type=%s", o.handle, callback->GetType());
-    return o.handle;
+    return Add(handle, address, callback, plugin_object, persistent);
 }
 
 void ManagedObjectPool::WriteToDisk(Stream *out) {
@@ -372,6 +380,8 @@ void ManagedObjectPool::reset() {
         Remove(o, true);
     }
     while (!available_ids.empty()) { available_ids.pop(); }
+    gcUsedList.clear();
+    gcRemList.clear();
     nextHandle = 1;
 }
 

@@ -45,6 +45,8 @@ public:
     // Remap typeid fields using the provided map
     void RemapTypeids(const char *address,
         const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
+    // Traverse all managed references in this object, and run callback for each of them
+    void TraverseRefs(const char *address, PfnTraverseRefOp traverse_op) override;
 
     // Support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;

@@ -14,6 +14,10 @@
 //
 // Helper classes for easier working with the runtime reflection (RTTI etc).
 //
+// TODO: frankly, we just need a proper runtime Type class, with both
+// constant type info loaded from RTTI, and any additional generated data
+// and methods for easier/faster use.
+//
 //=============================================================================
 #ifndef __AGS_EE_SCRIPT__REFLECTHELPER_H
 #define __AGS_EE_SCRIPT__REFLECTHELPER_H

@@ -64,6 +64,8 @@ int32_t ManagedObjectPool::SubRef(int32_t handle) {
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
 
+    assert(o.refCount >= 0); // FIXME
+
     o.refCount--;
     auto newRefCount = o.refCount;
     auto canBeDisposed = (o.addr != disableDisposeForObject);

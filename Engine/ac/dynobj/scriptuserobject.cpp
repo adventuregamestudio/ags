@@ -61,19 +61,12 @@ void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, si
     }
 }
 
-int ScriptUserObject::Dispose(const char* /*address*/, bool /*force*/)
+int ScriptUserObject::Dispose(const char* address, bool force)
 {
     // Unref all managed pointers within the struct
-    if (_typeid > 0)
+    if (!force && (_typeid > 0))
     {
-        assert(ccInstance::GetRTTI()->GetTypes().size() > _typeid);
-        const auto *helper = ccInstance::GetRTTIHelper();
-        const auto fref = helper->GetManagedOffsetsForType(_typeid);
-        for (auto it = fref.first; it < fref.second; ++it)
-        {
-            int32_t handle = *(int32_t*)(_data + *it);
-            pool.SubRef(handle);
-        }
+        TraverseRefs(address, [](int handle) { pool.SubRef(handle); });
     }
 
     delete this;
@@ -117,6 +110,17 @@ void ScriptUserObject::RemapTypeids(const char* /*address*/,
     const auto it = typeid_map.find(_typeid);
     assert(it != typeid_map.end());
     _typeid = (it != typeid_map.end()) ? it->second : 0u;
+}
+
+void ScriptUserObject::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
+{
+    assert(ccInstance::GetRTTI()->GetTypes().size() > _typeid);
+    const auto *helper = ccInstance::GetRTTIHelper();
+    const auto fref = helper->GetManagedOffsetsForType(_typeid);
+    for (auto it = fref.first; it < fref.second; ++it)
+    {
+        traverse_op(*(int32_t*)(_data + *it));
+    }
 }
 
 const char* ScriptUserObject::GetFieldPtr(const char* /*address*/, intptr_t offset)

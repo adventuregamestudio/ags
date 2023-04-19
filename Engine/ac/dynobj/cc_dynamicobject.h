@@ -18,6 +18,7 @@
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
+#include <functional>
 #include <unordered_map>
 #include <utility>
 #include "core/types.h"
@@ -33,9 +34,11 @@ typedef std::pair<int32_t, void*> DynObjectRef;
 // OBJECT-BASED SCRIPTING RUNTIME FUNCTIONS
 // interface
 struct ICCDynamicObject {
-    // when a ref count reaches 0, this is called with the address
+    // When a ref count reaches 0, this is called with the address
     // of the object. Return 1 to remove the object from memory, 0 to
-    // leave it
+    // leave it.
+    // FIXME: the return value is really never used in the engine, but
+    // we cannot currently change to void without adjusting plugin API.
     // The "force" flag tells system to detach the object, breaking any links and references
     // to other managed objects or game resources (instead of disposing these too).
     // TODO: it might be better to rewrite the managed pool and remove this flag at all,
@@ -53,6 +56,13 @@ struct ICCDynamicObject {
     // Remap typeid fields using the provided map
     virtual void RemapTypeids(const char *address,
         const std::unordered_map<uint32_t, uint32_t> &typeid_map) = 0;
+
+    //
+    // Inteface of a managed object that contains references to other objects.
+    // Type of function that performs an operation over a managed handle
+    typedef std::function<void(int handle)> PfnTraverseRefOp;
+    // Traverse all managed references in this object, and run callback for each of them
+    virtual void TraverseRefs(const char *address, PfnTraverseRefOp traverse_op) = 0;
 
 
     // Legacy support for reading and writing object values by their relative offset.

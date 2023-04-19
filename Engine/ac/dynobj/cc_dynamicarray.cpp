@@ -35,44 +35,7 @@ int CCDynamicArray::Dispose(const char *address, bool force)
     // in which case just ignore these.
     if (!force)
     {
-        const Header &hdr = GetHeader(address);
-        const uint32_t type_id = hdr.TypeID & (~ARRAY_MANAGED_TYPE_FLAG);
-        bool is_managed = (hdr.TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0;
-        const RTTI::Type *ti = nullptr;
-        if (type_id > 0)
-        {
-            assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
-            ti = &ccInstance::GetRTTI()->GetTypes()[type_id];
-        }
-
-        if (is_managed)
-        { // Dynamic array of managed pointers: subref them directly
-            const uint32_t *handles = reinterpret_cast<const uint32_t*>(address);
-            for (uint32_t i = 0; i < hdr.ElemCount; ++i)
-            {
-                if (handles[i] > 0)
-                    ccReleaseObjectReference(handles[i]);
-            }
-        }
-        else if (ti && (ti->flags & RTTI::kType_Struct))
-        { // Dynamic array of regular structs that *may* contain managed pointers
-            const auto fref = ccInstance::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
-            if (fref.second > fref.first)
-            { // there are managed pointers inside!
-                const char *elem_ptr = address;
-                // For each array element...
-                const uint32_t el_size = hdr.TotalSize / hdr.ElemCount;
-                for (uint32_t i = 0; i < hdr.ElemCount; ++i, elem_ptr += el_size)
-                {
-                    // ..subref each managed pointer found inside
-                    for (auto it = fref.first; it < fref.second; ++it)
-                    {
-                        int32_t handle = *(int32_t*)(elem_ptr + *it);
-                        pool.SubRef(handle);
-                    }
-                }
-            }
-        }
+        TraverseRefs(address, [](int handle) { pool.SubRef(handle); });
     }
 
     delete[] (address - MemHeaderSz);
@@ -138,6 +101,48 @@ void CCDynamicArray::RemapTypeids(const char *address,
     const auto it = typeid_map.find(hdr.TypeID);
     assert(it != typeid_map.end());
     hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
+}
+
+void CCDynamicArray::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
+{
+    const Header &hdr = GetHeader(address);
+    const uint32_t type_id = hdr.TypeID & (~ARRAY_MANAGED_TYPE_FLAG);
+    bool is_managed = (hdr.TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0;
+    const RTTI::Type *ti = nullptr;
+    if (type_id > 0)
+    {
+        assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
+        ti = &ccInstance::GetRTTI()->GetTypes()[type_id];
+    }
+
+    // Dynamic array of managed pointers: subref them directly
+    if (is_managed)
+    {
+        const uint32_t *handles = reinterpret_cast<const uint32_t*>(address);
+        for (uint32_t i = 0; i < hdr.ElemCount; ++i)
+        {
+            traverse_op(handles[i]);
+        }
+    }
+    // Dynamic array of regular structs that *may* contain managed pointers
+    else if (ti && (ti->flags & RTTI::kType_Struct))
+    {
+        const auto fref = ccInstance::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
+        if (fref.second > fref.first)
+        { // there are managed pointers inside!
+            const char *elem_ptr = address;
+            // For each array element...
+            const uint32_t el_size = hdr.TotalSize / hdr.ElemCount;
+            for (uint32_t i = 0; i < hdr.ElemCount; ++i, elem_ptr += el_size)
+            {
+                // ..subref each managed pointer found inside
+                for (auto it = fref.first; it < fref.second; ++it)
+                {
+                    traverse_op(*(int32_t*)(elem_ptr + *it));
+                }
+            }
+        }
+    }
 }
 
 

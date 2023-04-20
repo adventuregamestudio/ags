@@ -1421,12 +1421,14 @@ static ALboolean mix_source_buffer(ALCcontext *ctx, ALsource *src, BufferQueueIt
         if (src->stream) {  /* resampling? */
             int mixframes, mixlen, remainingmixframes;
             while ( (((mixlen = SDL_AudioStreamAvailable(src->stream)) / bufferframesize) < framesneeded) && (src->offset < buffer->len) ) {
-                const int framesput = (buffer->len - src->offset) / bufferframesize;
-                const int bytesput = SDL_min(framesput, 1024) * bufferframesize;
+                const int bytesleft = (buffer->len - src->offset);
+                const int framesput = (bytesleft + (bufferframesize - 1)) / bufferframesize;
+                // [HOTFIX] ensure bytesput is positive even if remains are less than bufferframesize
+                const int bytesput = SDL_min(SDL_min(framesput, 1024) * bufferframesize, bytesleft);
                 FIXME("dynamically adjust frames here?");  /* we hardcode 1024 samples when opening the audio device, too. */
                 SDL_AudioStreamPut(src->stream, data, bytesput);
                 src->offset += bytesput;
-                data += bytesput / sizeof (float);
+                data += (bytesput + (sizeof (float) - 1)) / sizeof (float);
             }
 
             mixframes = SDL_min(mixlen / bufferframesize, framesneeded);

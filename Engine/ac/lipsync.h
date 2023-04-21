@@ -11,14 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_LIPSYNC_H
 #define __AC_LIPSYNC_H
 
+#include <vector>
+
 struct SpeechLipSyncLine {
     char  filename[14];
-    int  *endtimeoffs;
-    short*frame;
+    std::vector<int> endtimeoffs;
+    std::vector<short> frame;
     short numPhonemes;
 };
 

@@ -64,6 +64,8 @@ namespace File
     bool        DeleteFile(const String &filename);
     // Renames existing file to the new name; returns TRUE on success
     bool        RenameFile(const String &old_name, const String &new_name);
+    // Copies a file from src_path to dst_path; returns TRUE on success
+    bool        CopyFile(const String &src_path, const String &dst_path, bool overwrite);
 
     // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
     bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode);

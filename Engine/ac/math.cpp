@@ -12,33 +12,23 @@
 //
 //=============================================================================
 
-#include <cmath>
 #include "ac/math.h"
+#include <cmath>
 #include "ac/common.h" // quit
 #include "util/math.h"
 
 int FloatToInt(float value, int roundDirection)
 {
-    if (value >= 0.0) {
-        if (roundDirection == eRoundDown)
-            return static_cast<int>(value);
-        else if (roundDirection == eRoundNearest)
-            return static_cast<int>(value + 0.5);
-        else if (roundDirection == eRoundUp)
-            return static_cast<int>(value + 0.999999);
-        else
-            quit("!FloatToInt: invalid round direction");
-    }
-    else {
-        // negative number
-        if (roundDirection == eRoundUp)
-            return static_cast<int>(value); // this just truncates
-        else if (roundDirection == eRoundNearest)
-            return static_cast<int>(value - 0.5);
-        else if (roundDirection == eRoundDown)
-            return static_cast<int>(value - 0.999999);
-        else
-            quit("!FloatToInt: invalid round direction");
+    switch (roundDirection)
+    {
+    case eRoundDown:
+        return static_cast<int>(std::floor(value));
+    case eRoundUp:
+        return static_cast<int>(std::ceil(value));
+    case eRoundNearest:
+        return static_cast<int>(std::round(value));
+    default:
+        quit("!FloatToInt: invalid round direction");
     }
     return 0;
 }

@@ -32,6 +32,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_IMPORT_NEW = "ImportNewSprite";
         private const string MENU_ITEM_PASTE_NEW = "PasteNewSprite";
         private const string MENU_ITEM_NEW_FROM_PREVIOUS = "NewSpriteFromPrevious";
+        private const string MENU_ITEM_REPLACE_FROM_SOURCE_ALL = "ReplaceAllSpritesFromSource";
         private const string MENU_ITEM_EXPORT_FOLDER = "ExportFolder";
         private const string MENU_ITEM_EXPORT_FIXUP_SOURCES = "ExportFixupSources";
         private const string MENU_ITEM_SORT_BY_NUMBER = "SortSpritesByNumber";
@@ -642,6 +643,14 @@ namespace AGS.Editor
                 if (filenames.Length > 0)
                 {
                     ImportNewSprite(_currentFolder, filenames);
+                }
+            }
+            else if (item.Name == MENU_ITEM_REPLACE_FROM_SOURCE_ALL)
+            {
+                if (Factory.GUIController.ShowQuestion("This will recreate game's spritefile using sprite source files if they are available. All sprites will be updated from their sources.\n\nNOTE: sprites that don't have source file references, or which source files are missing, - will remain untouched.\n\nAre you sure you want to do this?",
+                    MessageBoxIcon.Warning) == DialogResult.Yes)
+                {
+                    Tasks.RecreateSpriteFileFromSources();
                 }
             }
             else if (item.Name == MENU_ITEM_NEW_FROM_PREVIOUS)
@@ -1319,6 +1328,8 @@ namespace AGS.Editor
                     menu.Items[menu.Items.Count - 1].Enabled = false;
                 }
             }
+
+            menu.Items.Add(new ToolStripMenuItem("Restore all sprites from sources", null, onClick, MENU_ITEM_REPLACE_FROM_SOURCE_ALL));
 
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Export all sprites...", null, onClick, MENU_ITEM_EXPORT_FOLDER));

@@ -56,7 +56,7 @@ extern int face_talking,facetalkview,facetalkwait,facetalkframe;
 extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
 extern int facetalkBlinkLoop;
 extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
-extern SpeechLipSyncLine *splipsync;
+extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern IGraphicsDriver *gfxDriver;
 

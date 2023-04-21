@@ -97,7 +97,7 @@ bool facetalk_qfg4_override_placement_y = false;
 int loops_per_character, text_lips_offset, char_speaking = -1;
 int char_thinking = -1;
 const char *text_lips_text = nullptr;
-SpeechLipSyncLine *splipsync = nullptr;
+std::vector<SpeechLipSyncLine> splipsync;
 int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
 
 // **** CHARACTER: FUNCTIONS ****
@@ -204,7 +204,7 @@ void Character_AnimateEx(CharacterInfo *chaa, int loop, int delay, int repeat,
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
-    Character_AnimateEx(chaa, loop, delay, repeat, blocking, direction, 0, -1);
+    Character_AnimateEx(chaa, loop, delay, repeat, blocking, direction, 0, 100 /* full volume */);
 }
 
 void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos) 

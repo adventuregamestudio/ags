@@ -150,7 +150,7 @@ private:
 namespace SoundHelper
 {
     // Tells bytes per sample from SDL_Audio format
-    inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format); }
+    inline size_t BytesPerSample(SDL_AudioFormat format) { return (SDL_AUDIO_BITSIZE(format) + 7) / 8; }
     // Calculate number of bytes of sound data per millisecond
     inline size_t BytesPerMs(float ms, SDL_AudioFormat format, int chans, int freq)
     {

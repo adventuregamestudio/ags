@@ -12,7 +12,7 @@ CFLAGS := -O2 -g \
     -Wno-logical-op-parentheses -Wno-unused-value \
     -Werror=write-strings -Werror=format-security -Werror=implicit-function-declaration \
     -DNDEBUG \
-    -DALLEGRO_STATICLINK \
+    -DALLEGRO_STATICLINK -DAL_LIBTYPE_STATIC \
     -DMAC_VERSION -DBUILTIN_PLUGINS -DHAVE_FSEEKO -DDISABLE_MPEG_AUDIO \
     -D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
     $(FT_CFLAGS) $(CFLAGS)

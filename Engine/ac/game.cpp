@@ -73,7 +73,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
-extern SpeechLipSyncLine *splipsync;
+extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 extern int obj_lowest_yp, char_lowest_yp;
@@ -121,17 +121,12 @@ CCDialog    ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
 ScriptString myScriptStringImpl;
-// TODO: IMPORTANT!!
-// we cannot simply replace these arrays with vectors, or other C++ containers,
-// until we implement safe management of such containers in script exports
-// system. Noteably we would need an alternate to StaticArray class to track
-// access to their elements.
 ScriptObject scrObj[MAX_ROOM_OBJECTS];
-ScriptGUI    *scrGui = nullptr;
+std::vector<ScriptGUI> scrGui;
 ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
-ScriptDialog *scrDialog;
+std::vector<ScriptDialog> scrDialog;
 
 std::vector<ViewStruct> views;
 std::vector<CharacterExtras> charextra;
@@ -365,22 +360,12 @@ static bool SetSaveGameDirectory(const FSLocation &fsdir)
         return false;
 
     // copy the Restart Game file, if applicable
-    String restartGamePath = Path::ConcatPaths(saveGameDirectory, get_save_game_filename(RESTART_POINT_SAVE_GAME_NUMBER));
-    Stream *restartGameFile = File::OpenFileRead(restartGamePath);
-    if (restartGameFile != nullptr)
+    String old_restart_path = Path::ConcatPaths(saveGameDirectory, get_save_game_filename(RESTART_POINT_SAVE_GAME_NUMBER));
+    if (File::IsFile(old_restart_path))
     {
-        long fileSize = restartGameFile->GetLength();
-        char *mbuffer = (char*)malloc(fileSize);
-        restartGameFile->Read(mbuffer, fileSize);
-        delete restartGameFile;
-
-        restartGamePath = Path::ConcatPaths(newSaveGameDir, get_save_game_filename(RESTART_POINT_SAVE_GAME_NUMBER));
-        restartGameFile = File::CreateFile(restartGamePath);
-        restartGameFile->Write(mbuffer, fileSize);
-        delete restartGameFile;
-        free(mbuffer);
+        String new_restart_path = Path::ConcatPaths(newSaveGameDir, get_save_game_filename(RESTART_POINT_SAVE_GAME_NUMBER));
+        File::CopyFile(old_restart_path, new_restart_path, true);
     }
-
     saveGameDirectory = newSaveGameDir;
     return true;
 }
@@ -506,18 +491,9 @@ void unload_game_file()
 
     views.clear();
 
-    if (splipsync != nullptr)
-    {
-        for (int i = 0; i < numLipLines; ++i)
-        {
-            free(splipsync[i].endtimeoffs);
-            free(splipsync[i].frame);
-        }
-        free(splipsync);
-        splipsync = nullptr;
-        numLipLines = 0;
-        curLipLine = -1;
-    }
+    splipsync.clear();
+    numLipLines = 0;
+    curLipLine = -1;
 
     for (auto &dlg : dialog)
     {
@@ -525,11 +501,10 @@ void unload_game_file()
             free(dlg.optionscripts);
     }
     dialog.clear();
-    delete[] scrDialog;
-    scrDialog = nullptr;
+    scrDialog.clear();
 
     guis.clear();
-    free(scrGui);
+    scrGui.clear();
 
     free_all_fonts();
 

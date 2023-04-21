@@ -101,7 +101,7 @@ bool File::TestCreateFile(const String &filename)
     if (test_file)
     {
         fclose(test_file);
-        ags_remove(filename.GetCStr());
+        ags_file_remove(filename.GetCStr());
         return true;
     }
     return false;
@@ -109,7 +109,7 @@ bool File::TestCreateFile(const String &filename)
 
 bool File::DeleteFile(const String &filename)
 {
-    if (ags_remove(filename.GetCStr()) != 0)
+    if (ags_file_remove(filename.GetCStr()) != 0)
     {
         int err;
 #if AGS_PLATFORM_OS_WINDOWS
@@ -127,7 +127,12 @@ bool File::DeleteFile(const String &filename)
 
 bool File::RenameFile(const String &old_name, const String &new_name)
 {
-    return ags_rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
+    return ags_file_rename(old_name.GetCStr(), new_name.GetCStr()) == 0;
+}
+
+bool File::CopyFile(const String &src_path, const String &dst_path, bool overwrite)
+{
+    return ags_file_copy(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
 }
 
 bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode)

@@ -27,6 +27,8 @@ namespace AGS.Editor
         public event GetAboutDialogTextHandler GetAboutDialogText;
         public delegate void ShowSpriteManagerHandler(int spriteNumber, ref bool successful);
         public event ShowSpriteManagerHandler ShowSpriteManager;
+        public delegate void SpriteImportHandler(int[] spriteNumbers);
+        public event SpriteImportHandler SpritesImported;
 
         public void OnGameSettingsChanged()
         {
@@ -108,6 +110,17 @@ namespace AGS.Editor
                 ShowSpriteManager(spriteNumber, ref successful);
             }
             return successful;
+        }
+
+        /// <summary>
+        /// Notifies components about sprites being (re)imported.
+        /// spriteNumbers either contains a list of updated sprite IDs,
+        /// but is allowed to be null, in which case we should assume that
+        /// there was a large bulk of changes to the sprite assets.
+        /// </summary>
+        public void OnSpritesImported(int[] spriteNumbers)
+        {
+            SpritesImported?.Invoke(spriteNumbers);
         }
 
         private static EditorEvents _instance;

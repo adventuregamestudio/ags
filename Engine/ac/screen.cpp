@@ -107,8 +107,7 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         delete saved_viewport_bitmap;
         saved_viewport_bitmap = clippedBuffer;
     }
-    IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap);
-    return ddb;
+    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, true);
 }
 
 //=============================================================================

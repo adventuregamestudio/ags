@@ -334,6 +334,13 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height) 
 {
+    if (width <= 0 || height <= 0)
+    {
+        debug_script_warn("WARNING: DynamicSprite.Create: invalid size %d x %d, will adjust", width, height);
+        width = std::max(1, width);
+        height = std::max(1, height);
+    }
+
     int gotSlot = spriteset.GetFreeIndex();
     if (gotSlot <= 0)
         return nullptr;

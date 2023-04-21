@@ -489,8 +489,7 @@ int ccInstance::Run(int32_t curpc)
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
     const auto timeout_abort = std::chrono::milliseconds(_timeoutAbortMs);
-    _lastAliveTs = AGS_Clock::now();
-    bool timeout_warn = false;
+    _lastAliveTs = AGS_FastClock::now();
 
     while ((flags & INSTF_ABORTED) == 0) {
         /*
@@ -853,13 +852,9 @@ int ccInstance::Run(int32_t curpc)
           // Make sure it's not stuck in a While loop
           if (arg1.IValue < 0)
           {
-              auto now = AGS_Clock::now();
-              auto test_dur = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastAliveTs);
               if (flags & INSTF_RUNNING)
               { // was notified still running, don't do anything
                   flags &= ~INSTF_RUNNING;
-                  _lastAliveTs = now;
-                  timeout_warn = false;
                   loopIterations = 0;
               }
               else if ((loopIterationCheckDisabled == 0) && (_maxWhileLoops > 0) &&
@@ -868,25 +863,14 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
                   return -1;
               }
-              else if (test_dur > timeout)
+              else if ((loopIterations % 1000) == 0 &&
+                  (std::chrono::duration_cast<std::chrono::milliseconds>(
+                      AGS_FastClock::now() - _lastAliveTs) > timeout))
               { // minimal timeout occured
-                  if ((timeout_abort.count() > 0) && (test_dur.count() > timeout_abort.count()))
-                  { // critical timeout occured
-                      /* CHECKME: disabled, because not working well
-                      if (loopIterationCheckDisabled == 0)
-                      {
-                          cc_error("!Script appears to be hung (no game update for %lld ms). The problem may be in a calling function; check the call stack.", test_dur.count());
-                          return -1;
-                      }
-                      */
-                      if (!timeout_warn)
-                      {
-                          debug_script_warn("WARNING: script execution hung? (%lld ms)", test_dur.count());
-                          timeout_warn = true;
-                      }
-                  }
+                  // NOTE: removed timeout_abort check for now: was working *logically* wrong;
                   // at least let user to manipulate the game window
                   sys_evt_process_pending();
+                  _lastAliveTs = AGS_FastClock::now();
               }
           }
           break;
@@ -1494,6 +1478,12 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
 bool ccInstance::IsBeingRun() const
 {
     return pc != 0;
+}
+
+void ccInstance::NotifyAlive()
+{
+    flags |= INSTF_RUNNING;
+    _lastAliveTs = AGS_FastClock::now();
 }
 
 bool ccInstance::_Create(PScript scri, ccInstance * joined)

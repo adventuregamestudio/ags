@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <numeric>
+#include <vector>
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/display.h"
@@ -65,7 +66,7 @@ extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
 extern ScriptString myScriptStringImpl;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
-extern ScriptGUI    *scrGui;
+extern std::vector<ScriptGUI> scrGui;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
@@ -89,7 +90,7 @@ extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 
 // Lipsync
-extern SpeechLipSyncLine *splipsync;
+extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 StaticArray StaticCharacterArray;
@@ -188,7 +189,7 @@ void InitAndRegisterCharacters(const LoadedGameEntities &ents)
 // Initializes dialog and registers them in the script system
 void InitAndRegisterDialogs(const GameSetupStruct &game)
 {
-    scrDialog = new ScriptDialog[game.numdialog];
+    scrDialog.resize(std::max(1, game.numdialog)); // ensure at least 1 element, we must register buffer
     for (int i = 0; i < game.numdialog; ++i)
     {
         scrDialog[i].id = i;
@@ -214,7 +215,7 @@ void InitAndRegisterDialogOptions()
 // Initializes gui and registers them in the script system
 HError InitAndRegisterGUI(const GameSetupStruct &game)
 {
-    scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
+    scrGui.resize(std::max(1, game.numgui)); // ensure at least 1 element, we must register buffer
     for (int i = 0; i < game.numgui; ++i)
     {
         scrGui[i].id = -1;
@@ -391,15 +392,15 @@ void LoadLipsyncData()
     }
     else {
         numLipLines = speechsync->ReadInt32();
-        splipsync = (SpeechLipSyncLine*)malloc(sizeof(SpeechLipSyncLine) * numLipLines);
+        splipsync.resize(numLipLines);
         for (int ee = 0; ee < numLipLines; ee++)
         {
             splipsync[ee].numPhonemes = speechsync->ReadInt16();
             speechsync->Read(splipsync[ee].filename, 14);
-            splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhonemes * sizeof(int));
-            speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhonemes);
-            splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhonemes * sizeof(short));
-            speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhonemes);
+            splipsync[ee].endtimeoffs.resize(splipsync[ee].numPhonemes);
+            speechsync->ReadArrayOfInt32(&splipsync[ee].endtimeoffs.front(), splipsync[ee].numPhonemes);
+            splipsync[ee].frame.resize(splipsync[ee].numPhonemes);
+            speechsync->ReadArrayOfInt16(&splipsync[ee].frame.front(), splipsync[ee].numPhonemes);
         }
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
@@ -512,7 +513,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // NOTE: we must do this before plugin start, because some plugins may
     // require access to script API at initialization time.
     //
-    ccSetScriptAliveTimer(10u, 1000u, 150000u);
+    ccSetScriptAliveTimer(1000 / 60u, 1000u, 150000u);
     ccSetStringClassImpl(&myScriptStringImpl);
     setup_script_exports(base_api, compat_api);
 

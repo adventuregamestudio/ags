@@ -925,7 +925,7 @@ builtin managed struct InventoryItem {
 
 builtin managed struct Overlay {
   /// Creates an overlay that displays a sprite.
-  import static Overlay* CreateGraphical(int x, int y, int slot, bool transparent = true
+  import static Overlay* CreateGraphical(int x, int y, int slot
 #ifdef SCRIPT_API_v360
 	, bool clone = false
 #endif
@@ -944,7 +944,7 @@ builtin managed struct Overlay {
   import attribute int Y;
 #ifdef SCRIPT_API_v360
   /// Creates an overlay that displays a sprite inside the room.
-  import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool transparent = true, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateRoomGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
   /// Creates an overlay that displays some text inside the room.
   import static Overlay* CreateRoomTextual(int x, int y, int width, FontType, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
   /// Gets whether this overlay is located inside the room, as opposed to the screen layer.

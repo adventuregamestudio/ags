@@ -32,9 +32,9 @@ void Overlay_SetX(ScriptOverlay *scover, int newx);
 int  Overlay_GetY(ScriptOverlay *scover);
 void Overlay_SetY(ScriptOverlay *scover, int newy);
 int  Overlay_GetValid(ScriptOverlay *scover);
-ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent);
-ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
-ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool transparent, bool clone);
+ScriptOverlay* Overlay_CreateGraphical(bool room_layer, int x, int y, int slot, bool clone);
+ScriptOverlay* Overlay_CreateTextual(bool room_layer, int x, int y, int width, int font, int colour, const char* text);
+ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone);
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
     const char *text, int disp_type, int allow_shrink);
 
@@ -43,8 +43,6 @@ void remove_screen_overlay(int type);
 // Calculates overlay position in its respective layer (screen or room)
 Point get_overlay_position(const ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
-size_t add_screen_overlay(int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy,
-    bool alphaChannel = false, Common::BlendMode blendMode = Common::kBlend_Normal);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy);
 // Creates and registers a managed script object for existing overlay object;

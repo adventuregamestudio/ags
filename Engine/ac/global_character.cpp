@@ -25,7 +25,6 @@
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_overlay.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
@@ -251,6 +250,17 @@ void lose_inventory(int inum) {
 // **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
     _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
+}
+
+// [DEPRECATED] left only for use in Display, replace/merge with modern function
+static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char* text, int disp_type) {
+    int allowShrink = 0;
+
+    if (xx == OVR_AUTOPLACE) // allow DisplaySpeechBackground to be shrunk
+        allowShrink = 1;
+
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, disp_type, allowShrink);
+    return over ? over->type : 0;
 }
 
 // [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances

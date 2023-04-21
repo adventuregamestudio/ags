@@ -41,7 +41,6 @@
 #include "ac/global_listbox.h"
 #include "ac/global_mouse.h"
 #include "ac/global_object.h"
-#include "ac/global_overlay.h"
 #include "ac/global_palette.h"
 #include "ac/global_region.h"
 #include "ac/global_room.h"
@@ -106,21 +105,6 @@ extern RuntimeScriptValue Sc_ChangeCursorHotspot(const RuntimeScriptValue *param
 RuntimeScriptValue Sc_ClaimEvent(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(ClaimEvent);
-}
-
-// int (int xx,int yy,int slott,int trans)
-RuntimeScriptValue Sc_CreateGraphicOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT4(CreateGraphicOverlay);
-}
-
-// int (int xx,int yy,int wii,int fontid,int clr,char*texx, ...)
-RuntimeScriptValue Sc_CreateTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_SCRIPT_SPRINTF(CreateTextOverlay, 6);
-    return RuntimeScriptValue().SetInt32(
-        CreateTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue,
-            params[3].IValue, params[4].IValue, scsf_buffer, DISPLAYTEXT_NORMALOVERLAY));
 }
 
 // void (int strt,int eend)
@@ -772,12 +756,6 @@ RuntimeScriptValue Sc_IsObjectOn(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_PINT(IsObjectOn);
 }
 
-// int (int ovrid)
-RuntimeScriptValue Sc_IsOverlayValid(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsOverlayValid);
-}
-
 // int ()
 RuntimeScriptValue Sc_IsSoundPlaying(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -898,12 +876,6 @@ RuntimeScriptValue Sc_MoveObjectDirect(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT4(MoveObjectDirect);
 }
 
-// void (int ovrid, int newx,int newy)
-RuntimeScriptValue Sc_MoveOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(MoveOverlay);
-}
-
 // void (int obn)
 RuntimeScriptValue Sc_ObjectOff(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -996,12 +968,6 @@ extern RuntimeScriptValue Sc_RefreshMouse(const RuntimeScriptValue *params, int3
 RuntimeScriptValue Sc_RemoveObjectTint(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(RemoveObjectTint);
-}
-
-// void (int ovrid)
-RuntimeScriptValue Sc_RemoveOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(RemoveOverlay);
 }
 
 // void (int areanum)
@@ -1440,15 +1406,6 @@ RuntimeScriptValue Sc_SetTextBoxText(const RuntimeScriptValue *params, int32_t p
     API_SCALL_VOID_PINT2_POBJ(SetTextBoxText, const char);
 }
 
-// void (int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...)
-RuntimeScriptValue Sc_SetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_SCRIPT_SPRINTF(SetTextOverlay, 7);
-    SetTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue,
-                   params[4].IValue, params[5].IValue, scsf_buffer);
-    return RuntimeScriptValue((int32_t)0);
-}
-
 // void  (int guinum)
 RuntimeScriptValue Sc_SetTextWindowGUI(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1627,13 +1584,6 @@ void ScPl_sc_AbortGame(const char *texx, ...)
     _sc_AbortGame(scsf_buffer);
 }
 
-// int (int xx,int yy,int wii,int fontid,int clr,char*texx, ...)
-int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *texx, ...)
-{
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
-    return CreateTextOverlay(xx, yy, wii, fontid, clr, scsf_buffer, DISPLAYTEXT_NORMALOVERLAY);
-}
-
 // void (char*texx, ...)
 void ScPl_Display(char *texx, ...)
 {
@@ -1655,13 +1605,6 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
     DisplayTopBar(ypos, ttexcol, backcol, title, scsf_buffer);
 }
 
-// void (int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...)
-void ScPl_SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int clr, char*texx,...)
-{
-    API_PLUGIN_SCRIPT_SPRINTF(texx);
-    SetTextOverlay(ovrid, xx, yy, wii, fontid, clr, scsf_buffer);
-}
-
 
 void RegisterGlobalAPI()
 {
@@ -1673,8 +1616,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("ChangeCursorGraphic",      Sc_ChangeCursorGraphic);
 	ccAddExternalStaticFunction("ChangeCursorHotspot",      Sc_ChangeCursorHotspot);
 	ccAddExternalStaticFunction("ClaimEvent",               Sc_ClaimEvent);
-	ccAddExternalStaticFunction("CreateGraphicOverlay",     Sc_CreateGraphicOverlay);
-	ccAddExternalStaticFunction("CreateTextOverlay",        Sc_CreateTextOverlay);
 	ccAddExternalStaticFunction("CyclePalette",             Sc_CyclePalette);
 	ccAddExternalStaticFunction("Debug",                    Sc_script_debug);
 	ccAddExternalStaticFunction("DeleteSaveSlot",           Sc_DeleteSaveSlot);
@@ -1787,7 +1728,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("IsObjectAnimating",        Sc_IsObjectAnimating);
 	ccAddExternalStaticFunction("IsObjectMoving",           Sc_IsObjectMoving);
 	ccAddExternalStaticFunction("IsObjectOn",               Sc_IsObjectOn);
-	ccAddExternalStaticFunction("IsOverlayValid",           Sc_IsOverlayValid);
 	ccAddExternalStaticFunction("IsSoundPlaying",           Sc_IsSoundPlaying);
 	ccAddExternalStaticFunction("IsTimerExpired",           Sc_IsTimerExpired);
 	ccAddExternalStaticFunction("IsTranslationAvailable",   Sc_IsTranslationAvailable);
@@ -1808,7 +1748,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("MoveCharacterToHotspot",   Sc_MoveCharacterToHotspot);
 	ccAddExternalStaticFunction("MoveObject",               Sc_MoveObject);
 	ccAddExternalStaticFunction("MoveObjectDirect",         Sc_MoveObjectDirect);
-	ccAddExternalStaticFunction("MoveOverlay",              Sc_MoveOverlay);
 	ccAddExternalStaticFunction("ObjectOff",                Sc_ObjectOff);
 	ccAddExternalStaticFunction("ObjectOn",                 Sc_ObjectOn);
 	ccAddExternalStaticFunction("PauseGame",                Sc_PauseGame);
@@ -1825,7 +1764,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
 	ccAddExternalStaticFunction("RefreshMouse",             Sc_RefreshMouse);
 	ccAddExternalStaticFunction("RemoveObjectTint",         Sc_RemoveObjectTint);
-	ccAddExternalStaticFunction("RemoveOverlay",            Sc_RemoveOverlay);
 	ccAddExternalStaticFunction("RemoveWalkableArea",       Sc_RemoveWalkableArea);
 	ccAddExternalStaticFunction("ResetRoom",                Sc_ResetRoom);
 	ccAddExternalStaticFunction("RestartGame",              Sc_restart_game);
@@ -1906,7 +1844,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetSpeechVolume",          Sc_SetSpeechVolume);
 	ccAddExternalStaticFunction("SetTextBoxFont",           Sc_SetTextBoxFont);
 	ccAddExternalStaticFunction("SetTextBoxText",           Sc_SetTextBoxText);
-	ccAddExternalStaticFunction("SetTextOverlay",           Sc_SetTextOverlay);
 	ccAddExternalStaticFunction("SetTextWindowGUI",         Sc_SetTextWindowGUI);
 	ccAddExternalStaticFunction("SetTimer",                 Sc_script_SetTimer);
 	ccAddExternalStaticFunction("SetWalkBehindBase",        Sc_SetWalkBehindBase);
@@ -1944,8 +1881,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("ChangeCursorGraphic",      (void*)ChangeCursorGraphic);
     ccAddExternalFunctionForPlugin("ChangeCursorHotspot",      (void*)ChangeCursorHotspot);
     ccAddExternalFunctionForPlugin("ClaimEvent",               (void*)ClaimEvent);
-    ccAddExternalFunctionForPlugin("CreateGraphicOverlay",     (void*)CreateGraphicOverlay);
-    ccAddExternalFunctionForPlugin("CreateTextOverlay",        (void*)ScPl_CreateTextOverlay);
     ccAddExternalFunctionForPlugin("CyclePalette",             (void*)CyclePalette);
     ccAddExternalFunctionForPlugin("Debug",                    (void*)script_debug);
     ccAddExternalFunctionForPlugin("DeleteSaveSlot",           (void*)DeleteSaveSlot);
@@ -2054,7 +1989,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("IsObjectAnimating",        (void*)IsObjectAnimating);
     ccAddExternalFunctionForPlugin("IsObjectMoving",           (void*)IsObjectMoving);
     ccAddExternalFunctionForPlugin("IsObjectOn",               (void*)IsObjectOn);
-    ccAddExternalFunctionForPlugin("IsOverlayValid",           (void*)IsOverlayValid);
     ccAddExternalFunctionForPlugin("IsSoundPlaying",           (void*)IsSoundPlaying);
     ccAddExternalFunctionForPlugin("IsTimerExpired",           (void*)IsTimerExpired);
     ccAddExternalFunctionForPlugin("IsTranslationAvailable",   (void*)IsTranslationAvailable);
@@ -2075,7 +2009,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("MoveCharacterToHotspot",   (void*)MoveCharacterToHotspot);
     ccAddExternalFunctionForPlugin("MoveObject",               (void*)MoveObject);
     ccAddExternalFunctionForPlugin("MoveObjectDirect",         (void*)MoveObjectDirect);
-    ccAddExternalFunctionForPlugin("MoveOverlay",              (void*)MoveOverlay);
     ccAddExternalFunctionForPlugin("ObjectOff",                (void*)ObjectOff);
     ccAddExternalFunctionForPlugin("ObjectOn",                 (void*)ObjectOn);
     ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
@@ -2093,7 +2026,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("Random",                   (void*)__Rand);
     ccAddExternalFunctionForPlugin("RefreshMouse",             (void*)RefreshMouse);
     ccAddExternalFunctionForPlugin("RemoveObjectTint",         (void*)RemoveObjectTint);
-    ccAddExternalFunctionForPlugin("RemoveOverlay",            (void*)RemoveOverlay);
     ccAddExternalFunctionForPlugin("RemoveWalkableArea",       (void*)RemoveWalkableArea);
     ccAddExternalFunctionForPlugin("ResetRoom",                (void*)ResetRoom);
     ccAddExternalFunctionForPlugin("RestartGame",              (void*)restart_game);
@@ -2173,7 +2105,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetSpeechVolume",          (void*)SetSpeechVolume);
     ccAddExternalFunctionForPlugin("SetTextBoxFont",           (void*)SetTextBoxFont);
     ccAddExternalFunctionForPlugin("SetTextBoxText",           (void*)SetTextBoxText);
-    ccAddExternalFunctionForPlugin("SetTextOverlay",           (void*)ScPl_SetTextOverlay);
     ccAddExternalFunctionForPlugin("SetTextWindowGUI",         (void*)SetTextWindowGUI);
     ccAddExternalFunctionForPlugin("SetTimer",                 (void*)script_SetTimer);
     ccAddExternalFunctionForPlugin("SetWalkBehindBase",        (void*)SetWalkBehindBase);

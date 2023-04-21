@@ -21,7 +21,6 @@
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_overlay.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
@@ -185,6 +184,13 @@ void Overlay_SetHeight(ScriptOverlay *scover, int height) {
     if (ovri < 0)
         quit("!invalid overlay ID specified");
     Overlay_SetScaledSize(screenover[ovri], screenover[ovri].scaleWidth, height);
+}
+
+static int IsOverlayValid(int ovrid) {
+    if (find_overlay_of_type(ovrid) < 0)
+        return 0;
+
+    return 1;
 }
 
 int Overlay_GetValid(ScriptOverlay *scover) {

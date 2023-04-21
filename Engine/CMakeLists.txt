@@ -163,8 +163,6 @@ target_sources(engine
     ac/global_mouse.h
     ac/global_object.cpp
     ac/global_object.h
-    ac/global_overlay.cpp
-    ac/global_overlay.h
     ac/global_palette.cpp
     ac/global_palette.h
     ac/global_plugin.h

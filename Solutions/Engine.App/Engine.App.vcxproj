@@ -516,7 +516,6 @@
     <ClCompile Include="..\..\Engine\ac\global_listbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_mouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_object.cpp" />
-    <ClCompile Include="..\..\Engine\ac\global_overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_palette.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_region.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_room.cpp" />
@@ -771,7 +770,6 @@
     <ClInclude Include="..\..\Engine\ac\global_listbox.h" />
     <ClInclude Include="..\..\Engine\ac\global_mouse.h" />
     <ClInclude Include="..\..\Engine\ac\global_object.h" />
-    <ClInclude Include="..\..\Engine\ac\global_overlay.h" />
     <ClInclude Include="..\..\Engine\ac\global_palette.h" />
     <ClInclude Include="..\..\Engine\ac\global_plugin.h" />
     <ClInclude Include="..\..\Engine\ac\global_region.h" />

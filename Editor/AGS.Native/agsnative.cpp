@@ -2353,7 +2353,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->BackwardsText = (thisgame.options[OPT_RIGHTLEFTWRITE] != 0);
 	game->Settings->ColorDepth = (GameColorDepth)thisgame.color_depth;
 	game->Settings->CompressSpritesType = (SpriteCompression)thisgame.options[OPT_COMPRESSSPRITES];
-	game->Settings->CrossfadeMusic = (CrossfadeSpeed)thisgame.options[OPT_CROSSFADEMUSIC];
 	game->Settings->DebugMode = (thisgame.options[OPT_DEBUGMODE] != 0);
 	game->Settings->DialogOptionsBackwards = (thisgame.options[OPT_DIALOGUPWARDS] != 0);
 	game->Settings->DialogOptionsGap = thisgame.options[OPT_DIALOGGAP];

@@ -129,9 +129,6 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
 {
     // Save the game audio parameters, in case we stop these
     int musplaying = play.cur_music_number, i;
-    int ambientWas[MAX_GAME_CHANNELS]{0};
-    for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
-        ambientWas[i] = ambient[i].channel;
 
     // Optionally stop the game audio
     if ((flags & kVideo_KeepGameAudio) == 0)
@@ -147,10 +144,8 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
     // Restore the game audio if we stopped them before the video playback
     if ((flags & kVideo_KeepGameAudio) == 0)
     {
-        for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++) {
-            if (ambientWas[i] > 0)
-                PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);
-        }
+        // TODO: the sound restoration here was based on legacy AmbientSound system
+        // need to reimplement using modern one? need to investigate how it worked before
     }
 }
 

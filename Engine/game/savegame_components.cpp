@@ -362,9 +362,17 @@ HSaveError WriteAudio(Stream *out)
     out->WriteInt32(0);
     out->WriteInt32(0); // DEPRECATED current_music_type
 
-    // Ambient sound
+    // Skip legacy Ambient sounds
+    // FIXME: CLNUP save format?
     for (int i = 0; i < game.numGameChannels; ++i)
-        ambient[i].WriteToFile(out);
+    {
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+    }
     return HSaveError::None();
 }
 
@@ -429,20 +437,16 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
     in->ReadInt32();
     in->ReadInt32(); // DEPRECATED current_music_type
     
-    // Ambient sound
+    // Skip legacy Ambient sounds
+    // FIXME: CLNUP save format?
     for (int i = 0; i < max_game_channels; ++i)
-        ambient[i].ReadFromFile(in);
-    for (int i = NUM_SPEECH_CHANS; i < max_game_channels; ++i)
     {
-        if (ambient[i].channel == 0)
-        {
-            r_data.DoAmbient[i] = 0;
-        }
-        else
-        {
-            r_data.DoAmbient[i] = ambient[i].num;
-            ambient[i].channel = 0;
-        }
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
     }
     return err;
 }

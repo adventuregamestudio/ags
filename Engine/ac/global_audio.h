@@ -16,8 +16,6 @@
 
 #include "speech.h"
 
-void    StopAmbientSound (int channel);
-void    PlayAmbientSound (int channel, int sndnum, int vol, int x, int y);
 int     IsChannelPlaying(int chan);
 void    StopAllSounds(int evenAmbient);
 

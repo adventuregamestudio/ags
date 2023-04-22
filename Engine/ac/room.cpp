@@ -239,11 +239,6 @@ void unload_old_room() {
     for (uint32_t ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
-    if (!play.ambient_sounds_persist) {
-        for (int ff = NUM_SPEECH_CHANS; ff < game.numGameChannels; ff++)
-            StopAmbientSound(ff);
-    }
-
     cancel_all_scripts();
     events.clear();  // cancel any pending room events
 

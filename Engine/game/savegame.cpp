@@ -111,7 +111,6 @@ RestoredData::RestoredData()
     memset(RoomTintLevels, 0, sizeof(RoomTintLevels));
     memset(RoomZoomLevels1, 0, sizeof(RoomZoomLevels1));
     memset(RoomZoomLevels2, 0, sizeof(RoomZoomLevels2));
-    memset(DoAmbient, 0, sizeof(DoAmbient));
 }
 
 String GetSavegameErrorText(SavegameErrorType err)
@@ -587,11 +586,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         }
     }
 
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
-    {
-        if (r_data.DoAmbient[i])
-            PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
-    }
     update_directional_sound_vol();
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);

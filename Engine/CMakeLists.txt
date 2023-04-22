@@ -372,8 +372,6 @@ target_sources(engine
     main/quit.h
     main/update.cpp
     main/update.h
-    media/audio/ambientsound.cpp
-    media/audio/ambientsound.h
     media/audio/audio_core.cpp
     media/audio/audio_core.h
     media/audio/audio.cpp

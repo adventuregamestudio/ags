@@ -585,9 +585,6 @@
     <ClCompile Include="..\..\Engine\script\systemimports.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp">
-      <Filter>Source Files\media\audio</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\audio.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
@@ -1252,9 +1249,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h">
       <Filter>Header Files\platform\base</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\media\audio\ambientsound.h">
-      <Filter>Header Files\media\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audio.h">
       <Filter>Header Files\media\audio</Filter>

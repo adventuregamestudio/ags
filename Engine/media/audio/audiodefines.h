@@ -57,4 +57,7 @@ inline bool IsPlaybackDone(PlaybackState state)
 // Fixed audio channel ID used for speech
 #define SCHAN_SPEECH              0
 
+// Used in locational sounds (FIXME: rename)
+#define AMBIENCE_FULL_DIST 25
+
 #endif // __AC_AUDIODEFINES_H

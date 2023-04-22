@@ -38,58 +38,6 @@ extern RoomStruct thisroom;
 extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
-void StopAmbientSound (int channel) {
-    if ((channel < NUM_SPEECH_CHANS) || (channel >= game.numGameChannels))
-        quitprintf("!StopAmbientSound: invalid channel %d, supported %d - %d",
-            channel, NUM_SPEECH_CHANS, MAX_GAME_CHANNELS - 1);
-
-    if (ambient[channel].channel == 0)
-        return;
-
-    stop_and_destroy_channel(channel);
-    ambient[channel].channel = 0;
-}
-
-void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
-    // the channel parameter is to allow multiple ambient sounds in future
-    if ((channel < 1) || (channel == SCHAN_SPEECH) || (channel >= game.numGameChannels))
-        quit("!PlayAmbientSound: invalid channel number");
-    if ((vol < 1) || (vol > 255))
-        quit("!PlayAmbientSound: volume must be 1 to 255");
-
-    ScriptAudioClip *aclip = nullptr;
-    if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
-        return;
-
-    // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (!AudioChans::ChannelIsPlaying(ambient[channel].channel)) ||
-        (ambient[channel].num != sndnum)) {
-
-            StopAmbientSound(channel);
-            // in case a normal non-ambient sound was playing, stop it too
-            stop_and_destroy_channel(channel);
-
-            SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : nullptr;
-            if (asound == nullptr) {
-                debug_script_warn ("Cannot load ambient sound %d", sndnum);
-                debug_script_log("FAILED to load ambient sound %d", sndnum);
-                return;
-            }
-
-            debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
-            ambient[channel].channel = channel;
-            asound->priority = 15;  // ambient sound higher priority than normal sfx
-            AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(asound));
-    }
-    // calculate the maximum distance away the player can be, using X
-    // only (since X centred is still more-or-less total Y)
-    ambient[channel].maxdist = ((x > thisroom.Width / 2) ? x : (thisroom.Width - x)) - AMBIENCE_FULL_DIST;
-    ambient[channel].num = sndnum;
-    ambient[channel].x = x;
-    ambient[channel].y = y;
-    ambient[channel].vol = vol;
-    update_ambient_sound_vol();
-}
 
 int IsChannelPlaying(int chan) {
     if (play.fast_forward)
@@ -163,12 +111,7 @@ void SetChannelVolume(int chan, int newvol) {
     auto* ch = AudioChans::GetChannelIfPlaying(chan);
 
     if (ch) {
-        if (chan == ambient[chan].channel) {
-            ambient[chan].vol = newvol;
-            update_ambient_sound_vol();
-        }
-        else
-            ch->set_volume255(newvol);
+        ch->set_volume255(newvol);
     }
 }
 
@@ -305,7 +248,6 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
     else
         play.music_master_volume -= play.speech_music_drop;
     apply_volume_drop_modifier(true);
-    update_ambient_sound_vol();
     return true;
 }
 

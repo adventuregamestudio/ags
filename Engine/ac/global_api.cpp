@@ -871,12 +871,6 @@ RuntimeScriptValue Sc_PauseGame(const RuntimeScriptValue *params, int32_t param_
     API_SCALL_VOID(PauseGame);
 }
 
-// void  (int channel, int sndnum, int vol, int x, int y)
-RuntimeScriptValue Sc_PlayAmbientSound(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT5(PlayAmbientSound);
-}
-
 // void (int numb,int playflags)
 RuntimeScriptValue Sc_play_flc_file(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1368,12 +1362,6 @@ RuntimeScriptValue Sc_scStartRecording(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT(scStartRecording);
 }
 
-// void  (int channel)
-RuntimeScriptValue Sc_StopAmbientSound(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(StopAmbientSound);
-}
-
 // void  (int chid) 
 RuntimeScriptValue Sc_stop_and_destroy_channel(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1644,7 +1632,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("ObjectOff",                Sc_ObjectOff);
 	ccAddExternalStaticFunction("ObjectOn",                 Sc_ObjectOn);
 	ccAddExternalStaticFunction("PauseGame",                Sc_PauseGame);
-	ccAddExternalStaticFunction("PlayAmbientSound",         Sc_PlayAmbientSound);
 	ccAddExternalStaticFunction("PlayFlic",                 Sc_play_flc_file);
 	ccAddExternalStaticFunction("PlayMusicQueued",          Sc_PlayMusicQueued);
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
@@ -1735,7 +1722,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SkipUntilCharacterStops",  Sc_SkipUntilCharacterStops);
 	ccAddExternalStaticFunction("StartCutscene",            Sc_StartCutscene);
 	ccAddExternalStaticFunction("StartRecording",           Sc_scStartRecording);
-	ccAddExternalStaticFunction("StopAmbientSound",         Sc_StopAmbientSound);
 	ccAddExternalStaticFunction("StopChannel",              Sc_stop_and_destroy_channel);
 	ccAddExternalStaticFunction("StopDialog",               Sc_StopDialog);
 	ccAddExternalStaticFunction("StopMoving",               Sc_StopMoving);
@@ -1888,7 +1874,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("ObjectOff",                (void*)ObjectOff);
     ccAddExternalFunctionForPlugin("ObjectOn",                 (void*)ObjectOn);
     ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
-    ccAddExternalFunctionForPlugin("PlayAmbientSound",         (void*)PlayAmbientSound);
     ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)PlayFlic);
     ccAddExternalFunctionForPlugin("PlayMusicQueued",          (void*)PlayMusicQueued);
     ccAddExternalFunctionForPlugin("PlayVideo",                (void*)PlayVideo);
@@ -1978,7 +1963,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SkipUntilCharacterStops",  (void*)SkipUntilCharacterStops);
     ccAddExternalFunctionForPlugin("StartCutscene",            (void*)StartCutscene);
     ccAddExternalFunctionForPlugin("StartRecording",           (void*)scStartRecording);
-    ccAddExternalFunctionForPlugin("StopAmbientSound",         (void*)StopAmbientSound);
     ccAddExternalFunctionForPlugin("StopChannel",              (void*)stop_and_destroy_channel);
     ccAddExternalFunctionForPlugin("StopDialog",               (void*)StopDialog);
     ccAddExternalFunctionForPlugin("StopMoving",               (void*)StopMoving);

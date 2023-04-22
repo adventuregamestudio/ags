@@ -628,7 +628,6 @@
     <ClCompile Include="..\..\Engine\main\main_sdl2.cpp" />
     <ClCompile Include="..\..\Engine\main\quit.cpp" />
     <ClCompile Include="..\..\Engine\main\update.cpp" />
-    <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp" />
@@ -888,7 +887,6 @@
     <ClInclude Include="..\..\Engine\main\main.h" />
     <ClInclude Include="..\..\Engine\main\quit.h" />
     <ClInclude Include="..\..\Engine\main\update.h" />
-    <ClInclude Include="..\..\Engine\media\audio\ambientsound.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />

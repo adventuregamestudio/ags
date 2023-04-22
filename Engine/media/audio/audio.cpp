@@ -509,13 +509,6 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
         play.crossfading_out_channel = 0;
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
 
-    // destroyed an ambient sound channel
-    if (chid < game.numGameChannels)
-    {
-        if (ambient[chid].channel > 0)
-            ambient[chid].channel = 0;
-    }
-
     if ((false) && (resetLegacyMusicSettings))
     {
         play.cur_music_number = -1;
@@ -536,8 +529,6 @@ void export_missing_audiochans()
             ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
     }
 }
-
-std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {
@@ -574,48 +565,6 @@ void update_directional_sound_vol()
                     ch->maximumPossibleDistanceAway) -
                 ch->get_volume255());
         }
-    }
-}
-
-void update_ambient_sound_vol ()
-{
-    for (int chan = NUM_SPEECH_CHANS; chan < game.numGameChannels; chan++) {
-
-        AmbientSound *thisSound = &ambient[chan];
-
-        if (thisSound->channel == 0)
-            continue;
-
-        int sourceVolume = thisSound->vol;
-
-        if (play.speech_has_voice) {
-            // Negative value means set exactly; positive means drop that amount
-            if (play.speech_music_drop < 0)
-                sourceVolume = -play.speech_music_drop;
-            else
-                sourceVolume -= play.speech_music_drop;
-
-            if (sourceVolume < 0)
-                sourceVolume = 0;
-            if (sourceVolume > 255)
-                sourceVolume = 255;
-        }
-
-        // Adjust ambient volume so it maxes out at overall sound volume
-        int ambientvol = (sourceVolume * play.sound_volume) / 255;
-
-        int wantvol;
-
-        if ((thisSound->x == 0) && (thisSound->y == 0)) {
-            wantvol = ambientvol;
-        }
-        else {
-            wantvol = get_volume_adjusted_for_distance(ambientvol, thisSound->x, thisSound->y, thisSound->maxdist);
-        }
-
-        auto *ch = AudioChans::GetChannelIfPlaying(thisSound->channel);
-        if (ch)
-            ch->set_volume255(wantvol);
     }
 }
 
@@ -681,7 +630,6 @@ void process_scheduled_music_update() {
     if (music_update_at > AGS_Clock::now()) { return; }
     cancel_scheduled_music_update();
     apply_volume_drop_modifier(false);
-    update_ambient_sound_vol();
 }
 // end scheduled music update functions
 //=============================================================================
@@ -801,7 +749,6 @@ void update_audio_system_on_game_loop ()
 
     if (loopcounter % 5 == 0) // TODO: investigate why we do this each 5 frames?
     {
-        update_ambient_sound_vol();
         update_directional_sound_vol();
     }
 

@@ -19,7 +19,6 @@
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
-#include "media/audio/ambientsound.h"
 #include "ac/timer.h"
 
 class SOUNDCLIP;
@@ -70,7 +69,6 @@ void        export_missing_audiochans();
 
 int         get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist);
 void        update_directional_sound_vol();
-void        update_ambient_sound_vol ();
 // Tells if the audio type is allowed to play with regards to current sound config
 bool        is_audiotype_allowed_to_play(AudioFileType type);
 // Loads sound data referenced by audio clip item, and starts playback;
@@ -95,7 +93,5 @@ extern void schedule_music_update_at(AGS_Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
 
 extern SOUNDCLIP *cachedQueuedMusic;
-
-extern std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 
 #endif // __AGS_EE_MEDIA__AUDIO_H__

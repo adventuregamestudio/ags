@@ -392,6 +392,8 @@ private:
     // - this lets to share same texture data among multiple sprites on screen.
     // TextureCacheItem stores weak references to the existing texture tiles,
     // identified by an arbitrary uint32 number.
+    // TODO: a curious topic to consider: reuse released TextureData for
+    // textures of the same size (research potential performance impact).
     struct TextureCacheItem
     {
         GraphicResolution Res;

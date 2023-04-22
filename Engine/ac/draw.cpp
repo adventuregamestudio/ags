@@ -159,7 +159,7 @@ struct ObjectCache
 
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);
-// objects sprites begin with index 0, characters are after MAX_ROOM_OBJECTS
+// objects sprites begin with index 0, characters are after ACTSP_OBJSOFF
 std::vector<ObjTexture> actsps;
 // Walk-behind textures (3D renderers only)
 std::vector<ObjTexture> walkbehindobj;
@@ -842,7 +842,7 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
         if (charcache[i].sppic == sprnum)
             charcache[i].sppic = -1;
         if (deleted && (actsps[ACTSP_OBJSOFF + i].SpriteID == sprnum))
-            actsps[i].SpriteID = UINT32_MAX; // invalid sprite ref
+            actsps[ACTSP_OBJSOFF + i].SpriteID = UINT32_MAX; // invalid sprite ref
     }
 }
 

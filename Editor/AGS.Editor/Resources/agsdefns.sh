@@ -565,8 +565,6 @@ builtin managed struct ViewFrame {
   import attribute AudioClip* LinkedAudio;
   /// Gets the loop number of this frame.
   readonly import attribute int Loop;
-  /// Gets/sets the sound that is played when this frame comes around.
-  import attribute int Sound;    // $AUTOCOMPLETEIGNORE$
   /// Gets the delay of this frame.
   readonly import attribute int Speed;
   /// Gets the view number that this frame is part of.

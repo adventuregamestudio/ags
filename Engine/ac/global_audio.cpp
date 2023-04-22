@@ -57,7 +57,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     if ((vol < 1) || (vol > 255))
         quit("!PlayAmbientSound: volume must be 1 to 255");
 
-    ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, sndnum);
+    ScriptAudioClip *aclip = nullptr;
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return;
 
@@ -148,7 +148,7 @@ int PlayMusicQueued(int musnum) {
 
         clear_music_cache();
 
-        cachedQueuedMusic = load_music_from_disk(musnum, (play.music_repeat > 0));
+        cachedQueuedMusic = nullptr;
     }
 
     return play.music_queue_size;

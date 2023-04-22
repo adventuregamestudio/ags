@@ -614,11 +614,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         first_room_initialization();
     }
 
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == nullptr))
-    {
-        cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
-    }
-
     set_game_speed(r_data.FPS);
 
     return HSaveError::None();

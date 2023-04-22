@@ -537,40 +537,6 @@ void export_missing_audiochans()
     }
 }
 
-
-
-// ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
-
-int get_old_style_number_for_sound(int sound_number)
-{
-    int audio_clip_id = 0;
-
-    audio_clip_id = sound_number;
-
-    // Treat sound_number as a real clip index
-    if (sound_number >= 0)
-    {
-        int old_style_number = 0;
-        if (sscanf(game.audioClips[sound_number].scriptName.GetCStr(), "aSound%d", &old_style_number) == 1)
-            return old_style_number;    
-    }
-    return 0;
-}
-
-SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
-{
-    ScriptAudioClip* audioClip = GetAudioClipForOldStyleNumber(game, isMusic, indexNumber);
-
-    if (audioClip != nullptr)
-    {
-        return load_sound_clip(audioClip, repeat);
-    }
-
-    return nullptr;
-}
-
-//=============================================================================
-
 std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
@@ -760,9 +726,6 @@ void play_next_queued() {
         play.music_queue_size--;
         for (int i = 0; i < play.music_queue_size; i++)
             play.music_queue[i] = play.music_queue[i + 1];
-
-        if (play.music_queue_size > 0)
-            cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
 }
@@ -871,28 +834,4 @@ void post_new_music_check()
             crossFading = -1;
     }
 
-}
-
-ScriptAudioClip *get_audio_clip_for_music(int mnum)
-{
-    if (mnum >= QUEUED_MUSIC_REPEAT)
-        mnum -= QUEUED_MUSIC_REPEAT;
-    return GetAudioClipForOldStyleNumber(game, true, mnum);
-}
-
-SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
-
-    if (mnum >= QUEUED_MUSIC_REPEAT) {
-        mnum -= QUEUED_MUSIC_REPEAT;
-        doRepeat = true;
-    }
-
-    SOUNDCLIP *loaded = load_sound_clip_from_old_style_number(true, mnum, doRepeat);
-
-    if ((loaded == nullptr) && (mnum > 0)) 
-    {
-        debug_script_warn("Warning: failed to load music %d", mnum);
-    }
-
-    return loaded;
 }

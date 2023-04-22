@@ -303,9 +303,6 @@
     <ClCompile Include="..\..\Engine\ac\global_video.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\global_viewframe.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_walkablearea.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -930,9 +927,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_video.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_viewframe.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_walkablearea.h">

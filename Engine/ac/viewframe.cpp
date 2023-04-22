@@ -62,28 +62,6 @@ void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip)
   views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
 }
 
-int ViewFrame_GetSound(ScriptViewFrame *svf) {
-  // convert audio clip to old-style sound number
-  return get_old_style_number_for_sound(views[svf->view].loops[svf->loop].frames[svf->frame].sound);
-}
-
-void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound) 
-{
-  if (newSound < 1)
-  {
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = -1;
-  }
-  else
-  {
-    // convert sound number to audio clip
-    ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, newSound);
-    if (clip == nullptr)
-      quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
-
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id;
-  }
-}
-
 int ViewFrame_GetSpeed(ScriptViewFrame *svf) {
   return views[svf->view].loops[svf->loop].frames[svf->frame].speed;
 }
@@ -211,18 +189,6 @@ RuntimeScriptValue Sc_ViewFrame_GetLoop(void *self, const RuntimeScriptValue *pa
 }
 
 // int (ScriptViewFrame *svf)
-RuntimeScriptValue Sc_ViewFrame_GetSound(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSound);
-}
-
-// void (ScriptViewFrame *svf, int newSound)
-RuntimeScriptValue Sc_ViewFrame_SetSound(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetSound);
-}
-
-// int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSpeed);
@@ -244,8 +210,6 @@ void RegisterViewFrameAPI()
     ccAddExternalObjectFunction("ViewFrame::get_LinkedAudio",   Sc_ViewFrame_GetLinkedAudio);
     ccAddExternalObjectFunction("ViewFrame::set_LinkedAudio",   Sc_ViewFrame_SetLinkedAudio);
     ccAddExternalObjectFunction("ViewFrame::get_Loop",          Sc_ViewFrame_GetLoop);
-    ccAddExternalObjectFunction("ViewFrame::get_Sound",         Sc_ViewFrame_GetSound);
-    ccAddExternalObjectFunction("ViewFrame::set_Sound",         Sc_ViewFrame_SetSound);
     ccAddExternalObjectFunction("ViewFrame::get_Speed",         Sc_ViewFrame_GetSpeed);
     ccAddExternalObjectFunction("ViewFrame::get_View",          Sc_ViewFrame_GetView);
 
@@ -258,8 +222,6 @@ void RegisterViewFrameAPI()
     ccAddExternalFunctionForPlugin("ViewFrame::get_LinkedAudio",   (void*)ViewFrame_GetLinkedAudio);
     ccAddExternalFunctionForPlugin("ViewFrame::set_LinkedAudio",   (void*)ViewFrame_SetLinkedAudio);
     ccAddExternalFunctionForPlugin("ViewFrame::get_Loop",          (void*)ViewFrame_GetLoop);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Sound",         (void*)ViewFrame_GetSound);
-    ccAddExternalFunctionForPlugin("ViewFrame::set_Sound",         (void*)ViewFrame_SetSound);
     ccAddExternalFunctionForPlugin("ViewFrame::get_Speed",         (void*)ViewFrame_GetSpeed);
     ccAddExternalFunctionForPlugin("ViewFrame::get_View",          (void*)ViewFrame_GetView);
 }

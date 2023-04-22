@@ -50,7 +50,6 @@
 #include "ac/global_timer.h"
 #include "ac/global_translation.h"
 #include "ac/global_video.h"
-#include "ac/global_viewframe.h"
 #include "ac/global_walkablearea.h"
 #include "ac/global_walkbehind.h"
 #include "ac/math.h"
@@ -1078,12 +1077,6 @@ RuntimeScriptValue Sc_SetFadeColor(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_PINT3(SetFadeColor);
 }
 
-// void  (int vii, int loop, int frame, int sound)
-RuntimeScriptValue Sc_SetFrameSound(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(SetFrameSound);
-}
-
 // int  (int opt, int setting)
 RuntimeScriptValue Sc_SetGameOption(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1689,7 +1682,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetDialogOption",          Sc_SetDialogOption);
 	ccAddExternalStaticFunction("SetDigitalMasterVolume",   Sc_SetDigitalMasterVolume);
 	ccAddExternalStaticFunction("SetFadeColor",             Sc_SetFadeColor);
-	ccAddExternalStaticFunction("SetFrameSound",            Sc_SetFrameSound);
 	ccAddExternalStaticFunction("SetGameOption",            Sc_SetGameOption);
 	ccAddExternalStaticFunction("SetGameSpeed",             Sc_SetGameSpeed);
 	ccAddExternalStaticFunction("SetGlobalInt",             Sc_SetGlobalInt);
@@ -1934,7 +1926,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetDialogOption",          (void*)SetDialogOption);
     ccAddExternalFunctionForPlugin("SetDigitalMasterVolume",   (void*)SetDigitalMasterVolume);
     ccAddExternalFunctionForPlugin("SetFadeColor",             (void*)SetFadeColor);
-    ccAddExternalFunctionForPlugin("SetFrameSound",            (void*)SetFrameSound);
     ccAddExternalFunctionForPlugin("SetGameOption",            (void*)SetGameOption);
     ccAddExternalFunctionForPlugin("SetGameSpeed",             (void*)SetGameSpeed);
     ccAddExternalFunctionForPlugin("SetGlobalInt",             (void*)SetGlobalInt);

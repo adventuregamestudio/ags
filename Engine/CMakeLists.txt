@@ -182,8 +182,6 @@ target_sources(engine
     ac/global_translation.h
     ac/global_video.cpp
     ac/global_video.h
-    ac/global_viewframe.cpp
-    ac/global_viewframe.h
     ac/global_walkablearea.cpp
     ac/global_walkablearea.h
     ac/global_walkbehind.cpp

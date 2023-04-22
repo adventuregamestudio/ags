@@ -362,7 +362,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
            else if (parm == GP_FRAMEIMAGE)
                return pvf->pic;
            else if (parm == GP_FRAMESOUND)
-               return get_old_style_number_for_sound(pvf->sound);
+               return 0; // DEPRECATED
            else if (parm == GP_ISFRAMEFLIPPED)
                return (pvf->flags & VFLG_FLIPSPRITE) ? 1 : 0;
            else

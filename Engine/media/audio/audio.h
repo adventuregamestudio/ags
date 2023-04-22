@@ -66,10 +66,6 @@ void        stop_and_destroy_channel (int chid);
 // Exports missing AudioChannel objects to script (for importing older saves)
 void        export_missing_audiochans();
 
-// ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
-int         get_old_style_number_for_sound(int sound_number);
-SOUNDCLIP * load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
-
 //=============================================================================
 
 int         get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist);
@@ -94,9 +90,6 @@ void        apply_volume_drop_modifier(bool applyModifier);
 void        sync_audio_playback();
 void        update_audio_system_on_game_loop ();
 void        post_new_music_check();
-// Gets audio clip from legacy music number, which also may contain queue flag
-ScriptAudioClip *get_audio_clip_for_music(int mnum);
-SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
 
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);

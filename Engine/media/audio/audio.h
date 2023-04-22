@@ -82,7 +82,6 @@ bool        is_audiotype_allowed_to_play(AudioFileType type);
 SOUNDCLIP * load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
-int         play_sound(int val1);
 
 //=============================================================================
 
@@ -99,19 +98,11 @@ int         calculate_max_volume();
 void        apply_volume_drop_modifier(bool applyModifier);
 // syncs logical audio channels with the audio backend state
 void        sync_audio_playback();
-// Update the music, and advance the crossfade on a step
-// (this should only be called once per game loop);
 void        update_audio_system_on_game_loop ();
-void        stopmusic();
-void        update_music_volume();
 void        post_new_music_check();
-// Sets up the crossfading for playing the new music track,
-// and returns the channel number to use; the channel is guaranteed to be free
-int         prepare_for_new_music ();
 // Gets audio clip from legacy music number, which also may contain queue flag
 ScriptAudioClip *get_audio_clip_for_music(int mnum);
 SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
-void        newmusic(int mnum);
 
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);

@@ -147,9 +147,6 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
     // Restore the game audio if we stopped them before the video playback
     if ((flags & kVideo_KeepGameAudio) == 0)
     {
-        update_music_volume();
-        if (musplaying >= 0)
-            newmusic(musplaying);
         for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++) {
             if (ambientWas[i] > 0)
                 PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);

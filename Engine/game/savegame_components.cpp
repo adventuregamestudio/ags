@@ -386,9 +386,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
             return err;
     }
     else
-    {
-        total_channels = TOTAL_AUDIO_CHANNELS_v320;
-        max_game_channels = MAX_GAME_CHANNELS_v320;
+    { /* DEPRECATED */
         in->ReadInt32(); // unused in prev format ver
     }
 

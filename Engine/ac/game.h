@@ -68,8 +68,6 @@ int  Game_IsAudioPlaying(int audioType);
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop);
 void Game_SetAudioTypeVolume(int audioType, int volume, int changeType);
 
-int Game_GetMODPattern();
-
 //=============================================================================
 // ---
 //=============================================================================

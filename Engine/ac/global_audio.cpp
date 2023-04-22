@@ -104,60 +104,6 @@ int IsChannelPlaying(int chan) {
     return 0;
 }
 
-int IsSoundPlaying() {
-    if (play.fast_forward)
-        return 0;
-
-    // find if there's a sound playing
-    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
-        if (AudioChans::GetChannelIfPlaying(i))
-            return 1;
-    }
-
-    return 0;
-}
-
-// returns -1 on failure, channel number on success
-int PlaySoundEx(int val1, int channel) {
-
-    if (debug_flags & DBG_NOSFX)
-        return -1;
-
-    ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, val1);
-    if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
-        return -1; // if sound is off, ignore it
-
-    if ((channel < SCHAN_NORMAL) || (channel >= game.numGameChannels))
-        quitprintf("!PlaySoundEx: invalid channel specified, must be %d-%d", SCHAN_NORMAL, game.numGameChannels - 1);
-
-    // if an ambient sound is playing on this channel, abort it
-    StopAmbientSound(channel);
-
-    if (val1 < 0) {
-        stop_and_destroy_channel (channel);
-        return -1;
-    }
-    // if skipping a cutscene, don't try and play the sound
-    if (play.fast_forward)
-        return -1;
-
-    // free the old sound
-    stop_and_destroy_channel (channel);
-    debug_script_log("Playing sound %d on channel %d", val1, channel);
-
-    SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : nullptr;
-    if (soundfx == nullptr) {
-        debug_script_warn("Sound sample load failure: cannot load sound %d", val1);
-        debug_script_log("FAILED to load sound %d", val1);
-        return -1;
-    }
-
-    soundfx->priority = 10;
-    soundfx->set_volume255(play.sound_volume);
-    AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(soundfx));
-    return channel;
-}
-
 void StopAllSounds(int evenAmbient) {
     // backwards-compatible hack -- stop Type 3 (default Sound Type)
     Game_StopAudio(3);
@@ -166,60 +112,13 @@ void StopAllSounds(int evenAmbient) {
         Game_StopAudio(1);
 }
 
-void PlayMusicResetQueue(int newmus) {
-    play.music_queue_size = 0;
-    newmusic(newmus);
-}
-
-void SeekMIDIPosition (int position) {
-    if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
-        return;
-
-    auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
-    ch->seek(position);
-    debug_script_log("Seek MIDI position to %d", position);
-}
-
-int GetMIDIPosition () {
-    if (play.silent_midi == 0 && current_music_type != MUS_MIDI)
-        return -1; // returns -1 on failure according to old manuals
-    
-    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
-    if (ch) {
-        return ch->get_pos();
-    }
-
-    return -1;
-}
-
-int IsMusicPlaying() {
-    // in case they have a "while (IsMusicPlaying())" loop
-    if ((play.fast_forward) && (play.skip_until_char_stops < 0))
-        return 0;
-
-    // This only returns positive if there was a music started by old audio API
-    if (current_music_type == 0)
-        return 0;
-
-    auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
-    if (ch == nullptr)
-    { // This was probably a hacky fix in case it was not reset by game update; TODO: find out if needed
-        current_music_type = 0;
-        return 0;
-    }
-
-    bool result = (ch->is_ready()) || (crossFading > 0 && (AudioChans::GetChannelIfPlaying(crossFading) != nullptr));
-    return result ? 1 : 0;
-}
-
 int PlayMusicQueued(int musnum) {
 
     // Just get the queue size
     if (musnum < 0)
         return play.music_queue_size;
 
-    if ((IsMusicPlaying() == 0) && (play.music_queue_size == 0)) {
-        newmusic(musnum);
+    if ((false) && (play.music_queue_size == 0)) {
         return 0;
     }
 
@@ -253,74 +152,6 @@ int PlayMusicQueued(int musnum) {
     }
 
     return play.music_queue_size;
-}
-
-void scr_StopMusic() {
-    play.music_queue_size = 0;
-    stopmusic();
-}
-
-void SeekMODPattern(int patnum) {
-    if (current_music_type != MUS_MOD)
-        return;
-
-    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
-    if (ch) {
-        ch->seek (patnum);
-        debug_script_log("Seek MOD/XM to pattern %d", patnum);
-    }
-}
-
-void SeekMP3PosMillis (int posn) {
-    if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
-        return;
-
-    auto *mus_ch = AudioChans::GetChannel(SCHAN_MUSIC);
-    auto *cf_ch = (crossFading > 0) ? AudioChans::GetChannel(crossFading) : nullptr;
-    if (cf_ch)
-        cf_ch->seek(posn);
-    else if (mus_ch)
-        mus_ch->seek(posn);
-}
-
-int GetMP3PosMillis () {
-    if (current_music_type != MUS_MP3 && current_music_type != MUS_OGG)
-        return 0;  // returns 0 on failure according to old manuals
-
-    auto* ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
-    if (ch) {
-        int result = ch->get_pos_ms();
-        if (result >= 0)
-            return result;
-
-        return ch->get_pos ();
-    }
-
-    return 0;
-}
-
-void SetMusicVolume(int newvol) {
-    if ((newvol < kRoomVolumeMin) || (newvol > kRoomVolumeMax))
-        quitprintf("!SetMusicVolume: invalid volume number. Must be from %d to %d.", kRoomVolumeMin, kRoomVolumeMax);
-    thisroom.Options.MusicVolume=(RoomVolumeMod)newvol;
-    update_music_volume();
-}
-
-void SetMusicMasterVolume(int newvol) {
-    const int min_volume = -LegacyMusicMasterVolumeAdjustment - (kRoomVolumeMax * LegacyRoomVolumeFactor);
-    if ((newvol < min_volume) | (newvol>100))
-        quitprintf("!SetMusicMasterVolume: invalid volume - must be from %d to %d", min_volume, 100);
-    play.music_master_volume=newvol+LegacyMusicMasterVolumeAdjustment;
-    update_music_volume();
-}
-
-void SetSoundVolume(int newvol) {
-    if ((newvol<0) | (newvol>255))
-        quit("!SetSoundVolume: invalid volume - must be from 0-255");
-    play.sound_volume = newvol;
-    Game_SetAudioTypeVolume(AUDIOTYPE_LEGACY_AMBIENT_SOUND, (newvol * 100) / 255, VOL_BOTH);
-    Game_SetAudioTypeVolume(AUDIOTYPE_LEGACY_SOUND, (newvol * 100) / 255, VOL_BOTH);
-    update_ambient_sound_vol ();
 }
 
 void SetChannelVolume(int chan, int newvol) {
@@ -365,7 +196,7 @@ void PlayMP3File (const char *filename) {
 
     AssetPath asset_name(filename, "audio");
 
-    int useChan = prepare_for_new_music ();
+    int useChan = 0;
     bool doLoop = (play.music_repeat > 0);
 
     SOUNDCLIP *clip = my_load_ogg(asset_name, doLoop);
@@ -403,8 +234,6 @@ void PlayMP3File (const char *filename) {
     }
 
     post_new_music_check();
-
-    update_music_volume();
 }
 
 void PlaySilentMIDI (int mnum) {
@@ -550,7 +379,6 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
     else
         play.music_master_volume -= play.speech_music_drop;
     apply_volume_drop_modifier(true);
-    update_music_volume();
     update_ambient_sound_vol();
     return true;
 }

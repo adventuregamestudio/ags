@@ -2098,8 +2098,6 @@ builtin struct Game {
   import static String GetLocationName(int x, int y);
   /// Gets the number of loops in the specified view.
   import static int    GetLoopCountForView(int view);
-  /// Returns the current pattern/track number if the current music is MOD or XM.
-  import static int    GetMODPattern();
   /// Gets whether the "Run next loop after this" setting is checked for the specified loop.
   import static bool   GetRunNextSettingForLoop(int view, int loop);
   /// Gets the description of the specified save game slot.

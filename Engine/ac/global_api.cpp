@@ -479,18 +479,6 @@ RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT_PINT2(GetLocationType);
 }
 
-// int  ()
-RuntimeScriptValue Sc_GetMIDIPosition(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetMIDIPosition);
-}
-
-// int  ()
-RuntimeScriptValue Sc_GetMP3PosMillis(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetMP3PosMillis);
-}
-
 // int (int xx,int yy)
 RuntimeScriptValue Sc_GetObjectIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -726,12 +714,6 @@ RuntimeScriptValue Sc_IsKeyPressed(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT_PINT(IsKeyPressed);
 }
 
-// int ()
-RuntimeScriptValue Sc_IsMusicPlaying(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(IsMusicPlaying);
-}
-
 // int  ()
 RuntimeScriptValue Sc_IsMusicVoxAvailable(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -754,12 +736,6 @@ RuntimeScriptValue Sc_IsObjectMoving(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_IsObjectOn(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(IsObjectOn);
-}
-
-// int ()
-RuntimeScriptValue Sc_IsSoundPlaying(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(IsSoundPlaying);
 }
 
 // int (int tnum)
@@ -914,12 +890,6 @@ RuntimeScriptValue Sc_PlayMP3File(const RuntimeScriptValue *params, int32_t para
     API_SCALL_VOID_POBJ(PlayMP3File, const char);
 }
 
-// void (int newmus)
-RuntimeScriptValue Sc_PlayMusicResetQueue(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(PlayMusicResetQueue);
-}
-
 // int (int musnum)
 RuntimeScriptValue Sc_PlayMusicQueued(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -930,18 +900,6 @@ RuntimeScriptValue Sc_PlayMusicQueued(const RuntimeScriptValue *params, int32_t 
 RuntimeScriptValue Sc_PlaySilentMIDI(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(PlaySilentMIDI);
-}
-
-// int (int val1)
-RuntimeScriptValue Sc_play_sound(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(play_sound);
-}
-
-// int (int val1, int channel)
-RuntimeScriptValue Sc_PlaySoundEx(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(PlaySoundEx);
 }
 
 // void (const char* name, int skip, int flags)
@@ -1062,24 +1020,6 @@ RuntimeScriptValue Sc_save_game(const RuntimeScriptValue *params, int32_t param_
 RuntimeScriptValue Sc_SaveScreenShot(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(SaveScreenShot, const char);
-}
-
-// void  (int position)
-RuntimeScriptValue Sc_SeekMIDIPosition(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SeekMIDIPosition);
-}
-
-// void (int patnum)
-RuntimeScriptValue Sc_SeekMODPattern(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SeekMODPattern);
-}
-
-// void  (int posn)
-RuntimeScriptValue Sc_SeekMP3PosMillis(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SeekMP3PosMillis);
 }
 
 // void  (int red, int green, int blue, int opacity, int luminance)
@@ -1268,22 +1208,10 @@ RuntimeScriptValue Sc_SetMultitasking(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID_PINT(SetMultitasking);
 }
 
-// void (int newvol)
-RuntimeScriptValue Sc_SetMusicMasterVolume(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetMusicMasterVolume);
-}
-
 // void (int loopflag)
 RuntimeScriptValue Sc_SetMusicRepeat(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetMusicRepeat);
-}
-
-// void (int newvol)
-RuntimeScriptValue Sc_SetMusicVolume(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetMusicVolume);
 }
 
 extern RuntimeScriptValue Sc_SetNextCursor(const RuntimeScriptValue *params, int32_t param_count);
@@ -1378,12 +1306,6 @@ RuntimeScriptValue Sc_SetScreenTransition(const RuntimeScriptValue *params, int3
 RuntimeScriptValue Sc_SetSliderValue(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(SetSliderValue);
-}
-
-// void (int newvol)
-RuntimeScriptValue Sc_SetSoundVolume(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetSoundVolume);
 }
 
 extern RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count);
@@ -1487,12 +1409,6 @@ RuntimeScriptValue Sc_StopDialog(const RuntimeScriptValue *params, int32_t param
 RuntimeScriptValue Sc_StopMoving(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(StopMoving);
-}
-
-// void ()
-RuntimeScriptValue Sc_scr_StopMusic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(scr_StopMusic);
 }
 
 // void (int objj)
@@ -1680,8 +1596,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetInvProperty",           Sc_GetInvProperty);
 	ccAddExternalStaticFunction("GetInvPropertyText",       Sc_GetInvPropertyText);
 	ccAddExternalStaticFunction("GetLocationType",          Sc_GetLocationType);
-	ccAddExternalStaticFunction("GetMIDIPosition",          Sc_GetMIDIPosition);
-	ccAddExternalStaticFunction("GetMP3PosMillis",          Sc_GetMP3PosMillis);
 	ccAddExternalStaticFunction("GetObjectAt",              Sc_GetObjectIDAtScreen);
 	ccAddExternalStaticFunction("GetObjectBaseline",        Sc_GetObjectBaseline);
 	ccAddExternalStaticFunction("GetObjectGraphic",         Sc_GetObjectGraphic);
@@ -1723,12 +1637,10 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("IsInventoryInteractionAvailable", Sc_IsInventoryInteractionAvailable);
 	ccAddExternalStaticFunction("IsInterfaceEnabled",       Sc_IsInterfaceEnabled);
 	ccAddExternalStaticFunction("IsKeyPressed",             Sc_IsKeyPressed);
-	ccAddExternalStaticFunction("IsMusicPlaying",           Sc_IsMusicPlaying);
 	ccAddExternalStaticFunction("IsMusicVoxAvailable",      Sc_IsMusicVoxAvailable);
 	ccAddExternalStaticFunction("IsObjectAnimating",        Sc_IsObjectAnimating);
 	ccAddExternalStaticFunction("IsObjectMoving",           Sc_IsObjectMoving);
 	ccAddExternalStaticFunction("IsObjectOn",               Sc_IsObjectOn);
-	ccAddExternalStaticFunction("IsSoundPlaying",           Sc_IsSoundPlaying);
 	ccAddExternalStaticFunction("IsTimerExpired",           Sc_IsTimerExpired);
 	ccAddExternalStaticFunction("IsTranslationAvailable",   Sc_IsTranslationAvailable);
 	ccAddExternalStaticFunction("IsVoxAvailable",           Sc_IsVoxAvailable);
@@ -1754,11 +1666,8 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("PlayAmbientSound",         Sc_PlayAmbientSound);
 	ccAddExternalStaticFunction("PlayFlic",                 Sc_play_flc_file);
 	ccAddExternalStaticFunction("PlayMP3File",              Sc_PlayMP3File);
-	ccAddExternalStaticFunction("PlayMusic",                Sc_PlayMusicResetQueue);
 	ccAddExternalStaticFunction("PlayMusicQueued",          Sc_PlayMusicQueued);
 	ccAddExternalStaticFunction("PlaySilentMIDI",           Sc_PlaySilentMIDI);
-	ccAddExternalStaticFunction("PlaySound",                Sc_play_sound);
-	ccAddExternalStaticFunction("PlaySoundEx",              Sc_PlaySoundEx);
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
 	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
@@ -1781,9 +1690,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SaveGameDialog",           Sc_save_game_dialog);
 	ccAddExternalStaticFunction("SaveGameSlot",             Sc_save_game);
 	ccAddExternalStaticFunction("SaveScreenShot",           Sc_SaveScreenShot);
-	ccAddExternalStaticFunction("SeekMIDIPosition",         Sc_SeekMIDIPosition);
-	ccAddExternalStaticFunction("SeekMODPattern",           Sc_SeekMODPattern);
-	ccAddExternalStaticFunction("SeekMP3PosMillis",         Sc_SeekMP3PosMillis);
 	ccAddExternalStaticFunction("SetAmbientTint",           Sc_SetAmbientTint);
     ccAddExternalStaticFunction("SetAmbientLightLevel",     Sc_SetAmbientLightLevel);
 	ccAddExternalStaticFunction("SetAreaLightLevel",        Sc_SetAreaLightLevel);
@@ -1819,9 +1725,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetMouseCursor",           Sc_set_mouse_cursor);
 	ccAddExternalStaticFunction("SetMousePosition",         Sc_SetMousePosition);
 	ccAddExternalStaticFunction("SetMultitaskingMode",      Sc_SetMultitasking);
-	ccAddExternalStaticFunction("SetMusicMasterVolume",     Sc_SetMusicMasterVolume);
 	ccAddExternalStaticFunction("SetMusicRepeat",           Sc_SetMusicRepeat);
-	ccAddExternalStaticFunction("SetMusicVolume",           Sc_SetMusicVolume);
 	ccAddExternalStaticFunction("SetNextCursorMode",        Sc_SetNextCursor);
 	ccAddExternalStaticFunction("SetNextScreenTransition",  Sc_SetNextScreenTransition);
 	ccAddExternalStaticFunction("SetNormalFont",            Sc_SetNormalFont);
@@ -1839,7 +1743,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetRestartPoint",          Sc_SetRestartPoint);
 	ccAddExternalStaticFunction("SetScreenTransition",      Sc_SetScreenTransition);
 	ccAddExternalStaticFunction("SetSliderValue",           Sc_SetSliderValue);
-	ccAddExternalStaticFunction("SetSoundVolume",           Sc_SetSoundVolume);
 	ccAddExternalStaticFunction("SetSpeechFont",            Sc_SetSpeechFont);
 	ccAddExternalStaticFunction("SetSpeechVolume",          Sc_SetSpeechVolume);
 	ccAddExternalStaticFunction("SetTextBoxFont",           Sc_SetTextBoxFont);
@@ -1858,7 +1761,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("StopChannel",              Sc_stop_and_destroy_channel);
 	ccAddExternalStaticFunction("StopDialog",               Sc_StopDialog);
 	ccAddExternalStaticFunction("StopMoving",               Sc_StopMoving);
-	ccAddExternalStaticFunction("StopMusic",                Sc_scr_StopMusic);
 	ccAddExternalStaticFunction("StopObjectMoving",         Sc_StopObjectMoving);
 	ccAddExternalStaticFunction("TintScreen",               Sc_TintScreen);
 	ccAddExternalStaticFunction("UnPauseGame",              Sc_UnPauseGame);
@@ -1945,8 +1847,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetInvProperty",           (void*)GetInvProperty);
     ccAddExternalFunctionForPlugin("GetInvPropertyText",       (void*)GetInvPropertyText);
     ccAddExternalFunctionForPlugin("GetLocationType",          (void*)GetLocationType);
-    ccAddExternalFunctionForPlugin("GetMIDIPosition",          (void*)GetMIDIPosition);
-    ccAddExternalFunctionForPlugin("GetMP3PosMillis",          (void*)GetMP3PosMillis);
     ccAddExternalFunctionForPlugin("GetObjectAt",              (void*)GetObjectIDAtScreen);
     ccAddExternalFunctionForPlugin("GetObjectBaseline",        (void*)GetObjectBaseline);
     ccAddExternalFunctionForPlugin("GetObjectGraphic",         (void*)GetObjectGraphic);
@@ -1984,12 +1884,10 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("IsInventoryInteractionAvailable", (void*)IsInventoryInteractionAvailable);
     ccAddExternalFunctionForPlugin("IsInterfaceEnabled",       (void*)IsInterfaceEnabled);
     ccAddExternalFunctionForPlugin("IsKeyPressed",             (void*)IsKeyPressed);
-    ccAddExternalFunctionForPlugin("IsMusicPlaying",           (void*)IsMusicPlaying);
     ccAddExternalFunctionForPlugin("IsMusicVoxAvailable",      (void*)IsMusicVoxAvailable);
     ccAddExternalFunctionForPlugin("IsObjectAnimating",        (void*)IsObjectAnimating);
     ccAddExternalFunctionForPlugin("IsObjectMoving",           (void*)IsObjectMoving);
     ccAddExternalFunctionForPlugin("IsObjectOn",               (void*)IsObjectOn);
-    ccAddExternalFunctionForPlugin("IsSoundPlaying",           (void*)IsSoundPlaying);
     ccAddExternalFunctionForPlugin("IsTimerExpired",           (void*)IsTimerExpired);
     ccAddExternalFunctionForPlugin("IsTranslationAvailable",   (void*)IsTranslationAvailable);
     ccAddExternalFunctionForPlugin("IsVoxAvailable",           (void*)IsVoxAvailable);
@@ -2015,11 +1913,8 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("PlayAmbientSound",         (void*)PlayAmbientSound);
     ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)PlayFlic);
     ccAddExternalFunctionForPlugin("PlayMP3File",              (void*)PlayMP3File);
-    ccAddExternalFunctionForPlugin("PlayMusic",                (void*)PlayMusicResetQueue);
     ccAddExternalFunctionForPlugin("PlayMusicQueued",          (void*)PlayMusicQueued);
     ccAddExternalFunctionForPlugin("PlaySilentMIDI",           (void*)PlaySilentMIDI);
-    ccAddExternalFunctionForPlugin("PlaySound",                (void*)play_sound);
-    ccAddExternalFunctionForPlugin("PlaySoundEx",              (void*)PlaySoundEx);
     ccAddExternalFunctionForPlugin("PlayVideo",                (void*)PlayVideo);
     ccAddExternalFunctionForPlugin("ProcessClick",             (void*)RoomProcessClick);
     ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);
@@ -2043,9 +1938,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SaveGameDialog",           (void*)save_game_dialog);
     ccAddExternalFunctionForPlugin("SaveGameSlot",             (void*)save_game);
     ccAddExternalFunctionForPlugin("SaveScreenShot",           (void*)SaveScreenShot);
-    ccAddExternalFunctionForPlugin("SeekMIDIPosition",         (void*)SeekMIDIPosition);
-    ccAddExternalFunctionForPlugin("SeekMODPattern",           (void*)SeekMODPattern);
-    ccAddExternalFunctionForPlugin("SeekMP3PosMillis",         (void*)SeekMP3PosMillis);
     ccAddExternalFunctionForPlugin("SetAmbientTint",           (void*)SetAmbientTint);
     ccAddExternalFunctionForPlugin("SetAreaLightLevel",        (void*)SetAreaLightLevel);
     ccAddExternalFunctionForPlugin("SetAreaScaling",           (void*)SetAreaScaling);
@@ -2080,9 +1972,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetMouseCursor",           (void*)set_mouse_cursor);
     ccAddExternalFunctionForPlugin("SetMousePosition",         (void*)SetMousePosition);
     ccAddExternalFunctionForPlugin("SetMultitaskingMode",      (void*)SetMultitasking);
-    ccAddExternalFunctionForPlugin("SetMusicMasterVolume",     (void*)SetMusicMasterVolume);
     ccAddExternalFunctionForPlugin("SetMusicRepeat",           (void*)SetMusicRepeat);
-    ccAddExternalFunctionForPlugin("SetMusicVolume",           (void*)SetMusicVolume);
     ccAddExternalFunctionForPlugin("SetNextCursorMode",        (void*)SetNextCursor);
     ccAddExternalFunctionForPlugin("SetNextScreenTransition",  (void*)SetNextScreenTransition);
     ccAddExternalFunctionForPlugin("SetNormalFont",            (void*)SetNormalFont);
@@ -2100,7 +1990,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetRestartPoint",          (void*)SetRestartPoint);
     ccAddExternalFunctionForPlugin("SetScreenTransition",      (void*)SetScreenTransition);
     ccAddExternalFunctionForPlugin("SetSliderValue",           (void*)SetSliderValue);
-    ccAddExternalFunctionForPlugin("SetSoundVolume",           (void*)SetSoundVolume);
     ccAddExternalFunctionForPlugin("SetSpeechFont",            (void*)SetSpeechFont);
     ccAddExternalFunctionForPlugin("SetSpeechVolume",          (void*)SetSpeechVolume);
     ccAddExternalFunctionForPlugin("SetTextBoxFont",           (void*)SetTextBoxFont);
@@ -2118,7 +2007,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("StopChannel",              (void*)stop_and_destroy_channel);
     ccAddExternalFunctionForPlugin("StopDialog",               (void*)StopDialog);
     ccAddExternalFunctionForPlugin("StopMoving",               (void*)StopMoving);
-    ccAddExternalFunctionForPlugin("StopMusic",                (void*)scr_StopMusic);
     ccAddExternalFunctionForPlugin("StopObjectMoving",         (void*)StopObjectMoving);
     ccAddExternalFunctionForPlugin("TintScreen",               (void*)TintScreen);
     ccAddExternalFunctionForPlugin("UnPauseGame",              (void*)UnPauseGame);

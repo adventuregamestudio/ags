@@ -516,7 +516,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
             ambient[chid].channel = 0;
     }
 
-    if ((chid == SCHAN_MUSIC) && (resetLegacyMusicSettings))
+    if ((false) && (resetLegacyMusicSettings))
     {
         play.cur_music_number = -1;
         current_music_type = 0;
@@ -669,7 +669,6 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 
 void stop_all_sound_and_music() 
 {
-    stopmusic();
     stop_voice_nonblocking();
     // make sure it doesn't start crossfading when it comes back
     crossFading = 0;
@@ -687,59 +686,6 @@ void shutdown_sound()
     usetup.audio_enabled = false;
 }
 
-// the sound will only be played if there is a free channel or
-// it has a priority >= an existing sound to override
-static int play_sound_priority (int val1, int priority) {
-    int lowest_pri = 9999, lowest_pri_id = -1;
-
-    // find a free channel to play it on
-    for (int i = SCHAN_NORMAL; i < game.numGameChannels; i++) {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if (val1 < 0) {
-            // Playing sound -1 means iterate through and stop all sound
-            if (ch)
-                stop_and_destroy_channel (i);
-        }
-        else if (ch == nullptr || !ch->is_ready()) {
-            // PlaySoundEx will destroy the previous channel value.
-            const int usechan = PlaySoundEx(val1, i);
-            if (usechan >= 0)
-            { // channel will hold a different clip here
-                assert(usechan == i);
-                ch = AudioChans::GetChannel(usechan);
-                if (ch)
-                    ch->priority = priority;
-            }
-            return usechan;
-        }
-        else if (ch->priority < lowest_pri) {
-            lowest_pri = ch->priority;
-            lowest_pri_id = i;
-        }
-
-    }
-    if (val1 < 0)
-        return -1;
-
-    // no free channels, see if we have a high enough priority
-    // to override one
-    if (priority >= lowest_pri) {
-        const int usechan = PlaySoundEx(val1, lowest_pri_id);
-        if (usechan >= 0) {
-            assert(usechan == lowest_pri_id);
-            auto *ch = AudioChans::GetChannel(usechan);
-            if (ch)
-                ch->priority = priority;
-            return usechan;
-        }
-    }
-
-    return -1;
-}
-
-int play_sound(int val1) {
-    return play_sound_priority(val1, 10);
-}
 
 
 //=============================================================================
@@ -778,7 +724,6 @@ void process_scheduled_music_update() {
     if (!music_update_scheduled) { return; }
     if (music_update_at > AGS_Clock::now()) { return; }
     cancel_scheduled_music_update();
-    update_music_volume();
     apply_volume_drop_modifier(false);
     update_ambient_sound_vol();
 }
@@ -794,8 +739,6 @@ void clear_music_cache() {
 
 }
 
-static void play_new_music(int mnum, SOUNDCLIP *music);
-
 void play_next_queued() {
     // check if there's a queued one to play
     if (play.music_queue_size > 0) {
@@ -805,14 +748,12 @@ void play_next_queued() {
         if (tuneToPlay >= QUEUED_MUSIC_REPEAT) {
             // Loop it!
             play.music_repeat++;
-            play_new_music(tuneToPlay - QUEUED_MUSIC_REPEAT, cachedQueuedMusic);
             play.music_repeat--;
         }
         else {
             // Don't loop it!
             int repeatWas = play.music_repeat;
             play.music_repeat = 0;
-            play_new_music(tuneToPlay, cachedQueuedMusic);
             play.music_repeat = repeatWas;
         }
 
@@ -898,32 +839,18 @@ void update_audio_system_on_game_loop ()
 
     if (crossFading) {
         crossFadeStep++;
-        update_music_volume();
     }
 
     // Check if the current music has finished playing
     if ((play.cur_music_number >= 0) && (play.fast_forward == 0)) {
-        if (IsMusicPlaying() == 0) {
+        if (false == 0) {
             // The current music has finished
             play.cur_music_number = -1;
             play_next_queued();
         }
         else if ((game.options[OPT_CROSSFADEMUSIC] > 0) &&
             (play.music_queue_size > 0) && (!crossFading)) {
-                // want to crossfade, and new tune in the queue
-                auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
-                if (ch) {
-                    int curpos = ch->get_pos_ms();
-                    int muslen = ch->get_length_ms();
-                    if ((curpos > 0) && (muslen > 0)) {
-                        // we want to crossfade, and we know how far through
-                        // the tune we are
-                        int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
-                        int takesMs = ::lround(takesSteps * 1000.0f / get_current_fps());
-                        if (curpos >= muslen - takesMs)
-                            play_next_queued();
-                    }
-                }
+              /* DEPRECATED */
         }
     }
 
@@ -937,90 +864,6 @@ void update_audio_system_on_game_loop ()
     sync_audio_playback();
 }
 
-void stopmusic()
-{
-    if (crossFading > 0) {
-        // stop in the middle of a new track fading in
-        // Abort the new track, and let the old one finish fading out
-        stop_and_destroy_channel (crossFading);
-        crossFading = -1;
-    }
-    else if (crossFading < 0) {
-        // the music is already fading out
-        if (game.options[OPT_CROSSFADEMUSIC] <= 0) {
-            // If they have since disabled crossfading, stop the fadeout
-            stop_and_destroy_channel(SCHAN_MUSIC);
-            crossFading = 0;
-            crossFadeStep = 0;
-            update_music_volume();
-        }
-    }
-    else if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (AudioChans::GetChannelIfPlaying(SCHAN_MUSIC) != nullptr)
-        && (current_music_type != 0)
-        && (current_music_type != MUS_MIDI)
-        && (current_music_type != MUS_MOD)) {
-
-        crossFading = -1;
-        crossFadeStep = 0;
-        crossFadeVolumePerStep = game.options[OPT_CROSSFADEMUSIC];
-        crossFadeVolumeAtStart = calculate_max_volume();
-    }
-    else
-        stop_and_destroy_channel (SCHAN_MUSIC);
-
-    play.cur_music_number = -1;
-    current_music_type = 0;
-}
-
-void update_music_volume()
-{
-    if ((current_music_type) || (crossFading < 0)) 
-    {
-        // targetVol is the maximum volume we're fading in to
-        // newvol is the starting volume that we faded out from
-        int targetVol = calculate_max_volume();
-        int newvol;
-        if (crossFading)
-            newvol = crossFadeVolumeAtStart;
-        else
-            newvol = targetVol;
-
-        // fading out old track, target volume is silence
-        if (crossFading < 0)
-            targetVol = 0;
-
-        if (crossFading) {
-            int curvol = crossFadeVolumePerStep * crossFadeStep;
-
-            if ((curvol > targetVol) && (curvol > newvol)) {
-                // it has fully faded to the new track
-                newvol = targetVol;
-                stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
-                if (crossFading > 0) {
-                    AudioChans::MoveChannel(SCHAN_MUSIC, crossFading);
-                }
-                crossFading = 0;
-            }
-            else {
-                if (crossFading > 0)
-                {
-                    auto *ch = AudioChans::GetChannel(crossFading);
-                    if (ch)
-                        ch->set_volume255((curvol > targetVol) ? targetVol : curvol);
-                }
-
-                newvol -= curvol;
-                if (newvol < 0)
-                    newvol = 0;
-            }
-        }
-        auto *ch = AudioChans::GetChannel(SCHAN_MUSIC);
-        if (ch)
-            ch->set_volume255(newvol);
-    }
-}
-
 // Ensures crossfader is stable after loading (or failing to load) new music
 // NOTE: part of the legacy audio logic
 void post_new_music_check()
@@ -1028,54 +871,10 @@ void post_new_music_check()
     if ((crossFading > 0) && (AudioChans::GetChannel(crossFading) == nullptr)) {
         crossFading = 0;
         // Was fading out but then they played invalid music, continue to fade out
-        if (AudioChans::GetChannel(SCHAN_MUSIC) != nullptr)
+        if (false)
             crossFading = -1;
     }
 
-}
-
-int prepare_for_new_music ()
-{
-    int useChannel = SCHAN_MUSIC;
-
-    if ((game.options[OPT_CROSSFADEMUSIC] > 0)
-        && (AudioChans::GetChannelIfPlaying(SCHAN_MUSIC) != nullptr)
-        && (current_music_type != MUS_MIDI)
-        && (current_music_type != MUS_MOD)) {
-
-            if (crossFading > 0) {
-                // It's still crossfading to the previous track
-                stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
-                AudioChans::MoveChannel(SCHAN_MUSIC, crossFading);
-                crossFading = 0;
-                update_music_volume();
-            }
-            else if (crossFading < 0) {
-                // an old track is still fading out, no new music yet
-                // Do nothing, and keep the current crossfade step
-            }
-            else {
-                // start crossfading
-                crossFadeStep = 0;
-                crossFadeVolumePerStep = game.options[OPT_CROSSFADEMUSIC];
-                crossFadeVolumeAtStart = calculate_max_volume();
-            }
-            useChannel = SPECIAL_CROSSFADE_CHANNEL;
-            crossFading = useChannel;
-    }
-    else {
-        // crossfading is now turned off
-        stopmusic();
-        // ensure that any traces of old tunes fading are eliminated
-        // (otherwise the new track will be faded out)
-        crossFading = 0;
-    }
-
-    // Just make sure, because it will be overwritten in a sec
-    if (AudioChans::GetChannel(useChannel) != nullptr)
-        stop_and_destroy_channel (useChannel);
-
-    return useChannel;
 }
 
 ScriptAudioClip *get_audio_clip_for_music(int mnum)
@@ -1100,64 +899,4 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
     }
 
     return loaded;
-}
-
-static void play_new_music(int mnum, SOUNDCLIP *music)
-{
-    if (debug_flags & DBG_NOMUSIC)
-        return;
-
-    if ((play.cur_music_number == mnum) && (music == nullptr)) {
-        debug_script_log("PlayMusic %d but already playing", mnum);
-        return;  // don't play the music if it's already playing
-    }
-
-    ScriptAudioClip *aclip = get_audio_clip_for_music(mnum);
-    if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
-        return;
-
-    int useChannel = SCHAN_MUSIC;
-    debug_script_log("Playing music %d", mnum);
-
-    if (mnum<0) {
-        stopmusic();
-        return;
-    }
-
-    if (play.fast_forward) {
-        // while skipping cutscene, don't change the music
-        play.end_cutscene_music = mnum;
-        return;
-    }
-
-    useChannel = prepare_for_new_music();
-    play.cur_music_number = mnum;
-    current_music_type = 0;
-
-    play.current_music_repeating = play.music_repeat;
-    // now that all the previous music is unloaded, load in the new one
-
-    SOUNDCLIP *new_clip;
-    if (music != nullptr)
-        new_clip = music;
-    else
-        new_clip = load_music_from_disk(mnum, (play.music_repeat > 0));
-
-    if (new_clip && new_clip->play())
-    {
-        AudioChans::SetChannel(useChannel, std::unique_ptr<SOUNDCLIP>(new_clip));
-        current_music_type = new_clip->get_sound_type();
-    }
-    else
-    { // previous behavior was to set channel[] to null on error, so continue to do that here.
-        AudioChans::DeleteClipOnChannel(useChannel);
-    }
-
-    post_new_music_check();
-    update_music_volume();
-}
-
-void newmusic(int mnum)
-{
-    play_new_music(mnum, nullptr);
 }

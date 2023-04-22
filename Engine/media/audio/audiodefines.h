@@ -15,6 +15,7 @@
 #ifndef __AC_AUDIODEFINES_H
 #define __AC_AUDIODEFINES_H
 
+// Music format identifier
 #define MUS_MIDI 1
 #define MUS_MP3  2
 #define MUS_WAVE 3
@@ -53,16 +54,7 @@ inline bool IsPlaybackDone(PlaybackState state)
 #define TOTAL_AUDIO_CHANNELS      (MAX_GAME_CHANNELS + 1)
 // Number of game channels reserved for speech voice-over
 #define NUM_SPEECH_CHANS          1
-// Legacy channel numbers
-#define MAX_GAME_CHANNELS_v320    8
-#define TOTAL_AUDIO_CHANNELS_v320 (MAX_GAME_CHANNELS_v320 + 1)
-
-#define SCHAN_SPEECH  0
-#define SCHAN_AMBIENT 1
-#define SCHAN_MUSIC   2
-#define SCHAN_NORMAL  3
-#define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
-#define AUDIOTYPE_LEGACY_MUSIC 2
-#define AUDIOTYPE_LEGACY_SOUND 3
+// Fixed audio channel ID used for speech
+#define SCHAN_SPEECH              0
 
 #endif // __AC_AUDIODEFINES_H

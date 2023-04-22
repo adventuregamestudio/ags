@@ -722,8 +722,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         else if (forchar->y <= thisroom.Edges.Top)
             play.entered_edge = 3;
     }
-    if (thisroom.Options.StartupMusic>0)
-        PlayMusicResetQueue(thisroom.Options.StartupMusic);
 
     our_eip=208;
     if (forchar!=nullptr) {
@@ -746,7 +744,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip = 209;
     generate_light_table();
-    update_music_volume();
 
     // If we are not restoring a save, update cameras to accomodate for this
     // new room; otherwise this is done later when cameras are recreated.

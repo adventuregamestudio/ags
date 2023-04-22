@@ -465,16 +465,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.charProps.resize(game.numcharacters);
     dialog = std::move(ents.Dialogs);
     // Set number of game channels corresponding to the loaded game version
-    if (loaded_game_file_version < kGameVersion_360)
-    {
-        game.numGameChannels = MAX_GAME_CHANNELS_v320;
-        game.numCompatGameChannels = TOTAL_AUDIO_CHANNELS_v320;
-    }
-    else
-    {
-        game.numGameChannels = MAX_GAME_CHANNELS;
-        game.numCompatGameChannels = MAX_GAME_CHANNELS;
-    }
+    game.numGameChannels = MAX_GAME_CHANNELS;
+    game.numCompatGameChannels = MAX_GAME_CHANNELS;
     HError err = InitAndRegisterGameEntities(ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);

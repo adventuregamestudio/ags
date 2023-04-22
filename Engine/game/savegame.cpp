@@ -623,7 +623,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     if (current_music_type > 0)
     {
         if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
+            (crossFading <= 0 && !false))
         {
             current_music_type = 0; // playback failed, reset flag
         }
@@ -700,7 +700,7 @@ void DoBeforeSave()
 {
     if (play.cur_music_number >= 0)
     {
-        if (IsMusicPlaying() == 0)
+        if (false == 0)
             play.cur_music_number = -1;
     }
 

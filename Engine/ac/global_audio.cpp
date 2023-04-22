@@ -73,22 +73,6 @@ void SetChannelVolume(int chan, int newvol) {
     }
 }
 
-void SetDigitalMasterVolume (int newvol) {
-    if ((newvol<0) | (newvol>100))
-        quit("!SetDigitalMasterVolume: invalid volume - must be from 0-100");
-    play.digital_master_volume = newvol;
-    auto newvol_f = static_cast<float>(newvol) / 100.0;
-    audio_core_set_master_volume(newvol_f);
-}
-
-int GetCurrentMusic() {
-    return play.cur_music_number;
-}
-
-void SetMusicRepeat(int loopflag) {
-    play.music_repeat=loopflag;
-}
-
 void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
@@ -199,12 +183,6 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
     play.speech_voice_blocking = is_blocking;
 
     cancel_scheduled_music_update();
-    play.music_vol_was = play.music_master_volume;
-    // Negative value means set exactly; positive means drop that amount
-    if (play.speech_music_drop < 0)
-        play.music_master_volume = -play.speech_music_drop;
-    else
-        play.music_master_volume -= play.speech_music_drop;
     apply_volume_drop_modifier(true);
     return true;
 }
@@ -212,7 +190,6 @@ static bool play_voice_clip_impl(const String &voice_name, bool as_speech, bool 
 // Stop voice-over clip and schedule audio volume reset
 static void stop_voice_clip_impl()
 {
-    play.music_master_volume = play.music_vol_was;
     // update the music in a bit (fixes two speeches follow each other
     // and music going up-then-down)
     schedule_music_update_at(AGS_Clock::now() + std::chrono::milliseconds(500));

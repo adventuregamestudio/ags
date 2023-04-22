@@ -127,9 +127,6 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
 
 void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip)
 {
-    // Save the game audio parameters, in case we stop these
-    int musplaying = play.cur_music_number, i;
-
     // Optionally stop the game audio
     if ((flags & kVideo_KeepGameAudio) == 0)
     {

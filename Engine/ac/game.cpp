@@ -1122,7 +1122,7 @@ bool check_skip_cutscene_mclick(int mbut)
 // Helper functions used by StartCutscene/EndCutscene, but also
 // by SkipUntilCharacterStops
 void initialize_skippable_cutscene() {
-    play.end_cutscene_music = -1;
+    // TODO: move related variable init here
 }
 
 void stop_fast_forwarding() {

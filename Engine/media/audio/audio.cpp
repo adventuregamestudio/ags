@@ -496,7 +496,7 @@ ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
         return nullptr;
 }
 
-void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
+void stop_and_destroy_channel(int chid)
 {
     if ((chid < 0) || (chid >= TOTAL_AUDIO_CHANNELS))
         quit("!StopChannel: invalid channel ID");
@@ -508,16 +508,6 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     if (play.crossfading_out_channel == chid)
         play.crossfading_out_channel = 0;
     // don't update 'crossFading' here as it is updated in all the cross-fading functions.
-
-    if ((false) && (resetLegacyMusicSettings))
-    {
-        play.cur_music_number = -1;
-    }
-}
-
-void stop_and_destroy_channel(int chid)
-{
-    stop_and_destroy_channel_ex(chid, true);
 }
 
 void export_missing_audiochans()
@@ -628,18 +618,6 @@ void process_scheduled_music_update() {
 // end scheduled music update functions
 //=============================================================================
 
-int calculate_max_volume() {
-    // quieter so that sounds can be heard better
-    int newvol=play.music_master_volume + ((int)thisroom.Options.MusicVolume) * LegacyRoomVolumeFactor;
-    if (newvol>255) newvol=255;
-    if (newvol<0) newvol=0;
-
-    if (play.fast_forward)
-        newvol = 0;
-
-    return newvol;
-}
-
 // add/remove the volume drop to the audio channels while speech is playing
 void apply_volume_drop_modifier(bool applyModifier)
 {
@@ -693,14 +671,6 @@ void update_audio_system_on_game_loop ()
     process_scheduled_music_update();
 
     audio_update_polled_stuff();
-
-    // Check if the current music has finished playing
-    if ((play.cur_music_number >= 0) && (play.fast_forward == 0)) {
-        if (false == 0) {
-            // The current music has finished
-            play.cur_music_number = -1;
-        }
-    }
 
     if (loopcounter % 5 == 0) // TODO: investigate why we do this each 5 frames?
     {

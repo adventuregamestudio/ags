@@ -60,7 +60,6 @@ void        update_queued_clips_volume(int audioType, int new_vol);
 void        update_volume_drop_if_voiceover();
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
-void        stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);
 void        stop_and_destroy_channel (int chid);
 // Exports missing AudioChannel objects to script (for importing older saves)
 void        export_missing_audiochans();
@@ -79,7 +78,6 @@ void        shutdown_sound();
 
 //=============================================================================
 
-int         calculate_max_volume();
 // add/remove the volume drop to the audio channels while speech is playing
 void        apply_volume_drop_modifier(bool applyModifier);
 // syncs logical audio channels with the audio backend state

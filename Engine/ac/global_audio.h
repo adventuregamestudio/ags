@@ -20,9 +20,6 @@ int     IsChannelPlaying(int chan);
 void    StopAllSounds(int evenAmbient);
 
 void    SetChannelVolume(int chan, int newvol);
-void    SetDigitalMasterVolume (int newvol);
-int     GetCurrentMusic();
-void    SetMusicRepeat(int loopflag);
 
 void    SetSpeechVolume(int newvol);
 void    SetVoiceMode(int newmod);

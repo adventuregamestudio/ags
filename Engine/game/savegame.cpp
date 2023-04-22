@@ -367,7 +367,7 @@ void DoBeforeRestore(PreservedParams &pp)
 
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
-        stop_and_destroy_channel_ex(i, false);
+        stop_and_destroy_channel(i);
     }
 }
 
@@ -522,10 +522,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
 
-    if (play.digital_master_volume >= 0)
+    if (play.audio_master_volume >= 0)
     {
-        int temp_vol = play.digital_master_volume;
-        play.digital_master_volume = -1; // reset to invalid state before re-applying
+        int temp_vol = play.audio_master_volume;
+        play.audio_master_volume = -1; // reset to invalid state before re-applying
         System_SetVolume(temp_vol);
     }
 
@@ -668,12 +668,6 @@ Stream *StartSavegame(const String &filename, const String &user_text, const Bit
 
 void DoBeforeSave()
 {
-    if (play.cur_music_number >= 0)
-    {
-        if (false == 0)
-            play.cur_music_number = -1;
-    }
-
     if (displayed_room >= 0)
     {
         // update the current room script's data segment copy

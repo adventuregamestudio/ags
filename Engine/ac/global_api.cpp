@@ -356,12 +356,6 @@ RuntimeScriptValue Sc_GetCharIDAtScreen(const RuntimeScriptValue *params, int32_
     API_SCALL_INT_PINT2(GetCharIDAtScreen);
 }
 
-// int ()
-RuntimeScriptValue Sc_GetCurrentMusic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetCurrentMusic);
-}
-
 extern RuntimeScriptValue Sc_GetCursorMode(const RuntimeScriptValue *params, int32_t param_count);
 
 // int  (int dlg, int opt)
@@ -1053,12 +1047,6 @@ RuntimeScriptValue Sc_SetDialogOption(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID_PINT3(SetDialogOption);
 }
 
-// void  (int newvol)
-RuntimeScriptValue Sc_SetDigitalMasterVolume(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetDigitalMasterVolume);
-}
-
 // void (int red, int green, int blue)
 RuntimeScriptValue Sc_SetFadeColor(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1175,12 +1163,6 @@ extern RuntimeScriptValue Sc_SetMousePosition(const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_SetMultitasking(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetMultitasking);
-}
-
-// void (int loopflag)
-RuntimeScriptValue Sc_SetMusicRepeat(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetMusicRepeat);
 }
 
 extern RuntimeScriptValue Sc_SetNextCursor(const RuntimeScriptValue *params, int32_t param_count);
@@ -1538,7 +1520,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetBackgroundFrame",       Sc_GetBackgroundFrame);
 	ccAddExternalStaticFunction("GetButtonPic",             Sc_GetButtonPic);
 	ccAddExternalStaticFunction("GetCharacterAt",           Sc_GetCharIDAtScreen);
-	ccAddExternalStaticFunction("GetCurrentMusic",          Sc_GetCurrentMusic);
 	ccAddExternalStaticFunction("GetCursorMode",            Sc_GetCursorMode);
 	ccAddExternalStaticFunction("GetDialogOption",          Sc_GetDialogOption);
 	ccAddExternalStaticFunction("GetGameOption",            Sc_GetGameOption);
@@ -1660,7 +1641,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetCursorMode",            Sc_set_cursor_mode);
 	ccAddExternalStaticFunction("SetDefaultCursor",         Sc_set_default_cursor);
 	ccAddExternalStaticFunction("SetDialogOption",          Sc_SetDialogOption);
-	ccAddExternalStaticFunction("SetDigitalMasterVolume",   Sc_SetDigitalMasterVolume);
 	ccAddExternalStaticFunction("SetFadeColor",             Sc_SetFadeColor);
 	ccAddExternalStaticFunction("SetGameOption",            Sc_SetGameOption);
 	ccAddExternalStaticFunction("SetGameSpeed",             Sc_SetGameSpeed);
@@ -1683,7 +1663,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetMouseCursor",           Sc_set_mouse_cursor);
 	ccAddExternalStaticFunction("SetMousePosition",         Sc_SetMousePosition);
 	ccAddExternalStaticFunction("SetMultitaskingMode",      Sc_SetMultitasking);
-	ccAddExternalStaticFunction("SetMusicRepeat",           Sc_SetMusicRepeat);
 	ccAddExternalStaticFunction("SetNextCursorMode",        Sc_SetNextCursor);
 	ccAddExternalStaticFunction("SetNextScreenTransition",  Sc_SetNextScreenTransition);
 	ccAddExternalStaticFunction("SetNormalFont",            Sc_SetNormalFont);
@@ -1783,7 +1762,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetBackgroundFrame",       (void*)GetBackgroundFrame);
     ccAddExternalFunctionForPlugin("GetButtonPic",             (void*)GetButtonPic);
     ccAddExternalFunctionForPlugin("GetCharacterAt",           (void*)GetCharIDAtScreen);
-    ccAddExternalFunctionForPlugin("GetCurrentMusic",          (void*)GetCurrentMusic);
     ccAddExternalFunctionForPlugin("GetCursorMode",            (void*)GetCursorMode);
     ccAddExternalFunctionForPlugin("GetDialogOption",          (void*)GetDialogOption);
     ccAddExternalFunctionForPlugin("GetGameOption",            (void*)GetGameOption);
@@ -1901,7 +1879,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetCursorMode",            (void*)set_cursor_mode);
     ccAddExternalFunctionForPlugin("SetDefaultCursor",         (void*)set_default_cursor);
     ccAddExternalFunctionForPlugin("SetDialogOption",          (void*)SetDialogOption);
-    ccAddExternalFunctionForPlugin("SetDigitalMasterVolume",   (void*)SetDigitalMasterVolume);
     ccAddExternalFunctionForPlugin("SetFadeColor",             (void*)SetFadeColor);
     ccAddExternalFunctionForPlugin("SetGameOption",            (void*)SetGameOption);
     ccAddExternalFunctionForPlugin("SetGameSpeed",             (void*)SetGameSpeed);
@@ -1924,7 +1901,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetMouseCursor",           (void*)set_mouse_cursor);
     ccAddExternalFunctionForPlugin("SetMousePosition",         (void*)SetMousePosition);
     ccAddExternalFunctionForPlugin("SetMultitaskingMode",      (void*)SetMultitasking);
-    ccAddExternalFunctionForPlugin("SetMusicRepeat",           (void*)SetMusicRepeat);
     ccAddExternalFunctionForPlugin("SetNextCursorMode",        (void*)SetNextCursor);
     ccAddExternalFunctionForPlugin("SetNextScreenTransition",  (void*)SetNextScreenTransition);
     ccAddExternalFunctionForPlugin("SetNormalFont",            (void*)SetNormalFont);

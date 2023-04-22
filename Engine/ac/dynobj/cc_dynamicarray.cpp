@@ -105,6 +105,10 @@ void CCDynamicArray::RemapTypeids(const char *address,
 
 void CCDynamicArray::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
 {
+    // TODO: may be a bit faster if we make a "runtime type"
+    // struct, merging joint type info and auxiliary helper data,
+    // and store a pointer in the arr data.
+    // might also have a dummy "type" for "unknown type" arrays.
     const Header &hdr = GetHeader(address);
     const uint32_t type_id = hdr.TypeID & (~ARRAY_MANAGED_TYPE_FLAG);
     bool is_managed = (hdr.TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0;

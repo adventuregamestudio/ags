@@ -1505,6 +1505,9 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("invalid size for dynamic array; requested: %d, range: 1..%d", arg_elnum, INT32_MAX);
                   return -1;
               }
+              // TODO: this likely may be optimized by doing a fixup,
+              // which would replace a local typeid with a global one once the script is loaded;
+              // but we need to implement such fixup in a compiler first.
               assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
               const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
               DynObjectRef ref = globalDynamicArray.CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
@@ -1534,6 +1537,9 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("Invalid size for user object; requested: %u, range: 0..%d", arg_size, INT32_MAX);
                   return -1;
               }
+              // TODO: this likely may be optimized by doing a fixup,
+              // which would replace a local typeid with a global one once the script is loaded;
+              // but we need to implement such fixup in a compiler first.
               assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
               const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
               ScriptUserObject *suo = ScriptUserObject::CreateManaged(global_tid, arg_size);

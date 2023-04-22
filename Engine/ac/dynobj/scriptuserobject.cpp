@@ -114,6 +114,10 @@ void ScriptUserObject::RemapTypeids(const char* /*address*/,
 
 void ScriptUserObject::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
 {
+    // TODO: may be a bit faster if we make a "runtime type"
+    // struct, merging joint type info and auxiliary helper data,
+    // and store a pointer in the arr data.
+    // might also have a dummy "type" for "unknown type" arrays.
     if (_typeid == 0u) return;
     assert(ccInstance::GetRTTI()->GetTypes().size() > _typeid);
     const auto *helper = ccInstance::GetRTTIHelper();

@@ -36,11 +36,9 @@ namespace AGS.Types
         private int _rightEdgeX;
         private int _topEdgeY;
         private int _bottomEdgeY;
-        private int _playMusicOnRoomLoad;
         private bool _saveLoadEnabled = true;
         private bool _showPlayerCharacter = true;
         private int _playerCharacterView;
-        private RoomVolumeAdjustment _musicVolumeAdjustment;
         private int _maskResolution = 1;
         private int _colorDepth;
         private int _width;
@@ -311,12 +309,9 @@ namespace AGS.Types
             set { _backgroundAnimEnabled = value; }
         }
 
+        [Obsolete]
         [Browsable(false)]
-        public int PlayMusicOnRoomLoad
-        {
-            get { return _playMusicOnRoomLoad; }
-            set { _playMusicOnRoomLoad = value; }
-        }
+        public int PlayMusicOnRoomLoad { get; }
 
         [Browsable(false)]
         public bool SaveLoadEnabled
@@ -344,15 +339,9 @@ namespace AGS.Types
             set { _playerCharacterView = value; }
         }
 
-        [Description("LEGACY PlayMusic COMMANDS ONLY: The music volume will be adjusted when in this room")]
-        [DefaultValue(RoomVolumeAdjustment.Normal)]
-        [Category("Settings")]
-        [DisplayName("LegacyMusicVolumeAdjustment")]
-        public RoomVolumeAdjustment MusicVolumeAdjustment
-        {
-            get { return _musicVolumeAdjustment; }
-            set { _musicVolumeAdjustment = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public int MusicVolumeAdjustment { get; }
 
         [Description("The X co-ordinate of the left room edge")]
         [Category("Edges")]

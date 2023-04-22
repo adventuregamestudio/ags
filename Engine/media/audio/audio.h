@@ -89,16 +89,10 @@ void        apply_volume_drop_modifier(bool applyModifier);
 // syncs logical audio channels with the audio backend state
 void        sync_audio_playback();
 void        update_audio_system_on_game_loop ();
-void        post_new_music_check();
 
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
-
-// crossFading is >0 (channel number of new track), or -1 (old
-// track fading out, no new track)
-extern int crossFading, crossFadeVolumePerStep, crossFadeStep;
-extern int crossFadeVolumeAtStart;
 
 extern SOUNDCLIP *cachedQueuedMusic;
 

@@ -431,11 +431,6 @@ int SetGameOption (int opt, int setting) {
         }
     }
 
-    if ((opt == OPT_CROSSFADEMUSIC))
-    {
-        /* DEPRECATED */
-    }
-
     int oldval = game.options[opt];
     game.options[opt] = setting;
 

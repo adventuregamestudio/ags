@@ -356,10 +356,10 @@ HSaveError WriteAudio(Stream *out)
             out->WriteInt32(-1);
         }
     }
-    out->WriteInt32(crossFading);
-    out->WriteInt32(crossFadeVolumePerStep);
-    out->WriteInt32(crossFadeStep);
-    out->WriteInt32(crossFadeVolumeAtStart);
+    out->WriteInt32(0); // DEPRECATED: legacy crossfade params
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     out->WriteInt32(0); // DEPRECATED current_music_type
 
     // Ambient sound
@@ -423,10 +423,10 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
             }
         }
     }
-    crossFading = in->ReadInt32();
-    crossFadeVolumePerStep = in->ReadInt32();
-    crossFadeStep = in->ReadInt32();
-    crossFadeVolumeAtStart = in->ReadInt32();
+    in->ReadInt32(); // DEPRECATED: legacy crossfade params
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
     in->ReadInt32(); // DEPRECATED current_music_type
     
     // Ambient sound

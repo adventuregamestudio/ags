@@ -95,7 +95,6 @@ void quit_check_dynamic_sprites(QuitReason qreason)
 void quit_shutdown_audio()
 {
     our_eip = 9917;
-    game.options[OPT_CROSSFADEMUSIC] = 0;
     shutdown_sound();
 }
 

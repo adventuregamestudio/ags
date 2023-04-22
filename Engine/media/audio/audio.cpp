@@ -635,8 +635,6 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 void stop_all_sound_and_music() 
 {
     stop_voice_nonblocking();
-    // make sure it doesn't start crossfading when it comes back
-    crossFading = 0;
     // any ambient sound will be aborted
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
@@ -656,10 +654,6 @@ void shutdown_sound()
 //=============================================================================
 
 
-// crossFading is >0 (channel number of new track), or -1 (old
-// track fading out, no new track)
-int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
-int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = nullptr;
 
 //=============================================================================
@@ -796,20 +790,12 @@ void update_audio_system_on_game_loop ()
 
     audio_update_polled_stuff();
 
-    if (crossFading) {
-        crossFadeStep++;
-    }
-
     // Check if the current music has finished playing
     if ((play.cur_music_number >= 0) && (play.fast_forward == 0)) {
         if (false == 0) {
             // The current music has finished
             play.cur_music_number = -1;
             play_next_queued();
-        }
-        else if ((game.options[OPT_CROSSFADEMUSIC] > 0) &&
-            (play.music_queue_size > 0) && (!crossFading)) {
-              /* DEPRECATED */
         }
     }
 
@@ -821,17 +807,4 @@ void update_audio_system_on_game_loop ()
 
     // Sync logical game channels with the audio backend again
     sync_audio_playback();
-}
-
-// Ensures crossfader is stable after loading (or failing to load) new music
-// NOTE: part of the legacy audio logic
-void post_new_music_check()
-{
-    if ((crossFading > 0) && (AudioChans::GetChannel(crossFading) == nullptr)) {
-        crossFading = 0;
-        // Was fading out but then they played invalid music, continue to fade out
-        if (false)
-            crossFading = -1;
-    }
-
 }

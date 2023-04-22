@@ -65,24 +65,6 @@ enum RoomAreaMask
     kRoomArea_Last  = kRoomAreaRegion
 };
 
-// Room's audio volume modifier
-enum RoomVolumeMod
-{
-    kRoomVolumeQuietest = -3,
-    kRoomVolumeQuieter  = -2,
-    kRoomVolumeQuiet    = -1,
-    kRoomVolumeNormal   =  0,
-    kRoomVolumeLoud     =  1,
-    kRoomVolumeLouder   =  2,
-    kRoomVolumeLoudest  =  3,
-    // These two options are only settable at runtime by SetMusicVolume()
-    kRoomVolumeExtra1   =  4,
-    kRoomVolumeExtra2   =  5,
-
-    kRoomVolumeMin      = kRoomVolumeQuietest,
-    kRoomVolumeMax      = kRoomVolumeExtra2,
-};
-
 // Extended room boolean options
 enum RoomFlags
 {
@@ -122,16 +104,12 @@ typedef std::shared_ptr<Bitmap> PBitmap;
 // Various room options
 struct RoomOptions
 {
-    // Index of the startup music in the room
-    int  StartupMusic;
     // If saving and loading game is disabled in the room
     bool SaveLoadDisabled;
     // If player character is turned off in the room
     bool PlayerCharOff;
     // Apply player character's normal view when entering this room
     int  PlayerView;
-    // Room's music volume modifier
-    RoomVolumeMod MusicVolume;
     // A collection of boolean options
     int  Flags;
 

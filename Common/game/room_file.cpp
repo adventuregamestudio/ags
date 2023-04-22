@@ -197,11 +197,11 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         room->WalkAreas[i].Bottom = in->ReadInt16();
 
     in->Seek(LEGACY_ROOM_PASSWORD_LENGTH); // skip password
-    room->Options.StartupMusic = in->ReadInt8();
+    in->ReadInt8();// [DEPRECATED]
     room->Options.SaveLoadDisabled = in->ReadInt8() != 0;
     room->Options.PlayerCharOff = in->ReadInt8() != 0;
     room->Options.PlayerView = in->ReadInt8();
-    room->Options.MusicVolume = (RoomVolumeMod)in->ReadInt8();
+    in->ReadInt8();// [DEPRECATED]
     room->Options.Flags = in->ReadInt8();
     in->Seek(ROOM_OPTIONS_RESERVED);
     
@@ -601,11 +601,11 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
         out->WriteInt16(room->WalkAreas[i].Bottom);
 
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
-    out->WriteInt8(room->Options.StartupMusic);
+    out->WriteInt8(0);// [DEPRECATED]
     out->WriteInt8(room->Options.SaveLoadDisabled ? 1 : 0);
     out->WriteInt8(room->Options.PlayerCharOff ? 1 : 0);
     out->WriteInt8(room->Options.PlayerView);
-    out->WriteInt8(room->Options.MusicVolume);
+    out->WriteInt8(0);// [DEPRECATED]
     out->WriteInt8(room->Options.Flags);
     out->WriteByteCount(0, ROOM_OPTIONS_RESERVED);
     out->WriteInt16((int16_t)room->MessageCount);

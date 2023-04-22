@@ -103,7 +103,6 @@ RestoredData::ScriptData::ScriptData()
 
 RestoredData::RestoredData()
     : FPS(0)
-    , RoomVolume(kRoomVolumeNormal)
     , CursorID(0)
     , CursorMode(0)
 {
@@ -473,9 +472,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         set_room_placeholder();
 
     play.gscript_timer=gstimer;
-    // restore the correct room volume (they might have modified
-    // it with SetMusicVolume)
-    thisroom.Options.MusicVolume = r_data.RoomVolume;
 
     Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
 

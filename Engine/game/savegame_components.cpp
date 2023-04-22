@@ -964,8 +964,7 @@ HSaveError WriteThisRoom(Stream *out)
         out->WriteInt32(thisroom.WalkAreas[i].ScalingNear);
     }
 
-    // room music volume
-    out->WriteInt32(thisroom.Options.MusicVolume);
+    out->WriteInt32(0); // [DEPRECATED]
 
     // persistent room's indicator
     const bool persist = displayed_room < MAX_ROOMS;
@@ -1007,8 +1006,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         r_data.RoomZoomLevels2[i] = in->ReadInt32();
     }
 
-    // save the new room music vol for later use
-    r_data.RoomVolume = (RoomVolumeMod)in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())

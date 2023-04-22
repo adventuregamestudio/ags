@@ -23,11 +23,9 @@ namespace Common
 {
 
 RoomOptions::RoomOptions()
-    : StartupMusic(0)
-    , SaveLoadDisabled(false)
+    : SaveLoadDisabled(false)
     , PlayerCharOff(false)
     , PlayerView(0)
-    , MusicVolume(kRoomVolumeNormal)
     , Flags(0)
 {
 }

@@ -166,10 +166,6 @@ int Room_GetBottomEdge() {
     return thisroom.Edges.Bottom;
 }
 
-int Room_GetMusicOnLoad() {
-    return thisroom.Options.StartupMusic;
-}
-
 int Room_GetProperty(const char *property)
 {
     return get_int_property(thisroom.Properties, croom->roomProps, property);
@@ -1037,12 +1033,6 @@ RuntimeScriptValue Sc_Room_GetMessages(const RuntimeScriptValue *params, int32_t
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetMusicOnLoad(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Room_GetMusicOnLoad);
-}
-
-// int ()
 RuntimeScriptValue Sc_Room_GetObjectCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetObjectCount);
@@ -1091,7 +1081,6 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);
     ccAddExternalStaticFunction("Room::get_LeftEdge",                       Sc_Room_GetLeftEdge);
     ccAddExternalStaticFunction("Room::geti_Messages",                      Sc_Room_GetMessages);
-    ccAddExternalStaticFunction("Room::get_MusicOnLoad",                    Sc_Room_GetMusicOnLoad);
     ccAddExternalStaticFunction("Room::get_ObjectCount",                    Sc_Room_GetObjectCount);
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
@@ -1110,7 +1099,6 @@ void RegisterRoomAPI()
     ccAddExternalFunctionForPlugin("Room::get_Height",                         (void*)Room_GetHeight);
     ccAddExternalFunctionForPlugin("Room::get_LeftEdge",                       (void*)Room_GetLeftEdge);
     ccAddExternalFunctionForPlugin("Room::geti_Messages",                      (void*)Room_GetMessages);
-    ccAddExternalFunctionForPlugin("Room::get_MusicOnLoad",                    (void*)Room_GetMusicOnLoad);
     ccAddExternalFunctionForPlugin("Room::get_ObjectCount",                    (void*)Room_GetObjectCount);
     ccAddExternalFunctionForPlugin("Room::get_RightEdge",                      (void*)Room_GetRightEdge);
     ccAddExternalFunctionForPlugin("Room::get_TopEdge",                        (void*)Room_GetTopEdge);

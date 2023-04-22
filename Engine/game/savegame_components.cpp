@@ -360,8 +360,7 @@ HSaveError WriteAudio(Stream *out)
     out->WriteInt32(crossFadeVolumePerStep);
     out->WriteInt32(crossFadeStep);
     out->WriteInt32(crossFadeVolumeAtStart);
-    // CHECKME: why this needs to be saved?
-    out->WriteInt32(current_music_type);
+    out->WriteInt32(0); // DEPRECATED current_music_type
 
     // Ambient sound
     for (int i = 0; i < game.numGameChannels; ++i)
@@ -428,8 +427,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
     crossFadeVolumePerStep = in->ReadInt32();
     crossFadeStep = in->ReadInt32();
     crossFadeVolumeAtStart = in->ReadInt32();
-    // preserve legacy music type setting
-    current_music_type = in->ReadInt32();
+    in->ReadInt32(); // DEPRECATED current_music_type
     
     // Ambient sound
     for (int i = 0; i < max_game_channels; ++i)

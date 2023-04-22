@@ -85,12 +85,6 @@ void        shutdown_sound();
 
 //=============================================================================
 
-// This is an indicator of a music played by an old audio system
-// (to distinguish from the new system API); if it is not set, then old API
-// should "think" that no music is played regardless of channel state
-// TODO: refactor this and hide behind some good interface to prevent misuse!
-extern int current_music_type;
-
 void        clear_music_cache();
 void        play_next_queued();
 int         calculate_max_volume();

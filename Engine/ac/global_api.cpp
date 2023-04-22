@@ -884,22 +884,10 @@ RuntimeScriptValue Sc_play_flc_file(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT2(PlayFlic);
 }
 
-// void  (char *filename)
-RuntimeScriptValue Sc_PlayMP3File(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ(PlayMP3File, const char);
-}
-
 // int (int musnum)
 RuntimeScriptValue Sc_PlayMusicQueued(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(PlayMusicQueued);
-}
-
-// void  (int mnum)
-RuntimeScriptValue Sc_PlaySilentMIDI(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(PlaySilentMIDI);
 }
 
 // void (const char* name, int skip, int flags)
@@ -1665,9 +1653,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("PauseGame",                Sc_PauseGame);
 	ccAddExternalStaticFunction("PlayAmbientSound",         Sc_PlayAmbientSound);
 	ccAddExternalStaticFunction("PlayFlic",                 Sc_play_flc_file);
-	ccAddExternalStaticFunction("PlayMP3File",              Sc_PlayMP3File);
 	ccAddExternalStaticFunction("PlayMusicQueued",          Sc_PlayMusicQueued);
-	ccAddExternalStaticFunction("PlaySilentMIDI",           Sc_PlaySilentMIDI);
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
 	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
@@ -1912,9 +1898,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
     ccAddExternalFunctionForPlugin("PlayAmbientSound",         (void*)PlayAmbientSound);
     ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)PlayFlic);
-    ccAddExternalFunctionForPlugin("PlayMP3File",              (void*)PlayMP3File);
     ccAddExternalFunctionForPlugin("PlayMusicQueued",          (void*)PlayMusicQueued);
-    ccAddExternalFunctionForPlugin("PlaySilentMIDI",           (void*)PlaySilentMIDI);
     ccAddExternalFunctionForPlugin("PlayVideo",                (void*)PlayVideo);
     ccAddExternalFunctionForPlugin("ProcessClick",             (void*)RoomProcessClick);
     ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);

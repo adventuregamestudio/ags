@@ -572,11 +572,6 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     case PSND_OGGSTATIC:
         newcha = my_load_ogg(asset_name, (loop != 0)); break;
     case PSND_MIDI:
-        if (play.silent_midi != 0 || current_music_type == MUS_MIDI)
-        {
-            debug_script_warn("IAGSEngine::PlaySoundChannel: MIDI already in use");
-            return;
-        }
         newcha = my_load_midi(asset_name, (loop != 0)); break;
     case PSND_MOD:
         newcha = my_load_mod(asset_name, (loop != 0)); break;

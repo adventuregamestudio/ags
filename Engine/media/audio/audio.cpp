@@ -519,7 +519,6 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings)
     if ((false) && (resetLegacyMusicSettings))
     {
         play.cur_music_number = -1;
-        current_music_type = 0;
     }
 }
 
@@ -691,9 +690,6 @@ void shutdown_sound()
 //=============================================================================
 
 
-// This is an indicator of a music played by an old audio system
-// (to distinguish from the new system API)
-int current_music_type = 0;
 // crossFading is >0 (channel number of new track), or -1 (old
 // track fading out, no new track)
 int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;

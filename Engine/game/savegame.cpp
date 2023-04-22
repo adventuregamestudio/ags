@@ -619,16 +619,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
-    // Test if the old-style audio had playing music and it was properly loaded
-    if (current_music_type > 0)
-    {
-        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !false))
-        {
-            current_music_type = 0; // playback failed, reset flag
-        }
-    }
-
     set_game_speed(r_data.FPS);
 
     return HSaveError::None();

@@ -3562,7 +3562,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
     room->LeftEdgeX = rs.Edges.Left;
-    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)rs.Options.StartupMusic;
+    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)rs.Options.MusicVolume;
     room->PlayerCharacterView = rs.Options.PlayerView;
     room->PlayMusicOnRoomLoad = rs.Options.StartupMusic;
     room->RightEdgeX = rs.Edges.Right;
@@ -3754,7 +3754,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.GameID = room->GameID;
 	rs.Edges.Bottom = room->BottomEdgeY;
 	rs.Edges.Left = room->LeftEdgeX;
-	rs.Options.StartupMusic = (int)room->MusicVolumeAdjustment;
+	rs.Options.MusicVolume = (RoomVolumeMod)room->MusicVolumeAdjustment;
 	rs.Options.PlayerView = room->PlayerCharacterView;
 	rs.Options.StartupMusic = room->PlayMusicOnRoomLoad;
 	rs.Edges.Right = room->RightEdgeX;

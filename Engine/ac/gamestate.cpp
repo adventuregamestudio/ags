@@ -624,8 +624,9 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     get_loc_name_save_cursor = in->ReadInt32();
     restore_cursor_mode_to = in->ReadInt32();
     restore_cursor_image_to = in->ReadInt32();
-    music_queue_size = in->ReadInt16();
-    in->ReadArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
+    in->ReadInt16(); // legacy music queue
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+        in->ReadInt16();
     new_music_queue_size = in->ReadInt16();
     if (!old_save)
     {
@@ -828,8 +829,8 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( get_loc_name_save_cursor);
     out->WriteInt32( restore_cursor_mode_to);
     out->WriteInt32( restore_cursor_image_to);
-    out->WriteInt16( music_queue_size);
-    out->WriteArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
+    out->WriteInt16( 0 ); // legacy music queue
+    out->WriteByteCount( 0, sizeof(int16_t) * MAX_QUEUED_MUSIC);
     out->WriteInt16(new_music_queue_size);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {

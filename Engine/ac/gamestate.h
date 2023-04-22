@@ -193,9 +193,6 @@ struct GameState {
     int   get_loc_name_save_cursor;
     int   restore_cursor_mode_to;
     int   restore_cursor_image_to;
-    short music_queue_size;
-    short music_queue[MAX_QUEUED_MUSIC];
-    short new_music_queue_size;
     short crossfading_out_channel;
     short crossfade_step;
     short crossfade_out_volume_per_step;
@@ -203,6 +200,7 @@ struct GameState {
     short crossfading_in_channel;
     short crossfade_in_volume_per_step;
     short crossfade_final_volume_in;
+    short new_music_queue_size;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC];
     char  takeover_from[50];
     char  playmp3file_name[PLAYMP3FILE_MAX_FILENAME_LEN];

@@ -60,48 +60,6 @@ void StopAllSounds(int evenAmbient) {
         Game_StopAudio(1);
 }
 
-int PlayMusicQueued(int musnum) {
-
-    // Just get the queue size
-    if (musnum < 0)
-        return play.music_queue_size;
-
-    if ((false) && (play.music_queue_size == 0)) {
-        return 0;
-    }
-
-    if (play.music_queue_size >= MAX_QUEUED_MUSIC) {
-        debug_script_log("Too many queued music, cannot add %d", musnum);
-        return 0;
-    }
-
-    if ((play.music_queue_size > 0) && 
-        (play.music_queue[play.music_queue_size - 1] >= QUEUED_MUSIC_REPEAT)) {
-            debug_script_warn("PlayMusicQueued: cannot queue music after a repeating tune has been queued");
-            return 0;
-    }
-
-    if (play.music_repeat) {
-        debug_script_log("Queuing music %d to loop", musnum);
-        musnum += QUEUED_MUSIC_REPEAT;
-    }
-    else {
-        debug_script_log("Queuing music %d", musnum);
-    }
-
-    play.music_queue[play.music_queue_size] = musnum;
-    play.music_queue_size++;
-
-    if (play.music_queue_size == 1) {
-
-        clear_music_cache();
-
-        cachedQueuedMusic = nullptr;
-    }
-
-    return play.music_queue_size;
-}
-
 void SetChannelVolume(int chan, int newvol) {
     if ((newvol<0) || (newvol>255))
         quit("!SetChannelVolume: invalid volume - must be from 0-255");

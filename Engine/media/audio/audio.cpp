@@ -599,12 +599,6 @@ void shutdown_sound()
 }
 
 
-
-//=============================================================================
-
-
-SOUNDCLIP *cachedQueuedMusic = nullptr;
-
 //=============================================================================
 // Music update is scheduled when the voice speech stops;
 // we do a small delay before reverting any volume adjustments
@@ -633,44 +627,6 @@ void process_scheduled_music_update() {
 }
 // end scheduled music update functions
 //=============================================================================
-
-void clear_music_cache() {
-
-    if (cachedQueuedMusic != nullptr) {
-        delete cachedQueuedMusic;
-        cachedQueuedMusic = nullptr;
-    }
-
-}
-
-void play_next_queued() {
-    // check if there's a queued one to play
-    if (play.music_queue_size > 0) {
-
-        int tuneToPlay = play.music_queue[0];
-
-        if (tuneToPlay >= QUEUED_MUSIC_REPEAT) {
-            // Loop it!
-            play.music_repeat++;
-            play.music_repeat--;
-        }
-        else {
-            // Don't loop it!
-            int repeatWas = play.music_repeat;
-            play.music_repeat = 0;
-            play.music_repeat = repeatWas;
-        }
-
-        // don't free the memory, as it has been transferred onto the
-        // main music channel
-        cachedQueuedMusic = nullptr;
-
-        play.music_queue_size--;
-        for (int i = 0; i < play.music_queue_size; i++)
-            play.music_queue[i] = play.music_queue[i + 1];
-    }
-
-}
 
 int calculate_max_volume() {
     // quieter so that sounds can be heard better
@@ -743,7 +699,6 @@ void update_audio_system_on_game_loop ()
         if (false == 0) {
             // The current music has finished
             play.cur_music_number = -1;
-            play_next_queued();
         }
     }
 

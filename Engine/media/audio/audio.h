@@ -79,8 +79,6 @@ void        shutdown_sound();
 
 //=============================================================================
 
-void        clear_music_cache();
-void        play_next_queued();
 int         calculate_max_volume();
 // add/remove the volume drop to the audio channels while speech is playing
 void        apply_volume_drop_modifier(bool applyModifier);
@@ -91,7 +89,5 @@ void        update_audio_system_on_game_loop ();
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
-
-extern SOUNDCLIP *cachedQueuedMusic;
 
 #endif // __AGS_EE_MEDIA__AUDIO_H__

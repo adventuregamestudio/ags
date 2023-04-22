@@ -19,7 +19,6 @@
 int     IsChannelPlaying(int chan);
 void    StopAllSounds(int evenAmbient);
 
-int     PlayMusicQueued(int musnum);
 void    SetChannelVolume(int chan, int newvol);
 void    SetDigitalMasterVolume (int newvol);
 int     GetCurrentMusic();

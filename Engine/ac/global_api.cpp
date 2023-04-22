@@ -877,12 +877,6 @@ RuntimeScriptValue Sc_play_flc_file(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT2(PlayFlic);
 }
 
-// int (int musnum)
-RuntimeScriptValue Sc_PlayMusicQueued(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(PlayMusicQueued);
-}
-
 // void (const char* name, int skip, int flags)
 RuntimeScriptValue Sc_scrPlayVideo(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1633,7 +1627,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("ObjectOn",                 Sc_ObjectOn);
 	ccAddExternalStaticFunction("PauseGame",                Sc_PauseGame);
 	ccAddExternalStaticFunction("PlayFlic",                 Sc_play_flc_file);
-	ccAddExternalStaticFunction("PlayMusicQueued",          Sc_PlayMusicQueued);
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
 	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
@@ -1875,7 +1868,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("ObjectOn",                 (void*)ObjectOn);
     ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
     ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)PlayFlic);
-    ccAddExternalFunctionForPlugin("PlayMusicQueued",          (void*)PlayMusicQueued);
     ccAddExternalFunctionForPlugin("PlayVideo",                (void*)PlayVideo);
     ccAddExternalFunctionForPlugin("ProcessClick",             (void*)RoomProcessClick);
     ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);

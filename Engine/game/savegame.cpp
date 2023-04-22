@@ -369,8 +369,6 @@ void DoBeforeRestore(PreservedParams &pp)
     {
         stop_and_destroy_channel_ex(i, false);
     }
-
-    clear_music_cache();
 }
 
 void RestoreViewportsAndCameras(const RestoredData &r_data)
@@ -468,10 +466,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
     int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
 
-    // disable the queue momentarily
-    int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
-
     // load the room the game was saved in
     if (displayed_room >= 0)
         load_new_room(displayed_room, nullptr);
@@ -527,9 +521,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     }
 
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
-
-    // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
 
     if (play.digital_master_volume >= 0)
     {

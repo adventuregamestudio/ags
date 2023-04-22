@@ -274,9 +274,17 @@ void VideoMemoryGraphicsDriver::UpdateSharedDDB(uint32_t sprite_id, Common::Bitm
 
 void VideoMemoryGraphicsDriver::ClearSharedDDB(uint32_t sprite_id)
 {
+    // Reset sprite ID for any remaining shared txdata,
+    // then remove the reference from the cache;
+    // NOTE: we do not delete txdata itself, as it may be temporarily in use
     const auto found = _txRefs.find(sprite_id);
     if (found != _txRefs.end())
+    {
+        auto txdata = found->second.Data.lock();
+        if (txdata)
+            txdata->ID = UINT32_MAX;
         _txRefs.erase(found);
+    }
 }
 
 void VideoMemoryGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)

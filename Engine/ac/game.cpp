@@ -1612,12 +1612,6 @@ RuntimeScriptValue Sc_Game_SetSaveGameDirectory(const RuntimeScriptValue *params
     API_SCALL_INT_POBJ(Game_SetSaveGameDirectory, const char);
 }
 
-// void (int evenAmbient);
-RuntimeScriptValue Sc_StopAllSounds(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(StopAllSounds);
-}
-
 // int ()
 RuntimeScriptValue Sc_Game_GetCharacterCount(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1841,7 +1835,6 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::GetViewFrame^3",                         Sc_Game_GetViewFrame);
     ccAddExternalStaticFunction("Game::InputBox^1",                             Sc_Game_InputBox);
     ccAddExternalStaticFunction("Game::SetSaveGameDirectory^1",                 Sc_Game_SetSaveGameDirectory);
-    ccAddExternalStaticFunction("Game::StopSound^1",                            Sc_StopAllSounds);
     ccAddExternalStaticFunction("Game::get_CharacterCount",                     Sc_Game_GetCharacterCount);
     ccAddExternalStaticFunction("Game::get_DialogCount",                        Sc_Game_GetDialogCount);
     ccAddExternalStaticFunction("Game::get_FileName",                           Sc_Game_GetFileName);
@@ -1898,7 +1891,6 @@ void RegisterGameAPI()
     ccAddExternalFunctionForPlugin("Game::GetViewFrame^3",                         (void*)Game_GetViewFrame);
     ccAddExternalFunctionForPlugin("Game::InputBox^1",                             (void*)Game_InputBox);
     ccAddExternalFunctionForPlugin("Game::SetSaveGameDirectory^1",                 (void*)Game_SetSaveGameDirectory);
-    ccAddExternalFunctionForPlugin("Game::StopSound^1",                            (void*)StopAllSounds);
     ccAddExternalFunctionForPlugin("Game::get_CharacterCount",                     (void*)Game_GetCharacterCount);
     ccAddExternalFunctionForPlugin("Game::get_DialogCount",                        (void*)Game_GetDialogCount);
     ccAddExternalFunctionForPlugin("Game::get_FileName",                           (void*)Game_GetFileName);

@@ -665,12 +665,6 @@ RuntimeScriptValue Sc_IntToFloat(const RuntimeScriptValue *params, int32_t param
 
 extern RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count);
 
-// int (int chan)
-RuntimeScriptValue Sc_IsChannelPlaying(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsChannelPlaying);
-}
-
 // int ()
 RuntimeScriptValue Sc_IsGamePaused(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1030,12 +1024,6 @@ RuntimeScriptValue Sc_SetButtonPic(const RuntimeScriptValue *params, int32_t par
 RuntimeScriptValue Sc_SetButtonText(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2_POBJ(SetButtonText, const char);
-}
-
-// void (int chan, int newvol)
-RuntimeScriptValue Sc_SetChannelVolume(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetChannelVolume);
 }
 
 extern RuntimeScriptValue Sc_set_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
@@ -1574,7 +1562,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("InterfaceOn",              Sc_InterfaceOn);
 	ccAddExternalStaticFunction("IntToFloat",               Sc_IntToFloat);
 	ccAddExternalStaticFunction("IsButtonDown",             Sc_IsButtonDown);
-	ccAddExternalStaticFunction("IsChannelPlaying",         Sc_IsChannelPlaying);
 	ccAddExternalStaticFunction("IsGamePaused",             Sc_IsGamePaused);
 	ccAddExternalStaticFunction("IsGUIOn",                  Sc_IsGUIOn);
 	ccAddExternalStaticFunction("IsInteractionAvailable",   Sc_IsInteractionAvailable);
@@ -1637,7 +1624,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetBackgroundFrame",       Sc_SetBackgroundFrame);
 	ccAddExternalStaticFunction("SetButtonPic",             Sc_SetButtonPic);
 	ccAddExternalStaticFunction("SetButtonText",            Sc_SetButtonText);
-	ccAddExternalStaticFunction("SetChannelVolume",         Sc_SetChannelVolume);
 	ccAddExternalStaticFunction("SetCursorMode",            Sc_set_cursor_mode);
 	ccAddExternalStaticFunction("SetDefaultCursor",         Sc_set_default_cursor);
 	ccAddExternalStaticFunction("SetDialogOption",          Sc_SetDialogOption);
@@ -1812,7 +1798,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("InterfaceOn",              (void*)InterfaceOn);
     ccAddExternalFunctionForPlugin("IntToFloat",               (void*)IntToFloat);
     ccAddExternalFunctionForPlugin("IsButtonDown",             (void*)IsButtonDown);
-    ccAddExternalFunctionForPlugin("IsChannelPlaying",         (void*)IsChannelPlaying);
     ccAddExternalFunctionForPlugin("IsGamePaused",             (void*)IsGamePaused);
     ccAddExternalFunctionForPlugin("IsGUIOn",                  (void*)IsGUIOn);
     ccAddExternalFunctionForPlugin("IsInteractionAvailable",   (void*)IsInteractionAvailable);
@@ -1875,7 +1860,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetBackgroundFrame",       (void*)SetBackgroundFrame);
     ccAddExternalFunctionForPlugin("SetButtonPic",             (void*)SetButtonPic);
     ccAddExternalFunctionForPlugin("SetButtonText",            (void*)SetButtonText);
-    ccAddExternalFunctionForPlugin("SetChannelVolume",         (void*)SetChannelVolume);
     ccAddExternalFunctionForPlugin("SetCursorMode",            (void*)set_cursor_mode);
     ccAddExternalFunctionForPlugin("SetDefaultCursor",         (void*)set_default_cursor);
     ccAddExternalFunctionForPlugin("SetDialogOption",          (void*)SetDialogOption);

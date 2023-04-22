@@ -16,10 +16,8 @@
 
 #include "speech.h"
 
+// NOTE: left for plugins
 int     IsChannelPlaying(int chan);
-void    StopAllSounds(int evenAmbient);
-
-void    SetChannelVolume(int chan, int newvol);
 
 void    SetSpeechVolume(int newvol);
 void    SetVoiceMode(int newmod);

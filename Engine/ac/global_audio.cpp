@@ -52,27 +52,6 @@ int IsChannelPlaying(int chan) {
     return 0;
 }
 
-void StopAllSounds(int evenAmbient) {
-    // backwards-compatible hack -- stop Type 3 (default Sound Type)
-    Game_StopAudio(3);
-
-    if (evenAmbient)
-        Game_StopAudio(1);
-}
-
-void SetChannelVolume(int chan, int newvol) {
-    if ((newvol<0) || (newvol>255))
-        quit("!SetChannelVolume: invalid volume - must be from 0-255");
-    if ((chan < 0) || (chan >= game.numGameChannels))
-        quit("!SetChannelVolume: invalid channel id");
-
-    auto* ch = AudioChans::GetChannelIfPlaying(chan);
-
-    if (ch) {
-        ch->set_volume255(newvol);
-    }
-}
-
 void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");

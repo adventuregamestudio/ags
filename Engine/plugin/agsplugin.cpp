@@ -40,6 +40,7 @@
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
+#include "ac/dynobj/cc_pluginobject.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptstring.h"
 #include "font/fonts.h"
@@ -692,8 +693,12 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject((void*)object, (ICCDynamicObject*)callback);
-    return ccRegisterManagedObject(object, (ICCDynamicObject*)callback, true);
+    // TODO: the managers may be either a separate static object, or the managed object itself.
+    // we may try to optimize following by having a cache of CCPluginObjects per callback
+    // address. Need to research if that's reliable, and will actually be more performant.
+    auto *pl_obj = new CCPluginObject((ICCDynamicObject*)callback);
+    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    return ccRegisterManagedObject(object, (ICCDynamicObject*)pl_obj, true);
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
@@ -714,8 +719,9 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, const void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject((void*)object, (ICCDynamicObject*)callback);
-    ccRegisterUnserializedObject(key, object, (ICCDynamicObject*)callback, true);
+    auto *pl_obj = new CCPluginObject((ICCDynamicObject*)callback);
+    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
+    ccRegisterUnserializedObject(key, object, pl_obj, true);
 }
 
 int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {

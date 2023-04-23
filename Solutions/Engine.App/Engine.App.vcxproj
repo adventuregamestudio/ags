@@ -712,6 +712,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_audiochannel.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_audioclip.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_basicobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_character.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
@@ -721,6 +722,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_inventory.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_object.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_pluginobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />

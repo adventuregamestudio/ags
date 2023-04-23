@@ -1595,6 +1595,12 @@
     <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h">
       <Filter>Header Files\script</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_pluginobject.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_basicobject.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">

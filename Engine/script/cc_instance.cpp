@@ -170,6 +170,7 @@ std::deque<ccInstance*> InstThreads;
 // NOTE: This is temporary solution (*sigh*, one of many) which allows certain
 // exported functions return value as a RuntimeScriptValue object;
 // Of 2012-12-20: now used only for plugin exports
+// FIXME: re-investigate this, find if it's possible to get rid of this.
 RuntimeScriptValue GlobalReturnValue;
 
 

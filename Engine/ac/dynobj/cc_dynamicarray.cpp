@@ -99,7 +99,7 @@ void CCDynamicArray::RemapTypeids(const char *address,
 {
     Header &hdr = (Header&)GetHeader(address);
     const auto it = typeid_map.find(hdr.TypeID);
-    assert(it != typeid_map.end());
+    assert(hdr.TypeID == 0u || it != typeid_map.end());
     hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
 }
 

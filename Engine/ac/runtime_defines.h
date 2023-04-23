@@ -56,9 +56,6 @@ enum LegacyScriptAlignment
     kLegacyScAlignRight     = 3
 };
 
-const int LegacyMusicMasterVolumeAdjustment = 60;
-const int LegacyRoomVolumeFactor            = 30;
-
 // These numbers were chosen arbitrarily -- the idea is
 // to make sure that the user gets the parameters the right way round
 #define ANYWHERE       304

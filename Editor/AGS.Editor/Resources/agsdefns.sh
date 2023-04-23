@@ -2230,7 +2230,6 @@ builtin struct GameState {
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
-  int  ambient_sounds_persist;
   int  lipsync_speed;
   int  reserved__4;   // $AUTOCOMPLETEIGNORE$
   int  disable_antialiasing;

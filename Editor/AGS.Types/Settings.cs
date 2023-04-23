@@ -74,7 +74,6 @@ namespace AGS.Types
         private bool _enforceNewAudio = true;
         private bool _oldKeyHandling = false;
         private int _playSoundOnScore = -1;
-        private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
         private int _dialogOptionsGap = 0;
         private int _dialogBulletImage = 0;
@@ -674,16 +673,9 @@ namespace AGS.Types
             set { _playSoundOnScore = value; }
         }
 
-        [DisplayName("Crossfade music tracks")]
-        [Description("When going from one track to another, they can be crossfaded")]
-        [DefaultValue(CrossfadeSpeed.No)]
-        [Category("Sound")]
+        [Obsolete]
         [Browsable(false)]
-        public CrossfadeSpeed CrossfadeMusic
-        {
-            get { return _crossfadeMusic; }
-            set { _crossfadeMusic = value; }
-        }
+        public CrossfadeSpeed CrossfadeMusic { get; }
 
         [DisplayName("Use GUI for dialog options")]
         [Description("Dialog options can be drawn on a textwindow GUI (0 to just draw at bottom of screen instead)")]

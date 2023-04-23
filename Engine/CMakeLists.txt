@@ -182,8 +182,6 @@ target_sources(engine
     ac/global_translation.h
     ac/global_video.cpp
     ac/global_video.h
-    ac/global_viewframe.cpp
-    ac/global_viewframe.h
     ac/global_walkablearea.cpp
     ac/global_walkablearea.h
     ac/global_walkbehind.cpp
@@ -374,8 +372,6 @@ target_sources(engine
     main/quit.h
     main/update.cpp
     main/update.h
-    media/audio/ambientsound.cpp
-    media/audio/ambientsound.h
     media/audio/audio_core.cpp
     media/audio/audio_core.h
     media/audio/audio.cpp

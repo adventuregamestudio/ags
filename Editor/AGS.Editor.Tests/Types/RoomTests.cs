@@ -87,15 +87,6 @@ namespace AGS.Types
             Assert.That(_room.BackgroundAnimationDelay, Is.EqualTo(backgroundAnimationDelay));
         }
 
-        [TestCase(0)]
-        [TestCase(1)]
-        [TestCase(int.MaxValue)]
-        public void GetsAndSetsPlayMusicOnRoomLoad(int playMusicOnRoomLoad)
-        {
-            _room.PlayMusicOnRoomLoad = playMusicOnRoomLoad;
-            Assert.That(_room.PlayMusicOnRoomLoad, Is.EqualTo(playMusicOnRoomLoad));
-        }
-
         [TestCase(false)]
         [TestCase(true)]
         public void GetsAndSetsSaveLoadEnabled(bool saveLoadEnabled)
@@ -119,19 +110,6 @@ namespace AGS.Types
         {
             _room.PlayerCharacterView = playerCharacterView;
             Assert.That(_room.PlayerCharacterView, Is.EqualTo(playerCharacterView));
-        }
-
-        [TestCase(RoomVolumeAdjustment.Loud)]
-        [TestCase(RoomVolumeAdjustment.Louder)]
-        [TestCase(RoomVolumeAdjustment.Loudest)]
-        [TestCase(RoomVolumeAdjustment.Normal)]
-        [TestCase(RoomVolumeAdjustment.Quiet)]
-        [TestCase(RoomVolumeAdjustment.Quieter)]
-        [TestCase(RoomVolumeAdjustment.Quietest)]
-        public void GetsAndSetsPlayerCharacterView(RoomVolumeAdjustment musicVolumeAdjustment)
-        {
-            _room.MusicVolumeAdjustment = musicVolumeAdjustment;
-            Assert.That(_room.MusicVolumeAdjustment, Is.EqualTo(musicVolumeAdjustment));
         }
 
         [TestCase(0)]
@@ -205,11 +183,11 @@ namespace AGS.Types
             Assert.Throws<ArgumentException>(() => _room.GetMaskScale(RoomAreaMaskType.None));
         }
 
-        [TestCase(1, 2, 1174750494, 320, 240, 5, 0, true, false, 1, RoomVolumeAdjustment.Normal, 1, 2, 3, 4, 2, "description1")]
-        [TestCase(2, 1, 1174750495, 640, 480, 4, 1, false, true, 0, RoomVolumeAdjustment.Loud, 2, 3, 4, 5, 3, "description2")]
+        [TestCase(1, 2, 1174750494, 320, 240, 5, true, false, 1, 1, 2, 3, 4, 2, "description1")]
+        [TestCase(2, 1, 1174750495, 640, 480, 4, false, true, 0, 2, 3, 4, 5, 3, "description2")]
         public void DeserializesFromXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
-            int backgroundAnimationDelay, int playMusicOnRoomLoad, bool saveLoadEnabled, bool showPlayerCharacter,
-            int playerCharacterView, RoomVolumeAdjustment musicVolumeAdjustment, int leftEdgeX, int rightEdgeX,
+            int backgroundAnimationDelay, bool saveLoadEnabled, bool showPlayerCharacter,
+            int playerCharacterView, int leftEdgeX, int rightEdgeX,
             int topEdgeY, int bottomEdgeY, int number, string description)
         {
             string xml = $@"
@@ -220,11 +198,9 @@ namespace AGS.Types
                 <Width>{width}</Width>
                 <Height>{height}</Height>
                 <BackgroundAnimationDelay>{backgroundAnimationDelay}</BackgroundAnimationDelay>
-                <PlayMusicOnRoomLoad>{playMusicOnRoomLoad}</PlayMusicOnRoomLoad>
                 <SaveLoadEnabled>{saveLoadEnabled}</SaveLoadEnabled>
                 <ShowPlayerCharacter>{showPlayerCharacter}</ShowPlayerCharacter>
                 <PlayerCharacterView>{playerCharacterView}</PlayerCharacterView>
-                <MusicVolumeAdjustment>{musicVolumeAdjustment}</MusicVolumeAdjustment>
                 <LeftEdgeX>{leftEdgeX}</LeftEdgeX>
                 <RightEdgeX>{rightEdgeX}</RightEdgeX>
                 <TopEdgeY>{topEdgeY}</TopEdgeY>
@@ -264,11 +240,9 @@ namespace AGS.Types
             Assert.That(_room.Width, Is.EqualTo(width));
             Assert.That(_room.Height, Is.EqualTo(height));
             Assert.That(_room.BackgroundAnimationDelay, Is.EqualTo(backgroundAnimationDelay));
-            Assert.That(_room.PlayMusicOnRoomLoad, Is.EqualTo(playMusicOnRoomLoad));
             Assert.That(_room.SaveLoadEnabled, Is.EqualTo(saveLoadEnabled));
             Assert.That(_room.ShowPlayerCharacter, Is.EqualTo(showPlayerCharacter));
             Assert.That(_room.PlayerCharacterView, Is.EqualTo(playerCharacterView));
-            Assert.That(_room.MusicVolumeAdjustment, Is.EqualTo(musicVolumeAdjustment));
             Assert.That(_room.LeftEdgeX, Is.EqualTo(leftEdgeX));
             Assert.That(_room.RightEdgeX, Is.EqualTo(rightEdgeX));
             Assert.That(_room.TopEdgeY, Is.EqualTo(topEdgeY));
@@ -289,11 +263,11 @@ namespace AGS.Types
             File.Delete("TestScript.asc");
         }
 
-        [TestCase(1, 2, 1174750494, 320, 240, 5, 0, true, false, 1, RoomVolumeAdjustment.Normal, 1, 2, 3, 4, 2, "description1")]
-        [TestCase(2, 1, 1174750495, 640, 480, 4, 1, false, true, 0, RoomVolumeAdjustment.Loud, 2, 3, 4, 5, 3, "description2")]
+        [TestCase(1, 2, 1174750494, 320, 240, 5, true, false, 1, 1, 2, 3, 4, 2, "description1")]
+        [TestCase(2, 1, 1174750495, 640, 480, 4, false, true, 0, 2, 3, 4, 5, 3, "description2")]
         public void SerializesToXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
-            int backgroundAnimationDelay, int playMusicOnRoomLoad, bool saveLoadEnabled, bool showPlayerCharacter,
-            int playerCharacterView, RoomVolumeAdjustment musicVolumeAdjustment, int leftEdgeX, int rightEdgeX,
+            int backgroundAnimationDelay, bool saveLoadEnabled, bool showPlayerCharacter,
+            int playerCharacterView, int leftEdgeX, int rightEdgeX,
             int topEdgeY, int bottomEdgeY, int number, string description)
         {
             _room.MaskResolution = maskResolution;
@@ -302,11 +276,9 @@ namespace AGS.Types
             _room.Width = width;
             _room.Height = height;
             _room.BackgroundAnimationDelay = backgroundAnimationDelay;
-            _room.PlayMusicOnRoomLoad = playMusicOnRoomLoad;
             _room.SaveLoadEnabled = saveLoadEnabled;
             _room.ShowPlayerCharacter = showPlayerCharacter;
             _room.PlayerCharacterView = playerCharacterView;
-            _room.MusicVolumeAdjustment = musicVolumeAdjustment;
             _room.LeftEdgeX = leftEdgeX;
             _room.RightEdgeX = rightEdgeX;
             _room.TopEdgeY = topEdgeY;
@@ -325,11 +297,9 @@ namespace AGS.Types
             Assert.That(doc.SelectSingleNode("/Room/Width").InnerText, Is.EqualTo(width.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/Height").InnerText, Is.EqualTo(height.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/BackgroundAnimationDelay").InnerText, Is.EqualTo(backgroundAnimationDelay.ToString()));
-            Assert.That(doc.SelectSingleNode("/Room/PlayMusicOnRoomLoad").InnerText, Is.EqualTo(playMusicOnRoomLoad.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/SaveLoadEnabled").InnerText, Is.EqualTo(saveLoadEnabled.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/ShowPlayerCharacter").InnerText, Is.EqualTo(showPlayerCharacter.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/PlayerCharacterView").InnerText, Is.EqualTo(playerCharacterView.ToString()));
-            Assert.That(doc.SelectSingleNode("/Room/MusicVolumeAdjustment").InnerText, Is.EqualTo(musicVolumeAdjustment.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/LeftEdgeX").InnerText, Is.EqualTo(leftEdgeX.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/RightEdgeX").InnerText, Is.EqualTo(rightEdgeX.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/TopEdgeY").InnerText, Is.EqualTo(topEdgeY.ToString()));

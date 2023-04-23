@@ -103,7 +103,6 @@ RestoredData::ScriptData::ScriptData()
 
 RestoredData::RestoredData()
     : FPS(0)
-    , RoomVolume(kRoomVolumeNormal)
     , CursorID(0)
     , CursorMode(0)
 {
@@ -111,7 +110,6 @@ RestoredData::RestoredData()
     memset(RoomTintLevels, 0, sizeof(RoomTintLevels));
     memset(RoomZoomLevels1, 0, sizeof(RoomZoomLevels1));
     memset(RoomZoomLevels2, 0, sizeof(RoomZoomLevels2));
-    memset(DoAmbient, 0, sizeof(DoAmbient));
 }
 
 String GetSavegameErrorText(SavegameErrorType err)
@@ -368,10 +366,8 @@ void DoBeforeRestore(PreservedParams &pp)
 
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
-        stop_and_destroy_channel_ex(i, false);
+        stop_and_destroy_channel(i);
     }
-
-    clear_music_cache();
 }
 
 void RestoreViewportsAndCameras(const RestoredData &r_data)
@@ -469,10 +465,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
     int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
 
-    // disable the queue momentarily
-    int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
-
     // load the room the game was saved in
     if (displayed_room >= 0)
         load_new_room(displayed_room, nullptr);
@@ -480,9 +472,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         set_room_placeholder();
 
     play.gscript_timer=gstimer;
-    // restore the correct room volume (they might have modified
-    // it with SetMusicVolume)
-    thisroom.Options.MusicVolume = r_data.RoomVolume;
 
     Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
 
@@ -529,13 +518,10 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
 
-    // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
-
-    if (play.digital_master_volume >= 0)
+    if (play.audio_master_volume >= 0)
     {
-        int temp_vol = play.digital_master_volume;
-        play.digital_master_volume = -1; // reset to invalid state before re-applying
+        int temp_vol = play.audio_master_volume;
+        play.audio_master_volume = -1; // reset to invalid state before re-applying
         System_SetVolume(temp_vol);
     }
 
@@ -587,11 +573,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         }
     }
 
-    for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
-    {
-        if (r_data.DoAmbient[i])
-            PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
-    }
     update_directional_sound_vol();
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
@@ -612,21 +593,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         // the restart point, no room was loaded
         load_new_room(playerchar->room, playerchar);
         first_room_initialization();
-    }
-
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == nullptr))
-    {
-        cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
-    }
-
-    // Test if the old-style audio had playing music and it was properly loaded
-    if (current_music_type > 0)
-    {
-        if ((crossFading > 0 && !AudioChans::GetChannelIfPlaying(crossFading)) ||
-            (crossFading <= 0 && !AudioChans::GetChannelIfPlaying(SCHAN_MUSIC)))
-        {
-            current_music_type = 0; // playback failed, reset flag
-        }
     }
 
     set_game_speed(r_data.FPS);
@@ -698,12 +664,6 @@ Stream *StartSavegame(const String &filename, const String &user_text, const Bit
 
 void DoBeforeSave()
 {
-    if (play.cur_music_number >= 0)
-    {
-        if (IsMusicPlaying() == 0)
-            play.cur_music_number = -1;
-    }
-
     if (displayed_room >= 0)
     {
         // update the current room script's data segment copy

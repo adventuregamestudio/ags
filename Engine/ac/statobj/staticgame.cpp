@@ -47,7 +47,7 @@ int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
     case 78: return play.bgspeech_game_speed;
     case 79: return play.bgspeech_stay_on_display;
     case 80: return play.unfactor_speech_from_textlength;
-    case 81: return play.mp3_loop_before_end;
+    case 81: return 0;// [DEPRECATED]
     case 82: return play.speech_music_drop;
     case 83: return play.in_cutscene;
     case 84: return play.fast_forward;
@@ -60,7 +60,7 @@ int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
     case 91: return play.dialog_options_x;
     case 92: return play.dialog_options_y;
     case 93: return play.narrator_speech;
-    case 94: return play.ambient_sounds_persist;
+    case 94: return 0;// [DEPRECATED]
     case 95: return play.lipsync_speed;
     case 96: return play.close_mouth_speech_time;
     case 97: return play.disable_antialiasing;
@@ -143,7 +143,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 78:  play.bgspeech_game_speed = val; break;
     case 79:  play.bgspeech_stay_on_display = val; break;
     case 80:  play.unfactor_speech_from_textlength = val; break;
-    case 81:  play.mp3_loop_before_end = val; break;
+    case 81:  break; // [DEPRECATED]
     case 82:  play.speech_music_drop = val; break;
     case 83:
     case 84:
@@ -158,7 +158,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 91:  play.dialog_options_x = val; break;
     case 92:  play.dialog_options_y = val; break;
     case 93:  play.narrator_speech = val; break;
-    case 94:  play.ambient_sounds_persist = val; break;
+    case 94:  break;// [DEPRECATED]
     case 95:  play.lipsync_speed = val; break;
     case 96:  play.close_mouth_speech_time = val; break;
     case 97:  play.disable_antialiasing = val; break;

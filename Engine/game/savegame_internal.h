@@ -85,7 +85,6 @@ struct RestoredData
     int                     RoomTintLevels[MAX_ROOM_REGIONS];
     short                   RoomZoomLevels1[MAX_WALK_AREAS + 1];
     short                   RoomZoomLevels2[MAX_WALK_AREAS + 1];
-    RoomVolumeMod           RoomVolume;
     // Mouse cursor parameters
     int                     CursorID;
     int                     CursorMode;
@@ -106,8 +105,6 @@ struct RestoredData
         int MaxDist = 0;
     };
     ChannelInfo             AudioChans[TOTAL_AUDIO_CHANNELS];
-    // Ambient sounds
-    int                     DoAmbient[MAX_GAME_CHANNELS];
     // Viewport and camera data, has to be preserved and applied only after
     // room gets loaded, because we must clamp these to room parameters.
     struct ViewportData

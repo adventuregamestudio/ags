@@ -48,7 +48,6 @@
 #define OPT_MOUSEWHEEL      21
 #define OPT_DIALOGNUMBERED  22
 #define OPT_DIALOGUPWARDS   23
-#define OPT_CROSSFADEMUSIC  24
 #define OPT_ANTIALIASFONTS  25
 #define OPT_THOUGHTGUI      26
 #define OPT_TURNWHENFACING  27
@@ -565,8 +564,6 @@ builtin managed struct ViewFrame {
   import attribute AudioClip* LinkedAudio;
   /// Gets the loop number of this frame.
   readonly import attribute int Loop;
-  /// Gets/sets the sound that is played when this frame comes around.
-  import attribute int Sound;    // $AUTOCOMPLETEIGNORE$
   /// Gets the delay of this frame.
   readonly import attribute int Speed;
   /// Gets the view number that this frame is part of.
@@ -644,8 +641,6 @@ builtin struct Room {
   readonly import static attribute int LeftEdge;
   /// Accesses room messages, as set up in the Room Message Editor.
   readonly import static attribute String Messages[];
-  /// Gets the music that is played when the player enters this room.
-  readonly import static attribute int MusicOnLoad;
   /// Gets the number of objects in this room.
   readonly import static attribute int ObjectCount;
   /// Gets the X co-ordinate of the right edge of the room.
@@ -2098,8 +2093,6 @@ builtin struct Game {
   import static String GetLocationName(int x, int y);
   /// Gets the number of loops in the specified view.
   import static int    GetLoopCountForView(int view);
-  /// Returns the current pattern/track number if the current music is MOD or XM.
-  import static int    GetMODPattern();
   /// Gets whether the "Run next loop after this" setting is checked for the specified loop.
   import static bool   GetRunNextSettingForLoop(int view, int loop);
   /// Gets the description of the specified save game slot.

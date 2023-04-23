@@ -74,22 +74,6 @@ void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
     }
 }
 
-ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
-{
-    String clip_name;
-    if (is_music)
-        clip_name.Format("aMusic%d", num);
-    else
-        clip_name.Format("aSound%d", num);
-
-    for (size_t i = 0; i < game.audioClips.size(); ++i)
-    {
-        if (clip_name.CompareNoCase(game.audioClips[i].scriptName) == 0)
-            return &game.audioClips[i];
-    }
-    return nullptr;
-}
-
 //-----------------------------------------------------------------------------
 // Reading Part 1
 

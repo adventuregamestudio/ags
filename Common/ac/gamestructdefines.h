@@ -53,7 +53,7 @@
 #define OPT_MOUSEWHEEL      21
 #define OPT_DIALOGNUMBERED  22
 #define OPT_DIALOGUPWARDS   23
-#define OPT_CROSSFADEMUSIC  24
+//#define OPT_CROSSFADEMUSIC  24 // [DEPRECATED] old-style audio crossfade
 #define OPT_ANTIALIASFONTS  25
 #define OPT_THOUGHTGUI      26
 #define OPT_TURNTOFACELOC   27

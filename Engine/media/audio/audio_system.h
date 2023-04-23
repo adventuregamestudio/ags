@@ -2,7 +2,6 @@
 #define __AC_MEDIA_AUDIO_SYSTEM_H
 
 #include "media/audio/audiodefines.h"
-#include "media/audio/ambientsound.h"
 
 #include "media/audio/audio.h"
 

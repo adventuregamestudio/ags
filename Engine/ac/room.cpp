@@ -166,10 +166,6 @@ int Room_GetBottomEdge() {
     return thisroom.Edges.Bottom;
 }
 
-int Room_GetMusicOnLoad() {
-    return thisroom.Options.StartupMusic;
-}
-
 int Room_GetProperty(const char *property)
 {
     return get_int_property(thisroom.Properties, croom->roomProps, property);
@@ -238,11 +234,6 @@ void unload_old_room() {
 
     for (uint32_t ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
-
-    if (!play.ambient_sounds_persist) {
-        for (int ff = NUM_SPEECH_CHANS; ff < game.numGameChannels; ff++)
-            StopAmbientSound(ff);
-    }
 
     cancel_all_scripts();
     events.clear();  // cancel any pending room events
@@ -722,8 +713,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         else if (forchar->y <= thisroom.Edges.Top)
             play.entered_edge = 3;
     }
-    if (thisroom.Options.StartupMusic>0)
-        PlayMusicResetQueue(thisroom.Options.StartupMusic);
 
     our_eip=208;
     if (forchar!=nullptr) {
@@ -746,7 +735,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip = 209;
     generate_light_table();
-    update_music_volume();
 
     // If we are not restoring a save, update cameras to accomodate for this
     // new room; otherwise this is done later when cameras are recreated.
@@ -1045,12 +1033,6 @@ RuntimeScriptValue Sc_Room_GetMessages(const RuntimeScriptValue *params, int32_t
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetMusicOnLoad(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Room_GetMusicOnLoad);
-}
-
-// int ()
 RuntimeScriptValue Sc_Room_GetObjectCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetObjectCount);
@@ -1099,7 +1081,6 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);
     ccAddExternalStaticFunction("Room::get_LeftEdge",                       Sc_Room_GetLeftEdge);
     ccAddExternalStaticFunction("Room::geti_Messages",                      Sc_Room_GetMessages);
-    ccAddExternalStaticFunction("Room::get_MusicOnLoad",                    Sc_Room_GetMusicOnLoad);
     ccAddExternalStaticFunction("Room::get_ObjectCount",                    Sc_Room_GetObjectCount);
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
@@ -1118,7 +1099,6 @@ void RegisterRoomAPI()
     ccAddExternalFunctionForPlugin("Room::get_Height",                         (void*)Room_GetHeight);
     ccAddExternalFunctionForPlugin("Room::get_LeftEdge",                       (void*)Room_GetLeftEdge);
     ccAddExternalFunctionForPlugin("Room::geti_Messages",                      (void*)Room_GetMessages);
-    ccAddExternalFunctionForPlugin("Room::get_MusicOnLoad",                    (void*)Room_GetMusicOnLoad);
     ccAddExternalFunctionForPlugin("Room::get_ObjectCount",                    (void*)Room_GetObjectCount);
     ccAddExternalFunctionForPlugin("Room::get_RightEdge",                      (void*)Room_GetRightEdge);
     ccAddExternalFunctionForPlugin("Room::get_TopEdge",                        (void*)Room_GetTopEdge);

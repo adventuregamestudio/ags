@@ -722,8 +722,6 @@ void engine_init_game_settings()
     play.bg_frame_locked=0;
     play.bg_anim_delay=0;
     play.anim_background_speed = 0;
-    play.silent_midi = 0;
-    play.current_music_repeating = 0;
     play.skip_until_char_stops = -1;
     play.get_loc_name_last_time = -1;
     play.get_loc_name_save_cursor = -1;
@@ -735,19 +733,14 @@ void engine_init_game_settings()
     play.inv_backwards_compatibility = 0;
     play.gamma_adjustment = 100;
     play.do_once_tokens.resize(0);
-    play.music_queue_size = 0;
     play.shakesc_length = 0;
     play.wait_counter=0;
     play.SetWaitSkipResult(SKIP_NONE);
     play.key_skip_wait = SKIP_NONE;
-    play.cur_music_number=-1;
-    play.music_repeat=1;
-    play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
-    play.digital_master_volume = 100;
+    play.audio_master_volume = 100;
     play.screen_flipped=0;
     play.speech_mode = kSpeech_VoiceText;
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
-    play.sound_volume = 255;
     play.speech_volume = 255;
     play.normal_font = 0;
     play.speech_font = 1;
@@ -770,7 +763,6 @@ void engine_init_game_settings()
     play.bgspeech_game_speed = 0;
     play.bgspeech_stay_on_display = 0;
     play.unfactor_speech_from_textlength = 0;
-    play.mp3_loop_before_end = 70;
     play.speech_music_drop = 60;
     play.room_changes = 0;
     play.check_interaction_only = 0;
@@ -779,7 +771,6 @@ void engine_init_game_settings()
     play.dialog_options_y = 0;
     play.min_dialogoption_width = 0;
     play.disable_dialog_parser = 0;
-    play.ambient_sounds_persist = 0;
     play.screen_is_faded_out = 0;
     play.player_on_region = 0;
     play.top_bar_backcolor = 8;

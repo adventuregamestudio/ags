@@ -19,7 +19,6 @@
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
-#include "media/audio/ambientsound.h"
 #include "ac/timer.h"
 
 class SOUNDCLIP;
@@ -61,20 +60,14 @@ void        update_queued_clips_volume(int audioType, int new_vol);
 void        update_volume_drop_if_voiceover();
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
-void        stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);
 void        stop_and_destroy_channel (int chid);
 // Exports missing AudioChannel objects to script (for importing older saves)
 void        export_missing_audiochans();
-
-// ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
-int         get_old_style_number_for_sound(int sound_number);
-SOUNDCLIP * load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
 
 //=============================================================================
 
 int         get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist);
 void        update_directional_sound_vol();
-void        update_ambient_sound_vol ();
 // Tells if the audio type is allowed to play with regards to current sound config
 bool        is_audiotype_allowed_to_play(AudioFileType type);
 // Loads sound data referenced by audio clip item, and starts playback;
@@ -82,48 +75,17 @@ bool        is_audiotype_allowed_to_play(AudioFileType type);
 SOUNDCLIP * load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
-int         play_sound(int val1);
 
 //=============================================================================
 
-// This is an indicator of a music played by an old audio system
-// (to distinguish from the new system API); if it is not set, then old API
-// should "think" that no music is played regardless of channel state
-// TODO: refactor this and hide behind some good interface to prevent misuse!
-extern int current_music_type;
-
-void        clear_music_cache();
-void        play_next_queued();
-int         calculate_max_volume();
 // add/remove the volume drop to the audio channels while speech is playing
 void        apply_volume_drop_modifier(bool applyModifier);
 // syncs logical audio channels with the audio backend state
 void        sync_audio_playback();
-// Update the music, and advance the crossfade on a step
-// (this should only be called once per game loop);
 void        update_audio_system_on_game_loop ();
-void        stopmusic();
-void        update_music_volume();
-void        post_new_music_check();
-// Sets up the crossfading for playing the new music track,
-// and returns the channel number to use; the channel is guaranteed to be free
-int         prepare_for_new_music ();
-// Gets audio clip from legacy music number, which also may contain queue flag
-ScriptAudioClip *get_audio_clip_for_music(int mnum);
-SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
-void        newmusic(int mnum);
 
 extern void cancel_scheduled_music_update();
 extern void schedule_music_update_at(AGS_Clock::time_point);
 extern void postpone_scheduled_music_update_by(std::chrono::milliseconds);
-
-// crossFading is >0 (channel number of new track), or -1 (old
-// track fading out, no new track)
-extern int crossFading, crossFadeVolumePerStep, crossFadeStep;
-extern int crossFadeVolumeAtStart;
-
-extern SOUNDCLIP *cachedQueuedMusic;
-
-extern std::array<AmbientSound, MAX_GAME_CHANNELS> ambient;
 
 #endif // __AGS_EE_MEDIA__AUDIO_H__

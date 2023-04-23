@@ -242,13 +242,6 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 
 }
 
-int Game_GetMODPattern() {
-    if (current_music_type != MUS_MOD)
-        return -1;
-    auto* music_ch = AudioChans::GetChannelIfPlaying(SCHAN_MUSIC);
-    return music_ch ? music_ch->get_pos() : -1;
-}
-
 //=============================================================================
 // ---
 //=============================================================================
@@ -1129,15 +1122,13 @@ bool check_skip_cutscene_mclick(int mbut)
 // Helper functions used by StartCutscene/EndCutscene, but also
 // by SkipUntilCharacterStops
 void initialize_skippable_cutscene() {
-    play.end_cutscene_music = -1;
+    // TODO: move related variable init here
 }
 
 void stop_fast_forwarding() {
     // when the skipping of a cutscene comes to an end, update things
     play.fast_forward = 0;
     setpal();
-    if (play.end_cutscene_music >= 0)
-        newmusic(play.end_cutscene_music);
 
     // Restore actual volume of sounds
     for (int aa = 0; aa < TOTAL_AUDIO_CHANNELS; aa++)
@@ -1148,8 +1139,6 @@ void stop_fast_forwarding() {
             ch->set_mute(false);
         }
     }
-
-    update_music_volume();
 }
 
 // allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
@@ -1593,12 +1582,6 @@ RuntimeScriptValue Sc_Game_GetLoopCountForView(const RuntimeScriptValue *params,
     API_SCALL_INT_PINT(Game_GetLoopCountForView);
 }
 
-// int ()
-RuntimeScriptValue Sc_Game_GetMODPattern(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Game_GetMODPattern);
-}
-
 // int (int viewNumber, int loopNumber)
 RuntimeScriptValue Sc_Game_GetRunNextSettingForLoop(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1627,12 +1610,6 @@ RuntimeScriptValue Sc_Game_InputBox(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_Game_SetSaveGameDirectory(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(Game_SetSaveGameDirectory, const char);
-}
-
-// void (int evenAmbient);
-RuntimeScriptValue Sc_StopAllSounds(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(StopAllSounds);
 }
 
 // int ()
@@ -1853,13 +1830,11 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::GetFrameCountForLoop^2",                 Sc_Game_GetFrameCountForLoop);
     ccAddExternalStaticFunction("Game::GetLocationName^2",                      Sc_Game_GetLocationName);
     ccAddExternalStaticFunction("Game::GetLoopCountForView^1",                  Sc_Game_GetLoopCountForView);
-    ccAddExternalStaticFunction("Game::GetMODPattern^0",                        Sc_Game_GetMODPattern);
     ccAddExternalStaticFunction("Game::GetRunNextSettingForLoop^2",             Sc_Game_GetRunNextSettingForLoop);
     ccAddExternalStaticFunction("Game::GetSaveSlotDescription^1",               Sc_Game_GetSaveSlotDescription);
     ccAddExternalStaticFunction("Game::GetViewFrame^3",                         Sc_Game_GetViewFrame);
     ccAddExternalStaticFunction("Game::InputBox^1",                             Sc_Game_InputBox);
     ccAddExternalStaticFunction("Game::SetSaveGameDirectory^1",                 Sc_Game_SetSaveGameDirectory);
-    ccAddExternalStaticFunction("Game::StopSound^1",                            Sc_StopAllSounds);
     ccAddExternalStaticFunction("Game::get_CharacterCount",                     Sc_Game_GetCharacterCount);
     ccAddExternalStaticFunction("Game::get_DialogCount",                        Sc_Game_GetDialogCount);
     ccAddExternalStaticFunction("Game::get_FileName",                           Sc_Game_GetFileName);
@@ -1911,13 +1886,11 @@ void RegisterGameAPI()
     ccAddExternalFunctionForPlugin("Game::GetFrameCountForLoop^2",                 (void*)Game_GetFrameCountForLoop);
     ccAddExternalFunctionForPlugin("Game::GetLocationName^2",                      (void*)Game_GetLocationName);
     ccAddExternalFunctionForPlugin("Game::GetLoopCountForView^1",                  (void*)Game_GetLoopCountForView);
-    ccAddExternalFunctionForPlugin("Game::GetMODPattern^0",                        (void*)Game_GetMODPattern);
     ccAddExternalFunctionForPlugin("Game::GetRunNextSettingForLoop^2",             (void*)Game_GetRunNextSettingForLoop);
     ccAddExternalFunctionForPlugin("Game::GetSaveSlotDescription^1",               (void*)Game_GetSaveSlotDescription);
     ccAddExternalFunctionForPlugin("Game::GetViewFrame^3",                         (void*)Game_GetViewFrame);
     ccAddExternalFunctionForPlugin("Game::InputBox^1",                             (void*)Game_InputBox);
     ccAddExternalFunctionForPlugin("Game::SetSaveGameDirectory^1",                 (void*)Game_SetSaveGameDirectory);
-    ccAddExternalFunctionForPlugin("Game::StopSound^1",                            (void*)StopAllSounds);
     ccAddExternalFunctionForPlugin("Game::get_CharacterCount",                     (void*)Game_GetCharacterCount);
     ccAddExternalFunctionForPlugin("Game::get_DialogCount",                        (void*)Game_GetDialogCount);
     ccAddExternalFunctionForPlugin("Game::get_FileName",                           (void*)Game_GetFileName);

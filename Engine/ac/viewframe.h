@@ -32,8 +32,6 @@ int  ViewFrame_GetGraphic(ScriptViewFrame *svf);
 void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic);
 ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf);
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip);
-int  ViewFrame_GetSound(ScriptViewFrame *svf);
-void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound);
 int  ViewFrame_GetSpeed(ScriptViewFrame *svf);
 int  ViewFrame_GetView(ScriptViewFrame *svf);
 int  ViewFrame_GetLoop(ScriptViewFrame *svf);

@@ -16,7 +16,6 @@ namespace AGS.Types
 		int LeftEdgeX { get; set; }
 		IList<RoomMessage> Messages { get; }
 		bool Modified { get; set; }
-		RoomVolumeAdjustment MusicVolumeAdjustment { get; set; }
         /// <summary>
         /// Gets the room number of this room.
         /// RequiredAGSVersion: 3.2.0.95
@@ -24,7 +23,6 @@ namespace AGS.Types
         int Number { get; }
 		IList<RoomObject> Objects { get; }
 		int PlayerCharacterView { get; set; }
-		int PlayMusicOnRoomLoad { get; set; }
 		CustomProperties Properties { get; }
 		IList<RoomRegion> Regions { get; }
 		int RightEdgeX { get; set; }

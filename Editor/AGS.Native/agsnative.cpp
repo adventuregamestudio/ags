@@ -2353,7 +2353,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->BackwardsText = (thisgame.options[OPT_RIGHTLEFTWRITE] != 0);
 	game->Settings->ColorDepth = (GameColorDepth)thisgame.color_depth;
 	game->Settings->CompressSpritesType = (SpriteCompression)thisgame.options[OPT_COMPRESSSPRITES];
-	game->Settings->CrossfadeMusic = (CrossfadeSpeed)thisgame.options[OPT_CROSSFADEMUSIC];
 	game->Settings->DebugMode = (thisgame.options[OPT_DEBUGMODE] != 0);
 	game->Settings->DialogOptionsBackwards = (thisgame.options[OPT_DIALOGUPWARDS] != 0);
 	game->Settings->DialogOptionsGap = thisgame.options[OPT_DIALOGGAP];
@@ -2818,9 +2817,7 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->GameID = rs.GameID;
     room->BottomEdgeY = rs.Edges.Bottom;
     room->LeftEdgeX = rs.Edges.Left;
-    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)rs.Options.StartupMusic;
     room->PlayerCharacterView = rs.Options.PlayerView;
-    room->PlayMusicOnRoomLoad = rs.Options.StartupMusic;
     room->RightEdgeX = rs.Edges.Right;
     room->SaveLoadEnabled = (rs.Options.SaveLoadDisabled == 0);
     room->ShowPlayerCharacter = (rs.Options.PlayerCharOff == 0);
@@ -2945,9 +2942,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.GameID = room->GameID;
 	rs.Edges.Bottom = room->BottomEdgeY;
 	rs.Edges.Left = room->LeftEdgeX;
-	rs.Options.StartupMusic = (int)room->MusicVolumeAdjustment;
 	rs.Options.PlayerView = room->PlayerCharacterView;
-	rs.Options.StartupMusic = room->PlayMusicOnRoomLoad;
 	rs.Edges.Right = room->RightEdgeX;
 	rs.Options.SaveLoadDisabled = room->SaveLoadEnabled ? 0 : 1;
 	rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;

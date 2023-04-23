@@ -140,7 +140,6 @@
     <Compile Include="Enums\PaletteColourType.cs" />
     <Compile Include="Enums\RoomAreaMaskType.cs" />
     <Compile Include="Enums\RoomTransitionStyle.cs" />
-    <Compile Include="Enums\RoomVolumeAdjustment.cs" />
     <Compile Include="Enums\ScreenRotationMode.cs" />
     <Compile Include="Enums\SkipSpeechStyle.cs" />
     <Compile Include="Enums\SourceControlFileStatus.cs" />

@@ -487,7 +487,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     bgspeech_game_speed = in->ReadInt32();
     bgspeech_stay_on_display = in->ReadInt32();
     unfactor_speech_from_textlength = in->ReadInt32();
-    mp3_loop_before_end = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     speech_music_drop = in->ReadInt32();
     in_cutscene = in->ReadInt32();
     fast_forward = in->ReadInt32();
@@ -500,7 +500,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     dialog_options_x = in->ReadInt32();
     dialog_options_y = in->ReadInt32();
     narrator_speech = in->ReadInt32();
-    ambient_sounds_persist = in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
     lipsync_speed = in->ReadInt32();
     close_mouth_speech_time = in->ReadInt32();
     disable_antialiasing = in->ReadInt32();
@@ -557,7 +557,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     check_interaction_only = in->ReadInt32();
     bg_frame = in->ReadInt32();
     bg_anim_delay = in->ReadInt32();  // for animating backgrounds
-    music_vol_was = in->ReadInt32();  // before the volume drop
+    in->ReadInt32(); // [DEPRECATED]
     wait_counter = in->ReadInt16();
     mboundx1 = in->ReadInt16();
     mboundx2 = in->ReadInt16();
@@ -566,10 +566,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
-    cur_music_number = in->ReadInt32();
-    music_repeat = in->ReadInt32();
-    music_master_volume = in->ReadInt32();
-    digital_master_volume = in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32();
+    in->ReadInt32();
+    audio_master_volume = in->ReadInt32();
     in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
     if (svg_ver < kGSSvgVersion_350_10)
@@ -584,7 +584,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     speech_mode = (SpeechMode)in->ReadInt32();
     cant_skip_speech = in->ReadInt32();
     in->ReadArrayOfInt32(script_timers, MAX_TIMERS);
-    sound_volume = in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
     speech_volume = in->ReadInt32();
     normal_font = in->ReadInt32();
     speech_font = in->ReadInt32();
@@ -603,9 +603,9 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     if (old_save)
         in->ReadInt32(); // room_changes
     mouse_cursor_hidden = in->ReadInt32();
-    silent_midi = in->ReadInt32();
-    silent_midi_channel = in->ReadInt32();
-    current_music_repeating = in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32();
+    in->ReadInt32();
     shakesc_delay = in->ReadInt32();
     shakesc_amount = in->ReadInt32();
     shakesc_length = in->ReadInt32();
@@ -618,14 +618,15 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
         rtint_enabled = in->ReadBool();
     else
         rtint_enabled = rtint_level > 0;
-    end_cutscene_music = in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
     skip_until_char_stops = in->ReadInt32();
     get_loc_name_last_time = in->ReadInt32();
     get_loc_name_save_cursor = in->ReadInt32();
     restore_cursor_mode_to = in->ReadInt32();
     restore_cursor_image_to = in->ReadInt32();
-    music_queue_size = in->ReadInt16();
-    in->ReadArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
+    in->ReadInt16(); // legacy music queue
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+        in->ReadInt16();
     new_music_queue_size = in->ReadInt16();
     if (!old_save)
     {
@@ -647,7 +648,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
         ReadQueuedAudioItems_Aligned(in);
 
     in->Read(takeover_from, 50);
-    in->Read(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
+    in->Seek(50);// [DEPRECATED]
     in->Read(globalstrings, MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     in->Read(lastParserEntry, MAX_MAXSTRLEN);
     in->Read(game_name, 100);
@@ -720,7 +721,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(bgspeech_game_speed);
     out->WriteInt32(bgspeech_stay_on_display);
     out->WriteInt32(unfactor_speech_from_textlength);
-    out->WriteInt32(mp3_loop_before_end);
+    out->WriteInt32(0);// [DEPRECATED]
     out->WriteInt32(speech_music_drop);
     out->WriteInt32(in_cutscene);
     out->WriteInt32(fast_forward);
@@ -733,7 +734,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(dialog_options_x);
     out->WriteInt32(dialog_options_y);
     out->WriteInt32(narrator_speech);
-    out->WriteInt32(ambient_sounds_persist);
+    out->WriteInt32(0);// [DEPRECATED]
     out->WriteInt32(lipsync_speed);
     out->WriteInt32(close_mouth_speech_time);
     out->WriteInt32(disable_antialiasing);
@@ -774,7 +775,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( check_interaction_only);
     out->WriteInt32( bg_frame);
     out->WriteInt32( bg_anim_delay);  // for animating backgrounds
-    out->WriteInt32( music_vol_was);  // before the volume drop
+    out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt16(wait_counter);
     out->WriteInt16(mboundx1);
     out->WriteInt16(mboundx2);
@@ -783,10 +784,10 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( fade_effect);
     out->WriteInt32( bg_frame_locked);
     out->WriteArrayOfInt32(globalscriptvars, MAXGSVALUES);
-    out->WriteInt32( cur_music_number);
-    out->WriteInt32( music_repeat);
-    out->WriteInt32( music_master_volume);
-    out->WriteInt32( digital_master_volume);
+    out->WriteInt32( 0);// [DEPRECATED]
+    out->WriteInt32( 0);
+    out->WriteInt32( 0);
+    out->WriteInt32( audio_master_volume);
     out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
     out->WriteInt32( entered_at_x);
@@ -795,7 +796,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( speech_mode);
     out->WriteInt32( cant_skip_speech);
     out->WriteArrayOfInt32(script_timers, MAX_TIMERS);
-    out->WriteInt32( sound_volume);
+    out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( speech_volume);
     out->WriteInt32( normal_font);
     out->WriteInt32( speech_font);
@@ -810,9 +811,9 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( raw_color);
     out->WriteArrayOfInt16( filenumbers, MAXSAVEGAMES);
     out->WriteInt32( mouse_cursor_hidden);
-    out->WriteInt32( silent_midi);
-    out->WriteInt32( silent_midi_channel);
-    out->WriteInt32( current_music_repeating);
+    out->WriteInt32( 0);// [DEPRECATED]
+    out->WriteInt32( 0);
+    out->WriteInt32( 0);
     out->WriteInt32( shakesc_delay);
     out->WriteInt32( shakesc_amount);
     out->WriteInt32( shakesc_length);
@@ -822,14 +823,14 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( rtint_level);
     out->WriteInt32( rtint_light);
     out->WriteBool(rtint_enabled);
-    out->WriteInt32( end_cutscene_music);
+    out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( skip_until_char_stops);
     out->WriteInt32( get_loc_name_last_time);
     out->WriteInt32( get_loc_name_save_cursor);
     out->WriteInt32( restore_cursor_mode_to);
     out->WriteInt32( restore_cursor_image_to);
-    out->WriteInt16( music_queue_size);
-    out->WriteArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
+    out->WriteInt16( 0 ); // legacy music queue
+    out->WriteByteCount( 0, sizeof(int16_t) * MAX_QUEUED_MUSIC);
     out->WriteInt16(new_music_queue_size);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
@@ -845,7 +846,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt16( crossfade_final_volume_in);
 
     out->Write(takeover_from, 50);
-    out->Write(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
+    out->WriteByteCount(0, 50);// [DEPRECATED]
     out->Write(globalstrings, MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     out->Write(lastParserEntry, MAX_MAXSTRLEN);
     out->Write(game_name, 100);

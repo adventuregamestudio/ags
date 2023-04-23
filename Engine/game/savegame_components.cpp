@@ -356,16 +356,23 @@ HSaveError WriteAudio(Stream *out)
             out->WriteInt32(-1);
         }
     }
-    out->WriteInt32(crossFading);
-    out->WriteInt32(crossFadeVolumePerStep);
-    out->WriteInt32(crossFadeStep);
-    out->WriteInt32(crossFadeVolumeAtStart);
-    // CHECKME: why this needs to be saved?
-    out->WriteInt32(current_music_type);
+    out->WriteInt32(0); // DEPRECATED: legacy crossfade params
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0); // DEPRECATED current_music_type
 
-    // Ambient sound
+    // Skip legacy Ambient sounds
+    // FIXME: CLNUP save format?
     for (int i = 0; i < game.numGameChannels; ++i)
-        ambient[i].WriteToFile(out);
+    {
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+    }
     return HSaveError::None();
 }
 
@@ -386,9 +393,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
             return err;
     }
     else
-    {
-        total_channels = TOTAL_AUDIO_CHANNELS_v320;
-        max_game_channels = MAX_GAME_CHANNELS_v320;
+    { /* DEPRECATED */
         in->ReadInt32(); // unused in prev format ver
     }
 
@@ -426,27 +431,22 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
             }
         }
     }
-    crossFading = in->ReadInt32();
-    crossFadeVolumePerStep = in->ReadInt32();
-    crossFadeStep = in->ReadInt32();
-    crossFadeVolumeAtStart = in->ReadInt32();
-    // preserve legacy music type setting
-    current_music_type = in->ReadInt32();
+    in->ReadInt32(); // DEPRECATED: legacy crossfade params
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32(); // DEPRECATED current_music_type
     
-    // Ambient sound
+    // Skip legacy Ambient sounds
+    // FIXME: CLNUP save format?
     for (int i = 0; i < max_game_channels; ++i)
-        ambient[i].ReadFromFile(in);
-    for (int i = NUM_SPEECH_CHANS; i < max_game_channels; ++i)
     {
-        if (ambient[i].channel == 0)
-        {
-            r_data.DoAmbient[i] = 0;
-        }
-        else
-        {
-            r_data.DoAmbient[i] = ambient[i].num;
-            ambient[i].channel = 0;
-        }
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
     }
     return err;
 }
@@ -964,8 +964,7 @@ HSaveError WriteThisRoom(Stream *out)
         out->WriteInt32(thisroom.WalkAreas[i].ScalingNear);
     }
 
-    // room music volume
-    out->WriteInt32(thisroom.Options.MusicVolume);
+    out->WriteInt32(0); // [DEPRECATED]
 
     // persistent room's indicator
     const bool persist = displayed_room < MAX_ROOMS;
@@ -1007,8 +1006,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         r_data.RoomZoomLevels2[i] = in->ReadInt32();
     }
 
-    // save the new room music vol for later use
-    r_data.RoomVolume = (RoomVolumeMod)in->ReadInt32();
+    in->ReadInt32();// [DEPRECATED]
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())

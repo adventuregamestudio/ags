@@ -362,7 +362,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
            else if (parm == GP_FRAMEIMAGE)
                return pvf->pic;
            else if (parm == GP_FRAMESOUND)
-               return get_old_style_number_for_sound(pvf->sound);
+               return 0; // DEPRECATED
            else if (parm == GP_ISFRAMEFLIPPED)
                return (pvf->flags & VFLG_FLIPSPRITE) ? 1 : 0;
            else
@@ -429,13 +429,6 @@ int SetGameOption (int opt, int setting) {
             else
                 game.chars[i].flags &= ~CHF_ANTIGLIDE;
         }
-    }
-
-    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC))
-    {
-        // legacy compatibility -- changing crossfade speed here also
-        // updates the new audio clip type style
-        game.audioClipTypes[AUDIOTYPE_LEGACY_MUSIC].crossfadeSpeed = setting;
     }
 
     int oldval = game.options[opt];

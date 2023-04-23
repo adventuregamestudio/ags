@@ -923,7 +923,6 @@ namespace AGS.Editor.Components
                     newScript += "  " + clip.ScriptName + ".Play();" + Environment.NewLine;
                     newScript += room.Script.Text.Substring(functionOffset);
                     room.Script.Text = newScript;
-                    room.PlayMusicOnRoomLoad = 0;
                     scriptModified = true;
                 }
             }

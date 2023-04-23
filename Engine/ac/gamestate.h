@@ -89,7 +89,6 @@ struct GameState {
     int  bgspeech_game_speed;    // is background speech relative to game speed
     int  bgspeech_stay_on_display; // whether to remove bg speech when DisplaySpeech is used
     int  unfactor_speech_from_textlength; // remove "&10" when calculating time for text to stay
-    int  mp3_loop_before_end;    // (UNUSED!) loop this time before end of track (ms)
     int  speech_music_drop;      // how much to drop music volume by when speech is played
     int  in_cutscene;            // we are between a StartCutscene and EndCutscene
     int  fast_forward;           // player has elected to skip cutscene
@@ -102,7 +101,6 @@ struct GameState {
     int  dialog_options_x;
     int  dialog_options_y;
     int  narrator_speech;
-    int  ambient_sounds_persist;
     int  lipsync_speed;
     int  close_mouth_speech_time; // stop speech animation at (messagetime - close_mouth_speech_time)
                                   // (this is designed to work in text-only mode)
@@ -145,7 +143,6 @@ struct GameState {
     int   screen_is_faded_out; // the screen is currently black
     int   check_interaction_only;
     int   bg_frame,bg_anim_delay;  // for animating backgrounds
-    int   music_vol_was;  // before the volume drop
     short wait_counter;
     char  wait_skipped_by; // tells how last blocking wait was skipped [not serialized]
     int   wait_skipped_by_data; // extended data telling how last blocking wait was skipped [not serialized]
@@ -153,9 +150,7 @@ struct GameState {
     int   fade_effect;
     int   bg_frame_locked;
     int   globalscriptvars[MAXGSVALUES]; // CLNUP some ancient integer list
-    int   cur_music_number,music_repeat;
-    int   music_master_volume;
-    int   digital_master_volume;
+    int   audio_master_volume; // in 0-100
     char  walkable_areas_on[MAX_WALK_AREAS+1];
     short screen_flipped;
     int   entered_at_x,entered_at_y, entered_edge;
@@ -163,7 +158,7 @@ struct GameState {
     SpeechMode speech_mode; // speech mode (text, voice, or both)
     int   cant_skip_speech;
     int   script_timers[MAX_TIMERS];
-    int   sound_volume,speech_volume;
+    int   speech_volume; // in 0-255 !!
     int   normal_font, speech_font;
     char  key_skip_wait;
     int   swap_portrait_lastchar;
@@ -180,22 +175,15 @@ struct GameState {
     short filenumbers[MAXSAVEGAMES]; // [OBSOLETE]
     int   room_changes;
     int   mouse_cursor_hidden;
-    int   silent_midi;
-    int   silent_midi_channel;
-    int   current_music_repeating;  // remember what the loop flag was when this music started
     unsigned long shakesc_delay;  // unsigned long to match loopcounter
     int   shakesc_amount, shakesc_length;
     int   rtint_red, rtint_green, rtint_blue, rtint_level, rtint_light;
     bool  rtint_enabled;
-    int   end_cutscene_music;
     int   skip_until_char_stops;
     int   get_loc_name_last_time;
     int   get_loc_name_save_cursor;
     int   restore_cursor_mode_to;
     int   restore_cursor_image_to;
-    short music_queue_size;
-    short music_queue[MAX_QUEUED_MUSIC];
-    short new_music_queue_size;
     short crossfading_out_channel;
     short crossfade_step;
     short crossfade_out_volume_per_step;
@@ -203,9 +191,9 @@ struct GameState {
     short crossfading_in_channel;
     short crossfade_in_volume_per_step;
     short crossfade_final_volume_in;
+    short new_music_queue_size;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC];
     char  takeover_from[50];
-    char  playmp3file_name[PLAYMP3FILE_MAX_FILENAME_LEN];
     char  globalstrings[MAXGLOBALSTRINGS][MAX_MAXSTRLEN];
     char  lastParserEntry[MAX_MAXSTRLEN];
     char  game_name[100];

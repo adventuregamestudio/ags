@@ -117,7 +117,9 @@ extern int32_t ccRegisterManagedObjectAndRef(const void *object, ICCDynamicObjec
 // register a new object and mark it persistent (always referenced by the engine)
 extern int32_t ccRegisterPersistentObject(const void *object, ICCDynamicObject *callback);
 // register a de-serialized object
-extern int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *, bool plugin_object = false, bool persistent = true);
+extern int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *, bool plugin_object = false);
+// register a de-serialized object and mark it persistent (always referenced by the engine)
+extern int32_t ccRegisterUnserializedPersistentObject(int index, const void *object, ICCDynamicObject *);
 // unregister a particular object
 extern int   ccUnRegisterManagedObject(const void *object);
 // remove all registered objects

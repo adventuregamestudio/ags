@@ -246,6 +246,10 @@ ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
     }
 
     // Join RTTI
+    if (!ccInstance::_rtti)
+        ccInstance::_rtti.reset(new JointRTTI());
+    if (!ccInstance::_rttiHelper)
+        ccInstance::_rttiHelper.reset(new RTTIHelper());
     if (scri->rtti && !scri->rtti->IsEmpty())
     {
         JoinRTTI(*scri->rtti, cinst->_locidLocal2Global, cinst->_typeidLocal2Global);
@@ -257,11 +261,7 @@ void ccInstance::JoinRTTI(const RTTI &rtti,
     std::unordered_map<uint32_t, uint32_t> &loc_l2g,
     std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
-    if (!ccInstance::_rtti)
-        ccInstance::_rtti.reset(new JointRTTI());
     ccInstance::_rtti->Join(rtti, loc_l2g, type_l2g);
-    if (!ccInstance::_rttiHelper)
-        ccInstance::_rttiHelper.reset(new RTTIHelper());
     // TODO: optimize by updating only newly joint types
     ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
 }

@@ -36,5 +36,5 @@ void CCDialog::Serialize(const char *address, Stream *out) {
 
 void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &scrDialog[num], this);
+    ccRegisterUnserializedPersistentObject(index, &scrDialog[num], this);
 }

@@ -40,7 +40,7 @@ void CCCharacter::Serialize(const char *address, Stream *out) {
 
 void CCCharacter::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &game.chars[num], this);
+    ccRegisterUnserializedPersistentObject(index, &game.chars[num], this);
 }
 
 uint8_t CCCharacter::ReadInt8(const char *address, intptr_t offset)

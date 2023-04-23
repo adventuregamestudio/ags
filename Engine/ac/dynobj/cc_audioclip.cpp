@@ -36,5 +36,5 @@ void CCAudioClip::Serialize(const char *address, Stream *out) {
 
 void CCAudioClip::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int id = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &game.audioClips[id], this);
+    ccRegisterUnserializedPersistentObject(index, &game.audioClips[id], this);
 }

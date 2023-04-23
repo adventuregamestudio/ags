@@ -50,8 +50,13 @@ extern int32_t ccRegisterPersistentObject(const void *object, ICCDynamicObject *
 
 // register a de-serialized object
 int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback,
-                                     bool plugin_object, bool persistent) {
-    return pool.AddUnserializedObject((const char*)object, callback, index, plugin_object, persistent);
+                                     bool plugin_object) {
+    return pool.AddUnserializedObject((const char*)object, callback, index, plugin_object, false);
+}
+
+int32_t ccRegisterUnserializedPersistentObject(int index, const void *object, ICCDynamicObject *callback) {
+    return pool.AddUnserializedObject((const char*)object, callback, index, false, true);
+    // don't add ref, as it should come with the save data
 }
 
 // unregister a particular object

@@ -146,6 +146,7 @@ void ManagedObjectPool::RunGarbageCollection()
         assert(it->handle != 0);
         auto test_it = it++;
         auto &obj = objects[test_it->handle];
+        assert((obj.refCount & ManagedObject::GC_FLAG_EXCLUDED) == 0);
         if (obj.refCount == 0)
         {
             gcUsedList.erase(test_it);

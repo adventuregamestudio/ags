@@ -114,6 +114,7 @@ void ScriptUserObject::RemapTypeids(const char* /*address*/,
 
 void ScriptUserObject::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
 {
+    if (_typeid == 0u) return;
     assert(ccInstance::GetRTTI()->GetTypes().size() > _typeid);
     const auto *helper = ccInstance::GetRTTIHelper();
     const auto fref = helper->GetManagedOffsetsForType(_typeid);

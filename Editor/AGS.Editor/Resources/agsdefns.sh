@@ -2217,7 +2217,7 @@ builtin struct GameState {
   int  bgspeech_game_speed;
   int  bgspeech_stay_on_display;
   int  unfactor_speech_from_textlength;
-  int  mp3_loop_before_end;
+  int  reserved__9;   // $AUTOCOMPLETEIGNORE$
   int  speech_music_drop;
   readonly int  in_cutscene;
   readonly int  skipping_cutscene;
@@ -2230,6 +2230,7 @@ builtin struct GameState {
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
+  int  reserved__10;   // $AUTOCOMPLETEIGNORE$
   int  lipsync_speed;
   int  reserved__4;   // $AUTOCOMPLETEIGNORE$
   int  disable_antialiasing;

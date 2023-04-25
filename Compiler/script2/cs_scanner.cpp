@@ -432,10 +432,6 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
             if (Failed())
                 break; // to error processing
 
-            if ('[' == lit_char)
-                // "\\[" is equivalent to two characters, so can't be used as a single character
-                UserError("'\\[' is not allowed in single quotes, use '[' instead");
-
             EscapedChar2Char(lit_char, symstring, lit_char);
         }
 
@@ -557,16 +553,11 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
             symstring.push_back(ch);
             if (EOFReached() || Failed() || '\n' == ch || '\r' == ch)
                 break; // to error msg
-            if ('[' == ch)
-            {
-                valstring.append("\\[");
-            }
-            else
-            {
-                int converted;
-                EscapedChar2Char(ch, symstring, converted);
-                valstring.push_back(converted);
-            }
+            
+            int converted;
+            EscapedChar2Char(ch, symstring, converted);
+            valstring.push_back(converted);
+
             continue;
         }
 
@@ -621,7 +612,7 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
     else if (Failed())
         UserError("Read error while scanning a string literal (file corrupt?)");
     else  
-        UserError("Line ended within a string literal, this isn't allowed (use '[' for newline)");
+        UserError("Line ended within a string literal, this isn't allowed.");
 }
 
 void AGS::Scanner::ReadInIdentifier(std::string &symstring)

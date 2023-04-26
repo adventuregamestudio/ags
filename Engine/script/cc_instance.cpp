@@ -841,13 +841,14 @@ int ccInstance::Run(int32_t curpc)
           // Make sure it's not stuck in a While loop
           if (arg1.IValue < 0)
           {
+              ++loopIterations;
               if (flags & INSTF_RUNNING)
               { // was notified still running, don't do anything
                   flags &= ~INSTF_RUNNING;
                   loopIterations = 0;
               }
               else if ((loopIterationCheckDisabled == 0) && (_maxWhileLoops > 0) &&
-                  (++loopIterations > _maxWhileLoops))
+                  (loopIterations > _maxWhileLoops))
               {
                   cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
                   return -1;

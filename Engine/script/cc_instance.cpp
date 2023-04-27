@@ -648,13 +648,15 @@ int ccInstance::Run(int32_t curpc)
           {
             // Only allocate new data if current stack entry is invalid;
             // in some cases this may be advancing over value that was written by MEMWRITE*
-            // FIXME: this is weird, do this in a uniform way (always same operation),
+            // FIXME: this is bad, but seemed to be the way to separate PushValue and PushData
+            // find if it's possible to do this in a uniform way (always same operation),
             // and don't rely on stack entries being valid/invalid beyond the stack ptr.
             ASSERT_STACK_SPACE_AVAILABLE(1, arg2.IValue);
             if (reg1.RValue->IsValid())
             {
               // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
               registers[SREG_SP].RValue++;
+              stackdata_ptr += sizeof(int32_t); // formality, to keep data ptr consistent
             }
             else
             {
@@ -1313,7 +1315,6 @@ int ccInstance::Run(int32_t curpc)
               // NOTE: according to compiler's logic, this is always followed
               // by SCMD_ADD, and that is where the data is "allocated", here we
               // just clean the place.
-              // CHECKME -- since we zero memory in PushDataToStack anyway, this is not needed at all?
               memset(stackdata_ptr, 0, arg1.IValue);
           }
           else
@@ -1918,14 +1919,15 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
 {
     // Write value to the stack tail and advance stack ptr
     registers[SREG_SP].WriteValue(rval);
+    stackdata_ptr += sizeof(int32_t); // formality, to keep data ptr consistent
     registers[SREG_SP].RValue++;
 }
 
 void ccInstance::PushDataToStack(int32_t num_bytes)
 {
     CC_ERROR_IF(registers[SREG_SP].RValue->IsValid(), "internal error: valid data beyond stack ptr");
-    // Zero memory, assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
-    memset(stackdata_ptr, 0, num_bytes);
+    // Assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
+    // NOTE: memory is zeroed by SCMD_ZEROMEMORY
     registers[SREG_SP].RValue->SetData(stackdata_ptr, num_bytes);
     stackdata_ptr += num_bytes;
     registers[SREG_SP].RValue++;
@@ -1935,12 +1937,9 @@ RuntimeScriptValue ccInstance::PopValueFromStack()
 {
     // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
     registers[SREG_SP].RValue--;
-    RuntimeScriptValue rval = *registers[SREG_SP].RValue;
-    if (rval.Type == kScValData)
-    { // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
-        stackdata_ptr -= rval.Size;
-    }
-    registers[SREG_SP].RValue->Invalidate(); // FIXME: don't do this, but this is used in some conditions
+    RuntimeScriptValue rval = *registers[SREG_SP].RValue; // save before invalidating
+    stackdata_ptr -= sizeof(int32_t); // formality, to keep data ptr consistent
+    registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     return rval;
 }
 
@@ -1950,11 +1949,8 @@ void ccInstance::PopValuesFromStack(int32_t num_entries = 1)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         registers[SREG_SP].RValue--;
-        if (registers[SREG_SP].RValue->Type == kScValData)
-        { // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
-            stackdata_ptr -= registers[SREG_SP].RValue->Size;
-        }
-        registers[SREG_SP].RValue->Invalidate(); // FIXME: don't do this, but this is used in some conditions
+        stackdata_ptr -= sizeof(int32_t); // formality, to keep data ptr consistent
+        registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     }
 }
 
@@ -1965,13 +1961,10 @@ void ccInstance::PopDataFromStack(int32_t num_bytes)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         registers[SREG_SP].RValue--;
+        stackdata_ptr -= registers[SREG_SP].RValue->Size;
         // remember popped bytes count
         total_pop += registers[SREG_SP].RValue->Size;
-        if (registers[SREG_SP].RValue->Type == kScValData)
-        { // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
-            stackdata_ptr -= registers[SREG_SP].RValue->Size;
-        }
-        registers[SREG_SP].RValue->Invalidate(); // FIXME: don't do this, but this is used in some conditions
+        registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     }
     CC_ERROR_IF(total_pop < num_bytes, "stack underflow");
     CC_ERROR_IF(total_pop > num_bytes, "stack pointer points inside local variable after pop, stack corrupted?");
@@ -2005,12 +1998,8 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
     CC_ERROR_IF_RET(total_off < rw_offset, "accessing address before stack's head", RuntimeScriptValue);
     RuntimeScriptValue stack_ptr;
     stack_ptr.SetStackPtr(stack_entry);
+    stack_ptr.IValue += total_off - rw_offset; // possibly offset to the mid-array
     // Could be accessing array element, so state error only if stack entry does not refer to data array
-    // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
-    if (stack_entry->Type == kScValData)
-    {
-        stack_ptr.IValue += total_off - rw_offset;
-    }
     CC_ERROR_IF_RET((total_off > rw_offset) && (stack_entry->Type != kScValData), "stack offset backward: trying to access stack data inside stack entry, stack corrupted?", RuntimeScriptValue)
     return stack_ptr;
 }

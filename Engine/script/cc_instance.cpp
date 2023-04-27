@@ -472,9 +472,11 @@ int ccInstance::Run(int32_t curpc)
     thisbase[0] = 0;
     funcstart[0] = pc;
     ccInstance *codeInst = runningInst;
-    int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
     ScriptOperation codeOp;
     FunctionCallStack func_callstack;
+#if DEBUG_CC_EXEC
+    const bool dump_opcodes = ccGetOption(SCOPT_DEBUGRUN);
+#endif
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
     const auto timeout_abort = std::chrono::milliseconds(_timeoutAbortMs);
@@ -579,10 +581,12 @@ int ccInstance::Run(int32_t curpc)
         const char *direct_ptr1;
         const char *direct_ptr2;
 
-        if (write_debug_dump)
+#if (DEBUG_CC_EXEC)
+        if (dump_opcodes)
         {
             DumpInstruction(codeOp);
         }
+#endif
 
         switch (codeOp.Instruction.Code)
         {

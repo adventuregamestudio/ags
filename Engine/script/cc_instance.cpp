@@ -303,13 +303,58 @@ void ccInstance::AbortAndDestroy()
     }
 }
 
-#define ASSERT_STACK_SPACE_AVAILABLE(N) \
-    if (registers[SREG_SP].RValue + N - &stack[0] >= CC_STACK_SIZE) \
+// ASSERT_CC_OP tests for the internal function call return value and
+// returns failure on error
+#if (DEBUG_CC_EXEC)
+
+#define CC_ERROR_IF(COND, ERROR) \
+    if (COND) \
     { \
-        cc_error("stack overflow"); \
+        cc_error(ERROR); \
+        return; \
+    }
+
+#define CC_ERROR_IF_RET(COND, ERROR, T) \
+    if (COND) \
+    { \
+        cc_error(ERROR); \
+        return T(); \
+    }
+
+#define ASSERT_CC_ERROR() \
+    if (cc_has_error()) \
+    { \
         return -1; \
     }
 
+#else
+
+#define CC_ERROR_IF(COND, ERROR)
+#define CC_ERROR_IF_RET(COND, ERROR, T)
+#define ASSERT_CC_ERROR()
+
+#endif // DEBUG_CC_EXEC
+
+
+// Two stack assertions that are always enabled:
+// ASSERT_STACK_SPACE_AVAILABLE tests that we do not exceed stack limit
+#define ASSERT_STACK_SPACE_AVAILABLE(N_VALS, N_BYTES) \
+    if ((registers[SREG_SP].RValue + N_VALS - &stack[0]) >= CC_STACK_SIZE || \
+        (stackdata_ptr + N_BYTES - stackdata) >= CC_STACK_DATA_SIZE) \
+    { \
+        cc_error("stack overflow, attempted grow by %d bytes", N_BYTES); \
+        return -1; \
+    }
+
+// ASSERT_STACK_SPACE_BYTES tests that we do not exceed stack limit
+// if we are going to add N_BYTES bytes to stack
+#define ASSERT_STACK_SPACE_BYTES(N_BYTES) ASSERT_STACK_SPACE_AVAILABLE(1, N_BYTES)
+
+// ASSERT_STACK_SPACE_VALS tests that we do not exceed stack limit
+// if we are going to add N_VALS values, sizeof(int32) each
+#define ASSERT_STACK_SPACE_VALS(N_VALS) ASSERT_STACK_SPACE_AVAILABLE(N_VALS, sizeof(int32_t) * N_VALS)
+
+// ASSERT_STACK_SIZE tests that we do not unwind stack past its beginning
 #define ASSERT_STACK_SIZE(N) \
     if (registers[SREG_SP].RValue - N < &stack[0]) \
     { \
@@ -388,7 +433,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     registers[SREG_SP].SetStackPtr( &stack[0] );
     stackdata_ptr = stackdata;
     // NOTE: Pushing parameters to stack in reverse order
-    ASSERT_STACK_SPACE_AVAILABLE(numargs + 1 /* return address */)
+    ASSERT_STACK_SPACE_VALS(numargs + 1 /* return address */);
     for (int i = numargs - 1; i >= 0; --i)
     {
         PushValueToStack(params[i]);
@@ -434,8 +479,8 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
 // Macros to maintain the call stack
 #define PUSH_CALL_STACK \
     if (callStackSize >= MAX_CALL_STACK) { \
-    cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
-    return -1; \
+        cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
+        return -1; \
     } \
     callStackLineNumber[callStackSize] = line_number;  \
     callStackCodeInst[callStackSize] = runningInst;  \
@@ -444,12 +489,13 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
 
 #define POP_CALL_STACK \
     if (callStackSize < 1) { \
-    cc_error("CallScriptFunction stack underflow -- internal error"); \
-    return -1; \
+        cc_error("CallScriptFunction stack underflow -- internal error"); \
+        return -1; \
     } \
     callStackSize--;\
     line_number = callStackLineNumber[callStackSize];\
     currentline = line_number
+
 
 #define MAXNEST 50  // number of recursive function calls allowed
 int ccInstance::Run(int32_t curpc)
@@ -602,7 +648,9 @@ int ccInstance::Run(int32_t curpc)
           {
             // Only allocate new data if current stack entry is invalid;
             // in some cases this may be advancing over value that was written by MEMWRITE*
-            ASSERT_STACK_SPACE_AVAILABLE(1);
+            // FIXME: this is weird, do this in a uniform way (always same operation),
+            // and don't rely on stack entries being valid/invalid beyond the stack ptr.
+            ASSERT_STACK_SPACE_AVAILABLE(1, arg2.IValue);
             if (reg1.RValue->IsValid())
             {
               // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
@@ -611,10 +659,7 @@ int ccInstance::Run(int32_t curpc)
             else
             {
               PushDataToStack(arg2.IValue);
-              if (cc_has_error())
-              {
-                  return -1;
-              }
+              ASSERT_CC_ERROR();
             }
           }
           else
@@ -630,6 +675,7 @@ int ccInstance::Run(int32_t curpc)
             // quote JJS:
             // // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
             // // and then subtracting from that.
+            // FIXME: try to do this in uniform way, call same func, save result in reg1
             if (arg1.IValue == SREG_SP)
             {
                 PopDataFromStack(arg2.IValue);
@@ -639,10 +685,7 @@ int ccInstance::Run(int32_t curpc)
                 // This is practically LOADSPOFFS
                 reg1 = GetStackPtrOffsetRw(arg2.IValue);
             }
-            if (cc_has_error())
-            {
-                return -1;
-            }
+            ASSERT_CC_ERROR();
           }
           else
           {
@@ -706,10 +749,7 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_LOADSPOFFS:
           registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.IValue);
-          if (cc_has_error())
-          {
-              return -1;
-          }
+          ASSERT_CC_ERROR();
           break;
 
           // 64 bit: Force 32 bit math
@@ -784,7 +824,7 @@ int ccInstance::Run(int32_t curpc)
 
           PUSH_CALL_STACK;
 
-          ASSERT_STACK_SPACE_AVAILABLE(1);
+          ASSERT_STACK_SPACE_VALS(1);
           PushValueToStack(RuntimeScriptValue().SetInt32(pc + codeOp.ArgCount + 1));
 
           if (thisbase[curnest] == 0)
@@ -829,7 +869,7 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_PUSHREG:
           // Push reg[arg1] value to the stack
-          ASSERT_STACK_SPACE_AVAILABLE(1);
+          ASSERT_STACK_SPACE_VALS(1);
           PushValueToStack(reg1);
           break;
       case SCMD_POPREG:
@@ -901,8 +941,6 @@ int ccInstance::Run(int32_t curpc)
           // 64 bit: Handles are always 32 bit values. They are not C pointer.
 
       case SCMD_MEMREADPTR: {
-          cc_clear_error();
-
           int32_t handle = registers[SREG_MAR].ReadInt32();
           void *object;
           ICCDynamicObject *manager;
@@ -915,10 +953,7 @@ int ccInstance::Run(int32_t curpc)
           {
               reg1.SetDynamicObject( object, manager );
           }
-
-          // if error occurred, cc_error will have been set
-          if (cc_has_error())
-              return -1;
+          ASSERT_CC_ERROR();
           break; }
       case SCMD_MEMWRITEPTR: {
 
@@ -1034,7 +1069,7 @@ int ccInstance::Run(int32_t curpc)
           {
               num_args_to_func = func_callstack.Count;
           }
-          ASSERT_STACK_SPACE_AVAILABLE(num_args_to_func + 1 /* return address */);
+          ASSERT_STACK_SPACE_VALS(num_args_to_func + 1 /* return address */);
           for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
                prval > func_callstack.GetHead(); --prval)
           {
@@ -1044,10 +1079,7 @@ int ccInstance::Run(int32_t curpc)
           // 0, so that the cc_run_code returns
           RuntimeScriptValue oldstack = registers[SREG_SP];
           PushValueToStack(RuntimeScriptValue().SetInt32(0));
-          if (cc_has_error())
-          {
-              return -1;
-          }
+          ASSERT_CC_ERROR();
 
           int oldpc = pc;
           ccInstance *wasRunning = runningInst;
@@ -1277,14 +1309,7 @@ int ccInstance::Run(int32_t curpc)
           // Check if we are zeroing at stack tail
           if (registers[SREG_MAR] == registers[SREG_SP]) {
               // creating a local variable -- check the stack to ensure no mem overrun
-              int currentStackSize = registers[SREG_SP].RValue - &stack[0];
-              int currentDataSize = stackdata_ptr - stackdata;
-              if (currentStackSize + 1 >= CC_STACK_SIZE ||
-                  currentDataSize + arg1.IValue >= CC_STACK_DATA_SIZE)
-              {
-                  cc_error("stack overflow, attempted grow to %d bytes", currentDataSize + arg1.IValue);
-                  return -1;
-              }
+              ASSERT_STACK_SPACE_BYTES(arg1.IValue);
               // NOTE: according to compiler's logic, this is always followed
               // by SCMD_ADD, and that is where the data is "allocated", here we
               // just clean the place.
@@ -1898,11 +1923,7 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
 
 void ccInstance::PushDataToStack(int32_t num_bytes)
 {
-    if (registers[SREG_SP].RValue->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return;
-    }
+    CC_ERROR_IF(registers[SREG_SP].RValue->IsValid(), "internal error: valid data beyond stack ptr");
     // Zero memory, assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
     memset(stackdata_ptr, 0, num_bytes);
     registers[SREG_SP].RValue->SetData(stackdata_ptr, num_bytes);
@@ -1916,10 +1937,10 @@ RuntimeScriptValue ccInstance::PopValueFromStack()
     registers[SREG_SP].RValue--;
     RuntimeScriptValue rval = *registers[SREG_SP].RValue;
     if (rval.Type == kScValData)
-    {
+    { // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
         stackdata_ptr -= rval.Size;
     }
-    registers[SREG_SP].RValue->Invalidate();
+    registers[SREG_SP].RValue->Invalidate(); // FIXME: don't do this, but this is used in some conditions
     return rval;
 }
 
@@ -1930,10 +1951,10 @@ void ccInstance::PopValuesFromStack(int32_t num_entries = 1)
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         registers[SREG_SP].RValue--;
         if (registers[SREG_SP].RValue->Type == kScValData)
-        {
+        { // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
             stackdata_ptr -= registers[SREG_SP].RValue->Size;
         }
-        registers[SREG_SP].RValue->Invalidate();
+        registers[SREG_SP].RValue->Invalidate(); // FIXME: don't do this, but this is used in some conditions
     }
 }
 
@@ -1947,19 +1968,13 @@ void ccInstance::PopDataFromStack(int32_t num_bytes)
         // remember popped bytes count
         total_pop += registers[SREG_SP].RValue->Size;
         if (registers[SREG_SP].RValue->Type == kScValData)
-        {
+        { // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
             stackdata_ptr -= registers[SREG_SP].RValue->Size;
         }
-        registers[SREG_SP].RValue->Invalidate();
+        registers[SREG_SP].RValue->Invalidate(); // FIXME: don't do this, but this is used in some conditions
     }
-    if (total_pop < num_bytes)
-    {
-        cc_error("stack underflow");
-    }
-    else if (total_pop > num_bytes)
-    {
-        cc_error("stack pointer points inside local variable after pop, stack corrupted?");
-    }
+    CC_ERROR_IF(total_pop < num_bytes, "stack underflow");
+    CC_ERROR_IF(total_pop > num_bytes, "stack pointer points inside local variable after pop, stack corrupted?");
 }
 
 RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int32_t fw_offset)
@@ -1968,24 +1983,13 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int32_t fw_offset)
     RuntimeScriptValue *stack_entry = &stack[0];
     while (total_off < fw_offset && stack_entry - &stack[0] < CC_STACK_SIZE )
     {
-        if (stack_entry->Size > 0)
-        {
-            total_off += stack_entry->Size;
-        }
         stack_entry++;
+        total_off += stack_entry->Size;
     }
-    if (total_off < fw_offset)
-    {
-        cc_error("accessing address beyond stack's tail");
-        return RuntimeScriptValue();
-    }
+    CC_ERROR_IF_RET(total_off < fw_offset, "accessing address beyond stack's tail", RuntimeScriptValue);
+    CC_ERROR_IF_RET(total_off > fw_offset, "stack offset forward: trying to access stack data inside stack entry, stack corrupted?", RuntimeScriptValue);
     RuntimeScriptValue stack_ptr;
     stack_ptr.SetStackPtr(stack_entry);
-    if (total_off > fw_offset)
-    {
-        // Forward offset should always set ptr at the beginning of stack entry
-        cc_error("stack offset forward: trying to access stack data inside stack entry, stack corrupted?");
-    }
     return stack_ptr;
 }
 
@@ -1998,25 +2002,16 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
         stack_entry--;
         total_off += stack_entry->Size;
     }
-    if (total_off < rw_offset)
-    {
-        cc_error("accessing address before stack's head");
-        return RuntimeScriptValue();
-    }
+    CC_ERROR_IF_RET(total_off < rw_offset, "accessing address before stack's head", RuntimeScriptValue);
     RuntimeScriptValue stack_ptr;
     stack_ptr.SetStackPtr(stack_entry);
-    if (total_off > rw_offset)
+    // Could be accessing array element, so state error only if stack entry does not refer to data array
+    // FIXME: refactor and add/sub stackdata_ptr always, avoid condition
+    if (stack_entry->Type == kScValData)
     {
-        // Could be accessing array element, so state error only if stack entry does not refer to data array
-        if (stack_entry->Type == kScValData)
-        {
-            stack_ptr.IValue += total_off - rw_offset;
-        }
-        else
-        {
-            cc_error("stack offset backward: trying to access stack data inside stack entry, stack corrupted?");
-        }
+        stack_ptr.IValue += total_off - rw_offset;
     }
+    CC_ERROR_IF_RET((total_off > rw_offset) && (stack_entry->Type != kScValData), "stack offset backward: trying to access stack data inside stack entry, stack corrupted?", RuntimeScriptValue)
     return stack_ptr;
 }
 

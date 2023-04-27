@@ -19,7 +19,8 @@ namespace AGS.Types
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
         public const string PROPERTY_TEXT_FORMAT = "Text format";
-		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
+        public const string PROPERTY_TEXT_LANGUAGE = "Text language";
+        public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_FONT_HEIGHT_IN_LOGIC = "TTF fonts height used in the game logic";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
         public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
@@ -46,6 +47,7 @@ namespace AGS.Types
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
         private string _gameTextEncoding = Encoding.UTF8.WebName;
+        private string _gameTextLanguage = "en_US";
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
@@ -256,6 +258,16 @@ namespace AGS.Types
         {
             get { return _gameTextEncoding; }
             set { _gameTextEncoding = value; }
+        }
+
+        [DisplayName(PROPERTY_TEXT_LANGUAGE)]
+        [Description("Defines current language for translations purposes (use standard locale strings, like 'en', 'en_US', etc)")]
+        [DefaultValue("en_US")]
+        [Category("(Basic properties)")]
+        public string GameTextLanguage
+        {
+            get { return _gameTextLanguage; }
+            set { _gameTextLanguage = value; }
         }
 
         [Obsolete]

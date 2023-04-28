@@ -30,8 +30,8 @@ void ccSetStringClassImpl(ICCStringClass *theClass) {
 
 // register a memory handle for the object and allow script
 // pointers to point to it
-int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, bool plugin_object) {
-    int32_t handl = pool.AddObject((const char*)object, callback, plugin_object);
+int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+    int32_t handl = pool.AddObject((const char*)object, callback, obj_type);
 
     ManagedObjectLog("Register managed object type '%s' handle=%d addr=%08X",
         ((callback == NULL) ? "(unknown)" : callback->GetType()), handl, object);
@@ -40,8 +40,8 @@ int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, 
 }
 
 // register a de-serialized object
-int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback, bool plugin_object) {
-    return pool.AddUnserializedObject((const char*)object, callback, plugin_object, index);
+int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+    return pool.AddUnserializedObject((const char*)object, callback, obj_type, index);
 }
 
 // unregister a particular object

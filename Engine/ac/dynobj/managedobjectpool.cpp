@@ -28,10 +28,9 @@ const auto GARBAGE_COLLECTION_INTERVAL = 1024;
 const auto RESERVED_SIZE = 2048;
 
 int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
-    if (!o.isUsed()) { return 1; } // already removed
-
-    bool canBeRemovedFromPool = o.callback->Dispose(o.addr, force) != 0;
-    if (!(canBeRemovedFromPool || force)) { return 0; }
+    const bool can_remove = o.callback->Dispose(o.addr, force) != 0;
+    if (!(can_remove || force))
+        return 0;
 
     available_ids.push(o.handle);
     handleByAddress.erase(o.addr);
@@ -41,17 +40,19 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
 }
 
 int32_t ManagedObjectPool::AddRef(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
-    auto & o = objects[handle];
-    if (!o.isUsed()) { return 0; }
+    if (handle < 1 || (size_t)handle >= objects.size())
+        return 0;
 
-    o.refCount += 1;
+    auto &o = objects[handle];
+    if (!o.isUsed()) { return 0; }
+    o.refCount++;
     ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", currentline, o.handle, o.refCount);
     return o.refCount;
 }
 
 int ManagedObjectPool::CheckDispose(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 1; }
+    if (handle < 1 || (size_t)handle >= objects.size())
+        return 1;
     auto & o = objects[handle];
     if (!o.isUsed()) { return 1; }
     if (o.refCount >= 1) { return 0; }
@@ -64,10 +65,10 @@ int32_t ManagedObjectPool::SubRef(int32_t handle) {
     if (!o.isUsed()) { return 0; }
 
     o.refCount--;
-    auto newRefCount = o.refCount;
-    auto canBeDisposed = (o.addr != disableDisposeForObject);
-    if (canBeDisposed) {
-        CheckDispose(handle);
+    const auto newRefCount = o.refCount;
+    const auto canBeDisposed = (o.addr != disableDisposeForObject);
+    if (canBeDisposed && o.refCount <= 0) {
+        Remove(o);
     }
     // object could be removed at this point, don't use any values.
     ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d canBeDisposed=%d", currentline, handle, newRefCount, canBeDisposed);
@@ -83,7 +84,7 @@ int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
 
 // this function is called often (whenever a pointer is used)
 const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return nullptr; }
+    if (handle < 1 || (size_t)handle >= objects.size()) { return nullptr; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return nullptr; }
     return o.addr;
@@ -131,7 +132,7 @@ void ManagedObjectPool::RunGarbageCollection()
     ManagedObjectLog("Ran garbage collection");
 }
 
-int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object) 
+int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, ScriptValueType obj_type) 
 {
     int32_t handle;
 
@@ -146,9 +147,9 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
     }
 
     auto & o = objects[handle];
-    if (o.isUsed()) { cc_error("used: %d", handle); return 0; }
+    assert(!o.isUsed());
 
-    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
+    o = ManagedObject(obj_type, handle, address, callback);
 
     handleByAddress.insert({address, o.handle});
     objectCreationCounter++;
@@ -157,7 +158,8 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 }
 
 
-int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle) 
+int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback,
+    ScriptValueType obj_type, int handle) 
 {
     if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     if ((size_t)handle >= objects.size()) {
@@ -165,9 +167,9 @@ int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObje
     }
 
     auto & o = objects[handle];
-    if (o.isUsed()) { cc_error("bad save. used: %d", o.handle); return 0; }
+    assert(!o.isUsed());
 
-    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
+    o = ManagedObject(obj_type, handle, address, callback);
 
     handleByAddress.insert({address, o.handle});
     ManagedObjectLog("Allocated unserialized managed object handle=%d, type=%s", o.handle, callback->GetType());
@@ -309,7 +311,7 @@ void ManagedObjectPool::reset() {
         if (!o.isUsed()) { continue; }
         Remove(o, true);
     }
-    while (!available_ids.empty()) { available_ids.pop(); }
+    available_ids = std::queue<int32_t>();
     nextHandle = 1;
 }
 

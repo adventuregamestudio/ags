@@ -53,7 +53,6 @@ private:
     std::vector<ManagedObject> objects;
     std::unordered_map<const char *, int32_t> handleByAddress;
 
-    void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);
     int Remove(ManagedObject &o, bool force = false); 
 
     void RunGarbageCollection();
@@ -68,8 +67,8 @@ public:
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
-    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle);
+    int AddObject(const char *address, ICCDynamicObject *callback, ScriptValueType obj_type);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, ScriptValueType obj_type, int handle);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();

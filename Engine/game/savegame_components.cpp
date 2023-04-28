@@ -33,6 +33,7 @@
 #include "ac/view.h"
 #include "ac/system.h"
 #include "ac/dynobj/cc_serializer.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"

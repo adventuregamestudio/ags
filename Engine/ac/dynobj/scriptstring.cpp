@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ac/string.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

@@ -34,6 +34,7 @@
 #include "ac/roomstatus.h"
 #include "ac/view.h"
 #include "ac/dynobj/cc_serializer.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "game/savegame.h"
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"

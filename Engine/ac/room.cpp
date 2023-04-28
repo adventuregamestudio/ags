@@ -46,6 +46,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"

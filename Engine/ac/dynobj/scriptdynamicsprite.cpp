@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdynamicsprite.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynamicsprite.h"
 #include "util/stream.h"
 

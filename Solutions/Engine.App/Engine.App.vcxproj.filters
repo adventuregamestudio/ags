@@ -465,9 +465,6 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicobject.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
@@ -815,6 +812,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\util\sdl2_util.cpp">
       <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1639,6 +1639,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\util\sdl2_util.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

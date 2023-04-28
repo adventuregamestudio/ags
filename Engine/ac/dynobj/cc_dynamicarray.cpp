@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h>
 #include "cc_dynamicarray.h"
+#include "ac/dynobj/dynobj_manager.h"
 
 // return the type name of the object
 const char *CCDynamicArray::GetType() {

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptcamera.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestate.h"
 #include "util/stream.h"
 

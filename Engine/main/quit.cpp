@@ -27,6 +27,7 @@
 #include "ac/roomstatus.h"
 #include "ac/route_finder.h"
 #include "ac/translation.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"

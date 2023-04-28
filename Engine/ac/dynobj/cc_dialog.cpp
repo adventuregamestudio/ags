@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_dialog.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"

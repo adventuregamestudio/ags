@@ -470,7 +470,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_character.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dialog.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_guiobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_hotspot.cpp" />
@@ -732,6 +732,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_object.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />

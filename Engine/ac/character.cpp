@@ -55,6 +55,7 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"

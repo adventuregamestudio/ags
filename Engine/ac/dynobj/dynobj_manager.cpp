@@ -11,11 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "ac/dynobj/dynobj_manager.h"
 #include <stdlib.h>
 #include <string.h>
-#include "core/platform.h"
-#include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "debug/out.h"
 #include "script/cc_common.h"

@@ -18,12 +18,11 @@
 #ifndef __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
+#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/statobj/staticobject.h"
+#include "ac/statobj/staticarray.h"
 #include "script/script_api.h"
 #include "util/memory.h"
-#include "ac/dynobj/cc_dynamicobject.h"
-
-struct ICCStaticObject;
-struct StaticArray;
 
 enum ScriptValueType
 {

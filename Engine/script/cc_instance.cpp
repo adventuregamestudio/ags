@@ -17,6 +17,7 @@
 #include "ac/common.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/sys_events.h"
 #include "gui/guidefines.h"
 #include "script/cc_instance.h"
@@ -33,7 +34,6 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
-#include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
 #include "util/file.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition

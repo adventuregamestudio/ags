@@ -14,6 +14,7 @@
 #include "ac/dynobj/cc_gui.h"
 #include <vector>
 #include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

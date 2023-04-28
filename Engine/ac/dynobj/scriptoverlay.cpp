@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptoverlay.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/common.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"

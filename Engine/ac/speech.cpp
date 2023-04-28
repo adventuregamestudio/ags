@@ -164,6 +164,7 @@ String get_voice_assetpath()
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
 #include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"

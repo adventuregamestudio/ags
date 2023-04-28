@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/characterinfo.h"
 #include "ac/global_character.h"
 #include "ac/gamesetupstruct.h"

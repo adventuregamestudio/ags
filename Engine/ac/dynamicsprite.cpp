@@ -25,6 +25,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/system.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gui/guibutton.h"

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/spritecache.h"
 #include "ac/runtime_defines.h"
 #include "ac/common.h"

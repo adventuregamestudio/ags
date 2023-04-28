@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptset.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 int ScriptSetBase::Dispose(const char* /*address*/, bool /*force*/)

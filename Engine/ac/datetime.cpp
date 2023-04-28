@@ -11,11 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <time.h>
 #include "ac/datetime.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "platform/base/agsplatformdriver.h"
-#include "script/runtimescriptvalue.h"
 
 ScriptDateTime* DateTime_Now_Core() {
     ScriptDateTime *sdt = new ScriptDateTime();

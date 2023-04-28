@@ -27,6 +27,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"

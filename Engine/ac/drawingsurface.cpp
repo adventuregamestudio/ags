@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/common.h"
@@ -24,6 +23,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/walkbehind.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"

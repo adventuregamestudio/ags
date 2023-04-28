@@ -21,6 +21,7 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "font/fonts.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"

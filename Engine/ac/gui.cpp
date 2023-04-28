@@ -34,6 +34,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"

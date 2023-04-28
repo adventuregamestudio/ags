@@ -22,6 +22,7 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "platform/base/agsplatformdriver.h"

@@ -16,6 +16,8 @@
 
 #include <vector>
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
+#include "util/stream.h"
+
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
 
@@ -43,7 +45,7 @@ public:
     // serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
-    virtual void Unserialize(int index, const char *serializedData, int dataSize);
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
     // Create managed array object and return a pointer to the beginning of a buffer
     DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
 

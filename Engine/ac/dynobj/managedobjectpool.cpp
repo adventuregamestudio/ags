@@ -14,7 +14,6 @@
 #include <vector>
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
-#include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "debug/out.h"
 #include "util/string_utils.h"               // fputstring, etc
 #include "script/cc_common.h"
@@ -246,11 +245,8 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                             serializeBuffer.resize(numBytes);
                         }
                         in->Read(&serializeBuffer.front(), numBytes);
-                        if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
-                            globalDynamicArray.Unserialize(i, &serializeBuffer.front(), numBytes);
-                        } else {
-                            reader->Unserialize(i, typeNameBuffer, &serializeBuffer.front(), numBytes);
-                        }
+                        // Delegate work to ICCObjectReader
+                        reader->Unserialize(i, typeNameBuffer, &serializeBuffer.front(), numBytes);
                         objects[i].refCount = in->ReadInt32();
                         ManagedObjectLog("Read handle = %d", objects[i].handle);
                     }
@@ -271,11 +267,8 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
                         serializeBuffer.resize(numBytes);
                     }
                     in->Read(&serializeBuffer.front(), numBytes);
-                    if (strcmp(typeNameBuffer, CCDynamicArray::TypeName) == 0) {
-                        globalDynamicArray.Unserialize(handle, &serializeBuffer.front(), numBytes);
-                    } else {
-                        reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
-                    }
+                    // Delegate work to ICCObjectReader
+                    reader->Unserialize(handle, typeNameBuffer, &serializeBuffer.front(), numBytes);
                     objects[handle].refCount = in->ReadInt32();
                     ManagedObjectLog("Read handle = %d", objects[i].handle);
                 }

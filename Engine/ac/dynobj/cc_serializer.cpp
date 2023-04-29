@@ -16,10 +16,11 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/cc_dynamicarray.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
-#include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
 #include "debug/debug_log.h"
@@ -57,7 +58,21 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     size_t data_sz = static_cast<size_t>(dataSize);
     MemoryStream mems(reinterpret_cast<const uint8_t*>(serializedData), dataSize);
 
-    if (strcmp(objectType, "GUIObject") == 0) {
+    // TODO: consider this: there are object types that are part of the
+    // script's foundation, because they are created by the bytecode ops:
+    // such as DynamicArray and UserObject. *Maybe* these should be moved
+    // to certain "base serializer" class which guarantees their restoration.
+    //
+    // TODO: should we support older save versions here (DynArray, UserObj)?
+    // might have to use older class names to distinguish save formats
+    if (strcmp(objectType, CCDynamicArray::TypeName) == 0) {
+        globalDynamicArray.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, ScriptUserObject::TypeName) == 0) {
+        ScriptUserObject *suo = new ScriptUserObject();
+        suo->Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "GUIObject") == 0) {
         ccDynamicGUIObject.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Character") == 0) {
@@ -136,10 +151,6 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     {
         Camera_Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "UserObject") == 0) {
-        ScriptUserObject *suo = new ScriptUserObject();
-        suo->Unserialize(index, &mems, data_sz);
-    }
     else if (!unserialize_audio_script_object(index, objectType, &mems, data_sz))
     {
         // check if the type is read by a plugin
@@ -154,4 +165,3 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
 }
 
 AGSDeSerializer ccUnserializer;
-

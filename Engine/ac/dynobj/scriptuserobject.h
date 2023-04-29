@@ -18,11 +18,15 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 #define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_dynamicobject.h"
+#include "util/stream.h"
+
 
 struct ScriptUserObject final : ICCDynamicObject
 {
 public:
+    static const char *TypeName;
+
     ScriptUserObject();
     
 protected:

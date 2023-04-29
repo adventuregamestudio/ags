@@ -281,7 +281,8 @@ namespace AGS.Editor.Components
                 _editor.SelectedItem = itemToEdit;
                 _document.SelectedPropertyGridObject = itemToEdit;
                 _document.TreeNodeID = _rightClickedID;
-                UpdateAudioClipFromPreview(itemToEdit as AudioClip, _editor);
+                if (itemToEdit is AudioClip)
+                    UpdateAudioClipFromPreview(itemToEdit as AudioClip, _editor);
                 _guiController.AddOrShowPane(_document);
             }
         }

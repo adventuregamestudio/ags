@@ -373,7 +373,7 @@ namespace AGS.Editor.Components
             if (controlID == COMMAND_NEW_ITEM)
             {
                 IList<Translation> items = _agsEditor.CurrentGame.Translations;
-                Translation newItem = new Translation(GetFreeNameForTranslation());
+                Translation newItem = new Translation(GetFreeNameForTranslation(), _agsEditor.CurrentGame.Settings.GameTextLanguage);
                 newItem.Name = newItem.Name;
                 items.Add(newItem);
 

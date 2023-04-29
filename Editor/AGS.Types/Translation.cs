@@ -30,9 +30,10 @@ namespace AGS.Types
         private bool? _rightToLeftText;
         private string _encodingHint;
         private Encoding _encoding;
+        private string _baseLanguage;
         private Dictionary<string, TranslationEntry> _translatedLines;
 
-        public Translation(string name)
+        public Translation(string name, string baseLanguage)
         {
             this.Name = name;
             _modified = false;
@@ -40,6 +41,27 @@ namespace AGS.Types
             _speechFont = null;
             _rightToLeftText = null;
             EncodingHint = "UTF-8";
+            _baseLanguage = baseLanguage;
+        }
+
+        public Translation(XmlNode node, string baseLanguage)
+        {
+            this.Name = SerializeUtils.GetElementString(node, "Name");
+            _modified = false;
+            _normalFont = null;
+            _speechFont = null;
+            _rightToLeftText = null;
+            _encodingHint = null;
+            _encoding = Encoding.Default;
+            _baseLanguage = baseLanguage;
+            try
+            {
+                LoadData();
+            }
+            catch (Exception)
+            {
+                TranslatedLines.Clear(); // clear on failure
+            }
         }
 
         public string Name
@@ -105,23 +127,10 @@ namespace AGS.Types
             set { _modified = value; }
         }
 
-        public Translation(XmlNode node)
+        public string BaseLanguage
         {
-            this.Name = SerializeUtils.GetElementString(node, "Name");
-            _modified = false;
-            _normalFont = null;
-            _speechFont = null;
-            _rightToLeftText = null;
-            _encodingHint = null;
-            _encoding = Encoding.Default;
-            try
-            {
-            LoadData();
-        }
-            catch (Exception)
-            {
-                _translatedLines.Clear(); // clear on failure
-            }
+            get { return _baseLanguage; }
+            set { _baseLanguage = value; }
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -135,6 +144,7 @@ namespace AGS.Types
         {
             using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
             {
+                string encoding = _encodingHint ?? "ASCII";
                 sw.WriteLine("# AGS TRANSLATION SOURCE FILE");
                 sw.WriteLine("# This is a PO file generated according to the gettext specificatins.");
                 sw.WriteLine("# Special characters such as %%s symbolise things within the game,");
@@ -149,7 +159,7 @@ namespace AGS.Types
                 sw.WriteLine("# Text direction - DEFAULT, LEFT or RIGHT");
                 sw.WriteLine("# $TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
                 sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
-                sw.WriteLine("# $Encoding=" + (_encodingHint ?? "ASCII"));
+                sw.WriteLine("# $Encoding=" + encoding);
                 sw.WriteLine("#  ");
                 sw.WriteLine("# ** IT IS SUGGESTED TO USE A THIRD-PARTY TOOL TO EDIT THIS FILE");
                 // PO metadata
@@ -157,9 +167,10 @@ namespace AGS.Types
                 sw.WriteLine("msgstr \"\"");
                 sw.WriteLine("\"Last-Translator: \\n\"");
                 sw.WriteLine("\"Language-Team: \\n\"");
-                sw.WriteLine("\"Language: en\\n\""); // TODO: source language, currently not available
+                sw.WriteLine("\"Language: " + Encode(_name) + "\\n\"");
+                sw.WriteLine("\"X-Source-Language: " + Encode(_baseLanguage) + "\\n\"");
                 sw.WriteLine("\"MIME-Version: 1.0\\n\"");
-                sw.WriteLine("\"Content-Type: text/plain; charset=" + (_encodingHint ?? "ASCII") + "\\n\"");
+                sw.WriteLine("\"Content-Type: text/plain; charset=" + ( _encodingHint == "ASCII" ? "ISO-8859-1" : _encodingHint) + "\\n\"");
                 sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
                 sw.WriteLine("\"X-Generator: AGS " + Version.AGS_EDITOR_VERSION + "\\n\"");
 

@@ -258,6 +258,9 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     case eAudioFileMOD:
         soundClip = my_load_mod(asset_name, repeat);
         break;
+    case eAudioFileFLAC:
+        soundClip = my_load_flac(asset_name, repeat);
+        break;
     default:
         quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);
     }

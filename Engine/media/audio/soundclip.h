@@ -25,7 +25,7 @@
 //  * MIDI - the beat number
 //  * MOD / XM / S3M - the pattern number
 //  * WAV / VOC - the sample number
-//  * OGG / MP3 - milliseconds
+//  * OGG / MP3 / FLAC - milliseconds
 //
 // TODO: one of the biggest problems with sound clips currently is that it
 // provides several methods of applying volume, which may ignore or override

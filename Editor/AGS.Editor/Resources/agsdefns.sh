@@ -372,7 +372,8 @@ enum AudioFileType {
   eAudioFileWAV = 3,
   eAudioFileVOC = 4,
   eAudioFileMIDI = 5,
-  eAudioFileMOD = 6
+  eAudioFileMOD = 6,
+  eAudioFileFLAC = 7
 };
 
 enum AudioPriority {

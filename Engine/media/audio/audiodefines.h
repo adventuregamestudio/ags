@@ -21,6 +21,7 @@
 #define MUS_WAVE 3
 #define MUS_MOD  4
 #define MUS_OGG  5
+#define MUS_FLAC  6
 
 // Media playback status
 enum PlaybackState

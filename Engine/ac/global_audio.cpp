@@ -131,6 +131,11 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), false);
     }
 
+    if (speechmp3 == nullptr) {
+        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "flac");
+        speechmp3 = my_load_flac(get_voice_over_assetpath(asset_name), false);
+    }
+
     if (speechmp3 != nullptr) {
         speechmp3->set_volume255(play.speech_volume);
         if (!speechmp3->play()) {

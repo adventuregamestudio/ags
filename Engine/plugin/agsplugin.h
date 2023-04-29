@@ -154,6 +154,7 @@ public:
 #define PSND_OGGSTATIC  5
 #define PSND_MIDI       6
 #define PSND_MOD        7
+#define PSND_FLAC       8
 
 class IAGSScriptManagedObject {
 public:

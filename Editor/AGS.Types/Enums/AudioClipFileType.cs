@@ -14,6 +14,7 @@ namespace AGS.Types
         WAV = 3,
         VOC = 4,
         MIDI = 5,
-        MOD = 6
+        MOD = 6,
+        FLAC = 7
     }
 }

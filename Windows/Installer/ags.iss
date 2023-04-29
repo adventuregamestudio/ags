@@ -95,6 +95,7 @@ Source: "Source\Editor\AGS.Types.dll"; DestDir: "{app}"; Flags: ignoreversion; C
 Source: "Source\Editor\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\AGSEditor.exe.config"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\ikpMP3.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Editor\ikpFlac.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\irrKlang.NET4.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Magick.NET-Q8-x86.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\Editor\Magick.NET-Q8-x86.Native.dll"; DestDir: "{app}"; Flags: ignoreversion; Components: main

@@ -83,17 +83,63 @@ namespace AGS.Editor
 
         private void InitItems(List<DockContent> startupPanes)
         {
-            foreach (DockContent dockContent in startupPanes)
+            _windowsMenu.DropDownItems.Add(MENU_SEPARATOR);
+            RegisterPersistentItems(startupPanes);
+        }
+
+        public void AddPersistentItems(IList<DockContent> panes)
+        {
+            RegisterPersistentItems(panes);
+        }
+
+        public void AddPersistentItems(IList<ContentDocument> panes)
+        {
+            RegisterPersistentItems(panes);
+        }
+
+        // Find a place above the separator that splits persistent items
+        // and dynamic document list
+        private int GetPersistentItemInsertIndex()
+        {
+            int itemIndex = _windowsMenu.DropDownItems.Count;
+            for (--itemIndex; itemIndex >= 0; --itemIndex)
+            {
+                if (_windowsMenu.DropDownItems[itemIndex] is ToolStripSeparator)
+                    break;
+            }
+            return itemIndex;
+        }
+
+        private void RegisterPersistentItems(IList<DockContent> panes)
+        {
+            int itemIndex = GetPersistentItemInsertIndex();
+
+            foreach (DockContent dockContent in panes)
             {
                 ToolStripMenuItem menuItem = new ToolStripMenuItem(dockContent.Text);
                 menuItem.CheckOnClick = true;
-                UpdateMenuItemChecked(menuItem, dockContent);  
+                UpdateMenuItemChecked(menuItem, dockContent);
                 menuItem.Tag = dockContent;
                 menuItem.CheckedChanged += StartupWindow_CheckedChanged;
                 dockContent.DockStateChanged += StartupWindow_DockStateChanged;
-                _windowsMenu.DropDownItems.Add(menuItem);
+                _windowsMenu.DropDownItems.Insert(itemIndex++, menuItem);
             }
-            _windowsMenu.DropDownItems.Add(MENU_SEPARATOR);
+        }
+
+        private void RegisterPersistentItems(IList<ContentDocument> panes)
+        {
+            int itemIndex = GetPersistentItemInsertIndex();
+
+            foreach (ContentDocument document in panes)
+            {
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(document.Name);
+                menuItem.CheckOnClick = true;
+                UpdateMenuItemChecked(menuItem, document);
+                menuItem.Tag = document;
+                menuItem.CheckedChanged += StartupWindow_CheckedChanged;
+                document.PanelClosed += Document_PanelClosed;
+                _windowsMenu.DropDownItems.Insert(itemIndex++, menuItem);
+            }
         }
 
         private void StartupWindow_DockStateChanged(object sender, EventArgs e)
@@ -106,6 +152,16 @@ namespace AGS.Editor
             }
         }
 
+        private void Document_PanelClosed(object sender, EventArgs e)
+        {
+            ContentDocument document = sender as ContentDocument;
+            if (document != null)
+            {
+                ToolStripMenuItem menuItem = GetMenuItem(document);
+                UpdateMenuItemChecked(menuItem, document);
+            }
+        }
+
         private void UpdateMenuItemChecked(ToolStripMenuItem menuItem, DockContent dockContent)
         {
             if (menuItem != null)
@@ -113,12 +169,20 @@ namespace AGS.Editor
                 menuItem.Checked = (dockContent.DockState != DockState.Hidden);
             }
         }
-        
-        private ToolStripMenuItem GetMenuItem(DockContent dockContent)
+
+        private void UpdateMenuItemChecked(ToolStripMenuItem menuItem, ContentDocument document)
+        {
+            if (menuItem != null)
+            {
+                menuItem.Checked = document.Visible;
+            }
+        }
+
+        private ToolStripMenuItem GetMenuItem(object pane)
         {
             foreach (ToolStripItem item in _windowsMenu.DropDownItems)
             {
-                if (item.Tag == dockContent)
+                if (item.Tag == pane)
                 {
                     return item as ToolStripMenuItem;
                 }
@@ -129,28 +193,40 @@ namespace AGS.Editor
         private void StartupWindow_CheckedChanged(object sender, EventArgs e)
         {
             ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
-            if (menuItem != null)
+            if (menuItem == null || menuItem.Tag == null)
+                return;
+
+            if (menuItem.Tag is DockContent)
             {
                 DockContent dockContent = menuItem.Tag as DockContent;
-                if (dockContent != null)
+                if (menuItem.Checked)
                 {
-                    if (menuItem.Checked)
+                    dockContent.Show();
+                    if (dockContent.IsHidden)
                     {
-                        dockContent.Show();
-                        if (dockContent.IsHidden)
-                        {
-                            //todo: Find a better solution.
-                            //This is a hack since apparently the docking suite doesn't save/load
-                            //the layout correctly when the window was floating.
-                            //Loading the editor will hide all windows that were floating
-                            //and the previous dockContent.Show will not bring them back and the window stays hidden!
-                            dockContent.Show(_dockPanel, DockState.Float);
-                        }
+                        //todo: Find a better solution.
+                        //This is a hack since apparently the docking suite doesn't save/load
+                        //the layout correctly when the window was floating.
+                        //Loading the editor will hide all windows that were floating
+                        //and the previous dockContent.Show will not bring them back and the window stays hidden!
+                        dockContent.Show(_dockPanel, DockState.Float);
                     }
-                    else
-                    {
-                        dockContent.Hide();
-                    }
+                }
+                else
+                {
+                    dockContent.Hide();
+                }
+            }
+            else if (menuItem.Tag is ContentDocument)
+            {
+                ContentDocument document = menuItem.Tag as ContentDocument;
+                if (menuItem.Checked)
+                {
+                    Factory.GUIController.AddOrShowPane(document);
+                }
+                else
+                {
+                    Factory.GUIController.RemovePaneIfExists(document);
                 }
             }
         }
@@ -187,6 +263,10 @@ namespace AGS.Editor
             }
         }
 
+        // Searches existing menu items from bottom up and removes them
+        // until the first separator is found.
+        // This is meant to remove Document items, which are normally
+        // added after the fixed Pane items.
         private void RemoveAllButStartupWindows()
         {
             for (int i = _windowsMenu.DropDownItems.Count - 1; i >= 0; i--)

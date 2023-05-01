@@ -44,6 +44,8 @@ namespace AGS.Editor
         public delegate void LaunchHelpHandler(string keyword);
         public event LaunchHelpHandler OnLaunchHelp;
         public event EventHandler OnMainWindowActivated;
+        public delegate void DockingWindowMenuHandler(DockingWindowMenuEventArgs evArgs);
+        public event DockingWindowMenuHandler OnDockingWindowMenu;
 
         private delegate void UpdateStatusBarTextDelegate(string text);
         private delegate void ParameterlessDelegate();
@@ -58,6 +60,7 @@ namespace AGS.Editor
         private ProjectTree _treeManager;
         private ToolBarManager _toolBarManager;
         private MainMenuManager _menuManager;
+        private WindowsMenuManager _windowsMenuManager;
         private string _titleBarPrefix;
         private AGSEditor _agsEditor;
         private InteractiveTasks _interactiveTasks;
@@ -835,9 +838,9 @@ namespace AGS.Editor
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
-                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
+                _windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
                     _mainForm.GetStartupPanes(), _mainForm.mainContainer, _mainForm.GetLayoutManager());
-                _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
+                _menuManager = new MainMenuManager(_mainForm.mainMenu, _windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
                 _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
                 _mainForm.OnPropertyObjectChanged += new frmMain.PropertyObjectChangedHandler(_mainForm_OnPropertyObjectChanged);
@@ -867,6 +870,21 @@ namespace AGS.Editor
                 CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
                 ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
             }
+        }
+
+        /// <summary>
+        /// Sends a message to all components, asking them to provide window menu items.
+        /// </summary>
+        private void AddWindowMenuFromComponents()
+        {
+            var panes = new List<DockContent>();
+            var documents = new List<ContentDocument>();
+            var evArgs = new DockingWindowMenuEventArgs(panes, documents);
+            OnDockingWindowMenu?.Invoke(evArgs);
+            if (evArgs.DockingPanes.Count > 0)
+                _windowsMenuManager.AddPersistentItems(evArgs.DockingPanes);
+            if (evArgs.DockingDocuments.Count > 0)
+                _windowsMenuManager.AddPersistentItems(evArgs.DockingDocuments);
         }
 
         private void _mainForm_OnMainWindowActivated(object sender, EventArgs e)
@@ -1475,6 +1493,9 @@ namespace AGS.Editor
         {
 			_commandLineArgs = commandLineArguments;
 			_messageLoopStarted = true;
+
+            AddWindowMenuFromComponents();
+
             Application.Run(_mainForm);
         }
 

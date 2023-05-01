@@ -122,6 +122,7 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\DockingWindowMenuEventArgs.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>

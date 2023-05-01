@@ -36,6 +36,7 @@ namespace AGS.Editor
             this.toolStrip = new AGS.Editor.ToolStripExtended();
             this.btnRun = new System.Windows.Forms.ToolStripButton();
             this.btnPause = new System.Windows.Forms.ToolStripButton();
+            this.btnGlue = new System.Windows.Forms.ToolStripButton();
             this.toolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -52,6 +53,7 @@ namespace AGS.Editor
             this.logTextBox.Size = new System.Drawing.Size(800, 422);
             this.logTextBox.TabIndex = 0;
             this.logTextBox.Text = "";
+            this.logTextBox.VScroll += new System.EventHandler(this.logTextBox_VScroll);
             // 
             // timerLogBufferSync
             // 
@@ -61,7 +63,8 @@ namespace AGS.Editor
             // 
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnRun,
-            this.btnPause});
+            this.btnPause,
+            this.btnGlue});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
             this.toolStrip.Size = new System.Drawing.Size(800, 25);
@@ -87,6 +90,19 @@ namespace AGS.Editor
             this.btnPause.ToolTipText = "Pause";
             this.btnPause.Click += new System.EventHandler(this.btnPause_Click);
             // 
+            // btnGlue
+            // 
+            this.btnGlue.Checked = true;
+            this.btnGlue.CheckOnClick = true;
+            this.btnGlue.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.btnGlue.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnGlue.Image = ((System.Drawing.Image)(resources.GetObject("btnGlue.Image")));
+            this.btnGlue.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnGlue.Name = "btnGlue";
+            this.btnGlue.Size = new System.Drawing.Size(23, 22);
+            this.btnGlue.ToolTipText = "Scroll down with the log automatically";
+            this.btnGlue.Click += new System.EventHandler(this.btnGlue_Click);
+            // 
             // LogPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -109,5 +125,6 @@ namespace AGS.Editor
         private ToolStripExtended toolStrip;
         private System.Windows.Forms.ToolStripButton btnRun;
         private System.Windows.Forms.ToolStripButton btnPause;
+        private System.Windows.Forms.ToolStripButton btnGlue;
     }
 }

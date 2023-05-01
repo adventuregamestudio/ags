@@ -17,14 +17,33 @@ namespace AGS.Editor
     public partial class LogPanel : EditorContentPanel
     {
         private LogBuffer _logBuffer = new LogBuffer();
-        private bool _bufferNeedsSync = false;
+        // Properties
         private bool _run = true;
+        private bool _glue = true; // stick to the log's end
+        private bool _autoGlue = true; // force glue, regardless of user's actions
+        // Dynamic state
+        private bool _bufferNeedsSync = false;
+        private bool _noScrollCheck = false; // temp disable checking scrolling event
 
         public LogPanel(GUIController guiController)
         {
             InitializeComponent();
             timerLogBufferSync.Start();
             Run();
+        }
+
+        /// <summary>
+        /// Gets/sets AutoGlue mode in which text box always autoscrolls to the end of the text.
+        /// </summary>
+        public bool AutoGlue
+        {
+            get { return _autoGlue; }
+            set
+            {
+                _autoGlue = value;
+                if (_autoGlue)
+                    _glue = true;
+            }
         }
 
         delegate void SetTextCallback(string text);
@@ -34,16 +53,46 @@ namespace AGS.Editor
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
             // If these threads are different, it returns true.
-            if (this.logTextBox.InvokeRequired)
+            if (logTextBox.InvokeRequired)
             {
                 SetTextCallback d = new SetTextCallback(SetText);
-                this.Invoke(d, new object[] { text });
+                Invoke(d, new object[] { text });
             }
             else
             {
-                this.logTextBox.Text = text;
-                this.logTextBox.SelectionStart = this.logTextBox.TextLength;
-                this.logTextBox.ScrollToCaret();
+                _noScrollCheck = true;
+                // Remember current scroll pos and the caret, we will use these
+                // to restore the scroll & selection after setting a new text.
+                var old_pos = logTextBox.GetScrollPos();
+                var old_sel_start = logTextBox.SelectionStart;
+                var old_sel_end = logTextBox.SelectionStart + logTextBox.SelectionLength;
+
+                // Set new text; this resets everything!
+                logTextBox.Text = text;
+
+                // In glue mode: scroll to the end
+                if (_glue)
+                {
+                    logTextBox.SelectionStart = logTextBox.TextLength;
+                    logTextBox.ScrollToCaret();
+                }
+                // Otherwise: restore old state
+                else
+                {
+                    // NOTE: we use extender method here, that sends control messages
+                    // to scroll to the new position. If we use temporary selection
+                    // and then ScrollToCaret(), then restoring old user's selection
+                    // afterwards will cause RTB to scroll to the caret again.
+
+                    // Restore old selection
+                    logTextBox.SelectionStart = old_sel_start;
+                    logTextBox.SelectionLength = old_sel_end - old_sel_start;
+                    // Restore old scroll position
+                    logTextBox.SetScrollPos(old_pos);
+                }
+
+                _noScrollCheck = false;
+
                 Show();
             }
         }
@@ -114,6 +163,35 @@ namespace AGS.Editor
         private void btnPause_Click(object sender, EventArgs e)
         {
             Pause();
+        }
+
+        private void btnGlue_Click(object sender, EventArgs e)
+        {
+            AutoGlue = btnGlue.Checked;
+        }
+
+        private bool IsScrollAtBottom()
+        {
+            // Found this idea here:
+            // https://stackoverflow.com/questions/2986408/richtextbox-vertical-scrollbar-manipulation-in-visual-studio
+            if (logTextBox.TextLength == 0)
+                return true;
+
+            var p = logTextBox.GetPositionFromCharIndex(logTextBox.TextLength - 1);
+            return p.Y >= 0 && p.Y <= logTextBox.ClientSize.Height;
+        }
+
+        private void logTextBox_VScroll(object sender, EventArgs e)
+        {
+            if (_noScrollCheck)
+                return;
+
+            // If auto-glue is off, then update glue mode state,
+            // depending on where the user had scrolled the text box.
+            if (!_autoGlue)
+            {
+                _glue = IsScrollAtBottom();
+            }
         }
     }
 }

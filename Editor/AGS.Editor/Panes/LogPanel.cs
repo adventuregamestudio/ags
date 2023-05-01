@@ -18,11 +18,13 @@ namespace AGS.Editor
     {
         private LogBuffer _logBuffer = new LogBuffer();
         private bool _bufferNeedsSync = false;
+        private bool _run = true;
+
         public LogPanel(GUIController guiController)
         {
             InitializeComponent();
-            _logBuffer.ValueChanged += new System.EventHandler(this.BufferChanged);
             timerLogBufferSync.Start();
+            Run();
         }
 
         delegate void SetTextCallback(string text);
@@ -56,12 +58,32 @@ namespace AGS.Editor
             _bufferNeedsSync = true;
         }
 
+        public void Run()
+        {
+            _run = true;
+            _bufferNeedsSync = true;
+            _logBuffer.ValueChanged += new System.EventHandler(this.BufferChanged);
+            btnRun.Enabled = false;
+            btnPause.Enabled = true;
+        }
+
+        public void Pause()
+        {
+            _run = false;
+            _bufferNeedsSync = false;
+            _logBuffer.ValueChanged -= new System.EventHandler(this.BufferChanged);
+            btnRun.Enabled = true;
+            btnPause.Enabled = false;
+        }
+
         public void Clear()
         {
             _logBuffer.Clear();
         }
+
         public void WriteLogMessage(string message, LogGroup group, LogLevel level)
         {
+            if (!_run) return;
             _logBuffer.Append(message, group, level);
         }
 
@@ -71,16 +93,27 @@ namespace AGS.Editor
             {
                 LogGroup group = (LogGroup)i;
                 _logBuffer.SetLogLevel(group, debugLog.LogFilter.GetGroupLevel(group));
-                _bufferNeedsSync = true;
             }
+            _bufferNeedsSync = true;
         }
 
         private void timerLogBufferSync_Tick(object sender, EventArgs e)
         {
+            if (!_run) return;
             if (!_bufferNeedsSync) return;
 
             SetText(_logBuffer.ToString());
             _bufferNeedsSync = false;
+        }
+
+        private void btnRun_Click(object sender, EventArgs e)
+        {
+            Run();
+        }
+
+        private void btnPause_Click(object sender, EventArgs e)
+        {
+            Pause();
         }
     }
 }

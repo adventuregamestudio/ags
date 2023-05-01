@@ -19,12 +19,26 @@ namespace AGS.Editor
         private LogBuffer _logBuffer = new LogBuffer();
         private bool _bufferNeedsSync = false;
         private bool _run = true;
+        private bool _glue = true; // stick to the log's end
+        private bool _autoGlue = true; // force glue, regardless of user's actions
+        private bool _noScrollCheck = false; // temp disable checking scrolling event
 
         public LogPanel(GUIController guiController)
         {
             InitializeComponent();
             timerLogBufferSync.Start();
             Run();
+        }
+
+        public bool AutoGlue
+        {
+            get { return _autoGlue; }
+            set
+            {
+                _autoGlue = value;
+                if (_autoGlue)
+                    _glue = true;
+            }
         }
 
         delegate void SetTextCallback(string text);
@@ -34,16 +48,47 @@ namespace AGS.Editor
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
             // If these threads are different, it returns true.
-            if (this.logTextBox.InvokeRequired)
+            if (logTextBox.InvokeRequired)
             {
                 SetTextCallback d = new SetTextCallback(SetText);
-                this.Invoke(d, new object[] { text });
+                Invoke(d, new object[] { text });
             }
             else
             {
-                this.logTextBox.Text = text;
-                this.logTextBox.SelectionStart = this.logTextBox.TextLength;
-                this.logTextBox.ScrollToCaret();
+                _noScrollCheck = true;
+                // Remember current view pos and the caret, we will use these
+                // to restore the scroll & selection after setting a new text.
+                var old_pos = logTextBox.GetPositionFromCharIndex(0);
+                var old_sel_start = logTextBox.SelectionStart;
+                var old_sel_end = logTextBox.SelectionStart + logTextBox.SelectionLength;
+
+                // Set new text; this resets everything!
+                logTextBox.Text = text;
+
+                // In glue mode: scroll to the end
+                if (_glue)
+                {
+                    logTextBox.SelectionStart = logTextBox.TextLength;
+                    logTextBox.ScrollToCaret();
+                }
+                // otherwise: try to scroll to the previous pos
+                else
+                {
+                    // FIXME: this is some vodoo magic here, investigate if there
+                    // are better solutions that this...
+                    var new_index = logTextBox.GetCharIndexFromPosition(new Point(old_pos.X, -old_pos.Y));
+                    var new_line = logTextBox.GetLineFromCharIndex(new_index);
+                    var char_to_scroll = logTextBox.GetFirstCharIndexFromLine(new_line + 1);
+                    logTextBox.SelectionStart = char_to_scroll;
+                    logTextBox.ScrollToCaret();
+
+                    // Restore old selection
+                    logTextBox.SelectionStart = old_sel_start;
+                    logTextBox.SelectionLength = old_sel_end - old_sel_start;
+                }
+
+                _noScrollCheck = false;
+
                 Show();
             }
         }
@@ -114,6 +159,33 @@ namespace AGS.Editor
         private void btnPause_Click(object sender, EventArgs e)
         {
             Pause();
+        }
+
+        private void btnGlue_Click(object sender, EventArgs e)
+        {
+            AutoGlue = btnGlue.Checked;
+        }
+
+        private bool IsScrollAtBottom()
+        {
+            // Found this idea here:
+            // https://stackoverflow.com/questions/2986408/richtextbox-vertical-scrollbar-manipulation-in-visual-studio
+            if (logTextBox.TextLength == 0)
+                return true;
+
+            var p = logTextBox.GetPositionFromCharIndex(logTextBox.TextLength - 1);
+            return p.Y >= 0 && p.Y <= logTextBox.ClientSize.Height;
+        }
+
+        private void logTextBox_VScroll(object sender, EventArgs e)
+        {
+            if (_noScrollCheck)
+                return;
+
+            if (!_autoGlue)
+            {
+                _glue = IsScrollAtBottom();
+            }
         }
     }
 }

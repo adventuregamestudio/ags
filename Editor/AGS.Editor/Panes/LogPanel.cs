@@ -24,12 +24,29 @@ namespace AGS.Editor
         // Dynamic state
         private bool _bufferNeedsSync = false;
         private bool _noScrollCheck = false; // temp disable checking scrolling event
+        // Styling
+        private string _logFont = Factory.AGSEditor.Settings.LogFont;
+        private int _logFontSize = Factory.AGSEditor.Settings.LogFontSize;
 
         public LogPanel(GUIController guiController)
         {
             InitializeComponent();
+            UpdateStyling();
+
             timerLogBufferSync.Start();
             Run();
+        }
+
+        public string LogFont
+        {
+            set { _logFont = value; logTextBox.Font = new System.Drawing.Font(_logFont, _logFontSize); }
+            get { return _logFont; }
+        }
+
+        public int LogFontSize
+        {
+            set { _logFontSize = value; }
+            get { return _logFontSize; }
         }
 
         /// <summary>
@@ -44,6 +61,11 @@ namespace AGS.Editor
                 if (_autoGlue)
                     _glue = true;
             }
+        }
+
+        public void UpdateStyling()
+        {
+            logTextBox.Font = new System.Drawing.Font(_logFont, _logFontSize);
         }
 
         delegate void SetTextCallback(string text);

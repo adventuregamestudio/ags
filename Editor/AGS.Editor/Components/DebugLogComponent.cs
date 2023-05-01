@@ -81,6 +81,8 @@ namespace AGS.Editor.Components
             {
                 _guiController.AddOrShowPane(_document);
             }
+
+            _logPanel.ApplyFilters(_logConfig);
         }
 
         public void Serialize(XmlTextWriter writer)

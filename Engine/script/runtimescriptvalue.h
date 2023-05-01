@@ -126,11 +126,7 @@ public:
     
     inline RuntimeScriptValue &Invalidate()
     {
-        Type    = kScValUndefined;
-        IValue   = 0;
-        Ptr     = nullptr;
-        MgrPtr  = nullptr;
-        Size    = 0;
+        *this = RuntimeScriptValue();
         return *this;
     }
     inline RuntimeScriptValue &SetUInt8(uint8_t val)
@@ -259,6 +255,15 @@ public:
         Size    = 4;
         return *this;
     }
+    inline RuntimeScriptValue &SetDynamicObject(ScriptValueType type, void *object, ICCDynamicObject *manager)
+    {
+        Type    = type;
+        IValue  = 0;
+        Ptr     = (char*)object;
+        DynMgr  = manager;
+        Size    = 4;
+        return *this;
+    }
     inline RuntimeScriptValue &SetStaticFunction(ScriptAPIFunction *pfn)
     {
         Type    = kScValStaticFunction;
@@ -315,49 +320,105 @@ public:
     // store value differently, otherwise it won't work for 64-bit build.
     inline RuntimeScriptValue ReadValue() const
     {
-        RuntimeScriptValue rval;
-        switch(this->Type) {
+        switch(this->Type)
+        {
         case kScValStackPtr:
         {
-            if (RValue->Type == kScValData)
+            // FIXME: join the kScValStackPtr with kScValData using some flag?
+            switch (RValue->Type)
             {
-                rval.SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
-            }
-            else
-            {
-                rval = *RValue;
+            case kScValData:
+                // read from the stack memory buffer
+                return RuntimeScriptValue().SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
+            default:
+                // return the stack entry itself
+                return *RValue;
             }
         }
-        break;
         case kScValGlobalVar:
         {
-            if (RValue->Type == kScValData)
+            // FIXME: join the kScValGlobalVar with kScValData using some flag?
+            switch (RValue->Type)
             {
-                rval.SetInt32(AGS::Common::Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue));
-            }
-            else
-            {
-                rval = *RValue;
+            case kScValData:
+                // read from the global memory buffer
+                return RuntimeScriptValue().SetInt32(AGS::Common::Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue));
+            default:
+                // return the gvar entry itself
+                return *RValue;
             }
         }
-        break;
-        case kScValStaticObject: case kScValStaticArray:
+        case kScValStaticObject:
+        case kScValStaticArray:
+            return RuntimeScriptValue().SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
+        case kScValDynamicObject:
+            return RuntimeScriptValue().SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
+        default:
+            return RuntimeScriptValue().SetInt32(*(int32_t*)this->GetPtrWithOffset());
+        }
+    }
+
+    // Notice, that there are only two valid cases when a pointer may be written:
+    // when the destination is a stack entry or global variable of free type
+    // (not kScValData type).
+    // In any other case, only the numeric value (integer/float) will be written.
+    inline void WriteValue(const RuntimeScriptValue &rval)
+    {
+        switch (this->Type)
         {
-            rval.SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
+        case kScValStackPtr:
+        {
+            // FIXME: join the kScValStackPtr with kScValData using some flag?
+            switch (RValue->Type)
+            {
+            case kScValData:
+                // write into the stack memory buffer
+                *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = rval.IValue;
+                break;
+            default:
+                // write into the stack entry
+                *RValue = rval;
+                // On stack we assume each item has at least 4 bytes (with exception
+                // of arrays - kScValData). This is why we fixup the size in case
+                // the assigned value is less (char, int16).
+                RValue->Size = 4;
+                break;
+            }
+            break;
         }
-        break;
+        case kScValGlobalVar:
+        {
+            // FIXME: join the kScValGlobalVar with kScValData using some flag?
+            switch (RValue->Type)
+            {
+            case kScValData:
+                // write into the global memory buffer
+                AGS::Common::Memory::WriteInt32LE(RValue->GetPtrWithOffset() + this->IValue, rval.IValue);
+                break;
+            default:
+                // write into the gvar entry
+                *RValue = rval;
+                break;
+            }
+            break;
+        }
+        case kScValStaticObject:
+        case kScValStaticArray:
+        {
+            this->StcMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
+            break;
+        }
         case kScValDynamicObject:
         {
-            rval.SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
+            this->DynMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
+            break;
         }
-        break;
         default:
         {
-            // 64 bit: Memory reads are still 32 bit
-            rval.SetInt32(*(int32_t*)this->GetPtrWithOffset());
+            *((int32_t*)this->GetPtrWithOffset()) = rval.IValue;
+            break;
         }
         }
-        return rval;
     }
 
 
@@ -370,7 +431,6 @@ public:
     bool        WriteByte(uint8_t val);
     bool        WriteInt16(int16_t val);
     bool        WriteInt32(int32_t val);
-    bool        WriteValue(const RuntimeScriptValue &rval);
 
     // Convert to most simple pointer type by resolving RValue ptrs and applying offsets;
     // non pointer types are left unmodified

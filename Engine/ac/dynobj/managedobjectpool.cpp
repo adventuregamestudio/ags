@@ -92,10 +92,13 @@ const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
 
 // this function is called often (whenever a pointer is used)
 ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return kScValUndefined; }
-    auto & o = objects[handle];
-    if (!o.isUsed()) { return kScValUndefined; }
-
+    if ((handle < 0 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
+    {
+        object = nullptr;
+        manager = nullptr;
+        return kScValUndefined;
+    }
+    auto &o = objects[handle];
     object = (void *)o.addr;  // WARNING: This strips the const from the char* pointer.
     manager = o.callback;
     return o.obj_type;

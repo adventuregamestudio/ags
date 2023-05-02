@@ -437,7 +437,7 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
         if (scan_ptr == end_ptr) {
             // end of the text, add the last line if necessary
             if (scan_ptr > theline) {
-                lines.Add(&test_buf.front());
+                lines.Add(test_buf.c_str());
             }
             break;
         }
@@ -458,7 +458,7 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
             char uch[Utf8::UtfSz + 1]{};
             usetc(uch, ugetxc(&scan_ptr)); // this advances scan_ptr
             test_buf.append(uch);
-            if (get_text_width_outlined(&test_buf.front(), fonnt) > wii) {
+            if (get_text_width_outlined(test_buf.c_str(), fonnt) > wii) {
                 // line is too wide, order the split
                 if (last_whitespace)
                     // revert to the last whitespace
@@ -478,7 +478,7 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
             }
             // add this line, saved into the test buffer
             test_buf.resize(split_at - theline); // cut the buffer at the split index
-            lines.Add(&test_buf.front());
+            lines.Add(test_buf.c_str());
             test_buf.clear();
             // check if too many lines
             if (lines.Count() >= max_lines) {

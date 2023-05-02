@@ -1285,7 +1285,8 @@ int ccInstance::Run(int32_t curpc)
 
           runningInst = wasRunning;
 
-          ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
+          if ((flags & INSTF_ABORTED) == 0)
+              ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
 
           next_call_needs_object = 0;
 

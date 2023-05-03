@@ -78,6 +78,8 @@ namespace AGS.Editor
             else
             {
                 _noScrollCheck = true;
+                logTextBox.SuspendDrawing();
+
                 // Remember current view pos and the caret, we will use these
                 // to restore the scroll & selection after setting a new text.
                 var old_pos = logTextBox.GetPositionFromCharIndex(0);
@@ -109,6 +111,7 @@ namespace AGS.Editor
                     logTextBox.SelectionLength = old_sel_end - old_sel_start;
                 }
 
+                logTextBox.ResumeDrawing();
                 _noScrollCheck = false;
 
                 Show();

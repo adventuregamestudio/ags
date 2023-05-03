@@ -10,6 +10,7 @@ namespace AGS.Editor
     public static class Hacks
     {
         private const int WM_SETTEXT = 0xC;
+        private const int WM_SETREDRAW = 0x0b;
         private const int TV_FIRST = 0x1100;
         private const int TVM_GETEDITCONTROL = (TV_FIRST + 15);
 
@@ -37,6 +38,17 @@ namespace AGS.Editor
             ToolStripButton viewTabButton = viewTabButtons[selectedTabIndex];
 
             propGrid.GetType().InvokeMember("OnViewTabButtonClick", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod, null, propGrid, new object[] { viewTabButton, EventArgs.Empty });
+        }
+
+        public static void SuspendDrawing(this Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, 0, IntPtr.Zero);
+        }
+
+        public static void ResumeDrawing(this Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, 1, IntPtr.Zero);
+            control.Invalidate();
         }
     }
 }

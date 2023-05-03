@@ -1173,8 +1173,9 @@ int ccInstance::Run(int32_t curpc)
           if (handle != newHandle) {
               ccReleaseObjectReference(handle);
               ccAddObjectReference(newHandle);
-              registers[SREG_MAR].WriteInt32(newHandle);
           }
+          // Assign always, avoid leaving undefined value
+          registers[SREG_MAR].WriteInt32(newHandle);
           break;
       }
       case SCMD_MEMINITPTR:
@@ -2217,8 +2218,6 @@ void ccInstance::PushDataToStack(int32_t num_bytes)
     CC_ERROR_IF(registers[SREG_SP].RValue->IsValid(), "internal error: valid data beyond stack ptr");
     // Assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
     // NOTE: memory is zeroed by SCMD_ZEROMEMORY
-    // FIXME: the new (ags4) compiler seem to forget to do ZEROMEMORY sometimes?!
-    memset(stackdata_ptr, 0, num_bytes);
     registers[SREG_SP].RValue->SetData(stackdata_ptr, num_bytes);
     stackdata_ptr += num_bytes;
     registers[SREG_SP].RValue++;

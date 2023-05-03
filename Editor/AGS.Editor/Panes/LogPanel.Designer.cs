@@ -50,6 +50,7 @@ namespace AGS.Editor
             this.logTextBox.Location = new System.Drawing.Point(0, 28);
             this.logTextBox.Name = "logTextBox";
             this.logTextBox.ReadOnly = true;
+            this.logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
             this.logTextBox.Size = new System.Drawing.Size(800, 422);
             this.logTextBox.TabIndex = 0;
             this.logTextBox.Text = "";

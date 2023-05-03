@@ -18,16 +18,16 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 #define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/stream.h"
 
 
-struct ScriptUserObject final : ICCDynamicObject
+struct ScriptUserObject final : AGSCCDynamicObject
 {
 public:
     static const char *TypeName;
 
-    ScriptUserObject();
+    ScriptUserObject() = default;
     
 protected:
     virtual ~ScriptUserObject();
@@ -39,10 +39,7 @@ public:
     // return the type name of the object
     const char *GetType() override;
     int Dispose(const char *address, bool force) override;
-    // serialize the object into BUFFER (which is BUFSIZE bytes)
-    // return number of bytes used
-    int Serialize(const char *address, char *buffer, int bufsize) override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
     // Support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;
@@ -64,8 +61,14 @@ private:
     // enough. Since this interface is also a part of Plugin API, we would
     // need more significant change to program before we could use different
     // approach.
-    int32_t  _size;
-    char    *_data;
+    int32_t  _size = 0;
+    char    *_data = nullptr;
+
+    // Savegame serialization
+    // Calculate and return required space for serialization, in bytes
+    size_t CalcSerializeSize(const char *address) override;
+    // Write object data into the provided stream
+    void Serialize(const char *address, AGS::Common::Stream *out) override;
 };
 
 

@@ -27,6 +27,11 @@ const char *ScriptSetBase::GetType()
     return "StringSet";
 }
 
+size_t ScriptSetBase::CalcSerializeSize(const char* /*address*/)
+{
+    return CalcContainerSize();
+}
+
 void ScriptSetBase::Serialize(const char* /*address*/, Stream *out)
 {
     out->WriteInt32(IsSorted());

@@ -27,7 +27,7 @@ const char *CCRegion::GetType() {
     return "Region";
 }
 
-size_t CCRegion::CalcSerializeSize()
+size_t CCRegion::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

@@ -27,7 +27,7 @@ const char *CCObject::GetType() {
     return "Object";
 }
 
-size_t CCObject::CalcSerializeSize()
+size_t CCObject::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

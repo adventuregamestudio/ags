@@ -28,7 +28,7 @@ const char *CCCharacter::GetType() {
     return "Character";
 }
 
-size_t CCCharacter::CalcSerializeSize()
+size_t CCCharacter::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

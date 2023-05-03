@@ -22,7 +22,7 @@ const char *ScriptDialogOptionsRendering::GetType() {
     return "DialogOptionsRendering";
 }
 
-size_t ScriptDialogOptionsRendering::CalcSerializeSize()
+size_t ScriptDialogOptionsRendering::CalcSerializeSize(const char * /*address*/)
 {
     return 0;
 }

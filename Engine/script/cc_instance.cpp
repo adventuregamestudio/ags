@@ -1068,9 +1068,11 @@ int ccInstance::Run(int32_t curpc)
 
           runningInst = wasRunning;
 
-          if (oldstack != registers[SREG_SP]) {
-              cc_error("stack corrupt after function call");
-              return -1;
+          if ((flags & INSTF_ABORTED) == 0) {
+              if (oldstack != registers[SREG_SP]) {
+                  cc_error("stack corrupt after function call");
+                  return -1;
+              }
           }
 
           next_call_needs_object = 0;

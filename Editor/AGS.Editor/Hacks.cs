@@ -11,6 +11,7 @@ namespace AGS.Editor
     public static class Hacks
     {
         private const int WM_SETTEXT = 0xC;
+        private const int WM_SETREDRAW = 0x0b;
         private const int WM_USER = 0x400;
         // RichTextBox messages
         private const int EM_GETSCROLLPOS = WM_USER + 221;
@@ -21,6 +22,23 @@ namespace AGS.Editor
 
         [DllImport("user32", CharSet = CharSet.Auto)]
         static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, IntPtr lParam);
+
+        /// <summary>
+        /// Disable Control's redrawing itself.
+        /// </summary>
+        public static void SuspendDrawing(this Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, 0, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// Enable Controls' redrawing itself.
+        /// </summary>
+        public static void ResumeDrawing(this Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, 1, IntPtr.Zero);
+            control.Invalidate();
+        }
 
         /// <summary>
         /// Gets current RichTextBox scroll position.

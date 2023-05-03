@@ -726,14 +726,7 @@ void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
     ICCDynamicObject *manager;
     ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    if (obj_type == kScValPluginObject)
-    {
-        GlobalReturnValue.SetPluginObject(object, manager);
-    }
-    else
-    {
-        GlobalReturnValue.SetDynamicObject(object, manager);
-    }
+    GlobalReturnValue.SetDynamicObject(obj_type, object, manager);
     return object;
 }
 

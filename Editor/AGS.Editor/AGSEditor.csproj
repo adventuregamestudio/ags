@@ -616,6 +616,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\log_autoscroll.ico" />
+    <EmbeddedResource Include="Resources\log_quiet.ico" />
+    <EmbeddedResource Include="Resources\log_run.ico" />
     <EmbeddedResource Include="Resources\debug_log.ico" />
     <EmbeddedResource Include="Resources\LayoutDefault.xml" />
     <EmbeddedResource Include="GUI\AboutDialog.resx">

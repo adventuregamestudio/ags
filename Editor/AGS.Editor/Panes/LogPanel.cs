@@ -80,9 +80,9 @@ namespace AGS.Editor
                 _noScrollCheck = true;
                 logTextBox.SuspendDrawing();
 
-                // Remember current view pos and the caret, we will use these
+                // Remember current scroll pos and the caret, we will use these
                 // to restore the scroll & selection after setting a new text.
-                var old_pos = logTextBox.GetPositionFromCharIndex(0);
+                var old_pos = logTextBox.GetScrollPos();
                 var old_sel_start = logTextBox.SelectionStart;
                 var old_sel_end = logTextBox.SelectionStart + logTextBox.SelectionLength;
 
@@ -95,20 +95,19 @@ namespace AGS.Editor
                     logTextBox.SelectionStart = logTextBox.TextLength;
                     logTextBox.ScrollToCaret();
                 }
-                // otherwise: try to scroll to the previous pos
+                // Otherwise: restore old state
                 else
                 {
-                    // FIXME: this is some vodoo magic here, investigate if there
-                    // are better solutions that this...
-                    var new_index = logTextBox.GetCharIndexFromPosition(new Point(old_pos.X, -old_pos.Y));
-                    var new_line = logTextBox.GetLineFromCharIndex(new_index);
-                    var char_to_scroll = logTextBox.GetFirstCharIndexFromLine(new_line + 1);
-                    logTextBox.SelectionStart = char_to_scroll;
-                    logTextBox.ScrollToCaret();
+                    // NOTE: we use extender method here, that sends control messages
+                    // to scroll to the new position. If we use temporary selection
+                    // and then ScrollToCaret(), then restoring old user's selection
+                    // afterwards will cause RTB to scroll to the caret again.
 
                     // Restore old selection
                     logTextBox.SelectionStart = old_sel_start;
                     logTextBox.SelectionLength = old_sel_end - old_sel_start;
+                    // Restore old scroll position
+                    logTextBox.SetScrollPos(old_pos);
                 }
 
                 logTextBox.ResumeDrawing();

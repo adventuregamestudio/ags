@@ -17,16 +17,21 @@ namespace AGS.Editor
     public partial class LogPanel : EditorContentPanel
     {
         private LogBuffer _logBuffer = new LogBuffer();
-        // Properties
-        private bool _run = true;
-        private bool _glue = true; // stick to the log's end
-        private bool _autoGlue = true; // force glue, regardless of user's actions
-        // Dynamic state
-        private bool _bufferNeedsSync = false;
-        private bool _noScrollCheck = false; // temp disable checking scrolling event
         // Styling
         private string _logFont = Factory.AGSEditor.Settings.LogFont;
         private int _logFontSize = Factory.AGSEditor.Settings.LogFontSize;
+        // State properties
+        private bool _run = true;
+        private bool _glue = true; // stick to the log's end
+        private bool _autoGlue = true; // force glue, regardless of user's actions
+        // Internal state
+        private object _bufferLockObject = new object();
+        private bool _bufferNeedsSync = false; // tells if must sync with the buffer contents
+        private bool _bufferWasReset = false; // tell if buffer needs to be fully reapplied
+        private int _bufferPopCount = 0; // accumulated record of discarded characters
+        private int _bufferPushCount = 0; // accumulated record of added characters
+        private bool _noScrollCheck = false; // temp disable checking scrolling event
+
 
         public LogPanel(GUIController guiController)
         {
@@ -68,17 +73,20 @@ namespace AGS.Editor
             logTextBox.Font = new System.Drawing.Font(_logFont, _logFontSize);
         }
 
-        delegate void SetTextCallback(string text);
+        delegate void UpdateTextCallback(bool reset, int pop, int push);
 
-        private void SetText(string text)
+        /// <summary>
+        /// Syncs with the LogBuffer's contents in accordance to the accumulated changes.
+        /// </summary>
+        private void UpdateText(bool reset, int pop, int push)
         {
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
             // If these threads are different, it returns true.
             if (logTextBox.InvokeRequired)
             {
-                SetTextCallback d = new SetTextCallback(SetText);
-                Invoke(d, new object[] { text });
+                UpdateTextCallback d = new UpdateTextCallback(UpdateText);
+                Invoke(d, new object[] {});
             }
             else
             {
@@ -91,8 +99,28 @@ namespace AGS.Editor
                 var old_sel_start = logTextBox.SelectionStart;
                 var old_sel_end = logTextBox.SelectionStart + logTextBox.SelectionLength;
 
-                // Set new text; this resets everything!
-                logTextBox.Text = text;
+                //
+                // Apply buffer contents depending on accumulated changes
+                if (reset)
+                {
+                    // Set new text; this resets everything!
+                    logTextBox.Text = _logBuffer.GetFullText();
+                }
+                else
+                {
+                    // Remove N first entries
+                    if (pop > 0)
+                    {
+                        DeleteLines(0, _bufferPopCount);
+                    }
+                    // Append N last entries
+                    if (push > 0)
+                    {
+                        logTextBox.ReplaceSelectedText(logTextBox.TextLength, 0, _logBuffer.QueryLastEntries());
+                    }
+                }
+                // end apply buffer contents
+                //
 
                 // In glue mode: scroll to the end
                 if (_glue)
@@ -127,16 +155,22 @@ namespace AGS.Editor
             return "Logging";
         }
 
-        private void BufferChanged(object sender, EventArgs e)
+        private void BufferChanged(object sender, LogBufferEventArgs e)
         {
-            _bufferNeedsSync = true;
+            lock (_bufferLockObject)
+            {
+                _bufferNeedsSync = true;
+                _bufferWasReset |= e.Reset;
+                _bufferPopCount += e.PopCount;
+                _bufferPushCount += e.PushCount;
+            }
         }
 
         public void Run()
         {
             _run = true;
             _bufferNeedsSync = true;
-            _logBuffer.ValueChanged += new System.EventHandler(this.BufferChanged);
+            _logBuffer.BufferChanged += BufferChanged;
             btnRun.Enabled = false;
             btnPause.Enabled = true;
         }
@@ -145,7 +179,7 @@ namespace AGS.Editor
         {
             _run = false;
             _bufferNeedsSync = false;
-            _logBuffer.ValueChanged -= new System.EventHandler(this.BufferChanged);
+            _logBuffer.BufferChanged -= BufferChanged;
             btnRun.Enabled = true;
             btnPause.Enabled = false;
         }
@@ -176,8 +210,20 @@ namespace AGS.Editor
             if (!_run) return;
             if (!_bufferNeedsSync) return;
 
-            SetText(_logBuffer.ToString());
-            _bufferNeedsSync = false;
+            bool reset;
+            int pop, push;
+            lock (_bufferLockObject)
+            {
+                _bufferNeedsSync = false;
+                reset = _bufferWasReset;
+                pop = _bufferPopCount;
+                push = _bufferPushCount;
+                _bufferWasReset = false;
+                _bufferPopCount = 0;
+                _bufferPushCount = 0;
+            }
+
+            UpdateText(reset, pop, push);
         }
 
         private void btnRun_Click(object sender, EventArgs e)
@@ -193,6 +239,11 @@ namespace AGS.Editor
         private void btnGlue_Click(object sender, EventArgs e)
         {
             AutoGlue = btnGlue.Checked;
+        }
+
+        private void DeleteLines(int firstChar, int lastChar)
+        {
+            logTextBox.EraseSelectedText(firstChar, lastChar);
         }
 
         private bool IsScrollAtBottom()

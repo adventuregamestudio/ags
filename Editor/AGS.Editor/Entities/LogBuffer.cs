@@ -11,9 +11,20 @@ namespace AGS.Editor
 {
     class LogEntry
     {
+        private string _cachedText;
+
         public string Text { get; private set; }
         public LogGroup Group { get; private set; }
         public LogLevel Level { get; private set; }
+        public int TextLength
+        {
+            get
+            {
+                if (_cachedText == null)
+                    CacheText();
+                return _cachedText.Length;
+            }
+        }
 
         public LogEntry(string text, LogGroup group, LogLevel level)
         {
@@ -24,7 +35,14 @@ namespace AGS.Editor
 
         public override string ToString()
         {
-            return "[" + Group.ToString() + "][" + Level.ToString() + "]: " + Text + "\n";
+            if (_cachedText == null)
+                CacheText();
+            return _cachedText;
+        }
+
+        private void CacheText()
+        {
+            _cachedText = "[" + Group.ToString() + "][" + Level.ToString() + "]: " + Text + "\n";
         }
     }
         
@@ -33,19 +51,41 @@ namespace AGS.Editor
         private const int _BUFFER_SIZE = 4096;
         private bool[,] _filter = new bool[(int)LogGroup.NumGroups + 1, (int)LogLevel.NumLevels + 1];
         private bool _modified;
+        private bool _notifyReset; // notify significant changes to the buffer
+        private int _popCount; // number of old chars popped
+        private int _pushCount; // number of new chars pushed
         System.Timers.Timer _debounceTimer;
 
+        // Full buffer
         private ConcurrentCircularBuffer<LogEntry> _buffer =
             new ConcurrentCircularBuffer<LogEntry>(new List<LogEntry>(_BUFFER_SIZE), _BUFFER_SIZE);
-
-        private void PopBack()
-        {
-            _buffer.Discard();
-        }
+        // Recent entries buffer, cleaned up by the user query;
+        // this buffer contains already filtered entries
+        private ConcurrentCircularBuffer<LogEntry> _recentBuffer =
+            new ConcurrentCircularBuffer<LogEntry>(new List<LogEntry>(_BUFFER_SIZE), _BUFFER_SIZE);
 
         private void PushBack(LogEntry item)
         {
+            // Predict buffer will discard an item
+            // TODO: bit ugly, may be done more elegantly?
+            if (_buffer.Count == _buffer.Capacity)
+            {
+                LogEntry peekItem;
+                if (_buffer.TryPeek(out peekItem) &&
+                    GetFilterArr(item.Group, item.Level))
+                {
+                    _popCount += peekItem.TextLength;
+                }
+            }
+
             _buffer.Enqueue(item);
+
+            // Push into the recent entries buffer, if entry passes the filter
+            if (GetFilterArr(item.Group, item.Level))
+            {
+                _recentBuffer.Enqueue(item);
+                _pushCount += item.TextLength;
+            }
         }
 
         private bool IsEmpty()
@@ -78,15 +118,16 @@ namespace AGS.Editor
             return GetFilterArr((int)group, (int)level);
         }
 
-        public event EventHandler ValueChanged;
-        private void RaiseEventValueChanged(EventArgs e)
-        {
-            ValueChanged?.Invoke(this, e);
-        }
+        public delegate void LogBufferChangedHandler(object sender, LogBufferEventArgs evArgs);
+        public event LogBufferChangedHandler BufferChanged;
 
-        protected virtual void OnValueChanged(EventArgs e)
+        private void RaiseEventBufferChanged()
         {
-            RaiseEventValueChanged(e);
+            BufferChanged?.Invoke(this, new LogBufferEventArgs(_notifyReset, _popCount, _pushCount));
+            _modified = false;
+            _notifyReset = false;
+            _popCount = 0;
+            _pushCount = 0;
         }
 
         public void SetLogLevel(LogGroup group, LogLevel level)
@@ -100,6 +141,7 @@ namespace AGS.Editor
             {
                 SetFilterArr(group, i, false);
             }
+            _notifyReset = true;
             DebounceChange();
         }
 
@@ -127,7 +169,7 @@ namespace AGS.Editor
             if(_modified)
             {
                 _modified = false;
-                RaiseEventValueChanged(new EventArgs());
+                RaiseEventBufferChanged();
             }
         }
 
@@ -145,15 +187,22 @@ namespace AGS.Editor
             _debounceTimer.Start();
         }
 
+        /// <summary>
+        /// Discards whole buffer.
+        /// </summary>
         public void Clear()
         {
             if (IsEmpty()) return;
 
             _buffer.TryClear();
+            _recentBuffer.TryClear();
 
-            RaiseEventValueChanged(new EventArgs());
+            RaiseEventBufferChanged();
         }
 
+        /// <summary>
+        /// Adds a new log entry. If the buffer is full, the oldest entry will be discarded.
+        /// </summary>
         public void Append(string text, LogGroup group, LogLevel level)
         {
             PushBack(new LogEntry(text, group, level));
@@ -167,6 +216,35 @@ namespace AGS.Editor
 
             return string.Join("", bufcopy
                 .Where(le => GetFilterArr(le.Group, le.Level))
+                .Select(le => le.ToString()));
+        }
+
+        /// <summary>
+        /// Retrieves full buffer contents. Discards "recent" buffer.
+        /// </summary>
+        public string GetFullText()
+        {
+            _recentBuffer.TryClear();
+            return ToString();
+        }
+
+        /// <summary>
+        /// Retrieves the "recent" contents, accumulated since the previous query.
+        /// Drains "recent" buffer.
+        /// </summary>
+        public string QueryLastEntries()
+        {
+            List<LogEntry> bufcopy = new List<LogEntry>(_recentBuffer.Count);
+            for (int i = 0; i < _recentBuffer.Count; ++i)
+            {
+                LogEntry discard;
+                if (!_recentBuffer.TryDequeue(out discard))
+                    break;
+                bufcopy.Add(discard);
+            }
+
+            // NOTE: we don't filter here as freshBuffer contains filtered items
+            return string.Join("", bufcopy
                 .Select(le => le.ToString()));
         }
     }

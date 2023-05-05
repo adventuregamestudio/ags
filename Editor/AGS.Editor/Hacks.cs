@@ -14,6 +14,8 @@ namespace AGS.Editor
         private const int WM_SETREDRAW = 0x0b;
         private const int WM_USER = 0x400;
         // RichTextBox messages
+        private const int EM_SETSEL = 0x00B1;
+        private const int EM_REPLACESEL = 0x00C2;
         private const int EM_GETSCROLLPOS = WM_USER + 221;
         private const int EM_SETSCROLLPOS = WM_USER + 222;
         // TreeView messages
@@ -61,6 +63,30 @@ namespace AGS.Editor
             Marshal.StructureToPtr(pos, pnt, false);
             SendMessage(rtb.Handle, EM_SETSCROLLPOS, 0, pnt);
             Marshal.FreeHGlobal(pnt);
+        }
+
+        /// <summary>
+        /// Erases a portion of the RichTextBox's text, starting from 'at' pos
+        /// and following 'length' characters.
+        /// WARNING: changes current selection.
+        /// </summary>
+        public static void EraseSelectedText(this RichTextBox rtb, int at, int length)
+        {
+            SendMessage(rtb.Handle, EM_SETSEL, at, (IntPtr)at + length);
+            SendMessage(rtb.Handle, EM_REPLACESEL, 0, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// Replaces a portion of the RichTextBox's text, starting from 'at' pos
+        /// and following 'length' characters. The 'newText' will be pasted instead.
+        /// WARNING: changes current selection.
+        /// </summary>
+        public static void ReplaceSelectedText(this RichTextBox rtb, int at, int length, string newText)
+        {
+            IntPtr strPtr = Marshal.StringToHGlobalAuto(newText);
+            SendMessage(rtb.Handle, EM_SETSEL, at, (IntPtr)at + length);
+            SendMessage(rtb.Handle, EM_REPLACESEL, 0, strPtr);
+            Marshal.FreeHGlobal(strPtr);
         }
 
         // Hack to get around the fact that the BeforeLabelEdit event provides no way to

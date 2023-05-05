@@ -9,7 +9,6 @@ using AGS.Types.Enums;
 
 namespace AGS.Editor
 {
-
     class LogEntry
     {
         public string Text { get; private set; }
@@ -36,25 +35,16 @@ namespace AGS.Editor
         private bool _modified;
         System.Timers.Timer _debounceTimer;
 
-        private ConcurrentQueue<LogEntry> _buffer = new ConcurrentQueue<LogEntry>(new List<LogEntry>(_BUFFER_SIZE));
+        private ConcurrentCircularBuffer<LogEntry> _buffer =
+            new ConcurrentCircularBuffer<LogEntry>(new List<LogEntry>(_BUFFER_SIZE), _BUFFER_SIZE);
 
         private void PopBack()
         {
-            LogEntry discard;
-            _buffer.TryDequeue(out discard);
+            _buffer.Discard();
         }
 
         private void PushBack(LogEntry item)
         {
-            while (_buffer.Count + 1 > _BUFFER_SIZE)
-            {
-                LogEntry discard;
-                if (!_buffer.TryDequeue(out discard))
-                {
-                    return;
-                }
-            }
-
             _buffer.Enqueue(item);
         }
 
@@ -73,7 +63,6 @@ namespace AGS.Editor
             SetFilterArr((int)group, int_level, value);
         }
 
-
         private bool GetFilterArr(int int_group, int int_level)
         {
             return _filter[int_group + 1, int_level + 1];
@@ -83,6 +72,7 @@ namespace AGS.Editor
         {
             return GetFilterArr((int)group, int_level);
         }
+
         private bool GetFilterArr(LogGroup group, LogLevel level)
         {
             return GetFilterArr((int)group, (int)level);
@@ -91,19 +81,14 @@ namespace AGS.Editor
         public event EventHandler ValueChanged;
         private void RaiseEventValueChanged(EventArgs e)
         {
-            EventHandler raiseEvent = ValueChanged;
-
-            // Event will be null if there are no subscribers
-            if (raiseEvent != null)
-            {
-                // Call to raise the event.
-                raiseEvent(this, e);
-            }
+            ValueChanged?.Invoke(this, e);
         }
+
         protected virtual void OnValueChanged(EventArgs e)
         {
             RaiseEventValueChanged(e);
         }
+
         public void SetLogLevel(LogGroup group, LogLevel level)
         {
             int i = 0;
@@ -136,6 +121,7 @@ namespace AGS.Editor
             SetLogLevel(LogGroup.ManObj, LogLevel.None);
             SetLogLevel(LogGroup.SDL, LogLevel.None);
         }
+
         private void elapse(object sender, ElapsedEventArgs e)
         {
             if(_modified)
@@ -163,10 +149,7 @@ namespace AGS.Editor
         {
             if (IsEmpty()) return;
 
-            while(!IsEmpty())
-            {
-                PopBack();
-            }
+            _buffer.TryClear();
 
             RaiseEventValueChanged(new EventArgs());
         }

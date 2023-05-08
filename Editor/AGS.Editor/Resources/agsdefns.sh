@@ -1970,8 +1970,10 @@ builtin managed struct Character {
   readonly import attribute int ID;
   /// Gets the character's idle view (-1 if none).
   readonly import attribute int IdleView;
+#ifdef SCRIPT_COMPAT_v360
   /// Gets/sets whether the character ignores region tints and lighting.
   import attribute bool IgnoreLighting;
+#endif
   /// Accesses the number of each inventory item that the character currently has.
   import attribute int  InventoryQuantity[];
   /// Gets/sets the character's current loop number within its current view.

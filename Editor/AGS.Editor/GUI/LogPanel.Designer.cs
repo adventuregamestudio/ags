@@ -47,12 +47,12 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.logTextBox.BackColor = System.Drawing.Color.Black;
             this.logTextBox.ForeColor = System.Drawing.Color.White;
-            this.logTextBox.Location = new System.Drawing.Point(0, 34);
-            this.logTextBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.logTextBox.Location = new System.Drawing.Point(0, 31);
+            this.logTextBox.Margin = new System.Windows.Forms.Padding(4);
             this.logTextBox.Name = "logTextBox";
             this.logTextBox.ReadOnly = true;
             this.logTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.logTextBox.Size = new System.Drawing.Size(1065, 518);
+            this.logTextBox.Size = new System.Drawing.Size(1059, 491);
             this.logTextBox.TabIndex = 0;
             this.logTextBox.Text = "";
             this.logTextBox.VScroll += new System.EventHandler(this.logTextBox_VScroll);
@@ -70,7 +70,7 @@ namespace AGS.Editor
             this.btnGlue});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
-            this.toolStrip.Size = new System.Drawing.Size(1067, 31);
+            this.toolStrip.Size = new System.Drawing.Size(1059, 27);
             this.toolStrip.TabIndex = 1;
             // 
             // btnRun
@@ -79,7 +79,7 @@ namespace AGS.Editor
             this.btnRun.Image = ((System.Drawing.Image)(resources.GetObject("btnRun.Image")));
             this.btnRun.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(29, 28);
+            this.btnRun.Size = new System.Drawing.Size(24, 24);
             this.btnRun.ToolTipText = "Run";
             this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
             // 
@@ -89,7 +89,7 @@ namespace AGS.Editor
             this.btnPause.Image = ((System.Drawing.Image)(resources.GetObject("btnPause.Image")));
             this.btnPause.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnPause.Name = "btnPause";
-            this.btnPause.Size = new System.Drawing.Size(29, 28);
+            this.btnPause.Size = new System.Drawing.Size(24, 24);
             this.btnPause.ToolTipText = "Pause";
             this.btnPause.Click += new System.EventHandler(this.btnPause_Click);
             // 
@@ -102,20 +102,22 @@ namespace AGS.Editor
             this.btnGlue.Image = ((System.Drawing.Image)(resources.GetObject("btnGlue.Image")));
             this.btnGlue.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnGlue.Name = "btnGlue";
-            this.btnGlue.Size = new System.Drawing.Size(29, 28);
+            this.btnGlue.Size = new System.Drawing.Size(24, 24);
             this.btnGlue.ToolTipText = "Scroll down with the log automatically";
             this.btnGlue.Click += new System.EventHandler(this.btnGlue_Click);
             // 
             // LogPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1059, 522);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.logTextBox);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "LogPanel";
-            this.Size = new System.Drawing.Size(1067, 554);
+            this.Text = "Log Panel";
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
             this.ResumeLayout(false);

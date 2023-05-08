@@ -161,10 +161,10 @@
     <Compile Include="GUI\ImportTTFDialog.Designer.cs">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panes\LogPanel.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="GUI\LogPanel.cs">
+      <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Panes\LogPanel.Designer.cs">
+    <Compile Include="GUI\LogPanel.Designer.cs">
       <DependentUpon>LogPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\NumberEntryWithInfoDialog.cs">
@@ -377,7 +377,7 @@
     <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panes\LogPanel.resx">
+    <EmbeddedResource Include="GUI\LogPanel.resx">
       <DependentUpon>LogPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\NumberEntryWithInfoDialog.resx">

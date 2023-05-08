@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
 using AGS.Types;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
 {
@@ -34,7 +35,8 @@ namespace AGS.Editor
 
         // Make sure panels can have font and styles updated after settings is applied without restarting ags editor
         // TODO: instead of applying everything from the PreferencesEditor, perhaps it would be better
-        // to send a notification and make every component apply what they need from the Preferences
+        // to send a notification and make every component apply what they need from the Preferences;
+        // and/or add an interface for applying font prefs?
         private void UpdateFontSettings()
         {
             foreach (ContentDocument pane in Factory.GUIController.Panes)
@@ -52,9 +54,13 @@ namespace AGS.Editor
                         scintilla.UpdateAllStyles();
                     }
                 }
-                else if (pane.Control is LogPanel)
+            }
+
+            foreach (DockContent pane in Factory.GUIController.DockPanes)
+            {
+                if (pane is LogPanel)
                 {
-                    LogPanel logPanel = pane.Control as LogPanel;
+                    LogPanel logPanel = pane as LogPanel;
                     logPanel.LogFont = _settings.LogFont;
                     logPanel.LogFontSize = _settings.LogFontSize;
                     logPanel.UpdateStyling();

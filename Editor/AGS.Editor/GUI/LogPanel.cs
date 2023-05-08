@@ -1,20 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
-using AGS.Editor;
 using AGS.Types.Enums;
 using AGS.Types;
 
 namespace AGS.Editor
 {
-    public partial class LogPanel : EditorContentPanel
+    public partial class LogPanel : DockContent
     {
         private LogBuffer _logBuffer = new LogBuffer();
         // Styling
@@ -33,7 +24,7 @@ namespace AGS.Editor
         private bool _noScrollCheck = false; // temp disable checking scrolling event
 
 
-        public LogPanel(GUIController guiController)
+        public LogPanel()
         {
             InitializeComponent();
             UpdateStyling();
@@ -145,15 +136,15 @@ namespace AGS.Editor
 
                 logTextBox.ResumeDrawing();
                 _noScrollCheck = false;
-
-                Show();
             }
         }
 
+        /*
         protected override string OnGetHelpKeyword()
         {
             return "Logging";
         }
+        */
 
         private void BufferChanged(object sender, LogBufferEventArgs e)
         {

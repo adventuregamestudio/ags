@@ -1290,6 +1290,7 @@ void Character_SetIInventoryQuantity(CharacterInfo *chaa, int index, int quant) 
     chaa->inv[index] = quant;
 }
 
+// [DEPRECATED]
 int Character_GetIgnoreLighting(CharacterInfo *chaa) {
 
     if (chaa->flags & CHF_NOLIGHTING)
@@ -1297,6 +1298,7 @@ int Character_GetIgnoreLighting(CharacterInfo *chaa) {
     return 0;
 }
 
+// [DEPRECATED]
 void Character_SetIgnoreLighting(CharacterInfo *chaa, int yesorno) {
 
     chaa->flags &= ~CHF_NOLIGHTING;
@@ -1648,6 +1650,18 @@ int Character_GetSpeakingFrame(CharacterInfo *chaa) {
 
     debug_script_warn("Character.SpeakingFrame: character is not currently speaking");
     return -1;
+}
+
+bool Character_GetUseRegionTint(CharacterInfo *chaa)
+{
+    return (chaa->flags & CHF_NOLIGHTING) == 0;
+}
+
+void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
+{
+    chaa->flags &= ~CHF_NOLIGHTING;
+    if (!yesorno)
+        chaa->flags |= CHF_NOLIGHTING;
 }
 
 //=============================================================================
@@ -3506,13 +3520,13 @@ RuntimeScriptValue Sc_Character_SetIInventoryQuantity(void *self, const RuntimeS
     API_OBJCALL_VOID_PINT2(CharacterInfo, Character_SetIInventoryQuantity);
 }
 
-// int (CharacterInfo *chaa)
+// [DEPRECATED] int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetIgnoreLighting(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetIgnoreLighting);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// [DEPRECATED] void (CharacterInfo *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetIgnoreLighting(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIgnoreLighting);
@@ -3817,6 +3831,18 @@ RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValu
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
 }
 
+// bool (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetUseRegionTint);
+}
+
+// void (CharacterInfo *chaa, int yesorno)
+RuntimeScriptValue Sc_Character_SetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetUseRegionTint);
+}
+
 RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_FLOAT(CharacterInfo, Character_GetRotation);
@@ -4012,6 +4038,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
     ccAddExternalObjectFunction("Character::get_TintLuminance",         Sc_Character_GetTintLuminance);
     ccAddExternalObjectFunction("Character::get_BlendMode",             Sc_Character_GetBlendMode);
     ccAddExternalObjectFunction("Character::set_BlendMode",             Sc_Character_SetBlendMode);
+    ccAddExternalObjectFunction("Character::get_UseRegionTint",         Sc_Character_GetUseRegionTint);
+    ccAddExternalObjectFunction("Character::set_UseRegionTint",         Sc_Character_SetUseRegionTint);
     ccAddExternalObjectFunction("Character::get_GraphicRotation",       Sc_Character_GetRotation);
     ccAddExternalObjectFunction("Character::set_GraphicRotation",       Sc_Character_SetRotation);
 

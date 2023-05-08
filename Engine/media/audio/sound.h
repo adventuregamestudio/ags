@@ -36,5 +36,6 @@ SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop);
 SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, bool loop);
 SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop);
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop);
+SOUNDCLIP *my_load_flac(const AssetPath &asset_name, bool loop);
 
 #endif // __AC_SOUND_H

@@ -621,6 +621,10 @@
       <Link>ikpMP3.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\References\ikpFlac.dll">
+      <Link>ikpFlac.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="agsico-1.ico" />
     <EmbeddedResource Include="Resources\word-wrap.ico" />
     <EmbeddedResource Include="Resources\LayoutDefault.xml" />
@@ -785,6 +789,7 @@
     <EmbeddedResource Include="Resources\ags_cup.png" />
     <EmbeddedResource Include="Resources\audio_indicator.ico" />
     <EmbeddedResource Include="Resources\delay_indicator.ico" />
+    <EmbeddedResource Include="Resources\audio-flac.ico" />
     <Content Include="Resources\audio_player-pause.ico" />
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />

@@ -21,6 +21,7 @@ namespace AGS.Editor.Components
         private const string PAPAGAYO_FILE_EXTENSION = ".dat";
         private const string OGG_VORBIS_FILE_FILTER = "*.ogg";
         private const string MP3_FILE_FILTER = "*.mp3";
+        private const string FLAC_FILE_FILTER = "*.flac";
         private const string WAVEFORM_FILE_FILTER = "*.wav";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
         private const string SPEECH_VOX_FILE_NAME = "speech.vox";
@@ -44,6 +45,7 @@ namespace AGS.Editor.Components
             {
                 Utilities.AddAllMatchingFiles(fileNames, OGG_VORBIS_FILE_FILTER, true);
                 Utilities.AddAllMatchingFiles(fileNames, MP3_FILE_FILTER, true);
+                Utilities.AddAllMatchingFiles(fileNames, FLAC_FILE_FILTER, true);
                 Utilities.AddAllMatchingFiles(fileNames, WAVEFORM_FILE_FILTER, true);
                 Utilities.AddAllMatchingFiles(fileNames, PAMELA_FILE_FILTER, true);
                 Utilities.AddAllMatchingFiles(fileNames, PAPAGAYO_FILE_FILTER, true);
@@ -322,6 +324,7 @@ namespace AGS.Editor.Components
             Utilities.AddAllMatchingFiles(files, sourceDir, LIP_SYNC_DATA_OUTPUT, true);
             Utilities.AddAllMatchingFiles(files, sourceDir, MP3_FILE_FILTER, true);
             Utilities.AddAllMatchingFiles(files, sourceDir, OGG_VORBIS_FILE_FILTER, true);
+            Utilities.AddAllMatchingFiles(files, sourceDir, FLAC_FILE_FILTER, true);
             Utilities.AddAllMatchingFiles(files, sourceDir, WAVEFORM_FILE_FILTER, true);
             return files.ToArray();
         }

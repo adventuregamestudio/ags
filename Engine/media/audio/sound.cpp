@@ -53,6 +53,9 @@ static int GuessSoundTypeFromExt(const String &extension)
     else if (extension.CompareNoCase("xm") == 0) {
         return MUS_MOD;
     }
+    else if (extension.CompareNoCase("flac") == 0) {
+        return MUS_FLAC;
+    }
     return 0;
 }
 
@@ -240,4 +243,9 @@ SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop)
 SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop)
 {
     return my_load_clip(asset_name, "MOD", loop);
+}
+
+SOUNDCLIP *my_load_flac(const AssetPath &asset_name, bool loop)
+{
+    return my_load_clip(asset_name, "FLAC", loop);
 }

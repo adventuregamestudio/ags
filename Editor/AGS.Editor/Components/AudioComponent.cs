@@ -23,7 +23,7 @@ namespace AGS.Editor.Components
 
         private const string AUDIO_CLIP_TYPE_ICON = "AGSAudioClipTypeIcon";
 
-        private const string AUDIO_FILES_FILTER = "All supported audio (*.ogg; *.mp3; *.wav; *.voc; *.mid; *.mod; *.xm; *.s3m; *.it)|*.ogg;*.mp3;*.wav;*.voc;*.mid;*.mod;*.xm;*.s3m;*.it|OGG digital sound file (*.ogg)|*.ogg|MP3 file (*.mp3)|*.mp3|WAV uncompressed audio (*.wav)|*.wav|Creative Labs VOC (*.voc)|*.voc|MIDI music (*.mid)|*.mid|Digital tracker formats (*.mod; *.xm; *.s3m; *.it)|*.mod;*.xm;*.s3m;*.it";
+        private const string AUDIO_FILES_FILTER = "All supported audio (*.ogg; *.mp3; *.flac; *.wav; *.voc; *.mid; *.mod; *.xm; *.s3m; *.it)|*.ogg;*.mp3;*.flac;*.wav;*.voc;*.mid;*.mod;*.xm;*.s3m;*.it|OGG digital sound file (*.ogg)|*.ogg|MP3 file (*.mp3)|*.mp3|FLAC file (*.flac)|*.flac|WAV uncompressed audio (*.wav)|*.wav|Creative Labs VOC (*.voc)|*.voc|MIDI music (*.mid)|*.mid|Digital tracker formats (*.mod; *.xm; *.s3m; *.it)|*.mod;*.xm;*.s3m;*.it";
         private const int DEFAULT_AUDIO_TYPE_MUSIC = 2;
         private const int DEFAULT_AUDIO_TYPE_SOUND = 3;
 
@@ -38,6 +38,7 @@ namespace AGS.Editor.Components
             _fileTypeMappings.Add(".mp3", AudioClipFileType.MP3);
             _fileTypeMappings.Add(".ogg", AudioClipFileType.OGG);
             _fileTypeMappings.Add(".voc", AudioClipFileType.VOC);
+            _fileTypeMappings.Add(".flac", AudioClipFileType.FLAC);
             _fileTypeMappings.Add(".wav", AudioClipFileType.WAV);
             _fileTypeMappings.Add(".mid", AudioClipFileType.MIDI);
             _fileTypeMappings.Add(".mod", AudioClipFileType.MOD);
@@ -48,6 +49,7 @@ namespace AGS.Editor.Components
             _iconMappings.Add(AudioClipFileType.MP3, "AGSAudioClipIconMp3");
             _iconMappings.Add(AudioClipFileType.OGG, "AGSAudioClipIconOgg");
             _iconMappings.Add(AudioClipFileType.VOC, "AGSAudioClipIconVoc");
+            _iconMappings.Add(AudioClipFileType.FLAC, "AGSAudioClipIconFlac");
             _iconMappings.Add(AudioClipFileType.WAV, "AGSAudioClipIconWav");
             _iconMappings.Add(AudioClipFileType.MIDI, "AGSAudioClipIconMidi");
             _iconMappings.Add(AudioClipFileType.MOD, "AGSAudioClipIconMod");
@@ -63,6 +65,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("AGSAudioClipIconOgg", Resources.ResourceManager.GetIcon("audio-ogg.ico"));
             _guiController.RegisterIcon("AGSAudioClipIconWav", Resources.ResourceManager.GetIcon("audio-wav.ico"));
             _guiController.RegisterIcon("AGSAudioClipIconVoc", Resources.ResourceManager.GetIcon("audio-voc.ico"));
+            _guiController.RegisterIcon("AGSAudioClipIconFlac", Resources.ResourceManager.GetIcon("audio-flac.ico"));
             _guiController.RegisterIcon("AGSAudioSpeechIcon", Resources.ResourceManager.GetIcon("audio_speech.ico"));
             _guiController.RegisterIcon(AUDIO_CLIP_TYPE_ICON, Resources.ResourceManager.GetIcon("tree_audio_generic.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Audio", "AGSAudioClipsIcon");

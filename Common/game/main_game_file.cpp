@@ -378,6 +378,8 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
             clip.fileType = eAudioFileMOD;
         else if (ags_stricmp(temp_extension, "ogg") == 0)
             clip.fileType = eAudioFileOGG;
+        else if (ags_stricmp(temp_extension, "flac") == 0)
+            clip.fileType = eAudioFileFLAC;
         else
             continue;
 

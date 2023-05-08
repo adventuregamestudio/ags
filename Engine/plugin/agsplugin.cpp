@@ -575,6 +575,8 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         newcha = my_load_midi(asset_name, (loop != 0)); break;
     case PSND_MOD:
         newcha = my_load_mod(asset_name, (loop != 0)); break;
+    case PSND_FLAC:
+        newcha = my_load_flac(asset_name, (loop != 0)); break;
     default:
         debug_script_warn("IAGSEngine::PlaySoundChannel: unknown sound type %d", soundType);
         return;

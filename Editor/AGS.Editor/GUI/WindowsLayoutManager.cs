@@ -17,15 +17,15 @@ namespace AGS.Editor
         }
 
         private DockPanel _dockPanel;
-        private List<DockContent> _startupPanes;
+        private List<DockContent> _dockPanes;
         private const string LAYOUT_FILENAME = "Layout.xml";
         private const string LAYOUT_RESOURCE = "LayoutDefault.xml";
 
         public WindowsLayoutManager(DockPanel dockPanel,
-            List<DockContent> startupPanes)
+            List<DockContent> dockPanes)
         {
             _dockPanel = dockPanel;
-            _startupPanes = startupPanes;            
+            _dockPanes = dockPanes;
         }
 
         public void SaveLayout()
@@ -50,6 +50,7 @@ namespace AGS.Editor
 
         public LayoutResult LoadLayout(string path)
         {
+            LayoutResult res;
             try
             {
                 if (!File.Exists(path))
@@ -57,12 +58,17 @@ namespace AGS.Editor
                 DetachExistingPanes();
                 _dockPanel.LoadFromXml(path, new
                     DeserializeDockContent(DeserializeContents));
-                return LayoutResult.OK;
+                res = LayoutResult.OK;
             }
             catch (Exception)
             {
-                return LayoutResult.LayoutException;
+                res = LayoutResult.LayoutException;
             }
+            finally
+            {
+                RestoreDetachedPanes();
+            }
+            return res;
         }
 
         public bool ResetToDefaults()
@@ -72,8 +78,15 @@ namespace AGS.Editor
             byte[] byteArray = Encoding.Unicode.GetBytes(layout);
             Stream mems = new MemoryStream(byteArray, false);
             DetachExistingPanes();
-            _dockPanel.LoadFromXml(mems, new
+            try
+            {
+                _dockPanel.LoadFromXml(mems, new
                     DeserializeDockContent(DeserializeContents));
+            }
+            catch (Exception)
+            {
+                RestoreDetachedPanes();
+            }
             return true;
         }
 
@@ -92,6 +105,20 @@ namespace AGS.Editor
             }
         }
 
+        private void RestoreDetachedPanes()
+        {
+            foreach (DockContent pane in _dockPanes)
+            {
+                if (pane.DockPanel == null)
+                {
+                    // TODO: find a more elegant way to connect to _dockPanel without calling Show/Hide?
+                    // pane.DockPanel = _dockPanel does not work and causes exceptions later on
+                    pane.Show(_dockPanel, pane.ShowHint);
+                    pane.Hide();
+                }
+            }
+        }
+
         private string GetLayoutFile()
         {
             return Path.Combine(Factory.AGSEditor.LocalAppData, LAYOUT_FILENAME);
@@ -99,7 +126,7 @@ namespace AGS.Editor
 
         private IDockContent DeserializeContents(string type)
         {
-            foreach (DockContent pane in _startupPanes)
+            foreach (DockContent pane in _dockPanes)
             {
                 if (pane.GetType().ToString().Equals(type))
                 {

@@ -58,6 +58,7 @@ namespace AGS.Editor
         private ProjectTree _treeManager;
         private ToolBarManager _toolBarManager;
         private MainMenuManager _menuManager;
+        private WindowsMenuManager _windowsMenuManager;
         private string _titleBarPrefix;
         private AGSEditor _agsEditor;
         private InteractiveTasks _interactiveTasks;
@@ -307,16 +308,46 @@ namespace AGS.Editor
             _mainForm.SetDefaultLayout();
         }
 
+        /// <summary>
+        /// Adds a persistent dock pane to the application window.
+        /// </summary>
+        public void AddDockPane(DockContent pane, DockData defaultDock)
+        {
+            // Update window menu and layout managers
+            _mainForm.AddDockPane(pane, defaultDock);
+            _windowsMenuManager.AddPersistentItems(_mainForm.DockPanes);
+        }
+
+        /// <summary>
+        /// Adds or shows existing ContentDocument on the available dock site.
+        /// </summary>
         public void AddOrShowPane(ContentDocument pane)
         {
             _mainForm.AddOrShowPane(pane);
         }
 
+        /// <summary>
+        /// Removes existing ContentDocument.
+        /// </summary>
         public void RemovePaneIfExists(ContentDocument pane)
         {
             _mainForm.RemovePaneIfExists(pane);
         }
 
+        /// <summary>
+        /// Gets the list of the persistent dock panes.
+        /// </summary>
+        public IList<DockContent> DockPanes
+        {
+            get
+            {
+                return _mainForm.DockPanes;
+            }
+        }
+
+        /// <summary>
+        /// Gets the list of existing ContentDocuments.
+        /// </summary>
         public IList<ContentDocument> Panes
         {
             get
@@ -835,9 +866,9 @@ namespace AGS.Editor
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
-                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
-                    _mainForm.GetStartupPanes(), _mainForm.mainContainer, _mainForm.GetLayoutManager());
-                _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
+                _windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
+                    _mainForm.DockPanes, _mainForm.mainContainer, _mainForm.GetLayoutManager());
+                _menuManager = new MainMenuManager(_mainForm.mainMenu, _windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
                 _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
                 _mainForm.OnPropertyObjectChanged += new frmMain.PropertyObjectChangedHandler(_mainForm_OnPropertyObjectChanged);

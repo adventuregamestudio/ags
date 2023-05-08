@@ -30,16 +30,16 @@ namespace AGS.Editor
 
         private Dictionary<string, object> _propertyObjectList = null;
         private bool _ignorePropertyListChange = false;
-		//private int _splitterXtoSet = 0;
-		//private int _splitterYtoSet = 0;
 		private bool _suspendDrawing = false;
+        private List<DockContent> _dockPanes = new List<DockContent>();
         private WindowsLayoutManager _layoutManager;
 
         public frmMain()
         {
             InitializeComponent();
 
-            _layoutManager = new WindowsLayoutManager(mainContainer, GetStartupPanes());
+            _dockPanes.AddRange(GetStartupPanes());
+            _layoutManager = new WindowsLayoutManager(mainContainer, _dockPanes);
             _activeDocumentChanged = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
             _activeDocumentChanging = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
             tabbedDocumentContainer1.ActiveDocumentChanged += _activeDocumentChanged;
@@ -49,9 +49,9 @@ namespace AGS.Editor
             this.Deactivate += new EventHandler(frmMain_Deactivated);
         }
 
-        public List<DockContent> GetStartupPanes()
+        private List<DockContent> GetStartupPanes()
         {
-            return new List<DockContent> 
+            return new List<DockContent>
             {
                 projectPanel,
                 propertiesPanel,
@@ -219,6 +219,19 @@ namespace AGS.Editor
 			}
 		}
 
+        public void AddDockPane(DockContent pane, DockData defaultDock)
+        {
+            if (!_dockPanes.Contains(pane))
+            {
+                _dockPanes.Add(pane);
+                pane.ShowHint = (DockState)defaultDock.DockState;
+                if (defaultDock.DockState == DockingState.Float)
+                    pane.Show(mainContainer, defaultDock.Location);
+                else
+                    pane.Show(mainContainer, (DockState)defaultDock.DockState);
+            }
+        }
+
         public void AddOrShowPane(ContentDocument pane)
         {
             if (!tabbedDocumentContainer1.ContainsDocument(pane))
@@ -236,6 +249,14 @@ namespace AGS.Editor
             }
         }
 
+        public IList<DockContent> DockPanes
+        {
+            get
+            {
+                return _dockPanes;
+            }
+        }
+
         public IList<ContentDocument> Panes
         {
             get
@@ -243,40 +264,6 @@ namespace AGS.Editor
                 return tabbedDocumentContainer1.Documents;
             }
         }
-
-		/*public void SetProjectTreeLocation(bool rightHandSide)
-		{
-			SplitterPanel leftHandPanel = this.mainContainer.Panel1;
-			SplitterPanel rightHandPanel = this.mainContainer.Panel2;
-			if ((rightHandSide) && (rightHandPanel.Controls.Contains(this.leftSplitter)))
-			{
-				// already on the right
-				return;
-			}
-			if ((!rightHandSide) && (leftHandPanel.Controls.Contains(this.leftSplitter)))
-			{
-				// already on the left
-				return;
-			}
-			leftHandPanel.Controls.Clear();
-			rightHandPanel.Controls.Clear();
-			SplitterPanel panelWithProjectTree = leftHandPanel;
-			SplitterPanel panelWithMainPane = rightHandPanel;
-			this.mainContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-			if (rightHandSide)
-			{
-				panelWithProjectTree = rightHandPanel;
-				panelWithMainPane = leftHandPanel;
-				this.mainContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-			}
-
-			panelWithMainPane.Controls.Add(this.tabbedDocumentContainer1);
-			panelWithMainPane.Controls.Add(this.pnlOutput);
-            panelWithMainPane.Controls.Add(this.pnlCallStack);
-            panelWithMainPane.Controls.Add(this.pnlFindResults);
-			panelWithProjectTree.Controls.Add(this.leftSplitter);
-			this.mainContainer.SplitterDistance = this.mainContainer.ClientSize.Width - this.mainContainer.SplitterDistance;
-		}*/
 
         public ContentDocument ActivePane
         {
@@ -400,18 +387,6 @@ namespace AGS.Editor
                 }
             }
         }
-
-		/*public void SetSplitterPositions(int mainSplitterX, int propertiesSplitterY)
-		{
-			_splitterXtoSet = mainSplitterX;
-			_splitterYtoSet = propertiesSplitterY;
-		}
-
-		public void GetSplitterPositions(out int mainSplitterX, out int propertiesSplitterY)
-		{
-            mainSplitterX = 0;// this.mainContainer.SplitterDistance;
-            propertiesSplitterY = 0;// this.leftSplitter.SplitterDistance;
-		}*/
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {

@@ -39,6 +39,10 @@ namespace AGS.Editor
             this.btnRun = new System.Windows.Forms.ToolStripButton();
             this.btnPause = new System.Windows.Forms.ToolStripButton();
             this.btnGlue = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnCopySelected = new System.Windows.Forms.ToolStripButton();
+            this.btnCopyAll = new System.Windows.Forms.ToolStripButton();
+            this.btnClear = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.btnProperties = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
@@ -91,7 +95,7 @@ namespace AGS.Editor
             this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid.Location = new System.Drawing.Point(0, 0);
             this.propertyGrid.Name = "propertyGrid";
-            this.propertyGrid.Size = new System.Drawing.Size(255, 425);
+            this.propertyGrid.Size = new System.Drawing.Size(96, 100);
             this.propertyGrid.TabIndex = 0;
             // 
             // toolStrip
@@ -101,6 +105,10 @@ namespace AGS.Editor
             this.btnRun,
             this.btnPause,
             this.btnGlue,
+            this.toolStripSeparator2,
+            this.btnCopySelected,
+            this.btnCopyAll,
+            this.btnClear,
             this.toolStripSeparator1,
             this.btnProperties});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
@@ -140,6 +148,41 @@ namespace AGS.Editor
             this.btnGlue.Size = new System.Drawing.Size(24, 24);
             this.btnGlue.ToolTipText = "Scroll down with the log automatically";
             this.btnGlue.Click += new System.EventHandler(this.btnGlue_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 27);
+            // 
+            // btnCopySelected
+            // 
+            this.btnCopySelected.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnCopySelected.Image = ((System.Drawing.Image)(resources.GetObject("btnCopySelected.Image")));
+            this.btnCopySelected.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnCopySelected.Name = "btnCopySelected";
+            this.btnCopySelected.Size = new System.Drawing.Size(24, 24);
+            this.btnCopySelected.ToolTipText = "Copy selected text to clipboard";
+            this.btnCopySelected.Click += new System.EventHandler(this.btnCopySelected_Click);
+            // 
+            // btnCopyAll
+            // 
+            this.btnCopyAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnCopyAll.Image = ((System.Drawing.Image)(resources.GetObject("btnCopyAll.Image")));
+            this.btnCopyAll.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnCopyAll.Name = "btnCopyAll";
+            this.btnCopyAll.Size = new System.Drawing.Size(24, 24);
+            this.btnCopyAll.ToolTipText = "Copy all to clipboard";
+            this.btnCopyAll.Click += new System.EventHandler(this.btnCopyAll_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnClear.Image = ((System.Drawing.Image)(resources.GetObject("btnClear.Image")));
+            this.btnClear.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(24, 24);
+            this.btnClear.ToolTipText = "Clear all";
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
             // toolStripSeparator1
             // 
@@ -191,5 +234,9 @@ namespace AGS.Editor
         private System.Windows.Forms.PropertyGrid propertyGrid;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton btnProperties;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripButton btnCopySelected;
+        private System.Windows.Forms.ToolStripButton btnCopyAll;
+        private System.Windows.Forms.ToolStripButton btnClear;
     }
 }

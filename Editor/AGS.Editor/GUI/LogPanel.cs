@@ -197,6 +197,8 @@ namespace AGS.Editor
         public void Clear()
         {
             _logBuffer.Clear();
+            logTextBox.Clear();
+            _bufferNeedsSync = false;
         }
 
         public void WriteLogMessage(string message, LogGroup group, LogLevel level)
@@ -254,6 +256,22 @@ namespace AGS.Editor
         private void btnProperties_Click(object sender, EventArgs e)
         {
             splitContainer.Panel2Collapsed = !splitContainer.Panel2Collapsed;
+        }
+        
+        private void btnCopySelected_Click(object sender, EventArgs e)
+        {
+            logTextBox.Copy();
+        }
+
+        private void btnCopyAll_Click(object sender, EventArgs e)
+        {
+            logTextBox.SelectAll();
+            logTextBox.Copy();
+        }
+
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            Clear();
         }
 
         private void DeleteLines(int firstChar, int lastChar)

@@ -196,6 +196,8 @@ namespace AGS.Editor
 
             _buffer.TryClear();
             _recentBuffer.TryClear();
+            _modified = true;
+            _notifyReset = true;
 
             RaiseEventBufferChanged();
         }

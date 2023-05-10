@@ -14,6 +14,7 @@
 #ifndef __AGS_EE_CC__SCRIPTRUNTIME_H
 #define __AGS_EE_CC__SCRIPTRUNTIME_H
 
+#include "util/memory_compat.h"    // std::size
 #include "script/cc_script.h"      // ccScript
 #include "script/cc_instance.h"    // ccInstance
 

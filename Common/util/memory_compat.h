@@ -11,6 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// For compatibility with different compilers that may or not support
+// particular new C++ and STL functions.
+//
+//=============================================================================
 #ifndef __AGS_CN_UTIL__MEMORY_COMPAT_H
 #define __AGS_CN_UTIL__MEMORY_COMPAT_H
 #include <memory>
@@ -25,6 +30,24 @@ namespace std
         return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
     }
 } // std
+#endif
+
+// C++17 features
+#if __cplusplus < 201703L && !((defined(_MSC_VER) && _MSC_VER >= 1900))
+namespace std
+{
+    template <class C> 
+    constexpr auto size(const C& c) -> decltype(c.size())
+    {
+        return c.size();
+    }
+
+    template <class T, std::size_t N>
+    constexpr std::size_t size(const T (&array)[N]) noexcept
+    {
+        return N;
+    }
+}
 #endif
 
 #endif // __AGS_CN_UTIL__MEMORY_COMPAT_H

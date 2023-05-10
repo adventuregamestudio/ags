@@ -40,6 +40,16 @@ struct ScFnRegister
         : Name(name)
         , Fn(RuntimeScriptValue().SetObjectFunction(fn))
         , PlFn(RuntimeScriptValue().SetPluginFunction(plfn)) {}
+    template <typename TPlFn>
+    ScFnRegister(const char *name, ScriptAPIFunction *fn, TPlFn plfn)
+        : Name(name)
+        , Fn(RuntimeScriptValue().SetStaticFunction(fn))
+        , PlFn(RuntimeScriptValue().SetPluginFunction(reinterpret_cast<void*>(plfn))) {}
+    template <typename TPlFn>
+    ScFnRegister(const char *name, ScriptAPIObjectFunction *fn, TPlFn plfn)
+        : Name(name)
+        , Fn(RuntimeScriptValue().SetObjectFunction(fn))
+        , PlFn(RuntimeScriptValue().SetPluginFunction(reinterpret_cast<void*>(plfn))) {}
 };
 
 // Following two functions register engine API symbols for script and plugins.

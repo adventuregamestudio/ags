@@ -49,6 +49,7 @@
 #include "script/cc_common.h"
 #include "script/script.h"
 #include "util/filestream.h" // TODO: needed only because plugins expect file handle
+#include "util/string_utils.h"
 #include "media/audio/audio_system.h"
 
 using namespace Common;
@@ -1021,14 +1022,81 @@ HSaveError WriteManagedPool(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadManagedPool(Stream *in, int32_t /*cmp_ver*/, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadManagedPool(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
-    if (ccUnserializeAllObjects(in, &ccUnserializer))
+    if (ccUnserializeAllObjects(in, &r_data.ManObjReader))
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
             String::FromFormat("Managed pool deserialization failed: %s",
                 cc_get_error().ErrorString.GetCStr()));
     }
+    return HSaveError::None();
+}
+
+HSaveError WriteRTTI(Stream *out)
+{
+    // Write the minimal necessary RTTI data, enough to resolve types when restoring a save;
+    // NOTE: we might just dump whole RTTI here, if it's necessary to keep all field descs and names
+    const auto &rtti = ccInstance::GetRTTI()->AsConstRTTI();
+    const auto &helper = ccInstance::GetRTTIHelper();
+    const auto &locs = rtti.GetLocations();
+    const auto &types = rtti.GetTypes();
+    // NOTE: we don't write IDs here, as the Joint RTTI assumes to have them strcitly sequential
+    out->WriteInt32(locs.size());
+    for (const auto &loc : locs)
+    {
+        StrUtil::WriteCStr(loc.name, out);
+        out->WriteInt32(loc.flags);
+    }
+    out->WriteInt32(types.size());
+    for (const auto &type : types)
+    {
+        StrUtil::WriteCStr(type.name, out);
+        out->WriteInt32(type.loc_id);
+        out->WriteInt32(type.parent_id);
+        out->WriteInt32(type.flags);
+        out->WriteInt32(type.size);
+        // Managed ptrs offsets
+        const auto man_offs = helper->GetManagedOffsetsForType(type.this_id);
+        out->WriteInt32(man_offs.second - man_offs.first);
+        for (auto off = man_offs.first; off < man_offs.second; ++off)
+            out->WriteInt32(*off);
+    }
+    return HSaveError::None();
+}
+
+HSaveError ReadRTTI(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData &r_data)
+{
+    // Restore the minimal necessary RTTI data, enough to resolve types when restoring a save
+    // Create a pseudo-RTTI with "generated" types, and fields only for managed pointers
+    RTTIBuilder rb;
+    char buf[256];
+    uint32_t num_locs = in->ReadInt32();
+    for (uint32_t i = 0; i < num_locs; ++i)
+    {
+        StrUtil::ReadCStr(buf, in, sizeof(buf));
+        uint32_t flags = in->ReadInt32();
+        rb.AddLocation(buf, i, flags | RTTI::kLoc_Generated);
+    }
+    uint32_t num_types = in->ReadInt32();
+    for (uint32_t i = 0; i < num_types; ++i)
+    {
+        StrUtil::ReadCStr(buf, in, sizeof(buf));
+        uint32_t loc_id = in->ReadInt32();
+        uint32_t parent_id = in->ReadInt32();
+        uint32_t flags = in->ReadInt32();
+        uint32_t size = in->ReadInt32();
+        rb.AddType(buf, i, loc_id, parent_id, flags | RTTI::kType_Generated, size);
+        // Read managed ptrs offsets and generate pseudo-fields for these
+        uint32_t num_offs = in->ReadInt32();
+        for (uint32_t oi = 0; oi < num_offs; ++oi)
+        {
+            uint32_t off = in->ReadInt32();
+            rb.AddField(i, "", off, 0u, RTTI::kField_ManagedPtr | RTTI::kType_Generated, 0u);
+        }
+    }
+
+    r_data.GenRTTI = std::move(rb.Finalize());
     return HSaveError::None();
 }
 
@@ -1050,6 +1118,13 @@ HSaveError ReadPluginData(Stream *in, int32_t /*cmp_ver*/, const PreservedParams
     return HSaveError::None();
 }
 
+
+// TODO: move elsewhere later
+enum ManagedPoolSavegameVersion
+{
+    kManagedPoolSvgVersion_Initial = 0,
+    kManagedPoolSvgVersion_39999   = 10
+};
 
 // Description of a supported game state serialization component
 struct ComponentHandler
@@ -1164,10 +1239,17 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Managed Pool",
-        0,
-        0,
+        kManagedPoolSvgVersion_39999,
+        kManagedPoolSvgVersion_Initial,
         WriteManagedPool,
         ReadManagedPool
+    },
+    {
+        "RTTI",
+        0,
+        0,
+        WriteRTTI,
+        ReadRTTI
     },
     {
         "Plugin Data",

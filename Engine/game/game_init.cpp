@@ -137,7 +137,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
     for (int i = 0; i < game.numCompatGameChannels; ++i)
     {
         scrAudioChannel[i].id = i;
-        ccRegisterManagedObject(&scrAudioChannel[i], &ccDynamicAudio);
+        ccRegisterPersistentObject(&scrAudioChannel[i], &ccDynamicAudio); // add internal ref
     }
 
     for (size_t i = 0; i < game.audioClips.size(); ++i)
@@ -146,7 +146,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
         // to actual item index in array, so we don't make any difference
         // between game versions, for now.
         game.audioClips[i].id = i;
-        ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
+        ccRegisterPersistentObject(&game.audioClips[i], &ccDynamicAudioClip); // add internal ref
         ccAddExternalDynamicObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
     }
 }
@@ -170,7 +170,7 @@ void InitAndRegisterCharacters(const LoadedGameEntities &ents)
         game.chars[i].loop = 0;
         game.chars[i].frame = 0;
         game.chars[i].walkwait = -1;
-        ccRegisterManagedObject(&game.chars[i], &ccDynamicCharacter);
+        ccRegisterPersistentObject(&game.chars[i], &ccDynamicCharacter); // add internal ref
 
         // export the character's script object
         ccAddExternalDynamicObject(game.chars[i].scrname, &game.chars[i], &ccDynamicCharacter);
@@ -194,7 +194,7 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
     {
         scrDialog[i].id = i;
         scrDialog[i].reserved = 0;
-        ccRegisterManagedObject(&scrDialog[i], &ccDynamicDialog);
+        ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog); // add internal ref
 
         if (!game.dialogScriptNames[i].IsEmpty())
             ccAddExternalDynamicObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
@@ -204,12 +204,11 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
 // Initializes dialog options rendering objects and registers them in the script system
 void InitAndRegisterDialogOptions()
 {
-    ccRegisterManagedObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+    ccRegisterPersistentObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering); // add internal ref
 
     dialogOptionsRenderingSurface = new ScriptDrawingSurface();
     dialogOptionsRenderingSurface->isLinkedBitmapOnly = true;
-    long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
-    ccAddObjectReference(dorsHandle);
+    ccRegisterPersistentObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface); // add internal ref
 }
 
 // Initializes gui and registers them in the script system
@@ -231,7 +230,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         export_gui_controls(i);
         scrGui[i].id = i;
         ccAddExternalDynamicObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
-        ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);
+        ccRegisterPersistentObject(&scrGui[i], &ccDynamicGUI); // add internal ref
     }
     return HError::None();
 }
@@ -243,7 +242,7 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
     {
         scrInv[i].id = i;
         scrInv[i].reserved = 0;
-        ccRegisterManagedObject(&scrInv[i], &ccDynamicInv);
+        ccRegisterPersistentObject(&scrInv[i], &ccDynamicInv); // add internal ref
 
         if (!game.invScriptNames[i].IsEmpty())
             ccAddExternalDynamicObject(game.invScriptNames[i], &scrInv[i], &ccDynamicInv);
@@ -257,7 +256,7 @@ void InitAndRegisterHotspots()
     {
         scrHotspot[i].id = i;
         scrHotspot[i].reserved = 0;
-        ccRegisterManagedObject(&scrHotspot[i], &ccDynamicHotspot);
+        ccRegisterPersistentObject(&scrHotspot[i], &ccDynamicHotspot); // add internal ref
     }
 }
 
@@ -266,7 +265,7 @@ void InitAndRegisterRoomObjects()
 {
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
-        ccRegisterManagedObject(&scrObj[i], &ccDynamicObject);
+        ccRegisterPersistentObject(&scrObj[i], &ccDynamicObject); // add internal ref
     }
 }
 
@@ -277,7 +276,7 @@ void InitAndRegisterRegions()
     {
         scrRegion[i].id = i;
         scrRegion[i].reserved = 0;
-        ccRegisterManagedObject(&scrRegion[i], &ccDynamicRegion);
+        ccRegisterPersistentObject(&scrRegion[i], &ccDynamicRegion); // add internal ref
     }
 }
 

@@ -18,6 +18,8 @@ void ccGetExtensions2(std::vector<std::string> &exts)
     // of a new compiler. Feel free to add more, specifying each
     // new added feature individually.
     exts.push_back("AGS4");
+    // Managed ptr in managed structs
+    exts.push_back("NESTEDPOINTERS");
 }
 
 

@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "ac/timer.h"
+#include "script/cc_reflecthelper.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/cc_internal.h"  // bytecode constants
 #include "script/nonblockingscriptfunction.h"
@@ -165,6 +166,14 @@ public:
     static ccInstance *CreateEx(PScript scri, ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
     static const JointRTTI *GetRTTI() { return _rtti.get(); }
+    static const Engine::RTTIHelper *GetRTTIHelper() { return _rttiHelper.get(); }
+    // Joins custom provided RTTI into the global collection;
+    // fills in maps for locid and typeid remap which may be used to know
+    // which *global* ids were assigned to this particular rtti's entries.
+    // Updates RTTIHelper correspondingly.
+    static void JoinRTTI(const RTTI &rtti,
+        std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+        std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
     ccInstance();
     ~ccInstance();
@@ -234,6 +243,8 @@ private:
     static std::unique_ptr<JointRTTI> _rtti;
     // Full name to global id (global id is an actual index in the joint rtti table)
     static std::unordered_map<Common::String, uint32_t> _rttiLookup;
+    // Helper data for quicker RTTI analyzis
+    static std::unique_ptr<Engine::RTTIHelper> _rttiHelper;
     // Map local script's location id to global (program-wide)
     std::unordered_map<uint32_t, uint32_t> _locidLocal2Global;
     // Map local script's type id to global (program-wide)

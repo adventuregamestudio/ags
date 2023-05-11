@@ -37,5 +37,5 @@ void CCInventory::Serialize(const char *address, Stream *out) {
 
 void CCInventory::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &scrInv[num], this);
+    ccRegisterUnserializedPersistentObject(index, &scrInv[num], this);
 }

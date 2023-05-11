@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 #include "ac/common_defines.h"
+#include "ac/dynobj/cc_serializer.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
@@ -79,6 +80,12 @@ struct RestoredData
     };
     ScriptData              GlobalScript;
     std::vector<ScriptData> ScriptModules;
+    // Generated RTTI is meant for remapping typeids
+    // (in case they were changed in game), and provides placeholders
+    // for types that were declared in unloaded (room) scripts
+    RTTI                    GenRTTI;
+    // Managed objects unserializer
+    AGSDeSerializer         ManObjReader;
     // Room data (has to be be preserved until room is loaded)
     PBitmap                 RoomBkgScene[MAX_ROOM_BGFRAMES];
     short                   RoomLightLevels[MAX_ROOM_REGIONS];

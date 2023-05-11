@@ -11,17 +11,16 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_SERIALIZER_H
 #define __AC_SERIALIZER_H
 
+#include <vector>
 #include "ac/dynobj/cc_dynamicobject.h"
+#include "managedobjectpool.h"
 
 struct AGSDeSerializer : ICCObjectReader {
 
     void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) override;
 };
-
-extern AGSDeSerializer ccUnserializer;
 
 #endif // __AC_SERIALIZER_H

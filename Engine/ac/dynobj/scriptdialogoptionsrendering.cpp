@@ -30,7 +30,7 @@ void ScriptDialogOptionsRendering::Serialize(const char* /*address*/, Stream* /*
 }
 
 void ScriptDialogOptionsRendering::Unserialize(int index, Stream* /*in*/, size_t /*data_sz*/) {
-    ccRegisterUnserializedObject(index, this, this);
+    ccRegisterUnserializedPersistentObject(index, this, this);
 }
 
 void ScriptDialogOptionsRendering::Reset()

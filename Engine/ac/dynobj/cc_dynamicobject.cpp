@@ -33,17 +33,30 @@ void ccSetStringClassImpl(ICCStringClass *theClass) {
 // register a memory handle for the object and allow script
 // pointers to point to it
 int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, bool plugin_object) {
-    int32_t handl = pool.AddObject((const char*)object, callback, plugin_object);
+    return pool.AddObject((const char*)object, callback, plugin_object, false);
+}
 
-    ManagedObjectLog("Register managed object type '%s' handle=%d addr=%08X",
-        ((callback == NULL) ? "(unknown)" : callback->GetType()), handl, object);
+int32_t ccRegisterManagedObjectAndRef(const void *object, ICCDynamicObject *callback) {
+    int32_t handle = pool.AddObject((const char*)object, callback, false, false);
+    pool.AddRef(handle);
+    return handle;
+}
 
-    return handl;
+extern int32_t ccRegisterPersistentObject(const void *object, ICCDynamicObject *callback) {
+    int32_t handle = pool.AddObject((const char*)object, callback, false, true);
+    pool.AddRef(handle);
+    return handle;
 }
 
 // register a de-serialized object
-int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback, bool plugin_object) {
-    return pool.AddUnserializedObject((const char*)object, callback, plugin_object, index);
+int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback,
+                                     bool plugin_object) {
+    return pool.AddUnserializedObject((const char*)object, callback, index, plugin_object, false);
+}
+
+int32_t ccRegisterUnserializedPersistentObject(int index, const void *object, ICCDynamicObject *callback) {
+    return pool.AddUnserializedObject((const char*)object, callback, index, false, true);
+    // don't add ref, as it should come with the save data
 }
 
 // unregister a particular object
@@ -53,7 +66,7 @@ int ccUnRegisterManagedObject(const void *object) {
 
 // remove all registered objects
 void ccUnregisterAllObjects() {
-    pool.reset();
+    pool.Reset();
 }
 
 // serialize all objects to disk
@@ -133,5 +146,5 @@ int ccReleaseObjectReference(int32_t handle) {
         return -1;
     }
 
-    return pool.SubRef(handle);
+    return pool.SubRefCheckDispose(handle);
 }

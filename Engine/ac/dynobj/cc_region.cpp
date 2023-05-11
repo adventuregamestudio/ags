@@ -38,5 +38,5 @@ void CCRegion::Serialize(const char *address, Stream *out) {
 
 void CCRegion::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &scrRegion[num], this);
+    ccRegisterUnserializedPersistentObject(index, &scrRegion[num], this);
 }

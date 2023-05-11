@@ -298,6 +298,7 @@ void unload_old_room() {
         play.temporarily_turned_off_character = -1;
     }
 
+    pool.PrintStats();
 }
 
 void update_letterbox_mode()

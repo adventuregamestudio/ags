@@ -38,5 +38,5 @@ void CCHotspot::Serialize(const char *address, Stream *out) {
 
 void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &scrHotspot[num], this);
+    ccRegisterUnserializedPersistentObject(index, &scrHotspot[num], this);
 }

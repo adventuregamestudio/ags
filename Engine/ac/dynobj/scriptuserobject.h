@@ -18,19 +18,21 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 #define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_dynamicobject.h"
 
 struct ScriptUserObject final : ICCDynamicObject
 {
 public:
-    ScriptUserObject();
+    static const char *TypeName;
+
+    ScriptUserObject() = default;
     
 protected:
     virtual ~ScriptUserObject();
 
 public:
-    static ScriptUserObject *CreateManaged(size_t size);
-    void Create(const char *data, AGS::Common::Stream *in, size_t size);
+    static ScriptUserObject *CreateManaged(uint32_t type_id, size_t size);
+    void Create(const char *data, AGS::Common::Stream *in, uint32_t type_id, size_t size);
 
     // return the type name of the object
     const char *GetType() override;
@@ -39,6 +41,12 @@ public:
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
+
+    // Remap typeid fields using the provided map
+    void RemapTypeids(const char *address,
+        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
+    // Traverse all managed references in this object, and run callback for each of them
+    void TraverseRefs(const char *address, PfnTraverseRefOp traverse_op) override;
 
     // Support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;
@@ -54,14 +62,15 @@ public:
     void    WriteFloat(const char *address, intptr_t offset, float val) override;
 
 private:
-    // NOTE: we use signed int for Size at the moment, because the managed
-    // object interface's Serialize() function requires the object to return
-    // negative value of size in case the provided buffer was not large
-    // enough. Since this interface is also a part of Plugin API, we would
-    // need more significant change to program before we could use different
-    // approach.
-    int32_t  _size;
-    char    *_data;
+    uint32_t _typeid = 0u; // type id from rtti
+    // NOTE: the managed object interface's Serialize() function requires
+    // the object to return negative value of size in case the provided
+    // buffer was not large enough. Since this interface is also a part of
+    // Plugin API, we cannot modify that without more significant changes.
+    // This means that if the size is larger than INT32_MAX, Serialize()
+    // will work unreliably.
+    size_t   _size = 0u;
+    char    *_data = nullptr;
 };
 
 

@@ -37,5 +37,5 @@ void CCGUI::Serialize(const char *address, Stream *out) {
 
 void CCGUI::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int num = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &scrGui[num], this);
+    ccRegisterUnserializedPersistentObject(index, &scrGui[num], this);
 }

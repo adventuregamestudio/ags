@@ -38,5 +38,5 @@ void CCGUIObject::Serialize(const char *address, Stream *out) {
 void CCGUIObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();
-    ccRegisterUnserializedObject(index, guis[guinum].GetControl(objnum), this);
+    ccRegisterUnserializedPersistentObject(index, guis[guinum].GetControl(objnum), this);
 }

@@ -55,6 +55,7 @@ target_sources(engine
     ac/dynobj/cc_audiochannel.h
     ac/dynobj/cc_audioclip.cpp
     ac/dynobj/cc_audioclip.h
+    ac/dynobj/cc_basicobject.h
     ac/dynobj/cc_character.cpp
     ac/dynobj/cc_character.h
     ac/dynobj/cc_dialog.cpp
@@ -74,6 +75,7 @@ target_sources(engine
     ac/dynobj/cc_inventory.h
     ac/dynobj/cc_object.cpp
     ac/dynobj/cc_object.h
+    ac/dynobj/cc_pluginobject.h
     ac/dynobj/cc_region.cpp
     ac/dynobj/cc_region.h
     ac/dynobj/cc_serializer.cpp
@@ -408,6 +410,8 @@ target_sources(engine
     resource/resource.h
     script/cc_instance.cpp
     script/cc_instance.h
+    script/cc_reflecthelper.cpp
+    script/cc_reflecthelper.h
     script/executingscript.cpp
     script/executingscript.h
     script/exports.cpp

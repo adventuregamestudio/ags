@@ -15,6 +15,7 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
+#include <list>
 #include <vector>
 #include <queue>
 #include <unordered_map>
@@ -28,15 +29,21 @@ using namespace AGS; // FIXME later
 
 struct ManagedObjectPool final {
 private:
-    // TODO: find out if we can make handle size_t
+    struct GCObject;
+    // TODO: find out if we can make handle unsigned
     struct ManagedObject {
-        ScriptValueType obj_type;
-        int32_t handle;
-        // TODO: this makes no sense having this as "const char*",
+        ScriptValueType obj_type = kScValUndefined; // TODO: find out if this may be get rid of
+        int32_t handle = 0; // TODO: find out if may not store this here?
+        // FIXME: this makes no sense having this as "const char*",
         // void* will be proper (and in all related functions)
-        const char *addr;
-        ICCDynamicObject *callback;
-        int refCount;
+        const char *addr = nullptr;
+        ICCDynamicObject *callback = nullptr;
+        int refCount = 0;
+        // For GC
+        // FIXME: optimize the object storage...
+        std::list<GCObject>::iterator gcItUsed{}; // for quick removal from a list
+        static const int GC_FLAG_EXCLUDED = 0x80000000; // flag an object excluded from GC
+        int gcRefCount = 0; // for scan & sweep algorithm
 
         bool isUsed() const { return obj_type != kScValUndefined; }
 
@@ -46,34 +53,69 @@ private:
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
-    int objectCreationCounter;  // used to do garbage collection every so often
-
     int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
     std::unordered_map<const char *, int32_t> handleByAddress;
 
-    void Init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback, ScriptValueType objType);
-    int Remove(ManagedObject &o, bool force = false); 
+    // Scan lists for the garbage collection;
+    // TODO: this is bit inefficient, because of certain mem duplication, and extra
+    // cross-references; ideally this should be merged with ManagedObject (and maybe even ICCDynamicObject)!
+    struct GCObject
+    {
+        int32_t handle = 0;
 
+        GCObject(int32_t h) : handle(h) {}
+    };
+    std::list<GCObject> gcUsedList;
+    std::list<GCObject> gcRemList;
+
+    // Various counters, for GC trigger and stats
+    int objectCreationCounter;  // used to do garbage collection every so often
+    struct Stats
+    {
+        uint64_t Added = 0u; // total number of objects added
+        uint64_t AddedPersistent = 0u; // number of persistent objects added
+        uint64_t Removed = 0u; // total number of objects removed
+        uint64_t RemovedPersistent = 0u; // number of persistent objects removed
+        uint64_t RemovedGC = 0u; // number of objects removed by GC
+        uint64_t RemovedGCDetached = 0u; // number of "detached" objects removed by GC
+        uint64_t MaxObjectsPresent = 0u; // max objects presets at the same time
+        uint64_t GCTimesRun = 0u; // how many times GC ran
+    } stats;
+
+    int  Add(int handle, const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
+    int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
 
 public:
-
+    // Adds a reference count
     int32_t AddRef(int32_t handle);
+    // "Shallow" subref, does not try to dispose
+    int32_t SubRefNoCheck(int32_t handle);
+    // Subtracts a reference count and tests for disposal if count is zero
+    int32_t SubRefCheckDispose(int32_t handle);
+    // Explicitly tests an object for disposal
     int CheckDispose(int32_t handle);
-    int32_t SubRef(int32_t handle);
     int32_t AddressToHandle(const char *addr);
     const char* HandleToAddress(int32_t handle);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
+    // Forcefully remove the object, regardless of the current ref count
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object);
-    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int handle);
+    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, int handle,
+        bool plugin_object, bool persistent);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
-    void reset();
+    // De-allocate all objects
+    void Reset();
+    void PrintStats();
     ManagedObjectPool();
+
+    // Remaps typeids for the managed objects that contain typeid fields;
+    // uses provided typeid maps
+    void RemapTypeids(const std::unordered_map<uint32_t, uint32_t> &typeid_map);
 
     const char* disableDisposeForObject {nullptr};
 };

@@ -36,5 +36,5 @@ void CCAudioChannel::Serialize(const char *address, Stream *out) {
 
 void CCAudioChannel::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     int id = in->ReadInt32();
-    ccRegisterUnserializedObject(index, &scrAudioChannel[id], this);
+    ccRegisterUnserializedPersistentObject(index, &scrAudioChannel[id], this);
 }

@@ -13,11 +13,14 @@
 //=============================================================================
 #include "cc_dynamicarray.h"
 #include <string.h>
+#include "ac/dynobj/managedobjectpool.h"
+#include "script/cc_instance.h"
+#include "script/cc_script.h" // RTTI
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
 
-const char *CCDynamicArray::TypeName = "CCDynamicArray";
+const char *CCDynamicArray::TypeName = "CCDynamicArr2";
 
 // return the type name of the object
 const char *CCDynamicArray::GetType()
@@ -32,19 +35,7 @@ int CCDynamicArray::Dispose(const char *address, bool force)
     // in which case just ignore these.
     if (!force)
     {
-        const Header &hdr = GetHeader(address);
-        bool is_managed = (hdr.ElemCount & ARRAY_MANAGED_TYPE_FLAG) != 0;
-        const uint32_t el_count = hdr.ElemCount & (~ARRAY_MANAGED_TYPE_FLAG);
-
-        if (is_managed)
-        { // Dynamic array of managed pointers: subref them directly
-            const uint32_t *handles = reinterpret_cast<const uint32_t*>(address);
-            for (uint32_t i = 0; i < el_count; ++i)
-            {
-                if (handles[i] > 0)
-                    ccReleaseObjectReference(handles[i]);
-            }
-        }
+        TraverseRefs(address, [](int handle) { pool.SubRefNoCheck(handle); });
     }
 
     delete[] (address - MemHeaderSz);
@@ -61,30 +52,37 @@ int CCDynamicArray::Serialize(const char *address, char *buffer, int bufsize)
         return -sizeToWrite;
     }
     MemoryStream mems(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write);
+    mems.WriteInt32(hdr.TypeID);
     mems.WriteInt32(hdr.ElemCount);
-    mems.WriteInt32(hdr.TotalSize);
+    mems.WriteInt32(hdr.TotalSize / hdr.ElemCount); // elem size
     mems.Write(address, hdr.TotalSize); // elements
     return static_cast<int32_t>(mems.GetPosition());
 }
 
-void CCDynamicArray::Unserialize(int index, const char *serializedData, int dataSize)
+void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    char *new_arr = new char[(dataSize - FileHeaderSz) + MemHeaderSz];
-    MemoryStream mems(reinterpret_cast<const uint8_t*>(serializedData), dataSize);
+    char *new_arr = new char[(data_sz - FileHeaderSz) + MemHeaderSz];
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
-    hdr.ElemCount = mems.ReadInt32();
-    hdr.TotalSize = mems.ReadInt32();
-    memcpy(new_arr + MemHeaderSz, serializedData + FileHeaderSz, dataSize - FileHeaderSz);
+    hdr.TypeID = in->ReadInt32();
+    hdr.ElemCount = in->ReadInt32();
+    hdr.TotalSize = hdr.ElemCount * in->ReadInt32(); // elem size
+    in->Read(new_arr + MemHeaderSz, data_sz - FileHeaderSz);
     ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
 }
 
-DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
+DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
 {
-    char *new_arr = new char[numElements * elementSize + MemHeaderSz];
-    memset(new_arr, 0, numElements * elementSize + MemHeaderSz);
+    char *new_arr = new char[elem_count * elem_size + MemHeaderSz];
+    memset(new_arr, 0, elem_count * elem_size + MemHeaderSz);
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
-    hdr.ElemCount = numElements | (ARRAY_MANAGED_TYPE_FLAG * isManagedType);
-    hdr.TotalSize = elementSize * numElements;
+    if (type_id > 0)
+    {
+        assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
+        is_managed = (ccInstance::GetRTTI()->GetTypes()[type_id].flags & RTTI::kType_Managed) != 0;
+    }
+    hdr.TypeID = type_id | (ARRAY_MANAGED_TYPE_FLAG * is_managed);
+    hdr.ElemCount = elem_count;
+    hdr.TotalSize = elem_count * elem_size;
     void *obj_ptr = &new_arr[MemHeaderSz];
     // TODO: investigate if it's possible to register real object ptr directly
     int32_t handle = ccRegisterManagedObject(obj_ptr, this);
@@ -94,6 +92,61 @@ DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isMan
         return DynObjectRef(0, nullptr);
     }
     return DynObjectRef(handle, obj_ptr);
+}
+
+void CCDynamicArray::RemapTypeids(const char *address,
+    const std::unordered_map<uint32_t, uint32_t> &typeid_map)
+{
+    Header &hdr = (Header&)GetHeader(address);
+    const auto it = typeid_map.find(hdr.TypeID);
+    assert(hdr.TypeID == 0u || it != typeid_map.end());
+    hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
+}
+
+void CCDynamicArray::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
+{
+    // TODO: may be a bit faster if we make a "runtime type"
+    // struct, merging joint type info and auxiliary helper data,
+    // and store a pointer in the arr data.
+    // might also have a dummy "type" for "unknown type" arrays.
+    const Header &hdr = GetHeader(address);
+    const uint32_t type_id = hdr.TypeID & (~ARRAY_MANAGED_TYPE_FLAG);
+    bool is_managed = (hdr.TypeID & ARRAY_MANAGED_TYPE_FLAG) != 0;
+    const RTTI::Type *ti = nullptr;
+    if (type_id > 0)
+    {
+        assert(ccInstance::GetRTTI()->GetTypes().size() > type_id);
+        ti = &ccInstance::GetRTTI()->GetTypes()[type_id];
+    }
+
+    // Dynamic array of managed pointers: subref them directly
+    if (is_managed)
+    {
+        const uint32_t *handles = reinterpret_cast<const uint32_t*>(address);
+        for (uint32_t i = 0; i < hdr.ElemCount; ++i)
+        {
+            traverse_op(handles[i]);
+        }
+    }
+    // Dynamic array of regular structs that *may* contain managed pointers
+    else if (ti && (ti->flags & RTTI::kType_Struct))
+    {
+        const auto fref = ccInstance::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
+        if (fref.second > fref.first)
+        { // there are managed pointers inside!
+            const char *elem_ptr = address;
+            // For each array element...
+            const uint32_t el_size = hdr.TotalSize / hdr.ElemCount;
+            for (uint32_t i = 0; i < hdr.ElemCount; ++i, elem_ptr += el_size)
+            {
+                // ..subref each managed pointer found inside
+                for (auto it = fref.first; it < fref.second; ++it)
+                {
+                    traverse_op(*(int32_t*)(elem_ptr + *it));
+                }
+            }
+        }
+    }
 }
 
 
@@ -157,8 +210,8 @@ CCDynamicArray globalDynamicArray;
 
 DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> items)
 {
-    // NOTE: we need element size of "handle" for array of managed pointers
-    DynObjectRef arr = globalDynamicArray.Create(items.size(), sizeof(int32_t), true);
+    // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
+    DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
     if (!arr.second)
         return arr;
     // Create script strings and put handles into array
@@ -181,7 +234,7 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
 int32_t DynamicArray_Length(void *untyped_dynarray)
 {
     const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader((const char*)untyped_dynarray);
-    return hdr.ElemCount & (~ARRAY_MANAGED_TYPE_FLAG);
+    return hdr.ElemCount;
 }
 
 RuntimeScriptValue Sc_DynamicArray_Length(const RuntimeScriptValue *params, int32_t param_count)

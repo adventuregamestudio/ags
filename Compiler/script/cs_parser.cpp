@@ -2447,7 +2447,11 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
             return -1;
           }
 
-          scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
+          // Choose between "old" and new "new" opcode, depending on RTTI switch
+          if (ccGetOption(SCOPT_RTTIOPS))
+              scrip->write_cmd3(SCMD_NEWARRAY2, SREG_AX, arrayType, size);
+          else
+              scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
           scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
 
           if (isManagedType)
@@ -2461,7 +2465,11 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
             return -1;
           }
           const size_t size = sym.entries[symlist[oploc + 1]].ssize;
-          scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+          // Choose between "old" and new "new" opcode, depending on RTTI switch
+          if (ccGetOption(SCOPT_RTTIOPS))
+              scrip->write_cmd3(SCMD_NEWUSEROBJECT2, SREG_AX, symlist[oploc + 1], size);
+          else
+              scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
           scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
       }
 
@@ -3708,8 +3716,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("Member variable cannot be struct");
                     return -1;
                 }
-                if ((member_is_pointer) && (sym.entries[stname].flags & SFLG_MANAGED) && (!member_is_import)) {
-                    cc_error("Member variable of managed struct cannot be pointer");
+                if (!ccGetOption(SCOPT_RTTIOPS) &&
+                    ((member_is_pointer) && (sym.entries[stname].flags & SFLG_MANAGED) && (!member_is_import))) {
+                    cc_error("Member variable of managed struct cannot be pointer (RTTI is not enabled)");
                     return -1;
                 }
                 else if ((sym.entries[cursym].flags & SFLG_MANAGED) && (!member_is_pointer)) {
@@ -3893,8 +3902,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int array_size;
 
                             if (sym.get_type(nextt) == SYM_CLOSEBRACKET) {
-                                if ((sym.entries[stname].flags & SFLG_MANAGED)) {
-                                    cc_error("Member variable of managed struct cannot be dynamic array");
+                                if (!ccGetOption(SCOPT_RTTIOPS) &&
+                                        (sym.entries[stname].flags & SFLG_MANAGED)) {
+                                    cc_error("Member variable of managed struct cannot be dynamic array  (RTTI is not enabled)");
                                     return -1;
                                 }
                                 sym.entries[stname].flags |= SFLG_HASDYNAMICARRAY;

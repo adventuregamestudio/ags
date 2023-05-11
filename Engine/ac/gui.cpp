@@ -472,7 +472,7 @@ void export_gui_controls(int ee)
         GUIObject *guio = guis[ee].GetControl(ff);
         if (!guio->Name.IsEmpty())
             ccAddExternalDynamicObject(guio->Name, guio, &ccDynamicGUIObject);
-        ccRegisterManagedObject(guio, &ccDynamicGUIObject);
+        ccRegisterPersistentObject(guio, &ccDynamicGUIObject); // add ref for engine
     }
 }
 

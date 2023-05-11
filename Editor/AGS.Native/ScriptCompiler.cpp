@@ -63,6 +63,7 @@ namespace AGS
                 SCOPT_OLDSTRINGS * (!game->Settings->EnforceNewStrings) |
                 SCOPT_UTF8 * (game->UnicodeMode) |
                 SCOPT_RTTI |
+                SCOPT_RTTIOPS |
                 false;
 
         if (game->Settings->ExtendedCompiler)

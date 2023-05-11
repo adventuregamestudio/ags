@@ -66,7 +66,7 @@ int ccUnRegisterManagedObject(const void *object) {
 
 // remove all registered objects
 void ccUnregisterAllObjects() {
-    pool.reset();
+    pool.Reset();
 }
 
 // serialize all objects to disk

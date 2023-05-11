@@ -53,8 +53,6 @@ private:
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
-    int objectCreationCounter;  // used to do garbage collection every so often
-
     int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
@@ -71,6 +69,20 @@ private:
     };
     std::list<GCObject> gcUsedList;
     std::list<GCObject> gcRemList;
+
+    // Various counters, for GC trigger and stats
+    int objectCreationCounter;  // used to do garbage collection every so often
+    struct Stats
+    {
+        uint64_t Added = 0u; // total number of objects added
+        uint64_t AddedPersistent = 0u; // number of persistent objects added
+        uint64_t Removed = 0u; // total number of objects removed
+        uint64_t RemovedPersistent = 0u; // number of persistent objects removed
+        uint64_t RemovedGC = 0u; // number of objects removed by GC
+        uint64_t RemovedGCDetached = 0u; // number of "detached" objects removed by GC
+        uint64_t MaxObjectsPresent = 0u; // max objects presets at the same time
+        uint64_t GCTimesRun = 0u; // how many times GC ran
+    } stats;
 
     int  Add(int handle, const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
     int  Remove(ManagedObject &o, bool force = false);
@@ -96,7 +108,9 @@ public:
         bool plugin_object, bool persistent);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
-    void reset();
+    // De-allocate all objects
+    void Reset();
+    void PrintStats();
     ManagedObjectPool();
 
     // Remaps typeids for the managed objects that contain typeid fields;

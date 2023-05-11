@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include <cinttypes>
 #include <vector>
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
@@ -25,12 +26,15 @@ using namespace AGS::Common;
 const auto OBJECT_CACHE_MAGIC_NUMBER = 0xa30b;
 const auto OBJECT_CACHE_SAVE_VERSION = 2;
 const auto SERIALIZE_BUFFER_SIZE = 10240;
-const auto GARBAGE_COLLECTION_INTERVAL = 1024;
+const auto GARBAGE_COLLECTION_INTERVAL = 1024; // in times objects added
+const auto PRINT_STATS_INTERVAL = 1023; // bitmask!, in times ran GC
 const auto RESERVED_SIZE = 2048;
 
 int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     if (!o.isUsed()) { return 1; } // already removed
 
+    stats.Removed++;
+    stats.RemovedPersistent += ((o.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) != 0);
     o.refCount = 0; // mark as disposing, to avoid any access
     o.callback->Dispose(o.addr, force); // we always dispose and remove now!
     available_ids.push(o.handle);
@@ -131,11 +135,14 @@ void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 {
     if (objectCreationCounter <= GARBAGE_COLLECTION_INTERVAL) { return; }
     RunGarbageCollection();
+    if ((stats.GCTimesRun & PRINT_STATS_INTERVAL) == 0)
+        PrintStats();
     objectCreationCounter = 0;
 }
 
 void ManagedObjectPool::RunGarbageCollection()
 {
+    stats.GCTimesRun++;
     //
     // Proper GC resolving detached objects and circular dependencies
     //
@@ -151,6 +158,7 @@ void ManagedObjectPool::RunGarbageCollection()
         {
             gcUsedList.erase(test_it);
             Remove(obj);
+            stats.RemovedGC++;
         }
         else
         {
@@ -218,6 +226,8 @@ void ManagedObjectPool::RunGarbageCollection()
         }
     } while (times_moved > 0);
     // Step 6: dispose those remaining in the removal list
+    stats.RemovedGC += gcRemList.size();
+    stats.RemovedGCDetached += gcRemList.size();
     for (auto it = gcRemList.begin(); it != gcRemList.end(); )
     {
         auto rem_it = it++;
@@ -239,10 +249,13 @@ int ManagedObjectPool::Add(int handle, const char *address, ICCDynamicObject *ca
     handleByAddress.insert({address, o.handle});
     if (persistent) { // mark persistent object as excluded from GC
         o.gcRefCount = ManagedObject::GC_FLAG_EXCLUDED;
+        stats.AddedPersistent++;
     } else { // if regular - then add to the GC scan
         o.gcItUsed = gcUsedList.insert(gcUsedList.end(), GCObject(o.handle));
         objectCreationCounter++;
     }
+    stats.Added++;
+    stats.MaxObjectsPresent = std::max(stats.MaxObjectsPresent, stats.Added - stats.Removed);
     ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
     return handle;
 }
@@ -373,8 +386,7 @@ int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     return 0;
 }
 
-// de-allocate all objects
-void ManagedObjectPool::reset() {
+void ManagedObjectPool::Reset() {
     for (int i = 1; i < nextHandle; i++) {
         auto & o = objects[i];
         if (!o.isUsed()) { continue; }
@@ -384,6 +396,30 @@ void ManagedObjectPool::reset() {
     gcUsedList.clear();
     gcRemList.clear();
     nextHandle = 1;
+
+    PrintStats();
+}
+
+void ManagedObjectPool::PrintStats()
+{
+    Debug::Printf(kDbgGroup_ManObj, kDbgMsg_Info,
+        "Managed Pool stats:\n"
+        "\tObjects present:             %+10" PRIu64 "\n"
+        "\tPersistent objects:          %+10" PRIu64 "\n"
+        "\tMax objects present at once: %+10" PRIu64 "\n"
+        "\tTotal objects added:         %+10" PRIu64 "\n"
+        "\tPersistent objects added:    %+10" PRIu64 "\n"
+        "\tTotal objects removed:       %+10" PRIu64 "\n"
+        "\tPersistent objects removed:  %+10" PRIu64 "\n"
+        "\tObjects removed by GC:       %+10" PRIu64 "\n"
+        "\tDetached removed by GC:      %+10" PRIu64 "\n"
+        "\tTimes GC ran:                %+10" PRIu64 "",
+        stats.Added - stats.Removed, stats.AddedPersistent - stats.RemovedPersistent,
+        stats.MaxObjectsPresent,
+        stats.Added, stats.AddedPersistent, stats.Removed, stats.RemovedPersistent,
+        stats.RemovedGC, stats.RemovedGCDetached,
+        stats.GCTimesRun
+    );
 }
 
 ManagedObjectPool::ManagedObjectPool() : objectCreationCounter(0), nextHandle(1), available_ids(), objects(RESERVED_SIZE, ManagedObject()), handleByAddress() {

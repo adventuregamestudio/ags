@@ -298,23 +298,39 @@ bool D3DGraphicsDriver::FirstTimeInit()
 /* color_depth_to_d3d_format:
  *  Convert a colour depth into the appropriate D3D tag
  */
-static D3DFORMAT color_depth_to_d3d_format(int color_depth)
+static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool want_alpha = true)
 {
-    switch (color_depth)
+    if (want_alpha)
     {
-    case 8:
-        return D3DFMT_P8;
-    case 15:  // don't use X1R5G5B5 because some cards don't support it (???)
-        return D3DFMT_A1R5G5B5;
-    case 16:
-        return D3DFMT_R5G6B5;
-    case 24:
-        return D3DFMT_R8G8B8;
-    case 32:
-        return D3DFMT_A8R8G8B8;
-    default:
-        return D3DFMT_UNKNOWN;
+        switch (color_depth)
+        {
+        case 8:
+            return D3DFMT_P8;
+        case 15:
+        case 16:
+            return D3DFMT_A1R5G5B5;
+        case 24:
+        case 32:
+            return D3DFMT_A8R8G8B8;
+        }
     }
+    else
+    {
+        switch (color_depth)
+        {
+        case 8:
+            return D3DFMT_P8;
+        case 15:
+            return D3DFMT_X1R5G5B5;
+        case 16:
+            return D3DFMT_R5G6B5;
+        case 24:
+            return D3DFMT_R8G8B8;
+        case 32:
+            return D3DFMT_X8R8G8B8;
+        }
+    }
+    return D3DFMT_UNKNOWN;
 }
 
 /* d3d_format_to_color_depth:
@@ -357,7 +373,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     return true;
   }
 
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(mode.ColorDepth);
+  D3DFORMAT pixelFormat = color_depth_to_d3d_format(mode.ColorDepth, false /* opaque */);
   D3DDISPLAYMODE d3d_mode;
 
   int mode_count = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
@@ -447,7 +463,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
   d3dpp.BackBufferHeight = mode.Height;
-  d3dpp.BackBufferFormat = color_depth_to_d3d_format(mode.ColorDepth);
+  d3dpp.BackBufferFormat = color_depth_to_d3d_format(mode.ColorDepth, false /* opaque */);
   d3dpp.BackBufferCount = 1;
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
@@ -702,7 +718,7 @@ void D3DGraphicsDriver::CreateVirtualScreen()
       _srcRect.GetHeight(),
       1,
       D3DUSAGE_RENDERTARGET,
-      color_depth_to_d3d_format(_mode.ColorDepth),
+      color_depth_to_d3d_format(_mode.ColorDepth, false /* opaque */),
       D3DPOOL_DEFAULT,
       &pNativeTexture,
       NULL) != D3D_OK)
@@ -810,7 +826,7 @@ int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth));
+  return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false /* opaque */));
 }
 
 PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
@@ -919,7 +935,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       if (direct3ddevice->CreateOffscreenPlainSurface(
         _srcRect.GetWidth(),
         _srcRect.GetHeight(),
-        color_depth_to_d3d_format(_mode.ColorDepth),
+        color_depth_to_d3d_format(_mode.ColorDepth, false /* opaque */),
         D3DPOOL_SYSTEMMEM,
         &surface,
         NULL) != D3D_OK)

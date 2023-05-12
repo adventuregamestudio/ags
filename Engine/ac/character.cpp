@@ -182,21 +182,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 void Character_AnimateEx(CharacterInfo *chaa, int loop, int delay, int repeat,
     int blocking, int direction, int sframe, int volume = 100)
 {
-    if (direction == FORWARDS)
-        direction = 0;
-    else if (direction == BACKWARDS)
-        direction = 1;
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
-
-    if ((repeat < 0) || (repeat > 1))
-        quit("!Character.Animate: invalid repeat value");
-    if ((blocking < 0) || (blocking > 1))
-        quit("!Character.Animate: invalid blocking value");
-    if ((direction < 0) || (direction > 1))
-        quit("!Character.Animate: invalid direction");
+    ValidateViewAnimParams("Character.Animate", repeat, blocking, direction);
 
     animate_character(chaa, loop, delay, repeat, 0, direction, sframe, volume);
 

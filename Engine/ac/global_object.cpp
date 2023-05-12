@@ -238,7 +238,8 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     if ((direction < 0) || (direction > 1))
         quit("!AnimateObjectEx: invalid direction");
-    if (((rept + 1) < ANIM_ONCE) || ((rept + 1) > ANIM_ONCERESET)) // will convert to 1-based repeat below
+    rept += 1; // convert to 1-based repeat (ANIM_ONCE, ANIM_REPEAT, ANIM_ONCERESET)
+    if ((rept < ANIM_ONCE) || (rept > ANIM_ONCERESET))
         quit("!AnimateObjectEx: invalid repeat value");    
 
     // reverse animation starts at the *previous frame*
@@ -257,10 +258,9 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obn, objs[obn].view +1, loopn, spdd, rept, sframe);
 
-    objs[obn].cycling = rept+1 + (direction * 10);
+    objs[obn].set_animating(rept, direction == 0, spdd);
     objs[obn].loop = (uint16_t)loopn;
     objs[obn].frame = (uint16_t)sframe;
-    objs[obn].overall_speed=spdd;
     objs[obn].wait = spdd+views[objs[obn].view].loops[loopn].frames[objs[obn].frame].speed;
     int pic = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
     objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);

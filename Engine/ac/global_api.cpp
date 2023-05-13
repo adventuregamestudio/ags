@@ -111,15 +111,15 @@ RuntimeScriptValue Sc_AnimateCharacter6(const RuntimeScriptValue *params, int32_
 }
 
 // void (int obn,int loopn,int spdd,int rept)
-RuntimeScriptValue Sc_AnimateObject(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_AnimateObject4(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT4(AnimateObject);
+    API_SCALL_VOID_PINT4(AnimateObject4);
 }
 
 // void (int obn,int loopn,int spdd,int rept, int direction, int blocking)
-RuntimeScriptValue Sc_AnimateObjectEx(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_AnimateObject6(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT6(AnimateObjectEx);
+    API_SCALL_VOID_PINT6(AnimateObject6);
 }
 
 // int (int cchar1,int cchar2)
@@ -2311,8 +2311,8 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("AnimateButton",            Sc_AnimateButton);
 	ccAddExternalStaticFunction("AnimateCharacter",         Sc_AnimateCharacter4);
 	ccAddExternalStaticFunction("AnimateCharacterEx",       Sc_AnimateCharacter6);
-	ccAddExternalStaticFunction("AnimateObject",            Sc_AnimateObject);
-	ccAddExternalStaticFunction("AnimateObjectEx",          Sc_AnimateObjectEx);
+	ccAddExternalStaticFunction("AnimateObject",            Sc_AnimateObject4);
+	ccAddExternalStaticFunction("AnimateObjectEx",          Sc_AnimateObject6);
 	ccAddExternalStaticFunction("AreCharactersColliding",   Sc_AreCharactersColliding);
 	ccAddExternalStaticFunction("AreCharObjColliding",      Sc_AreCharObjColliding);
 	ccAddExternalStaticFunction("AreObjectsColliding",      Sc_AreObjectsColliding);
@@ -2687,8 +2687,8 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("AnimateButton",            (void*)AnimateButton);
     ccAddExternalFunctionForPlugin("AnimateCharacter",         (void*)AnimateCharacter4);
     ccAddExternalFunctionForPlugin("AnimateCharacterEx",       (void*)AnimateCharacter6);
-    ccAddExternalFunctionForPlugin("AnimateObject",            (void*)AnimateObject);
-    ccAddExternalFunctionForPlugin("AnimateObjectEx",          (void*)AnimateObjectEx);
+    ccAddExternalFunctionForPlugin("AnimateObject",            (void*)AnimateObject4);
+    ccAddExternalFunctionForPlugin("AnimateObjectEx",          (void*)AnimateObject6);
     ccAddExternalFunctionForPlugin("AreCharactersColliding",   (void*)AreCharactersColliding);
     ccAddExternalFunctionForPlugin("AreCharObjColliding",      (void*)AreCharObjColliding);
     ccAddExternalFunctionForPlugin("AreObjectsColliding",      (void*)AreObjectsColliding);

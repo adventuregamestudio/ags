@@ -61,7 +61,7 @@ extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
 extern int GetMaxSprites();
 extern int GetCurrentlyLoadedRoomNumber();
-extern int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate);
+extern int load_template_file(const AGSString &fileName, char **iconDataBuffer, size_t *iconDataSize, bool isRoomTemplate);
 extern HAGSError extract_template_files(const AGSString &templateFileName);
 extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
@@ -597,7 +597,7 @@ namespace AGS
     {
       AGSString fileNameAnsi = TextHelper::ConvertUTF8(fileName);
       char *iconDataBuffer = NULL;
-      long iconDataSize = 0;
+      size_t iconDataSize = 0u;
 
       int success = load_template_file(fileNameAnsi, &iconDataBuffer, &iconDataSize, isRoomTemplate);
 			if (success) 

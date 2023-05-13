@@ -470,7 +470,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
   return HAGSError::None();
 }
 
-void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char **iconDataBuffer, long *bufferSize)
+void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char **iconDataBuffer, size_t *bufferSize)
 {
   // make sure we get the icon from the file
   templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
@@ -487,11 +487,11 @@ void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char 
   else
   {
     *iconDataBuffer = NULL;
-    *bufferSize = 0;
+    *bufferSize = 0u;
   }
 }
 
-int load_template_file(const AGSString &fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
+int load_template_file(const AGSString &fileName, char **iconDataBuffer, size_t *iconDataSize, bool isRoomTemplate)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());

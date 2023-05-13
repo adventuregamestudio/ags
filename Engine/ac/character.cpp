@@ -179,8 +179,8 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
 
 }
 
-void Character_AnimateEx(CharacterInfo *chaa, int loop, int delay, int repeat,
-    int blocking, int direction, int sframe, int volume = 100)
+void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
+    int blocking, int direction, int sframe, int volume)
 {
     ValidateViewAnimParams("Character.Animate", repeat, blocking, direction);
 
@@ -190,8 +190,8 @@ void Character_AnimateEx(CharacterInfo *chaa, int loop, int delay, int repeat,
         GameLoopUntilValueIsZero(&chaa->animating);
 }
 
-void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
-    Character_AnimateEx(chaa, loop, delay, repeat, blocking, direction, 0, 100 /* full volume */);
+void Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
+    Character_Animate(chaa, loop, delay, repeat, blocking, direction, 0, 100 /* full volume */);
 }
 
 void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos) 
@@ -2987,19 +2987,19 @@ RuntimeScriptValue Sc_Character_AddWaypoint(void *self, const RuntimeScriptValue
 }
 
 // void | CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction
-RuntimeScriptValue Sc_Character_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Character_Animate5(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(CharacterInfo, Character_Animate);
+    API_OBJCALL_VOID_PINT5(CharacterInfo, Character_Animate5);
 }
 
 RuntimeScriptValue Sc_Character_Animate6(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT6(CharacterInfo, Character_AnimateEx);
+    API_OBJCALL_VOID_PINT6(CharacterInfo, Character_Animate);
 }
 
 RuntimeScriptValue Sc_Character_Animate7(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT7(CharacterInfo, Character_AnimateEx);
+    API_OBJCALL_VOID_PINT7(CharacterInfo, Character_Animate);
 }
 
 // void | CharacterInfo *chaa, int room, int x, int y
@@ -3860,7 +3860,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
 {
     ccAddExternalObjectFunction("Character::AddInventory^2",            Sc_Character_AddInventory);
 	ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
-	ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate);
+	ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate5);
     ccAddExternalObjectFunction("Character::Animate^6",                 Sc_Character_Animate6);
     ccAddExternalObjectFunction("Character::Animate^7",                 Sc_Character_Animate7);
 	ccAddExternalObjectFunction("Character::ChangeRoom^3",              Sc_Character_ChangeRoom);
@@ -4028,7 +4028,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
 
     ccAddExternalFunctionForPlugin("Character::AddInventory^2",            (void*)Character_AddInventory);
     ccAddExternalFunctionForPlugin("Character::AddWaypoint^2",             (void*)Character_AddWaypoint);
-    ccAddExternalFunctionForPlugin("Character::Animate^5",                 (void*)Character_Animate);
+    ccAddExternalFunctionForPlugin("Character::Animate^5",                 (void*)Character_Animate5);
     ccAddExternalFunctionForPlugin("Character::ChangeRoom^3",              (void*)Character_ChangeRoom);
     ccAddExternalFunctionForPlugin("Character::ChangeRoomAutoPosition^2",  (void*)Character_ChangeRoomAutoPosition);
     ccAddExternalFunctionForPlugin("Character::ChangeView^1",              (void*)Character_ChangeView);

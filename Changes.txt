@@ -16,6 +16,8 @@ Editor:
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
  - Added BlendMode property to Characters, GUI and Room Objects.
+ - Added readonly Length property to AudioClips, for the reference.
+ - Added "Leave room after fade-out" event to Rooms.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
 
 Compiler:
@@ -46,25 +48,60 @@ Compiler:
    chain multiple commands including function calls, e.g. GetObject().MyVariable...and so on.
  - Two sequenced string literals ("text" "text") are now automatically concatenated.
 
+Scripting:
+ - Support having managed pointers inside managed structs.
+
 Script API:
  - Most of the deprecated API is now removed completely.
- - Added SCRIPT_EXT_AGS4 which tells whether extended script syntax is supported by the compiler.
+ - Added SCRIPT_EXT_AGS4 macro which tells whether extended script syntax is supported
+   by the compiler.
+ - Added SCRIPT_EXT_NESTEDPOINTERS macro which tells whether nested managed structs are
+   supported by the compiler.
  - Added BlendMode enum.
  - Added Character.BlendMode, GUI.BlendMode, Object.BlendMode, Overlay.BlendMode.
+ - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
    Overlay.Rotation.
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.
+ - Implemented Room's "After fade-out" event.
+ - Added eEventLeaveRoomAfterFadeout event for the global "on_event".
+ - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
+ - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
+ - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
 
 Engine:
  - Animated buttons now display flipped frames correctly.
  - (possibly) Fixed characters sometimes keep walking animation for a short time after arriving
    to their destination.
  - Added FLAC support for music, speech and sound effects.
+ - Added "--print-rtti" command line option which prints script RTTI table to the log.
 
 
 ===================================================================================================
+
+VERSION 3.6.0 - Patch 1, May 2023
+
+Editor:
+ - Fixed room's deprecated setting LegacyMusicVolumeAdjustment not applied correctly.
+
+Engine:
+ - Fixed Room Objects whose dynamic sprite was deleted in "leave room" event becoming
+   invisible during fade-out transition. Logically this has to happen, but historically
+   they kept displaying until the transition end, so we restored this behavior for compatibility,
+   and simply because there's no "after fade-out" event in the engine yet to delete these sprites.
+ - Fixed Game.StopAudio() fails to remove queued clips if no particular audio type id is requested.
+ - Fixed performance regression in the script related to long loops (regression in 3.6.0).
+ - Fixed memory leak occuring when printing text in Right-to-left mode (regression in 3.6.0).
+ - Fixed rare mistake during text wrapping which may occur if a Unicode text is cut in the middle
+   of the word.
+ - Fixed playing certain WAVs caused game to freeze forever on exit.
+
+Compatibility:
+ - Fixed frame-linked sounds not playing in the games made before 3.6.0. 
+ - Allow game to call DynamicSprite.Create() with negative size, clamping it to 1x1.
+
 
 VERSION 3.6.0, April 2023
 

@@ -1816,6 +1816,14 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 	return tempsprite;
 }
 
+Common::Bitmap *CreateOpaqueNativeBitmap(System::Drawing::Bitmap^ bmp,
+    RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth)
+{
+    Common::Bitmap *newbmp = CreateBlockFromBitmap(bmp, imgpal, fixColourDepth, keepTransparency, originalColDepth);
+    BitmapHelper::MakeOpaque(newbmp);
+    return newbmp;
+}
+
 void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
     SysBitmap ^bmp, bool useExactPalette, bool sharePalette)
 {
@@ -1825,7 +1833,7 @@ void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
     }
 
     RGB oldpale[256];
-    Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
+    Common::Bitmap *newbg = CreateOpaqueNativeBitmap(bmp, oldpale, true, false, NULL);
     if (newbg->GetColorDepth() == 8) 
     {
         for (int aa = 0; aa < 256; aa++)
@@ -1860,34 +1868,6 @@ void SetNativeRoomBackground(RoomStruct &room, int backgroundNumber,
     room.BgFrames[backgroundNumber].Graphic.reset(newbg);
 }
 
-void set_rgb_mask_from_alpha_channel(Common::Bitmap *image)
-{
-	for (int y = 0; y < image->GetHeight(); y++)
-	{
-		unsigned long* thisLine = (unsigned long*)image->GetScanLine(y);
-		for (int x = 0; x < image->GetWidth(); x++)
-		{
-			if ((thisLine[x] & 0xff000000) == 0)
-			{
-				thisLine[x] = MASK_COLOR_32;
-			}
-		}
-	}
-}
-
-void set_opaque_alpha_channel(Common::Bitmap *image)
-{
-	for (int y = 0; y < image->GetHeight(); y++)
-	{
-		unsigned long* thisLine = (unsigned long*)image->GetScanLine(y);
-		for (int x = 0; x < image->GetWidth(); x++)
-		{
-			if (thisLine[x] != MASK_COLOR_32)
-			  thisLine[x] |= 0xff000000;
-		}
-	}
-}
-
 Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours,
     bool useRoomBackgroundColours, bool alphaChannel, int *out_flags)
 {
@@ -1915,12 +1895,12 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
     {
         if (tempsprite->GetColorDepth() == 32)
         { // change pixels with alpha 0 to MASK_COLOR_32
-            set_rgb_mask_from_alpha_channel(tempsprite);
+            BitmapHelper::ReplaceAlphaWithRGBMask(tempsprite);
         }
     }
     else if (tempsprite->GetColorDepth() == 32)
     { // ensure that every pixel has full alpha (0xFF)
-        set_opaque_alpha_channel(tempsprite);
+        BitmapHelper::MakeOpaqueSkipMask(tempsprite);
     }
 
     if (out_flags)

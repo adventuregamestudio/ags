@@ -83,6 +83,9 @@ namespace BitmapHelper
     Bitmap *AdjustBitmapSize(Bitmap *src, int width, int height);
     // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
     void    MakeOpaque(Bitmap *bmp);
+    // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
+    // Skips mask color (leaves it with zero alpha).
+    void    MakeOpaqueSkipMask(Bitmap *bmp);
     // Replaces fully transparent (alpha = 0) pixels with standard mask color.
     void    ReplaceAlphaWithRGBMask(Bitmap *bmp);
     // Copy transparency mask and/or alpha channel from one bitmap into another.

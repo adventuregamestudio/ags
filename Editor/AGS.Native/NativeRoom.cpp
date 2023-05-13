@@ -14,6 +14,7 @@ using SysBitmap = System::Drawing::Bitmap;
 AGSBitmap *CreateBlockFromBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);
 extern SysBitmap^ ConvertBlockToBitmap32(AGSBitmap *todraw, int width, int height);
 extern SysBitmap^ ConvertBlockToBitmap(AGSBitmap *todraw);
+AGSBitmap *CreateOpaqueNativeBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);
 extern void convert_room_from_native(const RoomStruct &rs, AGS::Types::Room ^room, System::Text::Encoding ^defEncoding);
 extern void convert_room_to_native(Room ^room, RoomStruct &rs);
 extern AGSString load_room_file(RoomStruct &rs, const AGSString &filename);
@@ -112,7 +113,7 @@ void NativeRoom::SetAreaMask(AGS::Types::RoomAreaMaskType maskType, SysBitmap ^b
     bmp->Palette = palette;
 
     RGB pal[256]; // dummy, used as a return value from CreateBlockFromBitmap
-    AGSBitmap* newMask = CreateBlockFromBitmap(bmp, pal, false, false, nullptr);
+    AGSBitmap* newMask = CreateOpaqueNativeBitmap(bmp, pal, false, false, nullptr);
     validate_mask(newMask, "imported", (nativeType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
     _rs->SetMask(nativeType, newMask);
 }

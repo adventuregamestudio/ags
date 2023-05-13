@@ -234,21 +234,9 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
     if (obj.view == RoomObject::NoView)
         quit("!AnimateObject: object has not been assigned a view");
-    if (loopn < 0 || loopn >= views[obj.view].numLoops)
-        quit("!AnimateObject: invalid loop number specified");
-    if (views[obj.view].loops[loopn].numFrames < 1)
-        quit("!AnimateObject: no frames in the specified view loop");
-    if (sframe < 0 || sframe >= views[obj.view].loops[loopn].numFrames)
-        quit("!AnimateObject: invalid starting frame number specified"); 
 
+    ValidateViewAnimVLF("Object.Animate", obj.view, loopn, sframe);
     ValidateViewAnimParams("Object.Animate", rept, blocking, direction);
-
-    // reverse animation starts at the *previous frame*
-    if (direction) {
-        sframe--;
-        if (sframe < 0)
-            sframe = views[obj.view].loops[loopn].numFrames - (-sframe);
-    }
 
     if (loopn > UINT16_MAX || sframe > UINT16_MAX)
     {
@@ -257,11 +245,12 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
         return;
     }
 
-    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d", obn, obj.view +1, loopn, spdd, rept, sframe);
+    debug_script_log("Obj %d start anim view %d loop %d, speed %d, repeat %d, frame %d",
+        obn, obj.view + 1, loopn, spdd, rept, sframe);
 
     obj.set_animating(rept, direction == 0, spdd);
     obj.loop = (uint16_t)loopn;
-    obj.frame = (uint16_t)sframe;
+    obj.frame = (uint16_t)SetFirstAnimFrame(obj.view, loopn, sframe, direction);
     obj.wait = spdd+views[obj.view].loops[loopn].frames[obj.frame].speed;
     int pic = views[obj.view].loops[loopn].frames[obj.frame].pic;
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);

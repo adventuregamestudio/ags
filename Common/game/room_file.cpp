@@ -500,13 +500,6 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
         }
     }
 
-    // Prior to ags4 room backgrounds were ignoring alpha channel
-    if (data_ver < kRoomVersion_399)
-    {
-        for (int i = 0; i < room->BgFrameCount; ++i)
-            BitmapHelper::MakeOpaque(room->BgFrames[i].Graphic.get());
-    }
-
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(RGB) * 256);
     return HRoomFileError::None();

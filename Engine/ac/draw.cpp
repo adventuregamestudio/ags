@@ -282,7 +282,7 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 // TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
 // conversions, so that we did not have to guess.
 //
-Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap)
+static Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool make_opaque = false)
 {
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int game_col_depth = game.GetColorDepth();
@@ -318,7 +318,10 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap)
     if ((game_col_depth == 32) && (bmp_col_depth == 32))
     {
         // TODO: find out if this may be removed at some point
-        set_rgb_mask_using_alpha_channel(new_bitmap);
+        if (make_opaque)
+            BitmapHelper::MakeOpaque(new_bitmap);
+        else
+            BitmapHelper::ReplaceAlphaWithRGBMask(new_bitmap);
     }
     // In 32-bit game hicolor bitmaps must be converted to the true color
     else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
@@ -353,17 +356,17 @@ Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
     return GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()));
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap)
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool make_opaque)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap);
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, make_opaque);
     if (new_bitmap != bitmap)
         delete bitmap;
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap)
+PBitmap PrepareSpriteForUse(PBitmap bitmap, bool make_opaque)
 {
-    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get());
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap.get(), make_opaque);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 

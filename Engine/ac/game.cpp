@@ -952,7 +952,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
         if (slot > 0)
         {
             // add it into the sprite set
-            add_dynamic_sprite(slot, PrepareSpriteForUse(desc.UserImage.release()));
+            add_dynamic_sprite(slot, PrepareSpriteForUse(desc.UserImage.release(), true /* force opaque */));
             want_shot = slot;
         }
     }

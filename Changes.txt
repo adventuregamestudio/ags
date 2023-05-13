@@ -1,5 +1,27 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 1, May 2023
+
+Editor:
+ - Fixed room's deprecated setting LegacyMusicVolumeAdjustment not applied correctly.
+
+Engine:
+ - Fixed Room Objects whose dynamic sprite was deleted in "leave room" event becoming
+   invisible during fade-out transition. Logically this has to happen, but historically
+   they kept displaying until the transition end, so we restored this behavior for compatibility,
+   and simply because there's no "after fade-out" event in the engine yet to delete these sprites.
+ - Fixed Game.StopAudio() fails to remove queued clips if no particular audio type id is requested.
+ - Fixed performance regression in the script related to long loops (regression in 3.6.0).
+ - Fixed memory leak occuring when printing text in Right-to-left mode (regression in 3.6.0).
+ - Fixed rare mistake during text wrapping which may occur if a Unicode text is cut in the middle
+   of the word.
+ - Fixed playing certain WAVs caused game to freeze forever on exit.
+
+Compatibility:
+ - Fixed frame-linked sounds not playing in the games made before 3.6.0. 
+ - Allow game to call DynamicSprite.Create() with negative size, clamping it to 1x1.
+
+
 VERSION 3.6.0, April 2023
 
 Common features:

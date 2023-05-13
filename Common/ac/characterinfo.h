@@ -105,7 +105,7 @@ struct CharacterInfo {
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }
-    inline bool get_anim_repeat()    const { return (animating & CHANIM_REPEAT) != 0; }
+    inline int  get_anim_repeat()    const { return (animating & CHANIM_REPEAT) ? ANIM_REPEAT : ANIM_ONCE; }
     inline bool get_anim_forwards()  const { return (animating & CHANIM_BACKWARDS) == 0; }
     inline int  get_anim_delay()     const { return (animating >> 8) & 0xFF; }
     inline void set_animating(bool repeat, bool forwards, int delay)

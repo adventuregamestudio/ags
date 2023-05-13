@@ -85,7 +85,7 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     abtn.view = view;
     abtn.loop = loop;
     abtn.speed = speed;
-    abtn.repeat = repeat;
+    abtn.repeat = static_cast<bool>(repeat) ? ANIM_REPEAT : ANIM_ONCE; // for now, clamp to supported modes
     abtn.blocking = blocking;
     abtn.direction = direction;
     abtn.frame = sframe;
@@ -260,8 +260,7 @@ bool UpdateAnimatingButton(int bu)
         abtn.wait--;
         return true;
     }
-    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction,
-            abtn.repeat != 0 ? ANIM_REPEAT : ANIM_ONCE))
+    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction, abtn.repeat))
         return false;
     CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.volume);
     abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;

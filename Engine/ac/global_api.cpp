@@ -2224,7 +2224,7 @@ RuntimeScriptValue Sc_SkipWait(const RuntimeScriptValue *params, int32_t param_c
 
 //=============================================================================
 //
-// Exclusive API for Plugins
+// Exclusive variadic API implementation for Plugins
 //
 //=============================================================================
 

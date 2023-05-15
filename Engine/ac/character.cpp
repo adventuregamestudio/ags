@@ -3841,7 +3841,7 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
 
 //=============================================================================
 //
-// Exclusive API for Plugins
+// Exclusive variadic API implementation for Plugins
 //
 //=============================================================================
 

@@ -475,7 +475,7 @@ RuntimeScriptValue Sc_strlen(void *self, const RuntimeScriptValue *params, int32
 
 //=============================================================================
 //
-// Exclusive API for Plugins
+// Exclusive variadic API implementation for Plugins
 //
 //=============================================================================
 

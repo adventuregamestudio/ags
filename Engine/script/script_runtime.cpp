@@ -21,19 +21,26 @@
 #include "script/systemimports.h"
 
 
-bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
+bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) != UINT32_MAX;
+    return simp.add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&
+        (!dirfn ||
+        simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
 }
 
-bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *pfn)
+bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *scfn, void *dirfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), nullptr) != UINT32_MAX;
+    return simp.add(name, RuntimeScriptValue().SetObjectFunction(scfn), nullptr) != UINT32_MAX &&
+        (!dirfn ||
+        simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
 }
 
-bool ccAddExternalFunctionForPlugin(const String &name, void *pfn)
+bool ccAddExternalFunction(const ScFnRegister &scfnreg)
 {
-    return simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
+    String name = String::Wrapper(scfnreg.Name);
+    return simp.add(name, scfnreg.Fn, nullptr) != UINT32_MAX &&
+        (scfnreg.PlFn.IsNull() ||
+        simp_for_plugin.add(name, scfnreg.PlFn, nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalPluginFunction(const String &name, void *pfn)

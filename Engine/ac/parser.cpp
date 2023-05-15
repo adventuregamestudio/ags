@@ -332,15 +332,12 @@ RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count
 
 void RegisterParserAPI()
 {
-    ccAddExternalStaticFunction("Parser::FindWordID^1",     Sc_Parser_FindWordID);
-    ccAddExternalStaticFunction("Parser::ParseText^1",      Sc_ParseText);
-    ccAddExternalStaticFunction("Parser::SaidUnknownWord^0",Sc_Parser_SaidUnknownWord);
-    ccAddExternalStaticFunction("Parser::Said^1",           Sc_Said);
+    ScFnRegister parser_api[] = {
+        { "Parser::FindWordID^1",     API_FN_PAIR(Parser_FindWordID) },
+        { "Parser::ParseText^1",      API_FN_PAIR(ParseText) },
+        { "Parser::SaidUnknownWord^0",API_FN_PAIR(Parser_SaidUnknownWord) },
+        { "Parser::Said^1",           API_FN_PAIR(Said) },
+    };
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("Parser::FindWordID^1",     (void*)Parser_FindWordID);
-    ccAddExternalFunctionForPlugin("Parser::ParseText^1",      (void*)ParseText);
-    ccAddExternalFunctionForPlugin("Parser::SaidUnknownWord^0",(void*)Parser_SaidUnknownWord);
-    ccAddExternalFunctionForPlugin("Parser::Said^1",           (void*)Said);
+    ccAddExternalFunctions(parser_api);
 }

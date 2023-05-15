@@ -23,15 +23,32 @@ struct StaticArray;
 
 using AGS::Common::String;
 
+// Helper struct for declaring a script API function registration
+struct ScFnRegister
+{
+    const char *Name = nullptr;
+    RuntimeScriptValue Fn; // for script VM calls
+    RuntimeScriptValue PlFn; // for plugins, direct unsafe call style
 
-// Following functions register engine API symbols for script and plugins.
+    ScFnRegister() = default;
+    ScFnRegister(const char *name, ScriptAPIFunction *fn, void *plfn = nullptr)
+        : Name(name)
+        , Fn(RuntimeScriptValue().SetStaticFunction(fn))
+        , PlFn(RuntimeScriptValue().SetPluginFunction(plfn)) {}
+    ScFnRegister(const char *name, ScriptAPIObjectFunction *fn, void *plfn = nullptr)
+        : Name(name)
+        , Fn(RuntimeScriptValue().SetObjectFunction(fn))
+        , PlFn(RuntimeScriptValue().SetPluginFunction(plfn)) {}
+};
+
+// Following two functions register engine API symbols for script and plugins.
 // Calls from script is handled by specific "translator" functions, which
 // unpack script interpreter's values into the real arguments and call the
 // actual engine's function. For plugins we have to provide actual engine
-// function directly.
-bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn);
-bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *pfn);
-bool ccAddExternalFunctionForPlugin(const String &name, void *pfn);
+// function directly (dirfn parameter).
+bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn = nullptr);
+bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *scfn, void *dirfn = nullptr);
+bool ccAddExternalFunction(const ScFnRegister &scfnreg);
 // Register a function, exported from a plugin. Requires direct function pointer only.
 bool ccAddExternalPluginFunction(const String &name, void *pfn);
 // Register engine objects for script's access.
@@ -44,6 +61,14 @@ bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prv
 void ccRemoveExternalSymbol(const String &name);
 // Remove all external symbols, allowing you to start from scratch
 void ccRemoveAllSymbols();
+
+// Registers an array of static functions
+template <size_t N>
+inline void ccAddExternalFunctions(const ScFnRegister (&arr)[N])
+{
+    for (const ScFnRegister *it = arr; it != (arr + std::size(arr)); ++it)
+        ccAddExternalFunction(*it);
+}
 
 // Get the address of an exported variable in the script
 void *ccGetSymbolAddress(const String &name);

@@ -30,8 +30,8 @@
 
 void    Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex);
 void    Character_AddWaypoint(CharacterInfo *chaa, int x, int y);
-void    Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction,
-                          int sframe = 0, int volume = 100);
+void    Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
+                          int blocking, int direction, int sframe = 0, int volume = 100);
 void    Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction);
 void    Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos);
 void    Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);

@@ -789,6 +789,11 @@ bool Game_ChangeSpeechVox(const char *newFilename)
     return true;
 }
 
+int Game_GetAudioClipCount()
+{
+    return game.audioClips.size();
+}
+
 ScriptAudioClip *Game_GetAudioClip(int index)
 {
     if (index < 0 || (size_t)index >= game.audioClips.size())
@@ -1837,7 +1842,7 @@ RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_GetAudioClipCount(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(game.audioClips.size());
+    API_SCALL_INT(Game_GetAudioClipCount);
 }
 
 RuntimeScriptValue Sc_Game_GetAudioClip(const RuntimeScriptValue *params, int32_t param_count)

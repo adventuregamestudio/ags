@@ -377,7 +377,7 @@ public:
         case kScValStaticObject:
         case kScValStaticArray:
         case kScValDynamicObject:
-            return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32((const char*)this->Ptr, this->IValue));
+            return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32(this->Ptr, this->IValue));
         default:
             return RuntimeScriptValue().SetInt32(*(int32_t*)this->GetPtrWithOffset());
         }
@@ -431,7 +431,7 @@ public:
         case kScValStaticArray:
         case kScValDynamicObject:
         {
-            this->ObjMgr->WriteInt32((const char*)this->Ptr, this->IValue, rval.IValue);
+            this->ObjMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
             break;
         }
         default:

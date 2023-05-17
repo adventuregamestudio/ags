@@ -15,7 +15,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
-int ScriptSetBase::Dispose(const char* /*address*/, bool /*force*/)
+int ScriptSetBase::Dispose(void* /*address*/, bool /*force*/)
 {
     Clear();
     delete this;
@@ -27,12 +27,12 @@ const char *ScriptSetBase::GetType()
     return "StringSet";
 }
 
-size_t ScriptSetBase::CalcSerializeSize(const char* /*address*/)
+size_t ScriptSetBase::CalcSerializeSize(void* /*address*/)
 {
     return CalcContainerSize();
 }
 
-void ScriptSetBase::Serialize(const char* /*address*/, Stream *out)
+void ScriptSetBase::Serialize(void* /*address*/, Stream *out)
 {
     out->WriteInt32(IsSorted());
     out->WriteInt32(IsCaseSensitive());

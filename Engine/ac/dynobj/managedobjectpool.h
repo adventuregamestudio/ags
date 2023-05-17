@@ -32,9 +32,7 @@ private:
     struct ManagedObject {
         ScriptValueType obj_type;
         int32_t handle;
-        // TODO: this makes no sense having this as "const char*",
-        // void* will be proper (and in all related functions)
-        const char *addr;
+        void *addr;
         ICCDynamicObject *callback;
         int refCount;
 
@@ -42,7 +40,7 @@ private:
 
         ManagedObject() 
             : obj_type(kScValUndefined), handle(0), addr(nullptr), callback(nullptr), refCount(0) {}
-        ManagedObject(ScriptValueType obj_type, int32_t handle, const char *addr, ICCDynamicObject * callback) 
+        ManagedObject(ScriptValueType obj_type, int32_t handle, void *addr, ICCDynamicObject * callback) 
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
@@ -51,7 +49,7 @@ private:
     int32_t nextHandle {}; // TODO: manage nextHandle's going over INT32_MAX !
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
-    std::unordered_map<const char *, int32_t> handleByAddress;
+    std::unordered_map<void*, int32_t> handleByAddress;
 
     int Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
@@ -61,19 +59,19 @@ public:
     int32_t AddRef(int32_t handle);
     int CheckDispose(int32_t handle);
     int32_t SubRef(int32_t handle);
-    int32_t AddressToHandle(const char *addr);
-    const char* HandleToAddress(int32_t handle);
+    int32_t AddressToHandle(void *addr);
+    void* HandleToAddress(int32_t handle);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
-    int RemoveObject(const char *address);
+    int RemoveObject(void *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(const char *address, ICCDynamicObject *callback, ScriptValueType obj_type);
-    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, ScriptValueType obj_type, int handle);
+    int AddObject(void *address, ICCDynamicObject *callback, ScriptValueType obj_type);
+    int AddUnserializedObject(void *address, ICCDynamicObject *callback, ScriptValueType obj_type, int handle);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();
     ManagedObjectPool();
 
-    const char* disableDisposeForObject {nullptr};
+    void *disableDisposeForObject {nullptr};
 };
 
 extern ManagedObjectPool pool;

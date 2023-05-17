@@ -22,12 +22,12 @@ struct CCCharacter final : AGSCCDynamicObject {
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-    void WriteInt16(const char *address, intptr_t offset, int16_t val) override;
+    void WriteInt16(void *address, intptr_t offset, int16_t val) override;
 protected:
     // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const char *address) override;
+    size_t CalcSerializeSize(void *address) override;
     // Write object data into the provided stream
-    void Serialize(const char *address, AGS::Common::Stream *out) override;
+    void Serialize(void *address, AGS::Common::Stream *out) override;
 };
 
 #endif // __AC_CCCHARACTER_H

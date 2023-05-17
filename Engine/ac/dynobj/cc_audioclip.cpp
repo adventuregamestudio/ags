@@ -25,12 +25,12 @@ const char *CCAudioClip::GetType() {
     return "AudioClip";
 }
 
-size_t CCAudioClip::CalcSerializeSize(const char * /*address*/)
+size_t CCAudioClip::CalcSerializeSize(void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCAudioClip::Serialize(const char *address, Stream *out) {
+void CCAudioClip::Serialize(void *address, Stream *out) {
     ScriptAudioClip *ach = (ScriptAudioClip*)address;
     out->WriteInt32(ach->id);
 }

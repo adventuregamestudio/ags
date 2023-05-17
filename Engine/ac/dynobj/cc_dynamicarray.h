@@ -34,14 +34,14 @@ public:
         uint32_t TotalSize = 0u;
     };
 
-    inline static const Header &GetHeader(const char *address)
+    inline static const Header &GetHeader(void *address)
     {
-        return reinterpret_cast<const Header&>(*(address - MemHeaderSz));
+        return reinterpret_cast<const Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
     }
 
     // return the type name of the object
     const char *GetType() override;
-    int Dispose(const char *address, bool force) override;
+    int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
     // Create managed array object and return a pointer to the beginning of a buffer
     DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
@@ -54,9 +54,9 @@ private:
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const char *address) override;
+    size_t CalcSerializeSize(void *address) override;
     // Write object data into the provided stream
-    void Serialize(const char *address, AGS::Common::Stream *out) override;
+    void Serialize(void *address, AGS::Common::Stream *out) override;
 };
 
 extern CCDynamicArray globalDynamicArray;

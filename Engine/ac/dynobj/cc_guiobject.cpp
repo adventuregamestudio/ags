@@ -25,12 +25,12 @@ const char *CCGUIObject::GetType() {
     return "GUIObject";
 }
 
-size_t CCGUIObject::CalcSerializeSize(const char * /*address*/)
+size_t CCGUIObject::CalcSerializeSize(void* /*address*/)
 {
     return sizeof(int32_t) * 2;
 }
 
-void CCGUIObject::Serialize(const char *address, Stream *out) {
+void CCGUIObject::Serialize(void *address, Stream *out) {
     GUIObject *guio = (GUIObject*)address;
     out->WriteInt32(guio->ParentId);
     out->WriteInt32(guio->Id);

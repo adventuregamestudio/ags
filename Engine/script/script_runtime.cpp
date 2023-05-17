@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "script/script_runtime.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -19,11 +19,28 @@
 #include "ac/statobj/staticobject.h"
 #include "script/cc_common.h"
 #include "script/systemimports.h"
-#include "script/script_runtime.h"
 
-bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
+
+bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), nullptr) != UINT32_MAX;
+    return simp.add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&
+        (!dirfn ||
+        simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
+}
+
+bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *scfn, void *dirfn)
+{
+    return simp.add(name, RuntimeScriptValue().SetObjectFunction(scfn), nullptr) != UINT32_MAX &&
+        (!dirfn ||
+        simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
+}
+
+bool ccAddExternalFunction(const ScFnRegister &scfnreg)
+{
+    String name = String::Wrapper(scfnreg.Name);
+    return simp.add(name, scfnreg.Fn, nullptr) != UINT32_MAX &&
+        (scfnreg.PlFn.IsNull() ||
+        simp_for_plugin.add(name, scfnreg.PlFn, nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalPluginFunction(const String &name, void *pfn)
@@ -46,11 +63,6 @@ bool ccAddExternalDynamicObject(const String &name, void *ptr, ICCDynamicObject 
     return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), nullptr) != UINT32_MAX;
 }
 
-bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *pfn)
-{
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), nullptr) != UINT32_MAX;
-}
-
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
 {
     return simp.add(name, prval, inst) != UINT32_MAX;
@@ -66,16 +78,6 @@ void ccRemoveAllSymbols()
     simp.clear();
 }
 
-ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = {nullptr,
-nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
-nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-
-void nullfree(void *data)
-{
-    if (data != nullptr)
-        free(data);
-}
-
 void *ccGetSymbolAddress(const String &name)
 {
     const ScriptImport *import = simp.getByName(name);
@@ -84,11 +86,6 @@ void *ccGetSymbolAddress(const String &name)
         return import->Value.Ptr;
     }
     return nullptr;
-}
-
-bool ccAddExternalFunctionForPlugin(const String &name, void *pfn)
-{
-    return simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) == 0;
 }
 
 void *ccGetSymbolAddressForPlugin(const String &name)

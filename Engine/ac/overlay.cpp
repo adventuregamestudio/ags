@@ -238,19 +238,28 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     return _display_main(x, y, width, text, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
 }
 
-ScriptOverlay* Overlay_CreateGraphicalEx(bool room_layer, int x, int y, int slot, int transparent, bool clone)
+ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)
 {
-    auto *over = Overlay_CreateGraphicCore(room_layer, x, y, slot, transparent != 0, clone);
+    auto *over = Overlay_CreateGraphicCore(room_layer, x, y, slot, transparent, clone);
     return over ? create_scriptoverlay(*over) : nullptr;
 }
 
-ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent)
+ScriptOverlay* Overlay_CreateGraphical4(int x, int y, int slot, bool transparent)
 {
-    auto *over = Overlay_CreateGraphicCore(false, x, y, slot, transparent != 0, true); // always clone
-    return over ? create_scriptoverlay(*over) : nullptr;
+    return Overlay_CreateGraphical(x, y, slot, transparent, true /* clone */);
 }
 
-ScriptOverlay* Overlay_CreateTextualEx(bool room_layer, int x, int y, int width, int font, int colour, const char* text)
+ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, bool transparent, bool clone)
+{
+    return Overlay_CreateGraphicalImpl(false, x, y, slot, transparent, clone);
+}
+
+ScriptOverlay* Overlay_CreateRoomGraphical(int x, int y, int slot, bool transparent, bool clone)
+{
+    return Overlay_CreateGraphicalImpl(true, x, y, slot, transparent, clone);
+}
+
+ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int width, int font, int colour, const char* text)
 {
     data_to_game_coords(&x, &y);
     width = data_to_game_coord(width);
@@ -259,7 +268,11 @@ ScriptOverlay* Overlay_CreateTextualEx(bool room_layer, int x, int y, int width,
 }
 
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
-    return Overlay_CreateTextualEx(false, x, y, width, font, colour, text);
+    return Overlay_CreateTextualImpl(false, x, y, width, font, colour, text);
+}
+
+ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char* text) {
+    return Overlay_CreateTextualImpl(true, x, y, width, font, colour, text);
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover) {
@@ -534,35 +547,26 @@ void recreate_overlay_ddbs()
 #include "script/script_runtime.h"
 
 // ScriptOverlay* (int x, int y, int slot, int transparent)
-RuntimeScriptValue Sc_Overlay_CreateGraphical(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Overlay_CreateGraphical4(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(FUNCTION, 4);
-    ScriptOverlay *overlay = Overlay_CreateGraphicalEx(false, params[0].IValue, params[1].IValue, params[2].IValue,
-        params[3].IValue, true); // always clone image
-    return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
+    API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptOverlay, Overlay_CreateGraphical4);
 }
 
-RuntimeScriptValue Sc_Overlay_CreateGraphicalRef(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Overlay_CreateGraphical(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(FUNCTION, 5);
-    ScriptOverlay *overlay = Overlay_CreateGraphicalEx(false, params[0].IValue, params[1].IValue, params[2].IValue,
-        params[3].IValue, params[4].GetAsBool());
-    return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
+    API_SCALL_OBJAUTO_PINT3_PBOOL2(ScriptOverlay, Overlay_CreateGraphical);
 }
 
 RuntimeScriptValue Sc_Overlay_CreateRoomGraphical(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(FUNCTION, 5);
-    ScriptOverlay *overlay = Overlay_CreateGraphicalEx(true, params[0].IValue, params[1].IValue, params[2].IValue,
-        params[3].IValue, params[4].GetAsBool());
-    return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
+    API_SCALL_OBJAUTO_PINT3_PBOOL2(ScriptOverlay, Overlay_CreateRoomGraphical);
 }
 
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
 RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6);
-    ScriptOverlay *overlay = Overlay_CreateTextualEx(false, params[0].IValue, params[1].IValue, params[2].IValue,
+    ScriptOverlay *overlay = Overlay_CreateTextual(params[0].IValue, params[1].IValue, params[2].IValue,
                                                    params[3].IValue, params[4].IValue, scsf_buffer);
     return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
 }
@@ -570,7 +574,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_Overlay_CreateRoomTextual(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(Overlay_CreateRoomTextual, 6);
-    ScriptOverlay *overlay = Overlay_CreateTextualEx(true, params[0].IValue, params[1].IValue, params[2].IValue,
+    ScriptOverlay *overlay = Overlay_CreateRoomTextual(params[0].IValue, params[1].IValue, params[2].IValue,
         params[3].IValue, params[4].IValue, scsf_buffer);
     return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
 }
@@ -687,7 +691,7 @@ RuntimeScriptValue Sc_Overlay_SetZOrder(void *self, const RuntimeScriptValue *pa
 
 //=============================================================================
 //
-// Exclusive API for Plugins
+// Exclusive variadic API implementation for Plugins
 //
 //=============================================================================
 
@@ -696,6 +700,12 @@ ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     return Overlay_CreateTextual(x, y, width, font, colour, scsf_buffer);
+}
+
+ScriptOverlay* ScPl_Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char *text, ...)
+{
+    API_PLUGIN_SCRIPT_SPRINTF(text);
+    return Overlay_CreateRoomTextual(x, y, width, font, colour, scsf_buffer);
 }
 
 // void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
@@ -707,41 +717,34 @@ void ScPl_Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, c
 
 void RegisterOverlayAPI()
 {
-    ccAddExternalStaticFunction("Overlay::CreateGraphical^4",   Sc_Overlay_CreateGraphical);
-    ccAddExternalStaticFunction("Overlay::CreateGraphical^5",   Sc_Overlay_CreateGraphicalRef);
-    ccAddExternalStaticFunction("Overlay::CreateTextual^106",   Sc_Overlay_CreateTextual);
-    ccAddExternalStaticFunction("Overlay::CreateRoomGraphical^5", Sc_Overlay_CreateRoomGraphical);
-    ccAddExternalStaticFunction("Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual);
-    ccAddExternalObjectFunction("Overlay::SetText^104",         Sc_Overlay_SetText);
-    ccAddExternalObjectFunction("Overlay::Remove^0",            Sc_Overlay_Remove);
-    ccAddExternalObjectFunction("Overlay::get_Valid",           Sc_Overlay_GetValid);
-    ccAddExternalObjectFunction("Overlay::get_X",               Sc_Overlay_GetX);
-    ccAddExternalObjectFunction("Overlay::set_X",               Sc_Overlay_SetX);
-    ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
-    ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
-    ccAddExternalObjectFunction("Overlay::get_Graphic",         Sc_Overlay_GetGraphic);
-    ccAddExternalObjectFunction("Overlay::set_Graphic",         Sc_Overlay_SetGraphic);
-    ccAddExternalObjectFunction("Overlay::get_InRoom",          Sc_Overlay_InRoom);
-    ccAddExternalObjectFunction("Overlay::get_Width",           Sc_Overlay_GetWidth);
-    ccAddExternalObjectFunction("Overlay::set_Width",           Sc_Overlay_SetWidth);
-    ccAddExternalObjectFunction("Overlay::get_Height",          Sc_Overlay_GetHeight);
-    ccAddExternalObjectFunction("Overlay::set_Height",          Sc_Overlay_SetHeight);
-    ccAddExternalObjectFunction("Overlay::get_GraphicWidth",    Sc_Overlay_GetGraphicWidth);
-    ccAddExternalObjectFunction("Overlay::get_GraphicHeight",   Sc_Overlay_GetGraphicHeight);
-    ccAddExternalObjectFunction("Overlay::get_Transparency",    Sc_Overlay_GetTransparency);
-    ccAddExternalObjectFunction("Overlay::set_Transparency",    Sc_Overlay_SetTransparency);
-    ccAddExternalObjectFunction("Overlay::get_ZOrder",          Sc_Overlay_GetZOrder);
-    ccAddExternalObjectFunction("Overlay::set_ZOrder",          Sc_Overlay_SetZOrder);
+    ScFnRegister overlay_api[] = {
+        { "Overlay::CreateGraphical^4",   API_FN_PAIR(Overlay_CreateGraphical4) },
+        { "Overlay::CreateGraphical^5",   API_FN_PAIR(Overlay_CreateGraphical) },
+        { "Overlay::CreateTextual^106",   Sc_Overlay_CreateTextual, ScPl_Overlay_CreateTextual },
+        { "Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical) },
+        { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+        { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
+        { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
+        { "Overlay::get_Valid",           API_FN_PAIR(Overlay_GetValid) },
+        { "Overlay::get_X",               API_FN_PAIR(Overlay_GetX) },
+        { "Overlay::set_X",               API_FN_PAIR(Overlay_SetX) },
+        { "Overlay::get_Y",               API_FN_PAIR(Overlay_GetY) },
+        { "Overlay::set_Y",               API_FN_PAIR(Overlay_SetY) },
+        { "Overlay::get_Graphic",         API_FN_PAIR(Overlay_GetGraphic) },
+        { "Overlay::set_Graphic",         API_FN_PAIR(Overlay_SetGraphic) },
+        { "Overlay::get_InRoom",          API_FN_PAIR(Overlay_InRoom) },
+        { "Overlay::get_Width",           API_FN_PAIR(Overlay_GetWidth) },
+        { "Overlay::set_Width",           API_FN_PAIR(Overlay_SetWidth) },
+        { "Overlay::get_Height",          API_FN_PAIR(Overlay_GetHeight) },
+        { "Overlay::set_Height",          API_FN_PAIR(Overlay_SetHeight) },
+        { "Overlay::get_GraphicWidth",    API_FN_PAIR(Overlay_GetGraphicWidth) },
+        { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
+        { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
+        { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
+        { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
+        { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
+    };
 
-    ccAddExternalFunctionForPlugin("Overlay::CreateGraphical^4",   (void*)Overlay_CreateGraphical);
-    ccAddExternalFunctionForPlugin("Overlay::CreateTextual^106",   (void*)ScPl_Overlay_CreateTextual);
-    ccAddExternalFunctionForPlugin("Overlay::SetText^104",         (void*)ScPl_Overlay_SetText);
-    ccAddExternalFunctionForPlugin("Overlay::Remove^0",            (void*)Overlay_Remove);
-    ccAddExternalFunctionForPlugin("Overlay::get_Valid",           (void*)Overlay_GetValid);
-    ccAddExternalFunctionForPlugin("Overlay::get_X",               (void*)Overlay_GetX);
-    ccAddExternalFunctionForPlugin("Overlay::set_X",               (void*)Overlay_SetX);
-    ccAddExternalFunctionForPlugin("Overlay::get_Y",               (void*)Overlay_GetY);
-    ccAddExternalFunctionForPlugin("Overlay::set_Y",               (void*)Overlay_SetY);
+    ccAddExternalFunctions(overlay_api);
 }

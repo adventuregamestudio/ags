@@ -23,7 +23,9 @@
 void	DrawingSurface_Release(ScriptDrawingSurface* sds);
 // convert actual co-ordinate back to what the script is expecting
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds);
-void	DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int translev);
+void    DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int trans,
+    int dst_x, int dst_y, int dst_width, int dst_height,
+    int src_x, int src_y, int src_width, int src_height);
 void	DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour);
 int		DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds);
 void	DrawingSurface_SetUseHighResCoordinates(ScriptDrawingSurface *sds, int highRes);

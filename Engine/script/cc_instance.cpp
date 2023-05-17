@@ -41,12 +41,6 @@
 using namespace AGS::Common;
 using namespace AGS::Common::Memory;
 
-extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
-extern int gameHasBeenRestored; // in ac/game
-extern ExecutingScript*curscript; // in script/script
-extern new_line_hook_type new_line_hook;
-
-extern ScriptString myScriptStringImpl;
 
 enum ScriptOpArgIsReg
 {
@@ -155,8 +149,13 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
-
 const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
+
+
+extern new_line_hook_type new_line_hook;
+extern ScriptString myScriptStringImpl;
+
+ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = { nullptr };
 
 // Instance thread stack holds a list of running or suspended script instances;
 // In AGS currently only one thread is running, others are waiting in the queue.
@@ -1945,8 +1944,10 @@ void ccInstance::Free()
 
     if ((flags & INSTF_SHAREDATA) == 0)
     {
-        nullfree(globaldata);
-        nullfree(code);
+        if (globaldata)
+            free(globaldata);
+        if (code)
+            free(code);
     }
     globalvars.reset();
     globaldata = nullptr;

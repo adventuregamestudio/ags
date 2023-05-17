@@ -48,6 +48,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     return ScriptSprintf(buffer, buf_length, format, nullptr, 0, &arg_ptr);
 }
 
+// Helper macro for registering an API function for both script and plugin,
+// for the common case where they have similar names: the script's "translator"
+// function's name is derived from the real one by adding a "Sc_" prefix.
+#define API_FN_PAIR(FN_NAME) Sc_##FN_NAME, (void*)FN_NAME
+
 // Helper macros for script functions;
 // asserting for internal mistakes; supressing "unused param" warnings
 #define ASSERT_SELF(METHOD) \
@@ -62,18 +67,6 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define ASSERT_OBJ_PARAM_COUNT(METHOD, X) \
     ASSERT_SELF(METHOD); \
     ASSERT_PARAM_COUNT(METHOD, X)
-
-//-----------------------------------------------------------------------------
-// Get/set variables
-
-#define API_VARGET_INT(VARIABLE) \
-    (void)params; (void)param_count; \
-    return RuntimeScriptValue().SetInt32(VARIABLE)
-
-#define API_VARSET_PINT(VARIABLE) \
-    ASSERT_VARIABLE_VALUE(VARIABLE); \
-    VARIABLE = params[0].IValue; \
-    return RuntimeScriptValue()
 
 //-----------------------------------------------------------------------------
 // Calls to ScriptSprintf with automatic translation
@@ -104,6 +97,13 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     va_start(args, FORMAT_STR); \
     char ScSfBuffer[STD_BUFFER_SIZE]; \
     const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(FORMAT_STR), args); \
+    va_end(args)
+
+#define API_PLUGIN_SCRIPT_SPRINTF_PURE(FORMAT_STR) \
+    va_list args; \
+    va_start(args, FORMAT_STR); \
+    char ScSfBuffer[STD_BUFFER_SIZE]; \
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, STD_BUFFER_SIZE, FORMAT_STR, args); \
     va_end(args)
 
 //-----------------------------------------------------------------------------
@@ -346,6 +346,21 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define API_SCALL_OBJAUTO_PINT5(RET_CLASS, FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 5); \
     RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue); \
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_PINT2_PBOOL(RET_CLASS, FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3); \
+    RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].GetAsBool()); \
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_PINT3_PBOOL(RET_CLASS, FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 4); \
+    RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].GetAsBool()); \
+    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
+
+#define API_SCALL_OBJAUTO_PINT3_PBOOL2(RET_CLASS, FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5); \
+    RET_CLASS* ret_obj = FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].GetAsBool(), params[4].GetAsBool()); \
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj)
 
 #define API_SCALL_OBJAUTO_PBOOL2(RET_CLASS, FUNCTION) \

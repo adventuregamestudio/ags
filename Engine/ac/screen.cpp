@@ -160,6 +160,11 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
+ScriptUserObject* Screen_ScreenToRoomPoint2(int scrx, int scry)
+{
+    return Screen_ScreenToRoomPoint(scrx, scry, true);
+}
+
 ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
 {
     data_to_game_coords(&roomx, &roomy);
@@ -205,14 +210,12 @@ RuntimeScriptValue Sc_Screen_GetAnyViewport(const RuntimeScriptValue *params, in
 
 RuntimeScriptValue Sc_Screen_ScreenToRoomPoint2(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(FUNCTION, 2);
-    ScriptUserObject* obj = Screen_ScreenToRoomPoint(params[0].IValue, params[1].IValue, true);
-    return RuntimeScriptValue().SetDynamicObject(obj, obj);
+    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_ScreenToRoomPoint2);
 }
 
-RuntimeScriptValue Sc_Screen_ScreenToRoomPoint3(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Screen_ScreenToRoomPoint(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT3(ScriptUserObject, Screen_ScreenToRoomPoint);
+    API_SCALL_OBJAUTO_PINT2_PBOOL(ScriptUserObject, Screen_ScreenToRoomPoint);
 }
 
 RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
@@ -222,25 +225,18 @@ RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params,
 
 void RegisterScreenAPI()
 {
-    ccAddExternalStaticFunction("Screen::get_Height", Sc_Screen_GetScreenHeight);
-    ccAddExternalStaticFunction("Screen::get_Width", Sc_Screen_GetScreenWidth);
-    ccAddExternalStaticFunction("Screen::get_AutoSizeViewportOnRoomLoad", Sc_Screen_GetAutoSizeViewport);
-    ccAddExternalStaticFunction("Screen::set_AutoSizeViewportOnRoomLoad", Sc_Screen_SetAutoSizeViewport);
-    ccAddExternalStaticFunction("Screen::get_Viewport", Sc_Screen_GetViewport);
-    ccAddExternalStaticFunction("Screen::get_ViewportCount", Sc_Screen_GetViewportCount);
-    ccAddExternalStaticFunction("Screen::geti_Viewports", Sc_Screen_GetAnyViewport);
-    ccAddExternalStaticFunction("Screen::ScreenToRoomPoint^2", Sc_Screen_ScreenToRoomPoint2);
-    ccAddExternalStaticFunction("Screen::ScreenToRoomPoint^3", Sc_Screen_ScreenToRoomPoint3);
-    ccAddExternalStaticFunction("Screen::RoomToScreenPoint", Sc_Screen_RoomToScreenPoint);
+    ScFnRegister screen_api[] = {
+        { "Screen::get_Height",             API_FN_PAIR(Screen_GetScreenHeight) },
+        { "Screen::get_Width",              API_FN_PAIR(Screen_GetScreenWidth) },
+        { "Screen::get_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_GetAutoSizeViewport) },
+        { "Screen::set_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_SetAutoSizeViewport) },
+        { "Screen::get_Viewport",           API_FN_PAIR(Screen_GetViewport) },
+        { "Screen::get_ViewportCount",      API_FN_PAIR(Screen_GetViewportCount) },
+        { "Screen::geti_Viewports",         API_FN_PAIR(Screen_GetAnyViewport) },
+        { "Screen::ScreenToRoomPoint^2",    API_FN_PAIR(Screen_ScreenToRoomPoint2) },
+        { "Screen::ScreenToRoomPoint^3",    API_FN_PAIR(Screen_ScreenToRoomPoint) },
+        { "Screen::RoomToScreenPoint",      API_FN_PAIR(Screen_RoomToScreenPoint) },
+    };
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("Screen::get_Height", (void*)Screen_GetScreenHeight);
-    ccAddExternalFunctionForPlugin("Screen::get_Width", (void*)Screen_GetScreenWidth);
-    ccAddExternalFunctionForPlugin("Screen::get_AutoSizeViewportOnRoomLoad", (void*)Screen_GetAutoSizeViewport);
-    ccAddExternalFunctionForPlugin("Screen::set_AutoSizeViewportOnRoomLoad", (void*)Screen_SetAutoSizeViewport);
-    ccAddExternalFunctionForPlugin("Screen::get_Viewport", (void*)Screen_GetViewport);
-    ccAddExternalFunctionForPlugin("Screen::get_ViewportCount", (void*)Screen_GetViewportCount);
-    ccAddExternalFunctionForPlugin("Screen::geti_Viewports", (void*) Screen_GetAnyViewport);
-    ccAddExternalFunctionForPlugin("Screen::RoomToScreenPoint", (void*)Screen_RoomToScreenPoint);
+    ccAddExternalFunctions(screen_api);
 }

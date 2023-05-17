@@ -81,7 +81,9 @@ public:
     // functions and stack entries (other RSV)
     union
     {
-        char                *Ptr;   // generic data pointer
+        void                *Ptr;   // generic data pointer
+        uint8_t             *PtrU8; // byte buffer pointer
+        char                *CStr;  // char buffer pointer
         RuntimeScriptValue  *RValue;// access ptr as a pointer to Runtime Value
         ScriptAPIFunction   *SPfn;  // access ptr as a pointer to Script API Static Function
         ScriptAPIObjectFunction *ObjPfn; // access ptr as a pointer to Script API Object Function
@@ -107,6 +109,7 @@ public:
     {
         return Type != kScValUndefined;
     }
+
     inline bool IsNull() const
     {
         return Ptr == nullptr && IValue == 0;
@@ -116,9 +119,15 @@ public:
     {
         return !IsNull();
     }
-    inline char* GetPtrWithOffset() const
+
+    inline void* GetPtrWithOffset() const
     {
-        return Ptr + IValue;
+        return PtrU8 + IValue;
+    }
+
+    inline void* GetRValuePtrWithOffset() const
+    {
+        return static_cast<uint8_t*>(RValue->GetPtrWithOffset()) + this->IValue;
     }
     
     inline RuntimeScriptValue &Invalidate()
@@ -135,6 +144,7 @@ public:
         Size    = 1;
         return *this;
     }
+
     inline RuntimeScriptValue &SetInt16(int16_t val)
     {
         Type    = kScValInteger;
@@ -144,6 +154,7 @@ public:
         Size    = 2;
         return *this;
     }
+
     inline RuntimeScriptValue &SetInt32(int32_t val)
     {
         Type    = kScValInteger;
@@ -153,6 +164,7 @@ public:
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetFloat(float val)
     {
         Type    = kScValFloat;
@@ -162,14 +174,17 @@ public:
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetInt32AsBool(bool val)
     {
         return SetInt32(val ? 1 : 0);
     }
+
     inline RuntimeScriptValue &SetFloatAsBool(bool val)
     {
         return SetFloat(val ? 1.0F : 0.0F);
     }
+
     inline RuntimeScriptValue &SetPluginArgument(int32_t val)
     {
         Type    = kScValPluginArg;
@@ -179,6 +194,7 @@ public:
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)
     {
         Type    = kScValStackPtr;
@@ -188,7 +204,8 @@ public:
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetData(char *data, int size)
+
+    inline RuntimeScriptValue &SetData(void *data, int size)
     {
         Type    = kScValData;
         IValue  = 0;
@@ -197,6 +214,7 @@ public:
         Size    = size;
         return *this;
     }
+
     inline RuntimeScriptValue &SetGlobalVar(RuntimeScriptValue *glvar_value)
     {
         Type    = kScValGlobalVar;
@@ -206,6 +224,7 @@ public:
         Size    = 4;
         return *this;
     }
+
     // TODO: size?
     inline RuntimeScriptValue &SetStringLiteral(const char *str)
     {
@@ -216,51 +235,57 @@ public:
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetStaticObject(void *object, ICCDynamicObject *manager)
     {
         Type    = kScValStaticObject;
         IValue  = 0;
-        Ptr     = (char*)object;
+        Ptr     = object;
         ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetStaticArray(void *object, CCStaticArray *manager)
     {
         Type    = kScValStaticArray;
         IValue  = 0;
-        Ptr     = (char*)object;
+        Ptr     = object;
         ArrMgr  = manager;
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
     {
         Type    = kScValDynamicObject;
         IValue  = 0;
-        Ptr     = (char*)object;
+        Ptr     = object;
         ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetPluginObject(void *object, ICCDynamicObject *manager)
     {
         Type    = kScValPluginObject;
         IValue  = 0;
-        Ptr     = (char*)object;
+        Ptr     = object;
         ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetDynamicObject(ScriptValueType type, void *object, ICCDynamicObject *manager)
     {
         Type    = type;
         IValue  = 0;
-        Ptr     = (char*)object;
+        Ptr     = object;
         ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetStaticFunction(ScriptAPIFunction *pfn)
     {
         Type    = kScValStaticFunction;
@@ -270,15 +295,17 @@ public:
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetPluginFunction(void *pfn)
     {
         Type    = kScValPluginFunction;
         IValue  = 0;
-        Ptr     = (char*)pfn;
+        Ptr     = pfn;
         MgrPtr  = nullptr;
         Size    = 4;
         return *this;
     }
+
     inline RuntimeScriptValue &SetObjectFunction(ScriptAPIObjectFunction *pfn)
     {
         Type    = kScValObjectFunction;
@@ -288,7 +315,8 @@ public:
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetCodePtr(char *ptr)
+
+    inline RuntimeScriptValue &SetCodePtr(void *ptr)
     {
         Type    = kScValCodePtr;
         IValue  = 0;
@@ -307,6 +335,7 @@ public:
     {
         return ((intptr_t)Ptr + (intptr_t)IValue) == ((intptr_t)rval.Ptr + (intptr_t)rval.IValue);
     }
+
     inline bool operator !=(const RuntimeScriptValue &rval) const
     {
         return !(*this == rval);
@@ -326,7 +355,7 @@ public:
             {
             case kScValData:
                 // read from the stack memory buffer
-                return RuntimeScriptValue().SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
+                return RuntimeScriptValue().SetInt32(*(int32_t*)(GetRValuePtrWithOffset()));
             default:
                 // return the stack entry itself
                 return *RValue;
@@ -339,7 +368,7 @@ public:
             {
             case kScValData:
                 // read from the global memory buffer
-                return RuntimeScriptValue().SetInt32(AGS::Common::Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue));
+                return RuntimeScriptValue().SetInt32(AGS::Common::Memory::ReadInt32LE(GetRValuePtrWithOffset()));
             default:
                 // return the gvar entry itself
                 return *RValue;
@@ -348,7 +377,7 @@ public:
         case kScValStaticObject:
         case kScValStaticArray:
         case kScValDynamicObject:
-            return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32(this->Ptr, this->IValue));
+            return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32((const char*)this->Ptr, this->IValue));
         default:
             return RuntimeScriptValue().SetInt32(*(int32_t*)this->GetPtrWithOffset());
         }
@@ -369,7 +398,7 @@ public:
             {
             case kScValData:
                 // write into the stack memory buffer
-                *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = rval.IValue;
+                *(int32_t*)(GetRValuePtrWithOffset()) = rval.IValue;
                 break;
             default:
                 // write into the stack entry
@@ -389,7 +418,7 @@ public:
             {
             case kScValData:
                 // write into the global memory buffer
-                AGS::Common::Memory::WriteInt32LE(RValue->GetPtrWithOffset() + this->IValue, rval.IValue);
+                AGS::Common::Memory::WriteInt32LE(GetRValuePtrWithOffset(), rval.IValue);
                 break;
             default:
                 // write into the gvar entry
@@ -402,7 +431,7 @@ public:
         case kScValStaticArray:
         case kScValDynamicObject:
         {
-            this->ObjMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
+            this->ObjMgr->WriteInt32((const char*)this->Ptr, this->IValue, rval.IValue);
             break;
         }
         default:

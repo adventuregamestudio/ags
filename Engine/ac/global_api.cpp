@@ -317,7 +317,7 @@ RuntimeScriptValue Sc_DisplayThought(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayTopBar, 5);
-    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].Ptr, scsf_buffer);
+    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].CStr, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
 
@@ -2118,7 +2118,7 @@ RuntimeScriptValue Sc_sc_strcpy(const RuntimeScriptValue *params, int32_t param_
 RuntimeScriptValue Sc_sc_sprintf(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(_sc_sprintf, 2);
-    _sc_strcpy(params[0].Ptr, scsf_buffer);
+    _sc_strcpy(params[0].CStr, scsf_buffer);
     return params[0];
 }
 

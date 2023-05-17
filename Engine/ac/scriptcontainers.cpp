@@ -18,7 +18,7 @@
 #include "ac/common.h" // quit
 #include "ac/string.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/scriptdict.h"
 #include "ac/dynobj/scriptset.h"
 #include "ac/dynobj/scriptstring.h"

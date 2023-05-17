@@ -90,7 +90,7 @@ void* ManagedObjectPool::HandleToAddress(int32_t handle) {
 }
 
 // this function is called often (whenever a pointer is used)
-ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
+ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager) {
     if ((handle < 0 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
     {
         object = nullptr;
@@ -131,7 +131,7 @@ void ManagedObjectPool::RunGarbageCollection()
     ManagedObjectLog("Ran garbage collection");
 }
 
-int ManagedObjectPool::AddObject(void *address, ICCDynamicObject *callback, ScriptValueType obj_type) 
+int ManagedObjectPool::AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type) 
 {
     int32_t handle;
 
@@ -157,7 +157,7 @@ int ManagedObjectPool::AddObject(void *address, ICCDynamicObject *callback, Scri
 }
 
 
-int ManagedObjectPool::AddUnserializedObject(void *address, ICCDynamicObject *callback,
+int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callback,
     ScriptValueType obj_type, int handle) 
 {
     if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }

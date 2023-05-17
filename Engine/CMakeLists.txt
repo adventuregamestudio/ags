@@ -63,7 +63,7 @@ target_sources(engine
     ac/dynobj/cc_dialog.h
     ac/dynobj/cc_dynamicarray.cpp
     ac/dynobj/cc_dynamicarray.h
-    ac/dynobj/cc_dynamicobject.h
+    ac/dynobj/cc_scriptobject.h
     ac/dynobj/cc_gui.cpp
     ac/dynobj/cc_gui.h
     ac/dynobj/cc_guiobject.cpp

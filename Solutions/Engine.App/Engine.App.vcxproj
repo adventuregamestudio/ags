@@ -725,7 +725,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_character.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_guiobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h" />

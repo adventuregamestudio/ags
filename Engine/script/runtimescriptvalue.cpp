@@ -1,7 +1,7 @@
 
 #include "script/runtimescriptvalue.h"
 #include <string.h> // for memcpy()
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_scriptobject.h"
 #include "util/memory.h"
 
 using namespace AGS::Common;

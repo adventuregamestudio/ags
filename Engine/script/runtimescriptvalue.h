@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/cc_staticarray.h"
 #include "script/script_api.h"
 #include "util/memory.h"
@@ -94,7 +94,7 @@ public:
     union
     {
         void                *MgrPtr;// generic object manager pointer
-        ICCDynamicObject    *ObjMgr;// script object manager
+        IScriptObject    *ObjMgr;// script object manager
         CCStaticArray       *ArrMgr;// static array manager
     };
     // The "real" size of data, either one stored in I/FValue,
@@ -236,7 +236,7 @@ public:
         return *this;
     }
 
-    inline RuntimeScriptValue &SetStaticObject(void *object, ICCDynamicObject *manager)
+    inline RuntimeScriptValue &SetStaticObject(void *object, IScriptObject *manager)
     {
         Type    = kScValStaticObject;
         IValue  = 0;
@@ -256,7 +256,7 @@ public:
         return *this;
     }
 
-    inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
+    inline RuntimeScriptValue &SetDynamicObject(void *object, IScriptObject *manager)
     {
         Type    = kScValDynamicObject;
         IValue  = 0;
@@ -266,7 +266,7 @@ public:
         return *this;
     }
 
-    inline RuntimeScriptValue &SetPluginObject(void *object, ICCDynamicObject *manager)
+    inline RuntimeScriptValue &SetPluginObject(void *object, IScriptObject *manager)
     {
         Type    = kScValPluginObject;
         IValue  = 0;
@@ -276,7 +276,7 @@ public:
         return *this;
     }
 
-    inline RuntimeScriptValue &SetDynamicObject(ScriptValueType type, void *object, ICCDynamicObject *manager)
+    inline RuntimeScriptValue &SetDynamicObject(ScriptValueType type, void *object, IScriptObject *manager)
     {
         Type    = type;
         IValue  = 0;

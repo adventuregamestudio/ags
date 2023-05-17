@@ -30,7 +30,7 @@ void ccSetStringClassImpl(ICCStringClass *theClass) {
 
 // register a memory handle for the object and allow script
 // pointers to point to it
-int32_t ccRegisterManagedObject(void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+int32_t ccRegisterManagedObject(void *object, IScriptObject *callback, ScriptValueType obj_type) {
     int32_t handl = pool.AddObject(object, callback, obj_type);
 
     ManagedObjectLog("Register managed object type '%s' handle=%d addr=%08X",
@@ -40,7 +40,7 @@ int32_t ccRegisterManagedObject(void *object, ICCDynamicObject *callback, Script
 }
 
 // register a de-serialized object
-int32_t ccRegisterUnserializedObject(int index, void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+int32_t ccRegisterUnserializedObject(int index, void *object, IScriptObject *callback, ScriptValueType obj_type) {
     return pool.AddUnserializedObject(object, callback, obj_type, index);
 }
 
@@ -101,7 +101,7 @@ void *ccGetObjectAddressFromHandle(int32_t handle) {
     return addr;
 }
 
-ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager)
+ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, IScriptObject *&manager)
 {
     if (handle == 0) {
         object = nullptr;

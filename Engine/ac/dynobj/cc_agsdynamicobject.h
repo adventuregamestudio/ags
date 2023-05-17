@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-// This is a collection of common implementations of the ICCDynamicObject
+// This is a collection of common implementations of the IScriptObject
 // interface. Intended to be used as parent classes for majority of the
 // script object managers.
 //
@@ -30,7 +30,7 @@
 #ifndef __AC_CCDYNAMICOBJECT_H
 #define __AC_CCDYNAMICOBJECT_H
 
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_scriptobject.h"
 
 namespace AGS { namespace Common { class Stream; } }
 
@@ -42,7 +42,7 @@ namespace AGS { namespace Common { class Stream; } }
 // * Serialization skipped, does not save or load anything;
 // * Provides default implementation for reading and writing data fields,
 //   treats the contents of an object as a raw byte buffer.
-struct CCBasicObject : public ICCDynamicObject
+struct CCBasicObject : public IScriptObject
 {
 public:
     virtual ~CCBasicObject() = default;
@@ -96,7 +96,7 @@ protected:
 
 // CCStaticObject is a base class for managing static global objects in script.
 // The static objects can never be disposed, and do not support serialization
-// through ICCDynamicObject interface.
+// through IScriptObject interface.
 struct AGSCCStaticObject : public CCBasicObject
 {
 public:

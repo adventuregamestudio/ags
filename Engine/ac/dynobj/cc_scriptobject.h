@@ -12,11 +12,15 @@
 //
 //=============================================================================
 //
-// Managed script object interface.
+// IScriptObject: script managed object interface.
+// Provides interaction with a object which allocation and lifetime is
+// managed by the engine and/or the managed pool rather than the script VM.
+// These may be both static objects existing throughout the game, and
+// dynamic objects allocated by the script command.
 //
 //=============================================================================
-#ifndef __CC_DYNAMICOBJECT_H
-#define __CC_DYNAMICOBJECT_H
+#ifndef __CC_SCRIPTOBJECT_H
+#define __CC_SCRIPTOBJECT_H
 
 #include <utility>
 #include "core/types.h"
@@ -26,7 +30,8 @@
 typedef std::pair<int32_t, void*> DynObjectRef;
 
 
-struct ICCDynamicObject {
+struct IScriptObject
+{
     // WARNING: The first section of this interface is also a part of the AGS plugin API!
 
     // when a ref count reaches 0, this is called with the address
@@ -71,16 +76,22 @@ struct ICCDynamicObject {
     virtual void    WriteFloat(void *address, intptr_t offset, float val)     = 0;
 
 protected:
-    ICCDynamicObject() = default;
-    ~ICCDynamicObject() = default;
+    IScriptObject() = default;
+    ~IScriptObject() = default;
 };
 
-struct ICCObjectReader {
+// The interface of a script object deserializer.
+// WARNING: a part of the plugin API.
+struct ICCObjectReader
+{
     // TODO: pass savegame format version
-    virtual void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) = 0;
+    virtual void Unserialize(int32_t handle, const char *objectType, const char *serializedData, int dataSize) = 0;
 };
-struct ICCStringClass {
+
+// The interface of a dynamic String allocator.
+struct ICCStringClass
+{
     virtual DynObjectRef CreateString(const char *fromText) = 0;
 };
 
-#endif // __CC_DYNAMICOBJECT_H
+#endif // __CC_SCRIPTOBJECT_H

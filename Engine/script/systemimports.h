@@ -18,7 +18,7 @@
 #include <map>
 #include "script/cc_instance.h"    // ccInstance
 
-struct ICCDynamicObject;
+struct IScriptObject;
 
 using AGS::Common::String;
 

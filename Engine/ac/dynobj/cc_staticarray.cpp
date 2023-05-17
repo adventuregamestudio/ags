@@ -12,9 +12,8 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_staticarray.h"
-#include "ac/dynobj/cc_dynamicobject.h"
 
-void CCStaticArray::Create(ICCDynamicObject *mgr, size_t elem_script_size, size_t elem_mem_size, size_t elem_count)
+void CCStaticArray::Create(IScriptObject *mgr, size_t elem_script_size, size_t elem_mem_size, size_t elem_count)
 {
     _mgr            = mgr;
     _elemScriptSize = elem_script_size;

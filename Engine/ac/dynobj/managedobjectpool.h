@@ -21,7 +21,7 @@
 
 #include "core/platform.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
+#include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
 
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
@@ -33,14 +33,14 @@ private:
         ScriptValueType obj_type;
         int32_t handle;
         void *addr;
-        ICCDynamicObject *callback;
+        IScriptObject *callback;
         int refCount;
 
         bool isUsed() const { return obj_type != kScValUndefined; }
 
         ManagedObject() 
             : obj_type(kScValUndefined), handle(0), addr(nullptr), callback(nullptr), refCount(0) {}
-        ManagedObject(ScriptValueType obj_type, int32_t handle, void *addr, ICCDynamicObject * callback) 
+        ManagedObject(ScriptValueType obj_type, int32_t handle, void *addr, IScriptObject * callback) 
             : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
     };
 
@@ -61,11 +61,11 @@ public:
     int32_t SubRef(int32_t handle);
     int32_t AddressToHandle(void *addr);
     void* HandleToAddress(int32_t handle);
-    ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
+    ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager);
     int RemoveObject(void *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(void *address, ICCDynamicObject *callback, ScriptValueType obj_type);
-    int AddUnserializedObject(void *address, ICCDynamicObject *callback, ScriptValueType obj_type, int handle);
+    int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type);
+    int AddUnserializedObject(void *address, IScriptObject *callback, ScriptValueType obj_type, int handle);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();

@@ -18,7 +18,7 @@
 #include "script/cc_script.h"      // ccScript
 #include "script/cc_instance.h"    // ccInstance
 
-struct ICCDynamicObject;
+struct IScriptObject;
 
 using AGS::Common::String;
 
@@ -62,9 +62,9 @@ bool ccAddExternalFunction(const ScFnRegister &scfnreg);
 bool ccAddExternalPluginFunction(const String &name, void *pfn);
 // Register engine objects for script's access.
 // TODO: get manager type from the interface!
-bool ccAddExternalStaticObject(const String &name, void *ptr, ICCDynamicObject *manager);
+bool ccAddExternalStaticObject(const String &name, void *ptr, IScriptObject *manager);
 bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticArray *array_mgr);
-bool ccAddExternalDynamicObject(const String &name, void *ptr, ICCDynamicObject *manager);
+bool ccAddExternalDynamicObject(const String &name, void *ptr, IScriptObject *manager);
 // Register script own functions (defined in the linked scripts)
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst);
 // Remove the script access to a variable or function in your program

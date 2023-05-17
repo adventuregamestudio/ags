@@ -1112,9 +1112,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicobject.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
@@ -1632,6 +1629,9 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>

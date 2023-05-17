@@ -29,9 +29,8 @@ uint8_t RuntimeScriptValue::ReadByte() const
         {
             return static_cast<uint8_t>(RValue->IValue);
         }
-    case kScValStaticObject:
     case kScValStaticArray:
-    case kScValDynamicObject:
+    case kScValScriptObject:
         return this->ObjMgr->ReadInt8(this->Ptr, this->IValue);
     default:
         return *((uint8_t*)this->GetPtrWithOffset());
@@ -60,9 +59,8 @@ int16_t RuntimeScriptValue::ReadInt16() const
         {
             return static_cast<int16_t>(RValue->IValue);
         }
-    case kScValStaticObject:
     case kScValStaticArray:
-    case kScValDynamicObject:
+    case kScValScriptObject:
         return this->ObjMgr->ReadInt16(this->Ptr, this->IValue);
     default:
         return *((int16_t*)this->GetPtrWithOffset());
@@ -91,9 +89,8 @@ int32_t RuntimeScriptValue::ReadInt32() const
         {
             return static_cast<uint32_t>(RValue->IValue);
         }
-    case kScValStaticObject:
     case kScValStaticArray:
-    case kScValDynamicObject:
+    case kScValScriptObject:
         return this->ObjMgr->ReadInt32(this->Ptr, this->IValue);
     default:
         return *((int32_t*)this->GetPtrWithOffset());
@@ -115,9 +112,8 @@ void RuntimeScriptValue::WriteByte(uint8_t val)
             RValue->SetUInt8(val); // set RValue as int
         }
         break;
-    case kScValStaticObject:
     case kScValStaticArray:
-    case kScValDynamicObject:
+    case kScValScriptObject:
         this->ObjMgr->WriteInt8(this->Ptr, this->IValue, val);
         break;
     default:
@@ -150,9 +146,8 @@ void RuntimeScriptValue::WriteInt16(int16_t val)
             RValue->SetInt16(val); // set RValue as int
         }
         break;
-    case kScValStaticObject:
     case kScValStaticArray:
-    case kScValDynamicObject:
+    case kScValScriptObject:
         this->ObjMgr->WriteInt16(this->Ptr, this->IValue, val);
         break;
     default:
@@ -185,9 +180,8 @@ void RuntimeScriptValue::WriteInt32(int32_t val)
             RValue->SetInt32(val); // set RValue as int
         }
         break;
-    case kScValStaticObject:
     case kScValStaticArray:
-    case kScValDynamicObject:
+    case kScValScriptObject:
         this->ObjMgr->WriteInt32(this->Ptr, this->IValue, val);
         break;
     default:
@@ -207,7 +201,7 @@ RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
 
     if (Ptr)
     {
-        if (Type == kScValDynamicObject || Type == kScValStaticObject)
+        if (Type == kScValScriptObject)
             Ptr = ObjMgr->GetFieldPtr(Ptr, IValue);
         else
             Ptr = PtrU8 + IValue;
@@ -232,7 +226,7 @@ intptr_t RuntimeScriptValue::GetDirectPtr() const
         temp_val  = temp_val->RValue;
         ival     += temp_val->IValue;
     }
-    if (temp_val->Type == kScValDynamicObject || temp_val->Type == kScValStaticObject)
+    if (temp_val->Type == kScValScriptObject)
         return (intptr_t)temp_val->ObjMgr->GetFieldPtr(temp_val->Ptr, ival);
     else
         return (intptr_t)(temp_val->PtrU8 + ival);

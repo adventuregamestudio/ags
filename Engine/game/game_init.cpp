@@ -141,7 +141,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
         // between game versions, for now.
         game.audioClips[i].id = i;
         ccRegisterManagedObject(&game.audioClips[i], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
+        ccAddExternalScriptObject(game.audioClips[i].scriptName, &game.audioClips[i], &ccDynamicAudioClip);
     }
 }
 
@@ -166,7 +166,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game)
         ccRegisterManagedObject(&game.chars[i], &ccDynamicCharacter);
 
         // export the character's script object
-        ccAddExternalDynamicObject(game.chars[i].scrname, &game.chars[i], &ccDynamicCharacter);
+        ccAddExternalScriptObject(game.chars[i].scrname, &game.chars[i], &ccDynamicCharacter);
     }
 }
 
@@ -181,7 +181,7 @@ void InitAndRegisterDialogs(GameSetupStruct &game)
         ccRegisterManagedObject(&scrDialog[i], &ccDynamicDialog);
 
         if (!game.dialogScriptNames[i].IsEmpty())
-            ccAddExternalDynamicObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
+            ccAddExternalScriptObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
     }
 }
 
@@ -214,7 +214,7 @@ HError InitAndRegisterGUI(GameSetupStruct &game)
         // export all the GUI's controls
         export_gui_controls(i);
         scrGui[i].id = i;
-        ccAddExternalDynamicObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
+        ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
         ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);
     }
     return HError::None();
@@ -230,7 +230,7 @@ void InitAndRegisterInvItems(GameSetupStruct &game)
         ccRegisterManagedObject(&scrInv[i], &ccDynamicInv);
 
         if (!game.invScriptNames[i].IsEmpty())
-            ccAddExternalDynamicObject(game.invScriptNames[i], &scrInv[i], &ccDynamicInv);
+            ccAddExternalScriptObject(game.invScriptNames[i], &scrInv[i], &ccDynamicInv);
     }
 }
 
@@ -306,7 +306,7 @@ HError InitAndRegisterGameEntities(GameSetupStruct &game)
 
     setup_player_character(game.playercharacter);
     if (loaded_game_file_version >= kGameVersion_270)
-        ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+        ccAddExternalScriptObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
     return HError::None();
 }
 

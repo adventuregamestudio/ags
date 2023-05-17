@@ -47,19 +47,14 @@ bool ccAddExternalPluginFunction(const String &name, void *pfn)
     return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
 }
 
-bool ccAddExternalStaticObject(const String &name, void *ptr, IScriptObject *manager)
-{
-    return simp.add(name, RuntimeScriptValue().SetStaticObject(ptr, manager), nullptr) != UINT32_MAX;
-}
-
 bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticArray *array_mgr)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) != UINT32_MAX;
 }
 
-bool ccAddExternalDynamicObject(const String &name, void *ptr, IScriptObject *manager)
+bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *manager)
 {
-    return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), nullptr) != UINT32_MAX;
+    return simp.add(name, RuntimeScriptValue().SetScriptObject(ptr, manager), nullptr) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)

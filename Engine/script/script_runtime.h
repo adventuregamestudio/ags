@@ -18,9 +18,7 @@
 #include "script/cc_script.h"      // ccScript
 #include "script/cc_instance.h"    // ccInstance
 
-struct ICCStaticObject;
 struct ICCDynamicObject;
-struct StaticArray;
 
 using AGS::Common::String;
 
@@ -63,8 +61,9 @@ bool ccAddExternalFunction(const ScFnRegister &scfnreg);
 // Register a function, exported from a plugin. Requires direct function pointer only.
 bool ccAddExternalPluginFunction(const String &name, void *pfn);
 // Register engine objects for script's access.
-bool ccAddExternalStaticObject(const String &name, void *ptr, ICCStaticObject *manager);
-bool ccAddExternalStaticArray(const String &name, void *ptr, StaticArray *array_mgr);
+// TODO: get manager type from the interface!
+bool ccAddExternalStaticObject(const String &name, void *ptr, ICCDynamicObject *manager);
+bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticArray *array_mgr);
 bool ccAddExternalDynamicObject(const String &name, void *ptr, ICCDynamicObject *manager);
 // Register script own functions (defined in the linked scripts)
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst);

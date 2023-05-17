@@ -29,8 +29,6 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/statobj/agsstaticobject.h"
-#include "ac/statobj/staticarray.h"
 #include "core/assetmanager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -76,16 +74,6 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
-extern AGSStaticObject GlobalStaticManager;
-
-extern StaticArray StaticCharacterArray;
-extern StaticArray StaticObjectArray;
-extern StaticArray StaticGUIArray;
-extern StaticArray StaticHotspotArray;
-extern StaticArray StaticRegionArray;
-extern StaticArray StaticInventoryArray;
-extern StaticArray StaticDialogArray;
-
 extern std::vector<ccInstance *> moduleInst;
 extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
@@ -98,13 +86,14 @@ extern std::vector<String> old_speech_lines;
 extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
-StaticArray StaticCharacterArray;
-StaticArray StaticObjectArray;
-StaticArray StaticGUIArray;
-StaticArray StaticHotspotArray;
-StaticArray StaticRegionArray;
-StaticArray StaticInventoryArray;
-StaticArray StaticDialogArray;
+extern AGSCCStaticObject GlobalStaticManager;
+CCStaticArray StaticCharacterArray;
+CCStaticArray StaticObjectArray;
+CCStaticArray StaticGUIArray;
+CCStaticArray StaticHotspotArray;
+CCStaticArray StaticRegionArray;
+CCStaticArray StaticInventoryArray;
+CCStaticArray StaticDialogArray;
 
 
 namespace AGS

@@ -19,7 +19,6 @@
 #include "script/cc_instance.h"    // ccInstance
 
 struct ICCDynamicObject;
-struct ICCStaticObject;
 
 using AGS::Common::String;
 

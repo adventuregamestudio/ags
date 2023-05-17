@@ -2,7 +2,6 @@
 #include "script/runtimescriptvalue.h"
 #include <string.h> // for memcpy()
 #include "ac/dynobj/cc_dynamicobject.h"
-#include "ac/statobj/staticobject.h"
 #include "util/memory.h"
 
 using namespace AGS::Common;
@@ -32,9 +31,8 @@ uint8_t RuntimeScriptValue::ReadByte() const
         }
     case kScValStaticObject:
     case kScValStaticArray:
-        return this->StcMgr->ReadInt8(this->Ptr, this->IValue);
     case kScValDynamicObject:
-        return this->DynMgr->ReadInt8(this->Ptr, this->IValue);
+        return this->ObjMgr->ReadInt8(this->Ptr, this->IValue);
     default:
         return *((uint8_t*)this->GetPtrWithOffset());
     }
@@ -64,9 +62,8 @@ int16_t RuntimeScriptValue::ReadInt16() const
         }
     case kScValStaticObject:
     case kScValStaticArray:
-        return this->StcMgr->ReadInt16(this->Ptr, this->IValue);
     case kScValDynamicObject:
-        return this->DynMgr->ReadInt16(this->Ptr, this->IValue);
+        return this->ObjMgr->ReadInt16(this->Ptr, this->IValue);
     default:
         return *((int16_t*)this->GetPtrWithOffset());
     }
@@ -96,9 +93,8 @@ int32_t RuntimeScriptValue::ReadInt32() const
         }
     case kScValStaticObject:
     case kScValStaticArray:
-        return this->StcMgr->ReadInt32(this->Ptr, this->IValue);
     case kScValDynamicObject:
-        return this->DynMgr->ReadInt32(this->Ptr, this->IValue);
+        return this->ObjMgr->ReadInt32(this->Ptr, this->IValue);
     default:
         return *((int32_t*)this->GetPtrWithOffset());
     }
@@ -121,10 +117,8 @@ void RuntimeScriptValue::WriteByte(uint8_t val)
         break;
     case kScValStaticObject:
     case kScValStaticArray:
-        this->StcMgr->WriteInt8(this->Ptr, this->IValue, val);
-        break;
     case kScValDynamicObject:
-        this->DynMgr->WriteInt8(this->Ptr, this->IValue, val);
+        this->ObjMgr->WriteInt8(this->Ptr, this->IValue, val);
         break;
     default:
         *((uint8_t*)this->GetPtrWithOffset()) = val;
@@ -158,10 +152,8 @@ void RuntimeScriptValue::WriteInt16(int16_t val)
         break;
     case kScValStaticObject:
     case kScValStaticArray:
-        this->StcMgr->WriteInt16(this->Ptr, this->IValue, val);
-        break;
     case kScValDynamicObject:
-        this->DynMgr->WriteInt16(this->Ptr, this->IValue, val);
+        this->ObjMgr->WriteInt16(this->Ptr, this->IValue, val);
         break;
     default:
         *((int16_t*)this->GetPtrWithOffset()) = val;
@@ -195,10 +187,8 @@ void RuntimeScriptValue::WriteInt32(int32_t val)
         break;
     case kScValStaticObject:
     case kScValStaticArray:
-        this->StcMgr->WriteInt32(this->Ptr, this->IValue, val);
-        break;
     case kScValDynamicObject:
-        this->DynMgr->WriteInt32(this->Ptr, this->IValue, val);
+        this->ObjMgr->WriteInt32(this->Ptr, this->IValue, val);
         break;
     default:
         *((int32_t*)this->GetPtrWithOffset()) = val;
@@ -217,10 +207,8 @@ RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
 
     if (Ptr)
     {
-        if (Type == kScValDynamicObject)
-            Ptr = const_cast<char*>(DynMgr->GetFieldPtr(Ptr, IValue));
-        else if (Type == kScValStaticObject)
-            Ptr = const_cast<char*>(StcMgr->GetFieldPtr(Ptr, IValue));
+        if (Type == kScValDynamicObject || Type == kScValStaticObject)
+            Ptr = const_cast<char*>(ObjMgr->GetFieldPtr(Ptr, IValue));
         else
             Ptr += IValue;
         IValue = 0;
@@ -244,10 +232,8 @@ intptr_t RuntimeScriptValue::GetDirectPtr() const
         temp_val  = temp_val->RValue;
         ival     += temp_val->IValue;
     }
-    if (temp_val->Type == kScValDynamicObject)
-        return (intptr_t)temp_val->DynMgr->GetFieldPtr(temp_val->Ptr, ival);
-    else if (temp_val->Type == kScValStaticObject)
-        return (intptr_t)temp_val->StcMgr->GetFieldPtr(temp_val->Ptr, ival);
+    if (temp_val->Type == kScValDynamicObject || temp_val->Type == kScValStaticObject)
+        return (intptr_t)temp_val->ObjMgr->GetFieldPtr(temp_val->Ptr, ival);
     else
         return (intptr_t)(temp_val->Ptr + ival);
 }

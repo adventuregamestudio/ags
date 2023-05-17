@@ -11,19 +11,77 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#include <string.h>
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/common.h"               // quit()
+#include <string.h> // memcpy
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
 
-// *** The script serialization routines for built-in types
-
-int AGSCCDynamicObject::Dispose(const char* /*address*/, bool /*force*/) {
-    // cannot be removed from memory
-    return 0;
+int CCBasicObject::Dispose(const char* /*address*/, bool /*force*/)
+{
+    return 0; // cannot be removed from memory
 }
+
+int CCBasicObject::Serialize(const char* /*address*/, char* /*buffer*/, int /*bufsize*/)
+{
+    return 0; // does not save data
+}
+
+const char* CCBasicObject::GetFieldPtr(const char *address, intptr_t offset)
+{
+    return address + offset;
+}
+
+void CCBasicObject::Read(const char *address, intptr_t offset, void *dest, int size)
+{
+    memcpy(dest, address + offset, size);
+}
+
+uint8_t CCBasicObject::ReadInt8(const char *address, intptr_t offset)
+{
+    return *(uint8_t*)(address + offset);
+}
+
+int16_t CCBasicObject::ReadInt16(const char *address, intptr_t offset)
+{
+    return *(int16_t*)(address + offset);
+}
+
+int32_t CCBasicObject::ReadInt32(const char *address, intptr_t offset)
+{
+    return *(int32_t*)(address + offset);
+}
+
+float CCBasicObject::ReadFloat(const char *address, intptr_t offset)
+{
+    return *(float*)(address + offset);
+}
+
+void CCBasicObject::Write(const char *address, intptr_t offset, void *src, int size)
+{
+    memcpy((void*)(address + offset), src, size);
+}
+
+void CCBasicObject::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+{
+    *(uint8_t*)(address + offset) = val;
+}
+
+void CCBasicObject::WriteInt16(const char *address, intptr_t offset, int16_t val)
+{
+    *(int16_t*)(address + offset) = val;
+}
+
+void CCBasicObject::WriteInt32(const char *address, intptr_t offset, int32_t val)
+{
+    *(int32_t*)(address + offset) = val;
+}
+
+void CCBasicObject::WriteFloat(const char *address, intptr_t offset, float val)
+{
+    *(float*)(address + offset) = val;
+}
+
 
 int AGSCCDynamicObject::Serialize(const char *address, char *buffer, int bufsize) {
     // If the required space is larger than the provided buffer,
@@ -37,57 +95,5 @@ int AGSCCDynamicObject::Serialize(const char *address, char *buffer, int bufsize
     return static_cast<int32_t>(mems.GetPosition());
 }
 
-const char* AGSCCDynamicObject::GetFieldPtr(const char *address, intptr_t offset)
-{
-    return address + offset;
-}
 
-void AGSCCDynamicObject::Read(const char *address, intptr_t offset, void *dest, int size)
-{
-    memcpy(dest, address + offset, size);
-}
-
-uint8_t AGSCCDynamicObject::ReadInt8(const char *address, intptr_t offset)
-{
-    return *(uint8_t*)(address + offset);
-}
-
-int16_t AGSCCDynamicObject::ReadInt16(const char *address, intptr_t offset)
-{
-    return *(int16_t*)(address + offset);
-}
-
-int32_t AGSCCDynamicObject::ReadInt32(const char *address, intptr_t offset)
-{
-    return *(int32_t*)(address + offset);
-}
-
-float AGSCCDynamicObject::ReadFloat(const char *address, intptr_t offset)
-{
-    return *(float*)(address + offset);
-}
-
-void AGSCCDynamicObject::Write(const char *address, intptr_t offset, void *src, int size)
-{
-    memcpy((void*)(address + offset), src, size);
-}
-
-void AGSCCDynamicObject::WriteInt8(const char *address, intptr_t offset, uint8_t val)
-{
-    *(uint8_t*)(address + offset) = val;
-}
-
-void AGSCCDynamicObject::WriteInt16(const char *address, intptr_t offset, int16_t val)
-{
-    *(int16_t*)(address + offset) = val;
-}
-
-void AGSCCDynamicObject::WriteInt32(const char *address, intptr_t offset, int32_t val)
-{
-    *(int32_t*)(address + offset) = val;
-}
-
-void AGSCCDynamicObject::WriteFloat(const char *address, intptr_t offset, float val)
-{
-    *(float*)(address + offset) = val;
-}
+AGSCCStaticObject GlobalStaticManager;

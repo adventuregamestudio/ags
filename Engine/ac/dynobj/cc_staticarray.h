@@ -12,18 +12,37 @@
 //
 //=============================================================================
 //
-//
+// CCStaticArray manages access to an array of script objects,
+// where an element's size counted by script's bytecode may differ from the
+// real element size in the engine's memory.
+// The purpose of this is to remove size restriction from the engine's structs
+// exposed to scripts.
+// NOTE: on the other hand, similar effect could be achieved by separating
+// object data into two or more structs, where "base" structs are stored in
+// the exposed arrays (part of API), while extending structs are stored
+// separately. This is more an issue of engine data design.
 //
 //=============================================================================
-#ifndef __AGS_EE_STATOBJ__AGSSTATICOBJECT_H
-#define __AGS_EE_STATOBJ__AGSSTATICOBJECT_H
+#ifndef __AGS_EE_DYNOBJ__CCSTATICARRAY_H
+#define __AGS_EE_DYNOBJ__CCSTATICARRAY_H
 
-#include "ac/statobj/staticobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct AGSStaticObject : public ICCStaticObject {
-    ~AGSStaticObject() override = default;
+struct CCStaticArray : public AGSCCStaticObject
+{
+public:
+    ~CCStaticArray() override = default;
+
+    void Create(ICCDynamicObject *mgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
+
+    inline ICCDynamicObject *GetObjectManager() const
+    {
+        return _mgr;
+    }
 
     // Legacy support for reading and writing object values by their relative offset
+    virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset);
+
     const char* GetFieldPtr(const char *address, intptr_t offset) override;
     void    Read(const char *address, intptr_t offset, void *dest, int size) override;
     uint8_t ReadInt8(const char *address, intptr_t offset) override;
@@ -35,14 +54,12 @@ struct AGSStaticObject : public ICCStaticObject {
     void    WriteInt16(const char *address, intptr_t offset, int16_t val) override;
     void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
     void    WriteFloat(const char *address, intptr_t offset, float val) override;
+
+private:
+    ICCDynamicObject    *_mgr;
+    int                 _elemLegacySize;
+    int                 _elemRealSize;
+    int                 _elemCount;
 };
 
-// Wrapper around script's "Game" struct, managing access to its variables
-struct StaticGame : public AGSStaticObject {
-    void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
-};
-
-extern AGSStaticObject GlobalStaticManager;
-extern StaticGame      GameStaticManager;
-
-#endif // __AGS_EE_STATOBJ__AGSSTATICOBJECT_H
+#endif // __AGS_EE_DYNOBJ__CCSTATICARRAY_H

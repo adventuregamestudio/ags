@@ -22,7 +22,6 @@
 #include <stdarg.h>
 #include "core/types.h"
 #include "ac/runtime_defines.h"
-#include "ac/statobj/agsstaticobject.h"
 #include "debug/out.h"
 
 struct RuntimeScriptValue;

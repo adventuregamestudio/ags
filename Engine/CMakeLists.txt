@@ -261,11 +261,10 @@ target_sources(engine
     ac/sprite.cpp
     ac/sprite.h
     ac/spritecache_engine.cpp
-    ac/statobj/agsstaticobject.cpp
-    ac/statobj/agsstaticobject.h
-    ac/statobj/staticarray.cpp
-    ac/statobj/staticarray.h
-    ac/statobj/staticobject.h
+    ac/dynobj/scriptgame.cpp
+    ac/dynobj/scriptgame.h
+    ac/dynobj/cc_staticarray.cpp
+    ac/dynobj/cc_staticarray.h
     ac/string.cpp
     ac/string.h
     ac/sys_events.cpp

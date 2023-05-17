@@ -32,8 +32,6 @@
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "ac/statobj/agsstaticobject.h"
-#include "ac/statobj/staticarray.h"
 #include "util/file.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
@@ -1138,8 +1136,9 @@ int ccInstance::Run(int32_t curpc)
             switch (reg1.Type)
             {
             case kScValStaticArray:
-                CC_ERROR_IF_RETCODE(!reg1.StcArr->GetDynamicManager(), "internal error: MEMWRITEPTR argument is not a dynamic object");
-                address = reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
+                //FIXME: return manager type from interface?
+                //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: MEMWRITEPTR argument is not a dynamic object");
+                address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
             case kScValDynamicObject:
             case kScValPluginObject:
@@ -1177,8 +1176,9 @@ int ccInstance::Run(int32_t curpc)
             switch (reg1.Type)
             {
             case kScValStaticArray:
-                CC_ERROR_IF_RETCODE(!reg1.StcArr->GetDynamicManager(), "internal error: SCMD_MEMINITPTR argument is not a dynamic object");
-                address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
+                //FIXME: return manager type from interface?
+                //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: SCMD_MEMINITPTR argument is not a dynamic object");
+                address = (char*)reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
             case kScValDynamicObject:
             case kScValPluginObject:
@@ -1429,14 +1429,12 @@ int ccInstance::Run(int32_t curpc)
                 registers[SREG_OP] = reg1;
                 break;
             case kScValStaticArray:
-                if (reg1.StcArr->GetDynamicManager())
-                {
-                    registers[SREG_OP].SetDynamicObject(
-                        (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue),
-                        reg1.StcArr->GetDynamicManager());
-                    break;
-                }
-                // fall-through intended
+                //FIXME: return manager type from interface?
+                //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: SCMD_CALLOBJ argument is not a dynamic object");
+                registers[SREG_OP].SetDynamicObject(
+                        (char*)reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue),
+                        reg1.ArrMgr->GetObjectManager());
+                break;
             default:
                 cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
                 return -1;

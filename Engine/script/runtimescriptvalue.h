@@ -19,8 +19,7 @@
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
 #include "ac/dynobj/cc_dynamicobject.h"
-#include "ac/statobj/staticobject.h"
-#include "ac/statobj/staticarray.h"
+#include "ac/dynobj/cc_staticarray.h"
 #include "script/script_api.h"
 #include "util/memory.h"
 
@@ -93,9 +92,8 @@ public:
     union
     {
         void                *MgrPtr;// generic object manager pointer
-        ICCStaticObject     *StcMgr;// static object manager
-        StaticArray         *StcArr;// static array manager
-        ICCDynamicObject    *DynMgr;// dynamic object manager
+        ICCDynamicObject    *ObjMgr;// script object manager
+        CCStaticArray       *ArrMgr;// static array manager
     };
     // The "real" size of data, either one stored in I/FValue,
     // or the one referenced by Ptr. Used for calculating stack
@@ -218,21 +216,21 @@ public:
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetStaticObject(void *object, ICCStaticObject *manager)
+    inline RuntimeScriptValue &SetStaticObject(void *object, ICCDynamicObject *manager)
     {
         Type    = kScValStaticObject;
         IValue  = 0;
         Ptr     = (char*)object;
-        StcMgr  = manager;
+        ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetStaticArray(void *object, StaticArray *manager)
+    inline RuntimeScriptValue &SetStaticArray(void *object, CCStaticArray *manager)
     {
         Type    = kScValStaticArray;
         IValue  = 0;
         Ptr     = (char*)object;
-        StcArr  = manager;
+        ArrMgr  = manager;
         Size    = 4;
         return *this;
     }
@@ -241,7 +239,7 @@ public:
         Type    = kScValDynamicObject;
         IValue  = 0;
         Ptr     = (char*)object;
-        DynMgr  = manager;
+        ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
@@ -250,7 +248,7 @@ public:
         Type    = kScValPluginObject;
         IValue  = 0;
         Ptr     = (char*)object;
-        DynMgr  = manager;
+        ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
@@ -259,7 +257,7 @@ public:
         Type    = type;
         IValue  = 0;
         Ptr     = (char*)object;
-        DynMgr  = manager;
+        ObjMgr  = manager;
         Size    = 4;
         return *this;
     }
@@ -349,9 +347,8 @@ public:
         }
         case kScValStaticObject:
         case kScValStaticArray:
-            return RuntimeScriptValue().SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
         case kScValDynamicObject:
-            return RuntimeScriptValue().SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
+            return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32(this->Ptr, this->IValue));
         default:
             return RuntimeScriptValue().SetInt32(*(int32_t*)this->GetPtrWithOffset());
         }
@@ -403,13 +400,9 @@ public:
         }
         case kScValStaticObject:
         case kScValStaticArray:
-        {
-            this->StcMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
-            break;
-        }
         case kScValDynamicObject:
         {
-            this->DynMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
+            this->ObjMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
             break;
         }
         default:

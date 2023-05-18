@@ -3892,6 +3892,8 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::IsInteractionAvailable^1",  API_FN_PAIR(Character_IsInteractionAvailable) },
         { "Character::LockView^1",                API_FN_PAIR(Character_LockView) },
         { "Character::LockView^2",                API_FN_PAIR(Character_LockViewEx) },
+        { "Character::LockViewAligned^3",         API_FN_PAIR(Character_LockViewAligned) },
+        { "Character::LockViewAligned^4",         API_FN_PAIR(Character_LockViewAlignedEx) },
         { "Character::LockViewFrame^3",           API_FN_PAIR(Character_LockViewFrame) },
         { "Character::LockViewFrame^4",           API_FN_PAIR(Character_LockViewFrameEx) },
         { "Character::LockViewOffset^3",          API_FN_PAIR(Character_LockViewOffset) },
@@ -4003,41 +4005,21 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
         { "Character::get_z",                     API_FN_PAIR(Character_GetZ) },
         { "Character::set_z",                     API_FN_PAIR(Character_SetZ) },
         { "Character::get_HasExplicitLight",      API_FN_PAIR(Character_GetHasExplicitLight) },
+        { "Character::get_HasExplicitTint",      API_FN_PAIR(Character_GetHasExplicitTint) },
         { "Character::get_LightLevel",            API_FN_PAIR(Character_GetLightLevel) },
         { "Character::get_TintBlue",              API_FN_PAIR(Character_GetTintBlue) },
         { "Character::get_TintGreen",             API_FN_PAIR(Character_GetTintGreen) },
         { "Character::get_TintRed",               API_FN_PAIR(Character_GetTintRed) },
         { "Character::get_TintSaturation",        API_FN_PAIR(Character_GetTintSaturation) },
         { "Character::get_TintLuminance",         API_FN_PAIR(Character_GetTintLuminance) },
+
+        { "Character::get_BlendMode",             API_FN_PAIR(Character_GetBlendMode) },
+        { "Character::set_BlendMode",             API_FN_PAIR(Character_SetBlendMode) },
+        { "Character::get_UseRegionTint",         API_FN_PAIR(Character_GetUseRegionTint) },
+        { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
+        { "Character::get_GraphicRotation",       API_FN_PAIR(Character_GetRotation) },
+        { "Character::set_GraphicRotation",       API_FN_PAIR(Character_SetRotation) },
     };
 
     ccAddExternalFunctions(character_api);
-
-    // Few functions have to be selected based on API level
-    if (base_api < kScriptAPI_v350)
-    {
-        ccAddExternalObjectFunction("Character::LockViewAligned^3", API_FN_PAIR(Character_LockViewAligned_Old));
-        ccAddExternalObjectFunction("Character::LockViewAligned^4", API_FN_PAIR(Character_LockViewAlignedEx_Old));
-    }
-    else
-    {
-        ccAddExternalObjectFunction("Character::LockViewAligned^3", API_FN_PAIR(Character_LockViewAligned));
-        ccAddExternalObjectFunction("Character::LockViewAligned^4", API_FN_PAIR(Character_LockViewAlignedEx));
-    }
-
-	ccAddExternalObjectFunction("Character::get_ManualScaling",         Sc_Character_GetManualScaling);
-    ccAddExternalObjectFunction("Character::get_BlendMode",             Sc_Character_GetBlendMode);
-    ccAddExternalObjectFunction("Character::set_BlendMode",             Sc_Character_SetBlendMode);
-    ccAddExternalObjectFunction("Character::get_UseRegionTint",         Sc_Character_GetUseRegionTint);
-    ccAddExternalObjectFunction("Character::set_UseRegionTint",         Sc_Character_SetUseRegionTint);
-    ccAddExternalObjectFunction("Character::get_GraphicRotation",       Sc_Character_GetRotation);
-    ccAddExternalObjectFunction("Character::set_GraphicRotation",       Sc_Character_SetRotation);
-    if (base_api < kScriptAPI_v341)
-    {
-        ccAddExternalObjectFunction("Character::get_HasExplicitTint", API_FN_PAIR(Character_GetHasExplicitTint_Old));
-    }
-    else
-    {
-        ccAddExternalObjectFunction("Character::get_HasExplicitTint", API_FN_PAIR(Character_GetHasExplicitTint));
-    }
 }

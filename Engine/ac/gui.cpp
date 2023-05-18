@@ -961,12 +961,12 @@ void RegisterGUIAPI()
         { "GUI::get_ZOrder",              API_FN_PAIR(GUI_GetZOrder) },
         { "GUI::set_ZOrder",              API_FN_PAIR(GUI_SetZOrder) },
         { "GUI::get_Shown",               API_FN_PAIR(GUI_GetShown) },
+
+        { "GUI::get_BlendMode",           API_FN_PAIR(GUI_GetBlendMode) },
+        { "GUI::set_BlendMode",           API_FN_PAIR(GUI_SetBlendMode) },
+        { "GUI::get_Rotation",            API_FN_PAIR(GUI_GetRotation) },
+        { "GUI::set_Rotation",            API_FN_PAIR(GUI_SetRotation) },
     };
 
     ccAddExternalFunctions(gui_api);
-
-    ccAddExternalObjectFunction("GUI::get_BlendMode",           Sc_GUI_GetBlendMode);
-    ccAddExternalObjectFunction("GUI::set_BlendMode",           Sc_GUI_SetBlendMode);
-    ccAddExternalObjectFunction("GUI::get_Rotation",            Sc_GUI_GetRotation);
-    ccAddExternalObjectFunction("GUI::set_Rotation",            Sc_GUI_SetRotation);
 }

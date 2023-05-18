@@ -812,12 +812,12 @@ void RegisterOverlayAPI()
         { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
         { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
         { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
+
+        { "Overlay::get_BlendMode",       API_FN_PAIR(Overlay_GetBlendMode) },
+        { "Overlay::set_BlendMode",       API_FN_PAIR(Overlay_SetBlendMode) },
+        { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
+        { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
     };
 
     ccAddExternalFunctions(overlay_api);
-
-    ccAddExternalObjectFunction("Overlay::get_BlendMode",       Sc_Overlay_GetBlendMode);
-    ccAddExternalObjectFunction("Overlay::set_BlendMode",       Sc_Overlay_SetBlendMode);
-    ccAddExternalObjectFunction("Overlay::get_Rotation",        Sc_Overlay_GetRotation);
-    ccAddExternalObjectFunction("Overlay::set_Rotation",        Sc_Overlay_SetRotation);
 }

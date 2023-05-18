@@ -555,6 +555,7 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*com
         { "DrawingSurface::DrawImage^10",         API_FN_PAIR(DrawingSurface_DrawImage) },
         { "DrawingSurface::DrawLine^5",           API_FN_PAIR(DrawingSurface_DrawLine) },
         { "DrawingSurface::DrawMessageWrapped^5", API_FN_PAIR(DrawingSurface_DrawMessageWrapped) },
+        { "DrawingSurface::DrawStringWrapped^6",  API_FN_PAIR(DrawingSurface_DrawStringWrapped) },
         { "DrawingSurface::DrawPixel^2",          API_FN_PAIR(DrawingSurface_DrawPixel) },
         { "DrawingSurface::DrawRectangle^4",      API_FN_PAIR(DrawingSurface_DrawRectangle) },
         { "DrawingSurface::DrawString^104",       Sc_DrawingSurface_DrawString, ScPl_DrawingSurface_DrawString },
@@ -566,16 +567,10 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*com
         { "DrawingSurface::set_DrawingColor",     API_FN_PAIR(DrawingSurface_SetDrawingColor) },
         { "DrawingSurface::get_Height",           API_FN_PAIR(DrawingSurface_GetHeight) },
         { "DrawingSurface::get_Width",            API_FN_PAIR(DrawingSurface_GetWidth) },
+
+        { "DrawingSurface::BlendImage^11",        API_FN_PAIR(DrawingSurface_BlendImage) },
+        { "DrawingSurface::BlendSurface^11",      API_FN_PAIR(DrawingSurface_BlendSurface) },
     };
 
     ccAddExternalFunctions(drawsurf_api);
-
-    ccAddExternalObjectFunction("DrawingSurface::BlendImage^11",        Sc_DrawingSurface_BlendImage);
-    ccAddExternalObjectFunction("DrawingSurface::BlendSurface^11",      Sc_DrawingSurface_BlendSurface);
-
-    // Few functions have to be selected based on API level
-    if (base_api < kScriptAPI_v350)
-        ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6", API_FN_PAIR(DrawingSurface_DrawStringWrapped_Old));
-    else
-        ccAddExternalObjectFunction("DrawingSurface::DrawStringWrapped^6", API_FN_PAIR(DrawingSurface_DrawStringWrapped));
 }

@@ -1197,17 +1197,14 @@ void RegisterObjectAPI()
         { "Object::get_TintRed",              API_FN_PAIR(Object_GetTintRed) },
         { "Object::get_TintSaturation",       API_FN_PAIR(Object_GetTintSaturation) },
         { "Object::get_TintLuminance",        API_FN_PAIR(Object_GetTintLuminance) },
+
+        { "Object::get_BlendMode",            API_FN_PAIR(Object_GetBlendMode) },
+        { "Object::set_BlendMode",            API_FN_PAIR(Object_SetBlendMode) },
+        { "Object::get_GraphicRotation",      API_FN_PAIR(Object_GetRotation) },
+        { "Object::set_GraphicRotation",      API_FN_PAIR(Object_SetRotation) },
+        { "Object::get_UseRegionTint",        API_FN_PAIR(Object_GetUseRegionTint) },
+        { "Object::set_UseRegionTint",        API_FN_PAIR(Object_SetUseRegionTint) },
     };
 
     ccAddExternalFunctions(object_api);
-
-    ccAddExternalObjectFunction("Object::get_ManualScaling",        Sc_Object_GetManualScaling);
-
-    ccAddExternalObjectFunction("Object::get_BlendMode",            Sc_Object_GetBlendMode);
-    ccAddExternalObjectFunction("Object::set_BlendMode",            Sc_Object_SetBlendMode);
-    ccAddExternalObjectFunction("Object::get_GraphicRotation",      Sc_Object_GetRotation);
-    ccAddExternalObjectFunction("Object::set_GraphicRotation",      Sc_Object_SetRotation);
-
-    ccAddExternalObjectFunction("Object::get_UseRegionTint",        Sc_Object_GetUseRegionTint);
-    ccAddExternalObjectFunction("Object::set_UseRegionTint",        Sc_Object_SetUseRegionTint);
 }

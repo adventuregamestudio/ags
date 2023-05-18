@@ -103,6 +103,7 @@ target_sources(engine
     ac/dynobj/scripthotspot.h
     ac/dynobj/scriptinvitem.h
     ac/dynobj/scriptmouse.h
+    ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptobject.h
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h

@@ -113,6 +113,7 @@ target_sources(engine
     ac/dynobj/scriptstring.cpp
     ac/dynobj/scriptstring.h
     ac/dynobj/scriptsystem.h
+    ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
     ac/dynobj/scriptviewframe.cpp

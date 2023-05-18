@@ -11,18 +11,21 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTGAME_H
-#define __AGS_EE_DYNOBJ__SCRIPTGAME_H
+//
+// Wrapper around script "GameState" struct, managing access to its variables.
+//
+//=============================================================================
+#ifndef __AGS_EE_STATOBJ__SCRIPTGAME_H
+#define __AGS_EE_STATOBJ__SCRIPTGAME_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-// Wrapper around script's "Game" struct, managing access to its variables
-struct StaticGame : public AGSCCStaticObject
+struct CCScriptGame : public AGSCCStaticObject
 {
-    const char *GetType() override { return "Game"; }
+    int32_t ReadInt32(void *address, intptr_t offset) override;
     void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 
-extern StaticGame      GameStaticManager;
+extern CCScriptGame GameStaticManager;
 
-#endif // __AGS_EE_DYNOBJ__SCRIPTGAME_H
+#endif // __AGS_EE_STATOBJ__SCRIPTGAME_H

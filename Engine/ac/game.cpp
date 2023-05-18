@@ -1953,10 +1953,10 @@ void RegisterGameAPI()
 
 void RegisterStaticObjects()
 {
-    ccAddExternalScriptObject("game",&play, &GameStaticManager);
-	ccAddExternalScriptObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
-	ccAddExternalScriptObject("mouse",&scmouse, &GlobalStaticManager);
-	ccAddExternalScriptObject("palette",&palette[0], &GlobalStaticManager);
-	ccAddExternalScriptObject("system",&scsystem, &GlobalStaticManager);
-	ccAddExternalScriptObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
+    ccAddExternalScriptObject("game", &play, &GameStaticManager);
+    ccAddExternalScriptObject("gs_globals", &play.globalvars[0], &GlobalStaticManager);
+    ccAddExternalScriptObject("mouse", &scmouse, &GlobalStaticManager);
+    ccAddExternalScriptObject("palette", &palette[0], &GlobalStaticManager);
+    ccAddExternalScriptObject("system", &scsystem, &GlobalStaticManager);
+    ccAddExternalScriptObject("savegameindex", &play.filenumbers[0], &GlobalStaticManager);
 }

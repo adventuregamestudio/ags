@@ -164,6 +164,7 @@ String get_voice_assetpath()
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
 #include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
@@ -181,130 +182,249 @@ ScriptOverlay* Speech_GetPortraitOverlay()
     return (ScriptOverlay*)ccGetObjectAddressFromHandle(play.speech_face_schandle);
 }
 
-RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
+int Speech_GetAnimationStopTimeMargin()
 {
-    API_VARGET_INT(play.close_mouth_speech_time);
+    return play.close_mouth_speech_time;
 }
 
-RuntimeScriptValue Sc_Speech_SetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
+void Speech_SetAnimationStopTimeMargin(int time)
 {
-    API_VARSET_PINT(play.close_mouth_speech_time);
+    play.close_mouth_speech_time = time;
 }
 
-RuntimeScriptValue Sc_Speech_GetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
+int Speech_GetCustomPortraitPlacement()
 {
-    API_VARGET_INT(play.speech_portrait_placement);
+    return play.speech_portrait_placement;
 }
 
-RuntimeScriptValue Sc_Speech_SetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
+void Speech_SetCustomPortraitPlacement(int placement)
 {
-    API_VARSET_PINT(play.speech_portrait_placement);
+    play.speech_portrait_placement = placement;
 }
 
-RuntimeScriptValue Sc_Speech_GetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+int Speech_GetDisplayPostTimeMs()
 {
-    API_VARGET_INT(play.speech_display_post_time_ms);
+    return play.speech_display_post_time_ms;
 }
 
-RuntimeScriptValue Sc_Speech_SetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+void Speech_SetDisplayPostTimeMs(int time_ms)
 {
-    API_VARSET_PINT(play.speech_display_post_time_ms);
+    play.speech_display_post_time_ms = time_ms;
 }
 
-RuntimeScriptValue Sc_Speech_GetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+int Speech_GetGlobalSpeechAnimationDelay()
 {
-	API_VARGET_INT(play.talkanim_speed);
+	return play.talkanim_speed;
 }
 
-RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+void Speech_SetGlobalSpeechAnimationDelay(int delay)
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
     {
         debug_script_warn("Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
-        return RuntimeScriptValue();
+        return;
     }
-	API_VARSET_PINT(play.talkanim_speed);
+    play.talkanim_speed = delay;
+}
+
+int Speech_GetPortraitXOffset()
+{
+    return play.speech_portrait_x;
+}
+
+void Speech_SetPortraitXOffset(int x)
+{
+    play.speech_portrait_x = x;
+}
+
+int Speech_GetPortraitY()
+{
+    return play.speech_portrait_y;
+}
+
+void Speech_SetPortraitY(int y)
+{
+    play.speech_portrait_y = y;
+}
+
+int Speech_GetStyle()
+{
+    return game.options[OPT_SPEECHTYPE];
+}
+
+void Speech_SetStyle (int newstyle)
+{
+    if ((newstyle < 0) || (newstyle > 3))
+        quit("!SetSpeechStyle: must use a SPEECH_* constant as parameter");
+    game.options[OPT_SPEECHTYPE] = newstyle;
+}
+
+SkipSpeechStyle Speech_GetSkipStyle()
+{
+    return internal_skip_speech_to_user(play.cant_skip_speech);
+}
+
+void Speech_SetSkipStyle(SkipSpeechStyle newval)
+{
+    if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
+        quit("!SetSkipSpeech: invalid skip mode specified");
+
+    debug_script_log("SkipSpeech style set to %d", newval);
+    play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)newval);
+}
+
+int Speech_GetSkipKey()
+{
+    return play.skip_speech_specific_key;
+}
+
+void Speech_SetSkipKey(int key)
+{
+    play.skip_speech_specific_key = key;
+}
+
+int Speech_GetTextAlignment()
+{
+    return play.speech_text_align;
+}
+
+void Speech_SetTextAlignment_Old(int alignment)
+{
+    play.speech_text_align = ReadScriptAlignment(alignment);
+}
+
+void Speech_SetTextAlignment(int alignment)
+{
+    play.speech_text_align = (HorAlignment)alignment;
+}
+
+int Speech_GetUseGlobalSpeechAnimationDelay()
+{
+	return game.options[OPT_GLOBALTALKANIMSPD];
+}
+
+void Speech_SetUseGlobalSpeechAnimationDelay(int delay)
+{
+	game.options[OPT_GLOBALTALKANIMSPD] = delay;
+}
+
+//-----------------------------------------------------------------------------
+
+RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Speech_GetAnimationStopTimeMargin);
+}
+
+RuntimeScriptValue Sc_Speech_SetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Speech_SetAnimationStopTimeMargin);
+}
+
+RuntimeScriptValue Sc_Speech_GetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Speech_GetCustomPortraitPlacement);
+}
+
+RuntimeScriptValue Sc_Speech_SetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Speech_SetCustomPortraitPlacement);
+}
+
+RuntimeScriptValue Sc_Speech_GetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Speech_GetDisplayPostTimeMs);
+}
+
+RuntimeScriptValue Sc_Speech_SetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Speech_SetDisplayPostTimeMs);
+}
+
+RuntimeScriptValue Sc_Speech_GetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Speech_GetGlobalSpeechAnimationDelay);
+}
+
+RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Speech_SetGlobalSpeechAnimationDelay);
 }
 
 RuntimeScriptValue Sc_Speech_GetPortraitXOffset(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(play.speech_portrait_x);
+    API_SCALL_INT(Speech_GetPortraitXOffset);
 }
 
 RuntimeScriptValue Sc_Speech_SetPortraitXOffset(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARSET_PINT(play.speech_portrait_x);
+    API_SCALL_VOID_PINT(Speech_SetPortraitXOffset);
 }
 
 RuntimeScriptValue Sc_Speech_GetPortraitY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(play.speech_portrait_y);
+    API_SCALL_INT(Speech_GetPortraitY);
 }
 
 RuntimeScriptValue Sc_Speech_SetPortraitY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARSET_PINT(play.speech_portrait_y);
+    API_SCALL_VOID_PINT(Speech_SetPortraitY);
 }
 
 RuntimeScriptValue Sc_Speech_GetStyle(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(game.options[OPT_SPEECHTYPE]);
+    API_SCALL_INT(Speech_GetStyle);
 }
 
 RuntimeScriptValue Sc_Speech_SetStyle(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SetSpeechStyle);
+    API_SCALL_VOID_PINT(Speech_SetStyle);
 }
 
 RuntimeScriptValue Sc_Speech_GetSkipKey(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(play.skip_speech_specific_key);
+    API_SCALL_INT(Speech_GetSkipKey);
 }
 
 RuntimeScriptValue Sc_Speech_SetSkipKey(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARSET_PINT(play.skip_speech_specific_key);
+    API_SCALL_VOID_PINT(Speech_SetSkipKey);
 }
 
 RuntimeScriptValue Sc_Speech_GetSkipStyle(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(GetSkipSpeech);
+    API_SCALL_INT(Speech_GetSkipStyle);
 }
 
 extern RuntimeScriptValue Sc_Speech_SetSkipStyle(const RuntimeScriptValue *params, int32_t param_count)
 {
     ASSERT_PARAM_COUNT(SetSkipSpeech, 1);
-    SetSkipSpeech((SkipSpeechStyle)params[0].IValue);
+    Speech_SetSkipStyle((SkipSpeechStyle)params[0].IValue);
     return RuntimeScriptValue((int32_t)0);
 }
 
 RuntimeScriptValue Sc_Speech_GetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(play.speech_text_align);
+    API_SCALL_INT(Speech_GetTextAlignment);
 }
 
 RuntimeScriptValue Sc_Speech_SetTextAlignment_Old(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_VARIABLE_VALUE(play.speech_text_align);
-    play.speech_text_align = ReadScriptAlignment(params[0].IValue);
-    return RuntimeScriptValue();
+    API_SCALL_VOID_PINT(Speech_SetTextAlignment_Old);
 }
 
 RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_VARIABLE_VALUE(play.speech_text_align);
-    play.speech_text_align = (HorAlignment)params[0].IValue;
-    return RuntimeScriptValue();
+    API_SCALL_VOID_PINT(Speech_SetTextAlignment);
 }
 
 RuntimeScriptValue Sc_Speech_GetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
 {
-	API_VARGET_INT(game.options[OPT_GLOBALTALKANIMSPD]);
+    API_SCALL_INT(Speech_GetUseGlobalSpeechAnimationDelay);
 }
 
 RuntimeScriptValue Sc_Speech_SetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
 {
-	API_VARSET_PINT(game.options[OPT_GLOBALTALKANIMSPD]);
+    API_SCALL_VOID_PINT(Speech_SetUseGlobalSpeechAnimationDelay);
 }
 
 RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
@@ -329,35 +449,39 @@ RuntimeScriptValue Sc_Speech_GetPortraitOverlay(const RuntimeScriptValue *params
 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
-    ccAddExternalStaticFunction("Speech::get_AnimationStopTimeMargin", Sc_Speech_GetAnimationStopTimeMargin);
-    ccAddExternalStaticFunction("Speech::set_AnimationStopTimeMargin", Sc_Speech_SetAnimationStopTimeMargin);
-    ccAddExternalStaticFunction("Speech::get_CustomPortraitPlacement", Sc_Speech_GetCustomPortraitPlacement);
-    ccAddExternalStaticFunction("Speech::set_CustomPortraitPlacement", Sc_Speech_SetCustomPortraitPlacement);
-    ccAddExternalStaticFunction("Speech::get_DisplayPostTimeMs",      Sc_Speech_GetDisplayPostTimeMs);
-    ccAddExternalStaticFunction("Speech::set_DisplayPostTimeMs",      Sc_Speech_SetDisplayPostTimeMs);
-	ccAddExternalStaticFunction("Speech::get_GlobalSpeechAnimationDelay", Sc_Speech_GetGlobalSpeechAnimationDelay);
-	ccAddExternalStaticFunction("Speech::set_GlobalSpeechAnimationDelay", Sc_Speech_SetGlobalSpeechAnimationDelay);
-    ccAddExternalStaticFunction("Speech::get_PortraitOverlay",        Sc_Speech_GetPortraitOverlay);
-    ccAddExternalStaticFunction("Speech::get_PortraitXOffset",        Sc_Speech_GetPortraitXOffset);
-    ccAddExternalStaticFunction("Speech::set_PortraitXOffset",        Sc_Speech_SetPortraitXOffset);
-    ccAddExternalStaticFunction("Speech::get_PortraitY",              Sc_Speech_GetPortraitY);
-    ccAddExternalStaticFunction("Speech::set_PortraitY",              Sc_Speech_SetPortraitY);
-    ccAddExternalStaticFunction("Speech::get_SkipKey",                Sc_Speech_GetSkipKey);
-    ccAddExternalStaticFunction("Speech::set_SkipKey",                Sc_Speech_SetSkipKey);
-    ccAddExternalStaticFunction("Speech::get_SkipStyle",              Sc_Speech_GetSkipStyle);
-    ccAddExternalStaticFunction("Speech::set_SkipStyle",              Sc_Speech_SetSkipStyle);
-    ccAddExternalStaticFunction("Speech::get_Style",                  Sc_Speech_GetStyle);
-    ccAddExternalStaticFunction("Speech::set_Style",                  Sc_Speech_SetStyle);
-    ccAddExternalStaticFunction("Speech::get_TextAlignment",          Sc_Speech_GetTextAlignment);
-    if (base_api < kScriptAPI_v350)
-        ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment_Old);
-    else
-        ccAddExternalStaticFunction("Speech::set_TextAlignment",      Sc_Speech_SetTextAlignment);
-    ccAddExternalStaticFunction("Speech::get_TextOverlay",            Sc_Speech_GetTextOverlay);
-	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
-	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
-    ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);
-    ccAddExternalStaticFunction("Speech::set_VoiceMode",              Sc_Speech_SetVoiceMode);
+    ScFnRegister speech_api[] = {
+        { "Speech::get_AnimationStopTimeMargin", API_FN_PAIR(Speech_GetAnimationStopTimeMargin) },
+        { "Speech::set_AnimationStopTimeMargin", API_FN_PAIR(Speech_SetAnimationStopTimeMargin) },
+        { "Speech::get_CustomPortraitPlacement", API_FN_PAIR(Speech_GetCustomPortraitPlacement) },
+        { "Speech::set_CustomPortraitPlacement", API_FN_PAIR(Speech_SetCustomPortraitPlacement) },
+        { "Speech::get_DisplayPostTimeMs",      API_FN_PAIR(Speech_GetDisplayPostTimeMs) },
+        { "Speech::set_DisplayPostTimeMs",      API_FN_PAIR(Speech_SetDisplayPostTimeMs) },
+        { "Speech::get_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetGlobalSpeechAnimationDelay) },
+        { "Speech::set_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetGlobalSpeechAnimationDelay) },
+        { "Speech::get_PortraitOverlay",        API_FN_PAIR(Speech_GetPortraitOverlay) },
+        { "Speech::get_PortraitXOffset",        API_FN_PAIR(Speech_GetPortraitXOffset) },
+        { "Speech::set_PortraitXOffset",        API_FN_PAIR(Speech_SetPortraitXOffset) },
+        { "Speech::get_PortraitY",              API_FN_PAIR(Speech_GetPortraitY) },
+        { "Speech::set_PortraitY",              API_FN_PAIR(Speech_SetPortraitY) },
+        { "Speech::get_SkipKey",                API_FN_PAIR(Speech_GetSkipKey) },
+        { "Speech::set_SkipKey",                API_FN_PAIR(Speech_SetSkipKey) },
+        { "Speech::get_SkipStyle",              API_FN_PAIR(Speech_GetSkipStyle) },
+        { "Speech::set_SkipStyle",              API_FN_PAIR(Speech_SetSkipStyle) },
+        { "Speech::get_Style",                  API_FN_PAIR(Speech_GetStyle) },
+        { "Speech::set_Style",                  API_FN_PAIR(Speech_SetStyle) },
+        { "Speech::get_TextAlignment",          API_FN_PAIR(Speech_GetTextAlignment) },
+        { "Speech::get_TextOverlay",            API_FN_PAIR(Speech_GetTextOverlay) },
+        { "Speech::get_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetUseGlobalSpeechAnimationDelay) },
+        { "Speech::set_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetUseGlobalSpeechAnimationDelay) },
+        { "Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode, GetVoiceMode },
+        { "Speech::set_VoiceMode",              Sc_Speech_SetVoiceMode, SetVoiceMode },
+    };
 
-    /* -- Don't register more unsafe plugin symbols until new plugin interface is designed --*/
+    ccAddExternalFunctions(speech_api);
+
+    // Few functions have to be selected based on API level
+    if (base_api < kScriptAPI_v350)
+        ccAddExternalStaticFunction("Speech::set_TextAlignment", API_FN_PAIR(Speech_SetTextAlignment_Old));
+    else
+        ccAddExternalStaticFunction("Speech::set_TextAlignment", API_FN_PAIR(Speech_SetTextAlignment));
 }

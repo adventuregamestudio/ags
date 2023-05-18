@@ -24,7 +24,6 @@ void StopMoving(int chaa);
 void ReleaseCharacterView(int chat);
 int  GetCharacterWidth(int ww);
 int  GetCharacterHeight(int charid);
-void scAnimateCharacter (int chh, int loopn, int sppd, int rept);
 void MoveCharacterToHotspot(int chaa,int hotsp);
 
 void RunCharacterInteraction (int cc, int mood);// [DEPRECATED]

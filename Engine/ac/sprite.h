@@ -15,6 +15,7 @@
 #define __AGS_EE_AC__SPRITE_H
 
 // Converts from 32-bit RGBA image, to a 15/16/24-bit destination image,
+// Converts from 32-bit RGBA image, to a 15/16/24-bit destination image,
 // replacing more than half-translucent alpha pixels with transparency mask pixels.
 Common::Bitmap *remove_alpha_channel(Common::Bitmap *from);
 void pre_save_sprite(Common::Bitmap *image);

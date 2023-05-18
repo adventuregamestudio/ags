@@ -13,6 +13,7 @@
 //=============================================================================
 #include <memory.h>
 #include "scriptuserobject.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/cc_script.h"
 #include "script/cc_instance.h"
@@ -73,25 +74,18 @@ int ScriptUserObject::Dispose(const char* address, bool force)
     return 1;
 }
 
-int ScriptUserObject::Serialize(const char* /*address*/, char *buffer, int bufsize)
+size_t ScriptUserObject::CalcSerializeSize(const char * /*address*/)
 {
-    const size_t hdr_sz = sizeof(uint32_t) * 2;
-    const size_t total_sz = _size + hdr_sz;
-    // If buffer not big enough, ask for a bigger one
-    // NOTE: the managed object interface's Serialize() function requires
-    // the object to return negative value of size in case the provided
-    // buffer was not large enough. Since this interface is also a part of
-    // Plugin API, we cannot modify that without more significant changes.
-    // This means that if the size is larger than INT32_MAX, Serialize()
-    // will work unreliably.
-    if ((bufsize <= 0) || (total_sz > static_cast<size_t>(bufsize)))
-        return -static_cast<int32_t>(total_sz);
+    const size_t hdr_sz = sizeof(uint32_t) * 2; // typeid and size
+    return _size + hdr_sz;
+}
 
-    MemoryStream mems(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write);
-    mems.WriteInt32(hdr_sz); // header size, reserve for the future
-    mems.WriteInt32(_typeid); // type id
-    mems.Write(_data, _size); // main data
-    return static_cast<int32_t>(mems.GetPosition());
+void ScriptUserObject::Serialize(const char *address, AGS::Common::Stream *out)
+{
+    const size_t hdr_sz = sizeof(uint32_t) * 2; // typeid and size
+    out->WriteInt32(hdr_sz); // header size, reserve for the future
+    out->WriteInt32(_typeid); // type id
+    out->Write(_data, _size); // main data
 }
 
 void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)

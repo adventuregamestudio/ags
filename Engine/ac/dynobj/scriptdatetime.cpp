@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdatetime.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -26,7 +27,7 @@ const char *ScriptDateTime::GetType() {
     return "DateTime";
 }
 
-size_t ScriptDateTime::CalcSerializeSize()
+size_t ScriptDateTime::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t) * 7;
 }

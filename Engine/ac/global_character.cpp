@@ -103,33 +103,6 @@ int GetCharacterHeight(int charid) {
         return charextra[charid].height;
 }
 
-void scAnimateCharacter (int chh, int loopn, int sppd, int rept) {
-    if (!is_valid_character(chh))
-        quit("AnimateCharacter: invalid character");
-
-    animate_character(&game.chars[chh], loopn, sppd, rept);
-}
-
-void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, int blocking) {
-    if ((direction < 0) || (direction > 1))
-        quit("!AnimateCharacterEx: invalid direction");
-    if (!is_valid_character(chh))
-        quit("AnimateCharacter: invalid character");
-
-    if (direction)
-        direction = BACKWARDS;
-    else
-        direction = FORWARDS;
-
-    if (blocking)
-        blocking = BLOCKING;
-    else
-        blocking = IN_BACKGROUND;
-
-    Character_Animate(&game.chars[chh], loopn, sppd, rept, blocking, direction);
-
-}
-
 int GetPlayerCharacter() {
     return game.playercharacter;
 }

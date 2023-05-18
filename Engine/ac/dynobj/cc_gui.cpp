@@ -14,6 +14,7 @@
 #include "ac/dynobj/cc_gui.h"
 #include <vector>
 #include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -25,7 +26,7 @@ const char *CCGUI::GetType() {
     return "GUI";
 }
 
-size_t CCGUI::CalcSerializeSize()
+size_t CCGUI::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

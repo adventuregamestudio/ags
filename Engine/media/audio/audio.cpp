@@ -40,6 +40,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
+#include "ac/dynobj/dynobj_manager.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

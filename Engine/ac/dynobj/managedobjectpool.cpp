@@ -32,7 +32,6 @@ const auto RESERVED_SIZE = 2048;
 
 int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
     if (!o.isUsed()) { return 1; } // already removed
-
     stats.Removed++;
     stats.RemovedPersistent += ((o.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) != 0);
     o.refCount = 0; // mark as disposing, to avoid any access
@@ -45,17 +44,16 @@ int ManagedObjectPool::Remove(ManagedObject &o, bool force) {
 }
 
 int32_t ManagedObjectPool::AddRef(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
-    auto & o = objects[handle];
+    if (handle < 1 || (size_t)handle >= objects.size()) { return 0; }
+    auto &o = objects[handle];
     if (!o.isUsed()) { return 0; }
-
     o.refCount++;
     ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", currentline, o.handle, o.refCount);
     return o.refCount;
 }
 
 int ManagedObjectPool::CheckDispose(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 1; }
+    if (handle < 1 || (size_t)handle >= objects.size()) { return 1; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 1; }
     if (o.refCount >= 1) { return 0; }
@@ -70,10 +68,10 @@ int32_t ManagedObjectPool::SubRefCheckDispose(int32_t handle) {
     if (o.refCount <= 0) { return 0; } // already disposed / disposing
 
     o.refCount--;
-    auto newRefCount = o.refCount;
-    auto canBeDisposed = (o.addr != disableDisposeForObject);
-    if (canBeDisposed) {
-        CheckDispose(handle);
+    const auto newRefCount = o.refCount;
+    const auto canBeDisposed = (o.addr != disableDisposeForObject);
+    if (canBeDisposed && o.refCount <= 0) {
+        Remove(o);
     }
     // object could be removed at this point, don't use any values.
     ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d canBeDisposed=%d", currentline, handle, newRefCount, canBeDisposed);
@@ -100,7 +98,7 @@ int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
 
 // this function is called often (whenever a pointer is used)
 const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return nullptr; }
+    if (handle < 1 || (size_t)handle >= objects.size()) { return nullptr; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return nullptr; }
     return o.addr;
@@ -239,12 +237,12 @@ void ManagedObjectPool::RunGarbageCollection()
 }
 
 int ManagedObjectPool::Add(int handle, const char *address, ICCDynamicObject *callback,
-    bool plugin_object, bool persistent)
+    ScriptValueType obj_type, bool persistent)
 {
     auto & o = objects[handle];
-    if (o.isUsed()) { cc_error("used: %d", handle); return 0; }
+    assert(!o.isUsed());
 
-    o = ManagedObject(plugin_object ? kScValPluginObject : kScValDynamicObject, handle, address, callback);
+    o = ManagedObject(obj_type, handle, address, callback);
 
     handleByAddress.insert({address, o.handle});
     if (persistent) { // mark persistent object as excluded from GC
@@ -257,11 +255,11 @@ int ManagedObjectPool::Add(int handle, const char *address, ICCDynamicObject *ca
     stats.Added++;
     stats.MaxObjectsPresent = std::max(stats.MaxObjectsPresent, stats.Added - stats.Removed);
     ManagedObjectLog("Allocated managed object type=%s, handle=%d, addr=%08X", callback->GetType(), handle, address);
-    return handle;
+    return o.handle;
 }
 
 int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback,
-    bool plugin_object, bool persistent) 
+    ScriptValueType obj_type, bool persistent)
 {
     int32_t handle;
 
@@ -275,19 +273,18 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
         }
     }
 
-    return Add(handle, address, callback, plugin_object, persistent);
+    return Add(handle, address, callback, obj_type, persistent);   
 }
 
-
 int ManagedObjectPool::AddUnserializedObject(const char *address, ICCDynamicObject *callback, int handle,
-    bool plugin_object, bool persistent) 
+    ScriptValueType obj_type, bool persistent) 
 {
     if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     if ((size_t)handle >= objects.size()) {
         objects.resize(handle + 1024, ManagedObject());
     }
 
-    return Add(handle, address, callback, plugin_object, persistent);
+    return Add(handle, address, callback, obj_type, persistent);
 }
 
 void ManagedObjectPool::WriteToDisk(Stream *out) {
@@ -392,7 +389,7 @@ void ManagedObjectPool::Reset() {
         if (!o.isUsed()) { continue; }
         Remove(o, true);
     }
-    while (!available_ids.empty()) { available_ids.pop(); }
+    available_ids = std::queue<int32_t>();
     gcUsedList.clear();
     gcRemList.clear();
     nextHandle = 1;

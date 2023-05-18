@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/dynobj/cc_region.h"
 #include "ac/dynobj/scriptregion.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/common_defines.h"
 #include "game/roomstruct.h"
 #include "util/stream.h"
@@ -26,7 +27,7 @@ const char *CCRegion::GetType() {
     return "Region";
 }
 
-size_t CCRegion::CalcSerializeSize()
+size_t CCRegion::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

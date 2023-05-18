@@ -26,6 +26,16 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
+// RoomObject's internal values, packed in RoomObject::cycling
+// Animates once and stops at the *last* frame
+#define OBJANIM_ONCE      (ANIM_ONCE + 1)
+// Animates infinitely until stopped by command
+#define OBJANIM_REPEAT    (ANIM_REPEAT + 1)
+// Animates once and stops, resetting to the very first frame
+#define OBJANIM_ONCERESET (ANIM_ONCERESET + 1)
+// Animates backwards, as opposed to forwards
+#define OBJANIM_BACKWARDS 10
+
 struct RoomObject {
     static const uint16_t NoView = UINT16_MAX;
 
@@ -41,8 +51,8 @@ struct RoomObject {
     short baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
     uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
     short wait,moving;
-    char  cycling;        // is it currently animating?
-    char  overall_speed;
+    char  cycling;        // stores OBJANIM_* flags and values
+    char  overall_speed;  // animation delay
     char  on;
     char  flags;
     // Down to here is a part of the plugin API
@@ -60,6 +70,19 @@ struct RoomObject {
 
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
+    inline bool is_animating()       const { return (cycling > 0); }
+    // repeat may be ANIM_ONCE, ANIM_REPEAT, ANIM_ONCERESET;
+    // get_anim_repeat() converts from OBJANIM_* to ANIM_* values
+    inline int  get_anim_repeat()    const { return (cycling % OBJANIM_BACKWARDS) - 1; }
+    inline bool get_anim_forwards()  const { return (cycling < OBJANIM_BACKWARDS); }
+    inline int  get_anim_delay()     const { return overall_speed; }
+    // repeat may be ANIM_ONCE, ANIM_REPEAT, ANIM_ONCERESET 
+    inline void set_animating(int repeat, bool forwards, int delay)
+    {
+        // convert "repeat" to 1-based OBJANIM_* flag
+        cycling = (repeat + 1) + (!forwards * OBJANIM_BACKWARDS);
+        overall_speed = delay;
+    }
 
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
     void UpdateGraphicSpace();

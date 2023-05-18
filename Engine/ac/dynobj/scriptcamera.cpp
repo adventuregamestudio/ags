@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptcamera.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestate.h"
 #include "util/stream.h"
 
@@ -32,7 +33,7 @@ int ScriptCamera::Dispose(const char* /*address*/, bool /*force*/)
     return 1;
 }
 
-size_t ScriptCamera::CalcSerializeSize()
+size_t ScriptCamera::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

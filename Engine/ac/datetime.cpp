@@ -11,11 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <time.h>
 #include "ac/datetime.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "platform/base/agsplatformdriver.h"
-#include "script/runtimescriptvalue.h"
 
 ScriptDateTime* DateTime_Now_Core() {
     ScriptDateTime *sdt = new ScriptDateTime();
@@ -119,23 +118,17 @@ RuntimeScriptValue Sc_DateTime_GetRawTime(void *self, const RuntimeScriptValue *
 
 void RegisterDateTimeAPI()
 {
-    ccAddExternalStaticFunction("DateTime::get_Now",        Sc_DateTime_Now);
-    ccAddExternalObjectFunction("DateTime::get_DayOfMonth", Sc_DateTime_GetDayOfMonth);
-    ccAddExternalObjectFunction("DateTime::get_Hour",       Sc_DateTime_GetHour);
-    ccAddExternalObjectFunction("DateTime::get_Minute",     Sc_DateTime_GetMinute);
-    ccAddExternalObjectFunction("DateTime::get_Month",      Sc_DateTime_GetMonth);
-    ccAddExternalObjectFunction("DateTime::get_RawTime",    Sc_DateTime_GetRawTime);
-    ccAddExternalObjectFunction("DateTime::get_Second",     Sc_DateTime_GetSecond);
-    ccAddExternalObjectFunction("DateTime::get_Year",       Sc_DateTime_GetYear);
+    ScFnRegister datetime_api[] = {
+        { "DateTime::get_Now",        API_FN_PAIR(DateTime_Now) },
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+        { "DateTime::get_DayOfMonth", API_FN_PAIR(DateTime_GetDayOfMonth) },
+        { "DateTime::get_Hour",       API_FN_PAIR(DateTime_GetHour) },
+        { "DateTime::get_Minute",     API_FN_PAIR(DateTime_GetMinute) },
+        { "DateTime::get_Month",      API_FN_PAIR(DateTime_GetMonth) },
+        { "DateTime::get_RawTime",    API_FN_PAIR(DateTime_GetRawTime) },
+        { "DateTime::get_Second",     API_FN_PAIR(DateTime_GetSecond) },
+        { "DateTime::get_Year",       API_FN_PAIR(DateTime_GetYear) },
+    };
 
-    ccAddExternalFunctionForPlugin("DateTime::get_Now",        (void*)DateTime_Now);
-    ccAddExternalFunctionForPlugin("DateTime::get_DayOfMonth", (void*)DateTime_GetDayOfMonth);
-    ccAddExternalFunctionForPlugin("DateTime::get_Hour",       (void*)DateTime_GetHour);
-    ccAddExternalFunctionForPlugin("DateTime::get_Minute",     (void*)DateTime_GetMinute);
-    ccAddExternalFunctionForPlugin("DateTime::get_Month",      (void*)DateTime_GetMonth);
-    ccAddExternalFunctionForPlugin("DateTime::get_RawTime",    (void*)DateTime_GetRawTime);
-    ccAddExternalFunctionForPlugin("DateTime::get_Second",     (void*)DateTime_GetSecond);
-    ccAddExternalFunctionForPlugin("DateTime::get_Year",       (void*)DateTime_GetYear);
+    ccAddExternalFunctions(datetime_api);
 }

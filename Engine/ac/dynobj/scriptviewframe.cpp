@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptviewframe.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -26,7 +27,7 @@ const char *ScriptViewFrame::GetType() {
     return "ViewFrame";
 }
 
-size_t ScriptViewFrame::CalcSerializeSize()
+size_t ScriptViewFrame::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t) * 3;
 }

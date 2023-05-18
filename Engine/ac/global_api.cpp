@@ -243,7 +243,7 @@ RuntimeScriptValue Sc_FadeIn(const RuntimeScriptValue *params, int32_t param_cou
 }
 
 // void (int spdd)
-RuntimeScriptValue Sc_my_fade_out(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_FadeOut(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(FadeOut);
 }
@@ -609,16 +609,12 @@ RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, 
 
 RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count)
 {
-    (void)params; (void)param_count;
-    ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaWalkable);
-    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
 }
 
 RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count)
 {
-    (void)params; (void)param_count;
-    ScriptDrawingSurface* ret_obj = Room_GetDrawingSurfaceForMask(kRoomAreaWalkBehind);
-    return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkbehind);
 }
 
 // void (int amnt) 
@@ -860,13 +856,13 @@ RuntimeScriptValue Sc_PauseGame(const RuntimeScriptValue *params, int32_t param_
 }
 
 // void (int numb,int playflags)
-RuntimeScriptValue Sc_play_flc_file(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_PlayFlic(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(PlayFlic);
 }
 
 // void (const char* name, int skip, int flags)
-RuntimeScriptValue Sc_scrPlayVideo(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_PlayVideo(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_POBJ_PINT2(PlayVideo, const char);
 }
@@ -1422,7 +1418,7 @@ RuntimeScriptValue Sc_SkipWait(const RuntimeScriptValue *params, int32_t param_c
 
 //=============================================================================
 //
-// Exclusive API for Plugins
+// Exclusive variadic API implementation for Plugins
 //
 //=============================================================================
 
@@ -1457,474 +1453,248 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
 
 void RegisterGlobalAPI()
 {
-    ccAddExternalStaticFunction("AbortGame",                Sc_sc_AbortGame);
-	ccAddExternalStaticFunction("AnimateButton",            Sc_AnimateButton);
-	ccAddExternalStaticFunction("AreThingsOverlapping",     Sc_AreThingsOverlapping);
-	ccAddExternalStaticFunction("CallRoomScript",           Sc_CallRoomScript);
-	ccAddExternalStaticFunction("CentreGUI",                Sc_CentreGUI);
-	ccAddExternalStaticFunction("ChangeCursorGraphic",      Sc_ChangeCursorGraphic);
-	ccAddExternalStaticFunction("ChangeCursorHotspot",      Sc_ChangeCursorHotspot);
-	ccAddExternalStaticFunction("ClaimEvent",               Sc_ClaimEvent);
-	ccAddExternalStaticFunction("CyclePalette",             Sc_CyclePalette);
-	ccAddExternalStaticFunction("Debug",                    Sc_script_debug);
-	ccAddExternalStaticFunction("DeleteSaveSlot",           Sc_DeleteSaveSlot);
-	ccAddExternalStaticFunction("DeleteSprite",             Sc_free_dynamic_sprite);
-	ccAddExternalStaticFunction("DisableCursorMode",        Sc_disable_cursor_mode);
-	ccAddExternalStaticFunction("DisableGroundLevelAreas",  Sc_DisableGroundLevelAreas);
-	ccAddExternalStaticFunction("DisableHotspot",           Sc_DisableHotspot);
-	ccAddExternalStaticFunction("DisableInterface",         Sc_DisableInterface);
-	ccAddExternalStaticFunction("DisableRegion",            Sc_DisableRegion);
-	ccAddExternalStaticFunction("Display",                  Sc_Display);
-	ccAddExternalStaticFunction("DisplayAt",                Sc_DisplayAt);
-	ccAddExternalStaticFunction("DisplayAtY",               Sc_DisplayAtY);
-	ccAddExternalStaticFunction("DisplayMessage",           Sc_DisplayMessage);
-	ccAddExternalStaticFunction("DisplayMessageAtY",        Sc_DisplayMessageAtY);
-	ccAddExternalStaticFunction("DisplayMessageBar",        Sc_DisplayMessageBar);
-	ccAddExternalStaticFunction("DisplayTopBar",            Sc_DisplayTopBar);
-	ccAddExternalStaticFunction("EnableCursorMode",         Sc_enable_cursor_mode);
-	ccAddExternalStaticFunction("EnableGroundLevelAreas",   Sc_EnableGroundLevelAreas);
-	ccAddExternalStaticFunction("EnableHotspot",            Sc_EnableHotspot);
-	ccAddExternalStaticFunction("EnableInterface",          Sc_EnableInterface);
-	ccAddExternalStaticFunction("EnableRegion",             Sc_EnableRegion);
-	ccAddExternalStaticFunction("EndCutscene",              Sc_EndCutscene);
-	ccAddExternalStaticFunction("FadeIn",                   Sc_FadeIn);
-	ccAddExternalStaticFunction("FadeOut",                  Sc_my_fade_out);
-	ccAddExternalStaticFunction("FileClose",                Sc_FileClose);
-	ccAddExternalStaticFunction("FileIsEOF",                Sc_FileIsEOF);
-	ccAddExternalStaticFunction("FileIsError",              Sc_FileIsError);
-    // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
-	ccAddExternalStaticFunction("FileOpen",                 Sc_FileOpenCMode);
-	ccAddExternalStaticFunction("FileRead",                 Sc_FileRead);
-	ccAddExternalStaticFunction("FileReadInt",              Sc_FileReadInt);
-	ccAddExternalStaticFunction("FileReadRawChar",          Sc_FileReadRawChar);
-	ccAddExternalStaticFunction("FileReadRawInt",           Sc_FileReadRawInt);
-	ccAddExternalStaticFunction("FileWrite",                Sc_FileWrite);
-	ccAddExternalStaticFunction("FileWriteInt",             Sc_FileWriteInt);
-	ccAddExternalStaticFunction("FileWriteRawChar",         Sc_FileWriteRawChar);
-	ccAddExternalStaticFunction("FileWriteRawLine",         Sc_FileWriteRawLine);
-	ccAddExternalStaticFunction("FindGUIID",                Sc_FindGUIID);
-	ccAddExternalStaticFunction("FlipScreen",               Sc_FlipScreen);
-	ccAddExternalStaticFunction("FloatToInt",               Sc_FloatToInt);
-	ccAddExternalStaticFunction("GetBackgroundFrame",       Sc_GetBackgroundFrame);
-	ccAddExternalStaticFunction("GetButtonPic",             Sc_GetButtonPic);
-	ccAddExternalStaticFunction("GetCharacterAt",           Sc_GetCharIDAtScreen);
-	ccAddExternalStaticFunction("GetCursorMode",            Sc_GetCursorMode);
-	ccAddExternalStaticFunction("GetDialogOption",          Sc_GetDialogOption);
-	ccAddExternalStaticFunction("GetGameOption",            Sc_GetGameOption);
-	ccAddExternalStaticFunction("GetGameParameter",         Sc_GetGameParameter);
-	ccAddExternalStaticFunction("GetGameSpeed",             Sc_GetGameSpeed);
-	ccAddExternalStaticFunction("GetGlobalInt",             Sc_GetGlobalInt);
-	ccAddExternalStaticFunction("GetGUIAt",                 Sc_GetGUIAt);
-	ccAddExternalStaticFunction("GetGUIObjectAt",           Sc_GetGUIObjectAt);
-	ccAddExternalStaticFunction("GetHotspotAt",             Sc_GetHotspotIDAtScreen);
-	ccAddExternalStaticFunction("GetHotspotName",           Sc_GetHotspotName);
-	ccAddExternalStaticFunction("GetHotspotPointX",         Sc_GetHotspotPointX);
-	ccAddExternalStaticFunction("GetHotspotPointY",         Sc_GetHotspotPointY);
-	ccAddExternalStaticFunction("GetHotspotProperty",       Sc_GetHotspotProperty);
-	ccAddExternalStaticFunction("GetHotspotPropertyText",   Sc_GetHotspotPropertyText);
-	ccAddExternalStaticFunction("GetInvAt",                 Sc_GetInvAt);
-	ccAddExternalStaticFunction("GetInvGraphic",            Sc_GetInvGraphic);
-	ccAddExternalStaticFunction("GetInvName",               Sc_GetInvName);
-	ccAddExternalStaticFunction("GetInvProperty",           Sc_GetInvProperty);
-	ccAddExternalStaticFunction("GetInvPropertyText",       Sc_GetInvPropertyText);
-	ccAddExternalStaticFunction("GetLocationType",          Sc_GetLocationType);
-	ccAddExternalStaticFunction("GetObjectAt",              Sc_GetObjectIDAtScreen);
-	ccAddExternalStaticFunction("GetObjectBaseline",        Sc_GetObjectBaseline);
-	ccAddExternalStaticFunction("GetObjectGraphic",         Sc_GetObjectGraphic);
-	ccAddExternalStaticFunction("GetObjectName",            Sc_GetObjectName);
-	ccAddExternalStaticFunction("GetObjectProperty",        Sc_GetObjectProperty);
-	ccAddExternalStaticFunction("GetObjectPropertyText",    Sc_GetObjectPropertyText);
-	ccAddExternalStaticFunction("GetObjectX",               Sc_GetObjectX);
-	ccAddExternalStaticFunction("GetObjectY",               Sc_GetObjectY);
-	ccAddExternalStaticFunction("GetPlayerCharacter",       Sc_GetPlayerCharacter);
-	ccAddExternalStaticFunction("GetRawTime",               Sc_GetRawTime);
-	ccAddExternalStaticFunction("GetRegionAt",              Sc_GetRegionIDAtRoom);
-	ccAddExternalStaticFunction("GetRoomProperty",          Sc_Room_GetProperty);
-	ccAddExternalStaticFunction("GetScalingAt",             Sc_GetScalingAt);
-	ccAddExternalStaticFunction("GetSliderValue",           Sc_GetSliderValue);
-	ccAddExternalStaticFunction("GetTextBoxText",           Sc_GetTextBoxText);
-	ccAddExternalStaticFunction("GetTextHeight",            Sc_GetTextHeight);
-	ccAddExternalStaticFunction("GetTextWidth",             Sc_GetTextWidth);
-	ccAddExternalStaticFunction("GetFontHeight",            Sc_GetFontHeight);
-	ccAddExternalStaticFunction("GetFontLineSpacing",       Sc_GetFontLineSpacing);
-	ccAddExternalStaticFunction("GetTime",                  Sc_sc_GetTime);
-	ccAddExternalStaticFunction("GetTranslation",           Sc_get_translation);
-	ccAddExternalStaticFunction("GetTranslationName",       Sc_GetTranslationName);
-	ccAddExternalStaticFunction("GetWalkableAreaAtRoom",    Sc_GetWalkableAreaAtRoom);
-    ccAddExternalStaticFunction("GetWalkableAreaAtScreen",  Sc_GetWalkableAreaAtScreen);
-    ccAddExternalStaticFunction("GetDrawingSurfaceForWalkableArea", Sc_GetDrawingSurfaceForWalkableArea);
-    ccAddExternalStaticFunction("GetDrawingSurfaceForWalkbehind", Sc_GetDrawingSurfaceForWalkbehind);
-	ccAddExternalStaticFunction("GiveScore",                Sc_GiveScore);
-	ccAddExternalStaticFunction("HasPlayerBeenInRoom",      Sc_HasPlayerBeenInRoom);
-	ccAddExternalStaticFunction("HideMouseCursor",          Sc_HideMouseCursor);
-	ccAddExternalStaticFunction("InputBox",                 Sc_sc_inputbox);
-	ccAddExternalStaticFunction("InterfaceOff",             Sc_InterfaceOff);
-	ccAddExternalStaticFunction("InterfaceOn",              Sc_InterfaceOn);
-	ccAddExternalStaticFunction("IntToFloat",               Sc_IntToFloat);
-	ccAddExternalStaticFunction("IsButtonDown",             Sc_IsButtonDown);
-	ccAddExternalStaticFunction("IsGamePaused",             Sc_IsGamePaused);
-	ccAddExternalStaticFunction("IsGUIOn",                  Sc_IsGUIOn);
-	ccAddExternalStaticFunction("IsInteractionAvailable",   Sc_IsInteractionAvailable);
-	ccAddExternalStaticFunction("IsInventoryInteractionAvailable", Sc_IsInventoryInteractionAvailable);
-	ccAddExternalStaticFunction("IsInterfaceEnabled",       Sc_IsInterfaceEnabled);
-	ccAddExternalStaticFunction("IsKeyPressed",             Sc_IsKeyPressed);
-	ccAddExternalStaticFunction("IsMusicVoxAvailable",      Sc_IsMusicVoxAvailable);
-	ccAddExternalStaticFunction("IsObjectAnimating",        Sc_IsObjectAnimating);
-	ccAddExternalStaticFunction("IsObjectMoving",           Sc_IsObjectMoving);
-	ccAddExternalStaticFunction("IsObjectOn",               Sc_IsObjectOn);
-	ccAddExternalStaticFunction("IsTimerExpired",           Sc_IsTimerExpired);
-	ccAddExternalStaticFunction("IsTranslationAvailable",   Sc_IsTranslationAvailable);
-	ccAddExternalStaticFunction("IsVoxAvailable",           Sc_IsVoxAvailable);
-	ccAddExternalStaticFunction("ListBoxAdd",               Sc_ListBoxAdd);
-	ccAddExternalStaticFunction("ListBoxClear",             Sc_ListBoxClear);
-	ccAddExternalStaticFunction("ListBoxDirList",           Sc_ListBoxDirList);
-	ccAddExternalStaticFunction("ListBoxGetItemText",       Sc_ListBoxGetItemText);
-	ccAddExternalStaticFunction("ListBoxGetNumItems",       Sc_ListBoxGetNumItems);
-	ccAddExternalStaticFunction("ListBoxGetSelected",       Sc_ListBoxGetSelected);
-	ccAddExternalStaticFunction("ListBoxRemove",            Sc_ListBoxRemove);
-	ccAddExternalStaticFunction("ListBoxSaveGameList",      Sc_ListBoxSaveGameList);
-	ccAddExternalStaticFunction("ListBoxSetSelected",       Sc_ListBoxSetSelected);
-	ccAddExternalStaticFunction("ListBoxSetTopItem",        Sc_ListBoxSetTopItem);
-	ccAddExternalStaticFunction("LoadImageFile",            Sc_LoadImageFile);
-	ccAddExternalStaticFunction("LoadSaveSlotScreenshot",   Sc_LoadSaveSlotScreenshot);
-	ccAddExternalStaticFunction("MergeObject",              Sc_MergeObject);
-	ccAddExternalStaticFunction("MoveCharacterToHotspot",   Sc_MoveCharacterToHotspot);
-	ccAddExternalStaticFunction("MoveObject",               Sc_MoveObject);
-	ccAddExternalStaticFunction("MoveObjectDirect",         Sc_MoveObjectDirect);
-	ccAddExternalStaticFunction("ObjectOff",                Sc_ObjectOff);
-	ccAddExternalStaticFunction("ObjectOn",                 Sc_ObjectOn);
-	ccAddExternalStaticFunction("PauseGame",                Sc_PauseGame);
-	ccAddExternalStaticFunction("PlayFlic",                 Sc_play_flc_file);
-	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
-	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
-	ccAddExternalStaticFunction("Random",                   Sc_Rand);
-	ccAddExternalStaticFunction("RefreshMouse",             Sc_RefreshMouse);
-	ccAddExternalStaticFunction("RemoveObjectTint",         Sc_RemoveObjectTint);
-	ccAddExternalStaticFunction("RemoveWalkableArea",       Sc_RemoveWalkableArea);
-	ccAddExternalStaticFunction("ResetRoom",                Sc_ResetRoom);
-	ccAddExternalStaticFunction("RestartGame",              Sc_restart_game);
-	ccAddExternalStaticFunction("RestoreGameDialog",        Sc_restore_game_dialog);
-	ccAddExternalStaticFunction("RestoreGameSlot",          Sc_RestoreGameSlot);
-	ccAddExternalStaticFunction("RestoreWalkableArea",      Sc_RestoreWalkableArea);
-	ccAddExternalStaticFunction("RunAGSGame",               Sc_RunAGSGame);
-	ccAddExternalStaticFunction("RunDialog",                Sc_RunDialog);
-	ccAddExternalStaticFunction("RunHotspotInteraction",    Sc_RunHotspotInteraction);
-	ccAddExternalStaticFunction("RunInventoryInteraction",  Sc_RunInventoryInteraction);
-	ccAddExternalStaticFunction("RunObjectInteraction",     Sc_RunObjectInteraction);
-	ccAddExternalStaticFunction("RunRegionInteraction",     Sc_RunRegionInteraction);
-	ccAddExternalStaticFunction("Said",                     Sc_Said);
-	ccAddExternalStaticFunction("SaveCursorForLocationChange", Sc_SaveCursorForLocationChange);
-	ccAddExternalStaticFunction("SaveGameDialog",           Sc_save_game_dialog);
-	ccAddExternalStaticFunction("SaveGameSlot",             Sc_save_game);
-	ccAddExternalStaticFunction("SaveScreenShot",           Sc_SaveScreenShot);
-	ccAddExternalStaticFunction("SetAmbientTint",           Sc_SetAmbientTint);
-    ccAddExternalStaticFunction("SetAmbientLightLevel",     Sc_SetAmbientLightLevel);
-	ccAddExternalStaticFunction("SetAreaLightLevel",        Sc_SetAreaLightLevel);
-	ccAddExternalStaticFunction("SetAreaScaling",           Sc_SetAreaScaling);
-	ccAddExternalStaticFunction("SetBackgroundFrame",       Sc_SetBackgroundFrame);
-	ccAddExternalStaticFunction("SetButtonPic",             Sc_SetButtonPic);
-	ccAddExternalStaticFunction("SetButtonText",            Sc_SetButtonText);
-	ccAddExternalStaticFunction("SetCursorMode",            Sc_set_cursor_mode);
-	ccAddExternalStaticFunction("SetDefaultCursor",         Sc_set_default_cursor);
-	ccAddExternalStaticFunction("SetDialogOption",          Sc_SetDialogOption);
-	ccAddExternalStaticFunction("SetFadeColor",             Sc_SetFadeColor);
-	ccAddExternalStaticFunction("SetGameOption",            Sc_SetGameOption);
-	ccAddExternalStaticFunction("SetGameSpeed",             Sc_SetGameSpeed);
-	ccAddExternalStaticFunction("SetGlobalInt",             Sc_SetGlobalInt);
-	ccAddExternalStaticFunction("SetGUIBackgroundPic",      Sc_SetGUIBackgroundPic);
-	ccAddExternalStaticFunction("SetGUIClickable",          Sc_SetGUIClickable);
-	ccAddExternalStaticFunction("SetGUIObjectEnabled",      Sc_SetGUIObjectEnabled);
-	ccAddExternalStaticFunction("SetGUIObjectPosition",     Sc_SetGUIObjectPosition);
-	ccAddExternalStaticFunction("SetGUIObjectSize",         Sc_SetGUIObjectSize);
-	ccAddExternalStaticFunction("SetGUIPosition",           Sc_SetGUIPosition);
-	ccAddExternalStaticFunction("SetGUISize",               Sc_SetGUISize);
-	ccAddExternalStaticFunction("SetGUITransparency",       Sc_SetGUITransparency);
-	ccAddExternalStaticFunction("SetGUIZOrder",             Sc_SetGUIZOrder);
-	ccAddExternalStaticFunction("SetInvItemName",           Sc_SetInvItemName);
-	ccAddExternalStaticFunction("SetInvItemPic",            Sc_set_inv_item_pic);
-	ccAddExternalStaticFunction("SetLabelColor",            Sc_SetLabelColor);
-	ccAddExternalStaticFunction("SetLabelFont",             Sc_SetLabelFont);
-	ccAddExternalStaticFunction("SetLabelText",             Sc_SetLabelText);
-	ccAddExternalStaticFunction("SetMouseBounds",           Sc_SetMouseBounds);
-	ccAddExternalStaticFunction("SetMouseCursor",           Sc_set_mouse_cursor);
-	ccAddExternalStaticFunction("SetMousePosition",         Sc_SetMousePosition);
-	ccAddExternalStaticFunction("SetMultitaskingMode",      Sc_SetMultitasking);
-	ccAddExternalStaticFunction("SetNextCursorMode",        Sc_SetNextCursor);
-	ccAddExternalStaticFunction("SetNextScreenTransition",  Sc_SetNextScreenTransition);
-	ccAddExternalStaticFunction("SetNormalFont",            Sc_SetNormalFont);
-	ccAddExternalStaticFunction("SetObjectBaseline",        Sc_SetObjectBaseline);
-	ccAddExternalStaticFunction("SetObjectClickable",       Sc_SetObjectClickable);
-	ccAddExternalStaticFunction("SetObjectFrame",           Sc_SetObjectFrame);
-	ccAddExternalStaticFunction("SetObjectGraphic",         Sc_SetObjectGraphic);
-	ccAddExternalStaticFunction("SetObjectIgnoreWalkbehinds", Sc_SetObjectIgnoreWalkbehinds);
-	ccAddExternalStaticFunction("SetObjectPosition",        Sc_SetObjectPosition);
-	ccAddExternalStaticFunction("SetObjectTint",            Sc_SetObjectTint);
-	ccAddExternalStaticFunction("SetObjectTransparency",    Sc_SetObjectTransparency);
-	ccAddExternalStaticFunction("SetObjectView",            Sc_SetObjectView);
-	ccAddExternalStaticFunction("SetPalRGB",                Sc_SetPalRGB);
-	ccAddExternalStaticFunction("SetRegionTint",            Sc_SetRegionTint);
-	ccAddExternalStaticFunction("SetRestartPoint",          Sc_SetRestartPoint);
-	ccAddExternalStaticFunction("SetScreenTransition",      Sc_SetScreenTransition);
-	ccAddExternalStaticFunction("SetSliderValue",           Sc_SetSliderValue);
-	ccAddExternalStaticFunction("SetSpeechFont",            Sc_SetSpeechFont);
-	ccAddExternalStaticFunction("SetSpeechVolume",          Sc_SetSpeechVolume);
-	ccAddExternalStaticFunction("SetTextBoxFont",           Sc_SetTextBoxFont);
-	ccAddExternalStaticFunction("SetTextBoxText",           Sc_SetTextBoxText);
-	ccAddExternalStaticFunction("SetTextWindowGUI",         Sc_SetTextWindowGUI);
-	ccAddExternalStaticFunction("SetTimer",                 Sc_script_SetTimer);
-	ccAddExternalStaticFunction("SetWalkBehindBase",        Sc_SetWalkBehindBase);
-	ccAddExternalStaticFunction("ShakeScreen",              Sc_ShakeScreen);
-	ccAddExternalStaticFunction("ShakeScreenBackground",    Sc_ShakeScreenBackground);
-	ccAddExternalStaticFunction("ShowMouseCursor",          Sc_ShowMouseCursor);
-    ccAddExternalStaticFunction("SkipCutscene",             Sc_SkipCutscene);
-	ccAddExternalStaticFunction("SkipUntilCharacterStops",  Sc_SkipUntilCharacterStops);
-	ccAddExternalStaticFunction("StartCutscene",            Sc_StartCutscene);
-	ccAddExternalStaticFunction("StartRecording",           Sc_scStartRecording);
-	ccAddExternalStaticFunction("StopChannel",              Sc_stop_and_destroy_channel);
-	ccAddExternalStaticFunction("StopDialog",               Sc_StopDialog);
-	ccAddExternalStaticFunction("StopMoving",               Sc_StopMoving);
-	ccAddExternalStaticFunction("StopObjectMoving",         Sc_StopObjectMoving);
-	ccAddExternalStaticFunction("TintScreen",               Sc_TintScreen);
-	ccAddExternalStaticFunction("UnPauseGame",              Sc_UnPauseGame);
-	ccAddExternalStaticFunction("UpdateInventory",          Sc_update_invorder);
-	ccAddExternalStaticFunction("UpdatePalette",            Sc_UpdatePalette);
-	ccAddExternalStaticFunction("Wait",                     Sc_scrWait);
-	ccAddExternalStaticFunction("WaitKey",                  Sc_WaitKey);
-	ccAddExternalStaticFunction("WaitMouse",                Sc_WaitMouse);
-	ccAddExternalStaticFunction("WaitMouseKey",             Sc_WaitMouseKey);
-	ccAddExternalStaticFunction("WaitInput",                Sc_WaitInput);
-	ccAddExternalStaticFunction("SkipWait",                 Sc_SkipWait);
+    ScFnRegister global_api[] = {
+        { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
+        { "AnimateButton",            API_FN_PAIR(AnimateButton) },
+        { "AreThingsOverlapping",     API_FN_PAIR(AreThingsOverlapping) },
+        { "CallRoomScript",           API_FN_PAIR(CallRoomScript) },
+        { "CentreGUI",                API_FN_PAIR(CentreGUI) },
+        { "ChangeCursorGraphic",      API_FN_PAIR(ChangeCursorGraphic) },
+        { "ChangeCursorHotspot",      API_FN_PAIR(ChangeCursorHotspot) },
+        { "ClaimEvent",               API_FN_PAIR(ClaimEvent) },
+        { "CyclePalette",             API_FN_PAIR(CyclePalette) },
+        { "Debug",                    API_FN_PAIR(script_debug) },
+        { "DeleteSaveSlot",           API_FN_PAIR(DeleteSaveSlot) },
+        { "DeleteSprite",             API_FN_PAIR(free_dynamic_sprite) },
+        { "DisableCursorMode",        API_FN_PAIR(disable_cursor_mode) },
+        { "DisableGroundLevelAreas",  API_FN_PAIR(DisableGroundLevelAreas) },
+        { "DisableHotspot",           API_FN_PAIR(DisableHotspot) },
+        { "DisableInterface",         API_FN_PAIR(DisableInterface) },
+        { "DisableRegion",            API_FN_PAIR(DisableRegion) },
+        { "Display",                  Sc_Display, ScPl_Display },
+        { "DisplayAt",                Sc_DisplayAt, ScPl_DisplayAt },
+        { "DisplayAtY",               API_FN_PAIR(DisplayAtY) },
+        { "DisplayMessage",           API_FN_PAIR(DisplayMessage) },
+        { "DisplayMessageAtY",        API_FN_PAIR(DisplayMessageAtY) },
+        { "DisplayMessageBar",        API_FN_PAIR(DisplayMessageBar) },
+        { "DisplayTopBar",            Sc_DisplayTopBar, ScPl_DisplayTopBar },
+        { "EnableCursorMode",         API_FN_PAIR(enable_cursor_mode) },
+        { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },
+        { "EnableHotspot",            API_FN_PAIR(EnableHotspot) },
+        { "EnableInterface",          API_FN_PAIR(EnableInterface) },
+        { "EnableRegion",             API_FN_PAIR(EnableRegion) },
+        { "EndCutscene",              API_FN_PAIR(EndCutscene) },
+        { "FadeIn",                   API_FN_PAIR(FadeIn) },
+        { "FadeOut",                  API_FN_PAIR(FadeOut) },
+        { "FileClose",                API_FN_PAIR(FileClose) },
+        { "FileIsEOF",                API_FN_PAIR(FileIsEOF) },
+        { "FileIsError",              API_FN_PAIR(FileIsError) },
+        // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
+        { "FileOpen",                 API_FN_PAIR(FileOpenCMode) },
+        { "FileRead",                 API_FN_PAIR(FileRead) },
+        { "FileReadInt",              API_FN_PAIR(FileReadInt) },
+        { "FileReadRawChar",          API_FN_PAIR(FileReadRawChar) },
+        { "FileReadRawInt",           API_FN_PAIR(FileReadRawInt) },
+        { "FileWrite",                API_FN_PAIR(FileWrite) },
+        { "FileWriteInt",             API_FN_PAIR(FileWriteInt) },
+        { "FileWriteRawChar",         API_FN_PAIR(FileWriteRawChar) },
+        { "FileWriteRawLine",         API_FN_PAIR(FileWriteRawLine) },
+        { "FindGUIID",                API_FN_PAIR(FindGUIID) },
+        { "FlipScreen",               API_FN_PAIR(FlipScreen) },
+        { "FloatToInt",               API_FN_PAIR(FloatToInt) },
+        { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
+        { "GetButtonPic",             API_FN_PAIR(GetButtonPic) },
+        { "GetCharacterAt",           API_FN_PAIR(GetCharIDAtScreen) },
+        { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
+        { "GetDialogOption",          API_FN_PAIR(GetDialogOption) },
+        { "GetGameOption",            API_FN_PAIR(GetGameOption) },
+        { "GetGameParameter",         API_FN_PAIR(GetGameParameter) },
+        { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
+        { "GetGlobalInt",             API_FN_PAIR(GetGlobalInt) },
+        { "GetGUIAt",                 API_FN_PAIR(GetGUIAt) },
+        { "GetGUIObjectAt",           API_FN_PAIR(GetGUIObjectAt) },
+        { "GetHotspotAt",             API_FN_PAIR(GetHotspotIDAtScreen) },
+        { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
+        { "GetHotspotPointX",         API_FN_PAIR(GetHotspotPointX) },
+        { "GetHotspotPointY",         API_FN_PAIR(GetHotspotPointY) },
+        { "GetHotspotProperty",       API_FN_PAIR(GetHotspotProperty) },
+        { "GetHotspotPropertyText",   API_FN_PAIR(GetHotspotPropertyText) },
+        { "GetInvAt",                 API_FN_PAIR(GetInvAt) },
+        { "GetInvGraphic",            API_FN_PAIR(GetInvGraphic) },
+        { "GetInvName",               API_FN_PAIR(GetInvName) },
+        { "GetInvProperty",           API_FN_PAIR(GetInvProperty) },
+        { "GetInvPropertyText",       API_FN_PAIR(GetInvPropertyText) },
+        { "GetLocationType",          API_FN_PAIR(GetLocationType) },
+        { "GetObjectAt",              API_FN_PAIR(GetObjectIDAtScreen) },
+        { "GetObjectBaseline",        API_FN_PAIR(GetObjectBaseline) },
+        { "GetObjectGraphic",         API_FN_PAIR(GetObjectGraphic) },
+        { "GetObjectName",            API_FN_PAIR(GetObjectName) },
+        { "GetObjectProperty",        API_FN_PAIR(GetObjectProperty) },
+        { "GetObjectPropertyText",    API_FN_PAIR(GetObjectPropertyText) },
+        { "GetObjectX",               API_FN_PAIR(GetObjectX) },
+        { "GetObjectY",               API_FN_PAIR(GetObjectY) },
+        { "GetPlayerCharacter",       API_FN_PAIR(GetPlayerCharacter) },
+        { "GetRawTime",               API_FN_PAIR(GetRawTime) },
+        { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
+        { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
+        { "GetScalingAt",             API_FN_PAIR(GetScalingAt) },
+        { "GetSliderValue",           API_FN_PAIR(GetSliderValue) },
+        { "GetTextBoxText",           API_FN_PAIR(GetTextBoxText) },
+        { "GetTextHeight",            API_FN_PAIR(GetTextHeight) },
+        { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },
+        { "GetFontHeight",            API_FN_PAIR(GetFontHeight) },
+        { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
+        { "GetTime",                  API_FN_PAIR(sc_GetTime) },
+        { "GetTranslation",           API_FN_PAIR(get_translation) },
+        { "GetTranslationName",       API_FN_PAIR(GetTranslationName) },
+        { "GetWalkableAreaAtRoom",    API_FN_PAIR(GetWalkableAreaAtRoom) },
+        { "GetWalkableAreaAt",        API_FN_PAIR(GetWalkableAreaAtScreen) },
+        { "GetWalkableAreaAtScreen",  API_FN_PAIR(GetWalkableAreaAtScreen) },
+        { "GetDrawingSurfaceForWalkableArea", API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
+        { "GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
+        { "GiveScore",                API_FN_PAIR(GiveScore) },
+        { "HasPlayerBeenInRoom",      API_FN_PAIR(HasPlayerBeenInRoom) },
+        { "HideMouseCursor",          API_FN_PAIR(HideMouseCursor) },
+        { "InputBox",                 API_FN_PAIR(sc_inputbox) },
+        { "InterfaceOff",             API_FN_PAIR(InterfaceOff) },
+        { "InterfaceOn",              API_FN_PAIR(InterfaceOn) },
+        { "IntToFloat",               API_FN_PAIR(IntToFloat) },
+        { "IsButtonDown",             API_FN_PAIR(IsButtonDown) },
+        { "IsGamePaused",             API_FN_PAIR(IsGamePaused) },
+        { "IsGUIOn",                  API_FN_PAIR(IsGUIOn) },
+        { "IsInteractionAvailable",   API_FN_PAIR(IsInteractionAvailable) },
+        { "IsInventoryInteractionAvailable", API_FN_PAIR(IsInventoryInteractionAvailable) },
+        { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
+        { "IsKeyPressed",             API_FN_PAIR(IsKeyPressed) },
+        { "IsMusicVoxAvailable",      API_FN_PAIR(IsMusicVoxAvailable) },
+        { "IsObjectAnimating",        API_FN_PAIR(IsObjectAnimating) },
+        { "IsObjectMoving",           API_FN_PAIR(IsObjectMoving) },
+        { "IsObjectOn",               API_FN_PAIR(IsObjectOn) },
+        { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
+        { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
+        { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
+        { "ListBoxAdd",               API_FN_PAIR(ListBoxAdd) },
+        { "ListBoxClear",             API_FN_PAIR(ListBoxClear) },
+        { "ListBoxDirList",           API_FN_PAIR(ListBoxDirList) },
+        { "ListBoxGetItemText",       API_FN_PAIR(ListBoxGetItemText) },
+        { "ListBoxGetNumItems",       API_FN_PAIR(ListBoxGetNumItems) },
+        { "ListBoxGetSelected",       API_FN_PAIR(ListBoxGetSelected) },
+        { "ListBoxRemove",            API_FN_PAIR(ListBoxRemove) },
+        { "ListBoxSaveGameList",      API_FN_PAIR(ListBoxSaveGameList) },
+        { "ListBoxSetSelected",       API_FN_PAIR(ListBoxSetSelected) },
+        { "ListBoxSetTopItem",        API_FN_PAIR(ListBoxSetTopItem) },
+        { "LoadImageFile",            API_FN_PAIR(LoadImageFile) },
+        { "LoadSaveSlotScreenshot",   API_FN_PAIR(LoadSaveSlotScreenshot) },
+        { "MergeObject",              API_FN_PAIR(MergeObject) },
+        { "MoveCharacterToHotspot",   API_FN_PAIR(MoveCharacterToHotspot) },
+        { "MoveObject",               API_FN_PAIR(MoveObject) },
+        { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
+        { "ObjectOff",                API_FN_PAIR(ObjectOff) },
+        { "ObjectOn",                 API_FN_PAIR(ObjectOn) },
+        { "PauseGame",                API_FN_PAIR(PauseGame) },
+        { "PlayFlic",                 API_FN_PAIR(PlayFlic) },
+        { "PlayVideo",                API_FN_PAIR(PlayVideo) },
+        { "QuitGame",                 API_FN_PAIR(QuitGame) },
+        { "Random",                   Sc_Rand, __Rand },
+        { "RefreshMouse",             API_FN_PAIR(RefreshMouse) },
+        { "RemoveObjectTint",         API_FN_PAIR(RemoveObjectTint) },
+        { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
+        { "ResetRoom",                API_FN_PAIR(ResetRoom) },
+        { "RestartGame",              API_FN_PAIR(restart_game) },
+        { "RestoreGameDialog",        API_FN_PAIR(restore_game_dialog) },
+        { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
+        { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
+        { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
+        { "RunDialog",                API_FN_PAIR(RunDialog) },
+        { "RunHotspotInteraction",    API_FN_PAIR(RunHotspotInteraction) },
+        { "RunInventoryInteraction",  API_FN_PAIR(RunInventoryInteraction) },
+        { "RunObjectInteraction",     API_FN_PAIR(RunObjectInteraction) },
+        { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
+        { "Said",                     API_FN_PAIR(Said) },
+        { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
+        { "SaveGameDialog",           API_FN_PAIR(save_game_dialog) },
+        { "SaveGameSlot",             API_FN_PAIR(save_game) },
+        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
+        { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
+        { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
+        { "SetAreaLightLevel",        API_FN_PAIR(SetAreaLightLevel) },
+        { "SetAreaScaling",           API_FN_PAIR(SetAreaScaling) },
+        { "SetBackgroundFrame",       API_FN_PAIR(SetBackgroundFrame) },
+        { "SetButtonPic",             API_FN_PAIR(SetButtonPic) },
+        { "SetButtonText",            API_FN_PAIR(SetButtonText) },
+        { "SetCursorMode",            API_FN_PAIR(set_cursor_mode) },
+        { "SetDefaultCursor",         API_FN_PAIR(set_default_cursor) },
+        { "SetDialogOption",          API_FN_PAIR(SetDialogOption) },
+        { "SetFadeColor",             API_FN_PAIR(SetFadeColor) },
+        { "SetGameOption",            API_FN_PAIR(SetGameOption) },
+        { "SetGameSpeed",             API_FN_PAIR(SetGameSpeed) },
+        { "SetGlobalInt",             API_FN_PAIR(SetGlobalInt) },
+        { "SetGUIBackgroundPic",      API_FN_PAIR(SetGUIBackgroundPic) },
+        { "SetGUIClickable",          API_FN_PAIR(SetGUIClickable) },
+        { "SetGUIObjectEnabled",      API_FN_PAIR(SetGUIObjectEnabled) },
+        { "SetGUIObjectPosition",     API_FN_PAIR(SetGUIObjectPosition) },
+        { "SetGUIObjectSize",         API_FN_PAIR(SetGUIObjectSize) },
+        { "SetGUIPosition",           API_FN_PAIR(SetGUIPosition) },
+        { "SetGUISize",               API_FN_PAIR(SetGUISize) },
+        { "SetGUITransparency",       API_FN_PAIR(SetGUITransparency) },
+        { "SetGUIZOrder",             API_FN_PAIR(SetGUIZOrder) },
+        { "SetInvItemName",           API_FN_PAIR(SetInvItemName) },
+        { "SetInvItemPic",            API_FN_PAIR(set_inv_item_pic) },
+        { "SetLabelColor",            API_FN_PAIR(SetLabelColor) },
+        { "SetLabelFont",             API_FN_PAIR(SetLabelFont) },
+        { "SetLabelText",             API_FN_PAIR(SetLabelText) },
+        { "SetMouseBounds",           API_FN_PAIR(SetMouseBounds) },
+        { "SetMouseCursor",           API_FN_PAIR(set_mouse_cursor) },
+        { "SetMousePosition",         API_FN_PAIR(SetMousePosition) },
+        { "SetMultitaskingMode",      API_FN_PAIR(SetMultitasking) },
+        { "SetNextCursorMode",        API_FN_PAIR(SetNextCursor) },
+        { "SetNextScreenTransition",  API_FN_PAIR(SetNextScreenTransition) },
+        { "SetNormalFont",            API_FN_PAIR(SetNormalFont) },
+        { "SetObjectBaseline",        API_FN_PAIR(SetObjectBaseline) },
+        { "SetObjectClickable",       API_FN_PAIR(SetObjectClickable) },
+        { "SetObjectFrame",           API_FN_PAIR(SetObjectFrame) },
+        { "SetObjectGraphic",         API_FN_PAIR(SetObjectGraphic) },
+        { "SetObjectIgnoreWalkbehinds", API_FN_PAIR(SetObjectIgnoreWalkbehinds) },
+        { "SetObjectPosition",        API_FN_PAIR(SetObjectPosition) },
+        { "SetObjectTint",            API_FN_PAIR(SetObjectTint) },
+        { "SetObjectTransparency",    API_FN_PAIR(SetObjectTransparency) },
+        { "SetObjectView",            API_FN_PAIR(SetObjectView) },
+        { "SetPalRGB",                API_FN_PAIR(SetPalRGB) },
+        { "SetRegionTint",            API_FN_PAIR(SetRegionTint) },
+        { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },
+        { "SetScreenTransition",      API_FN_PAIR(SetScreenTransition) },
+        { "SetSliderValue",           API_FN_PAIR(SetSliderValue) },
+        { "SetSpeechFont",            API_FN_PAIR(SetSpeechFont) },
+        { "SetSpeechVolume",          API_FN_PAIR(SetSpeechVolume) },
+        { "SetTextBoxFont",           API_FN_PAIR(SetTextBoxFont) },
+        { "SetTextBoxText",           API_FN_PAIR(SetTextBoxText) },
+        { "SetTextWindowGUI",         API_FN_PAIR(SetTextWindowGUI) },
+        { "SetTimer",                 API_FN_PAIR(script_SetTimer) },
+        { "SetWalkBehindBase",        API_FN_PAIR(SetWalkBehindBase) },
+        { "ShakeScreen",              API_FN_PAIR(ShakeScreen) },
+        { "ShakeScreenBackground",    API_FN_PAIR(ShakeScreenBackground) },
+        { "ShowMouseCursor",          API_FN_PAIR(ShowMouseCursor) },
+        { "SkipCutscene",             API_FN_PAIR(SkipCutscene) },
+        { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
+        { "StartCutscene",            API_FN_PAIR(StartCutscene) },
+        { "StartRecording",           API_FN_PAIR(scStartRecording) },
+        { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
+        { "StopDialog",               API_FN_PAIR(StopDialog) },
+        { "StopMoving",               API_FN_PAIR(StopMoving) },
+        { "StopObjectMoving",         API_FN_PAIR(StopObjectMoving) },
+        { "StringToInt",              API_FN_PAIR(StringToInt) },
+        { "StrLen",                   API_FN_PAIR(strlen) },
+        { "TintScreen",               API_FN_PAIR(TintScreen) },
+        { "UnPauseGame",              API_FN_PAIR(UnPauseGame) },
+        { "UpdateInventory",          API_FN_PAIR(update_invorder) },
+        { "UpdatePalette",            API_FN_PAIR(UpdatePalette) },
+        { "Wait",                     API_FN_PAIR(scrWait) },
+        { "WaitKey",                  API_FN_PAIR(WaitKey) },
+        { "WaitMouse",                API_FN_PAIR(WaitMouse) },
+        { "WaitMouseKey",             API_FN_PAIR(WaitMouseKey) },
+        { "WaitInput",                API_FN_PAIR(WaitInput) },
+        { "SkipWait",                 API_FN_PAIR(SkipWait) },
+    };
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("AbortGame",                (void*)ScPl_sc_AbortGame);
-    ccAddExternalFunctionForPlugin("AnimateButton",            (void*)AnimateButton);
-    ccAddExternalFunctionForPlugin("AreThingsOverlapping",     (void*)AreThingsOverlapping);
-    ccAddExternalFunctionForPlugin("CallRoomScript",           (void*)CallRoomScript);
-    ccAddExternalFunctionForPlugin("CentreGUI",                (void*)CentreGUI);
-    ccAddExternalFunctionForPlugin("ChangeCursorGraphic",      (void*)ChangeCursorGraphic);
-    ccAddExternalFunctionForPlugin("ChangeCursorHotspot",      (void*)ChangeCursorHotspot);
-    ccAddExternalFunctionForPlugin("ClaimEvent",               (void*)ClaimEvent);
-    ccAddExternalFunctionForPlugin("CyclePalette",             (void*)CyclePalette);
-    ccAddExternalFunctionForPlugin("Debug",                    (void*)script_debug);
-    ccAddExternalFunctionForPlugin("DeleteSaveSlot",           (void*)DeleteSaveSlot);
-    ccAddExternalFunctionForPlugin("DeleteSprite",             (void*)free_dynamic_sprite);
-    ccAddExternalFunctionForPlugin("DisableCursorMode",        (void*)disable_cursor_mode);
-    ccAddExternalFunctionForPlugin("DisableGroundLevelAreas",  (void*)DisableGroundLevelAreas);
-    ccAddExternalFunctionForPlugin("DisableHotspot",           (void*)DisableHotspot);
-    ccAddExternalFunctionForPlugin("DisableInterface",         (void*)DisableInterface);
-    ccAddExternalFunctionForPlugin("DisableRegion",            (void*)DisableRegion);
-    ccAddExternalFunctionForPlugin("Display",                  (void*)ScPl_Display);
-    ccAddExternalFunctionForPlugin("DisplayAt",                (void*)ScPl_DisplayAt);
-    ccAddExternalFunctionForPlugin("DisplayAtY",               (void*)DisplayAtY);
-    ccAddExternalFunctionForPlugin("DisplayMessage",           (void*)DisplayMessage);
-    ccAddExternalFunctionForPlugin("DisplayMessageAtY",        (void*)DisplayMessageAtY);
-    ccAddExternalFunctionForPlugin("DisplayMessageBar",        (void*)DisplayMessageBar);
-    ccAddExternalFunctionForPlugin("DisplayTopBar",            (void*)ScPl_DisplayTopBar);
-    ccAddExternalFunctionForPlugin("EnableCursorMode",         (void*)enable_cursor_mode);
-    ccAddExternalFunctionForPlugin("EnableGroundLevelAreas",   (void*)EnableGroundLevelAreas);
-    ccAddExternalFunctionForPlugin("EnableHotspot",            (void*)EnableHotspot);
-    ccAddExternalFunctionForPlugin("EnableInterface",          (void*)EnableInterface);
-    ccAddExternalFunctionForPlugin("EnableRegion",             (void*)EnableRegion);
-    ccAddExternalFunctionForPlugin("EndCutscene",              (void*)EndCutscene);
-    ccAddExternalFunctionForPlugin("FadeIn",                   (void*)FadeIn);
-    ccAddExternalFunctionForPlugin("FadeOut",                  (void*)FadeOut);
-    ccAddExternalFunctionForPlugin("FileClose",                (void*)FileClose);
-    ccAddExternalFunctionForPlugin("FileIsEOF",                (void*)FileIsEOF);
-    ccAddExternalFunctionForPlugin("FileIsError",              (void*)FileIsError);
-    // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
-    ccAddExternalFunctionForPlugin("FileOpen",                 (void*)FileOpenCMode);
-    ccAddExternalFunctionForPlugin("FileRead",                 (void*)FileRead);
-    ccAddExternalFunctionForPlugin("FileReadInt",              (void*)FileReadInt);
-    ccAddExternalFunctionForPlugin("FileReadRawChar",          (void*)FileReadRawChar);
-    ccAddExternalFunctionForPlugin("FileReadRawInt",           (void*)FileReadRawInt);
-    ccAddExternalFunctionForPlugin("FileWrite",                (void*)FileWrite);
-    ccAddExternalFunctionForPlugin("FileWriteInt",             (void*)FileWriteInt);
-    ccAddExternalFunctionForPlugin("FileWriteRawChar",         (void*)FileWriteRawChar);
-    ccAddExternalFunctionForPlugin("FileWriteRawLine",         (void*)FileWriteRawLine);
-    ccAddExternalFunctionForPlugin("FindGUIID",                (void*)FindGUIID);
-    ccAddExternalFunctionForPlugin("FlipScreen",               (void*)FlipScreen);
-    ccAddExternalFunctionForPlugin("FloatToInt",               (void*)FloatToInt);
-    ccAddExternalFunctionForPlugin("GetBackgroundFrame",       (void*)GetBackgroundFrame);
-    ccAddExternalFunctionForPlugin("GetButtonPic",             (void*)GetButtonPic);
-    ccAddExternalFunctionForPlugin("GetCharacterAt",           (void*)GetCharIDAtScreen);
-    ccAddExternalFunctionForPlugin("GetCursorMode",            (void*)GetCursorMode);
-    ccAddExternalFunctionForPlugin("GetDialogOption",          (void*)GetDialogOption);
-    ccAddExternalFunctionForPlugin("GetGameOption",            (void*)GetGameOption);
-    ccAddExternalFunctionForPlugin("GetGameParameter",         (void*)GetGameParameter);
-    ccAddExternalFunctionForPlugin("GetGameSpeed",             (void*)GetGameSpeed);
-    ccAddExternalFunctionForPlugin("GetGlobalInt",             (void*)GetGlobalInt);
-    ccAddExternalFunctionForPlugin("GetGUIAt",                 (void*)GetGUIAt);
-    ccAddExternalFunctionForPlugin("GetGUIObjectAt",           (void*)GetGUIObjectAt);
-    ccAddExternalFunctionForPlugin("GetHotspotAt",             (void*)GetHotspotIDAtScreen);
-    ccAddExternalFunctionForPlugin("GetHotspotName",           (void*)GetHotspotName);
-    ccAddExternalFunctionForPlugin("GetHotspotPointX",         (void*)GetHotspotPointX);
-    ccAddExternalFunctionForPlugin("GetHotspotPointY",         (void*)GetHotspotPointY);
-    ccAddExternalFunctionForPlugin("GetHotspotProperty",       (void*)GetHotspotProperty);
-    ccAddExternalFunctionForPlugin("GetHotspotPropertyText",   (void*)GetHotspotPropertyText);
-    ccAddExternalFunctionForPlugin("GetInvAt",                 (void*)GetInvAt);
-    ccAddExternalFunctionForPlugin("GetInvGraphic",            (void*)GetInvGraphic);
-    ccAddExternalFunctionForPlugin("GetInvName",               (void*)GetInvName);
-    ccAddExternalFunctionForPlugin("GetInvProperty",           (void*)GetInvProperty);
-    ccAddExternalFunctionForPlugin("GetInvPropertyText",       (void*)GetInvPropertyText);
-    ccAddExternalFunctionForPlugin("GetLocationType",          (void*)GetLocationType);
-    ccAddExternalFunctionForPlugin("GetObjectAt",              (void*)GetObjectIDAtScreen);
-    ccAddExternalFunctionForPlugin("GetObjectBaseline",        (void*)GetObjectBaseline);
-    ccAddExternalFunctionForPlugin("GetObjectGraphic",         (void*)GetObjectGraphic);
-    ccAddExternalFunctionForPlugin("GetObjectName",            (void*)GetObjectName);
-    ccAddExternalFunctionForPlugin("GetObjectProperty",        (void*)GetObjectProperty);
-    ccAddExternalFunctionForPlugin("GetObjectPropertyText",    (void*)GetObjectPropertyText);
-    ccAddExternalFunctionForPlugin("GetObjectX",               (void*)GetObjectX);
-    ccAddExternalFunctionForPlugin("GetObjectY",               (void*)GetObjectY);
-    ccAddExternalFunctionForPlugin("GetPlayerCharacter",       (void*)GetPlayerCharacter);
-    ccAddExternalFunctionForPlugin("GetRawTime",               (void*)GetRawTime);
-    ccAddExternalFunctionForPlugin("GetRegionAt",              (void*)GetRegionIDAtRoom);
-    ccAddExternalFunctionForPlugin("GetRoomProperty",          (void*)Room_GetProperty);
-    ccAddExternalFunctionForPlugin("GetScalingAt",             (void*)GetScalingAt);
-    ccAddExternalFunctionForPlugin("GetSliderValue",           (void*)GetSliderValue);
-    ccAddExternalFunctionForPlugin("GetTextBoxText",           (void*)GetTextBoxText);
-    ccAddExternalFunctionForPlugin("GetTextHeight",            (void*)GetTextHeight);
-    ccAddExternalFunctionForPlugin("GetTextWidth",             (void*)GetTextWidth);
-    ccAddExternalFunctionForPlugin("GetTime",                  (void*)sc_GetTime);
-    ccAddExternalFunctionForPlugin("GetTranslation",           (void*)get_translation);
-    ccAddExternalFunctionForPlugin("GetTranslationName",       (void*)GetTranslationName);
-    ccAddExternalFunctionForPlugin("GetWalkableAreaAtRoom",    (void*)GetWalkableAreaAtRoom);
-    ccAddExternalFunctionForPlugin("GetWalkableAreaAtScreen",  (void*)GetWalkableAreaAtScreen);
-    ccAddExternalFunctionForPlugin("GiveScore",                (void*)GiveScore);
-    ccAddExternalFunctionForPlugin("HasPlayerBeenInRoom",      (void*)HasPlayerBeenInRoom);
-    ccAddExternalFunctionForPlugin("HideMouseCursor",          (void*)HideMouseCursor);
-    ccAddExternalFunctionForPlugin("InputBox",                 (void*)sc_inputbox);
-    ccAddExternalFunctionForPlugin("InterfaceOff",             (void*)InterfaceOff);
-    ccAddExternalFunctionForPlugin("InterfaceOn",              (void*)InterfaceOn);
-    ccAddExternalFunctionForPlugin("IntToFloat",               (void*)IntToFloat);
-    ccAddExternalFunctionForPlugin("IsButtonDown",             (void*)IsButtonDown);
-    ccAddExternalFunctionForPlugin("IsGamePaused",             (void*)IsGamePaused);
-    ccAddExternalFunctionForPlugin("IsGUIOn",                  (void*)IsGUIOn);
-    ccAddExternalFunctionForPlugin("IsInteractionAvailable",   (void*)IsInteractionAvailable);
-    ccAddExternalFunctionForPlugin("IsInventoryInteractionAvailable", (void*)IsInventoryInteractionAvailable);
-    ccAddExternalFunctionForPlugin("IsInterfaceEnabled",       (void*)IsInterfaceEnabled);
-    ccAddExternalFunctionForPlugin("IsKeyPressed",             (void*)IsKeyPressed);
-    ccAddExternalFunctionForPlugin("IsMusicVoxAvailable",      (void*)IsMusicVoxAvailable);
-    ccAddExternalFunctionForPlugin("IsObjectAnimating",        (void*)IsObjectAnimating);
-    ccAddExternalFunctionForPlugin("IsObjectMoving",           (void*)IsObjectMoving);
-    ccAddExternalFunctionForPlugin("IsObjectOn",               (void*)IsObjectOn);
-    ccAddExternalFunctionForPlugin("IsTimerExpired",           (void*)IsTimerExpired);
-    ccAddExternalFunctionForPlugin("IsTranslationAvailable",   (void*)IsTranslationAvailable);
-    ccAddExternalFunctionForPlugin("IsVoxAvailable",           (void*)IsVoxAvailable);
-    ccAddExternalFunctionForPlugin("ListBoxAdd",               (void*)ListBoxAdd);
-    ccAddExternalFunctionForPlugin("ListBoxClear",             (void*)ListBoxClear);
-    ccAddExternalFunctionForPlugin("ListBoxDirList",           (void*)ListBoxDirList);
-    ccAddExternalFunctionForPlugin("ListBoxGetItemText",       (void*)ListBoxGetItemText);
-    ccAddExternalFunctionForPlugin("ListBoxGetNumItems",       (void*)ListBoxGetNumItems);
-    ccAddExternalFunctionForPlugin("ListBoxGetSelected",       (void*)ListBoxGetSelected);
-    ccAddExternalFunctionForPlugin("ListBoxRemove",            (void*)ListBoxRemove);
-    ccAddExternalFunctionForPlugin("ListBoxSaveGameList",      (void*)ListBoxSaveGameList);
-    ccAddExternalFunctionForPlugin("ListBoxSetSelected",       (void*)ListBoxSetSelected);
-    ccAddExternalFunctionForPlugin("ListBoxSetTopItem",        (void*)ListBoxSetTopItem);
-    ccAddExternalFunctionForPlugin("LoadImageFile",            (void*)LoadImageFile);
-    ccAddExternalFunctionForPlugin("LoadSaveSlotScreenshot",   (void*)LoadSaveSlotScreenshot);
-    ccAddExternalFunctionForPlugin("MergeObject",              (void*)MergeObject);
-    ccAddExternalFunctionForPlugin("MoveCharacterToHotspot",   (void*)MoveCharacterToHotspot);
-    ccAddExternalFunctionForPlugin("MoveObject",               (void*)MoveObject);
-    ccAddExternalFunctionForPlugin("MoveObjectDirect",         (void*)MoveObjectDirect);
-    ccAddExternalFunctionForPlugin("ObjectOff",                (void*)ObjectOff);
-    ccAddExternalFunctionForPlugin("ObjectOn",                 (void*)ObjectOn);
-    ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
-    ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)PlayFlic);
-    ccAddExternalFunctionForPlugin("PlayVideo",                (void*)PlayVideo);
-    ccAddExternalFunctionForPlugin("ProcessClick",             (void*)RoomProcessClick);
-    ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);
-    ccAddExternalFunctionForPlugin("Random",                   (void*)__Rand);
-    ccAddExternalFunctionForPlugin("RefreshMouse",             (void*)RefreshMouse);
-    ccAddExternalFunctionForPlugin("RemoveObjectTint",         (void*)RemoveObjectTint);
-    ccAddExternalFunctionForPlugin("RemoveWalkableArea",       (void*)RemoveWalkableArea);
-    ccAddExternalFunctionForPlugin("ResetRoom",                (void*)ResetRoom);
-    ccAddExternalFunctionForPlugin("RestartGame",              (void*)restart_game);
-    ccAddExternalFunctionForPlugin("RestoreGameDialog",        (void*)restore_game_dialog);
-    ccAddExternalFunctionForPlugin("RestoreGameSlot",          (void*)RestoreGameSlot);
-    ccAddExternalFunctionForPlugin("RestoreWalkableArea",      (void*)RestoreWalkableArea);
-    ccAddExternalFunctionForPlugin("RunAGSGame",               (void*)RunAGSGame);
-    ccAddExternalFunctionForPlugin("RunDialog",                (void*)RunDialog);
-    ccAddExternalFunctionForPlugin("RunHotspotInteraction",    (void*)RunHotspotInteraction);
-    ccAddExternalFunctionForPlugin("RunInventoryInteraction",  (void*)RunInventoryInteraction);
-    ccAddExternalFunctionForPlugin("RunObjectInteraction",     (void*)RunObjectInteraction);
-    ccAddExternalFunctionForPlugin("RunRegionInteraction",     (void*)RunRegionInteraction);
-    ccAddExternalFunctionForPlugin("Said",                     (void*)Said);
-    ccAddExternalFunctionForPlugin("SaveCursorForLocationChange", (void*)SaveCursorForLocationChange);
-    ccAddExternalFunctionForPlugin("SaveGameDialog",           (void*)save_game_dialog);
-    ccAddExternalFunctionForPlugin("SaveGameSlot",             (void*)save_game);
-    ccAddExternalFunctionForPlugin("SaveScreenShot",           (void*)SaveScreenShot);
-    ccAddExternalFunctionForPlugin("SetAmbientTint",           (void*)SetAmbientTint);
-    ccAddExternalFunctionForPlugin("SetAreaLightLevel",        (void*)SetAreaLightLevel);
-    ccAddExternalFunctionForPlugin("SetAreaScaling",           (void*)SetAreaScaling);
-    ccAddExternalFunctionForPlugin("SetBackgroundFrame",       (void*)SetBackgroundFrame);
-    ccAddExternalFunctionForPlugin("SetButtonPic",             (void*)SetButtonPic);
-    ccAddExternalFunctionForPlugin("SetButtonText",            (void*)SetButtonText);
-    ccAddExternalFunctionForPlugin("SetCursorMode",            (void*)set_cursor_mode);
-    ccAddExternalFunctionForPlugin("SetDefaultCursor",         (void*)set_default_cursor);
-    ccAddExternalFunctionForPlugin("SetDialogOption",          (void*)SetDialogOption);
-    ccAddExternalFunctionForPlugin("SetFadeColor",             (void*)SetFadeColor);
-    ccAddExternalFunctionForPlugin("SetGameOption",            (void*)SetGameOption);
-    ccAddExternalFunctionForPlugin("SetGameSpeed",             (void*)SetGameSpeed);
-    ccAddExternalFunctionForPlugin("SetGlobalInt",             (void*)SetGlobalInt);
-    ccAddExternalFunctionForPlugin("SetGUIBackgroundPic",      (void*)SetGUIBackgroundPic);
-    ccAddExternalFunctionForPlugin("SetGUIClickable",          (void*)SetGUIClickable);
-    ccAddExternalFunctionForPlugin("SetGUIObjectEnabled",      (void*)SetGUIObjectEnabled);
-    ccAddExternalFunctionForPlugin("SetGUIObjectPosition",     (void*)SetGUIObjectPosition);
-    ccAddExternalFunctionForPlugin("SetGUIObjectSize",         (void*)SetGUIObjectSize);
-    ccAddExternalFunctionForPlugin("SetGUIPosition",           (void*)SetGUIPosition);
-    ccAddExternalFunctionForPlugin("SetGUISize",               (void*)SetGUISize);
-    ccAddExternalFunctionForPlugin("SetGUITransparency",       (void*)SetGUITransparency);
-    ccAddExternalFunctionForPlugin("SetGUIZOrder",             (void*)SetGUIZOrder);
-    ccAddExternalFunctionForPlugin("SetInvItemName",           (void*)SetInvItemName);
-    ccAddExternalFunctionForPlugin("SetInvItemPic",            (void*)set_inv_item_pic);
-    ccAddExternalFunctionForPlugin("SetLabelColor",            (void*)SetLabelColor);
-    ccAddExternalFunctionForPlugin("SetLabelFont",             (void*)SetLabelFont);
-    ccAddExternalFunctionForPlugin("SetLabelText",             (void*)SetLabelText);
-    ccAddExternalFunctionForPlugin("SetMouseBounds",           (void*)SetMouseBounds);
-    ccAddExternalFunctionForPlugin("SetMouseCursor",           (void*)set_mouse_cursor);
-    ccAddExternalFunctionForPlugin("SetMousePosition",         (void*)SetMousePosition);
-    ccAddExternalFunctionForPlugin("SetMultitaskingMode",      (void*)SetMultitasking);
-    ccAddExternalFunctionForPlugin("SetNextCursorMode",        (void*)SetNextCursor);
-    ccAddExternalFunctionForPlugin("SetNextScreenTransition",  (void*)SetNextScreenTransition);
-    ccAddExternalFunctionForPlugin("SetNormalFont",            (void*)SetNormalFont);
-    ccAddExternalFunctionForPlugin("SetObjectBaseline",        (void*)SetObjectBaseline);
-    ccAddExternalFunctionForPlugin("SetObjectClickable",       (void*)SetObjectClickable);
-    ccAddExternalFunctionForPlugin("SetObjectFrame",           (void*)SetObjectFrame);
-    ccAddExternalFunctionForPlugin("SetObjectGraphic",         (void*)SetObjectGraphic);
-    ccAddExternalFunctionForPlugin("SetObjectIgnoreWalkbehinds", (void*)SetObjectIgnoreWalkbehinds);
-    ccAddExternalFunctionForPlugin("SetObjectPosition",        (void*)SetObjectPosition);
-    ccAddExternalFunctionForPlugin("SetObjectTint",            (void*)SetObjectTint);
-    ccAddExternalFunctionForPlugin("SetObjectTransparency",    (void*)SetObjectTransparency);
-    ccAddExternalFunctionForPlugin("SetObjectView",            (void*)SetObjectView);
-    ccAddExternalFunctionForPlugin("SetPalRGB",                (void*)SetPalRGB);
-    ccAddExternalFunctionForPlugin("SetRegionTint",            (void*)SetRegionTint);
-    ccAddExternalFunctionForPlugin("SetRestartPoint",          (void*)SetRestartPoint);
-    ccAddExternalFunctionForPlugin("SetScreenTransition",      (void*)SetScreenTransition);
-    ccAddExternalFunctionForPlugin("SetSliderValue",           (void*)SetSliderValue);
-    ccAddExternalFunctionForPlugin("SetSpeechFont",            (void*)SetSpeechFont);
-    ccAddExternalFunctionForPlugin("SetSpeechVolume",          (void*)SetSpeechVolume);
-    ccAddExternalFunctionForPlugin("SetTextBoxFont",           (void*)SetTextBoxFont);
-    ccAddExternalFunctionForPlugin("SetTextBoxText",           (void*)SetTextBoxText);
-    ccAddExternalFunctionForPlugin("SetTextWindowGUI",         (void*)SetTextWindowGUI);
-    ccAddExternalFunctionForPlugin("SetTimer",                 (void*)script_SetTimer);
-    ccAddExternalFunctionForPlugin("SetWalkBehindBase",        (void*)SetWalkBehindBase);
-    ccAddExternalFunctionForPlugin("ShakeScreen",              (void*)ShakeScreen);
-    ccAddExternalFunctionForPlugin("ShakeScreenBackground",    (void*)ShakeScreenBackground);
-    ccAddExternalFunctionForPlugin("ShowMouseCursor",          (void*)ShowMouseCursor);
-    ccAddExternalFunctionForPlugin("SkipUntilCharacterStops",  (void*)SkipUntilCharacterStops);
-    ccAddExternalFunctionForPlugin("StartCutscene",            (void*)StartCutscene);
-    ccAddExternalFunctionForPlugin("StartRecording",           (void*)scStartRecording);
-    ccAddExternalFunctionForPlugin("StopChannel",              (void*)stop_and_destroy_channel);
-    ccAddExternalFunctionForPlugin("StopDialog",               (void*)StopDialog);
-    ccAddExternalFunctionForPlugin("StopMoving",               (void*)StopMoving);
-    ccAddExternalFunctionForPlugin("StopObjectMoving",         (void*)StopObjectMoving);
-    ccAddExternalFunctionForPlugin("TintScreen",               (void*)TintScreen);
-    ccAddExternalFunctionForPlugin("UnPauseGame",              (void*)UnPauseGame);
-    ccAddExternalFunctionForPlugin("UpdateInventory",          (void*)update_invorder);
-    ccAddExternalFunctionForPlugin("UpdatePalette",            (void*)UpdatePalette);
-    ccAddExternalFunctionForPlugin("Wait",                     (void*)scrWait);
-    ccAddExternalFunctionForPlugin("WaitKey",                  (void*)WaitKey);
-    ccAddExternalFunctionForPlugin("WaitMouseKey",             (void*)WaitMouseKey);
-    ccAddExternalFunctionForPlugin("WaitInput",                (void*)WaitInput);
+    ccAddExternalFunctions(global_api);
 }

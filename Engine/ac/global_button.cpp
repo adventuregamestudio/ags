@@ -44,7 +44,7 @@ void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat
     if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!AnimateButton: specified control is not a button");
 
-    Button_Animate((GUIButton*)guis[guin].GetControl(objn), view, loop, speed, repeat);
+    Button_Animate4((GUIButton*)guis[guin].GetControl(objn), view, loop, speed, repeat);
 }
 
 

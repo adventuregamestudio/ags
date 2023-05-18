@@ -22,6 +22,7 @@
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "platform/base/agsplatformdriver.h"
@@ -749,44 +750,29 @@ RuntimeScriptValue Sc_File_GetPosition(void *self, const RuntimeScriptValue *par
 
 void RegisterFileAPI()
 {
-    ccAddExternalStaticFunction("File::Delete^1",           Sc_File_Delete);
-    ccAddExternalStaticFunction("File::Exists^1",           Sc_File_Exists);
-    ccAddExternalStaticFunction("File::Open^2",             Sc_sc_OpenFile);
-    ccAddExternalObjectFunction("File::Close^0",            Sc_File_Close);
-    ccAddExternalObjectFunction("File::ReadInt^0",          Sc_File_ReadInt);
-    ccAddExternalObjectFunction("File::ReadRawChar^0",      Sc_File_ReadRawChar);
-    ccAddExternalObjectFunction("File::ReadRawInt^0",       Sc_File_ReadRawInt);
-    ccAddExternalObjectFunction("File::ReadRawLine^1",      Sc_File_ReadRawLine);
-    ccAddExternalObjectFunction("File::ReadRawLineBack^0",  Sc_File_ReadRawLineBack);
-    ccAddExternalObjectFunction("File::ReadString^1",       Sc_File_ReadString);
-    ccAddExternalObjectFunction("File::ReadStringBack^0",   Sc_File_ReadStringBack);
-    ccAddExternalObjectFunction("File::WriteInt^1",         Sc_File_WriteInt);
-    ccAddExternalObjectFunction("File::WriteRawChar^1",     Sc_File_WriteRawChar);
-    ccAddExternalObjectFunction("File::WriteRawInt^1",      Sc_File_WriteRawInt);
-    ccAddExternalObjectFunction("File::WriteRawLine^1",     Sc_File_WriteRawLine);
-    ccAddExternalObjectFunction("File::WriteString^1",      Sc_File_WriteString);
-    ccAddExternalObjectFunction("File::Seek^2",             Sc_File_Seek);
-    ccAddExternalObjectFunction("File::get_EOF",            Sc_File_GetEOF);
-    ccAddExternalObjectFunction("File::get_Error",          Sc_File_GetError);
-    ccAddExternalObjectFunction("File::get_Position",       Sc_File_GetPosition);
+    ScFnRegister file_api[] = {
+        { "File::Delete^1",           API_FN_PAIR(File_Delete) },
+        { "File::Exists^1",           API_FN_PAIR(File_Exists) },
+        { "File::Open^2",             API_FN_PAIR(sc_OpenFile) },
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+        { "File::Close^0",            API_FN_PAIR(File_Close) },
+        { "File::ReadInt^0",          API_FN_PAIR(File_ReadInt) },
+        { "File::ReadRawChar^0",      API_FN_PAIR(File_ReadRawChar) },
+        { "File::ReadRawInt^0",       API_FN_PAIR(File_ReadRawInt) },
+        { "File::ReadRawLine^1",      API_FN_PAIR(File_ReadRawLine) },
+        { "File::ReadRawLineBack^0",  API_FN_PAIR(File_ReadRawLineBack) },
+        { "File::ReadString^1",       API_FN_PAIR(File_ReadString) },
+        { "File::ReadStringBack^0",   API_FN_PAIR(File_ReadStringBack) },
+        { "File::WriteInt^1",         API_FN_PAIR(File_WriteInt) },
+        { "File::WriteRawChar^1",     API_FN_PAIR(File_WriteRawChar) },
+        { "File::WriteRawInt^1",      API_FN_PAIR(File_WriteRawInt) },
+        { "File::WriteRawLine^1",     API_FN_PAIR(File_WriteRawLine) },
+        { "File::WriteString^1",      API_FN_PAIR(File_WriteString) },
+        { "File::Seek^2",             API_FN_PAIR(File_Seek) },
+        { "File::get_EOF",            API_FN_PAIR(File_GetEOF) },
+        { "File::get_Error",          API_FN_PAIR(File_GetError) },
+        { "File::get_Position",       API_FN_PAIR(File_GetPosition) },
+    };
 
-    ccAddExternalFunctionForPlugin("File::Delete^1",           (void*)File_Delete);
-    ccAddExternalFunctionForPlugin("File::Exists^1",           (void*)File_Exists);
-    ccAddExternalFunctionForPlugin("File::Open^2",             (void*)sc_OpenFile);
-    ccAddExternalFunctionForPlugin("File::Close^0",            (void*)File_Close);
-    ccAddExternalFunctionForPlugin("File::ReadInt^0",          (void*)File_ReadInt);
-    ccAddExternalFunctionForPlugin("File::ReadRawChar^0",      (void*)File_ReadRawChar);
-    ccAddExternalFunctionForPlugin("File::ReadRawInt^0",       (void*)File_ReadRawInt);
-    ccAddExternalFunctionForPlugin("File::ReadRawLine^1",      (void*)File_ReadRawLine);
-    ccAddExternalFunctionForPlugin("File::ReadRawLineBack^0",  (void*)File_ReadRawLineBack);
-    ccAddExternalFunctionForPlugin("File::ReadString^1",       (void*)File_ReadString);
-    ccAddExternalFunctionForPlugin("File::ReadStringBack^0",   (void*)File_ReadStringBack);
-    ccAddExternalFunctionForPlugin("File::WriteInt^1",         (void*)File_WriteInt);
-    ccAddExternalFunctionForPlugin("File::WriteRawChar^1",     (void*)File_WriteRawChar);
-    ccAddExternalFunctionForPlugin("File::WriteRawLine^1",     (void*)File_WriteRawLine);
-    ccAddExternalFunctionForPlugin("File::WriteString^1",      (void*)File_WriteString);
-    ccAddExternalFunctionForPlugin("File::get_EOF",            (void*)File_GetEOF);
-    ccAddExternalFunctionForPlugin("File::get_Error",          (void*)File_GetError);
+    ccAddExternalFunctions(file_api);
 }

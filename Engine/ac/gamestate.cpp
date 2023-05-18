@@ -20,6 +20,7 @@
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "ac/dynobj/scriptviewport.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"

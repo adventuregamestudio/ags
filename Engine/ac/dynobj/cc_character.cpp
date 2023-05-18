@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/characterinfo.h"
 #include "ac/global_character.h"
 #include "ac/gamesetupstruct.h"
@@ -28,7 +29,7 @@ const char *CCCharacter::GetType() {
     return "Character";
 }
 
-size_t CCCharacter::CalcSerializeSize()
+size_t CCCharacter::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

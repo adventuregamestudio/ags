@@ -39,10 +39,10 @@
 #include "ac/string.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
-#include "ac/dynobj/cc_dynamicobject_addr_and_manager.h"
 #include "ac/dynobj/cc_pluginobject.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "font/fonts.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -700,7 +700,7 @@ int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObjec
     // address. Need to research if that's reliable, and will actually be more performant.
     auto *pl_obj = new CCPluginObject((ICCDynamicObject*)callback);
     GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
-    return ccRegisterManagedObject(object, (ICCDynamicObject*)pl_obj, true);
+    return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
@@ -723,7 +723,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 void IAGSEngine::RegisterUnserializedObject(int key, const void *object, IAGSScriptManagedObject *callback) {
     auto *pl_obj = new CCPluginObject((ICCDynamicObject*)callback);
     GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
-    ccRegisterUnserializedObject(key, object, pl_obj, true);
+    ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
 int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {

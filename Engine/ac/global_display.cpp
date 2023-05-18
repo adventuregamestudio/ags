@@ -173,22 +173,3 @@ void DisplayAtY (int ypos, const char *texx) {
             get_translation(texx), DISPLAYTEXT_MESSAGEBOX, 0, 0, 0, false);
     }
 }
-
-void SetSpeechStyle (int newstyle) {
-    if ((newstyle < 0) || (newstyle > 3))
-        quit("!SetSpeechStyle: must use a SPEECH_* constant as parameter");
-    game.options[OPT_SPEECHTYPE] = newstyle;
-}
-
-void SetSkipSpeech (SkipSpeechStyle newval) {
-    if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
-        quit("!SetSkipSpeech: invalid skip mode specified");
-
-    debug_script_log("SkipSpeech style set to %d", newval);
-    play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)newval);
-}
-
-SkipSpeechStyle GetSkipSpeech()
-{
-    return internal_skip_speech_to_user(play.cant_skip_speech);
-}

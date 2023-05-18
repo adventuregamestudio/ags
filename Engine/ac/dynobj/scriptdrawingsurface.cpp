@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/spritecache.h"
 #include "ac/runtime_defines.h"
 #include "ac/common.h"
@@ -73,7 +74,7 @@ const char *ScriptDrawingSurface::GetType() {
     return "DrawingSurface";
 }
 
-size_t ScriptDrawingSurface::CalcSerializeSize()
+size_t ScriptDrawingSurface::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t) * 9;
 }

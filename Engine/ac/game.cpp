@@ -47,6 +47,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/statobj/staticgame.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -763,6 +764,11 @@ bool Game_ChangeSpeechVox(const char *newFilename)
         return false;
     }
     return true;
+}
+
+int Game_GetAudioClipCount()
+{
+    return game.audioClips.size();
 }
 
 ScriptAudioClip *Game_GetAudioClip(int index)
@@ -1775,7 +1781,7 @@ RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_
 
 RuntimeScriptValue Sc_Game_GetAudioClipCount(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_VARGET_INT(game.audioClips.size());
+    API_SCALL_INT(Game_GetAudioClipCount);
 }
 
 RuntimeScriptValue Sc_Game_GetAudioClip(const RuntimeScriptValue *params, int32_t param_count)
@@ -1820,104 +1826,62 @@ RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params,
 
 void RegisterGameAPI()
 {
-    ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
-    ccAddExternalStaticFunction("Game::SetAudioTypeSpeechVolumeDrop^2",         Sc_Game_SetAudioTypeSpeechVolumeDrop);
-    ccAddExternalStaticFunction("Game::SetAudioTypeVolume^3",                   Sc_Game_SetAudioTypeVolume);
-    ccAddExternalStaticFunction("Game::StopAudio^1",                            Sc_Game_StopAudio);
-    ccAddExternalStaticFunction("Game::ChangeTranslation^1",                    Sc_Game_ChangeTranslation);
-    ccAddExternalStaticFunction("Game::DoOnceOnly^1",                           Sc_Game_DoOnceOnly);
-    ccAddExternalStaticFunction("Game::GetColorFromRGB^3",                      Sc_Game_GetColorFromRGB);
-    ccAddExternalStaticFunction("Game::GetFrameCountForLoop^2",                 Sc_Game_GetFrameCountForLoop);
-    ccAddExternalStaticFunction("Game::GetLocationName^2",                      Sc_Game_GetLocationName);
-    ccAddExternalStaticFunction("Game::GetLoopCountForView^1",                  Sc_Game_GetLoopCountForView);
-    ccAddExternalStaticFunction("Game::GetRunNextSettingForLoop^2",             Sc_Game_GetRunNextSettingForLoop);
-    ccAddExternalStaticFunction("Game::GetSaveSlotDescription^1",               Sc_Game_GetSaveSlotDescription);
-    ccAddExternalStaticFunction("Game::GetViewFrame^3",                         Sc_Game_GetViewFrame);
-    ccAddExternalStaticFunction("Game::InputBox^1",                             Sc_Game_InputBox);
-    ccAddExternalStaticFunction("Game::SetSaveGameDirectory^1",                 Sc_Game_SetSaveGameDirectory);
-    ccAddExternalStaticFunction("Game::get_CharacterCount",                     Sc_Game_GetCharacterCount);
-    ccAddExternalStaticFunction("Game::get_DialogCount",                        Sc_Game_GetDialogCount);
-    ccAddExternalStaticFunction("Game::get_FileName",                           Sc_Game_GetFileName);
-    ccAddExternalStaticFunction("Game::get_FontCount",                          Sc_Game_GetFontCount);
-    ccAddExternalStaticFunction("Game::geti_GlobalMessages",                    Sc_Game_GetGlobalMessages);
-    ccAddExternalStaticFunction("Game::get_GUICount",                           Sc_Game_GetGUICount);
-    ccAddExternalStaticFunction("Game::get_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_GetIgnoreUserInputAfterTextTimeoutMs);
-    ccAddExternalStaticFunction("Game::set_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_SetIgnoreUserInputAfterTextTimeoutMs);
-    ccAddExternalStaticFunction("Game::get_InSkippableCutscene",                Sc_Game_GetInSkippableCutscene);
-    ccAddExternalStaticFunction("Game::get_InventoryItemCount",                 Sc_Game_GetInventoryItemCount);
-    ccAddExternalStaticFunction("Game::get_MinimumTextDisplayTimeMs",           Sc_Game_GetMinimumTextDisplayTimeMs);
-    ccAddExternalStaticFunction("Game::set_MinimumTextDisplayTimeMs",           Sc_Game_SetMinimumTextDisplayTimeMs);
-    ccAddExternalStaticFunction("Game::get_MouseCursorCount",                   Sc_Game_GetMouseCursorCount);
-    ccAddExternalStaticFunction("Game::get_Name",                               Sc_Game_GetName);
-    ccAddExternalStaticFunction("Game::set_Name",                               Sc_Game_SetName);
-    ccAddExternalStaticFunction("Game::get_NormalFont",                         Sc_Game_GetNormalFont);
-    ccAddExternalStaticFunction("Game::set_NormalFont",                         Sc_SetNormalFont);
-    ccAddExternalStaticFunction("Game::get_SkippingCutscene",                   Sc_Game_GetSkippingCutscene);
-    ccAddExternalStaticFunction("Game::get_SpeechFont",                         Sc_Game_GetSpeechFont);
-    ccAddExternalStaticFunction("Game::set_SpeechFont",                         Sc_SetSpeechFont);
-    ccAddExternalStaticFunction("Game::geti_SpriteWidth",                       Sc_Game_GetSpriteWidth);
-    ccAddExternalStaticFunction("Game::geti_SpriteHeight",                      Sc_Game_GetSpriteHeight);
-    ccAddExternalStaticFunction("Game::get_TextReadingSpeed",                   Sc_Game_GetTextReadingSpeed);
-    ccAddExternalStaticFunction("Game::set_TextReadingSpeed",                   Sc_Game_SetTextReadingSpeed);
-    ccAddExternalStaticFunction("Game::get_TranslationFilename",                Sc_Game_GetTranslationFilename);
-    ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
-    ccAddExternalStaticFunction("Game::get_AudioClipCount",                     Sc_Game_GetAudioClipCount);
-    ccAddExternalStaticFunction("Game::geti_AudioClips",                        Sc_Game_GetAudioClip);
-    ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
-    ccAddExternalStaticFunction("Game::ChangeSpeechVox",                        Sc_Game_ChangeSpeechVox);
-    ccAddExternalStaticFunction("Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip);
-    ccAddExternalStaticFunction("Game::SimulateKeyPress",                       Sc_Game_SimulateKeyPress);
-    ccAddExternalStaticFunction("Game::get_BlockingWaitSkipped",                Sc_Game_BlockingWaitSkipped);
-    ccAddExternalStaticFunction("Game::get_SpeechVoxFilename",                  Sc_Game_GetSpeechVoxFilename);
+    ScFnRegister game_api[] = {
+        { "Game::IsAudioPlaying^1",                       API_FN_PAIR(Game_IsAudioPlaying) },
+        { "Game::SetAudioTypeSpeechVolumeDrop^2",         API_FN_PAIR(Game_SetAudioTypeSpeechVolumeDrop) },
+        { "Game::SetAudioTypeVolume^3",                   API_FN_PAIR(Game_SetAudioTypeVolume) },
+        { "Game::StopAudio^1",                            API_FN_PAIR(Game_StopAudio) },
+        { "Game::ChangeTranslation^1",                    API_FN_PAIR(Game_ChangeTranslation) },
+        { "Game::DoOnceOnly^1",                           API_FN_PAIR(Game_DoOnceOnly) },
+        { "Game::GetColorFromRGB^3",                      API_FN_PAIR(Game_GetColorFromRGB) },
+        { "Game::GetFrameCountForLoop^2",                 API_FN_PAIR(Game_GetFrameCountForLoop) },
+        { "Game::GetLocationName^2",                      API_FN_PAIR(Game_GetLocationName) },
+        { "Game::GetLoopCountForView^1",                  API_FN_PAIR(Game_GetLoopCountForView) },
+        { "Game::GetRunNextSettingForLoop^2",             API_FN_PAIR(Game_GetRunNextSettingForLoop) },
+        { "Game::GetSaveSlotDescription^1",               API_FN_PAIR(Game_GetSaveSlotDescription) },
+        { "Game::GetViewFrame^3",                         API_FN_PAIR(Game_GetViewFrame) },
+        { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
+        { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },
+        { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
+        { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
+        { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },
+        { "Game::get_FontCount",                          API_FN_PAIR(Game_GetFontCount) },
+        { "Game::geti_GlobalMessages",                    API_FN_PAIR(Game_GetGlobalMessages) },
+        { "Game::get_GUICount",                           API_FN_PAIR(Game_GetGUICount) },
+        { "Game::get_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_GetIgnoreUserInputAfterTextTimeoutMs) },
+        { "Game::set_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_SetIgnoreUserInputAfterTextTimeoutMs) },
+        { "Game::get_InSkippableCutscene",                API_FN_PAIR(Game_GetInSkippableCutscene) },
+        { "Game::get_InventoryItemCount",                 API_FN_PAIR(Game_GetInventoryItemCount) },
+        { "Game::get_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_GetMinimumTextDisplayTimeMs) },
+        { "Game::set_MinimumTextDisplayTimeMs",           API_FN_PAIR(Game_SetMinimumTextDisplayTimeMs) },
+        { "Game::get_MouseCursorCount",                   API_FN_PAIR(Game_GetMouseCursorCount) },
+        { "Game::get_Name",                               API_FN_PAIR(Game_GetName) },
+        { "Game::set_Name",                               API_FN_PAIR(Game_SetName) },
+        { "Game::get_NormalFont",                         API_FN_PAIR(Game_GetNormalFont) },
+        { "Game::set_NormalFont",                         API_FN_PAIR(SetNormalFont) },
+        { "Game::get_SkippingCutscene",                   API_FN_PAIR(Game_GetSkippingCutscene) },
+        { "Game::get_SpeechFont",                         API_FN_PAIR(Game_GetSpeechFont) },
+        { "Game::set_SpeechFont",                         API_FN_PAIR(SetSpeechFont) },
+        { "Game::geti_SpriteWidth",                       API_FN_PAIR(Game_GetSpriteWidth) },
+        { "Game::geti_SpriteHeight",                      API_FN_PAIR(Game_GetSpriteHeight) },
+        { "Game::get_TextReadingSpeed",                   API_FN_PAIR(Game_GetTextReadingSpeed) },
+        { "Game::set_TextReadingSpeed",                   API_FN_PAIR(Game_SetTextReadingSpeed) },
+        { "Game::get_TranslationFilename",                API_FN_PAIR(Game_GetTranslationFilename) },
+        { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },
+        { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
+        { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
+        { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
+        { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
+        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
+        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
+        { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
+        { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
+        { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
+        { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
+        { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
+    };
 
-    ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
-    ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);
-    ccAddExternalStaticFunction("Game::geti_Cameras",                           Sc_Game_GetAnyCamera);
-
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("Game::IsAudioPlaying^1",                       (void*)Game_IsAudioPlaying);
-    ccAddExternalFunctionForPlugin("Game::SetAudioTypeSpeechVolumeDrop^2",         (void*)Game_SetAudioTypeSpeechVolumeDrop);
-    ccAddExternalFunctionForPlugin("Game::SetAudioTypeVolume^3",                   (void*)Game_SetAudioTypeVolume);
-    ccAddExternalFunctionForPlugin("Game::StopAudio^1",                            (void*)Game_StopAudio);
-    ccAddExternalFunctionForPlugin("Game::ChangeTranslation^1",                    (void*)Game_ChangeTranslation);
-    ccAddExternalFunctionForPlugin("Game::DoOnceOnly^1",                           (void*)Game_DoOnceOnly);
-    ccAddExternalFunctionForPlugin("Game::GetColorFromRGB^3",                      (void*)Game_GetColorFromRGB);
-    ccAddExternalFunctionForPlugin("Game::GetFrameCountForLoop^2",                 (void*)Game_GetFrameCountForLoop);
-    ccAddExternalFunctionForPlugin("Game::GetLocationName^2",                      (void*)Game_GetLocationName);
-    ccAddExternalFunctionForPlugin("Game::GetLoopCountForView^1",                  (void*)Game_GetLoopCountForView);
-    ccAddExternalFunctionForPlugin("Game::GetRunNextSettingForLoop^2",             (void*)Game_GetRunNextSettingForLoop);
-    ccAddExternalFunctionForPlugin("Game::GetSaveSlotDescription^1",               (void*)Game_GetSaveSlotDescription);
-    ccAddExternalFunctionForPlugin("Game::GetViewFrame^3",                         (void*)Game_GetViewFrame);
-    ccAddExternalFunctionForPlugin("Game::InputBox^1",                             (void*)Game_InputBox);
-    ccAddExternalFunctionForPlugin("Game::SetSaveGameDirectory^1",                 (void*)Game_SetSaveGameDirectory);
-    ccAddExternalFunctionForPlugin("Game::get_CharacterCount",                     (void*)Game_GetCharacterCount);
-    ccAddExternalFunctionForPlugin("Game::get_DialogCount",                        (void*)Game_GetDialogCount);
-    ccAddExternalFunctionForPlugin("Game::get_FileName",                           (void*)Game_GetFileName);
-    ccAddExternalFunctionForPlugin("Game::get_FontCount",                          (void*)Game_GetFontCount);
-    ccAddExternalFunctionForPlugin("Game::geti_GlobalMessages",                    (void*)Game_GetGlobalMessages);
-    ccAddExternalFunctionForPlugin("Game::get_GUICount",                           (void*)Game_GetGUICount);
-    ccAddExternalFunctionForPlugin("Game::get_IgnoreUserInputAfterTextTimeoutMs",  (void*)Game_GetIgnoreUserInputAfterTextTimeoutMs);
-    ccAddExternalFunctionForPlugin("Game::set_IgnoreUserInputAfterTextTimeoutMs",  (void*)Game_SetIgnoreUserInputAfterTextTimeoutMs);
-    ccAddExternalFunctionForPlugin("Game::get_InSkippableCutscene",                (void*)Game_GetInSkippableCutscene);
-    ccAddExternalFunctionForPlugin("Game::get_InventoryItemCount",                 (void*)Game_GetInventoryItemCount);
-    ccAddExternalFunctionForPlugin("Game::get_MinimumTextDisplayTimeMs",           (void*)Game_GetMinimumTextDisplayTimeMs);
-    ccAddExternalFunctionForPlugin("Game::set_MinimumTextDisplayTimeMs",           (void*)Game_SetMinimumTextDisplayTimeMs);
-    ccAddExternalFunctionForPlugin("Game::get_MouseCursorCount",                   (void*)Game_GetMouseCursorCount);
-    ccAddExternalFunctionForPlugin("Game::get_Name",                               (void*)Game_GetName);
-    ccAddExternalFunctionForPlugin("Game::set_Name",                               (void*)Game_SetName);
-    ccAddExternalFunctionForPlugin("Game::get_NormalFont",                         (void*)Game_GetNormalFont);
-    ccAddExternalFunctionForPlugin("Game::set_NormalFont",                         (void*)SetNormalFont);
-    ccAddExternalFunctionForPlugin("Game::get_SkippingCutscene",                   (void*)Game_GetSkippingCutscene);
-    ccAddExternalFunctionForPlugin("Game::get_SpeechFont",                         (void*)Game_GetSpeechFont);
-    ccAddExternalFunctionForPlugin("Game::set_SpeechFont",                         (void*)SetSpeechFont);
-    ccAddExternalFunctionForPlugin("Game::geti_SpriteWidth",                       (void*)Game_GetSpriteWidth);
-    ccAddExternalFunctionForPlugin("Game::geti_SpriteHeight",                      (void*)Game_GetSpriteHeight);
-    ccAddExternalFunctionForPlugin("Game::get_TextReadingSpeed",                   (void*)Game_GetTextReadingSpeed);
-    ccAddExternalFunctionForPlugin("Game::set_TextReadingSpeed",                   (void*)Game_SetTextReadingSpeed);
-    ccAddExternalFunctionForPlugin("Game::get_TranslationFilename",                (void*)Game_GetTranslationFilename);
-    ccAddExternalFunctionForPlugin("Game::get_ViewCount",                          (void*)Game_GetViewCount);
-    ccAddExternalFunctionForPlugin("Game::PlayVoiceClip",                          (void*)PlayVoiceClip);
+    ccAddExternalFunctions(game_api);
 }
 
 void RegisterStaticObjects()

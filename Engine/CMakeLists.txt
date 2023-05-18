@@ -62,8 +62,6 @@ target_sources(engine
     ac/dynobj/cc_dialog.h
     ac/dynobj/cc_dynamicarray.cpp
     ac/dynobj/cc_dynamicarray.h
-    ac/dynobj/cc_dynamicobject_addr_and_manager.h
-    ac/dynobj/cc_dynamicobject.cpp
     ac/dynobj/cc_dynamicobject.h
     ac/dynobj/cc_gui.cpp
     ac/dynobj/cc_gui.h
@@ -80,6 +78,8 @@ target_sources(engine
     ac/dynobj/cc_region.h
     ac/dynobj/cc_serializer.cpp
     ac/dynobj/cc_serializer.h
+    ac/dynobj/dynobj_manager.cpp
+    ac/dynobj/dynobj_manager.h
     ac/dynobj/managedobjectpool.cpp
     ac/dynobj/managedobjectpool.h
     ac/dynobj/scriptaudiochannel.h

@@ -21,7 +21,9 @@ namespace AGS.Editor
         public static void SetTreeViewEditText(TreeView tree, string myText)
         {
             IntPtr editHandle = (IntPtr)SendMessage(tree.Handle, TVM_GETEDITCONTROL, 0, IntPtr.Zero);
-            SendMessage(editHandle, WM_SETTEXT, 0, Marshal.StringToHGlobalAuto(myText));
+            IntPtr strPtr = Marshal.StringToHGlobalAuto(myText);
+            SendMessage(editHandle, WM_SETTEXT, 0, strPtr);
+            Marshal.FreeHGlobal(strPtr);
         }
 
         // The PropertyGrid doesn't provide a settable SelectedTab property. Well, it does now.

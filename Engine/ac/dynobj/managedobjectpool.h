@@ -57,7 +57,7 @@ private:
     std::queue<int32_t> available_ids;
     std::vector<ManagedObject> objects;
     std::unordered_map<const char *, int32_t> handleByAddress;
-
+    
     // Scan lists for the garbage collection;
     // TODO: this is bit inefficient, because of certain mem duplication, and extra
     // cross-references; ideally this should be merged with ManagedObject (and maybe even ICCDynamicObject)!
@@ -84,7 +84,7 @@ private:
         uint64_t GCTimesRun = 0u; // how many times GC ran
     } stats;
 
-    int  Add(int handle, const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
+    int  Add(int handle, const char *address, ICCDynamicObject *callback, ScriptValueType obj_type, bool persistent);
     int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
 
@@ -103,9 +103,9 @@ public:
     // Forcefully remove the object, regardless of the current ref count
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
-    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, bool persistent);
-    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, int handle,
-        bool plugin_object, bool persistent);
+
+    int AddObject(const char *address, ICCDynamicObject *callback, ScriptValueType obj_type, bool persistent);
+    int AddUnserializedObject(const char *address, ICCDynamicObject *callback, int handle, ScriptValueType obj_type, bool persistent);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     // De-allocate all objects

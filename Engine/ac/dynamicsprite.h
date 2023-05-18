@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__DYNAMICSPRITE_H
 #define __AGS_EE_AC__DYNAMICSPRITE_H
 
@@ -44,7 +40,8 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
 
 
-void	add_dynamic_sprite(int gotSlot, Common::Bitmap *redin);
+namespace AGS { namespace Common { class Bitmap; } }
+void	add_dynamic_sprite(int gotSlot, AGS::Common::Bitmap *redin);
 void	free_dynamic_sprite (int gotSlot);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

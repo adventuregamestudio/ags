@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptset.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
 
 int ScriptSetBase::Dispose(const char* /*address*/, bool /*force*/)
@@ -24,6 +25,11 @@ int ScriptSetBase::Dispose(const char* /*address*/, bool /*force*/)
 const char *ScriptSetBase::GetType()
 {
     return "StringSet";
+}
+
+size_t ScriptSetBase::CalcSerializeSize(const char* /*address*/)
+{
+    return CalcContainerSize();
 }
 
 void ScriptSetBase::Serialize(const char* /*address*/, Stream *out)

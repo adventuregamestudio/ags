@@ -266,43 +266,26 @@ RuntimeScriptValue Sc_Math_GetPi(const RuntimeScriptValue *params, int32_t param
 
 void RegisterMathAPI()
 {
-    ccAddExternalStaticFunction("Maths::ArcCos^1",              Sc_Math_ArcCos);
-    ccAddExternalStaticFunction("Maths::ArcSin^1",              Sc_Math_ArcSin);
-    ccAddExternalStaticFunction("Maths::ArcTan^1",              Sc_Math_ArcTan);
-    ccAddExternalStaticFunction("Maths::ArcTan2^2",             Sc_Math_ArcTan2);
-    ccAddExternalStaticFunction("Maths::Cos^1",                 Sc_Math_Cos);
-    ccAddExternalStaticFunction("Maths::Cosh^1",                Sc_Math_Cosh);
-    ccAddExternalStaticFunction("Maths::DegreesToRadians^1",    Sc_Math_DegreesToRadians);
-    ccAddExternalStaticFunction("Maths::Exp^1",                 Sc_Math_Exp);
-    ccAddExternalStaticFunction("Maths::Log^1",                 Sc_Math_Log);
-    ccAddExternalStaticFunction("Maths::Log10^1",               Sc_Math_Log10);
-    ccAddExternalStaticFunction("Maths::RadiansToDegrees^1",    Sc_Math_RadiansToDegrees);
-    ccAddExternalStaticFunction("Maths::RaiseToPower^2",        Sc_Math_RaiseToPower);
-    ccAddExternalStaticFunction("Maths::Sin^1",                 Sc_Math_Sin);
-    ccAddExternalStaticFunction("Maths::Sinh^1",                Sc_Math_Sinh);
-    ccAddExternalStaticFunction("Maths::Sqrt^1",                Sc_Math_Sqrt);
-    ccAddExternalStaticFunction("Maths::Tan^1",                 Sc_Math_Tan);
-    ccAddExternalStaticFunction("Maths::Tanh^1",                Sc_Math_Tanh);
-    ccAddExternalStaticFunction("Maths::get_Pi",                Sc_Math_GetPi);
+    ScFnRegister math_api[] = {
+        { "Maths::ArcCos^1",              API_FN_PAIR(Math_ArcCos) },
+        { "Maths::ArcSin^1",              API_FN_PAIR(Math_ArcSin) },
+        { "Maths::ArcTan^1",              API_FN_PAIR(Math_ArcTan) },
+        { "Maths::ArcTan2^2",             API_FN_PAIR(Math_ArcTan2) },
+        { "Maths::Cos^1",                 API_FN_PAIR(Math_Cos) },
+        { "Maths::Cosh^1",                API_FN_PAIR(Math_Cosh) },
+        { "Maths::DegreesToRadians^1",    API_FN_PAIR(Math_DegreesToRadians) },
+        { "Maths::Exp^1",                 API_FN_PAIR(Math_Exp) },
+        { "Maths::Log^1",                 API_FN_PAIR(Math_Log) },
+        { "Maths::Log10^1",               API_FN_PAIR(Math_Log10) },
+        { "Maths::RadiansToDegrees^1",    API_FN_PAIR(Math_RadiansToDegrees) },
+        { "Maths::RaiseToPower^2",        API_FN_PAIR(Math_RaiseToPower) },
+        { "Maths::Sin^1",                 API_FN_PAIR(Math_Sin) },
+        { "Maths::Sinh^1",                API_FN_PAIR(Math_Sinh) },
+        { "Maths::Sqrt^1",                API_FN_PAIR(Math_Sqrt) },
+        { "Maths::Tan^1",                 API_FN_PAIR(Math_Tan) },
+        { "Maths::Tanh^1",                API_FN_PAIR(Math_Tanh) },
+        { "Maths::get_Pi",                API_FN_PAIR(Math_GetPi) },
+    };
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("Maths::ArcCos^1",              (void*)Math_ArcCos);
-    ccAddExternalFunctionForPlugin("Maths::ArcSin^1",              (void*)Math_ArcSin);
-    ccAddExternalFunctionForPlugin("Maths::ArcTan^1",              (void*)Math_ArcTan);
-    ccAddExternalFunctionForPlugin("Maths::ArcTan2^2",             (void*)Math_ArcTan2);
-    ccAddExternalFunctionForPlugin("Maths::Cos^1",                 (void*)Math_Cos);
-    ccAddExternalFunctionForPlugin("Maths::Cosh^1",                (void*)Math_Cosh);
-    ccAddExternalFunctionForPlugin("Maths::DegreesToRadians^1",    (void*)Math_DegreesToRadians);
-    ccAddExternalFunctionForPlugin("Maths::Exp^1",                 (void*)Math_Exp);
-    ccAddExternalFunctionForPlugin("Maths::Log^1",                 (void*)Math_Log);
-    ccAddExternalFunctionForPlugin("Maths::Log10^1",               (void*)Math_Log10);
-    ccAddExternalFunctionForPlugin("Maths::RadiansToDegrees^1",    (void*)Math_RadiansToDegrees);
-    ccAddExternalFunctionForPlugin("Maths::RaiseToPower^2",        (void*)Math_RaiseToPower);
-    ccAddExternalFunctionForPlugin("Maths::Sin^1",                 (void*)Math_Sin);
-    ccAddExternalFunctionForPlugin("Maths::Sinh^1",                (void*)Math_Sinh);
-    ccAddExternalFunctionForPlugin("Maths::Sqrt^1",                (void*)Math_Sqrt);
-    ccAddExternalFunctionForPlugin("Maths::Tan^1",                 (void*)Math_Tan);
-    ccAddExternalFunctionForPlugin("Maths::Tanh^1",                (void*)Math_Tanh);
-    ccAddExternalFunctionForPlugin("Maths::get_Pi",                (void*)Math_GetPi);
+    ccAddExternalFunctions(math_api);
 }

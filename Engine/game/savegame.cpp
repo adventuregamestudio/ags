@@ -32,6 +32,7 @@
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/dynobj/cc_serializer.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"

@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/characterinfo.h"
 #include "util/stream.h"
 
@@ -25,7 +26,7 @@ const char *CCInventory::GetType() {
     return "Inventory";
 }
 
-size_t CCInventory::CalcSerializeSize()
+size_t CCInventory::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptoverlay.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/common.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"
@@ -48,7 +49,7 @@ const char *ScriptOverlay::GetType() {
     return "Overlay";
 }
 
-size_t ScriptOverlay::CalcSerializeSize()
+size_t ScriptOverlay::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t) * 4;
 }

@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptaudioclip.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamesetupstruct.h"
 #include "util/stream.h"
 
@@ -24,7 +25,7 @@ const char *CCAudioClip::GetType() {
     return "AudioClip";
 }
 
-size_t CCAudioClip::CalcSerializeSize()
+size_t CCAudioClip::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

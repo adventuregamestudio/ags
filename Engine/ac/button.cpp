@@ -46,46 +46,20 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
     guibuts[abtn.buttonid].MouseOverImage = 0;
 }
 
-void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat,
-    int blocking, int direction, int sframe, int volume = 100)
+void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
+    int blocking, int direction, int sframe, int volume)
 {
     int guin = butt->ParentId;
     int objn = butt->Id;
 
-    if (direction == FORWARDS)
-        direction = 0;
-    else if (direction == BACKWARDS)
-        direction = 1;
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
-
-    if ((view < 1) || (view > game.numviews))
-        quit("!AnimateButton: invalid view specified");
-    view--;
-    if ((loop < 0) || (loop >= views[view].numLoops))
-        quit("!AnimateButton: invalid loop specified for view");
-    if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
-        quit("!AnimateButton: invalid starting frame number specified");
-    if ((repeat < 0) || (repeat > 1))
-        quit("!AnimateButton: invalid repeat value");
-    if ((blocking < 0) || (blocking > 1))
-        quit("!AnimateButton: invalid blocking value");
-    if ((direction < 0) || (direction > 1))
-        quit("!AnimateButton: invalid direction");
+    view--; // convert to internal 0-based view ID
+    ValidateViewAnimVLF("Button.Animate", view, loop, sframe);
+    ValidateViewAnimParams("Button.Animate", repeat, blocking, direction);
 
     volume = Math::Clamp(volume, 0, 100);
 
     // if it's already animating, stop it
     FindAndRemoveButtonAnimation(guin, objn);
-
-    // reverse animation starts at the *previous frame*
-    if (direction)
-    {
-        if (--sframe < 0)
-            sframe = views[view].loops[loop].numFrames - (-sframe);
-    }
 
     int but_id = guis[guin].GetControlID(objn);
     AnimatingGUIButton abtn;
@@ -95,10 +69,10 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
     abtn.view = view;
     abtn.loop = loop;
     abtn.speed = speed;
-    abtn.repeat = repeat;
+    abtn.repeat = static_cast<bool>(repeat) ? ANIM_REPEAT : ANIM_ONCE; // for now, clamp to supported modes
     abtn.blocking = blocking;
     abtn.direction = direction;
-    abtn.frame = sframe;
+    abtn.frame = SetFirstAnimFrame(view, loop, sframe, direction);
     abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     abtn.volume = volume;
     animbuts.push_back(abtn);
@@ -111,13 +85,13 @@ void Button_AnimateEx(GUIButton *butt, int view, int loop, int speed, int repeat
         GameLoopUntilButAnimEnd(guin, objn);
 }
 
-void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) {
-    Button_AnimateEx(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 100 /* full volume */);
+void Button_Animate4(GUIButton *butt, int view, int loop, int speed, int repeat) {
+    Button_Animate(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 100 /* full volume */);
 }
 
 void Button_Animate7(GUIButton *butt, int view, int loop, int speed, int repeat,
     int blocking, int direction, int sframe) {
-    Button_AnimateEx(butt, view, loop, speed, repeat, blocking, direction, sframe, 100 /* full volume */);
+    Button_Animate(butt, view, loop, speed, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
 const char* Button_GetText_New(GUIButton *butt) {
@@ -268,8 +242,7 @@ bool UpdateAnimatingButton(int bu)
         abtn.wait--;
         return true;
     }
-    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction,
-            abtn.repeat != 0 ? ANIM_REPEAT : ANIM_ONCE))
+    if (!CycleViewAnim(abtn.view, abtn.loop, abtn.frame, !abtn.direction, abtn.repeat))
         return false;
     CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.volume);
     abtn.wait = abtn.speed + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
@@ -365,9 +338,9 @@ void Button_SetTextAlignment(GUIButton *butt, int align)
 extern ScriptString myScriptStringImpl;
 
 // void | GUIButton *butt, int view, int loop, int speed, int repeat
-RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_Animate4(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate);
+    API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate4);
 }
 
 RuntimeScriptValue Sc_Button_Animate7(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -375,9 +348,9 @@ RuntimeScriptValue Sc_Button_Animate7(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT7(GUIButton, Button_Animate7);
 }
 
-RuntimeScriptValue Sc_Button_Animate8(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT8(GUIButton, Button_AnimateEx);
+    API_OBJCALL_VOID_PINT8(GUIButton, Button_Animate);
 }
 
 // const char* | GUIButton *butt
@@ -481,7 +454,7 @@ RuntimeScriptValue Sc_Button_Click(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(GUIButton, Button_Click);
 }
 
-RuntimeScriptValue Sc_Button_GetAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_IsAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL(GUIButton, Button_IsAnimating);
 }
@@ -496,69 +469,52 @@ RuntimeScriptValue Sc_Button_SetTextAlignment(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextAlignment);
 }
 
-RuntimeScriptValue Sc_Button_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_GetAnimFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetAnimFrame);
 }
 
-RuntimeScriptValue Sc_Button_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_GetAnimLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetAnimLoop);
 }
 
-RuntimeScriptValue Sc_Button_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_GetAnimView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetAnimView);
 }
 
 void RegisterButtonAPI()
 {
-    ccAddExternalObjectFunction("Button::Animate^4",            Sc_Button_Animate);
-    ccAddExternalObjectFunction("Button::Animate^7",            Sc_Button_Animate7);
-    ccAddExternalObjectFunction("Button::Animate^8",            Sc_Button_Animate8);
-    ccAddExternalObjectFunction("Button::Click^1",              Sc_Button_Click);
-    ccAddExternalObjectFunction("Button::GetText^1",            Sc_Button_GetText);
-    ccAddExternalObjectFunction("Button::SetText^1",            Sc_Button_SetText);
-    ccAddExternalObjectFunction("Button::get_TextAlignment",    Sc_Button_GetTextAlignment);
-    ccAddExternalObjectFunction("Button::set_TextAlignment",    Sc_Button_SetTextAlignment);
-    ccAddExternalObjectFunction("Button::get_Animating",        Sc_Button_GetAnimating);
-    ccAddExternalObjectFunction("Button::get_ClipImage",        Sc_Button_GetClipImage);
-    ccAddExternalObjectFunction("Button::set_ClipImage",        Sc_Button_SetClipImage);
-    ccAddExternalObjectFunction("Button::get_Font",             Sc_Button_GetFont);
-    ccAddExternalObjectFunction("Button::set_Font",             Sc_Button_SetFont);
-    ccAddExternalObjectFunction("Button::get_Frame",            Sc_Button_GetFrame);
-    ccAddExternalObjectFunction("Button::get_Graphic",          Sc_Button_GetGraphic);
-    ccAddExternalObjectFunction("Button::get_Loop",             Sc_Button_GetLoop);
-    ccAddExternalObjectFunction("Button::get_MouseOverGraphic", Sc_Button_GetMouseOverGraphic);
-    ccAddExternalObjectFunction("Button::set_MouseOverGraphic", Sc_Button_SetMouseOverGraphic);
-    ccAddExternalObjectFunction("Button::get_NormalGraphic",    Sc_Button_GetNormalGraphic);
-    ccAddExternalObjectFunction("Button::set_NormalGraphic",    Sc_Button_SetNormalGraphic);
-    ccAddExternalObjectFunction("Button::get_PushedGraphic",    Sc_Button_GetPushedGraphic);
-    ccAddExternalObjectFunction("Button::set_PushedGraphic",    Sc_Button_SetPushedGraphic);
-    ccAddExternalObjectFunction("Button::get_Text",             Sc_Button_GetText_New);
-    ccAddExternalObjectFunction("Button::set_Text",             Sc_Button_SetText);
-    ccAddExternalObjectFunction("Button::get_TextColor",        Sc_Button_GetTextColor);
-    ccAddExternalObjectFunction("Button::set_TextColor",        Sc_Button_SetTextColor);
-    ccAddExternalObjectFunction("Button::get_View",             Sc_Button_GetView);
+    ScFnRegister button_api[] = {
+        { "Button::Animate^4",            API_FN_PAIR(Button_Animate4) },
+        { "Button::Animate^7",            API_FN_PAIR(Button_Animate7) },
+        { "Button::Animate^8",            API_FN_PAIR(Button_Animate) },
+        { "Button::Click^1",              API_FN_PAIR(Button_Click) },
+        { "Button::GetText^1",            API_FN_PAIR(Button_GetText) },
+        { "Button::SetText^1",            API_FN_PAIR(Button_SetText) },
+        { "Button::get_TextAlignment",    API_FN_PAIR(Button_GetTextAlignment) },
+        { "Button::set_TextAlignment",    API_FN_PAIR(Button_SetTextAlignment) },
+        { "Button::get_Animating",        API_FN_PAIR(Button_IsAnimating) },
+        { "Button::get_ClipImage",        API_FN_PAIR(Button_GetClipImage) },
+        { "Button::set_ClipImage",        API_FN_PAIR(Button_SetClipImage) },
+        { "Button::get_Font",             API_FN_PAIR(Button_GetFont) },
+        { "Button::set_Font",             API_FN_PAIR(Button_SetFont) },
+        { "Button::get_Frame",            API_FN_PAIR(Button_GetAnimFrame) },
+        { "Button::get_Graphic",          API_FN_PAIR(Button_GetGraphic) },
+        { "Button::get_Loop",             API_FN_PAIR(Button_GetAnimLoop) },
+        { "Button::get_MouseOverGraphic", API_FN_PAIR(Button_GetMouseOverGraphic) },
+        { "Button::set_MouseOverGraphic", API_FN_PAIR(Button_SetMouseOverGraphic) },
+        { "Button::get_NormalGraphic",    API_FN_PAIR(Button_GetNormalGraphic) },
+        { "Button::set_NormalGraphic",    API_FN_PAIR(Button_SetNormalGraphic) },
+        { "Button::get_PushedGraphic",    API_FN_PAIR(Button_GetPushedGraphic) },
+        { "Button::set_PushedGraphic",    API_FN_PAIR(Button_SetPushedGraphic) },
+        { "Button::get_Text",             API_FN_PAIR(Button_GetText_New) },
+        { "Button::set_Text",             API_FN_PAIR(Button_SetText) },
+        { "Button::get_TextColor",        API_FN_PAIR(Button_GetTextColor) },
+        { "Button::set_TextColor",        API_FN_PAIR(Button_SetTextColor) },
+        { "Button::get_View",             API_FN_PAIR(Button_GetAnimView) },
+    };
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("Button::Animate^4",            (void*)Button_Animate);
-    ccAddExternalFunctionForPlugin("Button::GetText^1",            (void*)Button_GetText);
-    ccAddExternalFunctionForPlugin("Button::SetText^1",            (void*)Button_SetText);
-    ccAddExternalFunctionForPlugin("Button::get_ClipImage",        (void*)Button_GetClipImage);
-    ccAddExternalFunctionForPlugin("Button::set_ClipImage",        (void*)Button_SetClipImage);
-    ccAddExternalFunctionForPlugin("Button::get_Font",             (void*)Button_GetFont);
-    ccAddExternalFunctionForPlugin("Button::set_Font",             (void*)Button_SetFont);
-    ccAddExternalFunctionForPlugin("Button::get_Graphic",          (void*)Button_GetGraphic);
-    ccAddExternalFunctionForPlugin("Button::get_MouseOverGraphic", (void*)Button_GetMouseOverGraphic);
-    ccAddExternalFunctionForPlugin("Button::set_MouseOverGraphic", (void*)Button_SetMouseOverGraphic);
-    ccAddExternalFunctionForPlugin("Button::get_NormalGraphic",    (void*)Button_GetNormalGraphic);
-    ccAddExternalFunctionForPlugin("Button::set_NormalGraphic",    (void*)Button_SetNormalGraphic);
-    ccAddExternalFunctionForPlugin("Button::get_PushedGraphic",    (void*)Button_GetPushedGraphic);
-    ccAddExternalFunctionForPlugin("Button::set_PushedGraphic",    (void*)Button_SetPushedGraphic);
-    ccAddExternalFunctionForPlugin("Button::get_Text",             (void*)Button_GetText_New);
-    ccAddExternalFunctionForPlugin("Button::set_Text",             (void*)Button_SetText);
-    ccAddExternalFunctionForPlugin("Button::get_TextColor",        (void*)Button_GetTextColor);
-    ccAddExternalFunctionForPlugin("Button::set_TextColor",        (void*)Button_SetTextColor);
+    ccAddExternalFunctions(button_api);
 }

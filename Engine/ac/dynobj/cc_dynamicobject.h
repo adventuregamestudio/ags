@@ -23,9 +23,6 @@
 #include <utility>
 #include "core/types.h"
 
-// Forward declaration
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
 
 // A pair of managed handle and abstract object pointer
 typedef std::pair<int32_t, void*> DynObjectRef;
@@ -106,39 +103,5 @@ struct ICCObjectReader {
     // TODO: pass savegame format version
     virtual void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) = 0;
 };
-
-// set the class that will be used for dynamic strings
-extern void  ccSetStringClassImpl(ICCStringClass *theClass);
-// register a memory handle for the object and allow script
-// pointers to point to it
-extern int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, bool plugin_object = false);
-// register a new object and add a reference count
-extern int32_t ccRegisterManagedObjectAndRef(const void *object, ICCDynamicObject *callback);
-// register a new object and mark it persistent (always referenced by the engine)
-extern int32_t ccRegisterPersistentObject(const void *object, ICCDynamicObject *callback);
-// register a de-serialized object
-extern int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *, bool plugin_object = false);
-// register a de-serialized object and mark it persistent (always referenced by the engine)
-extern int32_t ccRegisterUnserializedPersistentObject(int index, const void *object, ICCDynamicObject *);
-// unregister a particular object
-extern int   ccUnRegisterManagedObject(const void *object);
-// remove all registered objects
-extern void  ccUnregisterAllObjects();
-// serialize all objects to disk
-extern void  ccSerializeAllObjects(Common::Stream *out);
-// un-serialise all objects (will remove all currently registered ones)
-extern int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectReader *callback);
-// dispose the object if RefCount==0
-extern void  ccAttemptDisposeObject(int32_t handle);
-// translate between object handles and memory addresses
-extern int32_t ccGetObjectHandleFromAddress(const void *address);
-// TODO: not sure if it makes any sense whatsoever to use "const char*"
-// in these functions, might as well change to char* or just void*.
-extern const char *ccGetObjectAddressFromHandle(int32_t handle);
-
-extern int ccAddObjectReference(int32_t handle);
-extern int ccReleaseObjectReference(int32_t handle);
-
-extern ICCStringClass *stringClassImpl;
 
 #endif // __CC_DYNAMICOBJECT_H

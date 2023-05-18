@@ -117,29 +117,17 @@ int Object_GetBaseline(ScriptObject *objj) {
     return GetObjectBaseline(objj->id);
 }
 
-void Object_AnimateEx(ScriptObject *objj, int loop, int delay, int repeat,
-    int blocking, int direction, int sframe, int volume = 100) {
-    if (direction == FORWARDS)
-        direction = 0;
-    else if (direction == BACKWARDS)
-        direction = 1;
-    if (blocking == BLOCKING)
-        blocking = 1;
-    else if (blocking == IN_BACKGROUND)
-        blocking = 0;
-
-    if ((repeat < 0) || (repeat > 1))
-        quit("!Object.Animate: invalid repeat value");
-    if ((blocking < 0) || (blocking > 1))
-        quit("!Object.Animate: invalid blocking value");
-    if ((direction < 0) || (direction > 1))
-        quit("!Object.Animate: invalid direction");
-
+void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
+    int blocking, int direction, int sframe, int volume) {
     AnimateObjectImpl(objj->id, loop, delay, repeat, direction, blocking, sframe, volume);
 }
 
-void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
-    Object_AnimateEx(objj, loop, delay, repeat, blocking, direction, 0, 100 /* full volume */);
+void Object_Animate5(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
+    Object_Animate(objj, loop, delay, repeat, blocking, direction, 0 /* frame */, 100 /* full volume */);
+}
+
+void Object_Animate6(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
+    Object_Animate(objj, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
 void Object_StopAnimating(ScriptObject *objj) {
@@ -572,6 +560,70 @@ int check_click_on_object(int roomx, int roomy, int mood)
     return 1;
 }
 
+void ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int &direction)
+{
+    if (blocking == BLOCKING)
+        blocking = 1;
+    else if (blocking == IN_BACKGROUND)
+        blocking = 0;
+
+    if (direction == FORWARDS)
+        direction = 0;
+    else if (direction == BACKWARDS)
+        direction = 1;
+
+    if ((repeat < ANIM_ONCE) || (repeat > ANIM_ONCERESET))
+    {
+        debug_script_warn("%s: invalid repeat value %d, will treat as REPEAT (1).", apiname, repeat);
+        repeat = ANIM_REPEAT;
+    }
+    if ((blocking < 0) || (blocking > 1))
+    {
+        debug_script_warn("%s: invalid blocking value %d, will treat as BLOCKING (1)", apiname, blocking);
+        blocking = 1;
+    }
+    if ((direction < 0) || (direction > 1))
+    {
+        debug_script_warn("%s: invalid direction value %d, will treat as BACKWARDS (1)", apiname, direction);
+        direction = 1;
+    }
+}
+
+void ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe)
+{
+    // NOTE: we assume that the view is already in an internal 0-based range.
+    // but when printing an error we will use (view + 1) for compliance with the script API.
+    if ((view < 0) || (view >= game.numviews))
+        quitprintf("!%s: invalid view %d (range is 1..%d).", apiname, view + 1, game.numviews);
+    if (views[view].numLoops == 0)
+        quitprintf("!%s: view %d does not have any loops.", apiname, view + 1);
+    if (loop < 0 || loop >= views[view].numLoops)
+        quitprintf("!%s: invalid loop number %d for view %d (range is 0..%d).", apiname, loop, view + 1, views[view].numLoops - 1);
+
+    if (views[view].loops[loop].numFrames < 1)
+        debug_script_warn("%s: view %d loop %d does not have any frames, will use a frame placeholder.",
+            apiname, view + 1, loop);
+    else if (sframe < 0 || sframe >= views[view].loops[loop].numFrames)
+        debug_script_warn("%s: invalid starting frame number %d for view %d loop %d (range is 0..%d)",
+            apiname, sframe, view + 1, loop, views[view].loops[loop].numFrames - 1);
+    // NOTE: there's always frame 0 allocated for safety
+    sframe = std::max(0, std::min(sframe, views[view].loops[loop].numFrames - 1));
+}
+
+int SetFirstAnimFrame(int view, int loop, int sframe, int direction)
+{
+    if (views[view].loops[loop].numFrames <= 1)
+        return 0;
+    // reverse animation starts at the *previous frame*
+    if (direction != 0)
+    {
+        sframe--;
+        if (sframe < 0)
+            sframe = views[view].loops[loop].numFrames - (-sframe);
+    }
+    return sframe;
+}
+
 // General view animation algorithm: find next loop and frame, depending on anim settings
 bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards, int repeat)
 {
@@ -671,19 +723,19 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
 extern ScriptString myScriptStringImpl;
 
 // void (ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction)
-RuntimeScriptValue Sc_Object_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_Animate5(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate);
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate5);
 }
 
 RuntimeScriptValue Sc_Object_Animate6(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT6(ScriptObject, Object_AnimateEx);
+    API_OBJCALL_VOID_PINT6(ScriptObject, Object_Animate6);
 }
 
-RuntimeScriptValue Sc_Object_Animate7(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Object_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT7(ScriptObject, Object_AnimateEx);
+    API_OBJCALL_VOID_PINT7(ScriptObject, Object_Animate);
 }
 
 // int (ScriptObject *objj, ScriptObject *obj2)
@@ -1078,76 +1130,78 @@ RuntimeScriptValue Sc_Object_SetRotation(void *self, const RuntimeScriptValue *p
 
 void RegisterObjectAPI()
 {
-    ccAddExternalObjectFunction("Object::Animate^5",                Sc_Object_Animate);
-    ccAddExternalObjectFunction("Object::Animate^6",                Sc_Object_Animate6);
-    ccAddExternalObjectFunction("Object::Animate^7",                Sc_Object_Animate7);
-    ccAddExternalObjectFunction("Object::IsCollidingWithObject^1",  Sc_Object_IsCollidingWithObject);
-    ccAddExternalObjectFunction("Object::GetName^1",                Sc_Object_GetName);
-    ccAddExternalObjectFunction("Object::GetProperty^1",            Sc_Object_GetProperty);
-    ccAddExternalObjectFunction("Object::GetPropertyText^2",        Sc_Object_GetPropertyText);
-    ccAddExternalObjectFunction("Object::GetTextProperty^1",        Sc_Object_GetTextProperty);
-    ccAddExternalObjectFunction("Object::SetProperty^2",            Sc_Object_SetProperty);
-    ccAddExternalObjectFunction("Object::SetTextProperty^2",        Sc_Object_SetTextProperty);
-    ccAddExternalObjectFunction("Object::IsInteractionAvailable^1", Sc_Object_IsInteractionAvailable);
-    ccAddExternalObjectFunction("Object::MergeIntoBackground^0",    Sc_Object_MergeIntoBackground);
-    ccAddExternalObjectFunction("Object::Move^5",                   Sc_Object_Move);
-    ccAddExternalObjectFunction("Object::RemoveTint^0",             Sc_Object_RemoveTint);
-    ccAddExternalObjectFunction("Object::RunInteraction^1",         Sc_Object_RunInteraction);
-    ccAddExternalObjectFunction("Object::SetLightLevel^1",          Sc_Object_SetLightLevel);
-    ccAddExternalObjectFunction("Object::SetPosition^2",            Sc_Object_SetPosition);
-    ccAddExternalObjectFunction("Object::SetView^3",                Sc_Object_SetView);
-    ccAddExternalObjectFunction("Object::StopAnimating^0",          Sc_Object_StopAnimating);
-    ccAddExternalObjectFunction("Object::StopMoving^0",             Sc_Object_StopMoving);
-    ccAddExternalObjectFunction("Object::Tint^5",                   Sc_Object_Tint);
+    ScFnRegister object_api[] = {
+        { "Object::GetAtRoomXY^2",            API_FN_PAIR(GetObjectAtRoom) },
+        { "Object::GetAtScreenXY^2",          API_FN_PAIR(GetObjectAtScreen) },
+        { "Object::Animate^5",                API_FN_PAIR(Object_Animate5) },
+        { "Object::Animate^6",                API_FN_PAIR(Object_Animate6) },
+        { "Object::Animate^7",                API_FN_PAIR(Object_Animate) },
+        { "Object::IsCollidingWithObject^1",  API_FN_PAIR(Object_IsCollidingWithObject) },
+        { "Object::GetName^1",                API_FN_PAIR(Object_GetName) },
+        { "Object::GetProperty^1",            API_FN_PAIR(Object_GetProperty) },
+        { "Object::GetPropertyText^2",        API_FN_PAIR(Object_GetPropertyText) },
+        { "Object::GetTextProperty^1",        API_FN_PAIR(Object_GetTextProperty) },
+        { "Object::SetProperty^2",            API_FN_PAIR(Object_SetProperty) },
+        { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
+        { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
+        { "Object::MergeIntoBackground^0",    API_FN_PAIR(Object_MergeIntoBackground) },
+        { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
+        { "Object::RemoveTint^0",             API_FN_PAIR(Object_RemoveTint) },
+        { "Object::RunInteraction^1",         API_FN_PAIR(Object_RunInteraction) },
+        { "Object::SetLightLevel^1",          API_FN_PAIR(Object_SetLightLevel) },
+        { "Object::SetPosition^2",            API_FN_PAIR(Object_SetPosition) },
+        { "Object::SetView^3",                API_FN_PAIR(Object_SetView) },
+        { "Object::StopAnimating^0",          API_FN_PAIR(Object_StopAnimating) },
+        { "Object::StopMoving^0",             API_FN_PAIR(Object_StopMoving) },
+        { "Object::Tint^5",                   API_FN_PAIR(Object_Tint) },
+        { "Object::get_Animating",            API_FN_PAIR(Object_GetAnimating) },
+        { "Object::get_Baseline",             API_FN_PAIR(Object_GetBaseline) },
+        { "Object::set_Baseline",             API_FN_PAIR(Object_SetBaseline) },
+        { "Object::get_BlockingHeight",       API_FN_PAIR(Object_GetBlockingHeight) },
+        { "Object::set_BlockingHeight",       API_FN_PAIR(Object_SetBlockingHeight) },
+        { "Object::get_BlockingWidth",        API_FN_PAIR(Object_GetBlockingWidth) },
+        { "Object::set_BlockingWidth",        API_FN_PAIR(Object_SetBlockingWidth) },
+        { "Object::get_Clickable",            API_FN_PAIR(Object_GetClickable) },
+        { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
+        { "Object::get_Frame",                API_FN_PAIR(Object_GetFrame) },
+        { "Object::get_Graphic",              API_FN_PAIR(Object_GetGraphic) },
+        { "Object::set_Graphic",              API_FN_PAIR(Object_SetGraphic) },
+        { "Object::get_ID",                   API_FN_PAIR(Object_GetID) },
+        { "Object::get_IgnoreWalkbehinds",    API_FN_PAIR(Object_GetIgnoreWalkbehinds) },
+        { "Object::set_IgnoreWalkbehinds",    API_FN_PAIR(Object_SetIgnoreWalkbehinds) },
+        { "Object::get_Loop",                 API_FN_PAIR(Object_GetLoop) },
+        { "Object::get_ManualScaling",        API_FN_PAIR(Object_GetManualScaling) },
+        { "Object::set_ManualScaling",        API_FN_PAIR(Object_SetManualScaling) },
+        { "Object::get_Moving",               API_FN_PAIR(Object_GetMoving) },
+        { "Object::get_Name",                 API_FN_PAIR(Object_GetName_New) },
+        { "Object::set_Name",                 API_FN_PAIR(Object_SetName) },
+        { "Object::get_Scaling",              API_FN_PAIR(Object_GetScaling) },
+        { "Object::set_Scaling",              API_FN_PAIR(Object_SetScaling) },
+        { "Object::get_Solid",                API_FN_PAIR(Object_GetSolid) },
+        { "Object::set_Solid",                API_FN_PAIR(Object_SetSolid) },
+        { "Object::get_Transparency",         API_FN_PAIR(Object_GetTransparency) },
+        { "Object::set_Transparency",         API_FN_PAIR(Object_SetTransparency) },
+        { "Object::get_View",                 API_FN_PAIR(Object_GetView) },
+        { "Object::get_Visible",              API_FN_PAIR(Object_GetVisible) },
+        { "Object::set_Visible",              API_FN_PAIR(Object_SetVisible) },
+        { "Object::get_X",                    API_FN_PAIR(Object_GetX) },
+        { "Object::set_X",                    API_FN_PAIR(Object_SetX) },
+        { "Object::get_Y",                    API_FN_PAIR(Object_GetY) },
+        { "Object::set_Y",                    API_FN_PAIR(Object_SetY) },
+        { "Object::get_HasExplicitLight",     API_FN_PAIR(Object_HasExplicitLight) },
+        { "Object::get_HasExplicitTint",      API_FN_PAIR(Object_HasExplicitTint) },
+        { "Object::get_LightLevel",           API_FN_PAIR(Object_GetLightLevel) },
+        { "Object::set_LightLevel",           API_FN_PAIR(Object_SetLightLevel) },
+        { "Object::get_TintBlue",             API_FN_PAIR(Object_GetTintBlue) },
+        { "Object::get_TintGreen",            API_FN_PAIR(Object_GetTintGreen) },
+        { "Object::get_TintRed",              API_FN_PAIR(Object_GetTintRed) },
+        { "Object::get_TintSaturation",       API_FN_PAIR(Object_GetTintSaturation) },
+        { "Object::get_TintLuminance",        API_FN_PAIR(Object_GetTintLuminance) },
+    };
 
-    // static
-    ccAddExternalStaticFunction("Object::GetAtRoomXY^2",            Sc_GetObjectAtRoom);
-    ccAddExternalStaticFunction("Object::GetAtScreenXY^2",          Sc_GetObjectAtScreen);
+    ccAddExternalFunctions(object_api);
 
-    ccAddExternalObjectFunction("Object::get_Animating",            Sc_Object_GetAnimating);
-    ccAddExternalObjectFunction("Object::get_Baseline",             Sc_Object_GetBaseline);
-    ccAddExternalObjectFunction("Object::set_Baseline",             Sc_Object_SetBaseline);
-    ccAddExternalObjectFunction("Object::get_BlockingHeight",       Sc_Object_GetBlockingHeight);
-    ccAddExternalObjectFunction("Object::set_BlockingHeight",       Sc_Object_SetBlockingHeight);
-    ccAddExternalObjectFunction("Object::get_BlockingWidth",        Sc_Object_GetBlockingWidth);
-    ccAddExternalObjectFunction("Object::set_BlockingWidth",        Sc_Object_SetBlockingWidth);
-    ccAddExternalObjectFunction("Object::get_Clickable",            Sc_Object_GetClickable);
-    ccAddExternalObjectFunction("Object::set_Clickable",            Sc_Object_SetClickable);
-    ccAddExternalObjectFunction("Object::get_Frame",                Sc_Object_GetFrame);
-    ccAddExternalObjectFunction("Object::get_Graphic",              Sc_Object_GetGraphic);
-    ccAddExternalObjectFunction("Object::set_Graphic",              Sc_Object_SetGraphic);
-    ccAddExternalObjectFunction("Object::get_ID",                   Sc_Object_GetID);
-    ccAddExternalObjectFunction("Object::get_IgnoreWalkbehinds",    Sc_Object_GetIgnoreWalkbehinds);
-    ccAddExternalObjectFunction("Object::set_IgnoreWalkbehinds",    Sc_Object_SetIgnoreWalkbehinds);
-    ccAddExternalObjectFunction("Object::get_Loop",                 Sc_Object_GetLoop);
     ccAddExternalObjectFunction("Object::get_ManualScaling",        Sc_Object_GetManualScaling);
-    ccAddExternalObjectFunction("Object::set_ManualScaling",        Sc_Object_SetManualScaling);
-    ccAddExternalObjectFunction("Object::get_Moving",               Sc_Object_GetMoving);
-    ccAddExternalObjectFunction("Object::get_Name",                 Sc_Object_GetName_New);
-    ccAddExternalObjectFunction("Object::set_Name",                 Sc_Object_SetName);
-    ccAddExternalObjectFunction("Object::get_Scaling",              Sc_Object_GetScaling);
-    ccAddExternalObjectFunction("Object::set_Scaling",              Sc_Object_SetScaling);
-    ccAddExternalObjectFunction("Object::get_Solid",                Sc_Object_GetSolid);
-    ccAddExternalObjectFunction("Object::set_Solid",                Sc_Object_SetSolid);
-    ccAddExternalObjectFunction("Object::get_Transparency",         Sc_Object_GetTransparency);
-    ccAddExternalObjectFunction("Object::set_Transparency",         Sc_Object_SetTransparency);
-    ccAddExternalObjectFunction("Object::get_View",                 Sc_Object_GetView);
-    ccAddExternalObjectFunction("Object::get_Visible",              Sc_Object_GetVisible);
-    ccAddExternalObjectFunction("Object::set_Visible",              Sc_Object_SetVisible);
-    ccAddExternalObjectFunction("Object::get_X",                    Sc_Object_GetX);
-    ccAddExternalObjectFunction("Object::set_X",                    Sc_Object_SetX);
-    ccAddExternalObjectFunction("Object::get_Y",                    Sc_Object_GetY);
-    ccAddExternalObjectFunction("Object::set_Y",                    Sc_Object_SetY);
-
-    ccAddExternalObjectFunction("Object::get_HasExplicitLight",     Sc_Object_HasExplicitLight);
-    ccAddExternalObjectFunction("Object::get_HasExplicitTint",      Sc_Object_HasExplicitTint);
-    ccAddExternalObjectFunction("Object::get_LightLevel",           Sc_Object_GetLightLevel);
-    ccAddExternalObjectFunction("Object::set_LightLevel",           Sc_Object_SetLightLevel);
-    ccAddExternalObjectFunction("Object::get_TintBlue",             Sc_Object_GetTintBlue);
-    ccAddExternalObjectFunction("Object::get_TintGreen",            Sc_Object_GetTintGreen);
-    ccAddExternalObjectFunction("Object::get_TintRed",              Sc_Object_GetTintRed);
-    ccAddExternalObjectFunction("Object::get_TintSaturation",       Sc_Object_GetTintSaturation);
-    ccAddExternalObjectFunction("Object::get_TintLuminance",        Sc_Object_GetTintLuminance);
 
     ccAddExternalObjectFunction("Object::get_BlendMode",            Sc_Object_GetBlendMode);
     ccAddExternalObjectFunction("Object::set_BlendMode",            Sc_Object_SetBlendMode);
@@ -1156,55 +1210,4 @@ void RegisterObjectAPI()
 
     ccAddExternalObjectFunction("Object::get_UseRegionTint",        Sc_Object_GetUseRegionTint);
     ccAddExternalObjectFunction("Object::set_UseRegionTint",        Sc_Object_SetUseRegionTint);
-
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("Object::Animate^5",                (void*)Object_Animate);
-    ccAddExternalFunctionForPlugin("Object::IsCollidingWithObject^1",  (void*)Object_IsCollidingWithObject);
-    ccAddExternalFunctionForPlugin("Object::GetName^1",                (void*)Object_GetName);
-    ccAddExternalFunctionForPlugin("Object::GetProperty^1",            (void*)Object_GetProperty);
-    ccAddExternalFunctionForPlugin("Object::GetPropertyText^2",        (void*)Object_GetPropertyText);
-    ccAddExternalFunctionForPlugin("Object::GetTextProperty^1",        (void*)Object_GetTextProperty);
-    ccAddExternalFunctionForPlugin("Object::SetProperty^2",            (void*)Object_SetProperty);
-    ccAddExternalFunctionForPlugin("Object::SetTextProperty^2",        (void*)Object_SetTextProperty);
-    ccAddExternalFunctionForPlugin("Object::MergeIntoBackground^0",    (void*)Object_MergeIntoBackground);
-    ccAddExternalFunctionForPlugin("Object::Move^5",                   (void*)Object_Move);
-    ccAddExternalFunctionForPlugin("Object::RemoveTint^0",             (void*)Object_RemoveTint);
-    ccAddExternalFunctionForPlugin("Object::RunInteraction^1",         (void*)Object_RunInteraction);
-    ccAddExternalFunctionForPlugin("Object::SetPosition^2",            (void*)Object_SetPosition);
-    ccAddExternalFunctionForPlugin("Object::SetView^3",                (void*)Object_SetView);
-    ccAddExternalFunctionForPlugin("Object::StopAnimating^0",          (void*)Object_StopAnimating);
-    ccAddExternalFunctionForPlugin("Object::StopMoving^0",             (void*)Object_StopMoving);
-    ccAddExternalFunctionForPlugin("Object::Tint^5",                   (void*)Object_Tint);
-    ccAddExternalFunctionForPlugin("Object::GetAtRoomXY^2",            (void*)GetObjectAtRoom);
-    ccAddExternalFunctionForPlugin("Object::GetAtScreenXY^2",          (void*)GetObjectAtScreen);
-    ccAddExternalFunctionForPlugin("Object::get_Animating",            (void*)Object_GetAnimating);
-    ccAddExternalFunctionForPlugin("Object::get_Baseline",             (void*)Object_GetBaseline);
-    ccAddExternalFunctionForPlugin("Object::set_Baseline",             (void*)Object_SetBaseline);
-    ccAddExternalFunctionForPlugin("Object::get_BlockingHeight",       (void*)Object_GetBlockingHeight);
-    ccAddExternalFunctionForPlugin("Object::set_BlockingHeight",       (void*)Object_SetBlockingHeight);
-    ccAddExternalFunctionForPlugin("Object::get_BlockingWidth",        (void*)Object_GetBlockingWidth);
-    ccAddExternalFunctionForPlugin("Object::set_BlockingWidth",        (void*)Object_SetBlockingWidth);
-    ccAddExternalFunctionForPlugin("Object::get_Clickable",            (void*)Object_GetClickable);
-    ccAddExternalFunctionForPlugin("Object::set_Clickable",            (void*)Object_SetClickable);
-    ccAddExternalFunctionForPlugin("Object::get_Frame",                (void*)Object_GetFrame);
-    ccAddExternalFunctionForPlugin("Object::get_Graphic",              (void*)Object_GetGraphic);
-    ccAddExternalFunctionForPlugin("Object::set_Graphic",              (void*)Object_SetGraphic);
-    ccAddExternalFunctionForPlugin("Object::get_ID",                   (void*)Object_GetID);
-    ccAddExternalFunctionForPlugin("Object::get_IgnoreWalkbehinds",    (void*)Object_GetIgnoreWalkbehinds);
-    ccAddExternalFunctionForPlugin("Object::set_IgnoreWalkbehinds",    (void*)Object_SetIgnoreWalkbehinds);
-    ccAddExternalFunctionForPlugin("Object::get_Loop",                 (void*)Object_GetLoop);
-    ccAddExternalFunctionForPlugin("Object::get_Moving",               (void*)Object_GetMoving);
-    ccAddExternalFunctionForPlugin("Object::get_Name",                 (void*)Object_GetName_New);
-    ccAddExternalFunctionForPlugin("Object::get_Solid",                (void*)Object_GetSolid);
-    ccAddExternalFunctionForPlugin("Object::set_Solid",                (void*)Object_SetSolid);
-    ccAddExternalFunctionForPlugin("Object::get_Transparency",         (void*)Object_GetTransparency);
-    ccAddExternalFunctionForPlugin("Object::set_Transparency",         (void*)Object_SetTransparency);
-    ccAddExternalFunctionForPlugin("Object::get_View",                 (void*)Object_GetView);
-    ccAddExternalFunctionForPlugin("Object::get_Visible",              (void*)Object_GetVisible);
-    ccAddExternalFunctionForPlugin("Object::set_Visible",              (void*)Object_SetVisible);
-    ccAddExternalFunctionForPlugin("Object::get_X",                    (void*)Object_GetX);
-    ccAddExternalFunctionForPlugin("Object::set_X",                    (void*)Object_SetX);
-    ccAddExternalFunctionForPlugin("Object::get_Y",                    (void*)Object_GetY);
-    ccAddExternalFunctionForPlugin("Object::set_Y",                    (void*)Object_SetY);
 }

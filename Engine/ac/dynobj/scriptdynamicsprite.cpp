@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptdynamicsprite.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynamicsprite.h"
 #include "util/stream.h"
 
@@ -30,7 +31,7 @@ const char *ScriptDynamicSprite::GetType() {
     return "DynamicSprite";
 }
 
-size_t ScriptDynamicSprite::CalcSerializeSize()
+size_t ScriptDynamicSprite::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

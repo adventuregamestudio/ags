@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptviewport.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/gamestate.h"
 #include "util/stream.h"
 
@@ -32,7 +33,7 @@ int ScriptViewport::Dispose(const char* /*address*/, bool /*force*/)
     return 1;
 }
 
-size_t ScriptViewport::CalcSerializeSize()
+size_t ScriptViewport::CalcSerializeSize(const char * /*address*/)
 {
     return sizeof(int32_t);
 }

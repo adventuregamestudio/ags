@@ -22,6 +22,7 @@
 #include "ac/dynobj/scriptdict.h"
 #include "ac/dynobj/scriptset.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 #include "util/bbop.h"
@@ -319,7 +320,7 @@ RuntimeScriptValue Sc_Set_GetItemCount(void *self, const RuntimeScriptValue *par
     API_OBJCALL_INT(ScriptSetBase, Set_GetItemCount);
 }
 
-RuntimeScriptValue Sc_Set_GetItemAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Set_GetItemsAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(ScriptSetBase, void, globalDynamicArray, Set_GetItemsAsArray);
 }
@@ -328,25 +329,30 @@ RuntimeScriptValue Sc_Set_GetItemAsArray(void *self, const RuntimeScriptValue *p
 
 void RegisterContainerAPI()
 {
-    ccAddExternalStaticFunction("Dictionary::Create", Sc_Dict_Create);
-    ccAddExternalObjectFunction("Dictionary::Clear", Sc_Dict_Clear);
-    ccAddExternalObjectFunction("Dictionary::Contains", Sc_Dict_Contains);
-    ccAddExternalObjectFunction("Dictionary::Get", Sc_Dict_Get);
-    ccAddExternalObjectFunction("Dictionary::Remove", Sc_Dict_Remove);
-    ccAddExternalObjectFunction("Dictionary::Set", Sc_Dict_Set);
-    ccAddExternalObjectFunction("Dictionary::get_CompareStyle", Sc_Dict_GetCompareStyle);
-    ccAddExternalObjectFunction("Dictionary::get_SortStyle", Sc_Dict_GetSortStyle);
-    ccAddExternalObjectFunction("Dictionary::get_ItemCount", Sc_Dict_GetItemCount);
-    ccAddExternalObjectFunction("Dictionary::GetKeysAsArray", Sc_Dict_GetKeysAsArray);
-    ccAddExternalObjectFunction("Dictionary::GetValuesAsArray", Sc_Dict_GetValuesAsArray);
+    ScFnRegister container_api[] = {
+        // Dictionary
+        { "Dictionary::Create",         API_FN_PAIR(Dict_Create) },
+        { "Dictionary::Clear",          API_FN_PAIR(Dict_Clear) },
+        { "Dictionary::Contains",       API_FN_PAIR(Dict_Contains) },
+        { "Dictionary::Get",            API_FN_PAIR(Dict_Get) },
+        { "Dictionary::Remove",         API_FN_PAIR(Dict_Remove) },
+        { "Dictionary::Set",            API_FN_PAIR(Dict_Set) },
+        { "Dictionary::get_CompareStyle", API_FN_PAIR(Dict_GetCompareStyle) },
+        { "Dictionary::get_SortStyle",  API_FN_PAIR(Dict_GetSortStyle) },
+        { "Dictionary::get_ItemCount",  API_FN_PAIR(Dict_GetItemCount) },
+        { "Dictionary::GetKeysAsArray", API_FN_PAIR(Dict_GetKeysAsArray) },
+        { "Dictionary::GetValuesAsArray", API_FN_PAIR(Dict_GetValuesAsArray) },
+        // Set
+        { "Set::Create",                API_FN_PAIR(Set_Create) },
+        { "Set::Add",                   API_FN_PAIR(Set_Add) },
+        { "Set::Clear",                 API_FN_PAIR(Set_Clear) },
+        { "Set::Contains",              API_FN_PAIR(Set_Contains) },
+        { "Set::Remove",                API_FN_PAIR(Set_Remove) },
+        { "Set::get_CompareStyle",      API_FN_PAIR(Set_GetCompareStyle) },
+        { "Set::get_SortStyle",         API_FN_PAIR(Set_GetSortStyle) },
+        { "Set::get_ItemCount",         API_FN_PAIR(Set_GetItemCount) },
+        { "Set::GetItemsAsArray",       API_FN_PAIR(Set_GetItemsAsArray) },
+    };
 
-    ccAddExternalStaticFunction("Set::Create", Sc_Set_Create);
-    ccAddExternalObjectFunction("Set::Add", Sc_Set_Add);
-    ccAddExternalObjectFunction("Set::Clear", Sc_Set_Clear);
-    ccAddExternalObjectFunction("Set::Contains", Sc_Set_Contains);
-    ccAddExternalObjectFunction("Set::Remove", Sc_Set_Remove);
-    ccAddExternalObjectFunction("Set::get_CompareStyle", Sc_Set_GetCompareStyle);
-    ccAddExternalObjectFunction("Set::get_SortStyle", Sc_Set_GetSortStyle);
-    ccAddExternalObjectFunction("Set::get_ItemCount", Sc_Set_GetItemCount);
-    ccAddExternalObjectFunction("Set::GetItemsAsArray", Sc_Set_GetItemAsArray);
+    ccAddExternalFunctions(container_api);
 }

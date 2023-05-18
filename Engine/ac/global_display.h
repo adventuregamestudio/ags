@@ -11,10 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__GLOBALDISPLAY_H
 #define __AGS_EE_AC__GLOBALDISPLAY_H
 
@@ -29,9 +25,5 @@ void DisplayMessageAtY(int msnum, int ypos);
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text);
 // Display a room/global message in the bar
 void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, int msgnum);
-
-void SetSpeechStyle (int newstyle);
-void SetSkipSpeech (SkipSpeechStyle newval);
-SkipSpeechStyle GetSkipSpeech();
 
 #endif // __AGS_EE_AC__GLOBALDISPLAY_H

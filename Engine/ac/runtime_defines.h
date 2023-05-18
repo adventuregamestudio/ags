@@ -56,14 +56,19 @@ enum LegacyScriptAlignment
     kLegacyScAlignRight     = 3
 };
 
-// These numbers were chosen arbitrarily -- the idea is
+// Common command arguments
+// HISTORICAL NOTE: These numbers were chosen arbitrarily -- the idea is
 // to make sure that the user gets the parameters the right way round
+// Walk (pathfinding) modes
 #define ANYWHERE       304
 #define WALKABLE_AREAS 305
+// Blocking / non-blocking action
 #define BLOCKING       919
 #define IN_BACKGROUND  920
+// Direction of animation
 #define FORWARDS       1062
 #define BACKWARDS      1063
+// Stop / don't stop when changing a view
 #define STOP_MOVING    1
 #define KEEP_MOVING    0
 
@@ -71,22 +76,10 @@ enum LegacyScriptAlignment
 #define SCR_COLOR_TRANSPARENT -1
 
 
-
-#define NUM_DIGI_VOICES     16
-#define NUM_MOD_DIGI_VOICES 12
-
 #define DEBUG_CONSOLE_NUMLINES 6
 #define TXT_SCOREBAR        29
 #define MAXSCORE play.totalscore
-#define CHANIM_REPEAT    2
-#define CHANIM_BACKWARDS 4
-#define ANIM_BACKWARDS 10
-// Animates once and stops at the *last* frame
-#define ANIM_ONCE      1
-// Animates infinitely until stopped by command
-#define ANIM_REPEAT    2
-// Animates once and stops, resetting to the very first frame
-#define ANIM_ONCERESET 3
+
 #define FONT_STATUSBAR  0
 #define FONT_NORMAL     play.normal_font
 //#define FONT_SPEECHBACK 1

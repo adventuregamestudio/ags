@@ -228,41 +228,26 @@ RuntimeScriptValue Sc_InventoryItem_GetName_New(void *self, const RuntimeScriptV
 
 void RegisterInventoryItemAPI()
 {
-    ccAddExternalStaticFunction("InventoryItem::GetAtScreenXY^2",           Sc_GetInvAtLocation);
-    ccAddExternalObjectFunction("InventoryItem::IsInteractionAvailable^1",  Sc_InventoryItem_CheckInteractionAvailable);
-    ccAddExternalObjectFunction("InventoryItem::GetName^1",                 Sc_InventoryItem_GetName);
-    ccAddExternalObjectFunction("InventoryItem::GetProperty^1",             Sc_InventoryItem_GetProperty);
-    ccAddExternalObjectFunction("InventoryItem::GetPropertyText^2",         Sc_InventoryItem_GetPropertyText);
-    ccAddExternalObjectFunction("InventoryItem::GetTextProperty^1",         Sc_InventoryItem_GetTextProperty);
-    ccAddExternalObjectFunction("InventoryItem::SetProperty^2",             Sc_InventoryItem_SetProperty);
-    ccAddExternalObjectFunction("InventoryItem::SetTextProperty^2",         Sc_InventoryItem_SetTextProperty);
-    ccAddExternalObjectFunction("InventoryItem::RunInteraction^1",          Sc_InventoryItem_RunInteraction);
-    ccAddExternalObjectFunction("InventoryItem::SetName^1",                 Sc_InventoryItem_SetName);
-    ccAddExternalObjectFunction("InventoryItem::get_CursorGraphic",         Sc_InventoryItem_GetCursorGraphic);
-    ccAddExternalObjectFunction("InventoryItem::set_CursorGraphic",         Sc_InventoryItem_SetCursorGraphic);
-    ccAddExternalObjectFunction("InventoryItem::get_Graphic",               Sc_InventoryItem_GetGraphic);
-    ccAddExternalObjectFunction("InventoryItem::set_Graphic",               Sc_InventoryItem_SetGraphic);
-    ccAddExternalObjectFunction("InventoryItem::get_ID",                    Sc_InventoryItem_GetID);
-    ccAddExternalObjectFunction("InventoryItem::get_Name",                  Sc_InventoryItem_GetName_New);
-    ccAddExternalObjectFunction("InventoryItem::set_Name",                  Sc_InventoryItem_SetName);
+    ScFnRegister invitem_api[] = {
+        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(GetInvAtLocation) },
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+        { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },
+        { "InventoryItem::GetName^1",                 API_FN_PAIR(InventoryItem_GetName) },
+        { "InventoryItem::GetProperty^1",             API_FN_PAIR(InventoryItem_GetProperty) },
+        { "InventoryItem::GetPropertyText^2",         API_FN_PAIR(InventoryItem_GetPropertyText) },
+        { "InventoryItem::GetTextProperty^1",         API_FN_PAIR(InventoryItem_GetTextProperty) },
+        { "InventoryItem::SetProperty^2",             API_FN_PAIR(InventoryItem_SetProperty) },
+        { "InventoryItem::SetTextProperty^2",         API_FN_PAIR(InventoryItem_SetTextProperty) },
+        { "InventoryItem::RunInteraction^1",          API_FN_PAIR(InventoryItem_RunInteraction) },
+        { "InventoryItem::SetName^1",                 API_FN_PAIR(InventoryItem_SetName) },
+        { "InventoryItem::get_CursorGraphic",         API_FN_PAIR(InventoryItem_GetCursorGraphic) },
+        { "InventoryItem::set_CursorGraphic",         API_FN_PAIR(InventoryItem_SetCursorGraphic) },
+        { "InventoryItem::get_Graphic",               API_FN_PAIR(InventoryItem_GetGraphic) },
+        { "InventoryItem::set_Graphic",               API_FN_PAIR(InventoryItem_SetGraphic) },
+        { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },
+        { "InventoryItem::get_Name",                  API_FN_PAIR(InventoryItem_GetName_New) },
+        { "InventoryItem::set_Name",                  API_FN_PAIR(InventoryItem_SetName) },
+    };
 
-    ccAddExternalFunctionForPlugin("InventoryItem::GetAtScreenXY^2",           (void*)GetInvAtLocation);
-    ccAddExternalFunctionForPlugin("InventoryItem::IsInteractionAvailable^1",  (void*)InventoryItem_CheckInteractionAvailable);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetName^1",                 (void*)InventoryItem_GetName);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetProperty^1",             (void*)InventoryItem_GetProperty);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetPropertyText^2",         (void*)InventoryItem_GetPropertyText);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetTextProperty^1",         (void*)InventoryItem_GetTextProperty);
-    ccAddExternalFunctionForPlugin("InventoryItem::SetProperty^2",             (void*)InventoryItem_SetProperty);
-    ccAddExternalFunctionForPlugin("InventoryItem::SetTextProperty^2",         (void*)InventoryItem_SetTextProperty);
-    ccAddExternalFunctionForPlugin("InventoryItem::RunInteraction^1",          (void*)InventoryItem_RunInteraction);
-    ccAddExternalFunctionForPlugin("InventoryItem::SetName^1",                 (void*)InventoryItem_SetName);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_CursorGraphic",         (void*)InventoryItem_GetCursorGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::set_CursorGraphic",         (void*)InventoryItem_SetCursorGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_Graphic",               (void*)InventoryItem_GetGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::set_Graphic",               (void*)InventoryItem_SetGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_ID",                    (void*)InventoryItem_GetID);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_Name",                  (void*)InventoryItem_GetName_New);
-    ccAddExternalFunctionForPlugin("InventoryItem::set_Name",                  (void*)InventoryItem_SetName);
+    ccAddExternalFunctions(invitem_api);
 }

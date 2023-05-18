@@ -86,7 +86,7 @@ const String &GUIButton::GetText() const
 
 bool GUIButton::IsImageButton() const
 {
-    return Image != 0;
+    return Image > 0;
 }
 
 bool GUIButton::IsClippingImage() const
@@ -375,6 +375,7 @@ void GUIButton::WriteToSavegame(Stream *out) const
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
 {
+    assert(_currentImage >= 0);
     if (draw_disabled && GUI::Options.DisabledStyle == kGuiDis_Blackout)
         return; // button should not be shown at all
 

@@ -11,11 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "ac/dynobj/dynobj_manager.h"
 #include <stdlib.h>
 #include <string.h>
-#include "core/platform.h"
-#include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "debug/out.h"
 #include "script/cc_common.h"
@@ -32,30 +30,29 @@ void ccSetStringClassImpl(ICCStringClass *theClass) {
 
 // register a memory handle for the object and allow script
 // pointers to point to it
-int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, bool plugin_object) {
-    return pool.AddObject((const char*)object, callback, plugin_object, false);
+int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+    return pool.AddObject((const char*)object, callback, obj_type, false);
 }
 
-int32_t ccRegisterManagedObjectAndRef(const void *object, ICCDynamicObject *callback) {
-    int32_t handle = pool.AddObject((const char*)object, callback, false, false);
+int32_t ccRegisterManagedObjectAndRef(const void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+    int32_t handle = pool.AddObject((const char*)object, callback, obj_type, false);
     pool.AddRef(handle);
     return handle;
 }
 
-extern int32_t ccRegisterPersistentObject(const void *object, ICCDynamicObject *callback) {
-    int32_t handle = pool.AddObject((const char*)object, callback, false, true);
+int32_t ccRegisterPersistentObject(const void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+    int32_t handle = pool.AddObject((const char*)object, callback, obj_type, true);
     pool.AddRef(handle);
     return handle;
 }
 
 // register a de-serialized object
-int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback,
-                                     bool plugin_object) {
-    return pool.AddUnserializedObject((const char*)object, callback, index, plugin_object, false);
+int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback, ScriptValueType obj_type) {
+    return pool.AddUnserializedObject((const char*)object, callback, index, obj_type, false);
 }
 
 int32_t ccRegisterUnserializedPersistentObject(int index, const void *object, ICCDynamicObject *callback) {
-    return pool.AddUnserializedObject((const char*)object, callback, index, false, true);
+    return pool.AddUnserializedObject((const char*)object, callback, index, kScValDynamicObject, true);
     // don't add ref, as it should come with the save data
 }
 

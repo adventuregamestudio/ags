@@ -15,6 +15,7 @@
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/scriptcamera.h"

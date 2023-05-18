@@ -543,67 +543,42 @@ RuntimeScriptValue Sc_ListBox_SetTopItem(void *self, const RuntimeScriptValue *p
 
 void RegisterListBoxAPI()
 {
-    ccAddExternalObjectFunction("ListBox::AddItem^1",           Sc_ListBox_AddItem);
-    ccAddExternalObjectFunction("ListBox::Clear^0",             Sc_ListBox_Clear);
-    ccAddExternalObjectFunction("ListBox::FillDirList^1",       Sc_ListBox_FillDirList);
-    ccAddExternalObjectFunction("ListBox::FillSaveGameList^0",  Sc_ListBox_FillSaveGameList);
-    ccAddExternalObjectFunction("ListBox::GetItemAtLocation^2", Sc_ListBox_GetItemAtLocation);
-    ccAddExternalObjectFunction("ListBox::GetItemText^2",       Sc_ListBox_GetItemText);
-    ccAddExternalObjectFunction("ListBox::InsertItemAt^2",      Sc_ListBox_InsertItemAt);
-    ccAddExternalObjectFunction("ListBox::RemoveItem^1",        Sc_ListBox_RemoveItem);
-    ccAddExternalObjectFunction("ListBox::ScrollDown^0",        Sc_ListBox_ScrollDown);
-    ccAddExternalObjectFunction("ListBox::ScrollUp^0",          Sc_ListBox_ScrollUp);
-    ccAddExternalObjectFunction("ListBox::SetItemText^2",       Sc_ListBox_SetItemText);
-    ccAddExternalObjectFunction("ListBox::get_Font",            Sc_ListBox_GetFont);
-    ccAddExternalObjectFunction("ListBox::set_Font",            Sc_ListBox_SetFont);
-    ccAddExternalObjectFunction("ListBox::get_ShowBorder",      Sc_ListBox_GetShowBorder);
-    ccAddExternalObjectFunction("ListBox::set_ShowBorder",      Sc_ListBox_SetShowBorder);
-    ccAddExternalObjectFunction("ListBox::get_ShowScrollArrows", Sc_ListBox_GetShowScrollArrows);
-    ccAddExternalObjectFunction("ListBox::set_ShowScrollArrows", Sc_ListBox_SetShowScrollArrows);
-    ccAddExternalObjectFunction("ListBox::get_ItemCount",       Sc_ListBox_GetItemCount);
-    ccAddExternalObjectFunction("ListBox::geti_Items",          Sc_ListBox_GetItems);
-    ccAddExternalObjectFunction("ListBox::seti_Items",          Sc_ListBox_SetItemText);
-    ccAddExternalObjectFunction("ListBox::get_RowCount",        Sc_ListBox_GetRowCount);
-    ccAddExternalObjectFunction("ListBox::geti_SaveGameSlots",  Sc_ListBox_GetSaveGameSlots);
-    ccAddExternalObjectFunction("ListBox::get_SelectedBackColor", Sc_ListBox_GetSelectedBackColor);
-    ccAddExternalObjectFunction("ListBox::set_SelectedBackColor", Sc_ListBox_SetSelectedBackColor);
-    ccAddExternalObjectFunction("ListBox::get_SelectedIndex",   Sc_ListBox_GetSelectedIndex);
-    ccAddExternalObjectFunction("ListBox::set_SelectedIndex",   Sc_ListBox_SetSelectedIndex);
-    ccAddExternalObjectFunction("ListBox::get_SelectedTextColor", Sc_ListBox_GetSelectedTextColor);
-    ccAddExternalObjectFunction("ListBox::set_SelectedTextColor", Sc_ListBox_SetSelectedTextColor);
-    ccAddExternalObjectFunction("ListBox::get_TextAlignment",   Sc_ListBox_GetTextAlignment);
-    ccAddExternalObjectFunction("ListBox::set_TextAlignment",   Sc_ListBox_SetTextAlignment);
-    ccAddExternalObjectFunction("ListBox::get_TextColor",       Sc_ListBox_GetTextColor);
-    ccAddExternalObjectFunction("ListBox::set_TextColor",       Sc_ListBox_SetTextColor);
-    ccAddExternalObjectFunction("ListBox::get_TopItem",         Sc_ListBox_GetTopItem);
-    ccAddExternalObjectFunction("ListBox::set_TopItem",         Sc_ListBox_SetTopItem);
+    ScFnRegister listbox_api[] = {
+        { "ListBox::AddItem^1",           API_FN_PAIR(ListBox_AddItem) },
+        { "ListBox::Clear^0",             API_FN_PAIR(ListBox_Clear) },
+        { "ListBox::FillDirList^1",       API_FN_PAIR(ListBox_FillDirList) },
+        { "ListBox::FillSaveGameList^0",  API_FN_PAIR(ListBox_FillSaveGameList) },
+        { "ListBox::GetItemAtLocation^2", API_FN_PAIR(ListBox_GetItemAtLocation) },
+        { "ListBox::GetItemText^2",       API_FN_PAIR(ListBox_GetItemText) },
+        { "ListBox::InsertItemAt^2",      API_FN_PAIR(ListBox_InsertItemAt) },
+        { "ListBox::RemoveItem^1",        API_FN_PAIR(ListBox_RemoveItem) },
+        { "ListBox::ScrollDown^0",        API_FN_PAIR(ListBox_ScrollDown) },
+        { "ListBox::ScrollUp^0",          API_FN_PAIR(ListBox_ScrollUp) },
+        { "ListBox::SetItemText^2",       API_FN_PAIR(ListBox_SetItemText) },
+        { "ListBox::get_Font",            API_FN_PAIR(ListBox_GetFont) },
+        { "ListBox::set_Font",            API_FN_PAIR(ListBox_SetFont) },
+        { "ListBox::get_ShowBorder",      API_FN_PAIR(ListBox_GetShowBorder) },
+        { "ListBox::set_ShowBorder",      API_FN_PAIR(ListBox_SetShowBorder) },
+        { "ListBox::get_ShowScrollArrows", API_FN_PAIR(ListBox_GetShowScrollArrows) },
+        { "ListBox::set_ShowScrollArrows", API_FN_PAIR(ListBox_SetShowScrollArrows) },
+        { "ListBox::get_ItemCount",       API_FN_PAIR(ListBox_GetItemCount) },
+        { "ListBox::geti_Items",          API_FN_PAIR(ListBox_GetItems) },
+        { "ListBox::seti_Items",          API_FN_PAIR(ListBox_SetItemText) },
+        { "ListBox::get_RowCount",        API_FN_PAIR(ListBox_GetRowCount) },
+        { "ListBox::geti_SaveGameSlots",  API_FN_PAIR(ListBox_GetSaveGameSlots) },
+        { "ListBox::get_SelectedBackColor", API_FN_PAIR(ListBox_GetSelectedBackColor) },
+        { "ListBox::set_SelectedBackColor", API_FN_PAIR(ListBox_SetSelectedBackColor) },
+        { "ListBox::get_SelectedIndex",   API_FN_PAIR(ListBox_GetSelectedIndex) },
+        { "ListBox::set_SelectedIndex",   API_FN_PAIR(ListBox_SetSelectedIndex) },
+        { "ListBox::get_SelectedTextColor", API_FN_PAIR(ListBox_GetSelectedTextColor) },
+        { "ListBox::set_SelectedTextColor", API_FN_PAIR(ListBox_SetSelectedTextColor) },
+        { "ListBox::get_TextAlignment",   API_FN_PAIR(ListBox_GetTextAlignment) },
+        { "ListBox::set_TextAlignment",   API_FN_PAIR(ListBox_SetTextAlignment) },
+        { "ListBox::get_TextColor",       API_FN_PAIR(ListBox_GetTextColor) },
+        { "ListBox::set_TextColor",       API_FN_PAIR(ListBox_SetTextColor) },
+        { "ListBox::get_TopItem",         API_FN_PAIR(ListBox_GetTopItem) },
+        { "ListBox::set_TopItem",         API_FN_PAIR(ListBox_SetTopItem) },
+    };
 
-    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
-
-    ccAddExternalFunctionForPlugin("ListBox::AddItem^1",           (void*)ListBox_AddItem);
-    ccAddExternalFunctionForPlugin("ListBox::Clear^0",             (void*)ListBox_Clear);
-    ccAddExternalFunctionForPlugin("ListBox::FillDirList^1",       (void*)ListBox_FillDirList);
-    ccAddExternalFunctionForPlugin("ListBox::FillSaveGameList^0",  (void*)ListBox_FillSaveGameList);
-    ccAddExternalFunctionForPlugin("ListBox::GetItemAtLocation^2", (void*)ListBox_GetItemAtLocation);
-    ccAddExternalFunctionForPlugin("ListBox::GetItemText^2",       (void*)ListBox_GetItemText);
-    ccAddExternalFunctionForPlugin("ListBox::InsertItemAt^2",      (void*)ListBox_InsertItemAt);
-    ccAddExternalFunctionForPlugin("ListBox::RemoveItem^1",        (void*)ListBox_RemoveItem);
-    ccAddExternalFunctionForPlugin("ListBox::ScrollDown^0",        (void*)ListBox_ScrollDown);
-    ccAddExternalFunctionForPlugin("ListBox::ScrollUp^0",          (void*)ListBox_ScrollUp);
-    ccAddExternalFunctionForPlugin("ListBox::SetItemText^2",       (void*)ListBox_SetItemText);
-    ccAddExternalFunctionForPlugin("ListBox::get_Font",            (void*)ListBox_GetFont);
-    ccAddExternalFunctionForPlugin("ListBox::set_Font",            (void*)ListBox_SetFont);
-    ccAddExternalFunctionForPlugin("ListBox::get_HideBorder",      (void*)ListBox_GetHideBorder);
-    ccAddExternalFunctionForPlugin("ListBox::set_HideBorder",      (void*)ListBox_SetHideBorder);
-    ccAddExternalFunctionForPlugin("ListBox::get_HideScrollArrows", (void*)ListBox_GetHideScrollArrows);
-    ccAddExternalFunctionForPlugin("ListBox::set_HideScrollArrows", (void*)ListBox_SetHideScrollArrows);
-    ccAddExternalFunctionForPlugin("ListBox::get_ItemCount",       (void*)ListBox_GetItemCount);
-    ccAddExternalFunctionForPlugin("ListBox::geti_Items",          (void*)ListBox_GetItems);
-    ccAddExternalFunctionForPlugin("ListBox::seti_Items",          (void*)ListBox_SetItemText);
-    ccAddExternalFunctionForPlugin("ListBox::get_RowCount",        (void*)ListBox_GetRowCount);
-    ccAddExternalFunctionForPlugin("ListBox::geti_SaveGameSlots",  (void*)ListBox_GetSaveGameSlots);
-    ccAddExternalFunctionForPlugin("ListBox::get_SelectedIndex",   (void*)ListBox_GetSelectedIndex);
-    ccAddExternalFunctionForPlugin("ListBox::set_SelectedIndex",   (void*)ListBox_SetSelectedIndex);
-    ccAddExternalFunctionForPlugin("ListBox::get_TopItem",         (void*)ListBox_GetTopItem);
-    ccAddExternalFunctionForPlugin("ListBox::set_TopItem",         (void*)ListBox_SetTopItem);
+    ccAddExternalFunctions(listbox_api);
 }

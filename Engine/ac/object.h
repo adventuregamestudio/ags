@@ -36,7 +36,8 @@ void    Object_SetTransparency(ScriptObject *objj, int trans);
 int     Object_GetTransparency(ScriptObject *objj);
 void    Object_SetBaseline(ScriptObject *objj, int basel);
 int     Object_GetBaseline(ScriptObject *objj);
-void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction);
+void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
+                       int blocking, int direction, int sframe = 0, int volume = 100);
 void    Object_StopAnimating(ScriptObject *objj);
 void    Object_MergeIntoBackground(ScriptObject *objj);
 void    Object_StopMoving(ScriptObject *objj);
@@ -82,6 +83,19 @@ int     is_pos_in_sprite(int xx,int yy,int arx,int ary, Common::Bitmap *sprit, i
 // X and Y co-ordinates must be in native format
 // X and Y are ROOM coordinates
 int     check_click_on_object(int roomx, int roomy, int mood);
+
+// Shared functions that prepare or advance the view animation;
+// used by characters, room objects and buttons.
+// TODO: pick out some kind of "animation" struct
+// Tests if the standard animate parameters are in valid range, if not then clamps them and
+// reports a script warning.
+void    ValidateViewAnimParams(const char *apiname, int &repeat, int &blocking, int &direction);
+// Tests if the view, loop, frame animate params are in valid range,
+// errors in case of out-of-range view or loop, but clamps a frame to a range.
+// NOTE: assumes view is already in an internal 0-based range.
+void    ValidateViewAnimVLF(const char *apiname, int view, int loop, int &sframe);
+// Calculates the first shown frame for a view animation, depending on parameters.
+int     SetFirstAnimFrame(int view, int loop, int sframe, int direction);
 // General view animation algorithm: find next loop and frame, depending on anim settings;
 // loop and frame values are passed by reference and will be updated;
 // returns whether the animation should continue.

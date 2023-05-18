@@ -438,9 +438,6 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicobject.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
@@ -791,6 +788,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\script\cc_reflecthelper.cpp">
       <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1594,6 +1594,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\script\cc_reflecthelper.h">
       <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_pluginobject.h">
       <Filter>Header Files\ac\dynobj</Filter>

@@ -26,7 +26,7 @@ const char *CCDynamicArray::GetType()
     return TypeName;
 }
 
-int CCDynamicArray::Dispose(const char *address, bool force)
+int CCDynamicArray::Dispose(void *address, bool force)
 {
     // If it's an array of managed objects, release their ref counts;
     // except if this array is forcefully removed from the managed pool,
@@ -48,17 +48,17 @@ int CCDynamicArray::Dispose(const char *address, bool force)
         }
     }
 
-    delete[] (address - MemHeaderSz);
+    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
     return 1;
 }
 
-size_t CCDynamicArray::CalcSerializeSize(const char *address)
+size_t CCDynamicArray::CalcSerializeSize(void *address)
 {
     const Header &hdr = GetHeader(address);
     return hdr.TotalSize + FileHeaderSz;
 }
 
-void CCDynamicArray::Serialize(const char *address, AGS::Common::Stream *out)
+void CCDynamicArray::Serialize(void *address, AGS::Common::Stream *out)
 {
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.ElemCount);

@@ -2123,7 +2123,7 @@ void setup_player_character(int charid) {
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
     if (loaded_game_file_version < kGameVersion_270) {
-        ccAddExternalDynamicObject("player", playerchar, &ccDynamicCharacter);
+        ccAddExternalScriptObject("player", playerchar, &ccDynamicCharacter);
     }
 }
 

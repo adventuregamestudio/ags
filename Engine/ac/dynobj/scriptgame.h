@@ -11,22 +11,18 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_CCREGION_H
-#define __AC_CCREGION_H
+#ifndef __AGS_EE_DYNOBJ__SCRIPTGAME_H
+#define __AGS_EE_DYNOBJ__SCRIPTGAME_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCRegion final : AGSCCDynamicObject {
-
-    // return the type name of the object
-    const char *GetType() override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-protected:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(void *address) override;
-    // Write object data into the provided stream
-    void Serialize(void *address, AGS::Common::Stream *out) override;
+// Wrapper around script's "Game" struct, managing access to its variables
+struct StaticGame : public AGSCCStaticObject
+{
+    const char *GetType() override { return "Game"; }
+    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 
-#endif // __AC_CCREGION_H
+extern StaticGame      GameStaticManager;
+
+#endif // __AGS_EE_DYNOBJ__SCRIPTGAME_H

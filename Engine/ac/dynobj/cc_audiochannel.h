@@ -21,9 +21,9 @@ struct CCAudioChannel final : AGSCCDynamicObject {
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 protected:
     // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const char *address) override;
+    size_t CalcSerializeSize(void *address) override;
     // Write object data into the provided stream
-    void Serialize(const char *address, AGS::Common::Stream *out) override;
+    void Serialize(void *address, AGS::Common::Stream *out) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__CCAUDIOCHANNEL_H

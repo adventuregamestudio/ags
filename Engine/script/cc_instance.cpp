@@ -32,8 +32,6 @@
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "ac/statobj/agsstaticobject.h"
-#include "ac/statobj/staticarray.h"
 #include "util/file.h"
 #include "util/memory.h"
 #include "util/string_utils.h" // linux strnicmp definition
@@ -445,7 +443,7 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     // Allow to pass less parameters if script callback has less declared args
     numargs = std::min(numargs, export_args);
     // object pointer needs to start zeroed
-    registers[SREG_OP].SetDynamicObject(nullptr, nullptr);
+    registers[SREG_OP].SetScriptObject(nullptr, nullptr);
     registers[SREG_SP].SetStackPtr( &stack[0] );
     stackdata_ptr = stackdata;
     // NOTE: Pushing parameters to stack in reverse order
@@ -1097,7 +1095,7 @@ int ccInstance::Run(int32_t curpc)
             // TODO: test reg[MAR] type here;
             // That might be dynamic object, but also a non-managed dynamic array, "allocated"
             // on global or local memspace (buffer)
-            const char *arr_ptr = registers[SREG_MAR].GetPtrWithOffset();
+            void *arr_ptr = registers[SREG_MAR].GetPtrWithOffset();
             const auto &hdr = CCDynamicArray::GetHeader(arr_ptr);
             if ((reg1.IValue < 0) ||
                 (static_cast<uint32_t>(reg1.IValue) >= hdr.TotalSize))
@@ -1123,9 +1121,9 @@ int ccInstance::Run(int32_t curpc)
             // FIXME: make pool return a ready RuntimeScriptValue with these set?
             // or another struct, which may be assigned to RSV
             void *object;
-            ICCDynamicObject *manager;
+            IScriptObject *manager;
             ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
-            reg1.SetDynamicObject(obj_type, object, manager);
+            reg1.SetScriptObject(obj_type, object, manager);
             ASSERT_CC_ERROR();
             break;
         }
@@ -1133,15 +1131,16 @@ int ccInstance::Run(int32_t curpc)
         {
             const auto &reg1 = registers[codeOp.Arg1i()];
             int32_t handle = registers[SREG_MAR].ReadInt32();
-            const char *address;
+            void *address;
 
             switch (reg1.Type)
             {
             case kScValStaticArray:
-                CC_ERROR_IF_RETCODE(!reg1.StcArr->GetDynamicManager(), "internal error: MEMWRITEPTR argument is not a dynamic object");
-                address = reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
+                //FIXME: return manager type from interface?
+                //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: MEMWRITEPTR argument is not a dynamic object");
+                address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
-            case kScValDynamicObject:
+            case kScValScriptObject:
             case kScValPluginObject:
                 address = reg1.Ptr;
                 break;
@@ -1171,22 +1170,23 @@ int ccInstance::Run(int32_t curpc)
         }
         case SCMD_MEMINITPTR:
         {
-            char *address;
+            void *address;
             const auto &reg1 = registers[codeOp.Arg1i()];
 
             switch (reg1.Type)
             {
             case kScValStaticArray:
-                CC_ERROR_IF_RETCODE(!reg1.StcArr->GetDynamicManager(), "internal error: SCMD_MEMINITPTR argument is not a dynamic object");
-                address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
+                //FIXME: return manager type from interface?
+                //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: SCMD_MEMINITPTR argument is not a dynamic object");
+                address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
-            case kScValDynamicObject:
+            case kScValScriptObject:
             case kScValPluginObject:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
                 // FIXME: plugin API is currently strictly 32-bit, so this may break on 64-bit systems
-                address = Int32ToPtr<char>(reg1.IValue);
+                address = Int32ToPtr<uint8_t>(reg1.IValue);
                 break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
@@ -1220,7 +1220,7 @@ int ccInstance::Run(int32_t curpc)
             // Note: we might be freeing a dynamic array which contains the DisableDispose
             // object, that will be handled inside the recursive call to SubRef.
             // CHECKME!! what type of data may reg1 point to?
-            pool.disableDisposeForObject = (const char*)registers[SREG_AX].Ptr;
+            pool.disableDisposeForObject = registers[SREG_AX].Ptr;
             ccReleaseObjectReference(handle);
             pool.disableDisposeForObject = nullptr;
             registers[SREG_MAR].WriteInt32(0);
@@ -1282,7 +1282,7 @@ int ccInstance::Run(int32_t curpc)
             int32_t instId = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
             runningInst = loadedInstances[instId];
-            intptr_t callAddr = reg1.Ptr - (char*)&runningInst->code[0];
+            intptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(&runningInst->code[0]);
             if (callAddr % sizeof(intptr_t) != 0)
             {
                 cc_error("call address not aligned");
@@ -1417,8 +1417,7 @@ int ccInstance::Run(int32_t curpc)
             switch (reg1.Type)
             {
                 // This might be a static object, passed to the user-defined extender function
-            case kScValStaticObject:
-            case kScValDynamicObject:
+            case kScValScriptObject:
             case kScValPluginObject:
             case kScValPluginArg:
                 // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
@@ -1429,14 +1428,12 @@ int ccInstance::Run(int32_t curpc)
                 registers[SREG_OP] = reg1;
                 break;
             case kScValStaticArray:
-                if (reg1.StcArr->GetDynamicManager())
-                {
-                    registers[SREG_OP].SetDynamicObject(
-                        (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue),
-                        reg1.StcArr->GetDynamicManager());
-                    break;
-                }
-                // fall-through intended
+                //FIXME: return manager type from interface?
+                //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: SCMD_CALLOBJ argument is not a dynamic object");
+                registers[SREG_OP].SetScriptObject(
+                        reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue),
+                        reg1.ArrMgr->GetObjectManager());
+                break;
             default:
                 cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
                 return -1;
@@ -1476,7 +1473,7 @@ int ccInstance::Run(int32_t curpc)
                 return -1;
             }
             DynObjectRef ref = globalDynamicArray.Create(numElements, arg_elsize, arg_managed);
-            reg1.SetDynamicObject(ref.second, &globalDynamicArray);
+            reg1.SetScriptObject(ref.second, &globalDynamicArray);
             break;
         }
         case SCMD_NEWUSEROBJECT:
@@ -1489,7 +1486,7 @@ int ccInstance::Run(int32_t curpc)
                 return -1;
             }
             ScriptUserObject *suo = ScriptUserObject::CreateManaged(arg_size);
-            reg1.SetDynamicObject(suo, suo);
+            reg1.SetScriptObject(suo, suo);
             break;
         }
         case SCMD_FADD:
@@ -1600,8 +1597,8 @@ int ccInstance::Run(int32_t curpc)
             }
             else
             {
-                const char *ptr = (const char*)reg1.GetDirectPtr();
-                reg1.SetDynamicObject(
+                const char *ptr = reinterpret_cast<const char*>(reg1.GetDirectPtr());
+                reg1.SetScriptObject(
                     stringClassImpl->CreateString(ptr).second,
                     &myScriptStringImpl);
             }
@@ -1618,8 +1615,8 @@ int ccInstance::Run(int32_t curpc)
             }
             else
             {
-                const char *ptr1 = (const char*)reg1.GetDirectPtr();
-                const char *ptr2 = (const char*)reg2.GetDirectPtr();
+                const char *ptr1 = reinterpret_cast<const char*>(reg1.GetDirectPtr());
+                const char *ptr2 = reinterpret_cast<const char*>(reg2.GetDirectPtr());
                 reg1.SetInt32AsBool(strcmp(ptr1, ptr2) == 0);
             }
             break;
@@ -1635,8 +1632,8 @@ int ccInstance::Run(int32_t curpc)
             }
             else
             {
-                const char *ptr1 = (const char*)reg1.GetDirectPtr();
-                const char *ptr2 = (const char*)reg2.GetDirectPtr();
+                const char *ptr1 = reinterpret_cast<const char*>(reg1.GetDirectPtr());
+                const char *ptr2 = reinterpret_cast<const char*>(reg2.GetDirectPtr());
                 reg1.SetInt32AsBool(strcmp(ptr1, ptr2) != 0);
             }
             break;
@@ -1752,8 +1749,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
                 writer.WriteFormat(" %p", arg.GetPtrWithOffset());
                 break;
             case kScValStaticArray:
-            case kScValStaticObject:
-            case kScValDynamicObject:
+            case kScValScriptObject:
             case kScValStaticFunction:
             case kScValObjectFunction:
             case kScValPluginFunction:
@@ -1889,7 +1885,7 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
         {
             // NOTE: unfortunately, there seems to be no way to know if
             // that's an extender function that expects object pointer
-            exports[i].SetCodePtr((char *)((intptr_t)eaddr * sizeof(intptr_t) + (char*)(&code[0])));
+            exports[i].SetCodePtr(((intptr_t)eaddr * sizeof(intptr_t) + reinterpret_cast<uint8_t*>(&code[0])));
         }
         else if (etype == EXPORT_DATA)
         {
@@ -2049,7 +2045,7 @@ bool ccInstance::CreateGlobalVars(const ccScript *scri)
                 return false;
             }
             // TODO: register this explicitly as a string instead (can do this later)
-            glvar.RValue.SetStaticObject(globaldata + data_addr, &GlobalStaticManager);
+            glvar.RValue.SetScriptObject(globaldata + data_addr, &GlobalStaticManager);
             }
             break;
         default:

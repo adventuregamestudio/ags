@@ -25,12 +25,12 @@ const char *CCDialog::GetType() {
     return "Dialog";
 }
 
-size_t CCDialog::CalcSerializeSize(const char * /*address*/)
+size_t CCDialog::CalcSerializeSize(void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCDialog::Serialize(const char *address, Stream *out) {
+void CCDialog::Serialize(void *address, Stream *out) {
     ScriptDialog *shh = (ScriptDialog*)address;
     out->WriteInt32(shh->id);
 }

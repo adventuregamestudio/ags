@@ -14,7 +14,7 @@
 #include "ac/dynobj/scriptdict.h"
 #include "ac/dynobj/dynobj_manager.h"
 
-int ScriptDictBase::Dispose(const char* /*address*/, bool /*force*/)
+int ScriptDictBase::Dispose(void* /*address*/, bool /*force*/)
 {
     Clear();
     delete this;
@@ -26,12 +26,12 @@ const char *ScriptDictBase::GetType()
     return "StringDictionary";
 }
 
-size_t ScriptDictBase::CalcSerializeSize(const char* /*address*/)
+size_t ScriptDictBase::CalcSerializeSize(void* /*address*/)
 {
     return CalcContainerSize();
 }
 
-void ScriptDictBase::Serialize(const char* /*address*/, Stream *out)
+void ScriptDictBase::Serialize(void* /*address*/, Stream *out)
 {
     out->WriteInt32(IsSorted());
     out->WriteInt32(IsCaseSensitive());

@@ -26,12 +26,12 @@ const char *CCGUI::GetType() {
     return "GUI";
 }
 
-size_t CCGUI::CalcSerializeSize(const char * /*address*/)
+size_t CCGUI::CalcSerializeSize(void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCGUI::Serialize(const char *address, Stream *out) {
+void CCGUI::Serialize(void *address, Stream *out) {
     ScriptGUI *shh = (ScriptGUI*)address;
     out->WriteInt32(shh->id);
 }

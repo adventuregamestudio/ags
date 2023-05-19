@@ -46,6 +46,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptcamera.h"
+#include "ac/dynobj/scriptgame.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -1952,10 +1953,10 @@ void RegisterGameAPI()
 
 void RegisterStaticObjects()
 {
-    ccAddExternalStaticObject("game",&play, &GameStaticManager);
-	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
-	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
-	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
+    ccAddExternalScriptObject("game",&play, &GameStaticManager);
+	ccAddExternalScriptObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
+	ccAddExternalScriptObject("mouse",&scmouse, &GlobalStaticManager);
+	ccAddExternalScriptObject("palette",&palette[0], &GlobalStaticManager);
+	ccAddExternalScriptObject("system",&scsystem, &GlobalStaticManager);
+	ccAddExternalScriptObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

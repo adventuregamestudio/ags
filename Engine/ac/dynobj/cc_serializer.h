@@ -15,7 +15,7 @@
 #ifndef __AC_SERIALIZER_H
 #define __AC_SERIALIZER_H
 
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_scriptobject.h"
 
 struct AGSDeSerializer : ICCObjectReader {
 

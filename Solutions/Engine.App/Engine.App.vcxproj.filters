@@ -11,9 +11,6 @@
     <Filter Include="Source Files\ac\dynobj">
       <UniqueIdentifier>{7c226020-43b7-49ec-a7f7-a80c2101cd86}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ac\statobj">
-      <UniqueIdentifier>{cd709c91-632e-40d3-9330-eafe067f85fb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\gfx">
       <UniqueIdentifier>{46b61b5a-1e8d-44df-a3fc-d0ca7527f804}</UniqueIdentifier>
     </Filter>
@@ -71,9 +68,6 @@
     </Filter>
     <Filter Include="Header Files\ac\dynobj">
       <UniqueIdentifier>{e6e0e01d-8524-4a05-83e6-eac43e7d23d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\ac\statobj">
-      <UniqueIdentifier>{637783eb-b80f-4841-8cd8-389afe65ff35}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\plugin">
       <UniqueIdentifier>{e1d32f60-e7e4-4b48-87e3-afba887a2cff}</UniqueIdentifier>
@@ -516,12 +510,6 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\statobj\agsstaticobject.cpp">
-      <Filter>Source Files\ac\statobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\statobj\staticarray.cpp">
-      <Filter>Source Files\ac\statobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp">
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
@@ -814,6 +802,12 @@
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptgame.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_staticarray.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1118,9 +1112,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicobject.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
@@ -1198,15 +1189,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h">
       <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\statobj\agsstaticobject.h">
-      <Filter>Header Files\ac\statobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\statobj\staticarray.h">
-      <Filter>Header Files\ac\statobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\statobj\staticobject.h">
-      <Filter>Header Files\ac\statobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\agsplugin.h">
       <Filter>Header Files\plugin</Filter>
@@ -1641,6 +1623,15 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_staticarray.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>

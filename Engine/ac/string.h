@@ -20,7 +20,7 @@
 
 #include <stdarg.h>
 #include "ac/common.h" // quit
-#include "ac/dynobj/cc_dynamicobject.h"
+#include "ac/dynobj/cc_scriptobject.h"
 #include "util/string.h"
 
 // Check that a supplied buffer from a text script function was not null

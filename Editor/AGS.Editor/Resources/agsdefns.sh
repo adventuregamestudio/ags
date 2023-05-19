@@ -2692,28 +2692,49 @@ builtin managed struct Character {
   char  on;  // $AUTOCOMPLETEIGNORE$
 #endif
 #ifndef STRICT
-  int   defview;    // $AUTOCOMPLETEIGNORE$
-  int   talkview;  // $AUTOCOMPLETEIGNORE$
-  int   view;      // $AUTOCOMPLETEIGNORE$
-  int   room,prevroom;
-  int   x,y;
-  int   wait;     // $AUTOCOMPLETEIGNORE$
+  int   defview;
+  int   talkview;
+  readonly int view;
+  int   room;
+  int   prevroom;
+  int   x;
+  int   y;
+  int   wait;
   readonly int flags;
-  int   reserveda;  // $AUTOCOMPLETEIGNORE$
-  int   idleview;  // $AUTOCOMPLETEIGNORE$
-  int   reservedm[2]; // $AUTOCOMPLETEIGNORE$
+  readonly short following;
+  readonly short followinfo;
+  readonly int   idleview;
+  readonly short idletime;
+  readonly short idleleft;
+  short transparency;
+  short baseline;
   int   activeinv;
-  int   talkcolor;  // $AUTOCOMPLETEIGNORE$
-  int   thinkview;  // $AUTOCOMPLETEIGNORE$
-  int   reservedex[3];  // $AUTOCOMPLETEIGNORE$
+  int   talkcolor;
+  int   thinkview;
+  short blinkview;
+  short blinkinterval;
+  readonly short blinktimer;
+  readonly short blinkframe;
+  short walkspeed_y;
+  readonly short pic_yoffs;
   int   z;
-  int   reservedexb[5]; // $AUTOCOMPLETEIGNORE$
-  short loop,frame;
-  readonly short walking,animating;
-  readonly short walkspeed;   // $AUTOCOMPLETEIGNORE$
+  readonly int walkwait;
+  readonly short speech_anim_speed;
+  readonly short idle_anim_speed;
+  short blocking_width;
+  short blocking_height;
+  readonly int index_id;
+  readonly short pic_xoffs;
+  readonly short walkwaitcounter;
+  readonly short loop;
+  readonly short frame;
+  readonly short walking;
+  readonly short animating;
+  readonly short walkspeed;
   short animspeed;
   short inv[MAX_INV];
-  short actx,acty;  // $AUTOCOMPLETEIGNORE$
+  readonly short actx;
+  readonly short acty;
   char  name[40];
   readonly char  scrname[20];
   char  on;

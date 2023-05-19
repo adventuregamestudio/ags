@@ -200,7 +200,7 @@ RuntimeScriptValue Sc_DisplayMessageBar(const RuntimeScriptValue *params, int32_
 RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayTopBar, 5);
-    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].Ptr, scsf_buffer);
+    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].CStr, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
 

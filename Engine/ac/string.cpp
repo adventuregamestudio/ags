@@ -404,7 +404,7 @@ RuntimeScriptValue Sc_String_EndsWith(void *self, const RuntimeScriptValue *para
 RuntimeScriptValue Sc_String_Format(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(String_Format, 1);
-    return RuntimeScriptValue().SetDynamicObject((void*)CreateNewScriptString(scsf_buffer), &myScriptStringImpl);
+    return RuntimeScriptValue().SetScriptObject((void*)CreateNewScriptString(scsf_buffer), &myScriptStringImpl);
 }
 
 // const char* (const char *thisString)

@@ -694,11 +694,11 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
     curscript->run_another(name, globalScript ? kScInstGame : kScInstRoom, numArgs, params);
 }
 
-int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {
+int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback) {
     // TODO: the managers may be either a separate static object, or the managed object itself.
     // we may try to optimize following by having a cache of CCPluginObjects per callback
     // address. Need to research if that's reliable, and will actually be more performant.
-    auto *pl_obj = new CCPluginObject((ICCDynamicObject*)callback);
+    auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
     GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
     return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
 }
@@ -720,36 +720,36 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
     numPluginReaders++;
 }
 
-void IAGSEngine::RegisterUnserializedObject(int key, const void *object, IAGSScriptManagedObject *callback) {
-    auto *pl_obj = new CCPluginObject((ICCDynamicObject*)callback);
+void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
+    auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
     GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
     ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
 }
 
-int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {
+int IAGSEngine::GetManagedObjectKeyByAddress(void *address) {
     return ccGetObjectHandleFromAddress(address);
 }
 
 void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
-    ICCDynamicObject *manager;
+    IScriptObject *manager;
     ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    GlobalReturnValue.SetDynamicObject(obj_type, object, manager);
+    GlobalReturnValue.SetScriptObject(obj_type, object, manager);
     return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
     const char *string = CreateNewScriptString(fromText);
     // Should be still standard dynamic object, because not managed by plugin
-    GlobalReturnValue.SetDynamicObject((void*)string, &myScriptStringImpl);
+    GlobalReturnValue.SetScriptObject((void*)string, &myScriptStringImpl);
     return string;
 }
 
-int IAGSEngine::IncrementManagedObjectRefCount(const char *address) {
+int IAGSEngine::IncrementManagedObjectRefCount(void *address) {
     return ccAddObjectReference(GetManagedObjectKeyByAddress(address));
 }
 
-int IAGSEngine::DecrementManagedObjectRefCount(const char *address) {
+int IAGSEngine::DecrementManagedObjectRefCount(void *address) {
     return ccReleaseObjectReference(GetManagedObjectKeyByAddress(address));
 }
 

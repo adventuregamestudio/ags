@@ -43,7 +43,7 @@ ScriptUserObject::~ScriptUserObject()
     return suo;
 }
 
-void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, size_t size)
+void ScriptUserObject::Create(const uint8_t *data, Stream *in, uint32_t type_id, size_t size)
 {
     delete [] _data;
     _data = nullptr;
@@ -52,7 +52,7 @@ void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, si
     _size = size;
     if (_size > 0)
     {
-        _data = new char[size];
+        _data = new uint8_t[size];
         if (data)
             memcpy(_data, data, _size);
         else if (in)
@@ -62,7 +62,7 @@ void ScriptUserObject::Create(const char *data, Stream *in, uint32_t type_id, si
     }
 }
 
-int ScriptUserObject::Dispose(const char* address, bool force)
+int ScriptUserObject::Dispose(void *address, bool force)
 {
     // Unref all managed pointers within the struct
     if (!force && (_typeid > 0))
@@ -74,13 +74,13 @@ int ScriptUserObject::Dispose(const char* address, bool force)
     return 1;
 }
 
-size_t ScriptUserObject::CalcSerializeSize(const char * /*address*/)
+size_t ScriptUserObject::CalcSerializeSize(void* /*address*/)
 {
     const size_t hdr_sz = sizeof(uint32_t) * 2; // typeid and size
     return _size + hdr_sz;
 }
 
-void ScriptUserObject::Serialize(const char *address, AGS::Common::Stream *out)
+void ScriptUserObject::Serialize(void* /*address*/, AGS::Common::Stream *out)
 {
     const size_t hdr_sz = sizeof(uint32_t) * 2; // typeid and size
     out->WriteInt32(hdr_sz); // header size, reserve for the future
@@ -98,7 +98,7 @@ void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, this, this);
 }
 
-void ScriptUserObject::RemapTypeids(const char* /*address*/,
+void ScriptUserObject::RemapTypeids(void* /*address*/,
     const std::unordered_map<uint32_t, uint32_t> &typeid_map)
 {
     const auto it = typeid_map.find(_typeid);
@@ -106,7 +106,7 @@ void ScriptUserObject::RemapTypeids(const char* /*address*/,
     _typeid = (it != typeid_map.end()) ? it->second : 0u;
 }
 
-void ScriptUserObject::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
+void ScriptUserObject::TraverseRefs(void* /*address*/, PfnTraverseRefOp traverse_op)
 {
     // TODO: may be a bit faster if we make a "runtime type"
     // struct, merging joint type info and auxiliary helper data,
@@ -122,57 +122,57 @@ void ScriptUserObject::TraverseRefs(const char *address, PfnTraverseRefOp traver
     }
 }
 
-const char* ScriptUserObject::GetFieldPtr(const char* /*address*/, intptr_t offset)
+void* ScriptUserObject::GetFieldPtr(void* /*address*/, intptr_t offset)
 {
     return _data + offset;
 }
 
-void ScriptUserObject::Read(const char* /*address*/, intptr_t offset, void *dest, int size)
+void ScriptUserObject::Read(void* /*address*/, intptr_t offset, uint8_t *dest, size_t size)
 {
     memcpy(dest, _data + offset, size);
 }
 
-uint8_t ScriptUserObject::ReadInt8(const char* /*address*/, intptr_t offset)
+uint8_t ScriptUserObject::ReadInt8(void* /*address*/, intptr_t offset)
 {
     return *(uint8_t*)(_data + offset);
 }
 
-int16_t ScriptUserObject::ReadInt16(const char* /*address*/, intptr_t offset)
+int16_t ScriptUserObject::ReadInt16(void* /*address*/, intptr_t offset)
 {
     return *(int16_t*)(_data + offset);
 }
 
-int32_t ScriptUserObject::ReadInt32(const char* /*address*/, intptr_t offset)
+int32_t ScriptUserObject::ReadInt32(void* /*address*/, intptr_t offset)
 {
     return *(int32_t*)(_data + offset);
 }
 
-float ScriptUserObject::ReadFloat(const char* /*address*/, intptr_t offset)
+float ScriptUserObject::ReadFloat(void* /*address*/, intptr_t offset)
 {
     return *(float*)(_data + offset);
 }
 
-void ScriptUserObject::Write(const char* /*address*/, intptr_t offset, void *src, int size)
+void ScriptUserObject::Write(void* /*address*/, intptr_t offset, const uint8_t *src, size_t size)
 {
     memcpy((void*)(_data + offset), src, size);
 }
 
-void ScriptUserObject::WriteInt8(const char* /*address*/, intptr_t offset, uint8_t val)
+void ScriptUserObject::WriteInt8(void* /*address*/, intptr_t offset, uint8_t val)
 {
     *(uint8_t*)(_data + offset) = val;
 }
 
-void ScriptUserObject::WriteInt16(const char* /*address*/, intptr_t offset, int16_t val)
+void ScriptUserObject::WriteInt16(void* /*address*/, intptr_t offset, int16_t val)
 {
     *(int16_t*)(_data + offset) = val;
 }
 
-void ScriptUserObject::WriteInt32(const char* /*address*/, intptr_t offset, int32_t val)
+void ScriptUserObject::WriteInt32(void* /*address*/, intptr_t offset, int32_t val)
 {
     *(int32_t*)(_data + offset) = val;
 }
 
-void ScriptUserObject::WriteFloat(const char* /*address*/, intptr_t offset, float val)
+void ScriptUserObject::WriteFloat(void* /*address*/, intptr_t offset, float val)
 {
     *(float*)(_data + offset) = val;
 }
@@ -183,7 +183,7 @@ ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
 {
     // FIXME: type id! (is it possible to RTTI?)
     ScriptUserObject *suo = ScriptUserObject::CreateManaged(RTTI::NoType, sizeof(int32_t) * 2);
-    suo->WriteInt32((const char*)suo, 0, x);
-    suo->WriteInt32((const char*)suo, sizeof(int32_t), y);
+    suo->WriteInt32(suo, 0, x);
+    suo->WriteInt32(suo, sizeof(int32_t), y);
     return suo;
 }

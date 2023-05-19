@@ -18,15 +18,15 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTMOUSE_H
 #define __AGS_EE_DYNOBJ__SCRIPTMOUSE_H
 
-#include "ac/statobj/agsstaticobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptMouse : public AGSStaticObject
+struct ScriptMouse : public AGSCCStaticObject
 {
     int x;
     int y;
 
-    virtual int32_t ReadInt32(const char *address, intptr_t offset) override;
-    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
+    int32_t ReadInt32(void *address, intptr_t offset) override;
+    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTMOUSE_H

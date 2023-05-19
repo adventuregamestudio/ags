@@ -17,7 +17,7 @@
 
 using namespace AGS::Common;
 
-int ScriptDateTime::Dispose(const char* /*address*/, bool /*force*/) {
+int ScriptDateTime::Dispose(void* /*address*/, bool /*force*/) {
     // always dispose a DateTime
     delete this;
     return 1;
@@ -27,12 +27,12 @@ const char *ScriptDateTime::GetType() {
     return "DateTime";
 }
 
-size_t ScriptDateTime::CalcSerializeSize(const char * /*address*/)
+size_t ScriptDateTime::CalcSerializeSize(void* /*address*/)
 {
     return sizeof(int32_t) * 7;
 }
 
-void ScriptDateTime::Serialize(const char* /*address*/, Stream *out) {
+void ScriptDateTime::Serialize(void* /*address*/, Stream *out) {
     out->WriteInt32(year);
     out->WriteInt32(month);
     out->WriteInt32(day);

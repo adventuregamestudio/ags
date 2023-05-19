@@ -55,14 +55,13 @@ target_sources(engine
     ac/dynobj/cc_audiochannel.h
     ac/dynobj/cc_audioclip.cpp
     ac/dynobj/cc_audioclip.h
-    ac/dynobj/cc_basicobject.h
     ac/dynobj/cc_character.cpp
     ac/dynobj/cc_character.h
     ac/dynobj/cc_dialog.cpp
     ac/dynobj/cc_dialog.h
     ac/dynobj/cc_dynamicarray.cpp
     ac/dynobj/cc_dynamicarray.h
-    ac/dynobj/cc_dynamicobject.h
+    ac/dynobj/cc_scriptobject.h
     ac/dynobj/cc_gui.cpp
     ac/dynobj/cc_gui.h
     ac/dynobj/cc_guiobject.cpp
@@ -104,6 +103,7 @@ target_sources(engine
     ac/dynobj/scriptinvitem.h
     ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptmouse.h
+    ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptobject.h
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h
@@ -114,6 +114,7 @@ target_sources(engine
     ac/dynobj/scriptstring.h
     ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptsystem.h
+    ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
     ac/dynobj/scriptviewframe.cpp
@@ -249,13 +250,10 @@ target_sources(engine
     ac/sprite.cpp
     ac/sprite.h
     ac/spritecache_engine.cpp
-    ac/statobj/agsstaticobject.cpp
-    ac/statobj/agsstaticobject.h
-    ac/statobj/staticarray.cpp
-    ac/statobj/staticarray.h
-    ac/statobj/staticgame.cpp
-    ac/statobj/staticgame.h
-    ac/statobj/staticobject.h
+    ac/dynobj/scriptgame.cpp
+    ac/dynobj/scriptgame.h
+    ac/dynobj/cc_staticarray.cpp
+    ac/dynobj/cc_staticarray.h
     ac/string.cpp
     ac/string.h
     ac/sys_events.cpp

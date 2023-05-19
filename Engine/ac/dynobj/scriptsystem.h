@@ -13,15 +13,15 @@
 //=============================================================================
 //
 // Wrapper around script "System" struct, managing access to its variables.
+// ScriptSystem is a readable/writeable struct which had been exposed to
 //
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
 #define __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H
 
-#include "ac/statobj/agsstaticobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 
-// The text script's "system" struct
-struct ScriptSystem : public AGSStaticObject
+struct ScriptSystem : public AGSCCStaticObject
 {
     int width,height;
     int coldepth;
@@ -31,8 +31,8 @@ struct ScriptSystem : public AGSStaticObject
     int viewport_width;
     int viewport_height;
 
-    virtual int32_t ReadInt32(const char *address, intptr_t offset) override;
-    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
+    int32_t ReadInt32(void *address, intptr_t offset) override;
+    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTSYSTEM_H

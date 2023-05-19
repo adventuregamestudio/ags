@@ -24,7 +24,7 @@
 #ifndef __AGS_EE_DYNOBJ__PLUGINOBJECT_H
 #define __AGS_EE_DYNOBJ__PLUGINOBJECT_H
 
-#include "ac/dynobj/cc_basicobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 
 
 struct CCPluginObject final : CCBasicObject
@@ -32,14 +32,14 @@ struct CCPluginObject final : CCBasicObject
 private:
     virtual ~CCPluginObject() = default;
 
-    ICCDynamicObject *_pluginMgr = nullptr;
+    IScriptObject *_pluginMgr = nullptr;
 
 public:
-    CCPluginObject(ICCDynamicObject *plugin_mgr)
+    CCPluginObject(IScriptObject *plugin_mgr)
         : _pluginMgr(plugin_mgr) {}
 
     // Dispose the object
-    int Dispose(const char *address, bool force) override
+    int Dispose(void *address, bool force) override
     {
         // At the moment this wrapper's lifetime is tied to the plugin object
         if (_pluginMgr->Dispose(address, force) != 0)
@@ -56,7 +56,7 @@ public:
     }
     // Serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
-    int Serialize(const char *address, char *buffer, int bufsize) override
+    int Serialize(void *address, uint8_t *buffer, int bufsize) override
     {
         return _pluginMgr->Serialize(address, buffer, bufsize);
     }

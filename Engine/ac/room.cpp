@@ -47,6 +47,7 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/managedobjectpool.h"
 #include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -568,14 +569,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
-        ccAddExternalDynamicObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
+        ccAddExternalScriptObject(thisroom.Objects[cc].ScriptName, &scrObj[cc], &ccDynamicObject);
     }
 
     for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++) {
         if (thisroom.Hotspots[cc].ScriptName.IsEmpty())
             continue;
 
-        ccAddExternalDynamicObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
+        ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
     }
 
     our_eip = 210;

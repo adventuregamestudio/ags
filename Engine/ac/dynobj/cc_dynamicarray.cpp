@@ -29,7 +29,7 @@ const char *CCDynamicArray::GetType()
     return TypeName;
 }
 
-int CCDynamicArray::Dispose(const char *address, bool force)
+int CCDynamicArray::Dispose(void *address, bool force)
 {
     // If it's an array of managed objects, release their ref counts;
     // except if this array is forcefully removed from the managed pool,
@@ -39,17 +39,17 @@ int CCDynamicArray::Dispose(const char *address, bool force)
         TraverseRefs(address, [](int handle) { pool.SubRefNoCheck(handle); });
     }
 
-    delete[] (address - MemHeaderSz);
+    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
     return 1;
 }
 
-size_t CCDynamicArray::CalcSerializeSize(const char *address)
+size_t CCDynamicArray::CalcSerializeSize(void *address)
 {
     const Header &hdr = GetHeader(address);
     return hdr.TotalSize + FileHeaderSz;
 }
 
-void CCDynamicArray::Serialize(const char *address, AGS::Common::Stream *out)
+void CCDynamicArray::Serialize(void *address, AGS::Common::Stream *out)
 {
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.TypeID);
@@ -93,7 +93,7 @@ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint3
     return DynObjectRef(handle, obj_ptr);
 }
 
-void CCDynamicArray::RemapTypeids(const char *address,
+void CCDynamicArray::RemapTypeids(void *address,
     const std::unordered_map<uint32_t, uint32_t> &typeid_map)
 {
     Header &hdr = (Header&)GetHeader(address);
@@ -102,7 +102,7 @@ void CCDynamicArray::RemapTypeids(const char *address,
     hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
 }
 
-void CCDynamicArray::TraverseRefs(const char *address, PfnTraverseRefOp traverse_op)
+void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
 {
     // TODO: may be a bit faster if we make a "runtime type"
     // struct, merging joint type info and auxiliary helper data,
@@ -133,7 +133,7 @@ void CCDynamicArray::TraverseRefs(const char *address, PfnTraverseRefOp traverse
         const auto fref = ccInstance::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
         if (fref.second > fref.first)
         { // there are managed pointers inside!
-            const char *elem_ptr = address;
+            const uint8_t *elem_ptr = static_cast<const uint8_t*>(address);
             // For each array element...
             const uint32_t el_size = hdr.TotalSize / hdr.ElemCount;
             for (uint32_t i = 0; i < hdr.ElemCount; ++i, elem_ptr += el_size)
@@ -177,7 +177,7 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
 
 int32_t DynamicArray_Length(void *untyped_dynarray)
 {
-    const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader((const char*)untyped_dynarray);
+    const CCDynamicArray::Header &hdr = CCDynamicArray::GetHeader(untyped_dynarray);
     return hdr.ElemCount;
 }
 

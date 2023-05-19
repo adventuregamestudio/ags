@@ -469,6 +469,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_character.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dialog.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_staticarray.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_guiobject.cpp" />
@@ -485,6 +486,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptgame.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
@@ -559,9 +561,6 @@
     <ClCompile Include="..\..\Engine\ac\speech.cpp" />
     <ClCompile Include="..\..\Engine\ac\sprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp" />
-    <ClCompile Include="..\..\Engine\ac\statobj\agsstaticobject.cpp" />
-    <ClCompile Include="..\..\Engine\ac\statobj\staticarray.cpp" />
-    <ClCompile Include="..\..\Engine\ac\statobj\staticgame.cpp" />
     <ClCompile Include="..\..\Engine\ac\string.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
@@ -712,11 +711,10 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_audiochannel.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_audioclip.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_basicobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_character.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dialog.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_guiobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h" />
@@ -725,6 +723,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_pluginobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_staticarray.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h" />
@@ -737,6 +736,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptgui.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scripthotspot.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptinvitem.h" />
@@ -814,10 +814,6 @@
     <ClInclude Include="..\..\Engine\ac\slider.h" />
     <ClInclude Include="..\..\Engine\ac\speech.h" />
     <ClInclude Include="..\..\Engine\ac\sprite.h" />
-    <ClInclude Include="..\..\Engine\ac\statobj\agsstaticobject.h" />
-    <ClInclude Include="..\..\Engine\ac\statobj\staticarray.h" />
-    <ClInclude Include="..\..\Engine\ac\statobj\staticgame.h" />
-    <ClInclude Include="..\..\Engine\ac\statobj\staticobject.h" />
     <ClInclude Include="..\..\Engine\ac\string.h" />
     <ClInclude Include="..\..\Engine\ac\system.h" />
     <ClInclude Include="..\..\Engine\ac\textbox.h" />

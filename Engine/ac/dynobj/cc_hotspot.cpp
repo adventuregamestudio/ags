@@ -27,12 +27,12 @@ const char *CCHotspot::GetType() {
     return "Hotspot";
 }
 
-size_t CCHotspot::CalcSerializeSize(const char * /*address*/)
+size_t CCHotspot::CalcSerializeSize(void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCHotspot::Serialize(const char *address, Stream *out) {
+void CCHotspot::Serialize(void *address, Stream *out) {
     ScriptHotspot *shh = (ScriptHotspot*)address;
     out->WriteInt32(shh->id);
 }

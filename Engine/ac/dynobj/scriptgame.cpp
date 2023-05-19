@@ -1,15 +1,28 @@
-#include "ac/statobj/staticgame.h"
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+#include "ac/dynobj/scriptgame.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "script/cc_common.h"
+#include "script/cc_common.h" // cc_error
 
-extern GameState play;
 
-StaticGame GameStaticManager;
+CCScriptGame GameStaticManager;
 
-int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
+
+int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
 {
-    int index = offset / sizeof(int32_t);
+    const int index = offset / sizeof(int32_t);
     if (index >= 5 && index < 5 + MAXGLOBALVARS)
         return play.globalvars[index - 5];
 
@@ -20,7 +33,7 @@ int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
     case 2: return play.disabled_user_interface;
     case 3: return play.gscript_timer;
     case 4: return play.debug_mode;
-        // 5 -> 54: play.globalvars
+    // 5 -> 54: play.globalvars
     case 55: return play.messagetime;
     case 56: return play.usedinv;
     case 57: return play.inv_top;
@@ -56,7 +69,7 @@ int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
     case 87: return play.game_speed_modifier;
     case 88: return play.score_sound;
     case 89: return play.takeover_data;
-    case 90: return 0; // play.replay_hotkey
+    case 90: return 0;// [DEPRECATED]
     case 91: return play.dialog_options_x;
     case 92: return play.dialog_options_y;
     case 93: return play.narrator_speech;
@@ -95,14 +108,15 @@ int32_t StaticGame::ReadInt32(const char *address, intptr_t offset)
     case 126: return play.speech_portrait_y;
     case 127: return play.speech_display_post_time_ms;
     case 128: return play.dialog_options_highlight_color;
+    default:
+        cc_error("ScriptGame: unsupported variable offset %d", offset);
+        return 0;
     }
-    cc_error("StaticGame: unsupported variable offset %d", offset);
-    return 0;
 }
 
-void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
+void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
 {
-    int index = offset / sizeof(int32_t);
+    const int index = offset / sizeof(int32_t);
     if (index >= 5 && index < 5 + MAXGLOBALVARS)
     {
         play.globalvars[index - 5] = val;
@@ -116,7 +130,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 2:  play.disabled_user_interface = val; break;
     case 3:  play.gscript_timer = val; break;
     case 4:  set_debug_mode(val != 0); break; // play.debug_mode
-        // 5 -> 54: play.globalvars
+    // 5 -> 54: play.globalvars
     case 55:  play.messagetime = val; break;
     case 56:  play.usedinv = val; break;
     case 57:  play.inv_top = val; break;
@@ -145,20 +159,20 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 80:  play.unfactor_speech_from_textlength = val; break;
     case 81:  break; // [DEPRECATED]
     case 82:  play.speech_music_drop = val; break;
-    case 83:
-    case 84:
-    case 85:
-    case 86:
-        cc_error("StaticGame: attempt to write readonly variable at offset %d", offset);
+    case 83: // play.in_cutscene
+    case 84: // play.fast_forward;
+    case 85: // play.room_width;
+    case 86: // play.room_height;
+        cc_error("ScriptGame: attempt to write readonly variable at offset %d", offset);
         break;
     case 87:  play.game_speed_modifier = val; break;
     case 88:  play.score_sound = val; break;
     case 89:  play.takeover_data = val; break;
-    case 90:  break; // play.replay_hotkey
+    case 90:  break; // [DEPRECATED]
     case 91:  play.dialog_options_x = val; break;
     case 92:  play.dialog_options_y = val; break;
     case 93:  play.narrator_speech = val; break;
-    case 94:  break;// [DEPRECATED]
+    case 94:  break; // [DEPRECATED]
     case 95:  play.lipsync_speed = val; break;
     case 96:  play.close_mouth_speech_time = val; break;
     case 97:  play.disable_antialiasing = val; break;
@@ -181,10 +195,10 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 114:  play.inventory_greys_out = val; break;
     case 115:  play.skip_speech_specific_key = val; break;
     case 116:  play.abort_key = val; break;
-    case 117:
-    case 118:
-    case 119:
-        cc_error("StaticGame: attempt to write readonly variable at offset %d", offset);
+    case 117: // play.fade_to_red;
+    case 118: // play.fade_to_green;
+    case 119: // play.fade_to_blue;
+        cc_error("ScriptGame: attempt to write readonly variable at offset %d", offset);
         break;
     case 120:  play.show_single_dialog_option = val; break;
     case 121:  play.keep_screen_during_instant_transition = val; break;
@@ -196,6 +210,7 @@ void StaticGame::WriteInt32(const char *address, intptr_t offset, int32_t val)
     case 127:  play.speech_display_post_time_ms = val; break;
     case 128:  play.dialog_options_highlight_color = val; break;
     default:
-        cc_error("StaticGame: unsupported variable offset %d", offset);
+        cc_error("ScriptGame: unsupported variable offset %d", offset);
+        break;
     }
 }

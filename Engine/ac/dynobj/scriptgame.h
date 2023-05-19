@@ -15,17 +15,17 @@
 // Wrapper around script "GameState" struct, managing access to its variables.
 //
 //=============================================================================
-#ifndef __AGS_EE_STATOBJ__STATICGAME_H
-#define __AGS_EE_STATOBJ__STATICGAME_H
+#ifndef __AGS_EE_STATOBJ__SCRIPTGAME_H
+#define __AGS_EE_STATOBJ__SCRIPTGAME_H
 
-#include "ac/statobj/agsstaticobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct StaticGame : public AGSStaticObject
+struct CCScriptGame : public AGSCCStaticObject
 {
-    virtual int32_t ReadInt32(const char *address, intptr_t offset) override;
-    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val) override;
+    int32_t ReadInt32(void *address, intptr_t offset) override;
+    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 
-extern StaticGame GameStaticManager;
+extern CCScriptGame GameStaticManager;
 
-#endif // __AGS_EE_STATOBJ__STATICGAME_H
+#endif // __AGS_EE_STATOBJ__SCRIPTGAME_H

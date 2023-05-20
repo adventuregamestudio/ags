@@ -1521,6 +1521,7 @@ int ccInstance::Run(int32_t curpc)
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
             const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
             DynObjectRef ref = globalDynamicArray.CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
+            reg1.SetScriptObject(ref.second, &globalDynamicArray);
             break;
         }
         case SCMD_NEWUSEROBJECT:
@@ -1552,6 +1553,7 @@ int ccInstance::Run(int32_t curpc)
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
             const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
             ScriptUserObject *suo = ScriptUserObject::CreateManaged(global_tid, arg_size);
+            reg1.SetScriptObject(suo, suo);
             break;
         }
         case SCMD_FADD:

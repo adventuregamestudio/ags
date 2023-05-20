@@ -55,7 +55,6 @@ int  IsGamePaused();
 void SetGlobalInt(int index,int valu);
 int  GetGlobalInt(int index);
 int  RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
-int  GetGameParameter (int parm, int data1, int data2, int data3);
 void QuitGame(int dialog);
 void SetRestartPoint();
 void SetGameSpeed(int newspd);
@@ -101,7 +100,5 @@ int WaitMouse(int nloops);
 int WaitMouseKey(int nloops);
 int WaitInput(int input_flags, int nloops);
 void SkipWait();
-
-void scStartRecording(int keyToStop);
 
 #endif // __AGS_EE_AC__GLOBALGAME_H

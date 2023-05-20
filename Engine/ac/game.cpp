@@ -515,9 +515,6 @@ void unload_game_file()
     game.Free();
 }
 
-
-// ** GetGameParameter replacement functions
-
 int Game_GetInventoryItemCount() {
     // because of the dummy item 0, this is always one higher than it should be
     return game.numinvitems - 1;

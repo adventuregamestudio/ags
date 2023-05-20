@@ -30,21 +30,6 @@ using namespace AGS; // FIXME later
 #define RAGMODE_PRESERVEGLOBALINT 1
 #define RAGMODE_LOADNOW 0x8000000  // just to make sure it's non-zero
 
-// Game parameter constants for backward-compatibility functions
-#define GP_SPRITEWIDTH   1
-#define GP_SPRITEHEIGHT  2
-#define GP_NUMLOOPS      3
-#define GP_NUMFRAMES     4
-#define GP_ISRUNNEXTLOOP 5
-#define GP_FRAMESPEED    6
-#define GP_FRAMEIMAGE    7
-#define GP_FRAMESOUND    8
-#define GP_NUMGUIS       9
-#define GP_NUMOBJECTS    10
-#define GP_NUMCHARACTERS 11
-#define GP_NUMINVITEMS   12
-#define GP_ISFRAMEFLIPPED 13
-
 enum CutsceneSkipStyle
 {
     kSkipSceneUndefined = 0,

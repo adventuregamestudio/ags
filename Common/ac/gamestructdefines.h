@@ -22,13 +22,16 @@
 #include "core/types.h"
 
 // CLNUP check what's actually needed
+// Palette sections
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
 #define PAL_BACKGROUND      2
+
+// Global messages constants
 #define MAXGLOBALMES        500
 #define GLOBALMESLENGTH     500
-#define MAXLANGUAGE         5
-#define LEGACY_MAX_FONTS    30
+
+// Game options
 #define OPT_DEBUGMODE       0
 #define OPT_SCORESOUND      1
 #define OPT_WALKONLOOK      2
@@ -86,6 +89,7 @@
 #define OPT_NOMODMUSIC      98 // unused
 #define OPT_LIPSYNCTEXT     99
 
+// Compatibility engine modes (hacks)
 #define CUSTOMENG_NONE      0
 #define CUSTOMENG_DRACONIAN 1 // Draconian Edition
 #define CUSTOMENG_CLIFFTOP  2 // Clifftop Games

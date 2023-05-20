@@ -1107,6 +1107,7 @@ import int  EndCutscene();
 import void ClaimEvent();
 // Changes the GUI used to render standard game text windows.
 import void SetTextWindowGUI (int gui);
+// Internal function used in GUIID macro generation
 import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
 
 #ifdef SCRIPT_API_v3507

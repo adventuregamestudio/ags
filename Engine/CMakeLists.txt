@@ -134,12 +134,8 @@ target_sources(engine
     ac/global_api.cpp
     ac/global_audio.cpp
     ac/global_audio.h
-    ac/global_button.cpp
-    ac/global_button.h
     ac/global_character.cpp
     ac/global_character.h
-    ac/global_datetime.cpp
-    ac/global_datetime.h
     ac/global_debug.cpp
     ac/global_debug.h
     ac/global_dialog.cpp
@@ -158,12 +154,6 @@ target_sources(engine
     ac/global_hotspot.h
     ac/global_inventoryitem.cpp
     ac/global_inventoryitem.h
-    ac/global_label.cpp
-    ac/global_label.h
-    ac/global_listbox.cpp
-    ac/global_listbox.h
-    ac/global_mouse.cpp
-    ac/global_mouse.h
     ac/global_object.cpp
     ac/global_object.h
     ac/global_palette.cpp
@@ -175,10 +165,6 @@ target_sources(engine
     ac/global_room.h
     ac/global_screen.cpp
     ac/global_screen.h
-    ac/global_slider.cpp
-    ac/global_slider.h
-    ac/global_textbox.cpp
-    ac/global_textbox.h
     ac/global_timer.cpp
     ac/global_timer.h
     ac/global_translation.cpp

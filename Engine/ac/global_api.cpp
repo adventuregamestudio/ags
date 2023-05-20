@@ -25,9 +25,7 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/global_audio.h"
-#include "ac/global_button.h"
 #include "ac/global_character.h"
-#include "ac/global_datetime.h"
 #include "ac/global_debug.h"
 #include "ac/global_dialog.h"
 #include "ac/global_display.h"
@@ -37,16 +35,11 @@
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_inventoryitem.h"
-#include "ac/global_label.h"
-#include "ac/global_listbox.h"
-#include "ac/global_mouse.h"
 #include "ac/global_object.h"
 #include "ac/global_palette.h"
 #include "ac/global_region.h"
 #include "ac/global_room.h"
-#include "ac/global_slider.h"
 #include "ac/global_screen.h"
-#include "ac/global_textbox.h"
 #include "ac/global_timer.h"
 #include "ac/global_translation.h"
 #include "ac/global_video.h"
@@ -72,12 +65,6 @@ RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t par
     return RuntimeScriptValue((int32_t)0);
 }
 
-// void (int guin, int objn, int view, int loop, int speed, int repeat)
-RuntimeScriptValue Sc_AnimateButton(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT6(AnimateButton);
-}
-
 // int (int thing1, int thing2)
 RuntimeScriptValue Sc_AreThingsOverlapping(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -88,12 +75,6 @@ RuntimeScriptValue Sc_AreThingsOverlapping(const RuntimeScriptValue *params, int
 RuntimeScriptValue Sc_CallRoomScript(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(CallRoomScript);
-}
-
-// void  (int ifn)
-RuntimeScriptValue Sc_CentreGUI(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(CentreGUI);
 }
 
 extern RuntimeScriptValue Sc_ChangeCursorGraphic(const RuntimeScriptValue *params, int32_t param_count);
@@ -344,12 +325,6 @@ RuntimeScriptValue Sc_GetBackgroundFrame(const RuntimeScriptValue *params, int32
     API_SCALL_INT(GetBackgroundFrame);
 }
 
-// int (int guin, int objn, int ptype)
-RuntimeScriptValue Sc_GetButtonPic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT3(GetButtonPic);
-}
-
 // int  (int xx, int yy)
 RuntimeScriptValue Sc_GetCharIDAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -370,12 +345,6 @@ RuntimeScriptValue Sc_GetGameOption(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_INT_PINT(GetGameOption);
 }
 
-// int  (int parm, int data1, int data2, int data3)
-RuntimeScriptValue Sc_GetGameParameter(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT4(GetGameParameter);
-}
-
 // int ()
 RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -386,18 +355,6 @@ RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t par
 RuntimeScriptValue Sc_GetGlobalInt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(GetGlobalInt);
-}
-
-// int  (int xx,int yy)
-RuntimeScriptValue Sc_GetGUIAt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetGUIAt);
-}
-
-// int  (int xx, int yy)
-RuntimeScriptValue Sc_GetGUIObjectAt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetGUIObjectAt);
 }
 
 // int (int xxx,int yyy)
@@ -526,12 +483,6 @@ RuntimeScriptValue Sc_GetPlayerCharacter(const RuntimeScriptValue *params, int32
     API_SCALL_INT(GetPlayerCharacter);
 }
 
-// int  ()
-RuntimeScriptValue Sc_GetRawTime(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetRawTime);
-}
-
 // int  (int xxx, int yyy)
 RuntimeScriptValue Sc_GetRegionIDAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -542,18 +493,6 @@ RuntimeScriptValue Sc_GetRegionIDAtRoom(const RuntimeScriptValue *params, int32_
 RuntimeScriptValue Sc_GetScalingAt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(GetScalingAt);
-}
-
-// int (int guin,int objn)
-RuntimeScriptValue Sc_GetSliderValue(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(GetSliderValue);
-}
-
-// void (int guin, int objn, char*txbuf)
-RuntimeScriptValue Sc_GetTextBoxText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2_POBJ(GetTextBoxText, char);
 }
 
 // int (char *text, int fontnum, int width)
@@ -576,12 +515,6 @@ RuntimeScriptValue Sc_GetFontHeight(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_GetFontLineSpacing(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(GetFontLineSpacing);
-}
-
-// int (int whatti)
-RuntimeScriptValue Sc_sc_GetTime(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(sc_GetTime);
 }
 
 // char * (const char *text)
@@ -629,12 +562,6 @@ RuntimeScriptValue Sc_HasPlayerBeenInRoom(const RuntimeScriptValue *params, int3
     API_SCALL_INT_PINT(HasPlayerBeenInRoom);
 }
 
-// void  () 
-RuntimeScriptValue Sc_HideMouseCursor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(HideMouseCursor);
-}
-
 // void (const char*msg,char*bufr)
 RuntimeScriptValue Sc_sc_inputbox(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -665,12 +592,6 @@ extern RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int3
 RuntimeScriptValue Sc_IsGamePaused(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(IsGamePaused);
-}
-
-// int  (int guinum)
-RuntimeScriptValue Sc_IsGUIOn(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsGUIOn);
 }
 
 // int  (int xx,int yy,int mood)
@@ -737,66 +658,6 @@ RuntimeScriptValue Sc_IsTranslationAvailable(const RuntimeScriptValue *params, i
 RuntimeScriptValue Sc_IsVoxAvailable(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(IsVoxAvailable);
-}
-
-// void (int guin, int objn, const char*newitem)
-RuntimeScriptValue Sc_ListBoxAdd(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2_POBJ(ListBoxAdd, const char);
-}
-
-// void (int guin, int objn)
-RuntimeScriptValue Sc_ListBoxClear(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(ListBoxClear);
-}
-
-// void  (int guin, int objn, const char*filemask)
-RuntimeScriptValue Sc_ListBoxDirList(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2_POBJ(ListBoxDirList, const char);
-}
-
-// char* (int guin, int objn, int item, char*buffer)
-RuntimeScriptValue Sc_ListBoxGetItemText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT3_POBJ(char, myScriptStringImpl, ListBoxGetItemText, char);
-}
-
-// int (int guin, int objn)
-RuntimeScriptValue Sc_ListBoxGetNumItems(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(ListBoxGetNumItems);
-}
-
-// int (int guin, int objn)
-RuntimeScriptValue Sc_ListBoxGetSelected(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(ListBoxGetSelected);
-}
-
-// void (int guin, int objn, int itemIndex)
-RuntimeScriptValue Sc_ListBoxRemove(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(ListBoxRemove);
-}
-
-// int  (int guin, int objn)
-RuntimeScriptValue Sc_ListBoxSaveGameList(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(ListBoxSaveGameList);
-}
-
-// void (int guin, int objn, int newsel)
-RuntimeScriptValue Sc_ListBoxSetSelected(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(ListBoxSetSelected);
-}
-
-// void  (int guin, int objn, int item)
-RuntimeScriptValue Sc_ListBoxSetTopItem(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(ListBoxSetTopItem);
 }
 
 // int (const char *filename)
@@ -1010,18 +871,6 @@ RuntimeScriptValue Sc_SetBackgroundFrame(const RuntimeScriptValue *params, int32
      API_SCALL_VOID_PINT(SetBackgroundFrame);
 }
 
-// void (int guin,int objn,int ptype,int slotn)
-RuntimeScriptValue Sc_SetButtonPic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(SetButtonPic);
-}
-
-// void (int guin,int objn,char*newtx)
-RuntimeScriptValue Sc_SetButtonText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2_POBJ(SetButtonText, const char);
-}
-
 extern RuntimeScriptValue Sc_set_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
 extern RuntimeScriptValue Sc_set_default_cursor(const RuntimeScriptValue *params, int32_t param_count);
 
@@ -1049,66 +898,6 @@ RuntimeScriptValue Sc_SetGameSpeed(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_PINT(SetGameSpeed);
 }
 
-// void (int index,int valu)
-RuntimeScriptValue Sc_SetGlobalInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetGlobalInt);
-}
-
-// void  (int guin, int slotn)
-RuntimeScriptValue Sc_SetGUIBackgroundPic(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetGUIBackgroundPic);
-}
-
-// void (int guin, int clickable)
-RuntimeScriptValue Sc_SetGUIClickable(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetGUIClickable);
-}
-
-// void (int guin, int objn, int enabled)
-RuntimeScriptValue Sc_SetGUIObjectEnabled(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetGUIObjectEnabled);
-}
-
-// void (int guin, int objn, int xx, int yy)
-RuntimeScriptValue Sc_SetGUIObjectPosition(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(SetGUIObjectPosition);
-}
-
-// void (int ifn, int objn, int newwid, int newhit)
-RuntimeScriptValue Sc_SetGUIObjectSize(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(SetGUIObjectSize);
-}
-
-// void (int ifn,int xx,int yy)
-RuntimeScriptValue Sc_SetGUIPosition(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetGUIPosition);
-}
-
-// void  (int ifn, int widd, int hitt)
-RuntimeScriptValue Sc_SetGUISize(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetGUISize);
-}
-
-// void (int ifn, int trans)
-RuntimeScriptValue Sc_SetGUITransparency(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetGUITransparency);
-}
-
-// void (int guin, int z)
-RuntimeScriptValue Sc_SetGUIZOrder(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetGUIZOrder);
-}
-
 // void (int invi, const char *newName)
 RuntimeScriptValue Sc_SetInvItemName(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1119,24 +908,6 @@ RuntimeScriptValue Sc_SetInvItemName(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_set_inv_item_pic(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(set_inv_item_pic);
-}
-
-// void (int guin,int objn, int colr)
-RuntimeScriptValue Sc_SetLabelColor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetLabelColor);
-}
-
-// void (int guin,int objn, int fontnum)
-RuntimeScriptValue Sc_SetLabelFont(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetLabelFont);
-}
-
-// void (int guin,int objn,char*newtx)
-RuntimeScriptValue Sc_SetLabelText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2_POBJ(SetLabelText, const char);
 }
 
 extern RuntimeScriptValue Sc_SetMouseBounds(const RuntimeScriptValue *params, int32_t param_count);
@@ -1237,30 +1008,12 @@ RuntimeScriptValue Sc_SetScreenTransition(const RuntimeScriptValue *params, int3
     API_SCALL_VOID_PINT(SetScreenTransition);
 }
 
-// void (int guin,int objn, int valn)
-RuntimeScriptValue Sc_SetSliderValue(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetSliderValue);
-}
-
 extern RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count);
 
 // void (int newvol)
 RuntimeScriptValue Sc_SetSpeechVolume(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetSpeechVolume);
-}
-
-// void (int guin,int objn, int fontnum)
-RuntimeScriptValue Sc_SetTextBoxFont(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetTextBoxFont);
-}
-
-// void (int guin, int objn, char*txbuf)
-RuntimeScriptValue Sc_SetTextBoxText(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2_POBJ(SetTextBoxText, const char);
 }
 
 // void  (int guinum)
@@ -1293,12 +1046,6 @@ RuntimeScriptValue Sc_ShakeScreenBackground(const RuntimeScriptValue *params, in
     API_SCALL_VOID_PINT3(ShakeScreenBackground);
 }
 
-// void  ()
-RuntimeScriptValue Sc_ShowMouseCursor(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(ShowMouseCursor);
-}
-
 RuntimeScriptValue Sc_SkipCutscene(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(SkipCutscene);
@@ -1314,12 +1061,6 @@ RuntimeScriptValue Sc_SkipUntilCharacterStops(const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_StartCutscene(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(StartCutscene);
-}
-
-// void  (int keyToStop)
-RuntimeScriptValue Sc_scStartRecording(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(scStartRecording);
 }
 
 // void  (int chid) 
@@ -1455,10 +1196,8 @@ void RegisterGlobalAPI()
 {
     ScFnRegister global_api[] = {
         { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
-        { "AnimateButton",            API_FN_PAIR(AnimateButton) },
         { "AreThingsOverlapping",     API_FN_PAIR(AreThingsOverlapping) },
         { "CallRoomScript",           API_FN_PAIR(CallRoomScript) },
-        { "CentreGUI",                API_FN_PAIR(CentreGUI) },
         { "ChangeCursorGraphic",      API_FN_PAIR(ChangeCursorGraphic) },
         { "ChangeCursorHotspot",      API_FN_PAIR(ChangeCursorHotspot) },
         { "ClaimEvent",               API_FN_PAIR(ClaimEvent) },
@@ -1503,16 +1242,12 @@ void RegisterGlobalAPI()
         { "FlipScreen",               API_FN_PAIR(FlipScreen) },
         { "FloatToInt",               API_FN_PAIR(FloatToInt) },
         { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
-        { "GetButtonPic",             API_FN_PAIR(GetButtonPic) },
         { "GetCharacterAt",           API_FN_PAIR(GetCharIDAtScreen) },
         { "GetCursorMode",            API_FN_PAIR(GetCursorMode) },
         { "GetDialogOption",          API_FN_PAIR(GetDialogOption) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
-        { "GetGameParameter",         API_FN_PAIR(GetGameParameter) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
         { "GetGlobalInt",             API_FN_PAIR(GetGlobalInt) },
-        { "GetGUIAt",                 API_FN_PAIR(GetGUIAt) },
-        { "GetGUIObjectAt",           API_FN_PAIR(GetGUIObjectAt) },
         { "GetHotspotAt",             API_FN_PAIR(GetHotspotIDAtScreen) },
         { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
         { "GetHotspotPointX",         API_FN_PAIR(GetHotspotPointX) },
@@ -1534,17 +1269,13 @@ void RegisterGlobalAPI()
         { "GetObjectX",               API_FN_PAIR(GetObjectX) },
         { "GetObjectY",               API_FN_PAIR(GetObjectY) },
         { "GetPlayerCharacter",       API_FN_PAIR(GetPlayerCharacter) },
-        { "GetRawTime",               API_FN_PAIR(GetRawTime) },
         { "GetRegionAt",              API_FN_PAIR(GetRegionIDAtRoom) },
         { "GetRoomProperty",          API_FN_PAIR(Room_GetProperty) },
         { "GetScalingAt",             API_FN_PAIR(GetScalingAt) },
-        { "GetSliderValue",           API_FN_PAIR(GetSliderValue) },
-        { "GetTextBoxText",           API_FN_PAIR(GetTextBoxText) },
         { "GetTextHeight",            API_FN_PAIR(GetTextHeight) },
         { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },
         { "GetFontHeight",            API_FN_PAIR(GetFontHeight) },
         { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
-        { "GetTime",                  API_FN_PAIR(sc_GetTime) },
         { "GetTranslation",           API_FN_PAIR(get_translation) },
         { "GetTranslationName",       API_FN_PAIR(GetTranslationName) },
         { "GetWalkableAreaAtRoom",    API_FN_PAIR(GetWalkableAreaAtRoom) },
@@ -1554,14 +1285,12 @@ void RegisterGlobalAPI()
         { "GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
         { "GiveScore",                API_FN_PAIR(GiveScore) },
         { "HasPlayerBeenInRoom",      API_FN_PAIR(HasPlayerBeenInRoom) },
-        { "HideMouseCursor",          API_FN_PAIR(HideMouseCursor) },
         { "InputBox",                 API_FN_PAIR(sc_inputbox) },
         { "InterfaceOff",             API_FN_PAIR(InterfaceOff) },
         { "InterfaceOn",              API_FN_PAIR(InterfaceOn) },
         { "IntToFloat",               API_FN_PAIR(IntToFloat) },
         { "IsButtonDown",             API_FN_PAIR(IsButtonDown) },
         { "IsGamePaused",             API_FN_PAIR(IsGamePaused) },
-        { "IsGUIOn",                  API_FN_PAIR(IsGUIOn) },
         { "IsInteractionAvailable",   API_FN_PAIR(IsInteractionAvailable) },
         { "IsInventoryInteractionAvailable", API_FN_PAIR(IsInventoryInteractionAvailable) },
         { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
@@ -1573,16 +1302,6 @@ void RegisterGlobalAPI()
         { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
         { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
         { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
-        { "ListBoxAdd",               API_FN_PAIR(ListBoxAdd) },
-        { "ListBoxClear",             API_FN_PAIR(ListBoxClear) },
-        { "ListBoxDirList",           API_FN_PAIR(ListBoxDirList) },
-        { "ListBoxGetItemText",       API_FN_PAIR(ListBoxGetItemText) },
-        { "ListBoxGetNumItems",       API_FN_PAIR(ListBoxGetNumItems) },
-        { "ListBoxGetSelected",       API_FN_PAIR(ListBoxGetSelected) },
-        { "ListBoxRemove",            API_FN_PAIR(ListBoxRemove) },
-        { "ListBoxSaveGameList",      API_FN_PAIR(ListBoxSaveGameList) },
-        { "ListBoxSetSelected",       API_FN_PAIR(ListBoxSetSelected) },
-        { "ListBoxSetTopItem",        API_FN_PAIR(ListBoxSetTopItem) },
         { "LoadImageFile",            API_FN_PAIR(LoadImageFile) },
         { "LoadSaveSlotScreenshot",   API_FN_PAIR(LoadSaveSlotScreenshot) },
         { "MergeObject",              API_FN_PAIR(MergeObject) },
@@ -1620,29 +1339,14 @@ void RegisterGlobalAPI()
         { "SetAreaLightLevel",        API_FN_PAIR(SetAreaLightLevel) },
         { "SetAreaScaling",           API_FN_PAIR(SetAreaScaling) },
         { "SetBackgroundFrame",       API_FN_PAIR(SetBackgroundFrame) },
-        { "SetButtonPic",             API_FN_PAIR(SetButtonPic) },
-        { "SetButtonText",            API_FN_PAIR(SetButtonText) },
         { "SetCursorMode",            API_FN_PAIR(set_cursor_mode) },
         { "SetDefaultCursor",         API_FN_PAIR(set_default_cursor) },
         { "SetDialogOption",          API_FN_PAIR(SetDialogOption) },
         { "SetFadeColor",             API_FN_PAIR(SetFadeColor) },
         { "SetGameOption",            API_FN_PAIR(SetGameOption) },
         { "SetGameSpeed",             API_FN_PAIR(SetGameSpeed) },
-        { "SetGlobalInt",             API_FN_PAIR(SetGlobalInt) },
-        { "SetGUIBackgroundPic",      API_FN_PAIR(SetGUIBackgroundPic) },
-        { "SetGUIClickable",          API_FN_PAIR(SetGUIClickable) },
-        { "SetGUIObjectEnabled",      API_FN_PAIR(SetGUIObjectEnabled) },
-        { "SetGUIObjectPosition",     API_FN_PAIR(SetGUIObjectPosition) },
-        { "SetGUIObjectSize",         API_FN_PAIR(SetGUIObjectSize) },
-        { "SetGUIPosition",           API_FN_PAIR(SetGUIPosition) },
-        { "SetGUISize",               API_FN_PAIR(SetGUISize) },
-        { "SetGUITransparency",       API_FN_PAIR(SetGUITransparency) },
-        { "SetGUIZOrder",             API_FN_PAIR(SetGUIZOrder) },
         { "SetInvItemName",           API_FN_PAIR(SetInvItemName) },
         { "SetInvItemPic",            API_FN_PAIR(set_inv_item_pic) },
-        { "SetLabelColor",            API_FN_PAIR(SetLabelColor) },
-        { "SetLabelFont",             API_FN_PAIR(SetLabelFont) },
-        { "SetLabelText",             API_FN_PAIR(SetLabelText) },
         { "SetMouseBounds",           API_FN_PAIR(SetMouseBounds) },
         { "SetMouseCursor",           API_FN_PAIR(set_mouse_cursor) },
         { "SetMousePosition",         API_FN_PAIR(SetMousePosition) },
@@ -1663,21 +1367,16 @@ void RegisterGlobalAPI()
         { "SetRegionTint",            API_FN_PAIR(SetRegionTint) },
         { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },
         { "SetScreenTransition",      API_FN_PAIR(SetScreenTransition) },
-        { "SetSliderValue",           API_FN_PAIR(SetSliderValue) },
         { "SetSpeechFont",            API_FN_PAIR(SetSpeechFont) },
         { "SetSpeechVolume",          API_FN_PAIR(SetSpeechVolume) },
-        { "SetTextBoxFont",           API_FN_PAIR(SetTextBoxFont) },
-        { "SetTextBoxText",           API_FN_PAIR(SetTextBoxText) },
         { "SetTextWindowGUI",         API_FN_PAIR(SetTextWindowGUI) },
         { "SetTimer",                 API_FN_PAIR(script_SetTimer) },
         { "SetWalkBehindBase",        API_FN_PAIR(SetWalkBehindBase) },
         { "ShakeScreen",              API_FN_PAIR(ShakeScreen) },
         { "ShakeScreenBackground",    API_FN_PAIR(ShakeScreenBackground) },
-        { "ShowMouseCursor",          API_FN_PAIR(ShowMouseCursor) },
         { "SkipCutscene",             API_FN_PAIR(SkipCutscene) },
         { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
         { "StartCutscene",            API_FN_PAIR(StartCutscene) },
-        { "StartRecording",           API_FN_PAIR(scStartRecording) },
         { "StopChannel",              API_FN_PAIR(stop_and_destroy_channel) },
         { "StopDialog",               API_FN_PAIR(StopDialog) },
         { "StopMoving",               API_FN_PAIR(StopMoving) },

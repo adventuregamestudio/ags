@@ -20,7 +20,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_mouse.h"
 #include "ac/global_plugin.h"
 #include "ac/global_screen.h"
 #include "ac/sys_events.h"
@@ -54,13 +53,14 @@ Bitmap *dotted_mouse_cursor = nullptr;
 IDriverDependantBitmap *mouseCursor = nullptr;
 Bitmap *blank_mouse_cursor = nullptr;
 
+
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
 void Mouse_SetVisible(int isOn) {
     if (isOn)
-        ShowMouseCursor();
+        play.mouse_cursor_hidden = 0;
     else
-        HideMouseCursor();
+        play.mouse_cursor_hidden = 1;
 }
 
 int Mouse_GetVisible() {

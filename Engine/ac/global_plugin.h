@@ -11,13 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_PLUGIN__PLUGINFUNC_H
 #define __AGS_EE_PLUGIN__PLUGINFUNC_H
 
+// TODO: move this elsewhere
 void PluginSimulateMouseClick(int pluginButtonID);
 bool RegisterPluginStubs(const char* name);
 

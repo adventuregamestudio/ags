@@ -51,7 +51,8 @@ private:
     std::vector<ManagedObject> objects;
     std::unordered_map<void*, int32_t> handleByAddress;
 
-    int Remove(ManagedObject &o, bool force = false);
+    int  Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type);
+    int  Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
 
 public:

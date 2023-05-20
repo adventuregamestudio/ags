@@ -59,7 +59,7 @@ int ManagedObjectPool::CheckDispose(int32_t handle) {
 }
 
 int32_t ManagedObjectPool::SubRef(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
+    if (handle < 1 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
 
@@ -91,7 +91,7 @@ void* ManagedObjectPool::HandleToAddress(int32_t handle) {
 
 // this function is called often (whenever a pointer is used)
 ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager) {
-    if ((handle < 0 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
+    if ((handle < 1 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
     {
         object = nullptr;
         manager = nullptr;
@@ -164,7 +164,7 @@ int ManagedObjectPool::AddObject(void *address, IScriptObject *callback, ScriptV
 int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callback,
     ScriptValueType obj_type, int handle) 
 {
-    if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
+    if (handle < 1) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     if ((size_t)handle >= objects.size()) {
         objects.resize(handle + 1024, ManagedObject());
     }

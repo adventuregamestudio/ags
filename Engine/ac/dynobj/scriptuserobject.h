@@ -62,7 +62,7 @@ private:
     // need more significant change to program before we could use different
     // approach.
     int32_t  _size = 0;
-    char    *_data = nullptr;
+    uint8_t *_data = nullptr;
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes

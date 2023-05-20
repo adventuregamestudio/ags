@@ -64,6 +64,7 @@ private:
         int32_t handle = 0;
 
         GCObject(int32_t h) : handle(h) {}
+        inline bool operator ==(const GCObject &other) { return handle == other.handle; }
     };
     std::list<GCObject> gcUsedList;
     std::list<GCObject> gcRemList;

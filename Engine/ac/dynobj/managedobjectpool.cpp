@@ -62,7 +62,7 @@ int ManagedObjectPool::CheckDispose(int32_t handle) {
 }
 
 int32_t ManagedObjectPool::SubRefCheckDispose(int32_t handle) {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
+    if (handle < 1 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
     if (o.refCount <= 0) { return 0; } // already disposed / disposing
@@ -71,6 +71,7 @@ int32_t ManagedObjectPool::SubRefCheckDispose(int32_t handle) {
     const auto newRefCount = o.refCount;
     const auto canBeDisposed = (o.addr != disableDisposeForObject);
     if (canBeDisposed && o.refCount <= 0) {
+        gcUsedList.erase(o.gcItUsed);
         Remove(o);
     }
     // object could be removed at this point, don't use any values.
@@ -80,7 +81,7 @@ int32_t ManagedObjectPool::SubRefCheckDispose(int32_t handle) {
 
 int32_t ManagedObjectPool::SubRefNoCheck(int32_t handle)
 {
-    if (handle < 0 || (size_t)handle >= objects.size()) { return 0; }
+    if (handle < 1 || (size_t)handle >= objects.size()) { return 0; }
     auto & o = objects[handle];
     if (!o.isUsed()) { return 0; }
     if (o.refCount <= 0) { return 0; } // already disposed / disposing
@@ -106,7 +107,7 @@ void* ManagedObjectPool::HandleToAddress(int32_t handle) {
 
 // this function is called often (whenever a pointer is used)
 ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager) {
-    if ((handle < 0 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
+    if ((handle < 1 || (size_t)handle >= objects.size()) || !objects[handle].isUsed())
     {
         object = nullptr;
         manager = nullptr;
@@ -148,10 +149,11 @@ void ManagedObjectPool::RunGarbageCollection()
     // Step 1: copy current ref counts
     for (auto it = gcUsedList.begin(); it != gcUsedList.end(); )
     {
-        assert(it->handle != 0);
+        assert(it->handle > 0);
         auto test_it = it++;
         auto &obj = objects[test_it->handle];
-        assert((obj.refCount & ManagedObject::GC_FLAG_EXCLUDED) == 0);
+        assert((obj.gcRefCount & ManagedObject::GC_FLAG_EXCLUDED) == 0); // not persistent
+        assert(obj.refCount >= 0); // just to make certain it's not underflow
         if (obj.refCount == 0)
         {
             gcUsedList.erase(test_it);
@@ -169,7 +171,7 @@ void ManagedObjectPool::RunGarbageCollection()
     {
         auto &objs = objects;
         auto &obj = objects[gco.handle];
-        assert((gco.handle != 0) && (obj.refCount > 0));
+        assert(obj.handle > 0 && obj.refCount >= 0); // valid and refcount did not underflow
         objects[gco.handle].callback->TraverseRefs(obj.addr,
             [&objs](int handle)
         {
@@ -279,7 +281,7 @@ int ManagedObjectPool::AddObject(void *address, IScriptObject *callback,
 int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callback,
     int handle, ScriptValueType obj_type, bool persistent) 
 {
-    if (handle < 0) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
+    if (handle < 1) { cc_error("Attempt to assign invalid handle: %d", handle); return 0; }
     if ((size_t)handle >= objects.size()) {
         objects.resize(handle + 1024, ManagedObject());
     }

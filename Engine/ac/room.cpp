@@ -1068,11 +1068,13 @@ void croom_ptr_clear()
 }
 
 
+// coordinate conversion (data) ---> game ---> (room mask)
 int room_to_mask_coord(int coord)
 {
     return coord * game.GetDataUpscaleMult() / thisroom.MaskResolution;
 }
 
+// coordinate conversion (room mask) ---> game ---> (data)
 int mask_to_room_coord(int coord)
 {
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
@@ -1083,9 +1085,9 @@ void convert_move_path_to_room_resolution(MoveList *ml)
     if ((game.options[OPT_WALKSPEEDABSOLUTE] != 0) && game.GetDataUpscaleMult() > 1)
     { // Speeds are independent from MaskResolution
         for (int i = 0; i < ml->numstage; i++)
-        { // ...so they are not multiplied by MaskResolution factor when converted to room coords
-            ml->xpermove[i] = ml->xpermove[i] / game.GetDataUpscaleMult();
-            ml->ypermove[i] = ml->ypermove[i] / game.GetDataUpscaleMult();
+        { // ...we still need to convert from game to data coords
+            ml->xpermove[i] = game_to_data_coord(ml->xpermove[i]);
+            ml->ypermove[i] = game_to_data_coord(ml->ypermove[i]);
         }
     }
 
@@ -1099,9 +1101,9 @@ void convert_move_path_to_room_resolution(MoveList *ml)
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        uint16_t lowPart = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
-        uint16_t highPart = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
-        ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
+        uint16_t low = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
+        uint16_t high = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
+        ml->pos[i] = ((int)high << 16) | (low & 0x0000ffff);
     }
 
     if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)

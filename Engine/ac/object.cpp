@@ -428,8 +428,9 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    int objX = room_to_mask_coord(objs[objj].x);
-    int objY = room_to_mask_coord(objs[objj].y);
+    // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
+    const int objX = room_to_mask_coord(objs[objj].x);
+    const int objY = room_to_mask_coord(objs[objj].y);
     tox = room_to_mask_coord(tox);
     toy = room_to_mask_coord(toy);
 

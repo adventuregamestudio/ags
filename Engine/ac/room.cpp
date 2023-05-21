@@ -1068,12 +1068,12 @@ void croom_ptr_clear()
 }
 
 
-AGS_INLINE int room_to_mask_coord(int coord)
+int room_to_mask_coord(int coord)
 {
     return coord * game.GetDataUpscaleMult() / thisroom.MaskResolution;
 }
 
-AGS_INLINE int mask_to_room_coord(int coord)
+int mask_to_room_coord(int coord)
 {
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }

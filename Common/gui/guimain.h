@@ -265,10 +265,10 @@ extern void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int x, int y,
                             Common::Bitmap *image, bool src_has_alpha,
                             Common::BlendMode blend_mode, int alpha);
 
-extern AGS_INLINE int game_to_data_coord(int coord);
-extern AGS_INLINE int data_to_game_coord(int coord);
-extern AGS_INLINE void data_to_game_coords(int *x, int *y);
-extern AGS_INLINE int get_fixed_pixel_size(int pixels);
+extern int game_to_data_coord(int coord);
+extern int data_to_game_coord(int coord);
+extern void data_to_game_coords(int *x, int *y);
+extern int get_fixed_pixel_size(int pixels);
 
 // Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);

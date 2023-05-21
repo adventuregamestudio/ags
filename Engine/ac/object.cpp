@@ -72,7 +72,7 @@ ScriptObject *GetObjectAtRoom(int x, int y)
     return &scrObj[hsnum];
 }
 
-AGS_INLINE int is_valid_object(int obtest) {
+int is_valid_object(int obtest) {
     if ((obtest < 0) || (static_cast<uint32_t>(obtest) >= croom->numobj)) return 0;
     return 1;
 }

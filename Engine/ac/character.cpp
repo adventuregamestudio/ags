@@ -1712,7 +1712,8 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     debug_script_log("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
 
     const int move_speed_x = chin->walkspeed;
-    const int move_speed_y = ((chin->walkspeed_y == UNIFORM_WALK_SPEED) ? chin->walkspeed : chin->walkspeed);
+    const int move_speed_y =
+        ((chin->walkspeed_y == UNIFORM_WALK_SPEED) ? chin->walkspeed : chin->walkspeed_y);
 
     if ((move_speed_x == 0) && (move_speed_y == 0)) {
         debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);

@@ -237,9 +237,8 @@ void convert_room_background_to_game_res()
     if (!game.AllowRelativeRes() || !thisroom.IsRelativeRes())
         return;
 
-    int bkg_width = thisroom.Width;
-    int bkg_height = thisroom.Height;
-    data_to_game_coords(&bkg_width, &bkg_height);
+    const int bkg_width = data_to_game_coord(thisroom.Width);
+    const int bkg_height = data_to_game_coord(thisroom.Height);
 
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
         thisroom.BgFrames[i].Graphic = FixBitmap(thisroom.BgFrames[i].Graphic, bkg_width, bkg_height);
@@ -247,17 +246,9 @@ void convert_room_background_to_game_res()
     // Fix masks to match resized room background
     // Walk-behind is always 1:1 with room background size
     thisroom.WalkBehindMask = FixBitmap(thisroom.WalkBehindMask, bkg_width, bkg_height);
-    int mask_width = bkg_width / thisroom.MaskResolution;
-    int mask_height = bkg_height / thisroom.MaskResolution;
-    thisroom.HotspotMask = FixBitmap(thisroom.HotspotMask, mask_width, mask_height);
-    thisroom.RegionMask = FixBitmap(thisroom.RegionMask, mask_width, mask_height);
-    thisroom.WalkAreaMask = FixBitmap(thisroom.WalkAreaMask, mask_width, mask_height);
-
-    for (size_t i = 0; i < thisroom.WalkAreaCount; ++i)
-    {
-        thisroom.WalkAreas[i].Top = room_to_mask_coord(thisroom.WalkAreas[i].Top);
-        thisroom.WalkAreas[i].Bottom = room_to_mask_coord(thisroom.WalkAreas[i].Bottom);
-    }
+    // For the rest we keep the masks at original res, but update the MaskResolution,
+    // as it must correspond to the runtime data->game coordinate conversion
+    thisroom.MaskResolution = data_to_game_coord(thisroom.MaskResolution);
 }
 
 

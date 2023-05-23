@@ -21,15 +21,10 @@ namespace AGS.Editor.Components
             _logPanel = new LogPanel();
             _logConfig = new DebugLog();
 
+            _logPanel.LogConfig = _logConfig;
+
             _guiController.AddDockPane(_logPanel, new DockData(DockingState.DockBottom, Rectangle.Empty));
             _guiController.SetLogPanel(_logPanel);
-
-            _logPanel.ApplyFilters(_logConfig);
-        }
-
-        public override void PropertyChanged(string propertyName, object oldValue)
-        {
-            _logPanel.ApplyFilters(_logConfig);
         }
 
         public override string ComponentID

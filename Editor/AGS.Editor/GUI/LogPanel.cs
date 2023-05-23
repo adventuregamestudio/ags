@@ -12,6 +12,7 @@ namespace AGS.Editor
         private string _logFont = Factory.AGSEditor.Settings.LogFont;
         private int _logFontSize = Factory.AGSEditor.Settings.LogFontSize;
         // State properties
+        private DebugLog _logConfig;
         private bool _run = true;
         private bool _glue = true; // stick to the log's end
         private bool _autoGlue = true; // force glue, regardless of user's actions
@@ -29,8 +30,21 @@ namespace AGS.Editor
             InitializeComponent();
             UpdateStyling();
 
+            propertyGrid.PropertyValueChanged += PropertyGrid_PropertyValueChanged;
+
             timerLogBufferSync.Start();
             Run();
+        }
+
+        public DebugLog LogConfig
+        {
+            get { return _logConfig; }
+            set
+            {
+                _logConfig = value;
+                propertyGrid.SelectedObject = _logConfig;
+                ApplyFilters(_logConfig);
+            }
         }
 
         public string LogFont
@@ -62,6 +76,11 @@ namespace AGS.Editor
         public void UpdateStyling()
         {
             logTextBox.Font = new System.Drawing.Font(_logFont, _logFontSize);
+        }
+
+        private void PropertyGrid_PropertyValueChanged(object s, System.Windows.Forms.PropertyValueChangedEventArgs e)
+        {
+            ApplyFilters(_logConfig);
         }
 
         delegate void UpdateTextCallback(bool reset, int pop, int push);
@@ -230,6 +249,11 @@ namespace AGS.Editor
         private void btnGlue_Click(object sender, EventArgs e)
         {
             AutoGlue = btnGlue.Checked;
+        }
+
+        private void btnProperties_Click(object sender, EventArgs e)
+        {
+            splitContainer.Panel2Collapsed = !splitContainer.Panel2Collapsed;
         }
 
         private void DeleteLines(int firstChar, int lastChar)

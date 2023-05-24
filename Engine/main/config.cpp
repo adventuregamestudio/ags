@@ -79,65 +79,12 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, WindowSetu
     return def_value;
 }
 
-// Legacy screen size definition
-enum ScreenSizeDefinition
-{
-    kScreenDef_Undefined = -1,
-    kScreenDef_Explicit,        // define by width & height
-    kScreenDef_ByGameScaling,   // define by game scale factor
-    kScreenDef_MaxDisplay,      // set to maximal supported (desktop/device screen size)
-    kNumScreenDef
-};
-
-static ScreenSizeDefinition parse_legacy_screendef(const String &option)
-{
-    return StrUtil::ParseEnum<ScreenSizeDefinition>(option,
-        CstrArr<kNumScreenDef>{"explicit", "scaling", "max"}, kScreenDef_Undefined);
-}
-
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value)
 {
     // Backward compatible option name from the previous versions
     if (option.CompareNoCase("max_round") == 0) return kFrame_Round;
     return StrUtil::ParseEnum<FrameScaleDef>(option,
         CstrArr<kNumFrameScaleDef>{"round", "stretch", "proportional"}, def_value);
-}
-
-static FrameScaleDef parse_legacy_scaling_option(const String &option, int &scale)
-{
-    FrameScaleDef frame = parse_scaling_option(option, kFrame_Undefined);
-    if (frame == kFrame_Undefined)
-    {
-        scale = StrUtil::StringToInt(option);
-        return scale > 0 ? kFrame_Round : kFrame_Undefined;
-    }
-    return frame;
-}
-
-// Parses legacy filter ID and converts it into current scaling options
-bool parse_legacy_frame_config(const String &scaling_option, String &filter_id,
-                               FrameScaleDef &frame, int &scale_factor)
-{
-    struct
-    {
-        String LegacyName;
-        String CurrentName;
-        int    Scaling;
-    } legacy_filters[6] = { {"none", "none", -1}, {"max", "StdScale", 0}, {"StdScale", "StdScale", -1},
-                           {"AAx", "Linear", -1}, {"Hq2x", "Hqx", 2}, {"Hq3x", "Hqx", 3} };
-
-    for (int i = 0; i < 6; i++)
-    {
-        if (scaling_option.CompareLeftNoCase(legacy_filters[i].LegacyName) == 0)
-        {
-            filter_id = legacy_filters[i].CurrentName;
-            frame = kFrame_Round;
-            scale_factor = legacy_filters[i].Scaling >= 0 ? legacy_filters[i].Scaling :
-                scaling_option.Mid(legacy_filters[i].LegacyName.GetLength()).ToInt();
-            return true;
-        }
-    }
-    return false;
 }
 
 String make_window_mode_option(const WindowSetup &ws, const Size &game_res, const Size &desktop_res)
@@ -210,87 +157,6 @@ void config_defaults()
     usetup.Screen.WinSetup = WindowSetup(kWnd_Windowed);
 }
 
-static void read_legacy_graphics_config(const ConfigTree &cfg)
-{
-    // Pre-3.* game resolution setup
-    int default_res = CfgReadInt(cfg, "misc", "defaultres", 0);
-    int screen_res = CfgReadInt(cfg, "misc", "screenres", 0);
-    if ((default_res == kGameResolution_320x200 ||
-        default_res == kGameResolution_320x240) && screen_res > 0)
-    {
-        usetup.override_upscale = true; // run low-res game in high-res mode
-    }
-
-    usetup.Screen.Windowed = CfgReadBoolInt(cfg, "misc", "windowed");
-    usetup.Screen.DriverID = CfgReadString(cfg, "misc", "gfxdriver", usetup.Screen.DriverID);
-
-    // Window setup: style and size definition, game frame style
-    {
-        String legacy_filter = CfgReadString(cfg, "misc", "gfxfilter");
-        if (!legacy_filter.IsEmpty())
-        {
-            // Legacy scaling config is applied only to windowed setting
-            int scale_factor = 0;
-            parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.WinGameFrame,
-                scale_factor);
-            if (scale_factor > 0)
-                usetup.Screen.WinSetup = WindowSetup(scale_factor);
-
-            // AGS 3.2.1 and 3.3.0 aspect ratio preferences for fullscreen
-            if (!usetup.Screen.Windowed)
-            {
-                bool allow_borders = 
-                    (CfgReadBoolInt(cfg, "misc", "sideborders") || CfgReadBoolInt(cfg, "misc", "forceletterbox") ||
-                     CfgReadBoolInt(cfg, "misc", "prefer_sideborders") || CfgReadBoolInt(cfg, "misc", "prefer_letterbox"));
-                usetup.Screen.FsGameFrame = allow_borders ? kFrame_Proportional : kFrame_Stretch;
-            }
-        }
-
-        // AGS 3.4.0 - 3.4.1-rc uniform scaling option
-        String uniform_frame_scale = CfgReadString(cfg, "graphics", "game_scale");
-        if (!uniform_frame_scale.IsEmpty())
-        {
-            int src_scale = 1;
-            FrameScaleDef frame = parse_legacy_scaling_option(uniform_frame_scale, src_scale);
-            usetup.Screen.FsGameFrame = frame;
-            usetup.Screen.WinGameFrame = frame;
-        }
-
-        // AGS 3.5.* gfx mode with screen definition
-        const bool is_windowed = CfgReadBoolInt(cfg, "graphics", "windowed");
-        WindowSetup &ws = is_windowed ? usetup.Screen.WinSetup : usetup.Screen.FsSetup;
-        const WindowMode wm = is_windowed ? kWnd_Windowed : kWnd_Fullscreen;
-        ScreenSizeDefinition scr_def = parse_legacy_screendef(CfgReadString(cfg, "graphics", "screen_def"));
-        switch (scr_def)
-        {
-        case kScreenDef_Explicit:
-            {
-                Size sz(
-                    CfgReadInt(cfg, "graphics", "screen_width"),
-                    CfgReadInt(cfg, "graphics", "screen_height"));
-                ws = WindowSetup(sz, wm);
-            }
-            break;
-        case kScreenDef_ByGameScaling:
-            {
-                int src_scale = 0;
-                is_windowed ?
-                    parse_legacy_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win"), src_scale) :
-                    parse_legacy_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs"), src_scale);
-                ws = WindowSetup(src_scale, wm);
-            }
-            break;
-        case kScreenDef_MaxDisplay:
-            ws = is_windowed ? WindowSetup() : WindowSetup(kWnd_FullDesktop);
-            break;
-        default:
-            break;
-        }
-    }
-
-    usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
-}
-
 void override_config_ext(ConfigTree &cfg)
 {
     platform->ReadConfiguration(cfg);
@@ -298,10 +164,6 @@ void override_config_ext(ConfigTree &cfg)
 
 void apply_config(const ConfigTree &cfg)
 {
-    // Legacy graphics settings has to be translated into new options;
-    // they must be read first, to let newer options override them, if ones are present
-    read_legacy_graphics_config(cfg);
-
     {
         // Audio options
         usetup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", usetup.audio_enabled);
@@ -386,7 +248,6 @@ void apply_config(const ConfigTree &cfg)
         String override_os = CfgReadString(cfg, "override", "os");
         usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
-        usetup.override_upscale = CfgReadBoolInt(cfg, "override", "upscale", usetup.override_upscale);
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
     }

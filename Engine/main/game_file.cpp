@@ -197,25 +197,9 @@ HError load_game_file()
     // NOTE: this must be done before UpdateGameData, or certain adjustments
     // won't be applied correctly.
 
-    // Custom engine detection (ugly hack, depends on the known game GUIDs)
-    if (strcmp(game.guid, "{d6795d1c-3cfe-49ec-90a1-85c313bfccaf}" /* Kathy Rain */ ) == 0 ||
-        strcmp(game.guid, "{5833654f-6f0d-40d9-99e2-65c101c8544a}" /* Whispers of a Machine */ ) == 0)
-    {
-        game.options[OPT_CUSTOMENGINETAG] = CUSTOMENG_CLIFFTOP;
-    }
-    // Upscale mode -- for old games that supported it.
-    if ((loaded_game_file_version < kGameVersion_310) && usetup.override_upscale)
-    {
-        if (game.GetResolutionType() == kGameResolution_320x200)
-            game.SetGameResolution(kGameResolution_640x400);
-        else if (game.GetResolutionType() == kGameResolution_320x240)
-            game.SetGameResolution(kGameResolution_640x480);
-    }
-    if (game.options[OPT_CUSTOMENGINETAG] == CUSTOMENG_CLIFFTOP)
-    {
-        if (game.GetResolutionType() == kGameResolution_640x400)
-            game.SetGameResolution(Size(640, 360));
-    }
+    // ...
+
+    //-------------------------------------------------------------------------
 
     err = (HError)UpdateGameData(ents, src.DataVersion);
     if (!err)

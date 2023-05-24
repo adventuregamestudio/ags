@@ -23,7 +23,6 @@ GameSetup::GameSetup()
     mouse_auto_lock = false;
     override_script_os = -1;
     override_multitasking = -1;
-    override_upscale = false;
     mouse_speed = 1.f;
     mouse_ctrl_when = kMouseCtrl_Fullscreen;
     mouse_ctrl_enabled = true;

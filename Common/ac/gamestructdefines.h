@@ -92,7 +92,7 @@
 // Compatibility engine modes (hacks)
 #define CUSTOMENG_NONE      0
 #define CUSTOMENG_DRACONIAN 1 // Draconian Edition
-#define CUSTOMENG_CLIFFTOP  2 // Clifftop Games
+#define CUSTOMENG_CLIFFTOP  2 // Clifftop Games [UNSUPPORTED in AGS 4]
 
 // Sierra-style portrait position style
 #define PORTRAIT_LEFT       0

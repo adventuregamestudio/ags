@@ -97,10 +97,10 @@ struct CharacterInfo {
     char  scrname[MAX_SCRIPT_NAME_LEN];
     char  on;
 
-    int get_effective_y();   // return Y - Z
-    int get_baseline();      // return baseline, or Y if not set
-    int get_blocking_top();    // return Y - BlockingHeight/2
-    int get_blocking_bottom(); // return Y + BlockingHeight/2
+    int get_effective_y() const;     // return Y - Z
+    int get_baseline() const;        // return baseline, or Y if not set
+    int get_blocking_top() const;    // return Y - BlockingHeight/2
+    int get_blocking_bottom() const; // return Y + BlockingHeight/2
 
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }

@@ -34,20 +34,11 @@ struct GameSetupStruct;
 #define GUIMAIN_LEGACY_RESERVED_INTS       5
 #define GUIMAIN_LEGACY_NAME_LENGTH         16
 #define GUIMAIN_LEGACY_EVENTHANDLER_LENGTH 20
-#define GUIMAIN_LEGACY_TW_FLAGS_SIZE       4
 
 namespace AGS
 {
 namespace Common
 {
-
-// Legacy GUIMain visibility state, which combined Visible property and override factor
-enum LegacyGUIVisState
-{
-    kGUIVisibility_LockedOff = -1, // locked hidden (used by PopupMouseY guis)
-    kGUIVisibility_Off       =  0, // hidden
-    kGUIVisibility_On        =  1  // shown
-};
 
 class Bitmap;
 class GUIObject;
@@ -249,8 +240,6 @@ namespace GUI
     // Writes all GUIs and their controls.
     // WARNING: the data is written from the global arrays (guis, guibuts, and so on)
     void WriteGUI(Stream *out);
-    // Converts legacy GUIVisibility into appropriate GUIMain properties
-    void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);
 }
 
 } // namespace Common

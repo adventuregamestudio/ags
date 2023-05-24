@@ -27,32 +27,6 @@ namespace AGS
 namespace Common
 {
 
-FrameAlignment ConvertLegacyButtonAlignment(LegacyButtonAlignment align)
-{
-    switch (align)
-    {
-    case kLegacyButtonAlign_TopCenter:
-        return kAlignTopCenter;
-    case kLegacyButtonAlign_TopLeft:
-        return kAlignTopLeft;
-    case kLegacyButtonAlign_TopRight:
-        return kAlignTopRight;
-    case kLegacyButtonAlign_CenterLeft:
-        return kAlignMiddleLeft;
-    case kLegacyButtonAlign_Centered:
-        return kAlignMiddleCenter;
-    case kLegacyButtonAlign_CenterRight:
-        return kAlignMiddleRight;
-    case kLegacyButtonAlign_BottomLeft:
-        return kAlignBottomLeft;
-    case kLegacyButtonAlign_BottomCenter:
-        return kAlignBottomCenter;
-    case kLegacyButtonAlign_BottomRight:
-        return kAlignBottomRight;
-    }
-    return kAlignNone;
-}
-
 
 GUIButton::GUIButton()
 {
@@ -310,23 +284,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
         SetText(String::FromStreamCount(in, GUIBUTTON_LEGACY_TEXTLENGTH));
     else
         SetText(StrUtil::ReadString(in));
-
-    if (gui_version >= kGuiVersion_272a)
-    {
-        if (gui_version < kGuiVersion_350)
-        {
-            TextAlignment = ConvertLegacyButtonAlignment((LegacyButtonAlignment)in->ReadInt32());
-            in->ReadInt32(); // reserved1
-        }
-        else
-        {
-            TextAlignment = (FrameAlignment)in->ReadInt32();
-        }
-    }
-    else
-    {
-        TextAlignment = kAlignTopCenter;
-    }
+    TextAlignment = (FrameAlignment)in->ReadInt32();
 
     if (TextColor == 0)
         TextColor = 16;

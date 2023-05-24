@@ -153,9 +153,6 @@ void GUIObject::WriteToFile(Stream *out) const
 void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     Flags    = in->ReadInt32();
-    // reverse particular flags from older format
-    if (gui_version < kGuiVersion_350)
-        Flags ^= kGUICtrl_OldFmtXorMask;
     X        = in->ReadInt32();
     Y        = in->ReadInt32();
     Width    = in->ReadInt32();
@@ -192,9 +189,6 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
 {
     // Properties
     Flags = in->ReadInt32();
-    // reverse particular flags from older format
-    if (svg_ver < kGuiSvgVersion_350)
-        Flags ^= kGUICtrl_OldFmtXorMask;
     X = in->ReadInt32();
     Y = in->ReadInt32();
     Width = in->ReadInt32();
@@ -226,33 +220,6 @@ void GUIObject::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // reserve 3 ints
     out->WriteInt32(0);
     out->WriteInt32(0);
-}
-
-
-HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align)
-{
-    switch (align)
-    {
-    case kLegacyGUIAlign_Right:
-        return kHAlignRight;
-    case kLegacyGUIAlign_Center:
-        return kHAlignCenter;
-    default:
-        return kHAlignLeft;
-    }
-}
-
-LegacyGUIAlignment GetLegacyGUIAlignment(HorAlignment align)
-{
-    switch (align)
-    {
-    case kHAlignRight:
-        return kLegacyGUIAlign_Right;
-    case kHAlignCenter:
-        return kLegacyGUIAlign_Center;
-    default:
-        return kLegacyGUIAlign_Left;
-    }
 }
 
 } // namespace Common

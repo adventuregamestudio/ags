@@ -125,9 +125,6 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextBoxFlags = in->ReadInt32();
-    // reverse particular flags from older format
-    if (gui_version < kGuiVersion_350)
-        TextBoxFlags ^= kTextBox_OldFmtXorMask;
 
     if (TextColor == 0)
         TextColor = 16;

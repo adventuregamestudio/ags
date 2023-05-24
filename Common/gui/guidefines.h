@@ -87,15 +87,7 @@ enum GUIMainFlags
 
     // NOTE: currently default state is Visible to keep this backwards compatible;
     // check later if this is still a wanted behavior
-    kGUIMain_DefFlags   = kGUIMain_Clickable | kGUIMain_Visible,
-    // flags that had inverse meaning in old formats
-    kGUIMain_OldFmtXorMask = kGUIMain_Clickable
-};
-
-// GUIMain's legacy flags, now converted to GUIMainFlags on load
-enum GUIMainLegacyFlags
-{
-    kGUIMain_LegacyTextWindow = 5
+    kGUIMain_DefFlags   = kGUIMain_Clickable | kGUIMain_Visible
 };
 
 // GUIMain's style of getting displayed on screen
@@ -108,10 +100,7 @@ enum GUIPopupStyle
     // Same as Normal, but pauses the game when shown
     kGUIPopupModal            = 2,
     // Same as Normal, but is not removed when interface is off
-    kGUIPopupNoAutoRemove     = 3,
-    // (legacy option) Normal GUI, initially off
-    // converts to kGUIPopupNormal with Visible = false
-    kGUIPopupLegacyNormalOff  = 4
+    kGUIPopupNoAutoRemove     = 3
 };
 
 // The type of GUIControl
@@ -139,9 +128,7 @@ enum GUIControlFlags
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
     kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
 
-    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable,
-    // flags that had inverse meaning in old formats
-    kGUICtrl_OldFmtXorMask = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
+    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
 };
 
 // Label macro flags, define which macros are present in the Label's Text
@@ -165,9 +152,7 @@ enum GUIListBoxFlags
     kListBox_ShowArrows = 0x02,
     kListBox_SvgIndex   = 0x04,
 
-    kListBox_DefFlags   = kListBox_ShowBorder | kListBox_ShowArrows,
-    // flags that had inverse meaning in old formats
-    kListBox_OldFmtXorMask = kListBox_ShowBorder | kListBox_ShowArrows
+    kListBox_DefFlags   = kListBox_ShowBorder | kListBox_ShowArrows
 };
 
 // GUITextBox style and behavior flags
@@ -175,9 +160,7 @@ enum GUITextBoxFlags
 {
     kTextBox_ShowBorder = 0x0001,
 
-    kTextBox_DefFlags   = kTextBox_ShowBorder,
-    // flags that had inverse meaning in old formats
-    kTextBox_OldFmtXorMask = kTextBox_ShowBorder
+    kTextBox_DefFlags   = kTextBox_ShowBorder
 };
 
 // GUI runtime save format

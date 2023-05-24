@@ -135,10 +135,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-        TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
-    else
-        TextAlignment = (HorAlignment)in->ReadInt32();
+    TextAlignment = (HorAlignment)in->ReadInt32();
 
     if (TextColor == 0)
         TextColor = 16;

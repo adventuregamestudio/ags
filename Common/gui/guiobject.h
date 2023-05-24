@@ -28,13 +28,6 @@ namespace AGS
 namespace Common
 {
 
-enum LegacyGUIAlignment
-{
-    kLegacyGUIAlign_Left   = 0,
-    kLegacyGUIAlign_Right  = 1,
-    kLegacyGUIAlign_Center = 2
-};
-
 class GUIObject
 {
 public:
@@ -126,10 +119,6 @@ protected:
     String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
     String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
 };
-
-// Converts legacy alignment type used in GUI Label/ListBox data (only left/right/center)
-HorAlignment ConvertLegacyGUIAlignment(LegacyGUIAlignment align);
-LegacyGUIAlignment GetLegacyGUIAlignment(HorAlignment align);
 
 } // namespace Common
 } // namespace AGS

@@ -39,19 +39,6 @@ enum GUIClickAction
     kGUIAction_RunScript  = 2,
 };
 
-enum LegacyButtonAlignment
-{
-    kLegacyButtonAlign_TopCenter = 0,
-    kLegacyButtonAlign_TopLeft = 1,
-    kLegacyButtonAlign_TopRight = 2,
-    kLegacyButtonAlign_CenterLeft = 3,
-    kLegacyButtonAlign_Centered = 4,
-    kLegacyButtonAlign_CenterRight = 5,
-    kLegacyButtonAlign_BottomLeft = 6,
-    kLegacyButtonAlign_BottomCenter = 7,
-    kLegacyButtonAlign_BottomRight = 8,
-};
-
 class GUIButton : public GUIObject
 {
 public:

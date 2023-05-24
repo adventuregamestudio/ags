@@ -370,26 +370,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     TextColor = in->ReadInt32();
     SelectedTextColor = in->ReadInt32();
     ListBoxFlags = in->ReadInt32();
-    // reverse particular flags from older format
-    if (gui_version < kGuiVersion_350)
-        ListBoxFlags ^= kListBox_OldFmtXorMask;
-
-    if (gui_version >= kGuiVersion_272b)
-    {
-        if (gui_version < kGuiVersion_350)
-        {
-            TextAlignment = ConvertLegacyGUIAlignment((LegacyGUIAlignment)in->ReadInt32());
-            in->ReadInt32(); // reserved1
-        }
-        else
-        {
-            TextAlignment = (HorAlignment)in->ReadInt32();
-        }
-    }
-    else
-    {
-        TextAlignment = kHAlignLeft;
-    }
+    TextAlignment = (HorAlignment)in->ReadInt32();
 
     if (gui_version >= kGuiVersion_unkn_107)
     {
@@ -430,18 +411,10 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     // Properties
     ListBoxFlags = in->ReadInt32();
     Font = in->ReadInt32();
-    if (svg_ver < kGuiSvgVersion_350)
-    {
-        // reverse particular flags from older format
-        ListBoxFlags ^= kListBox_OldFmtXorMask;
-    }
-    else
-    {
-        SelectedBgColor = in->ReadInt32();
-        SelectedTextColor = in->ReadInt32();
-        TextAlignment = (HorAlignment)in->ReadInt32();
-        TextColor = in->ReadInt32();
-    }
+    SelectedBgColor = in->ReadInt32();
+    SelectedTextColor = in->ReadInt32();
+    TextAlignment = (HorAlignment)in->ReadInt32();
+    TextColor = in->ReadInt32();
 
     // Items
     ItemCount = in->ReadInt32();

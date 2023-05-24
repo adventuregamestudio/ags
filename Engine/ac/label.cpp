@@ -43,19 +43,14 @@ void Label_SetText(GUILabel *labl, const char *newtx) {
 
 int Label_GetTextAlignment(GUILabel *labl)
 {
-    return (loaded_game_file_version >= kGameVersion_350) ?
-        labl->TextAlignment :
-        GetLegacyGUIAlignment(labl->TextAlignment);
+    return labl->TextAlignment;
 }
 
 void Label_SetTextAlignment(GUILabel *labl, int align)
 {
     // NOTE: some custom engines supported Label.TextAlignment
     // before 3.5.0 got this added officially
-    HorAlignment use_align =
-        (loaded_game_file_version >= kGameVersion_350) ?
-        (HorAlignment)align :
-        ConvertLegacyGUIAlignment((LegacyGUIAlignment)align);
+    HorAlignment use_align = (HorAlignment)align;
     if (labl->TextAlignment != use_align)
     {
         labl->TextAlignment = use_align;

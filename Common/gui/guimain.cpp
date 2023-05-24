@@ -580,11 +580,6 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    // Legacy text window tag
-    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
-    if (gui_version < kGuiVersion_350)
-        in->Read(tw_flags, sizeof(tw_flags));
-
     if (gui_version < kGuiVersion_340)
     {
         Name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
@@ -624,15 +619,6 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     Padding       = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
         in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
-
-    if (gui_version < kGuiVersion_350)
-    {
-        if (tw_flags[0] == kGUIMain_LegacyTextWindow)
-            _flags |= kGUIMain_TextWindow;
-        // reverse particular flags from older format
-        _flags ^= kGUIMain_OldFmtXorMask;
-        GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
-    }
 
     // pre-3.4.0 games contained array of 32-bit pointers; these values are unused
     // TODO: error if ctrl_count > LEGACY_MAX_OBJS_ON_GUI
@@ -691,12 +677,6 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     Height = in->ReadInt32();
     BgImage = in->ReadInt32();
     Transparency = in->ReadInt32();
-    if (svg_version < kGuiSvgVersion_350)
-    {
-        // reverse particular flags from older format
-        _flags ^= kGUIMain_OldFmtXorMask;
-        GUI::ApplyLegacyVisibility(*this, (LegacyGUIVisState)in->ReadInt32());
-    }
     ZOrder = in->ReadInt32();
 
     if (svg_version >= kGuiSvgVersion_350)
@@ -1001,22 +981,6 @@ HError ReadGUI(Stream *in)
         if (gui.Height < 2)
             gui.SetSize(gui.Width, 2);
 
-        // GUI popup style and visibility
-        if (GameGuiVersion < kGuiVersion_350)
-        {
-            // Convert legacy normal-off style into normal one
-            if (gui.PopupStyle == kGUIPopupLegacyNormalOff)
-            {
-                gui.PopupStyle = kGUIPopupNormal;
-                gui.SetVisible(false);
-            }
-            // Normal GUIs and PopupMouseY GUIs should start with Visible = true
-            else
-            {
-                gui.SetVisible(gui.PopupStyle != kGUIPopupModal);
-            }
-        }
-
         // PopupMouseY GUIs should be initially concealed
         if (gui.PopupStyle == kGUIPopupMouseY)
             gui.SetConceal(true);
@@ -1118,24 +1082,6 @@ void WriteGUI(Stream *out)
     for (const auto &list : guilist)
     {
         list.WriteToFile(out);
-    }
-}
-
-void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis)
-{
-    // kGUIPopupMouseY had its own rules, which we practically reverted now
-    if (gui.PopupStyle == kGUIPopupMouseY)
-    {
-        // it was only !Visible if the legacy Visibility was LockedOff
-        gui.SetVisible(vis != kGUIVisibility_LockedOff);
-        // and you could tell it's overridden by behavior when legacy Visibility is Off
-        gui.SetConceal(vis == kGUIVisibility_Off);
-    }
-    // Other GUI styles were simple
-    else
-    {
-        gui.SetVisible(vis != kGUIVisibility_Off);
-        gui.SetConceal(false);
     }
 }
 

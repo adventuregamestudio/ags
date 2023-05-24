@@ -1472,7 +1472,7 @@ static bool scale_and_flip_sprite(int useindx, int sppic, int newwidth, int newh
 bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware) {
     bool hardwareAccelerated = !alwaysUseSoftware && gfxDriver->HasAcceleratedTransform();
 
-    /*const*/ RoomObject &obj = objs[objid];
+    const RoomObject &obj = objs[objid];
 
     if (spriteset[obj.num] == nullptr)
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", objid, obj.num);
@@ -1485,36 +1485,12 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
-    int zoom_level = 100;
-
-    // calculate the zoom level
-    if ((obj.flags & OBJF_USEROOMSCALING) == 0)
-    {
-        zoom_level = obj.zoom;
-    }
-    else
-    {
-        int onarea = get_walkable_area_at_location(obj.x, obj.y);
-        if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0)) {
-            // just off the edge of an area -- use the scaling we had
-            // while on the area
-            zoom_level = obj.zoom;
-        }
-        else
-            zoom_level = get_area_scaling(onarea, obj.x, obj.y);
-    }
-    if (zoom_level != 100)
-        scale_sprite_size(obj.num, zoom_level, &sprwidth, &sprheight);
-    obj.zoom = zoom_level;
 
     // save width/height into parameters if requested
     if (drawnWidth)
         *drawnWidth = sprwidth;
     if (drawnHeight)
         *drawnHeight = sprheight;
-
-    obj.last_width = sprwidth;
-    obj.last_height = sprheight;
 
     tint_red = tint_green = tint_blue = tint_level = tint_light = light_level = 0;
 
@@ -1569,7 +1545,7 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
         objsav.tintb = tint_blue;
         objsav.tintlight = tint_light;
         objsav.lightlev = light_level;
-        objsav.zoom = zoom_level;
+        objsav.zoom = obj.zoom;
         objsav.mirrored = isMirrored;
         return is_texture_intact;
     }
@@ -1593,7 +1569,7 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
         (objsav.tintg == tint_green) &&
         (objsav.tintb == tint_blue) &&
         (objsav.lightlev == light_level) &&
-        (objsav.zoom == zoom_level) &&
+        (objsav.zoom == obj.zoom) &&
         (objsav.mirrored == isMirrored)) {
             // the image is the same, we can use it cached!
             if ((walkBehindMethod != DrawOverCharSprite) &&
@@ -1651,7 +1627,7 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
     objsav.tintb = tint_blue;
     objsav.tintlight = tint_light;
     objsav.lightlev = light_level;
-    objsav.zoom = zoom_level;
+    objsav.zoom = obj.zoom;
     objsav.mirrored = isMirrored;
     return false; // image was modified
 }
@@ -1795,6 +1771,8 @@ void prepare_characters_for_drawing() {
         /*const*/ CharacterExtras &chex = charextra[charid];
 
         our_eip = 330;
+
+        // FIXME ----- move to update
         // Test for valid view and loop
         if (chin->view < 0) {
             quitprintf("!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
@@ -1830,6 +1808,7 @@ void prepare_characters_for_drawing() {
             zoom_level = get_area_scaling (onarea, chin->x, chin->y);
 
         chex.zoom = zoom_level;
+        // FIXME ----- move to update
 
         tint_red = tint_green = tint_blue = tint_amount = tint_light = light_level = 0;
 
@@ -1907,6 +1886,7 @@ void prepare_characters_for_drawing() {
 
         our_eip = 3332;
 
+        // FIXME ----- move to update
         const int src_sprwidth = game.SpriteInfos[sppic].Width;
         const int src_sprheight = game.SpriteInfos[sppic].Height;
 
@@ -1925,14 +1905,17 @@ void prepare_characters_for_drawing() {
             newwidth = src_sprwidth;
             newheight = src_sprheight;
         }
+        // FIXME ----- move to update
 
         our_eip = 3336;
 
+        // FIXME ----- move to update
         // Calculate the X & Y co-ordinates of where the sprite will be
         const int atxp =(data_to_game_coord(chin->x)) - newwidth/2;
         const int atyp =(data_to_game_coord(chin->y) - newheight)
             // adjust the Y positioning for the character's Z co-ord
             - data_to_game_coord(chin->z);
+        // FIXME ----- move to update
 
         chsav.zoom = zoom_level;
         chsav.sppic = specialpic;
@@ -2037,8 +2020,10 @@ void prepare_characters_for_drawing() {
 
         our_eip = 337;
 
+        // FIXME ----- move to update
         chin->actx = atxp;
         chin->acty = atyp;
+        // FIXME ----- move to update
 
         actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(chin->transparency));
         add_to_sprite_list(actsp.Ddb, bgX, bgY, usebasel, false);

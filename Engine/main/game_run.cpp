@@ -45,6 +45,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/viewframe.h"
+#include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
@@ -664,6 +665,42 @@ static void game_loop_update_animated_buttons()
     }
 }
 
+static void update_objects_scale()
+{
+    for (uint32_t objid = 0; objid < croom->numobj; ++objid)
+    {
+        RoomObject &obj = objs[objid];
+        int zoom_level = 100;
+        // calculate the zoom level
+        if ((obj.flags & OBJF_USEROOMSCALING) == 0)
+        {
+            zoom_level = obj.zoom;
+        }
+        else
+        {
+            int onarea = get_walkable_area_at_location(obj.x, obj.y);
+            if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0))
+            {
+                // not on a valid area -- use the last scaling we had while on the area
+                zoom_level = obj.zoom;
+            }
+            else
+            {
+                zoom_level = get_area_scaling(onarea, obj.x, obj.y);
+            }
+        }
+        int sprwidth = game.SpriteInfos[obj.num].Width;
+        int sprheight = game.SpriteInfos[obj.num].Height;
+        if (zoom_level != 100)
+        {
+            scale_sprite_size(obj.num, zoom_level, &sprwidth, &sprheight);
+        }
+        obj.zoom = zoom_level;
+        obj.last_width = sprwidth;
+        obj.last_height = sprheight;
+    }
+}
+
 // Updates GUI reaction to the cursor position change
 // TODO: possibly may be merged with gui_on_mouse_move()
 static void update_cursor_over_gui()
@@ -891,10 +928,13 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_script_update();
 
-    update_audio_system_on_game_loop();
-
+    // historically room object and character scaling was updated
+    // right before the drawing
+    update_objects_scale();
     update_cursor_over_location(mwasatx, mwasaty);
     update_cursor_view();
+
+    update_audio_system_on_game_loop();
 
     // Only render if we are not skipping a cutscene
     if (!play.fast_forward)

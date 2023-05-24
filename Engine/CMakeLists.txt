@@ -220,8 +220,6 @@ target_sources(engine
     ac/route_finder.h
     ac/route_finder_impl.cpp
     ac/route_finder_impl.h
-    ac/route_finder_impl_legacy.cpp
-    ac/route_finder_impl_legacy.h
     ac/route_finder_jps.inl
     ac/runtime_defines.h
     ac/screen.cpp

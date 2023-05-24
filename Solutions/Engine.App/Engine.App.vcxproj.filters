@@ -720,9 +720,6 @@
     <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\route_finder_impl_legacy.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
       <Filter>Library Sources\MojoAL</Filter>
     </ClCompile>
@@ -1476,9 +1473,6 @@
       <Filter>Header Files\platform\windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\route_finder_impl.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\route_finder_impl_legacy.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h">

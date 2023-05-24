@@ -60,8 +60,7 @@ void engine_init_resolution_settings(const Size game_size)
     Debug::Printf("Initializing resolution settings");
     usetup.textheight = get_font_height_outlined(0) + 1;
 
-    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
-        game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
+    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height, game.color_depth * 8);
 
     Rect viewport = RectWH(game_size);
     play.SetMainViewport(viewport);

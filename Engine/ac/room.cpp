@@ -323,26 +323,6 @@ void unload_old_room() {
     pool.PrintStats();
 }
 
-void update_letterbox_mode()
-{
-    const Size real_room_sz = Size(thisroom.Width, thisroom.Height);
-    const Rect game_frame = RectWH(game.GetGameRes());
-    Rect new_main_view = game_frame;
-    // In the original engine the letterbox feature only allowed viewports of
-    // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
-    // Also, the UI viewport should be matching room viewport in that case.
-    // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
-    const int viewport_height =
-        real_room_sz.Height < game.GetLetterboxSize().Height ? real_room_sz.Height :
-        (real_room_sz.Height >= game.GetLetterboxSize().Height && real_room_sz.Height < game.GetGameRes().Height) ? game.GetLetterboxSize().Height :
-        game.GetGameRes().Height;
-    new_main_view.SetHeight(viewport_height);
-
-    play.SetMainViewport(CenterInRect(game_frame, new_main_view));
-    play.SetUIViewport(new_main_view);
-    on_mainviewport_changed();
-}
-
 // Automatically reset primary room viewport and camera to match the new room size
 static void adjust_viewport_to_room()
 {
@@ -463,9 +443,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     our_eip=202;
-    // Update game viewports
-    if (game.IsLegacyLetterbox())
-        update_letterbox_mode();
     SetMouseBounds(0, 0, 0, 0);
 
     our_eip=203;

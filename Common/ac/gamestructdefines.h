@@ -45,7 +45,7 @@
 #define OPT_SPEECHTYPE      10
 #define OPT_PIXPERFECT      11
 #define OPT_NOWALKMODE      12
-#define OPT_LETTERBOX       13
+//#define OPT_LETTERBOX     13 // [DEPRECATED] old-style resolution mode
 #define OPT_FIXEDINVCURSOR  14
 #define OPT_NOLOSEINV       15
 #define OPT_HIRES_FONTS     16
@@ -138,27 +138,12 @@
 #define MAX_SG_EXT_LENGTH 20
 #define MAX_SG_FOLDER_LEN 50
 
-// CLNUP remove or keep for standard game res ?
 enum GameResolutionType
 {
     kGameResolution_Undefined   = -1,
-    // definition of 320x200 in very old versions of the engine (somewhere pre-2.56)
-    kGameResolution_Default     = 0,
-    kGameResolution_320x200     = 1,
-    kGameResolution_320x240     = 2,
-    kGameResolution_640x400     = 3,
-    kGameResolution_640x480     = 4,
-    kGameResolution_800x600     = 5,
-    kGameResolution_1024x768    = 6,
-    kGameResolution_1280x720    = 7,
+    // Do not support any other since AGS 4
     kGameResolution_Custom      = 8,
-    kNumGameResolutions,
-
-    kGameResolution_LastLoRes   = kGameResolution_320x240,
-    kGameResolution_FirstHiRes  = kGameResolution_640x400
 };
-
-Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox = false);
 
 // Automatic numbering of dialog options (OPT_DIALOGNUMBERED)
 enum DialogOptionNumbering

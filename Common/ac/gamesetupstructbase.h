@@ -75,8 +75,6 @@ struct GameSetupStructBase {
     GameSetupStructBase();
     ~GameSetupStructBase();
     void Free();
-    void SetGameResolution(GameResolutionType type);
-    void SetGameResolution(Size game_res);
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 
@@ -86,18 +84,8 @@ struct GameSetupStructBase {
     //
     // Graphic renderer may scale and stretch game's frame as requested by
     // player or system, which will not affect native coordinates in any way.
-    inline GameResolutionType GetResolutionType() const
-    {
-        return _resolutionType;
-    }
-
-    // Get actual game's resolution
+    void SetGameResolution(Size game_res);
     const Size &GetGameRes() const { return _gameResolution; }
-    
-    // Tells if game runs in native letterbox mode (legacy option)
-    inline bool IsLegacyLetterbox() const { return options[OPT_LETTERBOX] != 0; }
-    // Get letterboxed frame size
-    const Size &GetLetterboxSize() const { return _letterboxSize; }
 
     // Returns the expected filename of a digital audio package
     inline AGS::Common::String GetAudioVOXName() const
@@ -106,16 +94,10 @@ struct GameSetupStructBase {
     }
 
 private:
-    void SetNativeResolution(GameResolutionType type, Size game_res);
     void OnResolutionSet();
 
-    // Game's native resolution ID, used to init following values.
-    GameResolutionType _resolutionType;
     // Determines game's actual resolution.
     Size _gameResolution;
-    // Letterboxed frame size. Used when old game is run in native letterbox
-    // mode. In all other situations is equal to game's resolution.
-    Size _letterboxSize;
     // Multiplier for various UI drawin sizes, meant to keep UI elements readable
     int _relativeUIMult;
 };

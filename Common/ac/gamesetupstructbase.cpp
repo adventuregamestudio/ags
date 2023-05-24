@@ -47,7 +47,6 @@ GameSetupStructBase::GameSetupStructBase()
     , load_messages(nullptr)
     , load_dictionary(false)
     , load_compiled_script(false)
-    , _resolutionType(kGameResolution_Undefined)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
@@ -79,31 +78,9 @@ void GameSetupStructBase::Free()
     chars = nullptr;
 }
 
-void GameSetupStructBase::SetNativeResolution(GameResolutionType type, Size game_res)
-{
-    if (type == kGameResolution_Custom)
-    {
-        _resolutionType = kGameResolution_Custom;
-        _gameResolution = game_res;
-        _letterboxSize = _gameResolution;
-    }
-    else
-    {
-        _resolutionType = type;
-        _gameResolution = ResolutionTypeToSize(_resolutionType, IsLegacyLetterbox());
-        _letterboxSize = ResolutionTypeToSize(_resolutionType, false);
-    }
-}
-
-void GameSetupStructBase::SetGameResolution(GameResolutionType type)
-{
-    SetNativeResolution(type, Size());
-    OnResolutionSet();
-}
-
 void GameSetupStructBase::SetGameResolution(Size game_res)
 {
-    SetNativeResolution(kGameResolution_Custom, game_res);
+    _gameResolution = game_res;
     OnResolutionSet();
 }
 
@@ -142,18 +119,11 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
     GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
-    // CLNUP get rid of resolution_type
+    assert(resolution_type == kGameResolution_Custom);
     Size game_size;
-    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_330)
-    {
-        game_size.Width = in->ReadInt32();
-        game_size.Height = in->ReadInt32();
-        SetGameResolution(game_size);
-    }
-    else
-    {
-        SetGameResolution(resolution_type);
-    }
+    game_size.Width = in->ReadInt32();
+    game_size.Height = in->ReadInt32();
+    SetGameResolution(game_size);
 
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
@@ -192,12 +162,9 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(uniqueid);
     out->WriteInt32(numgui);
     out->WriteInt32(numcursors);
-    out->WriteInt32(_resolutionType);
-    if (_resolutionType == kGameResolution_Custom)
-    {
-        out->WriteInt32(_gameResolution.Width);
-        out->WriteInt32(_gameResolution.Height);
-    }
+    out->WriteInt32(0); // [DEPRECATED] resolution type
+    out->WriteInt32(_gameResolution.Width);
+    out->WriteInt32(_gameResolution.Height);
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);
     out->WriteArrayOfInt32(reserved, 17);
@@ -209,30 +176,6 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(0); // globalscript
     out->WriteInt32(0); // chars
     out->WriteInt32(CompiledScript ? 1 : 0);
-}
-
-Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox)
-{
-    switch (resolution)
-    {
-    case kGameResolution_Default:
-    case kGameResolution_320x200:
-        return letterbox ? Size(320, 240) : Size(320, 200);
-    case kGameResolution_320x240:
-        return Size(320, 240);
-    case kGameResolution_640x400:
-        return letterbox ? Size(640, 480) : Size(640, 400);
-    case kGameResolution_640x480:
-        return Size(640, 480);
-    case kGameResolution_800x600:
-        return Size(800, 600);
-    case kGameResolution_1024x768:
-        return Size(1024, 768);
-    case kGameResolution_1280x720:
-        return Size(1280,720);
-    default:
-        return Size();
-    }
 }
 
 const char *GetScriptAPIName(ScriptAPIVersion v)

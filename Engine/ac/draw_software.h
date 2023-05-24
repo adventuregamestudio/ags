@@ -23,7 +23,7 @@
 #include "gfx/ddb.h"
 #include "util/geometry.h"
 
-// Sets global viewport offset (used for legacy letterbox)
+// Sets global viewport offset (used for legacy letterbox) // FIXME: CLNUP this?
 void set_invalidrects_globaloffs(int x, int y);
 // Inits dirty rects array for the given room camera/viewport pair
 // View_index indicates the room viewport (>= 0) or the main viewport (-1)

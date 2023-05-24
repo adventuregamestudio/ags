@@ -76,7 +76,6 @@ struct WinConfig
     GameResolutionType GameResType;
     Size   GameResolution;
     int    GameColourDepth;
-    bool   LetterboxByDesign;
 
     String GfxDriverId;
     String GfxFilterId;
@@ -117,7 +116,6 @@ void WinConfig::SetDefaults()
     DataDirectory = ".";
     GameResType = kGameResolution_Undefined;
     GameColourDepth = 0;
-    LetterboxByDesign = false;
 
     GfxFilterId = "StdScale";
     GfxDriverId = "D3D9";
@@ -148,14 +146,9 @@ void WinConfig::Load(const ConfigTree &cfg)
     DataDirectory = CfgReadString(cfg, "misc", "datadir", DataDirectory);
     UserSaveDir = CfgReadString(cfg, "misc", "user_data_dir");
     AppDataDir = CfgReadString(cfg, "misc", "shared_data_dir");
-    // Backward-compatible resolution type
-    GameResType = (GameResolutionType)CfgReadInt(cfg, "gameproperties", "legacy_resolution", GameResType);
-    if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
-        GameResType = kGameResolution_Undefined;
     GameResolution.Width = CfgReadInt(cfg, "gameproperties", "resolution_width", GameResolution.Width);
     GameResolution.Height = CfgReadInt(cfg, "gameproperties", "resolution_height", GameResolution.Height);
     GameColourDepth = CfgReadInt(cfg, "gameproperties", "resolution_bpp", GameColourDepth);
-    LetterboxByDesign = CfgReadBoolInt(cfg, "gameproperties", "legacy_letterbox", false);
 
     GfxDriverId = CfgReadString(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = CfgReadString(cfg, "graphics", "filter", GfxFilterId);
@@ -646,9 +639,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
           (_winCfg.GameResType == kGameResolution_Undefined || _winCfg.GameResType == kGameResolution_Custom) ||
           _winCfg.GameColourDepth == 0)
         MessageBox(_hwnd, "Essential information about the game is missing in the configuration file. Setup program may be unable to deduce graphic modes properly.", "Initialization error", MB_OK | MB_ICONWARNING);
-
-    if (_winCfg.GameResolution.IsNull())
-        _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
 
     SetText(_hwnd, STR(_winCfg.Title));
     SetText((HWND)sys_win_get_window(), STR(_winCfg.Title));

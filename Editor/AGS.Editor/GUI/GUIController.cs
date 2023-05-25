@@ -305,7 +305,7 @@ namespace AGS.Editor
 
         public void ResetWindowPanes()
         {
-            _mainForm.SetDefaultLayout();
+            _mainForm.ResetLayoutToDefaults();
         }
 
         /// <summary>

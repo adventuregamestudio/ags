@@ -428,13 +428,27 @@ namespace AGS.Editor
             if (res == WindowsLayoutManager.LayoutResult.LayoutException)
                 Factory.GUIController.ShowMessage("Failed to load panel layout: the layout file may be corrupt or contains invalid data. The layout will be reset.", MessageBoxIcon.Error);
             if (res != WindowsLayoutManager.LayoutResult.OK)
-            { // Ask layout manager to restore using its own defaults
-                if (!_layoutManager.ResetToDefaults())
-                    SetDefaultLayout(); // last chance fallback
+            {
+                ResetLayoutToDefaults();
             }
         }
 
-        public void SetDefaultLayout()
+        /// <summary>
+        /// Resets Editor layout.
+        /// </summary>
+        public void ResetLayoutToDefaults()
+        {
+            // Ask layout manager to restore using its own defaults
+            if (_layoutManager.ResetToDefaults() != WindowsLayoutManager.LayoutResult.OK)
+            {
+                SetDefaultLayout(); // last chance fallback
+            }
+        }
+
+        /// <summary>
+        /// Sets hard-coded layout; this is a last resort action.
+        /// </summary>
+        private void SetDefaultLayout()
         {
             _layoutManager.DetachAll();
             mainContainer.DockLeftPortion = 0.25f;
@@ -446,6 +460,7 @@ namespace AGS.Editor
             pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);
             projectPanel.Show(mainContainer, DockState.DockRight);
             propertiesPanel.Show(projectPanel.Pane, DockAlignment.Bottom, 0.5f);
+            _layoutManager.RestoreDetached();
         }
 
         private void propertyObjectCombo_SelectedIndexChanged(object sender, EventArgs e)

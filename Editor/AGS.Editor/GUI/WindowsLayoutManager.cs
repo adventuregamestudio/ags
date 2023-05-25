@@ -71,28 +71,47 @@ namespace AGS.Editor
             return res;
         }
 
-        public bool ResetToDefaults()
+        public LayoutResult ResetToDefaults()
         {
-            string layout = Resources.ResourceManager.GetResourceAsString(LAYOUT_RESOURCE, Encoding.Unicode);
-            if (string.IsNullOrEmpty(layout)) return false;
-            byte[] byteArray = Encoding.Unicode.GetBytes(layout);
-            Stream mems = new MemoryStream(byteArray, false);
-            DetachExistingPanes();
+            LayoutResult res;
             try
             {
-                _dockPanel.LoadFromXml(mems, new
-                    DeserializeDockContent(DeserializeContents));
+                string layout = Resources.ResourceManager.GetResourceAsString(LAYOUT_RESOURCE, Encoding.Unicode);
+                if (string.IsNullOrEmpty(layout))
+                    return LayoutResult.NoFile;
+                byte[] byteArray = Encoding.Unicode.GetBytes(layout);
+                Stream mems = new MemoryStream(byteArray, false);
+                DetachExistingPanes();
+                _dockPanel.LoadFromXml(mems, new DeserializeDockContent(DeserializeContents));
+                res = LayoutResult.OK;
             }
             catch (Exception)
             {
+                res = LayoutResult.LayoutException;
+            }
+            finally
+            {
                 RestoreDetachedPanes();
             }
-            return true;
+            return res;
         }
 
+        /// <summary>
+        /// Detaches all the persistent panes from the parent dock.
+        /// </summary>
         public void DetachAll()
         {
             DetachExistingPanes();
+        }
+
+        /// <summary>
+        /// Restores all the detached panes to the parent dock.
+        /// Note that this only links the panes to the parent pane, this
+        /// does not make them shown yet.
+        /// </summary>
+        public void RestoreDetached()
+        {
+            RestoreDetachedPanes();
         }
 
         private void DetachExistingPanes()

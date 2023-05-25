@@ -57,12 +57,8 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
     PrepareTextToDraw();
     if (SplitLinesForDrawing(Lines) == 0)
         return rc;
-    const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
-        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(Font) & FFLG_DEFLINESPACING)) ?
-        (get_font_height(Font) + 1) :
-        get_font_linespacing(Font);
-    // < 2.72 labels did not limit vertical size of text
-    const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
+    const int linespacing = get_font_linespacing(Font);
+    const bool limit_by_label_frame = true;
     int at_y = 0;
     Line max_line;
     for (size_t i = 0;
@@ -85,12 +81,8 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
         return;
 
     color_t text_color = ds->GetCompatibleColor(TextColor);
-    const int linespacing = // Older engine labels used (font height + 1) as linespacing for some reason
-        ((loaded_game_file_version < kGameVersion_360) && (get_font_flags(Font) & FFLG_DEFLINESPACING)) ?
-        (get_font_height(Font) + 1) :
-        get_font_linespacing(Font);
-    // < 2.72 labels did not limit vertical size of text
-    const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
+    const int linespacing = get_font_linespacing(Font);
+    const bool limit_by_label_frame = true;
     int at_y = y;
     for (size_t i = 0;
         i < Lines.Count() && (!limit_by_label_frame || at_y <= y + Height);

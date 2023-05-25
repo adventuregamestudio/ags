@@ -478,15 +478,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // Decide what to do if we have been or not in this room before
     if (croom->beenhere > 0)
     {
-        // Always copy object and hotspot names for < 3.6.0 games, because they were not settable
-        if ((loaded_game_file_version < kGameVersion_360_16) ||
-            (croom->contentFormat < kRoomStatSvgVersion_36025))
-        {
-            for (size_t cc = 0; cc < thisroom.Objects.size(); ++cc)
-                croom->obj[cc].name = thisroom.Objects[cc].Name;
-            for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
-                croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
-        }
     }
     else
     {

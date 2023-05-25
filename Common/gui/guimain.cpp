@@ -741,9 +741,7 @@ GuiVersion GameGuiVersion = kGuiVersion_Undefined;
 
 Rect CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align)
 {
-    int use_height = (loaded_game_file_version < kGameVersion_360_21) ?
-        get_font_height(font) + ((align & kMAlignVCenter) ? 1 : 0) :
-        get_font_height_outlined(font);
+    int use_height = get_font_height_outlined(font);
     Rect rc = AlignInRect(frame, RectWH(0, 0, get_text_width_outlined(text, font), use_height), align);
     rc.SetHeight(get_font_surface_height(font));
     return rc;

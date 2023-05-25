@@ -42,7 +42,6 @@ enum VideoFlags
     kVideo_EnableVideo    = 0x0001,
     kVideo_Stretch        = 0x0002,
     kVideo_ClearScreen    = 0x0004,
-    kVideo_LegacyFrameSize= 0x0008,
     kVideo_EnableAudio    = 0x0010,
     kVideo_KeepGameAudio  = 0x0020
 };

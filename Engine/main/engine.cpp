@@ -651,8 +651,6 @@ void engine_init_game_settings()
         game.chars[ee].activeinv=-1;
         game.chars[ee].following=-1;
         game.chars[ee].followinfo=97 | (10 << 8);
-        if (loaded_game_file_version < kGameVersion_360)
-            game.chars[ee].idletime=20; // default to 20 seconds
         game.chars[ee].idleleft=game.chars[ee].idletime;
         game.chars[ee].baseline = -1;
         game.chars[ee].walkwaitcounter = 0;

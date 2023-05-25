@@ -1119,8 +1119,6 @@ int Character_GetAnimationSpeed(CharacterInfo *chaa) {
 void Character_SetAnimationSpeed(CharacterInfo *chaa, int newval) {
 
     chaa->animspeed = newval;
-    if (loaded_game_file_version < kGameVersion_360_16)
-        chaa->idle_anim_speed = chaa->animspeed + 5;
 }
 
 int Character_GetAnimationVolume(CharacterInfo *chaa) {

@@ -46,12 +46,9 @@ struct ScriptViewport;
 struct ScriptCamera;
 struct ScriptOverlay;
 
-#define GAME_STATE_RESERVED_INTS 5
-
 // GameState struct's runtime save format
 enum GameStateSvgVersion
 {
-    kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
     kGSSvgVersion_Initial   = 0,
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_350_9     = 2,
@@ -137,7 +134,6 @@ struct GameState {
     int  speech_display_post_time_ms; // keep speech text/portrait on screen after text/voice has finished playing;
                                       // no speech animation is supposed to be played at this time
     int  dialog_options_highlight_color; // The colour used for highlighted (hovered over) text in dialog options
-    int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
     long  randseed;    // random seed
     int   player_on_region;    // player's current region
     int   screen_is_faded_out; // the screen is currently black

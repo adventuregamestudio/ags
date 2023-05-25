@@ -108,10 +108,6 @@
 #define FADE_CROSSFADE      4
 #define FADE_LAST           4   // this should equal the last one
 
-// Legacy font flags
-//#define FFLG_LEGACY_NOSCALE 0x01 // TODO: is this from legacy format, ever used?
-#define FFLG_LEGACY_SIZEMASK 0x3f
-#define MAX_LEGACY_FONT_SIZE 63
 // Contemporary font flags
 #define FFLG_SIZEMULTIPLIER        0x01  // size data means multiplier
 #define FFLG_DEFLINESPACING        0x02  // linespacing derived from the font height
@@ -122,8 +118,6 @@
 // ASCENDFIXUP: do the TTF ascender fixup, where font's ascender is resized
 // to the nominal font's height.
 #define FFLG_ASCENDERFIXUP         0x08
-// Collection of flags defining fully backward compatible TTF fixup
-#define FFLG_TTF_BACKCOMPATMASK   (FFLG_REPORTNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
 // Collection of flags defining font's load mode
 #define FFLG_LOADMODEMASK         (FFLG_REPORTNOMINALHEIGHT | FFLG_ASCENDERFIXUP)
 // Font outline types

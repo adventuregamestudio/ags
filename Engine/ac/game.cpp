@@ -1435,14 +1435,6 @@ void game_sprite_deleted(int sprnum)
     // character and object draw caches
     reset_objcache_for_sprite(sprnum, true);
 
-    // This is ugly, but apparently there are few games that may rely
-    // (either with or without author's intent) on newly created sprite
-    // being assigned same index as a recently deleted one, which results
-    // in new sprite "secretly" taking place of an old one on the GUI, etc.
-    // So for old games we keep only partial reset (full cleanup is 3.5.0+).
-    const bool reset_sprindex_oldstyle =
-        loaded_game_file_version < kGameVersion_350;
-
     // room object graphics
     if (croom != nullptr)
     {
@@ -1467,9 +1459,6 @@ void game_sprite_deleted(int sprnum)
             but.SetCurrentImage(0);
         }
     }
-
-    if (reset_sprindex_oldstyle)
-        return; // stop here for < 3.5.0 games
 
     // gui backgrounds
     for (size_t i = 0; i < (size_t)game.numgui; ++i)

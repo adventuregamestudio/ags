@@ -146,12 +146,10 @@ void RunCharacterInteraction (int cc, int mood) {
     else if (mood==MODE_CUSTOM2) passon = 7;
 
     evblockbasename="character%d"; evblocknum=cc;
-    if (loaded_game_file_version > kGameVersion_272)
-    {
-        if (passon>=0)
-            run_interaction_script(game.charScripts[cc].get(), passon, 4);
-        run_interaction_script(game.charScripts[cc].get(), 4);  // any click on char
-    }
+
+    if (passon>=0)
+        run_interaction_script(game.charScripts[cc].get(), passon, 4);
+    run_interaction_script(game.charScripts[cc].get(), 4);  // any click on char
 }
 
 int GetCharIDAtScreen(int xx, int yy) {

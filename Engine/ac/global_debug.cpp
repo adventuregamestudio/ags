@@ -103,8 +103,6 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==2) 
     {  // show room mask
-        if (loaded_game_file_version < kGameVersion_360) dataa = kRoomAreaWalkable;
-
         auto mask = static_cast<RoomAreaMask>(dataa);
         if ((mask < kRoomAreaNone) || (mask > kRoomAreaRegion) ||
             (debugLastRoomMask == mask)) // also act like toggling last mask off

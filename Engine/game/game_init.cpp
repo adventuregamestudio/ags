@@ -336,17 +336,6 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
         FontInfo &finfo = game.fonts[i];
         if (!load_font_size(i, finfo))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
-
-        const bool is_wfn = is_bitmap_font(i);
-        // Outline thickness corresponds to 1 game pixel by default;
-        // but if it's a scaled up bitmap font, then it equals to scale   
-        if (data_ver < kGameVersion_360)
-        {
-            if (is_wfn && (finfo.Outline == FONT_OUTLINE_AUTO))
-            {
-                set_font_outline(i, FONT_OUTLINE_AUTO, FontInfo::kSquared, get_font_scaling_mul(i));
-            }
-        }
     }
 
     // Additional fixups - after all the fonts are registered
@@ -421,14 +410,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     GameSetupStruct &game = ents.Game;
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
-    if (data_ver >= kGameVersion_341)
-    {
-        const char *base_api_name = GetScriptAPIName(base_api);
-        const char *compat_api_name = GetScriptAPIName(compat_api);
-        Debug::Printf(kDbgMsg_Info, "Requested script API: %s (%d), compat level: %s (%d)",
-                    base_api >= 0 && base_api <= kScriptAPI_Current ? base_api_name : "unknown", base_api,
-                    compat_api >= 0 && compat_api <= kScriptAPI_Current ? compat_api_name : "unknown", compat_api);
-    }
+    const char *base_api_name = GetScriptAPIName(base_api);
+    const char *compat_api_name = GetScriptAPIName(compat_api);
+    Debug::Printf(kDbgMsg_Info, "Requested script API: %s (%d), compat level: %s (%d)",
+                base_api >= 0 && base_api <= kScriptAPI_Current ? base_api_name : "unknown", base_api,
+                compat_api >= 0 && compat_api <= kScriptAPI_Current ? compat_api_name : "unknown", compat_api);
     // If the game was compiled using unsupported version of the script API,
     // we warn about potential incompatibilities but proceed further.
     if (game.options[OPT_BASESCRIPTAPI] > kScriptAPI_Current)

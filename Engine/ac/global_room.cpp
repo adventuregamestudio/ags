@@ -108,15 +108,6 @@ void NewRoom(int nrnum) {
         return;
     }
     else if ((inside_script==0) & (in_graph_script==0)) {
-        // Compatibility: old games had a *possibly unintentional* effect:
-        // if a character was walking, and a "change room" is called
-        // *NOT* from a script, but by some other trigger,
-        // they ended up forced to a walkable area in the next room.
-        if (loaded_game_file_version < kGameVersion_300)
-        {
-            new_room_placeonwalkable = is_char_walking_ndirect(playerchar);
-        }
-
         new_room(nrnum,playerchar);
         return;
     }

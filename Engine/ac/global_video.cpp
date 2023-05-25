@@ -41,10 +41,6 @@ void PlayFlic(int numb, int scr_flags)
     if (debug_flags & DBG_NOVIDEO)
         return;
 
-    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
-    if (loaded_game_file_version <= kGameVersion_272)
-        play.screen_is_faded_out = 0;
-
     // Convert PlayFlic flags to common video flags
     /* NOTE: historically using decimal "flags"
     default (0): the video will be played stretched to screen;
@@ -115,9 +111,6 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     // if game audio is disabled, then don't play any sound on the video either
     if (!usetup.audio_enabled)
         flags &= ~kVideo_EnableAudio;
-
-    if (loaded_game_file_version < kGameVersion_360_16)
-        flags |= kVideo_LegacyFrameSize;
 
     pause_sound_if_necessary_and_play_video(name, flags, static_cast<VideoSkipType>(skip));
 }

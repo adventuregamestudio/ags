@@ -81,7 +81,6 @@ HGameFileError game_file_first_open(MainGameSource &src)
     HGameFileError err = OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (err ||
         err->Code() == kMGFErr_SignatureFailed ||
-        err->Code() == kMGFErr_FormatVersionTooOld ||
         err->Code() == kMGFErr_FormatVersionNotSupported)
     {
         // Log data description for debugging

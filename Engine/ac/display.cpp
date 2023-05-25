@@ -222,10 +222,6 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     // Prepare for the message display
     //
 
-    // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
-    if (!asspch && (loaded_game_file_version <= kGameVersion_272))
-        play.screen_is_faded_out = 0;
-
     // if it's a normal message box and the game was being skipped,
     // ensure that the screen is up to date before the message box
     // is drawn on top of it

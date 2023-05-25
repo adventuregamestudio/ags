@@ -48,8 +48,6 @@ enum MainGameFileErrorType
     kMGFErr_NoError,
     kMGFErr_FileOpenFailed,
     kMGFErr_SignatureFailed,
-    // separate error given for "too old" format to provide clarifying message
-    kMGFErr_FormatVersionTooOld,
     kMGFErr_FormatVersionNotSupported,
     kMGFErr_CapsNotSupported,
     kMGFErr_InvalidNativeResolution,

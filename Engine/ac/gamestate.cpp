@@ -453,7 +453,6 @@ bool GameState::ShouldPlayVoiceSpeech() const
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
-    const bool old_save = svg_ver < kGSSvgVersion_Initial;
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -540,19 +539,8 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     speech_portrait_y = in->ReadInt32();
     speech_display_post_time_ms = in->ReadInt32();
     dialog_options_highlight_color = in->ReadInt32();
-    if (old_save)
-        in->ReadArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
-    // ** up to here is referenced in the script "game." object
-    if (old_save)
-    {
-        in->ReadInt32(); // recording
-        in->ReadInt32(); // playback
-        in->ReadInt16(); // gamestep
-    }
     randseed = in->ReadInt32();    // random seed
     player_on_region = in->ReadInt32();    // player's current region
-    if (old_save)
-        in->ReadInt32(); // screen_is_faded_out
     check_interaction_only = in->ReadInt32();
     bg_frame = in->ReadInt32();
     bg_anim_delay = in->ReadInt32();  // for animating backgrounds
@@ -596,11 +584,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
-    if (old_save)
-        in->ReadArrayOfInt32(raw_modified, MAX_ROOM_BGFRAMES);
     in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
-    if (old_save)
-        in->ReadInt32(); // room_changes
     mouse_cursor_hidden = in->ReadInt32();
     in->ReadInt32();// [DEPRECATED]
     in->ReadInt32();
@@ -613,10 +597,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     rtint_blue = in->ReadInt32();
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
-    if (!old_save || loaded_game_file_version >= kGameVersion_340_4)
-        rtint_enabled = in->ReadBool();
-    else
-        rtint_enabled = rtint_level > 0;
+    rtint_enabled = in->ReadBool();
     in->ReadInt32();// [DEPRECATED]
     skip_until_char_stops = in->ReadInt32();
     get_loc_name_last_time = in->ReadInt32();
@@ -627,12 +608,9 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
         in->ReadInt16();
     new_music_queue_size = in->ReadInt16();
-    if (!old_save)
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-        {
-            new_music_queue[i].ReadFromFile(in);
-        }
+        new_music_queue[i].ReadFromFile(in);
     }
 
     crossfading_out_channel = in->ReadInt16();
@@ -642,9 +620,6 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     crossfading_in_channel = in->ReadInt16();
     crossfade_in_volume_per_step = in->ReadInt16();
     crossfade_final_volume_in = in->ReadInt16();
-
-    if (old_save)
-        ReadQueuedAudioItems_Aligned(in);
 
     in->Read(takeover_from, 50);
     in->Seek(50);// [DEPRECATED]
@@ -656,26 +631,16 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
-    if (old_save)
-    {
-        in->ReadInt32(); // gui_draw_order
-        in->ReadInt32(); // do_once_tokens;
-    }
     int num_do_once_tokens = in->ReadInt32();
     do_once_tokens.resize(num_do_once_tokens);
-    if (!old_save)
+    for (int i = 0; i < num_do_once_tokens; ++i)
     {
-        for (int i = 0; i < num_do_once_tokens; ++i)
-        {
-            StrUtil::ReadString(do_once_tokens[i], in);
-        }
+        StrUtil::ReadString(do_once_tokens[i], in);
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     if (svg_ver < kGSSvgVersion_350_9)
         in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
-    if (old_save)
-        in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
     if (svg_ver >= kGSSvgVersion_350_9)
     {
         int voice_speech_flags = in->ReadInt32();

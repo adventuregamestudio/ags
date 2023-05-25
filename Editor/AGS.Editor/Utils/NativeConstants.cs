@@ -57,7 +57,6 @@ namespace AGS.Editor
         public static readonly int GLF_SHOWARROWS = (int)Factory.NativeProxy.GetNativeConstant("GLF_SHOWARROWS");
         public static readonly int GUI_POPUP_MODAL = (int)Factory.NativeProxy.GetNativeConstant("GUI_POPUP_MODAL");
         public static readonly int GUIMAIN_TEXTWINDOW = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_TEXTWINDOW");
-        public static readonly byte GUIMAIN_LEGACYTEXTWINDOW = (byte)(int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_LEGACYTEXTWINDOW");
         public static readonly int GTF_SHOWBORDER = (int)Factory.NativeProxy.GetNativeConstant("GTF_SHOWBORDER");
         public static readonly int GOBJ_BUTTON = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_BUTTON");
         public static readonly int GOBJ_LABEL = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LABEL");
@@ -95,7 +94,6 @@ namespace AGS.Editor
             public static readonly int OPT_SPEECHTYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPEECHTYPE");
             public static readonly int OPT_PIXPERFECT = (int)Factory.NativeProxy.GetNativeConstant("OPT_PIXPERFECT");
             public static readonly int OPT_NOWALKMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOWALKMODE");
-            public static readonly int OPT_LETTERBOX = (int)Factory.NativeProxy.GetNativeConstant("OPT_LETTERBOX");
             public static readonly int OPT_FIXEDINVCURSOR = (int)Factory.NativeProxy.GetNativeConstant("OPT_FIXEDINVCURSOR");
             public static readonly int OPT_HIRES_FONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_HIRES_FONTS");
             public static readonly int OPT_SPLITRESOURCES = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPLITRESOURCES");

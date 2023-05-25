@@ -610,7 +610,6 @@ namespace AGS
             if (name->Equals("GLF_SHOWARROWS")) return (int)Common::kListBox_ShowArrows;
             if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;
             if (name->Equals("GUIMAIN_TEXTWINDOW")) return (int)Common::kGUIMain_TextWindow;
-            if (name->Equals("GUIMAIN_LEGACYTEXTWINDOW")) return (int)Common::kGUIMain_LegacyTextWindow;
             if (name->Equals("GTF_SHOWBORDER")) return (int)Common::kTextBox_ShowBorder;
             if (name->Equals("GOBJ_BUTTON")) return (int)Common::kGUIButton;
             if (name->Equals("GOBJ_LABEL")) return (int)Common::kGUILabel;
@@ -635,7 +634,6 @@ namespace AGS
             if (name->Equals("OPT_SPEECHTYPE")) return OPT_SPEECHTYPE;
             if (name->Equals("OPT_PIXPERFECT")) return OPT_PIXPERFECT;
             if (name->Equals("OPT_NOWALKMODE")) return OPT_NOWALKMODE;
-            if (name->Equals("OPT_LETTERBOX")) return OPT_LETTERBOX;
             if (name->Equals("OPT_FIXEDINVCURSOR")) return OPT_FIXEDINVCURSOR;
             if (name->Equals("OPT_HIRES_FONTS")) return OPT_HIRES_FONTS;
             if (name->Equals("OPT_SPLITRESOURCES")) return OPT_SPLITRESOURCES;

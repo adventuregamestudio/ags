@@ -236,28 +236,6 @@ namespace AGS.Types
         public GameResolutions Resolution
         {
             get { return GameResolutions.Custom; }
-            set
-            {
-                switch (value)
-                {
-                    case GameResolutions.R320x200:
-                        CustomResolution = new Size(320, 200); break;
-                    case GameResolutions.R320x240:
-                        CustomResolution = new Size(320, 240); break;
-                    case GameResolutions.R640x400:
-                        CustomResolution = new Size(640, 400); break;
-                    case GameResolutions.R640x480:
-                        CustomResolution = new Size(640, 480); break;
-                    case GameResolutions.R800x600:
-                        CustomResolution = new Size(800, 600); break;
-                    case GameResolutions.R1024x768:
-                        CustomResolution = new Size(1024, 768); break;
-                    case GameResolutions.R1280x720:
-                        CustomResolution = new Size(1280, 720); break;
-                    case GameResolutions.Custom:
-                        throw new ArgumentOutOfRangeException("You are not allowed to explicitly set Custom resolution type to the deprecated Settings.Resolution property.");
-                }
-            }
         }
 
         [DisplayName(PROPERTY_RESOLUTION)]

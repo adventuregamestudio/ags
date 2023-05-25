@@ -1560,7 +1560,6 @@ void SaveNativeSprites(Settings^ gameSettings)
 
 void SetGameResolution(Game ^game)
 {
-    thisgame.options[OPT_LETTERBOX] = 0; // always disabled now
     thisgame.SetGameResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }
 
@@ -2348,7 +2347,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0) ? DialogOptionsNumbering::Normal : DialogOptionsNumbering::KeyShortcutsOnly;
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
 	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
-	game->Settings->Resolution = (GameResolutions)thisgame.GetResolutionType();
 	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
@@ -2482,10 +2480,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Characters->Add(character);
 
         // Custom properties are only for 2.6.0 and higher
-        if (thisgame.filever >= kGameVersion_260)
-        {
-            ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
-        }
+        ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
 	}
 	game->PlayerCharacter = game->Characters[thisgame.playercharacter];
 

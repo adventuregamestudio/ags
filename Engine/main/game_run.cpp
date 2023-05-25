@@ -672,6 +672,9 @@ static void update_objects_scale()
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
     {
         RoomObject &obj = objs[objid];
+        if (obj.on == 0)
+            continue; // not enabled
+
         int zoom_level = 100;
         // calculate the zoom level
         if ((obj.flags & OBJF_USEROOMSCALING) == 0)
@@ -712,6 +715,9 @@ static void update_objects_scale()
     {
         // Test for valid view and loop
         CharacterInfo &chin = game.chars[charid];
+        if (chin.on == 0 || chin.room != displayed_room)
+            continue; // not enabled, or in a different room
+
         CharacterExtras &chex = charextra[charid];
         if (chin.view < 0)
         {
@@ -1275,13 +1281,17 @@ void RunGameUntilAborted()
     }
 }
 
-void update_cursor_and_dependent()
+void UpdateCursorAndDrawables()
 {
     const int mwasatx = mousex, mwasaty = mousey;
     ags_domouse();
     update_cursor_over_gui();
     update_cursor_over_location(mwasatx, mwasaty);
     update_cursor_view();
+    // TODO: following does not have to be called every frame while in a
+    // fully blocking state (like Display() func), refactor to only call it
+    // once the blocking state begins.
+    update_objects_scale();
 }
 
 void update_polled_stuff()

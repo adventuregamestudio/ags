@@ -30,12 +30,10 @@
 
 // default number of hotspots to read from the room file
 #define MIN_ROOM_HOTSPOTS  20
-#define LEGACY_HOTSPOT_NAME_LEN 30
 #define LEGACY_ROOM_PASSWORD_LENGTH 11
 #define ROOM_MESSAGE_FLAG_DISPLAYNEXT 200
 // Reserved room options (each is a byte)
 #define ROOM_OPTIONS_RESERVED 4
-#define LEGACY_TINT_IS_ENABLED 0x80000000
 
 namespace AGS
 {
@@ -106,23 +104,12 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     // Hotspots names and script names
     for (size_t i = 0; i < room->HotspotCount; ++i)
     {
-        if (data_ver >= kRoomVersion_3415)
-            room->Hotspots[i].Name = StrUtil::ReadString(in);
-        else if (data_ver >= kRoomVersion_303a)
-            room->Hotspots[i].Name = String::FromStream(in);
-        else
-            room->Hotspots[i].Name = String::FromStreamCount(in, LEGACY_HOTSPOT_NAME_LEN);
+        room->Hotspots[i].Name = StrUtil::ReadString(in);
     }
 
-    if (data_ver >= kRoomVersion_270)
+    for (size_t i = 0; i < room->HotspotCount; ++i)
     {
-        for (size_t i = 0; i < room->HotspotCount; ++i)
-        {
-            if (data_ver >= kRoomVersion_3415)
-                room->Hotspots[i].ScriptName = StrUtil::ReadString(in);
-            else
-                room->Hotspots[i].ScriptName = String::FromStreamCount(in, MAX_SCRIPT_NAME_LEN);
-        }
+        room->Hotspots[i].ScriptName = StrUtil::ReadString(in);
     }
 
     // TODO: remove from format later
@@ -276,10 +263,7 @@ HError ReadObjNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     for (auto &obj : room->Objects)
     {
-        if (data_ver >= kRoomVersion_3415)
-            obj.Name = StrUtil::ReadString(in);
-        else
-            obj.Name.ReadCount(in, LEGACY_MAXOBJNAMELEN);
+        obj.Name = StrUtil::ReadString(in);
     }
     return HError::None();
 }
@@ -294,10 +278,7 @@ HError ReadObjScNamesBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ve
 
     for (auto &obj : room->Objects)
     {
-        if (data_ver >= kRoomVersion_3415)
-            obj.ScriptName = StrUtil::ReadString(in);
-        else
-            obj.ScriptName.ReadCount(in, MAX_SCRIPT_NAME_LEN);
+        obj.ScriptName = StrUtil::ReadString(in);
     }
     return HError::None();
 }
@@ -412,8 +393,7 @@ class RoomBlockReader : public DataExtReader
 {
 public:
     RoomBlockReader(RoomStruct *room, RoomFileVersion data_ver, Stream *in)
-        : DataExtReader(in,
-            kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
         , _room(room)
         , _dataVer(data_ver)
     {}
@@ -456,25 +436,6 @@ HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_v
 
 HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const std::vector<SpriteInfo> &sprinfos)
 {
-    if (data_ver < kRoomVersion_300a)
-    {
-        for (auto &obj : room->Objects)
-        {
-            if (obj.ScriptName.GetLength() > 0)
-            {
-                String jibbledScriptName;
-                jibbledScriptName.Format("o%s", obj.ScriptName.GetCStr());
-                jibbledScriptName.MakeLower();
-                if (jibbledScriptName.GetLength() >= 2)
-                    jibbledScriptName.SetAt(1, toupper(jibbledScriptName[1u]));
-                obj.ScriptName = jibbledScriptName;
-            }
-            // Upgrade object Y coordinate
-            // NOTE: this is impossible to do without game sprite information loaded beforehand
-            obj.Y += sprinfos[obj.Sprite].Height;
-        }
-    }
-
     // if they set a continiously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
     // scaled area
@@ -482,22 +443,6 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
     {
         if (room->WalkAreas[i].ScalingFar == room->WalkAreas[i].ScalingNear)
             room->WalkAreas[i].ScalingNear = NOT_VECTOR_SCALED;
-    }
-
-    // Convert the old format region tint saturation
-    if (data_ver < kRoomVersion_3404)
-    {
-        for (size_t i = 0; i < room->RegionCount; ++i)
-        {
-            if ((room->Regions[i].Tint & LEGACY_TINT_IS_ENABLED) != 0)
-            {
-                room->Regions[i].Tint &= ~LEGACY_TINT_IS_ENABLED;
-                // older versions of the editor had a bug - work around it
-                int tint_amount = (room->Regions[i].Light > 0 ? room->Regions[i].Light : 50);
-                room->Regions[i].Tint |= (tint_amount & 0xFF) << 24;
-                room->Regions[i].Light = 255;
-            }
-        }
     }
 
     // sync bpalettes[0] with room.pal

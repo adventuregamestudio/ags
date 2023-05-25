@@ -243,22 +243,9 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     MinValue = in->ReadInt32();
     MaxValue = in->ReadInt32();
     Value = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        IsMousePressed = in->ReadInt32() != 0;
-    }
-    if (gui_version >= kGuiVersion_unkn_104)
-    {
-        HandleImage = in->ReadInt32();
-        HandleOffset = in->ReadInt32();
-        BgImage = in->ReadInt32();
-    }
-    else
-    {
-        HandleImage = -1;
-        HandleOffset = 0;
-        BgImage = 0;
-    }
+    HandleImage = in->ReadInt32();
+    HandleOffset = in->ReadInt32();
+    BgImage = in->ReadInt32();
 
     UpdateMetrics();
 }

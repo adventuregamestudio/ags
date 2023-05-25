@@ -21,8 +21,6 @@
 
 std::vector<AGS::Common::GUILabel> guilabels;
 
-#define GUILABEL_TEXTLENGTH_PRE272 200
-
 namespace AGS
 {
 namespace Common
@@ -128,11 +126,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
 
-    if (gui_version < kGuiVersion_272c)
-        Text.ReadCount(in, GUILABEL_TEXTLENGTH_PRE272);
-    else
-        Text = StrUtil::ReadString(in);
-
+    Text = StrUtil::ReadString(in);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextAlignment = (HorAlignment)in->ReadInt32();

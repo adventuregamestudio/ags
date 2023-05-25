@@ -26,15 +26,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-// There were issues when including header caused conflicts
-struct GameSetupStruct;
-
-#define LEGACY_MAX_OBJS_ON_GUI             30
-
-#define GUIMAIN_LEGACY_RESERVED_INTS       5
-#define GUIMAIN_LEGACY_NAME_LENGTH         16
-#define GUIMAIN_LEGACY_EVENTHANDLER_LENGTH 20
-
 namespace AGS
 {
 namespace Common

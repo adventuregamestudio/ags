@@ -72,23 +72,9 @@ void GUIInvWindow::WriteToFile(Stream *out) const
 void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
-    if (gui_version >= kGuiVersion_unkn_109)
-    {
-        CharId = in->ReadInt32();
-        ItemWidth = in->ReadInt32();
-        ItemHeight = in->ReadInt32();
-        if (gui_version < kGuiVersion_350)
-        { // NOTE: reading into actual variables only for old savegame support
-            TopItem = in->ReadInt32();
-        }
-    }
-    else
-    {
-        CharId = -1;
-        ItemWidth = 40;
-        ItemHeight = 22;
-        TopItem = 0;
-    }
+    CharId = in->ReadInt32();
+    ItemWidth = in->ReadInt32();
+    ItemHeight = in->ReadInt32();
 
     // ensure that some items are visible
         if (ItemWidth > Width)

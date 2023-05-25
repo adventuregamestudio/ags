@@ -46,29 +46,9 @@
 
 enum GuiVersion
 {
-    // TODO: find out all corresponding engine version numbers
-    kGuiVersion_Initial     = 0,
-    kGuiVersion_214         = 100,
-    kGuiVersion_222         = 101,
-    kGuiVersion_230         = 102,
-    kGuiVersion_unkn_103    = 103,
-    kGuiVersion_unkn_104    = 104,
-    kGuiVersion_260         = 105,
-    kGuiVersion_unkn_106    = 106,
-    kGuiVersion_unkn_107    = 107,
-    kGuiVersion_unkn_108    = 108,
-    kGuiVersion_unkn_109    = 109,
-    kGuiVersion_270         = 110,
-    kGuiVersion_272a        = 111,
-    kGuiVersion_272b        = 112,
-    kGuiVersion_272c        = 113,
-    kGuiVersion_272d        = 114,
-    kGuiVersion_272e        = 115,
-    
-    kGuiVersion_330         = 116,
-    kGuiVersion_331         = 117,
-    kGuiVersion_340         = 118,
+    kGuiVersion_Undefined   = 0,
     kGuiVersion_350         = 119,
+    kGuiVersion_LowSupported = kGuiVersion_350,
     kGuiVersion_Current     = kGuiVersion_350,
 };
 

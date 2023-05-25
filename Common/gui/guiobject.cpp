@@ -158,30 +158,19 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     Width    = in->ReadInt32();
     Height   = in->ReadInt32();
     ZOrder   = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        IsActivated = in->ReadInt32() != 0;
-    }
-
-    if (gui_version >= kGuiVersion_unkn_106)
-        Name.Read(in);
-    else
-        Name.Free();
+    Name.Read(in);
 
     for (int i = 0; i < _scEventCount; ++i)
     {
         EventHandlers[i].Free();
     }
 
-    if (gui_version >= kGuiVersion_unkn_108)
+    int evt_count = in->ReadInt32();
+    if (evt_count > _scEventCount)
+        quit("Error: too many control events, need newer version");
+    for (int i = 0; i < evt_count; ++i)
     {
-        int evt_count = in->ReadInt32();
-        if (evt_count > _scEventCount)
-            quit("Error: too many control events, need newer version");
-        for (int i = 0; i < evt_count; ++i)
-        {
-            EventHandlers[i].Read(in);
-        }
+        EventHandlers[i].Read(in);
     }
 }
 

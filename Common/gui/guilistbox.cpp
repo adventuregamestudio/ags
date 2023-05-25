@@ -357,31 +357,12 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     GUIObject::ReadFromFile(in, gui_version);
     ItemCount = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        SelectedItem = in->ReadInt32();
-        TopItem = in->ReadInt32();
-        MousePos.X = in->ReadInt32();
-        MousePos.Y = in->ReadInt32();
-        RowHeight = in->ReadInt32();
-        VisibleItemCount = in->ReadInt32();
-    }
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     SelectedTextColor = in->ReadInt32();
     ListBoxFlags = in->ReadInt32();
     TextAlignment = (HorAlignment)in->ReadInt32();
-
-    if (gui_version >= kGuiVersion_unkn_107)
-    {
-        SelectedBgColor = in->ReadInt32();
-    }
-    else
-    {
-        SelectedBgColor = TextColor;
-        if (SelectedBgColor == 0)
-            SelectedBgColor = 16;
-    }
+    SelectedBgColor = in->ReadInt32();
 
     // NOTE: we leave items in game data format as a potential support for defining
     // ListBox contents at design-time, although Editor does not support it as of 3.5.0.
@@ -390,13 +371,6 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     for (int i = 0; i < ItemCount; ++i)
     {
         Items[i].Read(in);
-    }
-
-    if (gui_version >= kGuiVersion_272d && gui_version < kGuiVersion_350 &&
-        (ListBoxFlags & kListBox_SvgIndex))
-    { // NOTE: reading into actual variables only for old savegame support
-        for (int i = 0; i < ItemCount; ++i)
-            SavedGameIndex[i] = in->ReadInt16();
     }
 
     if (TextColor == 0)

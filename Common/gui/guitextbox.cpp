@@ -18,8 +18,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-#define GUITEXTBOX_LEGACY_TEXTLEN 200
-
 std::vector<AGS::Common::GUITextBox> guitext;
 
 namespace AGS
@@ -118,10 +116,7 @@ void GUITextBox::WriteToFile(Stream *out) const
 void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
-    if (gui_version < kGuiVersion_350)
-        Text.ReadCount(in, GUITEXTBOX_LEGACY_TEXTLEN);
-    else
-        Text = StrUtil::ReadString(in);
+    Text = StrUtil::ReadString(in);
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextBoxFlags = in->ReadInt32();

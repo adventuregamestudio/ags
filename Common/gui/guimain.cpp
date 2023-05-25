@@ -580,50 +580,24 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    if (gui_version < kGuiVersion_340)
-    {
-        Name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
-        OnClickHandler.ReadCount(in, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
-    }
-    else
-    {
-        Name = StrUtil::ReadString(in);
-        OnClickHandler = StrUtil::ReadString(in);
-    }
+    Name = StrUtil::ReadString(in);
+    OnClickHandler = StrUtil::ReadString(in);
     X             = in->ReadInt32();
     Y             = in->ReadInt32();
     Width         = in->ReadInt32();
     Height        = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        FocusCtrl = in->ReadInt32();
-    }
     const size_t ctrl_count = in->ReadInt32();
     PopupStyle    = (GUIPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     BgColor       = in->ReadInt32();
     BgImage       = in->ReadInt32();
     FgColor       = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        MouseOverCtrl = in->ReadInt32();
-        MouseWasAt.X  = in->ReadInt32();
-        MouseWasAt.Y  = in->ReadInt32();
-        MouseDownCtrl = in->ReadInt32();
-        HighlightCtrl = in->ReadInt32();
-    }
     _flags         = in->ReadInt32();
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
     ID            = in->ReadInt32();
     Padding       = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-        in->Seek(sizeof(int32_t) * GUIMAIN_LEGACY_RESERVED_INTS);
 
-    // pre-3.4.0 games contained array of 32-bit pointers; these values are unused
-    // TODO: error if ctrl_count > LEGACY_MAX_OBJS_ON_GUI
-    if (gui_version < kGuiVersion_340)
-        in->Seek(LEGACY_MAX_OBJS_ON_GUI * sizeof(int32_t));
     if (ctrl_count > 0)
     {
         _ctrlRefs.resize(ctrl_count);
@@ -634,9 +608,6 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
             _ctrlRefs[i].second = ref_packed & 0xFFFF;
         }
     }
-    // Skip unused control slots in pre-3.4.0 games
-    if (gui_version < kGuiVersion_340 && ctrl_count < LEGACY_MAX_OBJS_ON_GUI)
-        in->Seek((LEGACY_MAX_OBJS_ON_GUI - ctrl_count) * sizeof(int32_t));
 
     UpdateGraphicSpace();
 }
@@ -766,7 +737,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
 namespace GUI
 {
 
-GuiVersion GameGuiVersion = kGuiVersion_Initial;
+GuiVersion GameGuiVersion = kGuiVersion_Undefined;
 
 Rect CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align)
 {
@@ -928,7 +899,7 @@ GUILabelMacro FindLabelMacros(const String &text)
     return (GUILabelMacro)macro_flags;
 }
 
-static HError ResortGUI(bool bwcompat_ctrl_zorder = false)
+static HError ResortGUI()
 {
     // set up the reverse-lookup array
     for (auto &gui : guis)
@@ -941,8 +912,6 @@ static HError ResortGUI(bool bwcompat_ctrl_zorder = false)
             GUIObject *gui_ctrl = gui.GetControl(ctrl_index);
             gui_ctrl->ParentId = gui.ID;
             gui_ctrl->Id = ctrl_index;
-            if (bwcompat_ctrl_zorder)
-                gui_ctrl->ZOrder = ctrl_index;
         }
         gui.ResortZOrder();
     }
@@ -957,17 +926,11 @@ HError ReadGUI(Stream *in)
 
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
-    size_t gui_count;
-    if (GameGuiVersion < kGuiVersion_214)
-    {
-        gui_count = (size_t)GameGuiVersion;
-        GameGuiVersion = kGuiVersion_Initial;
-    }
-    else if (GameGuiVersion > kGuiVersion_Current)
+    if (GameGuiVersion < GameGuiVersion, GameGuiVersion > kGuiVersion_Current)
         return new Error(String::FromFormat("ReadGUI: format version not supported (required %d, supported %d - %d)",
-            GameGuiVersion, kGuiVersion_Initial, kGuiVersion_Current));
-    else
-        gui_count = in->ReadInt32();
+            GameGuiVersion, kGuiVersion_LowSupported, kGuiVersion_Current));
+
+    size_t gui_count = in->ReadInt32();
     guis.resize(gui_count);
 
     // import the main GUI elements
@@ -1009,38 +972,28 @@ HError ReadGUI(Stream *in)
     {
         guiinv[i].ReadFromFile(in, GameGuiVersion);
     }
-
-    if (GameGuiVersion >= kGuiVersion_214)
+    // sliders
+    size_t numguislider = static_cast<uint32_t>(in->ReadInt32());
+    guislider.resize(numguislider);
+    for (size_t i = 0; i < numguislider; ++i)
     {
-        // sliders
-        size_t numguislider = static_cast<uint32_t>(in->ReadInt32());
-        guislider.resize(numguislider);
-        for (size_t i = 0; i < numguislider; ++i)
-        {
-            guislider[i].ReadFromFile(in, GameGuiVersion);
-        }
+        guislider[i].ReadFromFile(in, GameGuiVersion);
     }
-    if (GameGuiVersion >= kGuiVersion_222)
+    // text boxes
+    size_t numguitext = static_cast<uint32_t>(in->ReadInt32());
+    guitext.resize(numguitext);
+    for (size_t i = 0; i < numguitext; ++i)
     {
-        // text boxes
-        size_t numguitext = static_cast<uint32_t>(in->ReadInt32());
-        guitext.resize(numguitext);
-        for (size_t i = 0; i < numguitext; ++i)
-        {
-            guitext[i].ReadFromFile(in, GameGuiVersion);
-        }
+        guitext[i].ReadFromFile(in, GameGuiVersion);
     }
-    if (GameGuiVersion >= kGuiVersion_230)
+    // list boxes
+    size_t numguilist = static_cast<uint32_t>(in->ReadInt32());
+    guilist.resize(numguilist);
+    for (size_t i = 0; i < numguilist; ++i)
     {
-        // list boxes
-        size_t numguilist = static_cast<uint32_t>(in->ReadInt32());
-        guilist.resize(numguilist);
-        for (size_t i = 0; i < numguilist; ++i)
-        {
-            guilist[i].ReadFromFile(in, GameGuiVersion);
-        }
+        guilist[i].ReadFromFile(in, GameGuiVersion);
     }
-    return ResortGUI(GameGuiVersion < kGuiVersion_272e);
+    return ResortGUI();
 }
 
 void WriteGUI(Stream *out)

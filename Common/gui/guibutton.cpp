@@ -268,22 +268,13 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     Image = in->ReadInt32();
     MouseOverImage = in->ReadInt32();
     PushedImage = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-    { // NOTE: reading into actual variables only for old savegame support
-        _currentImage = in->ReadInt32();
-        IsPushed = in->ReadInt32() != 0;
-        IsMouseOver = in->ReadInt32() != 0;
-    }
     Font = in->ReadInt32();
     TextColor = in->ReadInt32();
     ClickAction[kGUIClickLeft] = (GUIClickAction)in->ReadInt32();
     ClickAction[kGUIClickRight] = (GUIClickAction)in->ReadInt32();
     ClickData[kGUIClickLeft] = in->ReadInt32();
     ClickData[kGUIClickRight] = in->ReadInt32();
-    if (gui_version < kGuiVersion_350)
-        SetText(String::FromStreamCount(in, GUIBUTTON_LEGACY_TEXTLENGTH));
-    else
-        SetText(StrUtil::ReadString(in));
+    SetText(StrUtil::ReadString(in));
     TextAlignment = (FrameAlignment)in->ReadInt32();
 
     if (TextColor == 0)

@@ -197,11 +197,8 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 {
-    if (load_dictionary)
-    {
-        dict.reset(new WordsDictionary());
-        read_dictionary(dict.get(), in);
-    }
+    dict.reset(new WordsDictionary());
+    read_dictionary(dict.get(), in);
 }
 
 void GameSetupStruct::ReadMouseCursors_Aligned(Stream *in)
@@ -239,12 +236,14 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
         in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver)
+void GameSetupStruct::read_messages(Common::Stream *in,
+    const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver)
 {
     char mbuf[GLOBALMESLENGTH];
-    for (int i=0; i < MAXGLOBALMES; ++i)
+    for (int i = 0; i < MAXGLOBALMES; ++i)
     {
-        if (!load_messages[i]) continue;
+        if (!load_messages[i])
+            continue;
         if (data_ver < kGameVersion_261) // Global messages are not encrypted on < 2.61
         {
             char* nextchar = mbuf;
@@ -263,8 +262,6 @@ void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver
         }
         messages[i] = mbuf;
     }
-    delete [] load_messages;
-    load_messages = nullptr;
 }
 
 void GameSetupStruct::ReadCharacters_Aligned(Stream *in, bool is_save)

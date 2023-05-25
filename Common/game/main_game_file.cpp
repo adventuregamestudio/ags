@@ -829,9 +829,10 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     //-------------------------------------------------------------------------
     // The classic data section.
     //-------------------------------------------------------------------------
+    GameSetupStruct::SerializeInfo sinfo;
     {
         AlignedStream align_s(in, Common::kAligned_Read);
-        game.GameSetupStructBase::ReadFromFile(&align_s);
+        game.GameSetupStructBase::ReadFromFile(&align_s, sinfo);
     }
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
@@ -851,9 +852,10 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     if (!err)
         return err;
     game.read_interaction_scripts(in, data_ver);
-    game.read_words_dictionary(in);
+    if (sinfo.HasWordsDict)
+        game.read_words_dictionary(in);
 
-    if (game.load_compiled_script)
+    if (sinfo.HasCCScript)
     {
         ents.GlobalScript.reset(ccScript::CreateFromStream(in));
         if (!ents.GlobalScript)
@@ -877,7 +879,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     game.read_characters(in);
     game.read_lipsync(in, data_ver);
-    game.read_messages(in, data_ver);
+    game.read_messages(in, sinfo.HasMessages, data_ver);
 
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
@@ -948,13 +950,11 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
 
 void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver)
 {
+    GameSetupStruct::SerializeInfo sinfo;
     {
         AlignedStream align_s(in, Common::kAligned_Read);
-        game.ReadFromFile(&align_s);
+        game.ReadFromFile(&align_s, sinfo);
     }
-    // Discard game messages we do not need here
-    delete[] game.load_messages;
-    game.load_messages = nullptr;
     game.read_savegame_info(in, data_ver);
 }
 

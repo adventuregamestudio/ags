@@ -17,6 +17,7 @@
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
+#include <array>
 #include <memory>
 #include <vector>
 #include <allegro.h> // RGB
@@ -62,18 +63,7 @@ struct GameSetupStructBase
     int               reserved[NUM_INTS_RESERVED];
     Common::String    messages[MAXGLOBALMES];
     std::unique_ptr<WordsDictionary> dict;
-    char             *globalscript;
     std::vector<CharacterInfo> chars;
-    ccScript         *compiled_script;
-
-    // TODO: refactor to not have this as struct members
-    int             *load_messages;
-    bool             load_dictionary;
-    bool             load_compiled_script;
-    // [IKM] 2013-03-30
-    // NOTE: it looks like nor 'globalscript', not 'compiled_script' are used
-    // to store actual script data anytime; 'ccScript* gamescript' global
-    // pointer is used for that instead.
 
     GameSetupStructBase();
     ~GameSetupStructBase();
@@ -83,8 +73,17 @@ struct GameSetupStructBase
     void SetDefaultResolution(Size game_res);
     void SetGameResolution(GameResolutionType type);
     void SetGameResolution(Size game_res);
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+
+    // Tells whether the serialized game data contains certain components
+    struct SerializeInfo
+    {
+        bool HasCCScript = false;
+        bool HasWordsDict = false;
+        std::array<int, MAXGLOBALMES> HasMessages{};
+    };
+
+    void ReadFromFile(Common::Stream *in, SerializeInfo &info);
+    void WriteToFile(Common::Stream *out, const SerializeInfo &info);
 
 
     //

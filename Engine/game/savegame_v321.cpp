@@ -201,10 +201,10 @@ static void ReadMoveList_Aligned(Stream *in)
     }
 }
 
-static void ReadGameSetupStructBase_Aligned(Stream *in)
+static void ReadGameSetupStructBase_Aligned(Stream *in, GameSetupStruct::SerializeInfo &info)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    game.GameSetupStructBase::ReadFromFile(&align_s);
+    game.GameSetupStructBase::ReadFromFile(&align_s, info);
 }
 
 static void ReadCharacterExtras_Aligned(Stream *in)
@@ -474,12 +474,8 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
     const int numviewswas = game.numviews;
     const int numGuisWas = game.numgui;
 
-    ReadGameSetupStructBase_Aligned(in);
-
-    // Delete unneeded data
-    // TODO: reorganize this (may be solved by optimizing safe format too)
-    delete [] game.load_messages;
-    game.load_messages = nullptr;
+    GameSetupStruct::SerializeInfo info;
+    ReadGameSetupStructBase_Aligned(in, info);
 
     if (game.numdialog!=numdiwas)
     {

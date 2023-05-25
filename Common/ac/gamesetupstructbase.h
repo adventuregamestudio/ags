@@ -17,6 +17,7 @@
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
+#include <memory>
 #include <vector>
 #include <allegro.h> // RGB
 #include "ac/game_version.h"
@@ -60,7 +61,7 @@ struct GameSetupStructBase
     int               invhotdotsprite;
     int               reserved[NUM_INTS_RESERVED];
     Common::String    messages[MAXGLOBALMES];
-    WordsDictionary  *dict;
+    std::unique_ptr<WordsDictionary> dict;
     char             *globalscript;
     std::vector<CharacterInfo> chars;
     ccScript         *compiled_script;

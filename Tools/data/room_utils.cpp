@@ -15,8 +15,6 @@
 #include "util/string_utils.h"
 
 #define MIN_ROOM_HOTSPOTS  20
-#define LEGACY_HOTSPOT_NAME_LEN 30
-#define MAX_SCRIPT_NAME_LEN 20
 
 using namespace AGS::Common;
 
@@ -28,8 +26,7 @@ namespace DataUtil
 HError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver, soff_t block_len)
 {
     soff_t start_pos = in->GetPosition();
-    if (data_ver >= kRoomVersion_208)
-        in->ReadInt32(); // BackgroundBPP
+    in->ReadInt32(); // BackgroundBPP
     size_t wbh_count = in->ReadInt16(); // WalkBehindCount
                                         // Walk-behinds baselines
     for (size_t i = 0; i < wbh_count; ++i)
@@ -46,24 +43,13 @@ HError ReadFromMainBlock(RoomScNames &data, Stream *in, RoomFileVersion data_ver
     // Hotspots names
     for (size_t i = 0; i < hot_count; ++i)
     {
-        if (data_ver >= kRoomVersion_3415)
-            StrUtil::ReadString(in);
-        else if (data_ver >= kRoomVersion_303a)
-            String::FromStream(in);
-        else
-            String::FromStreamCount(in, LEGACY_HOTSPOT_NAME_LEN);
+        StrUtil::ReadString(in);
     }
     // Hotspot script names
-    if (data_ver >= kRoomVersion_270)
+    data.HotspotNames.resize(hot_count);
+    for (size_t i = 0; i < hot_count; ++i)
     {
-        data.HotspotNames.resize(hot_count);
-        for (size_t i = 0; i < hot_count; ++i)
-        {
-            if (data_ver >= kRoomVersion_3415)
-                data.HotspotNames[i] = StrUtil::ReadString(in);
-            else
-                data.HotspotNames[i] = String::FromStreamCount(in, MAX_SCRIPT_NAME_LEN);
-        }
+        data.HotspotNames[i] = StrUtil::ReadString(in);
     }
     // Skip the rest
     in->Seek(start_pos + block_len, kSeekBegin);
@@ -76,10 +62,7 @@ HError ReadObjScNamesBlock(RoomScNames &data, Stream *in, RoomFileVersion data_v
     data.ObjectNames.resize(obj_count);
     for (size_t i = 0; i < obj_count; ++i)
     {
-        if (data_ver >= kRoomVersion_3415)
-            data.ObjectNames[i] = StrUtil::ReadString(in);
-        else
-            data.ObjectNames[i].ReadCount(in, MAX_SCRIPT_NAME_LEN);
+        data.ObjectNames[i] = StrUtil::ReadString(in);
     }
     return HError::None();
 }

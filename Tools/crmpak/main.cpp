@@ -16,7 +16,7 @@ class RoomBlockParser : public DataExtParser
 {
 public:
     RoomBlockParser(Stream *in, RoomFileVersion data_ver)
-        : DataExtParser(in, kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+        : DataExtParser(in, kDataExt_NumID8 | kDataExt_File64)
         {}
     virtual String GetOldBlockName(int block_id) const
     { return GetRoomBlockName((RoomFileBlock)block_id); }

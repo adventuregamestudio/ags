@@ -13,8 +13,7 @@ class RoomScNamesReader : public DataExtReader
 {
 public:
     RoomScNamesReader(RoomScNames &data, RoomFileVersion data_ver, Stream *in)
-        : DataExtReader(in,
-            kDataExt_NumID8 | ((data_ver < kRoomVersion_350) ? kDataExt_File32 : kDataExt_File64))
+        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
         , _data(data)
         , _dataVer(data_ver)
     {}

@@ -47,7 +47,8 @@ using AGS::Common::HGameFileError;
 
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
-struct GameSetupStruct: public GameSetupStructBase {
+struct GameSetupStruct : public GameSetupStructBase
+{
     // This array is used only to read data into;
     // font parameters are then put and queried in the fonts module
     // TODO: split into installation params (used only when reading) and runtime params

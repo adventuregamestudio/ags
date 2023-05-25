@@ -42,7 +42,6 @@ GameSetupStructBase::GameSetupStructBase()
     , invhotdotsprite(0)
     , dict(nullptr)
     , globalscript(nullptr)
-    , chars(nullptr)
     , compiled_script(nullptr)
     , load_messages(nullptr)
     , load_dictionary(false)
@@ -77,8 +76,9 @@ void GameSetupStructBase::Free()
     globalscript = nullptr;
     delete compiled_script;
     compiled_script = nullptr;
-    delete[] chars;
-    chars = nullptr;
+    chars.clear();
+
+    numcharacters = 0;
 }
 
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType type)

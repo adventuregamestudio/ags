@@ -12,11 +12,12 @@
 //
 //=============================================================================
 //
-//
+// GameSetupStructBase is a base class for main game data.
 //
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
+#include <vector>
 #include <allegro.h> // RGB
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
@@ -31,7 +32,8 @@ struct CharacterInfo;
 struct ccScript;
 
 
-struct GameSetupStructBase {
+struct GameSetupStructBase
+{
     static const int  GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
     static const int  NUM_INTS_RESERVED = 17;
@@ -60,7 +62,7 @@ struct GameSetupStructBase {
     Common::String    messages[MAXGLOBALMES];
     WordsDictionary  *dict;
     char             *globalscript;
-    CharacterInfo    *chars;
+    std::vector<CharacterInfo> chars;
     ccScript         *compiled_script;
 
     // TODO: refactor to not have this as struct members
@@ -74,6 +76,7 @@ struct GameSetupStructBase {
 
     GameSetupStructBase();
     ~GameSetupStructBase();
+
     void Free();
     void SetDefaultResolution(GameResolutionType type);
     void SetDefaultResolution(Size game_res);

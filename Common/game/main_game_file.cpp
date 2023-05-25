@@ -620,9 +620,7 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
 // Convert character data to the current version
 void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    // TODO: this was done to simplify code transition; ideally we should be
-    // working with GameSetupStruct's getters and setters here
-    CharacterInfo *&chars = game.chars;
+    auto &chars = game.chars;
     const int numcharacters = game.numcharacters;
 
     // Fixup charakter script names for 2.x (EGO -> cEgo)

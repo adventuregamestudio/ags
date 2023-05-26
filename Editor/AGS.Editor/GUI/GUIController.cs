@@ -365,21 +365,6 @@ namespace AGS.Editor
             }
         }
 
-        public void SetLogPanel(LogPanel pnlEngineLog)
-        {
-            _pnlEngineLog = pnlEngineLog;
-        }
-
-        public void ClearEngineLogMessages()
-        {
-            _pnlEngineLog.Clear();
-        }
-
-        public void ShowEngineLogPanel(string message, LogGroup group, LogLevel level)
-        {
-            _pnlEngineLog.WriteLogMessage(message, group, level);
-        }
-
         public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
         {
             _mainForm.pnlOutput.SetMessages(messages, imageKey);
@@ -440,6 +425,28 @@ namespace AGS.Editor
         public void HideFindSymbolResults()
         {
             _mainForm.pnlFindResults.Hide();
+        }
+
+        public void SetLogPanel(LogPanel pnlEngineLog)
+        {
+            _pnlEngineLog = pnlEngineLog;
+        }
+
+        public void ShowLogPanel(bool ifEnabled)
+        {
+            if (_pnlEngineLog == null || (ifEnabled && _pnlEngineLog.IsHidden))
+                return;
+            _pnlEngineLog.Show();
+        }
+
+        public void ClearEngineLogMessages()
+        {
+            _pnlEngineLog?.Clear();
+        }
+
+        public void PrintEngineLog(string message, LogGroup group, LogLevel level)
+        {
+            _pnlEngineLog?.WriteLogMessage(message, group, level);
         }
 
         public ContentDocument ActivePane

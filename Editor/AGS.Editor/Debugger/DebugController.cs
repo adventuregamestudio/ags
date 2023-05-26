@@ -138,7 +138,7 @@ namespace AGS.Editor
 
         public void LogMessage(string message, LogGroup group, LogLevel level)
         {
-            Factory.GUIController.ShowEngineLogPanel(message, group, level);
+            Factory.GUIController.PrintEngineLog(message, group, level);
         }
 
 		public void EngineHasExited()

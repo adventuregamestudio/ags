@@ -34,17 +34,21 @@ public:
         uint32_t TotalSize = 0u;
     };
 
+    CCDynamicArray() = default;
+    ~CCDynamicArray() = default;
+
     inline static const Header &GetHeader(void *address)
     {
         return reinterpret_cast<const Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
     }
 
+    // Create managed array object and return a pointer to the beginning of a buffer
+    static DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
+
     // return the type name of the object
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
-    // Create managed array object and return a pointer to the beginning of a buffer
-    DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
 private:
     // The size of the array's header in memory, prepended to the element data
@@ -60,6 +64,7 @@ private:
 };
 
 extern CCDynamicArray globalDynamicArray;
+
 
 // Helper functions for setting up dynamic arrays.
 namespace DynamicArrayHelpers

@@ -245,11 +245,11 @@ int StrContains (const char *s1, const char *s2) {
 //=============================================================================
 
 const char *CreateNewScriptString(const String &fromText) {
-    return (const char*)CreateNewScriptStringObj(fromText.GetCStr(), true).second;
+    return (const char*)CreateNewScriptStringObj(fromText.GetCStr(), true).Obj;
 }
 
 const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
-    return (const char*)CreateNewScriptStringObj(fromText, reAllocate).second;
+    return (const char*)CreateNewScriptStringObj(fromText, reAllocate).Obj;
 }
 
 DynObjectRef CreateNewScriptStringObj(const String &fromText) {
@@ -270,9 +270,9 @@ DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate)
     if (handle == 0)
     {
         delete str;
-        return DynObjectRef(0, nullptr);
+        return DynObjectRef();
     }
-    return DynObjectRef(handle, obj_ptr);
+    return DynObjectRef(handle, obj_ptr, str);
 }
 
 size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {

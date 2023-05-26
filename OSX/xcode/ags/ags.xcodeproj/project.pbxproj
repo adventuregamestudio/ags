@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2034CAB32A20242A00824C80 /* AGSKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2097967528FA35940065C91B /* AGSKit.framework */; };
+		2034CABE2A202B4A00824C80 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2034CABD2A202B4A00824C80 /* SDL2.framework */; };
 		2097967128FA32510065C91B /* ags.iconset in Resources */ = {isa = PBXBuildFile; fileRef = 2097967028FA2F7F0065C91B /* ags.iconset */; };
-		2097967628FA35940065C91B /* AGSKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2097967528FA35940065C91B /* AGSKit.framework */; };
+		20CB641D2A202F38001BA2C1 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2034CABD2A202B4A00824C80 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		20E6850228F2202800B95C00 /* acsetup.cfg in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FD28F2202700B95C00 /* acsetup.cfg */; };
 		20E6850328F2202800B95C00 /* game.ags in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FE28F2202700B95C00 /* game.ags */; };
 		20E6850428F2202800B95C00 /* audio.vox in Resources */ = {isa = PBXBuildFile; fileRef = 20E684FF28F2202700B95C00 /* audio.vox */; };
 		20E6850628F2202800B95C00 /* speech.vox in Resources */ = {isa = PBXBuildFile; fileRef = 20E6850128F2202800B95C00 /* speech.vox */; };
-		20E6855328F225F800B95C00 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6811C28F1CA1700B95C00 /* SDL2.framework */; };
-		20E6855428F225F800B95C00 /* SDL2.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6811C28F1CA1700B95C00 /* SDL2.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		20E6855828F25AF000B95C00 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6855728F25AF000B95C00 /* AudioToolbox.framework */; };
 		20E6855A28F25AF800B95C00 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6855928F25AF800B95C00 /* AudioUnit.framework */; };
 		20E6855C28F25B0500B95C00 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20E6855B28F25B0400B95C00 /* CoreAudio.framework */; };
@@ -29,25 +29,25 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		DBCDB734180EDC2A00FF80B1 /* Copy Frameworks */ = {
+		2034CAB52A20242A00824C80 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				20E6855428F225F800B95C00 /* SDL2.framework in Copy Frameworks */,
+				20CB641D2A202F38001BA2C1 /* SDL2.framework in Embed Frameworks */,
 			);
-			name = "Copy Frameworks";
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1D6058910D05DD3D006BFB54 /* AGS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AGS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2034CABD2A202B4A00824C80 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../libsrc/SDL2.framework; sourceTree = "<group>"; };
 		2097967028FA2F7F0065C91B /* ags.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder.iconset; name = ags.iconset; path = ../../ags.iconset; sourceTree = "<group>"; };
 		2097967528FA35940065C91B /* AGSKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		20C76AB428F3488300772CFC /* ags.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ags.entitlements; sourceTree = "<group>"; };
-		20E6811C28F1CA1700B95C00 /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../AGSKit/SDL2.framework; sourceTree = "<group>"; };
 		20E684FD28F2202700B95C00 /* acsetup.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = acsetup.cfg; path = ../../Resources/acsetup.cfg; sourceTree = "<group>"; };
 		20E684FE28F2202700B95C00 /* game.ags */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = game.ags; path = ../../Resources/game.ags; sourceTree = "<group>"; };
 		20E684FF28F2202700B95C00 /* audio.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audio.vox; path = ../../Resources/audio.vox; sourceTree = "<group>"; };
@@ -73,15 +73,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2097967628FA35940065C91B /* AGSKit.framework in Frameworks */,
 				20E6856928F25B5F00B95C00 /* libz.1.tbd in Frameworks */,
 				20E6856328F25B3000B95C00 /* OpenGL.framework in Frameworks */,
 				20E6856F28F25E5B00B95C00 /* libbz2.1.0.tbd in Frameworks */,
+				2034CABE2A202B4A00824C80 /* SDL2.framework in Frameworks */,
 				20E6856028F25B1D00B95C00 /* CoreVideo.framework in Frameworks */,
+				2034CAB32A20242A00824C80 /* AGSKit.framework in Frameworks */,
 				20E6855A28F25AF800B95C00 /* AudioUnit.framework in Frameworks */,
 				20E6856728F25B3F00B95C00 /* Cocoa.framework in Frameworks */,
 				20E6856128F25B2600B95C00 /* IOKit.framework in Frameworks */,
-				20E6855328F225F800B95C00 /* SDL2.framework in Frameworks */,
 				20E6855C28F25B0500B95C00 /* CoreAudio.framework in Frameworks */,
 				20E6856528F25B3700B95C00 /* AppKit.framework in Frameworks */,
 				20E6855828F25AF000B95C00 /* AudioToolbox.framework in Frameworks */,
@@ -147,6 +147,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2034CABD2A202B4A00824C80 /* SDL2.framework */,
 				2097967528FA35940065C91B /* AGSKit.framework */,
 				20E6856E28F25E5B00B95C00 /* libbz2.1.0.tbd */,
 				20E6856828F25B5400B95C00 /* libz.1.tbd */,
@@ -158,7 +159,6 @@
 				20E6855B28F25B0400B95C00 /* CoreAudio.framework */,
 				20E6855928F25AF800B95C00 /* AudioUnit.framework */,
 				20E6855728F25AF000B95C00 /* AudioToolbox.framework */,
-				20E6811C28F1CA1700B95C00 /* SDL2.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -173,7 +173,7 @@
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
 				1D60588F0D05DD3D006BFB54 /* Frameworks */,
-				DBCDB734180EDC2A00FF80B1 /* Copy Frameworks */,
+				2034CAB52A20242A00824C80 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -330,6 +330,10 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"${SOURCE_ROOT}/../../../libsrc/SDL2.framework",
+					"${SOURCE_ROOT}/../../../libsrc",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -350,6 +354,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYSTEM_FRAMEWORK_SEARCH_PATHS = "${SOURCE_ROOT}/../../../libsrc";
 				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Plugins ${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine";
 			};
 			name = Debug;
@@ -385,6 +390,10 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"${SOURCE_ROOT}/../../../libsrc/SDL2.framework",
+					"${SOURCE_ROOT}/../../../libsrc",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -403,6 +412,7 @@
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				SDKROOT = macosx;
+				SYSTEM_FRAMEWORK_SEARCH_PATHS = "${SOURCE_ROOT}/../../../libsrc";
 				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Plugins ${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine";
 			};
 			name = Release;

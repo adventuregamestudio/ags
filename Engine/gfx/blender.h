@@ -18,7 +18,7 @@
 #ifndef __AC_BLENDER_H
 #define __AC_BLENDER_H
 
-#include <core/types.h>
+#include "core/types.h"
 
 //
 // Allegro's standard alpha blenders result in:

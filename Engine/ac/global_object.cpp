@@ -268,23 +268,22 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 
 void MergeObject(int obn) {
     if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");
-    int theHeight;
 
-    construct_object_gfx(obn, nullptr, &theHeight, true);
+    construct_object_gfx(obn, true);
     Bitmap *actsp = get_cached_object_image(obn);
 
     PBitmap bg_frame = thisroom.BgFrames[play.bg_frame].Graphic;
     if (bg_frame->GetColorDepth() != actsp->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
+    // FIXME: use GraphicSpace instead!? -- assume rotation etc, but this has to be relative to Room (not whole screen)
     int xpos = objs[obn].x;
-    int ypos = (objs[obn].y - theHeight);
+    int ypos = (objs[obn].y - objs[obn].last_height);
 
     draw_sprite_support_alpha(bg_frame.get(), xpos, ypos, actsp);
     invalidate_screen();
     mark_current_background_dirty();
 
-    //abuf = oldabuf;
     // mark the sprite as merged
     objs[obn].on = 2;
     debug_script_log("Object %d merged into background", obn);

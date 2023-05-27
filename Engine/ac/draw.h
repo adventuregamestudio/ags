@@ -137,7 +137,7 @@ void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // effect changes (scaling, tint, etc).
 // * alwaysUseSoftware option forces HW renderers to  construct the image
 // in software mode as well.
-bool construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
+bool construct_object_gfx(int objid, bool alwaysUseSoftware);
 // Returns a cached character image prepared for the render
 Common::Bitmap *get_cached_character_image(int charid);
 // Returns a cached object image prepared for the render

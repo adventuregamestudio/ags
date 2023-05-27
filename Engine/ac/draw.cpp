@@ -1479,14 +1479,14 @@ static bool scale_and_flip_sprite(int useindx, int sppic, int width, int height,
     return result != src;
 }
 
-// Create the actsps[aa] image with the object drawn correctly.
+// Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
 // Hardware-accelerated renderers always return true, because they do not
 // require altering the raw bitmap itself.
 // Except if alwaysUseSoftware is set, in which case even HW renderers
 // construct the image in software mode as well.
-bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware) {
+bool construct_object_gfx(int objid, bool alwaysUseSoftware) {
     const RoomObject &obj = objs[objid];
     const bool hardwareAccelerated = !alwaysUseSoftware && gfxDriver->HasAcceleratedTransform();
 
@@ -1496,14 +1496,6 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
     const int coldept = spriteset[obj.num]->GetColorDepth();
     const int src_sprwidth = game.SpriteInfos[obj.num].Width;
     const int src_sprheight = game.SpriteInfos[obj.num].Height;
-    int sprwidth = src_sprwidth;
-    int sprheight = src_sprheight;
-
-    // save width/height into parameters if requested
-    if (drawnWidth)
-        *drawnWidth = sprwidth;
-    if (drawnHeight)
-        *drawnHeight = sprheight;
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
@@ -1599,8 +1591,8 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
                 (actsp.Bmp != nullptr) &&
                 (walk_behind_baselines_changed == 0))
                 return true;
-            recycle_bitmap(actsp.Bmp, coldept, sprwidth, sprheight);
-            actsp.Bmp->Blit(objsav.image.get(), 0, 0, 0, 0, objsav.image->GetWidth(), objsav.image->GetHeight());
+            recycle_bitmap(actsp.Bmp, objsav.image->GetColorDepth(), objsav.image->GetWidth(), objsav.image->GetHeight());
+            actsp.Bmp->Blit(objsav.image.get(), 0, 0);
             return false; // image was modified
     }
 
@@ -1610,7 +1602,7 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
     {
         // draw the base sprite, scaled and flipped as appropriate
         actspsUsed = scale_and_flip_sprite(useindx, coldept, obj.zoom, obj.rotation,
-            obj.num, sprwidth, sprheight, isMirrored);
+            obj.num, obj.last_width, obj.last_height, isMirrored);
     }
     if (!actspsUsed)
     {
@@ -1634,10 +1626,10 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
         actsp.Bmp->Blit(spriteset[obj.num], 0, 0);
     }
 
-    // Re-use the bitmap if it's the same size
-    recycle_bitmap(objsav.image, coldept, sprwidth, sprheight);
     // Create the cached image and store it
+    recycle_bitmap(objsav.image, coldept, actsp.Bmp->GetWidth(), actsp.Bmp->GetHeight());
     objsav.image->Blit(actsp.Bmp.get(), 0, 0);
+
     objsav.sppic = obj.num;
     objsav.tintamnt = tint_level;
     objsav.tintr = tint_red;
@@ -1668,8 +1660,7 @@ void prepare_objects_for_drawing() {
         if ((obj.x >= thisroom.Width) || (obj.y < 1))
             continue;
 
-        int tehHeight;
-        bool actspsIntact = construct_object_gfx(objid, nullptr, &tehHeight, false);
+        bool actspsIntact = construct_object_gfx(objid, false);
 
         const int useindx = objid; // actsps array index
         auto &actsp = actsps[useindx];
@@ -1678,8 +1669,6 @@ void prepare_objects_for_drawing() {
         ObjectCache &objsav = objcache[objid];
         objsav.x = obj.x;
         objsav.y = obj.y;
-        const int objx = obj.x;
-        const int objy = obj.y;
 
         //
         // Sort out walk-behinds
@@ -1732,7 +1721,7 @@ void prepare_objects_for_drawing() {
 
         actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj.transparent));
         actsp.Ddb->SetBlendMode(obj.blend_mode);
-        add_to_sprite_list(actsp.Ddb, objx, objy, aabb, usebasel, false);
+        add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, false);
     }
 }
 

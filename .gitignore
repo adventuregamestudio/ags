@@ -160,3 +160,12 @@ Tools/agsunpak/agsunpak
 Tools/crm2ash/crm2ash
 Tools/crmpak/crmpak
 Tools/trac/trac
+
+# ignore lib sources fetch with download.sh
+libsrc/SDL/
+libsrc/SDL2.framework/
+libsrc/SDL_sound/
+libsrc/ogg/
+libsrc/theora/
+libsrc/vorbis/
+

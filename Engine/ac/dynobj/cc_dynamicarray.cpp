@@ -60,18 +60,18 @@ void CCDynamicArray::Serialize(void *address, AGS::Common::Stream *out)
 
 void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    char *new_arr = new char[(data_sz - FileHeaderSz) + MemHeaderSz];
+    uint8_t *new_arr = new uint8_t[(data_sz - FileHeaderSz) + MemHeaderSz];
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
     hdr.TypeID = in->ReadInt32();
     hdr.ElemCount = in->ReadInt32();
     hdr.TotalSize = hdr.ElemCount * in->ReadInt32(); // elem size
     in->Read(new_arr + MemHeaderSz, data_sz - FileHeaderSz);
-    ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
+    ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this, kScValScriptObjectBuf);
 }
 
-DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
+/* static */ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
 {
-    char *new_arr = new char[elem_count * elem_size + MemHeaderSz];
+    uint8_t *new_arr = new uint8_t[elem_count * elem_size + MemHeaderSz];
     memset(new_arr, 0, elem_count * elem_size + MemHeaderSz);
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
     if (type_id > 0)
@@ -83,20 +83,19 @@ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint3
     hdr.ElemCount = elem_count;
     hdr.TotalSize = elem_count * elem_size;
     void *obj_ptr = &new_arr[MemHeaderSz];
-    // TODO: investigate if it's possible to register real object ptr directly
-    int32_t handle = ccRegisterManagedObject(obj_ptr, this);
+    int32_t handle = ccRegisterManagedObject(obj_ptr, &globalDynamicArray, kScValScriptObjectBuf);
     if (handle == 0)
     {
         delete[] new_arr;
-        return DynObjectRef(0, nullptr);
+        return DynObjectRef();
     }
-    return DynObjectRef(handle, obj_ptr);
+    return DynObjectRef(handle, obj_ptr, &globalDynamicArray);
 }
 
 void CCDynamicArray::RemapTypeids(void *address,
     const std::unordered_map<uint32_t, uint32_t> &typeid_map)
 {
-    Header &hdr = (Header&)GetHeader(address);
+    Header &hdr = GetHeaderW(address);
     const auto it = typeid_map.find(hdr.TypeID);
     assert(hdr.TypeID == 0u || it != typeid_map.end());
     hdr.TypeID = (it != typeid_map.end()) ? it->second : 0u;
@@ -156,17 +155,17 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
 {
     // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
-    if (!arr.second)
+    if (!arr.Obj)
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.second);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj);
     for (auto s : items)
     {
         DynObjectRef str = stringClassImpl->CreateString(s);
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
-        ccAddObjectReference(str.first);
-        *(slots++) = str.first;
+        ccAddObjectReference(str.Handle);
+        *(slots++) = str.Handle;
     }
     return arr;
 }

@@ -71,7 +71,7 @@ ScriptObject *GetObjectAtRoom(int x, int y)
     return &scrObj[hsnum];
 }
 
-AGS_INLINE int is_valid_object(int obtest) {
+int is_valid_object(int obtest) {
     if ((obtest < 0) || (static_cast<uint32_t>(obtest) >= croom->numobj)) return 0;
     return 1;
 }
@@ -430,8 +430,9 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    int objX = room_to_mask_coord(objs[objj].x);
-    int objY = room_to_mask_coord(objs[objj].y);
+    // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
+    const int objX = room_to_mask_coord(objs[objj].x);
+    const int objY = room_to_mask_coord(objs[objj].y);
     tox = room_to_mask_coord(tox);
     toy = room_to_mask_coord(toy);
 

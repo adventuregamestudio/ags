@@ -90,6 +90,7 @@
     <Compile Include="AudioClip.cs" />
     <Compile Include="AudioClipFolder.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="DebugLog.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptDefine.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptEnum.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptEnumValue.cs" />
@@ -137,6 +138,8 @@
     <Compile Include="Enums\InterfaceDisabledAction.cs" />
     <Compile Include="Enums\InventoryHotspotMarkerStyle.cs" />
     <Compile Include="Enums\LipSyncType.cs" />
+    <Compile Include="Enums\LogGroup.cs" />
+    <Compile Include="Enums\LogLevel.cs" />
     <Compile Include="Enums\PaletteColourType.cs" />
     <Compile Include="Enums\RoomAreaMaskType.cs" />
     <Compile Include="Enums\RoomTransitionStyle.cs" />
@@ -182,6 +185,7 @@
     <Compile Include="Interfaces\ISpriteFolder.cs" />
     <Compile Include="Interfaces\IViewFolder.cs" />
     <Compile Include="LipSync.cs" />
+    <Compile Include="LogGroups.cs" />
     <Compile Include="OldInteractionVariable.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />

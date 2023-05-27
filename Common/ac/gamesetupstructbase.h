@@ -12,11 +12,14 @@
 //
 //=============================================================================
 //
-//
+// GameSetupStructBase is a base class for main game data.
 //
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
+#include <array>
+#include <memory>
+#include <vector>
 #include <allegro.h> // RGB
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
@@ -31,7 +34,8 @@ struct CharacterInfo;
 struct ccScript;
 
 
-struct GameSetupStructBase {
+struct GameSetupStructBase
+{
     static const int  GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
     static const int  NUM_INTS_RESERVED = 17;
@@ -58,25 +62,24 @@ struct GameSetupStructBase {
     int               invhotdotsprite;
     int               reserved[NUM_INTS_RESERVED];
     Common::String    messages[MAXGLOBALMES];
-    WordsDictionary  *dict;
-    char             *globalscript;
-    CharacterInfo    *chars;
-    ccScript         *CompiledScript;
-
-    // TODO: refactor to not have this as struct members
-    int             *load_messages;
-    bool             load_dictionary;
-    bool             load_compiled_script;
-    // [IKM] 2013-03-30
-    // NOTE: it looks like nor 'globalscript', not 'CompiledScript' are used
-    // to store actual script data anytime; 'ccScript* gamescript' global
-    // pointer is used for that instead.
+    std::unique_ptr<WordsDictionary> dict;
+    std::vector<CharacterInfo> chars;
 
     GameSetupStructBase();
     ~GameSetupStructBase();
+
     void Free();
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+
+    // Tells whether the serialized game data contains certain components
+    struct SerializeInfo
+    {
+        bool HasCCScript = false;
+        bool HasWordsDict = false;
+        std::array<int, MAXGLOBALMES> HasMessages{};
+    };
+
+    void ReadFromFile(Common::Stream *in, SerializeInfo &info);
+    void WriteToFile(Common::Stream *out, const SerializeInfo &info);
 
     // Game resolution is a size of a native game screen in pixels.
     // This is the "game resolution" that developer sets up in AGS Editor.

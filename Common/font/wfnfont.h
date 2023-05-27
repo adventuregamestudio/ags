@@ -81,7 +81,7 @@ public:
     }
 
     // Get WFN character for the given code; if the character is missing, returns empty character
-    inline const WFNChar &GetChar(uint8_t code) const
+    inline const WFNChar &GetChar(uint16_t code) const
     {
         return code < _refs.size() ? *_refs[code] : _emptyChar;
     }

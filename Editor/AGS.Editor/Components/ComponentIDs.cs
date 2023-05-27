@@ -31,6 +31,7 @@ namespace AGS.Editor
         public const string Translations = "Translations";
         public const string Speech = "MusicAndSpeech";
         public const string Rooms = "Rooms";
+        public const string DebugLog = "DebugLog";
         public const string StatisticsSender = "StatisticsSender";
     }
 }

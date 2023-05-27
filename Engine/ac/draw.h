@@ -152,8 +152,6 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 
 void setpal();
 
-// This function converts game coordinates coming from script to the actual game resolution.
-extern AGS_INLINE void defgame_to_finalgame_coords(int &x, int &y);
 // Creates bitmap of a format compatible with the gfxdriver;
 // if col_depth is 0, uses game's native color depth.
 Common::Bitmap *CreateCompatBitmap(int width, int height, int col_depth = 0);

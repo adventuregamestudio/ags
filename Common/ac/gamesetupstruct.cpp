@@ -42,7 +42,6 @@ void GameSetupStruct::Free()
     GameSetupStructBase::Free();
 
     charScripts.clear();
-    numcharacters = 0;
     invScripts.clear();
     numinvitems = 0;
 
@@ -113,6 +112,7 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
 
 HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 {
+    mcurs.resize(numcursors);
     ReadMouseCursors_Aligned(in);
     return HGameFileError::None();
 }
@@ -130,15 +130,12 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 {
-    if (load_dictionary) {
-        dict = new WordsDictionary();
-        read_dictionary (dict, in);
-    }
+    dict.reset(new WordsDictionary());
+    read_dictionary(dict.get(), in);
 }
 
 void GameSetupStruct::ReadMouseCursors_Aligned(Stream *in)
 {
-    mcurs.resize(numcursors);
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
     {
@@ -162,8 +159,7 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 
 void GameSetupStruct::read_characters(Common::Stream *in)
 {
-    chars = new CharacterInfo[numcharacters];
-
+    chars.resize(numcharacters);
     ReadCharacters_Aligned(in, false);
 }
 
@@ -173,17 +169,17 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 }
 
 // CLNUP global messages are supposed to be gone, check later
-void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver)
+void GameSetupStruct::read_messages(Common::Stream *in,
+    const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver)
 {
     char mbuf[GLOBALMESLENGTH];
-    for (int i=0; i < MAXGLOBALMES; ++i)
+    for (int i = 0; i < MAXGLOBALMES; ++i)
     {
-        if (!load_messages[i]) continue;
+        if (!load_messages[i])
+            continue;
         read_string_decrypt(in, mbuf, GLOBALMESLENGTH);
         messages[i] = mbuf;
     }
-    delete [] load_messages;
-    load_messages = nullptr;
 }
 
 void GameSetupStruct::ReadCharacters_Aligned(Stream *in, bool is_save)

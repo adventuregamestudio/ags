@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-// Managed object, which size and contents are defined by user script
+// ScriptUserObject is a dynamic (managed) struct manager.
 //
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
@@ -27,14 +27,29 @@ struct ScriptUserObject final : AGSCCDynamicObject
 public:
     static const char *TypeName;
 
-    ScriptUserObject() = default;
-    
-protected:
-    virtual ~ScriptUserObject();
+    struct Header
+    {
+        // Type id of the struct, refering the RTTI
+        uint32_t TypeId = 0u;
+        uint32_t Size = 0u;
+        // NOTE: we use signed int for Size at the moment, because the managed
+        // object interface's Serialize() function requires the object to return
+        // negative value of size in case the provided buffer was not large
+        // enough. Since this interface is also a part of Plugin API, we would
+        // need more significant change to program before we could use different
+        // approach.
+    };
 
-public:
-    static ScriptUserObject *CreateManaged(uint32_t type_id, size_t size);
-    void Create(const uint8_t *data, AGS::Common::Stream *in, uint32_t type_id, size_t size);
+    ScriptUserObject() = default;
+    ~ScriptUserObject() = default;
+
+    inline static const Header &GetHeader(void *address)
+    {
+        return reinterpret_cast<const Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+    }
+
+    // Create managed struct object and return a pointer to the beginning of a buffer
+    static DynObjectRef Create(uint32_t type_id, size_t size);
 
     // return the type name of the object
     const char *GetType() override;
@@ -47,35 +62,25 @@ public:
     // Traverse all managed references in this object, and run callback for each of them
     void TraverseRefs(void *address, PfnTraverseRefOp traverse_op) override;
 
-    // Support for reading and writing object values by their relative offset
-    void   *GetFieldPtr(void *address, intptr_t offset) override;
-    void    Read(void *address, intptr_t offset, uint8_t *dest, size_t size) override;
-    uint8_t ReadInt8(void *address, intptr_t offset) override;
-    int16_t ReadInt16(void *address, intptr_t offset) override;
-    int32_t ReadInt32(void *address, intptr_t offset) override;
-    float   ReadFloat(void *address, intptr_t offset) override;
-    void    Write(void *address, intptr_t offset, const uint8_t *src, size_t size) override;
-    void    WriteInt8(void *address, intptr_t offset, uint8_t val) override;
-    void    WriteInt16(void *address, intptr_t offset, int16_t val) override;
-    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
-    void    WriteFloat(void *address, intptr_t offset, float val) override;
-
 private:
-    uint32_t _typeid = 0u; // type id from rtti
-    // NOTE: the managed object interface's Serialize() function requires
-    // the object to return negative value of size in case the provided
-    // buffer was not large enough. Since this interface is also a part of
-    // Plugin API, we cannot modify that without more significant changes.
-    // This means that if the size is larger than INT32_MAX, Serialize()
-    // will work unreliably.
-    size_t   _size = 0u;
-    uint8_t *_data = nullptr;
+    // The size of the array's header in memory, prepended to the element data
+    static const size_t MemHeaderSz = sizeof(Header);
+    // The size of the serialized header
+    static const size_t FileHeaderSz = sizeof(uint32_t) * 2; // hdr size + typeid
+    // Writeable GetHeader variant for internal purposes 
+    inline static Header &GetHeaderW(void *address)
+    {
+        return reinterpret_cast<Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+    }
+
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(void *address) override;
     // Write object data into the provided stream
     void Serialize(void *address, AGS::Common::Stream *out) override;
 };
+
+extern ScriptUserObject globalDynamicStruct;
 
 
 // Helper functions for setting up custom managed structs based on ScriptUserObject.

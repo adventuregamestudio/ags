@@ -142,9 +142,8 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters(const LoadedGameEntities &ents)
+void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &ents)
 {
-    const GameSetupStruct &game = ents.Game;
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].walking = 0;
@@ -271,7 +270,7 @@ void InitAndRegisterRegions()
 }
 
 // Registers static entity arrays in the script system
-void RegisterStaticArrays(const GameSetupStruct &game)
+void RegisterStaticArrays(GameSetupStruct &game)
 {
     // We need to know sizes of related script structs to convert memory offsets into object indexes.
     // These sized are calculated by the compiler based on script struct declaration.
@@ -309,7 +308,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
 {
     GameSetupStruct &game = ents.Game;
     InitAndRegisterAudioObjects(game);
-    InitAndRegisterCharacters(ents);
+    InitAndRegisterCharacters(game, ents);
     InitAndRegisterDialogs(game);
     InitAndRegisterDialogOptions();
     HError err = InitAndRegisterGUI(game);

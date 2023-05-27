@@ -915,12 +915,14 @@ void croom_ptr_clear()
 }
 
 
-AGS_INLINE int room_to_mask_coord(int coord)
+// coordinate conversion (data) ---> game ---> (room mask)
+int room_to_mask_coord(int coord)
 {
     return coord / thisroom.MaskResolution;
 }
 
-AGS_INLINE int mask_to_room_coord(int coord)
+// coordinate conversion (room mask) ---> game ---> (data)
+int mask_to_room_coord(int coord)
 {
     return coord * thisroom.MaskResolution;
 }

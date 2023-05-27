@@ -275,7 +275,7 @@ int ManagedObjectPool::AddObject(void *address, IScriptObject *callback,
         }
     }
 
-    return Add(handle, address, callback, obj_type, persistent);   
+    return Add(handle, address, callback, obj_type, persistent);
 }
 
 int ManagedObjectPool::AddUnserializedObject(void *address, IScriptObject *callback,

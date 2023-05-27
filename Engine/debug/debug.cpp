@@ -107,13 +107,36 @@ void send_message_to_debugger(const std::vector<std::pair<String, String>>& tag_
     editor_debugger->SendMessageToEditor(messageToSend.GetCStr());
 }
 
+class DebuggerLogOutputTarget : public AGS::Common::IOutputHandler
+{
+public:
+    DebuggerLogOutputTarget() {};
+    virtual ~DebuggerLogOutputTarget() {};
+
+    void PrintMessage(const DebugMessage &msg) override
+    {
+        if(editor_debugger == nullptr) return;
+
+        std::vector<std::pair<String, String>> log_info =
+                {
+                        {"Text", msg.Text},
+                        {"GroupID", StrUtil::IntToString(msg.GroupID)},
+                        {"MTID", StrUtil::IntToString(msg.MT)}
+                };
+
+        send_message_to_debugger(log_info, "LOG");
+    }
+};
+
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;
 std::unique_ptr<ConsoleOutputTarget> DebugConsole;
+std::unique_ptr<DebuggerLogOutputTarget> DebuggerLog;
 
 const String OutputMsgBufID = "buffer";
 const String OutputFileID = "file";
 const String OutputSystemID = "stdout";
+const String OutputDebuggerLogID = "debugger";
 const String OutputGameConsoleID = "console";
 
 
@@ -170,6 +193,12 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
     {
         DebugConsole.reset(new ConsoleOutputTarget());
         return DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsg_None);
+    }
+    else if (name.CompareNoCase(OutputDebuggerLogID) == 0)
+    {
+        DebuggerLog.reset(new DebuggerLogOutputTarget());
+        return DbgMgr.RegisterOutput(OutputDebuggerLogID, DebuggerLog.get(), kDbgMsg_All);
+
     }
     return nullptr;
 }
@@ -324,6 +353,15 @@ void apply_debug_config(const ConfigTree &cfg)
               DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
             });
         debug_set_console(true);
+
+        // we also want to init the log through debugger in this case
+        apply_log_config(cfg, OutputDebuggerLogID,
+            /* defaults */
+            true,
+            { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
+              DbgGroupOption(kDbgGroup_Game, kDbgMsg_All),
+              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
+            });
     }
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
@@ -351,6 +389,7 @@ void shutdown_debug()
     DebugMsgBuff.reset();
     DebugLogFile.reset();
     DebugConsole.reset();
+    DebuggerLog.reset();
 }
 
 void debug_set_console(bool enable)

@@ -45,6 +45,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/viewframe.h"
+#include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
@@ -664,6 +665,125 @@ static void game_loop_update_animated_buttons()
     }
 }
 
+extern std::vector<ViewStruct> views;
+
+static void update_objects_scale()
+{
+    for (uint32_t objid = 0; objid < croom->numobj; ++objid)
+    {
+        RoomObject &obj = objs[objid];
+        if (obj.on == 0)
+            continue; // not enabled
+
+        // calculate the zoom level
+        int zoom_level = 100;
+        if ((obj.flags & OBJF_USEROOMSCALING) == 0)
+        {
+            zoom_level = obj.zoom;
+        }
+        else
+        {
+            int onarea = get_walkable_area_at_location(obj.x, obj.y);
+            if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0))
+            {
+                // not on a valid area -- use the last scaling we had while on the area
+                zoom_level = obj.zoom;
+            }
+            else
+            {
+                zoom_level = get_area_scaling(onarea, obj.x, obj.y);
+            }
+        }
+
+        if (zoom_level == 0)
+            zoom_level = 100; // safety fix
+
+        const int src_sprwidth = game.SpriteInfos[obj.num].Width;
+        const int src_sprheight = game.SpriteInfos[obj.num].Height;
+        int sprwidth = src_sprwidth;
+        int sprheight = src_sprheight;
+        if (zoom_level != 100)
+        {
+            scale_sprite_size(obj.num, zoom_level, &sprwidth, &sprheight);
+        }
+
+        // Save calculated propertes and recalc GS
+        obj.zoom = zoom_level;
+        obj.spr_width = src_sprwidth;
+        obj.spr_height = src_sprheight;
+        obj.last_width = sprwidth;
+        obj.last_height = sprheight;
+        obj.UpdateGraphicSpace();
+    }
+
+    for (uint32_t charid = 0; charid < game.numcharacters; ++charid)
+    {
+        // Test for valid view and loop
+        CharacterInfo &chin = game.chars[charid];
+        if (chin.on == 0 || chin.room != displayed_room)
+            continue; // not enabled, or in a different room
+
+        CharacterExtras &chex = charextra[charid];
+        if (chin.view < 0)
+        {
+            quitprintf("!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
+                chin.name, displayed_room);
+        }
+        if (chin.loop >= views[chin.view].numLoops)
+        {
+            quitprintf("!The character '%s' could not be displayed because there was no loop %d of view %d.",
+                chin.name, chin.loop, chin.view + 1);
+        }
+        // If frame is too high -- fallback to the frame 0;
+        // there's always at least 1 dummy frame at index 0
+        if (chin.frame >= views[chin.view].loops[chin.loop].numFrames)
+        {
+            chin.frame = 0;
+        }
+
+        // calculate the zoom level
+        int zoom_level = 100;
+        if (chin.flags & CHF_MANUALSCALING)  // character ignores scaling
+        {
+            zoom_level = chex.zoom;
+        }
+        else
+        {
+            const int onarea = get_walkable_area_at_character(charid);
+            if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0))
+            {
+                // not on a valid area -- use the last scaling we had while on the area
+                zoom_level = chex.zoom;
+            }
+            else
+            {
+                zoom_level = get_area_scaling(onarea, chin.x, chin.y);
+            }
+        }
+
+        if (zoom_level == 0)
+            zoom_level = 100; // safety fix
+
+        const int sppic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
+        const int src_sprwidth = game.SpriteInfos[sppic].Width;
+        const int src_sprheight = game.SpriteInfos[sppic].Height;
+        int sprwidth = src_sprwidth;
+        int sprheight = src_sprheight;
+        if (zoom_level != 100)
+        {
+            scale_sprite_size(sppic, zoom_level, &sprwidth, &sprheight);
+        }
+        
+        // Save calculated properties and recalc GS
+        chex.zoom = zoom_level;
+        chex.spr_width = src_sprwidth;
+        chex.spr_height = src_sprheight;
+        chex.width = sprwidth;
+        chex.height = sprheight;
+        chex.UpdateGraphicSpace(&chin);
+    }
+}
+
 // Updates GUI reaction to the cursor position change
 // TODO: possibly may be merged with gui_on_mouse_move()
 static void update_cursor_over_gui()
@@ -687,7 +807,6 @@ static void update_cursor_over_gui()
 
 extern int lastmx, lastmy;
 extern int mouse_frame, mouse_delay;
-extern std::vector<ViewStruct> views;
 
 static void update_cursor_view()
 {
@@ -891,10 +1010,13 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     game_loop_do_late_script_update();
 
-    update_audio_system_on_game_loop();
-
+    // historically room object and character scaling was updated
+    // right before the drawing
+    update_objects_scale();
     update_cursor_over_location(mwasatx, mwasaty);
     update_cursor_view();
+
+    update_audio_system_on_game_loop();
 
     // Only render if we are not skipping a cutscene
     if (!play.fast_forward)
@@ -1160,13 +1282,17 @@ void RunGameUntilAborted()
     }
 }
 
-void update_cursor_and_dependent()
+void UpdateCursorAndDrawables()
 {
     const int mwasatx = mousex, mwasaty = mousey;
     ags_domouse();
     update_cursor_over_gui();
     update_cursor_over_location(mwasatx, mwasaty);
     update_cursor_view();
+    // TODO: following does not have to be called every frame while in a
+    // fully blocking state (like Display() func), refactor to only call it
+    // once the blocking state begins.
+    update_objects_scale();
 }
 
 void update_polled_stuff()

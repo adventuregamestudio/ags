@@ -1666,9 +1666,10 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
 
     chin->flags &= ~CHF_MOVENOTWALK;
 
-    int toxPassedIn = tox, toyPassedIn = toy;
-    int charX = room_to_mask_coord(chin->x);
-    int charY = room_to_mask_coord(chin->y);
+    // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
+    const int toxPassedIn = tox, toyPassedIn = toy;
+    const int charX = room_to_mask_coord(chin->x);
+    const int charY = room_to_mask_coord(chin->y);
     tox = room_to_mask_coord(tox);
     toy = room_to_mask_coord(toy);
 
@@ -1703,11 +1704,9 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     // are still displayed as such
     debug_script_log("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
 
-    int move_speed_x = chin->walkspeed;
-    int move_speed_y = chin->walkspeed;
-
-    if (chin->walkspeed_y != UNIFORM_WALK_SPEED)
-        move_speed_y = chin->walkspeed_y;
+    const int move_speed_x = chin->walkspeed;
+    const int move_speed_y =
+        ((chin->walkspeed_y == UNIFORM_WALK_SPEED) ? chin->walkspeed : chin->walkspeed_y);
 
     if ((move_speed_x == 0) && (move_speed_y == 0)) {
         debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);

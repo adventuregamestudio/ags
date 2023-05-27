@@ -27,14 +27,8 @@
 // Number of state-saved rooms
 #define MAX_ROOMS 300
 
-#if AGS_PLATFORM_OS_WINDOWS
-#define AGS_INLINE inline
-#else
-// the linux compiler won't allow extern inline
-#define AGS_INLINE
-#endif
 
-// object flags (currently only a char)
+// Room object flags (currently limited by a byte)
 #define OBJF_NOINTERACT        1  // not clickable
 #define OBJF_NOWALKBEHINDS     2  // ignore walk-behinds
 #define OBJF_HASTINT           4  // the tint_* members are valid

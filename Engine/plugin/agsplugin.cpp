@@ -699,8 +699,8 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
     // we may try to optimize following by having a cache of CCPluginObjects per callback
     // address. Need to research if that's reliable, and will actually be more performant.
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
-    return ccRegisterManagedObject(object, pl_obj, kScValPluginObject);
+    GlobalReturnValue.SetScriptObjectBuf((void*)object, pl_obj);
+    return ccRegisterManagedObject(object, pl_obj, kScValScriptObjectBuf);
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
@@ -722,8 +722,8 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
     auto *pl_obj = new CCPluginObject((IScriptObject*)callback);
-    GlobalReturnValue.SetPluginObject((void*)object, pl_obj);
-    ccRegisterUnserializedObject(key, object, pl_obj, kScValPluginObject);
+    GlobalReturnValue.SetScriptObjectBuf((void*)object, pl_obj);
+    ccRegisterUnserializedObject(key, object, pl_obj, kScValScriptObjectBuf);
 }
 
 int IAGSEngine::GetManagedObjectKeyByAddress(void *address) {

@@ -1,9 +1,9 @@
 {
     "version": "3.99.103.0",
     "versionFriendly": "3.99.103",
-    "versionSp": "P1",
+    "versionSp": "Beta",
     "versionYear": "2023",
     "versionMonth": "May",
-    "versionIsBeta": "false",
+    "versionIsBeta": "true",
     "appID": "572bfb67-1c66-4e44-bdad-322754f679a6"
 }

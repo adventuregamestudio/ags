@@ -1,9 +1,9 @@
 {
-    "version": "3.6.0.48",
-    "versionFriendly": "3.6.0",
-    "versionSp": "P1",
+    "version": "3.6.1.0",
+    "versionFriendly": "3.6.1",
+    "versionSp": "Beta",
     "versionYear": "2023",
     "versionMonth": "May",
-    "versionIsBeta": "false",
-    "appID": "a4d6de0f-18b0-4aae-9338-86a333563b98"
+    "versionIsBeta": "true",
+    "appID": "6fcbc804-4887-4786-bcf6-b0786e1e983d"
 }

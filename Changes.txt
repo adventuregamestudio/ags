@@ -1,5 +1,40 @@
 REVISION HISTORY
 ================
+VERSION 3.6.1 - Beta, May 2023
+
+Editor:
+ - Made Editor a Dpi-aware application, which might improve its looks in Windows 10
+   and higher.
+ - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
+ - Added "Restore all sprites..." command to the Sprite Manager's context menu
+   (this duplicates the "File -> Recreate sprite file" menu command added previously).
+ - Refresh Sprite Manager after fully recreating a sprite file.
+ - Fixed a minor memory leak occuring when editing a tree item's label in Project Explorer.
+
+Engine:
+ - Significant performance improvement to scripts. Script running speed restored to a level
+   close to AGS 3.2.1. Testing few "script-heavy" games showed FPS raise by up to 30-40%
+   compared with 3.6.0 engine.
+ - Ensure that character and object scaling is updated even when the game is not drawn.
+   This fixes rare issues when their scale property did not update in time whilst the game was
+   completely fadeout, and similar cases.
+ - Ensure all the script API is now correctly available for the plugins.
+ - Engine will now log a warning for the most incorrect parameters to Animate function instead
+   of quitting the game.
+ - Fixed "bad script stack" error could be sometimes displayed if the game was aborted in
+   the middle of running a script.
+ - Fixed script behavior in case a local variable was assigned a value without being initialized
+   with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
+   compiler, but technically could be an issue with any custom implementation.
+
+Compatibility:
+ - In Editor, restored all the Character's variables available in "backward-compatible" mode.
+   This is primarily to make it easier to import very old games.
+ - Fixed slower character walking speeds in pre-3.1 upscaled and high-resolution games.
+ - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
+   This lets particular old games to continue running instead of crashing with error.
+
+
 VERSION 3.6.0 - Patch 1, May 2023
 
 Editor:

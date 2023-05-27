@@ -66,7 +66,7 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     hdr.ElemCount = in->ReadInt32();
     hdr.TotalSize = hdr.ElemCount * in->ReadInt32(); // elem size
     in->Read(new_arr + MemHeaderSz, data_sz - FileHeaderSz);
-    ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this, kScValScriptObjectBuf);
+    ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
 }
 
 /* static */ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
@@ -83,7 +83,7 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     hdr.ElemCount = elem_count;
     hdr.TotalSize = elem_count * elem_size;
     void *obj_ptr = &new_arr[MemHeaderSz];
-    int32_t handle = ccRegisterManagedObject(obj_ptr, &globalDynamicArray, kScValScriptObjectBuf);
+    int32_t handle = ccRegisterManagedObject(obj_ptr, &globalDynamicArray);
     if (handle == 0)
     {
         delete[] new_arr;

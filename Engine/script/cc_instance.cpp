@@ -1167,7 +1167,7 @@ int ccInstance::Run(int32_t curpc)
                 address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
             case kScValScriptObject:
-            case kScValScriptObjectBuf:
+            case kScValPluginObject:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
@@ -1209,7 +1209,7 @@ int ccInstance::Run(int32_t curpc)
                 address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
             case kScValScriptObject:
-            case kScValScriptObjectBuf:
+            case kScValPluginObject:
                 address = reg1.Ptr;
                 break;
             case kScValPluginArg:
@@ -1445,12 +1445,12 @@ int ccInstance::Run(int32_t curpc)
             switch (reg1.Type)
             {
                 // This might be a static object, passed to the user-defined extender function
+            case kScValScriptObject:
+            case kScValPluginObject:
+            case kScValPluginArg:
                 // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
                 // Note, that this is the only case known when such object is written into reg[SREG_OP];
                 // in any other case that would count as error. 
-            case kScValScriptObject:
-            case kScValScriptObjectBuf:
-            case kScValPluginArg:
             case kScValGlobalVar:
             case kScValStackPtr:
                 registers[SREG_OP] = reg1;
@@ -1501,7 +1501,7 @@ int ccInstance::Run(int32_t curpc)
                 return -1;
             }
             DynObjectRef ref = CCDynamicArray::CreateOld(static_cast<uint32_t>(arg_elnum), arg_elsize, arg_managed);
-            reg1.SetScriptObjectBuf(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
         case SCMD_NEWARRAY2:
@@ -1521,7 +1521,7 @@ int ccInstance::Run(int32_t curpc)
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
             const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
             DynObjectRef ref = CCDynamicArray::CreateNew(global_tid, static_cast<uint32_t>(arg_elnum), arg_elsize);
-            reg1.SetScriptObjectBuf(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
         case SCMD_NEWUSEROBJECT:
@@ -1534,7 +1534,7 @@ int ccInstance::Run(int32_t curpc)
                 return -1;
             }
             DynObjectRef ref = ScriptUserObject::Create(RTTI::NoType, arg_size);
-            reg1.SetScriptObjectBuf(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
         case SCMD_NEWUSEROBJECT2:
@@ -1553,7 +1553,7 @@ int ccInstance::Run(int32_t curpc)
             assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
             const uint32_t global_tid = runningInst->_typeidLocal2Global[arg_typeid];
             DynObjectRef ref = ScriptUserObject::Create(global_tid, arg_size);
-            reg1.SetScriptObjectBuf(ref.Obj, ref.Mgr);
+            reg1.SetScriptObject(ref.Obj, ref.Mgr);
             break;
         }
         case SCMD_FADD:
@@ -1817,10 +1817,10 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
                 break;
             case kScValStaticArray:
             case kScValScriptObject:
-            case kScValScriptObjectBuf:
             case kScValStaticFunction:
             case kScValObjectFunction:
             case kScValPluginFunction:
+            case kScValPluginObject:
             {
                 String name = simp.findName(arg);
                 if (!name.IsEmpty())

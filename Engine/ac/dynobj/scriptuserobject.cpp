@@ -38,7 +38,7 @@ const char *ScriptUserObject::GetType()
     hdr.TypeId = type_id;
     hdr.Size = size;
     void *obj_ptr = &new_data[MemHeaderSz];
-    int32_t handle = ccRegisterManagedObject(obj_ptr, &globalDynamicStruct, kScValScriptObjectBuf);
+    int32_t handle = ccRegisterManagedObject(obj_ptr, &globalDynamicStruct);
     if (handle == 0)
     {
         delete[] new_data;
@@ -84,7 +84,7 @@ void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
     hdr.TypeId = static_cast<uint32_t>(in->ReadInt32());
     hdr.Size = (data_sz - FileHeaderSz);
     in->Read(new_data + MemHeaderSz, hdr.Size);
-    ccRegisterUnserializedObject(index, &new_data[MemHeaderSz], this, kScValScriptObjectBuf);
+    ccRegisterUnserializedObject(index, &new_data[MemHeaderSz], this);
 }
 
 void ScriptUserObject::RemapTypeids(void *address,

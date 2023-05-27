@@ -1462,14 +1462,14 @@ static bool scale_and_flip_sprite(int useindx, int sppic, int width, int height,
     return result != src;
 }
 
-// Create the actsps[aa] image with the object drawn correctly.
+// Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
 // Hardware-accelerated renderers always return true, because they do not
 // require altering the raw bitmap itself.
 // Except if alwaysUseSoftware is set, in which case even HW renderers
 // construct the image in software mode as well.
-bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware) {
+bool construct_object_gfx(int objid, bool alwaysUseSoftware) {
     bool hardwareAccelerated = !alwaysUseSoftware && gfxDriver->HasAcceleratedTransform();
 
     const RoomObject &obj = objs[objid];
@@ -1477,21 +1477,12 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
     if (spriteset[obj.num] == nullptr)
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", objid, obj.num);
 
-    int coldept = spriteset[obj.num]->GetColorDepth();
+    const int coldept = spriteset[obj.num]->GetColorDepth();
     const int src_sprwidth = game.SpriteInfos[obj.num].Width;
     const int src_sprheight = game.SpriteInfos[obj.num].Height;
-    int sprwidth = src_sprwidth;
-    int sprheight = src_sprheight;
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
-
-    // save width/height into parameters if requested
-    if (drawnWidth)
-        *drawnWidth = sprwidth;
-    if (drawnHeight)
-        *drawnHeight = sprheight;
-
     tint_red = tint_green = tint_blue = tint_level = tint_light = light_level = 0;
 
     if (obj.flags & OBJF_HASTINT) {
@@ -1582,8 +1573,8 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
                 (actsp.Bmp != nullptr) &&
                 (walk_behind_baselines_changed == 0))
                 return true;
-            recycle_bitmap(actsp.Bmp, coldept, sprwidth, sprheight);
-            actsp.Bmp->Blit(objsav.image.get(), 0, 0, 0, 0, objsav.image->GetWidth(), objsav.image->GetHeight());
+            recycle_bitmap(actsp.Bmp, objsav.image->GetColorDepth(), objsav.image->GetWidth(), objsav.image->GetHeight());
+            actsp.Bmp->Blit(objsav.image.get(), 0, 0);
             return false; // image was modified
     }
 
@@ -1592,7 +1583,7 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
     if (!hardwareAccelerated)
     {
         // draw the base sprite, scaled and flipped as appropriate
-        actspsUsed = scale_and_flip_sprite(useindx, obj.num, sprwidth, sprheight, isMirrored);
+        actspsUsed = scale_and_flip_sprite(useindx, obj.num, obj.last_width, obj.last_height, isMirrored);
     }
     if (!actspsUsed)
     {
@@ -1616,9 +1607,8 @@ bool construct_object_gfx(int objid, int *drawnWidth, int *drawnHeight, bool alw
         actsp.Bmp->Blit(spriteset[obj.num], 0, 0);
     }
 
-    // Re-use the bitmap if it's the same size
-    recycle_bitmap(objsav.image, coldept, sprwidth, sprheight);
     // Create the cached image and store it
+    recycle_bitmap(objsav.image, actsp.Bmp->GetColorDepth(), actsp.Bmp->GetWidth(), actsp.Bmp->GetHeight());
     objsav.image->Blit(actsp.Bmp.get(), 0, 0);
     objsav.sppic = obj.num;
     objsav.tintamnt = tint_level;
@@ -1647,8 +1637,7 @@ void prepare_objects_for_drawing() {
         if ((obj.x >= thisroom.Width) || (obj.y < 1))
             continue;
 
-        int tehHeight;
-        bool actspsIntact = construct_object_gfx(objid, nullptr, &tehHeight, false);
+        bool actspsIntact = construct_object_gfx(objid, false);
 
         const int useindx = objid; // actsps array index
         auto &actsp = actsps[useindx];
@@ -1657,8 +1646,8 @@ void prepare_objects_for_drawing() {
         ObjectCache &objsav = objcache[objid];
         objsav.x = obj.x;
         objsav.y = obj.y;
-        int atxp = data_to_game_coord(obj.x);
-        int atyp = data_to_game_coord(obj.y) - tehHeight;
+        const int atxp = data_to_game_coord(obj.x);
+        const int atyp = data_to_game_coord(obj.y) - obj.last_height;
 
         int usebasel = obj.get_baseline();
 

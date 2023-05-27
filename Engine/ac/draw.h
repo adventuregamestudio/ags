@@ -127,7 +127,7 @@ void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverSpriteEvtCallback(int evt, int data);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
-// Create the actsps[aa] image with the object drawn correctly.
+// Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
 // Hardware-accelerated do not require altering the raw bitmap itself,
@@ -136,7 +136,7 @@ void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // effect changes (scaling, tint, etc).
 // * alwaysUseSoftware option forces HW renderers to  construct the image
 // in software mode as well.
-bool construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
+bool construct_object_gfx(int objid, bool alwaysUseSoftware);
 // Returns a cached character image prepared for the render
 Common::Bitmap *get_cached_character_image(int charid);
 // Returns a cached object image prepared for the render

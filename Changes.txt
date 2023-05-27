@@ -13,8 +13,10 @@ Editor:
 
 Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
-   close to AGS 3.2.1. Testing few "script-heavy" games showed FPS raise by up to 30-40%
+   close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
+ - WFN font renderer now too supports unicode mode and renders texts in utf-8, so long as the
+   font contains glyphs of corresponding indexes.
  - Ensure that character and object scaling is updated even when the game is not drawn.
    This fixes rare issues when their scale property did not update in time whilst the game was
    completely fadeout, and similar cases.

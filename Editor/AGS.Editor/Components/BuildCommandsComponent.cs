@@ -171,6 +171,7 @@ namespace AGS.Editor.Components
                 {
                     _testGameInProgress = true;
                     _guiController.InteractiveTasks.TestGame(withDebugger);
+                    _guiController.ShowLogPanel(true);
                 }
             }
         }

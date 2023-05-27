@@ -110,6 +110,7 @@
     <Compile Include="Components\CharacterRoomChangedEventArgs.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
+    <Compile Include="Components\DebugLogComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
     <Compile Include="Components\FileCommandsComponent.cs" />
     <Compile Include="Components\FontsComponent.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -158,6 +160,12 @@
     </Compile>
     <Compile Include="GUI\ImportTTFDialog.Designer.cs">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\LogPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\LogPanel.Designer.cs">
+      <DependentUpon>LogPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\NumberEntryWithInfoDialog.cs">
       <SubType>Form</SubType>
@@ -209,6 +217,7 @@
     <Compile Include="GUI\NumberEntryDialog.Designer.cs">
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Entities\LogBuffer.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
     <Compile Include="Panes\ZoomTrackbar.cs">
@@ -355,6 +364,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\AndroidUtilities.cs" />
     <Compile Include="Utils\ArgumentBuilder.cs" />
+    <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\Validation.cs" />
     <EmbeddedResource Include="GUI\frmMain.resx">
@@ -366,6 +376,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\ImportTTFDialog.resx">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\LogPanel.resx">
+      <DependentUpon>LogPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\NumberEntryWithInfoDialog.resx">
       <DependentUpon>NumberEntryWithInfoDialog.cs</DependentUpon>
@@ -605,6 +618,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="Resources\log_autoscroll.ico" />
+    <EmbeddedResource Include="Resources\log_quiet.ico" />
+    <EmbeddedResource Include="Resources\log_run.ico" />
+    <EmbeddedResource Include="Resources\debug_log.ico" />
     <EmbeddedResource Include="Resources\LayoutDefault.xml" />
     <EmbeddedResource Include="GUI\AboutDialog.resx">
       <SubType>Designer</SubType>

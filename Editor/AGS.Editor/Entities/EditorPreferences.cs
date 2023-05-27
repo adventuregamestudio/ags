@@ -766,6 +766,44 @@ namespace AGS.Editor.Preferences
         }
 
         [Browsable(true)]
+        [DisplayName("Log Font")]
+        [Description("Font used in the debug log panel (default: Courier New).")]
+        [Category("Debug Log")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("Courier New")]
+        [TypeConverter(typeof(InstalledFontTypeConverter))]
+        public string LogFont
+        {
+            get
+            {
+                return (string)(this["LogFont"]);
+            }
+            set
+            {
+                this["LogFont"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Log Font Size")]
+        [Description("Size of the font used in the debug log panel (default: 10).")]
+        [Category("Debug Log")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("10")]
+        public int LogFontSize
+        {
+            get
+            {
+                return (int)(this["LogFontSize"]);
+            }
+            set
+            {
+                if (value < 8) value = 8;
+                this["LogFontSize"] = value;
+            }
+        }
+
+        [Browsable(true)]
         [DisplayName("Color Theme")]
         [Description("Select which theme the editor should be using.")]
         [Category("Editor Appearance")]

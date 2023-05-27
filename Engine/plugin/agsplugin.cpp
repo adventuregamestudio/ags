@@ -703,8 +703,8 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 }
 
 int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject(object, (IScriptObject*)callback);
-    return ccRegisterManagedObject(object, (IScriptObject*)callback, kScValPluginObject);
+    GlobalReturnValue.SetScriptObjectBuf(object, (IScriptObject*)callback);
+    return ccRegisterManagedObject(object, (IScriptObject*)callback, kScValScriptObjectBuf);
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
@@ -725,8 +725,8 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetPluginObject((void*)object, (IScriptObject*)callback);
-    ccRegisterUnserializedObject(key, object, (IScriptObject*)callback, kScValPluginObject);
+    GlobalReturnValue.SetScriptObjectBuf((void*)object, (IScriptObject*)callback);
+    ccRegisterUnserializedObject(key, object, (IScriptObject*)callback, kScValScriptObjectBuf);
 }
 
 int IAGSEngine::GetManagedObjectKeyByAddress(void *address) {

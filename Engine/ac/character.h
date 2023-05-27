@@ -192,6 +192,9 @@ void setup_player_character(int charid);
 void CheckViewFrameForCharacter(CharacterInfo *chi);
 Common::Bitmap *GetCharacterImage(int charid, int *isFlipped);
 CharacterInfo *GetCharacterAtScreen(int xx, int yy);
+// Deduces room object's scale, accounting for both manual scaling and the room region effects;
+// calculates resulting sprite size.
+void update_character_scale(int charid);
 // Get character ID at the given room coordinates
 int is_pos_on_character(int xx,int yy);
 void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);

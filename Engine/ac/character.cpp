@@ -2232,6 +2232,51 @@ CharacterInfo *GetCharacterAtRoom(int x, int y)
 
 extern int char_lowest_yp, obj_lowest_yp;
 
+void update_character_scale(int charid)
+{
+    // Test for valid view and loop
+    CharacterInfo &chin = game.chars[charid];
+    if (chin.on == 0 || chin.room != displayed_room)
+        return; // not enabled, or in a different room
+
+    CharacterExtras &chex = charextra[charid];
+    if (chin.view < 0)
+    {
+        quitprintf("!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
+            chin.name, displayed_room);
+    }
+    if (chin.loop >= views[chin.view].numLoops)
+    {
+        quitprintf("!The character '%s' could not be displayed because there was no loop %d of view %d.",
+            chin.name, chin.loop, chin.view + 1);
+    }
+    // If frame is too high -- fallback to the frame 0;
+    // there's always at least 1 dummy frame at index 0
+    if (chin.frame >= views[chin.view].loops[chin.loop].numFrames)
+    {
+        chin.frame = 0;
+    }
+
+    int zoom, scale_width, scale_height;
+    update_object_scale(zoom, scale_width, scale_height,
+        chin.x, chin.y, views[chin.view].loops[chin.loop].frames[chin.frame].pic,
+        chex.zoom, (chin.flags & CHF_MANUALSCALING) == 0);
+
+    // Calculate the X & Y co-ordinates of where the sprite will be;
+    // for the character sprite's origin is at the bottom-mid of a sprite.
+    const int atxp = (data_to_game_coord(chin.x)) - scale_width / 2;
+    const int atyp = (data_to_game_coord(chin.y) - scale_height)
+        // adjust the Y positioning for the character's Z co-ord
+        - data_to_game_coord(chin.z);
+
+    // Save calculated properties
+    chex.width = scale_width;
+    chex.height = scale_height;
+    chin.actx = atxp;
+    chin.acty = atyp;
+    chex.zoom = zoom;
+}
+
 int is_pos_on_character(int xx,int yy) {
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {

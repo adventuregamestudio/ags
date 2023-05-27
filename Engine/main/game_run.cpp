@@ -21,6 +21,7 @@
 #include <SDL.h>
 #include "ac/button.h"
 #include "ac/common.h"
+#include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
@@ -38,6 +39,7 @@
 #include "ac/hotspot.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
+#include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
@@ -671,115 +673,12 @@ static void update_objects_scale()
 {
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
     {
-        RoomObject &obj = objs[objid];
-        if (obj.on == 0)
-            continue; // not enabled
-
-        int zoom_level = 100;
-        // calculate the zoom level
-        if ((obj.flags & OBJF_USEROOMSCALING) == 0)
-        {
-            zoom_level = obj.zoom;
-        }
-        else
-        {
-            int onarea = get_walkable_area_at_location(obj.x, obj.y);
-            if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0))
-            {
-                // not on a valid area -- use the last scaling we had while on the area
-                zoom_level = obj.zoom;
-            }
-            else
-            {
-                zoom_level = get_area_scaling(onarea, obj.x, obj.y);
-            }
-        }
-
-        if (zoom_level == 0)
-            zoom_level = 100; // safety fix
-
-        int sprwidth = game.SpriteInfos[obj.num].Width;
-        int sprheight = game.SpriteInfos[obj.num].Height;
-        if (zoom_level != 100)
-        {
-            scale_sprite_size(obj.num, zoom_level, &sprwidth, &sprheight);
-        }
-
-        // Save calculated propertes
-        obj.zoom = zoom_level;
-        obj.last_width = sprwidth;
-        obj.last_height = sprheight;
+        update_object_scale(objid);
     }
 
     for (uint32_t charid = 0; charid < game.numcharacters; ++charid)
     {
-        // Test for valid view and loop
-        CharacterInfo &chin = game.chars[charid];
-        if (chin.on == 0 || chin.room != displayed_room)
-            continue; // not enabled, or in a different room
-
-        CharacterExtras &chex = charextra[charid];
-        if (chin.view < 0)
-        {
-            quitprintf("!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
-                chin.name, displayed_room);
-        }
-        if (chin.loop >= views[chin.view].numLoops)
-        {
-            quitprintf("!The character '%s' could not be displayed because there was no loop %d of view %d.",
-                chin.name, chin.loop, chin.view + 1);
-        }
-        // If frame is too high -- fallback to the frame 0;
-        // there's always at least 1 dummy frame at index 0
-        if (chin.frame >= views[chin.view].loops[chin.loop].numFrames)
-        {
-            chin.frame = 0;
-        }
-
-        // calculate the zoom level
-        int zoom_level = 100;
-        if (chin.flags & CHF_MANUALSCALING)  // character ignores scaling
-        {
-            zoom_level = chex.zoom;
-        }
-        else
-        {
-            const int onarea = get_walkable_area_at_character(charid);
-            if ((onarea <= 0) && (thisroom.WalkAreas[0].ScalingFar == 0))
-            {
-                // not on a valid area -- use the last scaling we had while on the area
-                zoom_level = chex.zoom;
-            }
-            else
-            {
-                zoom_level = get_area_scaling(onarea, chin.x, chin.y);
-            }
-        }
-
-        if (zoom_level == 0)
-            zoom_level = 100; // safety fix
-
-        const int sppic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
-        int sprwidth = game.SpriteInfos[sppic].Width;
-        int sprheight = game.SpriteInfos[sppic].Height;
-        if (zoom_level != 100)
-        {
-            scale_sprite_size(sppic, zoom_level, &sprwidth, &sprheight);
-        }
-
-        // Calculate the X & Y co-ordinates of where the sprite will be;
-        // for the character sprite's origin is at the bottom-mid of a sprite.
-        const int atxp = (data_to_game_coord(chin.x)) - sprwidth / 2;
-        const int atyp = (data_to_game_coord(chin.y) - sprheight)
-            // adjust the Y positioning for the character's Z co-ord
-            - data_to_game_coord(chin.z);
-        
-        // Save calculated properties
-        chex.width = sprwidth;
-        chex.height = sprheight;
-        chin.actx = atxp;
-        chin.acty = atyp;
-        chex.zoom = zoom_level;
+        update_character_scale(charid);
     }
 }
 

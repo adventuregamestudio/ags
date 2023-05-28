@@ -54,6 +54,7 @@ struct CharacterExtras {
     Common::BlendMode blend_mode = Common::kBlend_Normal;
     float rotation = 0.f;
 
+    inline Pointf GetOrigin() const { return Pointf(0.5f, 1.f); /* middle-bottom */ }
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
     void UpdateGraphicSpace(const CharacterInfo *chin);

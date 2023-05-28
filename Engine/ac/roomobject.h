@@ -84,6 +84,7 @@ struct RoomObject {
         overall_speed = delay;
     }
 
+    inline Pointf GetOrigin() const { return Pointf(0.f, 1.f); /* left-bottom */ }
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
     void UpdateGraphicSpace();
 

@@ -76,54 +76,58 @@ enum RectPlacement
     kNumRectPlacement
 };
 
-struct Point
+
+template <typename T>
+struct PointT
 {
-    int X;
-    int Y;
+    typedef PointT<T> Pt;
 
-    Point()
-    {
-        X = 0;
-        Y = 0;
-    }
+    T X{};
+    T Y{};
 
-    Point(int x, int y)
+    PointT() = default;
+    PointT(T x, T y)
     {
         X = x;
         Y = y;
     }
 
-    inline static Point Clamp(const Point &p, const Point &floor, const Point &ceil)
+    inline static Pt Clamp(const Pt &p, const Pt &floor, const Pt &ceil)
     {
-        return Point(AGSMath::Clamp(p.X, floor.X, ceil.X),
+        return Pt(AGSMath::Clamp(p.X, floor.X, ceil.X),
                     AGSMath::Clamp(p.Y, floor.Y, ceil.Y));
     }
 
-    inline bool operator ==(const Point &p) const
+    inline bool operator ==(const Pt &p) const
     {
         return X == p.X && Y == p.Y;
     }
 
-    inline bool operator !=(const Point &p) const
+    inline bool operator !=(const Pt &p) const
     {
         return X != p.X || Y != p.Y;
     }
 
-    inline Point operator +(const Point &p) const
+    inline Pt operator +(const Pt &p) const
     {
-        return Point(X + p.X, Y + p.Y);
+        return Pt(X + p.X, Y + p.Y);
     }
 
-    inline Point operator -(const Point &p) const
+    inline Pt operator -(const Pt &p) const
     {
-        return Point(X - p.X, Y - p.Y);
+        return Pt(X - p.X, Y - p.Y);
     }
 
-    inline bool Equals(const int x, const int y) const
+    inline bool Equals(const T x, const T y) const
     {
         return X == x && Y == y;
     }
 };
+
+typedef PointT<int> Point;
+typedef PointT<float> Pointf;
+
+
 
 struct Line
 {

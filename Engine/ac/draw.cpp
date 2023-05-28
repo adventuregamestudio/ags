@@ -1657,9 +1657,79 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     objsav.zoom = objsrc.zoom;
     objsav.rotation = objsrc.rotation;
     objsav.mirrored = is_mirrored;
+    objsav.x = objsrc.x;
+    objsav.y = objsrc.y;
     return false; // image was modified
 }
 
+// Generate object's raw sprite bitmap, update the object's texture
+// from the sprite, add the object's texture to the draw list.
+// - atx and aty are coordinates of the top-left object's corner in the room;
+// - usebasel is object's z-order, it may be modified within the function;
+// TODO: possibly makes sense to split this function into parts later.
+void prepare_and_add_object_gfx(
+    const ObjectCache &objsav,
+    ObjTexture &actsp, bool actsp_modified,
+    const Size &scale_size,
+    int atx, int aty, int &usebasel, bool use_walkbehinds,
+    Pointf origin, int transparency, BlendMode blend_mode, bool hw_accel)
+{
+    // Handle the walk-behinds, according to the walkBehindMethod.
+    // This potentially may edit actsp's raw bitmap if actsp_modified is set.
+    if (use_walkbehinds)
+    {
+        // Only merge sprite with the walk-behinds in software mode
+        if ((walkBehindMethod == DrawOverCharSprite) && (actsp_modified))
+        {
+            walkbehinds_cropout(actsp.Bmp.get(), atx, aty, usebasel);
+        }
+    }
+    else
+    {
+        // Ignore walk-behinds by shifting baseline to a larger value
+        // CHECKME: may this fail if WB somehow got larger than room baseline?
+        if (walkBehindMethod == DrawAsSeparateSprite)
+        {
+            usebasel += thisroom.Height;
+        }
+    }
+
+    // Sync object texture with the raw sprite bitmap.
+    if ((actsp.Ddb == nullptr) || (actsp_modified))
+    {
+        sync_object_texture(actsp);
+    }
+
+    // Now when we have a ready texture, assign texture properties
+    // (transform, effects, and so forth)
+    actsp.Ddb->SetOrigin(origin.X, origin.Y);
+    if (hw_accel)
+    {
+        actsp.Ddb->SetStretch(scale_size.Width, scale_size.Height);
+        actsp.Ddb->SetRotation(objsav.rotation);
+        actsp.Ddb->SetFlippedLeftRight(objsav.mirrored);
+        actsp.Ddb->SetTint(objsav.tintr, objsav.tintg, objsav.tintb, (objsav.tintamnt * 256) / 100);
+
+        if (objsav.tintamnt > 0)
+        {
+            if (objsav.tintlight == 0)  // luminance of 0 -- pass 1 to enable
+                actsp.Ddb->SetLightLevel(1);
+            else if (objsav.tintlight < 250)
+                actsp.Ddb->SetLightLevel(objsav.tintlight);
+            else
+                actsp.Ddb->SetLightLevel(0);
+        }
+        else if (objsav.lightlev != 0)
+            actsp.Ddb->SetLightLevel((objsav.lightlev * 25) / 10 + 256);
+        else
+            actsp.Ddb->SetLightLevel(0);
+    }
+
+    actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
+    actsp.Ddb->SetBlendMode(blend_mode);
+}
+
+// Generates RoomObject's raw bitmap and saves in actsps; updates object cache.
 bool construct_object_gfx(int objid, bool force_software)
 {
     const RoomObject &obj = objs[objid];
@@ -1682,82 +1752,37 @@ bool construct_object_gfx(int objid, bool force_software)
         force_software);
 }
 
-
-// This is only called from draw_screen_background, but it's seperated
-// to help with profiling the program
-void prepare_objects_for_drawing() {
+void prepare_objects_for_drawing()
+{
     our_eip=32;
-
     const bool hw_accel = gfxDriver->HasAcceleratedTransform();
 
-    for (uint32_t objid = 0; objid < croom->numobj; ++objid) {
+    for (uint32_t objid = 0; objid < croom->numobj; ++objid)
+    {
         const RoomObject &obj = objs[objid];
-        if (obj.on != 1) continue;
-        // offscreen, don't draw
+        if (obj.on != 1) // WARNING: 'on' may have other values than 0 and 1 !!
+            continue; // disabled
         if ((obj.x >= thisroom.Width) || (obj.y < 1))
-            continue;
+            continue; // offscreen
 
-        bool actspsIntact = construct_object_gfx(objid, false);
+        eip_guinum = objid;
+        const ObjectCache &objsav = objcache[objid];
+        ObjTexture &actsp = actsps[objid];
 
-        const int useindx = objid; // actsps array index
-        auto &actsp = actsps[useindx];
-
-        // update the cache for next time
-        ObjectCache &objsav = objcache[objid];
-        objsav.x = obj.x;
-        objsav.y = obj.y;
-
-        //
-        // Sort out walk-behinds
-        //
         // we must use actual image's top-left position here
         const Rect &aabb = obj.GetGraphicSpace().AABB();
         const int imgx = aabb.Left;
         const int imgy = aabb.Top;
         int usebasel = obj.get_baseline();
 
-        if (obj.flags & OBJF_NOWALKBEHINDS) {
-            // ignore walk-behinds, do nothing
-            if (walkBehindMethod == DrawAsSeparateSprite)
-            {
-                usebasel += thisroom.Height;
-            }
-        }
-        else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
-        {
-            walkbehinds_cropout(actsp.Bmp.get(), imgx, imgy, usebasel);
-        }
-
-        if ((!actspsIntact) || (actsp.Ddb == nullptr))
-        {
-            sync_object_texture(actsp);
-        }
-
-        actsp.Ddb->SetOrigin(0.f, 1.f);
-        if (hw_accel)
-        {
-            actsp.Ddb->SetStretch(obj.last_width, obj.last_height);
-            actsp.Ddb->SetRotation(obj.rotation);
-            actsp.Ddb->SetFlippedLeftRight(objsav.mirrored != 0);
-            actsp.Ddb->SetTint(objsav.tintr, objsav.tintg, objsav.tintb, (objsav.tintamnt * 256) / 100);
-
-            if (objsav.tintamnt > 0)
-            {
-                if (objsav.tintlight == 0)  // luminance of 0 -- pass 1 to enable
-                    actsp.Ddb->SetLightLevel(1);
-                else if (objsav.tintlight < 250)
-                    actsp.Ddb->SetLightLevel(objsav.tintlight);
-                else
-                    actsp.Ddb->SetLightLevel(0);
-            }
-            else if (objsav.lightlev != 0)
-                actsp.Ddb->SetLightLevel((objsav.lightlev * 25) / 10 + 256);
-            else
-                actsp.Ddb->SetLightLevel(0);
-        }
-
-        actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj.transparent));
-        actsp.Ddb->SetBlendMode(obj.blend_mode);
+        // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
+        const bool actsp_modified = !construct_object_gfx(objid, false);
+        // Prepare the object texture
+        prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
+            Size(obj.last_width, obj.last_height), imgx, imgy, usebasel,
+            (obj.flags & OBJF_NOWALKBEHINDS) == 0,
+            obj.GetOrigin(), obj.transparent, obj.blend_mode, hw_accel);
+        // Finally, add the texture to the draw list
         add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, false);
     }
 }
@@ -1809,7 +1834,7 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 }
 
 
-
+// Generates Character's raw bitmap and saves in actsps; updates character cache.
 bool construct_char_gfx(int charid, bool force_software)
 {
     const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
@@ -1846,74 +1871,32 @@ void prepare_characters_for_drawing()
     for (uint32_t charid = 0; charid < game.numcharacters; ++charid)
     {
         const CharacterInfo &chin = game.chars[charid];
-        if (chin.on==0) continue;
-        if (chin.room!=displayed_room) continue;
+        if (chin.on == 0)
+            continue; // disabled
+        if (chin.room != displayed_room)
+            continue; // in another room
+
         eip_guinum = charid;
-
-        bool usingCachedImage = construct_char_gfx(charid, false);
-
-        const int useindx = charid + ACTSP_OBJSOFF; // actsps array index
-        const int sppic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
-        auto &actsp = actsps[useindx];
         const CharacterExtras &chex = charextra[charid];
-
-        // update the cache for next time
         const ObjectCache &chsav = charcache[charid];
+        ObjTexture &actsp = actsps[charid + ACTSP_OBJSOFF];
 
-        //
-        // Sort out walk-behinds
-        //
         // we must use actual image's top-left position here
         const Rect &aabb = chex.GetGraphicSpace().AABB();
         const int imgx = aabb.Left;
         const int imgy = aabb.Top;
         int usebasel = chin.get_baseline();
 
-        if (chin.flags & CHF_NOWALKBEHINDS) {
-            // ignore walk-behinds, do nothing
-            if (walkBehindMethod == DrawAsSeparateSprite)
-            {
-                usebasel += thisroom.Height;
-            }
-        }
-        else if (walkBehindMethod == DrawOverCharSprite)
-        {
-            walkbehinds_cropout(actsp.Bmp.get(), imgx, imgy, usebasel);
-        }
-
-        if ((!usingCachedImage) || (actsp.Ddb == nullptr))
-        {
-            sync_object_texture(actsp);
-        }
-
-        actsp.Ddb->SetOrigin(0.5f, 1.f);
-        if (hw_accel) 
-        {
-            actsp.Ddb->SetStretch(chex.width, chex.height);
-            actsp.Ddb->SetRotation(chex.rotation);
-            actsp.Ddb->SetFlippedLeftRight(chsav.mirrored);
-            actsp.Ddb->SetTint(chsav.tintr, chsav.tintg, chsav.tintb, (chsav.tintamnt * 256) / 100);
-
-            if (chsav.tintamnt != 0)
-            {
-                if (chsav.tintlight == 0) // tint with 0 luminance, pass as 1 instead
-                    actsp.Ddb->SetLightLevel(1);
-                else if (chsav.tintlight < 250)
-                    actsp.Ddb->SetLightLevel(chsav.tintlight);
-                else
-                    actsp.Ddb->SetLightLevel(0);
-            }
-            else if (chsav.lightlev != 0)
-                actsp.Ddb->SetLightLevel((chsav.lightlev * 25) / 10 + 256);
-            else
-                actsp.Ddb->SetLightLevel(0);
-
-        }
-
+        // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
+        const bool actsp_modified = !construct_char_gfx(charid, false);
+        // Prepare the object texture
+        prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
+            Size(chex.width, chex.height), imgx, imgy, usebasel,
+            (chin.flags & CHF_NOWALKBEHINDS) == 0,
+            chex.GetOrigin(), chin.transparency, chex.blend_mode, hw_accel);
+        // Finally, add the texture to the draw list
         const int charx = chin.x + chin.pic_xoffs;
         const int chary = chin.y - chin.z + chin.pic_yoffs;
-        actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(chin.transparency));
-        actsp.Ddb->SetBlendMode(charextra[chin.index_id].blend_mode);
         add_to_sprite_list(actsp.Ddb, charx, chary, aabb, usebasel, false);
     }
 }

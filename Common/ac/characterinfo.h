@@ -18,6 +18,7 @@
 #include "core/types.h"
 #include "ac/common_defines.h" // constants
 #include "ac/game_version.h"
+#include "util/bbop.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -53,6 +54,21 @@ using namespace AGS; // FIXME later
 #define CHANIM_ON           0x01
 #define CHANIM_REPEAT       0x02
 #define CHANIM_BACKWARDS    0x04
+
+
+// Converts character flags (CHF_*) to matching RoomObject flags (OBJF_*)
+inline int CharFlagsToObjFlags(int chflags)
+{
+    using namespace AGS::Common;
+    return 
+        FlagToFlag(chflags, CHF_NOINTERACT,    OBJF_NOINTERACT) |
+        FlagToFlag(chflags, CHF_NOWALKBEHINDS, OBJF_NOWALKBEHINDS) |
+        FlagToFlag(chflags, CHF_HASTINT,       OBJF_HASTINT) |
+        FlagToFlag(NegateFlag(chflags, CHF_NOLIGHTING),    CHF_NOLIGHTING,    OBJF_USEREGIONTINTS) |
+        FlagToFlag(NegateFlag(chflags, CHF_MANUALSCALING), CHF_MANUALSCALING, OBJF_USEROOMSCALING) |
+        FlagToFlag(NegateFlag(chflags, CHF_NOBLOCKING),    CHF_NOBLOCKING,    OBJF_SOLID) |
+        FlagToFlag(chflags, CHF_HASLIGHT,      OBJF_HASLIGHT);
+}
 
 
 struct CharacterExtras; // forward declaration

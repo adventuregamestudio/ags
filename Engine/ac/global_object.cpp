@@ -269,6 +269,7 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
 void MergeObject(int obn) {
     if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");
 
+    update_object_scale(obn); // make sure sprite transform is up to date
     construct_object_gfx(obn, true);
     Bitmap *actsp = get_cached_object_image(obn);
 

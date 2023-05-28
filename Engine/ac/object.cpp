@@ -486,6 +486,56 @@ void Object_SetUseRegionTint(ScriptObject *objj, int yesorno)
         objs[objj->id].flags |= OBJF_USEREGIONTINTS;
 }
 
+void update_object_scale(int &res_zoom, int &res_width, int &res_height,
+    int objx, int objy, int sprnum, int own_zoom, bool use_region_scaling)
+{
+    int zoom = own_zoom;
+    if (use_region_scaling)
+    {
+        // Only apply area zoom if we're on a a valid area:
+        // * either area is > 0, or
+        // * area 0 has valid scaling property
+        int onarea = get_walkable_area_at_location(objx, objy);
+        if ((onarea > 0) || (thisroom.WalkAreas[0].ScalingFar > 0))
+        {
+            zoom = get_area_scaling(onarea, objx, objy);
+        }
+    }
+
+    if (zoom == 0)
+        zoom = 100; // safety fix
+
+    int sprwidth = game.SpriteInfos[sprnum].Width;
+    int sprheight = game.SpriteInfos[sprnum].Height;
+    if (zoom != 100)
+    {
+        scale_sprite_size(sprnum, zoom, &sprwidth, &sprheight);
+    }
+
+    res_zoom = zoom;
+    res_width = sprwidth;
+    res_height = sprheight;
+}
+
+void update_object_scale(int objid)
+{
+    RoomObject &obj = objs[objid];
+    if (obj.on == 0)
+        return; // not enabled
+
+    int zoom, scale_width, scale_height;
+    update_object_scale(zoom, scale_width, scale_height,
+        obj.x, obj.y, obj.num, obj.zoom, (obj.flags & OBJF_USEROOMSCALING) != 0);
+
+    // Save calculated propertes and recalc GS
+    obj.zoom = zoom;
+    obj.spr_width = game.SpriteInfos[obj.num].Width;
+    obj.spr_height = game.SpriteInfos[obj.num].Height;
+    obj.last_width = scale_width;
+    obj.last_height = scale_height;
+    obj.UpdateGraphicSpace();
+}
+
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
     RoomObject *tehobj = &objs[objid];
     int cwidth, fromx;

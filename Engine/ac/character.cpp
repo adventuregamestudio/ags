@@ -2228,6 +2228,46 @@ CharacterInfo *GetCharacterAtRoom(int x, int y)
 
 extern int char_lowest_yp, obj_lowest_yp;
 
+void update_character_scale(int charid)
+{
+    // Test for valid view and loop
+    CharacterInfo &chin = game.chars[charid];
+    if (chin.on == 0 || chin.room != displayed_room)
+        return; // not enabled, or in a different room
+
+    CharacterExtras &chex = charextra[charid];
+    if (chin.view < 0)
+    {
+        quitprintf("!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
+            chin.name, displayed_room);
+    }
+    if (chin.loop >= views[chin.view].numLoops)
+    {
+        quitprintf("!The character '%s' could not be displayed because there was no loop %d of view %d.",
+            chin.name, chin.loop, chin.view + 1);
+    }
+    // If frame is too high -- fallback to the frame 0;
+    // there's always at least 1 dummy frame at index 0
+    if (chin.frame >= views[chin.view].loops[chin.loop].numFrames)
+    {
+        chin.frame = 0;
+    }
+
+    const int pic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
+    int zoom, scale_width, scale_height;
+    update_object_scale(zoom, scale_width, scale_height,
+        chin.x, chin.y, pic,
+        chex.zoom, (chin.flags & CHF_MANUALSCALING) == 0);
+
+    // Save calculated properties and recalc GS
+    chex.zoom = zoom;
+    chex.spr_width = game.SpriteInfos[pic].Width;
+    chex.spr_height = game.SpriteInfos[pic].Height;
+    chex.width = scale_width;
+    chex.height = scale_height;
+    chex.UpdateGraphicSpace(&chin);
+}
+
 int is_pos_on_character(int xx,int yy) {
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {

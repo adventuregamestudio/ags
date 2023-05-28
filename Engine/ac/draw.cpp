@@ -1263,10 +1263,9 @@ void get_local_tint(int xpp, int ypp, int nolight,
 
 
 
-// Applies the specified RGB Tint or Light Level to the actsps
-// sprite indexed with actspsindex.
+// Applies the specified RGB Tint or Light Level to the ObjTexture 'actsp'.
 // Used for software render mode only.
-static void apply_tint_or_light(int actspsindex, int light_level,
+static void apply_tint_or_light(ObjTexture &actsp, int light_level,
                          int tint_amount, int tint_red, int tint_green,
                          int tint_blue, int tint_light, int coldept,
                          Bitmap *blitFrom) {
@@ -1278,7 +1277,6 @@ static void apply_tint_or_light(int actspsindex, int light_level,
          return;
  }
 
- auto &actsp = actsps[actspsindex];
  // we can only do tint/light if the colour depths match
  if (game.GetColorDepth() == actsp.Bmp->GetColorDepth()) {
      std::unique_ptr<Bitmap> oldwas;
@@ -1343,7 +1341,7 @@ static void apply_tint_or_light(int actspsindex, int light_level,
 // specified width and height, and flips the sprite if necessary.
 // Returns 1 if something was drawn to actsps; returns 0 if no
 // scaling or stretching was required, in which case nothing was done
-int scale_and_flip_sprite(int useindx, int sppic, int newwidth, int newheight,
+int scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newheight,
                           float rotation, bool isMirrored)
 {
   int actsps_used = 1;
@@ -1375,8 +1373,8 @@ int scale_and_flip_sprite(int useindx, int sppic, int newwidth, int newheight,
   }
 
   // create and blank out the new sprite
-  recycle_bitmap(actsps[useindx].Bmp, coldept, newwidth, newheight, true);
-  Bitmap *active_spr = actsps[useindx].Bmp.get();
+  recycle_bitmap(actsp.Bmp, coldept, newwidth, newheight, true);
+  Bitmap *active_spr = actsp.Bmp.get();
 
   if (scaled != 100) {
       // Scaled character
@@ -1477,20 +1475,20 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
     return dst.get(); // return transformed result
 }
 
-// Draws the specified 'sppic' sprite onto actsps[useindx] at the
+// Draws the specified 'sppic' sprite onto ObjTexture 'actsp' at the
 // specified width and height, and flips the sprite if necessary.
 // Returns 1 if something was drawn to actsps; returns 0 if no
 // scaling or stretching was required, in which case nothing was done.
 // Used for software render mode only.
-static bool scale_and_flip_sprite(int useindx, int sppic, int width, int height, bool hmirror)
+static bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int width, int height, bool hmirror)
 {
     Bitmap *src = spriteset[sppic];
-    Bitmap *result = transform_sprite(src, actsps[useindx].Bmp, Size(width, height),
+    Bitmap *result = transform_sprite(src, actsp.Bmp, Size(width, height),
         hmirror ? kFlip_Horizontal : kFlip_None);
     return result != src;
 }
 
-// Create the actsps[objid] image with the object drawn correctly.
+// Create the 'actsp' image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
 // Hardware-accelerated renderers always return true, because they do not
@@ -1502,7 +1500,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     int tint_flags, // OBJF_* flags related to using tint and light fx
     const ObjectCache &objsrc, // source item to acquire values from
     ObjectCache &objsav, // cache item to use
-    int actsps_index, // actsps array item to use // FIXME: pass ObjectTexture instead?
+    ObjTexture &actsp, // object texture to draw upon
     bool optimize_by_position, // allow to optimize walk-behind merging using object's pos
     bool force_software)
 {
@@ -1549,8 +1547,6 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         specialpic = -pic;
     }
 
-    const int useindx = actsps_index;// objid; // actsps array index
-    auto &actsp = actsps[useindx];
     actsp.SpriteID = pic; // for texture sharing
 
     // NOTE: we need cached bitmap if:
@@ -1620,7 +1616,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     if (!use_hw_transform)
     {
         // draw the base sprite, scaled and flipped as appropriate
-        actsps_used = scale_and_flip_sprite(useindx, pic, scale_size.Width, scale_size.Height, objsrc.rotation, is_mirrored);
+        actsps_used = scale_and_flip_sprite(actsp, pic, scale_size.Width, scale_size.Height, objsrc.rotation, is_mirrored);
     }
     if (!actsps_used)
     {
@@ -1637,7 +1633,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         if (!actsps_used)
             blit_from = spriteset[pic];
 
-        apply_tint_or_light(useindx, light_level, tint_level, tint_red,
+        apply_tint_or_light(actsp, light_level, tint_level, tint_red,
             tint_green, tint_blue, tint_light, coldept,
             blit_from);
     }
@@ -1664,7 +1660,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     return false; // image was modified
 }
 
-bool construct_object_gfx(int objid, bool force_software) {
+bool construct_object_gfx(int objid, bool force_software)
+{
     const RoomObject &obj = objs[objid];
     if (spriteset[obj.num] == nullptr)
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", objid, obj.num);
@@ -1680,7 +1677,7 @@ bool construct_object_gfx(int objid, bool force_software) {
         obj.flags & OBJF_TINTLIGHTMASK,
         objsrc,
         objcache[objid],
-        objid,
+        actsps[objid],
         true,
         force_software);
 }
@@ -1813,7 +1810,8 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 
 
 
-bool construct_char_gfx(int charid, bool force_software) {
+bool construct_char_gfx(int charid, bool force_software)
+{
     const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
 
     const CharacterInfo &chin = game.chars[charid];
@@ -1834,7 +1832,7 @@ bool construct_char_gfx(int charid, bool force_software) {
         CharFlagsToObjFlags(chin.flags) & OBJF_TINTLIGHTMASK,
         chsrc,
         charcache[charid],
-        charid + ACTSP_OBJSOFF, // actsps array index
+        actsps[charid + ACTSP_OBJSOFF],
         false, // characters cannot optimize by pos, probably because of z coord and view offsets (?)
         force_software);
 }

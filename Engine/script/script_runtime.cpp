@@ -101,6 +101,18 @@ void *ccGetSymbolAddressForPlugin(const String &name)
     return nullptr;
 }
 
+void *ccGetScriptObjectAddress(const String &name, const String &type)
+{
+    const auto *imp = simp.getByName(name);
+    if (!imp)
+        return nullptr;
+    if (imp->Value.Type != kScValScriptObject && imp->Value.Type != kScValPluginObject)
+        return nullptr;
+    if (type != imp->Value.ObjMgr->GetType())
+        return nullptr;
+    return imp->Value.Ptr;
+}
+
 new_line_hook_type new_line_hook = nullptr;
 
 

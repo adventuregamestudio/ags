@@ -1171,9 +1171,22 @@ void do_conversation(int dlgnum)
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+#include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/scriptstring.h"
 
 extern ScriptString myScriptStringImpl;
+extern CCDialog     ccDynamicDialog;
+
+ScriptDialog *Dialog_GetByName(const char *name)
+{
+    return static_cast<ScriptDialog*>(ccGetScriptObjectAddress(name, ccDynamicDialog.GetType()));
+}
+
+
+RuntimeScriptValue Sc_Dialog_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(ScriptDialog, ccDynamicDialog, Dialog_GetByName, const char);
+}
 
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -1237,6 +1250,7 @@ RuntimeScriptValue Sc_Dialog_Start(void *self, const RuntimeScriptValue *params,
 void RegisterDialogAPI()
 {
     ScFnRegister dialog_api[] = {
+        { "Dialog::GetByName",            API_FN_PAIR(Dialog_GetByName) },
         { "Dialog::get_ID",               API_FN_PAIR(Dialog_GetID) },
         { "Dialog::get_OptionCount",      API_FN_PAIR(Dialog_GetOptionCount) },
         { "Dialog::get_ShowTextParser",   API_FN_PAIR(Dialog_GetShowTextParser) },

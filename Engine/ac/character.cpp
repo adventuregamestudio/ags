@@ -3004,6 +3004,17 @@ PViewport FindNearestViewport(int charid)
 
 extern ScriptString myScriptStringImpl;
 
+CharacterInfo *Character_GetByName(const char *name)
+{
+    return static_cast<CharacterInfo*>(ccGetScriptObjectAddress(name, ccDynamicCharacter.GetType()));
+}
+
+
+RuntimeScriptValue Sc_Character_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(CharacterInfo, ccDynamicCharacter, Character_GetByName, const char);
+}
+
 // void | CharacterInfo *chaa, ScriptInvItem *invi, int addIndex
 RuntimeScriptValue Sc_Character_AddInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3295,12 +3306,6 @@ RuntimeScriptValue Sc_Character_GetTintLuminance(void *self, const RuntimeScript
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetTintLuminance);
 }
-
-/*
-RuntimeScriptValue Sc_Character_SetOption(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-}
-*/
 
 // void (CharacterInfo *chaa, int xspeed, int yspeed)
 RuntimeScriptValue Sc_Character_SetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -3903,6 +3908,7 @@ void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_a
     ScFnRegister character_api[] = {
         { "Character::GetAtRoomXY^2",             API_FN_PAIR(GetCharacterAtRoom) },
         { "Character::GetAtScreenXY^2",           API_FN_PAIR(GetCharacterAtScreen) },
+        { "Character::GetByName",                 API_FN_PAIR(Character_GetByName) },
 
         { "Character::AddInventory^2",            API_FN_PAIR(Character_AddInventory) },
         { "Character::AddWaypoint^2",             API_FN_PAIR(Character_AddWaypoint) },

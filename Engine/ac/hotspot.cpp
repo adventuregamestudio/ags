@@ -140,6 +140,18 @@ int get_hotspot_at(int xpp,int ypp) {
 
 extern ScriptString myScriptStringImpl;
 
+
+ScriptHotspot *Hotspot_GetByName(const char *name)
+{
+    return static_cast<ScriptHotspot*>(ccGetScriptObjectAddress(name, ccDynamicHotspot.GetType()));
+}
+
+
+RuntimeScriptValue Sc_Hotspot_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(ScriptHotspot, ccDynamicHotspot, Hotspot_GetByName, const char);
+}
+
 RuntimeScriptValue Sc_GetHotspotAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtRoom);
@@ -249,6 +261,7 @@ void RegisterHotspotAPI()
     ScFnRegister hotspot_api[] = {
         { "Hotspot::GetAtRoomXY^2",       API_FN_PAIR(GetHotspotAtRoom) },
         { "Hotspot::GetAtScreenXY^2",     API_FN_PAIR(GetHotspotAtScreen) },
+        { "Hotspot::GetByName",           API_FN_PAIR(Hotspot_GetByName) },
         { "Hotspot::GetDrawingSurface",   API_FN_PAIR(Hotspot_GetDrawingSurface) },
 
         { "Hotspot::GetName^1",           API_FN_PAIR(Hotspot_GetName) },

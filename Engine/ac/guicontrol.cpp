@@ -229,6 +229,18 @@ void GUIControl_SetTransparency(GUIObject *guio, int trans) {
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+
+GUIObject *GUIControl_GetByName(const char *name)
+{
+    return static_cast<GUIObject*>(ccGetScriptObjectAddress(name, ccDynamicGUIObject.GetType()));
+}
+
+
+RuntimeScriptValue Sc_GUIControl_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(GUIObject, ccDynamicGUIObject, GUIControl_GetByName, const char);
+}
+
 // void (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -417,6 +429,7 @@ void RegisterGUIControlAPI()
 {
     ScFnRegister guicontrol_api[] = {
         { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GetGUIControlAtLocation) },
+        { "GUIControl::GetByName",        API_FN_PAIR(GUIControl_GetByName) },
 
         { "GUIControl::BringToFront^0",   API_FN_PAIR(GUIControl_BringToFront) },
         { "GUIControl::SendToBack^0",     API_FN_PAIR(GUIControl_SendToBack) },

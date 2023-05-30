@@ -896,6 +896,9 @@ builtin managed struct File {
 builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v399
+  import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Gets an integer custom property for this item.
   import int  GetProperty(const string property);
   /// Gets a text custom property for this item.
@@ -1173,6 +1176,9 @@ builtin managed struct GUIControl {
   import void BringToFront();
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
   import static GUIControl* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
+#ifdef SCRIPT_API_v399
+  import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Sends this control to the back of the z-order, behind all other controls.
   import void SendToBack();
   /// Moves the control to the specified position within the GUI.
@@ -1372,6 +1378,9 @@ builtin managed struct GUI {
   import void Centre();
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v399
+  import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Moves the GUI to have its top-left corner at the specified position.
   import void SetPosition(int x, int y);
   /// Changes the size of the GUI.
@@ -1441,6 +1450,9 @@ builtin managed struct TextWindowGUI extends GUI {
 builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v399
+  import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Gets an integer Custom Property for this hotspot.
   import int  GetProperty(const string property);
   /// Gets a text Custom Property for this hotspot.
@@ -1511,6 +1523,9 @@ builtin managed struct Region {
 };
 
 builtin managed struct Dialog {
+#ifdef SCRIPT_API_v399
+  import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Displays the options for this dialog and returns which one the player selected.
   import int DisplayOptions(DialogOptionSayStyle = eSayUseOptionSetting);
   /// Gets the enabled state for the specified option in this dialog.
@@ -1663,6 +1678,9 @@ builtin managed struct AudioChannel {
 };
 
 builtin managed struct AudioClip {
+#ifdef SCRIPT_API_v399
+  import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Plays this audio clip.
   import AudioChannel* Play(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Plays this audio clip, starting from the specified offset.
@@ -1746,6 +1764,9 @@ builtin managed struct Object {
   );
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v399
+  import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Gets an integer Custom Property for this object.
   import function GetProperty(const string property);
   /// Gets a text Custom Property for this object.
@@ -1887,6 +1908,9 @@ builtin managed struct Character {
   import function FollowCharacter(Character*, int dist=10, int eagerness=97);
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifdef SCRIPT_API_v399
+  import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
+#endif
   /// Gets a numeric custom property for this character.
   import function GetProperty(const string property);
   /// Gets a text custom property for this character.

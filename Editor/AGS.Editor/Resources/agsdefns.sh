@@ -1130,6 +1130,7 @@ enum EventType {
 #endif
 #ifdef SCRIPT_API_v399
   eEventLeaveRoomAfterFadeout = 11,
+  eEventGameSaved = 12,
 #endif
 };
 

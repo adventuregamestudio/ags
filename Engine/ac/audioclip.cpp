@@ -16,6 +16,7 @@
 #include "ac/audiochannel.h"
 #include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
+#include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "core/assetmanager.h"
@@ -31,6 +32,11 @@ extern CCAudioChannel ccDynamicAudio;
 int AudioClip_GetID(ScriptAudioClip *clip)
 {
     return clip->id;
+}
+
+const char *AudioClip_GetScriptName(ScriptAudioClip *clip)
+{
+    return CreateNewScriptString(clip->scriptName);
 }
 
 int AudioClip_GetFileType(ScriptAudioClip *clip)
@@ -93,9 +99,12 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+
+extern ScriptString myScriptStringImpl;
 
 ScriptAudioClip *AudioClip_GetByName(const char *name)
 {
@@ -111,6 +120,11 @@ RuntimeScriptValue Sc_AudioClip_GetByName(const RuntimeScriptValue *params, int3
 RuntimeScriptValue Sc_AudioClip_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetID);
+}
+
+RuntimeScriptValue Sc_AudioClip_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptAudioClip, const char, myScriptStringImpl, AudioClip_GetScriptName);
 }
 
 // int | ScriptAudioClip *clip
@@ -172,6 +186,7 @@ void RegisterAudioClipAPI()
         { "AudioClip::get_ID",            API_FN_PAIR(AudioClip_GetID) },
         { "AudioClip::get_FileType",      API_FN_PAIR(AudioClip_GetFileType) },
         { "AudioClip::get_IsAvailable",   API_FN_PAIR(AudioClip_GetIsAvailable) },
+        { "AudioClip::get_ScriptName",    API_FN_PAIR(AudioClip_GetScriptName) },
         { "AudioClip::get_Type",          API_FN_PAIR(AudioClip_GetType) },
     };
 

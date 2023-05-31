@@ -55,6 +55,11 @@ int InventoryItem_GetID(ScriptInvItem *scii) {
     return scii->id;
 }
 
+const char *InventoryItem_GetScriptName(ScriptInvItem *scii)
+{
+    return CreateNewScriptString(game.invScriptNames[scii->id]);
+}
+
 ScriptInvItem *GetInvAtLocation(int xx, int yy) {
   int hsnum = GetInvAt(xx, yy);
   if (hsnum <= 0)
@@ -230,6 +235,11 @@ RuntimeScriptValue Sc_InventoryItem_GetID(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetID);
 }
 
+RuntimeScriptValue Sc_InventoryItem_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptInvItem, const char, myScriptStringImpl, InventoryItem_GetScriptName);
+}
+
 // const char* (ScriptInvItem *invitem)
 RuntimeScriptValue Sc_InventoryItem_GetName_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -260,6 +270,7 @@ void RegisterInventoryItemAPI()
         { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },
         { "InventoryItem::get_Name",                  API_FN_PAIR(InventoryItem_GetName_New) },
         { "InventoryItem::set_Name",                  API_FN_PAIR(InventoryItem_SetName) },
+        { "InventoryItem::get_ScriptName",            API_FN_PAIR(InventoryItem_GetScriptName) },
     };
 
     ccAddExternalFunctions(invitem_api);

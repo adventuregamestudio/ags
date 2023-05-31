@@ -390,6 +390,11 @@ int Object_GetID(ScriptObject *objj) {
     return objj->id;
 }
 
+const char *Object_GetScriptName(ScriptObject *objj)
+{
+    return CreateNewScriptString(thisroom.Objects[objj->id].ScriptName);
+}
+
 void Object_SetIgnoreWalkbehinds(ScriptObject *chaa, int clik) {
     SetObjectIgnoreWalkbehinds(chaa->id, clik);
 }
@@ -1034,6 +1039,11 @@ RuntimeScriptValue Sc_Object_GetID(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_INT(ScriptObject, Object_GetID);
 }
 
+RuntimeScriptValue Sc_Object_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetScriptName);
+}
+
 // int (ScriptObject *chaa)
 RuntimeScriptValue Sc_Object_GetIgnoreWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1242,6 +1252,7 @@ void RegisterObjectAPI()
         { "Object::set_Name",                 API_FN_PAIR(Object_SetName) },
         { "Object::get_Scaling",              API_FN_PAIR(Object_GetScaling) },
         { "Object::set_Scaling",              API_FN_PAIR(Object_SetScaling) },
+        { "Object::get_ScriptName",           API_FN_PAIR(Object_GetScriptName) },
         { "Object::get_Solid",                API_FN_PAIR(Object_GetSolid) },
         { "Object::set_Solid",                API_FN_PAIR(Object_SetSolid) },
         { "Object::get_Transparency",         API_FN_PAIR(Object_GetTransparency) },

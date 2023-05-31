@@ -31,6 +31,7 @@
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/runtime_defines.h"
+#include "ac/string.h"
 #include "ac/system.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
@@ -168,6 +169,11 @@ int GUI_GetClickable(ScriptGUI *tehgui) {
 
 int GUI_GetID(ScriptGUI *tehgui) {
   return tehgui->id;
+}
+
+const char *GUI_GetScriptName(ScriptGUI *tehgui)
+{
+    return CreateNewScriptString(guis[tehgui->id].Name);
 }
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
@@ -662,10 +668,13 @@ void gui_on_mouse_down(const int guin, const int mbut)
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+
+extern ScriptString myScriptStringImpl;
 
 ScriptGUI *GUI_GetByName(const char *name)
 {
@@ -784,6 +793,11 @@ RuntimeScriptValue Sc_GUI_SetHeight(void *self, const RuntimeScriptValue *params
 RuntimeScriptValue Sc_GUI_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptGUI, GUI_GetID);
+}
+
+RuntimeScriptValue Sc_GUI_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptGUI, const char, myScriptStringImpl, GUI_GetScriptName);
 }
 
 RuntimeScriptValue Sc_GUI_GetPopupYPos(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -953,6 +967,7 @@ void RegisterGUIAPI()
         { "GUI::get_PopupStyle",          API_FN_PAIR(GUI_GetPopupStyle) },
         { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
         { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
+        { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },
         { "TextWindowGUI::get_TextColor", API_FN_PAIR(GUI_GetTextColor) },
         { "TextWindowGUI::set_TextColor", API_FN_PAIR(GUI_SetTextColor) },
         { "TextWindowGUI::get_TextPadding", API_FN_PAIR(GUI_GetTextPadding) },

@@ -913,12 +913,16 @@ builtin managed struct InventoryItem {
   import attribute int  Graphic;
   /// Gets the ID number of the inventory item.
   readonly import attribute int ID;
-  /// Gets/sets the name of the inventory item.
+  /// Gets/sets the human-readable name of the inventory item.
   import attribute String Name;
   /// Sets an integer custom property for this item.
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this item.
   import bool SetTextProperty(const string property, const string value);
+#ifdef SCRIPT_API_v399
+  /// Gets the script name of the inventory item.
+  import readonly attribute String ScriptName;
+#endif
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1221,6 +1225,10 @@ builtin managed struct GUIControl {
   /// Gets/sets the control's transparency.
   import attribute int  Transparency;
 #endif
+#ifdef SCRIPT_API_v399
+  /// Gets the script name of this control.
+  import readonly attribute String ScriptName;
+#endif
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1431,6 +1439,8 @@ builtin managed struct GUI {
   import readonly attribute bool Shown;
 #endif
 #ifdef SCRIPT_API_v399
+  /// Gets the script name of this GUI.
+  import readonly attribute String ScriptName;
   /// Gets/sets the blending mode for this GUI.
   import attribute BlendMode BlendMode;
   /// Gets/sets the GUI's image rotation in degrees.
@@ -1463,7 +1473,7 @@ builtin managed struct Hotspot {
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
   readonly import attribute int ID;
-  /// Gets/sets the name of the hotspot.
+  /// Gets/sets the human-readable name of the hotspot.
   import attribute String Name;
   /// Gets the X co-ordinate of the walk-to point for this hotspot.
   readonly import attribute int WalkToX;
@@ -1482,6 +1492,10 @@ builtin managed struct Hotspot {
 #ifdef SCRIPT_API_v360
   /// Gets the drawing surface for the 8-bit hotspots mask
   import static DrawingSurface* GetDrawingSurface();     // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v399
+  /// Gets the script name of this hotspot.
+  import readonly attribute String ScriptName;
 #endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1546,6 +1560,10 @@ builtin managed struct Dialog {
   readonly import attribute bool ShowTextParser;
   /// Manually marks whether the option was chosen before or not.
   import void SetHasOptionBeenChosen(int option, bool chosen);
+#ifdef SCRIPT_API_v399
+  /// Gets the script name of this dialog.
+  import readonly attribute String ScriptName;
+#endif
   
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1703,6 +1721,10 @@ builtin managed struct AudioClip {
   /// Gets the clip's ID number.
   readonly import attribute int ID;
 #endif
+#ifdef SCRIPT_API_v399
+  /// Gets the script name of this clip.
+  import readonly attribute String ScriptName;
+#endif
 };
 
 builtin struct System {
@@ -1813,7 +1835,7 @@ builtin managed struct Object {
   readonly import attribute int  Loop;
   /// Gets whether the object is currently moving.
   readonly import attribute bool Moving;
-  /// Gets/sets the name of the object.
+  /// Gets/sets the human-readable name of the object.
   import attribute String Name;
   /// Gets/sets whether other objects and characters can move through this object.
   import attribute bool Solid;
@@ -1862,6 +1884,8 @@ builtin managed struct Object {
   import attribute int  Scaling;
 #endif
 #ifdef SCRIPT_API_v399
+  /// Gets the script name of this object.
+  import readonly attribute String ScriptName;
   /// Gets/sets the blending mode for this object.
   import attribute BlendMode BlendMode;
   /// Gets/sets the object's sprite rotation in degrees.
@@ -2009,7 +2033,7 @@ builtin managed struct Character {
   import attribute bool MovementLinkedToAnimation;
   /// Gets whether the character is currently moving.
   readonly import attribute bool Moving;
-  /// Gets/sets the character's name.
+  /// Gets/sets the human-readable character's name.
   import attribute String Name;
   /// Gets the character's normal walking view.
   readonly import attribute int NormalView;
@@ -2096,6 +2120,8 @@ builtin managed struct Character {
   /// The character's current Z-position.
   import attribute int  z;
 #ifdef SCRIPT_API_v399
+  /// Gets the script name of this character.
+  import readonly attribute String ScriptName;
   /// Gets/sets the character's current blend mode.
   import attribute BlendMode BlendMode;
   /// Gets/sets the character's sprite rotation in degrees.

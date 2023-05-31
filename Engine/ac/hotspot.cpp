@@ -48,6 +48,11 @@ int Hotspot_GetID(ScriptHotspot *hss) {
     return hss->id;
 }
 
+const char *Hotspot_GetScriptName(ScriptHotspot *hss)
+{
+    return CreateNewScriptString(croom->hotspot[hss->id].Name);
+}
+
 int Hotspot_GetWalkToX(ScriptHotspot *hss) {
     return GetHotspotPointX(hss->id);
 }
@@ -231,6 +236,11 @@ RuntimeScriptValue Sc_Hotspot_GetID(void *self, const RuntimeScriptValue *params
     API_OBJCALL_INT(ScriptHotspot, Hotspot_GetID);
 }
 
+RuntimeScriptValue Sc_Hotspot_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptHotspot, const char, myScriptStringImpl, Hotspot_GetScriptName);
+}
+
 // const char* (ScriptHotspot *hss)
 RuntimeScriptValue Sc_Hotspot_GetName_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -277,6 +287,7 @@ void RegisterHotspotAPI()
         { "Hotspot::get_ID",              API_FN_PAIR(Hotspot_GetID) },
         { "Hotspot::get_Name",            API_FN_PAIR(Hotspot_GetName_New) },
         { "Hotspot::set_Name",            API_FN_PAIR(Hotspot_SetName) },
+        { "Hotspot::get_ScriptName",      API_FN_PAIR(Hotspot_GetScriptName) },
         { "Hotspot::get_WalkToX",         API_FN_PAIR(Hotspot_GetWalkToX) },
         { "Hotspot::get_WalkToY",         API_FN_PAIR(Hotspot_GetWalkToY) },
     };

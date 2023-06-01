@@ -1,7 +1,13 @@
 REVISION HISTORY
 ===================================================================================================
 
-AGS 4 WIP (3.99.*.*)
+AGS 4 - Early Alpha (3.99.*.*)
+
+Common:
+ - Most of the deprecated functionality (game settings and script API) is cut out from both
+   Editor and Engine, and is no longer supported. The Editor guarantees to import the projects
+   saved by AGS 3.6.0 and later. The Engine may run games compiled in 3.6.0, but only so long
+   as they don't use any deprecated settings or script commands.
 
 Editor:
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
@@ -21,9 +27,14 @@ Editor:
  - Fixed faulty double-click on project items in case user dragged the cursor away.
 
 Compiler:
- - The new extended script compiler is available.
+ - The new extended script compiler is available. Almost all of the new Scripting features are
+   only supported when using the new script compiler.
+ - Optimization to the bytecode generation: same scripts may now work faster at runtime.
+
+Scripting:
  - Support for having regular structs inside any structs (regular or managed); there's
    no nesting limit.
+ - Support having managed pointers inside managed structs.
  - When declaring a pointer to managed struct you may now omit "*" sign.
  - When writing struct's function's code you may now omit "this" keyword when addressing
    current struct's member (variable, attribute or function).
@@ -48,15 +59,17 @@ Compiler:
    chain multiple commands including function calls, e.g. GetObject().MyVariable...and so on.
  - Two sequenced string literals ("text" "text") are now automatically concatenated.
 
-Scripting:
- - Support having managed pointers inside managed structs.
-
 Script API:
- - Most of the deprecated API is now removed completely.
+ - Most of the deprecated API is now removed completely, except those that have no equivalent.
  - Added SCRIPT_EXT_AGS4 macro which tells whether extended script syntax is supported
-   by the compiler.
+   by the compiler. This may be used to know whether the script is being compiled by the old
+   or new compiler.
  - Added SCRIPT_EXT_NESTEDPOINTERS macro which tells whether nested managed structs are
    supported by the compiler.
+ - Added ScriptName property to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
+   InventoryItem, Object.
+ - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
+   InventoryItem, Object.
  - Added BlendMode enum.
  - Added Character.BlendMode, GUI.BlendMode, Object.BlendMode, Overlay.BlendMode.
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
@@ -67,6 +80,7 @@ Script API:
    cutscene.
  - Implemented Room's "After fade-out" event.
  - Added eEventLeaveRoomAfterFadeout event for the global "on_event".
+ - Added eEventGameSaved event which runs after game was saved.
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
@@ -77,6 +91,8 @@ Engine:
    to their destination.
  - Added FLAC support for music, speech and sound effects.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
+   (RTTI stands for "runtime type information", and is used for handling of certain advanced
+   script features, such as nested managed structs.)
 
 
 ===================================================================================================
@@ -94,8 +110,10 @@ Editor:
 
 Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
-   close to AGS 3.2.1. Testing few "script-heavy" games showed FPS raise by up to 30-40%
+   close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
+ - WFN font renderer now too supports unicode mode and renders texts in utf-8, so long as the
+   font contains glyphs of corresponding indexes.
  - Ensure that character and object scaling is updated even when the game is not drawn.
    This fixes rare issues when their scale property did not update in time whilst the game was
    completely fadeout, and similar cases.

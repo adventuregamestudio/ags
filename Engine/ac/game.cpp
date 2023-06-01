@@ -919,6 +919,8 @@ void save_game(int slotn, const char*descript) {
 
     // Save dynamic game data
     SaveGameState(out.get());
+    // call "After Save" event callback
+    run_on_event(GE_SAVE_GAME, RuntimeScriptValue().SetInt32(slotn));
 }
 
 int gameHasBeenRestored = 0;

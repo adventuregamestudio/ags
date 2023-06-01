@@ -1340,10 +1340,10 @@ static void apply_tint_or_light(ObjTexture &actsp, int light_level,
 // specified width and height, and flips the sprite if necessary.
 // Returns 1 if something was drawn to actsps; returns 0 if no
 // scaling or stretching was required, in which case nothing was done
-int scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newheight,
+bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newheight,
                           float rotation, bool isMirrored)
 {
-  int actsps_used = 1;
+  bool actsps_used = true;
 
   Bitmap *src_sprite = spriteset[sppic];
   Bitmap *temp_rot = nullptr;
@@ -1375,7 +1375,7 @@ int scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newhei
   recycle_bitmap(actsp.Bmp, coldept, newwidth, newheight, true);
   Bitmap *active_spr = actsp.Bmp.get();
 
-  if (scaled != 100) {
+  if (scaled) {
       // Scaled character
 
       our_eip = 334;
@@ -1416,7 +1416,7 @@ int scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newhei
           active_spr->RotateBlt(src_sprite, newwidth / 2 + newwidth % 2, newheight / 2,
               src_sprite->GetWidth() / 2, src_sprite->GetHeight() / 2, rotation); // clockwise
       else
-          actsps_used = 0; // can use original sprite
+          actsps_used = false; // can use original sprite
   }
   delete temp_rot;
 
@@ -1529,7 +1529,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     else
     {
         // get the ambient or region tint
-        get_local_tint(objsrc.x, objsrc.y, (tint_flags & OBJF_USEREGIONTINTS),
+        get_local_tint(objsrc.x, objsrc.y, (tint_flags & OBJF_USEREGIONTINTS) != 0,
             &tint_level, &tint_red, &tint_green, &tint_blue,
             &tint_light, &light_level);
     }

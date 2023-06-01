@@ -16,6 +16,7 @@
 #include "ac/guicontrol.h"
 #include "ac/global_gui.h"
 #include "ac/mouse.h"
+#include "ac/string.h"
 #include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
@@ -92,6 +93,11 @@ void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
 
 int GUIControl_GetID(GUIObject *guio) {
   return guio->Id;
+}
+
+const char *GUIControl_GetScriptName(GUIObject *guio)
+{
+    return CreateNewScriptString(guio->Name);
 }
 
 ScriptGUI* GUIControl_GetOwningGUI(GUIObject *guio) {
@@ -225,9 +231,24 @@ void GUIControl_SetTransparency(GUIObject *guio, int trans) {
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+
+
+extern ScriptString myScriptStringImpl;
+
+GUIObject *GUIControl_GetByName(const char *name)
+{
+    return static_cast<GUIObject*>(ccGetScriptObjectAddress(name, ccDynamicGUIObject.GetType()));
+}
+
+
+RuntimeScriptValue Sc_GUIControl_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(GUIObject, ccDynamicGUIObject, GUIControl_GetByName, const char);
+}
 
 // void (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -337,6 +358,11 @@ RuntimeScriptValue Sc_GUIControl_GetID(void *self, const RuntimeScriptValue *par
     API_OBJCALL_INT(GUIObject, GUIControl_GetID);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, const char, myScriptStringImpl, GUIControl_GetScriptName);
+}
+
 // ScriptGUI* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetOwningGUI(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -417,6 +443,7 @@ void RegisterGUIControlAPI()
 {
     ScFnRegister guicontrol_api[] = {
         { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GetGUIControlAtLocation) },
+        { "GUIControl::GetByName",        API_FN_PAIR(GUIControl_GetByName) },
 
         { "GUIControl::BringToFront^0",   API_FN_PAIR(GUIControl_BringToFront) },
         { "GUIControl::SendToBack^0",     API_FN_PAIR(GUIControl_SendToBack) },
@@ -436,6 +463,7 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_Height",       API_FN_PAIR(GUIControl_SetHeight) },
         { "GUIControl::get_ID",           API_FN_PAIR(GUIControl_GetID) },
         { "GUIControl::get_OwningGUI",    API_FN_PAIR(GUIControl_GetOwningGUI) },
+        { "GUIControl::get_ScriptName",   API_FN_PAIR(GUIControl_GetScriptName) },
         { "GUIControl::get_Visible",      API_FN_PAIR(GUIControl_GetVisible) },
         { "GUIControl::set_Visible",      API_FN_PAIR(GUIControl_SetVisible) },
         { "GUIControl::get_Width",        API_FN_PAIR(GUIControl_GetWidth) },

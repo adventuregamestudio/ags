@@ -16,6 +16,8 @@
 #include "ac/audiochannel.h"
 #include "ac/common.h" // quitprintf
 #include "ac/gamesetupstruct.h"
+#include "ac/string.h"
+#include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "core/assetmanager.h"
 #include "script/runtimescriptvalue.h"
@@ -24,11 +26,17 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
+extern CCAudioClip ccDynamicAudioClip;
 extern CCAudioChannel ccDynamicAudio;
 
 int AudioClip_GetID(ScriptAudioClip *clip)
 {
     return clip->id;
+}
+
+const char *AudioClip_GetScriptName(ScriptAudioClip *clip)
+{
+    return CreateNewScriptString(clip->scriptName);
 }
 
 int AudioClip_GetFileType(ScriptAudioClip *clip)
@@ -91,13 +99,32 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
 //
 //=============================================================================
 
+#include "ac/dynobj/scriptstring.h"
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
+extern ScriptString myScriptStringImpl;
+
+ScriptAudioClip *AudioClip_GetByName(const char *name)
+{
+    return static_cast<ScriptAudioClip*>(ccGetScriptObjectAddress(name, ccDynamicAudioClip.GetType()));
+}
+
+
+RuntimeScriptValue Sc_AudioClip_GetByName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(ScriptAudioClip, ccDynamicAudioClip, AudioClip_GetByName, const char);
+}
+
 RuntimeScriptValue Sc_AudioClip_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetID);
+}
+
+RuntimeScriptValue Sc_AudioClip_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptAudioClip, const char, myScriptStringImpl, AudioClip_GetScriptName);
 }
 
 // int | ScriptAudioClip *clip
@@ -150,6 +177,7 @@ RuntimeScriptValue Sc_AudioClip_PlayOnChannel(void *self, const RuntimeScriptVal
 void RegisterAudioClipAPI()
 {
     ScFnRegister audioclip_api[] = {
+        { "AudioClip::GetByName",         API_FN_PAIR(AudioClip_GetByName) },
         { "AudioClip::Play^2",            API_FN_PAIR(AudioClip_Play) },
         { "AudioClip::PlayFrom^3",        API_FN_PAIR(AudioClip_PlayFrom) },
         { "AudioClip::PlayQueued^2",      API_FN_PAIR(AudioClip_PlayQueued) },
@@ -158,6 +186,7 @@ void RegisterAudioClipAPI()
         { "AudioClip::get_ID",            API_FN_PAIR(AudioClip_GetID) },
         { "AudioClip::get_FileType",      API_FN_PAIR(AudioClip_GetFileType) },
         { "AudioClip::get_IsAvailable",   API_FN_PAIR(AudioClip_GetIsAvailable) },
+        { "AudioClip::get_ScriptName",    API_FN_PAIR(AudioClip_GetScriptName) },
         { "AudioClip::get_Type",          API_FN_PAIR(AudioClip_GetType) },
     };
 

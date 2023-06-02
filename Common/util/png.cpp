@@ -16,12 +16,13 @@
 //
 //=============================================================================
 #include "util/png.h"
+#include <algorithm>
+#include <iostream>
 #include <stdlib.h>
+#include <string.h>
+#include <zlib.h>
 #include "util/bbop.h"
 #include "util/stream.h"
-#include <algorithm>
-#include <zlib.h>
-#include <iostream>
 
 using namespace AGS::Common;
 

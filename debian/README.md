@@ -85,25 +85,27 @@ see [OPTIONS.md](../OPTIONS.md).
 
 ## MIDI music support
 
-FIXME: following section is obsolete, must remove or replace with the new instructions related to SDL2 backend.
+Since 3.6.0 engine is using SDL_Sound library to load MIDI files, which internally utilizes Timidity.
 
-For midi music playback, you have to download GUS patches. We recommend
-"Richard Sanders's GUS patches" from this address:
+For MIDI playback you have to install GUS compatible patches, and have `timidity.cfg` present.
 
-http://alleg.sourceforge.net/digmid.html
+For more information on this please refer to a [dedicated article in the AGS manual](https://github.com/adventuregamestudio/ags-manual/wiki/MIDI-playback).
 
-A direct link is here:
+## Plugin support
 
-http://www.eglebbk.dds.nl/program/download/digmid.dat
+For games that require plugins to run, one of the following requirements must be met for each plugin:
+- Game should come with linux versions of this plugun.
+- Game dir should contain a plugin "stub", that is - a dummy plugin that does nothing and only exports required functions.
+- Engine should have this plugin built-in (statically linked).
+- Engine should have this plugin's "stubs" embedded.
 
-This 'digmid.dat' is, in fact, a **bzip2** archive, containing actual data file,
-which should be about 25 MB large. Extract that file and rename it to **patches.dat**.
-You can now place it:
+If none of the above is true, game will only run if the plugin is optional. This may be a case with plugins that do something behind the scenes but do not export any functions to the game script. Because if the game script uses plugin functions, and plugin is missing, then the script will fail to load (error on script linking stage).
 
--   in the directory pointed to by the ALLEGRO environment variable; or
--   if $ALLEGRO is not defined, in $HOME; or
--   in the same directory of the AGS executable; or
--   in the game's directory.
+Another thing to consider is plugin's dependencies. If a plugin depends on particular libraries, then these libraries should be installed on your system. This may be learnt if you run the engine with the verbose log (e.g. ```ags --log-stdout=main:all <game path>```) and inspect "dlopen" error messages.
+
+If a plugin loads another custom library, present in the game dir, then normally the system may fail to find such dependency. The solution is to setup a `LD_LIBRARY_PATH` enviroment variable right before running the engine. This may be done either by writing a launch script for this game, or right in a command-line, for example:
+
+    LD_LIBRARY_PATH=path_to_game_dir/ ags path_to_game_dir
 
 # Debugging
 When using the Debian/Ubuntu package, the package ags-dbg_*.deb containing debugging

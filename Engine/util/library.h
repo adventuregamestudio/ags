@@ -11,6 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// BaseLibrary is a virtual parent class for a dynamic library loader.
+//
+//=============================================================================
 #ifndef __AGS_EE_UTIL__LIBRARY_H
 #define __AGS_EE_UTIL__LIBRARY_H
 
@@ -30,17 +34,30 @@ public:
     BaseLibrary() = default;
     virtual ~BaseLibrary() = default;
 
-    String GetName() const { return _name; }
-    String GetFilePath() const { return _path; }
+    // Get library name; returns empty string if not loaded
+    inline String GetName() const { return _name; }
+    // Get actual filename; returns empty string if not loaded
+    inline String GetFileName() const { return _filename; }
+    // Get path used to load the library; or empty string is not loaded.
+    // NOTE: this is NOT a fully qualified path, but a lookup path.
+    inline String GetPath() const { return _path; }
 
+    // Returns expected filename form for the dynamic library of a given name
     virtual String GetFilenameForLib(const String &libname) = 0;
-    virtual bool Load(const String &libname) = 0;
+
+    // Try load a library of a given name, optionally looking it up in the list of paths
+    virtual bool Load(const String &libname,
+        const std::vector<String> &lookup = std::vector<String>()) = 0;
+    // Unload a library; does nothing if was not loaded
     virtual void Unload() = 0;
+    // Tells if library is loaded
     virtual bool IsLoaded() const = 0;
+    // Tries to get a function address from a loaded library
     virtual void *GetFunctionAddress(const String &fn_name) = 0;
 
 protected:
     String _name;
+    String _filename;
     String _path;
 };
 

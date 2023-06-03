@@ -382,12 +382,6 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
     return 0;
 }
 
-void main_set_gamedir()
-{
-    appPath = Path::MakeAbsolutePath(platform->GetCommandArg(0));
-    appDirectory = Path::GetDirectoryPath(appPath);
-}
-
 int ags_entry_point(int argc, char *argv[]) { 
     main_init(argc, argv);
 
@@ -424,7 +418,8 @@ int ags_entry_point(int argc, char *argv[]) {
     init_debug(startup_opts, justTellInfo);
     Debug::Printf(kDbgMsg_Alert, get_engine_string());
 
-    main_set_gamedir();
+    appPath = Path::MakeAbsolutePath(platform->GetCommandArg(0));
+    appDirectory = Path::GetDirectoryPath(appPath);
 
     // Update shell associations and exit
     if (debug_flags & DBG_REGONLY)

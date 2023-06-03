@@ -1968,7 +1968,7 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw)
   return bmp;
 }
 
-System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int width, int height) 
+System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int width, int height, bool opaque) 
 {
   Common::Bitmap *tempBlock = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), 32);
   if (!tempBlock)
@@ -1996,6 +1996,8 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
   }
 
   fix_block(tempBlock);
+  if (opaque)
+      BitmapHelper::MakeOpaque(tempBlock);
 
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
   if (todraw->GetColorDepth() == 32)
@@ -2048,7 +2050,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   {
 	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap32bit: Unable to find sprite {0}", spriteNum));
   }
-  return ConvertBlockToBitmap32(todraw, width, height);
+  return ConvertBlockToBitmap32(todraw, width, height, false /* keep alpha */);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 

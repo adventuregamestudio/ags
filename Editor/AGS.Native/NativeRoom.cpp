@@ -12,7 +12,7 @@ using SysBitmap = System::Drawing::Bitmap;
 
 
 AGSBitmap *CreateBlockFromBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);
-extern SysBitmap^ ConvertBlockToBitmap32(AGSBitmap *todraw, int width, int height);
+extern SysBitmap^ ConvertBlockToBitmap32(AGSBitmap *todraw, int width, int height, bool opaque);
 extern SysBitmap^ ConvertBlockToBitmap(AGSBitmap *todraw);
 AGSBitmap *CreateOpaqueNativeBitmap(SysBitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth);
 extern void convert_room_from_native(const RoomStruct &rs, AGS::Types::Room ^room, System::Text::Encoding ^defEncoding);
@@ -66,7 +66,7 @@ SysBitmap ^NativeRoom::GetBackground(int bgnum)
         throw gcnew AGSEditorException(System::String::Format(
             "Invalid background number {0}", bgnum));
     }
-    return ConvertBlockToBitmap32(_rs->BgFrames[bgnum].Graphic.get(), _rs->Width, _rs->Height);
+    return ConvertBlockToBitmap32(_rs->BgFrames[bgnum].Graphic.get(), _rs->Width, _rs->Height, true /* opaque */);
 }
 
 SysBitmap ^NativeRoom::GetAreaMask(AGS::Types::RoomAreaMaskType maskType)

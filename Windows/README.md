@@ -63,7 +63,7 @@ If you are running CMake from command line, you may also pass this path as an ar
 
     cmake . -DSDL2_DIR="absolute-path-to-my-libs\SDL2-2.24.1\cmake"
 
-Once CMake finished working, you should have "SDL_sound.sln" MSVS solution in the same dir. Open the generated solution in MSVS, build a SDL2_sound-static project using wanted configuration. As the final step, you have to rename resulting "SDL2_sound-static.lib" to "SDL_sound.lib", because that's what AGS project currently expects. Of course you may also edit the TargetName in the SDL2_sound-static project's settings.
+Once CMake finished working, you should have "SDL_sound.sln" MSVS solution in the same dir. Open the generated solution in MSVS, build a SDL2_sound-static project using wanted configuration.
 
 ### OGG, Theora and Vorbis
 

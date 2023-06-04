@@ -161,12 +161,6 @@ namespace AGS.Editor.Components
                     OnItemIDOrNameChanged(itemBeingEdited, true);
                 }
             }
-            if (propertyName == "UniformMovementSpeed")
-            {
-                // Force the property grid to refresh and adjust which
-                // properties are visible
-                _guiController.SetPropertyGridObject(itemBeingEdited);
-            }
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)

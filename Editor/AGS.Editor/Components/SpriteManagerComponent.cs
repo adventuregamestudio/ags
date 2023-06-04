@@ -71,8 +71,13 @@ namespace AGS.Editor.Components
 
         public override void RefreshDataFromGame()
         {
+            Sprite.AllowRelativeResolution = Factory.AGSEditor.CurrentGame.Settings.AllowRelativeAssetResolutions;
             _sprEditor.GameChanged();
         }
 
+        public override void GameSettingsChanged()
+        {
+            Sprite.AllowRelativeResolution = Factory.AGSEditor.CurrentGame.Settings.AllowRelativeAssetResolutions;
+        }
     }
 }

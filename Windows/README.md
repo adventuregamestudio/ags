@@ -21,7 +21,7 @@
 **IMPORTANT:** all libraries should match the Engine's architecture: e.g. if you are building engine using 32-bit (x86) configuration then link libraries for 32-bit (x86) too.
 
 **NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:
-  * https://github.com/adventuregamestudio/ags/releases/download/v.3.6.0.15/WinDevDependenciesVS.zip
+  * https://github.com/adventuregamestudio/ags/releases/download/v.3.6.0.48/WinDevDependenciesVS.zip
 
 You still have to download library sources though, because you'd need header files.
 If you go this way, then skip **"Building the libraries"** sections altogether.
@@ -51,12 +51,19 @@ and SDL2.dll to run.
 
 ### SDL_Sound
 
-Official page for SDL_Sound library is https://www.icculus.org/SDL_sound/.
-Any latest release from the 2.0.X tags should be good.
+Official page for SDL_Sound library is https://www.icculus.org/SDL_sound/, but downloads are hosted on github: https://github.com/icculus/SDL_sound/releases.
+Any latest 2.0.X release should be good.
 
-For now, people haven't yet packaged the newer releases, so the only way to get a compatible version is to use their GitHub repository. For the reference, our build server is using revision 495e948b45: https://github.com/icculus/SDL_sound/archive/495e948b455af48eb45f75cccc060498f1e0e8a2.tar.gz
+For the reference, at the time of writing our build server is using revision 495e948b45: https://github.com/icculus/SDL_sound/archive/495e948b455af48eb45f75cccc060498f1e0e8a2.tar.gz
 
-After you downloaded the source this way or another, use CMake to build MSVS solution from their provided CMakeList.txt, then build a static library using wanted configuration.
+After you downloaded the source this way or another, you should use CMake to generate MSVS solution from their provided CMakeList.txt.
+Note that when doing this you may have to direct CMake to the SDL2's cmake config files. First go to the SDL2's sources location and find "cmake" directory inside. It should contain the file called "sdl2-config.cmake". If the file is not present, this means something is wrong with the SDL2's package, or maybe you've downloaded a way too old version of SDL2.
+Once you checked that the file is present, configure CMake for SDL_Sound project and set SDL2_DIR variable, pointing to the directory which contains "sdl2-config.cmake". This may be done using CMake's GUI frontend, for example.
+If you are running CMake from command line, you may also pass this path as an argument, for example:
+
+    cmake . -DSDL2_DIR="absolute-path-to-my-libs\SDL2-2.24.1\cmake"
+
+Once CMake finished working, you should have "SDL_sound.sln" MSVS solution in the same dir. Open the generated solution in MSVS, build a SDL2_sound-static project using wanted configuration. As the final step, you have to rename resulting "SDL2_sound-static.lib" to "SDL_sound.lib", because that's what AGS project currently expects. Of course you may also edit the TargetName in the SDL2_sound-static project's settings.
 
 ### OGG, Theora and Vorbis
 

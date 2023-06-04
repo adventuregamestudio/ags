@@ -6,10 +6,6 @@ Editor:
  - Made Editor a Dpi-aware application, which might improve its looks in Windows 10
    and higher.
  - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
- - Added "Restore all sprites..." command to the Sprite Manager's context menu
-   (this duplicates the "File -> Recreate sprite file" menu command added previously).
- - Refresh Sprite Manager after fully recreating a sprite file.
- - Fixed a minor memory leak occuring when editing a tree item's label in Project Explorer.
 
 Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
@@ -23,8 +19,6 @@ Engine:
  - Ensure all the script API is now correctly available for the plugins.
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
- - Fixed "bad script stack" error could be sometimes displayed if the game was aborted in
-   the middle of running a script.
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -35,6 +29,31 @@ Compatibility:
  - Fixed slower character walking speeds in pre-3.1 upscaled and high-resolution games.
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
+
+
+VERSION 3.6.0 - Patch 2, June 2023
+
+Common:
+ - Fixed a TTF font could cause a crash in the Editor or the Engine if the font renderer tries
+   to draw a letter with higher number than the highest glyph number in the font.
+
+Editor:
+ - Added "Restore all sprites..." command to the Sprite Manager's context menu
+   (this duplicates the "File -> Recreate sprite file" menu command added previously).
+ - Refresh Sprite Manager after fully recreating a sprite file.
+ - Sprites will now hide their "Resolution" property if the game settings have "Allow relative
+   asset resolutions" disabled. This is to avoid user's misuse of this property.
+ - Fixed a minor memory leak occuring when editing a tree item's label in Project Explorer.
+
+Engine:
+ - Engine will now find and load plugins in the game dir when run from a different location.
+ - Fixed crash occuring if Character was told to FaceLocation while "Turn to face" game
+   setting is enabled, and character's View does not have enough loops.
+ - Fixed Character resetting current non-blocking animation if it was ordered to Move,
+   as soon as it arrives at destination.
+ - Fixed crash occuring if a GUI button was somehow set a negative NormalImage number.
+ - Fixed "bad script stack" error could be sometimes displayed if the game was aborted in
+   the middle of running a script.
 
 
 VERSION 3.6.0 - Patch 1, May 2023

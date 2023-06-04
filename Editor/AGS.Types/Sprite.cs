@@ -50,6 +50,13 @@ namespace AGS.Types
 		{
 		}
 
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public static bool AllowRelativeResolution
+        {
+            get; set;
+        }
+
         [Description("The sprite slot number for this sprite")]
         [Category("Design")]
         [ReadOnly(true)]
@@ -60,7 +67,7 @@ namespace AGS.Types
             set { _number = value; } 
         }
 
-        [Description("Native resolution of the sprite. It will be scaled up or down as appropriate at other resolutions.")]
+        [Description("[DEPRECATED] Native resolution of the sprite. It will be scaled up or down as appropriate at other resolutions.")]
         [Category("Appearance")]
         [TypeConverter(typeof(EnumTypeConverter))]
         [DisplayName(PROPERTY_RESOLUTION)]
@@ -386,6 +393,9 @@ namespace AGS.Types
                     case "OffsetX":
                     case "OffsetY":
                         if (!_importAsTile) break;
+                        goto default;
+                    case "Resolution":
+                        if (!AllowRelativeResolution) break;
                         goto default;
                     default:
                         wantProperties.Add(property);

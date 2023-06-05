@@ -3002,12 +3002,10 @@ void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, InteractionC
 
 void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::InteractionScripts *source)
 {
-    if (source->ScriptFuncNames.size() > (size_t)destination->ScriptFunctionNames->Length) 
-	{
-		throw gcnew AGS::Types::AGSEditorException("Invalid interaction funcs: too many interaction events");
-	}
+    size_t evt_count = min(source->ScriptFuncNames.size(), (size_t)destination->ScriptFunctionNames->Length);
+    // TODO: add a warning? if warning list would be passed in here
 
-	for (size_t i = 0; i < source->ScriptFuncNames.size(); i++) 
+	for (size_t i = 0; i < evt_count; i++) 
 	{
 		destination->ScriptFunctionNames[i] = TextHelper::ConvertASCII(source->ScriptFuncNames[i]);
 	}
@@ -3015,12 +3013,10 @@ void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::Intera
 
 void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *intr, String^ scriptFuncPrefix, AGS::Types::Game ^game, int targetTypeForUnhandledEvent)
 {
-	if (intr->Events.size() > (size_t)interactions->ScriptFunctionNames->Length) 
-	{
-		throw gcnew AGS::Types::AGSEditorException("Invalid interaction data: too many interaction events");
-	}
+    size_t evt_count = min(intr->Events.size(), (size_t)interactions->ScriptFunctionNames->Length);
+    // TODO: add a warning? if warning list would be passed in here
 
-	for (size_t i = 0; i < intr->Events.size(); i++) 
+	for (size_t i = 0; i < evt_count; i++) 
 	{
         if (intr->Events[i].Response.get() != NULL) 
 		{

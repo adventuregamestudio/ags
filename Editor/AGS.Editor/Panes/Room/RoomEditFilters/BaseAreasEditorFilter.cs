@@ -116,6 +116,7 @@ namespace AGS.Editor
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+        public event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
 
         public abstract int ItemCount { get; }
 
@@ -234,6 +235,7 @@ namespace AGS.Editor
         public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             if (e.Button == MouseButtons.Middle) return false;
+            if (e.Button == MouseButtons.Right && Control.ModifierKeys != Keys.None) return false;
             
             int x = state.WindowXToRoom(e.X);
             int y = state.WindowYToRoom(e.Y);

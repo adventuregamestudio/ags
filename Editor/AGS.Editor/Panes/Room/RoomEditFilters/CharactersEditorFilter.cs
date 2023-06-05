@@ -160,6 +160,7 @@ namespace AGS.Editor
                 EventHandler onClick = new EventHandler(CharCoordMenuEventHandler);
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.Add(new ToolStripMenuItem("Copy Character coordinates to clipboard", null, onClick, MENU_ITEM_COPY_CHAR_COORDS));
+                OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, e.X, e.Y));
 
                 _menuClickX = state.WindowXToRoom(e.X);
                 _menuClickY = state.WindowYToRoom(e.Y);
@@ -352,6 +353,7 @@ namespace AGS.Editor
 
         public event EventHandler OnItemsChanged;
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+        public event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
 
         public int ItemCount
 	    {

@@ -72,8 +72,17 @@ namespace AGS.Editor
         /// Notifies mouse move event. Returns whether event is handled by this filter.
         /// </summary>
         bool MouseMove(int x, int y, RoomEditorState state);
+        /// <summary>
+        /// Enables filter
+        /// </summary>
         void FilterOn();
+        /// <summary>
+        /// Disables filter
+        /// </summary>
         void FilterOff();
+        /// <summary>
+        /// Process given command (from menu or toolbar)
+        /// </summary>
         void CommandClick(string command);
         /// <summary>
         /// Notifies key press event. Returns whether event is handled by this filter.
@@ -89,11 +98,22 @@ namespace AGS.Editor
         /// </summary>
         /// <param name="id"></param>
         void SelectItem(string id);
+        /// <summary>
+        /// Forces room filter to invalidate (redraw) itself
+        /// </summary>
         void Invalidate();
+        /// <summary>
+        /// Asks room filter to provide a cursor for the given location
+        /// </summary>
         Cursor GetCursor(int x, int y, RoomEditorState state);
+        /// <summary>
+        /// Tells if this room filter allows to be clicked on even when it's locked
+        /// (for example, it may still allow to select objects for reading their properties).
+        /// </summary>
         bool AllowClicksInterception();
 
         event EventHandler OnItemsChanged;
         event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+        event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
     }
 }

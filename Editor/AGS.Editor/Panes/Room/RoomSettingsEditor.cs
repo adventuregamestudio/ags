@@ -104,6 +104,7 @@ namespace AGS.Editor
 
             foreach (IRoomEditorFilter layer in _layers)
             {
+                layer.OnContextMenu += layer_OnContextMenu;
                 layer.OnItemsChanged += layer_OnItemsChanged;
                 layer.OnSelectedItemChanged += layer_OnSelectedItemChanged;
             }
@@ -267,6 +268,15 @@ namespace AGS.Editor
             _editAddressBar.CurrentNode = node;
             SelectLayer(layer);
             //selecting hotspot from designer Panel, then cant Draw more hotspots...
+        }
+
+        /// <summary>
+        /// Room layer wants to display context menu, we shall add our items too.
+        /// </summary>
+        private void layer_OnContextMenu(object sender, RoomFilterContextMenuArgs e)
+        {
+            e.Menu.Items.Add(new ToolStripSeparator());
+            PrepareContextMenu(e.Menu, e.X, e.Y);
         }
 
         private string GetLayerItemUniqueID(IRoomEditorFilter layer, string itemName)
@@ -628,8 +638,19 @@ namespace AGS.Editor
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
             if (bufferedPanel1.IsPanning) return;
+            bool handled = false;
             if (_layer != null && !IsLocked(_layer))
-                _layer.MouseDown(e, _state);
+            {
+                handled = _layer.MouseDown(e, _state);
+            }
+            if (!handled)
+            {
+                if (e.Button == MouseButtons.Right &&
+                    (ModifierKeys == Keys.None || ModifierKeys == Keys.Shift))
+                {
+                    ShowContextMenu(e.X, e.Y);
+                }
+            }
             _mouseIsDown = true;
 		}
 
@@ -641,13 +662,6 @@ namespace AGS.Editor
                 if (_layer != null && !IsLocked(_layer))
                 {
                     handled = _layer.MouseUp(e, _state);
-                }
-                if (!handled)
-                {
-                    if (e.Button == MouseButtons.Middle)
-                    {
-                        ShowCoordMenu(e);
-                    }
                 }
                 Factory.GUIController.RefreshPropertyGrid();
                 bufferedPanel1.Invalidate();
@@ -855,16 +869,19 @@ namespace AGS.Editor
             return ProcessPanKeyRelease(keyData);
         }
 
-        private void ShowCoordMenu(MouseEventArgs e)
+        private void ShowContextMenu(int x, int y)
+        {
+            ContextMenuStrip menu = new ContextMenuStrip();
+            PrepareContextMenu(menu, x, y);
+            menu.Show(bufferedPanel1, x, y);
+        }
+
+        private void PrepareContextMenu(ContextMenuStrip menu, int x, int y)
         {
             EventHandler onClick = new EventHandler(CoordMenuEventHandler);
-            ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
-
-            _menuClickX = _state.WindowXToRoom(e.X);
-            _menuClickY = _state.WindowYToRoom(e.Y);
-
-            menu.Show(bufferedPanel1, e.X, e.Y);
+            _menuClickX = _state.WindowXToRoom(x);
+            _menuClickY = _state.WindowYToRoom(y);
         }
 
         private void CoordMenuEventHandler(object sender, EventArgs e)

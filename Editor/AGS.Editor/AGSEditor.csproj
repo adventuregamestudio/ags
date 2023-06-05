@@ -231,6 +231,7 @@
     <Compile Include="Entities\LogBuffer.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\RoomFilterContextMenuArgs.cs" />
     <Compile Include="Panes\FreePanControl.cs">
       <SubType>Component</SubType>
     </Compile>

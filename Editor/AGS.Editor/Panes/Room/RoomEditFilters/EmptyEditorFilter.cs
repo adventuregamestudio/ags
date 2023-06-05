@@ -37,6 +37,7 @@ namespace AGS.Editor
 
         public event EventHandler OnItemsChanged { add { } remove { } }
         public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged { add { } remove { } }
+        public event EventHandler<RoomFilterContextMenuArgs> OnContextMenu { add { } remove { } }
 
         public int ItemCount
         {

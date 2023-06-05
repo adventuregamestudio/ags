@@ -221,5 +221,10 @@ namespace AGS.Editor
                 Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             }
         }
+
+        private void splitContainer1_Layout(object sender, LayoutEventArgs e)
+        {
+            splitContainer1.SplitterDistance = label1.Height + label2.Height + label1.Margin.Top + label1.Margin.Bottom + label2.Margin.Top + label2.Margin.Bottom;
+        }
     }
 }

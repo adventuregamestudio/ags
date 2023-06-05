@@ -117,6 +117,7 @@ namespace AGS.Editor
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(456, 24);
             this.panel1.TabIndex = 0;
+            this.panel1.Layout += new System.Windows.Forms.LayoutEventHandler(this.panel1_Layout);
             // 
             // label1
             // 

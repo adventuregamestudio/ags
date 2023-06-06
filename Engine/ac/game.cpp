@@ -633,6 +633,11 @@ int Game_DoOnceOnly(const char *token)
     return 1;
 }
 
+void Game_ResetDoOnceOnly()
+{
+    free_do_once_tokens();
+}
+
 int Game_GetTextReadingSpeed()
 {
     return play.text_speed;
@@ -1593,6 +1598,11 @@ RuntimeScriptValue Sc_Game_DoOnceOnly(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT_POBJ(Game_DoOnceOnly, const char);
 }
 
+RuntimeScriptValue Sc_Game_ResetDoOnceOnly(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(Game_ResetDoOnceOnly);
+}
+
 // int (int red, int grn, int blu)
 RuntimeScriptValue Sc_Game_GetColorFromRGB(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1903,6 +1913,7 @@ void RegisterGameAPI()
         { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },
         { "Game::StopSound^1",                            API_FN_PAIR(StopAllSounds) },
+        { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },

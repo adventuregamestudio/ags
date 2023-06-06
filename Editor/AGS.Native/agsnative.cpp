@@ -1452,11 +1452,6 @@ void free_script_modules() {
 
 void free_old_game_data()
 {
-  for (auto &dlg : dialog)
-  {
-	  if (dlg.optionscripts != NULL)
-		  free(dlg.optionscripts);
-  }
   newViews.clear();
   guis.clear();
   dialog.clear();

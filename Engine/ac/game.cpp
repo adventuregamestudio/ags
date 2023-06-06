@@ -470,11 +470,6 @@ void unload_game_file()
     numLipLines = 0;
     curLipLine = -1;
 
-    for (auto &dlg : dialog)
-    {
-        if (dlg.optionscripts != nullptr)
-            free(dlg.optionscripts);
-    }
     dialog.clear();
     scrDialog.clear();
 

@@ -23,13 +23,13 @@
 #include <allegro.h> // RGB
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"
+#include "ac/wordsdictionary.h"
 #include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-struct WordsDictionary;
 struct CharacterInfo;
 struct ccScript;
 
@@ -66,7 +66,10 @@ struct GameSetupStructBase
     std::vector<CharacterInfo> chars;
 
     GameSetupStructBase();
+    GameSetupStructBase(GameSetupStructBase &&gss) = default;
     ~GameSetupStructBase();
+
+    GameSetupStructBase &operator =(GameSetupStructBase &&gss) = default;
 
     void Free();
     void SetDefaultResolution(GameResolutionType type);

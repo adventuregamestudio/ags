@@ -450,14 +450,15 @@ void free_do_once_tokens()
 // Free all the memory associated with the game
 void unload_game_file()
 {
+    dispose_game_drawdata();
+    // NOTE: fonts should be freed prior to stopping plugins,
+    // as plugins may provide font renderer interface.
+    free_all_fonts();
     close_translation();
 
-    play.FreeViewportsAndCameras();
-
-    charextra.clear();
-    mls.clear();
-
-    dispose_game_drawdata();
+    ccRemoveAllSymbols();
+    ccUnregisterAllObjects();
+    pl_stop_plugins();
 
     delete gameinstFork;
     delete gameinst;
@@ -475,6 +476,7 @@ void unload_game_file()
         delete moduleInst[i];
         scriptModules[i].reset();
     }
+
     moduleInstFork.resize(0);
     moduleInst.resize(0);
     scriptModules.resize(0);
@@ -490,8 +492,9 @@ void unload_game_file()
     runDialogOptionCloseFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
+    charextra.clear();
+    mls.clear();
     views.clear();
-
     splipsync.clear();
     numLipLines = 0;
     curLipLine = -1;
@@ -507,19 +510,11 @@ void unload_game_file()
     guis.clear();
     scrGui.clear();
 
-    free_all_fonts();
-
-    ccRemoveAllSymbols();
-    ccUnregisterAllObjects();
-    pl_stop_plugins();
-
-    free_do_once_tokens();
-    play.gui_draw_order.clear();
-
     resetRoomStatuses();
 
-    // free game struct last because it contains object counts
-    game.Free();
+    // Free game state and game struct
+    play = GameState();
+    game = GameSetupStruct();
 }
 
 

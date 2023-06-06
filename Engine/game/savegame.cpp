@@ -409,9 +409,6 @@ void DoBeforeRestore(PreservedParams &pp)
         moduleInst[i] = nullptr;
     }
 
-    play.FreeProperties();
-    play.FreeViewportsAndCameras();
-
     delete roominstFork;
     delete roominst;
     roominstFork = nullptr;
@@ -420,8 +417,14 @@ void DoBeforeRestore(PreservedParams &pp)
     delete dialogScriptsInst;
     dialogScriptsInst = nullptr;
 
+    // reset saved room states
     resetRoomStatuses();
-    troom = RoomStatus(); // reset temp room state
+    // reset temp room state
+    troom = RoomStatus();
+    // reset (some of the?) GameState data
+    // FIXME: investigate and refactor to be able to just reset whole object
+    play.FreeProperties();
+    play.FreeViewportsAndCameras();
     free_do_once_tokens();
 
     // unregister gui controls from API exports

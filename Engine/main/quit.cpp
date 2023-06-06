@@ -174,9 +174,6 @@ QuitReason quit_check_for_error_state(const char *qmsg, String &errmsg, String &
 
 void quit_release_data()
 {
-    resetRoomStatuses();
-    thisroom.Free();
-    play.Free();
     unload_game_file();
     AssetMgr.reset();
 }

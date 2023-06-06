@@ -47,12 +47,6 @@ GameState::GameState()
     _mainViewportHasChanged = false;
 }
 
-void GameState::Free()
-{
-    raw_drawing_surface.reset();
-    FreeProperties();
-}
-
 bool GameState::IsAutoRoomViewport() const
 {
     return _isAutoRoomViewport;

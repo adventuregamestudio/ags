@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_set>
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
 #include "ac/keycode.h"
@@ -217,7 +218,7 @@ struct GameState {
     short temporarily_turned_off_character;  // Hide Player Charactr ticked
     short inv_backwards_compatibility;
     std::vector<int> gui_draw_order; // used only for hit detection now
-    std::vector<AGS::Common::String> do_once_tokens;
+    std::unordered_set<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms;
     int   ignore_user_input_after_text_timeout_ms;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];

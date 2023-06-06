@@ -443,7 +443,7 @@ bool do_save_game_dialog() {
 
 void free_do_once_tokens()
 {
-    play.do_once_tokens.resize(0);
+    play.do_once_tokens.clear();
 }
 
 
@@ -627,14 +627,9 @@ ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
 
 int Game_DoOnceOnly(const char *token)
 {
-    for (int i = 0; i < (int)play.do_once_tokens.size(); i++)
-    {
-        if (play.do_once_tokens[i] == token)
-        {
-            return 0;
-        }
-    }
-    play.do_once_tokens.push_back(token);
+    if (play.do_once_tokens.count(String::Wrapper(token)) > 0)
+        return 0;
+    play.do_once_tokens.insert(token);
     return 1;
 }
 

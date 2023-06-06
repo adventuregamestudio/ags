@@ -74,8 +74,8 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
-extern std::vector<ccInstance *> moduleInst;
-extern std::vector<ccInstance *> moduleInstFork;
+extern std::vector<PInstance> moduleInst;
+extern std::vector<PInstance> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 
 // Old dialog support (defined in ac/dialog)
@@ -374,27 +374,6 @@ void LoadLipsyncData()
         }
     }
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
-}
-
-void AllocScriptModules()
-{
-    moduleInst.resize(numScriptModules, nullptr);
-    moduleInstFork.resize(numScriptModules, nullptr);
-    moduleRepExecAddr.resize(numScriptModules);
-    repExecAlways.moduleHasFunction.resize(numScriptModules, true);
-    lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);
-    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
-    renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
-    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionCloseFunc.moduleHasFunction.resize(numScriptModules, true);
-    for (auto &val : moduleRepExecAddr)
-    {
-        val.Invalidate();
-    }
 }
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)

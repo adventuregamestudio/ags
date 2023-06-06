@@ -14,6 +14,7 @@
 #ifndef __AGS_EE_SCRIPT__SCRIPT_H
 #define __AGS_EE_SCRIPT__SCRIPT_H
 
+#include <memory>
 #include <vector>
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
@@ -38,12 +39,12 @@ int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = 
 int     create_global_script();
 void    cancel_all_scripts();
 
-ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst);
+PInstance GetScriptInstanceByType(ScriptInstType sc_inst);
 // Queues a script function to be run either called by the engine or from another script
 void    QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a given script instance
-int     RunScriptFunction(ccInstance *sci, const char *tsname, size_t param_count = 0,
+int     RunScriptFunction(PInstance sci, const char *tsname, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
@@ -56,6 +57,16 @@ int     RunScriptFunctionInRoom(const char *tsname, size_t param_count = 0,
 // depending on the type may run a claimable callback chain
 int     RunScriptFunctionAuto(ScriptInstType sc_inst, const char *fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
+
+// Preallocates script module instances
+void    AllocScriptModules();
+// Delete all the script instance objects
+void    FreeAllScriptInstances();
+// Delete only the current room script instance
+void    FreeRoomScriptInstance();
+// Deletes all the global scripts and modules;
+// this frees all of the bytecode and runtime script memory.
+void    FreeGlobalScripts();
 
 
 AGS::Common::String GetScriptName(ccInstance *sci);
@@ -81,13 +92,15 @@ AGS::Common::String cc_get_callstack(int max_lines = INT_MAX);
 
 
 extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-extern ExecutingScript*curscript;
+extern ExecutingScript *curscript;
 
 extern PScript gamescript;
 extern PScript dialogScriptsScript;
-extern ccInstance *gameinst, *roominst;
-extern ccInstance *dialogScriptsInst;
-extern ccInstance *gameinstFork, *roominstFork;
+extern PInstance gameinst;
+extern PInstance roominst;
+extern PInstance dialogScriptsInst;
+extern PInstance gameinstFork;
+extern PInstance roominstFork;
 
 extern int num_scripts;
 extern int post_script_cleanup_stack;
@@ -109,8 +122,8 @@ extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 extern ScriptSystem scsystem;
 
 extern std::vector<PScript> scriptModules;
-extern std::vector<ccInstance *> moduleInst;
-extern std::vector<ccInstance *> moduleInstFork;
+extern std::vector<PInstance> moduleInst;
+extern std::vector<PInstance> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 

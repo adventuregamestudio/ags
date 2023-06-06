@@ -55,7 +55,7 @@ struct QueuedScript
 };
 
 struct ExecutingScript {
-    ccInstance *inst;
+    PInstance inst;
     PostScriptAction postScriptActions[MAX_QUEUED_ACTIONS];
     const char *postScriptActionNames[MAX_QUEUED_ACTIONS];
     ScriptPosition  postScriptActionPositions[MAX_QUEUED_ACTIONS];

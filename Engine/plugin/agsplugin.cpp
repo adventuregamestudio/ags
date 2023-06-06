@@ -97,7 +97,6 @@ extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern int game_paused;
 extern int inside_script;
-extern ccInstance *gameinst, *roominst;
 extern RGB palette[256];
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
@@ -667,7 +666,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (inside_script)
         return -300;
 
-    ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScInstGame : kScInstRoom);
+    PInstance toRun = GetScriptInstanceByType(globalScript ? kScInstGame : kScInstRoom);
 
     RuntimeScriptValue params[]{
         RuntimeScriptValue().SetPluginArgument(arg1),

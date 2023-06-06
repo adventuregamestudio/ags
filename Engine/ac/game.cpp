@@ -460,37 +460,8 @@ void unload_game_file()
     ccUnregisterAllObjects();
     pl_stop_plugins();
 
-    delete gameinstFork;
-    delete gameinst;
-    gameinstFork = nullptr;
-    gameinst = nullptr;
-    gamescript.reset();
-
-    delete dialogScriptsInst;
-    dialogScriptsInst = nullptr;
-    dialogScriptsScript.reset();
-
-    for (size_t i = 0; i < numScriptModules; ++i)
-    {
-        delete moduleInstFork[i];
-        delete moduleInst[i];
-        scriptModules[i].reset();
-    }
-
-    moduleInstFork.resize(0);
-    moduleInst.resize(0);
-    scriptModules.resize(0);
-    repExecAlways.moduleHasFunction.resize(0);
-    lateRepExecAlways.moduleHasFunction.resize(0);
-    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(0);
-    renderDialogOptionsFunc.moduleHasFunction.resize(0);
-    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(0);
-    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(0);
-    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(0);
-    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(0);
-    runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
-    runDialogOptionCloseFunc.moduleHasFunction.resize(0);
-    numScriptModules = 0;
+    FreeAllScriptInstances();
+    FreeGlobalScripts();
 
     charextra.clear();
     mls.clear();

@@ -395,27 +395,13 @@ void DoBeforeRestore(PreservedParams &pp)
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gameinst->globaldatasize;
-    delete gameinstFork;
-    delete gameinst;
-    gameinstFork = nullptr;
-    gameinst = nullptr;
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
-        delete moduleInstFork[i];
-        delete moduleInst[i];
-        moduleInstFork[i] = nullptr;
-        moduleInst[i] = nullptr;
     }
 
-    delete roominstFork;
-    delete roominst;
-    roominstFork = nullptr;
-    roominst = nullptr;
-
-    delete dialogScriptsInst;
-    dialogScriptsInst = nullptr;
+    FreeAllScriptInstances();
 
     // reset saved room states
     resetRoomStatuses();
@@ -517,6 +503,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     update_gui_zorder();
 
+    AllocScriptModules();
     if (create_global_script())
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,

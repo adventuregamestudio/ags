@@ -45,7 +45,6 @@ using namespace AGS::Engine;
 extern int our_eip, displayed_room;
 extern GameSetupStruct game;
 extern GameState play;
-extern std::vector<ccInstance *> moduleInst;
 extern CharacterInfo*playerchar;
 
 void start_game_init_editor_debugging()

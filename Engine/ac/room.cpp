@@ -78,7 +78,6 @@ extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
 extern RoomObject*objs;
-extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int done_es_error;
 extern int our_eip;
@@ -299,10 +298,7 @@ void unload_old_room() {
     if (croom==nullptr) ;
     else if (roominst!=nullptr) {
         save_room_data_segment();
-        delete roominstFork;
-        delete roominst;
-        roominstFork = nullptr;
-        roominst=nullptr;
+        FreeRoomScriptInstance();
     }
     else croom->tsdatasize=0;
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);

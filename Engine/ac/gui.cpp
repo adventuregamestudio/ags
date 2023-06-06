@@ -57,7 +57,6 @@ using namespace AGS::Engine;
 
 extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
-extern ccInstance *gameinst;
 extern std::vector<ScriptGUI> scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;

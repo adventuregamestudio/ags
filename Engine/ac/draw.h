@@ -128,7 +128,7 @@ void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverSpriteEvtCallback(int evt, int data);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
-// Create the actsps[aa] image with the object drawn correctly.
+// Create the actsps[objid] image with the object drawn correctly.
 // Returns true if nothing at all has changed and actsps is still
 // intact from last time; false otherwise.
 // Hardware-accelerated do not require altering the raw bitmap itself,

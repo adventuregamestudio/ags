@@ -42,7 +42,7 @@ namespace Engine
 
 using AGS::Common::String;
 
-class WindowsLibrary : public BaseLibrary
+class WindowsLibrary final : public BaseLibrary
 {
 public:
     WindowsLibrary() = default;
@@ -56,15 +56,18 @@ public:
         return String::FromFormat("%s.dll", libname.GetCStr());
     }
 
-    bool Load(const String &libname) override
+    bool Load(const String &libname,
+        const std::vector<String> &lookup = std::vector<String>()) override
     {
         Unload();
-        String path;
-        HMODULE lib = TryLoad(libname, path);
+        String libfile = GetFilenameForLib(libname);
+        String path; // save last tried path
+        HMODULE lib = TryLoadAnywhere(libfile, lookup, path);
         if (lib == NULL)
             return false;
         _library = lib;
         _name = libname;
+        _filename = libfile;
         _path = path;
         return true;
     }
@@ -76,6 +79,7 @@ public:
             FreeLibrary(_library);
             _library = NULL;
             _name = "";
+            _filename = "";
             _path = "";
         }
     }
@@ -93,13 +97,33 @@ public:
     }
 
 private:
-    HMODULE TryLoad(const String &libname, String &path)
+    HMODULE TryLoad(const String &path)
     {
-        path = GetFilenameForLib(libname);
-        AGS::Common::Debug::Printf("Built library path: %s", path.GetCStr());
+        AGS::Common::Debug::Printf("Try library path: %s", path.GetCStr());
         WCHAR wpath[MAX_PATH_SZ];
         MultiByteToWideChar(CP_UTF8, 0, path.GetCStr(), -1, wpath, MAX_PATH_SZ);
         return LoadLibraryW(wpath);
+    }
+
+    HMODULE TryLoadAnywhere(const String &libfile,
+         const std::vector<String> &lookup, String &path)
+    {
+        // First try default system search
+        path = libfile;
+        HMODULE lib = TryLoad(path);
+        if (lib)
+            return lib;
+
+        // Try lookup paths last
+        for (const auto p : lookup)
+        {
+            path = AGS::Common::Path::ConcatPaths(p, libfile);
+            lib = TryLoad(path);
+            if (lib)
+                return lib;
+        }
+
+        return NULL;
     }
 
     HMODULE _library = NULL;

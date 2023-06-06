@@ -35,6 +35,8 @@ namespace AGS.Types
         v360 = 3060000,
         [Description("3.6.0 Final")]
         v36026 = 3060026,
+        [Description("3.6.1 Beta")]
+        v361 = 3060100,
         [Description("3.99.x")]
         v399 = 3990000,
         // Highest constant is used for automatic upgrade to new API when

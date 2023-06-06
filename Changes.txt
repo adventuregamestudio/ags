@@ -23,7 +23,6 @@ Editor:
    compiler for your game (see list of changes in related section below).
  - Added BlendMode property to Characters, GUI and Room Objects.
  - Added readonly Length property to AudioClips, for the reference.
- - Added "Leave room after fade-out" event to Rooms.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
 
 Compiler:
@@ -78,9 +77,6 @@ Script API:
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.
- - Implemented Room's "After fade-out" event.
- - Added eEventLeaveRoomAfterFadeout event for the global "on_event".
- - Added eEventGameSaved event which runs after game was saved.
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
@@ -102,11 +98,23 @@ VERSION 3.6.1 - Beta, May 2023
 Editor:
  - Made Editor a Dpi-aware application, which might improve its looks in Windows 10
    and higher.
+ - Improved Room Editor controls:
+   Added free panning mode done by holding the middle mouse button, or alternatively -
+   by holding Space + LMB.
+   Mouse Wheel without key modifiers scrolls the room vertically; Shift + Mouse Wheel scrolls
+   the room horizontally.
+   Zoom is done by Ctrl + Mouse Wheel and room now zooms towards or outwards the cursor position.
+ - In Room Editor the context menu is now displayed by RMB or Shift + RMB while editing masks.
+   The individual room mode menu is merged with the "copy coordinates" command when shown.
+ - Reimplemented multiple sprites properties edit in the Sprite Manager. This ability was
+   dropped in 3.5.0 unintentionally.
  - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
- - Added "Restore all sprites..." command to the Sprite Manager's context menu
-   (this duplicates the "File -> Recreate sprite file" menu command added previously).
- - Refresh Sprite Manager after fully recreating a sprite file.
- - Fixed a minor memory leak occuring when editing a tree item's label in Project Explorer.
+ - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
+
+Script API:
+ - Implemented Room's "After fade-out" event.
+ - Added eEventLeaveRoomAfterFadeout event for the global "on_event".
+ - Added eEventGameSaved event which runs after game was saved.
 
 Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
@@ -120,8 +128,6 @@ Engine:
  - Ensure all the script API is now correctly available for the plugins.
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
- - Fixed "bad script stack" error could be sometimes displayed if the game was aborted in
-   the middle of running a script.
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -132,6 +138,31 @@ Compatibility:
  - Fixed slower character walking speeds in pre-3.1 upscaled and high-resolution games.
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
+
+
+VERSION 3.6.0 - Patch 2, June 2023
+
+Common:
+ - Fixed a TTF font could cause a crash in the Editor or the Engine if the font renderer tries
+   to draw a letter with higher number than the highest glyph number in the font.
+
+Editor:
+ - Added "Restore all sprites..." command to the Sprite Manager's context menu
+   (this duplicates the "File -> Recreate sprite file" menu command added previously).
+ - Refresh Sprite Manager after fully recreating a sprite file.
+ - Sprites will now hide their "Resolution" property if the game settings have "Allow relative
+   asset resolutions" disabled. This is to avoid user's misuse of this property.
+ - Fixed a minor memory leak occuring when editing a tree item's label in Project Explorer.
+
+Engine:
+ - Engine will now find and load plugins in the game dir when run from a different location.
+ - Fixed crash occuring if Character was told to FaceLocation while "Turn to face" game
+   setting is enabled, and character's View does not have enough loops.
+ - Fixed Character resetting current non-blocking animation if it was ordered to Move,
+   as soon as it arrives at destination.
+ - Fixed crash occuring if a GUI button was somehow set a negative NormalImage number.
+ - Fixed "bad script stack" error could be sometimes displayed if the game was aborted in
+   the middle of running a script.
 
 
 VERSION 3.6.0 - Patch 1, May 2023

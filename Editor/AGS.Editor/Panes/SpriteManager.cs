@@ -65,7 +65,8 @@ namespace AGS.Editor
                 //the sprite selector will close and refresh itself with an empty selection,
                 //but if we put an empty selection in the grid, the sprite will not be updated at all,
                 //the grid update operation will be cancelled.
-                if (Factory.GUIController.GetPropertyGridObject() is Sprite)
+                if (Factory.GUIController.GetPropertyGridObject() is Sprite ||
+                    Factory.GUIController.GetPropertyGridObjects() is Sprite[])
                 {
                     Factory.GUIController.SetPropertyGridObject(null);
                 }

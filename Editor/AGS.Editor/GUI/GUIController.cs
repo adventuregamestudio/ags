@@ -579,6 +579,12 @@ namespace AGS.Editor
             return _mainForm.ActivePane.SelectedPropertyGridObject;
         }
 
+        public object[] GetPropertyGridObjects()
+        {
+            if (_mainForm.ActivePane == null) return null;
+            return _mainForm.ActivePane.SelectedPropertyGridObjects;
+        }
+
         public void SetPropertyGridObject(object objectToSetPropertiesOn)
         {
             if (_mainForm.ActivePane != null)

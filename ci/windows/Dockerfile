@@ -83,6 +83,6 @@ RUN mkdir Lib\SDL_sound && \
   mkdir Lib\SDL_sound\lib && \
   mkdir Lib\SDL_sound\lib\x86 && \
   mkdir Lib\SDL_sound\lib\x64 && \
-  copy Lib\SDL_sound\build_x86\Release\SDL2_sound-static.lib Lib\SDL_sound\lib\x86\SDL_sound.lib && \
-  copy Lib\SDL_sound\build_x64\Release\SDL2_sound-static.lib Lib\SDL_sound\lib\x64\SDL_sound.lib 
+  copy Lib\SDL_sound\build_x86\Release\SDL2_sound-static.lib Lib\SDL_sound\lib\x86\SDL2_sound-static.lib && \
+  copy Lib\SDL_sound\build_x64\Release\SDL2_sound-static.lib Lib\SDL_sound\lib\x64\SDL2_sound-static.lib
 

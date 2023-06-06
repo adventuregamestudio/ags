@@ -117,6 +117,7 @@ namespace AGS.Editor
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(456, 24);
             this.panel1.TabIndex = 0;
+            this.panel1.Layout += new System.Windows.Forms.LayoutEventHandler(this.panel1_Layout);
             // 
             // label1
             // 
@@ -187,6 +188,8 @@ namespace AGS.Editor
             this.Name = "SpriteSelector";
             this.Size = new System.Drawing.Size(640, 484);
             this.Load += new System.EventHandler(this.SpriteSelector_Load);
+            this.VisibleChanged += new System.EventHandler(this.SpriteSelector_VisibleChanged);
+            this.Leave += new System.EventHandler(this.SpriteSelector_Leave);
             this.splitWindow.Panel1.ResumeLayout(false);
             this.splitWindow.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).EndInit();

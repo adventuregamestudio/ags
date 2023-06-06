@@ -21,7 +21,7 @@ namespace Engine
 
 using AGS::Common::String;
 
-class DummyLibrary : public BaseLibrary
+class DummyLibrary final : public BaseLibrary
 {
 public:
     DummyLibrary() = default;
@@ -32,7 +32,7 @@ public:
         return ""; // not supported
     }
 
-    bool Load(const String &libname) override
+    bool Load(const String &libname, const std::vector<String> &lookup) override
     {
         return false; // always fail
     }

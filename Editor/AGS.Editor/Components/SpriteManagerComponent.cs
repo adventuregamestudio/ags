@@ -74,5 +74,8 @@ namespace AGS.Editor.Components
             _sprEditor.GameChanged();
         }
 
+        public override void GameSettingsChanged()
+        {
+        }
     }
 }

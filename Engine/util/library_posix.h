@@ -18,14 +18,8 @@
 #include "core/platform.h"
 #include "debug/out.h"
 #include "util/path.h"
+#include "util/stdio_compat.h"
 #include "util/string.h"
-
-// FIXME: Replace with a unified way to get the directory which contains the engine binary
-#if AGS_PLATFORM_OS_ANDROID
-extern char android_app_directory[256];
-#else
-extern AGS::Common::String appDirectory;
-#endif
 
 
 namespace AGS
@@ -35,7 +29,7 @@ namespace Engine
 
 using AGS::Common::String;
 
-class PosixLibrary : public BaseLibrary
+class PosixLibrary final : public BaseLibrary
 {
 public:
     PosixLibrary() = default;
@@ -55,15 +49,17 @@ public:
             , libname.GetCStr());
     }
 
-    bool Load(const String &libname) override
+    bool Load(const String &libname, const std::vector<String> &lookup) override
     {
         Unload();
-        String path;
-        void *lib = TryLoadAnywhere(libname, path);
+        String libfile = GetFilenameForLib(libname);
+        String path; // save last tried path
+        void *lib = TryLoadAnywhere(libfile, lookup, path);
         if (!lib)
             return false;
         _library = lib;
         _name = libname;
+        _filename = Path::GetFilename(path);
         _path = path;
         return true;
     }
@@ -75,6 +71,7 @@ public:
             dlclose(_library);
             _library = nullptr;
             _name = "";
+            _filename = "";
             _path = "";
         }
     }
@@ -94,18 +91,16 @@ public:
 private:
     void *TryLoad(const String &path)
     {
-        AGS::Common::Debug::Printf("Built library path: %s", path.GetCStr());
+        AGS::Common::Debug::Printf("Try library path: %s", path.GetCStr());
         void *lib = dlopen(path.GetCStr(), RTLD_LAZY);
         if (!lib)
-            AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
+            AGS::Common::Debug::Printf("dlopen error: %s", dlerror());
         return lib;
     }
 
-    // TODO: Perhaps move this out of the Library class? testing for engine dir
-    // should not be a part of utility class imo
-    void *TryLoadAnywhere(const String &libname, String &path)
+    void *TryLoadAnywhere(const String &libfile,
+        const std::vector<String> &lookup, String &path)
     {
-        String libfile = GetFilenameForLib(libname);
         // Try rpath first
         path = libfile;
         void *lib = TryLoad(path);
@@ -118,15 +113,15 @@ private:
         if (lib)
             return lib;
 
-        // Try the engine directory
-#if AGS_PLATFORM_OS_ANDROID
-        char buffer[200];
-        snprintf(buffer, sizeof(buffer), "%s%s", android_app_directory, "/lib");
-        path = AGS::Common::Path::ConcatPaths(buffer, libfile);
-#else
-        path = AGS::Common::Path::ConcatPaths(appDirectory, libfile);
-#endif
-        return TryLoad(path);
+        // Try lookup paths last
+        for (const auto p : lookup)
+        {
+            path = AGS::Common::Path::ConcatPaths(p, libfile);
+            void *lib = TryLoad(path);
+            if (lib)
+                return lib;
+        }
+        return nullptr;
     }
 
     void *_library = nullptr;

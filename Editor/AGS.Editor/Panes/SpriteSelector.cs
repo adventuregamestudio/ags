@@ -75,6 +75,7 @@ namespace AGS.Editor
         private Timer _timer;
         private TreeNode _dropHighlight;
         private int _spriteSizeMultiplier = 1;
+        private bool _idleHandlerSet = false;
 
         public SpriteSelector()
         {
@@ -97,11 +98,11 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Gets the sprite ID out of the sprite list item 
+        /// Gets the sprite out of the sprite list item 
         /// </summary>
-        private int GetSpriteID(ListViewItem item)
+        private Sprite GetSprite(ListViewItem item)
         {
-            return Convert.ToInt32(item.Text);
+            return item.Tag as Sprite;
         }
 
         public bool ShowUseThisSpriteOption
@@ -122,7 +123,7 @@ namespace AGS.Editor
             {
                 if (spriteList.SelectedItems.Count == 1)
                 {
-                    return FindSpriteByNumber(GetSpriteID(spriteList.SelectedItems[0]));
+                    return GetSprite(spriteList.SelectedItems[0]);
                 }
                 return null;
             }
@@ -251,7 +252,9 @@ namespace AGS.Editor
 
                 // adding items individually in this loop is extremely slow, so build
                 // a List of items and use AddRange instead
-                itemsToAdd.Add(new ListViewItem(sprite.Number.ToString(), index));
+                var item = new ListViewItem(sprite.Number.ToString(), index);
+                item.Tag = sprite;
+                itemsToAdd.Add(item);
             }
 
             progress.Hide();
@@ -288,7 +291,7 @@ namespace AGS.Editor
             spriteList.SelectedItems.Clear();
             foreach (ListViewItem listItem in spriteList.Items)
             {
-                if (GetSpriteID(listItem) == spriteNumber)
+                if (GetSprite(listItem).Number == spriteNumber)
                 {
                     listItem.Selected = true;
                     listItem.Focused = true;
@@ -568,8 +571,7 @@ namespace AGS.Editor
                 {
                     if (listItem.Selected)
                     {
-                        int spriteNum = GetSpriteID(listItem);
-                        Sprite sprite = FindSpriteByNumber(spriteNum);
+                        Sprite sprite = GetSprite(listItem);
 
                         try
                         {
@@ -793,7 +795,7 @@ namespace AGS.Editor
                     List<int> spriteNumbers = new List<int>();
                     foreach (ListViewItem selectedItem in spriteList.SelectedItems)
                     {
-                        spriteNumbers.Add(GetSpriteID(selectedItem));
+                        spriteNumbers.Add(GetSprite(selectedItem).Number);
                     }
                     AssignSpritesToView(spriteNumbers, dialog);
                 }
@@ -842,7 +844,7 @@ namespace AGS.Editor
 
             foreach (ListViewItem listItem in spriteList.SelectedItems) //Check sources still exist
             {
-                Sprite spr = FindSpriteByNumber(GetSpriteID(listItem));
+                Sprite spr = GetSprite(listItem);
                 if (String.IsNullOrEmpty(spr.SourceFile))
                 {
                     Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file.", spr.Number), MessageBoxIcon.Error);
@@ -1110,7 +1112,7 @@ namespace AGS.Editor
             {
                 if (listItem.Selected)
                 {
-                    Sprite sprite = FindSpriteByNumber(GetSpriteID(listItem));
+                    Sprite sprite = GetSprite(listItem);
                     if (sprites.Count > 0)
                     {
                         if (sprite.Width != width || sprite.Height != height)
@@ -1250,7 +1252,7 @@ namespace AGS.Editor
 
             if (itemAtLocation != null)
             {
-                _spriteNumberOnMenuActivation = GetSpriteID(itemAtLocation);
+                _spriteNumberOnMenuActivation = GetSprite(itemAtLocation).Number;
                 ToolStripMenuItem newItem;
                 if (_showUseThisSpriteOption)
                 {
@@ -1391,22 +1393,56 @@ namespace AGS.Editor
             }
         }
 
+        /// <summary>
+        /// Controls the custom SelectionChanged event, when enabled schedules it
+        /// to Application.Idle, and unschedules it when disabled.
+        /// </summary>
+        private bool SelectionIdleHandler
+        {
+            get { return _idleHandlerSet; }
+            set
+            {
+                if (_idleHandlerSet != value)
+                {
+                    _idleHandlerSet = value;
+                    if (value)
+                        Application.Idle += spriteList_SelectionChanged;
+                    else
+                        Application.Idle -= spriteList_SelectionChanged;
+                }
+            }
+        }
+
         private void spriteList_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
-            // for multi-select, skip events generated by intermediate items by checking focus
-            if (OnSelectionChanged != null && e.Item.Focused)
+            // Schedule OnSelectionChanged invocation until after the whole range of items is processed.
+            // The trick is explained in this stackoverflow thread:
+            // https://stackoverflow.com/questions/1191920/net-listview-event-after-changing-selection/1195583#1195583
+            SelectionIdleHandler = true;
+        }
+
+        /// <summary>
+        /// This custom callback is called by Application.Idle right after the ListView
+        /// finishes processing a range of (de)selected items. Here we invoke OnSelectionChanged.
+        /// </summary>
+        private void spriteList_SelectionChanged(object sender, EventArgs e)
+        {
+            SelectionIdleHandler = false; // reset the event handler
+
+            // TODO: ways to optimize this further:
+            // * dont GetSpriteID/FindSpriteByNumber, attach Sprite as a custom obj to ListView items
+
+            Sprite[] selectedSprites = new Sprite[spriteList.SelectedItems.Count];
+            for (int i = 0; i < selectedSprites.Length; i++)
             {
-                Sprite[] selectedSprites = new Sprite[spriteList.SelectedItems.Count];
-                for (int i = 0; i < selectedSprites.Length; i++)
+                selectedSprites[i] = spriteList.SelectedItems[i].Tag as Sprite;
+                if (selectedSprites[i] == null)
                 {
-                    selectedSprites[i] = FindSpriteByNumber(GetSpriteID(spriteList.SelectedItems[i]));
-                    if (selectedSprites[i] == null)
-                    {
-                        throw new AGSEditorException("Internal error: selected sprite not in folder");
-                    }
+                    throw new AGSEditorException("Internal error: selected sprite not in folder");
                 }
-                OnSelectionChanged(selectedSprites);
             }
+
+            OnSelectionChanged?.Invoke(selectedSprites);
         }
 
         private void spriteList_ItemActivate(object sender, EventArgs e)
@@ -1431,7 +1467,7 @@ namespace AGS.Editor
 
             foreach (ListViewItem selectedItem in spriteList.SelectedItems)
             {
-                dragDropData.Sprites.Add(FindSpriteByNumber(GetSpriteID(selectedItem)));
+                dragDropData.Sprites.Add(GetSprite(selectedItem));
             }
 
             this.DoDragDrop(dragDropData, DragDropEffects.Move);
@@ -1459,7 +1495,7 @@ namespace AGS.Editor
                 }
                 if (nearestItem != null)
                 {
-                    int nearestSprite = GetSpriteID(nearestItem);
+                    int nearestSprite = GetSprite(nearestItem).Number;
                     _currentFolder.Sprites = MoveSpritesIntoNewPositionInFolder(nearestSprite, putSpritesBeforeSelection, dragged);
                     RefreshSpriteDisplay();
                 }
@@ -1724,6 +1760,21 @@ namespace AGS.Editor
                 if (folderList.SelectedNode != null)
                     folderList.SelectedNode.BeginEdit();
             }
+        }
+
+        private void SpriteSelector_Leave(object sender, EventArgs e)
+        {
+            SelectionIdleHandler = false;
+        }
+
+        private void SpriteSelector_VisibleChanged(object sender, EventArgs e)
+        {
+            SelectionIdleHandler = false;
+        }
+
+        private void panel1_Layout(object sender, LayoutEventArgs e)
+        {
+            splitContainer1.SplitterDistance = 2 * (button_importNew.Font.Height) + button_importNew.Margin.Top + button_importNew.Margin.Bottom - 4;
         }
     }
 

@@ -1,4 +1,4 @@
-FROM cirrusci/android-sdk:33-ndk
+FROM ghcr.io/cirruslabs/android-sdk:33-ndk
 # CirrusCI Android NDK image uses Ubuntu 22.04
 # ANDROID_NDK_VERSION=25.1.8937393
 # ANDROID_BUILD_TOOLS_VERSION=33.0.1

@@ -5,6 +5,11 @@ FROM --platform=$FROM_PLATFORM $FROM_DEBIAN
 # Take default debconf options
 ENV DEBIAN_FRONTEND noninteractive
 
+# Debian Jessie has been moved to archive
+RUN echo "deb [trusted=yes] http://archive.debian.org/debian jessie main non-free contrib" > /etc/apt/sources.list && \
+    echo 'deb-src [trusted=yes] http://archive.debian.org/debian/ jessie main non-free contrib'  >> /etc/apt/sources.list && \
+    echo 'deb [trusted=yes] http://archive.debian.org/debian-security/ jessie/updates main non-free contrib'  >> /etc/apt/sources.list
+
 # Configure apt defaults
 ARG APT_CONF_LOCAL=99local
 RUN mkdir -p /etc/apt/apt.conf.d && \

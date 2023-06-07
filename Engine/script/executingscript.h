@@ -64,7 +64,7 @@ struct ExecutingScript {
     int  numPostScriptActions;
     QueuedScript ScFnQueue[MAX_QUEUED_SCRIPTS];
     int  numanother;
-    char forked;
+    bool forked;
 
     int queue_action(PostScriptAction act, int data, const char *aname);
     void run_another(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue *params);

@@ -297,7 +297,7 @@ void cancel_all_scripts()
         auto &sc = scripts[i];
         if (sc.inst)
         {
-            (sc.forked != 0) ?
+            (sc.forked) ?
                 sc.inst->AbortAndDestroy() :
                 sc.inst->Abort();
         }
@@ -376,7 +376,7 @@ static int PrepareTextScript(PInstance sci, const char**tsname)
         scripts[num_scripts].inst = sci->Fork();
         if (scripts[num_scripts].inst == nullptr)
             quit("unable to fork instance for secondary script");
-        scripts[num_scripts].forked = 1;
+        scripts[num_scripts].forked = true;
     }
     curscript = &scripts[num_scripts];
     num_scripts++;
@@ -536,17 +536,21 @@ void FreeAllScriptInstances()
 {
     FreeRoomScriptInstance();
 
-    gameinst.reset();
+    // NOTE: don't know why, but Forks must be deleted prior to primary inst,
+    // or bad things will happen; TODO: investigate and make this less fragile
     gameinstFork.reset();
+    gameinst.reset();
     dialogScriptsInst.reset();
-    moduleInst.clear();
     moduleInstFork.clear();
+    moduleInst.clear();
 }
 
 void FreeRoomScriptInstance()
 {
-    roominst.reset();
+    // NOTE: don't know why, but Forks must be deleted prior to primary inst,
+    // or bad things will happen; TODO: investigate and make this less fragile
     roominstFork.reset();
+    roominst.reset();
 }
 
 void FreeGlobalScripts()

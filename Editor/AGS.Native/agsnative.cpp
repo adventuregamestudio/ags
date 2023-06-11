@@ -66,13 +66,22 @@ typedef AGS::Common::HError HAGSError;
 
 void save_room_file(RoomStruct &rs, const AGSString &path);
 
+AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite_flags);
+void pre_save_sprite(AGSBitmap*);
+
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
 RGB*palette = NULL;
 GameSetupStruct thisgame;
-AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos);
+AGS::Common::SpriteCache::Callbacks spritecallbacks = {
+    nullptr,
+    initialize_sprite,
+    nullptr,
+    pre_save_sprite
+};
+AGS::Common::SpriteCache spriteset(thisgame.SpriteInfos, spritecallbacks);
 GUIMain tempgui; // for drawing a GUI preview
 const char *sprsetname = "acsprset.spr";
 const char *sprindexname = "sprindex.dat";
@@ -132,7 +141,6 @@ int get_fixed_pixel_size(int coord)
 // the red and blue elements
 // TODO: find out if this is actually needed. I guess this may have something to do
 // with Allegro keeping 16-bit bitmaps in an unusual format internally.
-#define fix_sprite(num) fix_block(spriteset[num])
 void fix_block (Common::Bitmap *todraw) {
   int a,b,pixval;
   if (todraw == NULL)
@@ -156,12 +164,20 @@ void fix_block (Common::Bitmap *todraw) {
   }
 }
 
-void initialize_sprite(int spnum) {
-  fix_sprite(spnum);
+AGSBitmap *initialize_sprite(AGS::Common::sprkey_t /*index*/, AGSBitmap *image, uint32_t &/*sprite_flags*/)
+{
+    fix_block(image);
+    return image;
 }
 
-void pre_save_sprite(Common::Bitmap *image) {
-  fix_block(image);
+void pre_save_sprite(AGSBitmap *image)
+{
+    // NOTE: this is a nasty hack:
+    // because Editor expects slightly different RGB order, it swaps colors
+    // when loading them (call to initialize_sprite), so here we basically
+    // unfix that fix to save the data in a way that engine will expect.
+    // TODO: perhaps adjust the editor to NOT need this?!
+    fix_block(image);
 }
 
 // Safely gets a sprite, if the sprite does not exist then returns a placeholder (sprite 0)

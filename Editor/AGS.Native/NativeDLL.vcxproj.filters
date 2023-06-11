@@ -64,9 +64,6 @@
     <ClCompile Include="ScriptCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Native\sprcache_agsnative.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Native\ac\actiontype.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>

@@ -189,7 +189,6 @@
     <ClCompile Include="..\Native\ac\actiontype.cpp" />
     <ClCompile Include="..\Native\ac\scriptmodule.cpp" />
     <ClCompile Include="..\Native\color_native.cpp" />
-    <ClCompile Include="..\Native\sprcache_agsnative.cpp" />
     <ClCompile Include="..\scintilla\lexers\LexCPP.cxx" />
     <ClCompile Include="..\scintilla\lexlib\Accessor.cxx" />
     <ClCompile Include="..\scintilla\lexlib\CharacterCategory.cxx" />

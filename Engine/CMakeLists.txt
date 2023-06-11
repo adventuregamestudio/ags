@@ -261,7 +261,6 @@ target_sources(engine
     ac/speech.h
     ac/sprite.cpp
     ac/sprite.h
-    ac/spritecache_engine.cpp
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp

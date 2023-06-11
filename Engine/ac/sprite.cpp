@@ -11,7 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
@@ -20,7 +19,6 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
-#include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 
@@ -28,20 +26,18 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
-void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit)
+Size get_new_size_for_sprite(const Size &size, const uint32_t sprite_flags)
 {
-    newwid = ww;
-    newhit = hh;
-    const SpriteInfo &spinfo = game.SpriteInfos[ee];
-    if (!game.AllowRelativeRes() || !spinfo.IsRelativeRes())
-        return;
-    ctx_data_to_game_size(newwid, newhit, spinfo.IsLegacyHiRes());
+    if (!game.AllowRelativeRes() || ((sprite_flags & SPF_VAR_RESOLUTION) == 0))
+        return size;
+    Size newsz = size;
+    ctx_data_to_game_size(newsz.Width, newsz.Height, ((sprite_flags & SPF_HIRES) != 0));
+    return newsz;
 }
 
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
@@ -98,66 +94,47 @@ Bitmap *remove_alpha_channel(Bitmap *from)
     return to;
 }
 
-void pre_save_sprite(Common::Bitmap* /*image*/) {
-    // not used, we don't save
+Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
+{
+    int oldeip = our_eip;
+    our_eip = 4300;
+    
+    if (sprite_flags & SPF_HADALPHACHANNEL)
+    {
+        // we stripped the alpha channel out last time, put
+        // it back so that we can remove it properly again
+        // CHECKME: find out what does this mean, and explain properly
+        sprite_flags |= SPF_ALPHACHANNEL;
+    }
+        
+    // stretch sprites to correct resolution
+    Size newsz = get_new_size_for_sprite(image->GetSize(), sprite_flags);
+
+    eip_guinum = index;
+    eip_guiobj = newsz.Width;
+        
+    Bitmap *use_bmp = image;
+    if (newsz != image->GetSize())
+    {
+        use_bmp = new Bitmap(newsz.Width, newsz.Height, image->GetColorDepth());
+        use_bmp->StretchBlt(image, RectWH(0, 0, use_bmp->GetWidth(), use_bmp->GetHeight()));
+        delete image;
+    }
+
+    use_bmp = PrepareSpriteForUse(use_bmp, (sprite_flags & SPF_ALPHACHANNEL) != 0);
+    if (game.GetColorDepth() < 32)
+    {
+        sprite_flags &= ~SPF_ALPHACHANNEL;
+        // save the fact that it had one for the next time this is re-loaded from disk
+        // CHECKME: find out what does this mean, and explain properly
+        sprite_flags |= SPF_HADALPHACHANNEL;
+    }
+
+    our_eip = oldeip;
+    return use_bmp;
 }
 
-// these vars are global to help with debugging
-Bitmap *tmpdbl, *curspr;
-int newwid, newhit;
-void initialize_sprite (int ee) {
-
-    if ((ee < 0) || ((size_t)ee > spriteset.GetSpriteSlotCount()))
-        quit("initialize_sprite: invalid sprite number");
-
-    if ((spriteset[ee] == nullptr) && (ee > 0)) {
-        // replace empty sprites with blue cups, to avoid crashes
-        spriteset.RemapSpriteToSprite0(ee);
-    }
-    else if (spriteset[ee]==nullptr) {
-        game.SpriteInfos[ee].Width=0;
-        game.SpriteInfos[ee].Height=0;
-    }
-    else {
-        // stretch sprites to correct resolution
-        int oldeip = our_eip;
-        our_eip = 4300;
-
-        if (game.SpriteInfos[ee].Flags & SPF_HADALPHACHANNEL) {
-            // we stripped the alpha channel out last time, put
-            // it back so that we can remove it properly again
-            game.SpriteInfos[ee].Flags |= SPF_ALPHACHANNEL;
-        }
-
-        curspr = spriteset[ee];
-        get_new_size_for_sprite (ee, curspr->GetWidth(), curspr->GetHeight(), newwid, newhit);
-
-        eip_guinum = ee;
-        eip_guiobj = newwid;
-
-        if ((newwid != curspr->GetWidth()) || (newhit != curspr->GetHeight())) {
-            tmpdbl = BitmapHelper::CreateTransparentBitmap(newwid,newhit,curspr->GetColorDepth());
-            if (tmpdbl == nullptr)
-                quit("Not enough memory to load sprite graphics");
-            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
-            delete curspr;
-            spriteset.SubstituteBitmap(ee, tmpdbl);
-        }
-
-        game.SpriteInfos[ee].Width=spriteset[ee]->GetWidth();
-        game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
-
-        spriteset.SubstituteBitmap(ee, PrepareSpriteForUse(spriteset[ee], (game.SpriteInfos[ee].Flags & SPF_ALPHACHANNEL) != 0));
-
-        if (game.GetColorDepth() < 32) {
-            game.SpriteInfos[ee].Flags &= ~SPF_ALPHACHANNEL;
-            // save the fact that it had one for the next time this
-            // is re-loaded from disk
-            game.SpriteInfos[ee].Flags |= SPF_HADALPHACHANNEL;
-        }
-
-        pl_run_plugin_hooks(AGSE_SPRITELOAD, ee);
-
-        our_eip = oldeip;
-    }
+void post_init_sprite(sprkey_t index)
+{
+    pl_run_plugin_hooks(AGSE_SPRITELOAD, index);
 }

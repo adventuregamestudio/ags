@@ -40,6 +40,7 @@
 #include "ac/path_helper.h"
 #include "ac/sys_events.h"
 #include "ac/roomstatus.h"
+#include "ac/sprite.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/translation.h"
@@ -105,10 +106,15 @@ int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 bool new_room_placeonwalkable = false;
-
-// initially size 1, this will be increased by the initFile function
-SpriteCache spriteset(game.SpriteInfos);
 int proper_exit=0,our_eip=0;
+
+AGS::Common::SpriteCache::Callbacks spritecallbacks = {
+    get_new_size_for_sprite,
+    initialize_sprite,
+    post_init_sprite,
+    nullptr
+};
+SpriteCache spriteset(game.SpriteInfos, spritecallbacks);
 
 std::vector<GUIMain> guis;
 

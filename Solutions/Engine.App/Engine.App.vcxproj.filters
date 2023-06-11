@@ -411,9 +411,6 @@
     <ClCompile Include="..\..\Engine\ac\sprite.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\string.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>

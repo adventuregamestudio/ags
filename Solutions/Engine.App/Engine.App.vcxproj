@@ -568,7 +568,6 @@
     <ClCompile Include="..\..\Engine\ac\slider.cpp" />
     <ClCompile Include="..\..\Engine\ac\speech.cpp" />
     <ClCompile Include="..\..\Engine\ac\sprite.cpp" />
-    <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp" />
     <ClCompile Include="..\..\Engine\ac\string.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />

@@ -161,17 +161,32 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     viw--;
     if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
     if (views[viw].numLoops == 0) quitprintf("!SetObjectFrame: view %d has no loops", viw);
-    if (lop < 0 || lop >= views[viw].numLoops) quitprintf("!SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
-        viw, lop, views[viw].numLoops - 1);
-    // historically AGS let user to pass literally any positive invalid frame value by silently reassigning it to zero...
+
+    auto &obj = objs[obn];
+
+    // Previous version of Object.SetView had negative loop and frame mean "use latest values",
+    // which also caused SetObjectFrame to act similarly, starting with 2.70.
+    if ((game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360) &&
+        (loaded_game_file_version >= kGameVersion_270))
+    {
+        if (lop < 0) lop = obj.loop;
+        if (fra < 0) fra = obj.frame;
+    }
+
+    // Fixup invalid loop & frame numbers by using default 0 value
+    if (lop < 0 || lop >= views[viw].numLoops)
+    {
+        debug_script_warn("SetObjectFrame: invalid loop number used for view %d (%d, range is 0 - %d)",
+            viw, lop, views[viw].numLoops - 1);
+        lop = 0;
+    }
     if (fra < 0 || fra >= views[viw].loops[lop].numFrames)
     {
-        if (views[viw].loops[lop].numFrames == 0)
-            debug_script_warn("SetObjectFrame: specified loop %d has no frames, will fallback to dummy frame", lop);
-        else
-            debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d), set to 0", fra, views[viw].loops[lop].numFrames - 1);
+        debug_script_warn("SetObjectFrame: frame index out of range (%d, must be 0 - %d)", fra, views[viw].loops[lop].numFrames - 1);
         fra = 0; // NOTE: we have 1 dummy frame allocated for empty loops
     }
+
+    // Current engine's object data limitation by uint16_t
     if (viw > UINT16_MAX || lop > UINT16_MAX || fra > UINT16_MAX)
     {
         debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
@@ -179,21 +194,16 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
         SetObjectGraphic(obn, 0);
         return;
     }
-    
-    objs[obn].view = (uint16_t)viw;
-    if (lop >= 0)
-        objs[obn].loop = (uint16_t)lop;
-    if (fra >= 0)
-        objs[obn].frame = (uint16_t)fra;
-    objs[obn].view = viw;
-    objs[obn].loop = lop;
-    objs[obn].frame = fra;
-    objs[obn].cycling=0;
+
+    obj.view = static_cast<uint16_t>(viw);
+    obj.loop = static_cast<uint16_t>(lop);
+    obj.frame = static_cast<uint16_t>(fra);
+    obj.cycling = 0; // reset anim
     int pic = views[viw].loops[lop].frames[fra].pic;
-    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
+    obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
+    CheckViewFrame(viw, obj.loop, obj.frame);
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent

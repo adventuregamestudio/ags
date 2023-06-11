@@ -474,7 +474,7 @@ void free_dynamic_sprite (int gotSlot) {
   if ((game.SpriteInfos[gotSlot].Flags & SPF_DYNAMICALLOC) == 0)
     quitprintf("!DeleteSprite: Attempted to free static sprite %d that was not loaded by the script", gotSlot);
 
-  spriteset.RemoveSprite(gotSlot, true);
+  spriteset.DisposeSprite(gotSlot);
 
   game.SpriteInfos[gotSlot].Flags = 0;
   game.SpriteInfos[gotSlot].Width = 0;

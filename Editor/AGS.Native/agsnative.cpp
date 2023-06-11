@@ -179,7 +179,7 @@ void SetNewSprite(int slot, Common::Bitmap *sprit, int flags) {
 }
 
 void deleteSprite (int sprslot) {
-  spriteset.RemoveSprite(sprslot, true);
+  spriteset.DisposeSprite(sprslot);
   
   spritesModified = true;
 }
@@ -248,9 +248,9 @@ void change_sprite_number(int oldNumber, int newNumber) {
   if (!spriteset.DoesSpriteExist(oldNumber))
     return;
 
-  spriteset.RemoveSprite(newNumber, true);
-  spriteset.SetSprite(newNumber, spriteset[oldNumber], thisgame.SpriteInfos[oldNumber].Flags);
-  spriteset.RemoveSprite(oldNumber, false);
+  spriteset.DisposeSprite(newNumber);
+  AGSBitmap *bitmap = spriteset.RemoveSprite(oldNumber);
+  spriteset.SetSprite(newNumber, bitmap, thisgame.SpriteInfos[oldNumber].Flags);
 
   spritesModified = true;
 }
@@ -1767,7 +1767,7 @@ int RemoveLeftoverSprites(SpriteFolder ^folder)
         if (!spriteset.DoesSpriteExist(i)) continue;
         if (folder->FindSpriteByID(i, true) == nullptr)
         {
-            spriteset.RemoveSprite(i, true);
+            spriteset.DisposeSprite(i);
             removed++;
         }
     }

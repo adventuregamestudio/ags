@@ -69,104 +69,6 @@ static struct {
 
 
 
-#ifdef ALLEGRO_GFX_HAS_VGA
-/*
- * Mode-X line stretcher.
- */
-static void stretch_linex(uintptr_t dptr, unsigned char *sptr)
-{
-   int plane;
-   int first_xc = _al_stretch.xcstart;
-   int dw = _al_stretch.linesize;
-
-   ASSERT(dptr);
-   ASSERT(sptr);
-
-   for (plane = 0; plane < 4; plane++) {
-      int xc = first_xc;
-      unsigned char *s = sptr;
-      uintptr_t d = dptr / 4;
-      uintptr_t dend = (dptr + dw) / 4;
-
-      outportw(0x3C4, (0x100 << (dptr & 3)) | 2);
-
-      for (; d < dend; d++, s += 4 * _al_stretch.sxinc) {
-	 bmp_write8(d, *s);
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-      }
-
-      /* Move to the beginning of next plane.  */
-      if (first_xc <= 0) {
-	  sptr++;
-	  first_xc += _al_stretch.xcinc;
-      }
-      else
-	 first_xc -= _al_stretch.xcdec;
-
-      dptr++;
-      sptr += _al_stretch.sxinc;
-      dw--;
-   }
-}
-
-/*
- * Mode-X masked line stretcher.
- */
-static void stretch_masked_linex(uintptr_t dptr, unsigned char *sptr)
-{
-   int plane;
-   int dw = _al_stretch.linesize;
-   int first_xc = _al_stretch.xcstart;
-
-   ASSERT(dptr);
-   ASSERT(sptr);
-
-   for (plane = 0; plane < 4; plane++) {
-      int xc = first_xc;
-      unsigned char *s = sptr;
-      uintptr_t d = dptr / 4;
-      uintptr_t dend = (dptr + dw) / 4;
-
-      outportw(0x3C4, (0x100 << (dptr & 3)) | 2);
-
-      for (; d < dend; d++, s += 4 * _al_stretch.sxinc) {
-	 uint32_t color = *s;
-	 if (color != 0)
-	    bmp_write8(d, color);
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-	 if (xc <= 0) s++, xc += _al_stretch.xcinc;
-	 else xc -= _al_stretch.xcdec;
-      }
-
-      /* Move to the beginning of next plane.  */
-      if (first_xc <= 0) {
-	 sptr++;
-	 first_xc += _al_stretch.xcinc;
-      }
-      else
-	 first_xc -= _al_stretch.xcdec;
-
-      dptr++;
-      sptr += _al_stretch.sxinc;
-      dw--;
-   }
-}
-#endif
-
-
-
 #ifdef ALLEGRO_COLOR8
 static void stretch_line8(uintptr_t dptr, unsigned char *sptr)
 {
@@ -256,11 +158,8 @@ static void _al_stretch_blit(BITMAP *src, BITMAP *dst,
    ASSERT(src);
    ASSERT(dst);
 
-   /* vtable hook; not called if dest is a memory surface */   
-   if (src->vtable->do_stretch_blit && !is_memory_bitmap(dst)) {
-      src->vtable->do_stretch_blit(src, dst, sx, sy, sw, sh, dx, dy, dw, dh, masked);
-      return;
-   }
+   /* NOTE: vtable hook is not called if dest is a memory surface */   
+   /* src->vtable->do_stretch_blit(src, dst, sx, sy, sw, sh, dx, dy, dw, dh, masked); */
 
    if ((sw <= 0) || (sh <= 0) || (dw <= 0) || (dh <= 0))
       return;
@@ -270,12 +169,7 @@ static void _al_stretch_blit(BITMAP *src, BITMAP *dst,
       switch (bitmap_color_depth(dst)) {
 #ifdef ALLEGRO_COLOR8
 	 case 8:
-	    if (is_linear_bitmap(dst))
-	       stretch_line = stretch_masked_line8;
-#ifdef ALLEGRO_GFX_HAS_VGA
-	    else
-	       stretch_line = stretch_masked_linex;
-#endif
+	    stretch_line = stretch_masked_line8;
 	    size = 1;
 	    break;
 #endif
@@ -307,12 +201,7 @@ static void _al_stretch_blit(BITMAP *src, BITMAP *dst,
       switch (bitmap_color_depth(dst)) {
 #ifdef ALLEGRO_COLOR8
 	 case 8:
-	    if (is_linear_bitmap(dst))
-	       stretch_line = stretch_line8;
-#ifdef ALLEGRO_GFX_HAS_VGA
-	    else
-	       stretch_line = stretch_linex;
-#endif
+	    stretch_line = stretch_line8;
 	    size = 1;
 	    break;
 #endif

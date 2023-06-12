@@ -409,9 +409,6 @@ BITMAP *create_sub_bitmap(BITMAP *parent, int x, int y, int width, int height)
    bitmap->id = parent->id | BMP_ID_SUB;
    bitmap->id &= ~BMP_ID_LOCKED;
 
-   if (is_planar_bitmap(bitmap))
-      x /= 4;
-
    x *= BYTES_PER_PIXEL(bitmap_color_depth(bitmap));
 
    /* setup line pointers: each line points to a line in the parent bitmap */

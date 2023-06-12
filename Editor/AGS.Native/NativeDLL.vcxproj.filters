@@ -55,9 +55,6 @@
     <ClCompile Include="..\Native\color_native.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cstretch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MSSCCI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

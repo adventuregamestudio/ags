@@ -64,20 +64,6 @@ typedef AGS::Common::PBitmap PBitmap;
 typedef AGS::Common::Error AGSError;
 typedef AGS::Common::HError HAGSError;
 
-// TODO: do something with this later
-// (those are from 'cstretch' unit)
-extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
-extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
-
-inline void Cstretch_blit(Common::Bitmap *src, Common::Bitmap *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh)
-{
-	Cstretch_blit(src->GetAllegroBitmap(), dst->GetAllegroBitmap(), sx, sy, sw, sh, dx, dy, dw, dh);
-}
-inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int y, int w, int h)
-{
-	Cstretch_sprite(dst->GetAllegroBitmap(), src->GetAllegroBitmap(), x, y, w, h);
-}
-
 void save_room_file(RoomStruct &rs, const AGSString &path);
 
 int mousex = 0, mousey = 0;
@@ -804,7 +790,7 @@ void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskTy
 	}
 	else
 	{
-		Cstretch_sprite(ds, source, 0, 0, dest_width, dest_height);
+        ds->StretchBlt(source, RectWH(0, 0, dest_width, dest_height));
 	}
 }
 
@@ -863,9 +849,9 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
         srcHeight = roomBkgBuffer->GetHeight() - srcY;
       }
     }
-
-		Cstretch_blit(roomBkgBuffer.get(), drawBuffer.get(), srcX, srcY, srcWidth, srcHeight,
-            x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor));
+        drawBuffer->StretchBlt(roomBkgBuffer.get(),
+            RectWH(srcX, srcY, srcWidth, srcHeight),
+            RectWH(x, y, (int)(srcWidth * scaleFactor), (int)(srcHeight * scaleFactor)));
 	}
 	else {
 		drawBlockScaledAt(hdc, srcBlock.get(), x, y, scaleFactor);
@@ -1057,8 +1043,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       toblt = flipped;
       freeBlock = true;
     }
-    //->StretchBlt(toblt, todraw, 0, 0, toblt->GetWidth(), toblt->GetHeight(), size*i, 0, neww, newh);
-	Cstretch_sprite(todraw, toblt, size*i, 0, neww, newh);
+    todraw->StretchBlt(toblt, RectWH(size*i, 0, neww, newh));
     if (freeBlock)
       delete toblt;
     if (i < numFrames-1) {
@@ -1732,7 +1717,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, float scale) {
 	}
 	else
 	{
-		Cstretch_sprite(drawBuffer.get(), imageToDraw, x, y, drawWidth, drawHeight);
+        drawBuffer->StretchBlt(imageToDraw, RectWH(x, y, drawWidth, drawHeight));
 	}
 
 	if (imageToDraw != todraw)
@@ -2309,7 +2294,9 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	if (mask->GetWidth() != importedImage->GetWidth())
 	{
 		// allow them to import a double-size or half-size mask, adjust it as appropriate
-		Cstretch_blit(importedImage, mask, 0, 0, importedImage->GetWidth(), importedImage->GetHeight(), 0, 0, mask->GetWidth(), mask->GetHeight());
+        mask->StretchBlt(importedImage,
+            RectWH(0, 0, importedImage->GetWidth(), importedImage->GetHeight()),
+            RectWH(0, 0, mask->GetWidth(), mask->GetHeight()));
 	}
 	else
 	{
@@ -2449,7 +2436,9 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
           delete tempBlock;
           return nullptr; // out of mem?
       }
-	  Cstretch_blit(tempBlock, newBlock, 0, 0, todraw->GetWidth(), todraw->GetHeight(), 0, 0, width, height);
+      newBlock->StretchBlt(tempBlock,
+          RectWH(0, 0, todraw->GetWidth(), todraw->GetHeight()),
+          RectWH(0, 0, width, height));
 	  delete tempBlock;
 	  tempBlock = newBlock;
   }

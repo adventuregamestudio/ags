@@ -60,7 +60,7 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>  
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
@@ -238,7 +238,6 @@
     <ClCompile Include="..\scintilla\win32\ScintillaWin.cxx" />
     <ClCompile Include="agsicons.cpp" />
     <ClCompile Include="agsnative.cpp" />
-    <ClCompile Include="cstretch.cpp" />
     <ClCompile Include="MSSCCI.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="ScriptCompiler.cpp" />

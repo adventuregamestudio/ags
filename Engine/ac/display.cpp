@@ -641,16 +641,12 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
         draw_color = ds->GetCompatibleColor(16);
         ds->DrawRect(Rect(xx1,yy1,xx2,yy2), draw_color);
-        /*    draw_color = ds->GetCompatibleColor(opts.tws.backcol); ds->FillRect(Rect(xx1,yy1,xx2,yy2);
-        draw_color = ds->GetCompatibleColor(opts.tws.ds->GetTextColor()); ds->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
-        if (loaded_game_file_version < kGameVersion_262) // < 2.62
+        if (loaded_game_file_version < kGameVersion_262)
         {
-            // Color 0 wrongly shows as transparent instead of black
-            // From the changelog of 2.62:
-            //  - Fixed text windows getting a black background if colour 0 was
-            //    specified, rather than being transparent.
+            // In pre-2.62 color 0 should be treated as "black" instead of "transparent";
+            // this was an unintended effect in older versions (see 2.62 changelog fixes).
             if (iep->BgColor == 0)
                 iep->BgColor = 16;
         }
@@ -664,14 +660,6 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
         int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
         if (iep->BgImage>0) {
-            if ((loaded_game_file_version <= kGameVersion_272) // 2.xx
-                && (spriteset[iep->BgImage]->GetWidth() == 1)
-                && (spriteset[iep->BgImage]->GetHeight() == 1) 
-                && (*((unsigned int*)spriteset[iep->BgImage]->GetData()) == 0x00FF00FF))
-            {
-                // Don't draw fully transparent dummy GUI backgrounds
-            }
-            else
             {
                 // offset the background image and clip it so that it is drawn
                 // such that the border graphics can have a transparent outside
@@ -696,12 +684,11 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                 ds->ResetClip();
             }
         }
-        int uu;
-        for (uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
+        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
             do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
             do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
         }
-        for (uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
+        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
             do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
             do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
         }

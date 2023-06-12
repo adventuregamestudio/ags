@@ -218,6 +218,11 @@ bool SpriteCache::DoesSpriteExist(sprkey_t index) const
     return index >= 0 && (size_t)index < _spriteData.size() && _spriteData[index].DoesSpriteExist();
 }
 
+Size SpriteCache::GetSpriteResolution(sprkey_t index) const
+{
+    return DoesSpriteExist(index) ? _sprInfos[index].GetResolution() : Size();
+}
+
 Bitmap *SpriteCache::operator [] (sprkey_t index)
 {
     // invalid sprite slot

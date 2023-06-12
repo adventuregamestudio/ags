@@ -1485,9 +1485,6 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     bool force_software)
 {
     const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
-    const int coldept = spriteset[pic]->GetColorDepth();
-    const int src_sprwidth = game.SpriteInfos[pic].Width;
-    const int src_sprheight = game.SpriteInfos[pic].Height;
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
@@ -1587,6 +1584,10 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     }
 
     // Not cached, so draw the image
+    Bitmap *sprite = spriteset[pic];
+    const int coldept = sprite->GetColorDepth();
+    const int src_sprwidth = sprite->GetWidth();
+    const int src_sprheight = sprite->GetHeight();
     bool actsps_used = false;
     if (!use_hw_transform)
     {
@@ -1606,7 +1607,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         // direct read from source bitmap, where possible
         Bitmap *blit_from = nullptr;
         if (!actsps_used)
-            blit_from = spriteset[pic];
+            blit_from = sprite;
 
         apply_tint_or_light(actsp, light_level, tint_level, tint_red,
             tint_green, tint_blue, tint_light, coldept,
@@ -1615,7 +1616,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     else if (!actsps_used)
     {
         // no scaling, flipping or tinting was done, so just blit it normally
-        actsp.Bmp->Blit(spriteset[pic], 0, 0);
+        actsp.Bmp->Blit(sprite, 0, 0);
     }
 
     // Create the cached image and store it
@@ -1704,7 +1705,7 @@ void prepare_and_add_object_gfx(
 bool construct_object_gfx(int objid, bool force_software)
 {
     const RoomObject &obj = objs[objid];
-    if (spriteset[obj.num] == nullptr)
+    if (!spriteset.DoesSpriteExist(obj.num))
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", objid, obj.num);
 
     ObjectCache objsrc(obj.num, obj.tint_r, obj.tint_g, obj.tint_b,
@@ -1813,7 +1814,7 @@ bool construct_char_gfx(int charid, bool force_software)
     const CharacterExtras &chex = charextra[charid];
     const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];
     const int pic = vf->pic;
-    if (spriteset[pic] == nullptr)
+    if (!spriteset.DoesSpriteExist(pic))
         quitprintf("There was an error drawing character %d. Its current frame's sprite, %d, is invalid.", charid, pic);
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b,

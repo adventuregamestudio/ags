@@ -205,7 +205,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds,
     int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
-    if ((slot < 0) || (spriteset[slot] == nullptr))
+    if ((slot < 0) || (!spriteset.DoesSpriteExist(slot)))
         quit("!DrawingSurface.DrawImage: invalid sprite slot number specified");
     DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, trans, dst_width, dst_height,
         src_x, src_y, src_width, src_height, slot, (game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);

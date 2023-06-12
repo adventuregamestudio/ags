@@ -618,7 +618,7 @@ void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont,
 
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     if (sprn<0) return;
-    if (spriteset[sprn] == nullptr)
+    if (!spriteset.DoesSpriteExist(sprn))
     {
         sprn = 0;
     }

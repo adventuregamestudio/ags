@@ -159,9 +159,9 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha
 {
     // NOTE: DrawViewFrame supports alpha blending only since OPT_SPRITEALPHA;
     // this is why there's no sense in blending if it's not set (will do no good anyway).
+    Bitmap *vf_bmp = spriteset[vframe->pic];
     if (alpha_blend && game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Proper)
     {
-        Bitmap *vf_bmp = spriteset[vframe->pic];
         Bitmap *src = vf_bmp;
         if (vframe->flags & VFLG_FLIPSPRITE)
         {
@@ -175,9 +175,9 @@ void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha
     else
     {
         if (vframe->flags & VFLG_FLIPSPRITE)
-            ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kFlip_Horizontal);
+            ds->FlipBlt(vf_bmp, x, y, Common::kFlip_Horizontal);
         else
-            ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+            ds->Blit(vf_bmp, x, y, Common::kBitmap_Transparency);
     }
 }
 

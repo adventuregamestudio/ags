@@ -2684,7 +2684,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             if (game.options[OPT_SPEECHTYPE] == 3) {
                 // QFG4-style whole screen picture
-                closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight(), spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight());
                 closeupface->Clear(0);
                 if (xx < 0 && play.speech_portrait_placement)
                 {
@@ -2716,7 +2716,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 else
                     ovr_yp = yy;
 
-                closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface = BitmapHelper::CreateTransparentBitmap(bigx + 1, bigy + 1);
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)

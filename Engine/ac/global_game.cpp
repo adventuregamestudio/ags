@@ -183,8 +183,9 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
         return gotSlot;
 
     // resize the sprite to the requested size
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
-    newPic->StretchBlt(spriteset[gotSlot],
+    Bitmap *sprite = spriteset[gotSlot];
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth());
+    newPic->StretchBlt(sprite,
         RectWH(0, 0, game.SpriteInfos[gotSlot].Width, game.SpriteInfos[gotSlot].Height),
         RectWH(0, 0, width, height));
 

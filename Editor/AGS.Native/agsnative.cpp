@@ -188,15 +188,12 @@ Common::Bitmap *get_sprite (int spnr) {
 }
 
 void SetNewSprite(int slot, Common::Bitmap *sprit, int flags) {
-  delete spriteset[slot];
-
   spriteset.SetSprite(slot, sprit, flags);
   spritesModified = true;
 }
 
 void deleteSprite (int sprslot) {
   spriteset.DisposeSprite(sprslot);
-  
   spritesModified = true;
 }
 
@@ -264,10 +261,8 @@ void change_sprite_number(int oldNumber, int newNumber) {
   if (!spriteset.DoesSpriteExist(oldNumber))
     return;
 
-  spriteset.DisposeSprite(newNumber);
   AGSBitmap *bitmap = spriteset.RemoveSprite(oldNumber);
   spriteset.SetSprite(newNumber, bitmap, thisgame.SpriteInfos[oldNumber].Flags);
-
   spritesModified = true;
 }
 
@@ -361,7 +356,6 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     // create a new, smaller sprite and copy across
 	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
-    delete sprit;
     // set new image and keep old flags
     spriteset.SetSprite(sprites[aa], newsprit, thisgame.SpriteInfos[aa].Flags);
   }

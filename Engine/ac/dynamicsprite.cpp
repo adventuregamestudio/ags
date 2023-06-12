@@ -110,8 +110,6 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
         RectWH(0, 0, game.SpriteInfos[sds->slot].Width, game.SpriteInfos[sds->slot].Height),
         RectWH(0, 0, width, height));
 
-    delete sprite; // FIXME: instead do this while replacing sprite with existing id
-
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
     game_sprite_updated(sds->slot);
@@ -129,7 +127,6 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
 
     // AGS script FlipDirection corresponds to internal GraphicFlip
     newPic->FlipBlt(sprite, 0, 0, static_cast<GraphicFlip>(direction));
-    delete sprite; // FIXME: instead do this while replacing sprite with existing id
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
@@ -182,8 +179,6 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     // blit it into the enlarged image
     newPic->Blit(sprite, 0, 0, x, y, sprite->GetWidth(), sprite->GetHeight());
 
-    delete sprite; // FIXME: instead do this while replacing sprite with existing id
-
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
     game_sprite_updated(sds->slot);
@@ -205,8 +200,6 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth());
     // blit it cropped
     newPic->Blit(sprite, x1, y1, 0, 0, newPic->GetWidth(), newPic->GetHeight());
-
-    delete sprite; // FIXME: instead do this while replacing sprite with existing id
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
@@ -250,8 +243,6 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
     newPic->RotateBlt(sprite, width / 2 + width % 2, height / 2,
         sprite->GetWidth() / 2, sprite->GetHeight() / 2, itofix(angle));
 
-    delete sprite; // FIXME: instead do this while replacing sprite with existing id
-
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
     game_sprite_updated(sds->slot);
@@ -264,7 +255,6 @@ void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
 
     tint_image(newPic, source, red, green, blue, saturation, (luminance * 25) / 10);
 
-    delete source;  // FIXME: instead do this while replacing sprite with existing id
     // replace the bitmap in the sprite set
     add_dynamic_sprite(sds->slot, newPic, (game.SpriteInfos[sds->slot].Flags & SPF_ALPHACHANNEL) != 0);
     game_sprite_updated(sds->slot);
@@ -456,7 +446,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 //=============================================================================
 
 void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
-
   spriteset.SetSprite(gotSlot, redin);
 
   game.SpriteInfos[gotSlot].Flags = SPF_DYNAMICALLOC;

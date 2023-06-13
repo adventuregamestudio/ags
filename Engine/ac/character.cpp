@@ -2712,7 +2712,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     ovr_yp = play.speech_portrait_y;
                 }
                 else if (yy < 0)
-                    ovr_yp = adjust_y_for_guis (ovr_yp);
+                    ovr_yp = adjust_y_for_guis(ovr_yp, true /* displayspeech is always blocking */);
                 else
                     ovr_yp = yy;
 

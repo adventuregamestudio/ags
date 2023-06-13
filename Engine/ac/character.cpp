@@ -584,11 +584,8 @@ void Character_LockView(CharacterInfo *chap, int vii) {
 }
 
 void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
-
-    if ((vii < 1) || (vii > game.numviews)) {
-        quitprintf("!SetCharacterView: invalid view number (You said %d, max is %d)", vii, game.numviews);
-    }
-    vii--;
+    vii--; // convert to 0-based
+    AssertView("SetCharacterView", vii);
 
     debug_script_log("%s: View locked to %d", chap->scrname, vii+1);
     if (chap->idleleft < 0) {
@@ -630,8 +627,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
 
     Character_LockViewEx(chap, vii, stopMoving);
 
-    if ((loop < 0) || (loop >= views[chap->view].numLoops))
-        quit("!SetCharacterViewEx: invalid loop specified");
+    AssertLoop("SetCharacterViewEx", chap->view, loop);
 
     chap->loop = loop;
     chap->frame = 0;
@@ -657,15 +653,8 @@ void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame)
 }
 
 void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
-
     Character_LockViewEx(chaa, view, stopMoving);
-
-    view--;
-    if ((loop < 0) || (loop >= views[view].numLoops))
-        quit("!SetCharacterFrame: invalid loop specified");
-    if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
-        quit("!SetCharacterFrame: invalid frame specified");
-
+    AssertFrame("SetCharacterFrame", view - 1, loop, frame);
     chaa->loop = loop;
     chaa->frame = frame;
 }
@@ -1368,11 +1357,9 @@ int Character_GetLoop(CharacterInfo *chaa) {
 }
 
 void Character_SetLoop(CharacterInfo *chaa, int newval) {
-    if ((newval < 0) || (newval >= views[chaa->view].numLoops))
-        quit("!Character.Loop: invalid loop number for this view");
+    AssertLoop("Character.Loop", chaa->view, newval);
 
     chaa->loop = newval;
-
     if (chaa->frame >= views[chaa->view].loops[chaa->loop].numFrames)
         chaa->frame = 0;
 }

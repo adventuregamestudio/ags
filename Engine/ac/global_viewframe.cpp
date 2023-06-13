@@ -11,9 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/global_viewframe.h"
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
@@ -24,15 +24,8 @@ extern std::vector<ViewStruct> views;
 
 
 void SetFrameSound (int vii, int loop, int frame, int sound) {
-    if ((vii < 1) || (vii > game.numviews))
-        quit("!SetFrameSound: invalid view number");
-    vii--;
-
-    if (loop >= views[vii].numLoops)
-        quit("!SetFrameSound: invalid loop number");
-
-    if (frame >= views[vii].loops[loop].numFrames)
-        quit("!SetFrameSound: invalid frame number");
+    vii--; // convert to 0-based
+    AssertFrame("SetFrameSound", vii, loop, frame);
 
     if (sound < 1)
     {

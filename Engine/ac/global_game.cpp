@@ -363,15 +363,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
    case GP_FRAMESOUND:
    case GP_ISFRAMEFLIPPED:
        {
-           if ((data1 < 1) || (data1 > game.numviews)) {
-               quitprintf("!GetGameParameter: invalid view specified (v: %d, l: %d, f: %d)", data1, data2, data3);
-           }
-           if ((data2 < 0) || (data2 >= views[data1 - 1].numLoops)) {
-               quitprintf("!GetGameParameter: invalid loop specified (v: %d, l: %d, f: %d)", data1, data2, data3);
-           }
-           if ((data3 < 0) || (data3 >= views[data1 - 1].loops[data2].numFrames)) {
-               quitprintf("!GetGameParameter: invalid frame specified (v: %d, l: %d, f: %d)", data1, data2, data3);
-           }
+           AssertFrame("GetGameParameter", data1 - 1, data2, data3);
 
            ViewFrame *pvf = &views[data1 - 1].loops[data2].frames[data3];
 

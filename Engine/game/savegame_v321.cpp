@@ -41,7 +41,6 @@
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
-#include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
@@ -526,10 +525,7 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
     if (!err)
         return err;
 
-    auto pluginFileHandle = AGSE_RESTOREGAME;
-    pl_set_file_handle(pluginFileHandle, in);
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
-    pl_clear_file_handle();
+    ReadPluginSaveData(in);
     if (static_cast<uint32_t>(in->ReadInt32()) != MAGICNUMBER)
         return new SavegameError(kSvgErr_InconsistentPlugin);
 

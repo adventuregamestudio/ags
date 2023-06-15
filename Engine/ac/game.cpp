@@ -1385,23 +1385,6 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
 }
 
-bool unserialize_audio_script_object(int index, const char *objectType, Stream *in, size_t data_sz)
-{
-    if (strcmp(objectType, "AudioChannel") == 0)
-    {
-        ccDynamicAudio.Unserialize(index, in, data_sz);
-    }
-    else if (strcmp(objectType, "AudioClip") == 0)
-    {
-        ccDynamicAudioClip.Unserialize(index, in, data_sz);
-    }
-    else
-    {
-        return false;
-    }
-    return true;
-}
-
 void game_sprite_updated(int sprnum)
 {
     // update the shared texture (if exists)

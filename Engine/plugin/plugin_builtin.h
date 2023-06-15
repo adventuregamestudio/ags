@@ -18,8 +18,6 @@
 #ifndef __AGS_EE_PLUGIN__PLUGINBUILTIN_H
 #define __AGS_EE_PLUGIN__PLUGINBUILTIN_H
 
-#define PLUGIN_FILENAME_MAX (49)
-
 class IAGSEngine;
 
 namespace AGS { namespace Common { class String; }}

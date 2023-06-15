@@ -21,12 +21,25 @@
 #include <vector>
 #include "game/game_init.h"
 #include "game/plugininfo.h"
-
-#define PLUGIN_FILENAME_MAX (49)
+#include "util/string.h"
 
 class IAGSEngine;
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
+
+
+//
+// PluginObjectReader is a managed object unserializer registered by plugin.
+//
+struct PluginObjectReader
+{
+    const Common::String Type;
+    ICCObjectReader *const Reader = nullptr;
+
+    PluginObjectReader(const Common::String &type, ICCObjectReader *reader)
+        : Type(type), Reader(reader) {}
+};
+
 
 void pl_stop_plugins();
 void pl_startup_plugins();

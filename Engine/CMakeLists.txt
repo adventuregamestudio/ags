@@ -419,8 +419,6 @@ target_sources(engine
     plugin/global_plugin.cpp
     plugin/plugin_builtin.h
     plugin/plugin_engine.h
-    plugin/pluginobjectreader.cpp
-    plugin/pluginobjectreader.h
     resource/resource.h
     script/cc_instance.cpp
     script/cc_instance.h

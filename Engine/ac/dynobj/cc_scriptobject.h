@@ -91,12 +91,18 @@ protected:
     ~IScriptObject() = default;
 };
 
-// The interface of a script object deserializer.
-// WARNING: a part of the plugin API.
-struct ICCObjectReader
+// The interface of a script objects deserializer that handles multiple types.
+struct ICCObjectCollectionReader
 {
     // TODO: pass savegame format version
     virtual void Unserialize(int32_t handle, const char *objectType, const char *serializedData, int dataSize) = 0;
+};
+
+// The interface of a script objects deserializer that handles a single type.
+// WARNING: a part of the plugin API.
+struct ICCObjectReader
+{
+    virtual void Unserialize(int32_t handle, const char *serializedData, int dataSize) = 0;
 };
 
 // The interface of a dynamic String allocator.

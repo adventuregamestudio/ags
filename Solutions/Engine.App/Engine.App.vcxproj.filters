@@ -672,9 +672,6 @@
     <ClCompile Include="..\..\Engine\plugin\agsplugin.cpp">
       <Filter>Source Files\plugin</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\plugin\pluginobjectreader.cpp">
-      <Filter>Source Files\plugin</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\setup\winsetup.cpp">
       <Filter>Source Files\setup</Filter>
     </ClCompile>
@@ -1200,9 +1197,6 @@
       <Filter>Header Files\plugin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h">
-      <Filter>Header Files\plugin</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\plugin\pluginobjectreader.h">
       <Filter>Header Files\plugin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h">

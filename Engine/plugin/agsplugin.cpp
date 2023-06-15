@@ -57,7 +57,6 @@
 #include "media/audio/audio_system.h"
 #include "plugin/plugin_engine.h"
 #include "plugin/plugin_builtin.h"
-#include "plugin/pluginobjectreader.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -98,8 +97,6 @@ extern std::vector<ViewStruct> views;
 extern int game_paused;
 extern int inside_script;
 extern RGB palette[256];
-extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
-extern int numPluginReaders;
 extern RuntimeScriptValue GlobalReturnValue;
 extern ScriptString myScriptStringImpl;
 
@@ -138,6 +135,11 @@ struct EnginePlugin {
 EnginePlugin plugins[MAXPLUGINS];
 int numPlugins = 0;
 int pluginsWantingDebugHooks = 0;
+
+//
+// Managed object unserializers
+//
+std::vector<PluginObjectReader> pluginReaders;
 
 std::vector<InbuiltPluginDetails> _registered_builtin_plugins;
 
@@ -710,20 +712,15 @@ int IAGSEngine::RegisterManagedObject(void *object, IAGSScriptManagedObject *cal
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
-    if (numPluginReaders >= MAX_PLUGIN_OBJECT_READERS) 
-        quit("Plugin error: IAGSEngine::AddObjectReader: Too many object readers added");
-
     if ((typeName == nullptr) || (typeName[0] == 0))
         quit("Plugin error: IAGSEngine::AddObjectReader: invalid name for type");
 
-    for (int ii = 0; ii < numPluginReaders; ii++) {
-        if (strcmp(pluginReaders[ii].type, typeName) == 0)
-            quitprintf("Plugin error: IAGSEngine::AddObjectReader: type '%s' has been registered already", typeName);
+    for (const auto &pr : pluginReaders) {
+        if (pr.Type == typeName)
+            quitprintf("Plugin error: IAGSEngine::AddObjectReader: type '%s' has been registered already", pr.Type.GetCStr());
     }
 
-    pluginReaders[numPluginReaders].reader = reader;
-    pluginReaders[numPluginReaders].type = typeName;
-    numPluginReaders++;
+    pluginReaders.push_back(PluginObjectReader(typeName, reinterpret_cast<ICCObjectReader*>(reader)));
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, void *object, IAGSScriptManagedObject *callback) {
@@ -1026,7 +1023,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
         // AGS Editor currently saves plugin names in game data with
         // ".dll" extension appended; we need to take care of that
         const String name_ext = ".dll";
-        if (name.GetLength() <= name_ext.GetLength() || name.GetLength() > PLUGIN_FILENAME_MAX + name_ext.GetLength() ||
+        if (name.GetLength() <= name_ext.GetLength() ||
                 name.CompareRightNoCase(name_ext, name_ext.GetLength())) {
             return kGameInitErr_PluginNameInvalid;
         }

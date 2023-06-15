@@ -42,7 +42,7 @@ extern void  ccUnregisterAllObjects();
 // serialize all objects to disk
 extern void  ccSerializeAllObjects(Common::Stream *out);
 // un-serialise all objects (will remove all currently registered ones)
-extern int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectReader *callback);
+extern int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
 // dispose the object if RefCount==0
 extern void  ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses

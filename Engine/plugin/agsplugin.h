@@ -17,7 +17,6 @@
 // #define THIS_IS_THE_PLUGIN beforehand if including from the plugin
 //
 //=============================================================================
-
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
@@ -37,12 +36,12 @@ typedef void *LPDIRECTINPUTDEVICE;
 
 // If the user isn't using Allegro or WinGDI, define the BITMAP into something
 #if !defined(ALLEGRO_H) && !defined(_WINGDI_) && !defined(BITMAP_DEFINED)
-typedef char BITMAP;
+typedef void BITMAP;
 #endif
 
 // If not using windows.h, define HWND
 #if !defined(_WINDOWS_)
-typedef int HWND;
+typedef void *HWND;
 #endif
 
 // This file is distributed as part of the Plugin API docs, so
@@ -199,25 +198,6 @@ struct AGSMouseCursor {
   char  flags;          // MCF_flags above
 };
 
-// The editor-to-plugin interface
-class IAGSEditor {
-public:
-  int32 version;
-  int32 pluginId;   // used internally, do not touch this
-
-public:
-  // get the HWND of the main editor frame
-  AGSIFUNC(HWND) GetEditorHandle ();
-  // get the HWND of the current active window
-  AGSIFUNC(HWND) GetWindowHandle ();
-  // add some script to the default header
-  AGSIFUNC(void) RegisterScriptHeader (const char *header);
-  // de-register a script header (pass same pointer as when added)
-  AGSIFUNC(void) UnregisterScriptHeader (const char *header);
-
-};
-
-
 // Below are interface 3 and later
 #define AGSE_KEYPRESS        1
 #define AGSE_MOUSECLICK      2
@@ -341,6 +321,7 @@ struct AGSGameInfo {
   // Random key identifying the game (deprecated)
   int UniqueId;
 };
+
 
 // The plugin-to-engine interface
 class IAGSEngine {
@@ -596,6 +577,25 @@ public:
   AGSIFUNC(void)  NotifyFontUpdated(int fontNumber);
 };
 
+
+// The editor-to-plugin interface
+class IAGSEditor {
+public:
+  int32 version;
+  int32 pluginId;   // used internally, do not touch this
+
+public:
+  // get the HWND of the main editor frame
+  AGSIFUNC(HWND) GetEditorHandle ();
+  // get the HWND of the current active window
+  AGSIFUNC(HWND) GetWindowHandle ();
+  // add some script to the default header
+  AGSIFUNC(void) RegisterScriptHeader (const char *header);
+  // de-register a script header (pass same pointer as when added)
+  AGSIFUNC(void) UnregisterScriptHeader (const char *header);
+};
+
+
 #ifdef THIS_IS_THE_PLUGIN
 
 #ifdef WINDOWS_VERSION
@@ -622,4 +622,4 @@ DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
 
 #endif // THIS_IS_THE_PLUGIN
 
-#endif
+#endif // _AGS_PLUGIN_H

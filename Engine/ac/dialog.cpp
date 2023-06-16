@@ -195,7 +195,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
     char func_name[100];
     snprintf(func_name, sizeof(func_name), "_run_dialog%d", dialogID);
     RuntimeScriptValue params[]{ optionIndex };
-    RunScriptFunction(dialogScriptsInst, func_name, 1, params);
+    RunScriptFunction(dialogScriptsInst.get(), func_name, 1, params);
     result = dialogScriptsInst->returnValue;
   }
   else

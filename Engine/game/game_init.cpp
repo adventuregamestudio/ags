@@ -74,10 +74,6 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
-extern std::vector<PInstance> moduleInst;
-extern std::vector<PInstance> moduleInstFork;
-extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
-
 // Old dialog support (defined in ac/dialog)
 extern std::vector<std::vector<uint8_t>> old_dialog_scripts;
 extern std::vector<String> old_speech_lines;

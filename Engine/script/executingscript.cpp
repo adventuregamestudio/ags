@@ -68,19 +68,3 @@ void ExecutingScript::run_another(const char *namm, ScriptInstType scinst, size_
     for (size_t p = 0; p < MAX_QUEUED_PARAMS && p < param_count; ++p)
         script.Params[p] = params[p];
 }
-
-void ExecutingScript::init() {
-    inst = nullptr;
-    forked = false;
-    numanother = 0;
-    numPostScriptActions = 0;
-
-    memset(postScriptActions, 0, sizeof(postScriptActions));
-    memset(postScriptActionNames, 0, sizeof(postScriptActionNames));
-    memset(postScriptSaveSlotDescription, 0, sizeof(postScriptSaveSlotDescription));
-    memset(postScriptActionData, 0, sizeof(postScriptActionData));
-}
-
-ExecutingScript::ExecutingScript() {
-    init();
-}

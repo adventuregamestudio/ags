@@ -447,7 +447,7 @@ static eAGSMouseButton mgetbutton()
     return kMouseNone;
 }
 
-extern eAGSMouseButton pluginSimulatedClick;
+extern eAGSMouseButton simulatedClick;
 int mouse_z_was = 0;
 // Convert mouse button id to flags
 const int MouseButton2Bits[kNumMouseButtons] =
@@ -460,10 +460,10 @@ bool ags_misbuttondown(eAGSMouseButton but)
 
 eAGSMouseButton ags_mgetbutton()
 {
-    if (pluginSimulatedClick > kMouseNone)
+    if (simulatedClick > kMouseNone)
     {
-        eAGSMouseButton mbut = pluginSimulatedClick;
-        pluginSimulatedClick = kMouseNone;
+        eAGSMouseButton mbut = simulatedClick;
+        simulatedClick = kMouseNone;
         return mbut;
     }
     return mgetbutton();

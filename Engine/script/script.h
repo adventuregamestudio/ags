@@ -131,8 +131,6 @@ extern NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
 extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 
-extern ScriptSystem scsystem;
-
 extern std::vector<PScript> scriptModules;
 extern std::vector<UInstance> moduleInst;
 extern std::vector<UInstance> moduleInstFork;

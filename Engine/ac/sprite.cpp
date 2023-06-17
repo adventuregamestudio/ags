@@ -18,7 +18,7 @@
 #include "ac/sprite.h"
 #include "ac/system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"

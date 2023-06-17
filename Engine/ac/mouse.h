@@ -47,6 +47,7 @@ void disable_cursor_mode(int modd);
 
 // Try to enable or disable mouse speed control by the engine
 void Mouse_EnableControl(bool on);
+void SimulateMouseClick(int button_id);
 
 //=============================================================================
 

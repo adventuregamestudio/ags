@@ -19,6 +19,7 @@
 #define __AGS_EE_PLUGIN__PLUGINENGINE_H
 
 #include <vector>
+#include "ac/dynobj/cc_scriptobject.h"
 #include "game/game_init.h"
 #include "game/plugininfo.h"
 #include "util/string.h"
@@ -55,5 +56,7 @@ bool pl_any_want_hook(int event);
 
 void pl_set_file_handle(long data, AGS::Common::Stream *stream);
 void pl_clear_file_handle();
+
+bool RegisterPluginStubs(const char* name);
 
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

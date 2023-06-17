@@ -23,37 +23,20 @@
 #include <gameux.h>
 #include <libcda.h>
 
-#include "ac/common.h"
-#include "ac/draw.h"
-#include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/global_display.h"
-#include "ac/runtime_defines.h"
-#include "ac/string.h"
-#include "debug/out.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
-#include "main/engine.h"
-#include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
+#include "ac/common.h" // quit
+#include "ac/gamesetup.h"
+#include "main/engine.h"
 #include "platform/base/sys_main.h"
 #include "platform/windows/setup/winsetup.h"
+struct BITMAP; // we need it only as a placeholder here
 #include "plugin/agsplugin.h"
-#include "util/directory.h"
-#include "util/file.h"
-#include "util/path.h"
-#include "util/stdio_compat.h"
-#include "util/stream.h"
-#include "util/string_compat.h"
 #include "resource/resource.h"
+#include "util/stdio_compat.h"
+
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-extern int our_eip;
-extern IGraphicsDriver *gfxDriver;
-extern RGB palette[256];
 
 
 #ifndef CSIDL_LOCAL_APPDATA
@@ -340,7 +323,6 @@ int AGSWin32::GetLastSystemError()
 unsigned long AGSWin32::GetDiskFreeSpaceMB() {
   DWORD returnMb = 0;
   BOOL fResult;
-  our_eip = -1891;
 
   // On Win9x, the last 3 params cannot be null, so need to supply values for all
   __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
@@ -352,8 +334,6 @@ unsigned long AGSWin32::GetDiskFreeSpaceMB() {
              (PULARGE_INTEGER)&i64FreeBytesToCaller,
              (PULARGE_INTEGER)&i64Unused1,
              (PULARGE_INTEGER)&i64Unused2);
-
-  our_eip = -1893;
 
   // convert down to MB so we can fit it in a 32-bit long
   i64FreeBytesToCaller /= 1000000;
@@ -397,8 +377,8 @@ void AGSWin32::WriteStdOut(const char *fmt, ...) {
   {
     // Add "AGS:" prefix when outputting to debugger, to make it clear that this
     // is a text from the program log
-    char buf[STD_BUFFER_SIZE] = "AGS: ";
-    vsnprintf(buf + 5, STD_BUFFER_SIZE - 5, fmt, ap);
+    char buf[1024] = "AGS: ";
+    vsnprintf(buf + 5, 1024 - 5, fmt, ap);
     OutputDebugString(buf);
     OutputDebugString("\n");
   }
@@ -417,8 +397,8 @@ void AGSWin32::WriteStdErr(const char *fmt, ...) {
   {
     // Add "AGS:" prefix when outputting to debugger, to make it clear that this
     // is a text from the program log
-    char buf[STD_BUFFER_SIZE] = "AGS ERR: ";
-    vsnprintf(buf + 9, STD_BUFFER_SIZE - 9, fmt, ap);
+    char buf[1024] = "AGS ERR: ";
+    vsnprintf(buf + 9, 1024 - 9, fmt, ap);
     OutputDebugString(buf);
     OutputDebugString("\n");
   }

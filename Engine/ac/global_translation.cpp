@@ -20,7 +20,7 @@
 #include "ac/translation.h"
 #include "core/types.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "util/memory.h"
 

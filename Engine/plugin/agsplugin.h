@@ -12,13 +12,15 @@
 //
 //=============================================================================
 //
-// AGS Plugin interface header file
+// AGS Plugin interface header file.
 //
-// #define THIS_IS_THE_PLUGIN beforehand if including from the plugin
+// #define THIS_IS_THE_PLUGIN beforehand if including from the plugin.
 //
 //=============================================================================
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
+
+#include "agsplugin_evts.h"
 
 // If the plugin isn't using DDraw, don't require the headers
 #ifndef DIRECTDRAW_VERSION
@@ -197,38 +199,6 @@ struct AGSMouseCursor {
   char  name[10];       // name of cursor mode
   char  flags;          // MCF_flags above
 };
-
-// Below are interface 3 and later
-#define AGSE_KEYPRESS        1
-#define AGSE_MOUSECLICK      2
-#define AGSE_POSTSCREENDRAW  4
-// Below are interface 4 and later
-#define AGSE_PRESCREENDRAW   8
-// Below are interface 5 and later
-#define AGSE_SAVEGAME        0x10
-#define AGSE_RESTOREGAME     0x20
-// Below are interface 6 and later
-#define AGSE_PREGUIDRAW      0x40
-#define AGSE_LEAVEROOM       0x80
-#define AGSE_ENTERROOM       0x100
-#define AGSE_TRANSITIONIN    0x200
-#define AGSE_TRANSITIONOUT   0x400
-// Below are interface 12 and later
-#define AGSE_FINALSCREENDRAW 0x800
-#define AGSE_TRANSLATETEXT   0x1000
-// Below are interface 13 and later
-#define AGSE_SCRIPTDEBUG     0x2000
-#define AGSE_AUDIODECODE     0x4000 // obsolete, no longer supported
-// Below are interface 18 and later
-#define AGSE_SPRITELOAD      0x8000
-// Below are interface 21 and later
-#define AGSE_PRERENDER       0x10000
-// Below are interface 24 and later
-#define AGSE_PRESAVEGAME     0x20000
-#define AGSE_POSTRESTOREGAME 0x40000
-// Below are interface 26 and later
-#define AGSE_POSTROOMDRAW    0x80000
-#define AGSE_TOOHIGH         0x100000
 
 // GetFontType font types
 #define FNT_INVALID 0

@@ -73,6 +73,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+extern ScriptSystem scsystem;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;

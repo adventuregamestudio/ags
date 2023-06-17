@@ -17,58 +17,54 @@
 #if AGS_PLATFORM_OS_WINDOWS
 #include "platform/windows/windows.h"
 #endif
-#include "plugin/agsplugin.h"
-#include "ac/common.h"
-#include "ac/view.h"
-#include "ac/display.h"
+
+#include "ac/common.h" // quit
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "ac/global_plugin.h"
 #include "ac/global_walkablearea.h"
-#include "ac/keycode.h"
 #include "ac/mouse.h"
-#include "ac/movelist.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
 #include "ac/roomstatus.h"
-#include "ac/string.h"
 #include "ac/spritecache.h"
+#include "ac/string.h"
 #include "ac/sys_events.h"
-#include "ac/dynobj/scriptstring.h"
+#include "ac/view.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "font/fonts.h"
+#include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "debug/out.h"
 #include "device/mousew32.h"
+#include "font/fonts.h"
 #include "gfx/bitmap.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/gfx_util.h"
-#include "gfx/gfxfilter.h"
-#include "gui/guidefines.h"
-#include "main/game_run.h"
-#include "main/graphics_mode.h"
+#include "gfx/graphicsdriver.h"
+#include "gui/guimain.h"
+#include "main/main.h"
 #include "main/engine.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
-#include "plugin/plugin_engine.h"
-#include "plugin/plugin_builtin.h"
-#include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "util/filestream.h"
+#include "plugin/plugin_engine.h"
+#include "plugin/plugin_builtin.h"
 #include "util/library.h"
-#include "util/memory.h"
-#include "util/stream.h"
-#include "util/string_compat.h"
+#include "util/string.h"
 #include "util/wgt2allg.h"
 
+// hide internal constants conflicting with plugin API
+#undef OBJF_NOINTERACT
+#undef OBJF_NOWALKBEHINDS
+
+#include "plugin/agsplugin.h"
+
+
 using namespace AGS::Common;
-using namespace AGS::Common::Memory;
 using namespace AGS::Engine;
 
 
@@ -85,20 +81,18 @@ using namespace AGS::Engine;
 #endif // BUILTIN_PLUGINS
 
 
-extern String appDirectory;
 extern IGraphicsDriver *gfxDriver;
+extern ScriptSystem scsystem;
 extern int mousex, mousey;
+extern GameSetupStruct game;
+extern std::vector<ViewStruct> views;
+extern RGB palette[256];
 extern int displayed_room;
 extern RoomStruct thisroom;
-extern GameSetupStruct game;
-extern RoomStatus*croom;
-extern SpriteCache spriteset;
-extern std::vector<ViewStruct> views;
-extern int game_paused;
-extern int inside_script;
-extern RGB palette[256];
-extern RuntimeScriptValue GlobalReturnValue;
+extern RoomStatus *croom;
 extern ScriptString myScriptStringImpl;
+extern RuntimeScriptValue GlobalReturnValue;
+
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
@@ -761,7 +755,7 @@ void IAGSEngine::SetMousePosition(int32 x, int32 y) {
 }
 
 void IAGSEngine::SimulateMouseClick(int32 button) {
-    PluginSimulateMouseClick(button);
+    SimulateMouseClick(button);
 }
 
 int IAGSEngine::GetMovementPathWaypointCount(int32 pathId) {

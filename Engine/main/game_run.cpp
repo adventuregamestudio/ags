@@ -61,7 +61,7 @@
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -73,6 +73,7 @@ extern int ifacepopped;
 extern volatile bool want_exit, abort_engine;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
+extern ScriptSystem scsystem;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern int game_paused;

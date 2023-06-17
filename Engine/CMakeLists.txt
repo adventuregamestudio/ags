@@ -175,7 +175,6 @@ target_sources(engine
     ac/global_palette.h
     ac/global_parser.cpp
     ac/global_parser.h
-    ac/global_plugin.h
     ac/global_region.cpp
     ac/global_region.h
     ac/global_room.cpp
@@ -416,9 +415,10 @@ target_sources(engine
     platform/util/libc.c
     plugin/agsplugin.cpp
     plugin/agsplugin.h
-    plugin/global_plugin.cpp
+    plugin/agsplugin_evts.h
     plugin/plugin_builtin.h
     plugin/plugin_engine.h
+    plugin/plugin_stubs.cpp
     resource/resource.h
     script/cc_instance.cpp
     script/cc_instance.h

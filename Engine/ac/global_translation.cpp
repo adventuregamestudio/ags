@@ -18,10 +18,11 @@
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/translation.h"
+#include "core/types.h"
 #include "platform/base/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "util/memory.h"
-#include "core/types.h"
 
 using namespace AGS::Common::Memory;
 

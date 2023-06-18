@@ -623,7 +623,7 @@ namespace AGS.Editor.Utils
 
             SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
             var sprites = folder.GetAllSpritesFromAllSubFolders();
-            var orderedSprites = sprites.OrderBy(sprite => sprite.Number);
+            var orderedSprites = sprites.Distinct().OrderBy(sprite => sprite.Number);
 
             progress.Total = orderedSprites.Count();
             progress.Current = 0;

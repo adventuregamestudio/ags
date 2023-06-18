@@ -426,6 +426,18 @@ namespace AGS.Types
 			return this.Number - other.Number;
 		}
 
-		#endregion
-	}
+        #endregion
+
+        public override bool Equals(object obj)
+        {
+            Sprite other = obj as Sprite;
+            if (object.ReferenceEquals(other, null))
+                return false;
+            return Number == other.Number;
+        }
+        public override int GetHashCode()
+        {
+            return Number;
+        }
+    }
 }

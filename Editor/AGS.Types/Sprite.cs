@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [DefaultProperty("Resolution")]
+    [DefaultProperty("SourceFile")]
     public class Sprite : ICustomTypeDescriptor, IComparable<Sprite>
     {
         public const string PROPERTY_SPRITE_NUMBER = "Number";

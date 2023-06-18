@@ -1193,50 +1193,37 @@ namespace AGS.Editor
         {
             SpriteExportDialog dialog = new SpriteExportDialog(_currentFolder);
 
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    if (dialog.UseRootFolder)
-                    {
-                        SpriteTools.ExportSprites(dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipIf, dialog.UpdateSpriteSource, dialog.ResetTileSettings);
-                    }
-                    else
-                    {
-                        SpriteTools.ExportSprites(_currentFolder, dialog.ExportPath, dialog.Recurse,
-                            dialog.SkipIf, dialog.UpdateSpriteSource, dialog.ResetTileSettings);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    String message = String.Format("There was an error during the export. The error message was: '{0}'", ex.Message);
-                    Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
-                }
-            }
+            if (dialog.ShowDialog() != DialogResult.OK)
+                return;
 
+            SpriteFolder startFolder = dialog.UseRootFolder ?
+                Factory.AGSEditor.CurrentGame.RootSpriteFolder : _currentFolder;
+            var opts = new SpriteTools.ExportSpritesOptions(
+                dialog.ExportPath,
+                dialog.Recurse,
+                dialog.SkipIf,
+                dialog.UpdateSpriteSource,
+                dialog.ResetTileSettings);
             dialog.Dispose();
+
+            Tasks.ExportSprites(startFolder, opts);
         }
 
         private void ExportFixupSources()
         {
             string folder = Factory.GUIController.ShowSelectFolderOrNoneDialog("Create sprite source in folder...",
                 Factory.AGSEditor.CurrentGame.DirectoryPath);
-            if (folder != null)
-            {
-                try
-                {
-                    SpriteTools.ExportSprites(Path.Combine(folder, "%Number%"), recurse: true,
-                        skipIf: SpriteTools.SkipIf.SourceLocal,
-                        updateSourcePath: true,
-                        resetTileSettings: true);
-                }
-                catch (Exception ex)
-                {
-                    String message = String.Format("There was an error during the export. The error message was: '{0}'", ex.Message);
-                    Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
-                }
-            }
+            if (folder == null)
+                return;
+
+            var opts = new SpriteTools.ExportSpritesOptions(
+                    Path.Combine(folder, "%Number%"),
+                    recurse: true,
+                    skipIf: SpriteTools.SkipIf.SourceLocal,
+                    updateSourcePath: true,
+                    resetTileSettings: true
+                );
+            Tasks.ExportSprites(opts);
         }
 
         private void SortAllSpritesInCurrentFolderByNumber()

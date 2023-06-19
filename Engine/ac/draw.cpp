@@ -943,9 +943,16 @@ void render_to_screen()
     construct_engine_overlay();
 
     // Try set new vsync value, and remember the actual result
-    bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
-    if (new_vsync != scsystem.vsync)
-        System_SetVSyncInternal(new_vsync);
+    if (isTimerFpsMaxed())
+    {
+        gfxDriver->SetVsync(false);
+    }
+    else
+    {
+        bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
+        if (new_vsync != scsystem.vsync)
+            System_SetVSyncInternal(new_vsync);
+    }
 
     bool succeeded = false;
     while (!succeeded && !want_exit && !abort_engine)

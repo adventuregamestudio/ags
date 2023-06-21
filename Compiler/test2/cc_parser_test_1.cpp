@@ -2558,6 +2558,23 @@ TEST_F(Compile1, AssignmentInParameterList1)
     int compile_result = cc_compile(inpl, scrip);
     std::string msg = last_seen_cc_error();
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
-    EXPECT_NE(std::string::npos, msg.find("'\='"));
+    EXPECT_NE(std::string::npos, msg.find("'='"));
 }
+TEST_F(Compile1, CrementAsBinary1) {
 
+    // Increment operator can't be used as a binary operator.
+
+    char const *inpl = "\
+        int game_start() {      \n\
+            int a = 10;         \n\
+            int b = 5;          \n\
+            int c = a ++ b;     \n\
+        }                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    EXPECT_NE(std::string::npos, msg.find("'++'"));
+    EXPECT_NE(std::string::npos, msg.find("binary"));
+}

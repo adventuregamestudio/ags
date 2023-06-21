@@ -987,6 +987,8 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(width, height, 8);
   tempblock->Fill(0);
   color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
+  int old_uformat = get_uformat();
+  set_uformat(U_ASCII); // we won't be able to print 128-255 chars otherwise!
   for (int c = first_char; c < num_chars; ++c)
   {
     wgtprintf(tempblock,
@@ -994,6 +996,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
                 padding + (c / chars_per_row) * grid_size + grid_margin,
                 fontnum, text_color, "%c", c);
   }
+  set_uformat(old_uformat);
 
   if (doubleSize > 1) 
     drawBlockDoubleAt(hdc, tempblock, x, y);

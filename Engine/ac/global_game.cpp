@@ -427,50 +427,93 @@ int GetGameSpeed() {
     return ::lround(get_current_fps()) - play.game_speed_modifier;
 }
 
-int SetGameOption (int opt, int setting) {
-    if (((opt < 1) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
-        quit("!SetGameOption: invalid option specified");
-
-    if (opt == OPT_ANTIGLIDE)
+int SetGameOption (int opt, int newval) {
+    if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
+        debug_script_warn("SetGameOption: invalid option specified: %d", opt);
+        return 0;
+    }
+
+    // Handle forbidden options
+    switch (opt)
+    {
+    case OPT_DEBUGMODE: // we don't support switching OPT_DEBUGMODE from script
+    case OPT_LETTERBOX:
+    case OPT_HIRES_FONTS:
+    case OPT_SPLITRESOURCES:
+    case OPT_STRICTSCRIPTING:
+    case OPT_LEFTTORIGHTEVAL:
+    case OPT_COMPRESSSPRITES:
+    case OPT_STRICTSTRINGS:
+    case OPT_NATIVECOORDINATES:
+    case OPT_SAFEFILEPATHS:
+    case OPT_DIALOGOPTIONSAPI:
+    case OPT_BASESCRIPTAPI:
+    case OPT_SCRIPTCOMPATLEV:
+    case OPT_RELATIVEASSETRES:
+    case OPT_GAMETEXTENCODING:
+    case OPT_KEYHANDLEAPI:
+    case OPT_CUSTOMENGINETAG:
+        debug_script_warn("SetGameOption: option %d cannot be modified at runtime", opt);
+        return game.options[opt];
+    default:
+        break;
+    }
+
+    if (game.options[opt] == newval)
+        return game.options[opt]; // no change necessary
+
+    const int oldval = game.options[opt];
+    game.options[opt] = newval;
+
+    // Update the game in accordance to the new option value
+    switch (opt)
+    {
+    case OPT_ANTIGLIDE:
         for (int i = 0; i < game.numcharacters; i++)
         {
-            if (setting)
+            if (newval)
                 game.chars[i].flags |= CHF_ANTIGLIDE;
             else
                 game.chars[i].flags &= ~CHF_ANTIGLIDE;
         }
-    }
-
-    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC))
-    {
-        // legacy compatibility -- changing crossfade speed here also
-        // updates the new audio clip type style
-        game.audioClipTypes[AUDIOTYPE_LEGACY_MUSIC].crossfadeSpeed = setting;
-    }
-
-    int oldval = game.options[opt];
-    game.options[opt] = setting;
-
-    if (opt == OPT_DUPLICATEINV)
-        update_invorder();
-    else if (opt == OPT_DISABLEOFF) {
+        break;
+    case OPT_DISABLEOFF:
         GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
         // If GUI was disabled at this time then also update it, as visual style could've changed
         if (play.disabled_user_interface > 0) { GUI::MarkAllGUIForUpdate(true, false); }
-    } else if (opt == OPT_PORTRAITSIDE) {
-        if (setting == 0)  // set back to Left
+        break;
+    case OPT_CROSSFADEMUSIC:
+        if (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC)
+        {
+            // legacy compatibility -- changing crossfade speed here also
+            // updates the new audio clip type style
+            game.audioClipTypes[AUDIOTYPE_LEGACY_MUSIC].crossfadeSpeed = newval;
+        }
+        break;
+    case OPT_ANTIALIASFONTS:
+        adjust_fonts_for_render_mode(newval != 0);
+        break;
+    case OPT_DUPLICATEINV:
+        update_invorder();
+        break;
+    case OPT_PORTRAITSIDE:
+        if (newval == 0)  // set back to Left
             play.swap_portrait_side = 0;
-    } else if (opt == OPT_ANTIALIASFONTS) {
-        adjust_fonts_for_render_mode(setting != 0);
+        break;
+    default:
+        break; // do nothing else
     }
 
     return oldval;
 }
 
 int GetGameOption (int opt) {
-    if (((opt < 1) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
-        quit("!GetGameOption: invalid option specified");
+    if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
+    {
+        debug_script_warn("GetGameOption: invalid option specified: %d", opt);
+        return 0;
+    }
 
     return game.options[opt];
 }

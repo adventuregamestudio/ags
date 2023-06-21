@@ -28,6 +28,8 @@
 #define GLOBALMESLENGTH     500
 #define MAXLANGUAGE         5
 #define LEGACY_MAX_FONTS    30
+
+// General game options
 #define OPT_DEBUGMODE       0
 #define OPT_SCORESOUND      1
 #define OPT_WALKONLOOK      2
@@ -62,8 +64,8 @@
 #define OPT_PORTRAITSIDE    31
 #define OPT_STRICTSCRIPTING 32  // don't allow MoveCharacter-style commands
 #define OPT_LEFTTORIGHTEVAL 33  // left-to-right operator evaluation
-#define OPT_COMPRESSSPRITES 34
-#define OPT_STRICTSTRINGS   35  // don't allow old-style strings
+#define OPT_COMPRESSSPRITES 34  // [DEPRECATED]
+#define OPT_STRICTSTRINGS   35  // don't allow old-style strings, for reference only
 #define OPT_NEWGUIALPHA     36
 #define OPT_RUNGAMEDLGOPTS  37
 #define OPT_NATIVECOORDINATES 38 // defines coordinate relation between game logic and game screen
@@ -82,7 +84,7 @@
 #define OPT_KEYHANDLEAPI    50 // key handling mode (old/new)
 #define OPT_CUSTOMENGINETAG 51 // custom engine tag (for overriding behavior)
 #define OPT_HIGHESTOPTION   OPT_CUSTOMENGINETAG
-#define OPT_NOMODMUSIC      98 // unused
+#define OPT_NOMODMUSIC      98 // [DEPRECATED]
 #define OPT_LIPSYNCTEXT     99
 
 #define CUSTOMENG_NONE      0

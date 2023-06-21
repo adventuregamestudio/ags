@@ -2448,6 +2448,10 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
         WriteCmd(SCMD_JNZ, kDestinationPlaceholder);
         to_exit.AddParam();
     }
+    else if (kKW_Increment == operator_sym || kKW_Decrement == operator_sym)
+    {
+        UserError("Cannot use '%s' as a binary operator", _sym.GetName(operator_sym).c_str());
+    }
     else
     {
         // Hang on to the intermediate result

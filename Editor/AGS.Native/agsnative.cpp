@@ -882,14 +882,13 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
     if (in->ReadByte() != 0x87) // format check
         return new AGSError("Not a valid SCI font file");
     in->Seek(3);
-    size_t char_count = in->ReadInt16(); // number of characters
-    char_count = min(128, char_count);
+    const size_t char_count = in->ReadInt16(); // number of characters
     in->ReadInt16(); // line height (?)
-    int16_t sci_offs[128]; // table of contents
-    in->ReadArrayOfInt16(sci_offs, char_count);
-    soff_t char_data_at = in->GetPosition();
-    std::vector<uint8_t> widths; // char widths
-    std::vector<uint8_t> heights; // char heights
+    std::vector<int16_t> sci_offs(char_count); // table of contents
+    in->ReadArrayOfInt16(&sci_offs.front(), char_count);
+    const soff_t char_data_at = in->GetPosition();
+    std::vector<uint8_t> widths(char_count); // char widths
+    std::vector<uint8_t> heights(char_count); // char heights
     std::vector<uint8_t> pxbuf; // pixel data (stored in one line)
     for (size_t i = 0; i < char_count; ++i)
     {
@@ -900,8 +899,8 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
         in->Seek(off, Common::kSeekBegin);
         int w = in->ReadByte() - 1; // CHECKME: why has +1 in file?
         int h = in->ReadByte();
-        widths.push_back(w);
-        heights.push_back(h);
+        widths[i] = w;
+        heights[i] = h;
         if ((w < 1) || (h < 1))
             continue; // character has zero size
         size_t row_size = (w / 8) + 1;
@@ -917,7 +916,7 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
     std::unique_ptr<Stream> out(AGSFile::CreateFile(dst_fn));
     out->Write("WGT Font File  ", 15);
     out->WriteInt16(0);  // will be table address
-    int16_t wfn_offs[128];
+    std::vector<uint16_t> wfn_offs(char_count);
     for (size_t i = 0, buf_off = 0; i < char_count; ++i)
     {
         wfn_offs[i] = out->GetPosition();
@@ -933,8 +932,8 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
         buf_off += px_size;
     }
     // Seek back to the header, and write table position
-    soff_t tableat = out->GetPosition();
-    out->WriteArrayOfInt16(wfn_offs, char_count);
+    uint16_t tableat = static_cast<uint16_t>(out->GetPosition());
+    out->WriteArrayOfInt16(reinterpret_cast<int16_t*>(&wfn_offs.front()), char_count);
     out->Seek(15, Common::kSeekBegin);
     out->WriteInt16(tableat);
     out.reset();

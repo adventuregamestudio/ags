@@ -26,8 +26,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-// There were issues when including header caused conflicts
-struct GameSetupStruct;
+class SplitLines;
 
 #define LEGACY_MAX_OBJS_ON_GUI             30
 
@@ -218,6 +217,14 @@ namespace GUI
     // Draw text aligned horizontally inside given bounds
     void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
 
+    // Parses the string and returns combination of label macro flags
+    GUILabelMacro FindLabelMacros(const String &text);
+    // Wraps given text to make it fit into width, stores it in the lines
+    size_t SplitLinesForDrawing(const char *text, SplitLines &lines, int font, int width, size_t max_lines = -1);
+    // Applies text transformation necessary for rendering, in accordance to the
+    // current game settings, such as right-to-left render, and anything else
+    String TransformTextForDrawing(const String &text, bool translate);
+
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl);
     // Mark all translatable GUI controls for redraw
@@ -229,9 +236,6 @@ namespace GUI
     void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
     // Mark inventory windows for redraw, optionally only ones linked to given character
     void MarkInventoryForUpdate(int char_id, bool is_player);
-
-    // Parses the string and returns combination of label macro flags
-    GUILabelMacro FindLabelMacros(const String &text);
 
     // Reads all GUIs and their controls.
     // WARNING: the data is read into the global arrays (guis, guibuts, and so on)

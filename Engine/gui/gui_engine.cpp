@@ -95,18 +95,27 @@ namespace AGS
 namespace Common
 {
 
-String GUI::TransformTextForDrawing(const String &text, bool translate)
+String GUI::ApplyTextDirection(const String &text)
 {
-    String res_text = translate ? text : get_translation(text.GetCStr());
-    if (game.options[OPT_RIGHTLEFTWRITE] != 0)
-        (get_uformat() == U_UTF8) ? res_text.ReverseUTF8() : res_text.Reverse();
+    if (game.options[OPT_RIGHTLEFTWRITE] == 0)
+        return text;
+    String res_text = text;
+    (get_uformat() == U_UTF8) ? res_text.ReverseUTF8() : res_text.Reverse();
     return res_text;
 }
 
-size_t GUI::SplitLinesForDrawing(const char *text, SplitLines &lines, int font, int width, size_t max_lines)
+String GUI::TransformTextForDrawing(const String &text, bool translate, bool apply_direction)
+{
+    String res_text = translate ? text : get_translation(text.GetCStr());
+    if (translate && apply_direction)
+        res_text = ApplyTextDirection(res_text);
+    return res_text;
+}
+
+size_t GUI::SplitLinesForDrawing(const char *text, bool is_translated, SplitLines &lines, int font, int width, size_t max_lines)
 {
     // Use the engine's word wrap tool, to have RTL writing and other features
-    return break_up_text_into_lines(text, lines, width, font);
+    return break_up_text_into_lines(text, is_translated, lines, width, font);
 }
 
 bool GUIObject::IsClickable() const
@@ -135,9 +144,11 @@ void GUIObject::ClearChanged()
     _hasChanged = false;
 }
 
-void GUILabel::PrepareTextToDraw()
+int GUILabel::PrepareTextToDraw()
 {
-    replace_macro_tokens(Flags & kGUICtrl_Translated ? get_translation(Text.GetCStr()) : Text.GetCStr(), _textToDraw);
+    const bool is_translated = Flags & kGUICtrl_Translated;
+    replace_macro_tokens(is_translated ? get_translation(Text.GetCStr()) : Text.GetCStr(), _textToDraw);
+    return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), is_translated, Lines, Font, Width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
@@ -154,12 +165,14 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
 
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
-     _textToDraw = GUI::TransformTextForDrawing(text, (Flags & kGUICtrl_Translated) != 0);
+     _textToDraw = GUI::TransformTextForDrawing(text, (Flags & kGUICtrl_Translated) != 0,
+         (loaded_game_file_version >= kGameVersion_361));
 }
 
 void GUIButton::PrepareTextToDraw()
 {
-    _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0);
+    _textToDraw = GUI::TransformTextForDrawing(_text, (Flags & kGUICtrl_Translated) != 0,
+        (loaded_game_file_version >= kGameVersion_361));
 }
 
 } // namespace Common

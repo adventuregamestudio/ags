@@ -72,14 +72,14 @@ namespace AGS
 namespace Common
 {
 
-String GUI::TransformTextForDrawing(const String &text, bool /*translate*/)
+String GUI::TransformTextForDrawing(const String &text, bool /*translate*/, bool /*apply_direction*/)
 {
     return text;
 }
 
-size_t GUI::SplitLinesForDrawing(const char *text, SplitLines &lines, int font, int width, size_t max_lines)
+size_t GUI::SplitLinesForDrawing(const char *text, bool /*apply_direction*/, SplitLines &lines, int font, int width, size_t max_lines)
 {
-    return split_lines(text, lines, width, font);
+    return split_lines(text, lines, width, font, max_lines);
 }
 
 bool GUIObject::IsClickable() const
@@ -98,9 +98,10 @@ void GUIObject::NotifyParentChanged()
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUILabel::PrepareTextToDraw()
+int GUILabel::PrepareTextToDraw()
 {
     _textToDraw = Text;
+    return 0;
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)

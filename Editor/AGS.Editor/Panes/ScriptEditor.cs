@@ -769,7 +769,7 @@ namespace AGS.Editor
 
         private void scintilla_TextModified(int startPos, int length, bool wasAdded)
         {
-            _editorTextModifiedSinceLastCopy = true;
+            _editorTextModifiedSinceLastCopy = IsModified; // IsModified is what keeps track of what is the actual last saved checkpoint
             int adjustment = length;
             if (!wasAdded)
             {

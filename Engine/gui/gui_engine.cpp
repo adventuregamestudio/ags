@@ -155,6 +155,8 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
 {
     _textToDraw = Text;
     bool reverse = false;
+    // Text boxes input is never "translated" in regular sense,
+    // but they use this flag to apply text direction
     if ((loaded_game_file_version >= kGameVersion_361) && ((Flags & kGUICtrl_Translated) != 0))
     {
         _textToDraw = GUI::ApplyTextDirection(Text);

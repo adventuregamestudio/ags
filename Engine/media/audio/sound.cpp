@@ -73,6 +73,7 @@ private:
     // and should not be added to the cache.
     size_t CalcSize(const DataRef &item) override
     {
+        assert(item);
         return item ? item->size() : 0u;
     }
 };

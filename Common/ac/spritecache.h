@@ -17,15 +17,13 @@
 // SpriteCache provides bitmaps by demand; it uses SpriteFile to load sprites
 // and does MRU (most-recent-use) caching.
 //
-// TODO: store sprite data in a specialized container type that is optimized
-// for having most keys allocated in large continious sequences by default.
+// TODO: refactor engine code to allow store and return shared_ptr<Bitmap>.
 //
-// Only for the reference: one of the ideas is for container to have a table
-// of arrays of fixed size internally. When getting an item the hash would be
-// first divided on array size to find the array the item resides in, then the
-// item is taken from item from slot index = (hash - arrsize * arrindex).
-// TODO: find out if there is already a hash table kind that follows similar
-// principle.
+// TODO: currently inherits ResourceCache<Bitmap> as protected, because sprites
+// are supposed to be added through specific methods that also imply streaming
+// from the file. Possibly we need another (base) class concept, something
+// called a ResourceManager, for instance. ResourceManager would contain both
+// some kind of a streaming object to load resources from, and a MRU Cache.
 //
 //=============================================================================
 #ifndef __AGS_CN_AC__SPRCACHE_H
@@ -38,6 +36,7 @@
 #include "core/platform.h"
 #include "ac/spritefile.h"
 #include "gfx/bitmap.h"
+#include "util/resourcecache.h"
 
 // Max size of the sprite cache, in bytes
 #if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
@@ -54,7 +53,8 @@ namespace AGS
 namespace Common
 {
 
-class SpriteCache
+class SpriteCache :
+    protected ResourceCache<sprkey_t, std::unique_ptr<Bitmap>>
 {
 public:
     static const sprkey_t MIN_SPRITE_INDEX = 1; // 0 is reserved for "empty sprite"
@@ -99,11 +99,13 @@ public:
     // Finds a free slot index, if all slots are occupied enlarges sprite bank; returns index
     sprkey_t    GetFreeIndex();
     // Returns current size of the cache, in bytes; this includes locked size too!
-    size_t      GetCacheSize() const;
+    inline size_t GetCacheSize() const { return ResourceCache::GetCacheSize(); }
     // Gets the total size of the locked sprites, in bytes
-    size_t      GetLockedSize() const;
+    inline size_t GetLockedSize() const { return ResourceCache::GetLockedSize(); }
+    // Gets the total size of the external locked sprites, in bytes
+    inline size_t GetExternalSize() const { return ResourceCache::GetExternalSize(); }
     // Returns maximal size limit of the cache, in bytes; this includes locked size too!
-    size_t      GetMaxCacheSize() const;
+    inline size_t GetMaxCacheSize() const { return ResourceCache::GetMaxCacheSize(); }
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     size_t      GetSpriteSlotCount() const;
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)
@@ -126,23 +128,24 @@ public:
     // *Deletes* the previous sprite if one was found at the same index.
     void        SetEmptySprite(sprkey_t index, bool as_asset);
     // Sets max cache size in bytes
-    void        SetMaxCacheSize(size_t size);
+    inline void SetMaxCacheSize(size_t size) { ResourceCache::SetMaxCacheSize(size); }
 
     // Loads (if it's not in cache yet) and returns bitmap by the sprite index
     Bitmap *operator[] (sprkey_t index);
 
+protected:
+    // Calculates item size; expects to return 0 if an item is invalid
+    // and should not be added to the cache.
+    size_t CalcSize(const std::unique_ptr<Bitmap> &item) override;
+
 private:
-    // Load sprite from game resource
-    size_t      LoadSprite(sprkey_t index);
+    // Load sprite from game resource and put into the cache
+    Bitmap *    LoadSprite(sprkey_t index);
     // Remap the given index to the sprite 0
     void        RemapSpriteToSprite0(sprkey_t index);
     // Gets the index of a sprite which data is used for the given slot;
     // in case of remapped sprite this will return the one given sprite is remapped to
     sprkey_t    GetDataIndex(sprkey_t index);
-    // Delete the oldest (least recently used) image in cache
-    void        DisposeOldest();
-    // Keep disposing oldest elements until cache has at least the given free space
-    void        FreeMem(size_t space);
     // Initialize the empty sprite slot
     void        InitNullSpriteParams(sprkey_t index);
     //
@@ -157,25 +160,10 @@ private:
     // Information required for the sprite streaming
     struct SpriteData
     {
-        size_t          Size = 0; // to track cache size, 0 = means don't track
-        uint32_t        Flags = 0; // SPRCACHEFLAG* flags
-        std::unique_ptr<Bitmap> Image; // actual bitmap
-        // MRU list reference
-        std::list<sprkey_t>::const_iterator MruIt;
+        uint32_t Flags = 0u;  // SPRCACHEFLAG* flags
 
         SpriteData() = default;
-        SpriteData(SpriteData &&other) = default;
-        SpriteData(Bitmap *image, size_t size, uint32_t flags)
-            : Size(size)
-            , Flags(flags)
-            , Image(image)
-        {
-        }
 
-        SpriteData &operator =(SpriteData &&other) = default;
-
-        // Tells if there actually is a registered sprite in this slot
-        bool DoesSpriteExist() const;
         // Tells if there's a game resource corresponding to this slot
         bool IsAssetSprite() const;
         // Tells if a sprite is remapped to placeholder (e.g. failed to load)
@@ -194,14 +182,6 @@ private:
     Callbacks  _callbacks;
     SpriteFile _file;
 
-    size_t _maxCacheSize;  // cache size limit
-    size_t _lockedSize;    // size in bytes of currently locked images
-    size_t _cacheSize;     // size in bytes of currently cached images
-
-    // MRU list: the way to track which sprites were used recently.
-    // When clearing up space for new sprites, cache first deletes the sprites
-    // that were last time used long ago.
-    std::list<sprkey_t> _mru;
 };
 
 } // namespace Common

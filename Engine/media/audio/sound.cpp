@@ -19,6 +19,7 @@
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"
 #include "util/path.h"
+#include "util/resourcecache.h"
 #include "util/stream.h"
 #include "util/string_types.h"
 
@@ -57,101 +58,28 @@ static int GuessSoundTypeFromExt(const String &extension)
 }
 
 // Sound cache, stores most recent used sounds, tracks use history with MRU list.
-// TODO: refactor into the resource cache class, share with the sprite cache.
-class SoundCache
+class SoundCache final :
+    public ResourceCache<String, std::shared_ptr<std::vector<uint8_t>>>
 {
 public:
     typedef std::shared_ptr<std::vector<uint8_t>> DataRef;
 
-    void SetMaxCacheSize(size_t size)
+    SoundCache() : ResourceCache(DEFAULT_SOUNDCACHESIZE_KB)
     {
-        _maxSize = size;
-        FreeMem(0); // makes sure it does not exceed max size
-    }
-
-    DataRef Get(const String &name)
-    {
-        const auto found = _map.find(name);
-        if (found == _map.end())
-            return DataRef();
-        // Move to the beginning of the MRU list
-        _mru.splice(_mru.begin(), _mru, found->second.MruIt);
-        return found->second.Data;
-    }
-
-    // Add particular item into the cache, remove oldest items if cache size is exceeded
-    void Put(const String &name, DataRef &ref)
-    {
-        assert(ref);
-        if (!ref)
-            return; // safety precaution
-        if (Get(name))
-            return; // already in cache
-        if (_maxSize == 0)
-            return; // cache is disabled
-        // Clear up space before adding
-        if (_cacheSize + ref->size() > _maxSize)
-            FreeMem(ref->size());
-        SoundEntry entry(name, ref);
-        entry.MruIt = _mru.insert(_mru.begin(), name);
-        _map[name] = std::move(entry);
-        _cacheSize += ref->size();
-    }
-
-    // Clear the cache, dispose all resources
-    void Clear()
-    {
-        _map.clear();
-        _mru.clear();
-        _cacheSize = 0u;
     }
 
 private:
-    // Delete the oldest (least recently used) item in cache
-    void DisposeOldest()
+    // Calculates item size; expects to return 0 if an item is invalid
+    // and should not be added to the cache.
+    size_t CalcSize(const DataRef &item) override
     {
-        assert(_mru.size() > 0);
-        if (_mru.size() == 0) return;
-        auto it = std::prev(_mru.end());
-        const auto id = *it;
-        _cacheSize -= _map[id].Data->size();
-        _map.erase(id);
-        // Remove from the mru list
-        _mru.erase(it);
+        return item ? item->size() : 0u;
     }
-    // Keep disposing oldest elements until cache has at least the given free space
-    void FreeMem(size_t space)
-    {
-        while ((_mru.size() > 0) && (_cacheSize >= (_maxSize - space)))
-        {
-            DisposeOldest();
-        }
-    }
-
-    struct SoundEntry
-    {
-        String Name;
-        DataRef Data;
-        // MRU list reference
-        std::list<String>::const_iterator MruIt;
-        SoundEntry() = default;
-        SoundEntry(const String &name, DataRef &data)
-            : Name(name), Data(data) {}
-    };
-
-    size_t _cacheSize = 0u;
-    size_t _maxSize = DEFAULT_SOUNDCACHESIZE_KB;
-    std::unordered_map<String, SoundEntry, HashStrNoCase> _map;
-    // MRU list: the way to track which items were used recently.
-    // When clearing up space for new items, cache first deletes the items
-    // that were last time used long ago.
-    std::list<String> _mru;
 };
 
 
 // Maximal sound asset size which is allowed to be loaded at once;
 // anything larger will be streamed
-// TODO: make configureable?
 static size_t MaxLoadAtOnce = DEFAULT_SOUNDLOADATONCE_KB;
 static SoundCache SndCache;
 

@@ -359,7 +359,7 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp)
 }
 
 int IAGSEngine::LookupParserWord (const char *word) {
-    return find_word_in_dictionary ((char*)word);
+    return find_word_in_dictionary(word);
 }
 
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked)
@@ -507,7 +507,7 @@ int IAGSEngine::GetWalkbehindBaseline (int32 wa) {
     return croom->walkbehind_base[wa];
 }
 void* IAGSEngine::GetScriptFunctionAddress (const char *funcName) {
-    return ccGetSymbolAddressForPlugin ((char*)funcName);
+    return ccGetSymbolAddressForPlugin(funcName);
 }
 int IAGSEngine::GetBitmapTransparentColor(BITMAP *bmp) {
     return bitmap_mask_color (bmp);
@@ -671,7 +671,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
         RuntimeScriptValue().SetPluginArgument(arg2),
         RuntimeScriptValue().SetPluginArgument(arg3),
     };
-    int toret = RunScriptFunction(toRun, (char*)name, numArgs, params);
+    int toret = RunScriptFunction(toRun, name, numArgs, params);
     return toret;
 }
 

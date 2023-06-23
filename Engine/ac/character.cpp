@@ -742,12 +742,12 @@ void Character_Say(CharacterInfo *chaa, const char *text) {
 
 void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx) {
 
-    DisplaySpeechAt(x, y, width, chaa->index_id, (char*)texx);
+    DisplaySpeechAt(x, y, width, chaa->index_id, texx);
 }
 
 ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 
-    int ovltype = DisplaySpeechBackground(chaa->index_id, (char*)texx);
+    int ovltype = DisplaySpeechBackground(chaa->index_id, texx);
     int ovri = find_overlay_of_type(ovltype);
     if (ovri<0)
         quit("!SayBackground internal error: no overlay");
@@ -2109,7 +2109,7 @@ int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
 void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
-    _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
+    _sc_PlayerCharPtr = ccGetObjectHandleFromAddress(playerchar);
     if (loaded_game_file_version < kGameVersion_270) {
         ccAddExternalScriptObject("player", playerchar, &ccDynamicCharacter);
     }
@@ -2417,7 +2417,7 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
         ypp = -1;
     }
 
-    _displayspeech ((char*)displbuf, chid, xpp, ypp, width, 1);
+    _displayspeech(displbuf, chid, xpp, ypp, width, 1);
 }
 
 void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought) {

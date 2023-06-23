@@ -106,6 +106,19 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Returns number of sprites found in the current folder and sub-folders.
+        /// </summary>
+        public int CountSpritesInAllSubFolders()
+        {
+            int count = Sprites.Count;
+            foreach (ISpriteFolder folder in SubFolders)
+            {
+                count += folder.CountSpritesInAllSubFolders();
+            }
+            return count;
+        }
+
+        /// <summary>
         /// Assembles a list of all the sprites in the current folder and sub-folders
         /// </summary>
         /// <returns>

@@ -40,6 +40,11 @@ namespace AGS.Types
         SpriteFolder FindFolderThatContainsSprite(int spriteNumber);
 
         /// <summary>
+        /// Returns total number of sprites found in the current folder and sub-folders.
+        /// </summary>
+        int CountSpritesInAllSubFolders();
+
+        /// <summary>
         /// Assembles a list of all the sprites in the current folder and sub-folders
         /// </summary>
         /// <returns>

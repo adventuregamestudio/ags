@@ -1589,7 +1589,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap
   }
 
   bool usingLinearFiltering = _filter->NeedToColourEdgeLines();
-  char *memPtr = (char*)lockedRegion.pBits;
+  uint8_t *memPtr = static_cast<uint8_t*>(lockedRegion.pBits);
 
   if (opaque)
     BitmapToVideoMemOpaque(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch);

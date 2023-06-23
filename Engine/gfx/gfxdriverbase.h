@@ -338,10 +338,10 @@ protected:
 
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
     void BitmapToVideoMem(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
-                            char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
+                            uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
     // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
     void BitmapToVideoMemOpaque(const Bitmap *bitmap, const bool has_alpha, const TextureTile *tile,
-        char *dst_ptr, const int dst_pitch);
+        uint8_t *dst_ptr, const int dst_pitch);
 
     // Stage matrixes are used to let plugins with hardware acceleration know model matrix;
     // these matrixes are filled compatible with each given renderer

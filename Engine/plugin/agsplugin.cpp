@@ -101,33 +101,24 @@ const int PLUGIN_API_VERSION = 26;
 struct EnginePlugin {
     AGS::Common::String  filename;
     AGS::Engine::Library library;
-    bool       available;
-    char       *savedata;
-    int         savedatasize;
-    int         wantHook;
-    int         invalidatedRegion;
+    bool        available;
+    std::vector<uint8_t> savedata;
+    int         wantHook = 0;
+    int         invalidatedRegion = 0;
     void      (*engineStartup) (IAGSEngine *) = nullptr;
     void      (*engineShutdown) () = nullptr;
     int       (*onEvent) (int, int) = nullptr;
     void      (*initGfxHook) (const char *driverName, void *data) = nullptr;
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
-    IAGSEngine  eiface;
-    bool        builtin;
+    IAGSEngine  eiface; // CHECKME: why do we have a separate object per plugin?
+    bool        builtin = false;
 
     EnginePlugin() {
-        wantHook = 0;
-        invalidatedRegion = 0;
-        savedata = nullptr;
-        savedatasize = 0;
-        builtin = false;
-        available = false;
         eiface.version = 0;
         eiface.pluginId = 0;
     }
 };
-#define MAXPLUGINS 20
-EnginePlugin plugins[MAXPLUGINS];
-int numPlugins = 0;
+std::vector<EnginePlugin> plugins;
 int pluginsWantingDebugHooks = 0;
 
 //
@@ -206,13 +197,13 @@ void IAGSEngine::UnrequestEventHook(int32 event) {
 }
 
 int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
-    int savedatasize = plugins[this->pluginId].savedatasize;
+    int savedatasize = plugins[this->pluginId].savedata.size();
 
     if (bufsize < savedatasize)
         quit("!IAGSEngine::GetSavedData: buffer too small");
 
     if (savedatasize > 0)
-        memcpy (buffer, plugins[this->pluginId].savedata, savedatasize);
+        memcpy(buffer, &plugins[this->pluginId].savedata.front(), savedatasize);
 
     return savedatasize;
 }
@@ -833,39 +824,30 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
 // *********** General plugin implementation **********
 
 void pl_stop_plugins() {
-    int a;
     ccSetDebugHook(nullptr);
 
-    for (a = 0; a < numPlugins; a++) {
-        if (plugins[a].available) {
-            if (plugins[a].engineShutdown != nullptr)
-                plugins[a].engineShutdown();
-            plugins[a].wantHook = 0;
-            if (plugins[a].savedata) {
-                free(plugins[a].savedata);
-                plugins[a].savedata = nullptr;
-            }
-            if (!plugins[a].builtin) {
-              plugins[a].library.Unload();
-            }
+    for (auto &plugin : plugins) {
+        if (plugin.available) {
+            if (plugin.engineShutdown != nullptr)
+                plugin.engineShutdown();
+            if (!plugin.builtin)
+              plugin.library.Unload();
         }
     }
-    numPlugins = 0;
+    plugins.clear();
 }
 
 void pl_startup_plugins() {
-    int i;
-    for (i = 0; i < numPlugins; i++) {
-        if (plugins[i].available)
-            plugins[i].engineStartup (&plugins[i].eiface);
+    for (auto &plugin : plugins) {
+        if (plugin.available)
+            plugin.engineStartup(&plugin.eiface);
     }
 }
 
 int pl_run_plugin_hooks (int event, int data) {
-    int i, retval = 0;
-    for (i = 0; i < numPlugins; i++) {
-        if (plugins[i].wantHook & event) {
-            retval = plugins[i].onEvent (event, data);
+    for (auto &plugin : plugins) {
+        if (plugin.wantHook & event) {
+            int retval = plugin.onEvent(event, data);
             if (retval)
                 return retval;
         }
@@ -874,10 +856,9 @@ int pl_run_plugin_hooks (int event, int data) {
 }
 
 int pl_run_plugin_debug_hooks (const char *scriptfile, int linenum) {
-    int i, retval = 0;
-    for (i = 0; i < numPlugins; i++) {
-        if (plugins[i].wantHook & AGSE_SCRIPTDEBUG) {
-            retval = plugins[i].debugHook(scriptfile, linenum, 0);
+    for (auto &plugin : plugins) {
+        if (plugin.wantHook & AGSE_SCRIPTDEBUG) {
+            int retval = plugin.debugHook(scriptfile, linenum, 0);
             if (retval)
                 return retval;
         }
@@ -886,11 +867,11 @@ int pl_run_plugin_debug_hooks (const char *scriptfile, int linenum) {
 }
 
 void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
-    for (int i = 0; i < numPlugins; i++) 
+    for (auto &plugin : plugins)
     {
-        if (plugins[i].initGfxHook != nullptr)
+        if (plugin.initGfxHook != nullptr)
         {
-            plugins[i].initGfxHook(driverName, data);
+            plugin.initGfxHook(driverName, data);
         }
     }
 }
@@ -1005,15 +986,12 @@ Engine::GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
     if (ResPaths.DataDir != appDirectory)
         lookup_dirs.push_back(ResPaths.DataDir);
 
-    numPlugins = 0;
     for (size_t inf_index = 0; inf_index < infos.size(); ++inf_index)
     {
         const Common::PluginInfo &info = infos[inf_index];
         String name = info.Name;
         if (name.GetLast() == '!')
             continue; // editor-only plugin, ignore it
-        if (numPlugins == MAXPLUGINS)
-            return kGameInitErr_TooManyPlugins;
         // AGS Editor currently saves plugin names in game data with
         // ".dll" extension appended; we need to take care of that
         const String name_ext = ".dll";
@@ -1024,15 +1002,11 @@ Engine::GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
         // remove ".dll" from plugin's name
         name.ClipRight(name_ext.GetLength());
 
-        EnginePlugin *apl = &plugins[numPlugins++];
+        plugins.push_back(EnginePlugin());
+        EnginePlugin *apl = &plugins.back();
         // Copy plugin info
         apl->filename = name;
-        if (info.DataLen > 0)
-        {
-            apl->savedata = (char*)malloc(info.DataLen);
-            memcpy(apl->savedata, &info.Data.front(), info.DataLen);
-        }
-        apl->savedatasize = info.DataLen;
+        apl->savedata = info.Data;
 
         // Compatibility with the old SnowRain module
         if (apl->filename.CompareNoCase("ags_SnowRain20") == 0) {
@@ -1077,7 +1051,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<PluginInfo> &infos)
           }
         }
 
-        apl->eiface.pluginId = numPlugins - 1;
+        apl->eiface.pluginId = plugins.size() - 1;
         apl->eiface.version = PLUGIN_API_VERSION;
         apl->wantHook = 0;
         apl->available = true;
@@ -1090,19 +1064,19 @@ bool pl_is_plugin_loaded(const char *pl_name)
     if (!pl_name)
         return false;
 
-    for (int i = 0; i < numPlugins; ++i)
+    for (auto &plugin : plugins)
     {
-        if (plugins[i].filename.CompareNoCase(pl_name) == 0)
-            return plugins[i].available;
+        if (plugin.filename.CompareNoCase(pl_name) == 0)
+            return plugin.available;
     }
     return false;
 }
 
 bool pl_any_want_hook(int event)
 {
-    for (int i = 0; i < numPlugins; ++i)
+    for (auto &plugin : plugins)
     {
-        if(plugins[i].wantHook & event)
+        if(plugin.wantHook & event)
             return true;
     }
     return false;

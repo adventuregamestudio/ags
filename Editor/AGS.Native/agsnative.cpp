@@ -3129,8 +3129,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
 	for (i = 0; i < numThisgamePlugins; i++) 
 	{
-		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].DataLen);
-		for (size_t j = 0; j < thisgamePlugins[i].DataLen; j++) 
+		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].Data.size());
+		for (size_t j = 0; j < thisgamePlugins[i].Data.size(); j++) 
 		{
 			pluginData[j] = thisgamePlugins[i].Data[j];
 		}

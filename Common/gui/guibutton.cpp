@@ -316,8 +316,6 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (TextColor == 0)
         TextColor = 16;
     CurrentImage = Image;
-    // All buttons are translated at the moment
-    Flags |= kGUICtrl_Translated;
 }
 
 void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)

@@ -241,6 +241,19 @@ namespace AGS.Editor
                 }
             }
 
+            if (xmlVersionIndex < 8)
+            {
+                // GUIListBox Translated property should be false, as they never translated in older games
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl guic in gui.Controls)
+                    {
+                        if (guic is GUIListBox)
+                            (guic as GUIListBox).Translated = false;
+                    }
+                }
+            }
+
             if (xmlVersionIndex < 12)
             {
                 game.Settings.UseOldCustomDialogOptionsAPI = true;

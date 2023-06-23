@@ -145,8 +145,6 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (TextColor == 0)
         TextColor = 16;
-    // All labels are translated at the moment
-    Flags |= kGUICtrl_Translated;
 
     _textMacro = GUI::FindLabelMacros(Text);
 }

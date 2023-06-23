@@ -44,6 +44,7 @@ extern IGraphicsDriver *gfxDriver;
 
 
 std::vector<ScreenOverlay> screenover;
+std::vector<int> overlookup(128);
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -404,9 +405,16 @@ void remove_screen_overlay(int type)
 
 int find_overlay_of_type(int type)
 {
-    for (size_t i = 0; i < screenover.size(); ++i)
+    int idx = overlookup[type];
+    if (idx >= 0 && idx < screenover.size() && screenover[idx].type == type)
+        return idx;
+    for (idx = 0; idx < screenover.size(); ++idx)
     {
-        if (screenover[i].type == type) return i;
+        if (screenover[idx].type == type)
+        {
+            overlookup[type] = idx;
+            return idx;
+        }
     }
     return -1;
 }
@@ -414,6 +422,9 @@ int find_overlay_of_type(int type)
 size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
     int pic_offx, int pic_offy, bool has_alpha)
 {
+    const auto new_size = screenover.size() + OVER_CUSTOM + 2;
+    if(overlookup.size() < new_size) overlookup.resize(new_size);
+
     if (type == OVER_CUSTOM) {
         // find an unused custom ID; TODO: find a better approach!
         for (int id = OVER_CUSTOM + 1; (size_t)id <= screenover.size() + OVER_CUSTOM + 1; ++id) {
@@ -461,6 +472,7 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
         play.speech_face_schandle = over.associatedOverlayHandle;
     }
     over.MarkChanged();
+    overlookup[type] = screenover.size();
     screenover.push_back(std::move(over));
     return screenover.size() - 1;
 }
@@ -527,8 +539,11 @@ Point get_overlay_position(const ScreenOverlay &over)
 
 void recreate_overlay_ddbs()
 {
-    for (auto &over : screenover)
+    overlookup.resize(screenover.size() + OVER_CUSTOM + 2);
+    for (size_t i=0; i<screenover.size(); i++)
     {
+        auto &over = screenover[i];
+        overlookup[over.type] = i;
         if (over.ddb)
             gfxDriver->DestroyDDB(over.ddb);
         over.ddb = nullptr; // is generated during first draw pass

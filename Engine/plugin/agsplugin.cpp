@@ -98,10 +98,18 @@ extern RuntimeScriptValue GlobalReturnValue;
 
 
 const int PLUGIN_API_VERSION = 26;
-struct EnginePlugin {
+struct EnginePlugin
+{
+    EnginePlugin() {
+        eiface.version = 0;
+        eiface.pluginId = 0;
+    }
+    EnginePlugin(const EnginePlugin&) = delete;
+    EnginePlugin(EnginePlugin&&) = default;
+
     AGS::Common::String  filename;
     AGS::Engine::Library library;
-    bool        available;
+    bool        available = false;
     std::vector<uint8_t> savedata;
     int         wantHook = 0;
     int         invalidatedRegion = 0;
@@ -112,12 +120,8 @@ struct EnginePlugin {
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved) = nullptr;
     IAGSEngine  eiface; // CHECKME: why do we have a separate object per plugin?
     bool        builtin = false;
-
-    EnginePlugin() {
-        eiface.version = 0;
-        eiface.pluginId = 0;
-    }
 };
+
 std::vector<EnginePlugin> plugins;
 int pluginsWantingDebugHooks = 0;
 

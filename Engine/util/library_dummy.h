@@ -25,6 +25,8 @@ class DummyLibrary final : public BaseLibrary
 {
 public:
     DummyLibrary() = default;
+    DummyLibrary(const DummyLibrary&) = delete;
+    DummyLibrary(DummyLibrary &&other) = default;
     ~DummyLibrary() override { /* do nothing */ };
 
     String GetFilenameForLib(const String &libname) override

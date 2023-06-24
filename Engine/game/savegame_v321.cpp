@@ -305,10 +305,11 @@ static void ReadOverlays_Aligned(Stream *in, std::vector<bool> &has_bitmap, size
 {
     AlignedStream align_s(in, Common::kAligned_Read);
     has_bitmap.resize(num_overs);
+    auto &overs = get_overlays();
     for (size_t i = 0; i < num_overs; ++i)
     {
         bool has_bm;
-        screenover[i].ReadFromFile(&align_s, has_bm, 0);
+        overs[i].ReadFromFile(&align_s, has_bm, 0);
         has_bitmap[i] = has_bm;
         align_s.Reset();
     }
@@ -317,13 +318,14 @@ static void ReadOverlays_Aligned(Stream *in, std::vector<bool> &has_bitmap, size
 static void restore_game_overlays(Stream *in)
 {
     size_t num_overs = in->ReadInt32();
-    screenover.resize(num_overs);
+    auto &overs = get_overlays();
+    overs.resize(num_overs);
     std::vector<bool> has_bitmap;
     ReadOverlays_Aligned(in, has_bitmap, num_overs);
     for (size_t i = 0; i < num_overs; ++i) {
         if (has_bitmap[i])
-            screenover[i].SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)),
-                screenover[i].offsetX, screenover[i].offsetY);
+            overs[i].SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)),
+                overs[i].offsetX, overs[i].offsetY);
     }
 }
 

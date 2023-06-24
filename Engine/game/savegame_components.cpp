@@ -845,8 +845,9 @@ HSaveError ReadDynamicSprites(Stream *in, int32_t /*cmp_ver*/, const PreservedPa
 
 HSaveError WriteOverlays(Stream *out)
 {
-    out->WriteInt32(screenover.size());
-    for (const auto &over : screenover)
+    const auto &overs = get_overlays();
+    out->WriteInt32(overs.size());
+    for (const auto &over : overs)
     {
         over.WriteToFile(out);
         if (!over.IsSpriteReference())
@@ -858,6 +859,7 @@ HSaveError WriteOverlays(Stream *out)
 HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
 {
     size_t over_count = in->ReadInt32();
+    auto &overs = get_overlays();
     for (size_t i = 0; i < over_count; ++i)
     {
         ScreenOverlay over;
@@ -870,7 +872,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
             over.scaleWidth = over.GetImage()->GetWidth();
             over.scaleHeight = over.GetImage()->GetHeight();
         }
-        screenover.push_back(std::move(over));
+        overs.push_back(std::move(over));
     }
     return HSaveError::None();
 }

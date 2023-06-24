@@ -38,7 +38,9 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
     const char *text, int disp_type, int allow_shrink);
 
-int  find_overlay_of_type(int type);
+ScreenOverlay &get_overlay(int index);
+ScreenOverlay *find_overlay_of_type(int type);
+int find_overlay_index(int type);
 void remove_screen_overlay(int type);
 // Calculates overlay position in its respective layer (screen or room)
 Point get_overlay_position(const ScreenOverlay &over);
@@ -51,6 +53,7 @@ void remove_screen_overlay_index(size_t over_idx);
 ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);
 void recreate_overlay_ddbs();
 
+std::vector<ScreenOverlay> &get_overlays();
 
-extern std::vector<ScreenOverlay> screenover;
+
 #endif // __AGS_EE_AC__OVERLAY_H

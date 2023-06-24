@@ -1898,9 +1898,9 @@ void add_walkbehind_image(size_t index, Common::Bitmap *bmp, int x, int y)
 // Add active room overlays to the sprite list
 static void add_roomovers_for_drawing()
 {
-    for (size_t i = 0; i < screenover.size(); ++i)
+    const auto &overs = get_overlays();
+    for (const auto &over : overs)
     {
-        auto &over = screenover[i];
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
@@ -2146,9 +2146,9 @@ void draw_gui_and_overlays()
 
     const bool is_software_mode = !gfxDriver->HasAcceleratedTransform();
     // Add active overlays to the sprite list
-    for (size_t i = 0; i < screenover.size(); ++i)
+    const auto &overs = get_overlays();
+    for (const auto &over : overs)
     {
-        auto &over = screenover[i];
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
@@ -2372,14 +2372,15 @@ static void construct_ui_view()
 static void construct_overlays()
 {
     const bool is_software_mode = !gfxDriver->HasAcceleratedTransform();
-    if (overlaybmp.size() < screenover.size())
+    auto &overs = get_overlays();
+    if (overlaybmp.size() < overs.size())
     {
-        overlaybmp.resize(screenover.size());
-        screenovercache.resize(screenover.size());
+        overlaybmp.resize(overs.size());
+        screenovercache.resize(overs.size());
     }
-    for (size_t i = 0; i < screenover.size(); ++i)
+    for (size_t i = 0; i < overs.size(); ++i)
     {
-        auto &over = screenover[i];
+        auto &over = overs[i];
         if (over.transparency == 255) continue; // skip fully transparent
 
         bool has_changed = over.HasChanged();

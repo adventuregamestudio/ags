@@ -55,10 +55,11 @@ void SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int text_col
 void MoveOverlay(int ovrid, int newx,int newy) {
     data_to_game_coords(&newx, &newy);
 
-    int ovri=find_overlay_of_type(ovrid);
-    if (ovri<0) quit("!MoveOverlay: invalid overlay ID specified");
-    screenover[ovri].x=newx;
-    screenover[ovri].y=newy;
+    auto *over = find_overlay_of_type(ovrid);
+    if (!over)
+        quit("!MoveOverlay: invalid overlay ID specified");
+    over->x = newx;
+    over->y = newy;
 }
 
 int IsOverlayValid(int ovrid) {

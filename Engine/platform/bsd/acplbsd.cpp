@@ -19,7 +19,7 @@
 // *************** FREEBSD DRIVER ***************
 
 #include "platform/base/agsplatformdriver.h"
-#include "platform/base/agsplatform_unix.h"
+#include "platform/base/agsplatform_xdg_unix.h"
 
 struct AGSFreeBSD : AGSPlatformXDGUnix {
     eScriptSystemOSID GetSystemOSID() override;

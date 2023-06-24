@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/overlay.h"
 #include <algorithm>
+#include <queue>
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/character.h"
@@ -42,9 +43,11 @@ extern int face_talking;
 extern std::vector<ViewStruct> views;
 extern IGraphicsDriver *gfxDriver;
 
-
+// TODO: consider some kind of a "object pool" template,
+// which handles this kind of storage; share with ManagedPool's handles?
 std::vector<ScreenOverlay> screenover;
-std::vector<int> overlookup(128);
+std::queue<int32_t> over_free_ids;
+
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -52,7 +55,7 @@ void Overlay_Remove(ScriptOverlay *sco) {
 
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text)
 {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!Overlay.SetText: invalid overlay ID specified");
     const int x = over->x;
@@ -83,7 +86,7 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
 }
 
 int Overlay_GetX(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -92,7 +95,7 @@ int Overlay_GetX(ScriptOverlay *scover) {
 }
 
 void Overlay_SetX(ScriptOverlay *scover, int newx) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -100,7 +103,7 @@ void Overlay_SetX(ScriptOverlay *scover, int newx) {
 }
 
 int Overlay_GetY(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -109,7 +112,7 @@ int Overlay_GetY(ScriptOverlay *scover) {
 }
 
 void Overlay_SetY(ScriptOverlay *scover, int newy) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -117,7 +120,7 @@ void Overlay_SetY(ScriptOverlay *scover, int newy) {
 }
 
 int Overlay_GetGraphic(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     return over->GetSpriteNum();
@@ -129,42 +132,42 @@ void Overlay_SetGraphic(ScriptOverlay *scover, int slot) {
         debug_script_warn("Overlay.SetGraphic: sprite %d is invalid", slot);
         slot = 0;
     }
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     over->SetSpriteNum(slot);
 }
 
 bool Overlay_InRoom(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     return over->IsRoomLayer();
 }
 
 int Overlay_GetWidth(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     return game_to_data_coord(over->scaleWidth);
 }
 
 int Overlay_GetHeight(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     return game_to_data_coord(over->scaleHeight);
 }
 
 int Overlay_GetGraphicWidth(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     return game_to_data_coord(over->GetImage()->GetWidth());
 }
 
 int Overlay_GetGraphicHeight(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     return game_to_data_coord(over->GetImage()->GetHeight());
@@ -185,14 +188,14 @@ void Overlay_SetScaledSize(ScreenOverlay &over, int width, int height) {
 }
 
 void Overlay_SetWidth(ScriptOverlay *scover, int width) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     Overlay_SetScaledSize(*over, width, game_to_data_coord(over->scaleHeight));
 }
 
 void Overlay_SetHeight(ScriptOverlay *scover, int height) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     Overlay_SetScaledSize(*over, game_to_data_coord(over->scaleWidth), height);
@@ -276,7 +279,7 @@ ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int 
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -284,7 +287,7 @@ int Overlay_GetTransparency(ScriptOverlay *scover) {
 }
 
 void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
     if ((trans < 0) | (trans > 100))
@@ -294,7 +297,7 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
 }
 
 int Overlay_GetZOrder(ScriptOverlay *scover) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -302,7 +305,7 @@ int Overlay_GetZOrder(ScriptOverlay *scover) {
 }
 
 void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
-    auto *over = find_overlay_of_type(scover->overlayId);
+    auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
 
@@ -356,12 +359,13 @@ static void dispose_overlay(ScreenOverlay &over)
     }
 }
 
-void remove_screen_overlay_index(size_t over_idx)
+void remove_screen_overlay(int type)
 {
-    assert(over_idx < screenover.size());
-    if (over_idx >= screenover.size())
+    assert(type >= 0 && type < screenover.size());
+    if (type < 0 || type >= screenover.size() || screenover[type].type < 0)
         return; // something is wrong
-    ScreenOverlay &over = screenover[over_idx];
+
+    ScreenOverlay &over = screenover[type];
     // TODO: move these custom settings outside of this function
     if (over.type == play.complete_overlay_on)
     {
@@ -384,65 +388,45 @@ void remove_screen_overlay_index(size_t over_idx)
         invalidate_and_subref(over);
     }
     dispose_overlay(over);
-    screenover.erase(screenover.begin() + over_idx);
-    // if an overlay before the sierra-style speech one is removed, update the index
-    // TODO: this is bad, need more generic system to store overlay references
-    if ((size_t)face_talking > over_idx)
-        face_talking--;
+
+    // Don't erase vector elements, instead set invalid and record free index
+    screenover[type] = ScreenOverlay();
+    if (type >= OVER_FIRSTFREE)
+        over_free_ids.push(type);
 }
 
-void remove_screen_overlay(int type)
+void remove_all_overlays()
 {
-    for (size_t i = 0; i < screenover.size();)
-    {
-        if (type < 0 || screenover[i].type == type)
-            remove_screen_overlay_index(i);
-        else
-            i++;
-    }
+    for (int i = 0; i < screenover.size(); ++i)
+        remove_screen_overlay(i);
 }
 
-ScreenOverlay &get_overlay(int index)
+ScreenOverlay *get_overlay(int index)
 {
     assert(index >= 0 && index < screenover.size());
-    return screenover[index];
-}
-
-int find_overlay_index(int type)
-{
-    assert(type >= 0);
-    int idx = overlookup[type];
-    if (idx >= 0 && idx < screenover.size() && screenover[idx].type == type)
-        return idx;
-    for (idx = 0; idx < screenover.size(); ++idx)
-    {
-        if (screenover[idx].type == type)
-        {
-            overlookup[type] = idx;
-            return idx;
-        }
-    }
-    return -1;
-}
-
-ScreenOverlay *find_overlay_of_type(int type)
-{
-    int idx = find_overlay_index(type);
-    return idx >= 0 ? &screenover[idx] : nullptr;
+    return (index >= 0 && index < screenover.size()) ? &screenover[index] : nullptr;
 }
 
 size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
     int pic_offx, int pic_offy, bool has_alpha)
 {
-    const auto new_size = screenover.size() + OVER_CUSTOM + 2;
-    if(overlookup.size() < new_size) overlookup.resize(new_size);
-
-    if (type == OVER_CUSTOM) {
-        // find an unused custom ID; TODO: find a better approach!
-        for (int id = OVER_CUSTOM + 1; (size_t)id <= screenover.size() + OVER_CUSTOM + 1; ++id) {
-            if (find_overlay_of_type(id) == nullptr) { type=id; break; }
+    if (type == OVER_CUSTOM)
+    {
+        // Find a free ID
+        if (over_free_ids.size() > 0)
+        {
+            type = over_free_ids.front();
+            over_free_ids.pop();
+        }
+        else
+        {
+            type = std::max(static_cast<size_t>(OVER_FIRSTFREE), screenover.size());
         }
     }
+
+    if (screenover.size() <= type)
+        screenover.resize(type + 1);
+
     ScreenOverlay over;
     if (piccy)
     {
@@ -484,9 +468,8 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
         play.speech_face_schandle = over.associatedOverlayHandle;
     }
     over.MarkChanged();
-    overlookup[type] = screenover.size();
-    screenover.push_back(std::move(over));
-    return screenover.size() - 1;
+    screenover[type] = std::move(over);
+    return type;
 }
 
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum)
@@ -549,17 +532,21 @@ Point get_overlay_position(const ScreenOverlay &over)
     }
 }
 
-void recreate_overlay_ddbs()
+void restore_overlays()
 {
-    overlookup.resize(screenover.size() + OVER_CUSTOM + 2);
-    for (size_t i=0; i<screenover.size(); i++)
+    // Will have to readjust free ids records, as overlays may be restored in any random slots
+    while (!over_free_ids.empty()) { over_free_ids.pop(); }
+    for (size_t i = 0; i < screenover.size(); ++i)
     {
         auto &over = screenover[i];
-        overlookup[over.type] = i;
-        if (over.ddb)
-            gfxDriver->DestroyDDB(over.ddb);
-        over.ddb = nullptr; // is generated during first draw pass
-        over.MarkChanged();
+        if (over.type >= 0)
+        {
+            over.MarkChanged(); // force recreate texture on next draw
+        }
+        else if (i >= OVER_FIRSTFREE)
+        {
+            over_free_ids.push(i);
+        }
     }
 }
 

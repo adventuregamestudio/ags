@@ -1901,6 +1901,7 @@ static void add_roomovers_for_drawing()
     const auto &overs = get_overlays();
     for (const auto &over : overs)
     {
+        if (over.type < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
@@ -2149,6 +2150,7 @@ void draw_gui_and_overlays()
     const auto &overs = get_overlays();
     for (const auto &over : overs)
     {
+        if (over.type < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
@@ -2381,6 +2383,7 @@ static void construct_overlays()
     for (size_t i = 0; i < overs.size(); ++i)
     {
         auto &over = overs[i];
+        if (over.type < 0) continue; // empty slot
         if (over.transparency == 255) continue; // skip fully transparent
 
         bool has_changed = over.HasChanged();

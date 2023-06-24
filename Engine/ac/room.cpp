@@ -304,7 +304,7 @@ void unload_old_room() {
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
-    remove_screen_overlay(-1);
+    remove_all_overlays();
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
     for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)

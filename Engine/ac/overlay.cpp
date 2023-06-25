@@ -361,9 +361,8 @@ static void dispose_overlay(ScreenOverlay &over)
 
 void remove_screen_overlay(int type)
 {
-    assert(type >= 0 && type < screenover.size());
-    if (type < 0 || type >= screenover.size() || screenover[type].type < 0)
-        return; // something is wrong
+    if (type < 0 || static_cast<uint32_t>(type) >= screenover.size() || screenover[type].type < 0)
+        return; // requested non-existing overlay
 
     ScreenOverlay &over = screenover[type];
     // TODO: move these custom settings outside of this function
@@ -397,14 +396,14 @@ void remove_screen_overlay(int type)
 
 void remove_all_overlays()
 {
-    for (int i = 0; i < screenover.size(); ++i)
-        remove_screen_overlay(i);
+    for (auto &over : screenover)
+        remove_screen_overlay(over.type);
 }
 
-ScreenOverlay *get_overlay(int index)
+ScreenOverlay *get_overlay(int type)
 {
-    assert(index >= 0 && index < screenover.size());
-    return (index >= 0 && index < screenover.size()) ? &screenover[index] : nullptr;
+    return (type >= 0 && static_cast<uint32_t>(type) < screenover.size() &&
+        screenover[type].type >= 0) ? &screenover[type] : nullptr;
 }
 
 size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
@@ -424,7 +423,7 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
         }
     }
 
-    if (screenover.size() <= type)
+    if (screenover.size() <= static_cast<uint32_t>(type))
         screenover.resize(type + 1);
 
     ScreenOverlay over;

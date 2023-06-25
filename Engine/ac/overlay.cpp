@@ -405,6 +405,7 @@ void remove_screen_overlay(int type)
 
 int find_overlay_of_type(int type)
 {
+    assert(type >= 0);
     int idx = overlookup[type];
     if (idx >= 0 && idx < screenover.size() && screenover[idx].type == type)
         return idx;

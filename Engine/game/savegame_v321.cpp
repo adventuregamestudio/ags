@@ -312,6 +312,9 @@ static void ReadOverlays_Aligned(Stream *in, std::vector<bool> &has_bitmap, size
         bool has_bm;
         ScreenOverlay over;
         over.ReadFromFile(&align_s, has_bm, 0);
+        align_s.Reset();
+        if (over.type < 0)
+            continue; // safety abort
         if (overs.size() <= over.type)
         {
             overs.resize(over.type + 1);
@@ -319,7 +322,6 @@ static void ReadOverlays_Aligned(Stream *in, std::vector<bool> &has_bitmap, size
         }
         overs[over.type] = std::move(over);
         has_bitmap[over.type] = has_bm;
-        align_s.Reset();
     }
 }
 

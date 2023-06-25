@@ -1279,8 +1279,6 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     our_eip = -179;
 
-    engine_init_resolution_settings(game.GetGameRes());
-
     engine_adjust_for_rotation_settings();
 
     // Attempt to initialize graphics mode

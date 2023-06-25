@@ -38,6 +38,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
+#include "gui/guiinv.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
@@ -51,6 +52,7 @@
 using namespace Common;
 using namespace Engine;
 
+extern ScriptSystem scsystem;
 extern std::vector<ViewStruct> views;
 
 extern CCGUIObject ccDynamicGUIObject;
@@ -370,6 +372,104 @@ void LoadLipsyncData()
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }
 
+// Convert guis position and size to proper game resolution.
+// Necessary for pre 3.1.0 games only to sync with modern engine.
+static void ConvertGuiToGameRes(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    if (data_ver >= kGameVersion_310)
+        return;
+
+    const int mul = game.GetDataUpscaleMult();
+    for (int i = 0; i < game.numcursors; ++i)
+    {
+        game.mcurs[i].hotx *= mul;
+        game.mcurs[i].hoty *= mul;
+    }
+
+    for (int i = 0; i < game.numinvitems; ++i)
+    {
+        game.invinfo[i].hotx *= mul;
+        game.invinfo[i].hoty *= mul;
+    }
+
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        GUIMain*cgp = &guis[i];
+        cgp->X *= mul;
+        cgp->Y *= mul;
+        if (cgp->Width < 1)
+            cgp->Width = 1;
+        if (cgp->Height < 1)
+            cgp->Height = 1;
+        // This is probably a way to fix GUIs meant to be covering whole screen
+        if (cgp->Width == game.GetDataRes().Width - 1)
+            cgp->Width = game.GetDataRes().Width;
+
+        cgp->Width *= mul;
+        cgp->Height *= mul;
+
+        cgp->PopupAtMouseY *= mul;
+
+        for (int j = 0; j < cgp->GetControlCount(); ++j)
+        {
+            GUIObject *guio = cgp->GetControl(j);
+            guio->X *= mul;
+            guio->Y *= mul;
+            guio->Width *= mul;
+            guio->Height *= mul;
+            guio->IsActivated = false;
+            guio->OnResized();
+        }
+    }
+}
+
+// Convert certain coordinates to data resolution (only if it's different from game resolution).
+// Necessary for 3.1.0 and above games with legacy "low-res coordinates" setting.
+static void ConvertObjectsToDataRes(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    if (data_ver < kGameVersion_310 || game.GetDataUpscaleMult() == 1)
+        return;
+
+    const int mul = game.GetDataUpscaleMult();
+    for (int i = 0; i < game.numcharacters; ++i) 
+    {
+        game.chars[i].x /= mul;
+        game.chars[i].y /= mul;
+    }
+
+    for (auto &inv : guiinv)
+    {
+        inv.ItemWidth /= mul;
+        inv.ItemHeight /= mul;
+        inv.OnResized();
+    }
+}
+
+void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    Debug::Printf("Initializing resolution settings");
+    const Size game_size = game.GetGameRes();
+    usetup.textheight = get_font_height_outlined(0) + 1;
+
+    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
+        game.IsLegacyLetterbox() ? " letterbox-by-design" : "");
+
+    // Backwards compatible resolution conversions
+    ConvertGuiToGameRes(game, data_ver);
+    ConvertObjectsToDataRes(game, data_ver);
+
+    // Assign general game viewports
+    Rect viewport = RectWH(game_size);
+    play.SetMainViewport(viewport);
+    play.SetUIViewport(viewport);
+    
+    // Assign ScriptSystem's resolution variables
+    scsystem.width = game.GetGameRes().Width;
+    scsystem.height = game.GetGameRes().Height;
+    scsystem.viewport_width = game_to_data_coord(play.GetMainViewport().GetWidth());
+    scsystem.viewport_height = game_to_data_coord(play.GetMainViewport().GetHeight());
+}
+
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
@@ -442,6 +542,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 5. Initialize runtime state of certain game objects
     //
+    InitGameResolution(game, data_ver);
     for (auto &label : guilabels)
     {
         // labels are not clickable by default

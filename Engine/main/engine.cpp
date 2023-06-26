@@ -370,13 +370,6 @@ void engine_init_keyboard()
     /* do nothing */
 }
 
-void engine_init_timer()
-{
-    Debug::Printf(kDbgMsg_Info, "Install timer");
-
-    skipMissedTicks();
-}
-
 void engine_init_audio()
 {
     if (usetup.audio_enabled)
@@ -888,16 +881,6 @@ void engine_prepare_to_start_game()
     }
 }
 
-// TODO: move to test unit
-Bitmap *test_allegro_bitmap;
-IDriverDependantBitmap *test_allegro_ddb;
-void allegro_bitmap_test_init()
-{
-	test_allegro_bitmap = nullptr;
-	// Switched the test off for now
-	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
-}
-
 // Define location of the game data either using direct settings or searching
 // for the available resource packs in common locations.
 // Returns two paths:
@@ -1235,10 +1218,6 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     engine_init_mouse();
 
-    our_eip = -197;
-
-    engine_init_timer();
-
     our_eip = -198;
 
     engine_init_audio();
@@ -1301,8 +1280,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     engine_init_game_settings();
 
     engine_prepare_to_start_game();
-
-	allegro_bitmap_test_init();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 

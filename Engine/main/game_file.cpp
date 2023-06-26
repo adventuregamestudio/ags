@@ -24,7 +24,6 @@
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"

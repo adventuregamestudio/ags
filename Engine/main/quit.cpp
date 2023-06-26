@@ -178,16 +178,6 @@ void quit_release_data()
     AssetMgr.reset();
 }
 
-// TODO: move to test unit
-extern Bitmap *test_allegro_bitmap;
-extern IDriverDependantBitmap *test_allegro_ddb;
-void allegro_bitmap_test_release()
-{
-	delete test_allegro_bitmap;
-	if (test_allegro_ddb)
-		gfxDriver->DestroyDDB(test_allegro_ddb);
-}
-
 // quit - exits the engine, shutting down everything gracefully
 // The parameter is the message to print. If this message begins with
 // an '!' character, then it is printed as a "contact game author" error.
@@ -208,8 +198,6 @@ void quit(const char *quitmsg)
     if (qreason & kQuitKind_NormalExit)
         save_config_file();
 #endif // AGS_AUTO_WRITE_USER_CONFIG
-
-	allegro_bitmap_test_release();
 
     handledErrorInEditor = false;
 

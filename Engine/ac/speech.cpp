@@ -103,7 +103,7 @@ bool init_voicepak(const String &name)
         return true; // same pak already assigned
 
     // First remove existing voice packs
-    play.voice_avail = false;
+    ResPaths.VoiceAvail = false;
     AssetMgr->RemoveLibrary(ResPaths.SpeechPak.Path);
     AssetMgr->RemoveLibrary(ResPaths.VoiceDirSub);
 
@@ -112,7 +112,7 @@ bool init_voicepak(const String &name)
     if (!speech_filepath.IsEmpty())
     {
         Debug::Printf(kDbgMsg_Info, "Voice pack found: %s", speech_file.GetCStr());
-        play.voice_avail = true;
+        ResPaths.VoiceAvail = true;
     }
     else
     {
@@ -128,7 +128,7 @@ bool init_voicepak(const String &name)
         if (File::IsDirectory(speech_subdir))
         {
             Debug::Printf(kDbgMsg_Info, "Optional voice directory is defined: %s", speech_subdir.GetCStr());
-            play.voice_avail = true;
+            ResPaths.VoiceAvail = true;
         }
     }
 
@@ -140,7 +140,7 @@ bool init_voicepak(const String &name)
     ResPaths.VoiceDirSub = speech_subdir;
     AssetMgr->AddLibrary(ResPaths.VoiceDirSub, "voice");
     AssetMgr->AddLibrary(ResPaths.SpeechPak.Path, "voice");
-    return play.voice_avail;
+    return ResPaths.VoiceAvail;
 }
 
 String get_voicepak_name()

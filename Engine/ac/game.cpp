@@ -764,11 +764,12 @@ const char* Game_GetSpeechVoxFilename()
 
 bool Game_ChangeSpeechVox(const char *newFilename)
 {
-    if (!init_voicepak(newFilename))
+    play.voice_avail = init_voicepak(newFilename);
+    if (!play.voice_avail)
     {
         // if failed (and was not default)- fallback to default
         if (strlen(newFilename) > 0)
-            init_voicepak();
+            play.voice_avail = init_voicepak();
         return false;
     }
     return true;

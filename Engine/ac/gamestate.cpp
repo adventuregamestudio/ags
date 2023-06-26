@@ -41,10 +41,6 @@ extern ScriptSystem scsystem;
 
 GameState::GameState()
 {
-    speech_text_schandle = 0;
-    speech_face_schandle = 0;
-    _isAutoRoomViewport = true;
-    _mainViewportHasChanged = false;
 }
 
 bool GameState::IsAutoRoomViewport() const

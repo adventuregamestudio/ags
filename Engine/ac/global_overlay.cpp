@@ -19,7 +19,8 @@
 
 
 void RemoveOverlay(int ovrid) {
-    if (find_overlay_of_type(ovrid) < 0) quit("!RemoveOverlay: invalid overlay id passed");
+    if (!get_overlay(ovrid))
+        quit("!RemoveOverlay: invalid overlay id passed");
     remove_screen_overlay(ovrid);
 }
 
@@ -55,15 +56,13 @@ void SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int text_col
 void MoveOverlay(int ovrid, int newx,int newy) {
     data_to_game_coords(&newx, &newy);
 
-    int ovri=find_overlay_of_type(ovrid);
-    if (ovri<0) quit("!MoveOverlay: invalid overlay ID specified");
-    screenover[ovri].x=newx;
-    screenover[ovri].y=newy;
+    auto *over = get_overlay(ovrid);
+    if (!over)
+        quit("!MoveOverlay: invalid overlay ID specified");
+    over->x = newx;
+    over->y = newy;
 }
 
 int IsOverlayValid(int ovrid) {
-    if (find_overlay_of_type(ovrid) < 0)
-        return 0;
-
-    return 1;
+    return (get_overlay(ovrid) != nullptr) ? 1 : 0;
 }

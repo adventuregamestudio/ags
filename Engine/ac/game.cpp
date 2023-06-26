@@ -1425,7 +1425,8 @@ void game_sprite_updated(int sprnum)
         }
     }
     // overlays
-    for (auto &over : screenover)
+    auto &overs = get_overlays();
+    for (auto &over : overs)
     {
         if (over.GetSpriteNum() == sprnum)
             over.MarkChanged();
@@ -1508,7 +1509,8 @@ void game_sprite_deleted(int sprnum)
         }
     }
     // overlays
-    for (auto &over : screenover)
+    auto &overs = get_overlays();
+    for (auto &over : overs)
     {
         if (over.GetSpriteNum() == sprnum)
             over.SetSpriteNum(0);

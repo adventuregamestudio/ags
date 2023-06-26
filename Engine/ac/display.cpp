@@ -270,11 +270,12 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     }
 
     size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy);
+    auto *over = get_overlay(nse); // FIXME: optimize return value
     // we should not delete text_window_ds here, because it is now owned by Overlay
 
     // If it's a non-blocking overlay type, then we're done here
     if (disp_type >= DISPLAYTEXT_NORMALOVERLAY) {
-        return &screenover[nse];
+        return over;
     }
 
     //
@@ -370,10 +371,10 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
 
         if (!overlayPositionFixed)
         {
-            screenover[nse].SetRoomRelative(true);
-            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(screenover[nse].x, screenover[nse].y, false);
-            screenover[nse].x = vpt.first.X;
-            screenover[nse].y = vpt.first.Y;
+            over->SetRoomRelative(true);
+            VpPoint vpt = play.GetRoomViewport(0)->ScreenToRoom(over->x, over->y, false);
+            over->x = vpt.first.X;
+            over->y = vpt.first.Y;
         }
 
         GameLoopUntilNoOverlay();
@@ -630,7 +631,7 @@ void wouttext_aligned(Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, 
 
 void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     if (sprn<0) return;
-    if (spriteset[sprn] == nullptr)
+    if (!spriteset.DoesSpriteExist(sprn))
     {
         sprn = 0;
     }
@@ -653,8 +654,6 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
         draw_color = ds->GetCompatibleColor(16);
         ds->DrawRect(Rect(xx1,yy1,xx2,yy2), draw_color);
-        /*    draw_color = ds->GetCompatibleColor(opts.tws.backcol); ds->FillRect(Rect(xx1,yy1,xx2,yy2);
-        draw_color = ds->GetCompatibleColor(opts.tws.ds->GetTextColor()); ds->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
         if (iep->BgColor >= 0) draw_color = ds->GetCompatibleColor(iep->BgColor);
@@ -689,12 +688,11 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
             ds->ResetClip();
 
         }
-        int uu;
-        for (uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
+        for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
             do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
             do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
         }
-        for (uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
+        for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
             do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
             do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
         }

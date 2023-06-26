@@ -14,6 +14,7 @@
 #ifndef __AGS_EE_UTIL__LIBRARY_WINDOWS_H
 #define __AGS_EE_UTIL__LIBRARY_WINDOWS_H
 
+#include <utility>
 #include "debug/out.h"
 #include "platform/windows/winapi_exclusive.h"
 #include "util/path.h"
@@ -46,6 +47,15 @@ class WindowsLibrary final : public BaseLibrary
 {
 public:
     WindowsLibrary() = default;
+    WindowsLibrary(const WindowsLibrary&) = delete;
+    WindowsLibrary(WindowsLibrary &&other)
+    {
+        _library = other._library;
+        other._library = NULL;
+        _name = std::move(other._name);
+        _filename = std::move(other._filename);
+        _path = std::move(other._path);
+    }
     ~WindowsLibrary() override
     {
         Unload();

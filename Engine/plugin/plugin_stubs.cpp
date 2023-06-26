@@ -17,15 +17,7 @@
 //=============================================================================
 
 #include <string.h>
-#include "ac/global_plugin.h"
-#include "ac/sys_events.h"
 #include "util/string_compat.h"
-
-eAGSMouseButton pluginSimulatedClick = kMouseNone;
-
-void PluginSimulateMouseClick(int pluginButtonID) {
-    pluginSimulatedClick = static_cast<eAGSMouseButton>(pluginButtonID);
-}
 
 //=============================================================================
 //

@@ -23,6 +23,8 @@
 #include "core/assetmanager.h"
 #include "debug/out.h"
 #include "game/main_game_file.h"
+#include "gui/guibutton.h"
+#include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "script/cc_common.h"
 #include "util/alignedstream.h"
@@ -270,7 +272,6 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
             info.Data.resize(datasize);
             in->Read(&info.Data.front(), datasize);
         }
-        info.DataLen = datasize;
         infos.push_back(info);
     }
     return HGameFileError::None();
@@ -362,6 +363,18 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
 // Convert character data to the current version
 void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
+}
+
+void UpgradeGUI(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    // Previously, Buttons and Labels had a fixed Translated behavior
+    if (data_ver < kGameVersion_361)
+    {
+        for (auto &btn : guibuts)
+            btn.SetTranslated(true); // always translated
+        for (auto &lbl : guilabels)
+            lbl.SetTranslated(true); // always translated
+    }
 }
 
 void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
@@ -604,6 +617,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
+    UpgradeGUI(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
     SetDefaultGlobalMessages(game);
     FixupSaveDirectory(game);

@@ -64,6 +64,12 @@ void SetDefaultSaveDirectory();
 int Game_SetSaveGameDirectory(const char *newFolder);
 const char* Game_GetSaveSlotDescription(int slnum);
 
+// View, loop, frame parameter assertions.
+// WARNING: these functions assume that view is already in an internal 0-based range.
+void AssertView(const char *apiname, int view);
+void AssertLoop(const char *apiname, int view, int loop);
+void AssertFrame(const char *apiname, int view, int loop, int frame);
+
 int Game_GetInventoryItemCount();
 int Game_GetFontCount();
 int Game_GetMouseCursorCount();
@@ -164,8 +170,6 @@ void display_switch_in_resume();
 void replace_tokens(const char*srcmes,char*destm, int maxlen = 99999);
 const char *get_global_message (int msnum);
 void get_message_text (int msnum, char *buffer, char giveErr = 1);
-
-bool unserialize_audio_script_object(int index, const char *objectType, AGS::Common::Stream *in, size_t data_sz);
 
 // Notifies the game objects that certain sprite was updated.
 // This make them update their render states, caches, and so on.

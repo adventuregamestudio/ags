@@ -255,9 +255,6 @@
     <ClCompile Include="..\..\Engine\ac\global_palette.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\plugin\global_plugin.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\global_region.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -364,9 +361,6 @@
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\sprite.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\string.cpp">
@@ -621,9 +615,6 @@
     <ClCompile Include="..\..\Engine\plugin\agsplugin.cpp">
       <Filter>Source Files\plugin</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\plugin\pluginobjectreader.cpp">
-      <Filter>Source Files\plugin</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\setup\winsetup.cpp">
       <Filter>Source Files\setup</Filter>
     </ClCompile>
@@ -765,6 +756,9 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptsystem.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\plugin\plugin_stubs.cpp">
+      <Filter>Source Files\plugin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -858,9 +852,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_palette.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\global_plugin.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\global_region.h">
@@ -1104,9 +1095,6 @@
       <Filter>Header Files\plugin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\plugin_engine.h">
-      <Filter>Header Files\plugin</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\plugin\pluginobjectreader.h">
       <Filter>Header Files\plugin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h">
@@ -1543,6 +1531,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\plugin\agsplugin_evts.h">
+      <Filter>Header Files\plugin</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -24,7 +24,7 @@
 #include "debug/debug_log.h"
 #include "script/script_runtime.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"

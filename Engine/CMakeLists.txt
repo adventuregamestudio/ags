@@ -158,7 +158,6 @@ target_sources(engine
     ac/global_object.h
     ac/global_palette.cpp
     ac/global_palette.h
-    ac/global_plugin.h
     ac/global_region.cpp
     ac/global_region.h
     ac/global_room.cpp
@@ -233,7 +232,6 @@ target_sources(engine
     ac/speech.h
     ac/sprite.cpp
     ac/sprite.h
-    ac/spritecache_engine.cpp
     ac/dynobj/scriptgame.cpp
     ac/dynobj/scriptgame.h
     ac/dynobj/cc_staticarray.cpp
@@ -384,11 +382,10 @@ target_sources(engine
     platform/util/libc.c
     plugin/agsplugin.cpp
     plugin/agsplugin.h
-    plugin/global_plugin.cpp
+    plugin/agsplugin_evts.h
     plugin/plugin_builtin.h
     plugin/plugin_engine.h
-    plugin/pluginobjectreader.cpp
-    plugin/pluginobjectreader.h
+    plugin/plugin_stubs.cpp
     resource/resource.h
     script/cc_instance.cpp
     script/cc_instance.h

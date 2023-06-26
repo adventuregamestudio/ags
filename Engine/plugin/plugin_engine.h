@@ -19,11 +19,26 @@
 #define __AGS_EE_PLUGIN__PLUGINENGINE_H
 
 #include <vector>
+#include "ac/dynobj/cc_scriptobject.h"
 #include "game/game_init.h"
 #include "game/plugininfo.h"
-
+#include "util/string.h"
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
+
+
+//
+// PluginObjectReader is a managed object unserializer registered by plugin.
+//
+struct PluginObjectReader
+{
+    const Common::String Type;
+    ICCObjectReader *const Reader = nullptr;
+
+    PluginObjectReader(const Common::String &type, ICCObjectReader *reader)
+        : Type(type), Reader(reader) {}
+};
+
 
 void pl_stop_plugins();
 void pl_startup_plugins();
@@ -38,4 +53,6 @@ bool pl_is_plugin_loaded(const char *pl_name);
 bool pl_any_want_hook(int event);
 void pl_set_file_handle(long data, AGS::Common::Stream *stream);
 void pl_clear_file_handle();
+
+bool RegisterPluginStubs(const char* name);
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

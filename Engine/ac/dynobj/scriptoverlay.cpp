@@ -27,10 +27,13 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     // since the managed object is being deleted, remove the
     // reference so it doesn't try and dispose something else
     // with that handle later
-    int overlayIndex = find_overlay_of_type(overlayId);
-    if (overlayIndex >= 0)
+    if (overlayId >= 0)
     {
-        screenover[overlayIndex].associatedOverlayHandle = 0;
+        auto *over = get_overlay(overlayId);
+        if (over)
+        {
+            over->associatedOverlayHandle = 0;
+        }
     }
 
     // if this is being removed voluntarily (ie. pointer out of
@@ -71,12 +74,11 @@ void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
 
 void ScriptOverlay::Remove() 
 {
-    int overlayIndex = find_overlay_of_type(overlayId);
-    if (overlayIndex < 0)
+    if (overlayId < 0)
     {
         debug_script_warn("Overlay.Remove: overlay is invalid, could have been removed earlier.");
         return;
     }
-    remove_screen_overlay_index(overlayIndex);
+    remove_screen_overlay(overlayId);
     overlayId = -1;
 }

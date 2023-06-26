@@ -141,41 +141,6 @@ SCANLINE_DRAWER_GENERIC(generic
 		       [l_spr_x>>16])
 #endif
 
-#ifdef ALLEGRO_GFX_HAS_VGA
-   static void draw_scanline_modex(
-    BITMAP *bmp, BITMAP *spr, fixed l_bmp_x, int bmp_y_i, fixed r_bmp_x,
-    fixed l_spr_x, fixed l_spr_y, fixed spr_dx, fixed spr_dy)
-   {
-      int c;
-      uintptr_t start_addr, addr, end_addr;
-      unsigned char **spr_line = spr->line;
-      int plane;
-      fixed spr_x, spr_y;
-
-      r_bmp_x >>= 16;
-      l_bmp_x >>= 16;
-      start_addr = (uintptr_t)bmp->line[bmp_y_i];
-      spr_dx <<= 2;
-      spr_dy <<= 2;
-      for (plane = 0; plane < 4; plane++) {
-	 addr = start_addr + ((l_bmp_x + plane) >> 2);
-	 end_addr = addr + ((r_bmp_x - l_bmp_x - plane) >> 2);
-	 outportw(0x3C4, (0x100 << ((l_bmp_x + plane) & 3)) | 2);
-	 spr_x = l_spr_x;
-	 spr_y = l_spr_y;
-	 for (; addr < end_addr; addr++) {
-	    c = spr_line[spr_y >> 16][spr_x >> 16];
-	    if (c != MASK_COLOR_8)
-	       _farnspokeb(addr, c);
-	    spr_x += spr_dx;
-	    spr_y += spr_dy;
-	 }
-	 l_spr_x += spr_dx >> 2;
-	 l_spr_y += spr_dy >> 2;
-      }
-   }
-#endif
-
 
 
 /* _parallelogram_map:
@@ -650,16 +615,7 @@ void _parallelogram_map_standard(BITMAP *bmp, BITMAP *sprite,
       drawing_mode(old_drawing_mode, _drawing_pattern,
 		   _drawing_x_anchor, _drawing_y_anchor);
    }
-   else if (!is_memory_bitmap(sprite)) {
-      old_drawing_mode = _drawing_mode;
-      drawing_mode(DRAW_MODE_SOLID, _drawing_pattern,
-		   _drawing_x_anchor, _drawing_y_anchor);
-      _parallelogram_map(bmp, sprite, xs, ys,
-			 draw_scanline_generic, FALSE);
-      drawing_mode(old_drawing_mode, _drawing_pattern,
-		   _drawing_x_anchor, _drawing_y_anchor);
-   }
-   else if (is_linear_bitmap(bmp)) {
+   else {
       switch (bitmap_color_depth(bmp)) {
 	 #ifdef ALLEGRO_COLOR8
 	    case 8:
@@ -699,12 +655,6 @@ void _parallelogram_map_standard(BITMAP *bmp, BITMAP *sprite,
 	    ASSERT(0);
       }
    }
-   #ifdef ALLEGRO_GFX_HAS_VGA
-      else {
-	 _parallelogram_map(bmp, sprite, xs, ys,
-			    draw_scanline_modex, FALSE);
-      }
-   #endif
 }
 
 

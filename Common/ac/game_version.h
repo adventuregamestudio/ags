@@ -112,6 +112,8 @@ New font load flags, control backward compatible font behavior
 Idle animation speed, modifiable hotspot names, fixed video frame
 3.6.0.21:
 Some adjustments to gui text alignment.
+3.6.1:
+In RTL mode all text is reversed, not only wrappable (labels etc).
 
 3.9.9 :
 BlendModes
@@ -122,6 +124,7 @@ enum GameDataVersion
 {
     kGameVersion_Undefined      = 0,
     kGameVersion_360_21         = 3060021,
+    kGameVersion_361            = 3060100,
     kGameVersion_399            = 3999999,
     kGameVersion_LowSupported   = kGameVersion_360_21,
     kGameVersion_Current        = kGameVersion_399

@@ -40,7 +40,6 @@ GameSetupStructBase::GameSetupStructBase()
     , numcursors(0)
     , default_lipsync_frame(0)
     , invhotdotsprite(0)
-    , dict(nullptr)
 {
     memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));

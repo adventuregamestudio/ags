@@ -482,10 +482,36 @@ namespace AGS.Editor.Utils
             SourceLocal     = 0x0002
         }
 
-        public static void ExportSprites(SpriteFolder folder, string path, bool recurse,
-            SkipIf skipIf, bool updateSourcePath, bool resetTileSettings)
+        public struct ExportSpritesOptions
         {
-            foreach(Sprite sprite in folder.Sprites)
+            public string ExportPath;
+            public bool Recursive;
+            public SkipIf SkipIf;
+            public bool UpdateSourcePath;
+            public bool ResetTileSettings;
+
+            public ExportSpritesOptions(string path, bool recurse,
+                SkipIf skipIf, bool updateSourcePath, bool resetTileSettings)
+            {
+                ExportPath = path;
+                Recursive = recurse;
+                SkipIf = skipIf;
+                UpdateSourcePath = updateSourcePath;
+                ResetTileSettings = resetTileSettings;
+            }
+        }
+
+        public static void ExportSprites(SpriteFolder folder, ExportSpritesOptions options, IWorkProgress progress)
+        {
+            if (!progress.Total.HasValue)
+            {
+                progress.Total = folder.CountSpritesInAllSubFolders();
+                progress.Current = 0;
+            }
+
+            var skipIf = options.SkipIf;
+
+            foreach (Sprite sprite in folder.Sprites)
             {
                 if (skipIf > 0)
                 {
@@ -495,33 +521,35 @@ namespace AGS.Editor.Utils
 
                     if (skipIf.HasFlag(SkipIf.SourceValid) && File.Exists(checkPath))
                     {
+                        progress.Current++;
                         continue; // skip if source is valid
                     }
                     else if (skipIf.HasFlag(SkipIf.SourceLocal) &&
                         File.Exists(checkPath) &&
                         Utilities.PathsAreSameOrNested(checkPath, Factory.AGSEditor.CurrentGame.DirectoryPath))
                     {
+                        progress.Current++;
                         continue; // skip if source is valid and local (inside the project folder)
                     }
                 }
 
-                ExportSprite(sprite, path, updateSourcePath, resetTileSettings);
+                ExportSprite(sprite, options.ExportPath, options.UpdateSourcePath, options.ResetTileSettings);
+                progress.Current++;
             }
 
-            if (recurse)
+            if (options.Recursive)
             {
                 foreach (SpriteFolder subFolder in folder.SubFolders)
                 {
-                    ExportSprites(subFolder, path, recurse, skipIf, updateSourcePath, resetTileSettings);
+                    ExportSprites(subFolder, options, progress);
                 }
             }
         }
 
-        public static void ExportSprites(string path, bool recurse,
-            SkipIf skipIf, bool updateSourcePath, bool resetTileSettings)
+        public static void ExportSprites(ExportSpritesOptions options, IWorkProgress progress)
         {
             SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
-            ExportSprites(folder, path, recurse, skipIf, updateSourcePath, resetTileSettings);
+            ExportSprites(folder, options, progress);
         }
 
         public static Bitmap GetPlaceHolder(int width = 12, int height = 7)
@@ -623,7 +651,7 @@ namespace AGS.Editor.Utils
 
             SpriteFolder folder = Factory.AGSEditor.CurrentGame.RootSpriteFolder;
             var sprites = folder.GetAllSpritesFromAllSubFolders();
-            var orderedSprites = sprites.OrderBy(sprite => sprite.Number);
+            var orderedSprites = sprites.Distinct().OrderBy(sprite => sprite.Number);
 
             progress.Total = orderedSprites.Count();
             progress.Current = 0;

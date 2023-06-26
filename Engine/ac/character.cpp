@@ -581,11 +581,8 @@ void Character_LockView(CharacterInfo *chap, int vii) {
 }
 
 void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
-
-    if ((vii < 1) || (vii > game.numviews)) {
-        quitprintf("!SetCharacterView: invalid view number (You said %d, max is %d)", vii, game.numviews);
-    }
-    vii--;
+    vii--; // convert to 0-based
+    AssertView("SetCharacterView", vii);
 
     debug_script_log("%s: View locked to %d", chap->scrname, vii+1);
     if (chap->idleleft < 0) {
@@ -627,8 +624,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
 
     Character_LockViewEx(chap, vii, stopMoving);
 
-    if ((loop < 0) || (loop >= views[chap->view].numLoops))
-        quit("!SetCharacterViewEx: invalid loop specified");
+    AssertLoop("SetCharacterViewEx", chap->view, loop);
 
     chap->loop = loop;
     chap->frame = 0;
@@ -654,15 +650,8 @@ void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame)
 }
 
 void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
-
     Character_LockViewEx(chaa, view, stopMoving);
-
-    view--;
-    if ((loop < 0) || (loop >= views[view].numLoops))
-        quit("!SetCharacterFrame: invalid loop specified");
-    if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
-        quit("!SetCharacterFrame: invalid frame specified");
-
+    AssertFrame("SetCharacterFrame", view - 1, loop, frame);
     chaa->loop = loop;
     chaa->frame = frame;
 }
@@ -747,17 +736,17 @@ void Character_Say(CharacterInfo *chaa, const char *text) {
 
 void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx) {
 
-    DisplaySpeechAt(x, y, width, chaa->index_id, (char*)texx);
+    DisplaySpeechAt(x, y, width, chaa->index_id, texx);
 }
 
 ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 
-    int ovltype = DisplaySpeechBackground(chaa->index_id, (char*)texx);
-    int ovri = find_overlay_of_type(ovltype);
-    if (ovri<0)
+    int ovltype = DisplaySpeechBackground(chaa->index_id, texx);
+    auto *over = get_overlay(ovltype);
+    if (!over)
         quit("!SayBackground internal error: no overlay");
     // Create script object with an internal ref, keep at least until internal timeout
-    return create_scriptoverlay(screenover[ovri], true);
+    return create_scriptoverlay(*over, true);
 }
 
 // CLNUP check the use of SetActiveInventory
@@ -1332,11 +1321,9 @@ int Character_GetLoop(CharacterInfo *chaa) {
 }
 
 void Character_SetLoop(CharacterInfo *chaa, int newval) {
-    if ((newval < 0) || (newval >= views[chaa->view].numLoops))
-        quit("!Character.Loop: invalid loop number for this view");
+    AssertLoop("Character.Loop", chaa->view, newval);
 
     chaa->loop = newval;
-
     if (chaa->frame >= views[chaa->view].loops[chaa->loop].numFrames)
         chaa->frame = 0;
 }
@@ -2119,7 +2106,7 @@ int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
 void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
-    _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
+    _sc_PlayerCharPtr = ccGetObjectHandleFromAddress(playerchar);
 }
 
 // Animate character internal implementation;
@@ -2424,7 +2411,7 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
         ypp = -1;
     }
 
-    _displayspeech ((char*)displbuf, chid, xpp, ypp, width, 1);
+    _displayspeech(displbuf, chid, xpp, ypp, width, 1);
 }
 
 void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought) {
@@ -2445,13 +2432,14 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     said_speech_line = 1;
 
-    if (play.bgspeech_stay_on_display == 0) {
+    if (play.bgspeech_stay_on_display == 0)
+    {
         // remove any background speech
-        for (size_t i = 0; i < screenover.size();) {
-            if (screenover[i].timeout > 0)
-                remove_screen_overlay(screenover[i].type);
-            else
-                i++;
+        auto &overs = get_overlays();
+        for (auto &over : overs)
+        {
+            if (over.timeout > 0)
+                remove_screen_overlay(over.type);
         }
     }
     said_text = 1;
@@ -2691,7 +2679,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             if (game.options[OPT_SPEECHTYPE] == 3) {
                 // QFG4-style whole screen picture
-                closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight(), spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface = BitmapHelper::CreateBitmap(ui_view.GetWidth(), ui_view.GetHeight());
                 closeupface->Clear(0);
                 if (xx < 0 && play.speech_portrait_placement)
                 {
@@ -2719,11 +2707,11 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     ovr_yp = play.speech_portrait_y;
                 }
                 else if (yy < 0)
-                    ovr_yp = adjust_y_for_guis (ovr_yp);
+                    ovr_yp = adjust_y_for_guis(ovr_yp, true /* displayspeech is always blocking */);
                 else
                     ovr_yp = yy;
 
-                closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface = BitmapHelper::CreateTransparentBitmap(bigx + 1, bigy + 1);
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)

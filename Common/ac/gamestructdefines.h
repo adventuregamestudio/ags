@@ -32,6 +32,8 @@
 #define GLOBALMESLENGTH     500
 
 // Game options
+
+// General game options
 #define OPT_DEBUGMODE       0
 #define OPT_SCORESOUND      1
 #define OPT_WALKONLOOK      2
@@ -45,7 +47,7 @@
 #define OPT_SPEECHTYPE      10
 #define OPT_PIXPERFECT      11
 #define OPT_NOWALKMODE      12
-//#define OPT_LETTERBOX     13 // [DEPRECATED] old-style resolution mode
+#define OPT_OBSOLETE_LETTERBOX 13 // [DEPRECATED] old-style resolution mode
 #define OPT_FIXEDINVCURSOR  14
 #define OPT_NOLOSEINV       15
 #define OPT_HIRES_FONTS     16
@@ -56,7 +58,7 @@
 #define OPT_MOUSEWHEEL      21
 #define OPT_DIALOGNUMBERED  22
 #define OPT_DIALOGUPWARDS   23
-//#define OPT_CROSSFADEMUSIC  24 // [DEPRECATED] old-style audio crossfade
+#define OPT_OBSOLETE_CROSSFADEMUSIC 24 // [DEPRECATED] old-style audio crossfade
 #define OPT_ANTIALIASFONTS  25
 #define OPT_THOUGHTGUI      26
 #define OPT_TURNTOFACELOC   27
@@ -65,15 +67,15 @@
 #define OPT_SAVESCREENSHOT  30
 #define OPT_PORTRAITSIDE    31
 #define OPT_STRICTSCRIPTING 32  // don't allow MoveCharacter-style commands
-//#define OPT_LEFTTORIGHTEVAL 33  // left-to-right operator evaluation [REMOVED]
+#define OPT_OBSOLETE_LEFTTORIGHTEVAL 33  // [DEPRECATED] left-to-right operator evaluation
 #define OPT_COMPRESSSPRITES 34
-#define OPT_STRICTSTRINGS   35  // don't allow old-style strings
-//#define OPT_NEWGUIALPHA     36
+#define OPT_STRICTSTRINGS   35  // don't allow old-style strings, for reference only
+#define OPT_OBSOLETE_NEWGUIALPHA 36
 #define OPT_RUNGAMEDLGOPTS  37
-//#define OPT_NATIVECOORDINATES 38 // [REMOVED] defines coordinate relation between game logic and game screen
+#define OPT_OBSOLETE_NATIVECOORDINATES 38 // [DEPRECATED] defines coordinate relation between game logic and game screen
 #define OPT_GLOBALTALKANIMSPD 39
 #define OPT_HIGHESTOPTION_321 39
-//#define OPT_SPRITEALPHA     40
+#define OPT_OBSOLETE_SPRITEALPHA 40
 #define OPT_SAFEFILEPATHS   41
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API (ScriptAPIVersion) used to compile game script
@@ -86,7 +88,7 @@
 #define OPT_KEYHANDLEAPI    50 // key handling mode (old/new)
 #define OPT_CUSTOMENGINETAG 51 // custom engine tag (for overriding behavior)
 #define OPT_HIGHESTOPTION   OPT_CUSTOMENGINETAG
-#define OPT_NOMODMUSIC      98 // unused
+#define OPT_NOMODMUSIC      98 // [DEPRECATED]
 #define OPT_LIPSYNCTEXT     99
 
 // Compatibility engine modes (hacks)
@@ -205,11 +207,15 @@ enum GameGuiAlphaRenderingStyle
 // General information about sprite (properties, size)
 struct SpriteInfo
 {
-    uint32_t Flags;
-    int      Width;
-    int      Height;
+    int      Width = 0;
+    int      Height = 0;
+    uint32_t Flags = 0u; // SPF_* flags
 
-    SpriteInfo();
+    SpriteInfo() = default;
+    SpriteInfo(int w, int h, uint32_t flags)
+        : Width(w), Height(h), Flags(flags) {}
+
+    inline Size GetResolution() const { return Size(Width, Height); }
 };
 
 // Various font parameters, defining and extending font rendering behavior.

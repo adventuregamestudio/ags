@@ -38,6 +38,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
+#include "gui/guiinv.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/plugin_engine.h"
@@ -51,6 +52,7 @@
 using namespace Common;
 using namespace Engine;
 
+extern ScriptSystem scsystem;
 extern std::vector<ViewStruct> views;
 
 extern CCGUIObject ccDynamicGUIObject;
@@ -73,10 +75,6 @@ extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
-
-extern std::vector<ccInstance *> moduleInst;
-extern std::vector<ccInstance *> moduleInstFork;
-extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 
 // Lipsync
 extern std::vector<SpeechLipSyncLine> splipsync;
@@ -109,8 +107,6 @@ String GetGameInitErrorText(GameInitErrorType err)
         return "Too many audio types for this engine to handle.";
     case kGameInitErr_EntityInitFail:
         return "Failed to initialize game entities.";
-    case kGameInitErr_TooManyPlugins:
-        return "Too many plugins for this engine to handle.";
     case kGameInitErr_PluginNameInvalid:
         return "Plugin name is invalid.";
     case kGameInitErr_NoGlobalScript:
@@ -383,25 +379,23 @@ void LoadLipsyncData()
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }
 
-void AllocScriptModules()
+void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
 {
-    moduleInst.resize(numScriptModules, nullptr);
-    moduleInstFork.resize(numScriptModules, nullptr);
-    moduleRepExecAddr.resize(numScriptModules);
-    repExecAlways.moduleHasFunction.resize(numScriptModules, true);
-    lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);
-    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
-    renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
-    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
-    runDialogOptionCloseFunc.moduleHasFunction.resize(numScriptModules, true);
-    for (auto &val : moduleRepExecAddr)
-    {
-        val.Invalidate();
-    }
+    const Size game_size = game.GetGameRes();
+    usetup.textheight = get_font_height_outlined(0) + 1;
+
+    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height, game.color_depth * 8);
+
+    // Assign general game viewports
+    Rect viewport = RectWH(game_size);
+    play.SetMainViewport(viewport);
+    play.SetUIViewport(viewport);
+    
+    // Assign ScriptSystem's resolution variables
+    scsystem.width = game.GetGameRes().Width;
+    scsystem.height = game.GetGameRes().Height;
+    scsystem.viewport_width = play.GetMainViewport().GetWidth();
+    scsystem.viewport_height = play.GetMainViewport().GetHeight();
 }
 
 HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
@@ -464,6 +458,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 5. Initialize runtime state of certain game objects
     //
+    InitGameResolution(game, data_ver);
     for (auto &label : guilabels)
     {
         // labels are not clickable by default

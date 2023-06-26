@@ -99,7 +99,7 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==1) {
         String toDisplay = GetRuntimeInfo();
-        Display(toDisplay.GetCStr());
+        DisplayMB(toDisplay.GetCStr());
     }
     else if (cmdd==2) 
     {  // show room mask

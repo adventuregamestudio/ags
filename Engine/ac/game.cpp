@@ -40,6 +40,7 @@
 #include "ac/path_helper.h"
 #include "ac/sys_events.h"
 #include "ac/roomstatus.h"
+#include "ac/sprite.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/translation.h"
@@ -73,6 +74,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+extern ScriptSystem scsystem;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
@@ -104,10 +106,15 @@ int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 bool new_room_placeonwalkable = false;
-
-// initially size 1, this will be increased by the initFile function
-SpriteCache spriteset(game.SpriteInfos);
 int proper_exit=0,our_eip=0;
+
+AGS::Common::SpriteCache::Callbacks spritecallbacks = {
+    nullptr,
+    initialize_sprite,
+    post_init_sprite,
+    nullptr
+};
+SpriteCache spriteset(game.SpriteInfos, spritecallbacks);
 
 std::vector<GUIMain> guis;
 
@@ -436,83 +443,44 @@ bool do_save_game_dialog() {
 
 void free_do_once_tokens()
 {
-    play.do_once_tokens.resize(0);
+    play.do_once_tokens.clear();
 }
 
 
 // Free all the memory associated with the game
 void unload_game_file()
 {
+    dispose_game_drawdata();
+    // NOTE: fonts should be freed prior to stopping plugins,
+    // as plugins may provide font renderer interface.
+    free_all_fonts();
     close_translation();
 
-    play.FreeViewportsAndCameras();
+    ccRemoveAllSymbols();
+    ccUnregisterAllObjects();
+    pl_stop_plugins();
+
+    FreeAllScriptInstances();
+    FreeGlobalScripts();
 
     charextra.clear();
     mls.clear();
-
-    dispose_game_drawdata();
-
-    delete gameinstFork;
-    delete gameinst;
-    gameinstFork = nullptr;
-    gameinst = nullptr;
-    gamescript.reset();
-
-    delete dialogScriptsInst;
-    dialogScriptsInst = nullptr;
-    dialogScriptsScript.reset();
-
-    for (size_t i = 0; i < numScriptModules; ++i)
-    {
-        delete moduleInstFork[i];
-        delete moduleInst[i];
-        scriptModules[i].reset();
-    }
-    moduleInstFork.resize(0);
-    moduleInst.resize(0);
-    scriptModules.resize(0);
-    repExecAlways.moduleHasFunction.resize(0);
-    lateRepExecAlways.moduleHasFunction.resize(0);
-    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(0);
-    renderDialogOptionsFunc.moduleHasFunction.resize(0);
-    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(0);
-    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(0);
-    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(0);
-    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(0);
-    runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
-    runDialogOptionCloseFunc.moduleHasFunction.resize(0);
-    numScriptModules = 0;
-
     views.clear();
-
     splipsync.clear();
     numLipLines = 0;
     curLipLine = -1;
 
-    for (auto &dlg : dialog)
-    {
-        if (dlg.optionscripts != nullptr)
-            free(dlg.optionscripts);
-    }
     dialog.clear();
     scrDialog.clear();
 
     guis.clear();
     scrGui.clear();
 
-    free_all_fonts();
-
-    ccRemoveAllSymbols();
-    ccUnregisterAllObjects();
-    pl_stop_plugins();
-
-    free_do_once_tokens();
-    play.gui_draw_order.clear();
-
     resetRoomStatuses();
 
-    // free game struct last because it contains object counts
-    game.Free();
+    // Free game state and game struct
+    play = GameState();
+    game = GameSetupStruct();
 }
 
 int Game_GetInventoryItemCount() {
@@ -560,55 +528,71 @@ int Game_GetSpriteHeight(int spriteNum) {
     return game.SpriteInfos[spriteNum].Height;
 }
 
-int Game_GetLoopCountForView(int viewNumber) {
-    if ((viewNumber < 1) || (viewNumber > game.numviews))
-        quit("!GetGameParameter: invalid view specified");
-
-    return views[viewNumber - 1].numLoops;
+void AssertView(const char *apiname, int view)
+{
+    // NOTE: we assume (here and below) that the view is already in an internal 0-based range.
+    // but when printing an error we will use (view + 1) for compliance with the script API.
+    if ((view < 0) || (view >= game.numviews))
+        quitprintf("!%s: invalid view %d (range is 1..%d)", apiname, view + 1, game.numviews);
 }
 
-int Game_GetRunNextSettingForLoop(int viewNumber, int loopNumber) {
-    if ((viewNumber < 1) || (viewNumber > game.numviews))
-        quit("!GetGameParameter: invalid view specified");
-    if ((loopNumber < 0) || (loopNumber >= views[viewNumber - 1].numLoops))
-        quit("!GetGameParameter: invalid loop specified");
-
-    return (views[viewNumber - 1].loops[loopNumber].RunNextLoop()) ? 1 : 0;
+void AssertLoop(const char *apiname, int view, int loop)
+{
+    AssertView(apiname, view);
+    if (views[view].numLoops == 0)
+        quitprintf("!%s: view %d does not have any loops.", apiname, view + 1);
+    if ((loop < 0) || (loop >= views[view].numLoops))
+        quitprintf("!%s: invalid loop number %d for view %d (range is 0..%d).",
+            apiname, loop, view + 1, views[view].numLoops - 1);
 }
 
-int Game_GetFrameCountForLoop(int viewNumber, int loopNumber) {
-    if ((viewNumber < 1) || (viewNumber > game.numviews))
-        quit("!GetGameParameter: invalid view specified");
-    if ((loopNumber < 0) || (loopNumber >= views[viewNumber - 1].numLoops))
-        quit("!GetGameParameter: invalid loop specified");
-
-    return views[viewNumber - 1].loops[loopNumber].numFrames;
+void AssertFrame(const char *apiname, int view, int loop, int frame)
+{
+    AssertLoop(apiname, view, loop);
+    if (views[view].loops[loop].numFrames == 0)
+        quitprintf("!%s: view %d loop %d does not have any frames", apiname, view + 1, loop);
+    if ((frame < 0) || (frame >= views[view].loops[loop].numFrames))
+        quitprintf("!%s: invalid frame number %d for view %d loop %d (range is 0..%d)",
+            apiname, frame, view + 1, loop, views[view].loops[loop].numFrames - 1);
 }
 
-ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
-    if ((viewNumber < 1) || (viewNumber > game.numviews))
-        quit("!GetGameParameter: invalid view specified");
-    if ((loopNumber < 0) || (loopNumber >= views[viewNumber - 1].numLoops))
-        quit("!GetGameParameter: invalid loop specified");
-    if ((frame < 0) || (frame >= views[viewNumber - 1].loops[loopNumber].numFrames))
-        quit("!GetGameParameter: invalid frame specified");
+int Game_GetLoopCountForView(int view) {
+    view--; // convert to 0-based
+    AssertView("Game.GetLoopCountForView", view);
+    return views[view].numLoops;
+}
 
-    ScriptViewFrame *sdt = new ScriptViewFrame(viewNumber - 1, loopNumber, frame);
+int Game_GetRunNextSettingForLoop(int view, int loop) {
+    view--; // convert to 0-based
+    AssertLoop("Game.GetRunNextSettingForLoop", view, loop);
+    return (views[view].loops[loop].RunNextLoop()) ? 1 : 0;
+}
+
+int Game_GetFrameCountForLoop(int view, int loop) {
+    view--; // convert to 0-based
+    AssertLoop("Game.GetFrameCountForLoop", view, loop);
+    return views[view].loops[loop].numFrames;
+}
+
+ScriptViewFrame* Game_GetViewFrame(int view, int loop, int frame) {
+    view--; // convert to 0-based
+    AssertFrame("Game.GetViewFrame", view, loop, frame);
+    ScriptViewFrame *sdt = new ScriptViewFrame(view, loop, frame);
     ccRegisterManagedObject(sdt, sdt);
     return sdt;
 }
 
 int Game_DoOnceOnly(const char *token)
 {
-    for (int i = 0; i < (int)play.do_once_tokens.size(); i++)
-    {
-        if (play.do_once_tokens[i] == token)
-        {
-            return 0;
-        }
-    }
-    play.do_once_tokens.push_back(token);
+    if (play.do_once_tokens.count(String::Wrapper(token)) > 0)
+        return 0;
+    play.do_once_tokens.insert(token);
     return 1;
+}
+
+void Game_ResetDoOnceOnly()
+{
+    free_do_once_tokens();
 }
 
 int Game_GetTextReadingSpeed()
@@ -753,11 +737,12 @@ const char* Game_GetSpeechVoxFilename()
 
 bool Game_ChangeSpeechVox(const char *newFilename)
 {
-    if (!init_voicepak(newFilename))
+    play.voice_avail = init_voicepak(newFilename);
+    if (!play.voice_avail)
     {
         // if failed (and was not default)- fallback to default
         if (strlen(newFilename) > 0)
-            init_voicepak();
+            play.voice_avail = init_voicepak();
         return false;
     }
     return true;
@@ -1375,23 +1360,6 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
 }
 
-bool unserialize_audio_script_object(int index, const char *objectType, Stream *in, size_t data_sz)
-{
-    if (strcmp(objectType, "AudioChannel") == 0)
-    {
-        ccDynamicAudio.Unserialize(index, in, data_sz);
-    }
-    else if (strcmp(objectType, "AudioClip") == 0)
-    {
-        ccDynamicAudioClip.Unserialize(index, in, data_sz);
-    }
-    else
-    {
-        return false;
-    }
-    return true;
-}
-
 void game_sprite_updated(int sprnum)
 {
     // update the shared texture (if exists)
@@ -1423,7 +1391,8 @@ void game_sprite_updated(int sprnum)
         }
     }
     // overlays
-    for (auto &over : screenover)
+    auto &overs = get_overlays();
+    for (auto &over : overs)
     {
         if (over.GetSpriteNum() == sprnum)
             over.MarkChanged();
@@ -1494,7 +1463,8 @@ void game_sprite_deleted(int sprnum)
         }
     }
     // overlays
-    for (auto &over : screenover)
+    auto &overs = get_overlays();
+    for (auto &over : overs)
     {
         if (over.GetSpriteNum() == sprnum)
             over.SetSpriteNum(0);
@@ -1550,6 +1520,11 @@ RuntimeScriptValue Sc_Game_ChangeSpeechVox(const RuntimeScriptValue *params, int
 RuntimeScriptValue Sc_Game_DoOnceOnly(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(Game_DoOnceOnly, const char);
+}
+
+RuntimeScriptValue Sc_Game_ResetDoOnceOnly(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(Game_ResetDoOnceOnly);
 }
 
 // int (int red, int grn, int blu)
@@ -1830,6 +1805,7 @@ void RegisterGameAPI()
         { "Game::GetViewFrame^3",                         API_FN_PAIR(Game_GetViewFrame) },
         { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },
+        { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },

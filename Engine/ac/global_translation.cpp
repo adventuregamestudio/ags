@@ -18,11 +18,11 @@
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/translation.h"
+#include "core/types.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "util/memory.h"
-#include "core/types.h"
 
 using namespace AGS::Common::Memory;
 
@@ -45,7 +45,7 @@ const char *get_translation (const char *text) {
 #endif
 
     const auto &transtree = get_translation_tree();
-    const auto it = transtree.find(text);
+    const auto it = transtree.find(String::Wrapper(text));
     if (it != transtree.end())
         return it->second.GetCStr();
     // return the original text

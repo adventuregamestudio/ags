@@ -61,7 +61,7 @@
 #include "main/update.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -73,6 +73,7 @@ extern int ifacepopped;
 extern volatile bool want_exit, abort_engine;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
+extern ScriptSystem scsystem;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern int game_paused;
@@ -411,21 +412,21 @@ bool run_service_key_controls(KeyInput &out_key)
             sprintf(&infobuf[strlen(infobuf)],
                 "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
                 ff, objs[ff].x, objs[ff].y,
-                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Width : 0,
-                (spriteset[objs[ff].num] != nullptr) ? game.SpriteInfos[objs[ff].num].Height : 0,
+                (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Width : 0),
+                (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Height : 0),
                 objs[ff].on,
                 (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
                 objs[ff].num, objs[ff].transparent,
                 ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
-        Display(infobuf);
+        DisplayMB(infobuf);
         int chd = game.playercharacter;
         char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
         for (int ff = 0; ff < game.numcharacters; ff++) {
             if (game.chars[ff].room != displayed_room) continue;
             if (strlen(bigbuffer) > 430) {
                 strcat(bigbuffer, "and more...");
-                Display(bigbuffer);
+                DisplayMB(bigbuffer);
                 strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
             }
             chd = ff;
@@ -437,7 +438,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
                 game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
         }
-        Display(bigbuffer);
+        DisplayMB(bigbuffer);
         return false;
     }
 

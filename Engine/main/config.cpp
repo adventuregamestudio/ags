@@ -17,7 +17,6 @@
 #include <ctype.h> // toupper
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
@@ -41,7 +40,6 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
-extern GameState play;
 
 // Filename of the default config file, the one found in the game installation
 const String DefaultConfigFileName = "acsetup.cfg";

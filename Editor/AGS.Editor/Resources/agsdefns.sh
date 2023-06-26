@@ -2244,6 +2244,10 @@ builtin struct Game {
   /// Gets name of the currently active voice-over pack.
   readonly import static attribute String SpeechVoxFilename;
 #endif
+#ifdef SCRIPT_API_v361
+  /// Resets all of the "DoOnceOnly" token states
+  import static bool   ResetDoOnceOnly();
+#endif
 };
 
 builtin struct GameState {

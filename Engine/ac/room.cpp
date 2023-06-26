@@ -55,7 +55,7 @@
 #include "debug/out.h"
 #include "game/room_version.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/cc_common.h"
 #include "script/script.h"
@@ -79,7 +79,6 @@ extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
 extern RoomObject*objs;
-extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int done_es_error;
 extern int our_eip;
@@ -269,16 +268,13 @@ void unload_old_room() {
     if (croom==nullptr) ;
     else if (roominst!=nullptr) {
         save_room_data_segment();
-        delete roominstFork;
-        delete roominst;
-        roominstFork = nullptr;
-        roominst=nullptr;
+        FreeRoomScriptInstance();
     }
     else croom->tsdatasize=0;
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
-    remove_screen_overlay(-1);
+    remove_all_overlays();
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
     for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
@@ -794,7 +790,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     if (usetup.clear_cache_on_room_change)
     {
         // Delete all cached resources
-        spriteset.DisposeAll();
+        spriteset.DisposeAllCached();
         soundcache_clear();
     }
 
@@ -860,7 +856,7 @@ void check_new_room() {
 void compile_room_script() {
     cc_clear_error();
 
-    roominst = ccInstance::CreateFromScript(thisroom.CompiledScript);
+    roominst.reset(ccInstance::CreateFromScript(thisroom.CompiledScript));
     if ((cc_has_error()) || (roominst==nullptr)) {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
@@ -871,7 +867,7 @@ void compile_room_script() {
     if (!roominst->ResolveImportFixups(roominst->instanceof.get()))
         quitprintf("Unable to resolve import fixups in room script:\n%s", cc_get_error().ErrorString.GetCStr());
 
-    roominstFork = roominst->Fork();
+    roominstFork.reset(roominst->Fork());
     if (roominstFork == nullptr)
         quitprintf("Unable to create forked room instance:\n%s", cc_get_error().ErrorString.GetCStr());
 

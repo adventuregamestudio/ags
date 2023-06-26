@@ -105,7 +105,7 @@ public:
     int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
     int AddUnserializedObject(void *address, IScriptObject *callback, int handle, ScriptValueType obj_type, bool persistent);
     void WriteToDisk(Common::Stream *out);
-    int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
+    int ReadFromDisk(Common::Stream *in, ICCObjectCollectionReader *reader);
     // De-allocate all objects
     void Reset();
     void PrintStats();

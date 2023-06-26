@@ -20,7 +20,6 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_plugin.h"
 #include "ac/global_screen.h"
 #include "ac/sys_events.h"
 #include "ac/system.h"
@@ -53,6 +52,7 @@ Bitmap *dotted_mouse_cursor = nullptr;
 IDriverDependantBitmap *mouseCursor = nullptr;
 Bitmap *blank_mouse_cursor = nullptr;
 
+eAGSMouseButton simulatedClick = kMouseNone;
 
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
@@ -310,6 +310,10 @@ int IsModeEnabled(int which) {
     return (which < 0) || (which >= game.numcursors) ? 0 :
         which == MODE_USE ? playerchar->activeinv > 0 :
         (game.mcurs[which].flags & MCF_DISABLED) == 0;
+}
+
+void SimulateMouseClick(int button_id) {
+    simulatedClick = static_cast<eAGSMouseButton>(button_id);
 }
 
 void Mouse_EnableControl(bool on)
@@ -584,7 +588,7 @@ RuntimeScriptValue Sc_Mouse_SetVisible(const RuntimeScriptValue *params, int32_t
 
 RuntimeScriptValue Sc_Mouse_Click(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(PluginSimulateMouseClick);
+    API_SCALL_VOID_PINT(SimulateMouseClick);
 }
 
 RuntimeScriptValue Sc_Mouse_GetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
@@ -627,7 +631,7 @@ void RegisterMouseAPI()
         { "Mouse::ChangeModeHotspot^3",       API_FN_PAIR(ChangeCursorHotspot) },
         { "Mouse::ChangeModeView^2",          API_FN_PAIR(Mouse_ChangeModeView2) },
         { "Mouse::ChangeModeView^3",          API_FN_PAIR(Mouse_ChangeModeView) },
-        { "Mouse::Click^1",                   Sc_Mouse_Click, PluginSimulateMouseClick },
+        { "Mouse::Click^1",                   Sc_Mouse_Click, SimulateMouseClick },
         { "Mouse::DisableMode^1",             API_FN_PAIR(disable_cursor_mode) },
         { "Mouse::EnableMode^1",              API_FN_PAIR(enable_cursor_mode) },
         { "Mouse::GetModeGraphic^1",          API_FN_PAIR(Mouse_GetModeGraphic) },

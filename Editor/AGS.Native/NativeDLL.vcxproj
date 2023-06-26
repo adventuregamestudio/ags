@@ -60,7 +60,7 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration)_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>  
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
@@ -184,7 +184,6 @@
     <ClCompile Include="..\Native\acfonts_agsnative.cpp" />
     <ClCompile Include="..\Native\acgui_agsnative.cpp" />
     <ClCompile Include="..\Native\color_native.cpp" />
-    <ClCompile Include="..\Native\sprcache_agsnative.cpp" />
     <ClCompile Include="..\scintilla\lexers\LexCPP.cxx" />
     <ClCompile Include="..\scintilla\lexlib\Accessor.cxx" />
     <ClCompile Include="..\scintilla\lexlib\CharacterCategory.cxx" />
@@ -233,7 +232,6 @@
     <ClCompile Include="..\scintilla\win32\ScintillaWin.cxx" />
     <ClCompile Include="agsicons.cpp" />
     <ClCompile Include="agsnative.cpp" />
-    <ClCompile Include="cstretch.cpp" />
     <ClCompile Include="MSSCCI.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="NativeRoom.cpp" />

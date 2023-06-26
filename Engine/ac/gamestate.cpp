@@ -41,16 +41,6 @@ extern ScriptSystem scsystem;
 
 GameState::GameState()
 {
-    speech_text_schandle = 0;
-    speech_face_schandle = 0;
-    _isAutoRoomViewport = true;
-    _mainViewportHasChanged = false;
-}
-
-void GameState::Free()
-{
-    raw_drawing_surface.reset();
-    FreeProperties();
 }
 
 bool GameState::IsAutoRoomViewport() const
@@ -631,11 +621,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
-    int num_do_once_tokens = in->ReadInt32();
-    do_once_tokens.resize(num_do_once_tokens);
-    for (int i = 0; i < num_do_once_tokens; ++i)
+    uint32_t num_do_once_tokens = static_cast<uint32_t>(in->ReadInt32());
+    for (size_t i = 0; i < num_do_once_tokens; ++i)
     {
-        StrUtil::ReadString(do_once_tokens[i], in);
+        do_once_tokens.insert(StrUtil::ReadString(in));
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
@@ -819,10 +808,10 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(inv_backwards_compatibility);
-    out->WriteInt32(do_once_tokens.size());
-    for (int i = 0; i < (int)do_once_tokens.size(); ++i)
+    out->WriteInt32(static_cast<uint32_t>(do_once_tokens.size()));
+    for (const auto &token : do_once_tokens)
     {
-        StrUtil::WriteString(do_once_tokens[i], out);
+        StrUtil::WriteString(token, out);
     }
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);

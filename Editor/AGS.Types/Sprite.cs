@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [DefaultProperty("Resolution")]
+    [DefaultProperty("SourceFile")]
     public class Sprite : IToXml, ICustomTypeDescriptor, IComparable<Sprite>
     {
         public const string PROPERTY_SPRITE_NUMBER = "Number";
@@ -402,6 +402,18 @@ namespace AGS.Types
 			return this.Number - other.Number;
 		}
 
-		#endregion
-	}
+        #endregion
+
+        public override bool Equals(object obj)
+        {
+            Sprite other = obj as Sprite;
+            if (object.ReferenceEquals(other, null))
+                return false;
+            return Number == other.Number;
+        }
+        public override int GetHashCode()
+        {
+            return Number;
+        }
+    }
 }

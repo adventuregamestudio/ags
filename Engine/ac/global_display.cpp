@@ -41,6 +41,8 @@ extern RoomStruct thisroom;
 extern int display_message_aschar;
 extern GameSetupStruct game;
 
+void DisplayAtYImpl(int ypos, const char *texx, bool as_speech);
+
 void Display(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
@@ -53,6 +55,11 @@ void Display(const char*texx, ...) {
 void DisplaySimple(const char *text)
 {
     DisplayAtY (-1, text);
+}
+
+void DisplayMB(const char *text)
+{
+    DisplayAtYImpl(-1, text, false);
 }
 
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text)
@@ -148,7 +155,7 @@ void DisplayAt(int xxp,int yyp,int widd, const char* text) {
     _display_at(xxp, yyp, widd, text, DISPLAYTEXT_MESSAGEBOX, 0, 0, 0, false);
 }
 
-void DisplayAtY (int ypos, const char *texx) {
+void DisplayAtYImpl(int ypos, const char *texx, bool as_speech) {
     const Rect &ui_view = play.GetUIViewport();
     if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
@@ -157,7 +164,7 @@ void DisplayAtY (int ypos, const char *texx) {
     if (texx[0] == 0)
         return;
 
-    if (game.options[OPT_ALWAYSSPCH])
+    if (as_speech)
         DisplaySpeechAt(-1, ypos, -1, game.playercharacter, texx); // CLNUP if ypos <0  it used ypos without scaling, weird
     else { 
         // Normal "Display" in text box
@@ -172,4 +179,8 @@ void DisplayAtY (int ypos, const char *texx) {
         _display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4,
             get_translation(texx), DISPLAYTEXT_MESSAGEBOX, 0, 0, 0, false);
     }
+}
+
+void DisplayAtY(int ypos, const char *texx) {
+    DisplayAtYImpl(ypos, texx, game.options[OPT_ALWAYSSPCH] != 0);
 }

@@ -176,7 +176,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds,
     int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
-    if ((slot < 0) || (spriteset[slot] == nullptr))
+    if ((slot < 0) || (!spriteset.DoesSpriteExist(slot)))
         quit("!DrawingSurface.DrawImage: invalid sprite slot number specified");
     DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, trans, kBlend_Normal, dst_width, dst_height,
         src_x, src_y, src_width, src_height, slot);
@@ -291,7 +291,8 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
         text_color = ds->GetCompatibleColor(1);
         debug_script_warn ("RawPrint: Attempted to use hi-color on 256-col background");
     }
-    wouttext_outline(ds, xx, yy, font, text_color, text);
+    String res_str = GUI::ApplyTextDirection(text);
+    wouttext_outline(ds, xx, yy, font, text_color, res_str.GetCStr());
     sds->FinishedDrawing();
 }
 

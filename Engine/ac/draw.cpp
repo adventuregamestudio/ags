@@ -52,7 +52,7 @@
 #include "gui/guimain.h"
 #include "gui/guiobject.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"
 #include "gfx/gfx_util.h"
@@ -801,7 +801,7 @@ void mark_current_background_dirty()
 
 void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text)
 {
-    wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
+    wouttext_outline(ds, x1, y1, font, text_color, text);
     invalidate_rect(x1, y1, x1 + get_text_width_outlined(text, font),
         y1 + get_font_height_outlined(font) + 1, false);
 }
@@ -846,9 +846,16 @@ void render_to_screen()
     construct_engine_overlay();
 
     // Try set new vsync value, and remember the actual result
-    bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
-    if (new_vsync != scsystem.vsync)
-        System_SetVSyncInternal(new_vsync);
+    if (isTimerFpsMaxed())
+    {
+        gfxDriver->SetVsync(false);
+    }
+    else
+    {
+        bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
+        if (new_vsync != scsystem.vsync)
+            System_SetVSyncInternal(new_vsync);
+    }
 
     bool succeeded = false;
     while (!succeeded && !want_exit && !abort_engine)
@@ -1504,9 +1511,6 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     bool force_software)
 {
     const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
-    const int coldept = spriteset[pic]->GetColorDepth();
-    const int src_sprwidth = game.SpriteInfos[pic].Width;
-    const int src_sprheight = game.SpriteInfos[pic].Height;
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
@@ -1608,6 +1612,10 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     }
 
     // Not cached, so draw the image
+    Bitmap *sprite = spriteset[pic];
+    const int coldept = sprite->GetColorDepth();
+    const int src_sprwidth = sprite->GetWidth();
+    const int src_sprheight = sprite->GetHeight();
     bool actsps_used = false;
     if (!use_hw_transform)
     {
@@ -1627,7 +1635,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         // direct read from source bitmap, where possible
         Bitmap *blit_from = nullptr;
         if (!actsps_used)
-            blit_from = spriteset[pic];
+            blit_from = sprite;
 
         apply_tint_or_light(actsp, light_level, tint_level, tint_red,
             tint_green, tint_blue, tint_light, coldept,
@@ -1636,7 +1644,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     else if (!actsps_used)
     {
         // no scaling, flipping or tinting was done, so just blit it normally
-        actsp.Bmp->Blit(spriteset[pic], 0, 0);
+        actsp.Bmp->Blit(sprite, 0, 0);
     }
 
     // Create the cached image and store it
@@ -1729,7 +1737,7 @@ void prepare_and_add_object_gfx(
 bool construct_object_gfx(int objid, bool force_software)
 {
     const RoomObject &obj = objs[objid];
-    if (spriteset[obj.num] == nullptr)
+    if (!spriteset.DoesSpriteExist(obj.num))
         quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", objid, obj.num);
 
     ObjectCache objsrc(obj.num, obj.tint_r, obj.tint_g, obj.tint_b,
@@ -1839,7 +1847,7 @@ bool construct_char_gfx(int charid, bool force_software)
     const CharacterExtras &chex = charextra[charid];
     const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];
     const int pic = vf->pic;
-    if (spriteset[pic] == nullptr)
+    if (!spriteset.DoesSpriteExist(pic))
         quitprintf("There was an error drawing character %d. Its current frame's sprite, %d, is invalid.", charid, pic);
 
     ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b,
@@ -1920,9 +1928,10 @@ void add_walkbehind_image(size_t index, Common::Bitmap *bmp, int x, int y)
 // Add active room overlays to the sprite list
 static void add_roomovers_for_drawing()
 {
-    for (size_t i = 0; i < screenover.size(); ++i)
+    auto &overs = get_overlays();
+    for (auto &over : overs)
     {
-        auto &over = screenover[i];
+        if (over.type < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (over.transparency == 255) continue; // skip fully transparent
         const Point pos = update_overlay_graphicspace(over);
@@ -2163,9 +2172,10 @@ void draw_gui_and_overlays()
     const bool draw_controls_as_textures = is_3d_render;
 
     // Add overlays
-    for (size_t index = 0; index < screenover.size(); ++index)
+    auto &overs = get_overlays();
+    for (auto &over : overs)
     {
-        auto &over = screenover[index];
+        if (over.type < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (over.transparency == 255) continue; // skip fully transparent
         const Point pos = update_overlay_graphicspace(over);
@@ -2427,14 +2437,16 @@ static void construct_ui_view()
 static void construct_overlays()
 {
     const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
-    if (overlaybmp.size() < screenover.size() * 2)
+    auto &overs = get_overlays();
+    if (overlaybmp.size() < overs.size() * 2)
     {
-        overlaybmp.resize(screenover.size() * 2); // for scale and rot
-        screenovercache.resize(screenover.size());
+        overlaybmp.resize(overs.size() * 2); // for scale and rot
+        screenovercache.resize(overs.size());
     }
-    for (size_t i = 0; i < screenover.size(); ++i)
+    for (size_t i = 0; i < overs.size(); ++i)
     {
-        auto &over = screenover[i];
+        auto &over = overs[i];
+        if (over.type < 0) continue; // empty slot
         if (over.transparency == 255) continue; // skip fully transparent
 
         bool has_changed = over.HasChanged();

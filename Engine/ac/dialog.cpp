@@ -57,7 +57,6 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
-extern ccInstance *dialogScriptsInst;
 extern int in_new_room;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
@@ -197,7 +196,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
     char func_name[100];
     snprintf(func_name, sizeof(func_name), "_run_dialog%d", dialogID);
     RuntimeScriptValue params[]{ optionIndex };
-    RunScriptFunction(dialogScriptsInst, func_name, 1, params);
+    RunScriptFunction(dialogScriptsInst.get(), func_name, 1, params);
     result = dialogScriptsInst->returnValue;
   }
 

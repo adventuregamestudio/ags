@@ -54,8 +54,7 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
     // - translation change
     // - macro value change (score, overhotspot etc)
     Rect rc = RectWH(0, 0, Width, Height);
-    PrepareTextToDraw();
-    if (SplitLinesForDrawing(Lines) == 0)
+    if (PrepareTextToDraw() == 0)
         return rc;
     const int linespacing = get_font_linespacing(Font);
     const bool limit_by_label_frame = true;
@@ -76,8 +75,7 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
 {
     // TODO: need to find a way to cache text prior to drawing;
     // but that will require to update all gui controls when translation is changed in game
-    PrepareTextToDraw();
-    if (SplitLinesForDrawing(Lines) == 0)
+    if (PrepareTextToDraw() == 0)
         return;
 
     color_t text_color = ds->GetCompatibleColor(TextColor);
@@ -125,8 +123,6 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (TextColor == 0)
         TextColor = 16;
-    // All labels are translated at the moment
-    Flags |= kGUICtrl_Translated;
 
     _textMacro = GUI::FindLabelMacros(Text);
 }

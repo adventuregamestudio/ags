@@ -115,12 +115,21 @@ struct ICCStringClass
     virtual DynObjectRef CreateString(const char *fromText) = 0;
 };
 
-// The interface of a managed script object deserializer.
+// The interface of a script objects deserializer that handles multiple types.
 // Is supposed to create an object based on object type, and add one to the managed pool.
+struct ICCObjectCollectionReader
+{
+    // TODO: pass savegame format version
+    virtual void Unserialize(int32_t handle, const char *objectType, const char *serializedData, int dataSize) = 0;
+};
+
+// The interface of a script objects deserializer that handles a single type.
+// Is supposed to create an object of the predefined type, and add one to the managed pool.
+// WARNING: a part of the plugin API.
 struct ICCObjectReader
 {
     // TODO: find a way to pass savegame format version?
-    virtual void Unserialize(int32_t handle, const char *objectType, const char *serializedData, int dataSize) = 0;
+    virtual void Unserialize(int32_t handle, const char *serializedData, int dataSize) = 0;
 };
 
 #endif // __CC_SCRIPTOBJECT_H

@@ -265,7 +265,7 @@ void GUIMain::DrawSelf(Bitmap *ds)
 
     SET_EIP(378);
 
-    if (BgImage > 0 && spriteset[BgImage] != nullptr)
+    if (BgImage > 0 && spriteset.DoesSpriteExist(BgImage))
         draw_gui_sprite(ds, BgImage, 0, 0);
 
     SET_EIP(379);

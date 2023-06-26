@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using AGS.Types;
 using AGS.Editor.Preferences;
 using AGS.Editor.Components;
+using AGS.Editor.Utils;
 
 namespace AGS.Editor
 {
@@ -184,7 +185,7 @@ namespace AGS.Editor
         public static void CreateNewSpriteFile()
         {
             string tempFilename = Path.GetTempFileName();
-            Utils.SpriteTools.WriteDummySpriteFile(tempFilename);
+            SpriteTools.WriteDummySpriteFile(tempFilename);
             Factory.NativeProxy.ReplaceSpriteFile(tempFilename);
             File.Delete(tempFilename);
         }
@@ -197,7 +198,7 @@ namespace AGS.Editor
                 tempFilename = Path.GetTempFileName();
                 BusyDialog.Show("Please wait while the sprite file is recreated...",
                     new BusyDialog.ProcessingHandler(
-                        (IWorkProgress progress, object o) => { Utils.SpriteTools.WriteSpriteFileFromSources((string)o, progress); return null; }),
+                        (IWorkProgress progress, object o) => { SpriteTools.WriteSpriteFileFromSources((string)o, progress); return null; }),
                     tempFilename);
             }
             catch (Exception e)
@@ -210,6 +211,26 @@ namespace AGS.Editor
             File.Delete(tempFilename);
 
             Factory.Events.OnSpritesImported(null);
+        }
+
+        public static void ExportSprites(SpriteFolder folder, SpriteTools.ExportSpritesOptions options)
+        {
+            try
+            {
+                BusyDialog.Show("Please wait while the sprites are exported...",
+                    new BusyDialog.ProcessingHandler(
+                        (IWorkProgress progress, object o) => { SpriteTools.ExportSprites(folder, options, progress); return null; }), null);
+            }
+            catch (Exception ex)
+            {
+                String message = String.Format("There was an error during the export. The error message was: '{0}'", ex.Message);
+                Factory.GUIController.ShowMessage(message, MessageBoxIcon.Warning);
+            }
+        }
+
+        public static void ExportSprites(SpriteTools.ExportSpritesOptions options)
+        {
+            ExportSprites(Factory.AGSEditor.CurrentGame.RootSpriteFolder, options);
         }
 
         private void SetDefaultValuesForNewFeatures(Game game)
@@ -238,6 +259,19 @@ namespace AGS.Editor
                 foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
                 {
                     dialog.Script = RemoveAllLeadingSpacesFromLines(dialog.Script);
+                }
+            }
+
+            if (xmlVersionIndex < 8)
+            {
+                // GUIListBox Translated property should be false, as they never translated in older games
+                foreach (GUI gui in game.GUIs)
+                {
+                    foreach (GUIControl guic in gui.Controls)
+                    {
+                        if (guic is GUIListBox)
+                            (guic as GUIListBox).Translated = false;
+                    }
                 }
             }
 

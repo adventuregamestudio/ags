@@ -316,7 +316,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
         // handle
         out->WriteInt32(o.handle);
         // write the type of the object
-        StrUtil::WriteCStr((char*)o.callback->GetType(), out);
+        StrUtil::WriteCStr(o.callback->GetType(), out);
         // now write the object data
         int bytesWritten = o.callback->Serialize(o.addr, &serializeBuffer.front(), serializeBuffer.size());
         if ((bytesWritten < 0) && ((size_t)(-bytesWritten) > serializeBuffer.size()))
@@ -334,7 +334,7 @@ void ManagedObjectPool::WriteToDisk(Stream *out) {
     }
 }
 
-int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
+int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectCollectionReader *reader) {
     if (in->ReadInt32() != OBJECT_CACHE_MAGIC_NUMBER) {
         cc_error("Invalid data format");
         return -1;

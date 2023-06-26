@@ -466,7 +466,7 @@ __inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *
 
 
 void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
-    char *dst_ptr, const int dst_pitch, const bool usingLinearFiltering)
+    uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering)
 {
     const int src_depth = bitmap->GetColorDepth();
     bool lastPixelWasTransparent = false;
@@ -622,7 +622,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const Tex
 }
 
 void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
-    char *dst_ptr, const int dst_pitch)
+    uint8_t *dst_ptr, const int dst_pitch)
 {
     const int src_depth = bitmap->GetColorDepth();
 

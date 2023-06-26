@@ -24,12 +24,13 @@
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/game.h"
 #include "debug/debug_log.h"
-#include "plugin/agsplugin.h"
-#include "plugin/pluginobjectreader.h"
+#include "plugin/plugin_engine.h"
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
 
+extern CCAudioChannel ccDynamicAudio;
+extern CCAudioClip ccDynamicAudioClip;
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
 extern CCHotspot   ccDynamicHotspot;
@@ -40,8 +41,7 @@ extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
-extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
-extern int numPluginReaders;
+extern std::vector<PluginObjectReader> pluginReaders;
 
 // *** De-serialization of script objects
 
@@ -151,12 +151,20 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     {
         Camera_Unserialize(index, &mems, data_sz);
     }
-    else if (!unserialize_audio_script_object(index, objectType, &mems, data_sz))
+    else if (strcmp(objectType, "AudioChannel") == 0)
+    {
+        ccDynamicAudio.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "AudioClip") == 0)
+    {
+        ccDynamicAudioClip.Unserialize(index, &mems, data_sz);
+    }
+    else
     {
         // check if the type is read by a plugin
-        for (int ii = 0; ii < numPluginReaders; ii++) {
-            if (strcmp(objectType, pluginReaders[ii].type) == 0) {
-                pluginReaders[ii].reader->Unserialize(index, serializedData, dataSize);
+        for (const auto &pr : pluginReaders) {
+            if (pr.Type == objectType) {
+                pr.Reader->Unserialize(index, serializedData, dataSize);
                 return;
             }
         }

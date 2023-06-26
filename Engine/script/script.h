@@ -14,6 +14,7 @@
 #ifndef __AGS_EE_SCRIPT__SCRIPT_H
 #define __AGS_EE_SCRIPT__SCRIPT_H
 
+#include <memory>
 #include <vector>
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
@@ -54,6 +55,16 @@ int     RunScriptFunctionInRoom(const char *tsname, size_t param_count = 0,
 int     RunScriptFunctionAuto(ScriptInstType sc_inst, const char *fn_name, size_t param_count = 0,
     const RuntimeScriptValue *params = nullptr);
 
+// Preallocates script module instances
+void    AllocScriptModules();
+// Delete all the script instance objects
+void    FreeAllScriptInstances();
+// Delete only the current room script instance
+void    FreeRoomScriptInstance();
+// Deletes all the global scripts and modules;
+// this frees all of the bytecode and runtime script memory.
+void    FreeGlobalScripts();
+
 
 AGS::Common::String GetScriptName(ccInstance *sci);
 
@@ -74,13 +85,27 @@ AGS::Common::String cc_get_callstack(int max_lines = INT_MAX);
 
 
 extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-extern ExecutingScript*curscript;
+extern ExecutingScript *curscript;
 
 extern PScript gamescript;
 extern PScript dialogScriptsScript;
-extern ccInstance *gameinst, *roominst;
-extern ccInstance *dialogScriptsInst;
-extern ccInstance *gameinstFork, *roominstFork;
+// [ikm] we keep ccInstances saved in unique_ptrs globally for now
+// (e.g. as opposed to shared_ptrs), because the script handling part of the
+// engine is quite fragile and prone to errors whenever the instance is not
+// **deleted** in precise time. This is related to:
+// - ccScript's "instances" counting, which affects script exports reg/unreg;
+// - loadedInstances array.
+// One of the examples is the save restoration, that may occur in the midst
+// of a post-script cleanup process, whilst the engine's stack still has
+// references to the ccInstances that are going to be deleted on cleanup.
+// Ideally, this part of the engine should be refactored awhole with a goal
+// to make it safe and consistent.
+typedef std::unique_ptr<ccInstance> UInstance;
+extern UInstance gameinst;
+extern UInstance roominst;
+extern UInstance dialogScriptsInst;
+extern UInstance gameinstFork;
+extern UInstance roominstFork;
 
 extern int num_scripts;
 extern int post_script_cleanup_stack;
@@ -99,11 +124,9 @@ extern NonBlockingScriptFunction runDialogOptionTextInputHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
 extern NonBlockingScriptFunction runDialogOptionCloseFunc;
 
-extern ScriptSystem scsystem;
-
 extern std::vector<PScript> scriptModules;
-extern std::vector<ccInstance *> moduleInst;
-extern std::vector<ccInstance *> moduleInstFork;
+extern std::vector<UInstance> moduleInst;
+extern std::vector<UInstance> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern size_t numScriptModules;
 

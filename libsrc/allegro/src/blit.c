@@ -85,7 +85,7 @@ static void blit_from_256(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, 
    /* worker macro */
    #define EXPAND_BLIT(bits, dsize)                                          \
    {                                                                         \
-      if (is_memory_bitmap(src)) {                                           \
+      {                                                                      \
          /* fast version when reading from memory bitmap */                  \
          bmp_select(dest);                                                   \
                                                                              \
@@ -99,26 +99,6 @@ static void blit_from_256(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, 
                d += dsize;                                                   \
             }                                                                \
          }                                                                   \
-                                                                             \
-      }                                                                      \
-      else {                                                                 \
-         /* slower version when reading from the screen */                   \
-         for (y=0; y<h; y++) {                                               \
-            s = bmp_read_line(src, s_y+y) + s_x;                             \
-            d = bmp_write_line(dest, d_y+y) + d_x*dsize;                     \
-                                                                             \
-            for (x=0; x<w; x++) {                                            \
-               bmp_select(src);                                              \
-               c = bmp_read8(s);                                             \
-                                                                             \
-               bmp_select(dest);                                             \
-               bmp_write##bits(d, dest_palette_color[c]);                    \
-                                                                             \
-               s++;                                                          \
-               d += dsize;                                                   \
-            }                                                                \
-         }                                                                   \
-                                                                             \
       }                                                                      \
    }
 
@@ -220,7 +200,7 @@ static void blit_from_256(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, 
 
 
 
-#if (defined ALLEGRO_COLOR8) || (defined ALLEGRO_GFX_HAS_VGA)
+#if (defined ALLEGRO_COLOR8)
 
 /* dither_blit:
  *  Blits with Floyd-Steinberg error diffusion.
@@ -515,54 +495,13 @@ static void blit_from_32(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, i
 
 
 
-/* blit_to_or_from_modex:
- *  Converts between truecolor and planar mode-X bitmaps. This function is 
- *  painfully slow, but I don't think it is something that people will need
- *  to do very often...
- */
-static void blit_to_or_from_modex(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, int d_y, int w, int h)
-{
-   #ifdef ALLEGRO_GFX_HAS_VGA
-
-   int x, y, c, r, g, b;
-   int src_depth = bitmap_color_depth(src);
-   int dest_depth = bitmap_color_depth(dest);
-
-   int prev_drawmode = _drawing_mode;
-   _drawing_mode = DRAW_MODE_SOLID;
-
-   if ((src_depth != 8) && (_color_conv & COLORCONV_DITHER_PAL))
-      dither_blit(src, dest, s_x, s_y, d_x, d_y, w, h);
-   else {
-      for (y=0; y<h; y++) {
-         for (x=0; x<w; x++) {
-            c = getpixel(src, s_x+x, s_y+y);
-            r = getr_depth(src_depth, c);
-            g = getg_depth(src_depth, c);
-            b = getb_depth(src_depth, c);
-            c = makecol_depth(dest_depth, r, g, b);
-            putpixel(dest, d_x+x, d_y+y, c);
-         }
-      }
-   }
-
-   _drawing_mode = prev_drawmode;
-
-   #endif
-}
-
-
-
 /* blit_between_formats:
  *  Blits an (already clipped) region between two bitmaps of different
  *  color depths, doing the appopriate format conversions.
  */
 void _blit_between_formats(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, int d_y, int w, int h)
 {
-   if ((is_planar_bitmap(src)) || (is_planar_bitmap(dest))) {
-      blit_to_or_from_modex(src, dest, s_x, s_y, d_x, d_y, w, h);
-   }
-   else {
+   {
       switch (bitmap_color_depth(src)) {
 
 	 case 8:
@@ -708,30 +647,8 @@ void blit(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, int d_y, int w, 
       /* special handling for overlapping regions */
       blit_to_self(src, dest, s_x, s_y, d_x, d_y, w, h);
    }
-   else if (is_video_bitmap(dest)) {
-      /* drawing onto video bitmaps */
-      if (is_video_bitmap(src))
-         dest->vtable->blit_to_self(src, dest, s_x, s_y, d_x, d_y, w, h);
-      else if (is_system_bitmap(src))
-         dest->vtable->blit_from_system(src, dest, s_x, s_y, d_x, d_y, w, h);
-      else
-         dest->vtable->blit_from_memory(src, dest, s_x, s_y, d_x, d_y, w, h);
-   }
-   else if (is_system_bitmap(dest)) {
-      /* drawing onto system bitmaps */
-      if (is_video_bitmap(src))
-         src->vtable->blit_to_system(src, dest, s_x, s_y, d_x, d_y, w, h);
-      else if (is_system_bitmap(src))
-         dest->vtable->blit_to_self(src, dest, s_x, s_y, d_x, d_y, w, h);
-      else
-         dest->vtable->blit_from_memory(src, dest, s_x, s_y, d_x, d_y, w, h);
-   }
    else {
-      /* drawing onto memory bitmaps */
-      if ((is_video_bitmap(src)) || (is_system_bitmap(src)))
-         src->vtable->blit_to_memory(src, dest, s_x, s_y, d_x, d_y, w, h);
-      else
-         dest->vtable->blit_to_self(src, dest, s_x, s_y, d_x, d_y, w, h);
+      dest->vtable->blit_to_self(src, dest, s_x, s_y, d_x, d_y, w, h);
    }
 }
 

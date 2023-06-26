@@ -49,9 +49,6 @@
     <ClCompile Include="..\Native\color_native.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cstretch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MSSCCI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,9 +56,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ScriptCompiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Native\sprcache_agsnative.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\scintilla\src\AutoComplete.cxx">

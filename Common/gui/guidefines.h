@@ -108,7 +108,8 @@ enum GUIControlFlags
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
     kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
 
-    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable
+    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable |
+                          kGUICtrl_Translated,
 };
 
 // Label macro flags, define which macros are present in the Label's Text

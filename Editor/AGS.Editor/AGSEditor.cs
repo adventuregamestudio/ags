@@ -102,6 +102,7 @@ namespace AGS.Editor
          *                - Room.BackgroundAnimationEnabled
          *                - RuntimeSetup.FullscreenDesktop
          * 3.6.0.20       - Settings.GameTextEncoding, Settings.UseOldKeyboardHandling;
+         * 3.6.1.2        - GUIListBox.Translated property moved to GUIControl parent
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms

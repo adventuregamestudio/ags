@@ -52,13 +52,15 @@ extern int our_eip;
 extern CharacterInfo*playerchar;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-ExecutingScript*curscript = nullptr;
+ExecutingScript *curscript = nullptr; // non-owning ptr
 
 PScript gamescript;
 PScript dialogScriptsScript;
-ccInstance *gameinst = nullptr, *roominst = nullptr;
-ccInstance *dialogScriptsInst = nullptr;
-ccInstance *gameinstFork = nullptr, *roominstFork = nullptr;
+UInstance gameinst;
+UInstance roominst;
+UInstance dialogScriptsInst;
+UInstance gameinstFork;
+UInstance roominstFork;
 
 int num_scripts=0;
 int post_script_cleanup_stack = 0;
@@ -80,8 +82,8 @@ NonBlockingScriptFunction runDialogOptionCloseFunc("dialog_options_close", 1);
 ScriptSystem scsystem;
 
 std::vector<PScript> scriptModules;
-std::vector<ccInstance *> moduleInst;
-std::vector<ccInstance *> moduleInstFork;
+std::vector<UInstance> moduleInst;
+std::vector<UInstance> moduleInstFork;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;
 size_t numScriptModules = 0;
 
@@ -92,7 +94,7 @@ static bool DoRunScriptFuncCantBlock(ccInstance *sci, NonBlockingScriptFunction*
 int run_dialog_request (int parmtr) {
     play.stop_dialog_at_end = DIALOG_RUNNING;
     RuntimeScriptValue params[]{ parmtr };
-    RunScriptFunction(gameinst, "dialog_request", 1, params);
+    RunScriptFunction(gameinst.get(), "dialog_request", 1, params);
 
     if (play.stop_dialog_at_end == DIALOG_STOP) {
         play.stop_dialog_at_end = DIALOG_NONE;
@@ -123,18 +125,18 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     // run modules
     // modules need a forkedinst for this to work
     for (size_t i = 0; i < numScriptModules; ++i) {
-        funcToRun->moduleHasFunction[i] = DoRunScriptFuncCantBlock(moduleInstFork[i], funcToRun, funcToRun->moduleHasFunction[i]);
+        funcToRun->moduleHasFunction[i] = DoRunScriptFuncCantBlock(moduleInstFork[i].get(), funcToRun, funcToRun->moduleHasFunction[i]);
 
         if (room_changes_was != play.room_changes)
             return;
     }
 
-    funcToRun->globalScriptHasFunction = DoRunScriptFuncCantBlock(gameinstFork, funcToRun, funcToRun->globalScriptHasFunction);
+    funcToRun->globalScriptHasFunction = DoRunScriptFuncCantBlock(gameinstFork.get(), funcToRun, funcToRun->globalScriptHasFunction);
 
     if (room_changes_was != play.room_changes)
         return;
 
-    funcToRun->roomHasFunction = DoRunScriptFuncCantBlock(roominstFork, funcToRun, funcToRun->roomHasFunction);
+    funcToRun->roomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->roomHasFunction);
 }
 
 
@@ -188,32 +190,34 @@ int create_global_script() {
 
     ccSetOption(SCOPT_AUTOIMPORT, 1);
 
-    std::vector<ccInstance *> instances_for_resolving;
+    // NOTE: this function assumes that the module lists have their elements preallocated!
+
+    std::vector<ccInstance*> all_insts; // gather all to resolve exports below
     for (size_t i = 0; i < numScriptModules; ++i)
     {
-        moduleInst[i] = ccInstance::CreateFromScript(scriptModules[i]);
-        if (moduleInst[i] == nullptr)
+        auto inst = ccInstance::CreateFromScript(scriptModules[i]);
+        if (!inst)
             return kscript_create_error;
-        instances_for_resolving.push_back(moduleInst[i]);
+        moduleInst[i].reset(inst);
+        all_insts.push_back(inst);
     }
 
-    gameinst = ccInstance::CreateFromScript(gamescript);
-    if (gameinst == nullptr)
+    gameinst.reset(ccInstance::CreateFromScript(gamescript));
+    if (!gameinst)
         return kscript_create_error;
-    instances_for_resolving.push_back(gameinst);
+    all_insts.push_back(gameinst.get());
 
-    if (dialogScriptsScript != nullptr)
+    if (dialogScriptsScript)
     {
-        dialogScriptsInst = ccInstance::CreateFromScript(dialogScriptsScript);
-        if (dialogScriptsInst == nullptr)
+        dialogScriptsInst.reset(ccInstance::CreateFromScript(dialogScriptsScript));
+        if (!dialogScriptsInst)
             return kscript_create_error;
-        instances_for_resolving.push_back(dialogScriptsInst);
+        all_insts.push_back(dialogScriptsInst.get());
     }
 
     // Resolve the script imports after all the scripts have been loaded 
-    for (size_t instance_idx = 0; instance_idx < instances_for_resolving.size(); instance_idx++)
+    for (auto &inst : all_insts)
     {
-        auto inst = instances_for_resolving[instance_idx];
         if (!inst->ResolveScriptImports(inst->instanceof.get()))
             return kscript_create_error;
         if (!inst->ResolveImportFixups(inst->instanceof.get()))
@@ -224,14 +228,15 @@ int create_global_script() {
     // because they copy their respective originals including the resolve information
     for (size_t module_idx = 0; module_idx < numScriptModules; module_idx++)
     {
-        moduleInstFork[module_idx] = moduleInst[module_idx]->Fork();
-        if (moduleInstFork[module_idx] == nullptr)
+        auto fork = moduleInst[module_idx]->Fork();
+        if (!fork)
             return kscript_create_error;
 
+        moduleInstFork[module_idx].reset(fork);
         moduleRepExecAddr[module_idx] = moduleInst[module_idx]->GetSymbolAddress(REP_EXEC_NAME);
     }
 
-    gameinstFork = gameinst->Fork();
+    gameinstFork.reset(gameinst->Fork());
     if (gameinstFork == nullptr)
         return kscript_create_error;
 
@@ -241,13 +246,16 @@ int create_global_script() {
 
 void cancel_all_scripts()
 {
-    for (int aa = 0; aa < num_scripts; aa++)
+    for (int i = 0; i < num_scripts; ++i)
     {
-        if (scripts[aa].forked)
-            scripts[aa].inst->AbortAndDestroy();
-        else
-            scripts[aa].inst->Abort();
-        scripts[aa].numanother = 0;
+        auto &sc = scripts[i];
+        if (sc.inst)
+        {
+            (sc.forkedInst) ?
+                sc.inst->AbortAndDestroy() :
+                sc.inst->Abort();
+        }
+        sc.numanother = 0;
     }
     num_scripts = 0;
     // in case the script is running on non-blocking thread (rep-exec-always etc)
@@ -259,9 +267,9 @@ void cancel_all_scripts()
 ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst)
 {
     if (sc_inst == kScInstGame)
-        return gameinst;
+        return gameinst.get();
     else if (sc_inst == kScInstRoom)
-        return roominst;
+        return roominst.get();
     return nullptr;
 }
 
@@ -314,16 +322,19 @@ static int PrepareTextScript(ccInstance *sci, const char**tsname)
         cc_error("script is already in execution");
         return -3;
     }
-    scripts[num_scripts].init();
-    scripts[num_scripts].inst = sci;
+    ExecutingScript exscript;
     // CHECKME: this conditional block will never run, because
     // function would have quit earlier (deprecated functionality?)
     if (sci->IsBeingRun()) {
-        scripts[num_scripts].inst = sci->Fork();
-        if (scripts[num_scripts].inst == nullptr)
+        auto fork = sci->Fork();
+        if (!fork)
             quit("unable to fork instance for secondary script");
-        scripts[num_scripts].forked = 1;
+        exscript.forkedInst.reset(fork);
+        exscript.inst = fork;
+    } else {
+        exscript.inst = sci;
     }
+    scripts[num_scripts] = std::move(exscript);
     curscript = &scripts[num_scripts];
     num_scripts++;
     if (num_scripts >= MAX_SCRIPT_AT_ONCE)
@@ -385,8 +396,8 @@ int RunScriptFunction(ccInstance *sci, const char *tsname, size_t numParam, cons
 void RunScriptFunctionInModules(const char *tsname, size_t param_count, const RuntimeScriptValue *params)
 {
     for (size_t i = 0; i < numScriptModules; ++i)
-        RunScriptFunction(moduleInst[i], tsname, param_count, params);
-    RunScriptFunction(gameinst, tsname, param_count, params);
+        RunScriptFunction(moduleInst[i].get(), tsname, param_count, params);
+    RunScriptFunction(gameinst.get(), tsname, param_count, params);
 }
 
 int RunScriptFunctionInRoom(const char *tsname, size_t param_count, const RuntimeScriptValue *params)
@@ -395,7 +406,7 @@ int RunScriptFunctionInRoom(const char *tsname, size_t param_count, const Runtim
     // identified by having no parameters;
     // TODO: this is a hack, this should be defined either by function type, or as an arg
     const bool strict_room_event = (param_count == 0);
-    int toret = RunScriptFunction(roominst, tsname, param_count, params);
+    int toret = RunScriptFunction(roominst.get(), tsname, param_count, params);
     // If it's a obligatory room event, and return code means missing function - error
     if (strict_room_event && (toret == -18))
         quitprintf("RunScriptFunction: error %d (%s) trying to run '%s'   (Room %d)",
@@ -411,13 +422,13 @@ static int RunUnclaimableEvent(const char *tsname)
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         if (!moduleRepExecAddr[i].IsNull())
-            RunScriptFunction(moduleInst[i], tsname);
+            RunScriptFunction(moduleInst[i].get(), tsname);
         // Break on room change or save restoration
         if ((room_changes_was != play.room_changes) ||
             (restore_game_count_was != gameHasBeenRestored))
             return 0;
     }
-    return RunScriptFunction(gameinst, tsname);
+    return RunScriptFunction(gameinst.get(), tsname);
 }
 
 static int RunClaimableEvent(const char *tsname, size_t param_count, const RuntimeScriptValue *params)
@@ -428,7 +439,7 @@ static int RunClaimableEvent(const char *tsname, size_t param_count, const Runti
     // Break on event claim
     if (eventWasClaimed)
         return toret;
-    return RunScriptFunction(gameinst, tsname, param_count, params);
+    return RunScriptFunction(gameinst.get(), tsname, param_count, params);
 }
 
 int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t param_count, const RuntimeScriptValue *params)
@@ -454,6 +465,69 @@ int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t par
     if (!sci)
         return 0;
     return RunScriptFunction(sci, tsname, param_count, params);
+}
+
+void AllocScriptModules()
+{
+    // NOTE: this preallocation possibly required to safeguard some algorithms
+    moduleInst.resize(numScriptModules);
+    moduleInstFork.resize(numScriptModules);
+    moduleRepExecAddr.resize(numScriptModules);
+    repExecAlways.moduleHasFunction.resize(numScriptModules, true);
+    lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);
+    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
+    renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
+    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
+    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
+    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
+    runDialogOptionTextInputHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
+    runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
+    runDialogOptionCloseFunc.moduleHasFunction.resize(numScriptModules, true);
+    for (auto &val : moduleRepExecAddr)
+    {
+        val.Invalidate();
+    }
+}
+
+void FreeAllScriptInstances()
+{
+    FreeRoomScriptInstance();
+
+    // NOTE: don't know why, but Forks must be deleted prior to primary inst,
+    // or bad things will happen; TODO: investigate and make this less fragile
+    gameinstFork.reset();
+    gameinst.reset();
+    dialogScriptsInst.reset();
+    moduleInstFork.clear();
+    moduleInst.clear();
+}
+
+void FreeRoomScriptInstance()
+{
+    // NOTE: don't know why, but Forks must be deleted prior to primary inst,
+    // or bad things will happen; TODO: investigate and make this less fragile
+    roominstFork.reset();
+    roominst.reset();
+}
+
+void FreeGlobalScripts()
+{
+    numScriptModules = 0;
+
+    gamescript.reset();
+    scriptModules.clear();
+    dialogScriptsScript.reset();
+
+    repExecAlways.moduleHasFunction.clear();
+    lateRepExecAlways.moduleHasFunction.clear();
+    getDialogOptionsDimensionsFunc.moduleHasFunction.clear();
+    renderDialogOptionsFunc.moduleHasFunction.clear();
+    getDialogOptionUnderCursorFunc.moduleHasFunction.clear();
+    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.clear();
+    runDialogOptionKeyPressHandlerFunc.moduleHasFunction.clear();
+    runDialogOptionTextInputHandlerFunc.moduleHasFunction.clear();
+    runDialogOptionRepExecFunc.moduleHasFunction.clear();
+    runDialogOptionCloseFunc.moduleHasFunction.clear();
 }
 
 String GetScriptName(ccInstance *sci)
@@ -490,10 +564,9 @@ void post_script_cleanup() {
 
     ExecutingScript copyof;
     if (num_scripts > 0)
-    {
-        copyof = scripts[num_scripts - 1];
-        if (scripts[num_scripts - 1].forked)
-            delete scripts[num_scripts - 1].inst;
+    { // save until the end of function
+        copyof = std::move(scripts[num_scripts - 1]);
+        copyof.forkedInst.reset(); // don't need it further
         num_scripts--;
     }
     inside_script--;
@@ -571,7 +644,6 @@ void post_script_cleanup() {
         if ((displayed_room != old_room_number) || (load_new_game))
             break;
     }
-    copyof.numanother = 0;
 
 }
 

@@ -38,23 +38,24 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
     const char *text, int disp_type, int allow_shrink);
 
-int  find_overlay_of_type(int type);
-void remove_screen_overlay(int type);
+ScreenOverlay *get_overlay(int type);
 // Calculates overlay position in its respective layer (screen or room)
 Point get_overlay_position(const ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, Common::Bitmap *piccy, int pic_offx, int pic_offy);
+void remove_screen_overlay(int type);
+void remove_all_overlays();
 // Creates and registers a managed script object for existing overlay object;
 // optionally adds an internal engine reference to prevent object's disposal
 ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);
-void remove_screen_overlay_index(size_t over_idx);
-void recreate_overlay_ddbs();
-// Create or resize GUI surface, accomodating for any GUI transformations
+// Restores overlays, e.g. after restoring a game save
+void restore_overlays();
+// Create or resize GUI surface, accomodating for any GUI transformations (?????)
 Common::Bitmap *recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
     Common::Bitmap *&scalebmp, Common::Bitmap *&rotbmp);
 // Recalculates overlay's transform matrix and AABB, returns overlay object's position
 Point update_overlay_graphicspace(ScreenOverlay &over);
+std::vector<ScreenOverlay> &get_overlays();
 
-extern std::vector<ScreenOverlay> screenover;
 #endif // __AGS_EE_AC__OVERLAY_H

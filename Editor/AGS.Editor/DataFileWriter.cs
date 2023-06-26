@@ -1090,8 +1090,10 @@ namespace AGS.Editor
             {
                 return (control.Clickable ? NativeConstants.GUIF_CLICKABLE : 0) |
                     (control.Enabled ? NativeConstants.GUIF_ENABLED : 0) |
-                    (control.Visible ? NativeConstants.GUIF_VISIBLE : 0)
+                    (control.Visible ? NativeConstants.GUIF_VISIBLE : 0) |
+                    (control.Translated ? NativeConstants.GUIF_TRANSLATED : 0)
                     ;
+                ;
             }
 
             /// <summary>
@@ -1206,8 +1208,7 @@ namespace AGS.Editor
                 writer.Write(GUIListBoxes.Count);
                 foreach (GUIListBox listBox in GUIListBoxes)
                 {
-                    int flags = (listBox.Translated ? NativeConstants.GUIF_TRANSLATED : 0);
-                    WriteGUIControl(listBox, flags, new string[] { listBox.OnSelectionChanged });
+                    WriteGUIControl(listBox, 0, new string[] { listBox.OnSelectionChanged });
                     writer.Write(0); // numItems
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);

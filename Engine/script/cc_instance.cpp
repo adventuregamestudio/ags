@@ -233,16 +233,14 @@ ccInstance *ccInstance::CreateFromScript(PScript scri)
     return CreateEx(scri, nullptr);
 }
 
-ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
+ccInstance *ccInstance::CreateEx(PScript scri, ccInstance *joined)
 {
     // allocate and copy all the memory with data, code and strings across
     ccInstance *cinst = new ccInstance();
     if (!cinst->_Create(scri, joined))
     {
-        delete cinst;
         return nullptr;
     }
-
     // Join RTTI
     if (!ccInstance::_rtti)
         ccInstance::_rtti.reset(new JointRTTI());
@@ -621,10 +619,8 @@ int ccInstance::Run(int32_t curpc)
     int32_t thisbase[MAXNEST], funcstart[MAXNEST];
     int was_just_callas = -1;
     int curnest = 0;
-    unsigned loopIterations = 0;
     int num_args_to_func = -1;
     int next_call_needs_object = 0;
-    int loopIterationCheckDisabled = 0;
     thisbase[0] = 0;
     funcstart[0] = pc;
     ccInstance *codeInst = runningInst;
@@ -633,6 +629,9 @@ int ccInstance::Run(int32_t curpc)
 #if DEBUG_CC_EXEC
     const bool dump_opcodes = ccGetOption(SCOPT_DEBUGRUN) != 0;
 #endif
+    int loopIterationCheckDisabled = 0;
+    unsigned loopIterations = 0u; // any loop iterations (needed for timeout test)
+    unsigned loopCheckIterations = 0u; // loop iterations accumulated only if check is enabled
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
     const auto timeout_abort = std::chrono::milliseconds(_timeoutAbortMs);
@@ -1077,12 +1076,13 @@ int ccInstance::Run(int32_t curpc)
                 if (flags & INSTF_RUNNING)
                 { // was notified still running, don't do anything
                     flags &= ~INSTF_RUNNING;
-                    loopIterations = 0;
+                    loopIterations = 0u;
+                    loopCheckIterations = 0u;
                 }
                 else if ((loopIterationCheckDisabled == 0) && (_maxWhileLoops > 0) &&
-                    (loopIterations > _maxWhileLoops))
+                    (++loopCheckIterations > _maxWhileLoops))
                 {
-                    cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
+                    cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopCheckIterations);
                     return -1;
                 }
                 else if ((loopIterations & 0x3FF) == 0 && // test each 1024 loops (arbitrary)
@@ -1993,6 +1993,8 @@ bool ccInstance::_Create(PScript scri, ccInstance * joined)
 
 void ccInstance::Free()
 {
+    // When the base script has no more "instances",
+    // remove all script exports
     if (instanceof != nullptr) {
         instanceof->instances--;
         if (instanceof->instances == 0)

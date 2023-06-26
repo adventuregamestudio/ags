@@ -15,9 +15,7 @@
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/game_version.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
@@ -41,32 +39,10 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+
 extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern IGraphicsDriver *gfxDriver;
-
-void engine_setup_system_gamesize()
-{
-    scsystem.width = game.GetGameRes().Width;
-    scsystem.height = game.GetGameRes().Height;
-    scsystem.viewport_width = play.GetMainViewport().GetWidth();
-    scsystem.viewport_height = play.GetMainViewport().GetHeight();
-}
-
-// CLNUP IsHiRes was used to double lowres assets, better remove now and decide a new implementation later, if ever
-void engine_init_resolution_settings(const Size game_size)
-{
-    Debug::Printf("Initializing resolution settings");
-    usetup.textheight = get_font_height_outlined(0) + 1;
-
-    Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height, game.color_depth * 8);
-
-    Rect viewport = RectWH(game_size);
-    play.SetMainViewport(viewport);
-    play.SetUIViewport(viewport);
-    engine_setup_system_gamesize();
-}
 
 void engine_adjust_for_rotation_settings()
 {

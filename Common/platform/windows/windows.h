@@ -33,6 +33,7 @@
 #undef DeleteFile
 #undef GetCurrentDirectory
 #undef SetCurrentDirectory
+#undef GetObject
 
 #endif // _WINDOWS_
 #endif // AGS_PLATFORM_OS_WINDOWS

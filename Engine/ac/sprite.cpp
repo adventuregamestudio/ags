@@ -11,16 +11,14 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
 #include "ac/system.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
-#include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 
@@ -28,7 +26,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern SpriteCache spriteset;
 extern int our_eip, eip_guinum, eip_guiobj;
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
@@ -89,42 +86,12 @@ Bitmap *remove_alpha_channel(Bitmap *from)
     return to;
 }
 
-void pre_save_sprite(Common::Bitmap* /*image*/) {
-    // not used, we don't save
+Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
+{
+    return PrepareSpriteForUse(image);
 }
 
-// these vars are global to help with debugging
-Bitmap *tmpdbl, *curspr;
-void initialize_sprite (int ee) {
-
-    if ((ee < 0) || ((size_t)ee > spriteset.GetSpriteSlotCount()))
-        quit("initialize_sprite: invalid sprite number");
-
-    if ((spriteset[ee] == nullptr) && (ee > 0)) {
-        // replace empty sprites with blue cups, to avoid crashes
-        spriteset.RemapSpriteToSprite0(ee);
-    }
-    else if (spriteset[ee]==nullptr) {
-        game.SpriteInfos[ee].Width=0;
-        game.SpriteInfos[ee].Height=0;
-    }
-    else {
-        // stretch sprites to correct resolution
-        int oldeip = our_eip;
-        our_eip = 4300;
-
-        curspr = spriteset[ee];
-
-        eip_guinum = ee;
-        eip_guiobj = curspr->GetWidth();
-
-        game.SpriteInfos[ee].Width=spriteset[ee]->GetWidth();
-        game.SpriteInfos[ee].Height=spriteset[ee]->GetHeight();
-
-        spriteset.SubstituteBitmap(ee, PrepareSpriteForUse(spriteset[ee]));
-
-        pl_run_plugin_hooks(AGSE_SPRITELOAD, ee);
-
-        our_eip = oldeip;
-    }
+void post_init_sprite(sprkey_t index)
+{
+    pl_run_plugin_hooks(AGSE_SPRITELOAD, index);
 }

@@ -15,6 +15,7 @@
 #define __AGS_EE_UTIL__LIBRARY_POSIX_H
 
 #include <dlfcn.h>
+#include <utility>
 #include "core/platform.h"
 #include "debug/out.h"
 #include "util/path.h"
@@ -33,6 +34,15 @@ class PosixLibrary final : public BaseLibrary
 {
 public:
     PosixLibrary() = default;
+    PosixLibrary(const PosixLibrary&) = delete;
+    PosixLibrary(PosixLibrary &&other)
+    {
+        _library = other._library;
+        other._library = NULL;
+        _name = std::move(other._name);
+        _filename = std::move(other._filename);
+        _path = std::move(other._path);
+    }
     ~PosixLibrary() override
     {
         Unload();

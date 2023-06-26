@@ -49,7 +49,7 @@
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
-#include "plugin/agsplugin.h"
+#include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
@@ -308,7 +308,7 @@ void DoBeforeRestore(PreservedParams &pp)
     unload_old_room();
     delete raw_saved_screen;
     raw_saved_screen = nullptr;
-    remove_screen_overlay(-1);
+    remove_all_overlays();
     play.complete_overlay_on = 0;
     play.text_overlay_on = 0;
 
@@ -329,33 +329,22 @@ void DoBeforeRestore(PreservedParams &pp)
 
     // preserve script data sizes and cleanup scripts
     pp.GlScDataSize = gameinst->globaldatasize;
-    delete gameinstFork;
-    delete gameinst;
-    gameinstFork = nullptr;
-    gameinst = nullptr;
     pp.ScMdDataSize.resize(numScriptModules);
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
-        delete moduleInstFork[i];
-        delete moduleInst[i];
-        moduleInstFork[i] = nullptr;
-        moduleInst[i] = nullptr;
     }
 
+    FreeAllScriptInstances();
+
+    // reset saved room states
+    resetRoomStatuses();
+    // reset temp room state
+    troom = RoomStatus();
+    // reset (some of the?) GameState data
+    // FIXME: investigate and refactor to be able to just reset whole object
     play.FreeProperties();
     play.FreeViewportsAndCameras();
-
-    delete roominstFork;
-    delete roominst;
-    roominstFork = nullptr;
-    roominst = nullptr;
-
-    delete dialogScriptsInst;
-    dialogScriptsInst = nullptr;
-
-    resetRoomStatuses();
-    troom = RoomStatus(); // reset temp room state
     free_do_once_tokens();
 
     // unregister gui controls from API exports
@@ -441,6 +430,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     update_gui_zorder();
 
+    AllocScriptModules();
     if (create_global_script())
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
@@ -586,7 +576,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 
     adjust_fonts_for_render_mode(game.options[OPT_ANTIALIASFONTS] != 0);
 
-    recreate_overlay_ddbs();
+    restore_overlays();
 
     GUI::MarkAllGUIForUpdate(true, true);
 
@@ -685,6 +675,22 @@ void SaveGameState(Stream *out)
 {
     DoBeforeSave();
     SavegameComponents::WriteAllCommon(out);
+}
+
+void ReadPluginSaveData(Stream *in)
+{
+    auto pluginFileHandle = AGSE_RESTOREGAME;
+    pl_set_file_handle(pluginFileHandle, in);
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, pluginFileHandle);
+    pl_clear_file_handle();
+}
+
+void WritePluginSaveData(Stream *out)
+{
+    auto pluginFileHandle = AGSE_SAVEGAME;
+    pl_set_file_handle(pluginFileHandle, out);
+    pl_run_plugin_hooks(AGSE_SAVEGAME, pluginFileHandle);
+    pl_clear_file_handle();
 }
 
 } // namespace Engine

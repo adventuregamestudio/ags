@@ -237,18 +237,22 @@ static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color
 // [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
 int DisplaySpeechBackground(int charid, const char*speel) {
     // remove any previous background speech for this character
-    for (size_t i = 0; i < screenover.size();) {
-        if (screenover[i].bgSpeechForChar == charid)
-            remove_screen_overlay_index(i);
-        else
-            i++;
+    // TODO: have a map character -> bg speech over?
+    const auto &overs = get_overlays();
+    for (size_t i = 0; i < overs.size(); ++i)
+    {
+        if (overs[i].bgSpeechForChar == charid)
+        {
+            remove_screen_overlay(i);
+            break;
+        }
     }
 
     int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.GetUIViewport().GetWidth()/2,FONT_SPEECH,
         -game.chars[charid].talkcolor, get_translation(speel), DISPLAYTEXT_NORMALOVERLAY);
 
-    int scid = find_overlay_of_type(ovrl);
-    screenover[scid].bgSpeechForChar = charid;
-    screenover[scid].timeout = GetTextDisplayTime(speel, 1);
+    auto *over = get_overlay(ovrl);
+    over->bgSpeechForChar = charid;
+    over->timeout = GetTextDisplayTime(speel, 1);
     return ovrl;
 }

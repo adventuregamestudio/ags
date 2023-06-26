@@ -32,6 +32,8 @@ class BaseLibrary
 {
 public:
     BaseLibrary() = default;
+    BaseLibrary(const BaseLibrary&) = delete;
+    BaseLibrary(BaseLibrary&&) = default;
     virtual ~BaseLibrary() = default;
 
     // Get library name; returns empty string if not loaded

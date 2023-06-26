@@ -78,7 +78,7 @@ static int flooder(BITMAP *bmp, int x, int y, int src_color, int dest_color)
 
    ASSERT(bmp);
    
-   if (is_linear_bitmap(bmp)) {     /* use direct access for linear bitmaps */
+   {     /* use direct access for linear bitmaps */
       addr = bmp_read_line(bmp, y);
       bmp_select(bmp);
 
@@ -111,21 +111,6 @@ static int flooder(BITMAP *bmp, int x, int y, int src_color, int dest_color)
       }
 
    }
-   else {                           /* have to use getpixel() for mode-X */
-      /* check start pixel */
-      if (getpixel(bmp, x, y) != src_color)
-	 return x+1;
-
-      /* work left from starting point */ 
-      for (left=x-1; left>=bmp->cl; left--)
-	 if (getpixel(bmp, left, y) != src_color)
-	    break;
-
-      /* work right from starting point */ 
-      for (right=x+1; right<bmp->cr; right++)
-	 if (getpixel(bmp, right, y) != src_color)
-	    break;
-   } 
 
    left++;
    right--;

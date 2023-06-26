@@ -24,7 +24,6 @@ namespace AGS.Types
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;
             _textAlignment = HorizontalAlignment.Left;
-            _translated = true;
         }
 
         public GUIListBox(XmlNode node) : base(node)
@@ -41,9 +40,6 @@ namespace AGS.Types
         private bool _showBorder;
         private bool _showScrollArrows;
         private string _selectionChangedEventHandler = string.Empty;
-        // We set _translated to true only when new control is created, because it won't be
-        // deserialized when importing older projects, and we need it to be disabled for backward compatibility
-        private bool _translated;
 
         [Description("Script function to run when the selection is changed")]
         [Category("Events")]
@@ -172,14 +168,6 @@ namespace AGS.Types
         {
             get { return _font; }
             set { _font = value; }
-        }
-
-        [Description("If true, the list box items will be translated to current language")]
-        [Category("Appearance")]
-        public bool Translated
-        {
-            get { return _translated; }
-            set { _translated = value; }
         }
 
         public override string ControlType

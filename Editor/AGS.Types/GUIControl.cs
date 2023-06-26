@@ -40,6 +40,7 @@ namespace AGS.Types
         private bool _clickable = true;
         private bool _enabled = true;
         private bool _visible = true;
+        private bool _translated = true;
 
         [AGSNoSerialize]
         private GUIControlGroup _memberOf;
@@ -157,6 +158,14 @@ namespace AGS.Types
         {
             get { return _visible; }
             set { _visible = value; }
+        }
+
+        [Description("If true, the Control's text will be affected by game's translation and a text direction setting")]
+        [Category("Appearance")]
+        public bool Translated
+        {
+            get { return _translated; }
+            set { _translated = value; }
         }
 
         [Browsable(false)]

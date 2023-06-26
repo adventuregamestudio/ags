@@ -26,8 +26,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-// There were issues when including header caused conflicts
-struct GameSetupStruct;
+class SplitLines;
 
 #define LEGACY_MAX_OBJS_ON_GUI             30
 
@@ -207,6 +206,8 @@ namespace GUI
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
 
+    // Applies current text direction setting (may depend on multiple factors)
+    String ApplyTextDirection(const String &text);
     // Calculates the text's graphical position, given the alignment
     Rect CalcTextPosition(const char *text, int font, const Rect &frame, FrameAlignment align);
     // Calculates the text's graphical position, given the horizontal alignment
@@ -217,6 +218,15 @@ namespace GUI
     void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
     // Draw text aligned horizontally inside given bounds
     void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+
+    // Parses the string and returns combination of label macro flags
+    GUILabelMacro FindLabelMacros(const String &text);
+    // Applies text transformation necessary for rendering, in accordance to the
+    // current game settings, such as right-to-left render, and anything else
+    String TransformTextForDrawing(const String &text, bool translate, bool apply_direction);
+    // Wraps given text to make it fit into width, stores it in the lines;
+    // apply_direction param tells whether text direction setting should be applied
+    size_t SplitLinesForDrawing(const char *text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
 
     // Mark all existing GUI for redraw
     void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl);
@@ -229,9 +239,6 @@ namespace GUI
     void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
     // Mark inventory windows for redraw, optionally only ones linked to given character
     void MarkInventoryForUpdate(int char_id, bool is_player);
-
-    // Parses the string and returns combination of label macro flags
-    GUILabelMacro FindLabelMacros(const String &text);
 
     // Reads all GUIs and their controls.
     // WARNING: the data is read into the global arrays (guis, guibuts, and so on)

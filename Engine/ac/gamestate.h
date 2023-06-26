@@ -240,15 +240,15 @@ struct GameState
     int   gamma_adjustment = 0;
     short temporarily_turned_off_character = 0;  // Hide Player Charactr ticked
     short inv_backwards_compatibility = 0;
-    std::vector<int> gui_draw_order{}; // used only for hit detection now
-    std::unordered_set<AGS::Common::String> do_once_tokens{};
+    std::vector<int> gui_draw_order; // used only for hit detection now
+    std::unordered_set<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
 
     // Dynamic custom property values for characters and items
     std::vector<AGS::Common::StringIMap> charProps;
-    AGS::Common::StringIMap invProps[MAX_INV]{};
+    AGS::Common::StringIMap invProps[MAX_INV];
 
     // Dynamic speech state
     //

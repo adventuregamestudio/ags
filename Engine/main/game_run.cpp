@@ -419,14 +419,14 @@ bool run_service_key_controls(KeyInput &out_key)
                 objs[ff].num, objs[ff].transparent,
                 ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);
         }
-        Display(infobuf);
+        DisplayMB(infobuf);
         int chd = game.playercharacter;
         char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
         for (int ff = 0; ff < game.numcharacters; ff++) {
             if (game.chars[ff].room != displayed_room) continue;
             if (strlen(bigbuffer) > 430) {
                 strcat(bigbuffer, "and more...");
-                Display(bigbuffer);
+                DisplayMB(bigbuffer);
                 strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
             }
             chd = ff;
@@ -438,7 +438,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
                 game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
         }
-        Display(bigbuffer);
+        DisplayMB(bigbuffer);
         return false;
     }
 

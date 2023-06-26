@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - Beta, May 2023
+VERSION 3.6.1 - Beta, June 2023
 
 Editor:
  - Made Editor a Dpi-aware application, which might improve its looks in Windows 10
@@ -13,22 +13,39 @@ Editor:
    Zoom is done by Ctrl + Mouse Wheel and room now zooms towards or outwards the cursor position.
  - In Room Editor the context menu is now displayed by RMB or Shift + RMB while editing masks.
    The individual room mode menu is merged with the "copy coordinates" command when shown.
+ - In Sprite Manager added command "View" -> "Show filenames" which toggles display of a sprite's
+   source filename under the sprites.
  - Reimplemented multiple sprites properties edit in the Sprite Manager. This ability was
    dropped in 3.5.0 unintentionally.
+ - During sprite export Editor will display a proper progress dialog.
  - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
  - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
+ - Added Translated property to all GUI Controls (was available only in ListBox). Translated
+   property tells whether this control's text has to be translated, and applied text direction
+   (in right-to-left text mode).
+ - Fixed importing SCI fonts with >128 chars.
+ - Fixed font preview did not properly display characters with indexes 128-255
+   (regression since 3.6.0).
+ - Fixed full spritefile recreation would write duplicate sprites into the spritefile, if game
+   project (Game.agf file) contained multiple sprites with same ID for any reason (for example,
+   if they were added by manually editing Game.agf).
 
 Script API:
  - Implemented Room's "After fade-out" event.
  - Added eEventLeaveRoomAfterFadeout event for the global "on_event".
  - Added eEventGameSaved event which runs after game was saved.
+ - Added Game.ResetDoOnceOnly(), which completely resets all DoOnceOnly instances.
 
 Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
    close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
+ - Performance improvement to creating, deleting and manipulating Overlays; allows the game
+   to have thousands of those with much less slowing down.
  - WFN font renderer now too supports unicode mode and renders texts in utf-8, so long as the
    font contains glyphs of corresponding indexes.
+ - Buttons, ListBoxes and TextBoxes now support Right-to-left text direction.
+ - DrawingSurface.DrawString now supports Right-to-left text direction.
  - Ensure that character and object scaling is updated even when the game is not drawn.
    This fixes rare issues when their scale property did not update in time whilst the game was
    completely fadeout, and similar cases.
@@ -38,11 +55,29 @@ Engine:
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
+ - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
+   these GUIs are completely offscreen.
+ - Fixed first Sierra-style speechline in a sequence was adjusting its Y position without need
+   when GUIs are set to be hidden during game pause (this includes blocking speech).
+   Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
+   but when GUIs are hiding during speech there should not be any need to do so.
+ - Fixed GUI controls were not redrawn right after option OPT_RIGHTTOLEFT is changed in script.
+ - Object.SetView now lets invalid loop and frame values, and fallbacks to using loop 0, frame 0,
+   printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
+ - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
+ - Engine will force any in-game debug messages to be displayed in standard message boxes,
+   disregarding game's "Display all messages as speech" option.
+
+Engine Plugin API:
+ - Fixed IAGSEngine.GetFontType() incorrectly reporting TTF font type for WFN fonts with more than
+   128 characters.
 
 Compatibility:
  - In Editor, restored all the Character's variables available in "backward-compatible" mode.
    This is primarily to make it easier to import very old games.
  - Fixed slower character walking speeds in pre-3.1 upscaled and high-resolution games.
+ - Fixed Object.SetView() and SetObjectFrame() not treating -1 for loop and frame as
+   "keep previous values" in older games.
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
 

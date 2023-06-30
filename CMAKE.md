@@ -29,7 +29,7 @@ CMake can create Xcode projects, which allow multi-configs (like Debug, Release,
 Configuring:
 
  - Install XCode and ensure command line tools are installed.
- - Install CMake 3.14 (via homebrew or from the above site)
+ - Install CMake (via homebrew or from the above site)
  - mkdir build
  - cd build
  - cmake -GXcode ..
@@ -48,10 +48,10 @@ There are multiple options from command line or IDE:
 CMake can create Makefile and Ninja projects. These are single config systems so they need to be manually specified.
 
  - Install recommended dev packages
- - Install CMake 3.14 (via above site)
- - mkdir build-debug
- - cd build-debug  # otherwise your build artifacts will be in the source directory!
- - cmake .. -DCMAKE_BUILD_TYPE=Debug
+ - Install CMake (via above site)
+ - mkdir build-release
+ - cd build-release  # otherwise your build artifacts will be in the source directory!
+ - cmake .. -DCMAKE_BUILD_TYPE=Release
  - cmake --build .
 
 

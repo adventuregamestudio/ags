@@ -1577,7 +1577,7 @@ void D3DGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
     delete (D3DBitmap*)ddb;
 }
 
-void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   IDirect3DTexture9* newTexture = tile->texture;
 
@@ -1592,14 +1592,14 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap
   uint8_t *memPtr = static_cast<uint8_t*>(lockedRegion.pBits);
 
   if (opaque)
-    BitmapToVideoMemOpaque(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch);
+    BitmapToVideoMemOpaque(bitmap, has_alpha, tile, memPtr, lockedRegion.Pitch);
   else
-    BitmapToVideoMem(bitmap, hasAlpha, tile, memPtr, lockedRegion.Pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, has_alpha, tile, memPtr, lockedRegion.Pitch, usingLinearFiltering);
 
   newTexture->UnlockRect(0);
 }
 
-void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool has_alpha)
 {
   D3DBitmap *target = (D3DBitmap*)bitmapToUpdate;
   if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
@@ -1608,11 +1608,11 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   if (color_depth != target->_colDepth)
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
-  target->_hasAlpha = hasAlpha;
-  UpdateTextureData(target->_data.get(), bitmap, target->_opaque, hasAlpha);
+  target->_hasAlpha = has_alpha;
+  UpdateTextureData(target->_data.get(), bitmap, has_alpha, target->_opaque);
 }
 
-void D3DGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void D3DGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   const int color_depth = bitmap->GetColorDepth();
   if (color_depth == 8)
@@ -1621,7 +1621,7 @@ void D3DGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, b
   auto *d3ddata = reinterpret_cast<D3DTextureData*>(txdata);
   for (size_t i = 0; i < d3ddata->_numTiles; ++i)
   {
-    UpdateTextureRegion(&d3ddata->_tiles[i], bitmap, opaque, hasAlpha);
+    UpdateTextureRegion(&d3ddata->_tiles[i], bitmap, has_alpha, opaque);
   }
 
   if (color_depth == 8)

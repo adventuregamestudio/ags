@@ -205,7 +205,7 @@ public:
     int  GetCompatibleBitmapFormat(int color_depth) override;
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool has_alpha) override;
     void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void SetScreenFade(int red, int green, int blue) override;
@@ -242,7 +242,7 @@ protected:
     // Create texture data with the given parameters
     TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) override;
     // Update texture data from the given bitmap
-    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
+    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool has_alpha, bool opaque) override;
     // Create DDB using preexisting texture data
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
         int width, int height, int color_depth, bool opaque) override;
@@ -307,7 +307,7 @@ private:
     void ReleaseDisplayMode();
     void set_up_default_vertices();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha);
+    void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );

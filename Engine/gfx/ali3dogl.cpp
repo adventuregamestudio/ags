@@ -1586,7 +1586,7 @@ void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 }
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
@@ -1620,9 +1620,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   fixedTile.width = std::min(tile->width, tileWidth);
   fixedTile.height = std::min(tile->height, tileHeight);
   if (opaque)
-    BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, memPtr, pitch);
+    BitmapToVideoMemOpaque(bitmap, has_alpha, &fixedTile, memPtr, pitch);
   else
-    BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, has_alpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
@@ -1669,7 +1669,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   delete []origPtr;
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool has_alpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
   if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
@@ -1678,11 +1678,11 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   if (color_depth != target->_colDepth)
     throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
 
-  target->_hasAlpha = hasAlpha;
-  UpdateTextureData(target->_data.get(), bitmap, target->_opaque, hasAlpha);
+  target->_hasAlpha = has_alpha;
+  UpdateTextureData(target->_data.get(), bitmap, has_alpha, target->_opaque);
 }
 
-void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   const int color_depth = bitmap->GetColorDepth();
   if (color_depth == 8)
@@ -1691,7 +1691,7 @@ void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, b
   auto *ogldata = reinterpret_cast<OGLTextureData*>(txdata);
   for (size_t i = 0; i < ogldata->_numTiles; ++i)
   {
-    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque, hasAlpha);
+    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, has_alpha, opaque);
   }
 
   if (color_depth == 8)

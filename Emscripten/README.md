@@ -13,14 +13,16 @@ You will also need to install and add to your path
 - [cmake](https://cmake.org/), any CMake above 3.16.3 should be fine, but the newer, the better on Windows
 - [ninja](https://ninja-build.org/), this is a portable binary so just put it in an empty directory for your user and add that directory to your path
 
-### Linux
-On Linux you will need Python3, anything above 3.6.5 should be fine, [see this for more info](https://github.com/emscripten-core/emscripten/issues/6275)
+### Linux or macOS
+On Linux or macOS you will need Python3, anything above 3.6.5 should be fine, [see this for more info](https://github.com/emscripten-core/emscripten/issues/6275)
 
 You will also need
 
 - git
 - cmake, any CMake above 3.16.3 should be fine.
 - make
+
+You can install these using your system package manager on Linux or brew on macOS.
 
 ### Other OSes
 
@@ -74,6 +76,10 @@ If you are on Windows, just use ninja
 	
 This may take a while, the first time you run this it will also download and build all Emscripten STD library and dependencies. After it's done you should see an `ags.wasm`, `ags.js` and `ags.html` file in `build-web-release` directory. 
 
+## Using IDE with CMake support
+
+You may pass the Emscripten toolchain file in a new profile where you set the CMake variables, using 
+`-DCMAKE_TOOLCHAIN_FILE=./Emscripten/emscripten/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake`.
 
 ## Running
 

@@ -346,13 +346,16 @@ void apply_config(const ConfigTree &cfg)
 
         // Resource caches and options
         usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
-        int size_kb = CfgReadInt(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
+        int size_kb = CfgReadInt(cfg, "graphics", "sprite_cache_size", GameSetup::DefSpriteCacheSize);
         if (size_kb > 0)
             usetup.SpriteCacheSize = size_kb * 1024;
-        size_kb = CfgReadInt(cfg, "sound", "cache_size", DEFAULT_SOUNDCACHESIZE_KB);
+        size_kb = CfgReadInt(cfg, "graphics", "texture_cache_size", GameSetup::DefTexCacheSize);
+        if (size_kb > 0)
+            usetup.TextureCacheSize = size_kb * 1024;
+        size_kb = CfgReadInt(cfg, "sound", "cache_size", GameSetup::DefSoundCache);
         if (size_kb > 0)
             usetup.SoundCacheSize = size_kb * 1024;
-        size_kb = CfgReadInt(cfg, "sound", "stream_threshold", DEFAULT_SOUNDLOADATONCE_KB);
+        size_kb = CfgReadInt(cfg, "sound", "stream_threshold", GameSetup::DefSoundLoadAtOnce);
         if (size_kb > 0)
             usetup.SoundLoadAtOnceSize = size_kb * 1024;
 

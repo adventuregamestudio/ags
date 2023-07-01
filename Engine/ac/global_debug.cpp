@@ -64,11 +64,15 @@ String GetRuntimeInfo()
     const size_t total_extspr = spriteset.GetExternalSize();
     const size_t max_normspr = spriteset.GetMaxCacheSize();
     const unsigned norm_spr_filled = (uint64_t)total_normspr * 100 / max_normspr;
+    size_t max_txcached, total_txcached, total_txlocked, total_txext;
+    get_texturecache_state(max_txcached, total_txcached, total_txlocked, total_txext);
+    const unsigned tx_filled = (uint64_t)total_txcached * 100 / max_txcached;
     String runtimeInfo = String::FromFormat(
-        "%s[Engine version %s"
-        "[Game resolution %d x %d (%d-bit)"
-        "[Running %d x %d at %d-bit%s[GFX: %s; %s[Draw frame %d x %d["
-        "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu",
+        "%s\nEngine version %s\n"
+        "Game resolution %d x %d (%d-bit)\n"
+        "Running %d x %d at %d-bit%s\nGFX: %s; %s\nDraw frame %d x %d\n"
+        "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n"
+        "Texture cache KB: %zu / %zu (%u%%)",
         get_engine_name(),
         get_engine_version_and_build().GetCStr(),
         game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
@@ -76,7 +80,8 @@ String GetRuntimeInfo()
         (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")),
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
         render_frame.GetWidth(), render_frame.GetHeight(),
-        total_normspr / 1024, max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024);
+        total_normspr / 1024, max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024,
+        total_txcached / 1024, max_txcached / 1024, tx_filled);
     if (play.separate_music_lib)
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.voice_avail)

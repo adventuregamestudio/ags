@@ -613,7 +613,7 @@ void init_draw_method()
     {
         walkBehindMethod = DrawAsSeparateSprite;
         create_blank_image(game.GetColorDepth());
-        texturecache.SetMaxCacheSize(1024 * 1024 * 128); // 128 MB
+        texturecache.SetMaxCacheSize(usetup.TextureCacheSize);
     }
     else
     {

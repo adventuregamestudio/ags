@@ -54,6 +54,16 @@ using AGS::Common::String;
 // to the config file).
 struct GameSetup
 {
+#if AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_IOS
+    static const size_t DefSpriteCacheSize = (32 * 1024); // 32 MB
+#else
+    static const size_t DefSpriteCacheSize = (128 * 1024); // 128 MB
+#endif
+    static const size_t DefTexCacheSize = (128 * 1024); // 128 MB
+    static const size_t DefSoundLoadAtOnce = 1024; // 1 MB
+    static const size_t DefSoundCache = 1024u * 32; // 32 MB
+
+
     bool  audio_enabled;
     String audio_driver;
     int   textheight; // text height used on the certain built-in GUI // TODO: move out to game class?
@@ -87,9 +97,10 @@ struct GameSetup
     //
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
     int   Supersampling;
-    size_t SpriteCacheSize = 0u;
-    size_t SoundLoadAtOnceSize = 1024u * 1024;
-    size_t SoundCacheSize = 0u;
+    size_t SpriteCacheSize = DefSpriteCacheSize;
+    size_t TextureCacheSize = DefTexCacheSize;
+    size_t SoundLoadAtOnceSize = DefSoundLoadAtOnce; // threshold for loading sounds immediately, in KB
+    size_t SoundCacheSize = DefSoundCache; // sound cache limit, in KB
     bool  clear_cache_on_room_change; // for low-end devices: clear resource caches on room change
     bool  load_latest_save; // load latest saved game on launch
     ScreenRotation rotation;

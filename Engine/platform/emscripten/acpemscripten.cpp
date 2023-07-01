@@ -25,19 +25,11 @@
 #include "SDL.h"
 #include "main/graphics_mode.h"
 #include "main/engine.h"
-#include "ac/runtime_defines.h"
 #include "ac/system.h"
 #include "ac/timer.h"
-#include "gfx/gfxdefines.h"
 #include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
-#include "plugin/agsplugin.h"
 #include "util/filestream.h"
-#include "util/path.h"
-#include "util/string.h"
-
-#include <pwd.h>
-#include <sys/stat.h>
 
 using AGS::Common::String;
 using AGS::Common::FileStream;

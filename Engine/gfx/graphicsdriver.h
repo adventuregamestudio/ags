@@ -20,6 +20,7 @@
 #include <memory>
 #include <allegro.h> // RGB, PALETTE
 #include <glm/mat4x4.hpp>
+#include "gfx/ddb.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
@@ -38,7 +39,6 @@ namespace Engine
 {
 
 // Forward declaration
-class IDriverDependantBitmap;
 class IGfxFilter;
 typedef std::shared_ptr<IGfxFilter> PGfxFilter;
 using Common::PBitmap;
@@ -128,26 +128,26 @@ public:
 
   // Creates a "raw" DDB, without pixel initialization.
   virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;
+  // Create DDB using preexisting texture data
+  virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque = false) = 0;
   // Creates DDB, initializes from the given bitmap.
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool has_alpha, bool opaque = false) = 0;
   // Creates DDB intended to be used as a render target (allow render other DDBs on it).
   virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque = false) = 0;
-  // Updates DBB using the given bitmap; bitmap must have same size and format
-  // as the one that this DDB was initialized with.
+  // Updates DBB using the given bitmap; if bitmap has a different resolution,
+  // then creates a new texture data and attaches to DDB
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool has_alpha) = 0;
-  // Destroy the DDB.
+  // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
-  // Get shared texture from cache, or create from bitmap and assign ID
-  // FIXME: opaque should be either texture data's flag, - in which case same sprite_id
-  // will be either opaque or not opaque, - or DDB's flag, but in that case it cannot
-  // be applied to the shared texture data. Currently it's possible to share same
-  // texture data, but update it with different "opaque" values, which breaks logic.
-  virtual IDriverDependantBitmap *GetSharedDDB(uint32_t sprite_id,
-      Common::Bitmap *bitmap = nullptr, bool has_alpha = true, bool opaque = false) = 0;
-  virtual void UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap = nullptr, bool has_alpha = true, bool opaque = false) = 0;
-  // Removes the shared texture reference, will force the texture to recreate next time
-  virtual void ClearSharedDDB(uint32_t sprite_id) = 0;
+  // Create texture data with the given parameters
+  virtual Texture *CreateTexture(int width, int height, bool opaque = false, bool as_render_target = false) = 0;
+  // Create texture and initialize its pixels from the given bitmap
+  virtual Texture *CreateTexture(Common::Bitmap *bmp, bool has_alpha = true, bool opaque = false) = 0;
+  // Update texture data from the given bitmap
+  virtual void UpdateTexture(Texture *txdata, Common::Bitmap *bmp, bool has_alpha, bool opaque = false) = 0;
+  // Retrieve shared texture object from the given DDB
+  virtual std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) = 0;
 
   // Prepares next sprite batch, a list of sprites with defined viewport and optional
   // global model transformation; all subsequent calls to DrawSprite will be adding

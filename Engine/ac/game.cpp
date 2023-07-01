@@ -1395,9 +1395,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
 
 void game_sprite_updated(int sprnum)
 {
-    // update the shared texture (if exists)
-    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum],
-        (game.SpriteInfos[sprnum].Flags & SPF_ALPHACHANNEL) != 0, false);
+    update_shared_texture(sprnum);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum, false);
     // gui backgrounds
@@ -1435,8 +1433,7 @@ void game_sprite_updated(int sprnum)
 
 void game_sprite_deleted(int sprnum)
 {
-    // clear from texture cache
-    gfxDriver->ClearSharedDDB(sprnum);
+    clear_shared_texture(sprnum);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum, true);
 

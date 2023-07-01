@@ -237,8 +237,7 @@ sprkey_t SpriteCache::GetDataIndex(sprkey_t index)
 size_t SpriteCache::CalcSize(const std::unique_ptr<Bitmap> &item)
 {
     assert(item);
-    return item ?
-        (item->GetWidth() * item->GetHeight() * item->GetBPP()) : 0u;
+    return item ? (item->GetWidth() * item->GetHeight() * item->GetBPP()) : 0u;
 }
 
 Bitmap *SpriteCache::LoadSprite(sprkey_t index)

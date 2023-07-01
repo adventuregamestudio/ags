@@ -166,6 +166,75 @@ struct ObjectCache
         , zoom(zoom_), mirrored(mirror_), x(posx_), y(posy_) { }
 };
 
+//
+// TextureCache class stores textures created by the GraphicsDriver from plain bitmaps.
+// Consists of two parts:
+// * A long-term MRU cache, which keeps texture data even when it's not in immediate use,
+//   and disposes less used textures to free space when reaching the configured mem limit.
+// * A short-term cache of texture references, which keeps only weak refs to the textures
+//   that are currently in use. This short-term cache lets to keep reusing same texture
+//   so long as there's at least one object on screen that uses it.
+class TextureCache :
+    public AGS::Common::ResourceCache<uint32_t, std::shared_ptr<Texture>>
+{
+public:
+    // Gets existing texture, or load a sprite and create texture from it
+    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, bool has_alpha, bool opaque)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        if (sprite_id == UINT32_MAX)
+            return nullptr;
+
+        // Begin getting texture data, first check the MRU cache
+        std::shared_ptr<Texture> txdata;
+        txdata = Get(sprite_id);
+        if (txdata)
+            return txdata;
+
+        // If not found in MRU cache, try the short-term cache, which
+        // may still hold it so long as there are active textures on screen
+        const auto found = _txRefs.find(sprite_id);
+        if (found != _txRefs.end())
+        {
+            txdata = found->second.lock();
+            // If found, then cache the texture again, and return
+            if (txdata)
+            {
+                Put(sprite_id, txdata);
+                return txdata;
+            }
+        }
+
+        // If not in any cache, then try loading the sprite's bitmap,
+        // and create a texture data from it
+        Bitmap *bitmap = spriteset[sprite_id];
+        if (!bitmap)
+            return nullptr;
+
+        txdata.reset(gfxDriver->CreateTexture(bitmap, has_alpha, opaque));
+        if (!txdata)
+            return nullptr;
+
+        txdata->ID = sprite_id;
+        _txRefs[sprite_id] = txdata;
+        Put(sprite_id, txdata);
+        return txdata;
+    }
+
+private:
+    size_t CalcSize(const std::shared_ptr<Texture> &item) override
+    {
+        assert(item);
+        return item ? item->GetMemSize() : 0u;
+    }
+
+    // Texture short-term cache:
+    // - caches textures while they are in the immediate use;
+    // - this lets to share same texture data among multiple sprites on screen.
+    typedef std::weak_ptr<Texture> TexDataRef;
+    std::unordered_map<uint32_t, TexDataRef> _txRefs;
+} texturecache;
+
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);
 // objects sprites begin with index 0, characters are after ACTSP_OBJSOFF
@@ -544,6 +613,7 @@ void init_draw_method()
     {
         walkBehindMethod = DrawAsSeparateSprite;
         create_blank_image(game.GetColorDepth());
+        texturecache.SetMaxCacheSize(1024 * 1024 * 128); // 128 MB
     }
     else
     {
@@ -855,6 +925,34 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
     }
 }
 
+void init_texturecache(size_t size)
+{
+    texturecache.SetMaxCacheSize(size);
+}
+
+void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size)
+{
+    max_size = texturecache.GetMaxCacheSize();
+    cur_size = texturecache.GetCacheSize();
+    locked_size = texturecache.GetLockedSize();
+    ext_size = texturecache.GetExternalSize();
+}
+
+void update_shared_texture(uint32_t sprite_id)
+{
+    auto txdata = texturecache.Get(sprite_id);
+    if (txdata)
+    {
+        gfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id],
+            (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0, false);
+    }
+}
+
+void clear_shared_texture(uint32_t sprite_id)
+{
+    texturecache.Dispose(sprite_id);
+}
+
 void mark_screen_dirty()
 {
     screen_is_dirty = true;
@@ -1043,28 +1141,41 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
         blend_mode, alpha);
 }
 
-
-Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
+IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
-    // no ddb, - get or create shared object
-    if (!ddb)
-        return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
-    // same sprite id, - use existing
-    if ((sprite_id != UINT32_MAX) && (ddb->GetRefID() == sprite_id))
-        return ddb;
-    // not related to a sprite ID, but has same resolution, -
-    // repaint directly from the given bitmap
-    if ((sprite_id == UINT32_MAX) &&
-        (ddb->GetColorDepth() == source->GetColorDepth()) &&
-        (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))
-    {
+    if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
+    else
+        ddb = gfxDriver->CreateDDBFromBitmap(source, has_alpha, opaque);
+    return ddb;
+}
+
+IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t sprite_id,
+    Common::Bitmap *source, bool has_alpha, bool opaque)
+{
+    // If sprite_id is not cachable, then fallback to a simpler variant
+    if (sprite_id == UINT32_MAX)
+        return recycle_ddb_bitmap(ddb, source, has_alpha, opaque);
+
+    // TODO: how to test if sprite was modified, while NOT cached? Is GetRefID enough for this? maybe....
+    if (ddb && ddb->GetRefID() == sprite_id)
+        return ddb; // texture in sync
+
+    auto txdata = texturecache.GetOrLoad(sprite_id, has_alpha, opaque);
+    if (!txdata)
+    {
+        // On failure - invalidate ddb (we don't want to draw old pixels)
+        if (ddb)
+            ddb->DetachData();
         return ddb;
     }
-    // have to recreate ddb
-    gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->GetSharedDDB(sprite_id, source, has_alpha, opaque);
+
+    if (ddb)
+        ddb->AttachData(txdata, opaque);
+    else
+        ddb = gfxDriver->CreateDDB(txdata, opaque);
+    return ddb;
 }
 
 IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
@@ -1077,10 +1188,10 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
 }
 
 // FIXME: make has_alpha and opaque properties of ObjTexture?!
-static void sync_object_texture(ObjTexture &obj, bool has_alpha = false , bool opaque = false)
+static void sync_object_texture(ObjTexture &obj, bool has_alpha = false, bool opaque = false)
 {
-    Bitmap *use_bmp = obj.Bmp.get() ? obj.Bmp.get() : spriteset[obj.SpriteID];
-    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, has_alpha, opaque);
+    // TODO: test if source bitmap was modified, if not then return?
+    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, obj.Bmp.get(), has_alpha, opaque);
 }
 
 //------------------------------------------------------------------------
@@ -1475,11 +1586,13 @@ static bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int width, int h
     return result != src;
 }
 
-// Create the actsps[objid] image with the object drawn correctly.
-// Returns true if nothing at all has changed and actsps is still
-// intact from last time; false otherwise.
+// Prepares the ObjTexture 'actsp' for an arbitrary room entity.
+// Records visual parameters in ObjectCache 'objsav'.
+// Returns true if actsp's raw image was not changed and actsps is still
+// intact from last time; false otherwise, which means that the raw bitmap
+// was redrawn.
 // Hardware-accelerated renderers always return true, because they do not
-// require altering the raw bitmap itself.
+// require preparing the raw bitmap.
 // Except if alwaysUseSoftware is set, in which case even HW renderers
 // construct the image in software mode as well.
 static bool construct_object_gfx(const ViewFrame *vf, int pic,
@@ -1644,8 +1757,10 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     return false; // image was modified
 }
 
-// Generate object's raw sprite bitmap, update the object's texture
-// from the sprite, add the object's texture to the draw list.
+// Do last time setup to the ObjTexture 'actsp', prepare the final texture.
+// Applies walk-behinds to an object's raw bitmap if necessary (software mode);
+// update the object's texture from the sprite if necessary,
+// apply texture parameters from ObjectCache 'objsav'.
 // - atx and aty are coordinates of the top-left object's corner in the room;
 // - usebasel is object's z-order, it may be modified within the function;
 // TODO: possibly makes sense to split this function into parts later.
@@ -1708,7 +1823,9 @@ void prepare_and_add_object_gfx(
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
 }
 
-// Generates RoomObject's raw bitmap and saves in actsps; updates object cache.
+// Prepares a actsps element for RoomObject; updates object cache.
+// Software mode draws an actual bitmap in actsp, hardware mode only
+// assigns parameters, which may further be assigned to a texture.
 bool construct_object_gfx(int objid, bool force_software)
 {
     const RoomObject &obj = objs[objid];
@@ -1812,11 +1929,11 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 }
 
 
-// Generates Character's raw bitmap and saves in actsps; updates character cache.
+// Prepares a actsps element for Character; updates character cache.
+// Software mode draws an actual bitmap in actsp, hardware mode only
+// assigns parameters, which may further be assigned to a texture.
 bool construct_char_gfx(int charid, bool force_software)
 {
-    const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
-
     const CharacterInfo &chin = game.chars[charid];
     const CharacterExtras &chex = charextra[charid];
     const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];

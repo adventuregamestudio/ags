@@ -1705,7 +1705,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
         return;
     }
 
-    Stream *data_s = File::OpenFileCI("script.log", kFile_Create, kFile_Write);
+    Stream *data_s = File::OpenFile("script.log", kFile_Create, kFile_Write);
     TextStreamWriter writer(data_s);
     writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
 

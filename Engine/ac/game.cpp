@@ -1022,7 +1022,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
             // Try to find wanted game's data using game id
             String gamefile = FindGameData(ResPaths.DataDir,
                 [&desc](const String &filepath) { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
-            if (Common::File::TestReadFile(gamefile))
+            if (Common::File::IsFile(gamefile))
             {
                 RunAGSGame(gamefile.GetCStr(), 0, 0);
                 load_new_game_restore = slotNumber;
@@ -1036,7 +1036,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
     {
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
-        if (Common::File::TestReadFile(gamefile))
+        if (Common::File::IsFile(gamefile))
         {
             RunAGSGame(desc.MainDataFilename.GetCStr(), 0, 0);
             load_new_game_restore = slotNumber;

@@ -128,7 +128,7 @@ void DeleteSaveSlot (int slnum) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             thisname = get_save_game_path(i);
-            if (Common::File::TestReadFile(thisname)) {
+            if (Common::File::IsFile(thisname)) {
                 // Rename the highest save game to fill in the gap
                 File::RenameFile(thisname, nametouse);
                 break;

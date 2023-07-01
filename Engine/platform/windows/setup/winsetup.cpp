@@ -710,7 +710,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         SetCurSelToItemDataStr(_hAudioDriverList, "none");
     }
     SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
-    if (!File::TestReadFile("speech.vox"))
+    if (!File::IsFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
     if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))

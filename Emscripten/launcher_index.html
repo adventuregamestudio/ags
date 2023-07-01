@@ -345,10 +345,10 @@
   
   // when exiting fullscreen, if it's by Esc key, we send a toggle so the engine knows it's windowed
   function exitHandler() {
-    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+    if (!document.fullscreenElement && !document.webkitIsFullscreen && !document.mozFullScreen && !document.msFullscreenElement) {
       if(Module['_ext_get_windowed']() == 0) {
         Module['_ext_toggle_fullscreen']();
-        canvas.dispatchEvent(new Event("resize"));
+        Module.canvas.dispatchEvent(new Event("resize"));
       }
     }
   }
@@ -357,7 +357,7 @@
     if(game_file !== "") {
       Module['_ext_toggle_fullscreen']();
       closeCfg();
-      canvas.dispatchEvent(new Event("resize"));
+      Module.canvas.dispatchEvent(new Event("resize"));
     }
   }
 
@@ -557,7 +557,7 @@
 
   window.addEventListener("orientationchange", function() {
     // Generate a resize event if the device doesn't do it
-    canvas.dispatchEvent(new Event("resize"));
+    Module.canvas.dispatchEvent(new Event("resize"));
   }, false);
 </script>
 
@@ -586,7 +586,7 @@
         arguments.length > 1 && (e = Array.prototype.slice.call(arguments).join(" ")), console.error(e)
       },
       canvas: function() {
-        var e = document.getElementById("canvas");
+        var cnvs = document.getElementById("canvas");
         return window.addEventListener("resize", (function(t) {
           if(game_file === '') return;
         
@@ -600,11 +600,11 @@
             Module.canvas.height = fs_h;
             Module.canvas.style.width = fs_w + 'px';
             Module.canvas.style.height = fs_h + 'px';
-            canvas.dispatchEvent(new Event("resize"));
+            Module.canvas.dispatchEvent(new Event("resize"));
           }, 200);
-        }), !0), e.addEventListener("webglcontextlost", (function(e) {
+        }), !0), cnvs.addEventListener("webglcontextlost", (function(e) {
           alert("WebGL context lost. You will need to reload the page."), e.preventDefault()
-        }), !1), e
+        }), !1), cnvs
       }(),
       setStatus: function(e) {
         if (Module.setStatus.last || (Module.setStatus.last = {
@@ -631,7 +631,7 @@
   }
 </script>
 <!-- If you want to manually edit this file, comment SCRIPT and uncomment the line below -->
-<!-- <script async src=ags.js></script> -->
+<!-- <script async type="text/javascript" src="ags.js"></script> -->
 {{{ SCRIPT }}}
 </body>
 

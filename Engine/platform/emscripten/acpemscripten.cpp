@@ -46,31 +46,38 @@ static bool ags_syncfs_running = false;
 // We need this to export for Emscripten due to C++ name mangling
 extern "C" 
 {
-  int ext_gfxmode_get_width()
+  EMSCRIPTEN_KEEPALIVE int ext_gfxmode_get_width()
   {
       DisplayMode rdm = gfxDriver->GetDisplayMode();
       return rdm.Width;
   }
 
-  int ext_gfxmode_get_height()
+  EMSCRIPTEN_KEEPALIVE int ext_gfxmode_get_height()
   {
       DisplayMode rdm = gfxDriver->GetDisplayMode();
       return rdm.Height;
   }
 
-  void ext_syncfs_done(void)
+  EMSCRIPTEN_KEEPALIVE void ext_syncfs_done(void)
   {
     ags_syncfs_running = false;
   }
 
-  int ext_get_windowed(void)
+  EMSCRIPTEN_KEEPALIVE int ext_get_windowed(void)
   {
     return System_GetWindowed();
   }
 
-  int ext_toggle_fullscreen(void)
+  EMSCRIPTEN_KEEPALIVE int ext_toggle_fullscreen(void)
   {
     return engine_try_switch_windowed_gfxmode() ? 1 : 0;
+  }
+
+  EMSCRIPTEN_KEEPALIVE int ext_fullscreen_supported(void)
+  {
+    // for now, this returns false if it's Safari, because Safari is lying on IsFullscreenEnabled even on iPhone.
+    // returns true for any other browser. This means we will manually handle FS in Safari in the html launcher.
+    return EM_ASM_INT(return !(/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) ? 1 : 0) == 1;
   }
 } // END of Extern "C"
 
@@ -91,6 +98,7 @@ struct AGSEmscripten : AGSPlatformDriver {
   int  InitializeCDPlayer() override;
   void ShutdownCDPlayer() override;
   void MainInit() override;
+  bool FullscreenSupported() override;
 
   // new members
   void SyncEmscriptenFS();
@@ -259,6 +267,10 @@ int AGSEmscripten::InitializeCDPlayer()
 void AGSEmscripten::ShutdownCDPlayer() 
 {
     //cd_exit();
+}
+
+bool AGSEmscripten::FullscreenSupported() {
+    return ext_fullscreen_supported();
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

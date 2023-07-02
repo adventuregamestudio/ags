@@ -193,6 +193,7 @@ SDL_Window *sys_get_window() {
 
 void sys_window_set_style(WindowMode mode, Size size) {
     if (!window) return;
+    if(mode != kWnd_Windowed && !platform->FullscreenSupported()) mode = kWnd_Windowed;
     // NOTE: depending on which mode we are switching to, the order of
     // actions may be different; e.g. if we are going windowed mode, then
     // we first should disable fullscreen and set new size only after;

@@ -338,26 +338,54 @@
   // capture focus for websites serving game in iframe
   window.onload = function () { window.focus(); };
   
-  document.addEventListener('fullscreenchange', exitHandler);
-  document.addEventListener('webkitfullscreenchange', exitHandler);
-  document.addEventListener('mozfullscreenchange', exitHandler);
-  document.addEventListener('MSFullscreenChange', exitHandler);
-  
   // when exiting fullscreen, if it's by Esc key, we send a toggle so the engine knows it's windowed
-  function exitHandler() {
-    if (!document.fullscreenElement && !document.webkitIsFullscreen && !document.mozFullScreen && !document.msFullscreenElement) {
-      if(Module['_ext_get_windowed']() == 0) {
-        Module['_ext_toggle_fullscreen']();
-        Module.canvas.dispatchEvent(new Event("resize"));
-      }
+  function fscrExitHandler() {
+    // we exited fullscreen, but windowed is false! Probably exited by ESC key
+    if(Module['_ext_get_windowed']() == 0) {
+      Module['_ext_toggle_fullscreen']();
+      Module.canvas.dispatchEvent(new Event("resize"));
     }
   }
 
-  btnToggleFS.onclick = function() {
-    if(game_file !== "") {
-      Module['_ext_toggle_fullscreen']();
-      closeCfg();
-      Module.canvas.dispatchEvent(new Event("resize"));
+  function fscrChangeHandler() {
+    if (!document.fullscreenElement && !document.webkitIsFullscreen && !document.mozFullScreen && !document.msFullscreenElement) {
+      fscrExitHandler();
+    }
+  }
+
+  function initializeFullscreenControlHandling() {
+    // we really need a better way to detect this, but other browsers have webkit polyfills...
+    if ('webkitFullscreenEnabled' in document && !Module['_ext_fullscreen_supported']()) {
+      // it's webkit/safari, lets check if it has Fullscreen enabled
+      if (document.webkitFullscreenEnabled) {
+        // we are doing a very simple fullscreen here, AGS won't know that the game is fullscreen
+        btnToggleFS.onclick = function () {
+          if (game_file !== "") {
+            if (!document.fullscreenElement) {
+              document.getElementById('canvas').requestFullscreen();
+              closeCfg();
+              Module.canvas.dispatchEvent(new Event("resize"));
+            } else if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        }
+      } else {
+        btnToggleFS.hidden = true;
+        btnToggleFS.style.display = "none";
+      }
+    } else {
+      if ('mozFullScreenEnabled' in document) document.addEventListener('mozfullscreenchange', fscrChangeHandler);
+      else if ('msFullscreenEnabled' in document) document.addEventListener('MSFullscreenChange', fscrChangeHandler);
+      else if ('fullscreenEnabled' in document) document.addEventListener('fullscreenchange', fscrChangeHandler);
+
+      btnToggleFS.onclick = function () {
+        if (game_file !== "") {
+          Module['_ext_toggle_fullscreen']();
+          closeCfg();
+          Module.canvas.dispatchEvent(new Event("resize"));
+        }
+      }
     }
   }
 
@@ -454,6 +482,7 @@
   }
 
   function doPostRun() {
+    initializeFullscreenControlHandling();
     mountSavedGamesDir(function() {
       if (typeof gamefiles === 'undefined') 
         return;

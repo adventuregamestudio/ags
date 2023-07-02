@@ -1,5 +1,25 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 3, July 2023
+
+Editor:
+ - Don't error when loading a room file which has unsupported number of events,
+   instead these will be cut out. This may let e.g. use room templates from newer
+   versions of AGS.
+ - Sprite's default property is changed from deprecated Resolution setting to SourceFile.
+ - Fixed full spritefile recreation would write duplicate sprites into the spritefile,
+   if game project (Game.agf file) contained multiple sprites with same ID for any reason
+   (for example, if they were added by manually editing Game.agf).
+ - Fixed importing SCI fonts with >128 chars.
+ - Fixed font preview did not properly display characters with indexes 128-255.
+
+Engine:
+ - Fixed "noloopcheck" script function modifier was not handled correctly sometimes.
+ - Fixed a button with inventory placeholder did not update immediately when the active
+   inventory is set.
+ - Fixed textual GUIs were not redrawn immediately after a call to SetGameOption(OPT_RIGHTTOLEFT).
+
+
 VERSION 3.6.0 - Patch 2, June 2023
 
 Common:

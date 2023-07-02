@@ -1241,7 +1241,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     return winner;
 }
 
-// Called whenever game looses input focus
+// Called whenever game loses input focus
 void display_switch_out()
 {
     Debug::Printf("Switching out from the game");
@@ -1251,7 +1251,7 @@ void display_switch_out()
     Mouse::UnlockFromWindow();
 }
 
-// Called when game looses input focus and must pause until focus is returned
+// Called when game loses input focus and must pause until focus is returned
 void display_switch_out_suspend()
 {
     Debug::Printf("Suspending the game on switch out");

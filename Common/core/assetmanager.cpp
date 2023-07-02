@@ -222,7 +222,8 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_l
         lib->BasePath = Path::MakeAbsolutePath(path);
         lib->BaseDir = Path::GetDirectoryPath(lib->BasePath);
 
-        // TODO: maybe parse directory for the file reference? idk if needed
+        // TODO: maybe parse directory for the faster file reference?
+        //       but if we do, then we likely would require a file watcher?
     }
     // ...else try open a data library
     else

@@ -99,8 +99,20 @@ namespace File
     // Opens stderr stream for writing
     Stream      *OpenStderr();
 
-    // Case insensitive find file
-    String FindFileCI(const String &dir_name, const String &file_name);
+    // TODO: FindFileCI is used a lot when opening game assets;
+    // this may result in lots and lots of repeating same work.
+    // consider generating a hashset that stores results of FindCI
+    // (hashset with case-insensitive hash fn, we don't need a map here).
+    // But then we might require a file-watcher, as dir contents may change.
+
+    // Case insensitive find file;
+    // base_dir defines the base dir which is assumed to be correct already,
+    // and file_name is considered to be relative to base dir;
+    // base_dir may be empty, in which case relative filename is treated as
+    // relative to the current working dir;
+    // file_name is allowed to contain subdirs, all of which should be treated
+    // as case-insensitive.
+    String FindFileCI(const String &base_dir, const String &file_name);
     // Case insensitive file open: looks up for the file using FindFileCI
     Stream *OpenFileCI(const String &file_name,
         FileOpenMode open_mode = kFile_Open,

@@ -14,16 +14,15 @@
 #include "util/file.h"
 #include <errno.h>
 #include <stdexcept>
-#if !AGS_PLATFORM_OS_WINDOWS
-#include <sys/stat.h>
-#include <dirent.h>
-#include <string.h> // strcasecmp
-#endif
 #include "core/platform.h"
 #include "util/bufferedstream.h"
 #include "util/filestream.h"
 #include "util/path.h"
 #include "util/stdio_compat.h"
+#include "util/string_compat.h"
+#if defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+#include "util/directory.h"
+#endif
 #if AGS_PLATFORM_OS_ANDROID
 #include "util/aasset_stream.h"
 #include "util/android_file.h"
@@ -250,89 +249,98 @@ Stream *File::OpenStderr()
     return FileStream::WrapHandle(stderr, kFile_Write, kDefaultSystemEndianess);
 }
 
-String File::FindFileCI(const String &dir_name, const String &file_name)
+String File::FindFileCI(const String &base_dir, const String &file_name)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
     // Simply concat dir and filename paths
-    return Path::ConcatPaths(dir_name, file_name);
+    return Path::ConcatPaths(base_dir, file_name);
 #else
     // Case insensitive file find - on case sensitive filesystems
-    //
-    // TODO: still not covered: a situation when the file_name contains
-    // nested path -and- the case of at least one path parts does not match
-    // (with all matching case the file will be found by an early check).
-    //
-    struct stat   statbuf;
-    struct dirent *entry = nullptr;
-
-    if (dir_name.IsEmpty() && file_name.IsEmpty())
-        return nullptr;
+    if (file_name.IsEmpty())
+        return String(); // fail, no filename provided
 
     String directory;
     String filename;
-    String buf;
-
-    if (!dir_name.IsEmpty())
+    if (!base_dir.IsEmpty())
     {
-        directory = dir_name;
+        directory = base_dir;
         Path::FixupPath(directory);
     }
-    if (!file_name.IsEmpty())
-    {
-        filename = file_name;
-        Path::FixupPath(filename);
-    }
+    filename = file_name;
+    Path::FixupPath(filename);
 
-    if (!filename.IsEmpty())
-    {
-        // TODO: move this case to ConcatPaths too?
-        if (directory.IsEmpty() && filename[0] == '/')
-            buf = filename;
-        else
-            buf = Path::ConcatPaths(directory.IsEmpty() ? "." : directory, filename);
+    String test;
+    // FIXME: handle these conditions in ConcatPaths too?
+    const bool is_relative = Path::IsRelativePath(filename);
+    if (is_relative && directory.IsEmpty())
+        test = Path::ConcatPaths(".", filename);
+    else if (is_relative)
+        test = Path::ConcatPaths(directory, filename);
+    else if (!is_relative && directory.IsEmpty())
+        test = filename; // absolute filepath
+    else
+        return String(); // fail, cannot be handled
 
-        if (lstat(buf.GetCStr(), &statbuf) == 0 &&
-            (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)))
-        {
-            return buf;
-        }
-    }
+    // First try exact match
+    if (ags_file_exists(test.GetCStr()))
+        return test; // success
 
+    // Begin splitting filename into path sections,
+    // for each section open previous dir and search for any case-insensitive
+    // match for the next section.
     if (directory.IsEmpty())
     {
-        String match = Path::GetFilename(filename);
-        if (match.IsEmpty())
-            return nullptr;
-        directory = Path::GetParent(filename);
-        filename = match;
-    }
-
-    DIR *rough = nullptr;
-    if ((rough = opendir(directory.GetCStr())) == nullptr)
-    {
-        fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory.GetCStr());
-        return nullptr;
-    }
-
-    String diamond;
-    while ((entry = readdir(rough)) != nullptr)
-    {
-        if (strcasecmp(filename.GetCStr(), entry->d_name) == 0)
+        if (is_relative)
         {
-            if (lstat(entry->d_name, &statbuf) == 0 &&
-                (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)))
-            {
-#if AGS_PLATFORM_DEBUG
-                fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n",
-                    filename.GetCStr(), directory.GetCStr(), entry->d_name);
-#endif // AGS_PLATFORM_DEBUG
-                diamond = Path::ConcatPaths(directory, entry->d_name);
-                break;
-            }
+            directory = "./";
+        }
+        else
+        {
+            // NOTE: we intentionally don't support ci-parsing full absolute path
+            directory = Path::GetParent(filename);
+            filename = Path::GetFilename(filename);
         }
     }
-    closedir(rough);
-    return diamond;
+    
+    String path = directory;
+    for (size_t begin = 0u, end = filename.FindChar('/', 0u); // TODO: string iterators
+        end > begin; begin = end + 1, end = filename.FindChar('/', end + 1))
+    {
+        end = std::min(end, filename.GetLength()); // FIXME: iterators? string view?
+        test.SetString(filename.GetCStr() + begin, end - begin);
+        if (test.Compare(".") == 0)
+            continue; // let them have random "/./" in the middle of the path
+
+        auto di = DirectoryIterator::Open(path);
+        if (!di)
+        {
+            fprintf(stderr, "FindFileCI: cannot open directory: %s\n", path.GetCStr());
+            return nullptr;
+        }
+
+        bool found = false;
+        for (; !di.AtEnd(); di.Next())
+        {
+            if (test.CompareNoCase(di.Current()) != 0)
+                continue;
+
+            found = true;
+            Path::AppendPath(path, di.Current()); // append exact entry's name
+            if (di.GetEntry().IsFile)
+            {
+            #if AGS_PLATFORM_DEBUG
+                fprintf(stderr, "FindFileCI: Looked for %s in rough %s, found diamond %s.\n",
+                    test.GetCStr(), directory.GetCStr(), path.GetCStr());
+            #endif // AGS_PLATFORM_DEBUG
+                return path;
+            }
+            break; // found matching subdir
+        }
+
+        if (!found)
+            return String(); // failed
+    }
+    return path; // normally should not get here
 #endif
 }
 

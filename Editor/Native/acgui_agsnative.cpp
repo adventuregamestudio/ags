@@ -101,7 +101,7 @@ void GUIObject::NotifyParentChanged()
 int GUILabel::PrepareTextToDraw()
 {
     _textToDraw = Text;
-    return 0;
+    return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), false, Lines, Font, Width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)

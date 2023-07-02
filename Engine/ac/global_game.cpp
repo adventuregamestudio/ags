@@ -216,7 +216,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);
-        saves.push_back(SaveListItem(saveGameSlot, description, ff.CurrentTime()));
+        saves.push_back(SaveListItem(saveGameSlot, description, ff.GetEntry().Time));
         if (saves.size() >= max_count)
             break;
     }

@@ -78,7 +78,7 @@ HError MakeAssetList(std::vector<AssetInfo> &assets, const String &asset_dir,
     String base = asset_dir;
     String parent = asset_dir;
 
-    for (FindFileRecursive ff = FindFileRecursive::Open(parent, "*", do_subdirs ? -1 : 0);
+    for (FindFile ff = FindFile::Open(parent, "*", true, false, do_subdirs ? -1 : 0);
         !ff.AtEnd(); ff.Next())
     {
         AssetInfo asset;

@@ -24,6 +24,7 @@
 #include <vector>
 #include "core/platform.h"
 #include "util/string.h"
+#include "util/string_utils.h"
 
 namespace AGS
 {
@@ -85,7 +86,7 @@ public:
     bool Next();
 
     operator bool() const { return _i != nullptr; }
-    DirectoryIterator &operator =(DirectoryIterator &&di) = default;
+    DirectoryIterator &operator =(DirectoryIterator &&di);
 
 private:
     // Internal data type, platform-dependent
@@ -100,7 +101,53 @@ private:
     mutable FileEntry _fileEntry; // cached entry stats
 };
 
+//
+// DirectoryRecursiveIterator iterates entries in the directory
+// and all the subdirectories. The order of iteration among subitems
+// is undefined, but each subdirectory is passed in one go before
+// going to others.
+//
+class DirectoryRecursiveIterator
+{
+public:
+    DirectoryRecursiveIterator() = default;
+    DirectoryRecursiveIterator(DirectoryRecursiveIterator &&di) = default;
+    ~DirectoryRecursiveIterator() = default;
 
+    static DirectoryRecursiveIterator Open(const String &path,
+                                           size_t max_level = SIZE_MAX);
+
+    bool AtEnd() const { return _dir.AtEnd(); }
+    void Close();
+    const String &Current() const { return _curFile; }
+    const FileEntry &GetEntry() const { return _dir.GetEntry(); }
+    bool Next();
+
+    operator bool() const { return _dir; }
+    DirectoryRecursiveIterator &operator =(DirectoryRecursiveIterator &&di) = default;
+
+private:
+    bool PushDir();
+    bool PopDir();
+
+    // A stack of directory iteration positions
+    std::stack<DirectoryIterator> _dirStack;
+    DirectoryIterator _dir; // current dir iterator
+    DirectoryIterator _subSearch; // current subdirectories searcher
+    // max nesting level, SIZE_MAX for unrestricted
+    size_t _maxLevel = SIZE_MAX;
+    String _fullDir; // full directory path
+    String _curDir; // current dir path, relative to the base path
+    String _curFile; // current file path with parent dirs
+};
+
+
+//
+// FindFile searches the directory for files or subdirs,
+// using defined sort of directory iteration (flat or recursive), and a match pattern.
+// TODO: accept regex in ctor.
+// TODO: move to its own header? with or w/o DirIterator?
+//
 class FindFile
 {
 public:
@@ -108,13 +155,24 @@ public:
     FindFile(FindFile &&ff) = default;
     ~FindFile() = default;
 
+    // Open FindFile with the given search parameters
+    static FindFile Open(const String &path, const String &wildcard,
+        bool do_files, bool do_dirs, size_t max_level = SIZE_MAX);
+    // Search for files, strictly in the given dir
     static FindFile OpenFiles(const String &path, const String &wildcard = "*")
-        { return Open(path, wildcard, true, false); }
+        { return Open(path, wildcard, true, false, 0); }
+    // Search for directories, strictly in the given dir
     static FindFile OpenDirs(const String &path, const String &wildcard = "*")
-        { return Open(path, wildcard, false, true); }
+        { return Open(path, wildcard, false, true, 0); }
+    // Search for files, recursively, in the given dir, and all nested subdirs
+    static FindFile OpenFilesRecursive(const String &path, const String &wildcard = "*")
+        { return Open(path, wildcard, true, false, SIZE_MAX); }
+    // Search for directories, recursively, in the given dir, and all nested subdirs
+    static FindFile OpenDirsRecursive(const String &path, const String &wildcard = "*")
+        { return Open(path, wildcard, false, true, SIZE_MAX); }
 
     bool AtEnd() const { return _di.AtEnd(); }
-    void Close();
+    void Close() { _di = DirectoryRecursiveIterator(); }
     const String &Current() const { return _di.Current(); }
     const FileEntry &GetEntry() const { return _di.GetEntry(); }
     bool Next();
@@ -123,53 +181,17 @@ public:
     FindFile &operator =(FindFile &&ff) = default;
 
 private:
-    FindFile(DirectoryIterator &&di, std::regex &&regex, bool files, bool dirs)
+    FindFile(DirectoryRecursiveIterator &&di, std::regex &&regex, bool files, bool dirs)
         : _di(std::move(di)), _regex(std::move(regex))
         , _doFiles(files), _doDirs(dirs) {}
 
-    static FindFile Open(const String &path, const String &wildcard,
-                         bool do_files, bool do_dirs);
+    DirectoryRecursiveIterator _di;
     bool Test();
-
-    DirectoryIterator _di;
     std::regex _regex; // match pattern
     // TODO: make flags instead?
     bool _doFiles = false;
     bool _doDirs = false;
 };
-
-
-class FindFileRecursive
-{
-public:
-    FindFileRecursive() = default;
-    FindFileRecursive(FindFileRecursive &&ff) = default;
-    ~FindFileRecursive() = default;
-
-    static FindFileRecursive Open(const String &path, const String &wildcard = "*",
-                                  size_t max_level = SIZE_MAX);
-    // TODO: directory mode, like in FindFile
-    bool AtEnd() const { return _ffile.AtEnd(); }
-    String Current() const { return _curFile; }
-    void Close();
-    bool Next();
-
-    FindFileRecursive &operator =(FindFileRecursive &&ff) = default;
-
-private:
-    bool PushDir(const String &sub);
-    bool PopDir();
-
-    std::stack<FindFile> _fdirs;
-    FindFile _fdir; // current find dir iterator
-    FindFile _ffile; // current find file iterator
-    // max nesting level, SIZE_MAX for unrestricted
-    size_t _maxLevel = SIZE_MAX;
-    String _fullDir; // full directory path
-    String _curDir; // current dir path, relative to the base path
-    String _curFile; // current file path with parent dirs
-};
-
 
 } // namespace Common
 } // namespace AGS

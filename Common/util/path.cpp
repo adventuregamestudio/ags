@@ -111,6 +111,16 @@ String MakeTrailingSlash(const String &path)
     return dir_path;
 }
 
+String &AppendPath(String &path, const String &child)
+{
+    if (path.IsEmpty())
+        path = child;
+    else if (!child.IsEmpty())
+        path.AppendFmt("/%s", child.GetCStr());
+    FixupPath(path);
+    return path;
+}
+
 String ConcatPaths(const String &parent, const String &child)
 {
     if (parent.IsEmpty())

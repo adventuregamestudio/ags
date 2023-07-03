@@ -73,13 +73,15 @@ namespace Path
     // if walking out of the 'base'. Returns empty string on failure.
     // NOTE: the 'base' is only considered a directory if it has a trailing slash.
     String  MakeRelativePath(const String &base, const String &path);
+    // Creates path by combining directory, file name and extension
+    String  MakePath(const String &parent, const String &filename, const String &ext);
+    // Appends another section to existing path
+    String &AppendPath(String &path, const String &child);
     // Concatenates parent and relative paths
     String  ConcatPaths(const String &parent, const String &child);
     // Concatenates paths into the buffer, returns the buffer;
     // warning: passing buffer as one of the path params results in UB
     String  ConcatPaths(String &buf, const String &parent, const String &child);
-    // Creates path by combining directory, file name and extension
-    String  MakePath(const String &parent, const String &filename, const String &ext);
     // Splits path into components, divided by path separator
     std::vector<String> Split(const String &path);
 

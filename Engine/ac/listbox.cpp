@@ -60,8 +60,8 @@ void FillDirList(std::vector<String> &files, const String &path, const String &p
 void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   listbox->Clear();
 
-  ResolvedPath rp;
-  if (!ResolveScriptPath(filemask, true, rp))
+  ResolvedPath rp, alt_rp;
+  if (!ResolveScriptPath(filemask, true, rp, alt_rp))
     return;
 
   std::vector<String> files;
@@ -71,9 +71,10 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   }
   else
   {
+    // TODO: support CI subdir path; use CI BinaryPredicate for std::unique
     FillDirList(files, Path::GetParent(rp.FullPath), Path::GetFilename(rp.FullPath));
-    if (!rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-      FillDirList(files, Path::GetParent(rp.AltPath), Path::GetFilename(rp.AltPath));
+    if (alt_rp)
+      FillDirList(files, Path::GetParent(alt_rp.FullPath), Path::GetFilename(alt_rp.FullPath));
     // Sort and remove duplicates
     std::sort(files.begin(), files.end());
     files.erase(std::unique(files.begin(), files.end()), files.end());

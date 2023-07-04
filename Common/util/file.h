@@ -114,9 +114,15 @@ namespace File
     // as case-insensitive.
     String FindFileCI(const String &base_dir, const String &file_name);
     // Case insensitive file open: looks up for the file using FindFileCI
-    Stream *OpenFileCI(const String &file_name,
+    Stream *OpenFileCI(const String &base_dir, const String &file_name,
         FileOpenMode open_mode = kFile_Open,
         FileWorkMode work_mode = kFile_Read);
+    inline Stream *OpenFileCI(const String &file_name,
+        FileOpenMode open_mode = kFile_Open,
+        FileWorkMode work_mode = kFile_Read)
+    {
+        return OpenFileCI("", file_name, open_mode, work_mode);
+    }
 } // namespace File
 
 } // namespace Common

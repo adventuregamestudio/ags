@@ -193,6 +193,8 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
 
         if (IsAssetLibDir(lib))
         {
+            // FIXME: do basedir/getparent(wildcard), getfilename(wildcard) instead?
+            // because FindFile does not support subdirs in wildcard!!
             for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
                  !ff.AtEnd(); ff.Next())
                 assets.push_back(ff.Current());

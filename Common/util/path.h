@@ -52,6 +52,10 @@ namespace Path
     // Returns path to the actual directory, referenced by given path;
     // if path is a directory, returns path unchanged, if path is a file, returns
     // parent directory containing that file.
+    // FIXME: this function is misleading, and does a "directory exists" check,
+    // which is not always wanted (and may be not suitable for performance reasons);
+    // Path namespace must not rely on actual fs entries existance,
+    // check all this function uses and replace the solution, get rid of this func!
     String  GetDirectoryPath(const String &path);
     // Tells if the path points to the parent path's location or lower directory;
     // return FALSE if the path points to outside of the parent location.

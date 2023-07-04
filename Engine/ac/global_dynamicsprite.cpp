@@ -28,27 +28,14 @@ extern IGraphicsDriver *gfxDriver;
 
 int LoadImageFile(const char *filename)
 {
-    ResolvedPath rp;
-    if (!ResolveScriptPath(filename, true, rp))
+    String res_path;
+    std::unique_ptr<Stream> in(
+        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read, res_path));
+    if (!in)
         return 0;
 
-    Bitmap *loadedFile;
-    if (rp.AssetMgr)
-    {
-        std::unique_ptr<Stream> in_stream ( AssetMgr->OpenAsset(rp.FullPath, "*"));
-        if(in_stream == nullptr) {
-            return 0;
-        }
-        String ext = Path::GetFileExtension(rp.FullPath).Lower();
-        loadedFile = BitmapHelper::LoadBitmap(ext, in_stream.get());
-    }
-    else
-    {
-        loadedFile = BitmapHelper::LoadFromFile(rp.FullPath);
-        if (!loadedFile && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-            loadedFile = BitmapHelper::LoadFromFile(rp.AltPath);
-    }
-
+    String ext = Path::GetFileExtension(filename).Lower(); // FIXME: don't require lower!
+    Bitmap *loadedFile = BitmapHelper::LoadBitmap(ext, in.get());
     if (!loadedFile)
         return 0;
 

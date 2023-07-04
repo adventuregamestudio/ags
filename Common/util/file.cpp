@@ -344,17 +344,17 @@ String File::FindFileCI(const String &base_dir, const String &file_name)
 #endif
 }
 
-Stream *File::OpenFileCI(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
-    return File::OpenFile(file_name, open_mode, work_mode);
+    return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);
 #else
-    String fullpath = FindFileCI(nullptr, file_name);
+    String fullpath = FindFileCI(base_dir, file_name);
     if (!fullpath.IsEmpty())
         return File::OpenFile(fullpath, open_mode, work_mode);
     // If the file was not found, and it's Create mode, then open new file
     if (open_mode != kFile_Open)
-        return File::OpenFile(file_name, open_mode, work_mode);
+        return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);
     return nullptr;
 #endif
 }

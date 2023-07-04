@@ -46,28 +46,21 @@ extern size_t MAXSTRLEN;
 // object-based File routines
 
 int File_Exists(const char *fnmm) {
-
-  ResolvedPath rp;
-  if (!ResolveScriptPath(fnmm, true, rp))
+  const auto rp = ResolveScriptPathAndFindFile(fnmm, true);
+  if (!rp)
     return 0;
 
   if (rp.AssetMgr)
-      return AssetMgr->DoesAssetExist(rp.FullPath, "*");
-
-  return (File::IsFile(rp.FullPath) || File::IsFile(rp.AltPath)) ? 1 : 0;
+    return AssetMgr->DoesAssetExist(rp.FullPath, "*") ? 1 : 0;
+  return 1; // was found in fs
 }
 
 int File_Delete(const char *fnmm) {
-
-  ResolvedPath rp;
-  if (!ResolveScriptPath(fnmm, false, rp))
+  const auto rp = ResolveScriptPathAndFindFile(fnmm, false);
+  if (!rp)
     return 0;
 
-  if (File::DeleteFile(rp.FullPath))
-      return 1;
-  if (errno == ENOENT && !rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-      return File::DeleteFile(rp.AltPath) ? 1 : 0;
-  return 0;
+  return File::DeleteFile(rp.FullPath) ? 1 : 0;
 }
 
 void *sc_OpenFile(const char *fnmm, int mode) {
@@ -322,13 +315,24 @@ FSLocation GetGameUserDataDir()
     return MakeUserDataDir(usetup.user_data_dir);
 }
 
-bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath &rp)
+bool CreateFSDirs(const FSLocation &fs)
+{
+    return Directory::CreateAllDirectories(fs.BaseDir, fs.SubDir);
+}
+
+bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath &rp, ResolvedPath &alt_rp)
 {
     rp = ResolvedPath();
 
-    // Make sure that the file path has system-compatible form
+    // Make sure that the script path has a system-portable form;
     String sc_path = orig_sc_path;
     sc_path.Replace('\\', '/');
+    sc_path.MergeSequences('/');
+
+    // TODO: much of the following may be refactored into having a map (or list of pairs)
+    // where key is a token to find in sc_path, and value is FSLocation.
+    // Probably have a kind of a virtual game filesystem which provides such map,
+    // and lets configure actual locations.
 
     // File tokens (they must be the only thing in script path)
     if (sc_path.Compare(UserConfigFileToken) == 0)
@@ -351,8 +355,6 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     }
 
     // Resolve location tokens
-    // IMPORTANT: for compatibility reasons we support both cases:
-    // when token is followed by the path separator and when it is not, in which case it's assumed.
     if (sc_path.CompareLeft(GameAssetToken, GameAssetToken.GetLength()) == 0)
     {
         if (!read_only)
@@ -360,14 +362,16 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
             debug_script_warn("Attempt to access file '%s' denied (cannot write to game assets)", sc_path.GetCStr());
             return false;
         }
-        rp.FullPath = sc_path.Mid(GameAssetToken.GetLength() + 1);
-        rp.AssetMgr = true;
+        rp = ResolvedPath(sc_path.Mid(GameAssetToken.GetLength() + 1), true);
         return true;
     }
 
     FSLocation parent_dir;
     String child_path;
+    FSLocation alt_parent_dir;
     String alt_path;
+    // IMPORTANT: for compatibility reasons we support both cases:
+    // when token is followed by the path separator and when it is not, in which case it's assumed.
     if (sc_path.CompareLeft(GameInstallRootToken) == 0)
     {
         if (!read_only)
@@ -406,7 +410,10 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         parent_dir = GetGameAppDataDir();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
-            alt_path = Path::ConcatPaths(ResPaths.DataDir, sc_path);
+        {
+            alt_parent_dir = FSLocation(ResPaths.DataDir);
+            alt_path = sc_path;
+        }
 
         // For games made in the safe-path-aware versions of AGS, report a warning
         // if the unsafe path is used for write operation
@@ -417,11 +424,13 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         }
     }
 
+    child_path.TrimLeft('/'); // remove any preceding slash, or this will be abs path
     // Create a proper ResolvedPath with FSLocation separating base location
     // (which the engine is not allowed to create) and sub-dirs (created by the engine).
-    parent_dir = parent_dir.Concat(Path::GetDirectoryPath(child_path));
+    // FIXME: following 2 lines may be redundant, maybe may just use ResolvedPath ctor
+    parent_dir = parent_dir.Concat(Path::GetParent(child_path));
     child_path = Path::GetFilename(child_path);
-    ResolvedPath test_rp = ResolvedPath(parent_dir, child_path, alt_path);
+    ResolvedPath test_rp = ResolvedPath(parent_dir, child_path);
     // don't allow write operations for relative paths outside game dir
     if (!read_only)
     {
@@ -432,26 +441,77 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
         }
     }
     rp = test_rp;
+    if (!alt_parent_dir.FullDir.IsEmpty() && alt_parent_dir.FullDir.Compare(rp.Loc.FullDir) != 0)
+        alt_rp = ResolvedPath(alt_parent_dir, alt_path);
     return true;
 }
 
-bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp)
+ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only)
 {
-    if (!ResolveScriptPath(sc_path, false, rp))
-        return false;
+    ResolvedPath rp, alt_rp;
+    if (!ResolveScriptPath(sc_path, read_only, rp, alt_rp))
+    {
+        debug_script_warn("ResolveScriptPath: failed to resolve path: %s", sc_path.GetCStr());
+        return {}; // cannot be resolved
+    }
 
+    if (rp.AssetMgr)
+        return rp; // we don't test AssetMgr here
+
+    ResolvedPath final_rp = rp;
+    String found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath);
+    if (found_file.IsEmpty() && alt_rp)
+    {
+        final_rp = alt_rp;
+        found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath);
+    }
+    if (found_file.IsEmpty())
+    {
+        debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s\n\talt try: %s",
+            sc_path.GetCStr(), rp.FullPath.GetCStr(), alt_rp.FullPath.GetCStr());
+        return {}; // nothing matching found
+    }
+    return ResolvedPath(found_file);
+}
+
+ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
+{
+    ResolvedPath rp, alt_rp;
+    if (!ResolveScriptPath(sc_path, false, rp, alt_rp))
+        return {}; // cannot be resolved
+
+    // TODO: case-insensitive lookup for existing part of SubDir
     if (!rp.Loc.SubDir.IsEmpty() &&
         !Directory::CreateAllDirectories(rp.Loc.BaseDir, rp.Loc.SubDir))
     {
         debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
-        return false;
+        return {}; // fail
     }
-    return true;
+    return rp;
 }
 
-bool CreateFSDirs(const FSLocation &fs)
+Stream *ResolveScriptPathAndOpen(const String &sc_path,
+    FileOpenMode open_mode, FileWorkMode work_mode, String &res_path)
 {
-    return Directory::CreateAllDirectories(fs.BaseDir, fs.SubDir);
+    res_path = "";
+    if (open_mode == kFile_Open && work_mode == kFile_Read)
+    {
+        auto rp = ResolveScriptPathAndFindFile(sc_path, true);
+        if (!rp)
+            return nullptr;
+        res_path = rp.FullPath; // FIXME: let Stream record the path!
+        if (rp.AssetMgr)
+            return AssetMgr->OpenAsset(res_path, "*");
+        return File::OpenFile(res_path, open_mode, work_mode);
+    }
+    else
+    {
+        auto rp = ResolveWritePathAndCreateDirs(sc_path);
+        if (!rp)
+            return nullptr;
+        res_path = rp.FullPath; // FIXME: let Stream record the path!
+        return File::OpenFile(res_path, open_mode, work_mode);
+    }
 }
 
 //

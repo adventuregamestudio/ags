@@ -249,15 +249,21 @@ Stream *File::OpenStderr()
     return FileStream::WrapHandle(stderr, kFile_Write, kDefaultSystemEndianess);
 }
 
-String File::FindFileCI(const String &base_dir, const String &file_name)
+String File::FindFileCI(const String &base_dir, const String &file_name,
+    bool is_dir, String *most_found, String *not_found)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
     // Simply concat dir and filename paths
     return Path::ConcatPaths(base_dir, file_name);
 #else
+    if (most_found)
+        *most_found = base_dir;
+    if (not_found)
+        *not_found = "";
+
     // Case insensitive file find - on case sensitive filesystems
     if (file_name.IsEmpty())
-        return String(); // fail, no filename provided
+        return {}; // fail, no filename provided
 
     String directory;
     String filename;
@@ -279,10 +285,11 @@ String File::FindFileCI(const String &base_dir, const String &file_name)
     else if (!is_relative && directory.IsEmpty())
         test = filename; // absolute filepath
     else
-        return String(); // fail, cannot be handled
+        return {}; // fail, cannot be handled
 
     // First try exact match
-    if (ags_file_exists(test.GetCStr()))
+    if ((is_dir && ags_directory_exists(test.GetCStr())) ||
+        (!is_dir && ags_file_exists(test.GetCStr())))
         return test; // success
 
     // Begin splitting filename into path sections,
@@ -303,7 +310,8 @@ String File::FindFileCI(const String &base_dir, const String &file_name)
     }
     
     String path = directory;
-    for (size_t begin = 0u, end = filename.FindChar('/', 0u); // TODO: string iterators
+    size_t begin = 0u;
+    for (size_t end = filename.FindChar('/', 0u); // TODO: string iterators
         end > begin; begin = end + 1, end = filename.FindChar('/', end + 1))
     {
         end = std::min(end, filename.GetLength()); // FIXME: iterators? string view?
@@ -315,7 +323,7 @@ String File::FindFileCI(const String &base_dir, const String &file_name)
         if (!di)
         {
             fprintf(stderr, "FindFileCI: cannot open directory: %s\n", path.GetCStr());
-            return nullptr;
+            break; // failed
         }
 
         bool found = false;
@@ -324,9 +332,11 @@ String File::FindFileCI(const String &base_dir, const String &file_name)
             if (test.CompareNoCase(di.Current()) != 0)
                 continue;
 
-            found = true;
             Path::AppendPath(path, di.Current()); // append exact entry's name
-            if (di.GetEntry().IsFile)
+            // We succeed when we are at the end of the searched path,
+            // and this is a matching file / dir, as requested
+            if (end == filename.GetLength() &&
+                ((is_dir && di.GetEntry().IsDir) || (!is_dir && di.GetEntry().IsFile)))
             {
             #if AGS_PLATFORM_DEBUG
                 fprintf(stderr, "FindFileCI: Looked for %s in rough %s, found diamond %s.\n",
@@ -334,13 +344,21 @@ String File::FindFileCI(const String &base_dir, const String &file_name)
             #endif // AGS_PLATFORM_DEBUG
                 return path;
             }
+
+            found = true;
             break; // found matching subdir
         }
 
         if (!found)
-            return String(); // failed
+            break; // failed
     }
-    return path; // normally should not get here
+
+    // On failure: fill most_found but return empty string
+    if (most_found)
+        *most_found = path;
+    if (not_found)
+        *not_found = filename.GetCStr() + begin;
+    return {};
 #endif
 }
 

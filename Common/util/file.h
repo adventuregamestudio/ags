@@ -112,7 +112,11 @@ namespace File
     // relative to the current working dir;
     // file_name is allowed to contain subdirs, all of which should be treated
     // as case-insensitive.
-    String FindFileCI(const String &base_dir, const String &file_name);
+    // On success returns a full found path, on failure returns an empty string.
+    // On failure optionally fills most_found and not_found strings with the
+    // successful and failed part of the path respectively.
+    String FindFileCI(const String &base_dir, const String &file_name,
+        bool is_dir = false, String *most_found = nullptr, String *not_found = nullptr);
     // Case insensitive file open: looks up for the file using FindFileCI
     Stream *OpenFileCI(const String &base_dir, const String &file_name,
         FileOpenMode open_mode = kFile_Open,

@@ -480,14 +480,31 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
     if (!ResolveScriptPath(sc_path, false, rp, alt_rp))
         return {}; // cannot be resolved
 
-    // TODO: case-insensitive lookup for existing part of SubDir
-    if (!rp.Loc.SubDir.IsEmpty() &&
-        !Directory::CreateAllDirectories(rp.Loc.BaseDir, rp.Loc.SubDir))
+    String most_found, missing_path, res_path;
+#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+    most_found = rp.Loc.BaseDir;
+    missing_path = rp.Loc.SubDir;
+    res_path = rp.FullPath;
+#else
+    // First do case-insensitive search to find an existing part of the SubDir:
+    // because some portion may exist but mismatch case, and CreateAllDirectories
+    // won't detect that.
+    String found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath, false, &most_found, &missing_path);
+    if (!found_file.IsEmpty())
+    {
+        // the file already exists, overwrite it
+        return ResolvedPath(found_file);
+    }
+    res_path = Path::ConcatPaths(most_found, missing_path);
+    missing_path = Path::GetParent(missing_path);
+#endif
+
+    if (!Directory::CreateAllDirectories(most_found, missing_path))
     {
         debug_script_warn("ResolveScriptPath: failed to create all subdirectories: %s", rp.FullPath.GetCStr());
         return {}; // fail
     }
-    return rp;
+    return ResolvedPath(res_path);
 }
 
 Stream *ResolveScriptPathAndOpen(const String &sc_path,

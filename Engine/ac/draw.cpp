@@ -195,8 +195,9 @@ class TextureCache :
     public AGS::Common::ResourceCache<uint32_t, std::shared_ptr<Texture>>
 {
 public:
-    // Gets existing texture, or load a sprite and create texture from it
-    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, bool has_alpha, bool opaque)
+    // Gets existing texture, or load a sprite and create texture from it;
+    // optionally, if "source" bitmap is provided, then use it
+    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, Bitmap *source, bool has_alpha, bool opaque)
     {
         assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
         if (sprite_id == UINT32_MAX)
@@ -224,7 +225,7 @@ public:
 
         // If not in any cache, then try loading the sprite's bitmap,
         // and create a texture data from it
-        Bitmap *bitmap = spriteset[sprite_id];
+        Bitmap *bitmap = source ? source : spriteset[sprite_id];
         if (!bitmap)
             return nullptr;
 
@@ -1169,6 +1170,7 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
+    assert(source);
     if (ddb)
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
     else
@@ -1180,14 +1182,18 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
     // If sprite_id is not cachable, then fallback to a simpler variant
-    if (sprite_id == UINT32_MAX)
+    if (drawstate.SoftwareRender || sprite_id == UINT32_MAX)
+    {
+        if (!source && (sprite_id < UINT32_MAX))
+            source = spriteset[sprite_id];
         return recycle_ddb_bitmap(ddb, source, has_alpha, opaque);
+    }
 
     // TODO: how to test if sprite was modified, while NOT cached? Is GetRefID enough for this? maybe....
     if (ddb && ddb->GetRefID() == sprite_id)
         return ddb; // texture in sync
 
-    auto txdata = texturecache.GetOrLoad(sprite_id, has_alpha, opaque);
+    auto txdata = texturecache.GetOrLoad(sprite_id, source, has_alpha, opaque);
     if (!txdata)
     {
         // On failure - invalidate ddb (we don't want to draw old pixels)

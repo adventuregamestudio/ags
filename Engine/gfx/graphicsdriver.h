@@ -89,8 +89,8 @@ typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 class IGraphicsDriver
 {
 public:
-  virtual const char*GetDriverName() = 0;
-  virtual const char*GetDriverID() = 0;
+  virtual const char *GetDriverName() = 0;
+  virtual const char *GetDriverID() = 0;
 
   // Tells if this gfx driver has to redraw whole scene each time
   virtual bool RequiresFullRedrawEachFrame() = 0;
@@ -136,6 +136,8 @@ public:
   // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
   // Engine needs to have game bitmaps brought to the certain range of formats, easing conversion into the video bitmaps.
   virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
+  // Returns available texture memory, or 0 if this query is not supported
+  virtual size_t GetAvailableTextureMemory() = 0;
 
   // Creates a "raw" DDB, without pixel initialization.
   virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;

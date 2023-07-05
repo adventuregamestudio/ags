@@ -1645,6 +1645,11 @@ int D3DGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
+size_t D3DGraphicsDriver::GetAvailableTextureMemory()
+{
+  return direct3ddevice->GetAvailableTextureMem();
+}
+
 void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
 {
   int allocatedWidth = *width, allocatedHeight = *height;

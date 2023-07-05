@@ -171,6 +171,7 @@ public:
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
+    size_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
 
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override

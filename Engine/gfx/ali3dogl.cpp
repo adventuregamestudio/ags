@@ -1716,6 +1716,12 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
+size_t OGLGraphicsDriver::GetAvailableTextureMemory()
+{
+  // TODO: investigate later if there is any way, but probably not a priority
+  return 0;
+}
+
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
 {
   int allocatedWidth = *width, allocatedHeight = *height;

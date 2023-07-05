@@ -211,6 +211,9 @@ class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 public:
     const char*GetDriverName() override { return "Direct3D 9"; }
     const char*GetDriverID() override { return "D3D9"; }
+
+    bool ShouldReleaseRenderTargets() override { return true; }
+
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
@@ -251,9 +254,6 @@ public:
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
-    bool RequiresFullRedrawEachFrame() override { return true; }
-    bool HasAcceleratedTransform() override { return true; }
-    bool ShouldReleaseRenderTargets() override { return true; }
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 

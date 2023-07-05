@@ -152,6 +152,12 @@ public:
 
     const char*GetDriverName() override { return "SDL 2D Software renderer"; }
     const char*GetDriverID() override { return "Software"; }
+
+    bool RequiresFullRedrawEachFrame() override { return false; }
+    bool HasAcceleratedTransform() override { return false; }
+    bool UsesMemoryBackBuffer() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return false; }
+
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
@@ -200,10 +206,6 @@ public:
     void UseSmoothScaling(bool /*enabled*/) override { }
     bool DoesSupportVsyncToggle() override { return (SDL_VERSION_ATLEAST(2, 0, 18)) && _capsVsync; }
     void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
-    bool RequiresFullRedrawEachFrame() override { return false; }
-    bool HasAcceleratedTransform() override { return false; }
-    bool UsesMemoryBackBuffer() override { return true; }
-    bool ShouldReleaseRenderTargets() override { return false; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;

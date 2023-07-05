@@ -66,6 +66,6 @@ int  AreThingsOverlapping(int thing1, int thing2);
 int  GetObjectProperty (int hss, const char *property);
 void GetObjectPropertyText (int item, const char *property, char *bufer);
 
-Common::Bitmap *GetObjectImage(int obj, int *isFlipped);
+Common::Bitmap *GetObjectImage(int obj, bool *is_original = nullptr);
 
 #endif // __AGS_EE_AC__GLOBALOBJECT_H

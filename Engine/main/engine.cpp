@@ -389,7 +389,7 @@ void engine_init_audio()
     
     if (usetup.audio_enabled)
     {
-        soundcache_set_rules(usetup.SoundLoadAtOnceSize, usetup.SoundCacheSize);
+        soundcache_set_rules(usetup.SoundLoadAtOnceSize * 1024, usetup.SoundCacheSize * 1024);
     }
     else
     {
@@ -585,7 +585,7 @@ int engine_init_sprites()
         return EXIT_ERROR;
     }
     if (usetup.SpriteCacheSize > 0)
-        spriteset.SetMaxCacheSize(usetup.SpriteCacheSize);
+        spriteset.SetMaxCacheSize(usetup.SpriteCacheSize * 1024);
     return 0;
 }
 

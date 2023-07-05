@@ -636,7 +636,7 @@ void init_draw_method()
     {
         drawstate.WalkBehindMethod = DrawAsSeparateSprite;
         create_blank_image(game.GetColorDepth());
-        texturecache.SetMaxCacheSize(usetup.TextureCacheSize);
+        texturecache.SetMaxCacheSize(usetup.TextureCacheSize * 1024);
     }
 
     on_mainviewport_changed();

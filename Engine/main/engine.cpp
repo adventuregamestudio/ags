@@ -586,6 +586,7 @@ int engine_init_sprites()
     }
     if (usetup.SpriteCacheSize > 0)
         spriteset.SetMaxCacheSize(usetup.SpriteCacheSize * 1024);
+    Debug::Printf("Sprite cache set: %zu KB", spriteset.GetMaxCacheSize() / 1024);
     return 0;
 }
 

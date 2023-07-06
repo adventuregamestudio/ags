@@ -73,8 +73,6 @@ void mark_object_changed(int objid);
 // Resets all object caches which reference this sprite
 void reset_objcache_for_sprite(int sprnum, bool deleted);
 
-// Initialize texture cache, set max cache size in bytes
-void init_texturecache(size_t size);
 // Get current texture cache's stats: max size, current normal items size,
 // size of locked items (included into cur_size),
 // size of external items (excluded from cur_size)

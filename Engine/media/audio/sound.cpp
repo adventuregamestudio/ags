@@ -16,6 +16,7 @@
 #include <list>
 #include <unordered_map>
 #include "core/assetmanager.h"
+#include "debug/out.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audiodefines.h"
 #include "util/path.h"
@@ -88,6 +89,7 @@ void soundcache_set_rules(size_t max_loadatonce, size_t max_cachesize)
 {
     MaxLoadAtOnce = max_loadatonce;
     SndCache.SetMaxCacheSize(max_cachesize);
+    Debug::Printf("Sound cache set: %zu KB", max_cachesize / 1024);
 }
 
 void soundcache_clear()

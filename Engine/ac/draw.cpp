@@ -643,6 +643,7 @@ void init_draw_method()
         if (avail_tx_mem > 0)
             tx_cache_size = std::min<size_t>(tx_cache_size, avail_tx_mem * 0.66);
         texturecache.SetMaxCacheSize(tx_cache_size);
+        Debug::Printf("Texture cache set: %zu KB", tx_cache_size / 1024);
     }
 
     on_mainviewport_changed();
@@ -956,11 +957,6 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
         if (deleted && (actsps[ACTSP_OBJSOFF + i].SpriteID == sprnum))
             actsps[ACTSP_OBJSOFF + i].SpriteID = UINT32_MAX; // invalid sprite ref
     }
-}
-
-void init_texturecache(size_t size)
-{
-    texturecache.SetMaxCacheSize(size);
 }
 
 void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size)

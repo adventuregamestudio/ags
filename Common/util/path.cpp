@@ -18,7 +18,7 @@ String GetParent(const String &path)
 {
     const char *cstr = path.GetCStr();
     const char *ptr_end = cstr + path.GetLength();
-    for (const char *ptr = ptr_end; ptr > cstr; --ptr)
+    for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
     {
         if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
             return String(cstr, ptr - cstr);
@@ -30,7 +30,7 @@ String GetFilename(const String &path)
 {
     const char *cstr = path.GetCStr();
     const char *ptr_end = cstr + path.GetLength();
-    for (const char *ptr = ptr_end; ptr > cstr; --ptr)
+    for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
     {
         if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
             return String(ptr + 1);

@@ -78,6 +78,23 @@ String GetDirectoryPath(const String &path)
     return "./";
 }
 
+bool IsRelativePath(const String &path)
+{
+    // All filenames that start with a '.' are relative. */
+    if (path[0] == '.')
+        return true;
+
+    // Filenames that contain a device separator (DOS/Windows)
+    // or start with a '/' (Unix) are considered absolute.
+#if AGS_PLATFORM_OS_WINDOWS
+   if (path.FindChar(PATH_DEVICE_SEPARATOR) != String::NoIndex)
+      return false;
+#endif
+    if ((path[0] == '/') || (path[0] == PATH_ALT_SEPARATOR))
+        return false;
+    return true;
+}
+
 void FixupPath(String &path)
 {
 #if AGS_PLATFORM_OS_WINDOWS

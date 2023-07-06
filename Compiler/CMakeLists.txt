@@ -15,6 +15,7 @@ set(COMPILER_COMMON_SOURCES
         ../Common/util/bufferedstream.cpp
         ../Common/util/cmdlineopts.cpp
         ../Common/util/datastream.cpp
+        ../Common/util/directory.cpp
         ../Common/util/file.cpp
         ../Common/util/path.cpp
         ../Common/util/filestream.cpp

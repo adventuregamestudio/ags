@@ -63,10 +63,10 @@ String GetRuntimeInfo()
     const size_t total_lockspr = spriteset.GetLockedSize();
     const size_t total_extspr = spriteset.GetExternalSize();
     const size_t max_normspr = spriteset.GetMaxCacheSize();
-    const unsigned norm_spr_filled = (uint64_t)total_normspr * 100 / max_normspr;
+    const unsigned norm_spr_filled = max_normspr > 0 ? (uint64_t)total_normspr * 100 / max_normspr : 0;
     size_t max_txcached, total_txcached, total_txlocked, total_txext;
     get_texturecache_state(max_txcached, total_txcached, total_txlocked, total_txext);
-    const unsigned tx_filled = (uint64_t)total_txcached * 100 / max_txcached;
+    const unsigned tx_filled = max_txcached > 0 ? (uint64_t)total_txcached * 100 / max_txcached : 0;
     String runtimeInfo = String::FromFormat(
         "%s\nEngine version %s\n"
         "Game resolution %d x %d (%d-bit)\n"

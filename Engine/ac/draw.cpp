@@ -2607,6 +2607,7 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
+                use_bmp = transform_sprite(over.GetImage(), over.HasAlphaChannel(), overlaybmp[i], Size(over.scaleWidth, over.scaleHeight));
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     if (use_bmp != overlaybmp[i].get())

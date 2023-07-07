@@ -106,8 +106,8 @@ public:
     void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
     {
         _data = std::static_pointer_cast<OGLTexture>(txdata);
-        _width = _data->Res.Width;
-        _height = _data->Res.Height;
+        _width = _stretchToWidth = _data->Res.Width;
+        _height = _stretchToHeight = _data->Res.Height;
         _colDepth = _data->Res.ColorDepth;
     }
     // Detach any internal texture data from this DDB, make this an empty object

@@ -191,21 +191,21 @@ struct ObjectCache
 // * A short-term cache of texture references, which keeps only weak refs to the textures
 //   that are currently in use. This short-term cache lets to keep reusing same texture
 //   so long as there's at least one object on screen that uses it.
+// NOTE: because of this two-component structure, TextureCache has to override
+// number of ResourceCache's parent methods. This design may probably be improved.
 class TextureCache :
-    public AGS::Common::ResourceCache<uint32_t, std::shared_ptr<Texture>>
+    public ResourceCache<uint32_t, std::shared_ptr<Texture>>
 {
 public:
-    // Gets existing texture, or load a sprite and create texture from it;
-    // optionally, if "source" bitmap is provided, then use it
-    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, Bitmap *source, bool has_alpha, bool opaque)
+    // Gets existing texture from either MRU cache, or short-term cache
+    const std::shared_ptr<Texture> Get(const uint32_t &sprite_id)
     {
         assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
         if (sprite_id == UINT32_MAX)
             return nullptr;
 
         // Begin getting texture data, first check the MRU cache
-        std::shared_ptr<Texture> txdata;
-        txdata = Get(sprite_id);
+        auto txdata = ResourceCache::Get(sprite_id);
         if (txdata)
             return txdata;
 
@@ -222,6 +222,21 @@ public:
                 return txdata;
             }
         }
+        return nullptr;
+    }
+
+    // Gets existing texture, or load a sprite and create texture from it;
+    // optionally, if "source" bitmap is provided, then use it
+    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, Bitmap *source, bool has_alpha, bool opaque)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        if (sprite_id == UINT32_MAX)
+            return nullptr;
+
+        // Try getting existing texture first
+        auto txdata = Get(sprite_id);
+        if (txdata)
+            return txdata;
 
         // If not in any cache, then try loading the sprite's bitmap,
         // and create a texture data from it
@@ -239,11 +254,44 @@ public:
         return txdata;
     }
 
+    // Deletes the cached item
+    void Dispose(const uint32_t &sprite_id)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        // Reset sprite ID for any remaining shared txdata
+        DetachSharedTexture(sprite_id);
+        ResourceCache::Dispose(sprite_id);
+    }
+
+    // Removes the item from the cache and returns to the caller.
+    std::shared_ptr<Texture> Remove(const uint32_t &sprite_id)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        // Reset sprite ID for any remaining shared txdata
+        DetachSharedTexture(sprite_id);
+        return ResourceCache::Remove(sprite_id);
+    }
+
 private:
     size_t CalcSize(const std::shared_ptr<Texture> &item) override
     {
         assert(item);
         return item ? item->GetMemSize() : 0u;
+    }
+
+    // Marks a shared texture with the invalid sprite ID,
+    // this logically disconnects this texture from the cache,
+    // and the game objects will be forced to recreate it on the next update
+    void DetachSharedTexture(uint32_t sprite_id)
+    {
+        const auto found = _txRefs.find(sprite_id);
+        if (found != _txRefs.end())
+        {
+            auto txdata = found->second.lock();
+            if (txdata)
+                txdata->ID = UINT32_MAX;
+            _txRefs.erase(sprite_id);
+        }
     }
 
     // Texture short-term cache:
@@ -970,10 +1018,19 @@ void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_s
 void update_shared_texture(uint32_t sprite_id)
 {
     auto txdata = texturecache.Get(sprite_id);
-    if (txdata)
+    if (!txdata)
+        return;
+    const auto &res = txdata->Res;
+    if (res.Width == game.SpriteInfos[sprite_id].Width &&
+        res.Height == game.SpriteInfos[sprite_id].Height)
     {
         gfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id],
             (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0, false);
+    }
+    else
+    {
+        // Remove texture from cache, assume it will be recreated on demand
+        texturecache.Dispose(sprite_id);
     }
 }
 
@@ -1173,8 +1230,11 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
     assert(source);
-    if (ddb)
+    if (ddb && (drawstate.SoftwareRender || (ddb->GetColorDepth() == source->GetColorDepth()) &&
+            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight())))
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
+    else if (ddb)
+        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, has_alpha, opaque)), opaque);
     else
         ddb = gfxDriver->CreateDDBFromBitmap(source, has_alpha, opaque);
     return ddb;

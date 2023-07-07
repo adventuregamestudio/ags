@@ -70,7 +70,7 @@ namespace OGL
 
 using namespace AGS::Common;
 
-OGLTextureData::~OGLTextureData()
+OGLTexture::~OGLTexture()
 {
     if (_tiles)
     {
@@ -82,6 +82,15 @@ OGLTextureData::~OGLTextureData()
     {
         delete[] _vertex;
     }
+}
+
+size_t OGLTexture::GetMemSize() const
+{
+    // FIXME: a proper size in video memory, check OpenGL docs
+    size_t sz = 0u;
+    for (size_t i = 0; i < _numTiles; ++i)
+        sz += _tiles[i].width * _tiles[i].height * 4;
+    return sz;
 }
 
 OGLBitmap::~OGLBitmap()
@@ -1560,7 +1569,7 @@ void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
     _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, x, y));
 }
 
-void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
+void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 {
     // Remove from render targets
     // FIXME: this ugly accessing internal texture members
@@ -1586,7 +1595,7 @@ void OGLGraphicsDriver::DestroyDDBImpl(IDriverDependantBitmap* ddb)
 }
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
@@ -1620,9 +1629,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   fixedTile.width = std::min(tile->width, tileWidth);
   fixedTile.height = std::min(tile->height, tileHeight);
   if (opaque)
-    BitmapToVideoMemOpaque(bitmap, hasAlpha, &fixedTile, memPtr, pitch);
+    BitmapToVideoMemOpaque(bitmap, has_alpha, &fixedTile, memPtr, pitch);
   else
-    BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
+    BitmapToVideoMem(bitmap, has_alpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
 
   // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
   // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
@@ -1669,29 +1678,29 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   delete []origPtr;
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool has_alpha)
 {
-  OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  if (target->_width != bitmap->GetWidth() || target->_height != bitmap->GetHeight())
-    throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
-  const int color_depth = bitmap->GetColorDepth();
-  if (color_depth != target->_colDepth)
-    throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
-
-  target->_hasAlpha = hasAlpha;
-  UpdateTextureData(target->_data.get(), bitmap, target->_opaque, hasAlpha);
+  // FIXME: what to do if texture is shared??
+  OGLBitmap *target = (OGLBitmap*)ddb;
+  UpdateTexture(target->_data.get(), bitmap, has_alpha, target->_opaque);
+  target->_hasAlpha = has_alpha;
 }
 
-void OGLGraphicsDriver::UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTexture(Texture *txdata, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   const int color_depth = bitmap->GetColorDepth();
+  if (bitmap->GetColorDepth() != txdata->Res.ColorDepth)
+    throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
+  if (txdata->Res.Width != bitmap->GetWidth() || txdata->Res.Height != bitmap->GetHeight())
+    throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
+
   if (color_depth == 8)
       select_palette(palette);
 
-  auto *ogldata = reinterpret_cast<OGLTextureData*>(txdata);
+  auto *ogldata = reinterpret_cast<OGLTexture*>(txdata);
   for (size_t i = 0; i < ogldata->_numTiles; ++i)
   {
-    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque, hasAlpha);
+    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, has_alpha, opaque);
   }
 
   if (color_depth == 8)
@@ -1705,6 +1714,12 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   if (color_depth > 8 && color_depth <= 16)
     return 16;
   return 32;
+}
+
+size_t OGLGraphicsDriver::GetAvailableTextureMemory()
+{
+  // TODO: investigate later if there is any way, but probably not a priority
+  return 0;
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
@@ -1739,16 +1754,15 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque)));
+    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, opaque)));
     return ddb;
 }
 
-IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<TextureData> txdata,
-    int width, int height, int color_depth, bool opaque)
+IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, bool opaque)
 {
-    auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(width, height, color_depth, opaque));
+    auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, opaque));
     if (ddb)
-        ddb->_data = std::static_pointer_cast<OGLTextureData>(txdata);
+        ddb->_data = std::static_pointer_cast<OGLTexture>(txdata);
     return ddb;
 }
 
@@ -1757,7 +1771,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTextureData*>(CreateTextureData(width, height, opaque, true)));
+    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, opaque, true)));
     glGenFramebuffersEXT(1, &ddb->_fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ddb->_fbo);
     // FIXME: this ugly accessing internal texture members
@@ -1768,12 +1782,12 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
     return ddb;
 }
 
-std::shared_ptr<TextureData> OGLGraphicsDriver::GetTextureData(IDriverDependantBitmap *ddb)
+std::shared_ptr<Texture> OGLGraphicsDriver::GetTexture(IDriverDependantBitmap *ddb)
 {
-    return std::static_pointer_cast<TextureData>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
+    return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
 }
 
-TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*opaque*/, bool as_render_target)
+Texture *OGLGraphicsDriver::CreateTexture(int width, int height, bool /*opaque*/, bool as_render_target)
 {
   assert(width > 0);
   assert(height > 0);
@@ -1814,7 +1828,7 @@ TextureData *OGLGraphicsDriver::CreateTextureData(int width, int height, bool /*
 
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
-  auto *txdata = new OGLTextureData();
+  auto *txdata = new OGLTexture(GraphicResolution(width, height, 32), as_render_target);
   int numTiles = tilesAcross * tilesDown;
   OGLTextureTile *tiles = new OGLTextureTile[numTiles];
   OGLCUSTOMVERTEX *vertices = nullptr;

@@ -190,7 +190,7 @@ int  is_valid_character(int newchar);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 void CheckViewFrameForCharacter(CharacterInfo *chi);
-Common::Bitmap *GetCharacterImage(int charid, int *isFlipped);
+Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
 CharacterInfo *GetCharacterAtScreen(int xx, int yy);
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size.

@@ -289,6 +289,13 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
     usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
 }
 
+static void read_legacy_config(const ConfigTree &cfg)
+{
+    read_legacy_graphics_config(cfg);
+
+    usetup.SpriteCacheSize = CfgReadInt(cfg , "misc", "cachemax", usetup.SpriteCacheSize);
+}
+
 void override_config_ext(ConfigTree &cfg)
 {
     platform->ReadConfiguration(cfg);
@@ -296,9 +303,9 @@ void override_config_ext(ConfigTree &cfg)
 
 void apply_config(const ConfigTree &cfg)
 {
-    // Legacy graphics settings has to be translated into new options;
+    // Legacy settings have to be translated into new options;
     // they must be read first, to let newer options override them, if ones are present
-    read_legacy_graphics_config(cfg);
+    read_legacy_config(cfg);
 
     {
         // Audio options
@@ -346,15 +353,10 @@ void apply_config(const ConfigTree &cfg)
 
         // Resource caches and options
         usetup.clear_cache_on_room_change = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", usetup.clear_cache_on_room_change);
-        int size_kb = CfgReadInt(cfg, "misc", "cachemax", DEFAULTCACHESIZE_KB);
-        if (size_kb > 0)
-            usetup.SpriteCacheSize = size_kb * 1024;
-        size_kb = CfgReadInt(cfg, "sound", "cache_size", DEFAULT_SOUNDCACHESIZE_KB);
-        if (size_kb > 0)
-            usetup.SoundCacheSize = size_kb * 1024;
-        size_kb = CfgReadInt(cfg, "sound", "stream_threshold", DEFAULT_SOUNDLOADATONCE_KB);
-        if (size_kb > 0)
-            usetup.SoundLoadAtOnceSize = size_kb * 1024;
+        usetup.SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", usetup.SpriteCacheSize);
+        usetup.TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", usetup.TextureCacheSize);
+        usetup.SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", usetup.SoundCacheSize);
+        usetup.SoundLoadAtOnceSize = CfgReadInt(cfg, "sound", "stream_threshold", usetup.SoundLoadAtOnceSize);
 
         // Mouse options
         usetup.mouse_auto_lock = CfgReadBoolInt(cfg, "mouse", "auto_lock");

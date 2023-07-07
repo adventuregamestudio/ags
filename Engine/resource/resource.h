@@ -13,6 +13,9 @@
 #define IDC_RENDERATSCREENRES           1011
 #define IDC_ADVANCED                    1012
 #define IDC_FULLSCREENDESKTOP           1013
+#define IDC_TEXTURECACHE                1014
+#define IDC_SPRITECACHE3                1015
+#define IDC_SOUNDCACHE                  1015
 #define IDC_VOICEPACK                   1016
 #define IDC_REFRESH_85HZ                1017
 #define IDC_ANTIALIAS                   1021

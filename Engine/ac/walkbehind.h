@@ -44,7 +44,6 @@ void walkbehinds_generate_sprites();
 // returns whether any pixels were updated
 bool walkbehinds_cropout(Common::Bitmap *sprit, int sprx, int spry, int basel);
 
-extern WalkBehindMethodEnum walkBehindMethod;
 extern bool noWalkBehindsAtAll;
 extern int walkBehindsCachedForBgNum;
 extern bool walk_behind_baselines_changed;

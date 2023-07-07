@@ -54,8 +54,17 @@ public:
         _stretchToWidth = width;
         _stretchToHeight = height;
     }
+    int GetWidthToRender() { return _stretchToWidth; }
+    int GetHeightToRender() { return _stretchToHeight; }
     void SetLightLevel(int /*lightLevel*/) override  { }
     void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
+
+    // Tells if this DDB has an actual render data assigned to it.
+    bool IsValid() override { return _bmp != nullptr; }
+    // Attaches new texture data, sets basic render rules
+    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override { /* not supported */ }
+    // Detach any internal texture data from this DDB, make this an empty object
+    void DetachData() override { _bmp = nullptr; }
 
     Bitmap *_bmp = nullptr;
     bool _flipped = false;
@@ -72,20 +81,17 @@ public:
         _stretchToHeight = _height;
     }
 
-    ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
+    ALSoftwareBitmap(Bitmap *bmp, bool has_alpha, bool opaque)
     {
         _bmp = bmp;
         _width = bmp->GetWidth();
         _height = bmp->GetHeight();
         _colDepth = bmp->GetColorDepth();
         _opaque = opaque;
-        _hasAlpha = hasAlpha;
+        _hasAlpha = has_alpha;
         _stretchToWidth = _width;
         _stretchToHeight = _height;
     }
-
-    int GetWidthToRender() { return _stretchToWidth; }
-    int GetHeightToRender() { return _stretchToHeight; }
 
     ~ALSoftwareBitmap() override = default;
 };
@@ -146,6 +152,12 @@ public:
 
     const char*GetDriverName() override { return "SDL 2D Software renderer"; }
     const char*GetDriverID() override { return "Software"; }
+
+    bool RequiresFullRedrawEachFrame() override { return false; }
+    bool HasAcceleratedTransform() override { return false; }
+    bool UsesMemoryBackBuffer() override { return true; }
+    bool ShouldReleaseRenderTargets() override { return false; }
+
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
@@ -159,20 +171,24 @@ public:
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
+    size_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
+
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
-    IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque) override;
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override
+        { return nullptr; /* not supported */ }
+    IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool has_alpha, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool has_alpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
-    IDriverDependantBitmap *GetSharedDDB(uint32_t /*sprite_id*/,
-        Common::Bitmap *bitmap, bool hasAlpha, bool opaque) override
-    { // Software renderer does not require a texture cache, because it uses bitmaps directly
-        return CreateDDBFromBitmap(bitmap, hasAlpha, opaque);
-    }
-    void UpdateSharedDDB(uint32_t /*sprite_id*/, Common::Bitmap * /*bitmap*/, bool /*hasAlpha*/, bool /*opaque*/)
-        override { /* do nothing */ }
-    void ClearSharedDDB(uint32_t /*sprite_id*/) override { /* do nothing */ }
+    // Create texture data with the given parameters
+    Texture *CreateTexture(int, int, bool, bool) override { return nullptr; /* not supported */}
+    // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
+    Texture *CreateTexture(Common::Bitmap*, bool, bool) override { return nullptr; /* not supported */ }
+    // Update texture data from the given bitmap
+    void UpdateTexture(Texture *txdata, Common::Bitmap*, bool, bool) override { /* not supported */}
+    // Retrieve shared texture object from the given DDB
+    std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
 
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void SetScreenFade(int red, int green, int blue) override;
@@ -191,10 +207,6 @@ public:
     void UseSmoothScaling(bool /*enabled*/) override { }
     bool DoesSupportVsyncToggle() override { return (SDL_VERSION_ATLEAST(2, 0, 18)) && _capsVsync; }
     void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
-    bool RequiresFullRedrawEachFrame() override { return false; }
-    bool HasAcceleratedTransform() override { return false; }
-    bool UsesMemoryBackBuffer() override { return true; }
-    bool ShouldReleaseRenderTargets() override { return false; }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;

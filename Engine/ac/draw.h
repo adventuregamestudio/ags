@@ -73,6 +73,15 @@ void mark_object_changed(int objid);
 // Resets all object caches which reference this sprite
 void reset_objcache_for_sprite(int sprnum, bool deleted);
 
+// Get current texture cache's stats: max size, current normal items size,
+// size of locked items (included into cur_size),
+// size of external items (excluded from cur_size)
+void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size);
+// Update shared and cached texture from the sprite's pixels
+void update_shared_texture(uint32_t sprite_id);
+// Remove a texture from cache
+void clear_shared_texture(uint32_t sprite_id);
+
 // whether there are currently remnants of a DisplaySpeech
 void mark_screen_dirty();
 bool is_screen_dirty();
@@ -90,11 +99,10 @@ void mark_current_background_dirty();
 // Avoid freeing and reallocating the memory if possible
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, int hit, bool make_transparent = false);
+Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
 Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
     Common::Bitmap *source, bool has_alpha = false, bool opaque = false);
-inline Engine::IDriverDependantBitmap* recycle_ddb_bitmap(Engine::IDriverDependantBitmap *ddb, Common::Bitmap *source, bool has_alpha = false, bool opaque = false)
-    { return recycle_ddb_sprite(ddb, UINT32_MAX, source, has_alpha, opaque); }
-inline Engine::IDriverDependantBitmap* recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque = false);
+Engine::IDriverDependantBitmap* recycle_render_target(Engine::IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque = false);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Construct game scene, scheduling drawing list for the renderer

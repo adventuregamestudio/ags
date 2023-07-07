@@ -63,13 +63,18 @@ struct OGLTextureTile : public TextureTile
 };
 
 // Full OpenGL texture data
-struct OGLTextureData : TextureData
+struct OGLTexture : Texture
 {
     OGLCUSTOMVERTEX *_vertex = nullptr;
     OGLTextureTile *_tiles = nullptr;
     size_t _numTiles = 0;
 
-    ~OGLTextureData();
+    OGLTexture(const GraphicResolution &res, bool rt)
+        : Texture(res, rt) {}
+    OGLTexture(uint32_t id, const GraphicResolution &res, bool rt)
+        : Texture(id, res, rt) {}
+    ~OGLTexture();
+    size_t GetMemSize() const override;
 };
 
 class OGLBitmap : public BaseDDB
@@ -95,8 +100,24 @@ public:
         _tintSaturation = tintSaturation;
     }
 
+    // Tells if this DDB has an actual render data assigned to it.
+    bool IsValid() override { return _data != nullptr; }
+    // Attaches new texture data, sets basic render rules
+    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
+    {
+        _data = std::static_pointer_cast<OGLTexture>(txdata);
+        _width = _stretchToWidth = _data->Res.Width;
+        _height = _stretchToHeight = _data->Res.Height;
+        _colDepth = _data->Res.ColorDepth;
+    }
+    // Detach any internal texture data from this DDB, make this an empty object
+    void DetachData() override
+    {
+        _data = nullptr;
+    }
+
     // OpenGL texture data
-    std::shared_ptr<OGLTextureData> _data;
+    std::shared_ptr<OGLTexture> _data;
     // Optional frame buffer object (for rendering onto a texture)
     unsigned int _fbo {};
     TextureHint _renderHint = kTxHint_Normal;
@@ -205,6 +226,9 @@ class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
 public:
     const char*GetDriverName() override { return "OpenGL"; }
     const char*GetDriverID() override { return "OGL"; }
+
+    bool ShouldReleaseRenderTargets() override { return false; }
+
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_size) override;
@@ -218,10 +242,20 @@ public:
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
+    size_t GetAvailableTextureMemory() override;
+
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool hasAlpha) override;
-    void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool has_alpha) override;
+    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    
+    // Create texture data with the given parameters
+    Texture *CreateTexture(int width, int height, bool opaque, bool as_render_target = false) override;
+    // Update texture data from the given bitmap
+    void UpdateTexture(Texture *txdata, Bitmap *bitmap, bool has_alpha, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
+
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void RenderToBackBuffer() override;
     void Render() override;
@@ -235,9 +269,6 @@ public:
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
-    bool RequiresFullRedrawEachFrame() override { return true; }
-    bool HasAcceleratedTransform() override { return true; }
-    bool ShouldReleaseRenderTargets() override { return false; }
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
 
@@ -251,15 +282,9 @@ public:
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
 
-    // Create texture data with the given parameters
-    TextureData *CreateTextureData(int width, int height, bool opaque, bool as_render_target = false) override;
-    // Update texture data from the given bitmap
-    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque, bool hasAlpha) override;
     // Create DDB using preexisting texture data
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
-        int width, int height, int color_depth, bool opaque) override;
-    // Retrieve shared texture data object from the given DDB
-    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override;
+
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:
@@ -346,7 +371,7 @@ private:
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque, bool hasAlpha);
+    void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,

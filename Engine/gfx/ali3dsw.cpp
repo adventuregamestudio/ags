@@ -314,9 +314,9 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int heig
   return new ALSoftwareBitmap(width, height, color_depth, opaque);
 }
 
-IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool has_alpha, bool opaque)
 {
-  return new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
+  return new ALSoftwareBitmap(bitmap, has_alpha, opaque);
 }
 
 IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque)
@@ -325,11 +325,14 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateRenderTargetDDB(int wid
     return new ALSoftwareBitmap(width, height, color_depth, opaque);
 }
 
-void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
+void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool has_alpha)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
   alSwBmp->_bmp = bitmap;
-  alSwBmp->_hasAlpha = hasAlpha;
+  alSwBmp->_width = bitmap->GetWidth();
+  alSwBmp->_height = bitmap->GetHeight();
+  alSwBmp->_colDepth = bitmap->GetColorDepth();
+  alSwBmp->_hasAlpha = has_alpha;
 }
 
 void SDLRendererGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)

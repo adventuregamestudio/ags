@@ -41,7 +41,6 @@ using namespace AGS::Engine;
 
 
 extern ScriptSystem scsystem;
-extern int _places_r, _places_g, _places_b;
 extern IGraphicsDriver *gfxDriver;
 
 void engine_adjust_for_rotation_settings()

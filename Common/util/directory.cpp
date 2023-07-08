@@ -277,7 +277,7 @@ const FileEntry &DirectoryIterator::GetEntry() const
     // NOTE: we could also use fstatat instead, to avoid building abs path;
     // see https://linux.die.net/man/2/fstatat
     if (stat(_buf.GetCStr(), &f_stat) != 0)
-        return {}; // fail
+        return _fileEntry; // must be invalid
     _fileEntry = FileEntry(
         _current,
         S_ISREG(f_stat.st_mode),

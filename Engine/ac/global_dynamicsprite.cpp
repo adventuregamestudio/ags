@@ -34,7 +34,7 @@ int LoadImageFile(const char *filename)
     if (!in)
         return 0;
 
-    String ext = Path::GetFileExtension(filename).Lower(); // FIXME: don't require lower!
+    String ext = Path::GetFileExtension(filename);
     Bitmap *loadedFile = BitmapHelper::LoadBitmap(ext, in.get());
     if (!loadedFile)
         return 0;

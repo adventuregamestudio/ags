@@ -94,7 +94,7 @@ Bitmap *LoadFromFile(const char *filename)
         return nullptr;
 
     RGB in_palette[256];
-    String ext = Path::GetFileExtension(filename).Lower(); // FIXME: don't require lower!
+    String ext = Path::GetFileExtension(filename);
     return BitmapHelper::LoadBitmap(ext, in.get(), in_palette);
 }
 
@@ -1244,9 +1244,10 @@ static struct ImageExtToFmt
 
 
 Bitmap* LoadBitmap(const String& ext, Stream *in, RGB *pal) {
+    String low_ext = ext.Lower(); // FIXME: case-insensitive version of strstr
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
-        if (strstr(FormatProcs[i].Ext, ext.GetCStr()) != nullptr) {
+        if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr) {
             return LoadBitmap(FormatProcs[i].LoadFmt, in, pal);
         }
     }
@@ -1254,9 +1255,10 @@ Bitmap* LoadBitmap(const String& ext, Stream *in, RGB *pal) {
 }
 
 void SaveBitmap(const String& ext, Stream *out, const Bitmap *bmp, const RGB *pal) {
+    String low_ext = ext.Lower(); // FIXME: case-insensitive version of strstr
     for (size_t i = 0; FormatProcs[i].Ext; ++i)
     {
-        if (strstr(FormatProcs[i].Ext, ext.GetCStr()) != nullptr) {
+        if (strstr(FormatProcs[i].Ext, low_ext.GetCStr()) != nullptr) {
             return FormatProcs[i].SaveFmt(out, bmp, pal);
         }
     }
@@ -1269,7 +1271,7 @@ bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal)
     if (!out)
         return false;
 
-    String ext = Path::GetFileExtension(filename).Lower(); // FIXME: don't require lower!
+    String ext = Path::GetFileExtension(filename);
     SaveBitmap(ext, out.get(), bmp, pal);
     return out->HasErrors();
 }

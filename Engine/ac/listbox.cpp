@@ -51,8 +51,12 @@ void ListBox_Clear(GUIListBox *listbox) {
   listbox->Clear();
 }
 
-void FillDirList(std::vector<String> &files, const String &path, const String &pattern)
+void FillDirList(std::vector<String> &files, const FSLocation &loc, const String &pattern)
 {
+    // Do ci search for the location, as parts of the path may have case mismatch
+    String path = File::FindFileCI(loc.BaseDir, loc.SubDir, true);
+    if (path.IsEmpty())
+        return;
     for (FindFile ff = FindFile::OpenFiles(path, pattern); !ff.AtEnd(); ff.Next())
         files.push_back(ff.Current());
 }
@@ -60,8 +64,8 @@ void FillDirList(std::vector<String> &files, const String &path, const String &p
 void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   listbox->Clear();
 
-  ResolvedPath rp;
-  if (!ResolveScriptPath(filemask, true, rp))
+  ResolvedPath rp, alt_rp;
+  if (!ResolveScriptPath(filemask, true, rp, alt_rp))
     return;
 
   std::vector<String> files;
@@ -71,12 +75,12 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   }
   else
   {
-    FillDirList(files, Path::GetParent(rp.FullPath), Path::GetFilename(rp.FullPath));
-    if (!rp.AltPath.IsEmpty() && rp.AltPath.Compare(rp.FullPath) != 0)
-      FillDirList(files, Path::GetParent(rp.AltPath), Path::GetFilename(rp.AltPath));
+    FillDirList(files, rp.Loc, Path::GetFilename(rp.FullPath));
+    if (alt_rp)
+      FillDirList(files, alt_rp.Loc, Path::GetFilename(alt_rp.FullPath));
     // Sort and remove duplicates
     std::sort(files.begin(), files.end());
-    files.erase(std::unique(files.begin(), files.end()), files.end());
+    files.erase(std::unique(files.begin(), files.end(), StrEqNoCase()), files.end());
   }
 
   // TODO: method for adding item batch to speed up update

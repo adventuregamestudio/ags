@@ -83,5 +83,11 @@
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
       <Filter>Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\directory.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -94,7 +94,7 @@ Bitmap *LoadFromFile(const char *filename)
         return nullptr;
 
     RGB in_palette[256];
-    String ext = Path::GetFileExtension(filename).Lower();
+    String ext = Path::GetFileExtension(filename).Lower(); // FIXME: don't require lower!
     return BitmapHelper::LoadBitmap(ext, in.get(), in_palette);
 }
 
@@ -1269,7 +1269,7 @@ bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal)
     if (!out)
         return false;
 
-    String ext = Path::GetFileExtension(filename).Lower();
+    String ext = Path::GetFileExtension(filename).Lower(); // FIXME: don't require lower!
     SaveBitmap(ext, out.get(), bmp, pal);
     return out->HasErrors();
 }

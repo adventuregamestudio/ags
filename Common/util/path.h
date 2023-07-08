@@ -21,9 +21,11 @@
 #include "util/string.h"
 
 #if AGS_PLATFORM_OS_WINDOWS
-#define PATH_ALT_SEPARATOR ('\\')
+#define PATH_ALT_SEPARATOR      ('\\')
+#define PATH_DEVICE_SEPARATOR   (':')
 #else
-#define PATH_ALT_SEPARATOR ('/')
+#define PATH_ALT_SEPARATOR      ('/')
+#define PATH_DEVICE_SEPARATOR   ('\0')
 #endif
 
 namespace AGS
@@ -52,6 +54,10 @@ namespace Path
     // Returns path to the actual directory, referenced by given path;
     // if path is a directory, returns path unchanged, if path is a file, returns
     // parent directory containing that file.
+    // FIXME: this function is misleading, and does a "directory exists" check,
+    // which is not always wanted (and may be not suitable for performance reasons);
+    // Path namespace must not rely on actual fs entries existance,
+    // check all this function uses and replace the solution, get rid of this func!
     String  GetDirectoryPath(const String &path);
     // Tells if the path points to the parent path's location or lower directory;
     // return FALSE if the path points to outside of the parent location.
@@ -73,13 +79,15 @@ namespace Path
     // if walking out of the 'base'. Returns empty string on failure.
     // NOTE: the 'base' is only considered a directory if it has a trailing slash.
     String  MakeRelativePath(const String &base, const String &path);
+    // Creates path by combining directory, file name and extension
+    String  MakePath(const String &parent, const String &filename, const String &ext);
+    // Appends another section to existing path
+    String &AppendPath(String &path, const String &child);
     // Concatenates parent and relative paths
     String  ConcatPaths(const String &parent, const String &child);
     // Concatenates paths into the buffer, returns the buffer;
     // warning: passing buffer as one of the path params results in UB
     String  ConcatPaths(String &buf, const String &parent, const String &child);
-    // Creates path by combining directory, file name and extension
-    String  MakePath(const String &parent, const String &filename, const String &ext);
     // Splits path into components, divided by path separator
     std::vector<String> Split(const String &path);
 

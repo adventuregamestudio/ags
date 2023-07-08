@@ -15,7 +15,6 @@
 #endif
 #include "util/path.h"
 #include "util/stdio_compat.h"
-#include "util/string_utils.h"
 
 
 namespace AGS
@@ -53,7 +52,7 @@ bool CreateAllDirectories(const String &parent, const String &sub_dirs)
         const char *cur = sect + 1;
         for (; *cur && *cur != '/' && *cur != PATH_ALT_SEPARATOR; ++cur);
         // Skip empty dirs (duplicated separators etc)
-        if ((cur - sect == 1) && (*cur == '.' || *cur == '/' || *cur == PATH_ALT_SEPARATOR))
+        if ((cur - sect == 1) && (*sect == '.' || *sect == '/' || *sect == PATH_ALT_SEPARATOR))
         {
             sect = cur;
             continue;
@@ -97,178 +96,32 @@ String GetCurrentDirectory()
     return str;
 }
 
-#if ! AGS_PLATFORM_OS_WINDOWS
-bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
-    int is_reg, int is_dir)
+void GetDirs(const String &dir_path, std::vector<String> &dirs)
 {
-    DIR *dir = opendir(dir_path.GetCStr());
-    if (!dir)
-        return false;
-    int dir_fd = dirfd(dir);
-    struct dirent *ent;
-    struct stat f_stat{};
-    while ((ent = readdir(dir)) != nullptr)
+    for (auto di = DirectoryIterator::Open(dir_path); !di.AtEnd(); di.Next())
     {
-        if (strcmp(ent->d_name, ".") == 0 ||
-            strcmp(ent->d_name, "..") == 0) continue;
-        if (fstatat(dir_fd, ent->d_name, &f_stat, 0) != 0) continue;
-        if (S_ISREG(f_stat.st_mode) == is_reg &&
-            S_ISDIR(f_stat.st_mode) == is_dir)
-            files.emplace_back(ent->d_name);
+        const auto &e = di.GetEntry();
+        if (e.IsDir)
+            dirs.push_back(e.Name);
     }
-    closedir(dir);
-    return true;
 }
-#else
-bool GetFilesImpl(const String &dir_path, std::vector<String> &files,
-    uint32_t attr_dir)
+
+void GetFiles(const String &dir_path, std::vector<String> &files)
 {
-    char filename[MAX_PATH_SZ];
-    wchar_t wpattern[MAX_PATH_SZ];
-    snprintf(filename, sizeof(filename), "%s/%s", dir_path.GetCStr(), "*");
-    StrUtil::ConvertUtf8ToWstr(filename, wpattern, sizeof(wpattern));
-    WIN32_FIND_DATAW findData;
-    HANDLE hFind = FindFirstFileW(wpattern, &findData);
-    if (hFind == INVALID_HANDLE_VALUE)
-        return false;
-    do
+    for (auto di = DirectoryIterator::Open(dir_path); !di.AtEnd(); di.Next())
     {
-        StrUtil::ConvertWstrToUtf8(findData.cFileName, filename, sizeof(filename));
-        if (strcmp(filename, ".") == 0 ||
-            strcmp(filename, "..") == 0) continue;
-        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == attr_dir)
-            files.emplace_back(filename);
-    } while (FindNextFileW(hFind, &findData) != 0);
-    FindClose(hFind);
-    return true;
-}
-#endif
-
-bool GetDirs(const String &dir_path, std::vector<String> &dirs)
-{
-#if ! AGS_PLATFORM_OS_WINDOWS
-    return GetFilesImpl(dir_path, dirs, 0, 1);
-#else
-    return GetFilesImpl(dir_path, dirs, FILE_ATTRIBUTE_DIRECTORY);
-#endif
-}
-
-bool GetFiles(const String &dir_path, std::vector<String> &files)
-{
-#if ! AGS_PLATFORM_OS_WINDOWS
-    return GetFilesImpl(dir_path, files, 1, 0);
-#else
-    return GetFilesImpl(dir_path, files, 0);
-#endif
+        const auto &e = di.GetEntry();
+        if (e.IsFile)
+            files.push_back(e.Name);
+    }
 }
 
 } // namespace Directory
 
 
-struct FindFile::Internal
-{
-    Internal() = default;
-    Internal(Internal &&ffi)
-    {
-#if AGS_PLATFORM_OS_WINDOWS
-        ff = ffi.ff;
-        ffi.ff = nullptr;
-        fdata = ffi.fdata;
-#else
-        dir = ffi.dir;
-        ffi.dir = nullptr;
-        regex = std::move(ffi.regex);
-#endif
-        attrFile = ffi.attrFile;
-        attrDir = ffi.attrDir;
-    }
 
 #if AGS_PLATFORM_OS_WINDOWS
-    HANDLE ff = nullptr;
-    WIN32_FIND_DATAW fdata = {};
-#else
-    DIR *dir = nullptr;
-    std::regex regex;
-#endif
-#if AGS_PLATFORM_OS_ANDROID
-    std::unique_ptr<AndroidADir> aadir;
-#endif
-    uint32_t attrFile = 0u;
-    uint32_t attrDir = 0u;
-};
-
-
-FindFile::FindFile(Internal &&ffi)
-    : _i(new Internal(std::move(ffi)))
-{
-}
-
-FindFile::FindFile(FindFile &&ff)
-{
-    *this = std::move(ff);
-}
-
-FindFile::~FindFile()
-{
-    Close();
-}
-
-FindFile &FindFile::operator =(FindFile &&ff)
-{
-    _i = std::move(ff._i);
-    _current = std::move(ff._current);
-    _currentTime = ff._currentTime;
-    return *this;
-}
-
-FindFile FindFile::Open(const String &path, const String &wildcard, bool do_file, bool do_dir)
-{
-    Internal ffi;
-#if AGS_PLATFORM_OS_WINDOWS
-    char pattern[MAX_PATH_SZ];
-    wchar_t wpattern[MAX_PATH_SZ];
-    snprintf(pattern, sizeof(pattern), "%s/%s", path.GetCStr(), wildcard.GetCStr());
-    StrUtil::ConvertUtf8ToWstr(pattern, wpattern, sizeof(wpattern));
-    HANDLE hFind = FindFirstFileW(wpattern, &ffi.fdata);
-    if (hFind == INVALID_HANDLE_VALUE)
-        return {}; // return invalid object
-    ffi.ff = hFind;
-    ffi.attrFile = do_file ? 1 : 0; // TODO
-    ffi.attrDir = do_dir ? FILE_ATTRIBUTE_DIRECTORY : 0;
-#else
-    DIR *dir = opendir(path.GetCStr());
-    if (!dir)
-        return FindFile(); // return invalid object
-    ffi.dir = dir;
-    ffi.attrFile = do_file ? 1 : 0;
-    ffi.attrDir = do_dir ? 1 : 0;
-    String pattern = StrUtil::WildcardToRegex(wildcard);
-    ffi.regex = std::regex(pattern.GetCStr(), std::regex_constants::icase);
-#endif
-#if AGS_PLATFORM_OS_ANDROID
-    if (do_file) // NOTE: Android Asset API seem to not support dir list
-        ffi.aadir.reset(new AndroidADir(path));
-#endif
-    FindFile ff(std::move(ffi));
-    // Try get the first matching entry
-    if (!ff.Next())
-        return {}; // return invalid object
-    return ff; // success
-}
-
-void FindFile::Close()
-{
-#if AGS_PLATFORM_OS_WINDOWS
-    if (_i)
-        FindClose(_i->ff);
-#else
-    if (_i)
-        closedir(_i->dir);
-#endif
-    _i.reset();
-}
-
-#if AGS_PLATFORM_OS_WINDOWS
+// Converts from WinAPI's FILETIME struct to a C time_t
 static time_t FileTime2time_t(const FILETIME &ft)
 {
     // A FILETIME is the number of 100-nanosecond intervals since January 1, 1601.
@@ -281,147 +134,335 @@ static time_t FileTime2time_t(const FILETIME &ft)
 }
 #endif
 
-bool FindFile::Next()
+
+struct DirectoryIterator::Internal
+{
+    Internal() = default;
+    Internal(Internal &&diint)
+    {
+#if AGS_PLATFORM_OS_WINDOWS
+        ff = diint.ff;
+        fdata = diint.fdata;
+        diint.ff = nullptr;
+#else
+        dir = diint.dir;
+        ent = diint.ent;
+        diint.dir = nullptr;
+        diint.ent = nullptr;
+#endif
+#if AGS_PLATFORM_OS_ANDROID
+        aadir = std::move(diint.aadir);
+#endif
+    }
+
+    ~Internal()
+    {
+#if AGS_PLATFORM_OS_WINDOWS
+        if (ff)
+            FindClose(ff);
+#else
+        if (dir)
+            closedir(dir);
+#endif
+    }
+
+#if AGS_PLATFORM_OS_WINDOWS
+    HANDLE ff = nullptr;
+    WIN32_FIND_DATAW fdata = {};
+#else
+    DIR *dir = nullptr;
+    struct dirent *ent = nullptr;
+#endif
+#if AGS_PLATFORM_OS_ANDROID
+    std::unique_ptr<AndroidADir> aadir;
+#endif
+};
+
+
+DirectoryIterator::DirectoryIterator()
+{
+}
+
+DirectoryIterator::DirectoryIterator(const String &path, Internal &&diint)
+    : _i(new Internal(std::move(diint)))
+    , _dirPath(path)
+{
+}
+
+DirectoryIterator::DirectoryIterator(DirectoryIterator &&di)
+{
+    *this = std::move(di);
+}
+
+DirectoryIterator::~DirectoryIterator()
+{
+    Close();
+}
+
+DirectoryIterator &DirectoryIterator::operator =(DirectoryIterator &&di)
+{
+    _i = std::move(di._i);
+    _dirPath = std::move(di._dirPath);
+    _current = std::move(di._current);
+    _fileEntry = std::move(di._fileEntry);
+    return *this;
+}
+
+DirectoryIterator DirectoryIterator::Open(const String &path)
+{
+    Internal diint;
+#if (AGS_PLATFORM_OS_WINDOWS)
+    if (!ags_directory_exists(path.GetCStr()))
+        return {}; // return invalid object
+    // WinAPI does not provide explicit filesystem iterator,
+    // thus we will use FindFile("*") instead
+    char pattern[MAX_PATH_SZ];
+    wchar_t wpattern[MAX_PATH_SZ];
+    snprintf(pattern, sizeof(pattern), "%s/%s", path.GetCStr(), "*");
+    StrUtil::ConvertUtf8ToWstr(pattern, wpattern, sizeof(wpattern));
+    HANDLE hFind = FindFirstFileW(wpattern, &diint.fdata);
+    // Keep going even if this is an invalid handle, we will fail at Next()
+    diint.ff = hFind;
+#elif (AGS_PLATFORM_OS_ANDROID)
+    // Android can opendir, but also has a AAssetDir,
+    // which reads virtual file list from APK
+    DIR *dir = opendir(path.GetCStr());
+    diint.aadir.reset(new AndroidADir(path));
+    if (!dir && !*diint.aadir)
+        return {}; // return invalid object
+#else
+    // On POSIX use standard opendir/readdir
+    DIR *dir = opendir(path.GetCStr());
+    if (!dir)
+        return {}; // return invalid object
+     diint.dir = dir;
+#endif // POSIX
+
+    DirectoryIterator di(path, std::move(diint));
+    di.Next(); // get first entry
+    return di; // we return a valid object even if nothing was found
+}
+
+void DirectoryIterator::Close()
+{
+    _i.reset();
+}
+
+const FileEntry &DirectoryIterator::GetEntry() const
+{
+    if (_current.IsEmpty())
+        return _fileEntry; // must be invalid
+    if (_fileEntry)
+        return _fileEntry; // has cached stats
+#if AGS_PLATFORM_OS_WINDOWS
+    _fileEntry = FileEntry(
+        _current,
+        (_i->fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0,
+        (_i->fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0,
+        FileTime2time_t(_i->fdata.ftLastWriteTime));
+    return _fileEntry;
+#else
+#if AGS_PLATFORM_OS_ANDROID
+    // On Android, we may have found an entry in AAssetDir instead
+    if (!_i->ent)
+    {
+         // CHECKME: can AAsset report time?
+        _fileEntry = FileEntry(
+            _current, true, false, 0 /* ?? */);
+        return _fileEntry;
+    }
+#endif // AGS_PLATFORM_OS_ANDROID
+    struct stat f_stat{};
+    Path::ConcatPaths(_buf, _dirPath, _current);
+    // NOTE: we could also use fstatat instead, to avoid building abs path;
+    // see https://linux.die.net/man/2/fstatat
+    if (stat(_buf.GetCStr(), &f_stat) != 0)
+        return _fileEntry; // must be invalid
+    _fileEntry = FileEntry(
+        _current,
+        S_ISREG(f_stat.st_mode),
+        S_ISDIR(f_stat.st_mode),
+        f_stat.st_mtime);
+    return _fileEntry;
+#endif // POSIX
+}
+
+bool DirectoryIterator::Next()
 {
     if (!_i)
         return false;
+    _fileEntry = FileEntry(); // reset entry cache
 #if AGS_PLATFORM_OS_WINDOWS
-    auto ff = _i->ff;
+    const auto ff = _i->ff;
     auto &fdata = _i->fdata;
-    const uint32_t attrDir = _i->attrDir;
     char filename[MAX_PATH_SZ];
-    // We already have an entry opened at this point, so check that first;
-    // if it's not valid then continue searching
     _current.Empty();
+    // We already have an entry opened at this point, so check that first;
+    // if it's not valid then continue searching;
+    // NOTE: if FindFirst failed, this loop will be skipped.
     for (; (fdata.cFileName[0] != 0) && _current.IsEmpty();
         fdata.cFileName[0] = 0, FindNextFileW(ff, &fdata) != 0)
     {
-        StrUtil::ConvertWstrToUtf8(fdata.cFileName, filename, sizeof(filename));
-        if (strcmp(filename, ".") == 0 ||
-            strcmp(filename, "..") == 0) continue;
-        if ((fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != attrDir)
+        // Always skip "." and ".."
+        if (wcscmp(fdata.cFileName, L".") == 0 || wcscmp(fdata.cFileName, L"..") == 0)
             continue;
+        StrUtil::ConvertWstrToUtf8(fdata.cFileName, filename, sizeof(filename));
         _current = filename;
-        _currentTime = FileTime2time_t(fdata.ftLastWriteTime);
     }
 #else
     DIR *dir = _i->dir;
-    int dir_fd = dirfd(dir);
-    const uint32_t is_reg = _i->attrFile;
-    const uint32_t is_dir = _i->attrDir;
-    struct dirent *ent;
-    struct stat f_stat{};
-    std::cmatch mr;
+    struct dirent *&ent = _i->ent;
     _current.Empty();
     while ((ent = readdir(dir)) != nullptr)
     {
-        if (strcmp(ent->d_name, ".") == 0 ||
-            strcmp(ent->d_name, "..") == 0) continue;
-        if (fstatat(dir_fd, ent->d_name, &f_stat, 0) != 0) continue;
-        if (S_ISREG(f_stat.st_mode) != is_reg ||
-            S_ISDIR(f_stat.st_mode) != is_dir)
-            continue;
-        if (!std::regex_match(ent->d_name, mr, _i->regex))
+        // Always skip "." and ".."
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
             continue;
         _current = ent->d_name;
-        _currentTime = f_stat.st_mtime;
         break;
     }
 #endif
 #if AGS_PLATFORM_OS_ANDROID
+    // On Android, if readdir failed, also try AAssetDir
     if (_i->aadir && _current.IsEmpty())
     {
-        _current = _i->aadir->Next(_i->regex);
-        _currentTime = 0; // TODO?
+        _current = _i->aadir->Next();
     }
 #endif
     return !_current.IsEmpty();
 }
 
 
-FindFileRecursive FindFileRecursive::Open(const String &path, const String &wildcard, size_t max_level)
+DirectoryRecursiveIterator DirectoryRecursiveIterator::Open(const String &path,
+    size_t max_level)
 {
-    FindFile fdir = FindFile::OpenDirs(path);
-    FindFile ffile = FindFile::OpenFiles(path, wildcard);
-    if (ffile.AtEnd() && fdir.AtEnd())
-        return {}; // return invalid object
-    FindFileRecursive ff;
-    ff._fdir = std::move(fdir);
-    ff._ffile = std::move(ffile);
-    // Try get the first matching entry
-    if (ff._ffile.AtEnd() && !ff.Next())
-        return {}; // return invalid object
-    ff._maxLevel = max_level;
-    ff._fullDir = path;
-    ff._curFile = ff._ffile.Current();
-    return ff; // success
+    auto dir = DirectoryIterator::Open(path);
+    if (!dir)
+        return {}; // fail
+    auto dir_sub = DirectoryIterator::Open(path);
+    DirectoryRecursiveIterator dri;
+    dri._dir = std::move(dir);
+    dri._subSearch = std::move(dir_sub);
+    dri._maxLevel = max_level;
+    dri._fullDir = path;
+    dri._curDir = "";
+    dri._curFile = dri._dir.Current();
+    return dri;
 }
 
-void FindFileRecursive::Close()
+void DirectoryRecursiveIterator::Close()
 {
-    while (!_fdirs.empty()) _fdirs.pop();
-    _fdir.Close();
-    _ffile.Close();
+    while (!_dirStack.empty()) _dirStack.pop();
+    _dir.Close();
+    _subSearch.Close();
+    _fullDir = "";
+    _curDir = "";
+    _curFile = "";
 }
 
-bool FindFileRecursive::Next()
+bool DirectoryRecursiveIterator::Next()
 {
-    // Look up for the next file in the current dir
-    if (_ffile.Next())
+    // Look up for the next entry in the current dir
+    if (_dir.Next())
     {
-        Path::ConcatPaths(_curFile, _curDir, _ffile.Current());
+        Path::ConcatPaths(_curFile, _curDir, _dir.Current());
         return true;
     }
     // No more files? Find a directory that still has
-    while (_ffile.AtEnd())
+    while (_dir.AtEnd())
     {
-        // first make sure there are unchecked subdirs left in current dir
-        while (_fdir.AtEnd())
-        { // if not, go up, until found any, or hit the top
+        // If there are no unchecked subdirs left in current dir
+        // then go up, until found any, or hit the top
+        while (_subSearch.AtEnd())
+        {
             if (!PopDir())
                 return false; // no more directories
         }
 
         // Found an unchecked subdirectory/ies, try opening one
-        while (!PushDir(_fdir.Current()) && !_fdir.AtEnd())
-            _fdir.Next();
+        while (!PushDir() && !_subSearch.AtEnd())
+            _subSearch.Next();
     }
-    Path::ConcatPaths(_curFile, _curDir, _ffile.Current());
+    Path::ConcatPaths(_curFile, _curDir, _dir.Current());
     return true; // success
 }
 
-bool FindFileRecursive::PushDir(const String &sub)
+bool DirectoryRecursiveIterator::PushDir()
 {
-    if (_maxLevel != SIZE_MAX && _fdirs.size() == _maxLevel)
+    if (_dirStack.size() == _maxLevel)
         return false; // no more nesting allowed
 
-    String path = Path::ConcatPaths(_fullDir, sub);
-    FindFile fdir = FindFile::OpenDirs(path);
-    FindFile ffile = FindFile::OpenFiles(path);
-    if (ffile.AtEnd() && fdir.AtEnd())
+    const FileEntry entry = _subSearch.GetEntry();
+    if (!entry.IsDir)
+        return false; // not a dir
+
+    const String path = Path::ConcatPaths(_fullDir, entry.Name);
+    DirectoryIterator dir = DirectoryIterator::Open(path);
+    if (dir.AtEnd())
         return false; // dir is empty, or error
-    _fdirs.push(std::move(_fdir)); // save previous dir iterator
-    _fdir = std::move(fdir);
-    _ffile = std::move(ffile);
+    DirectoryIterator dir_sub = DirectoryIterator::Open(path);
+    _dirStack.push(std::move(_dir)); // save previous dir iterator
+    _dir = std::move(dir);
+    _subSearch = std::move(dir_sub);
     _fullDir = path;
-    _curDir = Path::ConcatPaths(_curDir, sub);
+    Path::AppendPath(_curDir, entry.Name);
     return true;
 }
 
-bool FindFileRecursive::PopDir()
+bool DirectoryRecursiveIterator::PopDir()
 {
-    if (_fdirs.empty())
+    if (_dirStack.empty())
         return false; // no more parent levels
     // restore parent level
-    _fdir = std::move(_fdirs.top());
-    _fdirs.pop();
+    _subSearch = std::move(_dirStack.top());
+    _dirStack.pop();
     _fullDir = Path::GetParent(_fullDir);
     _curDir = Path::GetParent(_curDir);
     if (_curDir.Compare(".") == 0)
         _curDir = ""; // hotfix for GetParent returning "."
     // advance dir iterator that we just recovered
-    _fdir.Next();
+    _subSearch.Next();
     return true;
+}
+
+
+FindFile FindFile::Open(const String &path, const String &wildcard,
+        bool do_files, bool do_dirs, size_t max_level)
+{
+    auto di = DirectoryRecursiveIterator::Open(path, max_level);
+    if (!di)
+        return {}; // fail
+
+    String pattern = StrUtil::WildcardToRegex(wildcard);
+    auto regex = std::regex(pattern.GetCStr(), std::regex_constants::icase);
+
+    FindFile ff(std::move(di), std::move(regex), do_files, do_dirs);
+    // Try get first valid entry
+    if (!ff.Test())
+        ff.Next();
+    return ff; // we return a valid object even if nothing was found
+}
+
+bool FindFile::Test()
+{
+    std::cmatch mr;
+    // Test name match first, because getting entry stats may
+    // actually involve a slower system call
+    if (!std::regex_match(_di.Current().GetCStr(), mr, _regex))
+        return false;
+    const auto &e = _di.GetEntry();
+    return _doFiles && e.IsFile || _doDirs && e.IsDir;
+}
+
+bool FindFile::Next()
+{
+    if (!_di)
+        return false;
+    if (_di.AtEnd())
+        return false;
+
+    while (_di.Next() && !Test());
+    return !_di.Current().IsEmpty();
 }
 
 } // namespace Common

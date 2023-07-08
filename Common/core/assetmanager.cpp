@@ -193,6 +193,8 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
 
         if (IsAssetLibDir(lib))
         {
+            // FIXME: do basedir/getparent(wildcard), getfilename(wildcard) instead?
+            // because FindFile does not support subdirs in wildcard!!
             for (FindFile ff = FindFile::OpenFiles(lib->BaseDir, wildcard);
                  !ff.AtEnd(); ff.Next())
                 assets.push_back(ff.Current());
@@ -222,7 +224,8 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_l
         lib->BasePath = Path::MakeAbsolutePath(path);
         lib->BaseDir = Path::GetDirectoryPath(lib->BasePath);
 
-        // TODO: maybe parse directory for the file reference? idk if needed
+        // TODO: maybe parse directory for the faster file reference?
+        //       but if we do, then we likely would require a file watcher?
     }
     // ...else try open a data library
     else

@@ -57,6 +57,8 @@ public:
     // returns asset's name or empty string if no matching asset found
     String Next(const std::regex &pattern);
 
+    operator bool() const { return _dir != nullptr; }
+
 private:
     AAssetDir *_dir {nullptr};
 };

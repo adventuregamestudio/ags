@@ -92,7 +92,6 @@ private:
     bool                 _ownHandle;
     const FileOpenMode  _openMode;
     const FileWorkMode  _workMode;
-    String              _fileName;
 };
 
 } // namespace Common

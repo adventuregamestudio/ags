@@ -60,7 +60,7 @@ void FileStream::Close()
     if (FileCloseNotify)
     {
         CloseNotifyArgs args;
-        args.Filepath = _fileName;
+        args.Filepath = _srcName;
         args.WorkMode = _workMode;
         FileCloseNotify(args);
     }
@@ -155,7 +155,7 @@ void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkM
     if (_file == nullptr)
         throw std::runtime_error("Error opening file.");
     _ownHandle = true;
-    _fileName = file_name;
+    _srcName = file_name;
 }
 
 FileStream::FFileCloseNotify FileStream::FileCloseNotify = nullptr;

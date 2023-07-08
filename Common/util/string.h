@@ -359,6 +359,8 @@ public:
     // Operators
     //-------------------------------------------------------------------------
 
+    inline operator bool() const { return *_cstr == 0; }
+
     // Assign String by sharing data reference
     String &operator=(const String &str);
     // Move operator

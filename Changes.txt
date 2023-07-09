@@ -3,8 +3,6 @@ REVISION HISTORY
 VERSION 3.6.1 - Beta, June 2023
 
 Editor:
- - Made Editor a Dpi-aware application, which might improve its looks in Windows 10
-   and higher.
  - Improved Room Editor controls:
    Added free panning mode done by holding the middle mouse button, or alternatively -
    by holding Space + LMB.
@@ -23,12 +21,8 @@ Editor:
  - Added Translated property to all GUI Controls (was available only in ListBox). Translated
    property tells whether this control's text has to be translated, and applied text direction
    (in right-to-left text mode).
- - Fixed importing SCI fonts with >128 chars.
- - Fixed font preview did not properly display characters with indexes 128-255
-   (regression since 3.6.0).
- - Fixed full spritefile recreation would write duplicate sprites into the spritefile, if game
-   project (Game.agf file) contained multiple sprites with same ID for any reason (for example,
-   if they were added by manually editing Game.agf).
+ - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
+   the sizes of runtime texture and sound cache sizes respectively.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -42,16 +36,24 @@ Engine:
    compared with 3.6.0 engine.
  - Performance improvement to creating, deleting and manipulating Overlays; allows the game
    to have thousands of those with much less slowing down.
+ - Implemented "texture cache", in addition to the existing "sprite cache". The texture cache
+   keeps textures generated from raw sprites and lets reusing them, improving performance
+   and reducing CPU workload. The actual impact is proportional to the game's resolution and
+   amount of simultaneously animated objects on screen.
  - WFN font renderer now too supports unicode mode and renders texts in utf-8, so long as the
    font contains glyphs of corresponding indexes.
  - Buttons, ListBoxes and TextBoxes now support Right-to-left text direction.
  - DrawingSurface.DrawString now supports Right-to-left text direction.
+ - All the script File functions now treat paths in case-insensitive way (including subdirs),
+   which makes them platform-independent.
  - Ensure that character and object scaling is updated even when the game is not drawn.
    This fixes rare issues when their scale property did not update in time whilst the game was
    completely fadeout, and similar cases.
  - Ensure all the script API is now correctly available for the plugins.
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
+ - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
+   "cachemax" in "misc") and "texture_cache_size".
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -61,7 +63,6 @@ Engine:
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
- - Fixed GUI controls were not redrawn right after option OPT_RIGHTTOLEFT is changed in script.
  - Object.SetView now lets invalid loop and frame values, and fallbacks to using loop 0, frame 0,
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
@@ -80,6 +81,26 @@ Compatibility:
    "keep previous values" in older games.
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
+
+
+VERSION 3.6.0 - Patch 3, July 2023
+
+Editor:
+ - Don't error when loading a room file which has unsupported number of events,
+   instead these will be cut out. This may let e.g. use room templates from newer
+   versions of AGS.
+ - Sprite's default property is changed from deprecated Resolution setting to SourceFile.
+ - Fixed full spritefile recreation would write duplicate sprites into the spritefile,
+   if game project (Game.agf file) contained multiple sprites with same ID for any reason
+   (for example, if they were added by manually editing Game.agf).
+ - Fixed importing SCI fonts with >128 chars.
+ - Fixed font preview did not properly display characters with indexes 128-255.
+
+Engine:
+ - Fixed "noloopcheck" script function modifier was not handled correctly sometimes.
+ - Fixed a button with inventory placeholder did not update immediately when the active
+   inventory is set.
+ - Fixed textual GUIs were not redrawn immediately after a call to SetGameOption(OPT_RIGHTTOLEFT).
 
 
 VERSION 3.6.0 - Patch 2, June 2023

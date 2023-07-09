@@ -82,6 +82,9 @@ Compatibility:
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
 
+WinSetup:
+ - Added options for setting texture cache and sound cache size.
+
 
 VERSION 3.6.0 - Patch 3, July 2023
 

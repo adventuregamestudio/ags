@@ -129,6 +129,16 @@ AGSString TextHelper::ConvertASCII(System::String^ clr_str)
     return str;
 }
 
+std::string TextHelper::ConvertASCIIToStd(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
+        return std::string();
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();
+    std::string str = stringPointer;
+    Marshal::FreeHGlobal(IntPtr(stringPointer));
+    return str;
+}
+
 void TextHelper::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len)
 {
     char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clr_str).ToPointer();

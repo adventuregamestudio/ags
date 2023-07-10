@@ -60,6 +60,7 @@ namespace TextHelper
     // Convert ASCII managed text to native string;
     // this is for symbol names of variables, functions and alike
     AGSString ConvertASCII(System::String^ clr_str);
+    std::string ConvertASCIIToStd(System::String^ clr_str);
     void ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len);
     // Convert managed text to native string, forcing ASCII and testing for unknown chars
     // TODO: fix it uses and replace with ConvertUTF8ToArray

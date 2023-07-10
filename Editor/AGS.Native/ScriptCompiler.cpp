@@ -76,7 +76,7 @@ namespace AGS
             AGS::MessageHandler mh;
 
             std::string mainScript = tcv->ConvertToStd(all_the_script);
-            std::string mainScriptName = tcv->ConvertToStd(script->FileName);
+            std::string mainScriptName = TextHelper::ConvertASCIIToStd(script->FileName);
             cc_script.reset(ccCompileText2(mainScript, mainScriptName, cc_options, mh));
 
             auto compiler_messages = mh.GetMessages();
@@ -134,7 +134,7 @@ namespace AGS
             if (compile_error == nullptr)
             {
                 mainScript = tcv->Convert(preProcessedScripts[preProcessedScripts->Length - 1]);
-                mainScriptName = tcv->Convert(script->FileName);
+                mainScriptName = TextHelper::ConvertASCII(script->FileName);
                 cc_script.reset(ccCompileText(mainScript.GetCStr(), mainScriptName.GetCStr()));
                 if (!cc_script || cc_has_error())
                 {

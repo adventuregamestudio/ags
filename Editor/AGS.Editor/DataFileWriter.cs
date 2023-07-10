@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AGS.Editor
 {
@@ -284,6 +285,17 @@ namespace AGS.Editor
         }
 
         /// <summary>
+        /// Applies necessary transformations for the properties with
+        /// human-readable text, such as:
+        ///  - unescapes special sequences ("\\n" to '\n'), etc.
+        /// </summary>
+        /// <param name="text"></param>
+        public static string TextProperty(string text)
+        {
+            return Regex.Unescape(text);
+        }
+
+        /// <summary>
         /// Write asset library header with the table of contents.
         /// Currently corresponds to writing main lib file in chain in format version 30.
         /// </summary>
@@ -528,7 +540,7 @@ namespace AGS.Editor
         private static void WriteGameSetupStructBase_Aligned(BinaryWriter writer, Game game)
         {
             // assume stream is aligned at start
-            WriteString(SafeTruncate(game.Settings.GameName, 49), 50, writer);
+            WriteString(SafeTruncate(TextProperty(game.Settings.GameName), 49), 50, writer);
             writer.Write(new byte[2]); // alignment padding
             int[] options = new int[100];
             options[NativeConstants.GameOptions.OPT_ALWAYSSPCH] = (game.Settings.AlwaysDisplayTextAsSpeech ? 1 : 0);
@@ -703,7 +715,7 @@ namespace AGS.Editor
                 foreach (KeyValuePair<string, CustomProperty> pair in properties.PropertyValues)
                 {
                     FilePutString(pair.Value.Name, writer);
-                    FilePutString(pair.Value.Value, writer);
+                    FilePutString(TextProperty(pair.Value.Value), writer);
                 }
             }
         }
@@ -782,7 +794,7 @@ namespace AGS.Editor
                 for (int i = 0; i < PropertyCount; ++i)
                 {
                     FilePutString(Names[i], writer);
-                    FilePutString(Values[i], writer);
+                    FilePutString(TextProperty(Values[i]), writer);
                 }
             }
 
@@ -1154,7 +1166,7 @@ namespace AGS.Editor
                     writer.Write(0); // rightclick
                     writer.Write(ctrl.NewModeNumber); // lclickdata
                     writer.Write(0); // rclickdata
-                    FilePutString(ctrl.Text, writer); // text
+                    FilePutString(TextProperty(ctrl.Text), writer); // text
                     writer.Write((int)ctrl.TextAlignment); // textAlignment
                 }
             }
@@ -1166,7 +1178,7 @@ namespace AGS.Editor
                 {
                     WriteGUIControl(label, 0);
                     string text = label.Text;
-                    FilePutString(text, writer);
+                    FilePutString(TextProperty(text), writer);
                     writer.Write(label.Font);
                     writer.Write(label.TextColor);
                     writer.Write((int)label.TextAlignment);
@@ -1206,7 +1218,7 @@ namespace AGS.Editor
                 foreach (GUITextBox textBox in GUITextBoxes)
                 {
                     WriteGUIControl(textBox, 0, new string[] { textBox.OnActivate });
-                    FilePutString(textBox.Text, writer);
+                    FilePutString(TextProperty(textBox.Text), writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
                     writer.Write(MakeTextBoxFlags(textBox));
@@ -1474,7 +1486,7 @@ namespace AGS.Editor
             writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
-                WriteString(game.InventoryItems[i].Description, 24, writer);
+                WriteString(TextProperty(game.InventoryItems[i].Description), 24, writer);
                 writer.Write(new byte[4]); // null terminator plus 3 bytes padding
                 writer.Write(game.InventoryItems[i].Image);
                 writer.Write(game.InventoryItems[i].CursorImage);
@@ -1621,7 +1633,7 @@ namespace AGS.Editor
                 }
                 writer.Write((short)0);                                // actx
                 writer.Write((short)0);                                // acty
-                WriteString(character.RealName, 40, writer);           // name
+                WriteString(TextProperty(character.RealName), 40, writer);           // name
                 WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname
                 writer.Write((char)1);                                 // on
                 writer.Write((byte)0);                                 // alignment padding
@@ -1681,8 +1693,8 @@ namespace AGS.Editor
             {
                 FilePutString(schemaItem.Name, writer);
                 writer.Write((int)schemaItem.Type);
-                FilePutString(schemaItem.Description, writer);
-                FilePutString(schemaItem.DefaultValue, writer);
+                FilePutString(TextProperty(schemaItem.Description), writer);
+                FilePutString(TextProperty(schemaItem.DefaultValue), writer);
             }
             for (int i = 0; i < game.Characters.Count; ++i)
             {
@@ -1754,7 +1766,7 @@ namespace AGS.Editor
                     writer.Write(room.Number);
                     if (room.Description != null)
                     {
-                        FilePutNullTerminatedString(room.Description, 500, writer);
+                        FilePutNullTerminatedString(TextProperty(room.Description), 500, writer);
                     }
                     else writer.Write((byte)0);
                 }

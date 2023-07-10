@@ -2601,7 +2601,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
           nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
           nbut.SetClipImage(button->ClipImage);
-          nbut.SetText(tcv->Convert(button->Text));
+          nbut.SetText(tcv->ConvertTextProperty(button->Text));
           nbut.EventHandlers[0] = TextHelper::ConvertASCII(button->OnClick);
           guibuts.push_back(nbut);
 		  
@@ -2613,7 +2613,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           nlabel.TextColor = label->TextColor;
           nlabel.Font = label->Font;
           nlabel.TextAlignment = (::HorAlignment)label->TextAlignment;
-          Common::String text = tcv->Convert(label->Text);
+          Common::String text = tcv->ConvertTextProperty(label->Text);
           nlabel.SetText(text);
           guilabels.push_back(nlabel);
 
@@ -2754,7 +2754,7 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Com
 	{
         AGS::Common::String name, value;
 		name = TextHelper::ConvertASCII(convertFrom->PropertyValues[key]->Name); // property name is ASCII
-		value = tcv->Convert(convertFrom->PropertyValues[key]->Value);
+		value = tcv->ConvertTextProperty(convertFrom->PropertyValues[key]->Value);
 		(*compileInto)[name] = value;
 	}
 }
@@ -3749,7 +3749,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.MessageCount; ++i)
 	{
 		RoomMessage ^newMessage = room->Messages[i];
-		rs.Messages[i] = tcv->Convert(newMessage->Text);
+		rs.Messages[i] = tcv->ConvertTextProperty(newMessage->Text);
 		if (newMessage->ShowAsSpeech)
 		{
 			rs.MessageInfos[i].DisplayAs = newMessage->CharacterID + 1;
@@ -3774,7 +3774,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 		rs.Objects[i].Y = obj->StartY;
 		rs.Objects[i].IsOn = obj->Visible;
 		rs.Objects[i].Baseline = obj->Baseline;
-		rs.Objects[i].Name = tcv->Convert(obj->Description);
+		rs.Objects[i].Name = tcv->ConvertTextProperty(obj->Description);
 		rs.Objects[i].Flags = 0;
 		if (obj->UseRoomAreaScaling) rs.Objects[i].Flags |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) rs.Objects[i].Flags |= OBJF_USEREGIONTINTS;
@@ -3786,7 +3786,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	for (size_t i = 0; i < rs.HotspotCount; ++i)
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
-		rs.Hotspots[i].Name = tcv->Convert(hotspot->Description);
+		rs.Hotspots[i].Name = tcv->ConvertTextProperty(hotspot->Description);
 		rs.Hotspots[i].ScriptName = TextHelper::ConvertASCII(hotspot->Name);
 		rs.Hotspots[i].WalkTo.X = hotspot->WalkToPoint.X;
 		rs.Hotspots[i].WalkTo.Y = hotspot->WalkToPoint.Y;

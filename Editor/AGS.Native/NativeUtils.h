@@ -30,8 +30,12 @@ public:
     System::Text::Encoding^ GetEncoding();
     // Convert native string to managed using current encoding
     System::String^ Convert(const AGS::Common::String &str);
-    // Convert managed string to native using current encoding
+    // Convert managed string to native using current encoding;
+    // this is meant for strings containing human-readable texts
     AGSString Convert(System::String^ clr_str);
+    // Does additional transformation for human-readable text:
+    // - unescapes special sequences ("\\n" to '\n')
+    AGSString ConvertTextProperty(System::String^ clr_str);
 
 private:
     System::Text::Encoding^ _encoding = nullptr;

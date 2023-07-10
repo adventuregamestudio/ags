@@ -21,6 +21,7 @@
 #include "core/assetmanager.h"
 #include "debug/debug_log.h"
 #include "main/engine.h"
+#include "util/directory.h"
 #include "util/path.h"
 
 using namespace AGS::Common;
@@ -125,7 +126,7 @@ bool init_voicepak(const String &name)
     {
         // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
         speech_subdir = name.IsEmpty() ? ResPaths.VoiceDir2 : Path::ConcatPaths(ResPaths.VoiceDir2, name);
-        if (File::IsDirectory(speech_subdir))
+        if (File::IsDirectory(speech_subdir) && !FindFile::OpenFiles(speech_subdir).AtEnd())
         {
             Debug::Printf(kDbgMsg_Info, "Optional voice directory is defined: %s", speech_subdir.GetCStr());
             play.voice_avail = true;

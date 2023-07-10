@@ -1324,6 +1324,7 @@ void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
     std::unique_ptr<Bitmap> tempspr;
     if (is_flipped) {
         tempspr.reset(new Bitmap(sprite->GetWidth(), sprite->GetHeight(), sprite->GetColorDepth()));
+        tempspr->ClearTransparent();
         tempspr->FlipBlt(sprite, 0, 0, Common::kFlip_Horizontal);
         sprite = tempspr.get();
     }

@@ -50,7 +50,7 @@ namespace StrUtil
     // returns def_val on failure
     float           StringToFloat(const String &s, float def_val = 0.f);
 
-    // A simple unescape string implementation, unescapes '\\x' into '\x'.
+    // A simple unescape string implementation, unescapes "\\x" into '\x'.
     String          Unescape(const String &s);
     // Converts a classic wildcard search pattern into C++11 compatible regex pattern
     String          WildcardToRegex(const String &wildcard);

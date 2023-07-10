@@ -23,6 +23,7 @@ see the license.txt for details.
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/multifilelib.h"
+#include "util/string_utils.h"
 
 using namespace System::Runtime::InteropServices;
 using namespace AGS::Native;
@@ -110,6 +111,14 @@ AGSString TextConverter::Convert(System::String^ clr_str)
     if (clr_str == nullptr)
         return AGSString();
     return TextHelper::Convert(clr_str, _encoding);
+}
+
+AGSString TextConverter::ConvertTextProperty(System::String^ clr_str)
+{
+    if (clr_str == nullptr)
+        return AGSString();
+    AGSString str = TextHelper::Convert(clr_str, _encoding);
+    return AGS::Common::StrUtil::Unescape(str);
 }
 
 std::string TextConverter::ConvertToStd(System::String^ clr_str)

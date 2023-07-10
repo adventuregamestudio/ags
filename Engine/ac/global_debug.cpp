@@ -59,16 +59,20 @@ String GetRuntimeInfo()
     DisplayMode mode = gfxDriver->GetDisplayMode();
     Rect render_frame = gfxDriver->GetRenderDestination();
     PGfxFilter filter = gfxDriver->GetGraphicsFilter();
-    const size_t total_spr = spriteset.GetCacheSize();
+    const size_t total_normspr = spriteset.GetCacheSize();
     const size_t total_lockspr = spriteset.GetLockedSize();
-    const size_t total_normspr = total_spr - total_lockspr;
-    const size_t max_normspr = spriteset.GetMaxCacheSize() - total_lockspr;
-    const unsigned norm_spr_filled = (uint64_t)total_normspr * 100 / max_normspr;
+    const size_t total_extspr = spriteset.GetExternalSize();
+    const size_t max_normspr = spriteset.GetMaxCacheSize();
+    const unsigned norm_spr_filled = max_normspr > 0 ? (uint64_t)total_normspr * 100 / max_normspr : 0;
+    size_t max_txcached, total_txcached, total_txlocked, total_txext;
+    get_texturecache_state(max_txcached, total_txcached, total_txlocked, total_txext);
+    const unsigned tx_filled = max_txcached > 0 ? (uint64_t)total_txcached * 100 / max_txcached : 0;
     String runtimeInfo = String::FromFormat(
-        "%s[Engine version %s"
-        "[Game resolution %d x %d (%d-bit)"
-        "[Running %d x %d at %d-bit%s[GFX: %s; %s[Draw frame %d x %d["
-        "Sprite cache KB: %zu, norm: %zu / %zu (%u%%), locked: %zu",
+        "%s\nEngine version %s\n"
+        "Game resolution %d x %d (%d-bit)\n"
+        "Running %d x %d at %d-bit%s\nGFX: %s; %s\nDraw frame %d x %d\n"
+        "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n"
+        "Texture cache KB: %zu / %zu (%u%%)",
         get_engine_name(),
         get_engine_version_and_build().GetCStr(),
         game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
@@ -76,7 +80,8 @@ String GetRuntimeInfo()
         (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")),
         gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
         render_frame.GetWidth(), render_frame.GetHeight(),
-        total_spr / 1024, total_normspr / 1024, max_normspr / 1024, norm_spr_filled, total_lockspr / 1024);
+        total_normspr / 1024, max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024,
+        total_txcached / 1024, max_txcached / 1024, tx_filled);
     if (play.separate_music_lib)
         runtimeInfo.Append("[AUDIO.VOX enabled");
     if (play.voice_avail)

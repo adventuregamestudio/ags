@@ -81,11 +81,10 @@ int GetObjectIDAtRoom(int roomx, int roomy)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
         Bitmap *theImage = GetObjectSourceImage(aa);
-
         // Convert to local object coordinates
         Point local = objs[aa].GetGraphicSpace().WorldToLocal(roomx, roomy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
-            spWidth, spHeight, isflipped) == FALSE)
+                spWidth, spHeight, isflipped) == FALSE)
             continue;
 
         int usebasel = objs[aa].get_baseline();   
@@ -512,18 +511,15 @@ void GetObjectPropertyText (int item, const char *property, char *bufer)
     get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
 }
 
-Bitmap *GetObjectImage(int obj, int *isFlipped) 
+Bitmap *GetObjectImage(int obj, bool *is_original)
 {
-    if (!gfxDriver->HasAcceleratedTransform())
-    {
-        Bitmap *actsp = get_cached_object_image(obj);
-        if (actsp) {
-            // the cached image is pre-flipped, so no longer register the image as such
-            if (isFlipped)
-                *isFlipped = 0;
-            return actsp;
-        }
-    }
+    // NOTE: the cached image will only be present in software render mode
+    Bitmap *actsp = get_cached_object_image(obj);
+    if (is_original)
+        *is_original = !actsp; // no cached means we use original sprite
+    if (actsp)
+        return actsp;
+
     return spriteset[objs[obj].num];
 }
 

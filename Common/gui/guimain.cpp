@@ -850,6 +850,11 @@ void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
 
 void MarkInventoryForUpdate(int char_id, bool is_player)
 {
+    for (auto &btn : guibuts)
+    {
+        if (btn.GetPlaceholder() != kButtonPlace_None)
+            btn.MarkChanged();
+    }
     for (auto &inv : guiinv)
     {
         if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))

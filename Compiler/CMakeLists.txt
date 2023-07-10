@@ -18,6 +18,7 @@ set(COMPILER_COMMON_SOURCES
         ../Common/util/cmdlineopts.cpp
         ../Common/util/data_ext.cpp
         ../Common/util/datastream.cpp
+        ../Common/util/directory.cpp
         ../Common/util/file.cpp
         ../Common/util/path.cpp
         ../Common/util/filestream.cpp

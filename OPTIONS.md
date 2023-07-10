@@ -55,6 +55,8 @@ Locations of two latter files differ between running platforms:
     * unlocked (0) - device can be freely rotated if possible.
     * portrait (1) - locks the screen in portrait orientation.
     * landscape (2) - locks the screen in landscape orientation.
+  * sprite_cache_size = \[integer\] - size of the sprite cache, stored in RAM, in kilobytes. Default is 131072 (128 MB).
+  * texture_cache_size = \[integer\] - size of the texture cache, stored in VRAM, in kilobytes. Default is 131072 (128 MB).
 * **\[sound\]** - sound options
   * enabled = \[0; 1\] - enable or disable game audio.
   * driver = \[string\] - audio driver id, leave empty for default. Driver IDs are provided by SDL2 and are platform-dependent.
@@ -62,7 +64,7 @@ Locations of two latter files differ between running platforms:
       * pulseaudio, alsa, arts, esd, jack, pipewire, disk, dsp, dummy
     * For Windows:
       * wasapi, directsound, winmm, disk, dummy
-  * cache_size = \[integer\] - size of the engine's sound cache, in kilobytes. Default is 32768 (32 MB).
+  * cache_size = \[integer\] - size of the sound cache, in kilobytes. Default is 32768 (32 MB).
   * stream_threshold = \[integer\] - max size of the sound clip that engine is allowed to load in memory at once, as opposed to continuously streaming one. In the current implementation this also defines the max size of a clip that may be put into the sound cache. Default is 1024 (1 MB).
   * usespeech = \[0; 1\] - enable or disable in-game speech (voice-overs).
 * **\[mouse\]** - mouse options
@@ -91,7 +93,6 @@ Locations of two latter files differ between running platforms:
   * user_data_dir = \[string\] - custom path to savedgames location.
   * shared_data_dir = \[string\] - custom path to shared appdata location.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
-  * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 131072 (128 MB).
   * clear_cache_on_room_change = \[0; 1\] - whether to clear sprite cache on every room change.
   * load_latest_save = \[0; 1\] - whether to load latest save on game launch.
   * background = \[0; 1\] - whether the game should continue to run in background, when the window does not have an input focus (does not work in exclusive fullscreen mode).

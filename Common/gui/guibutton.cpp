@@ -68,6 +68,11 @@ bool GUIButton::IsClippingImage() const
     return (Flags & kGUICtrl_Clip) != 0;
 }
 
+GUIButtonPlaceholder GUIButton::GetPlaceholder() const
+{
+    return _placeholder;
+}
+
 Rect GUIButton::CalcGraphicRect(bool clipped)
 {
     if (clipped)

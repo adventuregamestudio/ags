@@ -995,7 +995,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
             // Try to find wanted game's data using game id
             String gamefile = FindGameData(ResPaths.DataDir,
                 [&desc](const String &filepath) { return test_game_guid(filepath, desc.GameGuid, desc.LegacyID); });
-            if (Common::File::TestReadFile(gamefile))
+            if (Common::File::IsFile(gamefile))
             {
                 RunAGSGame(gamefile.GetCStr(), 0, 0);
                 load_new_game_restore = slotNumber;
@@ -1009,7 +1009,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     else if (desc.MainDataFilename.Compare(ResPaths.GamePak.Name))
     {
         String gamefile = Path::ConcatPaths(ResPaths.DataDir, desc.MainDataFilename);
-        if (Common::File::TestReadFile(gamefile))
+        if (Common::File::IsFile(gamefile))
         {
             RunAGSGame(desc.MainDataFilename.GetCStr(), 0, 0);
             load_new_game_restore = slotNumber;
@@ -1208,7 +1208,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     return winner;
 }
 
-// Called whenever game looses input focus
+// Called whenever game loses input focus
 void display_switch_out()
 {
     Debug::Printf("Switching out from the game");
@@ -1218,7 +1218,7 @@ void display_switch_out()
     Mouse::UnlockFromWindow();
 }
 
-// Called when game looses input focus and must pause until focus is returned
+// Called when game loses input focus and must pause until focus is returned
 void display_switch_out_suspend()
 {
     Debug::Printf("Suspending the game on switch out");
@@ -1362,8 +1362,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
 
 void game_sprite_updated(int sprnum)
 {
-    // update the shared texture (if exists)
-    gfxDriver->UpdateSharedDDB(sprnum, spriteset[sprnum]);
+    update_shared_texture(sprnum);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum, false);
     // gui backgrounds
@@ -1401,8 +1400,7 @@ void game_sprite_updated(int sprnum)
 
 void game_sprite_deleted(int sprnum)
 {
-    // clear from texture cache
-    gfxDriver->ClearSharedDDB(sprnum);
+    clear_shared_texture(sprnum);
     // character and object draw caches
     reset_objcache_for_sprite(sprnum, true);
 

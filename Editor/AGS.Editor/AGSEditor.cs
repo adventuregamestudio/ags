@@ -103,6 +103,7 @@ namespace AGS.Editor
          *                - RuntimeSetup.FullscreenDesktop
          * 3.6.0.20       - Settings.GameTextEncoding, Settings.UseOldKeyboardHandling;
          * 3.6.1.2        - GUIListBox.Translated property moved to GUIControl parent
+         * 3.6.1.3        - RuntimeSetup.TextureCache, SoundCache
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -1661,8 +1662,11 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("touch", "emul_mouse_relative",
                 ((int)_game.DefaultSetup.TouchToMouseMotionMode).ToString(), configFilePath);
 
-            // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)
-            NativeProxy.WritePrivateProfileString("misc", "cachemax", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);
+            // Note: the cache sizes are written in KB (while we have it in MB on the editor pane)
+            NativeProxy.WritePrivateProfileString("graphics", "sprite_cache_size", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "texture_cache_size", (_game.DefaultSetup.TextureCacheSize * 1024).ToString(), configFilePath);
+            NativeProxy.WritePrivateProfileString("sound", "cache_size", (_game.DefaultSetup.SoundCacheSize * 1024).ToString(), configFilePath);
+
             WriteCustomPathToConfig("misc", "user_data_dir", configFilePath, _game.DefaultSetup.UseCustomSavePath, _game.DefaultSetup.CustomSavePath);
             WriteCustomPathToConfig("misc", "shared_data_dir", configFilePath, _game.DefaultSetup.UseCustomAppDataPath, _game.DefaultSetup.CustomAppDataPath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);

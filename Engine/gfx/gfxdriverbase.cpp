@@ -195,14 +195,6 @@ VideoMemoryGraphicsDriver::~VideoMemoryGraphicsDriver()
     DestroyAllStageScreens();
 }
 
-bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
-{
-    // Although we do use ours, we do not let engine draw upon it;
-    // only plugin handling are allowed to request our mem buffer.
-    // TODO: find better workaround?
-    return false;
-}
-
 Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
 {
     return nullptr;
@@ -238,63 +230,12 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *b
     return ddb;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::GetSharedDDB(uint32_t sprite_id, Bitmap *bitmap, bool opaque)
+Texture *VideoMemoryGraphicsDriver::CreateTexture(Bitmap *bmp, bool opaque)
 {
-    const auto found = _txRefs.find(sprite_id);
-    if (found != _txRefs.end())
-    {
-        const auto &item = found->second;
-        if (!item.Data.expired())
-            return CreateDDB(item.Data.lock(), item.Res.Width, item.Res.Height, item.Res.ColorDepth, opaque);
-    }
-
-    // Create and add a new element
-    std::shared_ptr<TextureData> txdata(CreateTextureData(bitmap->GetWidth(), bitmap->GetHeight(), false));
-    txdata->ID = sprite_id;
-    UpdateTextureData(txdata.get(), bitmap, opaque);
-    // only add into the map when has valid sprite ID
-    if (sprite_id != UINT32_MAX)
-    {
-        _txRefs[sprite_id] = TextureCacheItem(txdata,
-            GraphicResolution(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth()));
-    }
-    return CreateDDB(txdata, bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), opaque);
-}
-
-void VideoMemoryGraphicsDriver::UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap, bool opaque)
-{
-    const auto found = _txRefs.find(sprite_id);
-    if (found != _txRefs.end())
-    {
-        auto txdata = found->second.Data.lock();
-        if (txdata)
-            UpdateTextureData(txdata.get(), bitmap, opaque);
-    }
-}
-
-void VideoMemoryGraphicsDriver::ClearSharedDDB(uint32_t sprite_id)
-{
-    // Reset sprite ID for any remaining shared txdata,
-    // then remove the reference from the cache;
-    // NOTE: we do not delete txdata itself, as it may be temporarily in use
-    const auto found = _txRefs.find(sprite_id);
-    if (found != _txRefs.end())
-    {
-        auto txdata = found->second.Data.lock();
-        if (txdata)
-            txdata->ID = UINT32_MAX;
-        _txRefs.erase(found);
-    }
-}
-
-void VideoMemoryGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
-{
-    uint32_t sprite_id = ddb->GetRefID();
-    DestroyDDBImpl(ddb);
-    // Remove shared object from ref list if no more active refs left
-    const auto found = _txRefs.find(sprite_id);
-    if (found != _txRefs.end() && found->second.Data.expired())
-        _txRefs.erase(found);
+    Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), opaque);
+    if (txdata)
+        UpdateTexture(txdata, bmp, opaque);
+    return txdata;
 }
 
 void VideoMemoryGraphicsDriver::SetStageScreen(const Size &sz, int x, int y)

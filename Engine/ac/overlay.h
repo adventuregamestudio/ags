@@ -51,8 +51,8 @@ void remove_all_overlays();
 ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);
 // Restores overlays, e.g. after restoring a game save
 void restore_overlays();
-// Create or resize GUI surface, accomodating for any GUI transformations (?????)
-Common::Bitmap *recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
+// Create or resize overlay's image, accomodating for any transformations (software mode)
+Common::Bitmap *recreate_overlay_image(ScreenOverlay &over,
     Common::Bitmap *&scalebmp, Common::Bitmap *&rotbmp);
 // Recalculates overlay's transform matrix and AABB, returns overlay object's position
 Point update_overlay_graphicspace(ScreenOverlay &over);

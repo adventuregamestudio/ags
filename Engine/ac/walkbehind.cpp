@@ -35,7 +35,6 @@ struct WalkBehindColumn
     int Y1 = 0, Y2 = 0; // WB top and bottom Y coords
 };
 
-WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
 std::vector<WalkBehindColumn> walkBehindCols; // precalculated WB positions
 Rect walkBehindAABB[MAX_WALK_BEHINDS]; // WB bounding box
 int walkBehindsCachedForBgNum = 0; // WB textures are for this background
@@ -183,10 +182,5 @@ void walkbehinds_recalc()
                 walkBehindAABB[wb].Bottom = std::max(y, walkBehindAABB[wb].Bottom);
             }
         }
-    }
-
-    if (walkBehindMethod == DrawAsSeparateSprite)
-    {
-        walkbehinds_generate_sprites();
     }
 }

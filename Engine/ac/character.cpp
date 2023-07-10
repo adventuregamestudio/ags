@@ -525,13 +525,13 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     // TODO: use GraphicSpace and proper transformed coords?
 
-    Bitmap *checkblk = GetObjectImage(objid->id, nullptr);
+    Bitmap *checkblk = GetObjectImage(objid->id);
     int objWidth = checkblk->GetWidth();
     int objHeight = checkblk->GetHeight();
     int o1x = objs[objid->id].x;
     int o1y = objs[objid->id].y - objHeight;
 
-    Bitmap *charpic = GetCharacterImage(chin->index_id, nullptr);
+    Bitmap *charpic = GetCharacterImage(chin->index_id);
 
     int charWidth = charpic->GetWidth();
     int charHeight = charpic->GetHeight();
@@ -2180,19 +2180,15 @@ void CheckViewFrameForCharacter(CharacterInfo *chi)
     CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol);
 }
 
-Bitmap *GetCharacterImage(int charid, int *isFlipped) 
+Bitmap *GetCharacterImage(int charid, bool *is_original)
 {
-    if (!gfxDriver->HasAcceleratedTransform())
-    {
-        Bitmap *actsp = get_cached_character_image(charid);
-        if (actsp)
-        {
-            // the cached image is pre-flipped, so no longer register the image as such
-            if (isFlipped)
-                *isFlipped = 0;
-            return actsp;
-        }
-    }
+    // NOTE: the cached image will only be present in software render mode
+    Bitmap *actsp = get_cached_character_image(charid);
+    if (is_original)
+        *is_original = !actsp; // no cached means we use original sprite
+    if (actsp)
+        return actsp;
+
     CharacterInfo*chin=&game.chars[charid];
     int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
     return spriteset[sppic];
@@ -2281,15 +2277,13 @@ int is_pos_on_character(int xx,int yy) {
         sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
         int usewid = game.SpriteInfos[sppic].Width;
         int usehit = game.SpriteInfos[sppic].Height;
-
         // TODO: support mirrored transformation in GraphicSpace
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
         Bitmap *theImage = GetCharacterSourceImage(cc);
-
         // Convert to local object coordinates
         Point local = charextra[cc].GetGraphicSpace().WorldToLocal(xx, yy);
         if (is_pos_in_sprite(local.X, local.Y, 0, 0, theImage,
-            usewid, usehit, mirrored) == FALSE)
+                usewid, usehit, mirrored) == FALSE)
             continue;
 
         int use_base = chin->get_baseline();

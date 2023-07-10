@@ -140,6 +140,8 @@
 		20522A9028E8FD6000589E91 /* plugin_engine.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A8E28E8FD6000589E91 /* plugin_engine.h */; };
 		20522A9328E8FD7700589E91 /* sys_main.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A9128E8FD7600589E91 /* sys_main.h */; };
 		20522A9428E8FD7700589E91 /* sys_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A9228E8FD7700589E91 /* sys_main.cpp */; };
+		209139302A5072A6006AC67A /* agsplugin_evts.h in Headers */ = {isa = PBXBuildFile; fileRef = 2091392F2A5072A6006AC67A /* agsplugin_evts.h */; };
+		209139322A5072AF006AC67A /* plugin_stubs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 209139312A5072AF006AC67A /* plugin_stubs.cpp */; };
 		20C76AB528F34A1900772CFC /* include in Resources */ = {isa = PBXBuildFile; fileRef = 205229C128E8ED4400589E91 /* include */; };
 		20CB641C2A202C59001BA2C1 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2034CAB92A202B0900824C80 /* SDL2.framework */; };
 		20E67D6428F1BDE000B95C00 /* gfx.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0A28F1BDDF00B95C00 /* gfx.c */; };
@@ -675,7 +677,6 @@
 		526F27261D3B5CC300EF4E1F /* global_palette.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24A31D3B5CC200EF4E1F /* global_palette.h */; };
 		526F27271D3B5CC300EF4E1F /* global_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24A41D3B5CC200EF4E1F /* global_parser.cpp */; };
 		526F27281D3B5CC300EF4E1F /* global_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24A51D3B5CC200EF4E1F /* global_parser.h */; };
-		526F27291D3B5CC300EF4E1F /* global_plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24A61D3B5CC200EF4E1F /* global_plugin.h */; };
 		526F272C1D3B5CC300EF4E1F /* global_region.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24A91D3B5CC200EF4E1F /* global_region.cpp */; };
 		526F272D1D3B5CC300EF4E1F /* global_region.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24AA1D3B5CC200EF4E1F /* global_region.h */; };
 		526F272E1D3B5CC300EF4E1F /* global_room.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24AB1D3B5CC200EF4E1F /* global_room.cpp */; };
@@ -755,7 +756,6 @@
 		526F27821D3B5CC300EF4E1F /* speech.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24FF1D3B5CC300EF4E1F /* speech.h */; };
 		526F27831D3B5CC300EF4E1F /* sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25001D3B5CC300EF4E1F /* sprite.cpp */; };
 		526F27841D3B5CC300EF4E1F /* sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25011D3B5CC300EF4E1F /* sprite.h */; };
-		526F27851D3B5CC300EF4E1F /* spritecache_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25021D3B5CC300EF4E1F /* spritecache_engine.cpp */; };
 		526F278C1D3B5CC300EF4E1F /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F250A1D3B5CC300EF4E1F /* string.cpp */; };
 		526F278D1D3B5CC300EF4E1F /* string.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F250B1D3B5CC300EF4E1F /* string.h */; };
 		526F278E1D3B5CC300EF4E1F /* system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F250C1D3B5CC300EF4E1F /* system.cpp */; };
@@ -898,9 +898,6 @@
 		526F28A31D3B5CC300EF4E1F /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 526F26461D3B5CC300EF4E1F /* libc.c */; };
 		526F28AF1D3B5CC300EF4E1F /* agsplugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F26591D3B5CC300EF4E1F /* agsplugin.cpp */; };
 		526F28B01D3B5CC300EF4E1F /* agsplugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F265A1D3B5CC300EF4E1F /* agsplugin.h */; };
-		526F28B11D3B5CC300EF4E1F /* global_plugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F265B1D3B5CC300EF4E1F /* global_plugin.cpp */; };
-		526F28B21D3B5CC300EF4E1F /* pluginobjectreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F265C1D3B5CC300EF4E1F /* pluginobjectreader.cpp */; };
-		526F28B31D3B5CC300EF4E1F /* pluginobjectreader.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F265D1D3B5CC300EF4E1F /* pluginobjectreader.h */; };
 		526F28B41D3B5CC300EF4E1F /* CompileShader.bat in Resources */ = {isa = PBXBuildFile; fileRef = 526F265F1D3B5CC300EF4E1F /* CompileShader.bat */; };
 		526F28B61D3B5CC300EF4E1F /* game-1.ICO in Resources */ = {isa = PBXBuildFile; fileRef = 526F26611D3B5CC300EF4E1F /* game-1.ICO */; };
 		526F28B71D3B5CC300EF4E1F /* resource.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26621D3B5CC300EF4E1F /* resource.h */; };
@@ -1096,6 +1093,8 @@
 		20522A8E28E8FD6000589E91 /* plugin_engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_engine.h; sourceTree = "<group>"; };
 		20522A9128E8FD7600589E91 /* sys_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sys_main.h; sourceTree = "<group>"; };
 		20522A9228E8FD7700589E91 /* sys_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sys_main.cpp; sourceTree = "<group>"; };
+		2091392F2A5072A6006AC67A /* agsplugin_evts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsplugin_evts.h; sourceTree = "<group>"; };
+		209139312A5072AF006AC67A /* plugin_stubs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_stubs.cpp; sourceTree = "<group>"; };
 		20E67D0A28F1BDDF00B95C00 /* gfx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gfx.c; sourceTree = "<group>"; };
 		20E67D0B28F1BDDF00B95C00 /* unicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unicode.c; sourceTree = "<group>"; };
 		20E67D0C28F1BDDF00B95C00 /* blit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = blit.c; sourceTree = "<group>"; };
@@ -1631,7 +1630,6 @@
 		526F24A31D3B5CC200EF4E1F /* global_palette.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_palette.h; sourceTree = "<group>"; };
 		526F24A41D3B5CC200EF4E1F /* global_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_parser.cpp; sourceTree = "<group>"; };
 		526F24A51D3B5CC200EF4E1F /* global_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_parser.h; sourceTree = "<group>"; };
-		526F24A61D3B5CC200EF4E1F /* global_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_plugin.h; sourceTree = "<group>"; };
 		526F24A91D3B5CC200EF4E1F /* global_region.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_region.cpp; sourceTree = "<group>"; };
 		526F24AA1D3B5CC200EF4E1F /* global_region.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_region.h; sourceTree = "<group>"; };
 		526F24AB1D3B5CC200EF4E1F /* global_room.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_room.cpp; sourceTree = "<group>"; };
@@ -1711,7 +1709,6 @@
 		526F24FF1D3B5CC300EF4E1F /* speech.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = speech.h; sourceTree = "<group>"; };
 		526F25001D3B5CC300EF4E1F /* sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sprite.cpp; sourceTree = "<group>"; };
 		526F25011D3B5CC300EF4E1F /* sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sprite.h; sourceTree = "<group>"; };
-		526F25021D3B5CC300EF4E1F /* spritecache_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = spritecache_engine.cpp; sourceTree = "<group>"; };
 		526F250A1D3B5CC300EF4E1F /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string.cpp; sourceTree = "<group>"; };
 		526F250B1D3B5CC300EF4E1F /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
 		526F250C1D3B5CC300EF4E1F /* system.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
@@ -1854,9 +1851,6 @@
 		526F26461D3B5CC300EF4E1F /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = libc.c; sourceTree = "<group>"; };
 		526F26591D3B5CC300EF4E1F /* agsplugin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsplugin.cpp; sourceTree = "<group>"; };
 		526F265A1D3B5CC300EF4E1F /* agsplugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsplugin.h; sourceTree = "<group>"; };
-		526F265B1D3B5CC300EF4E1F /* global_plugin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_plugin.cpp; sourceTree = "<group>"; };
-		526F265C1D3B5CC300EF4E1F /* pluginobjectreader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pluginobjectreader.cpp; sourceTree = "<group>"; };
-		526F265D1D3B5CC300EF4E1F /* pluginobjectreader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pluginobjectreader.h; sourceTree = "<group>"; };
 		526F265F1D3B5CC300EF4E1F /* CompileShader.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CompileShader.bat; sourceTree = "<group>"; };
 		526F26611D3B5CC300EF4E1F /* game-1.ICO */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "game-1.ICO"; sourceTree = "<group>"; };
 		526F26621D3B5CC300EF4E1F /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
@@ -2981,7 +2975,6 @@
 				526F24A31D3B5CC200EF4E1F /* global_palette.h */,
 				526F24A41D3B5CC200EF4E1F /* global_parser.cpp */,
 				526F24A51D3B5CC200EF4E1F /* global_parser.h */,
-				526F24A61D3B5CC200EF4E1F /* global_plugin.h */,
 				526F24A91D3B5CC200EF4E1F /* global_region.cpp */,
 				526F24AA1D3B5CC200EF4E1F /* global_region.h */,
 				526F24AB1D3B5CC200EF4E1F /* global_room.cpp */,
@@ -3061,7 +3054,6 @@
 				526F24FF1D3B5CC300EF4E1F /* speech.h */,
 				526F25001D3B5CC300EF4E1F /* sprite.cpp */,
 				526F25011D3B5CC300EF4E1F /* sprite.h */,
-				526F25021D3B5CC300EF4E1F /* spritecache_engine.cpp */,
 				526F250A1D3B5CC300EF4E1F /* string.cpp */,
 				526F250B1D3B5CC300EF4E1F /* string.h */,
 				526F250C1D3B5CC300EF4E1F /* system.cpp */,
@@ -3437,13 +3429,12 @@
 		526F26581D3B5CC300EF4E1F /* plugin */ = {
 			isa = PBXGroup;
 			children = (
+				209139312A5072AF006AC67A /* plugin_stubs.cpp */,
+				2091392F2A5072A6006AC67A /* agsplugin_evts.h */,
 				2034CA9E2A20174B00824C80 /* plugin_builtin.h */,
 				20522A8E28E8FD6000589E91 /* plugin_engine.h */,
 				526F26591D3B5CC300EF4E1F /* agsplugin.cpp */,
 				526F265A1D3B5CC300EF4E1F /* agsplugin.h */,
-				526F265B1D3B5CC300EF4E1F /* global_plugin.cpp */,
-				526F265C1D3B5CC300EF4E1F /* pluginobjectreader.cpp */,
-				526F265D1D3B5CC300EF4E1F /* pluginobjectreader.h */,
 			);
 			path = plugin;
 			sourceTree = "<group>";
@@ -3558,6 +3549,7 @@
 				526F27CA1D3B5CC300EF4E1F /* gfxfilter_ogl.h in Headers */,
 				20522A9028E8FD6000589E91 /* plugin_engine.h in Headers */,
 				526F27AB1D3B5CC300EF4E1F /* logfile.h in Headers */,
+				209139302A5072A6006AC67A /* agsplugin_evts.h in Headers */,
 				526F27A11D3B5CC300EF4E1F /* agseditordebugger.h in Headers */,
 				526F28981D3B5CC300EF4E1F /* agsplatformdriver.h in Headers */,
 				526F27041D3B5CC300EF4E1F /* global_datetime.h in Headers */,
@@ -3728,7 +3720,6 @@
 				526F26AB1D3B5CC300EF4E1F /* dialog.h in Headers */,
 				526F27CE1D3B5CC300EF4E1F /* graphicsdriver.h in Headers */,
 				526F27AF1D3B5CC300EF4E1F /* ali3dexception.h in Headers */,
-				526F27291D3B5CC300EF4E1F /* global_plugin.h in Headers */,
 				526F27391D3B5CC300EF4E1F /* global_timer.h in Headers */,
 				526F26C41D3B5CC300EF4E1F /* cc_dynamicarray.h in Headers */,
 				526F27931D3B5CC300EF4E1F /* timer.h in Headers */,
@@ -3751,7 +3742,6 @@
 				526F22BB1D3B5C4900EF4E1F /* spritecache.h in Headers */,
 				20522A8228E8F98400589E91 /* khrplatform.h in Headers */,
 				526F279E1D3B5CC300EF4E1F /* walkablearea.h in Headers */,
-				526F28B31D3B5CC300EF4E1F /* pluginobjectreader.h in Headers */,
 				526F26C21D3B5CC300EF4E1F /* cc_dialog.h in Headers */,
 				526F22D61D3B5C4900EF4E1F /* customproperties.h in Headers */,
 				526F23141D3B5C4900EF4E1F /* vorbisfile.h in Headers */,
@@ -4184,6 +4174,7 @@
 				526F27481D3B5CC300EF4E1F /* guicontrol.cpp in Sources */,
 				20E684C328F20CC700B95C00 /* info.c in Sources */,
 				526F26A01D3B5CC300EF4E1F /* cdaudio.cpp in Sources */,
+				209139322A5072AF006AC67A /* plugin_stubs.cpp in Sources */,
 				20E6849D28F20CC700B95C00 /* internal.c in Sources */,
 				20E6823328F1D2B400B95C00 /* mmcmp.c in Sources */,
 				20522A2928E8F81C00589E91 /* string_compat.c in Sources */,
@@ -4270,7 +4261,6 @@
 				20522A3D28E8F86400589E91 /* scriptcamera.cpp in Sources */,
 				526F26EE1D3B5CC300EF4E1F /* scriptuserobject.cpp in Sources */,
 				526F22E31D3B5C4900EF4E1F /* guilabel.cpp in Sources */,
-				526F27851D3B5CC300EF4E1F /* spritecache_engine.cpp in Sources */,
 				205229AF28E8EBE500589E91 /* room_file_base.cpp in Sources */,
 				526F28911D3B5CC300EF4E1F /* soundclip.cpp in Sources */,
 				526F22A91D3B5C4900EF4E1F /* gamesetupstruct.cpp in Sources */,
@@ -4294,7 +4284,6 @@
 				20E6810728F1BE5D00B95C00 /* mojoal.c in Sources */,
 				526F28181D3B5CC300EF4E1F /* getpic.c in Sources */,
 				20E6823F28F1D2B400B95C00 /* load_stm.c in Sources */,
-				526F28B21D3B5CC300EF4E1F /* pluginobjectreader.cpp in Sources */,
 				526F27301D3B5CC300EF4E1F /* global_screen.cpp in Sources */,
 				526F23CB1D3B5C4900EF4E1F /* compress.cpp in Sources */,
 				526F26E11D3B5CC300EF4E1F /* scriptfile.cpp in Sources */,
@@ -4507,7 +4496,6 @@
 				526F22CF1D3B5C4900EF4E1F /* ttffontrenderer.cpp in Sources */,
 				205229FA28E8F51A00589E91 /* truetype.c in Sources */,
 				205229E428E8EEAF00589E91 /* type1cid.c in Sources */,
-				526F28B11D3B5CC300EF4E1F /* global_plugin.cpp in Sources */,
 				526F26FD1D3B5CC300EF4E1F /* global_audio.cpp in Sources */,
 				526F28111D3B5CC300EF4E1F /* readers.c in Sources */,
 				526F27171D3B5CC300EF4E1F /* global_inventoryitem.cpp in Sources */,

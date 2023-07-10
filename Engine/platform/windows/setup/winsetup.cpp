@@ -39,18 +39,6 @@
 #include "util/stdio_compat.h"
 #include "util/string_utils.h"
 
-#define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
-
-#define DIGI_DIRECTAMX(n)        AL_ID('A','X','A'+(n),' ')
-// This DirectX hardware mixer is crap, it crashes the program
-// when two sound effects are played at once
-#define DIGI_DIRECTX(n)          AL_ID('D','X','A'+(n),' ')
-#define DIGI_WAVOUTID(n)         AL_ID('W','O','A'+(n),' ')
-#define DIGI_NONE  0
-#define MIDI_AUTODETECT       -1 
-#define MIDI_NONE             0 
-#define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
-
 namespace AGS
 {
 namespace Engine
@@ -97,6 +85,8 @@ struct WinConfig
     float  MouseSpeed;
 
     int    SpriteCacheSize;
+    int    TextureCacheSize;
+    int    SoundCacheSize;
     String DefaultLanguageName;
     String Language;
 
@@ -136,6 +126,8 @@ void WinConfig::SetDefaults()
     UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 128;
+    TextureCacheSize = 1024 * 128;
+    SoundCacheSize = 1024 * 32;
     DefaultLanguageName = "Game Default";
 
     Title = "Game Setup";
@@ -178,7 +170,9 @@ void WinConfig::Load(const ConfigTree &cfg)
     if (MouseSpeed <= 0.f)
         MouseSpeed = 1.f;
 
-    SpriteCacheSize = CfgReadInt(cfg, "misc", "cachemax", SpriteCacheSize);
+    SpriteCacheSize = CfgReadInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
+    TextureCacheSize = CfgReadInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
+    SoundCacheSize = CfgReadInt(cfg, "sound", "cache_size", SoundCacheSize);
     Language = CfgReadString(cfg, "language", "translation", Language);
     DefaultLanguageName = CfgReadString(cfg, "language", "default_translation_name", DefaultLanguageName);
 
@@ -210,7 +204,9 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
     CfgWriteInt(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
     CfgWriteFloat(cfg, "mouse", "speed", MouseSpeed, 1);
 
-    CfgWriteInt(cfg, "misc", "cachemax", SpriteCacheSize);
+    CfgWriteInt(cfg, "graphics", "sprite_cache_size", SpriteCacheSize);
+    CfgWriteInt(cfg, "graphics", "texture_cache_size", TextureCacheSize);
+    CfgWriteInt(cfg, "sound", "cache_size", SoundCacheSize);
     CfgWriteString(cfg, "language", "translation", Language);
 }
 
@@ -532,6 +528,8 @@ private:
     HWND _hAudioDriverList = NULL;
     HWND _hLanguageList = NULL;
     HWND _hSpriteCacheList = NULL;
+    HWND _hTextureCacheList = NULL;
+    HWND _hSoundCacheList = NULL;
     HWND _hWindowed = NULL;
     HWND _hVSync = NULL;
     HWND _hRenderAtScreenRes = NULL;
@@ -611,6 +609,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hAudioDriverList       = GetDlgItem(_hwnd, IDC_DIGISOUND);
     _hLanguageList          = GetDlgItem(_hwnd, IDC_LANGUAGE);
     _hSpriteCacheList       = GetDlgItem(_hwnd, IDC_SPRITECACHE);
+    _hTextureCacheList      = GetDlgItem(_hwnd, IDC_TEXTURECACHE);
+    _hSoundCacheList        = GetDlgItem(_hwnd, IDC_SOUNDCACHE);
     _hWindowed              = GetDlgItem(_hwnd, IDC_WINDOWED);
     _hVSync                 = GetDlgItem(_hwnd, IDC_VSYNC);
     _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
@@ -675,14 +675,45 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetSliderPos(_hMouseSpeed, slider_pos);
     UpdateMouseSpeedText();
 
-    AddString(_hSpriteCacheList, "16 MB", 16);
-    AddString(_hSpriteCacheList, "32 MB", 32);
-    AddString(_hSpriteCacheList, "64 MB", 64);
-    AddString(_hSpriteCacheList, "128 MB (default)", 128);
-    AddString(_hSpriteCacheList, "256 MB", 256);
-    AddString(_hSpriteCacheList, "384 MB", 384);
-    AddString(_hSpriteCacheList, "512 MB", 512);
+    // Init sprite cache list
+#if AGS_PLATFORM_64BIT
+    const std::array<std::pair<const char*, int>, 11> spr_cache_vals = { {
+        { "16 MB", 16 },  { "32 MB", 32 },  { "64 MB", 64 },   { "128 MB (default)", 128 },
+        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "768 MB", 768 },
+        { "1 GB ", 1024 }, { "1.5 GB ", 1536 }, { "2 GB ", 2048 }
+    }};
+#else
+    // 32-bit programs have accessible RAM limit of ~2GB (may be less in practice),
+    // and engine will need RAM for other things than spritecache, keep that in mind
+    const std::array<std::pair<const char*, int>, 7> spr_cache_vals = { {
+        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB (default)", 128 },
+        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }
+    }};
+#endif
+    for (const auto &val : spr_cache_vals)
+        AddString(_hSpriteCacheList, val.first, val.second);
     SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
+
+    // Init texture cache list
+    const std::array<std::pair<const char*, int>, 10> tx_cache_vals = { {
+        { "Off (not recommended)", 0 },
+        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB (default)", 128 },
+        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "768 MB", 768 },
+        { "1 GB ", 1024 }
+    }};
+    for (const auto &val : tx_cache_vals)
+        AddString(_hTextureCacheList, val.first, val.second);
+    SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
+
+    // Init sound cache list (keep in mind: currently meant only for small sounds)
+    const std::array<std::pair<const char*, int>, 5> sound_cache_vals = { {
+        { "Off", 0 }, { "16 MB", 16 }, { "32 MB (default)", 32 }, { "64 MB", 64 },
+        { "128 MB", 128 }
+    }};
+    for (const auto &val : sound_cache_vals)
+        AddString(_hSoundCacheList, val.first, val.second);
+    SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
+
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
@@ -700,7 +731,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         SetCurSelToItemDataStr(_hAudioDriverList, "none");
     }
     SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
-    if (!File::TestReadFile("speech.vox"))
+    if (!File::IsFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
     if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))
@@ -1189,6 +1220,8 @@ void WinSetupDialog::SaveSetup()
     else
         _winCfg.Language = GetText(_hLanguageList);
     _winCfg.SpriteCacheSize = GetCurItemData(_hSpriteCacheList) * 1024;
+    _winCfg.TextureCacheSize = GetCurItemData(_hTextureCacheList) * 1024;
+    _winCfg.SoundCacheSize = GetCurItemData(_hSoundCacheList) * 1024;
     if (GetCurSel(_hAudioDriverList) == 0)
     {
         _winCfg.AudioEnabled = false;

@@ -22,13 +22,40 @@
 #ifndef __AGS_EE_GFX__DDB_H
 #define __AGS_EE_GFX__DDB_H
 
+#include <memory>
 #include "gfx/gfx_def.h"
+#include "gfx/gfxdefines.h"
+
 
 namespace AGS
 {
 namespace Engine
 {
 
+// A base parent for the otherwise opaque texture object;
+// Texture refers to the pixel data itself, with no additional
+// properties. It may be shared between multiple sprites if necessary.
+struct Texture
+{
+    uint32_t ID = UINT32_MAX; // optional ID, may refer to sprite ID
+    const GraphicResolution Res;
+    const bool RenderTarget = false; // TODO: replace with flags later
+
+    virtual ~Texture() = default;
+    virtual size_t GetMemSize() const = 0;
+
+protected:
+    Texture(const GraphicResolution &res, bool rt)
+        : Res(res), RenderTarget(rt) {}
+    Texture(uint32_t id, const GraphicResolution &res, bool rt)
+        : ID(id), Res(res), RenderTarget(rt) {}
+};
+
+
+// The "texture sprite" object, contains Texture object ref,
+// which may be either shared or exclusive to this sprite.
+// Lets assign various effects and transformations which will be
+// used when rendering the sprite.
 class IDriverDependantBitmap
 {
 public:
@@ -51,6 +78,17 @@ public:
   virtual int GetWidth() const = 0;
   virtual int GetHeight() const = 0;
   virtual int GetColorDepth() const = 0;
+
+  // Tells if this DDB has an actual render data assigned to it.
+  virtual bool IsValid() = 0;
+  // Attaches new texture data, sets basic render rules
+  // FIXME: opaque should be either texture data's flag, - in which case same sprite_id
+  // will be either opaque or not opaque, - or DDB's flag, but in that case it cannot
+  // be applied to the shared texture data. Currently it's possible to share same
+  // texture data, but update it with different "opaque" values, which breaks logic.
+  virtual void AttachData(std::shared_ptr<Texture> txdata, bool opaque) = 0;
+  // Detach any internal texture data from this DDB, make this an empty object.
+  virtual void DetachData() = 0;
 
 protected:
   IDriverDependantBitmap() = default;

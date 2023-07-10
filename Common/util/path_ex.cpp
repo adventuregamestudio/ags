@@ -50,11 +50,6 @@ bool IsSameOrSubDir(const String &parent, const String &path)
     return true;
 }
 
-bool IsRelativePath(const String &path)
-{
-    return is_relative_filename(path.GetCStr()) != 0;
-}
-
 String MakeAbsolutePath(const String &path)
 {
     if (path.IsEmpty())

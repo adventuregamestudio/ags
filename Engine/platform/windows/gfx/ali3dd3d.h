@@ -55,13 +55,18 @@ struct D3DTextureTile : public TextureTile
 };
 
 // Full Direct3D texture data
-struct D3DTextureData : TextureData
+struct D3DTexture : Texture
 {
     IDirect3DVertexBuffer9 *_vertex = nullptr;
     D3DTextureTile *_tiles = nullptr;
     size_t _numTiles = 0;
 
-    ~D3DTextureData();
+    D3DTexture(const GraphicResolution &res, bool rt)
+        : Texture(res, rt) {}
+    D3DTexture(uint32_t id, const GraphicResolution &res, bool rt)
+        : Texture(id, res, rt) {}
+    ~D3DTexture();
+    size_t GetMemSize() const override;
 };
 
 class D3DBitmap : public BaseDDB
@@ -78,6 +83,8 @@ public:
         _stretchToHeight = height;
         _useResampler = useResampler;
     }
+    int GetWidthToRender() { return _stretchToWidth; }
+    int GetHeightToRender() { return _stretchToHeight; }
     // Rotation is set in degrees, clockwise
     void SetRotation(float degrees) override { _rotation = -Common::Math::DegreesToRadians(degrees); }
     void SetLightLevel(int lightLevel) override { _lightLevel = lightLevel; }
@@ -90,8 +97,25 @@ public:
     }
     void SetBlendMode(Common::BlendMode blendMode) override  { _blendMode = blendMode; }
 
+    // Tells if this DDB has an actual render data assigned to it.
+    bool IsValid() override { return _data != nullptr; }
+    // Attaches new texture data, sets basic render rules
+    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
+    {
+        _data = std::static_pointer_cast<D3DTexture>(txdata);
+        _width = _stretchToWidth = _data->Res.Width;
+        _height = _stretchToHeight = _data->Res.Height;
+        _colDepth = _data->Res.ColorDepth;
+        _opaque = opaque;
+    }
+    // Detach any internal texture data from this DDB, make this an empty object
+    void DetachData() override
+    {
+        _data = nullptr;
+    }
+
     // Direct3D texture data
-    std::shared_ptr<D3DTextureData> _data;
+    std::shared_ptr<D3DTexture> _data;
     // Optional surface for rendering onto a texture
     IDirect3DSurface9 *_renderSurface {};
     TextureHint _renderHint = kTxHint_Normal;
@@ -125,9 +149,6 @@ public:
         _opaque = opaque;
         _blendMode = Common::kBlend_Normal;
     }
-
-    int GetWidthToRender() const { return _stretchToWidth; }
-    int GetHeightToRender() const { return _stretchToHeight; }
 
     // Releases internal texture data only, keeping the base struct
     void ReleaseTextureData();
@@ -200,6 +221,9 @@ class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 public:
     const char*GetDriverName() override { return "Direct3D 9"; }
     const char*GetDriverID() override { return "D3D9"; }
+
+    bool ShouldReleaseRenderTargets() override { return true; }
+
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_sz) override;
@@ -212,10 +236,20 @@ public:
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
+    size_t GetAvailableTextureMemory() override;
+
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
     void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap) override;
-    void DestroyDDBImpl(IDriverDependantBitmap* ddb) override;
+    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+
+    // Create texture data with the given parameters
+    Texture *CreateTexture(int width, int height, bool opaque = false, bool as_render_target = false) override;
+    // Update texture data from the given bitmap
+    void UpdateTexture(Texture *txdata, Bitmap *bitmap, bool opaque) override;
+    // Retrieve shared texture data object from the given DDB
+    std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
+
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
          { DrawSprite(x, y, x, y, ddb); }
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
@@ -233,9 +267,6 @@ public:
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
-    bool RequiresFullRedrawEachFrame() override { return true; }
-    bool HasAcceleratedTransform() override { return true; }
-    bool ShouldReleaseRenderTargets() override { return true; }
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 
@@ -250,15 +281,9 @@ public:
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
 
-    // Create texture data with the given parameters
-    TextureData *CreateTextureData(int width, int height, bool as_render_target) override;
-    // Update texture data from the given bitmap
-    void UpdateTextureData(TextureData *txdata, Bitmap *bitmap, bool opaque) override;
-    // Create DDB using preexisting texture data
-    IDriverDependantBitmap *CreateDDB(std::shared_ptr<TextureData> txdata,
-        int width, int height, int color_depth, bool opaque) override;
-    // Retrieve shared texture data object from the given DDB
-    std::shared_ptr<TextureData> GetTextureData(IDriverDependantBitmap *ddb) override;
+    // Create DDB using preexisting texture
+    IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override;
+
     size_t GetLastDrawEntryIndex() override { return _spriteList.size(); }
 
 private:

@@ -86,8 +86,25 @@ extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
 
-RGB palette[256];
 
+// TODO: refactor the draw unit into a virtual interface with
+// two implementations: for software and video-texture render,
+// instead of checking whether the current method is "software".
+struct DrawState
+{
+    // Whether we should use software rendering methods
+    // (aka raw draw), as opposed to video texture transform & fx
+    bool SoftwareRender = false;
+    // Whether we should redraw whole game screen each frame
+    bool FullFrameRedraw = false;
+    // Walk-behinds representation
+    WalkBehindMethodEnum WalkBehindMethod = DrawAsSeparateSprite;
+    // Whether there are currently remnants of a on-screen effect
+    bool ScreenIsDirty = false;
+};
+
+DrawState drawstate;
+RGB palette[256];
 COLOR_MAP maincoltable;
 
 IGraphicsDriver *gfxDriver = nullptr;
@@ -167,6 +184,124 @@ struct ObjectCache
         , zoom(zoom_), rotation(rotation_), mirrored(mirror_), x(posx_), y(posy_) { }
 };
 
+//
+// TextureCache class stores textures created by the GraphicsDriver from plain bitmaps.
+// Consists of two parts:
+// * A long-term MRU cache, which keeps texture data even when it's not in immediate use,
+//   and disposes less used textures to free space when reaching the configured mem limit.
+// * A short-term cache of texture references, which keeps only weak refs to the textures
+//   that are currently in use. This short-term cache lets to keep reusing same texture
+//   so long as there's at least one object on screen that uses it.
+// NOTE: because of this two-component structure, TextureCache has to override
+// number of ResourceCache's parent methods. This design may probably be improved.
+class TextureCache :
+    public ResourceCache<uint32_t, std::shared_ptr<Texture>>
+{
+public:
+    // Gets existing texture from either MRU cache, or short-term cache
+    const std::shared_ptr<Texture> Get(const uint32_t &sprite_id)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        if (sprite_id == UINT32_MAX)
+            return nullptr;
+
+        // Begin getting texture data, first check the MRU cache
+        auto txdata = ResourceCache::Get(sprite_id);
+        if (txdata)
+            return txdata;
+
+        // If not found in MRU cache, try the short-term cache, which
+        // may still hold it so long as there are active textures on screen
+        const auto found = _txRefs.find(sprite_id);
+        if (found != _txRefs.end())
+        {
+            txdata = found->second.lock();
+            // If found, then cache the texture again, and return
+            if (txdata)
+            {
+                Put(sprite_id, txdata);
+                return txdata;
+            }
+        }
+        return nullptr;
+    }
+
+    // Gets existing texture, or load a sprite and create texture from it;
+    // optionally, if "source" bitmap is provided, then use it
+    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, Bitmap *source, bool opaque)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        if (sprite_id == UINT32_MAX)
+            return nullptr;
+
+        // Try getting existing texture first
+        auto txdata = Get(sprite_id);
+        if (txdata)
+            return txdata;
+
+        // If not in any cache, then try loading the sprite's bitmap,
+        // and create a texture data from it
+        Bitmap *bitmap = source ? source : spriteset[sprite_id];
+        if (!bitmap)
+            return nullptr;
+
+        txdata.reset(gfxDriver->CreateTexture(bitmap, opaque));
+        if (!txdata)
+            return nullptr;
+
+        txdata->ID = sprite_id;
+        _txRefs[sprite_id] = txdata;
+        Put(sprite_id, txdata);
+        return txdata;
+    }
+
+    // Deletes the cached item
+    void Dispose(const uint32_t &sprite_id)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        // Reset sprite ID for any remaining shared txdata
+        DetachSharedTexture(sprite_id);
+        ResourceCache::Dispose(sprite_id);
+    }
+
+    // Removes the item from the cache and returns to the caller.
+    std::shared_ptr<Texture> Remove(const uint32_t &sprite_id)
+    {
+        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
+        // Reset sprite ID for any remaining shared txdata
+        DetachSharedTexture(sprite_id);
+        return ResourceCache::Remove(sprite_id);
+    }
+
+private:
+    size_t CalcSize(const std::shared_ptr<Texture> &item) override
+    {
+        assert(item);
+        return item ? item->GetMemSize() : 0u;
+    }
+
+    // Marks a shared texture with the invalid sprite ID,
+    // this logically disconnects this texture from the cache,
+    // and the game objects will be forced to recreate it on the next update
+    void DetachSharedTexture(uint32_t sprite_id)
+    {
+        const auto found = _txRefs.find(sprite_id);
+        if (found != _txRefs.end())
+        {
+            auto txdata = found->second.lock();
+            if (txdata)
+                txdata->ID = UINT32_MAX;
+            _txRefs.erase(sprite_id);
+        }
+    }
+
+    // Texture short-term cache:
+    // - caches textures while they are in the immediate use;
+    // - this lets to share same texture data among multiple sprites on screen.
+    typedef std::weak_ptr<Texture> TexDataRef;
+    std::unordered_map<uint32_t, TexDataRef> _txRefs;
+} texturecache;
+
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);
 // objects sprites begin with index 0, characters are after ACTSP_OBJSOFF
@@ -190,6 +325,8 @@ RoomAreaMask debugRoomMask = kRoomAreaNone;
 ObjTexture debugRoomMaskObj;
 int debugMoveListChar = -1;
 ObjTexture debugMoveListObj;
+// For in-game "console" surface
+Bitmap *debugConsoleBuffer = nullptr;
 
 // Cached character and object states, used to determine
 // whether these require texture update
@@ -197,10 +334,12 @@ std::vector<ObjectCache> charcache;
 ObjectCache objcache[MAX_ROOM_OBJECTS];
 std::vector<Point> screenovercache;
 
-bool current_background_is_dirty = false;
-
 // Room background sprite
 IDriverDependantBitmap* roomBackgroundBmp = nullptr;
+// Whether room bg was modified
+bool current_background_is_dirty = false;
+
+
 // Buffer and info flags for viewport/camera pairs rendering in software mode
 struct RoomCameraDrawData
 {
@@ -238,12 +377,7 @@ std::vector<SpriteListEntry> thingsToDrawList;
 // sprlist - will be sorted using baseline and appended to main list
 std::vector<SpriteListEntry> sprlist;
 
-
-Bitmap *debugConsoleBuffer = nullptr;
-
-// whether there are currently remnants of a DisplaySpeech
-bool screen_is_dirty = false;
-
+// For raw drawing
 Bitmap *raw_saved_screen = nullptr;
 Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
@@ -251,8 +385,6 @@ Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 void setpal() {
     set_palette_range(palette, 0, 255, 0);
 }
-
-int _places_r = 3, _places_g = 2, _places_b = 3;
 
 // PSP: convert 32 bit RGB to BGR.
 Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
@@ -443,14 +575,26 @@ int MakeColor(int color_index)
 
 void init_draw_method()
 {
-    if (gfxDriver->HasAcceleratedTransform())
+    drawstate.SoftwareRender = !gfxDriver->HasAcceleratedTransform();
+    drawstate.FullFrameRedraw = gfxDriver->RequiresFullRedrawEachFrame();
+
+    if (drawstate.SoftwareRender)
     {
-        walkBehindMethod = DrawAsSeparateSprite;
-        create_blank_image(game.GetColorDepth());
+        drawstate.SoftwareRender = true;
+        drawstate.WalkBehindMethod = DrawOverCharSprite;
     }
     else
     {
-        walkBehindMethod = DrawOverCharSprite;
+        drawstate.WalkBehindMethod = DrawAsSeparateSprite;
+        create_blank_image(game.GetColorDepth());
+        size_t tx_cache_size = usetup.TextureCacheSize * 1024;
+        // If graphics driver can report available texture memory,
+        // then limit the setting by, let's say, 66% of it (we use it for other things)
+        size_t avail_tx_mem = gfxDriver->GetAvailableTextureMemory();
+        if (avail_tx_mem > 0)
+            tx_cache_size = std::min<size_t>(tx_cache_size, avail_tx_mem * 0.66);
+        texturecache.SetMaxCacheSize(tx_cache_size);
+        Debug::Printf("Texture cache set: %zu KB", tx_cache_size / 1024);
     }
 
     on_mainviewport_changed();
@@ -566,7 +710,7 @@ void release_drawobj_rendertargets()
 
 void on_mainviewport_changed()
 {
-    if (!gfxDriver->RequiresFullRedrawEachFrame())
+    if (!drawstate.FullFrameRedraw)
     {
         const auto &view = play.GetMainViewport();
         set_invalidrects_globaloffs(view.Left, view.Top);
@@ -628,12 +772,20 @@ void sync_roomview(Viewport *view)
 
 void init_room_drawdata()
 {
+    if (displayed_room < 0)
+        return; // not loaded yet
+
+    if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
+    {
+        walkbehinds_generate_sprites();
+    }
+
     // Update debug overlays, if any were on
     debug_draw_room_mask(debugRoomMask);
     debug_draw_movelist(debugMoveListChar);
 
     // Following data is only updated for software renderer
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
         return;
     // Make sure all frame buffers are created for software drawing
     int view_count = play.GetRoomViewportCount();
@@ -644,7 +796,7 @@ void init_room_drawdata()
 
 void on_roomviewport_created(int index)
 {
-    if (!gfxDriver || gfxDriver->RequiresFullRedrawEachFrame())
+    if (!gfxDriver || drawstate.FullFrameRedraw)
         return;
     if ((size_t)index < CameraDrawData.size())
         return;
@@ -653,7 +805,7 @@ void on_roomviewport_created(int index)
 
 void on_roomviewport_deleted(int index)
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
         return;
     CameraDrawData.erase(CameraDrawData.begin() + index);
     delete_invalid_regions(index);
@@ -661,7 +813,7 @@ void on_roomviewport_deleted(int index)
 
 void on_roomviewport_changed(Viewport *view)
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
@@ -680,7 +832,7 @@ void on_roomviewport_changed(Viewport *view)
 
 void detect_roomviewport_overlaps(size_t z_index)
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
         return;
     // Find out if we overlap or are overlapped by anything;
     const auto &viewports = play.GetRoomViewportsZOrdered();
@@ -709,7 +861,7 @@ void detect_roomviewport_overlaps(size_t z_index)
 
 void on_roomcamera_changed(Camera *cam)
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
         return;
     if (cam->HasChangedSize())
     {
@@ -758,14 +910,45 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
     }
 }
 
+void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size)
+{
+    max_size = texturecache.GetMaxCacheSize();
+    cur_size = texturecache.GetCacheSize();
+    locked_size = texturecache.GetLockedSize();
+    ext_size = texturecache.GetExternalSize();
+}
+
+void update_shared_texture(uint32_t sprite_id)
+{
+    auto txdata = texturecache.Get(sprite_id);
+    if (!txdata)
+        return;
+    const auto &res = txdata->Res;
+    if (res.Width == game.SpriteInfos[sprite_id].Width &&
+        res.Height == game.SpriteInfos[sprite_id].Height)
+    {
+        gfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id], false);
+    }
+    else
+    {
+        // Remove texture from cache, assume it will be recreated on demand
+        texturecache.Dispose(sprite_id);
+    }
+}
+
+void clear_shared_texture(uint32_t sprite_id)
+{
+    texturecache.Dispose(sprite_id);
+}
+
 void mark_screen_dirty()
 {
-    screen_is_dirty = true;
+    drawstate.ScreenIsDirty = true;
 }
 
 bool is_screen_dirty()
 {
-    return screen_is_dirty;
+    return drawstate.ScreenIsDirty;
 }
 
 void invalidate_screen()
@@ -833,12 +1016,11 @@ extern volatile bool want_exit, abort_engine;
 
 void render_to_screen()
 {
-    const bool full_frame_rend = gfxDriver->RequiresFullRedrawEachFrame();
     // Stage: final plugin callback (still drawn on game screen
     if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(full_frame_rend), (GraphicFlip)play.screen_flipped);
+            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
@@ -862,7 +1044,7 @@ void render_to_screen()
     {
         try
         {
-            if (full_frame_rend)
+            if (drawstate.FullFrameRedraw)
             {
                 gfxDriver->Render();
             }
@@ -932,28 +1114,49 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot
     draw_sprite_support_alpha(ds, xpos, ypos, spriteset[src_slot], blend_mode, alpha);
 }
 
-
-Engine::IDriverDependantBitmap* recycle_ddb_sprite(Engine::IDriverDependantBitmap *ddb, uint32_t sprite_id,
+IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool opaque)
 {
-    // no ddb, - get or create shared object
-    if (!ddb)
-        return gfxDriver->GetSharedDDB(sprite_id, source, opaque);
-    // same sprite id, - use existing
-    if ((sprite_id != UINT32_MAX) && (ddb->GetRefID() == sprite_id))
-        return ddb;
-    // not related to a sprite ID, but has same resolution, -
-    // repaint directly from the given bitmap
-    if ((sprite_id == UINT32_MAX) &&
-        (ddb->GetColorDepth() == source->GetColorDepth()) &&
-        (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))
-    {
+    assert(source);
+    if (ddb && (drawstate.SoftwareRender || (ddb->GetColorDepth() == source->GetColorDepth()) &&
+            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight())))
         gfxDriver->UpdateDDBFromBitmap(ddb, source);
+    else if (ddb)
+        ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, opaque)), opaque);
+    else
+        ddb = gfxDriver->CreateDDBFromBitmap(source, opaque);
+    return ddb;
+}
+
+IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t sprite_id,
+    Common::Bitmap *source, bool opaque)
+{
+    // If sprite_id is not cachable, then fallback to a simpler variant
+    if (drawstate.SoftwareRender || sprite_id == UINT32_MAX)
+    {
+        if (!source && (sprite_id < UINT32_MAX))
+            source = spriteset[sprite_id];
+        return recycle_ddb_bitmap(ddb, source, opaque);
+    }
+
+    // TODO: how to test if sprite was modified, while NOT cached? Is GetRefID enough for this? maybe....
+    if (ddb && ddb->GetRefID() == sprite_id)
+        return ddb; // texture in sync
+
+    auto txdata = texturecache.GetOrLoad(sprite_id, source, opaque);
+    if (!txdata)
+    {
+        // On failure - invalidate ddb (we don't want to draw old pixels)
+        if (ddb)
+            ddb->DetachData();
         return ddb;
     }
-    // have to recreate ddb
-    gfxDriver->DestroyDDB(ddb);
-    return gfxDriver->GetSharedDDB(sprite_id, source, opaque);
+
+    if (ddb)
+        ddb->AttachData(txdata, opaque);
+    else
+        ddb = gfxDriver->CreateDDB(txdata, opaque);
+    return ddb;
 }
 
 IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
@@ -968,8 +1171,8 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
 // FIXME: make opaque a property of ObjTexture?!
 static void sync_object_texture(ObjTexture &obj, bool opaque = false)
 {
-    Bitmap *use_bmp = obj.Bmp.get() ? obj.Bmp.get() : spriteset[obj.SpriteID];
-    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, use_bmp, opaque);
+    // TODO: test if source bitmap was modified, if not then return?
+    obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, obj.Bmp.get(), opaque);
 }
 
 //------------------------------------------------------------------------
@@ -1018,7 +1221,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, const 
     sprite.y = y;
     sprite.aabb = aabb;
 
-    if (walkBehindMethod == DrawAsSeparateSprite)
+    if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
         sprite.takesPriorityIfEqual = !isWalkBehind;
     else
         sprite.takesPriorityIfEqual = isWalkBehind;
@@ -1165,9 +1368,10 @@ void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, 
 void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int width, int height, int rot_degrees)
 {
     // Calculate all supported GUI transforms
-    Size final_sz = gfxDriver->HasAcceleratedTransform() ?
-        Size(width, height) :
-        RotateSize(Size(width, height), rot_degrees);
+    Size final_sz = drawstate.SoftwareRender ?
+        RotateSize(Size(width, height), rot_degrees) :
+        Size(width, height);
+
     if (raw && raw->GetSize() == final_sz)
         return; // all is fine
     delete raw;
@@ -1494,11 +1698,13 @@ static bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int width, int h
     return result != src;
 }
 
-// Create the 'actsp' image with the object drawn correctly.
-// Returns true if nothing at all has changed and actsps is still
-// intact from last time; false otherwise.
+// Prepares the ObjTexture 'actsp' for an arbitrary room entity.
+// Records visual parameters in ObjectCache 'objsav'.
+// Returns true if actsp's raw image was not changed and actsps is still
+// intact from last time; false otherwise, which means that the raw bitmap
+// was redrawn.
 // Hardware-accelerated renderers always return true, because they do not
-// require altering the raw bitmap itself.
+// require preparing the raw bitmap.
 // Except if alwaysUseSoftware is set, in which case even HW renderers
 // construct the image in software mode as well.
 static bool construct_object_gfx(const ViewFrame *vf, int pic,
@@ -1510,7 +1716,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     bool optimize_by_position, // allow to optimize walk-behind merging using object's pos
     bool force_software)
 {
-    const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
+    const bool use_hw_transform = !force_software && !drawstate.SoftwareRender;
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
@@ -1549,10 +1755,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
 
     actsp.SpriteID = pic; // for texture sharing
 
-    // NOTE: we need cached bitmap if:
-    // * it's a software renderer, otherwise
-    // * the walk-behind method is DrawOverCharSprite
-    if ((use_hw_transform) && (walkBehindMethod != DrawOverCharSprite))
+    // Hardware accelerated mode: always use original sprite and apply texture transform
+    if (use_hw_transform)
     {
         // HW acceleration
         const bool is_texture_intact = objsav.sppic == specialpic;
@@ -1572,9 +1776,9 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     //
     // Software mode below
     //
-    if ((!use_hw_transform) && (gfxDriver->HasAcceleratedTransform()))
+    // They want to draw it in software mode with the hw driver, so force a redraw (???)
+    if (!drawstate.SoftwareRender)
     {
-        // They want to draw it in software mode with the D3D driver, so force a redraw
         objsav.sppic = INT32_MIN;
     }
 
@@ -1591,7 +1795,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         (objsav.rotation == objsrc.rotation) &&
         (objsav.mirrored == is_mirrored)) {
             // the image is the same, we can use it cached!
-        if ((walkBehindMethod != DrawOverCharSprite) &&
+        if ((drawstate.WalkBehindMethod != DrawOverCharSprite) &&
             (actsp.Bmp != nullptr))
         {
             return true;
@@ -1616,21 +1820,16 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     const int coldept = sprite->GetColorDepth();
     const int src_sprwidth = sprite->GetWidth();
     const int src_sprheight = sprite->GetHeight();
-    bool actsps_used = false;
-    if (!use_hw_transform)
-    {
-        // draw the base sprite, scaled and flipped as appropriate
-        actsps_used = scale_and_flip_sprite(actsp, pic, scale_size.Width, scale_size.Height, objsrc.rotation, is_mirrored);
-    }
+    // draw the base sprite, scaled and flipped as appropriate
+    bool actsps_used = scale_and_flip_sprite(actsp, pic, scale_size.Width, scale_size.Height, objsrc.rotation, is_mirrored);
     if (!actsps_used)
     {
         // ensure actsps exists // CHECKME: why do we need this in hardware accel mode too?
         recycle_bitmap(actsp.Bmp, coldept, src_sprwidth, src_sprheight);
     }
 
-    // apply tints or lightenings where appropriate, else just copy
-    // the source bitmap
-    if (!use_hw_transform && ((tint_level > 0) || (light_level != 0)))
+    // apply tints or lightenings where appropriate, else just copy the source bitmap
+    if ((tint_level > 0) || (light_level != 0))
     {
         // direct read from source bitmap, where possible
         Bitmap *blit_from = nullptr;
@@ -1666,8 +1865,10 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     return false; // image was modified
 }
 
-// Generate object's raw sprite bitmap, update the object's texture
-// from the sprite, add the object's texture to the draw list.
+// Do last time setup to the ObjTexture 'actsp', prepare the final texture.
+// Applies walk-behinds to an object's raw bitmap if necessary (software mode);
+// update the object's texture from the sprite if necessary,
+// apply texture parameters from ObjectCache 'objsav'.
 // - atx and aty are coordinates of the top-left object's corner in the room;
 // - usebasel is object's z-order, it may be modified within the function;
 // TODO: possibly makes sense to split this function into parts later.
@@ -1678,12 +1879,12 @@ void prepare_and_add_object_gfx(
     int atx, int aty, int &usebasel, bool use_walkbehinds,
     Pointf origin, int transparency, BlendMode blend_mode, bool hw_accel)
 {
-    // Handle the walk-behinds, according to the walkBehindMethod.
+    // Handle the walk-behinds, according to the WalkBehindMethod.
     // This potentially may edit actsp's raw bitmap if actsp_modified is set.
     if (use_walkbehinds)
     {
         // Only merge sprite with the walk-behinds in software mode
-        if ((walkBehindMethod == DrawOverCharSprite) && (actsp_modified))
+        if ((drawstate.WalkBehindMethod == DrawOverCharSprite) && (actsp_modified))
         {
             walkbehinds_cropout(actsp.Bmp.get(), atx, aty, usebasel);
         }
@@ -1692,7 +1893,7 @@ void prepare_and_add_object_gfx(
     {
         // Ignore walk-behinds by shifting baseline to a larger value
         // CHECKME: may this fail if WB somehow got larger than room baseline?
-        if (walkBehindMethod == DrawAsSeparateSprite)
+        if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
         {
             usebasel += thisroom.Height;
         }
@@ -1733,7 +1934,9 @@ void prepare_and_add_object_gfx(
     actsp.Ddb->SetBlendMode(blend_mode);
 }
 
-// Generates RoomObject's raw bitmap and saves in actsps; updates object cache.
+// Prepares a actsps element for RoomObject; updates object cache.
+// Software mode draws an actual bitmap in actsp, hardware mode only
+// assigns parameters, which may further be assigned to a texture.
 bool construct_object_gfx(int objid, bool force_software)
 {
     const RoomObject &obj = objs[objid];
@@ -1759,7 +1962,7 @@ bool construct_object_gfx(int objid, bool force_software)
 void prepare_objects_for_drawing()
 {
     our_eip=32;
-    const bool hw_accel = gfxDriver->HasAcceleratedTransform();
+    const bool hw_accel = !drawstate.SoftwareRender;
 
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
     {
@@ -1838,11 +2041,11 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 }
 
 
-// Generates Character's raw bitmap and saves in actsps; updates character cache.
+// Prepares a actsps element for Character; updates character cache.
+// Software mode draws an actual bitmap in actsp, hardware mode only
+// assigns parameters, which may further be assigned to a texture.
 bool construct_char_gfx(int charid, bool force_software)
 {
-    const bool use_hw_transform = !force_software && gfxDriver->HasAcceleratedTransform();
-
     const CharacterInfo &chin = game.chars[charid];
     const CharacterExtras &chex = charextra[charid];
     const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];
@@ -1869,7 +2072,7 @@ bool construct_char_gfx(int charid, bool force_software)
 void prepare_characters_for_drawing()
 {
     our_eip=33;
-    const bool hw_accel = gfxDriver->HasAcceleratedTransform();
+    const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
     for (uint32_t charid = 0; charid < game.numcharacters; ++charid)
@@ -1950,11 +2153,11 @@ void prepare_room_sprites()
         roomBackgroundBmp =
             recycle_ddb_bitmap(roomBackgroundBmp, thisroom.BgFrames[play.bg_frame].Graphic.get(), true /*opaque*/);
     }
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
     {
         if (current_background_is_dirty || walkBehindsCachedForBgNum != play.bg_frame)
         {
-            if (walkBehindMethod == DrawAsSeparateSprite)
+            if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
                 walkbehinds_generate_sprites();
             }
@@ -1975,7 +2178,7 @@ void prepare_room_sprites()
         {
             our_eip = 34;
 
-            if (walkBehindMethod == DrawAsSeparateSprite)
+            if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
                 for (size_t wb = 1 /* 0 is "no area" */;
                     (wb < MAX_WALK_BEHINDS) && (wb < walkbehindobj.size()); ++wb)
@@ -2011,7 +2214,7 @@ void prepare_room_sprites()
 // Draws the black surface behind (or rather between) the room viewports
 void draw_preroom_background()
 {
-    if (gfxDriver->RequiresFullRedrawEachFrame())
+    if (drawstate.FullFrameRedraw)
         return;
     update_black_invreg_and_reset(gfxDriver->GetMemoryBackBuffer());
 }
@@ -2168,7 +2371,7 @@ void draw_gui_and_overlays()
 
     clear_sprite_list();
 
-    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+    const bool is_3d_render = !drawstate.SoftwareRender;
     const bool draw_controls_as_textures = is_3d_render;
 
     // Add overlays
@@ -2376,7 +2579,7 @@ static void construct_room_view()
         const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
             camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
 
-        if (gfxDriver->RequiresFullRedrawEachFrame())
+        if (drawstate.FullFrameRedraw)
         {
             // For hw renderer we draw everything as a sprite stack;
             // viewport-camera pair is done as 2 nested scene nodes,
@@ -2436,7 +2639,9 @@ static void construct_ui_view()
 // but does not put them on screen yet - that's done in respective construct_*_view functions
 static void construct_overlays()
 {
-    const bool is_3d_render = gfxDriver->HasAcceleratedTransform();
+    const bool is_software_mode = drawstate.SoftwareRender;
+    const bool crop_walkbehinds = (drawstate.WalkBehindMethod == DrawOverCharSprite);
+
     auto &overs = get_overlays();
     if (overlaybmp.size() < overs.size() * 2)
     {
@@ -2450,7 +2655,8 @@ static void construct_overlays()
         if (over.transparency == 255) continue; // skip fully transparent
 
         bool has_changed = over.HasChanged();
-        if (over.IsRoomLayer() && (walkBehindMethod == DrawOverCharSprite))
+        // If walk behinds are drawn over the cached object sprite, then check if positions were updated
+        if (crop_walkbehinds && over.IsRoomLayer())
         {
             Point pos = get_overlay_position(over);
             has_changed |= (pos.X != screenovercache[i].X || pos.Y != screenovercache[i].Y);
@@ -2459,23 +2665,33 @@ static void construct_overlays()
 
         if (has_changed)
         {
-            auto *bmp1 = overlaybmp[i * 2].release();
-            auto *bmp2 = overlaybmp[i * 2 + 1].release();
-            Bitmap *use_bmp = recreate_overlay_image(over, is_3d_render, bmp1, bmp2);
-            overlaybmp[i * 2].reset(bmp1);
-            overlaybmp[i * 2 + 1].reset(bmp2);
-
-            if ((walkBehindMethod == DrawOverCharSprite) && over.IsRoomLayer())
+            // For software mode - prepare transformed bitmap if necessary;
+            // for hardware-accelerated - use the sprite ID if possible, to avoid redundant sprite load
+            Bitmap *use_bmp = nullptr;
+            if (is_software_mode)
             {
-                auto &use_cache = overlaybmp[i * 2 + 1];
-                if (use_bmp != use_cache.get())
+                auto *bmp1 = overlaybmp[i * 2].release();
+                auto *bmp2 = overlaybmp[i * 2 + 1].release();
+                use_bmp = recreate_overlay_image(over, bmp1, bmp2);
+                overlaybmp[i * 2].reset(bmp1);
+                overlaybmp[i * 2 + 1].reset(bmp2);
+                use_bmp = transform_sprite(over.GetImage(), overlaybmp[i], Size(over.scaleWidth, over.scaleHeight));
+                if (crop_walkbehinds && over.IsRoomLayer())
                 {
-                    recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);
-                    use_cache->Blit(use_bmp);
+                    auto &use_cache = overlaybmp[i * 2 + 1];
+                    if (use_bmp != use_cache.get())
+                    {
+                        recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);
+                        use_cache->Blit(use_bmp);
+                    }
+                    Point pos = get_overlay_position(over);
+                    walkbehinds_cropout(use_cache.get(), pos.X, pos.Y, over.zorder);
+                    use_bmp = use_cache.get();
                 }
-                Point pos = get_overlay_position(over);
-                walkbehinds_cropout(use_cache.get(), pos.X, pos.Y, over.zorder);
-                use_bmp = use_cache.get();
+            }
+            else if (over.GetSpriteNum() < 0)
+            {
+                use_bmp = over.GetImage();
             }
 
             over.ddb = recycle_ddb_sprite(over.ddb, over.GetSpriteNum(), use_bmp);
@@ -2521,9 +2737,8 @@ void construct_game_scene(bool full_redraw)
         play.UpdateRoomCameras();
 
     // Begin with the parent scene node, defining global offset and flip
-    bool full_frame_rend = gfxDriver->RequiresFullRedrawEachFrame();
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-        play.GetGlobalTransform(full_frame_rend),
+        play.GetGlobalTransform(drawstate.FullFrameRedraw),
         (GraphicFlip)play.screen_flipped);
 
     // Stage: room viewports
@@ -2533,7 +2748,7 @@ void construct_game_scene(bool full_redraw)
         {
             construct_room_view();
         }
-        else if (!full_frame_rend)
+        else if (!drawstate.FullFrameRedraw)
         {
             // black it out so we don't get cursor trails
             // TODO: this is possible to do with dirty rects system now too (it can paint black rects outside of room viewport)
@@ -2555,9 +2770,8 @@ void construct_game_scene(bool full_redraw)
 
 void construct_game_screen_overlay(bool draw_mouse)
 {
-    const bool full_frame_rend = gfxDriver->RequiresFullRedrawEachFrame();
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(full_frame_rend), (GraphicFlip)play.screen_flipped);
+            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
     {
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
@@ -2579,7 +2793,7 @@ void construct_game_screen_overlay(bool draw_mouse)
     gfxDriver->EndSpriteBatch();
 
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
-    if (full_frame_rend)
+    if (drawstate.FullFrameRedraw)
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
         // Stage: legacy letterbox mode borders
@@ -2662,7 +2876,7 @@ void debug_draw_room_mask(RoomAreaMask mask)
 
     // Software mode scaling
     // note we don't use transparency in software mode - may be slow in hi-res games
-    if (!gfxDriver->HasAcceleratedTransform() &&
+    if (drawstate.SoftwareRender &&
         (mask != kRoomAreaWalkBehind) &&
         (bmp->GetSize() != Size(thisroom.Width, thisroom.Height)))
     {
@@ -2688,7 +2902,7 @@ void update_room_debug()
     {
         Bitmap *bmp = prepare_walkable_areas(-1);
         // Software mode scaling
-        if (!gfxDriver->HasAcceleratedTransform() && (thisroom.MaskResolution > 1))
+        if (drawstate.SoftwareRender && (thisroom.MaskResolution > 1))
         {
             recycle_bitmap(debugRoomMaskObj.Bmp,
                 bmp->GetColorDepth(), thisroom.Width, thisroom.Height);
@@ -2701,13 +2915,13 @@ void update_room_debug()
     }
     if (debugMoveListChar >= 0)
     {
-        const int mult = gfxDriver->HasAcceleratedTransform() ? thisroom.MaskResolution : 1;
-        if (gfxDriver->HasAcceleratedTransform())
-            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
-                thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
-        else
+        const int mult = drawstate.SoftwareRender ? 1 : thisroom.MaskResolution;
+        if (drawstate.SoftwareRender)
             recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
                 thisroom.Width, thisroom.Height, true);
+        else
+            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
+                thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
 
         if (game.chars[debugMoveListChar].walking > 0)
         {
@@ -2750,7 +2964,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();
@@ -2767,5 +2981,5 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         }
     }
 
-    screen_is_dirty = false;
+    drawstate.ScreenIsDirty = false;
 }

@@ -236,8 +236,8 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
     if (filename.FindChar('.') == String::NoIndex)
         filename.Append(".bmp");
 
-    ResolvedPath rp;
-    if (!ResolveWritePathAndCreateDirs(filename, rp))
+    ResolvedPath rp = ResolveWritePathAndCreateDirs(filename);
+    if (!rp)
         return 0;
     return spriteset[sds->slot]->SaveToFile(rp.FullPath, palette) ? 1 : 0;
 }

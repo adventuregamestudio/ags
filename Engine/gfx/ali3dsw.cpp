@@ -330,6 +330,9 @@ void SDLRendererGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitm
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
   alSwBmp->_bmp = bitmap;
+  alSwBmp->_width = bitmap->GetWidth();
+  alSwBmp->_height = bitmap->GetHeight();
+  alSwBmp->_colDepth = bitmap->GetColorDepth();
 }
 
 void SDLRendererGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)

@@ -65,6 +65,8 @@ namespace AGS.Types
             MouseSpeed = 1.0f;
             TouchToMouseEmulation = TouchToMouseEmulationType.OneFinger;
             SpriteCacheSize = 128;
+            TextureCacheSize = 128;
+            SoundCacheSize = 32;
             UseCustomSavePath = false;
             CustomSavePath = "";
             TitleText = _gameSettings.GameName + " Setup";
@@ -307,10 +309,30 @@ namespace AGS.Types
         }
 
         [DisplayName("Sprite cache size (in megabytes)")]
-        [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better perfomance if your game has lots of high-res animations.")]
+        [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better performance if your game has lots of high-res animations.")]
         [DefaultValue(128)]
         [Category("Perfomance")]
         public int SpriteCacheSize
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Texture cache size (in megabytes)")]
+        [Description("The limit for runtime texture cache. The cache is used to keep textures loaded in VRAM (your graphics card memory), and improves performance.")]
+        [DefaultValue(128)]
+        [Category("Perfomance")]
+        public int TextureCacheSize
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Sound cache size (in megabytes)")]
+        [Description("The limit for runtime sound cache. The cache is used to keep small sound clips loaded (typically the ones less than 1 MB each). Bigger cache means less loading of the same clips, such as frame-linked sounds, and improves performance.")]
+        [DefaultValue(32)]
+        [Category("Perfomance")]
+        public int SoundCacheSize
         {
             get;
             set;

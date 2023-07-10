@@ -128,7 +128,7 @@ void DeleteSaveSlot (int slnum) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             thisname = get_save_game_path(i);
-            if (Common::File::TestReadFile(thisname)) {
+            if (Common::File::IsFile(thisname)) {
                 // Rename the highest save game to fill in the gap
                 File::RenameFile(thisname, nametouse);
                 break;
@@ -216,7 +216,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t m
             continue;
         String description;
         GetSaveSlotDescription(saveGameSlot, description);
-        saves.push_back(SaveListItem(saveGameSlot, description, ff.CurrentTime()));
+        saves.push_back(SaveListItem(saveGameSlot, description, ff.GetEntry().Time));
         if (saves.size() >= max_count)
             break;
     }
@@ -627,21 +627,24 @@ int IsKeyPressed (int keycode) {
 }
 
 int SaveScreenShot(const char*namm) {
-    String fileName;
     String svg_dir = get_save_game_directory();
-
-    if (strchr(namm,'.') == nullptr)
-        fileName = Path::MakePath(svg_dir, namm, "bmp");
-    else
-        fileName = Path::ConcatPaths(svg_dir, namm);
-
-    Bitmap *buffer = CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight());
-    if (!buffer->SaveToFile(fileName, palette) != 0)
+    String ext = Path::GetFileExtension(namm);
+    String filename;
+    if (ext.IsEmpty())
     {
-        delete buffer;
-        return 0;
+        ext = "bmp";
+        filename = Path::MakePath(svg_dir, namm, "bmp");
     }
-    delete buffer;
+    else
+    {
+        filename = Path::ConcatPaths(svg_dir, namm);
+    }
+
+    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kFile_Write));
+    if (!out)
+        return 0;
+    std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight()));
+    BitmapHelper::SaveBitmap(ext, out.get(), bmp.get());
     return 1;  // successful
 }
 

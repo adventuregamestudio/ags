@@ -18,10 +18,14 @@
 // in defined set of directories. To ensure that rest of the engine code does
 // not work with explicit paths or creates directories on its own.
 //
+// TODO: have a kind of a virtual game filesystem which provides a map between
+// script tokens and a configurable locations.
+//
 //=============================================================================
 #ifndef __AGS_EE_AC__PATHHELPER_H
 #define __AGS_EE_AC__PATHHELPER_H
 
+#include "util/file.h"
 #include "util/path.h"
 
 using AGS::Common::String;
@@ -71,33 +75,53 @@ FSLocation GetGameUserConfigDir();
 FSLocation GetGameAppDataDir();
 // Returns the directory where this game's saves and user data are to be found
 FSLocation GetGameUserDataDir();
+// Creates all necessary subdirectories inside the safe parent location.
+bool CreateFSDirs(const FSLocation &fs);
 
 // ResolvedPath describes an actual location pointed by a user path (e.g. from script)
 struct ResolvedPath
 {
-    FSLocation Loc;  // location (directory)
+    FSLocation Loc;  // location (directory), includes base and sub parts
     String FullPath; // full path, including filename
-    String AltPath;  // alternative read-only full path, for backwards compatibility
+    String SubPath;  // sub-path, including filename, relative to Loc.BaseDir
     bool   AssetMgr = false; // file is to be accessed through the asset manager
 
     ResolvedPath() = default;
-    ResolvedPath(const String &file, const String &alt = "")
-        : FullPath(file), AltPath(alt) {}
-    ResolvedPath(const FSLocation &loc, const String &file, const String &alt = "")
-        : Loc(loc), FullPath(AGS::Common::Path::ConcatPaths(loc.FullDir, file)), AltPath(alt) {}
+    ResolvedPath(const String &file, bool asset_mgr = false)
+        : FullPath(file), AssetMgr(asset_mgr) {}
+    ResolvedPath(const FSLocation &loc, const String &file)
+        : Loc(loc)
+        , FullPath(AGS::Common::Path::ConcatPaths(loc.FullDir, file))
+        , SubPath(AGS::Common::Path::ConcatPaths(loc.SubDir, file))
+    {}
+
+    operator bool() const { return !FullPath.IsEmpty(); }
 };
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.
-// Fills in ResolvedPath object on success.
+// Fills in ResolvedPath object on success. For read-only access may also fill
+// a backwards-compatible fallback path (alt_rp), if one is available.
 // Returns 'true' on success, and 'false' if either path is impossible to resolve
 // or if the file path is forbidden to be accessed in current situation.
-bool ResolveScriptPath(const String &sc_path, bool read_only, ResolvedPath &rp);
+bool ResolveScriptPath(const String &sc_path, bool read_only, ResolvedPath &rp, ResolvedPath &alt_rp);
+// Resolves the script file path, and seeks for an actual file
+// using case-insensitive search. Looks up for both standard and alt path,
+// if necessary. Fills in the successful ResolvedPath variant.
+// Fails if path could not be resolved, or no matching file was found.
+// WARNING: AssetMgr path is not tested.
+ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only);
 // Resolves a user file path for writing, and makes sure all the sub-directories are
 // created along the actual path.
 // Returns 'true' on success, and 'false' if either path is impossible to resolve,
 // forbidden for writing, or if failed to create any subdirectories.
-bool ResolveWritePathAndCreateDirs(const String &sc_path, ResolvedPath &rp);
-// Creates all necessary subdirectories inside the safe parent location.
-bool CreateFSDirs(const FSLocation &fs);
+ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path);
+// Combines the functionality of the few above functions:
+// resolves the script file path; for read access does CI search,
+// for write access precreates subdirs.
+// Fills a full resolved path, if possible.
+// Returns open stream on success, and null on failure.
+AGS::Common::Stream *ResolveScriptPathAndOpen(const String &sc_path,
+    AGS::Common::FileOpenMode open_mode, AGS::Common::FileWorkMode work_mode,
+    String &res_path);
 
 #endif // __AGS_EE_AC__PATHHELPER_H

@@ -20,6 +20,7 @@
 #include <memory>
 #include <allegro.h> // RGB, PALETTE
 #include <glm/mat4x4.hpp>
+#include "gfx/ddb.h"
 #include "gfx/gfx_def.h"
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
@@ -38,7 +39,6 @@ namespace Engine
 {
 
 // Forward declaration
-class IDriverDependantBitmap;
 class IGfxFilter;
 typedef std::shared_ptr<IGfxFilter> PGfxFilter;
 using Common::PBitmap;
@@ -93,8 +93,19 @@ typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 class IGraphicsDriver
 {
 public:
-  virtual const char*GetDriverName() = 0;
-  virtual const char*GetDriverID() = 0;
+  virtual const char *GetDriverName() = 0;
+  virtual const char *GetDriverID() = 0;
+
+  // Tells if this gfx driver has to redraw whole scene each time
+  virtual bool RequiresFullRedrawEachFrame() = 0;
+  // Tells if this gfx driver uses GPU to transform sprites
+  virtual bool HasAcceleratedTransform() = 0;
+  // Tells if this gfx driver draws on a virtual screen before rendering on real screen.
+  virtual bool UsesMemoryBackBuffer() = 0;
+  // Tells if this gfx driver requires releasing render targets
+  // in case of display mode change or reset.
+  virtual bool ShouldReleaseRenderTargets() = 0;
+
   virtual void SetTintMethod(TintMethod method) = 0;
   // Initialize given display mode
   virtual bool SetDisplayMode(const DisplayMode &mode) = 0;
@@ -129,28 +140,31 @@ public:
   // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
   // Engine needs to have game bitmaps brought to the certain range of formats, easing conversion into the video bitmaps.
   virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
+  // Returns available texture memory, or 0 if this query is not supported
+  virtual size_t GetAvailableTextureMemory() = 0;
 
   // Creates a "raw" DDB, without pixel initialization.
   virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;
+  // Create DDB using preexisting texture data
+  virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque = false) = 0;
   // Creates DDB, initializes from the given bitmap.
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool opaque = false) = 0;
   // Creates DDB intended to be used as a render target (allow render other DDBs on it).
   virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque = false) = 0;
-  // Updates DBB using the given bitmap; bitmap must have same size and format
-  // as the one that this DDB was initialized with.
+  // Updates DBB using the given bitmap; if bitmap has a different resolution,
+  // then creates a new texture data and attaches to DDB
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap) = 0;
-  // Destroy the DDB.
+  // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
-  // Get shared texture from cache, or create from bitmap and assign ID
-  // FIXME: opaque should be either texture data's flag, - in which case same sprite_id
-  // will be either opaque or not opaque, - or DDB's flag, but in that case it cannot
-  // be applied to the shared texture data. Currently it's possible to share same
-  // texture data, but update it with different "opaque" values, which breaks logic.
-  virtual IDriverDependantBitmap *GetSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap = nullptr, bool opaque = false) = 0;
-  virtual void UpdateSharedDDB(uint32_t sprite_id, Common::Bitmap *bitmap = nullptr, bool opaque = false) = 0;
-  // Removes the shared texture reference, will force the texture to recreate next time
-  virtual void ClearSharedDDB(uint32_t sprite_id) = 0;
+  // Create texture data with the given parameters
+  virtual Texture *CreateTexture(int width, int height, bool opaque = false, bool as_render_target = false) = 0;
+  // Create texture and initialize its pixels from the given bitmap
+  virtual Texture *CreateTexture(Common::Bitmap *bmp, bool opaque = false) = 0;
+  // Update texture data from the given bitmap
+  virtual void UpdateTexture(Texture *txdata, Common::Bitmap *bmp, bool opaque = false) = 0;
+  // Retrieve shared texture object from the given DDB
+  virtual std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) = 0;
 
   // Prepares next sprite batch, a list of sprites with defined viewport and optional
   // global model transformation; all subsequent calls to DrawSprite will be adding
@@ -238,15 +252,7 @@ public:
   // These matrixes will be filled in accordance to the renderer's compatible format;
   // returns false if renderer does not use matrixes (not a 3D renderer).
   virtual bool GetStageMatrixes(RenderMatrixes &rm) = 0;
-  // Tells if this gfx driver has to redraw whole scene each time
-  virtual bool RequiresFullRedrawEachFrame() = 0;
-  // Tells if this gfx driver uses GPU to transform sprites
-  virtual bool HasAcceleratedTransform() = 0;
-  // Tells if this gfx driver draws on a virtual screen before rendering on real screen.
-  virtual bool UsesMemoryBackBuffer() = 0;
-  // Tells if this gfx driver requires releasing render targets
-  // in case of display mode change or reset.
-  virtual bool ShouldReleaseRenderTargets() = 0;
+
   virtual ~IGraphicsDriver() = default;
 };
 

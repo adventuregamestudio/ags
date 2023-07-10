@@ -542,13 +542,12 @@ Point update_overlay_graphicspace(ScreenOverlay &over)
     return Point(pos.X, pos.Y);
 }
 
-Bitmap *recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
-    Bitmap *&scalebmp, Bitmap *&rotbmp)
+// For software renderer - apply all supported Overlay transforms
+Bitmap *recreate_overlay_image(ScreenOverlay &over, Bitmap *&scalebmp, Bitmap *&rotbmp)
 {
     Bitmap *pic = over.GetImage();
     Bitmap *use_bmp = pic;
-    // For software renderer - apply all supported Overlay transforms
-    if (!is_3d_render && (over.rotation != 0.0))
+    if (over.rotation != 0.0)
     {
         Size final_sz = RotateSize(use_bmp->GetSize(), over.rotation);
         rotbmp = recycle_bitmap(rotbmp, use_bmp->GetColorDepth(),
@@ -561,7 +560,7 @@ Bitmap *recreate_overlay_image(ScreenOverlay &over, bool is_3d_render,
             use_bmp->GetWidth() / 2, use_bmp->GetHeight() / 2, over.rotation); // clockwise
         use_bmp = rotbmp;
     }
-    if (!is_3d_render && (pic->GetSize() != Size(over.scaleWidth, over.scaleHeight)))
+    if (pic->GetSize() != Size(over.scaleWidth, over.scaleHeight))
     {
         Size final_sz = RotateSize(Size(over.scaleWidth, over.scaleHeight), over.rotation);
         scalebmp = recycle_bitmap(scalebmp, pic->GetColorDepth(), over.scaleWidth, over.scaleHeight);

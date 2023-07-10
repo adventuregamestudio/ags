@@ -237,14 +237,26 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, bool clone)
     return Overlay_CreateGraphicalImpl(false, x, y, slot, clone);
 }
 
+// This is a fallback for running 3.6.0 games, strictly for regression testing convenience
+ScriptOverlay* Overlay_CreateGraphical5(int x, int y, int slot, bool /* dummy */, bool clone)
+{
+    return Overlay_CreateGraphical(x, y, slot, clone);
+}
+
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text)
 {
     return Overlay_CreateTextualImpl(false, x, y, width, font, colour, text);
 }
 
-ScriptOverlay* Overlay_CreateRoomGraphical(int x, int y, int slot,  bool clone)
+ScriptOverlay* Overlay_CreateRoomGraphical(int x, int y, int slot, bool clone)
 {
     return Overlay_CreateGraphicalImpl(true, x, y, slot, clone);
+}
+
+// This is a fallback for running 3.6.0 games, strictly for regression testing convenience
+ScriptOverlay* Overlay_CreateRoomGraphical5(int x, int y, int slot, bool /*dummy*/, bool clone)
+{
+    return Overlay_CreateRoomGraphical(x, y, slot, clone);
 }
 
 ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char* text)
@@ -608,9 +620,19 @@ RuntimeScriptValue Sc_Overlay_CreateGraphical(const RuntimeScriptValue *params, 
     API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptOverlay, Overlay_CreateGraphical);
 }
 
+RuntimeScriptValue Sc_Overlay_CreateGraphical5(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3_PBOOL2(ScriptOverlay, Overlay_CreateGraphical5);
+}
+
 RuntimeScriptValue Sc_Overlay_CreateRoomGraphical(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT3_PBOOL(ScriptOverlay, Overlay_CreateRoomGraphical);
+}
+
+RuntimeScriptValue Sc_Overlay_CreateRoomGraphical5(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3_PBOOL2(ScriptOverlay, Overlay_CreateRoomGraphical5);
 }
 
 RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, int32_t param_count)
@@ -791,8 +813,10 @@ void RegisterOverlayAPI()
     // WARNING: Overlay.CreateGraphical and CreateRoomGraphical have 1 param REMOVED since ags4
     ScFnRegister overlay_api[] = {
         { "Overlay::CreateGraphical^4",   API_FN_PAIR(Overlay_CreateGraphical) },
+        { "Overlay::CreateGraphical^5",   API_FN_PAIR(Overlay_CreateGraphical5) },
         { "Overlay::CreateTextual^106",   Sc_Overlay_CreateTextual, ScPl_Overlay_CreateTextual },
         { "Overlay::CreateRoomGraphical^4", API_FN_PAIR(Overlay_CreateRoomGraphical) },
+        { "Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical5) },
         { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },

@@ -303,6 +303,13 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot)
     return new_spr;
 }
 
+// This is a fallback for running 3.6.0 games, strictly for regression testing convenience;
+// NOTE: maybe we will have second arg back as a "sprite format" later
+ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite2(int slot, int /*dummy*/)
+{
+    return DynamicSprite_CreateFromExistingSprite(slot);
+}
+
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
 {
     int gotSlot = spriteset.GetFreeIndex();
@@ -530,6 +537,11 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(const RuntimeScript
     API_SCALL_OBJAUTO_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite);
 }
 
+RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite2);
+}
+
 // ScriptDynamicSprite* (const char *filename)
 RuntimeScriptValue Sc_DynamicSprite_CreateFromFile(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -557,6 +569,7 @@ void RegisterDynamicSpriteAPI()
         { "DynamicSprite::CreateFromBackground",      API_FN_PAIR(DynamicSprite_CreateFromBackground) },
         { "DynamicSprite::CreateFromDrawingSurface^5", API_FN_PAIR(DynamicSprite_CreateFromDrawingSurface) },
         { "DynamicSprite::CreateFromExistingSprite^1", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite) },
+        { "DynamicSprite::CreateFromExistingSprite^2", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite2) },
         { "DynamicSprite::CreateFromFile",            API_FN_PAIR(DynamicSprite_CreateFromFile) },
         { "DynamicSprite::CreateFromSaveGame",        API_FN_PAIR(DynamicSprite_CreateFromSaveGame) },
         { "DynamicSprite::CreateFromScreenShot",      API_FN_PAIR(DynamicSprite_CreateFromScreenShot) },

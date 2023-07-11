@@ -62,7 +62,7 @@ namespace AGS
           }
 			  }
 			  mainScript = tcv->Convert(preProcessedScripts[preProcessedScripts->Length - 1]);
-			  mainScriptName = tcv->Convert(script->FileName);
+			  mainScriptName = TextHelper::ConvertASCII(script->FileName);
 
 			  ccSetSoftwareVersion(editorVersionNumber.GetCStr());
 

@@ -625,15 +625,15 @@ PACKFILE *PackfileFromAsset(const AssetPath &path)
 String find_assetlib(const String &filename)
 {
     String libname = File::FindFileCI(ResPaths.DataDir, filename);
-    if (AssetManager::IsDataFile(libname))
+    if (!libname.IsEmpty() && AssetManager::IsDataFile(libname))
         return libname;
     if (!ResPaths.DataDir2.IsEmpty() &&
         Path::ComparePaths(ResPaths.DataDir, ResPaths.DataDir2) != 0)
     {
-      // Hack for running in Debugger
-      libname = File::FindFileCI(ResPaths.DataDir2, filename);
-      if (AssetManager::IsDataFile(libname))
-        return libname;
+        // Hack for running in Debugger
+        libname = File::FindFileCI(ResPaths.DataDir2, filename);
+        if (!libname.IsEmpty() && AssetManager::IsDataFile(libname))
+            return libname;
     }
     return "";
 }

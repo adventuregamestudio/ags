@@ -162,18 +162,21 @@ bool AssetManager::DoesAssetExist(const String &asset_name, const String &filter
 {
     for (const auto &lib : _activeLibs)
     {
-        if (!lib->TestFilter(filter)) continue; // filter does not match
+        if (!lib->TestFilter(filter))
+            continue; // filter does not match
 
         if (IsAssetLibDir(lib))
         {
             String filename = File::FindFileCI(lib->BaseDir, asset_name);
-            if (!filename.IsEmpty() && File::IsFile(filename)) return true;
+            if (!filename.IsEmpty())
+                return true;
         }
         else
         {
             for (const auto &a : lib->AssetInfos)
             {
-                if (a.FileName.CompareNoCase(asset_name) == 0) return true;
+                if (a.FileName.CompareNoCase(asset_name) == 0)
+                    return true;
             }
         }
     }

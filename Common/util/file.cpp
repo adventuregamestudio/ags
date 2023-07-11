@@ -253,8 +253,15 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
     bool is_dir, String *most_found, String *not_found)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
-    // Simply concat dir and filename paths
-    return Path::ConcatPaths(base_dir, file_name);
+    // Simply try a match
+    String path = Path::ConcatPaths(base_dir, file_name);
+    if ((is_dir && ags_directory_exists(path.GetCStr())) ||
+        (!is_dir && ags_file_exists(path.GetCStr())))
+        return path; // success
+    // TODO: this is never used, but for a formal consistency might
+    // support searching for an existing part of the path, and fill
+    // most_found & not_found
+    return {}; // fail
 #else
     if (most_found)
         *most_found = base_dir;

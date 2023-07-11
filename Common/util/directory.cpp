@@ -169,6 +169,7 @@ struct DirectoryIterator::Internal
 #if AGS_PLATFORM_OS_WINDOWS
     HANDLE ff = nullptr;
     WIN32_FIND_DATAW fdata = {};
+    bool processed = false;
 #else
     DIR *dir = nullptr;
     struct dirent *ent = nullptr;
@@ -239,7 +240,7 @@ DirectoryIterator DirectoryIterator::Open(const String &path)
 #endif // POSIX
 
     DirectoryIterator di(path, std::move(diint));
-    di.Next(); // get first entry
+    di.Next(); // get first valid entry
     return di; // we return a valid object even if nothing was found
 }
 
@@ -291,28 +292,28 @@ bool DirectoryIterator::Next()
 {
     if (!_i)
         return false;
+    _current.Empty();
     _fileEntry = FileEntry(); // reset entry cache
 #if AGS_PLATFORM_OS_WINDOWS
     const auto ff = _i->ff;
     auto &fdata = _i->fdata;
     char filename[MAX_PATH_SZ];
-    _current.Empty();
-    // We already have an entry opened at this point, so check that first;
+    // If we already have an entry opened at this point, then check that first;
     // if it's not valid then continue searching;
-    // NOTE: if FindFirst failed, this loop will be skipped.
-    for (; (fdata.cFileName[0] != 0) && _current.IsEmpty();
-        fdata.cFileName[0] = 0, FindNextFileW(ff, &fdata) != 0)
+    for (!_i->processed || (fdata.cFileName[0] = 0, FindNextFileW(ff, &fdata));
+         fdata.cFileName[0] != 0; fdata.cFileName[0] = 0, FindNextFileW(ff, &fdata))
     {
+        _i->processed = true;
         // Always skip "." and ".."
         if (wcscmp(fdata.cFileName, L".") == 0 || wcscmp(fdata.cFileName, L"..") == 0)
             continue;
         StrUtil::ConvertWstrToUtf8(fdata.cFileName, filename, sizeof(filename));
         _current = filename;
+        break;
     }
 #else
     DIR *dir = _i->dir;
     struct dirent *&ent = _i->ent;
-    _current.Empty();
     while ((ent = readdir(dir)) != nullptr)
     {
         // Always skip "." and ".."

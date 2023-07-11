@@ -250,7 +250,7 @@ public:
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
     
     // Create texture data with the given parameters
-    Texture *CreateTexture(int width, int height, bool opaque, bool as_render_target = false) override;
+    Texture *CreateTexture(int width, int height, int color_depth, bool opaque, bool as_render_target = false) override;
     // Update texture data from the given bitmap
     void UpdateTexture(Texture *txdata, Bitmap *bitmap, bool has_alpha, bool opaque) override;
     // Retrieve shared texture data object from the given DDB

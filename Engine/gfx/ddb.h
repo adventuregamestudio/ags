@@ -33,6 +33,10 @@ namespace Engine
 // A base parent for the otherwise opaque texture object;
 // Texture refers to the pixel data itself, with no additional
 // properties. It may be shared between multiple sprites if necessary.
+// FIXME: Both Texture and DDB structs record not a real texture's
+// pixel fmt, but rather a requested one, corresponding to the source bitmap.
+// This is used to safety test bitmap->texture sync, but may be confusing.
+// Need to think this over, and adjust; e.g. store both src and texture fmt.
 struct Texture
 {
     uint32_t ID = UINT32_MAX; // optional ID, may refer to sprite ID

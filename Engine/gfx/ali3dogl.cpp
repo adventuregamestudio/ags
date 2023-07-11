@@ -1754,7 +1754,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, opaque)));
+    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque)));
     return ddb;
 }
 
@@ -1771,7 +1771,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, opaque, true)));
+    ddb->_data.reset(reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
     glGenFramebuffersEXT(1, &ddb->_fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, ddb->_fbo);
     // FIXME: this ugly accessing internal texture members
@@ -1787,7 +1787,7 @@ std::shared_ptr<Texture> OGLGraphicsDriver::GetTexture(IDriverDependantBitmap *d
     return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap*>(ddb))->_data);
 }
 
-Texture *OGLGraphicsDriver::CreateTexture(int width, int height, bool /*opaque*/, bool as_render_target)
+Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth, bool /*opaque*/, bool as_render_target)
 {
   assert(width > 0);
   assert(height > 0);
@@ -1828,7 +1828,7 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, bool /*opaque*/
 
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
-  auto *txdata = new OGLTexture(GraphicResolution(width, height, 32), as_render_target);
+  auto *txdata = new OGLTexture(GraphicResolution(width, height, color_depth), as_render_target);
   int numTiles = tilesAcross * tilesDown;
   OGLTextureTile *tiles = new OGLTextureTile[numTiles];
   OGLCUSTOMVERTEX *vertices = nullptr;

@@ -370,40 +370,6 @@ int get_text_lines_surf_height(size_t fontNumber, size_t numlines)
 
 namespace AGS { namespace Common { SplitLines Lines; } }
 
-// Replaces AGS-specific linebreak tags with common '\n'
-static void unescape_script_string(const char *cstr, std::string &out)
-{
-    out.clear();
-    // Handle the special case of the first char
-    if (cstr[0] == '[')
-    {
-        out.push_back('\n');
-        cstr++;
-    }
-    // Replace all other occurrences as they're found
-    // NOTE: we do not need to decode utf8 here, because
-    // we are only searching for low-code ascii chars.
-    const char *off;
-    for (off = cstr; *off; ++off)
-    {
-        if (*off != '[') continue;
-        if (*(off - 1) == '\\')
-        {
-            // convert \[ into [
-            out.insert(out.end(), cstr, off - 1);
-            out.push_back('[');
-        }
-        else
-        {
-            // convert [ into \n
-            out.insert(out.end(), cstr, off);
-            out.push_back('\n');
-        }
-        cstr = off + 1;
-    }
-    out.insert(out.end(), cstr, off + 1);
-}
-
 // Break up the text into lines
 size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
     // NOTE: following hack accomodates for the legacy math mistake in split_lines.
@@ -417,24 +383,19 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
 
     lines.Reset();
 
-    std::string &line_buf = lines.LineBuf[0];
-    std::string &test_buf = lines.LineBuf[1];
-
-    // Do all necessary preliminary conversions: unescape, etc
-    unescape_script_string(todis, line_buf);
+    std::string &test_buf = lines.LineBuf[0];
 
     // TODO: we NEED a proper utf8 string class, and refact all this mess!!
     // in this case we perhaps could use custom ITERATOR types that read
     // and write utf8 chars in std::strings or similar containers.
     test_buf.clear();
-    const char *end_ptr = &line_buf.back(); // buffer end ptr
-    const char *theline = &line_buf.front(); // sub-line ptr
+    const char *theline = todis; // sub-line ptr
     const char *scan_ptr = theline; // a moving scan pos
     const char *prev_ptr = scan_ptr; // previous scan pos
     const char *last_whitespace = nullptr; // last found whitespace
 
     while (true) {
-        if (scan_ptr == end_ptr) {
+        if (*scan_ptr == 0) {
             // end of the text, add the last line if necessary
             if (scan_ptr > theline) {
                 lines.Add(test_buf.c_str());

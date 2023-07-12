@@ -68,10 +68,6 @@ int ccCompiledScript::add_string(const char*strr) {
             ch = strr[src];
             if (ch == 'n') {ch = '\n';}
             else if (ch == 'r') {ch = '\r';}
-            else if (ch == '[') { // pass through as \[
-                *write_ptr = '\\';
-                write_ptr++;
-            }
         }
         *write_ptr = ch;
         write_ptr++;

@@ -750,13 +750,13 @@ TEST_F(Scan, String1)
 {
     // Should scan advanced escape sequences within string.
 
-    std::string Input = "\"Oh, \\the \\brow\\n \\fo\\x5e jumps \\[ove\\r] the \\100\\azy dog.\"";
+    std::string Input = "\"Oh, \\the \\brow\\n \\fo\\x5e jumps [ove\\r] the \\100\\azy dog.\"";
     AGS::Scanner scanner(Input, token_list, string_collector, sym, mh);
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
-    EXPECT_STREQ("Oh, \the \brow\n \fo^ jumps \\[ove\r] the @\azy dog.", &(string_collector.strings[value]));
-    EXPECT_STREQ("\"Oh, \\the \\brow\\n \\fo\\x5e jumps \\[ove\\r] the \\100\\azy dog.\"", symstring.c_str());
+    EXPECT_STREQ("Oh, \the \brow\n \fo^ jumps [ove\r] the @\azy dog.", &(string_collector.strings[value]));
+    EXPECT_STREQ("\"Oh, \\the \\brow\\n \\fo\\x5e jumps [ove\\r] the \\100\\azy dog.\"", symstring.c_str());
 }
 
 TEST_F(Scan, UnknownKeywordAfterReadonly) {

@@ -463,7 +463,7 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only)
     if (found_file.IsEmpty() && alt_rp)
     {
         final_rp = alt_rp;
-        found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath);
+        found_file = File::FindFileCI(alt_rp.Loc.BaseDir, alt_rp.SubPath);
     }
     if (found_file.IsEmpty())
     {

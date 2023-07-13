@@ -320,12 +320,12 @@ bool run_service_key_controls(KeyInput &out_key)
     switch (key_evt.type)
     {
     case SDL_KEYDOWN:
-        is_only_mod_key = is_mod_key(key_evt.key.keysym);
-        cur_mod |= make_merged_mod(make_mod_flag(key_evt.key.keysym));
+        is_only_mod_key = is_sdl_mod_key(key_evt.key.keysym);
+        cur_mod |= make_sdl_merged_mod(make_sdl_mod_flag(key_evt.key.keysym));
         break;
     case SDL_KEYUP:
-        is_only_mod_key = is_mod_key(key_evt.key.keysym);
-        cur_mod &= ~make_merged_mod(make_mod_flag(key_evt.key.keysym));
+        is_only_mod_key = is_sdl_mod_key(key_evt.key.keysym);
+        cur_mod &= ~make_sdl_merged_mod(make_sdl_mod_flag(key_evt.key.keysym));
         break;
     }
     
@@ -491,7 +491,8 @@ static void check_keyboard_controls()
     }
 
     // skip speech if desired by Speech.SkipStyle
-    if ((play.text_overlay_on > 0) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
+    if ((play.text_overlay_on > 0) && (play.cant_skip_speech & SKIP_KEYPRESS) &&
+            !IsAGSServiceKey(ki.Key)) {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0) {
             // check if it requires a specific keypress
@@ -506,7 +507,8 @@ static void check_keyboard_controls()
         return;
     }
 
-    if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) != 0) {
+    if ((play.wait_counter != 0) && (play.key_skip_wait & SKIP_KEYPRESS) &&
+            !IsAGSServiceKey(ki.Key)) {
         play.SetWaitKeySkip(ki);
         return;
     }

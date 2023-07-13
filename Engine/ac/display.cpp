@@ -338,7 +338,8 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
                 if (run_service_key_controls(ki))
                 {
                     check_skip_cutscene_keypress(ki.Key);
-                    if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput())
+                    if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput() &&
+                        !IsAGSServiceKey(ki.Key))
                     {
                         play.SetWaitKeySkip(ki);
                         do_break = true;

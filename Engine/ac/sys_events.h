@@ -34,7 +34,7 @@ KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle);
 bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);
 
 // Tells if key event refers to one of the mod-keys
-inline bool is_mod_key(const SDL_Keysym &key)
+inline bool is_sdl_mod_key(const SDL_Keysym &key)
 {
     return key.scancode == SDL_SCANCODE_LCTRL || key.scancode == SDL_SCANCODE_RCTRL ||
         key.scancode == SDL_SCANCODE_LALT || key.scancode == SDL_SCANCODE_RALT ||
@@ -43,7 +43,7 @@ inline bool is_mod_key(const SDL_Keysym &key)
 }
 
 // Makes a mod flag out of the scan code
-inline int make_mod_flag(const SDL_Keysym &key)
+inline int make_sdl_mod_flag(const SDL_Keysym &key)
 {
     switch (key.scancode)
     {
@@ -59,7 +59,7 @@ inline int make_mod_flag(const SDL_Keysym &key)
 }
 
 // Converts mod key into merged mod (left & right) for easier handling
-inline int make_merged_mod(int mod)
+inline int make_sdl_merged_mod(int mod)
 {
     int m_mod = 0;
     if ((mod & KMOD_CTRL) != 0) m_mod |= KMOD_CTRL;

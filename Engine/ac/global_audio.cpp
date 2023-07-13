@@ -374,32 +374,16 @@ void PlayMP3File (const char *filename) {
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    SOUNDCLIP *clip = my_load_ogg(asset_name, doLoop);
-    int sound_type = 0;
-    
-    if (!clip) {
-        sound_type = MUS_OGG;
-    }
-
-    if (!clip)
-    {
-        clip = my_load_mp3(asset_name, doLoop);
-        sound_type = MUS_MP3;
-    }
-
+    std::unique_ptr<SOUNDCLIP> clip(load_sound_clip(asset_name, "", doLoop));
     if (clip) {
         if (clip->play()) {
             clip->set_volume255(150);
-            AudioChans::SetChannel(useChan, std::unique_ptr<SOUNDCLIP>(clip));
-            current_music_type = sound_type;
+            AudioChans::SetChannel(useChan, std::move(clip));
+            current_music_type = clip->soundType;
             play.cur_music_number = 1000;
             // save the filename (if it's not what we were supplied with)
             if (filename != &play.playmp3file_name[0])
                 snprintf(play.playmp3file_name, sizeof(play.playmp3file_name), "%s", filename);
-        }
-        else {
-            delete clip;
-            clip = nullptr;
         }
     }
 
@@ -409,7 +393,6 @@ void PlayMP3File (const char *filename) {
     }
 
     post_new_music_check();
-
     update_music_volume();
 }
 
@@ -504,35 +487,37 @@ static bool play_voice_clip_on_channel(const String &voice_name)
 {
     stop_and_destroy_channel(SCHAN_SPEECH);
 
-    String asset_name = voice_name;
-    asset_name.Append(".wav");
-    SOUNDCLIP *speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), false);
-
-    if (speechmp3 == nullptr) {
-        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
-        speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), false);
+    // TODO: perhaps a better algorithm, allow any extension / sound format?
+    // e.g. make a hashmap matching a voice name to a asset name
+    std::array<const char*, 3> exts = {{ "mp3", "ogg", "wav" }};
+    AssetPath apath = get_voice_over_assetpath(voice_name);
+    bool found = false;
+    for (auto *ext : exts)
+    {
+        apath.Name.Format("%s.%s", voice_name.GetCStr(), ext);
+        found = AssetMgr->DoesAssetExist(apath);
+        if (found)
+            break;
     }
 
-    if (speechmp3 == nullptr) {
-        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "mp3");
-        speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), false);
+    if (!found) {
+        debug_script_warn("Speech file not found: '%s'", voice_name.GetCStr());
+        return false;
     }
 
-    if (speechmp3 != nullptr) {
-        speechmp3->set_volume255(play.speech_volume);
-        if (!speechmp3->play()) {
-            // not assigned to a channel, so clean up manually.
-            delete speechmp3;
-            speechmp3 = nullptr;
-        }
+    std::unique_ptr<SOUNDCLIP> voice_clip(load_sound_clip(apath, "", false));
+    if (voice_clip != nullptr) {
+        voice_clip->set_volume255(play.speech_volume);
+        if (!voice_clip->play())
+            voice_clip.reset();
     }
 
-    if (speechmp3 == nullptr) {
+    if (!voice_clip) {
         debug_script_warn("Speech load failure: '%s'", voice_name.GetCStr());
         return false;
     }
 
-    AudioChans::SetChannel(SCHAN_SPEECH, std::unique_ptr<SOUNDCLIP>(speechmp3));
+    AudioChans::SetChannel(SCHAN_SPEECH, std::move(voice_clip));
     return true;
 }
 

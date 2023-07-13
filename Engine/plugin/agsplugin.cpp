@@ -21,6 +21,7 @@
 #include "ac/common.h" // quit
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
+#include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -805,6 +806,11 @@ void IAGSEngine::NotifyFontUpdated(int fontNumber)
 {
     font_recalc_metrics(fontNumber);
     GUI::MarkForFontUpdate(fontNumber);
+}
+
+const char *IAGSEngine::ResolveFilePath(const char *script_path)
+{
+    return File_ResolvePath(script_path);
 }
 
 void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)

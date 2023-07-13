@@ -75,17 +75,13 @@ int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::FileW
     return 0;
   }
   
-  String res_path;
-  Stream *s = ResolveScriptPathAndOpen(fnmm, open_mode, work_mode, res_path);
+  Stream *s = ResolveScriptPathAndOpen(fnmm, open_mode, work_mode);
   if (!s)
-  {
-    debug_script_warn("FileOpen: failed to open: %s", res_path.IsEmpty() ? fnmm : res_path.GetCStr());
     return 0;
-  }
 
   valid_handles[useindx].stream = s;
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
-  debug_script_print(kDbgMsg_Info, "FileOpen: success: %s", res_path.GetCStr());
+  debug_script_print(kDbgMsg_Info, "FileOpen: success: %s", s->GetPath().GetCStr());
 
   if (useindx >= num_open_script_files)
     num_open_script_files++;

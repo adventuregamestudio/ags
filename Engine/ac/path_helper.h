@@ -121,7 +121,6 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path);
 // Fills a full resolved path, if possible.
 // Returns open stream on success, and null on failure.
 AGS::Common::Stream *ResolveScriptPathAndOpen(const String &sc_path,
-    AGS::Common::FileOpenMode open_mode, AGS::Common::FileWorkMode work_mode,
-    String &res_path);
+    AGS::Common::FileOpenMode open_mode, AGS::Common::FileWorkMode work_mode);
 
 #endif // __AGS_EE_AC__PATHHELPER_H

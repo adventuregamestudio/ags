@@ -508,27 +508,22 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
 }
 
 Stream *ResolveScriptPathAndOpen(const String &sc_path,
-    FileOpenMode open_mode, FileWorkMode work_mode, String &res_path)
+    FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    res_path = "";
+    ResolvedPath rp;
     if (open_mode == kFile_Open && work_mode == kFile_Read)
-    {
-        auto rp = ResolveScriptPathAndFindFile(sc_path, true);
-        if (!rp)
-            return nullptr;
-        res_path = rp.FullPath; // FIXME: let Stream record the path!
-        if (rp.AssetMgr)
-            return AssetMgr->OpenAsset(res_path, "*");
-        return File::OpenFile(res_path, open_mode, work_mode);
-    }
+        rp = ResolveScriptPathAndFindFile(sc_path, true);
     else
-    {
-        auto rp = ResolveWritePathAndCreateDirs(sc_path);
-        if (!rp)
-            return nullptr;
-        res_path = rp.FullPath; // FIXME: let Stream record the path!
-        return File::OpenFile(res_path, open_mode, work_mode);
-    }
+        rp = ResolveWritePathAndCreateDirs(sc_path);
+
+    if (!rp)
+        return nullptr;
+    Stream *s = rp.AssetMgr ?
+        AssetMgr->OpenAsset(rp.FullPath, "*") :
+        File::OpenFile(rp.FullPath, open_mode, work_mode);
+    if (!s)
+        debug_script_warn("FileOpen: failed to open: %s", rp.FullPath.GetCStr());
+    return s;
 }
 
 //

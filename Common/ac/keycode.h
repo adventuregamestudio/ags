@@ -202,13 +202,19 @@ enum eAGSKeyCode
     eAGSKeyCodeInsert = AGS_EXT_KEY_SHIFT + 82,
     eAGSKeyCodeDelete = AGS_EXT_KEY_SHIFT + 83,
 
-    // not certain if necessary anymore (and not certain what was the origin of this value)
-    eAGSKeyCodeAltTab = AGS_EXT_KEY_SHIFT + 99,
-
     // [sonneveld] These are only used by debugging and abort keys.
     // They're based on allegro4 codes ...
     eAGSKeyCodeAltV = AGS_EXT_KEY_ALPHA(eAGSKeyCodeV),
     eAGSKeyCodeAltX = AGS_EXT_KEY_ALPHA(eAGSKeyCodeX),
+    eAGSKeyCodeAltY = AGS_EXT_KEY_ALPHA(eAGSKeyCodeY),
+    eAGSKeyCodeAltZ = AGS_EXT_KEY_ALPHA(eAGSKeyCodeZ),
+
+    // The beginning of "service key list": mod keys and other special keys
+    // not normally intended to affect the default game logic
+    eAGSKeyCode_FirstServiceKey = 391,
+
+    // not certain if necessary anymore (and not certain what was the origin of this value)
+    eAGSKeyCodeAltTab = AGS_EXT_KEY_SHIFT + 99,
 
     // These keys are not defined in the script eAGSKey enum but are in the manual
     // https://adventuregamestudio.github.io/ags-manual/ASCIIcodes.html
@@ -307,6 +313,19 @@ enum eAGSMouseButton
     kNumMouseButtons
 };
 
+
+// Tells if the AGS keycode refers to the modifier key (ctrl, alt, etc)
+inline bool IsAGSModKey(eAGSKeyCode keycode)
+{
+    return (keycode >= eAGSKeyCodeLShift && keycode <= eAGSKeyCodeLAlt) ||
+        keycode == eAGSKeyCodeRAlt;
+}
+// Tells if the AGS keycode refers to the service key (modifier, PrintScreen and similar);
+// this lets distinct keys that normally should not affect the game
+inline bool IsAGSServiceKey(eAGSKeyCode keycode)
+{
+    return keycode >= eAGSKeyCode_FirstServiceKey;
+}
 
 // Converts eAGSKeyCode to script API code, for "on_key_press" and similar callbacks
 eAGSKeyCode AGSKeyToScriptKey(eAGSKeyCode keycode);

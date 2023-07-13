@@ -79,7 +79,7 @@ int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::FileW
   if (!s)
     return 0;
 
-  valid_handles[useindx].stream = s;
+  valid_handles[useindx].stream.reset(s);
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
   debug_script_print(kDbgMsg_Info, "FileOpen: success: %s", s->GetPath().GetCStr());
 
@@ -90,9 +90,7 @@ int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::FileW
 
 void FileClose(int32_t handle) {
   ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle,"FileClose");
-  delete sc_handle->stream;
-  sc_handle->stream = nullptr;
-  sc_handle->handle = 0;
+  *sc_handle = ScriptFileHandle();
   }
 void FileWrite(int32_t handle, const char *towrite) {
   Stream *out = get_valid_file_stream_from_handle(handle,"FileWrite");

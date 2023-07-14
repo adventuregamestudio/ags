@@ -219,6 +219,14 @@ int File_GetPosition(sc_File *fil)
     return (int)stream->GetPosition();
 }
 
+const char *File_GetPath(sc_File *fil)
+{
+    if (fil->handle <= 0)
+        return nullptr;
+    Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Path");
+    return CreateNewScriptString(stream->GetPath());
+}
+
 //=============================================================================
 
 
@@ -842,6 +850,11 @@ RuntimeScriptValue Sc_File_GetPosition(void *self, const RuntimeScriptValue *par
     API_OBJCALL_INT(sc_File, File_GetPosition);
 }
 
+RuntimeScriptValue Sc_File_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(sc_File, const char, myScriptStringImpl, File_GetPath);
+}
+
 
 void RegisterFileAPI()
 {
@@ -868,6 +881,7 @@ void RegisterFileAPI()
         { "File::get_EOF",            API_FN_PAIR(File_GetEOF) },
         { "File::get_Error",          API_FN_PAIR(File_GetError) },
         { "File::get_Position",       API_FN_PAIR(File_GetPosition) },
+        { "File::get_Path",           API_FN_PAIR(File_GetPath) },
     };
 
     ccAddExternalFunctions(file_api);

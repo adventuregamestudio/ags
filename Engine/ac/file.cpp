@@ -76,6 +76,14 @@ void *sc_OpenFile(const char *fnmm, int mode) {
   return scf;
 }
 
+const char *File_ResolvePath(const char *fnmm)
+{
+    ResolvedPath rp = ResolveScriptPathAndFindFile(fnmm, true, true);
+    // Make path pretty -
+    String path = Path::MakeAbsolutePath(rp.FullPath);
+    return CreateNewScriptString(path.GetCStr());
+}
+
 void File_Close(sc_File *fil) {
   fil->Close();
 }
@@ -209,6 +217,14 @@ int File_GetPosition(sc_File *fil)
     Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Position");
     // TODO: a problem is that AGS script does not support unsigned or long int
     return (int)stream->GetPosition();
+}
+
+const char *File_GetPath(sc_File *fil)
+{
+    if (fil->handle <= 0)
+        return nullptr;
+    Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Path");
+    return CreateNewScriptString(stream->GetPath());
 }
 
 //=============================================================================
@@ -446,7 +462,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
     return true;
 }
 
-ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only)
+ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only, bool ignore_find_result)
 {
     ResolvedPath rp, alt_rp;
     if (!ResolveScriptPath(sc_path, read_only, rp, alt_rp))
@@ -459,14 +475,24 @@ ResolvedPath ResolveScriptPathAndFindFile(const String &sc_path, bool read_only)
         return rp; // we don't test AssetMgr here
 
     ResolvedPath final_rp = rp;
-    String found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath);
+    String most_found, missing_path;
+    String found_file = File::FindFileCI(rp.Loc.BaseDir, rp.SubPath, false, &most_found, &missing_path);
     if (found_file.IsEmpty() && alt_rp)
     {
         final_rp = alt_rp;
-        found_file = File::FindFileCI(alt_rp.Loc.BaseDir, alt_rp.SubPath);
+        found_file = File::FindFileCI(alt_rp.Loc.BaseDir, alt_rp.SubPath, false, &most_found, &missing_path);
     }
     if (found_file.IsEmpty())
     {
+        if (ignore_find_result)
+        {
+#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+            return final_rp; // if we want a case-precise result, need to adjust FindFileCI, see comment inside
+#else
+            return ResolvedPath(most_found, missing_path);
+#endif
+        }
+
         debug_script_warn("ResolveScriptPath: failed to find a match for: %s\n\ttried: %s\n\talt try: %s",
             sc_path.GetCStr(), rp.FullPath.GetCStr(), alt_rp.FullPath.GetCStr());
         return {}; // nothing matching found
@@ -720,6 +746,11 @@ RuntimeScriptValue Sc_sc_OpenFile(const RuntimeScriptValue *params, int32_t para
     API_SCALL_OBJAUTO_POBJ_PINT(sc_File, sc_OpenFile, const char);
 }
 
+RuntimeScriptValue Sc_File_ResolvePath(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, File_ResolvePath, const char);
+}
+
 // void (sc_File *fil)
 RuntimeScriptValue Sc_File_Close(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -819,6 +850,11 @@ RuntimeScriptValue Sc_File_GetPosition(void *self, const RuntimeScriptValue *par
     API_OBJCALL_INT(sc_File, File_GetPosition);
 }
 
+RuntimeScriptValue Sc_File_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(sc_File, const char, myScriptStringImpl, File_GetPath);
+}
+
 
 void RegisterFileAPI()
 {
@@ -826,6 +862,7 @@ void RegisterFileAPI()
         { "File::Delete^1",           API_FN_PAIR(File_Delete) },
         { "File::Exists^1",           API_FN_PAIR(File_Exists) },
         { "File::Open^2",             API_FN_PAIR(sc_OpenFile) },
+        { "File::ResolvePath^1",      API_FN_PAIR(File_ResolvePath) },
 
         { "File::Close^0",            API_FN_PAIR(File_Close) },
         { "File::ReadInt^0",          API_FN_PAIR(File_ReadInt) },
@@ -844,6 +881,7 @@ void RegisterFileAPI()
         { "File::get_EOF",            API_FN_PAIR(File_GetEOF) },
         { "File::get_Error",          API_FN_PAIR(File_GetError) },
         { "File::get_Position",       API_FN_PAIR(File_GetPosition) },
+        { "File::get_Path",           API_FN_PAIR(File_GetPath) },
     };
 
     ccAddExternalFunctions(file_api);

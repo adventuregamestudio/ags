@@ -10,16 +10,16 @@ namespace AGS.Types
     {
         public TranslationEntry()
         {
-            metadata = new List<string>();
+            Metadata = new List<string>();
         }
 
-        public string msgctxt { get; set; }
-        public string msgid { get; set; }
-        public string msgstr { get; set; }
+        public string Context { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
 
         // TEMPORARY only for preserving comments and other metadata
         // Will be split into translator-comments, extracted-comments, reference, flag
-        public List<string> metadata { get; set; } 
+        public List<string> Metadata { get; set; } 
 
     }
 }

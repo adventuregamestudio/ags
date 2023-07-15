@@ -145,10 +145,10 @@ namespace AGS.Editor.Components
                 bw.Write((int)0); // placeholder for block size, will be filled later
                 foreach (string line in translation.TranslatedEntries.Keys)
                 {
-                    if (translation.TranslatedEntries[line].msgstr.Length > 0)
+                    if (translation.TranslatedEntries[line].Value.Length > 0)
                     {
                         WriteString(bw, Regex.Unescape(line), textEncoding);
-                        WriteString(bw, Regex.Unescape(translation.TranslatedEntries[line].msgstr), textEncoding);
+                        WriteString(bw, Regex.Unescape(translation.TranslatedEntries[line].Value), textEncoding);
                     }
                 }
                 WriteString(bw, string.Empty, textEncoding);
@@ -202,8 +202,8 @@ namespace AGS.Editor.Components
                     if (!translation.TranslatedEntries.ContainsKey(line))
                     {
                         TranslationEntry entry = new TranslationEntry();
-                        entry.msgid = line;
-                        entry.msgstr = string.Empty;
+                        entry.Key = line;
+                        entry.Value = string.Empty;
                         translation.TranslatedEntries.Add(line, entry);
                         translation.Modified = true;
                     }
@@ -268,13 +268,13 @@ namespace AGS.Editor.Components
                 {
                     TranslationEntry otherTranslationOfThisLine = otherTranslation.TranslatedEntries[sourceLine];
                     string newKeyName = null;
-                    if ((textChanges.ContainsKey(sourceLine)) && (textChanges[sourceLine].msgstr.Length > 0))
+                    if ((textChanges.ContainsKey(sourceLine)) && (textChanges[sourceLine].Value.Length > 0))
                     {
-                        newKeyName = textChanges[sourceLine].msgstr;
+                        newKeyName = textChanges[sourceLine].Value;
 
                         if (newTranslation.ContainsKey(newKeyName))
                         {
-                            if (!string.IsNullOrEmpty(otherTranslationOfThisLine.msgstr))
+                            if (!string.IsNullOrEmpty(otherTranslationOfThisLine.Value))
                             {
                                 errors.Add(new CompileWarning("Text '" + newKeyName + "' already has a translation; '" + sourceLine + "' translation will be lost"));
                             }
@@ -288,16 +288,16 @@ namespace AGS.Editor.Components
 
                     if (newKeyName != null)
                     {
-                        if (newKeyName == otherTranslationOfThisLine.msgstr)
+                        if (newKeyName == otherTranslationOfThisLine.Value)
                         {
                             TranslationEntry entry = new TranslationEntry();
-                            entry.msgid = newKeyName;
-                            entry.msgstr = string.Empty;
+                            entry.Key = newKeyName;
+                            entry.Value = string.Empty;
                             newTranslation.Add(newKeyName, entry);
                         }
                         else
                         {
-                            otherTranslationOfThisLine.msgid = newKeyName;
+                            otherTranslationOfThisLine.Key = newKeyName;
                             newTranslation.Add(newKeyName, otherTranslationOfThisLine);
                         }
                     }

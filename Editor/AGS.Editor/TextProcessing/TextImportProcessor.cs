@@ -25,9 +25,9 @@ namespace AGS.Editor
         protected override string CreateSpeechLine(int speakingCharacter, string text)
         {
             if ((_translationToUse.ContainsKey(text)) &&
-                (_translationToUse[text].msgstr.Length > 0))
+                (_translationToUse[text].Value.Length > 0))
             {
-                return _translationToUse[text].msgstr;
+                return _translationToUse[text].Value;
             }
             return text;
         }

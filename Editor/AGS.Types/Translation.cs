@@ -178,12 +178,12 @@ namespace AGS.Types
                 {
                     TranslationEntry entry = _translatedEntries[key];
                     sw.WriteLine("");
-                    foreach (string metadata in entry.metadata)
+                    foreach (string metadata in entry.Metadata)
                         sw.WriteLine(metadata);
-                    if (entry.msgctxt != null)
-                        sw.WriteLine("msgctxt \"" + entry.msgctxt + "\"");
-                    sw.WriteLine("msgid \"" + entry.msgid + "\"");
-                    sw.WriteLine("msgstr \"" + entry.msgstr + "\"");
+                    if (entry.Context != null)
+                        sw.WriteLine("msgctxt \"" + entry.Context + "\"");
+                    sw.WriteLine("msgid \"" + entry.Key + "\"");
+                    sw.WriteLine("msgstr \"" + entry.Value + "\"");
                 }
                 sw.WriteLine("");
             }
@@ -261,7 +261,7 @@ namespace AGS.Types
                             LoadDataImpl(errors); // try again with the new encoding
                             return;
                         }
-                        entry.metadata.Add(line);
+                        entry.Metadata.Add(line);
                         continue;
                     }
 
@@ -272,19 +272,19 @@ namespace AGS.Types
                         if (line.StartsWith("msgctxt")) // context
                         {
                             state = ParseState.ParsingContext;
-                            entry.msgctxt = extracted_string;
+                            entry.Context = extracted_string;
                             continue;
                         }
                         if (line.StartsWith("msgid")) // string id, untranslated
                         {
                             state = ParseState.ParsingId;
-                            entry.msgid = extracted_string;
+                            entry.Key = extracted_string;
                             continue;
                         }
                         if (line.StartsWith("msgstr")) // translated string
                         {
                             state = ParseState.ParsingString;
-                            entry.msgstr = extracted_string;
+                            entry.Value = extracted_string;
                             continue;
                         }
 
@@ -293,15 +293,15 @@ namespace AGS.Types
                         switch (state)
                         {
                             case ParseState.ParsingContext:
-                                entry.msgctxt += extracted_string;
+                                entry.Context += extracted_string;
                                 continue;
 
                             case ParseState.ParsingId:
-                                entry.msgid += extracted_string;
+                                entry.Key += extracted_string;
                                 continue;
 
                             case ParseState.ParsingString:
-                                entry.msgstr += extracted_string;
+                                entry.Value += extracted_string;
                                 continue;
 
                             default: continue; // ignore orphaned strings since we can't throw errors
@@ -313,9 +313,9 @@ namespace AGS.Types
                     {
                         // note: a valid entry must have a non-empty msgid
                         // the first empty hardcoded entry, which is metadata, is ignored and recreated
-                        if (entry.msgid != null && entry.msgid.Length > 0)
+                        if (entry.Key != null && entry.Key.Length > 0)
                         {
-                            _translatedEntries.Add(entry.msgid, entry);
+                            _translatedEntries.Add(entry.Key, entry);
                         }
                         state = ParseState.NewEntry;
                         entry = new TranslationEntry();
@@ -503,8 +503,8 @@ namespace AGS.Types
                     if (!_translatedEntries.ContainsKey(originalText))
                     {
                         TranslationEntry entry = new TranslationEntry();
-                        entry.msgid = originalText;
-                        entry.msgstr = translatedText;
+                        entry.Key = originalText;
+                        entry.Value = translatedText;
                         _translatedEntries.Add(originalText, entry);
                     }
                 }

@@ -250,7 +250,22 @@ namespace AGS.Types
                 {
                     string extracted_string = POExtractString(line);
 
-                    // Case 1: we got a string, figure out what to do with it
+                    // Case 1: encountered metadata
+                    // TODO: track different types of metadata (flags, comments, etc)
+                    if (line.StartsWith("#"))
+                    {
+                        ReadSpecialTags(line);
+                        if (string.Compare(old_encoding, _encodingHint) != 0)
+                        {
+                            sr.Close();
+                            LoadDataImpl(errors); // try again with the new encoding
+                            return;
+                        }
+                        entry.metadata.Add(line);
+                        continue;
+                    }
+
+                    // Case 2: we got a string, figure out what to do with it
                     if (extracted_string != null)
                     {
                         // start of a new type
@@ -292,23 +307,6 @@ namespace AGS.Types
                             default: continue; // ignore orphaned strings since we can't throw errors
                         }
                     }
-
-
-                    // Case 2: encountered metadata
-                    // TODO: track different types of metadata (flags, comments, etc)
-                    if (line.StartsWith("#"))
-                    {
-                        ReadSpecialTags(line);
-                        if (string.Compare(old_encoding, _encodingHint) != 0)
-                        {
-                            sr.Close();
-                            LoadDataImpl(errors); // try again with the new encoding
-                            return;
-                        }
-                        entry.metadata.Add(line);
-                        continue;
-                    }
-
 
                     // Case 3: we were processing an entry and encountered an empty line
                     if (state != ParseState.NewEntry && line.Trim().Length == 0)

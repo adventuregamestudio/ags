@@ -486,12 +486,12 @@ namespace AGS.Editor
             return list;
         }
 
-		public void DeleteFileOnDiskAndSourceControl(string fileName)
+		public void DeleteFileOnDisk(string fileName)
 		{
-			DeleteFileOnDiskAndSourceControl(new string[] { fileName });
+			DeleteFileOnDisk(new string[] { fileName });
 		}
 
-		public void DeleteFileOnDiskAndSourceControl(string[] fileNames)
+		public void DeleteFileOnDisk(string[] fileNames)
 		{
 			string[] fullPathNames = new string[fileNames.Length];
 			for (int i = 0; i < fileNames.Length; i++)
@@ -505,7 +505,7 @@ namespace AGS.Editor
 			}
 		}
 
-        public void RenameFileOnDiskAndInSourceControl(string currentName, string newName)
+        public void RenameFileOnDisk(string currentName, string newName)
         {
             string sourcePath = Path.GetFullPath(currentName);
             string destPath = Path.GetFullPath(newName);

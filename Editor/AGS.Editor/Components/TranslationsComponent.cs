@@ -409,7 +409,7 @@ namespace AGS.Editor.Components
 
                     if (File.Exists(_itemRightClicked.FileName))
                     {
-						_agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.FileName);
+						_agsEditor.DeleteFileOnDisk(_itemRightClicked.FileName);
                     }
                     RePopulateTreeView();
                     TranslationListTypeConverter.SetTranslationsList(_agsEditor.CurrentGame.Translations);

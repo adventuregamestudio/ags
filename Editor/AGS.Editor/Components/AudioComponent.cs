@@ -783,7 +783,7 @@ namespace AGS.Editor.Components
                 }
                 filesToDelete.Add(clip.CacheFileName);
             }
-            _agsEditor.DeleteFileOnDiskAndSourceControl(filesToDelete.ToArray());
+            _agsEditor.DeleteFileOnDisk(filesToDelete.ToArray());
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
             Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));

@@ -61,8 +61,8 @@ namespace AGS.Editor.Components
                 if (MessageBox.Show("Are you sure you want to delete this font? Doing so could break any scripts that refer to fonts by number.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     int removingID = _itemRightClicked.ID;
-                    _agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.WFNFileName);
-                    _agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.TTFFileName);
+                    _agsEditor.DeleteFileOnDisk(_itemRightClicked.WFNFileName);
+                    _agsEditor.DeleteFileOnDisk(_itemRightClicked.TTFFileName);
 
                     foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
                     {
@@ -70,11 +70,11 @@ namespace AGS.Editor.Components
                         {
                             if (File.Exists(item.WFNFileName))
                             {
-                                _agsEditor.RenameFileOnDiskAndInSourceControl(item.WFNFileName, "agsfnt" + (item.ID - 1) + ".wfn");
+                                _agsEditor.RenameFileOnDisk(item.WFNFileName, "agsfnt" + (item.ID - 1) + ".wfn");
                             }
                             if (File.Exists(item.TTFFileName))
                             {
-                                _agsEditor.RenameFileOnDiskAndInSourceControl(item.TTFFileName, "agsfnt" + (item.ID - 1) + ".ttf");
+                                _agsEditor.RenameFileOnDisk(item.TTFFileName, "agsfnt" + (item.ID - 1) + ".ttf");
                             }
                             item.ID--;
                         }

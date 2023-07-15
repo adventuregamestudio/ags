@@ -441,7 +441,6 @@
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="TextProcessing\APITypeDef.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
-    <Compile Include="Utils\SourceControlProvider.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">
     </Compile>
     <Compile Include="Utils\SpriteSheet.cs" />

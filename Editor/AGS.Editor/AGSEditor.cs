@@ -302,7 +302,6 @@ namespace AGS.Editor
             }
 
             _game = new Game();
-            _sourceControl = new SourceControlProvider();
             _debugger = new DebugController(_engineComms);
             _debugger.BreakAtLocation += new DebugController.BreakAtLocationHandler(_debugger_BreakAtLocation);
 

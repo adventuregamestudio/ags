@@ -102,24 +102,5 @@ namespace AGS
 			bool HaveSpritesBeenModified();
             Object^ GetNativeConstant(String ^name);
 		};
-
-		public ref class SourceCodeControl
-		{
-		public:
-			SourceCodeControl(void);
-
-			bool Initialize(System::String^ dllName, int mainWindowHwnd);
-			void Shutdown();
-			SourceControlProject^ AddToSourceControl();
-			bool OpenProject(SourceControlProject^ project);
-			void CloseProject();
-			cli::array<AGS::Types::SourceControlFileStatus>^ GetFileStatuses(cli::array<System::String^> ^fileNames);
-			void AddFilesToSourceControl(cli::array<System::String^> ^fileNames, System::String ^comment);
-			void CheckInFiles(cli::array<System::String^> ^fileNames, System::String ^comment);
-			void CheckOutFiles(cli::array<System::String^> ^fileNames, System::String ^comment);
-			void RenameFile(System::String ^currentPath, System::String ^newPath);
-			void DeleteFiles(cli::array<System::String^> ^fileNames, System::String ^comment);
-		};
-
 	}
 }

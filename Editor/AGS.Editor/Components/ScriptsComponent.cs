@@ -558,8 +558,8 @@ namespace AGS.Editor.Components
             }
             else
             {
-                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldScriptName, renamedScript.FileName);
-				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(associatedScript.FileName, newNameForAssociatedScript);
+                _agsEditor.RenameFileOnDiskAndInSourceControl(oldScriptName, renamedScript.FileName);
+				_agsEditor.RenameFileOnDiskAndInSourceControl(associatedScript.FileName, newNameForAssociatedScript);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 associatedScript.FileName = newNameForAssociatedScript;
             }

@@ -1144,9 +1144,9 @@ namespace AGS.Editor.Components
 				CloseRoomScriptEditorIfOpen(currentNumber);
 				UnloadCurrentRoom();
 
-				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.FileName, tempNewRoom.FileName);
-                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.UserFileName, tempNewRoom.UserFileName);
-                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
+				_agsEditor.RenameFileOnDiskAndInSourceControl(oldRoom.FileName, tempNewRoom.FileName);
+                _agsEditor.RenameFileOnDiskAndInSourceControl(oldRoom.UserFileName, tempNewRoom.UserFileName);
+                _agsEditor.RenameFileOnDiskAndInSourceControl(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
 
 				oldRoom.Number = numberRequested;
 

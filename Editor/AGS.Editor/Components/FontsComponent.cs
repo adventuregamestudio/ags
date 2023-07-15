@@ -70,11 +70,11 @@ namespace AGS.Editor.Components
                         {
                             if (File.Exists(item.WFNFileName))
                             {
-                                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(item.WFNFileName, "agsfnt" + (item.ID - 1) + ".wfn");
+                                _agsEditor.RenameFileOnDiskAndInSourceControl(item.WFNFileName, "agsfnt" + (item.ID - 1) + ".wfn");
                             }
                             if (File.Exists(item.TTFFileName))
                             {
-                                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(item.TTFFileName, "agsfnt" + (item.ID - 1) + ".ttf");
+                                _agsEditor.RenameFileOnDiskAndInSourceControl(item.TTFFileName, "agsfnt" + (item.ID - 1) + ".ttf");
                             }
                             item.ID--;
                         }

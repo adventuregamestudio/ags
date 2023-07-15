@@ -52,7 +52,6 @@ namespace AGS.Editor.Components
             _iconMappings.Add(AudioClipFileType.MIDI, "AGSAudioClipIconMidi");
             _iconMappings.Add(AudioClipFileType.MOD, "AGSAudioClipIconMod");
 
-            _agsEditor.GetSourceControlFileList += new GetSourceControlFileListHandler(_agsEditor_GetSourceControlFileList);
             _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(_agsEditor_PreCompileGame);
 
             RecreateDocument();
@@ -464,18 +463,6 @@ namespace AGS.Editor.Components
                         newClip.Type = type;
                         soundFolder.Items.Add(newClip);
                     }
-                }
-            }
-        }
-
-        private void _agsEditor_GetSourceControlFileList(IList<string> fileNames)
-        {
-            if (_agsEditor.CurrentGame.Settings.BinaryFilesInSourceControl)
-            {
-                string audioFolderPath = Path.Combine(_agsEditor.GameDirectory, AudioClip.AUDIO_CACHE_DIRECTORY);
-                foreach (AudioClip clip in _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-                {
-                    fileNames.Add(Path.Combine(audioFolderPath, clip.CacheFileName));
                 }
             }
         }

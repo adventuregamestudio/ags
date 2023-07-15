@@ -513,11 +513,6 @@ namespace AGS.Editor.Components
                 string sourcePath = Path.GetFullPath(_oldNameBeforeRename + Translation.TRANSLATION_SOURCE_FILE_EXTENSION);
                 string destPath = Path.GetFullPath(translation.FileName);
 
-                if (_agsEditor.SourceControlProvider.IsFileUnderSourceControl(sourcePath))
-                {
-                    _agsEditor.SourceControlProvider.RenameFile(sourcePath, destPath);
-                }
-
                 File.Move(sourcePath, destPath);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 

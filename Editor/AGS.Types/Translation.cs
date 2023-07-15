@@ -31,7 +31,7 @@ namespace AGS.Types
         private string _encodingHint;
         private Encoding _encoding;
         private string _baseLanguage;
-        private Dictionary<string, TranslationEntry> _translatedLines;
+        private Dictionary<string, TranslationEntry> _translatedEntries;
 
         public Translation(string name, string baseLanguage)
         {
@@ -60,7 +60,7 @@ namespace AGS.Types
             }
             catch (Exception)
             {
-                TranslatedLines.Clear(); // clear on failure
+                _translatedEntries.Clear(); // clear on failure
             }
         }
 
@@ -80,10 +80,10 @@ namespace AGS.Types
             get { return _name + TRANSLATION_COMPILED_FILE_EXTENSION; }
         }
 
-        public Dictionary<string, TranslationEntry> TranslatedLines
+        public Dictionary<string, TranslationEntry> TranslatedEntries
         {
-            get { return _translatedLines; }
-            set { _translatedLines = value; }
+            get { return _translatedEntries; }
+            set { _translatedEntries = value; }
         }
 
         public int? NormalFont
@@ -174,9 +174,9 @@ namespace AGS.Types
                 sw.WriteLine("\"Content-Transfer-Encoding: 8bit\\n\"");
                 sw.WriteLine("\"X-Generator: AGS " + Version.AGS_EDITOR_VERSION + "\\n\"");
 
-                foreach (string key in _translatedLines.Keys)
+                foreach (string key in _translatedEntries.Keys)
                 {
-                    TranslationEntry entry = _translatedLines[key];
+                    TranslationEntry entry = _translatedEntries[key];
                     sw.WriteLine("");
                     foreach (string metadata in entry.metadata)
                         sw.WriteLine(metadata);
@@ -223,14 +223,14 @@ namespace AGS.Types
             catch (Exception e)
             {
                 errors.Add(new CompileError(string.Format("Failed to load translation from {0}: \n{1}", FileName, e.Message)));
-                _translatedLines.Clear(); // clear on failure
+                _translatedEntries.Clear(); // clear on failure
             }
             return errors;
         }
 
         private void LoadDataImpl(CompileMessages errors)
         {
-            _translatedLines = new Dictionary<string, TranslationEntry>();
+            _translatedEntries = new Dictionary<string, TranslationEntry>();
             string old_encoding = _encodingHint;
 
             // .po file not found, check for legacy translation format
@@ -315,7 +315,7 @@ namespace AGS.Types
                         // the first empty hardcoded entry, which is metadata, is ignored and recreated
                         if (entry.msgid != null && entry.msgid.Length > 0)
                         {
-                            _translatedLines.Add(entry.msgid, entry);
+                            _translatedEntries.Add(entry.msgid, entry);
                         }
                         state = ParseState.NewEntry;
                         entry = new TranslationEntry();
@@ -474,7 +474,7 @@ namespace AGS.Types
         // Migrations from .trs files
         private void LegacyLoadData()
         {
-            _translatedLines = new Dictionary<string, TranslationEntry>();
+            _translatedEntries = new Dictionary<string, TranslationEntry>();
             string old_encoding = _encodingHint;
 
             using (StreamReader sr = new StreamReader(_name + ".trs", _encoding))
@@ -500,12 +500,12 @@ namespace AGS.Types
                         break;
                     }
                     // Silently ignore any duplicates, as we can't report warnings here
-                    if (!_translatedLines.ContainsKey(originalText))
+                    if (!_translatedEntries.ContainsKey(originalText))
                     {
                         TranslationEntry entry = new TranslationEntry();
                         entry.msgid = originalText;
                         entry.msgstr = translatedText;
-                        _translatedLines.Add(originalText, entry);
+                        _translatedEntries.Add(originalText, entry);
                     }
                 }
             }

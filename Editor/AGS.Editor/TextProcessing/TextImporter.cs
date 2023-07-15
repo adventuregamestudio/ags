@@ -11,7 +11,7 @@ namespace AGS.Editor
         {
             CompileMessages errors = new CompileMessages();
 
-            TextImportProcessor processor = new TextImportProcessor(game, errors, withTranslation.TranslatedLines);
+            TextImportProcessor processor = new TextImportProcessor(game, errors, withTranslation.TranslatedEntries);
 
             TextProcessingHelper.ProcessAllGameText(processor, game, errors);
 

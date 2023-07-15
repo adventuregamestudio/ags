@@ -143,12 +143,12 @@ namespace AGS.Editor.Components
                 bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
                 long offsetOfBlockSize = bw.BaseStream.Position;
                 bw.Write((int)0); // placeholder for block size, will be filled later
-                foreach (string line in translation.TranslatedLines.Keys)
+                foreach (string line in translation.TranslatedEntries.Keys)
                 {
-                    if (translation.TranslatedLines[line].msgstr.Length > 0)
+                    if (translation.TranslatedEntries[line].msgstr.Length > 0)
                     {
                         WriteString(bw, Regex.Unescape(line), textEncoding);
-                        WriteString(bw, Regex.Unescape(translation.TranslatedLines[line].msgstr), textEncoding);
+                        WriteString(bw, Regex.Unescape(translation.TranslatedEntries[line].msgstr), textEncoding);
                     }
                 }
                 WriteString(bw, string.Empty, textEncoding);
@@ -199,12 +199,12 @@ namespace AGS.Editor.Components
             {
                 foreach (Translation translation in translations)
                 {
-                    if (!translation.TranslatedLines.ContainsKey(line))
+                    if (!translation.TranslatedEntries.ContainsKey(line))
                     {
                         TranslationEntry entry = new TranslationEntry();
                         entry.msgid = line;
                         entry.msgstr = string.Empty;
-                        translation.TranslatedLines.Add(line, entry);
+                        translation.TranslatedEntries.Add(line, entry);
                         translation.Modified = true;
                     }
                 }
@@ -264,9 +264,9 @@ namespace AGS.Editor.Components
 
                 Dictionary<string, TranslationEntry> newTranslation = new Dictionary<string, TranslationEntry>();
 
-                foreach (string sourceLine in otherTranslation.TranslatedLines.Keys)
+                foreach (string sourceLine in otherTranslation.TranslatedEntries.Keys)
                 {
-                    TranslationEntry otherTranslationOfThisLine = otherTranslation.TranslatedLines[sourceLine];
+                    TranslationEntry otherTranslationOfThisLine = otherTranslation.TranslatedEntries[sourceLine];
                     string newKeyName = null;
                     if ((textChanges.ContainsKey(sourceLine)) && (textChanges[sourceLine].msgstr.Length > 0))
                     {
@@ -303,7 +303,7 @@ namespace AGS.Editor.Components
                     }
                 }
 
-                otherTranslation.TranslatedLines = newTranslation;
+                otherTranslation.TranslatedEntries = newTranslation;
                 otherTranslation.Modified = true;
                 otherTranslation.SaveData();
             }
@@ -316,9 +316,9 @@ namespace AGS.Editor.Components
             // Make a copy of the dictionary, otherwise it can get overwritten
             // while updating its translation
             Dictionary<string, TranslationEntry> textChanges = new Dictionary<string, TranslationEntry>();
-            foreach (string key in translation.TranslatedLines.Keys)
+            foreach (string key in translation.TranslatedEntries.Keys)
             {
-                textChanges.Add(key, translation.TranslatedLines[key]);
+                textChanges.Add(key, translation.TranslatedEntries[key]);
             }
 
             UpdateAllTranslationsWithNewDefaultText(textChanges, errors);
@@ -554,7 +554,7 @@ namespace AGS.Editor.Components
                 File.Move(sourcePath, destPath);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
-                if ((translation.TranslatedLines == null) || (translation.TranslatedLines.Count == 0))
+                if ((translation.TranslatedEntries == null) || (translation.TranslatedEntries.Count == 0))
                 {
                     if (_guiController.ShowQuestion("Would you like to update the new translation file with all the latest game messages? This could take some time, and your game will be saved first. You can do this later yourself by choosing 'Update' on the context menu?") == DialogResult.Yes)
                     {

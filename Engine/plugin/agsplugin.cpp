@@ -546,15 +546,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     if (channel == SCHAN_SPEECH && play.IsNonBlockingVoiceSpeech())
         stop_voice_nonblocking();
 
-    SOUNDCLIP *newcha = nullptr;
-
-    if (((soundType == PSND_MP3STREAM) || (soundType == PSND_OGGSTREAM)) 
-        && (loop != 0))
-        quit("IAGSEngine::PlaySoundChannel: streamed samples cannot loop");
-
-    // TODO: find out how engine was supposed to decide on where to load the sound from
     AssetPath asset_name(filename, "audio");
-
     const char *ext = "";
     switch (soundType)
     {
@@ -580,7 +572,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         return;
     }
 
-    newcha = load_sound_clip(asset_name, ext, (loop != 0));
+    std::unique_ptr<SOUNDCLIP> newcha(load_sound_clip(asset_name, ext, (loop != 0)));
     if (!newcha)
     {
         debug_script_warn("IAGSEngine::PlaySoundChannel: failed to load %s", filename);
@@ -588,7 +580,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     }
 
     newcha->set_volume255(volume);
-    AudioChans::SetChannel(channel, std::unique_ptr<SOUNDCLIP>(newcha));
+    AudioChans::SetChannel(channel, std::move(newcha));
 }
 // Engine interface 12 and above are below
 void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 bottom) {

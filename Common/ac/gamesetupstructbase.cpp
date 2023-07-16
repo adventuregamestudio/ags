@@ -144,9 +144,9 @@ void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
         options[OPT_BASESCRIPTAPI] = kScriptAPI_Undefined;
         options[OPT_SCRIPTCOMPATLEV] = kScriptAPI_Undefined;
     }
-    in->Read(&paluses[0], 256);
+    in->Read(&paluses[0], sizeof(paluses));
     // colors are an array of chars
-    in->Read(&defpal[0], sizeof(RGB)*256);
+    in->Read(&defpal[0], sizeof(defpal));
     numviews = in->ReadInt32();
     numcharacters = in->ReadInt32();
     playercharacter = in->ReadInt32();
@@ -185,11 +185,11 @@ void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
 
 void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info)
 {
-    out->Write(&gamename[0], 50);
-    out->WriteArrayOfInt32(options, 100);
-    out->Write(&paluses[0], 256);
+    out->Write(&gamename[0], GAME_NAME_LENGTH);
+    out->WriteArrayOfInt32(options, MAX_OPTIONS);
+    out->Write(&paluses[0], sizeof(paluses));
     // colors are an array of chars
-    out->Write(&defpal[0], sizeof(RGB)*256);
+    out->Write(&defpal[0], sizeof(defpal));
     out->WriteInt32(numviews);
     out->WriteInt32(numcharacters);
     out->WriteInt32(playercharacter);
@@ -214,7 +214,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info)
     }
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);
-    out->WriteArrayOfInt32(reserved, 17);
+    out->WriteArrayOfInt32(reserved, NUM_INTS_RESERVED);
     for (int i = 0; i < MAXGLOBALMES; ++i)
     {
         out->WriteInt32(!messages[i].IsEmpty() ? 1 : 0);

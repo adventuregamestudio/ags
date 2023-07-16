@@ -26,39 +26,39 @@
 
 using namespace AGS::Common;
 
-static int GuessSoundTypeFromExt(const String &extension)
+static AudioFileType GuessSoundTypeFromExt(const String &extension)
 {
     if (extension.CompareNoCase("mp3") == 0) {
-        return MUS_MP3;
+        return eAudioFileMP3;
     }
     else if (extension.CompareNoCase("ogg") == 0) {
-        return MUS_OGG;
+        return eAudioFileOGG;
     }
     else if (extension.CompareNoCase("mid") == 0) {
-        return MUS_MIDI;
+        return eAudioFileMIDI;
     }
     else if (extension.CompareNoCase("wav") == 0) {
-        return MUS_WAVE;
+        return eAudioFileWAV;
     }
     else if (extension.CompareNoCase("voc") == 0) {
-        return MUS_WAVE;
+        return eAudioFileWAV;
     }
     else if (extension.CompareNoCase("mod") == 0) {
-        return MUS_MOD;
+        return eAudioFileMOD;
     }
     else if (extension.CompareNoCase("s3m") == 0) {
-        return MUS_MOD;
+        return eAudioFileMOD;
     }
     else if (extension.CompareNoCase("it") == 0) {
-        return MUS_MOD;
+        return eAudioFileMOD;
     }
     else if (extension.CompareNoCase("xm") == 0) {
-        return MUS_MOD;
+        return eAudioFileMOD;
     }
     else if (extension.CompareNoCase("flac") == 0) {
-        return MUS_FLAC;
+        return eAudioFileFLAC;
     }
-    return 0;
+    return eAudioFileUnknown;
 }
 
 // Sound cache, stores most recent used sounds, tracks use history with MRU list.

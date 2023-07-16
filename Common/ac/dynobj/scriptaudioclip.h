@@ -24,6 +24,7 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 enum AudioFileType {
+    eAudioFileUnknown = 0,
     eAudioFileOGG = 1,
     eAudioFileMP3 = 2,
     eAudioFileWAV = 3,

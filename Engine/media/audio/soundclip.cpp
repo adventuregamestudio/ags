@@ -19,7 +19,7 @@ SOUNDCLIP::SOUNDCLIP(int slot)
 {
     sourceClipID = -1;
     sourceClipType = 0;
-    soundType = 0;
+    soundType = eAudioFileUnknown;
     repeat = false;
     priority = 50;
     vol255 = 0;
@@ -73,10 +73,10 @@ int SOUNDCLIP::posms_to_pos(int pos_ms)
 {
     switch (soundType)
     {
-    case MUS_WAVE: // Pos is in samples
+    case eAudioFileWAV: // Pos is in samples
         return static_cast<int>((static_cast<int64_t>(pos_ms) * freq) / 1000);
-    case MUS_MIDI: /* TODO: reimplement */
-    case MUS_MOD:  /* TODO: reimplement */
+    case eAudioFileMIDI: /* TODO: reimplement */
+    case eAudioFileMOD:  /* TODO: reimplement */
         return 0;  /* better say that it does not work than return wrong value */
     default:
         return pos_ms;
@@ -87,10 +87,10 @@ int SOUNDCLIP::pos_to_posms(int pos)
 {
     switch (soundType)
     {
-    case MUS_WAVE: // Pos is in samples
+    case eAudioFileWAV: // Pos is in samples
         return static_cast<int>((static_cast<int64_t>(pos) * 1000) / freq);
-    case MUS_MIDI: /* TODO: reimplement */
-    case MUS_MOD:  /* TODO: reimplement */
+    case eAudioFileMIDI: /* TODO: reimplement */
+    case eAudioFileMOD:  /* TODO: reimplement */
         return 0;  /* better say that it does not work than return wrong value */
     default:
         return pos;

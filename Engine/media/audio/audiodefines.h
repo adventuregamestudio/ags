@@ -11,17 +11,8 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #ifndef __AC_AUDIODEFINES_H
 #define __AC_AUDIODEFINES_H
-
-// Music format identifier
-#define MUS_MIDI 1
-#define MUS_MP3  2
-#define MUS_WAVE 3
-#define MUS_MOD  4
-#define MUS_OGG  5
-#define MUS_FLAC  6
 
 // Media playback status
 enum PlaybackState

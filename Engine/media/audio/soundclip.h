@@ -36,6 +36,7 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
+#include "ac/dynobj/scriptaudioclip.h"
 #include "media/audio/audiodefines.h"
 
 class SOUNDCLIP final
@@ -47,7 +48,9 @@ public:
     // TODO: move these to private
     int sourceClipID;
     int sourceClipType;
-    int soundType; // legacy sound format type (MUS_*)
+    // soundType is used for the reference, and when applying
+    // format-dependent seek and position
+    AudioFileType soundType;
     bool repeat;
     int lengthMs;
     int priority; // relative clip priority
@@ -86,7 +89,7 @@ public:
     }
 
     // Get legacy sound format type (MUS_*)
-    inline int get_sound_type() const { return soundType; }
+    inline AudioFileType get_sound_type() const { return soundType; }
     // Gets clip's volume property, as percentage (0 - 100);
     // note this may not be the real volume of playback (which could e.g. be muted)
     inline int get_volume100() const { return vol100; }

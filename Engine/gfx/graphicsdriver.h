@@ -158,7 +158,7 @@ public:
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
   // Create texture data with the given parameters
-  virtual Texture *CreateTexture(int width, int height, bool opaque = false, bool as_render_target = false) = 0;
+  virtual Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
   // Create texture and initialize its pixels from the given bitmap
   virtual Texture *CreateTexture(Common::Bitmap *bmp, bool opaque = false) = 0;
   // Update texture data from the given bitmap

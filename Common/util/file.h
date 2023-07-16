@@ -105,7 +105,9 @@ namespace File
     // (hashset with case-insensitive hash fn, we don't need a map here).
     // But then we might require a file-watcher, as dir contents may change.
 
-    // Case insensitive find file;
+    // Case insensitive find file: looks up for a file_name in base_dir
+    // and finds out whether such path exists and valid. On case-sensitive
+    // filesystems scans dir and does a case-insensitive search.
     // base_dir defines the base dir which is assumed to be correct already,
     // and file_name is considered to be relative to base dir;
     // base_dir may be empty, in which case relative filename is treated as
@@ -114,7 +116,7 @@ namespace File
     // as case-insensitive.
     // On success returns a full found path, on failure returns an empty string.
     // On failure optionally fills most_found and not_found strings with the
-    // successful and failed part of the path respectively.
+    // successful and failed part of the searched path respectively.
     String FindFileCI(const String &base_dir, const String &file_name,
         bool is_dir = false, String *most_found = nullptr, String *not_found = nullptr);
     // Case insensitive file open: looks up for the file using FindFileCI

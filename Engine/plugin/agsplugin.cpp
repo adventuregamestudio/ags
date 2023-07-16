@@ -21,6 +21,7 @@
 #include "ac/common.h" // quit
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
+#include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
@@ -551,24 +552,32 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     // TODO: find out how engine was supposed to decide on where to load the sound from
     AssetPath asset_name(filename, "audio");
 
+    const char *ext = "";
     switch (soundType)
     {
     case PSND_WAVE:
-        newcha = my_load_wave(asset_name, (loop != 0)); break;
+        ext = "wav"; break;
     case PSND_MP3STREAM:
     case PSND_MP3STATIC:
-        newcha = my_load_mp3(asset_name, (loop != 0)); break;
+        ext = "mp3"; break;
     case PSND_OGGSTREAM:
     case PSND_OGGSTATIC:
-        newcha = my_load_ogg(asset_name, (loop != 0)); break;
+        ext = "ogg"; break;
     case PSND_MIDI:
-        newcha = my_load_midi(asset_name, (loop != 0)); break;
+        ext = "mid"; break;
     case PSND_MOD:
-        newcha = my_load_mod(asset_name, (loop != 0)); break;
+        ext = "mod"; break;
     case PSND_FLAC:
-        newcha = my_load_flac(asset_name, (loop != 0)); break;
+        ext = "flac"; break;
     default:
         debug_script_warn("IAGSEngine::PlaySoundChannel: unknown sound type %d", soundType);
+        return;
+    }
+
+    newcha = load_sound_clip(asset_name, ext, (loop != 0));
+    if (!newcha)
+    {
+        debug_script_warn("IAGSEngine::PlaySoundChannel: failed to load %s", filename);
         return;
     }
 
@@ -800,6 +809,11 @@ void IAGSEngine::NotifyFontUpdated(int fontNumber)
 {
     font_recalc_metrics(fontNumber);
     GUI::MarkForFontUpdate(fontNumber);
+}
+
+const char *IAGSEngine::ResolveFilePath(const char *script_path)
+{
+    return File_ResolvePath(script_path);
 }
 
 void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)

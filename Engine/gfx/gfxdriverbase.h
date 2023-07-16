@@ -289,7 +289,7 @@ public:
     // Creates new DDB and copy bitmap contents over
     IDriverDependantBitmap *CreateDDBFromBitmap(Bitmap *bitmap, bool opaque = false) override;
 
-    Texture *CreateTexture(int width, int height, bool opaque = false, bool as_render_target = false) = 0;
+    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
     Texture *CreateTexture(Bitmap *bmp, bool opaque = false) override;
 

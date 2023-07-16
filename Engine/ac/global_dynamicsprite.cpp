@@ -28,9 +28,8 @@ extern IGraphicsDriver *gfxDriver;
 
 int LoadImageFile(const char *filename)
 {
-    String res_path;
     std::unique_ptr<Stream> in(
-        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read, res_path));
+        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read));
     if (!in)
         return 0;
 

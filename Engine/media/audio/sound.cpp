@@ -100,7 +100,7 @@ void soundcache_clear()
     SndCache.Clear();
 }
 
-static SOUNDCLIP *my_load_clip(const AssetPath &apath, const char *extension_hint, bool loop)
+SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop)
 {
     size_t asset_size;
     std::unique_ptr<Stream> s_in;
@@ -149,34 +149,4 @@ static SOUNDCLIP *my_load_clip(const AssetPath &apath, const char *extension_hin
     clip->soundType = sound_type;
     clip->lengthMs = lengthMs;
     return clip;
-}
-
-SOUNDCLIP *my_load_wave(const AssetPath &asset_name, bool loop)
-{
-    return my_load_clip(asset_name, "WAV", loop);
-}
-
-SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop)
-{
-    return my_load_clip(asset_name, "MP3", loop);
-}
-
-SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, bool loop)
-{
-    return my_load_clip(asset_name, "OGG", loop);
-}
-
-SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop)
-{
-    return my_load_clip(asset_name, "MIDI", loop);
-}
-
-SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop)
-{
-    return my_load_clip(asset_name, "MOD", loop);
-}
-
-SOUNDCLIP *my_load_flac(const AssetPath &asset_name, bool loop)
-{
-    return my_load_clip(asset_name, "FLAC", loop);
 }

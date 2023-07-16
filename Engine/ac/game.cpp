@@ -1086,7 +1086,8 @@ void start_skipping_cutscene () {
 }
 
 bool check_skip_cutscene_keypress (int kgn) {
-
+    if (IsAGSServiceKey(static_cast<eAGSKeyCode>(kgn)))
+        return false;
     CutsceneSkipStyle skip = get_cutscene_skipstyle();
     if (skip == eSkipSceneAnyKey || skip == eSkipSceneKeyMouse ||
         (kgn == eAGSKeyCodeEscape && (skip == eSkipSceneEscOnly || skip == eSkipSceneEscOrRMB)))

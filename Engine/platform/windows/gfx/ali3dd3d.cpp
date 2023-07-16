@@ -793,7 +793,7 @@ void D3DGraphicsDriver::RecreateRenderTargets()
     {
         ddb->ReleaseTextureData();
         // FIXME: this ugly accessing internal texture members
-        ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(ddb->_width, ddb->_height, ddb->_opaque, true)));
+        ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(ddb->_width, ddb->_height, ddb->_colDepth, ddb->_opaque, true)));
         IDirect3DTexture9 *tex = ddb->_data->_tiles->texture;
         HRESULT hr = tex->GetSurfaceLevel(0, &ddb->_renderSurface);
         assert(hr == D3D_OK);
@@ -1778,7 +1778,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDB(int width, int height, int 
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
-    ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(width, height, opaque)));
+    ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque)));
     return ddb;
 }
 
@@ -1796,7 +1796,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateRenderTargetDDB(int width, int 
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     D3DBitmap *ddb = new D3DBitmap(width, height, color_depth, opaque);
     // FIXME: this ugly accessing internal texture members
-    ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(width, height, opaque, true)));
+    ddb->_data.reset(reinterpret_cast<D3DTexture*>(CreateTexture(width, height, color_depth, opaque, true)));
     IDirect3DTexture9 *tex = ddb->_data->_tiles->texture;
     HRESULT hr = tex->GetSurfaceLevel(0, &ddb->_renderSurface);
     assert(hr == D3D_OK);
@@ -1810,7 +1810,7 @@ std::shared_ptr<Texture> D3DGraphicsDriver::GetTexture(IDriverDependantBitmap *d
     return std::static_pointer_cast<Texture>((reinterpret_cast<D3DBitmap*>(ddb))->_data);
 }
 
-Texture *D3DGraphicsDriver::CreateTexture(int width, int height, bool opaque, bool as_render_target)
+Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth, bool opaque, bool as_render_target)
 {
   assert(width > 0);
   assert(height > 0);
@@ -1849,7 +1849,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, bool opaque, bo
   int tileAllocatedHeight = tileHeight;
   AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
 
-  auto *txdata = new D3DTexture(GraphicResolution(width, height, 32), as_render_target);
+  auto *txdata = new D3DTexture(GraphicResolution(width, height, color_depth), as_render_target);
   int numTiles = tilesAcross * tilesDown;
   D3DTextureTile *tiles = new D3DTextureTile[numTiles];
   CUSTOMVERTEX *vertices = NULL;

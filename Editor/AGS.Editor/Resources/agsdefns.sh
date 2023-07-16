@@ -890,7 +890,13 @@ builtin managed struct File {
   /// Writes a raw 32-bit int to the file.
   import void WriteRawInt(int value);
 #endif
-  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_API_v361
+  /// Resolves the script path into the system filepath; for diagnostic purposes only.
+  import static String ResolvePath(const string filename);   // $AUTOCOMPLETESTATICONLY$
+  /// Gets the path to opened file.
+  readonly import attribute String Path;
+#endif
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 builtin managed struct InventoryItem {

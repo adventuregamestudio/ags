@@ -31,11 +31,7 @@ const size_t DEFAULT_SOUNDCACHESIZE_KB = 1024u * 32; // 32 MB
 // * max_cachesize - sound cache limit, in bytes
 void soundcache_set_rules(size_t max_loadatonce, size_t max_cachesize);
 void soundcache_clear();
-SOUNDCLIP *my_load_wave(const AssetPath &asset_name, bool loop);
-SOUNDCLIP *my_load_mp3(const AssetPath &asset_name, bool loop);
-SOUNDCLIP *my_load_ogg(const AssetPath &asset_name, bool loop);
-SOUNDCLIP *my_load_midi(const AssetPath &asset_name, bool loop);
-SOUNDCLIP *my_load_mod(const AssetPath &asset_name, bool loop);
-SOUNDCLIP *my_load_flac(const AssetPath &asset_name, bool loop);
+
+SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop);
 
 #endif // __AC_SOUND_H

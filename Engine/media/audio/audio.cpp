@@ -241,30 +241,28 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 
     SOUNDCLIP *soundClip = nullptr;
     AssetPath asset_name = get_audio_clip_assetpath(audioClip->bundlingType, audioClip->fileName);
+    const char *ext = "";
     switch (audioClip->fileType)
     {
     case eAudioFileOGG:
-        soundClip = my_load_ogg(asset_name, repeat);
-        break;
+        ext = "ogg"; break;
     case eAudioFileMP3:
-        soundClip = my_load_mp3(asset_name, repeat);
-        break;
+        ext = "mp3"; break;
     case eAudioFileWAV:
     case eAudioFileVOC:
-        soundClip = my_load_wave(asset_name, repeat);
-        break;
+        ext = "wav"; break;
     case eAudioFileMIDI:
-        soundClip = my_load_midi(asset_name, repeat);
-        break;
+        ext = "mid"; break;
     case eAudioFileMOD:
-        soundClip = my_load_mod(asset_name, repeat);
-        break;
+        ext = "mod"; break;
     case eAudioFileFLAC:
-        soundClip = my_load_flac(asset_name, repeat);
+        ext = "flac"; break;
         break;
     default:
         quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);
     }
+
+    soundClip = load_sound_clip(asset_name, ext, repeat);
     if (soundClip != nullptr)
     {
         soundClip->set_volume100(audioClip->defaultVolume);

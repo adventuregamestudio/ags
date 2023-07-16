@@ -232,7 +232,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *b
 
 Texture *VideoMemoryGraphicsDriver::CreateTexture(Bitmap *bmp, bool opaque)
 {
-    Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), opaque);
+    Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), bmp->GetColorDepth(), opaque);
     if (txdata)
         UpdateTexture(txdata, bmp, opaque);
     return txdata;

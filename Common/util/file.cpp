@@ -252,16 +252,12 @@ Stream *File::OpenStderr()
 String File::FindFileCI(const String &base_dir, const String &file_name,
     bool is_dir, String *most_found, String *not_found)
 {
-#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
-    // Simply concat dir and filename paths
-    return Path::ConcatPaths(base_dir, file_name);
-#else
+    // Case insensitive file find - on case sensitive filesystems
     if (most_found)
         *most_found = base_dir;
     if (not_found)
         *not_found = "";
 
-    // Case insensitive file find - on case sensitive filesystems
     if (file_name.IsEmpty())
         return {}; // fail, no filename provided
 
@@ -292,6 +288,13 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
         (!is_dir && ags_file_exists(test.GetCStr())))
         return test; // success
 
+#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+    // TODO: most_found & not_found are never used in practice with CI fs;
+    // but if becomes necessary, we may reuse most of the CS code below
+    // for this case too, and uncommenting the following condition -
+    /* if (!most_found && !not_found) */
+    return {}; // fail
+#else
     // Begin splitting filename into path sections,
     // for each section open previous dir and search for any case-insensitive
     // match for the next section.

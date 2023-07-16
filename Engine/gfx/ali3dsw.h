@@ -193,7 +193,7 @@ public:
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
-    Texture *CreateTexture(int, int, bool, bool) override { return nullptr; /* not supported */}
+    Texture *CreateTexture(int, int, int, bool, bool) override { return nullptr; /* not supported */}
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
     Texture *CreateTexture(Common::Bitmap*, bool) override { return nullptr; /* not supported */ }
     // Update texture data from the given bitmap

@@ -951,27 +951,17 @@ bool read_savedgame_description(const String &savedgame, String &description)
     return true;
 }
 
-bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
+std::unique_ptr<Bitmap> read_savedgame_screenshot(const String &savedgame)
 {
-    want_shot = 0;
-
     SavegameDescription desc;
     HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
     if (!err)
     {
         Debug::Printf(kDbgMsg_Error, "Unable to read save's screenshot.\n%s", err->FullMessage().GetCStr());
-        return false;
+        return {};
     }
-
-    if (desc.UserImage.get())
-    {
-        if (!spriteset.HasFreeSlots())
-            return false;
-        // add it into the sprite set
-        std::unique_ptr<Bitmap> image(PrepareSpriteForUse(desc.UserImage.release(), false));
-        want_shot = add_dynamic_sprite(std::move(image));
-    }
-    return want_shot > 0;
+    desc.UserImage.reset(PrepareSpriteForUse(desc.UserImage.release(), false));
+    return std::move(desc.UserImage);
 }
 
 

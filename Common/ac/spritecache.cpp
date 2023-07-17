@@ -85,7 +85,7 @@ bool SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite, int flags)
 
     _spriteData[index].Flags = SPRCACHEFLAG_EXTERNAL | SPRCACHEFLAG_LOCKED; // NOT from asset file
     Put(index, std::unique_ptr<Bitmap>(sprite), kCacheItem_External | kCacheItem_Locked);
-    _sprInfos[index] = SpriteInfo(flags, sprite->GetWidth(), sprite->GetHeight());
+    _sprInfos[index] = SpriteInfo(sprite->GetWidth(), sprite->GetHeight(), flags);
     SprCacheLog("SetSprite: (external) %d", index);
     return true;
 }

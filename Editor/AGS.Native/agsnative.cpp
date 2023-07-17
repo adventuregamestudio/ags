@@ -187,8 +187,8 @@ Common::Bitmap *get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
-void SetNewSprite(int slot, Common::Bitmap *sprit, int flags) {
-  spriteset.SetSprite(slot, sprit, flags);
+void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
+  spriteset.SetSprite(slot, std::unique_ptr<AGSBitmap>(sprit), flags);
   spritesModified = true;
 }
 
@@ -261,8 +261,8 @@ void change_sprite_number(int oldNumber, int newNumber) {
   if (!spriteset.DoesSpriteExist(oldNumber))
     return;
 
-  AGSBitmap *bitmap = spriteset.RemoveSprite(oldNumber);
-  spriteset.SetSprite(newNumber, bitmap, thisgame.SpriteInfos[oldNumber].Flags);
+  std::unique_ptr<AGSBitmap> bitmap(spriteset.RemoveSprite(oldNumber));
+  spriteset.SetSprite(newNumber, std::move(bitmap), thisgame.SpriteInfos[oldNumber].Flags);
   spritesModified = true;
 }
 
@@ -352,12 +352,12 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   }
 
   for (aa = 0; aa < numSprites; aa++) {
-    Common::Bitmap *sprit = get_sprite(sprites[aa]);
+    AGSBitmap *sprit = get_sprite(sprites[aa]);
     // create a new, smaller sprite and copy across
-	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
+	std::unique_ptr<AGSBitmap> newsprit(new AGSBitmap(newWidth, newHeight, sprit->GetColorDepth()));
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     // set new image and keep old flags
-    spriteset.SetSprite(sprites[aa], newsprit, thisgame.SpriteInfos[aa].Flags);
+    spriteset.SetSprite(sprites[aa], std::move(newsprit), thisgame.SpriteInfos[aa].Flags);
   }
 
   spritesModified = true;

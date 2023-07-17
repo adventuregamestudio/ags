@@ -965,15 +965,13 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 
     if (desc.UserImage.get())
     {
-        int slot = spriteset.GetFreeIndex();
-        if (slot > 0)
-        {
-            // add it into the sprite set
-            add_dynamic_sprite(slot, PrepareSpriteForUse(desc.UserImage.release(), false));
-            want_shot = slot;
-        }
+        if (!spriteset.HasFreeSlots())
+            return false;
+        // add it into the sprite set
+        std::unique_ptr<Bitmap> image(PrepareSpriteForUse(desc.UserImage.release(), false));
+        want_shot = add_dynamic_sprite(std::move(image));
     }
-    return true;
+    return want_shot > 0;
 }
 
 

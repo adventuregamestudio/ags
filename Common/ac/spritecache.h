@@ -25,6 +25,13 @@
 // called a ResourceManager, for instance. ResourceManager would contain both
 // some kind of a streaming object to load resources from, and a MRU Cache.
 //
+// TODO: there's still an inconsistency in how the class works, because it
+// combines functionality of streaming "static" sprites by request from the
+// game assets, and one of a "sprite list builder" used in the Editor. Latter
+// allows to freely add remove and replace sprites with "asset" flag.
+// This may be resolved, probably, by further separating a SpriteCache class
+// into some kind of a "spritelist builder" and "runtime sprite manager".
+//
 //=============================================================================
 #ifndef __AGS_CN_AC__SPRCACHE_H
 #define __AGS_CN_AC__SPRCACHE_H
@@ -108,6 +115,11 @@ public:
     inline size_t GetMaxCacheSize() const { return ResourceCache::GetMaxCacheSize(); }
     // Returns number of sprite slots in the bank (this includes both actual sprites and free slots)
     size_t      GetSpriteSlotCount() const;
+    // Tells if the sprite storage still has unoccupied slots to put new sprites in
+    bool        HasFreeSlots() const;
+    // Tells if the given slot is reserved for the asset sprite, that is a "static"
+    // sprite cached from the game assets
+    bool        IsAssetSprite(sprkey_t index) const;
     // Loads sprite and and locks in memory (so it cannot get removed implicitly)
     void        Precache(sprkey_t index);
     // Unregisters sprite from the bank and returns the bitmap
@@ -121,8 +133,8 @@ public:
     void        Reset();
     // Assigns new sprite for the given index; this sprite won't be auto disposed.
     // *Deletes* the previous sprite if one was found at the same index.
-    // "flags" are SPF_* constants that define sprite's behavior in game.
-    bool        SetSprite(sprkey_t index, Bitmap*, int flags = 0);
+    // "flags" are optional SPF_* constants that define sprite's behavior in game.
+    bool        SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags = 0);
     // Assigns new sprite for the given index, remapping it to sprite 0;
     // optionally marks it as an asset placeholder.
     // *Deletes* the previous sprite if one was found at the same index.

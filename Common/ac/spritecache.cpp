@@ -61,6 +61,17 @@ size_t SpriteCache::GetSpriteSlotCount() const
     return _spriteData.size();
 }
 
+bool SpriteCache::HasFreeSlots() const
+{
+    return !((_spriteData.size() == SIZE_MAX) || (_spriteData.size() > MAX_SPRITE_INDEX));
+}
+
+bool SpriteCache::IsAssetSprite(sprkey_t index) const
+{
+    return index >= 0 && (size_t)index < _spriteData.size() && // in the valid range
+        _spriteData[index].IsAssetSprite(); // found in the game resources
+}
+
 void SpriteCache::Reset()
 {
     _file.Close();
@@ -68,24 +79,27 @@ void SpriteCache::Reset()
     _spriteData.clear();
 }
 
-bool SpriteCache::SetSprite(sprkey_t index, Bitmap *sprite, int flags)
+bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags)
 {
     assert(index >= 0); // out of positive range indexes are valid to fail
-    assert(sprite);
+    assert(image);
     if (index < 0 || EnlargeTo(index) != index)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: unable to use index %d", index);
         return false;
     }
-    if (!sprite)
+    if (!image)
     {
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: attempt to assign nullptr to index %d", index);
         return false;
     }
 
+    const int spf_flags = flags
+        | (SPF_HICOLOR * image->GetColorDepth() > 8)
+        | (SPF_TRUECOLOR * image->GetColorDepth() > 16);
+    _sprInfos[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), spf_flags);
     _spriteData[index].Flags = SPRCACHEFLAG_EXTERNAL | SPRCACHEFLAG_LOCKED; // NOT from asset file
-    Put(index, std::unique_ptr<Bitmap>(sprite), kCacheItem_External | kCacheItem_Locked);
-    _sprInfos[index] = SpriteInfo(sprite->GetWidth(), sprite->GetHeight(), flags);
+    Put(index, std::move(image), kCacheItem_External | kCacheItem_Locked);
     SprCacheLog("SetSprite: (external) %d", index);
     return true;
 }
@@ -141,6 +155,12 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 
 sprkey_t SpriteCache::GetFreeIndex()
 {
+    // FIXME: inefficient if large number of sprites were created in game;
+    // use "available ids" stack, see managed pool for an example;
+    // NOTE: this is shared with the Editor, which means we cannot rely on the
+    // number of "static" sprites and search for slots after... this may be
+    // resolved by splitting SpriteCache class further on "cache builder" and
+    // "runtime cache".
     for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {
         // slot empty

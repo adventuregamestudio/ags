@@ -83,8 +83,9 @@ static void restore_game_spriteset(Stream *in)
     int sprnum = in->ReadInt32();
     while (sprnum) {
         unsigned char spriteflag = in->ReadByte();
-        add_dynamic_sprite(sprnum, read_serialized_bitmap(in));
-        game.SpriteInfos[sprnum].Flags = spriteflag;
+        std::unique_ptr<Bitmap> image(read_serialized_bitmap(in));
+        add_dynamic_sprite(sprnum, std::move(image));
+        game.SpriteInfos[sprnum].Flags = spriteflag; // FIXME, don't set directly; are these flags even necessary?
         sprnum = in->ReadInt32();
     }
 }

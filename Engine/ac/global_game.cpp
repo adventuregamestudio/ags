@@ -170,30 +170,24 @@ int GetSaveSlotDescription(int slnum, char *desbuf) {
 }
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
-    int gotSlot;
+    int slot;
+    if (!read_savedgame_screenshot(get_save_game_path(slnum), slot) || slot <= 0)
+        return 0;
+
     data_to_game_coords(&width, &height);
-
-    if (!read_savedgame_screenshot(get_save_game_path(slnum), gotSlot))
-        return 0;
-
-    if (gotSlot == 0)
-        return 0;
-
-    if ((game.SpriteInfos[gotSlot].Width == width) && (game.SpriteInfos[gotSlot].Height == height))
-        return gotSlot;
+    if ((game.SpriteInfos[slot].Width == width) && (game.SpriteInfos[slot].Height == height))
+        return slot;
 
     // resize the sprite to the requested size
-    Bitmap *sprite = spriteset[gotSlot];
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth());
-    newPic->StretchBlt(sprite,
-        RectWH(0, 0, game.SpriteInfos[gotSlot].Width, game.SpriteInfos[gotSlot].Height),
+    Bitmap *sprite = spriteset[slot];
+    std::unique_ptr<Bitmap> image(BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth()));
+    image->StretchBlt(sprite,
+        RectWH(0, 0, sprite->GetWidth(), sprite->GetHeight()),
         RectWH(0, 0, width, height));
 
     // replace the bitmap in the sprite set
-    free_dynamic_sprite(gotSlot);
-    add_dynamic_sprite(gotSlot, newPic);
-
-    return gotSlot;
+    add_dynamic_sprite(slot, std::move(image));
+    return slot;
 }
 
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t max_count)

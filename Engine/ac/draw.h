@@ -17,6 +17,7 @@
 #include <memory>
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "ac/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "game/roomstruct.h"
@@ -197,5 +198,10 @@ Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool has_alpha);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
+
+
+// TODO: hide these behind some kind of an interface
+extern std::unique_ptr<Common::Bitmap> raw_saved_screen;
+extern std::unique_ptr<Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 #endif // __AGS_EE_AC__DRAW_H

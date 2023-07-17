@@ -40,7 +40,6 @@ extern GameState play;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 extern SpriteCache spriteset;
-extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 // ** SCRIPT DRAWINGSURFACE OBJECT
 
@@ -79,7 +78,6 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     }
     if (sds->dynamicSurfaceNumber >= 0)
     {
-        delete dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber];
         dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = nullptr;
         sds->dynamicSurfaceNumber = -1;
     }
@@ -115,7 +113,7 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
     {
         if (dynamicallyCreatedSurfaces[i] == nullptr)
         {
-            dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmapCopy(sourceBitmap);
+            dynamicallyCreatedSurfaces[i].reset(BitmapHelper::CreateBitmapCopy(sourceBitmap));
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
             newSurface->dynamicSurfaceNumber = i;
             newSurface->hasAlphaChannel = sds->hasAlphaChannel;

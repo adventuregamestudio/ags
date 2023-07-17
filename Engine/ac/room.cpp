@@ -92,7 +92,6 @@ extern int starting_room;
 extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap *raw_saved_screen;
 extern RGB palette[256];
 extern int mouse_z_was;
 
@@ -305,7 +304,6 @@ void unload_old_room() {
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
     remove_all_overlays();
-    delete raw_saved_screen;
     raw_saved_screen = nullptr;
     for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
         play.raw_modified[ff] = 0;

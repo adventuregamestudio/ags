@@ -374,8 +374,8 @@ std::vector<SpriteListEntry> thingsToDrawList;
 std::vector<SpriteListEntry> sprlist;
 
 // For raw drawing
-Bitmap *raw_saved_screen = nullptr;
-Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+std::unique_ptr<Bitmap> raw_saved_screen;
+std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
 void setpal() {

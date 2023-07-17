@@ -32,7 +32,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern Bitmap *raw_saved_screen;
 extern RoomStruct thisroom;
 extern GameState play;
 extern SpriteCache spriteset;
@@ -45,10 +44,8 @@ extern GameSetupStruct game;
 
 // RawSaveScreen: copy the current screen to a backup bitmap
 void RawSaveScreen () {
-    if (raw_saved_screen != nullptr)
-        delete raw_saved_screen;
-    PBitmap source = thisroom.BgFrames[play.bg_frame].Graphic;
-    raw_saved_screen = BitmapHelper::CreateBitmapCopy(source.get());
+    auto source = thisroom.BgFrames[play.bg_frame].Graphic;
+    raw_saved_screen.reset(BitmapHelper::CreateBitmapCopy(source.get()));
 }
 // RawRestoreScreen: copy backup bitmap back to screen; we
 // deliberately don't free the Bitmap *cos they can multiple restore
@@ -58,8 +55,8 @@ void RawRestoreScreen() {
         debug_script_warn("RawRestoreScreen: unable to restore, since the screen hasn't been saved previously.");
         return;
     }
-    PBitmap deston = thisroom.BgFrames[play.bg_frame].Graphic;
-    deston->Blit(raw_saved_screen, 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
+    auto deston = thisroom.BgFrames[play.bg_frame].Graphic;
+    deston->Blit(raw_saved_screen.get(), 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -77,7 +74,7 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
     debug_script_log("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
     PBitmap deston = thisroom.BgFrames[play.bg_frame].Graphic;
-    tint_image(deston.get(), raw_saved_screen, red, green, blue, opacity);
+    tint_image(deston.get(), raw_saved_screen.get(), red, green, blue, opacity);
     invalidate_screen();
     mark_current_background_dirty();
 }

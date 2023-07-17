@@ -441,21 +441,13 @@ int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, bool has_alpha) 
     return slot;
 }
 
-void free_dynamic_sprite (int gotSlot) {
+void free_dynamic_sprite(int slot) {
+    assert((slot > 0) && (game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC));
+    if (slot <= 0 || (game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) == 0)
+        return;
 
-  if ((gotSlot < 0) || ((size_t)gotSlot >= spriteset.GetSpriteSlotCount()))
-    quit("!FreeDynamicSprite: invalid slot number");
-
-  if ((game.SpriteInfos[gotSlot].Flags & SPF_DYNAMICALLOC) == 0)
-    quitprintf("!DeleteSprite: Attempted to free static sprite %d that was not loaded by the script", gotSlot);
-
-  spriteset.DisposeSprite(gotSlot);
-
-  game.SpriteInfos[gotSlot].Flags = 0;
-  game.SpriteInfos[gotSlot].Width = 0;
-  game.SpriteInfos[gotSlot].Height = 0;
-
-  game_sprite_deleted(gotSlot);
+    spriteset.DisposeSprite(slot);
+    game_sprite_deleted(slot);
 }
 
 //=============================================================================

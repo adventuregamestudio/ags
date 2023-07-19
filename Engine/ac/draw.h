@@ -77,7 +77,9 @@ void reset_objcache_for_sprite(int sprnum, bool deleted);
 // Get current texture cache's stats: max size, current normal items size,
 // size of locked items (included into cur_size),
 // size of external items (excluded from cur_size)
-void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size);
+void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size);
+// Completely resets texture cache
+void texturecache_clear();
 // Update shared and cached texture from the sprite's pixels
 void update_shared_texture(uint32_t sprite_id);
 // Remove a texture from cache

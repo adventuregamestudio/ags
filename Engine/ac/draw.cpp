@@ -738,6 +738,7 @@ void dispose_game_drawdata()
     actsps.clear();
     walkbehindobj.clear();
 
+    texturecache_clear();
     guibg.clear();
     gui_render_tex.clear();
     guiobjbg.clear();
@@ -1007,12 +1008,17 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
     }
 }
 
-void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size)
+void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size)
 {
     max_size = texturecache.GetMaxCacheSize();
     cur_size = texturecache.GetCacheSize();
     locked_size = texturecache.GetLockedSize();
     ext_size = texturecache.GetExternalSize();
+}
+
+void texturecache_clear()
+{
+    texturecache.Clear();
 }
 
 void update_shared_texture(uint32_t sprite_id)

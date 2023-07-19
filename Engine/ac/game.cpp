@@ -488,6 +488,11 @@ void unload_game_file()
     // Free game state and game struct
     play = GameState();
     game = GameSetupStruct();
+
+    // Reset all resource caches
+    // IMPORTANT: this is hard reset, including locked items
+    spriteset.Reset();
+    soundcache_clear();
 }
 
 

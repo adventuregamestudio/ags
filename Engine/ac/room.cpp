@@ -939,6 +939,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
         // Delete all cached resources
         spriteset.DisposeAllCached();
         soundcache_clear();
+        texturecache_clear();
     }
 
     load_new_room(newnum,forchar);

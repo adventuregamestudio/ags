@@ -39,6 +39,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <queue>
 #include <vector>
 #include "core/platform.h"
 #include "ac/spritefile.h"
@@ -176,6 +177,8 @@ private:
 
         SpriteData() = default;
 
+        // Tells if this slot has a valid sprite assigned (not empty slot)
+        bool IsValid() const { return Flags != 0u; }
         // Tells if there's a game resource corresponding to this slot
         bool IsAssetSprite() const;
         // Tells if a sprite is remapped to placeholder (e.g. failed to load)
@@ -190,6 +193,8 @@ private:
     std::vector<SpriteInfo> &_sprInfos;
     // Array of sprite references
     std::vector<SpriteData> _spriteData;
+    // Queue of free sprite slot IDs, for faster search
+    std::queue<sprkey_t> _freeIDs;
 
     Callbacks  _callbacks;
     SpriteFile _file;

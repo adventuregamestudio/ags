@@ -77,6 +77,7 @@ void SpriteCache::Reset()
     _file.Close();
     ResourceCache::Clear();
     _spriteData.clear();
+    _freeIDs = std::queue<sprkey_t>();
 }
 
 bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags)
@@ -155,21 +156,11 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 
 sprkey_t SpriteCache::GetFreeIndex()
 {
-    // FIXME: inefficient if large number of sprites were created in game;
-    // use "available ids" stack, see managed pool for an example;
-    // NOTE: this is shared with the Editor, which means we cannot rely on the
-    // number of "static" sprites and search for slots after... this may be
-    // resolved by splitting SpriteCache class further on "cache builder" and
-    // "runtime cache".
-    for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
+    if (!_freeIDs.empty())
     {
-        // slot empty
-        if (!DoesSpriteExist(i))
-        {
-            _sprInfos[i] = SpriteInfo();
-            _spriteData[i] = SpriteData();
-            return i;
-        }
+        sprkey_t slot = _freeIDs.front();
+        _freeIDs.pop();
+        return slot;
     }
     // enlarge the sprite bank to find a free slot and return the first new free slot
     return EnlargeTo(_spriteData.size());
@@ -198,8 +189,7 @@ bool SpriteCache::SpriteData::IsLocked() const
 bool SpriteCache::DoesSpriteExist(sprkey_t index) const
 {
     return index >= 0 && (size_t)index < _spriteData.size() && // in the valid range
-        (ResourceCache::Exists(index) || // HAS loaded bitmap
-        _spriteData[index].IsAssetSprite()); // OR found in the game resources
+        _spriteData[index].IsValid(); // has assigned sprite
 }
 
 Size SpriteCache::GetSpriteResolution(sprkey_t index) const
@@ -321,6 +311,7 @@ void SpriteCache::InitNullSprite(sprkey_t index)
     assert(index >= 0);
     _sprInfos[index] = SpriteInfo();
     _spriteData[index] = SpriteData();
+    _freeIDs.push(index);
 }
 
 int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)

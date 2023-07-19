@@ -135,7 +135,7 @@ public:
     // *Deletes* the previous sprite if one was found at the same index.
     // "flags" are optional SPF_* constants that define sprite's behavior in game.
     bool        SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags = 0);
-    // Assigns new sprite for the given index, remapping it to sprite 0;
+    // Assigns new dummy sprite for the given index, silently remapping it to sprite 0;
     // optionally marks it as an asset placeholder.
     // *Deletes* the previous sprite if one was found at the same index.
     void        SetEmptySprite(sprkey_t index, bool as_asset);
@@ -159,7 +159,7 @@ private:
     // in case of remapped sprite this will return the one given sprite is remapped to
     sprkey_t    GetDataIndex(sprkey_t index);
     // Initialize the empty sprite slot
-    void        InitNullSpriteParams(sprkey_t index);
+    void        InitNullSprite(sprkey_t index);
     //
     // Dummy no-op variants for callbacks
     //

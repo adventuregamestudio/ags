@@ -108,33 +108,24 @@ void RunHotspotInteraction (int hotspothere, int mood) {
 
     // can't use the setevent functions because this ProcessClick is only
     // executed once in a eventlist
-    const char *oldbasename = evblockbasename;
-    int   oldblocknum = evblocknum;
 
-    evblockbasename="hotspot%d";
-    evblocknum=hotspothere;
-
+    const auto obj_evt = ObjectEvent("hotspot%d", hotspothere);
     if (thisroom.Hotspots[hotspothere].EventHandlers != nullptr)
     {
         if (passon>=0)
-            run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), passon, 5);
-        run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), 5);  // any click on hotspot
+            run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), passon, 5);
+        run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), 5);  // any click on hotspot
     }
     else
     {
         if (passon>=0) {
-            if (run_interaction_event(&croom->intrHotspot[hotspothere],passon, 5, (passon == 3))) {
-                evblockbasename = oldbasename;
-                evblocknum = oldblocknum;
+            if (run_interaction_event(obj_evt, &croom->intrHotspot[hotspothere], passon, 5, (passon == 3))) {
                 return;
             }
         }
         // run the 'any click on hs' event
-        run_interaction_event(&croom->intrHotspot[hotspothere],5);
+        run_interaction_event(obj_evt, &croom->intrHotspot[hotspothere], 5);
     }
-
-    evblockbasename = oldbasename;
-    evblocknum = oldblocknum;
 }
 
 int GetHotspotProperty (int hss, const char *property)

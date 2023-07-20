@@ -985,12 +985,7 @@ void first_room_initialization() {
 void check_new_room() {
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
     if ((in_new_room>0) & (in_new_room!=3)) {
-        EventHappened evh;
-        evh.type = EV_RUNEVBLOCK;
-        evh.data1 = EVB_ROOM;
-        evh.data2 = 0;
-        evh.data3 = EVROM_BEFOREFADEIN;
-        evh.player=game.playercharacter;
+        EventHappened evh(EV_RUNEVBLOCK, EVB_ROOM, 0, EVROM_BEFOREFADEIN, game.playercharacter);
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;
         in_new_room = 0;

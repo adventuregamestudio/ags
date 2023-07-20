@@ -55,9 +55,6 @@ int in_leaves_screen = -1;
 
 std::vector<EventHappened> events;
 
-const char*evblockbasename;
-int evblocknum;
-
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
@@ -106,29 +103,27 @@ void run_on_event(int evtype, RuntimeScriptValue &wparam)
 }
 
 void run_room_event(int id) {
-    evblockbasename="room";
-
+    auto obj_evt = ObjectEvent("room");
     if (thisroom.EventHandlers != nullptr)
     {
-        run_interaction_script(thisroom.EventHandlers.get(), id);
+        run_interaction_script(obj_evt, thisroom.EventHandlers.get(), id);
     }
     else
     {
-        run_interaction_event (&croom->intrRoom, id);
+        run_interaction_event(obj_evt, &croom->intrRoom, id);
     }
 }
 
 void run_event_block_inv(int invNum, int event) {
-    evblockbasename="inventory%d";
+    auto obj_evt = ObjectEvent("inventory%d", invNum);
     if (loaded_game_file_version > kGameVersion_272)
     {
-        run_interaction_script(game.invScripts[invNum].get(), event);
+        run_interaction_script(obj_evt, game.invScripts[invNum].get(), event);
     }
     else 
     {
-        run_interaction_event(game.intrInv[invNum].get(), event);
+        run_interaction_event(obj_evt, game.intrInv[invNum].get(), event);
     }
-
 }
 
 // event list functions
@@ -171,8 +166,7 @@ void process_event(const EventHappened *evp) {
     else if (evp->type==EV_RUNEVBLOCK) {
         Interaction*evpt=nullptr;
         PInteractionScripts scriptPtr = nullptr;
-        const char *oldbasename = evblockbasename;
-        int   oldblocknum = evblocknum;
+        ObjectEvent obj_evt;
 
         if (evp->data1==EVB_HOTSPOT) {
 
@@ -181,8 +175,7 @@ void process_event(const EventHappened *evp) {
             else
                 evpt=&croom->intrHotspot[evp->data2];
 
-            evblockbasename="hotspot%d";
-            evblocknum=evp->data2;
+            obj_evt = ObjectEvent("hotspot%d", evp->data2);
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
         }
         else if (evp->data1==EVB_ROOM) {
@@ -192,7 +185,7 @@ void process_event(const EventHappened *evp) {
             else
                 evpt=&croom->intrRoom;
 
-            evblockbasename="room";
+            obj_evt = ObjectEvent("room");
             if (evp->data3 == EVROM_BEFOREFADEIN) {
                 in_enters_screen ++;
                 run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
@@ -201,20 +194,19 @@ void process_event(const EventHappened *evp) {
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
+        else {
+            quit("process_event: RunEvBlock: unknown evb type");
+        }
 
+        assert(scriptPtr || evpt);
         if (scriptPtr != nullptr)
         {
-            run_interaction_script(scriptPtr.get(), evp->data3);
-        }
-        else if (evpt != nullptr)
-        {
-            run_interaction_event(evpt,evp->data3);
+            run_interaction_script(obj_evt, scriptPtr.get(), evp->data3);
         }
         else
-            quit("process_event: RunEvBlock: unknown evb type");
-
-        evblockbasename = oldbasename;
-        evblocknum = oldblocknum;
+        {
+            run_interaction_event(obj_evt, evpt, evp->data3);
+        }
 
         if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
             in_enters_screen --;

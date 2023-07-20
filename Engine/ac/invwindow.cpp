@@ -44,7 +44,6 @@ extern GameState play;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
-extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
 extern CCCharacter ccDynamicCharacter;
@@ -390,7 +389,6 @@ bool InventoryScreen::Run()
             if (my<buttonyp) {
                 int clickedon=isonitem;
                 if (clickedon<0) return true; // continue inventory screen loop
-                evblocknum=dii[clickedon].num;
                 play.used_inv_on = dii[clickedon].num;
 
                 if (cmode==MODE_LOOK) {

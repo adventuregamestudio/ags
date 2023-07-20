@@ -77,7 +77,6 @@ void SpriteCache::Reset()
     _file.Close();
     ResourceCache::Clear();
     _spriteData.clear();
-    _freeIDs = std::queue<sprkey_t>();
 }
 
 bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags)
@@ -156,11 +155,19 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
 
 sprkey_t SpriteCache::GetFreeIndex()
 {
-    if (!_freeIDs.empty())
+    // FIXME: inefficient if large number of sprites were created in game;
+    // use "available ids" stack, see managed pool for an example;
+    // IMPORTANT: must keep in mind that SpriteCache's interface allows
+    // to set any arbitrary sprite ID with SetSprite and SetEmptySprite!
+    for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
     {
-        sprkey_t slot = _freeIDs.front();
-        _freeIDs.pop();
-        return slot;
+        // slot empty
+        if (!DoesSpriteExist(i))
+        {
+            _sprInfos[i] = SpriteInfo();
+            _spriteData[i] = SpriteData();
+            return i;
+        }
     }
     // enlarge the sprite bank to find a free slot and return the first new free slot
     return EnlargeTo(_spriteData.size());
@@ -311,7 +318,6 @@ void SpriteCache::InitNullSprite(sprkey_t index)
     assert(index >= 0);
     _sprInfos[index] = SpriteInfo();
     _spriteData[index] = SpriteData();
-    _freeIDs.push(index);
 }
 
 int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index)

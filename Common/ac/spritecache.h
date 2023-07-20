@@ -39,7 +39,6 @@
 #include <functional>
 #include <list>
 #include <memory>
-#include <queue>
 #include <vector>
 #include "core/platform.h"
 #include "ac/spritefile.h"
@@ -193,8 +192,6 @@ private:
     std::vector<SpriteInfo> &_sprInfos;
     // Array of sprite references
     std::vector<SpriteData> _spriteData;
-    // Queue of free sprite slot IDs, for faster search
-    std::queue<sprkey_t> _freeIDs;
 
     Callbacks  _callbacks;
     SpriteFile _file;

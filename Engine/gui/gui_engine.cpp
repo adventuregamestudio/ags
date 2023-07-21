@@ -81,7 +81,7 @@ String GUI::ApplyTextDirection(const String &text)
 
 String GUI::TransformTextForDrawing(const String &text, bool translate, bool apply_direction)
 {
-    String res_text = translate ? text : get_translation(text.GetCStr());
+    String res_text = translate ? get_translation(text.GetCStr()) : text;
     if (translate && apply_direction)
         res_text = ApplyTextDirection(res_text);
     return res_text;

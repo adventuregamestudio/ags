@@ -91,6 +91,7 @@ const int LegacyRoomVolumeFactor            = 30;
 #define FONT_SPEECH     play.speech_font
 
 // Standard interaction verbs (aka cursor modes)
+#define MODE_NONE      -1
 #define MODE_WALK       0
 #define MODE_LOOK       1
 #define MODE_HAND       2

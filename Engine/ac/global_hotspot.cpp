@@ -26,6 +26,7 @@
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_hotspot.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "script/script.h"
@@ -36,6 +37,8 @@ extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern CharacterInfo*playerchar;
 extern GameSetupStruct game;
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+extern CCHotspot ccDynamicHotspot;
 
 
 void DisableHotspot(int hsnum) {
@@ -117,10 +120,8 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     else if ((mood!=MODE_WALK) && (play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter,hotspothere);
 
-    // can't use the setevent functions because this ProcessClick is only
-    // executed once in a eventlist
-
-    const auto obj_evt = ObjectEvent("hotspot%d", hotspothere);
+    const auto obj_evt = ObjectEvent("hotspot%d", hotspothere,
+        RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {
         if ((evnt >= 0) &&

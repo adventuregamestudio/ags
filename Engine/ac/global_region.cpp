@@ -18,6 +18,7 @@
 #include "ac/region.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
+#include "dynobj/cc_region.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
@@ -28,6 +29,8 @@ using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+extern CCRegion ccDynamicRegion;
 
 int GetRegionIDAtRoom(int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
@@ -140,7 +143,8 @@ void RunRegionInteraction (int regnum, int mood) {
 
     // NOTE: for Regions the mode has specific meanings (NOT verbs):
     // 0 - stands on region, 1 - walks onto region, 2 - walks off region
-    const auto obj_evt = ObjectEvent("region%d", regnum);
+    const auto obj_evt = ObjectEvent("region%d", regnum,
+        RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {
         run_interaction_script(obj_evt, thisroom.Regions[regnum].EventHandlers.get(), mood);

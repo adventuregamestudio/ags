@@ -30,6 +30,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/script.h"
@@ -51,6 +52,8 @@ extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
+extern CCObject ccDynamicObject;
 
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;
@@ -464,7 +467,8 @@ void RunObjectInteraction (int aa, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent("object%d", aa);
+    const auto obj_evt = ObjectEvent("object%d", aa,
+        RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {
         if ((evnt >= 0) &&

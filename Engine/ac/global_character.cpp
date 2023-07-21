@@ -32,6 +32,7 @@
 #include "ac/properties.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_character.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "main/game_run.h"
@@ -47,6 +48,7 @@ extern RoomStruct thisroom;
 extern GameState play;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ScriptInvItem scrInv[MAX_INV];
+extern CCCharacter ccDynamicCharacter;
 
 // defined in character unit
 extern CharacterInfo*playerchar;
@@ -388,7 +390,8 @@ void RunCharacterInteraction (int cc, int mood) {
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent("character%d", cc);
+    const auto obj_evt = ObjectEvent("character%d", cc,
+        RuntimeScriptValue().SetScriptObject(&game.chars[cc], &ccDynamicCharacter), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {
         if ((evnt >= 0) &&

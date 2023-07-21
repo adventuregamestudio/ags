@@ -23,6 +23,7 @@
 #include "ac/invwindow.h"
 #include "ac/properties.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_inventory.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "script/script.h"
@@ -34,6 +35,8 @@ extern GameState play;
 extern int mousex, mousey;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern CharacterInfo*playerchar;
+extern ScriptInvItem scrInv[MAX_INV];
+extern CCInventory ccDynamicInv;
 
 
 void set_inv_item_pic(int invi, int piccy) {
@@ -120,7 +123,8 @@ void RunInventoryInteraction (int iit, int mood) {
     if (evnt < 0) // on any non-supported mode - use "other-click"
         evnt = otherclick_evt;
 
-    auto obj_evt = ObjectEvent("inventory%d", iit);
+    const auto obj_evt = ObjectEvent("inventory%d", iit,
+        RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
     if (loaded_game_file_version > kGameVersion_272)
     {
         run_interaction_script(obj_evt, game.invScripts[iit].get(), evnt);

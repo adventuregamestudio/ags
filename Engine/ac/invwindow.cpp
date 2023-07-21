@@ -21,20 +21,21 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
+#include "ac/global_inventoryitem.h"
 #include "ac/global_room.h"
 #include "ac/mouse.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
+#include "ac/timer.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_inventory.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/spritecache.h"
-#include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_inventory.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
+#include "platform/base/agsplatformdriver.h"
+#include "script/runtimescriptvalue.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
@@ -392,7 +393,7 @@ bool InventoryScreen::Run()
                 play.used_inv_on = dii[clickedon].num;
 
                 if (cmode==MODE_LOOK) {
-                    run_event_block_inv(dii[clickedon].num, 0); 
+                    RunInventoryInteraction(dii[clickedon].num, MODE_LOOK); 
                     // in case the script did anything to the screen, redraw it
                     UpdateGameOnce();
 
@@ -400,14 +401,11 @@ bool InventoryScreen::Run()
                     return break_code == 0;
                 }
                 else if (cmode==MODE_USE) {
-                    // use objects on each other
-                    play.usedinv=toret;
-
                     // set the activeinv so the script can check it
                     int activeinvwas = playerchar->activeinv;
                     playerchar->activeinv = toret;
 
-                    run_event_block_inv(dii[clickedon].num, 3);
+                    RunInventoryInteraction(dii[clickedon].num, MODE_USE);
 
                     // if the script didn't change it, then put it back
                     if (playerchar->activeinv == toret)

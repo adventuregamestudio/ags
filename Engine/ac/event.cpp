@@ -114,18 +114,6 @@ void run_room_event(int id) {
     }
 }
 
-void run_event_block_inv(int invNum, int event) {
-    auto obj_evt = ObjectEvent("inventory%d", invNum);
-    if (loaded_game_file_version > kGameVersion_272)
-    {
-        run_interaction_script(obj_evt, game.invScripts[invNum].get(), event);
-    }
-    else 
-    {
-        run_interaction_event(obj_evt, game.intrInv[invNum].get(), event);
-    }
-}
-
 // event list functions
 void setevent(int evtyp,int ev1,int ev2,int ev3) {
     EventHappened evt;

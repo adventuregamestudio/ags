@@ -28,7 +28,8 @@ namespace AGS.Types
             _interactionSchema = new InteractionSchema(new string[] { "$$01 inventory item", 
                 "$$02 inventory item", "$$03 inventory item", "Use inventory on this item", 
                 "Other click on inventory item" },
-                new string[] { "Look", "Interact", "Talk", "UseInv", "OtherClick" });
+                new string[] { "Look", "Interact", "Talk", "UseInv", "OtherClick" },
+                "InventoryItem *i, CursorMode mode");
         }
 
         public InventoryItem()

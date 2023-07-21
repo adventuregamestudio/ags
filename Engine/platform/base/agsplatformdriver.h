@@ -124,6 +124,7 @@ public:
     virtual int  InitializeCDPlayer() = 0;  // return 0 on success
     virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
     virtual void ShutdownCDPlayer() = 0;
+    virtual bool FullscreenSupported() { return true; }
 
     // Returns command line argument in a UTF-8 format
     virtual Common::String GetCommandArg(size_t arg_index);

@@ -28,8 +28,7 @@
 *.iml
 .idea/
 # CLion
-cmake-build-debug/
-cmake-build-release/
+cmake-build-*/
 
 # Android Studio 3 in .gitignore file.
 .idea/caches

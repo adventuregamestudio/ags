@@ -1308,7 +1308,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 
 bool engine_try_switch_windowed_gfxmode()
 {
-    if (!gfxDriver || !gfxDriver->IsModeSet())
+    if (!gfxDriver || !gfxDriver->IsModeSet() || !platform->FullscreenSupported())
         return false;
 
     // Keep previous mode in case we need to revert back

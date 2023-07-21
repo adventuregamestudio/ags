@@ -106,7 +106,7 @@ String GUI::ApplyTextDirection(const String &text)
 
 String GUI::TransformTextForDrawing(const String &text, bool translate, bool apply_direction)
 {
-    String res_text = translate ? text : get_translation(text.GetCStr());
+    String res_text = translate ? get_translation(text.GetCStr()) : text;
     if (translate && apply_direction)
         res_text = ApplyTextDirection(res_text);
     return res_text;
@@ -146,7 +146,7 @@ void GUIObject::ClearChanged()
 
 int GUILabel::PrepareTextToDraw()
 {
-    const bool is_translated = Flags & kGUICtrl_Translated;
+    const bool is_translated = (Flags & kGUICtrl_Translated) != 0;
     replace_macro_tokens(is_translated ? get_translation(Text.GetCStr()) : Text.GetCStr(), _textToDraw);
     return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), is_translated, Lines, Font, Width);
 }

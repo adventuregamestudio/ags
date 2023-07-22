@@ -236,7 +236,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Components\InventoryComponent.cs" />
-    <Compile Include="Components\SourceControlComponent.cs" />
     <Compile Include="GUI\frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -441,7 +440,6 @@
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="TextProcessing\APITypeDef.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
-    <Compile Include="Utils\SourceControlProvider.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">
     </Compile>
     <Compile Include="Utils\SpriteSheet.cs" />
@@ -843,10 +841,6 @@
     <EmbeddedResource Include="Resources\paste.ico" />
     <EmbeddedResource Include="Resources\redo.ico" />
     <EmbeddedResource Include="Resources\undo.ico" />
-    <EmbeddedResource Include="GUI\CheckinsDialog.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>CheckinsDialog.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Resources\guis_button.ico" />
     <EmbeddedResource Include="Resources\guis_inventory-window.ico" />
     <EmbeddedResource Include="Resources\guis_label.ico" />
@@ -1107,12 +1101,6 @@
       <DependentUpon>FindReplaceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\GUIAddType.cs" />
-    <Compile Include="GUI\CheckinsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\CheckinsDialog.Designer.cs">
-      <DependentUpon>CheckinsDialog.cs</DependentUpon>
-    </Compile>
     <Compile Include="GUI\ImportGameWizardPage.cs">
       <SubType>UserControl</SubType>
     </Compile>

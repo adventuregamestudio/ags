@@ -75,6 +75,11 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.0.2.40
         /// </summary>
         string GetSpriteUsageReport(int spriteNumber);
+        /*
+         *  Following two methods were cut from IAGSEditor;
+         *  they were never used in practice, and source control integration
+         *  in its current form would be an extra burden to maintain.
+         *  Leave these declarations for the record here.
 		/// <summary>
 		/// Gets the Source Control Integration object, which allows you
 		/// to perform source control-related operations.
@@ -89,6 +94,7 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.2.2.111
         /// </summary>
         ISourceControlProvider SourceControlProvider { set; }
+        */
 		/// <summary>
 		/// Gets the RoomController, which provides methods to manipulate
 		/// the currently loaded room file.

@@ -236,7 +236,7 @@ namespace AGS.Editor.Components
 
             try
             {
-                _agsEditor.DeleteFileOnDiskAndSourceControl(filesToDelete.ToArray());
+                _agsEditor.DeleteFileOnDisk(filesToDelete.ToArray());
             }
             catch (CannotDeleteFileException ex)
             {
@@ -1144,9 +1144,9 @@ namespace AGS.Editor.Components
 				CloseRoomScriptEditorIfOpen(currentNumber);
 				UnloadCurrentRoom();
 
-				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.FileName, tempNewRoom.FileName);
-                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.UserFileName, tempNewRoom.UserFileName);
-                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
+				_agsEditor.RenameFileOnDisk(oldRoom.FileName, tempNewRoom.FileName);
+                _agsEditor.RenameFileOnDisk(oldRoom.UserFileName, tempNewRoom.UserFileName);
+                _agsEditor.RenameFileOnDisk(oldRoom.ScriptFileName, tempNewRoom.ScriptFileName);
 
 				oldRoom.Number = numberRequested;
 

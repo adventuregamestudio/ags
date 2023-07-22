@@ -35,19 +35,6 @@ namespace AGS.Editor.Components
         {
             _agsEditor.ExtraCompilationStep += new AGSEditor.ExtraCompilationStepHandler(_agsEditor_ExtraCompilationStep);
             _agsEditor.ExtraOutputCreationStep += new AGSEditor.ExtraOutputCreationStepHandler(_agsEditor_ExtraOutputCreationStep);
-            _agsEditor.GetSourceControlFileList += new GetSourceControlFileListHandler(_agsEditor_GetSourceControlFileList);
-        }
-
-        private void _agsEditor_GetSourceControlFileList(IList<string> fileNames)
-        {
-            if (_agsEditor.CurrentGame.Settings.BinaryFilesInSourceControl)
-            {
-                Utilities.AddAllMatchingFiles(fileNames, OGG_VORBIS_FILE_FILTER, true);
-                Utilities.AddAllMatchingFiles(fileNames, MP3_FILE_FILTER, true);
-                Utilities.AddAllMatchingFiles(fileNames, WAVEFORM_FILE_FILTER, true);
-                Utilities.AddAllMatchingFiles(fileNames, PAMELA_FILE_FILTER, true);
-                Utilities.AddAllMatchingFiles(fileNames, PAPAGAYO_FILE_FILTER, true);
-            }
         }
 
         private void _agsEditor_ExtraCompilationStep(CompileMessages errors)

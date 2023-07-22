@@ -146,7 +146,6 @@
     <Compile Include="Enums\RoomVolumeAdjustment.cs" />
     <Compile Include="Enums\ScreenRotationMode.cs" />
     <Compile Include="Enums\SkipSpeechStyle.cs" />
-    <Compile Include="Enums\SourceControlFileStatus.cs" />
     <Compile Include="Enums\SpeechPortraitSide.cs" />
     <Compile Include="Enums\SpeechStyle.cs" />
     <Compile Include="Enums\SpriteCompression.cs" />
@@ -159,7 +158,6 @@
     <Compile Include="Exceptions\CompileMessage.cs" />
     <Compile Include="Exceptions\CompileMessages.cs" />
     <Compile Include="Exceptions\CompileWarning.cs" />
-    <Compile Include="Exceptions\SourceControlException.cs" />
     <Compile Include="Exceptions\SpriteInUseException.cs" />
     <Compile Include="Font.cs" />
     <Compile Include="EditorFeatures\GameTemplate.cs" />
@@ -181,7 +179,6 @@
     <Compile Include="Interfaces\IRoom.cs" />
     <Compile Include="Interfaces\IRoomController.cs" />
     <Compile Include="Interfaces\IScriptEditorControl.cs" />
-    <Compile Include="Interfaces\ISourceControlIntegration.cs" />
     <Compile Include="Interfaces\ISpriteFolder.cs" />
     <Compile Include="Interfaces\IViewFolder.cs" />
     <Compile Include="LipSync.cs" />
@@ -212,7 +209,6 @@
     <Compile Include="ScriptsAndHeaders.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="UnloadedRoom.cs" />
-    <Compile Include="EditorFeatures\SourceControlProject.cs" />
     <Compile Include="TextParser.cs" />
     <Compile Include="TextParserWord.cs" />
     <Compile Include="Utilities.cs" />
@@ -301,7 +297,6 @@
     <Compile Include="Interfaces\IProjectTreeSingleClickHandler.cs" />
     <Compile Include="Interfaces\IScript.cs" />
     <Compile Include="Interfaces\IScriptEditor.cs" />
-    <Compile Include="Interfaces\ISourceControlProvider.cs" />
     <Compile Include="Interfaces\ISpriteController.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="InventoryItemFolder.cs" />

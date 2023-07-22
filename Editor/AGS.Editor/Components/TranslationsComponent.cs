@@ -409,7 +409,7 @@ namespace AGS.Editor.Components
 
                     if (File.Exists(_itemRightClicked.FileName))
                     {
-						_agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.FileName);
+						_agsEditor.DeleteFileOnDisk(_itemRightClicked.FileName);
                     }
                     RePopulateTreeView();
                     TranslationListTypeConverter.SetTranslationsList(_agsEditor.CurrentGame.Translations);
@@ -512,11 +512,6 @@ namespace AGS.Editor.Components
             {
                 string sourcePath = Path.GetFullPath(_oldNameBeforeRename + Translation.TRANSLATION_SOURCE_FILE_EXTENSION);
                 string destPath = Path.GetFullPath(translation.FileName);
-
-                if (_agsEditor.SourceControlProvider.IsFileUnderSourceControl(sourcePath))
-                {
-                    _agsEditor.SourceControlProvider.RenameFile(sourcePath, destPath);
-                }
 
                 File.Move(sourcePath, destPath);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;

@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
 #define __AGS_EE_AC__CHARACTEREXTRAS_H
 
+#include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 
 // Forward declaration
@@ -46,6 +47,12 @@ struct CharacterExtras {
     short animwait = 0;
     int   anim_volume = 100; // default animation volume (relative factor)
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
+
+    // Calculate wanted frame sound volume based on multiple factors
+    int GetFrameSoundVolume(CharacterInfo *chi) const;
+    // Process the current animation frame for the character:
+    // play linked sounds, and so forth.
+    void CheckViewFrame(CharacterInfo *chi);
 
     void ReadFromSavegame(Common::Stream *in, int save_ver);
     void WriteToSavegame(Common::Stream *out);

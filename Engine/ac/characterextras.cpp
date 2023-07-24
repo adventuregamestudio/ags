@@ -11,11 +11,23 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "ac/characterextras.h"
+#include "ac/viewframe.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+
+int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
+{
+    return ::CalcFrameSoundVolume(
+        anim_volume, cur_anim_volume,
+        (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
+}
+
+void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
+{
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi));
+}
 
 void CharacterExtras::ReadFromSavegame(Stream *in, int save_ver)
 {

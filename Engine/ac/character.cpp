@@ -2149,7 +2149,7 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;
     charextra[chap->index_id].cur_anim_volume = Math::Clamp(volume, 0, 100);
 
-    CheckViewFrameForCharacter(chap);
+    charextra[chap->index_id].CheckViewFrame(chap);
 }
 
 void stop_character_anim(CharacterInfo *chap)
@@ -2157,17 +2157,6 @@ void stop_character_anim(CharacterInfo *chap)
   // but have to be careful to not break logic somewhere
     chap->animating = 0;
     charextra[chap->index_id].cur_anim_volume = 100;
-}
-
-// Process the current animation frame for the character:
-// play linked sounds, and so forth.
-void CheckViewFrameForCharacter(CharacterInfo *chi)
-{
-    const auto &chex = charextra[chi->index_id];
-    const int frame_vol = CalcFrameSoundVolume(
-        chex.anim_volume, chex.cur_anim_volume,
-        (chi->flags & CHF_SCALEVOLUME) ? chex.zoom : 100);
-    CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol);
 }
 
 Bitmap *GetCharacterImage(int charid, bool *is_original)

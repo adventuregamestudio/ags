@@ -101,6 +101,15 @@ int Object_GetTransparency(ScriptObject *objj) {
     return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
 }
 
+int Object_GetAnimationVolume(ScriptObject *objj) {
+    return objs[objj->id].anim_volume;
+}
+
+void Object_SetAnimationVolume(ScriptObject *objj, int newval) {
+
+    objs[objj->id].anim_volume = Math::Clamp(newval, 0, 100);
+}
+
 void Object_SetBaseline(ScriptObject *objj, int basel) {
     SetObjectBaseline(objj->id, basel);
 }
@@ -932,6 +941,16 @@ RuntimeScriptValue Sc_Object_GetAnimating(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(ScriptObject, Object_GetAnimating);
 }
 
+RuntimeScriptValue Sc_Object_GetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetAnimationVolume);
+}
+
+RuntimeScriptValue Sc_Object_SetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetAnimationVolume);
+}
+
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1163,6 +1182,8 @@ void RegisterObjectAPI()
         { "Object::StopMoving^0",             API_FN_PAIR(Object_StopMoving) },
         { "Object::Tint^5",                   API_FN_PAIR(Object_Tint) },
         { "Object::get_Animating",            API_FN_PAIR(Object_GetAnimating) },
+        { "Object::get_AnimationVolume",      API_FN_PAIR(Object_GetAnimationVolume) },
+        { "Object::set_AnimationVolume",      API_FN_PAIR(Object_SetAnimationVolume) },
         { "Object::get_Baseline",             API_FN_PAIR(Object_GetBaseline) },
         { "Object::set_Baseline",             API_FN_PAIR(Object_SetBaseline) },
         { "Object::get_BlockingHeight",       API_FN_PAIR(Object_GetBlockingHeight) },

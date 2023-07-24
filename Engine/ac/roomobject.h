@@ -58,7 +58,8 @@ struct RoomObject {
     char  flags;
     // Down to here is a part of the plugin API
     short blocking_width, blocking_height;
-    int   anim_volume = -1; // current animation volume
+    int   anim_volume = 100; // default animation volume (relative factor)
+    int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     Common::String name;
 
     RoomObject();
@@ -84,6 +85,9 @@ struct RoomObject {
     }
 
 	void UpdateCyclingView(int ref_id);
+    // Process the current animation frame for the room object:
+    // play linked sounds, and so forth.
+    void CheckViewFrame();
 
     void ReadFromSavegame(Common::Stream *in, int save_ver);
     void WriteToSavegame(Common::Stream *out) const;

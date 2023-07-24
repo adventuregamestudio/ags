@@ -20,6 +20,7 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
@@ -132,41 +133,19 @@ void RemoveObjectTint(int obj) {
     }
 }
 
-void SetObjectView(int obn,int vii) {
-    if (!is_valid_object(obn)) quit("!SetObjectView: invalid object number specified");
+void SetObjectView(int obn, int vii) {
+    // According to the old AGS manual, the loop and frame should be both reset to 0
+    SetObjectFrameSimple(obn, vii, 0, 0);
     debug_script_log("Object %d set to view %d", obn, vii);
-    if ((vii < 1) || (vii > game.numviews)) {
-        quitprintf("!SetObjectView: invalid view number (You said %d, max is %d)", vii, game.numviews);
-    }
-    vii--;
-
-    if (vii > UINT16_MAX)
-    {
-        debug_script_warn("Warning: object's (id %d) view %d is outside of internal range (%d), reset to no view",
-            obn, vii + 1, UINT16_MAX + 1);
-        SetObjectGraphic(obn, 0);
-        return;
-    }
-
-    objs[obn].view = (uint16_t)vii;
-    objs[obn].frame=0;
-    if (objs[obn].loop >= views[vii].numLoops)
-        objs[obn].loop=0;
-    objs[obn].cycling=0;
-    int pic = views[vii].loops[0].frames[0].pic;
-    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
-    if (pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 }
 
-void SetObjectFrame(int obn,int viw,int lop,int fra) {
-    if (!is_valid_object(obn)) quit("!SetObjectFrame: invalid object number specified");
+bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
+    if (!is_valid_object(obn))
+        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
     viw--;
-    if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
-    if (views[viw].numLoops == 0) quitprintf("!SetObjectFrame: view %d has no loops", viw);
+    AssertViewHasLoops("SetObjectFrame", viw);
 
     auto &obj = objs[obn];
-
     // Previous version of Object.SetView had negative loop and frame mean "use latest values",
     // which also caused SetObjectFrame to act similarly, starting with 2.70.
     if ((game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v360) &&
@@ -195,7 +174,7 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
         debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
             obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
         SetObjectGraphic(obn, 0);
-        return;
+        return false;
     }
 
     obj.view = static_cast<uint16_t>(viw);
@@ -206,7 +185,13 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    CheckViewFrame(viw, obj.loop, obj.frame);
+    return true;
+}
+
+void SetObjectFrame(int obn, int viw, int lop, int fra) {
+    if (!SetObjectFrameSimple(obn, viw, lop, fra))
+        return;
+    CheckViewFrame(objs[obn].view, objs[obn].loop, objs[obn].frame);
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent

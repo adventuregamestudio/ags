@@ -269,7 +269,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     if ((mode & (~AllowedModes)) != 0)
         quit("!RunAGSGame: mode value unknown");
 
-    if (editor_debugging_enabled)
+    if (editor_debugging_initialized)
     {
         quit("!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game EXE and run it from there to use this function.");
     }

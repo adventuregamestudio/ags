@@ -36,7 +36,6 @@
 #include "main/game_run.h"
 #include "main/game_start.h"
 #include "media/audio/audio_system.h"
-#include "script/script_runtime.h"
 #include "script/script.h"
 
 using namespace AGS::Common;
@@ -46,27 +45,6 @@ extern int our_eip, displayed_room;
 extern GameSetupStruct game;
 extern GameState play;
 extern CharacterInfo*playerchar;
-
-void start_game_init_editor_debugging()
-{
-    Debug::Printf(kDbgMsg_Info, "Try connect to the external debugger");
-    if (!init_editor_debugging())
-        return;
-    
-    // Debugger expects strict multitasking
-    usetup.multitasking = true;
-    usetup.override_multitasking = -1;
-    SetMultitasking(1);
-
-    auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
-    while (waitUntil > AGS_Clock::now())
-    {
-        // pick up any breakpoints in game_start
-        check_for_messages_from_debugger();
-    }
-
-    ccSetDebugHook(scriptDebugHook);
-}
 
 void start_game_load_savegame_on_startup(const String &load_save)
 {
@@ -117,9 +95,6 @@ void initialize_start_and_play_game(int override_start_room, const String &load_
 
         Debug::Printf(kDbgMsg_Info, "Engine initialization complete");
         Debug::Printf(kDbgMsg_Info, "Starting game");
-
-        if (editor_debugging_enabled)
-            start_game_init_editor_debugging();
 
         start_game_load_savegame_on_startup(load_save);
 

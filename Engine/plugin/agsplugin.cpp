@@ -766,7 +766,7 @@ void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int3
 
 int IAGSEngine::IsRunningUnderDebugger()
 {
-    return (editor_debugging_enabled != 0) ? 1 : 0;
+    return (editor_debugging_initialized != 0) ? 1 : 0;
 }
 
 void IAGSEngine::GetPathToFileInCompiledFolder(const char*fileName, char *buffer)

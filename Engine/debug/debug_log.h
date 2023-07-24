@@ -25,6 +25,10 @@ void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 
+// Close the log buffering output;
+// this is useful to do after all the required outputs have been registered
+void debug_stop_buffer();
+// Toggle in-game console output
 void debug_set_console(bool enable);
 
 // prints debug messages of given type tagged with kDbgGroup_Game,
@@ -41,7 +45,7 @@ void debug_script_log(const char *msg, ...);
 void quitprintf(const char *texx, ...);
 
 // Connect engine to external debugger, if one is available
-bool init_editor_debugging();
+bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook (ccInstance *ccinst, int linenum) ;
 

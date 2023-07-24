@@ -71,6 +71,7 @@
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
 #include "platform/base/agsplatformdriver.h"
+#include "script/script_runtime.h"
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"
@@ -1149,6 +1150,27 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     platform->WriteStdOut("%s", full.GetCStr());
 }
 
+void engine_init_editor_debugging(const ConfigTree &cfg)
+{
+    Debug::Printf(kDbgMsg_Info, "Try connect to the external debugger");
+    if (!init_editor_debugging(cfg))
+        return;
+    
+    // Debugger expects strict multitasking
+    usetup.multitasking = true;
+    usetup.override_multitasking = -1;
+    SetMultitasking(1);
+
+    auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
+    while (waitUntil > AGS_Clock::now())
+    {
+        // pick up any breakpoints in game_start
+        check_for_messages_from_debugger();
+    }
+
+    ccSetDebugHook(scriptDebugHook);
+}
+
 // TODO: this function is still a big mess, engine/system-related initialization
 // is mixed with game-related data adjustments. Divide it in parts, move game
 // data init into either InitGameState() or other game method as appropriate.
@@ -1275,13 +1297,20 @@ int initialize_engine(const ConfigTree &startup_opts)
     sys_window_show_cursor(false); // hide the system cursor
 
     show_preload();
-
     res = engine_init_sprites();
     if (res != 0)
         return res;
 
-    engine_init_game_settings();
+    // Connect to the external debugger, if required
+    // TODO: investigate if may be initialized earlier (at the very early engine init);
+    // although that might require postponing breakpoints init until the "game start" stage
+    if (editor_debugging_enabled)
+        engine_init_editor_debugging(cfg);
+    // We don't need message buffer beyond this point
+    debug_stop_buffer();
 
+    // TODO: move *init_game_settings to game init code unit
+    engine_init_game_settings();
     engine_prepare_to_start_game();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);

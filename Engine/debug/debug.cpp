@@ -89,7 +89,8 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 float fps = std::numeric_limits<float>::quiet_NaN();
 FPSDisplayMode display_fps = kFPS_Hide;
 
-void send_message_to_debugger(const std::vector<std::pair<String, String>>& tag_values, const String& command)
+void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
+    const std::vector<std::pair<String, String>>& tag_values, const String& command)
 {
     String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="Windows-1252"?><Debugger Command="%s">)", command.GetCStr());
 #if AGS_PLATFORM_OS_WINDOWS
@@ -104,28 +105,29 @@ void send_message_to_debugger(const std::vector<std::pair<String, String>>& tag_
 
     messageToSend.Append("</Debugger>\n");
 
-    editor_debugger->SendMessageToEditor(messageToSend.GetCStr());
+    ide_debugger->SendMessageToEditor(messageToSend.GetCStr());
 }
 
 class DebuggerLogOutputTarget : public AGS::Common::IOutputHandler
 {
 public:
-    DebuggerLogOutputTarget() {};
+    DebuggerLogOutputTarget(IAGSEditorDebugger *ide_debugger)
+        : _ideDebugger(ide_debugger) {};
     virtual ~DebuggerLogOutputTarget() {};
 
     void PrintMessage(const DebugMessage &msg) override
     {
-        if(editor_debugger == nullptr) return;
-
+        assert(_ideDebugger);
         std::vector<std::pair<String, String>> log_info =
                 {
                         {"Text", msg.Text},
                         {"GroupID", StrUtil::IntToString(msg.GroupID)},
                         {"MTID", StrUtil::IntToString(msg.MT)}
                 };
-
-        send_message_to_debugger(log_info, "LOG");
+        send_message_to_debugger(_ideDebugger, log_info, "LOG");
     }
+private:
+    IAGSEditorDebugger *_ideDebugger = nullptr;
 };
 
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
@@ -194,11 +196,11 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
         DebugConsole.reset(new ConsoleOutputTarget());
         return DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsg_None);
     }
-    else if (name.CompareNoCase(OutputDebuggerLogID) == 0)
+    else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&
+        editor_debugger != nullptr)
     {
-        DebuggerLog.reset(new DebuggerLogOutputTarget());
+        DebuggerLog.reset(new DebuggerLogOutputTarget(editor_debugger));
         return DbgMgr.RegisterOutput(OutputDebuggerLogID, DebuggerLog.get(), kDbgMsg_All);
-
     }
     return nullptr;
 }
@@ -353,15 +355,6 @@ void apply_debug_config(const ConfigTree &cfg)
               DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
             });
         debug_set_console(true);
-
-        // we also want to init the log through debugger in this case
-        apply_log_config(cfg, OutputDebuggerLogID,
-            /* defaults */
-            true,
-            { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Game, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
-            });
     }
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
@@ -375,10 +368,6 @@ void apply_debug_config(const ConfigTree &cfg)
             dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
         }
     }
-
-    // We don't need message buffer beyond this point
-    DbgMgr.UnregisterOutput(OutputMsgBufID);
-    DebugMsgBuff.reset();
 }
 
 void shutdown_debug()
@@ -390,6 +379,12 @@ void shutdown_debug()
     DebugLogFile.reset();
     DebugConsole.reset();
     DebuggerLog.reset();
+}
+
+void debug_stop_buffer()
+{
+    DbgMgr.UnregisterOutput(OutputMsgBufID);
+    DebugMsgBuff.reset();
 }
 
 void debug_set_console(bool enable)
@@ -470,7 +465,7 @@ bool send_state_to_debugger(const String& msg, const String& errorMsg)
         scipt_info.emplace_back( "ErrorMessage", errorMsg );
     }
 
-    send_message_to_debugger(scipt_info, msg);
+    send_message_to_debugger(editor_debugger, scipt_info, msg);
     return true;
 }
 
@@ -479,7 +474,7 @@ bool send_state_to_debugger(const char *msg)
     return send_state_to_debugger(String(msg), String());
 }
 
-bool init_editor_debugging() 
+bool init_editor_debugging(const ConfigTree &cfg) 
 {
 #if AGS_PLATFORM_OS_WINDOWS
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
@@ -504,6 +499,14 @@ bool init_editor_debugging()
 
         send_state_to_debugger("START");
         Debug::Printf(kDbgMsg_Info, "External debugger initialized");
+        // init engine->editor logging
+        apply_log_config(cfg, OutputDebuggerLogID,
+            /* defaults */
+            false, // don't create if not in config
+            { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
+              DbgGroupOption(kDbgGroup_Game, kDbgMsg_All),
+              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
+            });
         return true;
     }
 

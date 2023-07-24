@@ -51,7 +51,7 @@ struct ObjectEvent
     ObjectEvent(const String &block_name, int block_id = 0)
         : BlockName(block_name), BlockID(block_id) {}
     ObjectEvent(const String &block_name, int block_id,
-                const RuntimeScriptValue &dyn_obj, int mode)
+                const RuntimeScriptValue &dyn_obj, int mode = MODE_NONE)
         : BlockName(block_name), BlockID(block_id), DynObj(dyn_obj), Mode(mode) {}
 };
 

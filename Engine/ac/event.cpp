@@ -23,6 +23,8 @@
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
+#include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/cc_hotspot.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/cc_common.h"
@@ -49,6 +51,8 @@ extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern RGB old_palette[256];
 extern int displayed_room;
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+extern CCHotspot ccDynamicHotspot;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -157,13 +161,14 @@ void process_event(const EventHappened *evp) {
         ObjectEvent obj_evt;
 
         if (evp->data1==EVB_HOTSPOT) {
-
-            if (thisroom.Hotspots[evp->data2].EventHandlers != nullptr)
-                scriptPtr = thisroom.Hotspots[evp->data2].EventHandlers;
+            const int hotspot_id = evp->data2;
+            if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
+                scriptPtr = thisroom.Hotspots[hotspot_id].EventHandlers;
             else
-                evpt=&croom->intrHotspot[evp->data2];
+                evpt=&croom->intrHotspot[hotspot_id];
 
-            obj_evt = ObjectEvent("hotspot%d", evp->data2);
+            obj_evt = ObjectEvent("hotspot%d", hotspot_id,
+                RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
         }
         else if (evp->data1==EVB_ROOM) {

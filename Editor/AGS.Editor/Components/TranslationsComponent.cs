@@ -223,15 +223,26 @@ namespace AGS.Editor.Components
         {
             _agsEditor.SaveGameFiles();
 
+            List<Translation> translationsToUpdate = new List<Translation>();
             // reload current translations, in case the trs files were modified externally
             CompileMessages messages = new CompileMessages();
-            foreach (Translation translation in translations)
+            foreach (var translation in translations)
             {
-                messages.AddRange(translation.LoadData());
+                CompileMessages errors = null;
+                if (File.Exists(translation.FileName))
+                {
+                    errors = translation.LoadData();
+                    messages.AddRange(errors);
+                }
+                if (errors == null || !errors.HasErrors)
+                    translationsToUpdate.Add(translation);
             }
 
-            messages.AddRange(
-                (CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...", new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translations));
+            if (translationsToUpdate.Count > 0)
+            {
+                messages.AddRange((CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...",
+                    new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translationsToUpdate));
+            }
             _guiController.ShowOutputPanel(messages);
             if (!messages.HasErrors)
                 _guiController.ShowMessage("Translation(s) updated.", MessageBoxIcon.Information);

@@ -30,7 +30,7 @@ namespace AGS
 
 			void Initialize();
             void NewWorkingDirSet(String^ workingDir);
-			void NewGameLoaded(Game^ game, List<String^> ^errors);
+			void NewGameLoaded(Game^ game, CompileMessages ^errors);
 			void SaveGame(Game^ game);
 			void GameSettingsChanged(Game^ game);
 			void PaletteColoursUpdated(Game ^game);

@@ -299,21 +299,21 @@ namespace AGS.Editor
             _builtInScriptHeader = new Script(BUILT_IN_HEADER_FILE_NAME, Resources.ResourceManager.GetResourceAsString("agsdefns.sh"), true);
             AutoComplete.ConstructCache(_builtInScriptHeader, null);
 
-            List<string> errors = new List<string>();
+            CompileMessages errors = new CompileMessages();
             Factory.NativeProxy.NewGameLoaded(Factory.AGSEditor.CurrentGame, errors);
             ReportGameLoad(errors);
         }
 
-        public void ReportGameLoad(List<string> errors)
+        public void ReportGameLoad(CompileMessages errors)
         {
             if (errors.Count == 1)
             {
-                Factory.GUIController.ShowMessage(errors[0], MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage(errors[0].Message, MessageBoxIcon.Warning);
             }
             else if (errors.Count > 1)
             {
-                Factory.GUIController.ShowOutputPanel(errors.ToArray(), "SpriteIcon");
-                Factory.GUIController.ShowMessage("Game was loaded, but there were errors", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowOutputPanel(errors);
+                Factory.GUIController.ShowMessage("Game was loaded, but there were errors or warnings.", MessageBoxIcon.Warning);
             }
         }
 
@@ -722,7 +722,7 @@ namespace AGS.Editor
             Factory.Events.OnGameLoad(doc.DocumentElement);
         }
 
-        public void RefreshEditorAfterGameLoad(Game newGame, List<string> errors)
+        public void RefreshEditorAfterGameLoad(Game newGame, CompileMessages errors)
         {
             _game = newGame;
 

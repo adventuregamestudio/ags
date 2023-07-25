@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -63,7 +64,7 @@ namespace AGS.Editor.Components
                 attempt++;
                 newFileName = "New Translation" + ((attempt == 1) ? "" : attempt.ToString());
             }
-            while (File.Exists(newFileName + Translation.TRANSLATION_SOURCE_FILE_EXTENSION));
+            while (_agsEditor.CurrentGame.Translations.FirstOrDefault(t => t.Name == newFileName) != null);
             return newFileName;
         }
 
@@ -122,7 +123,10 @@ namespace AGS.Editor.Components
 
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
-            translation.LoadData();
+            var load_errors = translation.LoadData();
+            errors.AddRange(load_errors);
+            if (load_errors.HasErrors)
+                return;
 
             string tempFile = Path.GetTempFileName();
             Encoding textEncoding = translation.Encoding;
@@ -218,12 +222,16 @@ namespace AGS.Editor.Components
         private void DoTranslationUpdate(IList<Translation> translations)
         {
             _agsEditor.SaveGameFiles();
-            
-            // reload current translations, in case the trs files were modified externally
-            foreach (Translation translation in translations)
-                translation.LoadData();
 
-            CompileMessages messages = (CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...", new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translations);
+            // reload current translations, in case the trs files were modified externally
+            CompileMessages messages = new CompileMessages();
+            foreach (Translation translation in translations)
+            {
+                messages.AddRange(translation.LoadData());
+            }
+
+            messages.AddRange(
+                (CompileMessages)BusyDialog.Show("Please wait while the translation(s) are updated...", new BusyDialog.ProcessingHandler(UpdateTranslationsProcess), translations));
             _guiController.ShowOutputPanel(messages);
             if (!messages.HasErrors)
                 _guiController.ShowMessage("Translation(s) updated.", MessageBoxIcon.Information);
@@ -235,7 +243,11 @@ namespace AGS.Editor.Components
         {
             foreach (Translation otherTranslation in _agsEditor.CurrentGame.Translations)
             {
-                otherTranslation.LoadData();
+                var load_errors = otherTranslation.LoadData();
+                errors.AddRange(load_errors);
+                if (load_errors.HasErrors)
+                    continue; // failure
+
                 Dictionary<string, string> newTranslation = new Dictionary<string, string>();
 
                 foreach (string sourceLine in otherTranslation.TranslatedLines.Keys)
@@ -313,9 +325,17 @@ namespace AGS.Editor.Components
             {
                 return;
             }
-            
-            translation.LoadData();
-            CompileMessages errors = (CompileMessages)BusyDialog.Show("Please wait while the game text is replaced...", new BusyDialog.ProcessingHandler(ReplaceGameTextWithTranslationProcess), translation);
+
+            CompileMessages errors = translation.LoadData();
+            if (errors.HasErrors)
+            {
+                _guiController.ShowOutputPanel(errors);
+                _guiController.ShowMessage("There were errors when loading the translation. Please consult the output window for details.", MessageBoxIcon.Error);
+                return;
+            }
+
+            errors.AddRange((CompileMessages)BusyDialog.Show("Please wait while the game text is replaced...",
+                new BusyDialog.ProcessingHandler(ReplaceGameTextWithTranslationProcess), translation));
             _guiController.ShowOutputPanel(errors);
             Factory.Events.OnRefreshAllComponentsFromGame();
             _agsEditor.SaveGameFiles(); 
@@ -342,8 +362,8 @@ namespace AGS.Editor.Components
                 // Create a dummy placeholder file
                 StreamWriter sw = new StreamWriter(newItem.FileName);
                 sw.Close();
-                newItem.LoadData();
-                
+                _guiController.ShowOutputPanel(newItem.LoadData());
+
                 string newNodeID = "Trl" + (items.Count - 1);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 AddTreeLeafForTranslation(newNodeID, newItem);

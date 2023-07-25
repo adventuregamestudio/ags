@@ -155,7 +155,22 @@ namespace AGS.Types
             this.Modified = false;
         }
 
-        public void LoadData()
+        public CompileMessages LoadData()
+        {
+            CompileMessages errors = new CompileMessages();
+            try
+            {
+                LoadDataImpl(errors);
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError(string.Format("Failed to load translation from {0}: \n{1}", FileName, e.Message)));
+                _translatedLines.Clear(); // clear on failure
+            }
+            return errors;
+        }
+
+        private void LoadDataImpl(CompileMessages errors)
         {
             _translatedLines = new Dictionary<string, string>();
             string old_encoding = _encodingHint;
@@ -171,7 +186,7 @@ namespace AGS.Types
                         if (string.Compare(old_encoding, _encodingHint) != 0)
                         {
                             sr.Close();
-                            LoadData(); // try again with the new encoding
+                            LoadDataImpl(errors); // try again with the new encoding
                             return;
                         }
                         continue;

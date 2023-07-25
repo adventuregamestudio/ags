@@ -146,6 +146,10 @@ namespace AGS.Editor
             // Disabled until proper server is found to store these stats
             // _componentController.AddComponent(new StatisticsSenderComponent(_guiController, _agsEditor));
             //
+            // This is a hack really, to prevent warnings when loading old games;
+            // but it's not ideal, as in theory a plugin may introduce similar name;
+            // find a better solution later?
+            _componentController.AddSuppressedComponent(ComponentIDs.SourceControl);
         }
 
         public void StartGUI(string[] commandLineArguments)

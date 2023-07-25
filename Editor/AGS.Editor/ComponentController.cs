@@ -9,6 +9,7 @@ namespace AGS.Editor
 	public class ComponentController
 	{
 		private List<IEditorComponent> _components;
+        private List<string> _supressedComponents;
 
 		private static ComponentController _instance;
 
@@ -27,12 +28,18 @@ namespace AGS.Editor
 		private ComponentController()
 		{
 			_components = new List<IEditorComponent>();
-		}
+            _supressedComponents = new List<string>();
+        }
 
 		public void AddComponent(IEditorComponent component)
 		{
 			_components.Add(component);
 		}
+
+        public void AddSuppressedComponent(string componentName)
+        {
+            _supressedComponents.Add(componentName);
+        }
 
         public IList<IEditorComponent> Components
         {
@@ -136,7 +143,8 @@ namespace AGS.Editor
 			{
 				if (componentNodes[componentID].HasChildNodes)
 				{
-					missingComponents.Add(componentID);
+                    if (!_supressedComponents.Contains(componentID))
+					    missingComponents.Add(componentID);
 				}
 			}
 			return missingComponents;

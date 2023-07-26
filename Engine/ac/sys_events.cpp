@@ -293,7 +293,7 @@ int ags_iskeydown(eAGSKeyCode ags_key)
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Scancode scan[3];
     if (!ags_key_to_sdl_scan(ags_key, scan))
-        return -1;
+        return 0;
     return (state[scan[0]] || state[scan[1]] || state[scan[2]]);
 }
 

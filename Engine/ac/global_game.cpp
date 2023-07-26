@@ -140,12 +140,14 @@ void DeleteSaveSlot (int slnum) {
 
 void PauseGame() {
     game_paused++;
-    debug_script_log("Game paused");
+    debug_script_log("Game paused (%d)", game_paused);
 }
 void UnPauseGame() {
     if (game_paused > 0)
+    {
         game_paused--;
-    debug_script_log("Game UnPaused, pause level now %d", game_paused);
+        debug_script_log("Game un-paused (%d)", game_paused);
+    }
 }
 
 
@@ -693,12 +695,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
 }
 
 int IsKeyPressed (int keycode) {
-    auto status = ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
-    if (status < 0) {
-        debug_script_log("IsKeyPressed: unsupported keycode %d", keycode);
-        return 0;
-    }
-    return status;
+    return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
 }
 
 int SaveScreenShot(const char*namm) {

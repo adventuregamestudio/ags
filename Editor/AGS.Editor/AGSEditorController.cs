@@ -131,5 +131,15 @@ namespace AGS.Editor
 				return _roomController;
 			}
 		}
-	}
+
+        [Obsolete]
+        public ISourceControlIntegration SourceControl { get; }
+
+        [Obsolete]
+        public ISourceControlProvider SourceControlProvider
+        {
+            get { return null; }
+            set { /* do nothing */; }
+        }
+    }
 }

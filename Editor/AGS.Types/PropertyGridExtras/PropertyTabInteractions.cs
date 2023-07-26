@@ -62,7 +62,8 @@ namespace AGS.Types
 					if (eventName.IndexOf("$$") < 0)
 					{
 						// Only add the event if the cursor mode exists
-						propList.Add(new InteractionPropertyDescriptor(component, i, interactions.FunctionSuffixes[i], eventName));
+						propList.Add(new InteractionPropertyDescriptor(component, i,
+                            interactions.FunctionSuffixes[i], eventName, interactions.FunctionParameterLists[i]));
 					}
                 }
             }

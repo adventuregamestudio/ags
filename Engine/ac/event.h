@@ -86,17 +86,21 @@
 // cursor is over hotspot
 #define EVHOT_MOUSEOVER 6
 
-struct EventHappened {
+struct EventHappened
+{
     int type = 0;
     int data1 = 0, data2 = 0, data3 = 0;
     int player = -1;
+
+    EventHappened() = default;
+    EventHappened(int type_, int data1_, int data2_, int data3_, int player_)
+        : type(type_), data1(data1_), data2(data2_), data3(data3_), player(player_) {}
 };
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed);
 // runs the global script on_event fnuction
 void run_on_event (int evtype, RuntimeScriptValue &wparam);
 void run_room_event(int id);
-void run_event_block_inv(int invNum, int event);
 // event list functions
 void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=-1000);
 void force_event(int evtyp,int ev1=0,int ev2=-1000,int ev3=-1000);
@@ -110,9 +114,6 @@ extern int in_enters_screen,done_es_error;
 extern int in_leaves_screen;
 
 extern std::vector<EventHappened> events;
-
-extern const char*evblockbasename;
-extern int evblocknum;
 
 extern int eventClaimed;
 

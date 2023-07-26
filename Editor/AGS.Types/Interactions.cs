@@ -67,6 +67,11 @@ namespace AGS.Types
             get { return _schema.FunctionSuffixes; }
         }
 
+        public string[] FunctionParameterLists
+        {
+            get { return _schema.FunctionParameterLists; }
+        }
+
         public string[] DisplayNames
         {
             get { return _schema.EventNames; }

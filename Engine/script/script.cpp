@@ -139,20 +139,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     funcToRun->roomHasFunction = DoRunScriptFuncCantBlock(roominstFork.get(), funcToRun, funcToRun->roomHasFunction);
 }
 
-//-----------------------------------------------------------
-// [IKM] 2012-06-22
-//
-// run_interaction_event() and run_interaction_script()
-// are *almost* identical, except for the first parameter
-// type.
-// May these types be made children of the same base?
-//-----------------------------------------------------------
-
-
-// Returns 0 normally, or -1 to indicate that the NewInteraction has
-// become invalid and don't run another interaction on it
-// (eg. a room change occured)
-int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
+int run_interaction_event(const ObjectEvent &obj_evt, Interaction *nint, int evnt, int chkAny, bool isInv) {
 
     if (evnt < 0 || (size_t)evnt >= nint->Events.size() ||
         (nint->Events[evnt].Response.get() == nullptr) || (nint->Events[evnt].Response->Cmds.size() == 0)) {
@@ -165,7 +152,7 @@ int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
             return 0;
 
         // Otherwise, run unhandled_event
-        run_unhandled_event(evnt);
+        run_unhandled_event(obj_evt, evnt);
 
         return 0;
     }
@@ -177,11 +164,11 @@ int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
 
     int cmdsrun = 0, retval = 0;
     // Right, so there were some commands defined in response to the event.
-    retval = run_interaction_commandlist (nint->Events[evnt].Response.get(), &nint->Events[evnt].TimesRun, &cmdsrun);
+    retval = run_interaction_commandlist(obj_evt, nint->Events[evnt].Response.get(), &nint->Events[evnt].TimesRun, &cmdsrun);
 
     // An inventory interaction, but the wrong item was used
     if ((isInv) && (cmdsrun == 0))
-        run_unhandled_event (evnt);
+        run_unhandled_event(obj_evt, evnt);
 
     return retval;
 }
@@ -189,9 +176,10 @@ int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
 // Returns 0 normally, or -1 to indicate that the NewInteraction has
 // become invalid and don't run another interaction on it
 // (eg. a room change occured)
-int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny) {
+int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny) {
 
-    if ((nint->ScriptFuncNames.size() <= evnt) || nint->ScriptFuncNames[evnt].IsEmpty()) {
+    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->ScriptFuncNames.size() ||
+            nint->ScriptFuncNames[evnt].IsEmpty()) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
@@ -200,35 +188,44 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny) {
             return 0;
 
         // Otherwise, run unhandled_event
-        run_unhandled_event(evnt);
-
+        run_unhandled_event(obj_evt, evnt);
         return 0;
     }
 
     if (play.check_interaction_only) {
-        play.check_interaction_only = 2;
+        play.check_interaction_only = 2; // CHECKME: wth is "2"?
         return -1;
     }
 
-    int room_was = play.room_changes;
+    const int room_was = play.room_changes;
 
-    RuntimeScriptValue rval_null;
+    // TODO: find a way to generalize all the following hard-coded behavior
 
-        if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
-            // Character or Inventory (global script)
-            QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt].GetCStr());
-        }
-        else {
-            // Other (room script)
-            QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt].GetCStr());
-        }
+    // Character or Inventory require a global script call
+    const ScriptInstType inst_type =
+        (strstr(obj_evt.BlockName.GetCStr(), "character") != nullptr) ||
+        (strstr(obj_evt.BlockName.GetCStr(), "inventory") != nullptr) ?
+        kScInstGame : kScInstRoom;
+    
+    // Room events do not require additional params
+    if ((strstr(obj_evt.BlockName.GetCStr(), "room") != nullptr)) {
+        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr());
+    }
+    // Regions only require 1 param - dynobj ref
+    else if ((strstr(obj_evt.BlockName.GetCStr(), "region") != nullptr)) {
+        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr(), 1, &obj_evt.DynObj);
+    }
+    // Other types (characters, objects, invitems, hotspots) require
+    // 2 params - dynobj ref and the interaction mode (aka verb)
+    else {
+        RuntimeScriptValue params[]{ obj_evt.DynObj, RuntimeScriptValue().SetInt32(obj_evt.Mode) };
+        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr(), 2, params);
+    }
 
-            int retval = 0;
-        // if the room changed within the action
-        if (room_was != play.room_changes)
-            retval = -1;
-
-        return retval;
+    // if the room changed within the action
+    if (room_was != play.room_changes)
+        return -1;
+    return 0;
 }
 
 int create_global_script() {
@@ -759,13 +756,13 @@ struct TempEip {
 // the 'cmdsrun' parameter counts how many commands are run.
 // if a 'Inv Item Was Used' check does not pass, it doesn't count
 // so cmdsrun remains 0 if no inventory items matched
-int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, int*cmdsrun) {
-    size_t i;
-
+int run_interaction_commandlist(const ObjectEvent &obj_evt, InteractionCommandList *nicl, int *timesrun, int*cmdsrun) {
     if (nicl == nullptr)
         return -1;
 
-    for (i = 0; i < nicl->Cmds.size(); i++) {
+    const char *evblockbasename = obj_evt.BlockName.GetCStr();
+    const int evblocknum = obj_evt.BlockID;
+    for (size_t i = 0; i < nicl->Cmds.size(); i++) {
         cmdsrun[0] ++;
         int room_was = play.room_changes;
 
@@ -860,7 +857,7 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
           if (play.usedinv == IPARAM1) {
               if (game.options[OPT_NOLOSEINV] == 0)
                   lose_inventory (play.usedinv);
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           }
           else
@@ -868,17 +865,17 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
           break;
       case 21: // if player has inventory item
           if (playerchar->inv[IPARAM1] > 0)
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           break;
       case 22: // if a character is moving
           if (game.chars[IPARAM1].walking)
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           break;
       case 23: // if two variables are equal
           if (IPARAM1 == IPARAM2)
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           break;
       case 24: // Stop character walking
@@ -951,17 +948,17 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
           break;
       case 45: // If player character is
           if (GetPlayerCharacter() == IPARAM1)
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           break;
       case 46: // if cursor mode is
           if (GetCursorMode() == IPARAM1)
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           break;
       case 47: // if player has been to room
           if (HasBeenToRoom(IPARAM1))
-              if (run_interaction_commandlist (nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
+              if (run_interaction_commandlist(obj_evt, nicl->Cmds[i].Children.get(), timesrun, cmdsrun))
                   return -1;
           break;
       default:
@@ -984,12 +981,15 @@ void can_run_delayed_command() {
     quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
 }
 
-void run_unhandled_event (int evnt) {
+void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
 
     if (play.check_interaction_only)
         return;
 
+    const char *evblockbasename = obj_evt.BlockName.GetCStr();
+    const int evblocknum = obj_evt.BlockID;
     int evtype=0;
+
     if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
     else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
     else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;

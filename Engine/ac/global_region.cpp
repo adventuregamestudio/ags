@@ -18,6 +18,7 @@
 #include "ac/region.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
+#include "dynobj/cc_region.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
@@ -28,8 +29,8 @@ using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
-extern const char*evblockbasename;
-extern int evblocknum;
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+extern CCRegion ccDynamicRegion;
 
 int GetRegionIDAtRoom(int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
@@ -140,25 +141,16 @@ void RunRegionInteraction (int regnum, int mood) {
     if ((mood < 0) || (mood > 2))
         quit("!RunRegionInteraction: invalid event specified");
 
-    // We need a backup, because region interactions can run
-    // while another interaction (eg. hotspot) is in a Wait
-    // command, and leaving our basename would call the wrong
-    // script later on
-    const char *oldbasename = evblockbasename;
-    int   oldblocknum = evblocknum;
-
-    evblockbasename = "region%d";
-    evblocknum = regnum;
-
-    if (thisroom.Regions[regnum].EventHandlers != nullptr)
+    // NOTE: for Regions the mode has specific meanings (NOT verbs):
+    // 0 - stands on region, 1 - walks onto region, 2 - walks off region
+    const auto obj_evt = ObjectEvent("region%d", regnum,
+        RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion), mood);
+    if (loaded_game_file_version > kGameVersion_272)
     {
-        run_interaction_script(thisroom.Regions[regnum].EventHandlers.get(), mood);
+        run_interaction_script(obj_evt, thisroom.Regions[regnum].EventHandlers.get(), mood);
     }
     else
     {
-        run_interaction_event(&croom->intrRegion[regnum], mood);
+        run_interaction_event(obj_evt, &croom->intrRegion[regnum], mood);
     }
-
-    evblockbasename = oldbasename;
-    evblocknum = oldblocknum;
 }

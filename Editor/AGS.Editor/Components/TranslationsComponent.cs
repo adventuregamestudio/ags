@@ -123,7 +123,7 @@ namespace AGS.Editor.Components
 
         private void CompileTranslation(Translation translation, CompileMessages errors)
         {
-            var load_errors = translation.LoadData();
+            var load_errors = translation.TryLoadData();
             errors.AddRange(load_errors);
             if (load_errors.HasErrors)
                 return;
@@ -231,7 +231,7 @@ namespace AGS.Editor.Components
                 CompileMessages errors = null;
                 if (File.Exists(translation.FileName))
                 {
-                    errors = translation.LoadData();
+                    errors = translation.TryLoadData();
                     messages.AddRange(errors);
                 }
                 if (errors == null || !errors.HasErrors)
@@ -254,7 +254,7 @@ namespace AGS.Editor.Components
         {
             foreach (Translation otherTranslation in _agsEditor.CurrentGame.Translations)
             {
-                var load_errors = otherTranslation.LoadData();
+                var load_errors = otherTranslation.TryLoadData();
                 errors.AddRange(load_errors);
                 if (load_errors.HasErrors)
                     continue; // failure
@@ -337,7 +337,7 @@ namespace AGS.Editor.Components
                 return;
             }
 
-            CompileMessages errors = translation.LoadData();
+            CompileMessages errors = translation.TryLoadData();
             if (errors.HasErrors)
             {
                 _guiController.ShowOutputPanel(errors);
@@ -373,7 +373,7 @@ namespace AGS.Editor.Components
                 // Create a dummy placeholder file
                 StreamWriter sw = new StreamWriter(newItem.FileName);
                 sw.Close();
-                _guiController.ShowOutputPanel(newItem.LoadData());
+                _guiController.ShowOutputPanel(newItem.TryLoadData());
 
                 string newNodeID = "Trl" + (items.Count - 1);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);

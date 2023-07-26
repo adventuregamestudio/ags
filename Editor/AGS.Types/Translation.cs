@@ -111,7 +111,14 @@ namespace AGS.Types
             _rightToLeftText = null;
             _encodingHint = null;
             _encoding = Encoding.Default;
-            LoadData();
+            try
+            {
+                LoadData();
+            }
+            catch (Exception)
+            {
+                _translatedLines.Clear(); // clear on failure
+            }
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -155,7 +162,21 @@ namespace AGS.Types
             this.Modified = false;
         }
 
-        public CompileMessages LoadData()
+        /// <summary>
+        /// Loads translation data from the source file (TRS).
+        /// Throws IO exceptions.
+        /// </summary>
+        public void LoadData()
+        {
+            CompileMessages errors = new CompileMessages();
+            LoadDataImpl(errors);
+        }
+
+        /// <summary>
+        /// Loads translation data from the source file (TRS).
+        /// Suppresses exceptions and returns error messages.
+        /// </summary>
+        public CompileMessages TryLoadData()
         {
             CompileMessages errors = new CompileMessages();
             try

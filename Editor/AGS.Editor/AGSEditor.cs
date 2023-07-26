@@ -1735,8 +1735,8 @@ namespace AGS.Editor
 
         private bool WriteMainGameFile(string fileContents)
         {
+            // First save the game into the temp file
             string tempFile = Path.GetTempFileName();
-
             using (StreamWriter fileOutput = new StreamWriter(tempFile, false, _game.TextEncoding))
             {
                 try
@@ -1751,13 +1751,16 @@ namespace AGS.Editor
                 }
             }
 
+            // Create a backup file, by moving previous game file into backup
             string gameFile = Utilities.ResolveSourcePath(GAME_FILE_NAME);
             string backupFile = $"{gameFile}.{BACKUP_EXTENSION}";
-
             try
             {
-                Utilities.TryDeleteFile(backupFile);
-                File.Move(gameFile, backupFile);
+                if (File.Exists(gameFile))
+                {
+                    Utilities.TryDeleteFile(backupFile);
+                    File.Move(gameFile, backupFile);
+                }
             }
             catch (Exception ex)
             {
@@ -1765,6 +1768,7 @@ namespace AGS.Editor
                 return false;
             }
 
+            // Finally try moving the saved temp game file into the project folder
             try
             {
                 File.Move(tempFile, gameFile);

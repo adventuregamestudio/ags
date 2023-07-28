@@ -736,7 +736,7 @@ void SetMultitasking (int mode) {
     }
 
     // Regardless, don't allow background running if exclusive full screen
-    if ((mode == 1) && gfxDriver->GetDisplayMode().IsRealFullscreen())
+    if ((mode == 1) && gfxDriver && gfxDriver->GetDisplayMode().IsRealFullscreen())
     {
         Debug::Printf("SetMultitasking: overridden by fullscreen: %d -> 0", mode);
         mode = 0;

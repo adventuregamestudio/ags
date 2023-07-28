@@ -25,9 +25,6 @@ void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 
-// Close the log buffering output;
-// this is useful to do after all the required outputs have been registered
-void debug_stop_buffer();
 // Toggle in-game console output
 void debug_set_console(bool enable);
 

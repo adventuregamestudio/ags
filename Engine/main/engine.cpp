@@ -1155,11 +1155,6 @@ void engine_init_editor_debugging(const ConfigTree &cfg)
     Debug::Printf(kDbgMsg_Info, "Try connect to the external debugger");
     if (!init_editor_debugging(cfg))
         return;
-    
-    // Debugger expects strict multitasking
-    usetup.multitasking = true;
-    usetup.override_multitasking = -1;
-    SetMultitasking(1);
 
     auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
     while (waitUntil > AGS_Clock::now())
@@ -1184,6 +1179,16 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Install backend
     if (!engine_init_backend())
         return EXIT_ERROR;
+
+    //-----------------------------------------------------
+    // Connect to the external debugger, if required;
+    // use only startup options here, the full config will be available
+    // only after game files location is found
+    if (editor_debugging_enabled &&
+        !(justTellInfo || justRunSetup))
+    {
+        engine_init_editor_debugging(startup_opts);
+    }
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
@@ -1300,14 +1305,6 @@ int initialize_engine(const ConfigTree &startup_opts)
     res = engine_init_sprites();
     if (res != 0)
         return res;
-
-    // Connect to the external debugger, if required
-    // TODO: investigate if may be initialized earlier (at the very early engine init);
-    // although that might require postponing breakpoints init until the "game start" stage
-    if (editor_debugging_enabled)
-        engine_init_editor_debugging(cfg);
-    // We don't need message buffer beyond this point
-    debug_stop_buffer();
 
     // TODO: move *init_game_settings to game init code unit
     engine_init_game_settings();

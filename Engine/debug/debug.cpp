@@ -368,6 +368,16 @@ void apply_debug_config(const ConfigTree &cfg)
             dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
         }
     }
+
+    // Engine -> editor logging
+    if (editor_debugging_initialized)
+    {
+        apply_log_config(cfg, OutputDebuggerLogID, false, {});
+    }
+
+    // We don't need message buffer beyond this point
+    DbgMgr.UnregisterOutput(OutputMsgBufID);
+    DebugMsgBuff.reset();
 }
 
 void shutdown_debug()
@@ -379,12 +389,6 @@ void shutdown_debug()
     DebugLogFile.reset();
     DebugConsole.reset();
     DebuggerLog.reset();
-}
-
-void debug_stop_buffer()
-{
-    DbgMgr.UnregisterOutput(OutputMsgBufID);
-    DebugMsgBuff.reset();
 }
 
 void debug_set_console(bool enable)
@@ -499,14 +503,8 @@ bool init_editor_debugging(const ConfigTree &cfg)
 
         send_state_to_debugger("START");
         Debug::Printf(kDbgMsg_Info, "External debugger initialized");
-        // init engine->editor logging
-        apply_log_config(cfg, OutputDebuggerLogID,
-            /* defaults */
-            false, // don't create if not in config
-            { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Game, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
-            });
+        // Create and configure engine->editor log output
+        apply_log_config(cfg, OutputDebuggerLogID, false, {});
         return true;
     }
 

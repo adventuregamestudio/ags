@@ -143,9 +143,10 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 // Returns 0 normally, or -1 to indicate that the NewInteraction has
 // become invalid and don't run another interaction on it
 // (eg. a room change occured)
-int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny) {
+int run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny) {
 
-    if ((nint->ScriptFuncNames.size() <= evnt) || nint->ScriptFuncNames[evnt].IsEmpty()) {
+    if (evnt < 0 || static_cast<size_t>(evnt) >= nint->ScriptFuncNames.size() ||
+            nint->ScriptFuncNames[evnt].IsEmpty()) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
@@ -154,35 +155,44 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny) {
             return 0;
 
         // Otherwise, run unhandled_event
-        run_unhandled_event(evnt);
-
+        run_unhandled_event(obj_evt, evnt);
         return 0;
     }
 
     if (play.check_interaction_only) {
-        play.check_interaction_only = 2;
+        play.check_interaction_only = 2; // CHECKME: wth is "2"?
         return -1;
     }
 
-    int room_was = play.room_changes;
+    const int room_was = play.room_changes;
 
-    RuntimeScriptValue rval_null;
+    // TODO: find a way to generalize all the following hard-coded behavior
 
-        if ((strstr(evblockbasename,"character")!=nullptr) || (strstr(evblockbasename,"inventory")!=nullptr)) {
-            // Character or Inventory (global script)
-            QueueScriptFunction(kScInstGame, nint->ScriptFuncNames[evnt].GetCStr());
-        }
-        else {
-            // Other (room script)
-            QueueScriptFunction(kScInstRoom, nint->ScriptFuncNames[evnt].GetCStr());
-        }
+    // Character or Inventory require a global script call
+    const ScriptInstType inst_type =
+        (strstr(obj_evt.BlockName.GetCStr(), "character") != nullptr) ||
+        (strstr(obj_evt.BlockName.GetCStr(), "inventory") != nullptr) ?
+        kScInstGame : kScInstRoom;
+    
+    // Room events do not require additional params
+    if ((strstr(obj_evt.BlockName.GetCStr(), "room") != nullptr)) {
+        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr());
+    }
+    // Regions only require 1 param - dynobj ref
+    else if ((strstr(obj_evt.BlockName.GetCStr(), "region") != nullptr)) {
+        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr(), 1, &obj_evt.DynObj);
+    }
+    // Other types (characters, objects, invitems, hotspots) require
+    // 2 params - dynobj ref and the interaction mode (aka verb)
+    else {
+        RuntimeScriptValue params[]{ obj_evt.DynObj, RuntimeScriptValue().SetInt32(obj_evt.Mode) };
+        QueueScriptFunction(inst_type, nint->ScriptFuncNames[evnt].GetCStr(), 2, params);
+    }
 
-            int retval = 0;
-        // if the room changed within the action
-        if (room_was != play.room_changes)
-            retval = -1;
-
-        return retval;
+    // if the room changed within the action
+    if (room_was != play.room_changes)
+        return -1;
+    return 0;
 }
 
 int create_global_script() {
@@ -669,7 +679,6 @@ struct TempEip {
     ~TempEip () { our_eip = oldval; }
 };
 
-
 // check and abort game if the script is currently
 // inside the rep_exec_always function
 void can_run_delayed_command() {
@@ -677,12 +686,15 @@ void can_run_delayed_command() {
     quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
 }
 
-void run_unhandled_event (int evnt) {
+void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
 
     if (play.check_interaction_only)
         return;
 
+    const char *evblockbasename = obj_evt.BlockName.GetCStr();
+    const int evblocknum = obj_evt.BlockID;
     int evtype=0;
+
     if (ags_strnicmp(evblockbasename,"hotspot",7)==0) evtype=1;
     else if (ags_strnicmp(evblockbasename,"object",6)==0) evtype=2;
     else if (ags_strnicmp(evblockbasename,"character",9)==0) evtype=3;

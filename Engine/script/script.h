@@ -23,16 +23,44 @@
 #include "game/interactions.h"
 #include "util/string.h"
 
+using AGS::Common::String;
 using AGS::Common::InteractionScripts;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"
 
+// ObjectEvent - a struct holds data of the object's interaction event,
+// such as object's reference and accompanying parameters
+struct ObjectEvent
+{
+    // Name of the script block to run, may be used as a formatting string;
+    // has a form of "objecttype%d"
+    String BlockName;
+    // Script block's ID, commonly corresponds to the object's ID
+    int BlockID = 0;
+    // Dynamic object this event was called for (if applicable)
+    RuntimeScriptValue DynObj;
+    // Interaction mode that triggered this event (if applicable)
+    int Mode = MODE_NONE;
+
+    ObjectEvent() = default;
+    ObjectEvent(const String &block_name, int block_id = 0)
+        : BlockName(block_name), BlockID(block_id) {}
+    ObjectEvent(const String &block_name, int block_id,
+                const RuntimeScriptValue &dyn_obj, int mode = MODE_NONE)
+        : BlockName(block_name), BlockID(block_id), DynObj(dyn_obj), Mode(mode) {}
+};
+
 int     run_dialog_request (int parmtr);
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
-//int     run_interaction_event (Interaction *nint, int evnt, int chkAny = -1, int isInv = 0);
-int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = -1);
+
+// Runs the ObjectEvent using a script callback of 'evnt' index,
+// or alternatively of 'chkAny' index, if previous does not exist
+// Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
+int     run_interaction_script(const ObjectEvent &obj_evt, InteractionScripts *nint, int evnt, int chkAny = -1);
+void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
+
 int     create_global_script();
 void    cancel_all_scripts();
 
@@ -66,7 +94,7 @@ void    FreeRoomScriptInstance();
 void    FreeGlobalScripts();
 
 
-AGS::Common::String GetScriptName(ccInstance *sci);
+String  GetScriptName(ccInstance *sci);
 
 //=============================================================================
 
@@ -76,12 +104,11 @@ char*   make_ts_func_name(const char*base,int iii,int subd);
 // optimisation and other reasons.
 void    post_script_cleanup();
 void    quit_with_script_error(const char *functionName);
-void    run_unhandled_event (int evnt);
 void    can_run_delayed_command();
 
 // Gets current running script position
 bool    get_script_position(ScriptPosition &script_pos);
-AGS::Common::String cc_get_callstack(int max_lines = INT_MAX);
+String  cc_get_callstack(int max_lines = INT_MAX);
 
 
 extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];

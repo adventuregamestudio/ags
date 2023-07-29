@@ -355,7 +355,7 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id,
     FrameScaleDef frame = windowed ? setup.WinGameFrame : setup.FsGameFrame;
     bool result = try_init_mode_using_setup(game_res, ws, use_col_depth, frame, setup.Filter, setup.Params);
     // Try windowed mode if fullscreen failed, and vice versa
-    if (!result && editor_debugging_enabled == 0)
+    if (!result && editor_debugging_initialized == 0)
     {
         windowed = !windowed;
         ws = windowed ? setup.WinSetup : setup.FsSetup;

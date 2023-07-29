@@ -609,25 +609,17 @@ int IAGSEngine::GetFontType(int32 fontNum) {
     return FNT_SCI;
 }
 int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
-
-    // TODO: why is this implemented right here, should not an existing
-    // script handling implementation be called instead?
-
-    int gotSlot = spriteset.GetFreeIndex();
-    if (gotSlot <= 0)
-        return 0;
-
     if ((width < 1) || (height < 1))
         quit("!IAGSEngine::CreateDynamicSprite: invalid width/height requested by plugin");
 
-    // resize the sprite to the requested size
-    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, coldepth);
-    if (newPic == nullptr)
+    if (!spriteset.HasFreeSlots())
         return 0;
 
-    // add it into the sprite set
-    add_dynamic_sprite(gotSlot, newPic);
-    return gotSlot;
+    std::unique_ptr<Bitmap> image(BitmapHelper::CreateTransparentBitmap(width, height, coldepth));
+    if (!image)
+        return 0;
+
+    return add_dynamic_sprite(std::move(image));
 }
 void IAGSEngine::DeleteDynamicSprite(int32 slot) {
     free_dynamic_sprite(slot);
@@ -769,7 +761,7 @@ void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int3
 
 int IAGSEngine::IsRunningUnderDebugger()
 {
-    return (editor_debugging_enabled != 0) ? 1 : 0;
+    return (editor_debugging_initialized != 0) ? 1 : 0;
 }
 
 void IAGSEngine::GetPathToFileInCompiledFolder(const char*fileName, char *buffer)

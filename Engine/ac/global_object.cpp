@@ -20,6 +20,7 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
@@ -30,6 +31,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/script.h"
@@ -51,6 +53,8 @@ extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
+extern CCObject ccDynamicObject;
 
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;
@@ -131,41 +135,19 @@ void RemoveObjectTint(int obj) {
     }
 }
 
-void SetObjectView(int obn,int vii) {
-    if (!is_valid_object(obn)) quit("!SetObjectView: invalid object number specified");
+void SetObjectView(int obn, int vii) {
+    // According to the old AGS manual, the loop and frame should be both reset to 0
+    SetObjectFrameSimple(obn, vii, 0, 0);
     debug_script_log("Object %d set to view %d", obn, vii);
-    if ((vii < 1) || (vii > game.numviews)) {
-        quitprintf("!SetObjectView: invalid view number (You said %d, max is %d)", vii, game.numviews);
-    }
-    vii--;
-
-    if (vii > UINT16_MAX)
-    {
-        debug_script_warn("Warning: object's (id %d) view %d is outside of internal range (%d), reset to no view",
-            obn, vii + 1, UINT16_MAX + 1);
-        SetObjectGraphic(obn, 0);
-        return;
-    }
-
-    objs[obn].view = (uint16_t)vii;
-    objs[obn].frame=0;
-    if (objs[obn].loop >= views[vii].numLoops)
-        objs[obn].loop=0;
-    objs[obn].cycling=0;
-    int pic = views[vii].loops[0].frames[0].pic;
-    objs[obn].num = Math::InRangeOrDef<uint16_t>(pic, 0);
-    if (pic > UINT16_MAX)
-        debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
 }
 
-void SetObjectFrame(int obn,int viw,int lop,int fra) {
-    if (!is_valid_object(obn)) quit("!SetObjectFrame: invalid object number specified");
+bool SetObjectFrameSimple(int obn, int viw, int lop, int fra) {
+    if (!is_valid_object(obn))
+        quitprintf("!SetObjectFrame: invalid object number specified (%d, range is 0 - %d)", obn, 0, croom->numobj);
     viw--;
-    if (viw < 0 || viw >= game.numviews) quitprintf("!SetObjectFrame: invalid view number used (%d, range is 0 - %d)", viw, game.numviews - 1);
-    if (views[viw].numLoops == 0) quitprintf("!SetObjectFrame: view %d has no loops", viw);
+    AssertViewHasLoops("SetObjectFrame", viw);
 
     auto &obj = objs[obn];
-
     // Fixup invalid loop & frame numbers by using default 0 value
     if (lop < 0 || lop >= views[viw].numLoops)
     {
@@ -185,7 +167,7 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
         debug_script_warn("Warning: object's (id %d) view/loop/frame (%d/%d/%d) is outside of internal range (%d/%d/%d), reset to no view",
             obn, viw + 1, lop, fra, UINT16_MAX + 1, UINT16_MAX, UINT16_MAX);
         SetObjectGraphic(obn, 0);
-        return;
+        return false;
     }
 
     obj.view = static_cast<uint16_t>(viw);
@@ -196,7 +178,13 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    CheckViewFrame(viw, obj.loop, obj.frame);
+    return true;
+}
+
+void SetObjectFrame(int obn, int viw, int lop, int fra) {
+    if (!SetObjectFrameSimple(obn, viw, lop, fra))
+        return;
+    objs[obn].CheckViewFrame();
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
@@ -259,8 +247,11 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
     obj.num = Math::InRangeOrDef<uint16_t>(pic, 0);
     if (pic > UINT16_MAX)
         debug_script_warn("Warning: object's (id %d) sprite %d is outside of internal range (%d), reset to 0", obn, pic, UINT16_MAX);
-    obj.anim_volume = Math::Clamp(volume, 0, 100);
-    CheckViewFrame(obj.view, loopn, obj.frame, obj.anim_volume);
+
+    obj.cur_anim_volume = Math::Clamp(volume, 0, 100);
+
+
+    objs[obn].CheckViewFrame();
 
     if (blocking)
         GameLoopUntilValueIsZero(&obj.cycling);
@@ -413,27 +404,34 @@ void SetObjectIgnoreWalkbehinds (int cha, int clik) {
 void RunObjectInteraction (int aa, int mood) {
     if (!is_valid_object(aa))
         quit("!RunObjectInteraction: invalid object number for current room");
-    int passon=-1,cdata=-1;
-    if (mood==MODE_LOOK) passon=0;
-    else if (mood==MODE_HAND) passon=1;
-    else if (mood==MODE_TALK) passon=2;
-    else if (mood==MODE_PICKUP) passon=5;
-    else if (mood==MODE_CUSTOM1) passon = 6;
-    else if (mood==MODE_CUSTOM2) passon = 7;
-    else if (mood==MODE_USE) { passon=3;
-    cdata=playerchar->activeinv;
-    play.usedinv=cdata; }
-    evblockbasename="object%d"; evblocknum=aa;
 
-    if (thisroom.Objects[aa].EventHandlers != nullptr)
+    // convert cursor mode to event index (in character event table)
+    // TODO: probably move this conversion table elsewhere? should be a global info
+    int evnt;
+    switch (mood)
     {
-        if (passon>=0) 
-        {
-            if (run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), passon, 4))
-                return;
-        }
-        run_interaction_script(thisroom.Objects[aa].EventHandlers.get(), 4);  // any click on obj
+    case MODE_LOOK: evnt = 0; break;
+    case MODE_HAND: evnt = 1; break;
+    case MODE_TALK: evnt = 2; break;
+    case MODE_USE: evnt = 3; break;
+    case MODE_PICKUP: evnt = 5; break;
+    case MODE_CUSTOM1: evnt = 6; break;
+    case MODE_CUSTOM2: evnt = 7; break;
+    default: evnt = -1; break;
     }
+    const int anyclick_evt = 4; // TODO: make global constant (character any-click evt)
+
+    // For USE verb: remember active inventory
+    if (mood == MODE_USE)
+    {
+        play.usedinv = playerchar->activeinv;
+    }
+
+    const auto obj_evt = ObjectEvent("object%d", aa,
+        RuntimeScriptValue().SetScriptObject(&scrObj[aa], &ccDynamicObject), mood);
+    if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), evnt, anyclick_evt) < 0)
+        return; // game state changed, don't do "any click"
+    run_interaction_script(obj_evt, thisroom.Objects[aa].EventHandlers.get(), anyclick_evt); // any click on obj
 }
 
 int AreObjectsColliding(int obj1,int obj2) {

@@ -93,7 +93,6 @@ extern int starting_room;
 extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap *raw_saved_screen;
 extern RGB palette[256];
 extern int mouse_z_was;
 extern bool logScriptRTTI;
@@ -275,7 +274,6 @@ void unload_old_room() {
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
     remove_all_overlays();
-    delete raw_saved_screen;
     raw_saved_screen = nullptr;
     for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
         play.raw_modified[ff] = 0;
@@ -792,6 +790,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
         // Delete all cached resources
         spriteset.DisposeAllCached();
         soundcache_clear();
+        texturecache_clear();
     }
 
     load_new_room(newnum,forchar);
@@ -837,12 +836,7 @@ void first_room_initialization() {
 void check_new_room() {
     // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
     if ((in_new_room>0) & (in_new_room!=3)) {
-        EventHappened evh;
-        evh.type = EV_RUNEVBLOCK;
-        evh.data1 = EVB_ROOM;
-        evh.data2 = 0;
-        evh.data3 = EVROM_BEFOREFADEIN;
-        evh.player=game.playercharacter;
+        EventHappened evh(EV_RUNEVBLOCK, EVB_ROOM, 0, EVROM_BEFOREFADEIN, game.playercharacter);
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;
         in_new_room = 0;

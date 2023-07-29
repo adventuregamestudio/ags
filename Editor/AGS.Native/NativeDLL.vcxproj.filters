@@ -49,9 +49,6 @@
     <ClCompile Include="..\Native\color_native.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MSSCCI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NativeMethods.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

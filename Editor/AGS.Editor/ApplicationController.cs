@@ -141,13 +141,16 @@ namespace AGS.Editor
             _componentController.AddComponent(new RoomsComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new TranslationsComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new SpeechComponent(_guiController, _agsEditor));
-            _componentController.AddComponent(new SourceControlComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new WelcomeComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new DebugLogComponent(_guiController, _agsEditor));
             //
             // Disabled until proper server is found to store these stats
             // _componentController.AddComponent(new StatisticsSenderComponent(_guiController, _agsEditor));
             //
+            // This is a hack really, to prevent warnings when loading old games;
+            // but it's not ideal, as in theory a plugin may introduce similar name;
+            // find a better solution later?
+            _componentController.AddSuppressedComponent(ComponentIDs.SourceControl);
         }
 
         public void StartGUI(string[] commandLineArguments)

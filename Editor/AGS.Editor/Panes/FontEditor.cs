@@ -83,7 +83,7 @@ namespace AGS.Editor
             {
                 if (File.Exists(newWFNName))
                 {
-                    Factory.AGSEditor.DeleteFileOnDiskAndSourceControl(newWFNName);
+                    Factory.AGSEditor.DeleteFileOnDisk(newWFNName);
                 }
                 Factory.NativeProxy.ReloadFont(_item.ID);
                 // If user asked to get a certain pixel height, then try to change the font's
@@ -110,7 +110,7 @@ namespace AGS.Editor
             {
                 if (File.Exists(newTTFName))
                 {
-                    Factory.AGSEditor.DeleteFileOnDiskAndSourceControl(newTTFName);
+                    Factory.AGSEditor.DeleteFileOnDisk(newTTFName);
                 }
 
                 if (fileName.ToLower().EndsWith(".wfn"))

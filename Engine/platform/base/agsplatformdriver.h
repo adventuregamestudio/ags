@@ -121,6 +121,7 @@ public:
     // for the SDL backend to set an icon instead.
     virtual SDL_Surface *CreateWindowIcon() { return nullptr; }
 
+    virtual bool FullscreenSupported() { return true; }
     // Returns command line argument in a UTF-8 format
     virtual Common::String GetCommandArg(size_t arg_index);
 

@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__CHARACTEREXTRAS_H
 
 #include "core/types.h"
+#include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "gfx/gfx_def.h"
 
@@ -38,7 +39,7 @@ struct CharacterExtras {
     int spr_height = 0;
     short width = 0; // width/height last time drawn (includes scaling)
     short height = 0;
-    short zoom = 0;
+    short zoom = 100;
     short xwas = 0;
     short ywas = 0;
     short tint_r = 0;
@@ -53,6 +54,12 @@ struct CharacterExtras {
     int   cur_anim_volume = 100; // current animation sound volume (relative factor)
     Common::BlendMode blend_mode = Common::kBlend_Normal;
     float rotation = 0.f;
+
+    // Calculate wanted frame sound volume based on multiple factors
+    int GetFrameSoundVolume(CharacterInfo *chi) const;
+    // Process the current animation frame for the character:
+    // play linked sounds, and so forth.
+    void CheckViewFrame(CharacterInfo *chi);
 
     inline Pointf GetOrigin() const { return Pointf(0.5f, 1.f); /* middle-bottom */ }
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }

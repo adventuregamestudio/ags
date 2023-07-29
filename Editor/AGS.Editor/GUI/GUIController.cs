@@ -764,100 +764,6 @@ namespace AGS.Editor
             return ShowSelectFolderOrDefaultDialog(title, defaultPath, true);
         }
 
-        public bool ShowCheckOutDialog(string fileName)
-        {
-            List<string> fileNames = new List<string>();
-            fileNames.Add(fileName);
-            return ShowCheckOutDialog(fileNames);
-        }
-
-        public bool ShowCheckOutDialog(List<string> fileNames)
-        {
-            bool checkedOut = false;
-            CheckinsDialog dialog = new CheckinsDialog("Check Out", "Check out", fileNames.ToArray());
-            dialog.ShowDialog();
-            if (dialog.SelectedFiles != null)
-            {
-				try
-				{
-					_agsEditor.SourceControlProvider.CheckOutFiles(dialog.SelectedFiles, dialog.Comments);
-					checkedOut = (dialog.SelectedFiles.Length == fileNames.Count);
-				}
-				catch (SourceControlException ex)
-				{
-					this.ShowMessage("Checkout failed: " + ex.SccErrorMessage, MessageBoxIcon.Warning);
-					checkedOut = false;
-				}
-            }
-            dialog.Dispose();
-            return checkedOut;
-        }
-
-        public void ShowPendingCheckinsDialog()
-        {
-            List<string> fileNamesToShow = new List<string>();
-			string[] files = _agsEditor.GetFilesThatCanBePutUnderSourceControl();
-            SourceControlFileStatus[] fileStatuses = _agsEditor.SourceControlProvider.GetFileStatuses(files);
-            for (int i = 0; i < files.Length; i++)
-            {
-                if (((fileStatuses[i] == SourceControlFileStatus.NotControlled) ||
-                    ((fileStatuses[i] & SourceControlFileStatus.Deleted) != 0) ||
-                    ((fileStatuses[i] & SourceControlFileStatus.CheckedOutByMe) != 0)) &&
-                    (fileStatuses[i] != SourceControlFileStatus.Invalid))
-                {
-                    fileNamesToShow.Add(files[i]);
-                }
-            }
-
-            CheckinsDialog dialog = new CheckinsDialog("Pending Checkins", "Check in", fileNamesToShow.ToArray());
-            dialog.ShowDialog();
-            string[] selectedFiles = dialog.SelectedFiles;
-            string checkinComments = dialog.Comments;
-            dialog.Dispose();
-
-            if (selectedFiles != null)
-            {
-                CheckInOrAddFiles(selectedFiles, checkinComments);
-            }
-
-        }
-
-        private void CheckInOrAddFiles(string[] selectedFiles, string checkinComments)
-        {
-            List<string> filesToCheckin = new List<string>();
-            List<string> filesToAdd = new List<string>();
-
-            foreach (string fileName in selectedFiles)
-            {
-                SourceControlFileStatus[] fileStatus = _agsEditor.SourceControlProvider.GetFileStatuses(new string[] { fileName });
-                if ((fileStatus[0] == SourceControlFileStatus.NotControlled) ||
-                    ((fileStatus[0] & SourceControlFileStatus.Deleted) != 0))
-                {
-                    filesToAdd.Add(fileName);
-                }
-                else
-                {
-                    filesToCheckin.Add(fileName);
-                }
-            }
-
-			try
-			{
-				if (filesToAdd.Count > 0)
-				{
-					_agsEditor.SourceControlProvider.AddFilesToSourceControl(filesToAdd.ToArray(), checkinComments);
-				}
-				if (filesToCheckin.Count > 0)
-				{
-					_agsEditor.SourceControlProvider.CheckInFiles(filesToCheckin.ToArray(), checkinComments);
-				}
-			}
-			catch (SourceControlException ex)
-			{
-				this.ShowMessage("Check-in failed: " + ex.SccErrorMessage, MessageBoxIcon.Warning);
-			}
-        }
-
         public int ShowChangeObjectIDDialog(string objectType, int oldValue, int minValue, int maxValue)
         {
             return NumberEntryWithInfoDialog.Show(string.Format("Change {0} ID", objectType),
@@ -1173,14 +1079,6 @@ namespace AGS.Editor
 
         public void SaveGameAsTemplate()
         {
-            if (_agsEditor.SourceControlProvider.ProjectUnderControl)
-            {
-                if (ShowQuestion("This game is under source control. It is not advisable to create a template that is bound to source control. Are you sure you want to continue?", MessageBoxIcon.Warning) == DialogResult.No)
-                {
-                    return;
-                }
-            }
-
             string filename = Factory.GUIController.ShowSaveFileDialog("Save new template as...", Constants.GAME_TEMPLATE_FILE_FILTER, Factory.AGSEditor.UserTemplatesDirectory);
 
             if (filename != null)

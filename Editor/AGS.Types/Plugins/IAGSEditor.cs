@@ -75,6 +75,10 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.0.2.40
         /// </summary>
         string GetSpriteUsageReport(int spriteNumber);
+        /*
+         *  WARNING: following two methods are considered deprecated in
+         *  practice, but must stay in the interface for compatibility.
+         */
 		/// <summary>
 		/// Gets the Source Control Integration object, which allows you
 		/// to perform source control-related operations.

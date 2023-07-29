@@ -56,7 +56,6 @@ String cmdGameDataPath; // game path received from cmdline
 
 extern GameState play;
 extern int our_eip;
-extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
 

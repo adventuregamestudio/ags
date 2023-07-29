@@ -21,20 +21,21 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
+#include "ac/global_inventoryitem.h"
 #include "ac/global_room.h"
 #include "ac/mouse.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
+#include "ac/timer.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_inventory.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
-#include "platform/base/agsplatformdriver.h"
-#include "ac/spritecache.h"
-#include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_inventory.h"
 #include "media/audio/audio_system.h"
-#include "ac/timer.h"
+#include "platform/base/agsplatformdriver.h"
+#include "script/runtimescriptvalue.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
@@ -44,7 +45,6 @@ extern GameState play;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;
-extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
 extern CCCharacter ccDynamicCharacter;

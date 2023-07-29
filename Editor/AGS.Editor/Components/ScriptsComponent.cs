@@ -176,7 +176,7 @@ namespace AGS.Editor.Components
             {
                 _guiController.RemovePaneIfExists(document);
             }
-            _agsEditor.DeleteFileOnDiskAndSourceControl(new string[] { script.FileName, header.FileName });
+            _agsEditor.DeleteFileOnDisk(new string[] { script.FileName, header.FileName });
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
         }
 
@@ -559,8 +559,8 @@ namespace AGS.Editor.Components
             }
             else
             {
-                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldScriptName, renamedScript.FileName);
-				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(associatedScript.FileName, newNameForAssociatedScript);
+                _agsEditor.RenameFileOnDisk(oldScriptName, renamedScript.FileName);
+				_agsEditor.RenameFileOnDisk(associatedScript.FileName, newNameForAssociatedScript);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 associatedScript.FileName = newNameForAssociatedScript;
             }

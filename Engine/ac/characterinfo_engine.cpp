@@ -237,7 +237,7 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
             // use standing pic
             chex->animwait = 0;
             frame = 0;
-            CheckViewFrameForCharacter(this);
+            chex->CheckViewFrame(this);
         }
       }
       else if (chex->animwait > 0) chex->animwait--;
@@ -264,7 +264,7 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
           else
             walkwait = 0;
 
-          CheckViewFrameForCharacter(this);
+          chex->CheckViewFrame(this);
         }
       }
       doing_nothing = 0;
@@ -273,6 +273,8 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
 
 int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 {
+    auto &chex = charextra[index_id];
+
 	// not moving, but animating
     // idleleft is <0 while idle view is playing (.animating is 0)
     if (((animating != 0) || (idleleft < 0)) &&
@@ -297,7 +299,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 
         if (frame != fraa) {
           frame = fraa;
-          CheckViewFrameForCharacter(this);
+          chex.CheckViewFrame(this);
         }
         
         //continue;
@@ -341,7 +343,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
           wait += get_anim_delay();
 
         if (frame != oldframe)
-          CheckViewFrameForCharacter(this);
+          chex.CheckViewFrame(this);
 
         if (done_anim)
           stop_character_anim(this);

@@ -98,7 +98,19 @@ void RoomObject::UpdateCyclingView(int ref_id)
       return;
 
     wait=vfptr->speed+overall_speed;
-    CheckViewFrame(view, loop, frame, anim_volume);
+    CheckViewFrame();
+}
+
+// Calculate wanted frame sound volume based on multiple factors
+int RoomObject::GetFrameSoundVolume() const
+{
+    // NOTE: room objects don't have "scale volume" flag at the moment
+    return ::CalcFrameSoundVolume(anim_volume, cur_anim_volume);
+}
+
+void RoomObject::CheckViewFrame()
+{
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume());
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
@@ -132,10 +144,10 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         name = StrUtil::ReadString(in);
     }
     if (cmp_ver >= 2)
-    {
-        anim_volume = in->ReadInt8();
+    { // anim vols order inverted compared to character, by mistake :(
+        cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
+        anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
-        in->ReadInt8();
         in->ReadInt8();
     }
     if (cmp_ver >= 10)
@@ -195,9 +207,9 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // since version 1
     StrUtil::WriteString(name, out);
     // since version 2
-    out->WriteInt8(anim_volume);
+    out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
+    out->WriteInt8(static_cast<uint8_t>(anim_volume));
     out->WriteInt8(0); // reserved to fill int32
-    out->WriteInt8(0);
     out->WriteInt8(0);
     // since version 10
     out->WriteInt32(blend_mode);

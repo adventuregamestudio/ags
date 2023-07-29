@@ -237,7 +237,7 @@ namespace AGS.Editor
         public string QueryLastEntries()
         {
             List<LogEntry> bufcopy = new List<LogEntry>(_recentBuffer.Count);
-            for (int i = 0; i < _recentBuffer.Count; ++i)
+            while (_recentBuffer.Count > 0)
             {
                 LogEntry discard;
                 if (!_recentBuffer.TryDequeue(out discard))

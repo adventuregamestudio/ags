@@ -4,55 +4,13 @@ using System.Text;
 
 namespace AGS.Types
 {
+    /// <summary>
+    /// WARNING: this interface is considered deprecated in practice
+    /// and has been cut out of the AGS Editor. Do restore the interface
+    /// methods if it's found that any plugins are requiring them,
+    /// but implement using placeholders
+    /// </summary>
     public interface ISourceControlProvider : IDisposable
     {
-        bool Initialize(IntPtr mainWindowHandle);
-
-        string ProviderName
-        {
-            get;
-        }
-
-        bool Available
-        {
-            get;
-        }
-
-        bool ProjectUnderControl
-        {
-            get;
-        }
-
-        string ProjectSourceControlPath
-        {
-            get;
-        }
-
-        string ProjectSourceControlName
-        {
-            get;
-        }
-
-        bool AddToSourceControl();
-
-        bool OpenProject(string sourceControlPath, string projectName);
-
-        void CloseProject();
-
-        bool IsFileUnderSourceControl(string fileName);
-
-        SourceControlFileStatus[] GetFileStatuses(string[] fileNames);
-
-        void AddFilesToSourceControl(string[] fileNames, string comment);
-
-        void CheckInFiles(string[] fileNames, string comment);
-
-        void CheckOutFiles(string[] fileNames, string comment);
-
-        void RenameFileOnDiskAndInSourceControl(string currentName, string newName);
-
-        void RemoveFiles(string[] fileNames);
-
-        void RenameFile(string currentPath, string newPath);
     }
 }

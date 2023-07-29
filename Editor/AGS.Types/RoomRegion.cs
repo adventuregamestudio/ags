@@ -29,7 +29,8 @@ namespace AGS.Types
                 "While standing on region",
                 "Walks onto region", 
                 "Walks off region"},
-                new string[] { "Standing", "WalksOnto", "WalksOff" });
+                new string[] { "Standing", "WalksOnto", "WalksOff" },
+                "Region *r");
         }
 
         public RoomRegion()

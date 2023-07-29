@@ -160,8 +160,8 @@ Common::Bitmap *get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
-void SetNewSprite(int slot, Common::Bitmap *sprit, int flags) {
-  spriteset.SetSprite(slot, sprit, flags);
+void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
+  spriteset.SetSprite(slot, std::unique_ptr<AGSBitmap>(sprit), flags);
   spritesModified = true;
 }
 
@@ -223,8 +223,8 @@ void change_sprite_number(int oldNumber, int newNumber) {
   if (!spriteset.DoesSpriteExist(oldNumber))
     return;
 
-  AGSBitmap *bitmap = spriteset.RemoveSprite(oldNumber);
-  spriteset.SetSprite(newNumber, bitmap, thisgame.SpriteInfos[oldNumber].Flags);
+  std::unique_ptr<AGSBitmap> bitmap(spriteset.RemoveSprite(oldNumber));
+  spriteset.SetSprite(newNumber, std::move(bitmap), thisgame.SpriteInfos[oldNumber].Flags);
   spritesModified = true;
 }
 
@@ -314,12 +314,12 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   }
 
   for (aa = 0; aa < numSprites; aa++) {
-    Common::Bitmap *sprit = get_sprite(sprites[aa]);
+    AGSBitmap *sprit = get_sprite(sprites[aa]);
     // create a new, smaller sprite and copy across
-	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
+	std::unique_ptr<AGSBitmap> newsprit(new AGSBitmap(newWidth, newHeight, sprit->GetColorDepth()));
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     // set new image and keep old flags
-    spriteset.SetSprite(sprites[aa], newsprit, thisgame.SpriteInfos[aa].Flags);
+    spriteset.SetSprite(sprites[aa], std::move(newsprit), thisgame.SpriteInfos[aa].Flags);
   }
 
   spritesModified = true;
@@ -1388,7 +1388,7 @@ int RemoveLeftoverSprites(SpriteFolder ^folder)
     return removed;
 }
 
-void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
+void UpdateNativeSpritesToGame(Game ^game, CompileMessages ^errors)
 {
     // Test for missing sprites: when the game has a sprite ref,
     // but the sprite file does not have respective data
@@ -1408,11 +1408,11 @@ void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
             sprnum->AppendFormat(", and {0} more.", missing.size() - max_nums);
 
         spritesModified = true;
-        errors->Add(String::Format(
+        errors->Add(gcnew CompileWarning(String::Format(
             "Sprite file (acsprset.spr) contained less sprites than the game project referenced ({0} sprites were missing). "
             "This could happen if it was not saved properly last time. Some sprites could be missing actual images. "
             "You may try restoring them by reimporting from the source files.{1}{2}Affected sprites:{3}{4}",
-            missing.size(), Environment::NewLine, Environment::NewLine, Environment::NewLine, sprnum->ToString()));
+            missing.size(), Environment::NewLine, Environment::NewLine, Environment::NewLine, sprnum->ToString())));
     }
 
     // Test for leftovers: when the game does NOT have a sprite ref,
@@ -1420,10 +1420,10 @@ void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors)
     if (RemoveLeftoverSprites(game->RootSpriteFolder) > 0)
     {
         spritesModified = true;
-        errors->Add(String::Format(
+        errors->Add(gcnew CompileWarning(String::Format(
             "Sprite file (acsprset.spr) contained extra data that is not referenced by the game project. "
             "This could happen if it was not saved properly last time. This leftover data will be removed completely "
-            "next time you save your project."));
+            "next time you save your project.")));
     }
 }
 

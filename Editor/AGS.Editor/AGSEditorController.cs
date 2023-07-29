@@ -120,11 +120,6 @@ namespace AGS.Editor
             _agsEditor.CurrentGame.RootSpriteFolder.NotifyClientsOfUpdate();
         }
 
-		ISourceControlIntegration IAGSEditor.SourceControl
-		{
-			get { return _agsEditor; }
-		}
-
 		IRoomController IAGSEditor.RoomController
 		{
 			get
@@ -137,12 +132,14 @@ namespace AGS.Editor
 			}
 		}
 
-        ISourceControlProvider IAGSEditor.SourceControlProvider
+        [Obsolete]
+        public ISourceControlIntegration SourceControl { get; }
+
+        [Obsolete]
+        public ISourceControlProvider SourceControlProvider
         {
-            set
-            {
-                _agsEditor.SourceControlProvider = value;
-            }
+            get { return null; }
+            set { /* do nothing */; }
         }
-	}
+    }
 }

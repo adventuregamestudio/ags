@@ -72,7 +72,7 @@ extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameDirChanged(String ^workingDir);
 extern void GameUpdated(Game ^game, bool forceUpdate);
 extern void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate);
-extern void UpdateNativeSpritesToGame(Game ^game, List<String^> ^errors);
+extern void UpdateNativeSpritesToGame(Game ^game, CompileMessages ^errors);
 extern System::String ^load_room_script(System::String ^fileName);
 extern bool spritesModified;
 
@@ -232,7 +232,7 @@ namespace AGS
             GameDirChanged(workingDir);
         }
 
-		void NativeMethods::NewGameLoaded(Game ^game, List<String^> ^errors)
+		void NativeMethods::NewGameLoaded(Game ^game, CompileMessages ^errors)
 		{
             _gameTextConverter = gcnew TextConverter(game->TextEncoding);
 			this->PaletteColoursUpdated(game);

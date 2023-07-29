@@ -107,7 +107,7 @@ namespace AGS.Editor
                 throw new AGSEditorException("This game cannot be loaded because it is in a folder that has a name longer than 40 characters.");
             }
 
-            List<string> errors = new List<string>();
+            CompileMessages errors = new CompileMessages();
 
             Directory.SetCurrentDirectory(gameDirectory);
             Factory.NativeProxy.NewWorkingDirSet(gameDirectory);
@@ -157,7 +157,7 @@ namespace AGS.Editor
             }
             catch (Exception e)
             {
-                errors.Add(e.Message);
+                errors.Add(new CompileError(e.Message));
                 if (!isNewSpriteFile)
                     CreateNewSpriteFile();
             }

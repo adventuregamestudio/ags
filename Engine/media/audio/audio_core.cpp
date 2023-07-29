@@ -11,11 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-// [sonneveld]
-// TODO:
-// sound caching ([IKM] please, not right here in this backend module)
-// generate/load mod/midi offsets (?)
-
 #include "media/audio/audio_core.h"
 #include <math.h>
 #include <condition_variable>

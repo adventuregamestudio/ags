@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
+#include "ac/viewframe.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -21,6 +22,18 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
 {
     _gs = GraphicSpace(chin->x - width / 2 + chin->pic_xoffs,
         chin->y - height - chin->z + chin->pic_yoffs, spr_width, spr_height, width, height, rotation);
+}
+
+int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
+{
+    return ::CalcFrameSoundVolume(
+        anim_volume, cur_anim_volume,
+        (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
+}
+
+void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
+{
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi));
 }
 
 void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
@@ -42,8 +55,8 @@ void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     animwait = in->ReadInt16();
     if (cmp_ver >= 2) // expanded at ver 2
     {
-        anim_volume = in->ReadInt8();
-        cur_anim_volume = in->ReadInt8();
+        anim_volume = static_cast<uint8_t>(in->ReadInt8());
+        cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
     }

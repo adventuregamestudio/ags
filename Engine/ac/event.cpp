@@ -23,6 +23,8 @@
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
+#include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/cc_hotspot.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/cc_common.h"
@@ -49,14 +51,13 @@ extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern RGB old_palette[256];
 extern int displayed_room;
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+extern CCHotspot ccDynamicHotspot;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
 
 std::vector<EventHappened> events;
-
-const char*evblockbasename;
-int evblocknum;
 
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
@@ -106,17 +107,9 @@ void run_on_event(int evtype, RuntimeScriptValue &wparam)
 }
 
 void run_room_event(int id) {
-    evblockbasename="room";
-
-    if (thisroom.EventHandlers != nullptr)
-    {
-        run_interaction_script(thisroom.EventHandlers.get(), id);
-    }
-}
-
-void run_event_block_inv(int invNum, int event) {
-    evblockbasename="inventory%d";
-    run_interaction_script(game.invScripts[invNum].get(), event);
+    auto obj_evt = ObjectEvent("room");
+    assert(thisroom.EventHandlers);
+    run_interaction_script(obj_evt, thisroom.EventHandlers.get(), id);
 }
 
 // event list functions
@@ -158,16 +151,15 @@ void process_event(const EventHappened *evp) {
     }
     else if (evp->type==EV_RUNEVBLOCK) {
         PInteractionScripts scriptPtr = nullptr;
-        const char *oldbasename = evblockbasename;
-        int   oldblocknum = evblocknum;
+        ObjectEvent obj_evt;
 
         if (evp->data1==EVB_HOTSPOT) {
+            const int hotspot_id = evp->data2;
+            if (thisroom.Hotspots[hotspot_id].EventHandlers != nullptr)
+                scriptPtr = thisroom.Hotspots[hotspot_id].EventHandlers;
 
-            if (thisroom.Hotspots[evp->data2].EventHandlers != nullptr)
-                scriptPtr = thisroom.Hotspots[evp->data2].EventHandlers;
-
-            evblockbasename="hotspot%d";
-            evblocknum=evp->data2;
+            obj_evt = ObjectEvent("hotspot%d", hotspot_id,
+                RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
         }
         else if (evp->data1==EVB_ROOM) {
@@ -175,7 +167,7 @@ void process_event(const EventHappened *evp) {
             if (thisroom.EventHandlers != nullptr)
                 scriptPtr = thisroom.EventHandlers;
 
-            evblockbasename="room";
+            obj_evt = ObjectEvent("room");
             if (evp->data3 == EVROM_BEFOREFADEIN) {
                 in_enters_screen ++;
                 run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
@@ -184,16 +176,15 @@ void process_event(const EventHappened *evp) {
             }
             //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
+        else {
+            quit("process_event: RunEvBlock: unknown evb type");
+        }
 
+        assert(scriptPtr);
         if (scriptPtr != nullptr)
         {
-            run_interaction_script(scriptPtr.get(), evp->data3);
+            run_interaction_script(obj_evt, scriptPtr.get(), evp->data3);
         }
-        else
-            quit("process_event: RunEvBlock: unknown evb type");
-
-        evblockbasename = oldbasename;
-        evblocknum = oldblocknum;
 
         if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
             in_enters_screen --;

@@ -29,7 +29,12 @@ namespace AGS.Types
                 "$$01 hotspot","$$02 hotspot","Use inventory on hotspot",
                 "$$03 hotspot", "Any click on hotspot","Mouse moves over hotspot", 
                 "$$05 hotspot", "$$08 hotspot", "$$09 hotspot"},
-                new string[] { "WalkOn", "Look", "Interact", "UseInv", "Talk", "AnyClick", "MouseMove", "PickUp", "Mode8", "Mode9" });
+                new string[] { "WalkOn", "Look", "Interact", "UseInv", "Talk", "AnyClick", "MouseMove", "PickUp", "Mode8", "Mode9" },
+                new string[] { /*WalkOn*/"Hotspot *h", /*Look*/"Hotspot *h, CursorMode mode",
+                    /*Interact*/"Hotspot *h, CursorMode mode", /*UseInv*/"Hotspot *h, CursorMode mode",
+                    /*Talk*/"Hotspot *h, CursorMode mode", /*AnyClick*/"Hotspot *h, CursorMode mode",
+                    /*MouseMove*/"Hotspot *h", /*PickUp*/"Hotspot *h, CursorMode mode",
+                    /*Mode8*/"Hotspot *h, CursorMode mode", /*Mode9*/"Hotspot *h, CursorMode mode" });
         }
 
 		public RoomHotspot(IChangeNotification changeNotifier)

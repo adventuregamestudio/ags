@@ -71,6 +71,7 @@
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
 #include "platform/base/agsplatformdriver.h"
+#include "script/script_runtime.h"
 #include "util/directory.h"
 #include "util/error.h"
 #include "util/path.h"
@@ -1133,6 +1134,22 @@ static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg
     platform->WriteStdOut("%s", full.GetCStr());
 }
 
+void engine_init_editor_debugging(const ConfigTree &cfg)
+{
+    Debug::Printf(kDbgMsg_Info, "Try connect to the external debugger");
+    if (!init_editor_debugging(cfg))
+        return;
+
+    auto waitUntil = AGS_Clock::now() + std::chrono::milliseconds(500);
+    while (waitUntil > AGS_Clock::now())
+    {
+        // pick up any breakpoints in game_start
+        check_for_messages_from_debugger();
+    }
+
+    ccSetDebugHook(scriptDebugHook);
+}
+
 // TODO: this function is still a big mess, engine/system-related initialization
 // is mixed with game-related data adjustments. Divide it in parts, move game
 // data init into either InitGameState() or other game method as appropriate.
@@ -1146,6 +1163,16 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Install backend
     if (!engine_init_backend())
         return EXIT_ERROR;
+
+    //-----------------------------------------------------
+    // Connect to the external debugger, if required;
+    // use only startup options here, the full config will be available
+    // only after game files location is found
+    if (editor_debugging_enabled &&
+        !(justTellInfo || justRunSetup))
+    {
+        engine_init_editor_debugging(startup_opts);
+    }
 
     //-----------------------------------------------------
     // Locate game data and assemble game config
@@ -1259,13 +1286,12 @@ int initialize_engine(const ConfigTree &startup_opts)
     sys_window_show_cursor(false); // hide the system cursor
 
     show_preload();
-
     res = engine_init_sprites();
     if (res != 0)
         return res;
 
+    // TODO: move *init_game_settings to game init code unit
     engine_init_game_settings();
-
     engine_prepare_to_start_game();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
@@ -1292,7 +1318,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 
 bool engine_try_switch_windowed_gfxmode()
 {
-    if (!gfxDriver || !gfxDriver->IsModeSet())
+    if (!gfxDriver || !gfxDriver->IsModeSet() || !platform->FullscreenSupported())
         return false;
 
     // Keep previous mode in case we need to revert back

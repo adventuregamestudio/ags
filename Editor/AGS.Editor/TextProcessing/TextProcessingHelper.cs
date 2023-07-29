@@ -10,6 +10,8 @@ namespace AGS.Editor
     {
         public static void ProcessAllGameText(IGameTextProcessor processor, Game game, CompileMessages errors)
         {
+            game.Settings.GameName = processor.ProcessText(game.Settings.GameName, GameTextType.ItemDescription);
+
             foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
                 foreach (DialogOption option in dialog.Options)

@@ -26,6 +26,7 @@
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_hotspot.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "script/script.h"
@@ -36,6 +37,8 @@ extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern CharacterInfo*playerchar;
 extern GameSetupStruct game;
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+extern CCHotspot ccDynamicHotspot;
 
 
 void DisableHotspot(int hsnum) {
@@ -88,17 +91,28 @@ void GetHotspotName(int hotspot, char *buffer) {
 
 void RunHotspotInteraction (int hotspothere, int mood) {
 
-    int passon=-1,cdata=-1;
-    if (mood==MODE_TALK) passon=4;
-    else if (mood==MODE_WALK) passon=0;
-    else if (mood==MODE_LOOK) passon=1;
-    else if (mood==MODE_HAND) passon=2;
-    else if (mood==MODE_PICKUP) passon=7;
-    else if (mood==MODE_CUSTOM1) passon = 8;
-    else if (mood==MODE_CUSTOM2) passon = 9;
-    else if (mood==MODE_USE) { passon=3;
-    cdata=playerchar->activeinv;
-    play.usedinv=cdata;
+    // convert cursor mode to event index (in hotspot event table)
+    // TODO: probably move this conversion table elsewhere? should be a global info
+    // TODO: find out what is hotspot event with index 6 (5 is any-click)
+    int evnt;
+    switch (mood)
+    {
+    case MODE_WALK: evnt = 0; break;
+    case MODE_LOOK: evnt = 1; break;
+    case MODE_HAND: evnt = 2; break;
+    case MODE_TALK: evnt = 4; break;
+    case MODE_USE: evnt = 3; break;
+    case MODE_PICKUP: evnt = 7; break;
+    case MODE_CUSTOM1: evnt = 8; break;
+    case MODE_CUSTOM2: evnt = 9; break;
+    default: evnt = -1; break;
+    }
+    const int anyclick_evt = 5; // TODO: make global constant (hotspot any-click evt)
+
+    // For USE verb: remember active inventory
+    if (mood == MODE_USE)
+    {
+        play.usedinv = playerchar->activeinv;
     }
 
     if ((game.options[OPT_WALKONLOOK]==0) & (mood==MODE_LOOK)) ;
@@ -106,23 +120,11 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     else if ((mood!=MODE_WALK) && (play.check_interaction_only == 0))
         MoveCharacterToHotspot(game.playercharacter,hotspothere);
 
-    // can't use the setevent functions because this ProcessClick is only
-    // executed once in a eventlist
-    const char *oldbasename = evblockbasename;
-    int   oldblocknum = evblocknum;
-
-    evblockbasename="hotspot%d";
-    evblocknum=hotspothere;
-
-    if (thisroom.Hotspots[hotspothere].EventHandlers != nullptr)
-    {
-        if (passon>=0)
-            run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), passon, 5);
-        run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.get(), 5);  // any click on hotspot
-    }
-
-    evblockbasename = oldbasename;
-    evblocknum = oldblocknum;
+    const auto obj_evt = ObjectEvent("hotspot%d", hotspothere,
+        RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
+    if ((evnt >= 0) && run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), evnt, anyclick_evt) < 0)
+        return; // game state changed, don't do "any click"
+    run_interaction_script(obj_evt, thisroom.Hotspots[hotspothere].EventHandlers.get(), anyclick_evt); // any click on hotspot
 }
 
 int GetHotspotProperty (int hss, const char *property)

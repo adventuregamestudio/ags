@@ -1116,7 +1116,7 @@ int Character_GetAnimationVolume(CharacterInfo *chaa) {
 
 void Character_SetAnimationVolume(CharacterInfo *chaa, int newval) {
 
-    charextra[chaa->index_id].anim_volume = std::min(newval, 100); // negative means default
+    charextra[chaa->index_id].anim_volume = Math::Clamp(newval, 0, 100);
 }
 
 int Character_GetBaseline(CharacterInfo *chaa) {
@@ -2143,7 +2143,7 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;
     charextra[chap->index_id].cur_anim_volume = Math::Clamp(volume, 0, 100);
 
-    CheckViewFrameForCharacter(chap);
+    charextra[chap->index_id].CheckViewFrame(chap);
 }
 
 void stop_character_anim(CharacterInfo *chap)
@@ -2151,33 +2151,6 @@ void stop_character_anim(CharacterInfo *chap)
   // but have to be careful to not break logic somewhere
     chap->animating = 0;
     charextra[chap->index_id].cur_anim_volume = 100;
-}
-
-void CheckViewFrameForCharacter(CharacterInfo *chi)
-{
-    // We view the audio property relation as the relation of the entities:
-    // system -> audio type -> audio emitter (character) -> animation's audio
-    // therefore the sound volume is a multiplication of factors.
-    int frame_vol = 100; // default to full volume
-    // Try the active animation volume
-    if (charextra[chi->index_id].cur_anim_volume >= 0)
-        frame_vol = charextra[chi->index_id].cur_anim_volume;
-    // Try the character's own animation volume property
-    if (charextra[chi->index_id].anim_volume >= 0)
-        frame_vol = frame_vol * charextra[chi->index_id].anim_volume / 100;
-    // Try the character's zoom volume scaling (optional)
-    // NOTE: historically scales only in 0-100 range :/
-    if (chi->flags & CHF_SCALEVOLUME)
-    {
-        int zoom_level = charextra[chi->index_id].zoom;
-        if (zoom_level <= 0)
-            zoom_level = 100;
-        else
-            zoom_level = std::min(zoom_level, 100);
-        frame_vol = frame_vol * zoom_level / 100;
-    }
-
-    CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol);
 }
 
 Bitmap *GetCharacterImage(int charid, bool *is_original)

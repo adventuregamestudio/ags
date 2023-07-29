@@ -28,21 +28,19 @@ extern IGraphicsDriver *gfxDriver;
 
 int LoadImageFile(const char *filename)
 {
+    if (!spriteset.HasFreeSlots())
+        return 0;
+
     std::unique_ptr<Stream> in(
         ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read));
     if (!in)
         return 0;
 
     String ext = Path::GetFileExtension(filename);
-    Bitmap *loadedFile = BitmapHelper::LoadBitmap(ext, in.get());
-    if (!loadedFile)
+    std::unique_ptr<Bitmap> image(BitmapHelper::LoadBitmap(ext, in.get()));
+    if (!image)
         return 0;
 
-    int gotSlot = spriteset.GetFreeIndex();
-    if (gotSlot <= 0)
-        return 0;
-
-    add_dynamic_sprite(gotSlot, PrepareSpriteForUse(loadedFile));
-
-    return gotSlot;
+    return add_dynamic_sprite(std::unique_ptr<Bitmap>(
+        PrepareSpriteForUse(image.release(), false)));
 }

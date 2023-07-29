@@ -39,9 +39,16 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height);
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
 
-
-namespace AGS { namespace Common { class Bitmap; } }
-void	add_dynamic_sprite(int gotSlot, AGS::Common::Bitmap *redin);
-void	free_dynamic_sprite (int gotSlot);
+// Registers a new dynamic sprite, and returns a slot number;
+// returns 0 if no free slot could be found or allocated.
+// Updates game.SpriteInfos[].
+int     add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image);
+// Registers a new dynamic sprite in the given slot number,
+// previous bitmap on this slot (if any) will be deleted.
+// Returns same slot number on success, or 0 if there was an error.
+// Updates game.SpriteInfos[].
+int     add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image);
+// Disposes a dynamic sprite, and frees the slot
+void    free_dynamic_sprite(int slot);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

@@ -97,7 +97,6 @@ namespace AGS.Types
 		private Guid _guid;
         private bool _hasMODMusic = false;
         private int _totalScore = 0;
-        private bool _binaryFilesInSourceControl = false;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private int _defRoomMaskResolution = 1;
@@ -1025,14 +1024,9 @@ namespace AGS.Types
             }
         }
 
-        [DisplayName("Put sound and sprite files in source control")]
-        [Description("If you are using a source control provider, this controls whether the sound and sprite files are added to source control. With large games, these files can become extremely large and therefore you may wish to exclude them from source control.")]
-        [Category("(Basic properties)")]
-        public bool BinaryFilesInSourceControl
-        {
-            get { return _binaryFilesInSourceControl; }
-            set { _binaryFilesInSourceControl = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool BinaryFilesInSourceControl { get; }
 
         // This is used to assign "fixed indices" to audio clips, which work as a stable reference the clip,
         // regardless of any clip list rearrangements.
@@ -1074,7 +1068,6 @@ namespace AGS.Types
 			_developerURL = string.Empty;
 			_saveGameExtension = string.Empty;
             _saveGamesFolderName = null;
-            _binaryFilesInSourceControl = false;
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _audioIndexer = AudioClip.FixedIndexBase;

@@ -69,7 +69,7 @@ struct RestoredData
 {
     int                     FPS;
     // Unserialized bitmaps for dynamic surfaces
-    std::vector<Bitmap*>    DynamicSurfaces;
+    std::vector<std::unique_ptr<Bitmap>> DynamicSurfaces;
     // Scripts global data
     struct ScriptData
     {

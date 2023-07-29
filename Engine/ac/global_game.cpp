@@ -140,12 +140,14 @@ void DeleteSaveSlot (int slnum) {
 
 void PauseGame() {
     game_paused++;
-    debug_script_log("Game paused");
+    debug_script_log("Game paused (%d)", game_paused);
 }
 void UnPauseGame() {
     if (game_paused > 0)
+    {
         game_paused--;
-    debug_script_log("Game UnPaused, pause level now %d", game_paused);
+        debug_script_log("Game un-paused (%d)", game_paused);
+    }
 }
 
 
@@ -171,29 +173,25 @@ int GetSaveSlotDescription(int slnum, char *desbuf) {
 }
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
-    int gotSlot;
-
-    if (!read_savedgame_screenshot(get_save_game_path(slnum), gotSlot))
+    
+    if (!spriteset.HasFreeSlots())
         return 0;
 
-    if (gotSlot == 0)
+    auto screenshot = read_savedgame_screenshot(get_save_game_path(slnum));
+    if (!screenshot)
         return 0;
-
-    if ((game.SpriteInfos[gotSlot].Width == width) && (game.SpriteInfos[gotSlot].Height == height))
-        return gotSlot;
 
     // resize the sprite to the requested size
-    Bitmap *sprite = spriteset[gotSlot];
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sprite->GetColorDepth());
-    newPic->StretchBlt(sprite,
-        RectWH(0, 0, game.SpriteInfos[gotSlot].Width, game.SpriteInfos[gotSlot].Height),
-        RectWH(0, 0, width, height));
+    if ((screenshot->GetWidth() != width) || (screenshot->GetHeight() != height))
+    {
+        std::unique_ptr<Bitmap> temp(BitmapHelper::CreateBitmap(width, height, screenshot->GetColorDepth()));
+        temp->StretchBlt(screenshot.get(),
+            RectWH(0, 0, screenshot->GetWidth(), screenshot->GetHeight()),
+            RectWH(0, 0, width, height));
+        screenshot = std::move(temp);
+    }
 
-    // replace the bitmap in the sprite set
-    free_dynamic_sprite(gotSlot);
-    add_dynamic_sprite(gotSlot, newPic);
-
-    return gotSlot;
+    return add_dynamic_sprite(std::move(screenshot));
 }
 
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t max_count)
@@ -260,7 +258,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     if ((mode & (~AllowedModes)) != 0)
         quit("!RunAGSGame: mode value unknown");
 
-    if (editor_debugging_enabled)
+    if (editor_debugging_initialized)
     {
         quit("!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game EXE and run it from there to use this function.");
     }
@@ -618,12 +616,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
 }
 
 int IsKeyPressed (int keycode) {
-    auto status = ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
-    if (status < 0) {
-        debug_script_log("IsKeyPressed: unsupported keycode %d", keycode);
-        return 0;
-    }
-    return status;
+    return ags_iskeydown(static_cast<eAGSKeyCode>(keycode));
 }
 
 int SaveScreenShot(const char*namm) {
@@ -670,7 +663,7 @@ void SetMultitasking (int mode) {
     }
 
     // Regardless, don't allow background running if exclusive full screen
-    if ((mode == 1) && gfxDriver->GetDisplayMode().IsRealFullscreen())
+    if ((mode == 1) && gfxDriver && gfxDriver->GetDisplayMode().IsRealFullscreen())
     {
         Debug::Printf("SetMultitasking: overridden by fullscreen: %d -> 0", mode);
         mode = 0;

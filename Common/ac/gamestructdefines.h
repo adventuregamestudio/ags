@@ -202,6 +202,9 @@ enum GameGuiAlphaRenderingStyle
 
 
 // Sprite flags (serialized as 8-bit)
+// WARNING: whole lower byte was taken by now deprecated flags;
+// should not reuse these bits unless explicitly set a new spritefile format version!
+#define SPF_OBSOLETEMASK    0xFB
 #define SPF_DYNAMICALLOC    0x04  // created by runtime script
 
 // General information about sprite (properties, size)

@@ -64,8 +64,6 @@ using namespace Engine;
 
 extern GameSetupStruct game;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
-extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
 extern RoomStatus *croom;
 extern std::vector<ViewStruct> views;
@@ -306,7 +304,6 @@ void DoBeforeRestore(PreservedParams &pp)
     pp.MusicVOX = play.separate_music_lib;
 
     unload_old_room();
-    delete raw_saved_screen;
     raw_saved_screen = nullptr;
     remove_all_overlays();
     play.complete_overlay_on = 0;
@@ -395,7 +392,7 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
 }
 
 // Final processing after successfully restoring from save
-HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
+HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
 {
     // Preserve whether the music vox is available
     play.voice_avail = pp.SpeechVOX;
@@ -418,7 +415,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     const size_t dynsurf_num = std::min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
     for (size_t i = 0; i < dynsurf_num; ++i)
     {
-        dynamicallyCreatedSurfaces[i] = r_data.DynamicSurfaces[i];
+        dynamicallyCreatedSurfaces[i] = std::move(r_data.DynamicSurfaces[i]);
     }
 
     // Re-export any missing audio channel script objects, e.g. if restoring old save

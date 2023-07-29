@@ -93,9 +93,11 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.1 - Beta, June 2023
+VERSION 3.6.1 - Beta, July 2023
 
 Editor:
+ - Discontinued Source control integration functionality, removed "Put sound and sprite files
+   in source control" option from General Settings.
  - Improved Room Editor controls:
    Added free panning mode done by holding the middle mouse button, or alternatively -
    by holding Space + LMB.
@@ -110,19 +112,26 @@ Editor:
    dropped in 3.5.0 unintentionally.
  - During sprite export Editor will display a proper progress dialog.
  - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
+ - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
+   the sizes of runtime texture and sound cache sizes respectively.
  - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
  - Added Translated property to all GUI Controls (was available only in ListBox). Translated
    property tells whether this control's text has to be translated, and applied text direction
    (in right-to-left text mode).
- - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
-   the sizes of runtime texture and sound cache sizes respectively.
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
+ - Export Game's Title into translations.
+ - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed Game.agf was not created after importing a 2.* game project (regression in 3.6.0).
 
 Script API:
  - Implemented Room's "After fade-out" event.
  - Added eEventLeaveRoomAfterFadeout event for the global "on_event".
  - Added eEventGameSaved event which runs after game was saved.
+ - Expanded interaction functions for Character, Object, InventoryItem, Hotspot and Region types:
+   now they all receive respective object's pointer as a parameter, similar to GUI event functions,
+   as well as a cursor mode this interaction was run with, if applicable.
  - Added Game.ResetDoOnceOnly(), which completely resets all DoOnceOnly instances.
+ - Added Object.AnimationVolume property, which works similar to Character.AnimationVolume.
  - Added static File.ResolvePath() and File.Path attribute.
 
 Engine:
@@ -149,11 +158,16 @@ Engine:
    of quitting the game.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
    "cachemax" in "misc") and "texture_cache_size".
+ - Character.AnimationVolume now applies to the portrait animation too.
  - Object.SetView now lets invalid loop and frame values, and fallbacks to using loop 0, frame 0,
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
+ - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
+   play if Object.Animate is run right after.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
+ - Removed few of the less important game messages from logging, because they may quickly clutter
+   the log under some circumstances.
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -182,6 +196,9 @@ Compatibility:
    "keep previous values" in older games.
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
+
+Web / Emscripten:
+ - Fixed Safari cannot switch the game into fullscreen mode.
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.

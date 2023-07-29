@@ -1890,6 +1890,10 @@ builtin managed struct Object {
   /// Gets/sets the object's current scaling level.
   import attribute int  Scaling;
 #endif
+#ifdef SCRIPT_API_v361
+  /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
+  import attribute int  AnimationVolume;
+#endif
 #ifdef SCRIPT_API_v399
   /// Gets the script name of this object.
   import readonly attribute String ScriptName;

@@ -111,7 +111,14 @@ namespace AGS.Types
             _rightToLeftText = null;
             _encodingHint = null;
             _encoding = Encoding.Default;
-            LoadData();
+            try
+            {
+                LoadData();
+            }
+            catch (Exception)
+            {
+                _translatedLines.Clear(); // clear on failure
+            }
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -155,7 +162,36 @@ namespace AGS.Types
             this.Modified = false;
         }
 
+        /// <summary>
+        /// Loads translation data from the source file (TRS).
+        /// Throws IO exceptions.
+        /// </summary>
         public void LoadData()
+        {
+            CompileMessages errors = new CompileMessages();
+            LoadDataImpl(errors);
+        }
+
+        /// <summary>
+        /// Loads translation data from the source file (TRS).
+        /// Suppresses exceptions and returns error messages.
+        /// </summary>
+        public CompileMessages TryLoadData()
+        {
+            CompileMessages errors = new CompileMessages();
+            try
+            {
+                LoadDataImpl(errors);
+            }
+            catch (Exception e)
+            {
+                errors.Add(new CompileError(string.Format("Failed to load translation from {0}: \n{1}", FileName, e.Message)));
+                _translatedLines.Clear(); // clear on failure
+            }
+            return errors;
+        }
+
+        private void LoadDataImpl(CompileMessages errors)
         {
             _translatedLines = new Dictionary<string, string>();
             string old_encoding = _encodingHint;
@@ -171,7 +207,7 @@ namespace AGS.Types
                         if (string.Compare(old_encoding, _encodingHint) != 0)
                         {
                             sr.Close();
-                            LoadData(); // try again with the new encoding
+                            LoadDataImpl(errors); // try again with the new encoding
                             return;
                         }
                         continue;

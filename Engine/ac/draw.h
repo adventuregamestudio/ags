@@ -17,6 +17,7 @@
 #include <memory>
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "ac/runtime_defines.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "game/roomstruct.h"
@@ -76,7 +77,9 @@ void reset_objcache_for_sprite(int sprnum, bool deleted);
 // Get current texture cache's stats: max size, current normal items size,
 // size of locked items (included into cur_size),
 // size of external items (excluded from cur_size)
-void get_texturecache_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size);
+void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size);
+// Completely resets texture cache
+void texturecache_clear();
 // Update shared and cached texture from the sprite's pixels
 void update_shared_texture(uint32_t sprite_id);
 // Remove a texture from cache
@@ -179,5 +182,10 @@ Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool make_opaque = f
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
 Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false);
+
+
+// TODO: hide these behind some kind of an interface
+extern std::unique_ptr<Common::Bitmap> raw_saved_screen;
+extern std::unique_ptr<Common::Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 #endif // __AGS_EE_AC__DRAW_H

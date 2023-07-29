@@ -187,7 +187,6 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
 int  is_valid_character(int newchar);
 int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
-void CheckViewFrameForCharacter(CharacterInfo *chi);
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
 Common::Bitmap *GetCharacterSourceImage(int charid);

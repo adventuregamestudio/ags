@@ -232,7 +232,6 @@
     <ClCompile Include="..\scintilla\win32\ScintillaWin.cxx" />
     <ClCompile Include="agsicons.cpp" />
     <ClCompile Include="agsnative.cpp" />
-    <ClCompile Include="MSSCCI.cpp" />
     <ClCompile Include="NativeMethods.cpp" />
     <ClCompile Include="NativeRoom.cpp" />
     <ClCompile Include="ScriptCompiler.cpp" />

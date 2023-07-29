@@ -54,7 +54,6 @@ namespace AGS.Editor.Components
             _iconMappings.Add(AudioClipFileType.MIDI, "AGSAudioClipIconMidi");
             _iconMappings.Add(AudioClipFileType.MOD, "AGSAudioClipIconMod");
 
-            _agsEditor.GetSourceControlFileList += new GetSourceControlFileListHandler(_agsEditor_GetSourceControlFileList);
             _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(_agsEditor_PreCompileGame);
 
             RecreateDocument();
@@ -483,18 +482,6 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void _agsEditor_GetSourceControlFileList(IList<string> fileNames)
-        {
-            if (_agsEditor.CurrentGame.Settings.BinaryFilesInSourceControl)
-            {
-                string audioFolderPath = Path.Combine(_agsEditor.GameDirectory, AudioClip.AUDIO_CACHE_DIRECTORY);
-                foreach (AudioClip clip in _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-                {
-                    fileNames.Add(Path.Combine(audioFolderPath, clip.CacheFileName));
-                }
-            }
-        }
-
         private void SetActualAudioClipProperties(AudioClip clip, int inheritedVolume, bool inheritedRepeat, AudioClipPriority inheritedPriority)
         {
             if (clip.DefaultPriority == AudioClipPriority.Inherit)
@@ -811,7 +798,7 @@ namespace AGS.Editor.Components
                 }
                 filesToDelete.Add(clip.CacheFileName);
             }
-            _agsEditor.DeleteFileOnDiskAndSourceControl(filesToDelete.ToArray());
+            _agsEditor.DeleteFileOnDisk(filesToDelete.ToArray());
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
             Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));

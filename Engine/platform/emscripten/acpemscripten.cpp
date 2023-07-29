@@ -242,7 +242,7 @@ unsigned long AGSEmscripten::GetDiskFreeSpaceMB()
 
 const char* AGSEmscripten::GetBackendFailUserHint()
 {
-  return "Make sure your browser is compatible with SDL2 Emscripten port.";
+    return "Make sure your browser is compatible with SDL2 Emscripten port.";
 }
 
 eScriptSystemOSID AGSEmscripten::GetSystemOSID() 
@@ -250,10 +250,11 @@ eScriptSystemOSID AGSEmscripten::GetSystemOSID()
     return eOS_Web;
 }
 
+bool AGSEmscripten::FullscreenSupported()
+{
+    return ext_fullscreen_supported();
 }
 
-bool AGSEmscripten::FullscreenSupported() {
-    return ext_fullscreen_supported();
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
 {
     return new AGSEmscripten();

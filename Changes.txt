@@ -8,6 +8,7 @@ Common:
    Editor and Engine, and is no longer supported. The Editor guarantees to import the projects
    saved by AGS 3.6.0 and later. The Engine may run games compiled in 3.6.0, but only so long
    as they don't use any deprecated settings or script commands.
+ - Removed support for '[' as a linebreak character in text.
 
 Editor:
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each

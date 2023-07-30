@@ -499,6 +499,10 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, params[0].IValue))
 
+#define API_OBJCALL_FLOAT_PINT_PFLOAT(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    return RuntimeScriptValue().SetFloat(METHOD((CLASS*)self, params[0].IValue, params[1].FValue))
+
 #define API_OBJCALL_INT_PINT_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, params[0].IValue, (P1CLASS*)params[1].Ptr))

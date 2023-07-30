@@ -37,6 +37,7 @@ extern void RegisterGUIControlAPI();
 extern void RegisterHotspotAPI();
 extern void RegisterInventoryItemAPI();
 extern void RegisterInventoryWindowAPI();
+extern void RegisterJoystickAPI();
 extern void RegisterLabelAPI();
 extern void RegisterListBoxAPI();
 extern void RegisterMathAPI();
@@ -78,6 +79,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
     RegisterHotspotAPI();
     RegisterInventoryItemAPI();
     RegisterInventoryWindowAPI();
+    RegisterJoystickAPI();
     RegisterLabelAPI();
     RegisterListBoxAPI();
     RegisterMathAPI();

@@ -26,6 +26,7 @@
 #include "debug/debug_log.h"
 #include "plugin/plugin_engine.h"
 #include "util/memorystream.h"
+#include "scriptjoystick.h"
 
 using namespace AGS::Common;
 
@@ -158,6 +159,12 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     else if (strcmp(objectType, "AudioClip") == 0)
     {
         ccDynamicAudioClip.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "Joystick") == 0)
+    {
+        // joysticks cannot be restored properly, any operation will fail
+        auto *scj = new ScriptJoystick();
+        ccRegisterUnserializedObject(index, scj, scj);
     }
     else
     {

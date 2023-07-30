@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
 #define __AGS_EE_AC__SYS_EVENTS_H
 #include <SDL_keyboard.h>
+#include <SDL_events.h>
 #include "ac/keycode.h"
 
 // Internal AGS device and event type, made as flags

@@ -207,6 +207,9 @@
     <ClCompile Include="..\..\Engine\ac\game.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\joystick.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\gamesetup.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -442,6 +445,9 @@
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptjoystick.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp">
@@ -809,6 +815,9 @@
     <ClInclude Include="..\..\Engine\ac\game.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\joystick.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\gamesetup.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
@@ -1056,6 +1065,9 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptgui.h">

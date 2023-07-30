@@ -275,7 +275,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot)
+// NOTE: format param is a placeholder, also substituting older "has alpha" arg
+ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int /*format*/)
 {
     if (!spriteset.HasFreeSlots())
         return nullptr;
@@ -290,13 +291,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot)
 
     int new_slot = add_dynamic_sprite(std::move(new_pic));
     return new ScriptDynamicSprite(new_slot);
-}
-
-// This is a fallback for running 3.6.0 games, strictly for regression testing convenience;
-// NOTE: maybe we will have second arg back as a "sprite format" later
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite2(int slot, int /*dummy*/)
-{
-    return DynamicSprite_CreateFromExistingSprite(slot);
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
@@ -320,7 +314,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     return new ScriptDynamicSprite(new_slot);
 }
 
-ScriptDynamicSprite* DynamicSprite_Create(int width, int height) 
+// NOTE: format param is a placeholder, also substituting older "has alpha" arg
+ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int /*format*/)
 {
     if (width <= 0 || height <= 0)
     {
@@ -498,7 +493,7 @@ RuntimeScriptValue Sc_DynamicSprite_GetWidth(void *self, const RuntimeScriptValu
 
 RuntimeScriptValue Sc_DynamicSprite_Create(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_Create);
+    API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_Create);
 }
 
 // ScriptDynamicSprite* (int frame, int x1, int y1, int width, int height)
@@ -515,12 +510,7 @@ RuntimeScriptValue Sc_DynamicSprite_CreateFromDrawingSurface(const RuntimeScript
 
 RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite);
-}
-
-RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite2(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite2);
+    API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite);
 }
 
 // ScriptDynamicSprite* (const char *filename)
@@ -546,11 +536,10 @@ void RegisterDynamicSpriteAPI()
 {
     // WARNING: DynamicSprite.Create and CreateFromExistingSprite have 1 param REMOVED since ags4
     ScFnRegister dynsprite_api[] = {
-        { "DynamicSprite::Create^2",                  API_FN_PAIR(DynamicSprite_Create) },
+        { "DynamicSprite::Create^3",                  API_FN_PAIR(DynamicSprite_Create) },
         { "DynamicSprite::CreateFromBackground",      API_FN_PAIR(DynamicSprite_CreateFromBackground) },
         { "DynamicSprite::CreateFromDrawingSurface^5", API_FN_PAIR(DynamicSprite_CreateFromDrawingSurface) },
-        { "DynamicSprite::CreateFromExistingSprite^1", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite) },
-        { "DynamicSprite::CreateFromExistingSprite^2", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite2) },
+        { "DynamicSprite::CreateFromExistingSprite^2", API_FN_PAIR(DynamicSprite_CreateFromExistingSprite) },
         { "DynamicSprite::CreateFromFile",            API_FN_PAIR(DynamicSprite_CreateFromFile) },
         { "DynamicSprite::CreateFromSaveGame",        API_FN_PAIR(DynamicSprite_CreateFromSaveGame) },
         { "DynamicSprite::CreateFromScreenShot",      API_FN_PAIR(DynamicSprite_CreateFromScreenShot) },

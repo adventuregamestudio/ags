@@ -238,6 +238,7 @@ namespace AGS.Types
             {
                 LegacyLoadData();
                 SaveData();
+                File.Delete(_name + ".trs");
                 return;
             }
 

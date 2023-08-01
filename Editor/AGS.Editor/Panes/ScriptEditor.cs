@@ -770,6 +770,13 @@ namespace AGS.Editor
         private void scintilla_TextModified(int startPos, int length, bool wasAdded)
         {
             _editorTextModifiedSinceLastCopy = IsModified; // IsModified is what keeps track of what is the actual last saved checkpoint
+            if (!IsModified)
+            {
+                // we reached the currently saved state, but with _editorTextModifiedSinceLastCopy being false we need to update Script.Text manually
+                // and make sure Script.Modified is false to ensure that ScriptEditor, Scintilla, and Script are in sync.
+                UpdateScriptObjectWithLatestTextInWindow();
+                Script.Modified = false;
+            }
             int adjustment = length;
             if (!wasAdded)
             {

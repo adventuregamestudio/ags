@@ -1193,6 +1193,7 @@ namespace AGS.Editor.Components
                 newRoomXml.Element("Room").SetElementValue("Number", numberRequested);
                 using (var writer = new XmlTextWriter(tempNewRoom.DataFileName, Types.Utilities.UTF8))
                 {
+                    writer.Formatting = Formatting.Indented;
                     newRoomXml.Save(writer);
                 }
 
@@ -1616,6 +1617,7 @@ namespace AGS.Editor.Components
                 SaveImages();
                 using (var writer = new XmlTextWriter(_loadedRoom.DataFileName, Types.Utilities.UTF8))
                 {
+                    writer.Formatting = Formatting.Indented;
                     _loadedRoom.ToXmlDocument().Save(writer);
                 }
                 IsBeingSaved = false;
@@ -2232,6 +2234,7 @@ namespace AGS.Editor.Components
         {
             using (var writer = new XmlTextWriter(filename, Types.Utilities.UTF8))
             {
+                writer.Formatting = Formatting.Indented;
                 document.Save(writer);
             }
         });

@@ -498,8 +498,8 @@ int RunScriptFunctionAuto(ScriptInstType sc_inst, const char *tsname, size_t par
     }
     // Claimable event is run in all the script modules and room script,
     // before running in the globalscript instance
-    if ((strcmp(tsname, tsnames[TS_KEYPRESS]) == 0) || (strcmp(tsname, tsnames[TS_MCLICK]) == 0) ||
-        (strcmp(tsname, tsnames[TS_TEXTINPUT]) == 0) || (strcmp(tsname, "on_event") == 0))
+    if ((strcmp(tsname, tsnames[kTS_KeyPress]) == 0) || (strcmp(tsname, tsnames[kTS_MouseClick]) == 0) ||
+        (strcmp(tsname, tsnames[kTS_TextInput]) == 0) || (strcmp(tsname, "on_event") == 0))
     {
         return RunClaimableEvent(tsname, param_count, params);
     }

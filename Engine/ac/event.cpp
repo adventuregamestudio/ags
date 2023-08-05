@@ -62,7 +62,7 @@ std::vector<EventHappened> events;
 int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
-const char *tsnames[TS_NUM] = { nullptr, REP_EXEC_NAME, "on_key_press", "on_mouse_click", "on_text_input" };
+const char *tsnames[kTS_Num] = {nullptr, REP_EXEC_NAME, "on_key_press", "on_mouse_click", "on_text_input" };
 
 
 int run_claimable_event(const char *tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed) {

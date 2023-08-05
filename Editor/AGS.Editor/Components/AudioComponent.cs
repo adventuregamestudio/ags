@@ -11,6 +11,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_ADD_AUDIO = "AddAudioClipCmd";
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
         private const string COMMAND_RENAME = "RenameAudioClip";
+        private const string COMMAND_REIMPORT = "ReimportAudioClip";
         private const string COMMAND_DELETE = "DeleteAudioClip";
         private const string COMMAND_CHANGE_ID = "ChangeAudioID";
         private const string SPEECH_NODE_ID = "DummySpeechNode";
@@ -101,6 +102,11 @@ namespace AGS.Editor.Components
                 {
                     DeleteSingleItem(clipToDelete);                    
                 }
+            }
+            else if (controlID == COMMAND_REIMPORT)
+            {
+                AudioClip clipToReimport = _items[_rightClickedID];
+                CommandForceReimportOfAudioClip(clipToReimport);                
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -497,6 +503,28 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void CommandForceReimportOfAudioClip(AudioClip clip)
+        {
+            if (!ForceReimportOfAudioClip(clip))
+            {
+                _guiController.ShowMessage("Failed to reimport Audio Clip " + clip.ScriptName + ".", MessageBoxIconType.Warning);
+            }
+        }
+
+        private bool ForceReimportOfAudioClip(string sourceFileName, string cacheFileName)
+        {
+            if (File.Exists(sourceFileName) && !string.IsNullOrEmpty(cacheFileName))
+            {
+                return Utilities.SafeCopyFileOverwrite(sourceFileName, cacheFileName, true);
+            }
+            return false;
+        }
+
+        private bool ForceReimportOfAudioClip(AudioClip clip)
+        {
+            return ForceReimportOfAudioClip(clip.SourceFileName, clip.CacheFileName);
+        }
+
         private void AddAudioClipToListIfFileNeedsToBeCopiedFromSource(AudioClip clip, PreCompileGameEventArgs evArgs, List<AudioClip> filesToCopy, List<string> fileNamesToUpdate)
         {
             string compiledFileName = clip.CacheFileName;
@@ -660,6 +688,8 @@ namespace AGS.Editor.Components
                 menu.Add(new MenuCommand(COMMAND_CHANGE_ID, "Change Clip ID", null));
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
+                menu.Add(MenuCommand.Separator);
+                menu.Add(new MenuCommand(COMMAND_REIMPORT, "Force Reimport", null));
                 menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_PROPERTIES, "Properties", null));
             }

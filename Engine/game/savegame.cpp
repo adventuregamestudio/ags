@@ -368,6 +368,7 @@ void DoBeforeRestore(PreservedParams &pp)
 {
     pp.SpeechVOX = play.voice_avail;
     pp.MusicVOX = play.separate_music_lib;
+    memcpy(pp.GameOptions, game.options, GameSetupStruct::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
     delete raw_saved_screen;
@@ -471,6 +472,20 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
     play.InvalidateViewportZOrder();
 }
 
+// Resets a number of options that are not supposed to be changed at runtime
+static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedParams &pp)
+{
+    const std::array<int,17> preserved_opts = {{
+            OPT_DEBUGMODE, OPT_LETTERBOX, OPT_HIRES_FONTS, OPT_SPLITRESOURCES,
+            OPT_STRICTSCRIPTING, OPT_LEFTTORIGHTEVAL, OPT_COMPRESSSPRITES, OPT_STRICTSTRINGS,
+            OPT_NATIVECOORDINATES, OPT_SAFEFILEPATHS, OPT_DIALOGOPTIONSAPI, OPT_BASESCRIPTAPI,
+            OPT_SCRIPTCOMPATLEV, OPT_RELATIVEASSETRES, OPT_GAMETEXTENCODING, OPT_KEYHANDLEAPI,
+            OPT_CUSTOMENGINETAG
+        }};
+    for (auto opt : preserved_opts)
+        gs.options[opt] = pp.GameOptions[opt];
+}
+
 // Final processing after successfully restoring from save
 HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 {
@@ -482,6 +497,9 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // Preserve whether the music vox is available
     play.voice_avail = pp.SpeechVOX;
     play.separate_music_lib = pp.MusicVOX;
+
+    // Restore particular game options that must not change at runtime
+    CopyPreservedGameOptions(game, pp);
 
     // Restore debug flags
     if (debug_flags & DBG_DEBUGMODE)

@@ -38,10 +38,12 @@ typedef std::shared_ptr<Bitmap> PBitmap;
 struct PreservedParams
 {
     // Whether speech and audio packages available
-    bool SpeechVOX;
-    bool MusicVOX;
+    bool SpeechVOX = false;
+    bool MusicVOX = false;
+    // Game options, to preserve ones that must not change at runtime
+    int GameOptions[GameSetupStructBase::MAX_OPTIONS]{};
     // Script global data sizes
-    size_t GlScDataSize;
+    size_t GlScDataSize = 0u;
     std::vector<size_t> ScMdDataSize;
 
     PreservedParams();

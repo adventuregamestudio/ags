@@ -60,11 +60,15 @@ namespace AGS.Editor
 					else
 					{
 						newItem.ImageKey = "CompileWarningIcon";
-					}
-					
-					if (error.ScriptName.Length > 0)
+                    }
+
+                    if (error.ScriptName.Length > 0)
                     {
                         newItem.SubItems.Add(error.ScriptName);
+                    }
+
+                    if (error.ScriptName.Length > 0 && error.LineNumber > 0)
+                    {
                         newItem.SubItems.Add(error.LineNumber.ToString());
                     }
                 }

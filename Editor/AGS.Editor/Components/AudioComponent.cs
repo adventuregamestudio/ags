@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 using AGS.Types;
 
 namespace AGS.Editor.Components
@@ -9,6 +10,7 @@ namespace AGS.Editor.Components
     class AudioComponent : BaseComponentWithFolders<AudioClip, AudioClipFolder>, IProjectTreeSingleClickHandler
     {
         private const string COMMAND_ADD_AUDIO = "AddAudioClipCmd";
+        private const string COMMAND_REIMPORT_ALL = "ReimportAllAudioClipCmd";
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
         private const string COMMAND_RENAME = "RenameAudioClip";
         private const string COMMAND_REIMPORT = "ReimportAudioClip";
@@ -90,6 +92,10 @@ namespace AGS.Editor.Components
                 {
                     ImportAudioFiles(selectedFiles);
                 }
+            }
+            else if (controlID == COMMAND_REIMPORT_ALL)
+            {
+                CommandForceReimportOfAllAudioClips();
             }
             else if (controlID == COMMAND_RENAME)
             {
@@ -525,6 +531,54 @@ namespace AGS.Editor.Components
             return ForceReimportOfAudioClip(clip.SourceFileName, clip.CacheFileName);
         }
 
+        private void DoForceReimportOfAudioClips(IEnumerable<AudioClip> audioClips, IWorkProgress progress, out List<AudioClip> failedClips)
+        {
+            failedClips = new List<AudioClip>();
+            progress.Total = audioClips.Count();
+            progress.Current = 0;
+            foreach (AudioClip clip in audioClips)
+            {
+                if (!ForceReimportOfAudioClip(clip))
+                {
+                    failedClips.Add(clip);
+                }
+                progress.Current++;
+            }
+        }
+
+        private void CommandForceReimportOfAllAudioClips()
+        {
+            List<AudioClip> failedClips = new List<AudioClip>();
+            IEnumerable<AudioClip> allAudioClips = _agsEditor.CurrentGame.RootAudioClipFolder.AllItemsFlat;
+
+            try
+            {
+                BusyDialog.Show("Please wait while the Audio Clipes are reimported ...",
+                    new BusyDialog.ProcessingHandler(
+                        (IWorkProgress progress, object o) => {
+                            DoForceReimportOfAudioClips(allAudioClips, progress, out failedClips);
+                            return null;
+                        }), null);
+            }
+            catch (Exception e)
+            {
+                Factory.GUIController.ShowMessage(
+                    "The reimport of all audio clips was interrupted by error.\n\n" + e.Message,
+                    MessageBoxIconType.Error);
+                return;
+            }
+
+            Factory.GUIController.ClearOutputPanel();
+            if (!failedClips.Any()) return; // success!
+
+            CompileMessages errors = new CompileMessages();
+            errors.AddRange(failedClips.
+                Select(ac => new CompileWarning("Failed audio clip reimport of " + ac.ScriptName, ac.SourceFileName, 0)).
+                ToList<CompileMessage>());
+
+            Factory.GUIController.ShowOutputPanel(errors);
+        }
+
         private void AddAudioClipToListIfFileNeedsToBeCopiedFromSource(AudioClip clip, PreCompileGameEventArgs evArgs, List<AudioClip> filesToCopy, List<string> fileNamesToUpdate)
         {
             string compiledFileName = clip.CacheFileName;
@@ -730,6 +784,7 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_ADD_AUDIO, "Add audio file(s)...", null));
+            menu.Add(new MenuCommand(COMMAND_REIMPORT_ALL, "Force reimport all file(s)", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)

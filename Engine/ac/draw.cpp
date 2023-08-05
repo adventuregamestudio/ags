@@ -1008,6 +1008,15 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
     }
 }
 
+void reset_drawobj_for_overlay(int objnum)
+{
+    if (objnum > 0 && static_cast<size_t>(objnum) < overlaybmp.size())
+    {
+        overlaybmp[objnum] = nullptr;
+        screenovercache[objnum] = Point(INT32_MIN, INT32_MIN);
+    }
+}
+
 void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size)
 {
     max_size = texturecache.GetMaxCacheSize();
@@ -2586,10 +2595,10 @@ static void construct_overlays()
     const bool crop_walkbehinds = (drawstate.WalkBehindMethod == DrawOverCharSprite);
 
     auto &overs = get_overlays();
-    if (overlaybmp.size() < overs.size())
+    if (is_software_mode && (overlaybmp.size() < overs.size()))
     {
         overlaybmp.resize(overs.size());
-        screenovercache.resize(overs.size());
+        screenovercache.resize(overs.size(), Point(INT32_MIN, INT32_MIN));
     }
     for (size_t i = 0; i < overs.size(); ++i)
     {

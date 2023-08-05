@@ -2187,6 +2187,11 @@ void stop_character_anim(CharacterInfo *chap)
 
 void CheckViewFrameForCharacter(CharacterInfo *chi)
 {
+    CheckViewFrame(chi->view, chi->loop, chi->frame, GetCharacterFrameVolume(chi));
+}
+
+int GetCharacterFrameVolume(CharacterInfo *chi)
+{
     // We view the audio property relation as the relation of the entities:
     // system -> audio type -> audio emitter (character) -> animation's audio
     // therefore the sound volume is a multiplication of factors.
@@ -2208,8 +2213,7 @@ void CheckViewFrameForCharacter(CharacterInfo *chi)
             zoom_level = std::min(zoom_level, 100);
         frame_vol = frame_vol * zoom_level / 100;
     }
-
-    CheckViewFrame(chi->view, chi->loop, chi->frame, frame_vol);
+    return frame_vol;
 }
 
 Bitmap *GetCharacterImage(int charid, int *isFlipped) 
@@ -2761,10 +2765,10 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             if (game.options[OPT_SPEECHTYPE] == 3)
                 overlay_x = 0;
             face_talking=add_screen_overlay(false,overlay_x,ovr_yp,ovr_type,closeupface, closeupface_has_alpha);
+            facetalkview = useview;
+            facetalkloop = 0;
             facetalkframe = 0;
             facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
-            facetalkloop = 0;
-            facetalkview = useview;
             facetalkrepeat = (isThought) ? 0 : 1;
             facetalkBlinkLoop = 0;
             facetalkAllowBlink = 1;
@@ -2775,6 +2779,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 facetalkchar->blinktimer = facetalkchar->blinkinterval;
             textcol=-textcol;
             overlayPositionFixed = true;
+            // Process the first portrait view frame
+            const int frame_vol = GetCharacterFrameVolume(facetalkchar);
+            CheckViewFrame(facetalkview, facetalkloop, facetalkframe, frame_vol);
         }
         else if (useview >= 0) {
             // Lucasarts-style speech

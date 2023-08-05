@@ -375,6 +375,8 @@ void remove_screen_overlay_index(size_t over_idx)
     // TODO: this is bad, need more generic system to store overlay references
     if ((size_t)face_talking > over_idx)
         face_talking--;
+
+    reset_drawobj_for_overlay(over_idx);
 }
 
 void remove_screen_overlay(int type)

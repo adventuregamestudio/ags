@@ -846,6 +846,16 @@ void reset_objcache_for_sprite(int sprnum, bool deleted)
     }
 }
 
+void reset_drawobj_for_overlay(int objnum)
+{
+    if (objnum < overlaybmp.size())
+    {
+        // NOTE: we have to move memory here to sync with how overlay indexing works in this engine version
+        std::move(overlaybmp.begin() + objnum + 1, overlaybmp.end(), overlaybmp.begin() + objnum);
+        std::move(screenovercache.begin() + objnum + 1, screenovercache.end(), screenovercache.begin() + objnum);
+    }
+}
+
 void mark_screen_dirty()
 {
     screen_is_dirty = true;
@@ -2531,10 +2541,10 @@ static void construct_ui_view()
 static void construct_overlays()
 {
     const bool is_software_mode = !gfxDriver->HasAcceleratedTransform();
-    if (overlaybmp.size() < screenover.size())
+    if (is_software_mode && (overlaybmp.size() < screenover.size()))
     {
         overlaybmp.resize(screenover.size());
-        screenovercache.resize(screenover.size());
+        screenovercache.resize(screenover.size(), Point(INT32_MIN, INT32_MIN));
     }
     for (size_t i = 0; i < screenover.size(); ++i)
     {

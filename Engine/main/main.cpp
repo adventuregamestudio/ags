@@ -72,24 +72,8 @@ bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
 
-// this needs to be updated if the "play" struct changes
-#define SVG_VERSION_BWCOMPAT_MAJOR      3
-#define SVG_VERSION_BWCOMPAT_MINOR      2
-#define SVG_VERSION_BWCOMPAT_RELEASE    0
-#define SVG_VERSION_BWCOMPAT_REVISION   1103
-// CHECKME: we may lower this down, if we find that earlier versions may still
-// load new savedgames
-#define SVG_VERSION_FWCOMPAT_MAJOR      3
-#define SVG_VERSION_FWCOMPAT_MINOR      2
-#define SVG_VERSION_FWCOMPAT_RELEASE    1
-#define SVG_VERSION_FWCOMPAT_REVISION   1111
-
 // Current engine version
 AGS::Common::Version EngineVersion;
-// Lowest savedgame version, accepted by this engine
-AGS::Common::Version SavedgameLowestBackwardCompatVersion;
-// Lowest engine version, which would accept current savedgames
-AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
 void main_init(int argc, char*argv[])
 {
@@ -103,8 +87,6 @@ void main_init(int argc, char*argv[])
 #if defined (BUILD_STR)
     EngineVersion.BuildInfo = BUILD_STR;
 #endif
-    SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
-    SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
 
     platform = AGSPlatformDriver::GetDriver();
     platform->SetCommandArgs(argv, argc);

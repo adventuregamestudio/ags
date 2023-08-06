@@ -23,10 +23,6 @@
 
 // Current engine version
 extern AGS::Common::Version EngineVersion;
-// Lowest savedgame version, accepted by this engine
-extern AGS::Common::Version SavedgameLowestBackwardCompatVersion;
-// Lowest engine version, which would accept current savedgames
-extern AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
 //=============================================================================
 

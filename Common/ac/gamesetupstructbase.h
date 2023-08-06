@@ -17,6 +17,7 @@
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
+#include <array>
 #include <allegro.h> // RGB
 #include "ac/game_version.h"
 #include "ac/gamestructdefines.h"

@@ -190,6 +190,18 @@ struct GameSetupStructBase {
         return IsLegacyAudioSystem() ? "music.vox" : "audio.vox";
     }
 
+    // Returns a list of game options that are forbidden to change at runtime
+    inline static std::array<int, 17> GetRestrictedOptions()
+    {
+        return std::array<int,17> {{
+            OPT_DEBUGMODE, OPT_LETTERBOX, OPT_HIRES_FONTS, OPT_SPLITRESOURCES,
+            OPT_STRICTSCRIPTING, OPT_LEFTTORIGHTEVAL, OPT_COMPRESSSPRITES, OPT_STRICTSTRINGS,
+            OPT_NATIVECOORDINATES, OPT_SAFEFILEPATHS, OPT_DIALOGOPTIONSAPI, OPT_BASESCRIPTAPI,
+            OPT_SCRIPTCOMPATLEV, OPT_RELATIVEASSETRES, OPT_GAMETEXTENCODING, OPT_KEYHANDLEAPI,
+            OPT_CUSTOMENGINETAG
+        }};
+    }
+
 private:
     void SetDefaultResolution(GameResolutionType type, Size game_res);
     void SetNativeResolution(GameResolutionType type, Size game_res);

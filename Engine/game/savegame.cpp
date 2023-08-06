@@ -253,14 +253,14 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
     else
         SkipSaveImage(in);
 
+    const Version low_compat_version(3, 2, 0, 1123);
     String version_str = String::FromStream(in);
     Version eng_version(version_str);
-    if (eng_version > EngineVersion ||
-        eng_version < SavedgameLowestBackwardCompatVersion)
+    if (eng_version > EngineVersion || eng_version < low_compat_version)
     {
         // Engine version is either non-forward or non-backward compatible
         return new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Required: %s, supported: %s - %s.", eng_version.LongString.GetCStr(), SavedgameLowestBackwardCompatVersion.LongString.GetCStr(), EngineVersion.LongString.GetCStr()));
+            String::FromFormat("Required: %s, supported: %s - %s.", eng_version.LongString.GetCStr(), low_compat_version.LongString.GetCStr(), EngineVersion.LongString.GetCStr()));
     }
     if (elems & kSvgDesc_EnvInfo)
     {

@@ -38,7 +38,7 @@ get https://github.com/xiph/theora/archive/${LIBTHEORA_VERSION}.tar.gz theora.ta
 SDLSOUND_VERSION=8d96d4cc0e1df35835a222ee51a7c32f273ec63e
 get https://github.com/icculus/SDL_sound/archive/${SDLSOUND_VERSION}.tar.gz SDL_sound.tar.gz
 
-SDL_VERSION=2.24.1
+SDL_VERSION=2.28.2
 # Framework for macOS
 get https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL2-${SDL_VERSION}.dmg SDL2-Framework.dmg
 # Full code for iOS

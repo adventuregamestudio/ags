@@ -1,5 +1,28 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 4, August 2023
+
+Editor:
+ - Export Game's Title into translations.
+ - Fixed Game.agf was not created after importing a 2.* game project (regression in 3.6.0).
+
+Engine:
+ - Character.AnimationVolume property is now applied to the portrait animation as well.
+ - Removed few of the less important game messages from logging, because they may quickly clutter
+   the log under some circumstances.
+ - Fixed when animating a character portrait, the first frame's linked sound is not played.
+ - Fixed IsSpeechVoxAvailable() returning positive result if run from IDE and Speech folder
+   is empty.
+ - Fixed speech and messages were skipped by modifiers and other special keys (Ctrl, Alt, etc).
+ - Fixed crash occuring when you resize DynamicSprite while it is displayed on screen.
+ - Fixed audio clip started right before a ChangeRoom would not play until after the room changes.
+ - Fixed in Software display mode the room Overlays may not be properly covered by a walk-behind
+   under very specific conditions.
+ - Fixed System.Log() would cause engine crash if there are more format placeholders than args.
+ - Fixed some game options that are not allowed to be changed at runtime could still be
+   overwritten when restoring an old save, leading to a weird game behavior.
+
+
 VERSION 3.6.0 - Patch 3, July 2023
 
 Editor:

@@ -43,6 +43,21 @@ namespace AGS.Types
 
         [AGSNoSerialize]
         [Browsable(false)]
+        public static string GetCacheFileNameWithoutPath(int index, string sourceFileName)
+        {
+            return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, index, Path.GetExtension(sourceFileName));
+        }
+
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public static string GetCacheFileName(int index, string sourceFileName)
+        {
+            return Path.Combine(AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
+        }
+
+
+        [AGSNoSerialize]
+        [Browsable(false)]
         public string CacheFileName
         {
             get { return Path.Combine(AUDIO_CACHE_DIRECTORY, this.CacheFileNameWithoutPath) ; }
@@ -54,7 +69,7 @@ namespace AGS.Types
         [DisplayName("Cache File Name")]
         public string CacheFileNameWithoutPath
         {
-            get { return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, _fixedID, Path.GetExtension(_sourceFileName)); }
+            get { return GetCacheFileNameWithoutPath(_fixedID, _sourceFileName); }
         }
 
         [DisplayName("ID")]
@@ -66,8 +81,9 @@ namespace AGS.Types
             set { _id = value; }
         }
 
-        [ReadOnly(true)]
         [Description("The file from which this audio clip was imported")]
+        [Editor(typeof(AudioClipSourceFileUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(ReadOnlyConverter))]
         public string SourceFileName
         {
             get { return _sourceFileName; }

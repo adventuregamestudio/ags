@@ -2498,7 +2498,7 @@ bool GfxDriverSpriteEvtCallback(int evt, int data)
     if (displayed_room < 0)
     {
         // if no room loaded, various stuff won't be initialized yet
-        return 1;
+        return false;
     }
     return (pl_run_plugin_hooks(evt, data) != 0);
 }

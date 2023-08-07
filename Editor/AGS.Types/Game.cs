@@ -900,7 +900,7 @@ namespace AGS.Types
             {
                 foreach (XmlNode transNode in SerializeUtils.GetChildNodes(node, "Translations"))
                 {
-                    _translations.Add(new Translation(transNode));
+                    _translations.Add(new Translation(transNode, Settings.GameTextLanguage));
                 }
             }
 

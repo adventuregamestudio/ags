@@ -143,12 +143,12 @@ namespace AGS.Editor.Components
                 bw.Write(TRANSLATION_BLOCK_TRANSLATION_DATA);
                 long offsetOfBlockSize = bw.BaseStream.Position;
                 bw.Write((int)0); // placeholder for block size, will be filled later
-                foreach (string line in translation.TranslatedLines.Keys)
+                foreach (string line in translation.TranslatedEntries.Keys)
                 {
-                    if (translation.TranslatedLines[line].Length > 0)
+                    if (translation.TranslatedEntries[line].Value.Length > 0)
                     {
                         WriteString(bw, Regex.Unescape(line), textEncoding);
-                        WriteString(bw, Regex.Unescape(translation.TranslatedLines[line]), textEncoding);
+                        WriteString(bw, Regex.Unescape(translation.TranslatedEntries[line].Value), textEncoding);
                     }
                 }
                 WriteString(bw, string.Empty, textEncoding);
@@ -199,9 +199,12 @@ namespace AGS.Editor.Components
             {
                 foreach (Translation translation in translations)
                 {
-                    if (!translation.TranslatedLines.ContainsKey(line))
+                    if (!translation.TranslatedEntries.ContainsKey(line))
                     {
-                        translation.TranslatedLines.Add(line, string.Empty);
+                        TranslationEntry entry = new TranslationEntry();
+                        entry.Key = line;
+                        entry.Value = string.Empty;
+                        translation.TranslatedEntries.Add(line, entry);
                         translation.Modified = true;
                     }
                 }
@@ -250,7 +253,7 @@ namespace AGS.Editor.Components
                 _guiController.ShowMessage("Translation(s) update failed. Check the output window for details.", MessageBoxIcon.Error);
         }
 
-        private void UpdateAllTranslationsWithNewDefaultText(Dictionary<string, string> textChanges, CompileMessages errors)
+        private void UpdateAllTranslationsWithNewDefaultText(Dictionary<string, TranslationEntry> textChanges, CompileMessages errors)
         {
             foreach (Translation otherTranslation in _agsEditor.CurrentGame.Translations)
             {
@@ -259,19 +262,19 @@ namespace AGS.Editor.Components
                 if (load_errors.HasErrors)
                     continue; // failure
 
-                Dictionary<string, string> newTranslation = new Dictionary<string, string>();
+                Dictionary<string, TranslationEntry> newTranslation = new Dictionary<string, TranslationEntry>();
 
-                foreach (string sourceLine in otherTranslation.TranslatedLines.Keys)
+                foreach (string sourceLine in otherTranslation.TranslatedEntries.Keys)
                 {
-                    string otherTranslationOfThisLine = otherTranslation.TranslatedLines[sourceLine];
+                    TranslationEntry otherTranslationOfThisLine = otherTranslation.TranslatedEntries[sourceLine];
                     string newKeyName = null;
-                    if ((textChanges.ContainsKey(sourceLine)) && (textChanges[sourceLine].Length > 0))
+                    if ((textChanges.ContainsKey(sourceLine)) && (textChanges[sourceLine].Value.Length > 0))
                     {
-                        newKeyName = textChanges[sourceLine];
+                        newKeyName = textChanges[sourceLine].Value;
 
                         if (newTranslation.ContainsKey(newKeyName))
                         {
-                            if (!string.IsNullOrEmpty(otherTranslationOfThisLine))
+                            if (!string.IsNullOrEmpty(otherTranslationOfThisLine.Value))
                             {
                                 errors.Add(new CompileWarning("Text '" + newKeyName + "' already has a translation; '" + sourceLine + "' translation will be lost"));
                             }
@@ -285,18 +288,22 @@ namespace AGS.Editor.Components
 
                     if (newKeyName != null)
                     {
-                        if (newKeyName == otherTranslationOfThisLine)
+                        if (newKeyName == otherTranslationOfThisLine.Value)
                         {
-                            newTranslation.Add(newKeyName, string.Empty);
+                            TranslationEntry entry = new TranslationEntry();
+                            entry.Key = newKeyName;
+                            entry.Value = string.Empty;
+                            newTranslation.Add(newKeyName, entry);
                         }
                         else
                         {
+                            otherTranslationOfThisLine.Key = newKeyName;
                             newTranslation.Add(newKeyName, otherTranslationOfThisLine);
                         }
                     }
                 }
 
-                otherTranslation.TranslatedLines = newTranslation;
+                otherTranslation.TranslatedEntries = newTranslation;
                 otherTranslation.Modified = true;
                 otherTranslation.SaveData();
             }
@@ -308,10 +315,10 @@ namespace AGS.Editor.Components
             CompileMessages errors = TextImporter.ReplaceAllGameText(_agsEditor.CurrentGame, translation);
             // Make a copy of the dictionary, otherwise it can get overwritten
             // while updating its translation
-            Dictionary<string,string> textChanges = new Dictionary<string,string>();
-            foreach (string key in translation.TranslatedLines.Keys)
+            Dictionary<string, TranslationEntry> textChanges = new Dictionary<string, TranslationEntry>();
+            foreach (string key in translation.TranslatedEntries.Keys)
             {
-                textChanges.Add(key, translation.TranslatedLines[key]);
+                textChanges.Add(key, translation.TranslatedEntries[key]);
             }
 
             UpdateAllTranslationsWithNewDefaultText(textChanges, errors);
@@ -340,7 +347,7 @@ namespace AGS.Editor.Components
             CompileMessages errors = translation.TryLoadData();
             if (errors.HasErrors)
             {
-                _guiController.ShowOutputPanel(errors);
+            _guiController.ShowOutputPanel(errors);
                 _guiController.ShowMessage("There were errors when loading the translation. Please consult the output window for details.", MessageBoxIcon.Error);
                 return;
             }
@@ -366,7 +373,7 @@ namespace AGS.Editor.Components
             if (controlID == COMMAND_NEW_ITEM)
             {
                 IList<Translation> items = _agsEditor.CurrentGame.Translations;
-                Translation newItem = new Translation(GetFreeNameForTranslation());
+                Translation newItem = new Translation(GetFreeNameForTranslation(), _agsEditor.CurrentGame.Settings.GameTextLanguage);
                 newItem.Name = newItem.Name;
                 items.Add(newItem);
 
@@ -547,7 +554,7 @@ namespace AGS.Editor.Components
                 File.Move(sourcePath, destPath);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
-                if ((translation.TranslatedLines == null) || (translation.TranslatedLines.Count == 0))
+                if ((translation.TranslatedEntries == null) || (translation.TranslatedEntries.Count == 0))
                 {
                     if (_guiController.ShowQuestion("Would you like to update the new translation file with all the latest game messages? This could take some time, and your game will be saved first. You can do this later yourself by choosing 'Update' on the context menu?") == DialogResult.Yes)
                     {

@@ -8,9 +8,9 @@ namespace AGS.Editor
 {
     public class TextImportProcessor : GameSpeechProcessor
     {
-        private Dictionary<string, string> _translationToUse;
+        private Dictionary<string, TranslationEntry> _translationToUse;
 
-        public TextImportProcessor(Game game, CompileMessages errors, Dictionary<string, string> translationToUse)
+        public TextImportProcessor(Game game, CompileMessages errors, Dictionary<string, TranslationEntry> translationToUse)
             : base(game, errors, true, true)
         {
             _translationToUse = translationToUse;
@@ -25,9 +25,9 @@ namespace AGS.Editor
         protected override string CreateSpeechLine(int speakingCharacter, string text)
         {
             if ((_translationToUse.ContainsKey(text)) &&
-                (_translationToUse[text].Length > 0))
+                (_translationToUse[text].Value.Length > 0))
             {
-                return _translationToUse[text];
+                return _translationToUse[text].Value;
             }
             return text;
         }

@@ -86,6 +86,17 @@ namespace AGS.Types
             set { _translatedEntries = value; }
         }
 
+        /// <summary>
+        /// TranslatedLines is a deprecated API, now a stub that prevents older plugins
+        /// and tools from throwing exceptions.
+        /// TODO: consider returning a filled dictionary generated from TranslatedEntries?
+        /// </summary>
+        [Obsolete]
+        public Dictionary<string, string> TranslatedLines
+        {
+            get { return new Dictionary<string, string>(); }
+        }
+
         public int? NormalFont
         {
             get { return _normalFont; }

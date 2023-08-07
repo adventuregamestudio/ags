@@ -29,41 +29,6 @@ build_windows_task:
   binaries_artifacts:
     path: Solutions/.build/*/*
 
-build_linux_cmake_task:
-  only_if: $CIRRUS_RELEASE == ''
-  container:
-    dockerfile: ci/linux/Dockerfile
-    docker_arguments:
-      matrix:
-        - FROM_PLATFORM: linux/i386
-        - FROM_PLATFORM: linux/amd64
-      FROM_DEBIAN: debian/eol:jessie
-  env:
-    matrix:
-      - BUILD_TYPE: release
-      - BUILD_TYPE: debug
-  setup_destdir_script: |
-    mkdir destdir
-    arch=$(dpkg --print-architecture)
-    ln -s destdir/bin bin_${BUILD_TYPE}_$arch
-  build_script: |
-    arch=$(dpkg --print-architecture)
-    mkdir build_${BUILD_TYPE}_$arch && cd build_${BUILD_TYPE}_$arch
-    cmake .. \
-      -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
-      -DAGS_USE_LOCAL_SDL2_SOUND=0 \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-      -DAGS_BUILD_TOOLS=1 \
-      -DAGS_TESTS=1 \
-      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
-    make install
-  test_linux_script: |
-    arch=$(dpkg --print-architecture)
-    cd build_${BUILD_TYPE}_$arch
-    ctest --output-on-failure
-  binaries_artifacts:
-    path: bin_*/*
-
 build_linux_debian_task:
   container:
     dockerfile: ci/linux/Dockerfile
@@ -134,55 +99,6 @@ build_linux_make_task:
     make PREFIX="$(cd destdir && pwd)/usr/local" --directory=Compiler install
   build_tools_script: |
     find Tools -name Makefile -execdir make PREFIX="$(cd destdir && pwd)/usr/local" install \;
-  binaries_artifacts:
-    path: bin_*/*
-
-build_macos_task:
-  only_if: $CIRRUS_RELEASE == ''
-  macos_instance:
-    matrix:
-      - image: ghcr.io/cirruslabs/macos-ventura-xcode:latest # newest release of current version
-      - image: ghcr.io/cirruslabs/macos-monterey-xcode:latest # newest release of previous version
-  env:
-    matrix:
-      - BUILD_TYPE: debug
-      - BUILD_TYPE: release
-    CMAKE_VERSION: 3.22.3
-    NINJA_VERSION: 1.11.1
-  macos_dependencies_cache:
-    folder: dep_cache
-    fingerprint_script: echo "$CMAKE_VERSION $NINJA_VERSION"
-    populate_script: |
-      mkdir dep_cache && cd dep_cache && mkdir bin && mkdir app      
-      url="https://github.com/ninja-build/ninja/releases/download/v$NINJA_VERSION/ninja-mac.zip"
-      echo "Downloading Ninja from $url"
-      curl -fLSs "$url" --output "ninja-mac.zip" && unzip -d bin ninja-mac.zip && rm ninja-mac.zip
-      url="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-macos-universal.tar.gz"
-      echo "Downloading CMake from $url"
-      curl -fLSs "$url" | bsdtar -f - -xvzC app --strip-components 1
-  install_dependencies_script: |
-    sudo chown $USER /usr/local/bin
-    cd dep_cache
-    pushd app && cp -R CMake.app /Applications/CMake.app && popd
-    cd bin && cp ninja /usr/local/bin/ninja
-  setup_destdir_script: |
-    mkdir destdir
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    ln -s destdir/bin bin_${xcode}_$BUILD_TYPE
-  build_script: |
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    mkdir build_${xcode}_$BUILD_TYPE && cd build_${xcode}_$BUILD_TYPE
-    /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-      -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
-      -DAGS_BUILD_TOOLS=1 \
-      -DAGS_TESTS=1 \
-      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
-    ninja install
-  test_macos_script: |
-    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    cd build_${xcode}_$BUILD_TYPE
-    ctest --output-on-failure
   binaries_artifacts:
     path: bin_*/*
 

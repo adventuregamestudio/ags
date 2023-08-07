@@ -3,9 +3,6 @@ build_windows_task:
     dockerfile: ci/windows/Dockerfile
     os_version: 2019
   env:
-    matrix:
-      - BUILD_CONFIG: Release
-      - BUILD_CONFIG: Debug
     AGS_LIBOGG_LIB: C:\Lib\Xiph\x86
     AGS_LIBTHEORA_LIB: C:\Lib\Xiph\x86
     AGS_LIBVORBIS_LIB: C:\Lib\Xiph\x86
@@ -13,14 +10,22 @@ build_windows_task:
     AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
     AGS_SDL_SOUND_LIB: C:\Lib\SDL_sound\lib\x86
-  build_script: >
+  build_debug_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
-    msbuild Engine.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
-  build_tools_script: >
+    msbuild Engine.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Debug /p:Platform=Win32 /maxcpucount /nologo
+  build_tools_debug_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
-    msbuild Tools.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=x86 /maxcpucount /nologo
+    msbuild Tools.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Debug /p:Platform=x86 /maxcpucount /nologo
+  build_release_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Engine.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+  build_tools_release_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Tools.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x86 /maxcpucount /nologo
   engine_pdb_artifacts:
     path: Solutions/.build/*/acwin.pdb
   delete_engine_pdb_script: >
@@ -38,28 +43,41 @@ build_linux_cmake_task:
         - FROM_PLATFORM: linux/i386
         - FROM_PLATFORM: linux/amd64
       FROM_DEBIAN: debian/eol:jessie
-  env:
-    matrix:
-      - BUILD_TYPE: release
-      - BUILD_TYPE: debug
   setup_destdir_script: |
-    mkdir destdir
     arch=$(dpkg --print-architecture)
-    ln -s destdir/bin bin_${BUILD_TYPE}_$arch
-  build_script: |
+    mkdir destdir_debug
+    ln -s destdir_debug/bin bin_debug_$arch
+    mkdir destdir_release
+    ln -s destdir_release/bin bin_release_$arch
+  build_debug_script: |
     arch=$(dpkg --print-architecture)
-    mkdir build_${BUILD_TYPE}_$arch && cd build_${BUILD_TYPE}_$arch
+    mkdir build_debug_$arch && cd build_debug_$arch
     cmake .. \
       -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
       -DAGS_USE_LOCAL_SDL2_SOUND=0 \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DCMAKE_BUILD_TYPE=Debug \
       -DAGS_BUILD_TOOLS=1 \
       -DAGS_TESTS=1 \
-      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
-    make install
-  test_linux_script: |
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir_debug && pwd)"
+    make -j2 install
+  test_linux_debug_script: |
     arch=$(dpkg --print-architecture)
-    cd build_${BUILD_TYPE}_$arch
+    cd build_debug_$arch
+    ctest --output-on-failure
+  build_release_script: |
+    arch=$(dpkg --print-architecture)
+    mkdir build_release_$arch && cd build_release_$arch
+    cmake .. \
+      -DAGS_USE_LOCAL_ALL_LIBRARIES=1 \
+      -DAGS_USE_LOCAL_SDL2_SOUND=0 \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DAGS_BUILD_TOOLS=1 \
+      -DAGS_TESTS=1 \
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir_release && pwd)"
+    make -j2 install
+  test_linux_release_script: |
+    arch=$(dpkg --print-architecture)
+    cd build_release_$arch
     ctest --output-on-failure
   binaries_artifacts:
     path: bin_*/*
@@ -121,7 +139,6 @@ build_linux_make_task:
     dockerfile: ci/linux/Dockerfile
     docker_arguments:
       matrix:
-        - FROM_PLATFORM: linux/i386
         - FROM_PLATFORM: linux/amd64
       FROM_DEBIAN: debian/eol:jessie
   setup_destdir_script: |
@@ -142,11 +159,7 @@ build_macos_task:
   macos_instance:
     matrix:
       - image: ghcr.io/cirruslabs/macos-ventura-xcode:latest # newest release of current version
-      - image: ghcr.io/cirruslabs/macos-monterey-xcode:latest # newest release of previous version
   env:
-    matrix:
-      - BUILD_TYPE: debug
-      - BUILD_TYPE: release
     CMAKE_VERSION: 3.22.3
     NINJA_VERSION: 1.11.1
   macos_dependencies_cache:
@@ -166,22 +179,38 @@ build_macos_task:
     pushd app && cp -R CMake.app /Applications/CMake.app && popd
     cd bin && cp ninja /usr/local/bin/ninja
   setup_destdir_script: |
-    mkdir destdir
+    mkdir destdir_debug
+    mkdir destdir_release
     xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    ln -s destdir/bin bin_${xcode}_$BUILD_TYPE
-  build_script: |
+    ln -s destdir_debug/bin bin_${xcode}_debug
+    ln -s destdir_release/bin bin_${xcode}_release
+  build_debug_script: |
     xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    mkdir build_${xcode}_$BUILD_TYPE && cd build_${xcode}_$BUILD_TYPE
+    mkdir build_${xcode}_debug && cd build_${xcode}_debug
     /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
       -DAGS_BUILD_TOOLS=1 \
       -DAGS_TESTS=1 \
-      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir && pwd)"
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir_debug && pwd)"
     ninja install
-  test_macos_script: |
+  test_macos_debug_script: |
     xcode=$(xcodebuild -version | awk '{ print $2; exit }')
-    cd build_${xcode}_$BUILD_TYPE
+    cd build_${xcode}_debug
+    ctest --output-on-failure
+  build_release_script: |
+    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
+    mkdir build_${xcode}_release && cd build_${xcode}_release
+    /Applications/CMake.app/Contents/bin/cmake -S .. -B . -G "Ninja" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+      -DAGS_BUILD_TOOLS=1 \
+      -DAGS_TESTS=1 \
+      -DCMAKE_INSTALL_PREFIX="$(cd ../destdir_release && pwd)"
+    ninja install
+  test_macos_release_script: |
+    xcode=$(xcodebuild -version | awk '{ print $2; exit }')
+    cd build_${xcode}_release
     ctest --output-on-failure
   binaries_artifacts:
     path: bin_*/*
@@ -228,23 +257,28 @@ build_editor_task:
     dockerfile: ci/windows/Dockerfile
     os_version: 2019
   env:
-    matrix:
-      - BUILD_CONFIG: Release
-      - BUILD_CONFIG: Debug
     AGS_SDL_INCLUDE: C:\Lib\SDL2\include
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
   nuget_packages_cache:
     folder: Solutions\packages
     fingerprint_script: type Editor\AGS.Editor\packages.config
     populate_script: nuget restore Solutions\AGS.Editor.Full.sln
-  build_script: >
+  build_debug_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     set "UseEnv=true" &&
     copy C:\Lib\irrKlang\*.dll Editor\References\ &&
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86;!LIB!" &&
     set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&
-    msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform="Mixed Platforms" /maxcpucount /nologo"
+    msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=Debug /p:Platform="Mixed Platforms" /maxcpucount /nologo"
+  build_release_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    set "UseEnv=true" &&
+    copy C:\Lib\irrKlang\*.dll Editor\References\ &&
+    cd Solutions &&
+    cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86;!LIB!" &&
+    set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&
+    msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform="Mixed Platforms" /maxcpucount /nologo"
   ags_editor_pdb_artifacts:
     path: Solutions/.build/*/*.pdb
   ags_native_pdb_artifacts:
@@ -387,12 +421,12 @@ ags_windows_tests_task:
   build_compiler_test_runner_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
-    msbuild Compiler.Lib.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+    msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
   run_compiler_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
   build_ags_test_runner_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
-    msbuild Tests.sln /p:PlatformToolset=v140 /p:Configuration=%BUILD_CONFIG% /p:Platform=Win32 /maxcpucount /nologo
+    msbuild Tests.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
   run_common_tests_script: Solutions\.test\Release\Common.Lib.Test.exe
   run_engine_tests_script: Solutions\.test\Release\Engine.App.Test.exe
 

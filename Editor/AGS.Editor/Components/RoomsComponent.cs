@@ -551,7 +551,13 @@ namespace AGS.Editor.Components
 					return;
 				}
 
-				PerformPreSaveChecks(room);
+                // First test the Room for valid content
+                if (!EnsureScriptNamesAreUnique(room, errors))
+                    return;
+
+                // Do any automatic fixups that do not raise errors
+                // TODO: perhaps a wrong place to do so, find another time and place for this?
+                room.Modified |= (PerformPreSaveChecks(room) > 0);
 
 				if (!_agsEditor.AttemptToGetWriteAccess(room.FileName))
 				{
@@ -562,15 +568,13 @@ namespace AGS.Editor.Components
                 if (PreSaveRoom != null)
                 {
                     PreSaveRoom(room, errors);
+                    if (errors.HasErrors)
+                        return;
                 }
-
-				EnsureScriptNamesAreUnique(room, errors);
+				
                 try
                 {
-                    if (!errors.HasErrors)
-                    {
-                        BusyDialog.Show(pleaseWaitText, new BusyDialog.ProcessingHandler(SaveRoomOnThread), room);
-                    }
+                    BusyDialog.Show(pleaseWaitText, new BusyDialog.ProcessingHandler(SaveRoomOnThread), room);
                 }
                 catch (CompileMessage ex)
                 {
@@ -630,7 +634,7 @@ namespace AGS.Editor.Components
             return SaveRoomComponentsAndShowErrors(room, null, false);
         }
 
-        private void EnsureScriptNamesAreUnique(Room room, CompileMessages errors)
+        private bool EnsureScriptNamesAreUnique(Room room, CompileMessages errors)
         {
             foreach (RoomHotspot hotspot in room.Hotspots)
             {
@@ -648,10 +652,13 @@ namespace AGS.Editor.Components
                     errors.Add(new CompileError("Object '" + obj.Name + "' script name conflicts with other game item"));
                 }
             }
+            return !errors.HasErrors;
         }
 
-        private void PerformPreSaveChecks(Room room)
+        private int PerformPreSaveChecks(Room room)
         {
+            int fixups = 0;
+
             foreach (RoomWalkableArea area in room.WalkableAreas) 
             {
                 if (area.UseContinuousScaling)
@@ -661,10 +668,18 @@ namespace AGS.Editor.Components
                         int temp = area.MaxScalingLevel;
                         area.MaxScalingLevel = area.MinScalingLevel;
                         area.MinScalingLevel = temp;
+                        fixups++;
                     }
                 }
             }
-            room.GameID = _agsEditor.CurrentGame.Settings.UniqueID;
+
+            if (room.GameID != _agsEditor.CurrentGame.Settings.UniqueID)
+            {
+                room.GameID = _agsEditor.CurrentGame.Settings.UniqueID;
+                fixups++;
+            }
+
+            return fixups;
         }
 
         private object SaveRoomOnThread(IWorkProgress progress, object parameter)
@@ -1380,6 +1395,8 @@ namespace AGS.Editor.Components
 			List<UnloadedRoom> roomsToRebuild = new List<UnloadedRoom>();
 			List<string> roomFileNamesToRebuild = new List<string>();
             bool success = true;
+
+            // First of all test all rooms for validity of data on disk
             foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
                 IEnumerable<string> missingMasks = Enum
@@ -1418,6 +1435,7 @@ namespace AGS.Editor.Components
                 }
             }
 
+            // Try to ensure write access to all gathered output files
 			if (!_agsEditor.AttemptToGetWriteAccess(roomFileNamesToRebuild))
 			{
 				errors.Add(new CompileError("Failed to open files for writing"));
@@ -1436,9 +1454,6 @@ namespace AGS.Editor.Components
 				{
 					room = _loadedRoom;
 				}
-				// Ensure that the script is saved (in case this is a 2.72
-				// room and LoadNewRoom has just jibbled the script)
-				room.Script.SaveToDisk();
 
 				CompileMessages roomErrors = new CompileMessages();
 				SaveRoomButDoNotShowAnyErrors(room, roomErrors, "Rebuilding room " + room.Number + " because a script has changed...");

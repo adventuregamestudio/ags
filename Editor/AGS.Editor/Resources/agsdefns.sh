@@ -983,13 +983,13 @@ builtin managed struct Overlay {
 
 builtin managed struct DynamicSprite {
   /// Creates a blank dynamic sprite of the specified size.
-  import static DynamicSprite* Create(int width, int height, int format = 0);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* Create(int width, int height, int format = -1);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a room background.
   import static DynamicSprite* CreateFromBackground(int frame=SCR_NO_VALUE, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a drawing surface.
   import static DynamicSprite* CreateFromDrawingSurface(DrawingSurface* surface, int x, int y, int width, int height);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of an existing sprite.
-  import static DynamicSprite* CreateFromExistingSprite(int slot, int format = 0);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromExistingSprite(int slot, int format = -1);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a BMP or PCX file.
   import static DynamicSprite* CreateFromFile(const string filename);              // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite from a save game screenshot.

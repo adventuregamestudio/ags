@@ -9,6 +9,7 @@ namespace AGS.Editor.Components
 {
     class AudioComponent : BaseComponentWithFolders<AudioClip, AudioClipFolder>, IProjectTreeSingleClickHandler
     {
+        private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         private const string COMMAND_ADD_AUDIO = "AddAudioClipCmd";
         private const string COMMAND_REIMPORT_ALL = "ReimportAllAudioClipCmd";
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
@@ -82,6 +83,20 @@ namespace AGS.Editor.Components
         public override string ComponentID
         {
             get { return ComponentIDs.Audio; }
+        }
+
+        private static string GetCacheFileNameWithoutPath(int index, string sourceFileName)
+        {
+            return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, index, Path.GetExtension(sourceFileName));
+        }
+
+        private static string GetCacheFileName(int index, string sourceFileName)
+        {
+            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
+        }
+        public static string GetCacheFileName(AudioClip clip)
+        {
+            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(clip.Index, clip.SourceFileName));
         }
 
         protected override void ItemCommandClick(string controlID)
@@ -349,13 +364,14 @@ namespace AGS.Editor.Components
             }
 
             string sourceFileName = Utilities.GetRelativeToProjectPath(fullSourceFileName);
-            string newCacheFileName = AudioClip.GetCacheFileName(clip.Index, sourceFileName);
+            string newCacheFileName = GetCacheFileName(clip.Index, sourceFileName);
             DateTime lastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
 
             string previousCacheFileName = clip.CacheFileName;
 
             Utilities.CopyFileAndSetDestinationWritable(sourceFileName, newCacheFileName);
-            if (previousCacheFileName != newCacheFileName) Utilities.TryDeleteFile(previousCacheFileName); // in case extension is different
+            if (!string.IsNullOrEmpty(previousCacheFileName) && previousCacheFileName != newCacheFileName) 
+                Utilities.TryDeleteFile(previousCacheFileName); // in case extension is different
 
             Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
@@ -363,6 +379,7 @@ namespace AGS.Editor.Components
             clip.FileType = _fileTypeMappings[fileExtension];
             clip.FileLastModifiedDate = lastModifiedDate;
             clip.SourceFileName = sourceFileName;
+            clip.CacheFileName = newCacheFileName;
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
             return clip;
         }

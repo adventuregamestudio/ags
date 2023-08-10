@@ -1,3 +1,8 @@
+# Global defaults
+skip: "changesIncludeOnly('**.md')"
+env:
+  CIRRUS_CLONE_DEPTH: 1
+
 build_windows_task:
   windows_container:
     dockerfile: ci/windows/Dockerfile
@@ -146,11 +151,11 @@ build_linux_make_task:
     arch=$(dpkg --print-architecture)
     ln -s destdir/usr/local/bin bin_$arch
   build_script: |
-    make PREFIX="$(cd destdir && pwd)/usr/local" --directory=Engine install
+    make -j2 PREFIX="$(cd destdir && pwd)/usr/local" --directory=Engine install
   build_compiler_script: |
-    make PREFIX="$(cd destdir && pwd)/usr/local" --directory=Compiler install
+    make -j2 PREFIX="$(cd destdir && pwd)/usr/local" --directory=Compiler install
   build_tools_script: |
-    find Tools -name Makefile -execdir make PREFIX="$(cd destdir && pwd)/usr/local" install \;
+    find Tools -name Makefile -execdir make -j2 PREFIX="$(cd destdir && pwd)/usr/local" install \;
   binaries_artifacts:
     path: bin_*/*
 

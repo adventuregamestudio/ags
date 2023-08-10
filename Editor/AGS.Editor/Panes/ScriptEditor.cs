@@ -2,6 +2,7 @@ using AGS.Editor.Components;
 using AGS.Editor.TextProcessing;
 using AGS.Types;
 using AGS.Types.AutoComplete;
+using AGS.Types.Interfaces;
 using AGS.Controls;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    public partial class ScriptEditor : EditorContentPanel, IScriptEditor
+    public partial class ScriptEditor : ScriptEditorBase, IScriptEditor
     {
         public event EventHandler IsModifiedChanged;
         public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
@@ -18,47 +19,30 @@ namespace AGS.Editor
 
         private delegate void AnonymousDelegate();
 
-        private const string CUT_COMMAND = "ScriptCut";
-        private const string COPY_COMMAND = "ScriptCopy";
-        private const string PASTE_COMMAND = "ScriptPaste";
-        private const string UNDO_COMMAND = "ScriptUndo";
-        private const string REDO_COMMAND = "ScriptRedo";
-        private const string SHOW_AUTOCOMPLETE_COMMAND = "ScriptShowAutoComplete";
-        private const string MATCH_BRACE_COMMAND = "MatchBrace";
+        // Custom Edit menu commands
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
-        private const string FIND_COMMAND = "ScriptFind";
-        private const string FIND_NEXT_COMMAND = "ScriptFindNext";
-        private const string REPLACE_COMMAND = "ScriptReplace";
-        private const string FIND_ALL_COMMAND = "ScriptFindAll";
-        private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
-        private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
-        private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
-        private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
-        private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
+        // Custom context menu commands
         private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
         private Script _script;
         private Room _room;
         private int _roomNumber;
-        private AGSEditor _agsEditor;
-        private List<MenuCommand> _toolbarIcons = new List<MenuCommand>();
-        private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
-        private string _lastSearchText = string.Empty;
-        private bool _lastCaseSensitive = false;
+        
         private AutoComplete.BackgroundCacheUpdateStatusChangedHandler _autocompleteUpdateHandler;
         private EditorEvents.FileChangedInGameFolderHandler _fileChangedHandler;
         private EventHandler _mainWindowActivatedHandler;
         private Action<Script> _showMatchingScript;
         private bool _allowZoomToFunction = true;
-        private string _goToDefinition = null;
-        private int? _goToSprite = null;
+        
+        
         private bool _fileChangedExternally = false;
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
         private int _firstVisibleLine;        
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
+            : base(agsEditor)
         {
             InitializeComponent();
 
@@ -72,24 +56,6 @@ namespace AGS.Editor
             this.Resize += new EventHandler(ScriptEditor_Resize);
         }
 
-        private void Clear()
-        {
-            this.Controls.Clear();
-            _toolbarIcons.Clear();
-            _extraMenu.Commands.Clear();
-            this.Resize -= ScriptEditor_Resize;
-            DisconnectEventHandlers();
-
-            scintilla.IsModifiedChanged -= scintilla_IsModifiedChanged;
-            scintilla.AttemptModify -= scintilla_AttemptModify;
-            scintilla.UpdateUI -= scintilla_UpdateUI;
-            scintilla.OnBeforeShowingAutoComplete -= scintilla_OnBeforeShowingAutoComplete;
-            scintilla.TextModified -= scintilla_TextModified;
-            scintilla.ConstructContextMenu -= scintilla_ConstructContextMenu;
-            scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
-            scintilla.ToggleBreakpoint -= scintilla_ToggleBreakpoint;
-        }
-
         private void Init(Script scriptToEdit)
         {
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
@@ -99,32 +65,9 @@ namespace AGS.Editor
             _mainWindowActivatedHandler = new EventHandler(GUIController_OnMainWindowActivated);
             Factory.GUIController.OnMainWindowActivated += _mainWindowActivatedHandler;
 
-            _toolbarIcons.Add(new MenuCommand(CUT_COMMAND, "Cut", "CutIcon"));
-            _toolbarIcons.Add(new MenuCommand(COPY_COMMAND, "Copy", "CopyIcon"));
-            _toolbarIcons.Add(new MenuCommand(PASTE_COMMAND, "Paste", "PasteIcon"));
-            _toolbarIcons.Add(new MenuCommand(UNDO_COMMAND, "Undo", "UndoIcon"));
-            _toolbarIcons.Add(new MenuCommand(REDO_COMMAND, "Redo", "RedoIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(UNDO_COMMAND, "Undo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z, "UndoMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REDO_COMMAND, "Redo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y, "RedoMenuIcon"));
-            _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(CUT_COMMAND, "Cut", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X, "CutMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(COPY_COMMAND, "Copy", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C, "CopyMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(PASTE_COMMAND, "Paste", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V, "PasteMenuIcon"));
-            _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
-            _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
-            _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
-            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
-            _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
-
             Script = scriptToEdit;
+            // Also give script reference to the base class
+            base.Script = scriptToEdit;
             InitScintilla();
         }
 
@@ -160,8 +103,6 @@ namespace AGS.Editor
             scintilla.UpdateUI += scintilla_UpdateUI;
             scintilla.OnBeforeShowingAutoComplete += scintilla_OnBeforeShowingAutoComplete;
             scintilla.TextModified += scintilla_TextModified;
-            scintilla.ConstructContextMenu += scintilla_ConstructContextMenu;
-            scintilla.ActivateContextMenu += scintilla_ActivateContextMenu;
             scintilla.ToggleBreakpoint += scintilla_ToggleBreakpoint;
 
             if (!this.Script.IsHeader)
@@ -175,6 +116,22 @@ namespace AGS.Editor
 
             // Scripts may miss autocomplete cache when they are first opened, so update
             UpdateAutocompleteAndControls(true);
+
+            // Assign Scintilla reference to the base class
+            Scintilla = scintilla;
+        }
+
+        protected override void AddEditMenuCommands(MenuCommands commands)
+        {
+            commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
+            commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
+        }
+
+        protected override void AddCtxCommands(ContextMenuStrip menuStrip)
+        {
+            EventHandler onClick = new EventHandler(ContextMenuChooseOption2);
+            menuStrip.Items.Add(new ToolStripSeparator());
+            menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
         }
 
         public void ActivateWindow()
@@ -419,17 +376,7 @@ namespace AGS.Editor
             scintilla.DeactivateTextEditor();
         }
 
-        public List<MenuCommand> ToolbarIcons
-        {
-            get { return _toolbarIcons; }
-        }
-
-        public MenuCommands ExtraMenu
-        {
-            get { return _extraMenu; }
-        }
-
-        public Script Script
+        public new Script Script
         {
             get { return _script; }
             set
@@ -491,39 +438,6 @@ namespace AGS.Editor
                 scintilla.SetSavePoint();
                 UpdateAutocompleteAndControls(true);
             }
-        }
-
-        public void GoToLine(int lineNumber)
-        {
-			GoToLine(lineNumber, false, false);
-        }
-
-        public void GoToLine(int lineNumber, bool selectLine, bool goToLineAfterOpeningBrace)
-        {
-            if (goToLineAfterOpeningBrace)
-            {
-                lineNumber = FindLineNumberAfterOpeningBrace(lineNumber);
-            }
-
-            scintilla.GoToLine(lineNumber);
-
-            if (selectLine)
-            {
-                scintilla.SelectCurrentLine();
-            }
-        }
-
-        private int FindLineNumberAfterOpeningBrace(int startFromLine)
-        {
-            while (startFromLine < scintilla.LineCount)
-            {
-                if (scintilla.GetTextForLine(startFromLine).Contains("{"))
-                {
-                    return startFromLine + 1;
-                }
-                startFromLine++;
-            }
-            return startFromLine;
         }
 
         public void GoToLineOfCharacterPosition(int position)
@@ -594,43 +508,9 @@ namespace AGS.Editor
 
         protected override void OnCommandClick(string command)
         {
-            if (command == CUT_COMMAND)
-            {
-                scintilla.Cut();
-            }
-            else if (command == COPY_COMMAND)
-            {
-                scintilla.Copy();
-            }
-            else if (command == PASTE_COMMAND)
-            {
-                scintilla.Paste();
-            }
-            else if (command == UNDO_COMMAND)
-            {
-                if (scintilla.CanUndo())
-                {
-                    scintilla.Undo();
-                }
-            }
-            else if (command == REDO_COMMAND)
-            {
-                if (scintilla.CanRedo())
-                {
-                    scintilla.Redo();
-                }
-            }
-            else if (command == SHOW_AUTOCOMPLETE_COMMAND)
-            {
-                scintilla.ShowAutocompleteNow();
-            }
-            else if (command == TOGGLE_BREAKPOINT_COMMAND)
+            if (command == TOGGLE_BREAKPOINT_COMMAND)
             {
                 ToggleBreakpointOnCurrentLine();
-            }
-            else if (command == MATCH_BRACE_COMMAND)
-            {
-                scintilla.ShowMatchingBraceIfPossible();
             }
             else if (command == SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND)
             {
@@ -639,49 +519,11 @@ namespace AGS.Editor
                     _showMatchingScript(this.Script);
                 }
             }
-            else if (command == GOTO_LINE_COMMAND)
+            else
             {
-                GotoLineDialog gotoLineDialog = new GotoLineDialog
-                {
-                    Minimum = 1,
-                    Maximum = scintilla.LineCount,
-                    LineNumber = scintilla.CurrentLine + 1
-                };
-                if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
-                GoToLine(gotoLineDialog.LineNumber);
-            }
-            else if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
-                || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
-            {
-                if (scintilla.IsSomeSelectedText())
-                {
-                    _lastSearchText = scintilla.SelectedText;
-                }
-                else _lastSearchText = string.Empty;
-                ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
-                    command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
-            }
-            else if (command == FIND_NEXT_COMMAND)
-            {
-                if (_lastSearchText.Length > 0)
-                {
-                    scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
-                }
+                base.OnCommandClick(command);
             }
             UpdateToolbarButtonsIfNecessary();
-        }
-
-        private void ShowFindReplaceDialog(bool showReplace, bool showAll)
-        {
-            FindReplace findReplace = new FindReplace(_script, _agsEditor,
-                _lastSearchText, _lastCaseSensitive);
-            findReplace.LastSearchTextChanged += new FindReplace.LastSearchTextChangedHandler(findReplace_LastSearchTextChanged);
-            findReplace.ShowFindReplaceDialog(showReplace, showAll);
-        }
-
-        private void findReplace_LastSearchTextChanged(string searchText)
-        {
-            _lastSearchText = searchText;
         }
 
         protected override void OnWindowActivated()
@@ -808,32 +650,6 @@ namespace AGS.Editor
             AdjustStartOfFunctionsInScript(startPos, adjustment);
         }
 
-        private void UpdateToolbarButtonsIfNecessary()
-        {
-            bool canCutAndCopy = scintilla.CanCutAndCopy();
-            bool canPaste = scintilla.CanPaste();
-            bool canUndo = scintilla.CanUndo();
-            bool canRedo = scintilla.CanRedo();
-            if ((_toolbarIcons[0].Enabled != canCutAndCopy) ||
-                (_toolbarIcons[2].Enabled != canPaste) ||
-                (_toolbarIcons[3].Enabled != canUndo) ||
-                (_toolbarIcons[4].Enabled != canRedo))
-            {
-                _toolbarIcons[0].Enabled = canCutAndCopy;
-                _toolbarIcons[1].Enabled = canCutAndCopy;
-                _toolbarIcons[2].Enabled = canPaste;
-                _toolbarIcons[3].Enabled = canUndo;
-                _toolbarIcons[4].Enabled = canRedo;
-                _extraMenu.Commands[0].Enabled = canUndo;
-                _extraMenu.Commands[1].Enabled = canRedo;
-                _extraMenu.Commands[3].Enabled = canCutAndCopy;
-                _extraMenu.Commands[4].Enabled = canCutAndCopy;
-                _extraMenu.Commands[5].Enabled = canPaste;
-                Factory.ToolBarManager.RefreshCurrentPane();
-                Factory.MenuManager.RefreshCurrentPane();
-            }
-        }
-
         private ScriptFunction FindFunctionInAutocompleteData(string funcName)
         {
             ScriptFunction func = _script.AutoCompleteData.FindFunction(funcName);
@@ -877,239 +693,13 @@ namespace AGS.Editor
             }
         }
 
-        private void scintilla_ActivateContextMenu(string commandName)
-        {
-            UpdateToolbarButtonsIfNecessary();
-        }
-
-        private ScriptToken FindTokenInScript(Script script, string structName, string memberName)
-        {
-            ScriptToken found = null;
-
-            if (structName != null)
-            {
-                ScriptStruct struc = script.AutoCompleteData.FindStruct(structName);
-                if (struc != null)
-                {
-                    found = struc.FindMemberFunction(memberName);
-                    if (found == null)
-                    {
-                        found = struc.FindMemberVariable(memberName);
-                    }
-                }
-                else
-                {
-                    found = script.AutoCompleteData.FindFunction(_goToDefinition.Replace(".", "::"));
-                }
-            }
-            else
-            {
-                found = script.AutoCompleteData.FindFunction(memberName);
-                if (found == null)
-                {
-                    found = script.AutoCompleteData.FindVariable(memberName);
-                }
-                if (found == null)
-                {
-                    found = script.AutoCompleteData.FindStruct(memberName);
-                }
-                if (found == null)
-                {
-                    found = script.AutoCompleteData.FindEnum(memberName);
-                }
-                if (found == null)
-                {
-                    found = script.AutoCompleteData.FindEnumValue(memberName);
-                }
-                if (found == null)
-                {
-                    found = script.AutoCompleteData.FindDefine(memberName);
-                }
-            }
-
-            return found;
-        }
-
-        public ScriptStruct FindGlobalVariableOrType(string type)
-        {
-            return scintilla.FindGlobalVariableOrType(type);
-        }
-
-        public ScriptToken FindTokenAsLocalVariable(string memberName, bool searchWholeFunction)
-        {
-            ScriptToken found = null;
-            List<ScriptVariable> localVars = scintilla.GetListOfLocalVariablesForCurrentPosition(searchWholeFunction);
-            foreach (ScriptVariable localVar in localVars)
-            {
-                if (localVar.VariableName == memberName)
-                {
-                    found = localVar;
-                }
-            }
-            return found;
-        }
-
-        private void FindAllUsages(string structName, string memberName)
-        {
-            TextProcessing.FindAllUsages findAllUsages = new TextProcessing.FindAllUsages(scintilla,
-                this, _script, _agsEditor);
-            findAllUsages.Find(structName, memberName);
-        }
-
-        private void GoToDefinition(string structName, string memberName)
-        {
-            ScriptToken found = null;
-            Script foundInScript = null;
-            List<Script> scriptsToSearch = new List<Script>();
-            scriptsToSearch.AddRange(_agsEditor.GetAllScriptHeaders()); // all scripts!
-            scriptsToSearch.Add(_script);
-
-            foreach (Script script in scriptsToSearch)
-            {
-                found = FindTokenInScript(script, structName, memberName);
-                foundInScript = script;
-
-                if ((found != null) && (script.IsHeader))
-                {
-                    // Always prefer the definition in the main script to
-                    // the import in the header
-                    Script mainScript = _agsEditor.CurrentGame.RootScriptFolder.FindMatchingScriptOrHeader(script);
-                    if (mainScript != null)
-                    {
-                        if (!mainScript.AutoCompleteData.Populated)
-                        {
-                            AutoComplete.ConstructCache(mainScript, _agsEditor.GetImportedScriptHeaders(mainScript));
-                        }
-                        ScriptToken foundInScriptBody = FindTokenInScript(mainScript, structName, memberName);
-                        if (foundInScriptBody != null)
-                        {
-                            found = foundInScriptBody;
-                            foundInScript = mainScript;
-                        }
-                    }
-                }
-
-                if (found != null)
-                {
-                    break;
-                }
-            }
-
-            if ((found == null) && (structName == null))
-            {
-                found = FindTokenAsLocalVariable(memberName, false);
-            }
-
-            if (found != null)
-            {
-                if (foundInScript.FileName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
-                {
-                    Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
-                }
-                else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
-                {
-                    Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a Character or Inventory Item.", MessageBoxIcon.Information);
-                }
-                else if (foundInScript.FileName == GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME)
-                {
-                    IGlobalVariablesController globalVariables = (IGlobalVariablesController)Factory.ComponentController.FindComponentThatImplementsInterface(typeof(IGlobalVariablesController));
-                    globalVariables.SelectGlobalVariable(_goToDefinition);
-                }
-                else
-                {
-                    Factory.GUIController.ZoomToFile(foundInScript.FileName, ZoomToFileZoomType.ZoomToCharacterPosition, found.StartsAtCharacterIndex);
-                }
-            }
-        }
-
-        private void ContextMenuChooseOption(object sender, EventArgs e)
+        private void ContextMenuChooseOption2(object sender, EventArgs e)
         {
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             if (item.Name == CONTEXT_MENU_TOGGLE_BREAKPOINT)
             {
                 ToggleBreakpointOnCurrentLine();
             }
-            else if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
-                item.Name == CONTEXT_MENU_FIND_ALL_USAGES)
-            {
-                string[] structAndMember = _goToDefinition.Split('.');
-                string structName = null;
-                string memberName = structAndMember[0];
-                if (structAndMember.Length > 1)
-                {
-                    structName = structAndMember[0];
-                    memberName = structAndMember[1];
-                }
-
-                if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION)
-                {
-                    GoToDefinition(structName, memberName);
-                }
-                else
-                {
-                    FindAllUsages(structName, memberName);
-                }
-            }
-            else if (item.Name == CONTEXT_MENU_GO_TO_SPRITE)
-            {
-                if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
-                {
-                    Factory.GUIController.ShowMessage("Unable to display sprite " + _goToSprite + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
-                }
-            }
-        }
-
-        private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
-        {
-            EventHandler onClick = new EventHandler(ContextMenuChooseOption);
-
-            _goToSprite = null;
-            string clickedOnType = string.Empty;
-            if (!scintilla.InsideStringOrComment(clickedPositionInDocument))
-            {
-                float dummy;
-                clickedOnType = scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
-                // if on nothing, or a number, ignore
-                if (clickedOnType.Length > 0)
-                {
-                    int temp;
-                    if (int.TryParse(clickedOnType, out temp))
-                    {
-                        _goToSprite = temp;
-                        clickedOnType = string.Empty;
-                    }
-                    else if (!float.TryParse(clickedOnType, out dummy))
-                    {
-                        _goToDefinition = clickedOnType;
-                        clickedOnType = " of " + clickedOnType;
-                    }
-                }
-                else
-                {
-                    clickedOnType = string.Empty;
-                }
-            }
-
-            menuStrip.Items.Add(new ToolStripMenuItem("Go to Definition" + clickedOnType, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION));
-            if (clickedOnType == string.Empty)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
-
-            menuStrip.Items.Add(new ToolStripMenuItem("Find All Usages" + clickedOnType, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES));
-            if (clickedOnType == string.Empty)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
-
-            menuStrip.Items.Add(new ToolStripMenuItem("Go to sprite " + (_goToSprite.HasValue ? _goToSprite.ToString() : ""), null, onClick, CONTEXT_MENU_GO_TO_SPRITE));
-            if (_goToSprite == null)
-            {
-                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-            }
-
-            menuStrip.Items.Add(new ToolStripSeparator());
-            menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
         }
 
         private void LoadColorTheme(ColorTheme t)

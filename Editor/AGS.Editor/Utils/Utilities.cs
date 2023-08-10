@@ -285,6 +285,36 @@ namespace AGS.Editor
             File.SetAttributes(destFileName, FileAttributes.Archive);
         }
 
+        public static bool SafeCopyFileOverwrite(string sourceFileName, string destFileName, bool makeDestinationWritable = false)
+        {
+            string bkpDestFileName = destFileName + ".bkp";
+            if (File.Exists(destFileName))
+            {
+                File.Move(destFileName, bkpDestFileName);
+            }
+            try
+            {
+                File.Copy(sourceFileName, destFileName, true);
+                if (makeDestinationWritable) File.SetAttributes(destFileName, FileAttributes.Archive);
+            }
+            catch
+            {
+                if (File.Exists(bkpDestFileName))
+                {
+                    File.Move(bkpDestFileName, destFileName);
+                }
+                return false;
+            }
+            finally
+            {
+                if (File.Exists(bkpDestFileName))
+                {
+                    File.Delete(bkpDestFileName);
+                }
+            }
+            return true;
+        }
+
         public static void CopyFont(int fromSlot, int toSlot)
         {
             if (fromSlot == toSlot)

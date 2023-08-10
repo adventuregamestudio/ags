@@ -35,8 +35,29 @@ namespace AGS.Editor.Components
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
         private const string SCRIPT_ICON = "ScriptIcon";
 
-        private readonly List<Bitmap> _backgroundCache = new List<Bitmap>(Room.MAX_BACKGROUNDS);
-        private readonly Dictionary<RoomAreaMaskType, Bitmap> _maskCache = new Dictionary<RoomAreaMaskType, Bitmap>(Enum.GetValues(typeof(RoomAreaMaskType)).Length);
+        /// <summary>
+        /// RoomImage contains one of the room's images (bg or mask)
+        /// paired with its Modified state.
+        /// </summary>
+        private class RoomImage : IDisposable
+        {
+            public Bitmap Image;
+            public bool Modified;
+
+            public RoomImage(Bitmap image, bool modified)
+            {
+                Image = image;
+                Modified = modified;
+            }
+
+            public void Dispose()
+            {
+                Image?.Dispose();
+            }
+        }
+
+        private readonly List<RoomImage> _backgroundCache = new List<RoomImage>(Room.MAX_BACKGROUNDS);
+        private readonly Dictionary<RoomAreaMaskType, RoomImage> _maskCache = new Dictionary<RoomAreaMaskType, RoomImage>(Enum.GetValues(typeof(RoomAreaMaskType)).Length);
         private readonly FileWatcherCollection _fileWatchers = new FileWatcherCollection();
 
         public event PreSaveRoomHandler PreSaveRoom;
@@ -1629,15 +1650,18 @@ namespace AGS.Editor.Components
             _fileWatchers.TemporarilyDisable(() =>
             {
                 IsBeingSaved = true;
-                SaveImages();
-                using (var writer = new XmlTextWriter(_loadedRoom.DataFileName, Types.Utilities.UTF8))
+                if (_loadedRoom.Modified)
                 {
-                    writer.Formatting = Formatting.Indented;
-                    _loadedRoom.ToXmlDocument().Save(writer);
+                    SaveImages(false);
+                    using (var writer = new XmlTextWriter(_loadedRoom.DataFileName, Types.Utilities.UTF8))
+                    {
+                        writer.Formatting = Formatting.Indented;
+                        _loadedRoom.ToXmlDocument().Save(writer);
+                    }
+                    _loadedRoom.Modified = false;
                 }
                 IsBeingSaved = false;
                 LastSavedAt = DateTime.Now;
-                _loadedRoom.Modified = false;
             });
 
             SaveCrm();
@@ -1650,7 +1674,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            return _backgroundCache[background].Clone() as Bitmap;
+            return _backgroundCache[background].Image.Clone() as Bitmap;
         }
 
         void IRoomController.SetBackground(int background, Bitmap bmp)
@@ -1685,13 +1709,13 @@ namespace AGS.Editor.Components
 
             if (background >= _backgroundCache.Count)
             {
-                _backgroundCache.Add(newBmp);
+                _backgroundCache.Add(new RoomImage(newBmp, true));
                 _fileWatchers[_loadedRoom.GetBackgroundFileName(_loadedRoom.BackgroundCount++)].Enabled = true;
             }
             else
             {
                 _backgroundCache[background]?.Dispose();
-                _backgroundCache[background] = newBmp;
+                _backgroundCache[background] = new RoomImage(newBmp, true);
             }
 
             // If size or resolution has changed, reset masks
@@ -1723,7 +1747,7 @@ namespace AGS.Editor.Components
                 throw new InvalidOperationException("No room is currently loaded");
             }
 
-            return _maskCache[mask].Clone() as Bitmap;
+            return _maskCache[mask].Image.Clone() as Bitmap;
         }
 
         void IRoomController.SetMask(RoomAreaMaskType mask, Bitmap bmp)
@@ -1737,18 +1761,25 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
+            SetMaskDirect(mask, bmp.Clone() as Bitmap, true);
+        }
+
+        void SetMaskDirect(RoomAreaMaskType mask, Bitmap bmp, bool markModified)
+        {
             if (ValidateMask(mask, bmp))
             {
-                Bitmap toDispose;
+                RoomImage toDispose;
                 _maskCache.TryGetValue(mask, out toDispose);
                 toDispose?.Dispose();
-                _maskCache[mask] = bmp.Clone() as Bitmap;
-                _loadedRoom.Modified = true;
+                _maskCache[mask] = new RoomImage(bmp, markModified);
+                _loadedRoom.Modified |= markModified;
             }
-            else if (!_maskCache.ContainsKey(mask) || _maskCache[mask] == null)
+            else // invalid source, try to recover
             {
-                // we can get here while opening a room the first time, and after closing it without saving then reopening
-                _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
+                if (_maskCache.ContainsKey(mask) && _maskCache[mask] != null)
+                    return; // there's already a previous version in cache, no need to do anything
+                // create an empty mask
+                _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
             }
         }
 
@@ -1764,7 +1795,7 @@ namespace AGS.Editor.Components
             x = (int)(x * scale);
             y = (int)(y * scale);
 
-            Bitmap mask = _maskCache[maskType];
+            Bitmap mask = _maskCache[maskType].Image;
 
             if (x < 0 || y < 0 || x > mask.Width || y > mask.Height) return 0;
 
@@ -1792,7 +1823,7 @@ namespace AGS.Editor.Components
                 throw new ArgumentOutOfRangeException("maskTransparency", "Mask Transparency must be between 0 and 100");
             }
 
-            Bitmap background = _backgroundCache[backgroundNumber];
+            Bitmap background = _backgroundCache[backgroundNumber].Image;
 
             // x and y is already scaled from outside the method call
             Rectangle drawingArea = new Rectangle(
@@ -1802,7 +1833,7 @@ namespace AGS.Editor.Components
 
             if (maskType != RoomAreaMaskType.None)
             {
-                Bitmap mask8bpp = _maskCache[maskType];
+                Bitmap mask8bpp = _maskCache[maskType].Image;
                 ColorPalette paletteBackup = mask8bpp.Palette;
                 ColorPalette paletteDrawing = mask8bpp.Palette;
 
@@ -1849,7 +1880,7 @@ namespace AGS.Editor.Components
             }
 
             _loadedRoom.MaskResolution = maskResolution;
-            Bitmap bg = _backgroundCache[0];
+            Bitmap bg = _backgroundCache[0].Image;
             int baseWidth = bg.Width;
             int baseHeight = bg.Height;
 
@@ -1857,10 +1888,10 @@ namespace AGS.Editor.Components
             {
                 if (maskType == RoomAreaMaskType.None) continue;
 
-                using (Bitmap mask = _maskCache[maskType])
+                using (RoomImage mask = _maskCache[maskType])
                 {
                     double scale = _loadedRoom.GetMaskScale(maskType);
-                    _maskCache[maskType] = mask.ScaleIndexed((int)(baseWidth * scale), (int)(baseHeight * scale));
+                    _maskCache[maskType] = new RoomImage(mask.Image.ScaleIndexed((int)(baseWidth * scale), (int)(baseHeight * scale)), true);
                 }
             }
 
@@ -1909,7 +1940,7 @@ namespace AGS.Editor.Components
             {
                 if (File.Exists(_loadedRoom.GetBackgroundFileName(i)))
                 {
-                    _backgroundCache.Add(LoadBackground(i));
+                    _backgroundCache.Add(new RoomImage(LoadBackground(i), false));
                 }
             }
 
@@ -1917,7 +1948,7 @@ namespace AGS.Editor.Components
 
             if (!_backgroundCache.Any())
             {
-                _backgroundCache.Add(new Bitmap(_loadedRoom.Width, _loadedRoom.Height));
+                _backgroundCache.Add(new RoomImage(new Bitmap(_loadedRoom.Width, _loadedRoom.Height), false));
                 _loadedRoom.BackgroundCount = 1;
                 imageNotFound = true;
                 _guiController.ShowMessage(
@@ -1931,7 +1962,7 @@ namespace AGS.Editor.Components
                 imageNotFound = true;
             }
             
-            _loadedRoom.ColorDepth = _backgroundCache[0].GetColorDepth();
+            _loadedRoom.ColorDepth = _backgroundCache[0].Image.GetColorDepth();
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
             {
@@ -1942,11 +1973,11 @@ namespace AGS.Editor.Components
 
                 if (File.Exists(_loadedRoom.GetMaskFileName(mask)))
                 {
-                    ((IRoomController)this).SetMask(mask, LoadMask(mask));
+                    SetMaskDirect(mask, LoadMask(mask), false);
                 }
                 else
                 {
-                    _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
+                    _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
                     imageNotFound = true;
                     _guiController.ShowMessage(
                         $"Could not to find mask at \"{_loadedRoom.GetMaskFileName(mask)}\", an empty " +
@@ -1983,7 +2014,7 @@ namespace AGS.Editor.Components
         private void RefreshBackground(int i)
         {
             _backgroundCache[i]?.Dispose();
-            _backgroundCache[i] = LoadBackground(i);
+            _backgroundCache[i] = new RoomImage(LoadBackground(i), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 
@@ -2002,20 +2033,7 @@ namespace AGS.Editor.Components
 
         private void RefreshMask(RoomAreaMaskType mask)
         {
-            Bitmap bmp = LoadMask(mask);
-
-            if (ValidateMask(mask, bmp))
-            {
-                _maskCache[mask]?.Dispose();
-                _maskCache[mask] = bmp;
-            }
-            else // invalid source, try to recover
-            {
-                if (_maskCache[mask] != null) return; // there's already a previous version in cache, no need to do anything
-
-                // create an empty mask
-                _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
-            }
+            SetMaskDirect(mask, LoadMask(mask), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
         }
 
@@ -2107,12 +2125,12 @@ namespace AGS.Editor.Components
                 if (_maskCache.ContainsKey(mask))
                 {
                     _maskCache[mask]?.Dispose();
-                    _maskCache[mask] = CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height);
+                    _maskCache[mask] = new RoomImage(CreateMaskBitmap(mask, _loadedRoom.Width, _loadedRoom.Height), true);
                 }
             }
         }
 
-        private void SaveImages()
+        private void SaveImages(bool forced)
         {
             lock (_loadedRoom)
             {
@@ -2120,8 +2138,12 @@ namespace AGS.Editor.Components
                 {
                     string fileName = _loadedRoom.GetBackgroundFileName(i);
 
-                    if (i < _backgroundCache.Count)
-                        _backgroundCache[i].Save(fileName, ImageFormat.Png);
+                    if (i < _backgroundCache.Count &&
+                        (forced || _backgroundCache[i].Modified))
+                    {
+                        _backgroundCache[i].Image.Save(fileName, ImageFormat.Png);
+                        _backgroundCache[i].Modified = false;
+                    }
                     else
                         File.Delete(fileName);
                 }
@@ -2131,8 +2153,13 @@ namespace AGS.Editor.Components
                     if (mask == RoomAreaMaskType.None)
                         continue;
 
+                    var maskObj = _maskCache[mask];
+                    if (!forced && !maskObj.Modified)
+                        continue;
+
                     string fileName = _loadedRoom.GetMaskFileName(mask);
-                    _maskCache[mask].Save(fileName, ImageFormat.Png);
+                    maskObj.Image.Save(fileName, ImageFormat.Png);
+                    maskObj.Modified = false;
                 }
             }
         }
@@ -2276,7 +2303,7 @@ namespace AGS.Editor.Components
             for (int i = 0; i < _loadedRoom.BackgroundCount; i++)
             {
                 nativeRoom.SetBackground(
-                    i, _backgroundCache[i], _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
+                    i, _backgroundCache[i].Image, _agsEditor.Settings.RemapPalettizedBackgrounds, sharePalette: false);
             }
 
             foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))
@@ -2284,7 +2311,7 @@ namespace AGS.Editor.Components
                 if (mask == RoomAreaMaskType.None)
                     continue;
 
-                nativeRoom.SetAreaMask(mask, _maskCache[mask]);
+                nativeRoom.SetAreaMask(mask, _maskCache[mask].Image);
             }
 
             nativeRoom.SaveToFile(_loadedRoom.FileName);

@@ -87,7 +87,12 @@ namespace AGS.Editor
 				ListViewItem selectedItem = lvwResults.SelectedItems[0];
 				if (selectedItem.SubItems.Count > 1)
 				{
-					Factory.GUIController.ZoomToFile(selectedItem.SubItems[1].Text, Convert.ToInt32(selectedItem.SubItems[2].Text));
+                    int line = 0;
+                    if (selectedItem.SubItems.Count > 2 && selectedItem.SubItems[2].Text != null &&
+                        int.TryParse(selectedItem.SubItems[2].Text, out line))
+                    {
+                        Factory.GUIController.ZoomToFile(selectedItem.SubItems[1].Text, Convert.ToInt32(selectedItem.SubItems[2].Text));
+                    }
 				}
 			}
         }

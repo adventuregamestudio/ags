@@ -63,6 +63,7 @@ const int CONFIG_MOUSE_SPEED = 21;
 
 
 struct AGSIOS : AGSPlatformDriver {
+  void MainInit() override;
   const char *GetGameDataFile() override;
   void ReadConfiguration(ConfigTree &cfg) override;
   int  CDPlayerCommand(int cmdd, int datt) override;
@@ -309,6 +310,33 @@ void startEngine(char* filename, char* directory, int loadLastSave)
     exit(0);
 }
 
+static void MakeGameSaveDirectory()
+{
+    String gamename = Path::RemoveExtension(Path::GetFilename(usetup.main_data_file));
+    if(gamename.IsNullOrSpace() || gamename.IsEmpty()) {
+        gamename = "save";
+    }
+    String prefpath = SDL_GetPrefPath("AdventureGameStudio","AGS");
+    ios_save_directory = Path::ConcatPaths(prefpath, gamename);
+    ios_log_directory = Path::ConcatPaths(prefpath, "log");
+    Directory::CreateAllDirectories(prefpath, gamename);
+    Directory::CreateAllDirectories(prefpath, "log");
+}
+
+
+void AGSIOS::MainInit()
+{
+    auto &setup = AGSIOS::GetMobileSetup();
+    
+    MakeGameSaveDirectory();
+    
+    // Reset configuration.
+    ResetConfiguration(setup);
+
+    // Read general configuration.
+    readConfigFile(SDL_GetBasePath());
+    
+}
 
 
 const char *AGSIOS::GetGameDataFile()
@@ -359,30 +387,13 @@ void AGSIOS::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-static void MakeGameSaveDirectory()
-{
-    String gamename = Path::RemoveExtension(Path::GetFilename(usetup.main_data_file));
-    if(gamename.IsNullOrSpace() || gamename.IsEmpty()) {
-        gamename = "save";
-    }
-    String prefpath = SDL_GetPrefPath("AdventureGameStudio","AGS");
-    ios_save_directory = Path::ConcatPaths(prefpath, gamename);
-    ios_log_directory = Path::ConcatPaths(prefpath, "log");
-    Directory::CreateAllDirectories(prefpath, gamename);
-    Directory::CreateAllDirectories(prefpath, "log");
-}
-
 FSLocation AGSIOS::GetAllUsersDataDirectory()
 {
-  if (ios_save_directory.IsEmpty())
-    MakeGameSaveDirectory();
   return FSLocation(ios_save_directory);
 }
 
 FSLocation AGSIOS::GetUserSavedgamesDirectory()
 {
-  if (ios_save_directory.IsEmpty())
-    MakeGameSaveDirectory();
   return FSLocation(ios_save_directory);
 }
 
@@ -394,9 +405,7 @@ FSLocation AGSIOS::GetUserGlobalConfigDirectory()
 
 FSLocation AGSIOS::GetAppOutputDirectory()
 {
-    if (ios_log_directory.IsEmpty())
-      MakeGameSaveDirectory();
-    return FSLocation(ios_log_directory);
+  return FSLocation(ios_log_directory);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::CreateDriver()

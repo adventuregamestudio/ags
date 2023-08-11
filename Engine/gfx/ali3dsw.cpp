@@ -164,7 +164,7 @@ bool SDLRendererGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
     sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
   }
 
-#if AGS_PLATFORM_OS_ANDROID
+#if AGS_PLATFORM_MOBILE
   SDL_RenderSetLogicalSize(_renderer,mode.Width,mode.Height);
 #endif
 
@@ -177,7 +177,7 @@ void SDLRendererGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
 {
   _mode.Width = screen_sz.Width;
   _mode.Height = screen_sz.Height;
-#if AGS_PLATFORM_OS_ANDROID
+#if AGS_PLATFORM_MOBILE
   SDL_RenderSetLogicalSize(_renderer, _mode.Width, _mode.Height);
 #endif
 }

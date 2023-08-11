@@ -228,6 +228,22 @@ static void toggle_mouse_lock()
     }
 }
 
+bool run_service_mb_controls(eAGSMouseButton &out_mbut, int &mwheelz)
+{
+    out_mbut = kMouseNone; // clear the output
+    if (!ags_mouseevent_ready())
+        return false; // there was no mouse event
+
+    const SDL_Event mb_evt = ags_get_next_mouseevent();
+    if (mb_evt.type == SDL_MOUSEBUTTONDOWN)
+    {
+        out_mbut = sdl_mbut_to_ags_but(mb_evt.button.button);
+        lock_mouse_on_click();
+    }
+    mwheelz = ags_check_mouse_wheel();
+    return out_mbut != kMouseNone || mwheelz != 0;
+}
+
 // Runs default mouse button handling
 static void check_mouse_controls()
 {
@@ -365,7 +381,7 @@ bool run_service_key_controls(KeyInput &out_key)
     if (handled || (old_keyhandle && is_only_mod_key))
         return false;
 
-    KeyInput ki = ags_keycode_from_sdl(key_evt, old_keyhandle);
+    KeyInput ki = sdl_keyevt_to_ags_key(key_evt, old_keyhandle);
     if ((ki.Key == eAGSKeyCodeNone) && (ki.UChar == 0))
         return false; // should skip this key event
 
@@ -454,16 +470,6 @@ bool run_service_key_controls(KeyInput &out_key)
 
     // No service operation triggered? return active keypress and mods to caller
     out_key = ki;
-    return true;
-}
-
-bool run_service_mb_controls(eAGSMouseButton &mbut, int &mwheelz)
-{
-    mbut = ags_mgetbutton();
-    mwheelz = ags_check_mouse_wheel();
-    if (mbut == kMouseNone && mwheelz == 0)
-        return false;
-    lock_mouse_on_click();
     return true;
 }
 
@@ -592,7 +598,9 @@ static void check_controls() {
 
     sys_evt_process_pending();
 
-    check_mouse_controls();
+    // Handle all the buffered mouse events
+    while (ags_mouseevent_ready())
+        check_mouse_controls();
     // Handle all the buffered key events
     while (ags_keyevent_ready())
         check_keyboard_controls();

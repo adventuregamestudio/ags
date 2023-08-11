@@ -28,7 +28,7 @@ union SDL_Event;
 // Converts SDL key data to eAGSKeyCode, which may be also directly used as an ASCII char
 // if it is in proper range, see comments to eAGSKeyCode for details.
 // Optionally works in bacward compatible mode (old_keyhandle)
-KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle);
+KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle);
 // Converts eAGSKeyCode to SDL key scans (up to 3 values, because this is not a 1:1 match);
 // NOTE: fails at Ctrl+ or Alt+ AGS keys, or any unknown key codes.
 bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);
@@ -86,11 +86,14 @@ extern bool sys_modkeys_fired; // tells whether mod combination had been used fo
 
 
 // Mouse input handling
-//
+// Converts SDL mouse button code to AGS code
+eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut);
+// Tells if there are any buffered button events
+bool ags_mouseevent_ready();
+// Queries for the next button event in buffer; returns uninitialized data if none was queued
+SDL_Event ags_get_next_mouseevent();
 // Tells if the mouse button is currently down
 bool ags_misbuttondown(eAGSMouseButton but);
-// Returns last "clicked" mouse button
-eAGSMouseButton ags_mgetbutton();
 // Returns recent relative mouse movement; resets accumulated values
 void ags_mouse_acquire_relxy(int &x, int &y);
 // Updates mouse cursor position in game
@@ -98,6 +101,8 @@ void ags_domouse();
 // Returns -1 for wheel down and +1 for wheel up
 // TODO: introduce constants for this
 int  ags_check_mouse_wheel();
+// Simulates a click with the given mouse button
+void ags_simulate_mouseclick(eAGSMouseButton but);
 
 // TODO: hide these later after refactoring mousew32.cpp
 extern volatile int sys_mouse_x; // mouse x position

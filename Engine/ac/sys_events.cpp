@@ -908,6 +908,7 @@ void ags_clear_input_state()
     g_keyEvtQueue.clear();
     sys_modkeys = 0;
     sys_modkeys_fired = false;
+    g_mouseEvtQueue.clear();
     mouse_button_state = 0;
     ags_clear_mouse_movement();
 }
@@ -918,6 +919,7 @@ void ags_clear_input_buffer()
     // accumulated mod keys have to be cleared because they depend on key evt queue
     sys_modkeys = 0;
     sys_modkeys_fired = false;
+    g_mouseEvtQueue.clear();
     // forget about accumulated mouse movement too
     ags_clear_mouse_movement();
 }

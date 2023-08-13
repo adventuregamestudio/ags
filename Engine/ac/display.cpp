@@ -319,20 +319,25 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
             update_audio_system_on_game_loop();
             UpdateCursorAndDrawables();
             render_graphics();
-            eAGSMouseButton mbut;
-            int mwheelz;
-            if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone) {
-                check_skip_cutscene_mclick(mbut);
-                if (play.fast_forward)
-                    break;
-                if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
-                {
-                    play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
-                    break;
-                }
-            }
 
             bool do_break = false;
+            while (!play.fast_forward && !do_break && ags_mouseevent_ready())
+            {
+                eAGSMouseButton mbut;
+                int mwheelz;
+                if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone)
+                {
+                    check_skip_cutscene_mclick(mbut);
+                    if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
+                    {
+                        play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+                        do_break = true;
+                    }
+                }
+            }
+            if (do_break)
+                break;
+
             while (!play.fast_forward && !do_break && ags_keyevent_ready())
             {
                 KeyInput ki;

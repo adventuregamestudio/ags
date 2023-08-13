@@ -2,50 +2,31 @@ using AGS.Editor.TextProcessing;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-    public partial class DialogEditor : EditorContentPanel
+    public partial class DialogEditor : ScriptEditorBase
     {
         private const string dialogKeyWords = "return stop";
 
-        private const string FIND_COMMAND = "ScriptFind";
-        private const string FIND_NEXT_COMMAND = "ScriptFindNext";
-        private const string REPLACE_COMMAND = "ScriptReplace";
-        private const string FIND_ALL_COMMAND = "ScriptFindAll";
-        private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
-        private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
-
         private Dialog _dialog;
         private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
-        private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
-
-        private string _lastSearchText = string.Empty;
-        private bool _lastCaseSensitive = false;
-        private AGSEditor _agsEditor;
 
         public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
+            : base(agsEditor)
         {
-            _dialog = dialogToEdit;
-            _agsEditor = agsEditor;
-
             InitializeComponent();
-            Init();
+            Init(dialogToEdit);
             this.Load += new EventHandler(DialogEditor_Load);
         }
 
-        private void Init()
+        private void Init(Dialog dialog)
         {
-            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
-            _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
-            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go To Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
+            _dialog = dialog;
+            // Also give script reference to the base class
+            base.Script = dialog;
 
             InitScintilla();
 
@@ -103,6 +84,9 @@ namespace AGS.Editor
             scintillaEditor.SetAutoCompleteSource(_dialog);
             scintillaEditor.SetText(_dialog.Script);
             scintillaEditor.EnableLineNumbers();
+
+            // Assign Scintilla reference to the base class
+            Scintilla = scintillaEditor;
         }
 
         public ScintillaWrapper ScriptEditor
@@ -113,11 +97,6 @@ namespace AGS.Editor
         public Dialog ItemToEdit
         {
             get { return _dialog; }
-        }
-
-        public MenuCommands ExtraMenu
-        {
-            get { return _extraMenu; }
         }
 
         protected override void OnKeyPressed(Keys keyData)
@@ -146,40 +125,6 @@ namespace AGS.Editor
         protected override void OnPanelClosing(bool canCancel, ref bool cancelClose)
         {
             UnregisterEvents();
-        }
-
-        protected override void OnCommandClick(string command)
-        {
-            base.OnCommandClick(command);
-            if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
-                || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
-            {
-                if (scintillaEditor.IsSomeSelectedText())
-                {
-                    _lastSearchText = scintillaEditor.SelectedText;
-                }
-                else _lastSearchText = string.Empty;
-                ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
-                    command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
-            }
-            else if (command == FIND_NEXT_COMMAND)
-            {
-                if (_lastSearchText.Length > 0)
-                {
-                    scintillaEditor.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
-                }
-            }
-            else if (command == GOTO_LINE_COMMAND)
-            {
-                GotoLineDialog gotoLineDialog = new GotoLineDialog
-                {
-                    Minimum = 1,
-                    Maximum = scintillaEditor.LineCount,
-                    LineNumber = scintillaEditor.CurrentLine + 1
-                };
-                if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
-                scintillaEditor.GoToLine(gotoLineDialog.LineNumber);
-            }
         }
 
         private String BuildCharacterKeywords()
@@ -228,13 +173,6 @@ namespace AGS.Editor
         {
             scintillaEditor.HideCurrentExecutionPoint();
             scintillaEditor.HideErrorMessagePopup();
-        }
-
-        private void ShowFindReplaceDialog(bool showReplace, bool showAll)
-        {
-            FindReplace findReplace = new FindReplace(_dialog, _agsEditor,
-                _lastSearchText, _lastCaseSensitive);
-            findReplace.ShowFindReplaceDialog(showReplace, showAll);
         }
 
         private void btnDeleteOption_Click(object sender, EventArgs e)

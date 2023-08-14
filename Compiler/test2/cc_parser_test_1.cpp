@@ -2560,6 +2560,7 @@ TEST_F(Compile1, AssignmentInParameterList1)
     ASSERT_STRNE("Ok", (compile_result >= 0) ? "Ok" : msg.c_str());
     EXPECT_NE(std::string::npos, msg.find("'='"));
 }
+
 TEST_F(Compile1, CrementAsBinary1) {
 
     // Increment operator can't be used as a binary operator.
@@ -2577,4 +2578,24 @@ TEST_F(Compile1, CrementAsBinary1) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_NE(std::string::npos, msg.find("'++'"));
     EXPECT_NE(std::string::npos, msg.find("binary"));
+}
+
+TEST_F(Compile1, ReportMissingFunction) {
+
+    // Function is called, but not defined with body or external
+    // This should be flagged naming the function
+
+    char const *inpl = "\
+        void TpNZaFLjz3ajd();   \n\
+                                \n\
+        int game_start()        \n\
+        {                       \n\
+            TpNZaFLjz3ajd();    \n\
+        }                       \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    EXPECT_NE(std::string::npos, msg.find("pNZaFLjz3ajd"));
 }

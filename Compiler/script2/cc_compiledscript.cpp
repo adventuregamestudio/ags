@@ -88,7 +88,7 @@ void AGS::ccCompiledScript::ReplaceLabels()
             CodeCell value = Label2Value.at(code[loc]);
             code[loc] = value;
         }
-        catch (const std::exception)
+        catch (const std::out_of_range)
         {
             // Can't resolve the label at 'loc', so hang on to this location
             RemainingLabels.push_back(loc);

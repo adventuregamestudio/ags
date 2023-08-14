@@ -332,15 +332,12 @@ AGS::Parser::FuncLabelMgr::FuncLabelMgr(ccCompiledScript &scrip, int kind)
     , _kind(kind)
 { }
 
-void AGS::Parser::FuncLabelMgr::TrackLabelLoc(Symbol func, CodeLoc loc)
+Symbol AGS::Parser::FuncLabelMgr::GetFirstUnresolvedFunction()
 {
-    _scrip.Labels.push_back(loc);
-}
-
-
-void AGS::Parser::FuncLabelMgr::SetLabelValue(Symbol const func, CodeCell const val)
-{
-    _scrip.Label2Value[Function2Label(func)] = val;
+    for (auto label_it = _scrip.Labels.begin(); label_it != _scrip.Labels.end(); ++label_it)
+        if (_scrip.code[*label_it] % _size == _kind)
+            return _scrip.code[*label_it] / _size;
+    return kKW_NoSymbol;
 }
 
 AGS::Parser::MarMgr::MarMgr(Parser &parser)
@@ -2757,7 +2754,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
             // We don't know the import number of this function yet, so put a label here
             // and keep track of the location in order to patch in the proper import number later on
             _scrip.code[_scrip.codesize - 1] = _importLabels.Function2Label(name_of_func);
-            _importLabels.TrackLabelLoc(name_of_func, _scrip.codesize - 1);
+            _importLabels.TrackLabelLoc(_scrip.codesize - 1);
         }
 
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
@@ -2775,7 +2772,7 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
         // We don't know yet at which address the function is going to start, so put a label here
         // and keep track of the location in order to patch in the correct address later on
         _scrip.code[_scrip.codesize - 1] = _callpointLabels.Function2Label(name_of_func);
-        _callpointLabels.TrackLabelLoc(name_of_func, _scrip.codesize - 1);
+        _callpointLabels.TrackLabelLoc(_scrip.codesize - 1);
     }
     WriteCmd(SCMD_CALL, SREG_AX);  // Do the call
     _reg_track.SetAllRegisters();
@@ -6756,14 +6753,19 @@ void AGS::Parser::Parse()
         Parse_MainPhase();
 
         _scrip.ReplaceLabels();
-        if (!_scrip.Labels.empty())
-        {
+        Symbol first_unresolved_function = _callpointLabels.GetFirstUnresolvedFunction();
+        if (kKW_NoSymbol != first_unresolved_function)
             UserError(
-                "Function '%s' has been referenced in this file but never defined",
-                _sym.GetName(_scrip.Labels[0] / 10).c_str());
-        }
+                "Local function '%s' has been referenced in this file but never defined with body",
+                _sym.GetName(first_unresolved_function).c_str());
+        first_unresolved_function = _importLabels.GetFirstUnresolvedFunction();
+        if (kKW_NoSymbol != first_unresolved_function)
+            UserError(
+                "Imported function '%s' has been referenced in this file but never defined",
+                _sym.GetName(first_unresolved_function).c_str());
 
         Parse_CheckForUnresolvedStructForwardDecls();
+
         if (FlagIsSet(_options, SCOPT_EXPORTALL))
 			Parse_ExportAllFunctions();
         Parse_BlankOutUnusedImports();

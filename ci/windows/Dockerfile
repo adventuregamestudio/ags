@@ -45,14 +45,24 @@ RUN pushd %TEMP% && \
   rd /s /q %TEMP%\Lib
 
 ARG IRRKLANG_VERSION=1.6.0
-RUN curl -fLSs http://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%.zip | tar -f - -xvzC %TEMP% irrKlang-%IRRKLANG_VERSION%/bin/dotnet-4/*.dll && \
-  mkdir Lib\irrKlang && \
-  move %TEMP%\irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll Lib\irrKlang\ && \
-  rd /s /q %TEMP%\irrKlang-%IRRKLANG_VERSION%
+RUN mkdir Lib\irrKlang && \
+  mkdir Lib\irrKlang\x86 && \
+  mkdir Lib\irrKlang\x64 && \
+  pushd %TEMP% && \
+  curl -fLOJ https://www.ambiera.at/downloads/irrKlang-32bit-%IRRKLANG_VERSION%.zip && \
+  curl -fLOJ https://www.ambiera.at/downloads/irrKlang-64bit-%IRRKLANG_VERSION%.zip && \
+  popd && \
+  tar -f %TEMP%\irrKlang-32bit-%IRRKLANG_VERSION%.zip -xvzC %TEMP% irrKlang-%IRRKLANG_VERSION%/bin/dotnet-4/*.dll && \
+  move %TEMP%\irrKlang-%IRRKLANG_VERSION%\bin\dotnet-4\*.dll Lib\irrKlang\x86\ && \
+  rd /s /q %TEMP%\irrKlang-%IRRKLANG_VERSION% && \
+  tar -f %TEMP%\irrKlang-64bit-%IRRKLANG_VERSION%.zip -xvzC %TEMP% irrKlang-64bit-%IRRKLANG_VERSION%/bin/dotnet-4-64/*.dll && \
+  move %TEMP%\irrKlang-64bit-%IRRKLANG_VERSION%\bin\dotnet-4-64\*.dll Lib\irrKlang\x64\ && \
+  rd /s /q %TEMP%\irrKlang-64bit-%IRRKLANG_VERSION%
 
 RUN mkdir Redist && \
   cd Redist && \
-  curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe
+  curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe && \
+  curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x64.exe
 
 ARG SDL_VERSION=2.24.1
 RUN mkdir Lib\SDL2 && \

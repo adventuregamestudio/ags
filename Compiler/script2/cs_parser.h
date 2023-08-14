@@ -70,13 +70,16 @@ public:
 
         // Get the label of a function, in order to insert it into the code,
         // this label will be replaced by its value later on
-        CodeCell Function2Label(Symbol func) { return func * _size + _kind; }
+        inline CodeCell Function2Label(Symbol func) { return func * _size + _kind; }
 
         // Keep track of the location of a label that needs to be replaced later on
-        void TrackLabelLoc(Symbol func, CodeLoc loc);
+        inline void TrackLabelLoc(CodeLoc loc) { _scrip.Labels.push_back(loc); }
 
         // Give the label that corresponds to 'func' the value 'val'
-        void SetLabelValue(Symbol func, CodeCell val);
+        inline void SetLabelValue(Symbol func, CodeCell val) { _scrip.Label2Value[Function2Label(func)] = val; }
+
+        // Get the first function that has not been resolved, or kKW_NoSymbol if there isn't any
+        Symbol GetFirstUnresolvedFunction();
     };
 
 private:

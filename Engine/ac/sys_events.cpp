@@ -254,27 +254,39 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 // ----------------------------------------------------------------------------
 
 // Because our game engine still uses input polling, we have to accumulate
-// key events for our internal use whenever engine have to query key input.
-static std::deque<SDL_Event> g_keyEvtQueue;
+// input events for our internal use whenever engine have to query player input.
+static std::deque<SDL_Event> g_inputEvtQueue;
 
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
-bool ags_keyevent_ready()
+InputType ags_inputevent_ready()
 {
-    return g_keyEvtQueue.size() > 0;
+    if (g_inputEvtQueue.size() == 0)
+        return kInputNone;
+    switch (g_inputEvtQueue.front().type)
+    {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+    case SDL_TEXTINPUT:
+        return kInputKeyboard;
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+        return kInputMouse;
+    default:
+        return kInputNone;
+    }
 }
 
-SDL_Event ags_get_next_keyevent()
+SDL_Event ags_get_next_inputevent()
 {
-    if (g_keyEvtQueue.size() > 0)
+    if (g_inputEvtQueue.size() > 0)
     {
-        auto evt = g_keyEvtQueue.front();
-        g_keyEvtQueue.pop_front();
+        auto evt = g_inputEvtQueue.front();
+        g_inputEvtQueue.pop_front();
         return evt;
     }
-    SDL_Event empty = {};
-    return empty;
+    return {};
 }
 
 int ags_iskeydown(eAGSKeyCode ags_key)
@@ -312,20 +324,20 @@ static void on_sdl_key_down(const SDL_Event &event)
 {
     // Engine is not structured very well yet, and we cannot pass this event where it's needed;
     // instead we save it in the queue where it will be ready whenever any component asks for one.
-    g_keyEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_key_up(const SDL_Event &event)
 {
     // Key up events are only used for reacting on mod key combinations at the moment.
-    g_keyEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_textinput(const SDL_Event &event)
 {
     // We also push text input events to the same queue, as this is only valid way to get proper
     // text interpretation of the pressed key combination based on current system locale.
-    g_keyEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 
@@ -382,9 +394,7 @@ const int MouseButton2Bits[kNumMouseButtons] =
     { 0, MouseBitLeft, MouseBitRight, MouseBitMiddle };
 
 
-// Because our game engine still uses input polling, we have to accumulate
-// mouse button events for our internal use whenever engine have to query button input.
-static std::deque<SDL_Event> g_mouseEvtQueue;
+// Latest mouse button state
 static int mouse_button_state = 0;
 // Accumulated absolute and relative mouse device motion.
 // May be retrieved by calling *acquire_absxy and *acquire_relxy functions,
@@ -398,23 +408,6 @@ static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 static int disabled_mouse_device = UINT32_MAX - 10;
 // Cached values, remember old mouse state
 static int mouse_z_was = 0;
-
-bool ags_mouseevent_ready()
-{
-    return g_mouseEvtQueue.size() > 0;
-}
-
-SDL_Event ags_get_next_mouseevent()
-{
-    if (g_mouseEvtQueue.size() > 0)
-    {
-        auto evt = g_mouseEvtQueue.front();
-        g_mouseEvtQueue.pop_front();
-        return evt;
-    }
-    SDL_Event empty = {};
-    return empty;
-}
 
 bool ags_misbuttondown(eAGSMouseButton but)
 {
@@ -455,14 +448,15 @@ static void on_sdl_mouse_down(const SDL_Event &event)
 
     sys_mouse_x = event.button.x;
     sys_mouse_y = event.button.y;
-    g_mouseEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_mouse_up(const SDL_Event &event)
 {
     sys_mouse_x = event.button.x;
     sys_mouse_y = event.button.y;
-    g_mouseEvtQueue.push_back(event);
+    // Uncomment when need to handle mouse up event in the game states
+    //g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
@@ -905,21 +899,19 @@ static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
 void ags_clear_input_state()
 {
     // clear everything related to the input state
-    g_keyEvtQueue.clear();
+    g_inputEvtQueue.clear();
     sys_modkeys = 0;
     sys_modkeys_fired = false;
-    g_mouseEvtQueue.clear();
     mouse_button_state = 0;
     ags_clear_mouse_movement();
 }
 
 void ags_clear_input_buffer()
 {
-    g_keyEvtQueue.clear();
+    g_inputEvtQueue.clear();
     // accumulated mod keys have to be cleared because they depend on key evt queue
     sys_modkeys = 0;
     sys_modkeys_fired = false;
-    g_mouseEvtQueue.clear();
     // forget about accumulated mouse movement too
     ags_clear_mouse_movement();
 }
@@ -928,18 +920,6 @@ void ags_clear_mouse_movement()
 {
     mouse_accum_relx = 0;
     mouse_accum_rely = 0;
-}
-
-// TODO: this is an awful function that should be removed eventually.
-// Must replace with proper updateable game state.
-void ags_wait_until_keypress()
-{
-    do
-    {
-        sys_evt_process_pending();
-        platform->YieldCPU();
-    } while (!ags_keyevent_ready());
-    ags_clear_input_buffer();
 }
 
 

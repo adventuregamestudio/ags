@@ -203,12 +203,10 @@ struct InventoryScreen
     void Draw(Bitmap *ds);
     void RedrawOverItem(Bitmap *ds, int isonitem);
     bool Run();
-    // Process all the buffered key events; returns if handled
-    bool RunKeyControls();
-    // Process all the buffered mouse events; returns if handled
-    bool RunMouseControls(int mx, int my, int isonitem);
+    // Process all the buffered input events; returns if handled
+    bool RunControls(int mx, int my, int isonitem);
     // Process single mouse event; returns if handled
-    bool RunMouse(eAGSMouseButton mbut, int mwheelz, int mx, int my, int isonitem);
+    bool RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem);
     void Close();
 };
 
@@ -375,9 +373,8 @@ bool InventoryScreen::Run()
         isonitem=-1;
 
     break_code = 0;
-    // Handle keyboard and mouse - in that order, mouse only if keyboard was not handled
-    if (!RunKeyControls())
-        RunMouseControls(mx, my, isonitem);
+    // Handle player's input
+    RunControls(mx, my, isonitem);
 
     // Test if need to break the loop
     if (break_code != 0)
@@ -402,32 +399,25 @@ bool InventoryScreen::Run()
     return true; // continue inventory screen loop
 }
 
-bool InventoryScreen::RunKeyControls()
+bool InventoryScreen::RunControls(int mx, int my, int isonitem)
 {
-    // Handle all the buffered key events
-    while (ags_keyevent_ready())
+    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
-        KeyInput ki;
-        if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+        if (type == kInputKeyboard)
         {
-            ags_clear_input_buffer();
-            break_code = 1;
-            return true; // always handle for any key
+            KeyInput ki;
+            if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+            {
+                ags_clear_input_buffer();
+                break_code = 1;
+                return true; // always handle for any key
+            }
         }
-    }
-    return false; // not handled
-}
-
-bool InventoryScreen::RunMouseControls(int mx, int my, int isonitem)
-{
-    // Handle all the buffered key events
-    while (ags_mouseevent_ready())
-    {
-        eAGSMouseButton mbut;
-        int mwheelz;
-        if (run_service_mb_controls(mbut, mwheelz) && !play.IsIgnoringInput())
+        else if (type == kInputMouse)
         {
-            if (RunMouse(mbut, mwheelz, mx, my, isonitem))
+            eAGSMouseButton mbut;
+            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
+                RunMouse(mbut, mx, my, isonitem))
             {
                 ags_clear_input_buffer();
                 return true; // was handled
@@ -437,8 +427,7 @@ bool InventoryScreen::RunMouseControls(int mx, int my, int isonitem)
     return false; // not handled
 }
 
-bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mwheelz,
-    int mx, int my, int isonitem)
+bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem)
 {
     if (mbut == kMouseLeft)
     {

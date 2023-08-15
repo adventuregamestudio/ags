@@ -20,6 +20,17 @@
 #include <SDL_keyboard.h>
 #include "ac/keycode.h"
 
+// Internal AGS device and event type, made as flags
+// NOTE: this matches InputType in script (with a 24-bit shift)
+enum InputType
+{
+    kInputNone      = 0x00,
+    // 0x01 is skipped for a purpose, because it has special meaning in script
+    kInputKeyboard  = 0x02,
+    kInputMouse     = 0x04,
+    kInputAny       = 0xFF
+};
+
 // Keyboard input handling
 //
 // avoid including SDL.h here, at least for now, because that leads to conflicts with allegro
@@ -69,10 +80,11 @@ inline int make_sdl_merged_mod(int mod)
     return m_mod;
 }
 
-// Tells if there are any buffered key events
-bool ags_keyevent_ready();
-// Queries for the next key event in buffer; returns uninitialized data if none was queued
-SDL_Event ags_get_next_keyevent();
+// Tells if there are any buffered input events;
+// return the InputType corresponding to the first queued event.
+InputType ags_inputevent_ready();
+// Queries for the next input event in buffer; returns uninitialized data if none was queued
+SDL_Event ags_get_next_inputevent();
 // Tells if the key is currently down, provided AGS key.
 // NOTE: for particular script codes this function returns positive if either of two keys are down.
 int ags_iskeydown(eAGSKeyCode ags_key);
@@ -88,10 +100,6 @@ extern bool sys_modkeys_fired; // tells whether mod combination had been used fo
 // Mouse input handling
 // Converts SDL mouse button code to AGS code
 eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut);
-// Tells if there are any buffered button events
-bool ags_mouseevent_ready();
-// Queries for the next button event in buffer; returns uninitialized data if none was queued
-SDL_Event ags_get_next_mouseevent();
 // Tells if the mouse button is currently down
 bool ags_misbuttondown(eAGSMouseButton but);
 // Returns recent relative mouse movement; resets accumulated values
@@ -140,9 +148,6 @@ void ags_clear_input_state();
 void ags_clear_input_buffer();
 // Clears buffered mouse movement
 void ags_clear_mouse_movement();
-// Halts execution until any user input
-// TODO: seriously not a good design, replace with event listening
-void ags_wait_until_keypress();
 
 
 // Events.

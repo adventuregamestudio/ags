@@ -478,14 +478,14 @@ struct DialogOptions
     // Runs the dialog options update;
     // returns whether should continue to run options loop, or stop
     bool Run();
-    // Process all the buffered key events; returns if handled
-    bool RunKeyControls();
+    // Process all the buffered input events; returns if handled
+    bool RunControls();
     // Process single key event; returns if handled
     bool RunKey(const KeyInput &ki);
-    // Process all the buffered mouse events; returns if handled
-    bool RunMouseControls();
     // Process single mouse event; returns if handled
-    bool RunMouse(eAGSMouseButton mbut, int mwheelz);
+    bool RunMouse(eAGSMouseButton mbut);
+    // Process mouse wheel scroll
+    bool RunMouseWheel(int mwheelz);
     void Close();
 };
 
@@ -931,9 +931,8 @@ bool DialogOptions::Run()
             mouseison = DLG_OPTION_PARSER;
     }
 
-    // Handle keyboard and mouse - in that order, mouse only if keyboard was not handled
-    if (!RunKeyControls())
-        RunMouseControls();
+    // Handle player's input
+    RunControls();
 
     // Post user input, processing changes
     // Handle default rendering changing an active option
@@ -992,20 +991,33 @@ bool DialogOptions::Run()
     return true; // continue running loop
 }
 
-bool DialogOptions::RunKeyControls()
+bool DialogOptions::RunControls()
 {
-    // Handle all the buffered key events
-    while (ags_keyevent_ready())
+    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
-        KeyInput ki;
-        if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
-            RunKey(ki))
+        if (type == kInputKeyboard)
         {
-            ags_clear_input_buffer();
-            return true; // handled by dialog options
+            KeyInput ki;
+            if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
+                RunKey(ki))
+            {
+                ags_clear_input_buffer();
+                return true; // handled by dialog options
+            }
+        }
+        else if (type == kInputMouse)
+        {
+            eAGSMouseButton mbut;
+            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
+                RunMouse(mbut))
+            {
+                ags_clear_input_buffer();
+                return true; // handled by dialog options
+            }
         }
     }
-    return false; // not handled by dialog options
+    // Finally handle mouse wheel
+    return RunMouseWheel(ags_check_mouse_wheel());
 }
 
 bool DialogOptions::RunKey(const KeyInput &ki)
@@ -1073,24 +1085,7 @@ bool DialogOptions::RunKey(const KeyInput &ki)
     return false; // not handled
 }
 
-bool DialogOptions::RunMouseControls()
-{
-    // Handle all the buffered mouse events
-    while (ags_mouseevent_ready())
-    {
-        eAGSMouseButton mbut;
-        int mwheelz;
-        if (run_service_mb_controls(mbut, mwheelz) && !play.IsIgnoringInput() &&
-            RunMouse(mbut, mwheelz))
-        {
-            ags_clear_input_buffer();
-            return true; // handled by dialog options
-        }
-    }
-    return false; // not handled by dialog options
-}
-
-bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mwheelz)
+bool DialogOptions::RunMouse(eAGSMouseButton mbut)
 {
     if (mbut > kMouseNone)
     {
@@ -1125,8 +1120,11 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mwheelz)
         }
         return true; // always treat handled, any mouse button does the same
     }
+    return false; // not handled
+}
 
-    // Mouse wheel's special handling
+bool DialogOptions::RunMouseWheel(int mwheelz)
+{
     if ((mwheelz != 0) && usingCustomRendering)
     {
         runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
@@ -1135,7 +1133,6 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mwheelz)
         needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists;
         return true; // handled
     }
-
     return false; // not handled
 }
 

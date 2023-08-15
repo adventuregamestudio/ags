@@ -492,23 +492,25 @@ bool TheoraPlayer::NextFrame()
 // Checks input events, tells if the video should be skipped
 static bool video_check_user_input(VideoSkipType skip)
 {
-    while (ags_keyevent_ready())
+    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
-        KeyInput key;
-        if (run_service_key_controls(key))
+        if (type == kInputKeyboard)
         {
-            if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
-                return true; // skip on Escape key
-            if (skip >= VideoSkipAnyKey)
-                return true;  // skip on any key
+            KeyInput key;
+            if (run_service_key_controls(key))
+            {
+                if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
+                    return true; // skip on Escape key
+                if (skip >= VideoSkipAnyKey)
+                    return true;  // skip on any key
+            }
         }
-    }
-    while (ags_mouseevent_ready())
-    {
-        eAGSMouseButton mbut;
-        int mwheelz;
-        if (run_service_mb_controls(mbut, mwheelz) && (mbut > kMouseNone) && (skip == VideoSkipKeyOrMouse))
-            return true; // skip on mouse click
+        else if (type == kInputMouse)
+        {
+            eAGSMouseButton mbut;
+            if (run_service_mb_controls(mbut) && (skip == VideoSkipKeyOrMouse))
+                return true; // skip on mouse click
+        }
     }
     return false;
 }

@@ -228,37 +228,32 @@ static void toggle_mouse_lock()
     }
 }
 
-bool run_service_mb_controls(eAGSMouseButton &out_mbut, int &mwheelz)
+bool run_service_mb_controls(eAGSMouseButton &out_mbut)
 {
     out_mbut = kMouseNone; // clear the output
-    if (!ags_mouseevent_ready())
+    if (ags_inputevent_ready() != kInputMouse)
         return false; // there was no mouse event
 
-    const SDL_Event mb_evt = ags_get_next_mouseevent();
+    const SDL_Event mb_evt = ags_get_next_inputevent();
     if (mb_evt.type == SDL_MOUSEBUTTONDOWN)
     {
         out_mbut = sdl_mbut_to_ags_but(mb_evt.button.button);
         lock_mouse_on_click();
     }
-    mwheelz = ags_check_mouse_wheel();
-    return out_mbut != kMouseNone || mwheelz != 0;
+    return out_mbut != kMouseNone;
 }
 
-// Runs default mouse button handling
-static void check_mouse_controls()
-{
-    int mongu=-1;
-    
-    mongu = gui_on_mouse_move();
+static eAGSMouseButton wasbutdown = kMouseNone;
+static int wasongui = 0;
 
-    mouse_on_iface=mongu;
+// Runs default handling of mouse movement, button state, and wheel
+static void check_mouse_state()
+{
+    mouse_on_iface = gui_on_mouse_move();
     if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
         remove_popup_interface(ifacepopped);
 
     // check mouse clicks on GUIs
-    static eAGSMouseButton wasbutdown = kMouseNone;
-    static int wasongui = 0;
-
     if ((wasbutdown > kMouseNone) && (ags_misbuttondown(wasbutdown))) {
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
@@ -267,10 +262,18 @@ static void check_mouse_controls()
         wasbutdown = kMouseNone;
     }
 
-    eAGSMouseButton mbut;
-    int mwheelz;
-    if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone) {
+    int mwheelz = ags_check_mouse_wheel();
+    if (mwheelz < 0)
+        setevent (EV_TEXTSCRIPT, kTS_MouseClick, 9);
+    else if (mwheelz > 0)
+        setevent (EV_TEXTSCRIPT, kTS_MouseClick, 8);
+}
 
+// Runs default mouse button handling
+static void check_mouse_controls()
+{
+    eAGSMouseButton mbut;
+    if (run_service_mb_controls(mbut) && mbut > kMouseNone) {
         check_skip_cutscene_mclick(mbut);
 
         if (play.fast_forward || play.IsIgnoringInput()) { /* do nothing if skipping cutscene or input disabled */ }
@@ -289,20 +292,15 @@ static void check_mouse_controls()
             // plugin took the click
             debug_script_log("Plugin handled mouse button %d", mbut);
         }
-        else if (mongu>=0) {
+        else if (mouse_on_iface >= 0) {
             if (wasbutdown == kMouseNone) {
-                gui_on_mouse_down(mongu, mbut);
+                gui_on_mouse_down(mouse_on_iface, mbut);
             }            
-            wasongui=mongu;
-            wasbutdown= mbut;
+            wasongui = mouse_on_iface;
+            wasbutdown = mbut;
         }
         else setevent(EV_TEXTSCRIPT, kTS_MouseClick, mbut);
     }
-
-    if (mwheelz < 0)
-        setevent (EV_TEXTSCRIPT, kTS_MouseClick, 9);
-    else if (mwheelz > 0)
-        setevent (EV_TEXTSCRIPT, kTS_MouseClick, 8);
 }
 
 // Runs service key controls, returns false if service key combinations were handled
@@ -314,11 +312,11 @@ static void check_mouse_controls()
 bool run_service_key_controls(KeyInput &out_key)
 {
     out_key = KeyInput(); // clear the output
-    if (!ags_keyevent_ready())
+    if (ags_inputevent_ready() != kInputKeyboard)
         return false; // there was no key event
 
     const bool old_keyhandle = (game.options[OPT_KEYHANDLEAPI] == 0);
-    const SDL_Event key_evt = ags_get_next_keyevent();
+    const SDL_Event key_evt = ags_get_next_inputevent();
     bool handled = false;
 
     // Following section is for testing for pushed and released mod-keys.
@@ -598,12 +596,18 @@ static void check_controls() {
 
     sys_evt_process_pending();
 
-    // Handle all the buffered mouse events
-    while (ags_mouseevent_ready())
-        check_mouse_controls();
-    // Handle all the buffered key events
-    while (ags_keyevent_ready())
-        check_keyboard_controls();
+    // First handle mouse state, which does not depend on down/up events
+    // (motion, wheel axis, etc)
+    check_mouse_state();
+
+    // Handle all the buffered input events
+    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    {
+        if (type == kInputKeyboard)
+            check_keyboard_controls();
+        else if (type == kInputMouse)
+            check_mouse_controls();
+    }
 }
 
 static void check_room_edges(size_t numevents_was)

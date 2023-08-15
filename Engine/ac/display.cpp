@@ -320,28 +320,14 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
             UpdateCursorAndDrawables();
             render_graphics();
 
+            // Handle player's input
             bool do_break = false;
-            while (!play.fast_forward && !do_break && ags_mouseevent_ready())
-            {
-                eAGSMouseButton mbut;
-                int mwheelz;
-                if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone)
-                {
-                    check_skip_cutscene_mclick(mbut);
-                    if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
-                    {
-                        play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
-                        do_break = true;
-                    }
-                }
-            }
-            if (do_break)
-                break;
-
-            while (!play.fast_forward && !do_break && ags_keyevent_ready())
-            {
+            for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+            { // NOTE: must handle them all in case there were engine's hotkeys too
                 KeyInput ki;
-                if (run_service_key_controls(ki))
+                eAGSMouseButton mbut;
+                if ((type == kInputKeyboard) && run_service_key_controls(ki) &&
+                    !play.fast_forward && !do_break)
                 {
                     check_skip_cutscene_keypress(ki.Key);
                     if ((skip_setting & SKIP_KEYPRESS) && !play.IsIgnoringInput() &&
@@ -351,7 +337,18 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
                         do_break = true;
                     }
                 }
+                else if ((type == kInputMouse) && run_service_mb_controls(mbut) &&
+                    !play.fast_forward && !do_break)
+                {
+                    check_skip_cutscene_mclick(mbut);
+                    if (skip_setting & SKIP_MOUSECLICK && !play.IsIgnoringInput())
+                    {
+                        play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+                        do_break = true;
+                    }
+                }
             }
+
             if (do_break)
                 break;
             

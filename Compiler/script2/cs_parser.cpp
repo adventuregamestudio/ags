@@ -3174,7 +3174,7 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
 
     if (eres.kTY_Literal == eres.Type)
     {
-        // The arrax index is known at compile time, so check it
+        // The arrax index is known at compile time, so check it as far as possible
         int const index_value = _sym[eres.Symbol].LiteralD->Value;
         if (index_value < 0)
             UserError(
@@ -3187,6 +3187,15 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
                 idx + 1u,
                 index_value,
                 dim - 1u);
+
+        if (is_dynarray && index_value > 0)
+        {
+            // We need to check the offset at runtime because we can't know the
+            // array size that has been allocated.
+            WriteCmd(SCMD_LITTOREG, SREG_AX, index_value * factor);
+            _reg_track.SetRegister(SREG_AX);
+            WriteCmd(SCMD_DYNAMICBOUNDS, SREG_AX);
+        }
         
         _marMgr.AddComponentOffset(index_value * factor);
         return;

@@ -448,7 +448,7 @@ struct DialogOptions
     short dispyp[MAXTOPICOPTIONS];
     // number of displayed options
     int numdisp;
-    // currently chosen option
+    // last chosen option
     int chose;
 
     Bitmap *tempScrn;
@@ -456,7 +456,7 @@ struct DialogOptions
 
     int curyp;
     bool needRedraw;
-    bool wantRefresh;
+    bool wantRefresh; // FIXME: merge with needRedraw? or better names
     bool usingCustomRendering;
     bool newCustomRender; // using newer (post-3.5.0 render API)
     int orixp;
@@ -469,7 +469,6 @@ struct DialogOptions
     int dirtyheight;
 
     int mouseison;
-    int mousewason;
 
     int forecol;
 
@@ -479,17 +478,13 @@ struct DialogOptions
     // Runs the dialog options update;
     // returns whether should continue to run options loop, or stop
     bool Run();
-    // Process all the buffered key events;
-    // returns whether should continue to run options loop, or stop
+    // Process all the buffered key events; returns if handled
     bool RunKeyControls();
-    // Process single key event
-    // returns whether should continue to run options loop, or stop
+    // Process single key event; returns if handled
     bool RunKey(const KeyInput &ki);
-    // Process all the buffered mouse events;
-    // returns whether should continue to run options loop, or stop
+    // Process all the buffered mouse events; returns if handled
     bool RunMouseControls();
-    // Process single mouse event
-    // returns whether should continue to run options loop, or stop
+    // Process single mouse event; returns if handled
     bool RunMouse(eAGSMouseButton mbut, int mwheelz);
     void Close();
 };
@@ -571,8 +566,7 @@ void DialogOptions::Show()
     is_textwindow = 0;
     forecol = play.dialog_options_highlight_color;
 
-    mouseison=-1;
-    mousewason=-10;
+    mouseison = -1;
     const Rect &ui_view = play.GetUIViewport();
     dirtyx = 0;
     dirtyy = 0;
@@ -862,122 +856,140 @@ bool DialogOptions::Run()
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
-      if (runGameLoopsInBackground)
-      {
+    // Optionally run full game update, otherwise only minimal auto & overlay update
+    if (runGameLoopsInBackground)
+    {
         play.disabled_user_interface++;
         UpdateGameOnce(false, ddb, dirtyx, dirtyy);
         play.disabled_user_interface--;
-      }
-      else
-      {
+    }
+    else
+    {
         update_audio_system_on_game_loop();
         UpdateCursorAndDrawables();
         render_graphics(ddb, dirtyx, dirtyy);
-      }
+    }
 
-      if (newCustomRender)
-      {
+    needRedraw = false;
+
+    // For >= 3.4.0 custom options rendering: run "dialog_options_repexec"
+    if (newCustomRender)
+    {
         runDialogOptionRepExecFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
-      }
+    }
 
-      needRedraw = false;
-
-      // Handle keyboard
-      if (!RunKeyControls())
-          return false; // end loop
-      if (needRedraw)
-          Redraw();
-
-      // Handle mouse
-      mousewason=mouseison;
-      mouseison=-1;
-      if (newCustomRender); // do not automatically detect option under mouse
-      else if (usingCustomRendering)
-      {
+    // Handle mouse over options
+    int mousewason = mouseison;
+    mouseison = -1;
+    if (newCustomRender)
+    {
+        // New custom rendering: do not automatically detect option under mouse
+    }
+    else if (usingCustomRendering)
+    {
+        // Old custom rendering
         if ((mousex >= dirtyx) && (mousey >= dirtyy) &&
             (mousex < dirtyx + tempScrn->GetWidth()) &&
             (mousey < dirtyy + tempScrn->GetHeight()))
         {
-          getDialogOptionUnderCursorFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-          run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
+            // Run "dialog_options_get_active"
+            getDialogOptionUnderCursorFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
-          if (!getDialogOptionUnderCursorFunc.atLeastOneImplementationExists)
+            if (!getDialogOptionUnderCursorFunc.atLeastOneImplementationExists)
             quit("!The script function dialog_options_get_active is not implemented. It must be present to use a custom dialogue system.");
 
-          mouseison = ccDialogOptionsRendering.activeOptionID;
+            mouseison = ccDialogOptionsRendering.activeOptionID;
         }
         else
         {
-          ccDialogOptionsRendering.activeOptionID = -1;
+            ccDialogOptionsRendering.activeOptionID = -1;
         }
-      }
-      else if (mousex >= dialog_abs_x && mousex < (dialog_abs_x + areawid) &&
-               mousey >= dlgyp && mousey < curyp)
-      {
-        mouseison=numdisp-1;
-        for (int i = 0; i < numdisp; ++i) {
-          if (mousey < dispyp[i]) { mouseison=i-1; break; }
+    }
+    else if (mousex >= dialog_abs_x && mousex < (dialog_abs_x + areawid) &&
+            mousey >= dlgyp && mousey < curyp)
+    {
+        // Default rendering: detect option under mouse
+        mouseison = numdisp-1;
+        for (int i = 0; i < numdisp; ++i)
+        {
+            if (mousey < dispyp[i]) { mouseison=i-1; break; }
         }
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
-      }
+    }
 
-      if (parserInput != nullptr) {
+    // Handle mouse over parser
+    if (parserInput)
+    {
         int relativeMousey = mousey;
         if (usingCustomRendering)
-          relativeMousey -= dirtyy;
+            relativeMousey -= dirtyy;
 
-        if ((relativeMousey > parserInput->Y) && 
+        if ((relativeMousey > parserInput->Y) &&
             (relativeMousey < parserInput->Y + parserInput->Height))
-          mouseison = DLG_OPTION_PARSER;
+            mouseison = DLG_OPTION_PARSER;
+    }
 
-        if (parserInput->IsActivated)
-          parserActivated = 1;
-      }
+    // Handle keyboard and mouse - in that order, mouse only if keyboard was not handled
+    if (!RunKeyControls())
+        RunMouseControls();
 
-      if (!RunMouseControls())
-          return false; // end loop
-      if (needRedraw)
-          Redraw();
+    // Post user input, processing changes
+    // Handle default rendering changing an active option
+    if (!usingCustomRendering)
+    {
+        needRedraw = (mousewason != mouseison);
+    }
+    // Handle new parser's state
+    if (parserInput && parserInput->IsActivated)
+    {
+        parserActivated = 1;
+    }
 
-      if (parserActivated) {
+    // Get if any option has been chosen
+    if (chose >= 0)
+    { // already have one set by default behavior
+    }
+    else if (parserActivated)
+    {
         // They have selected a custom parser-based option
-        if (!parserInput->Text.IsEmpty() != 0) {
-          chose = DLG_OPTION_PARSER;
-          return false; // end dialog options running loop
+        if (!parserInput->Text.IsEmpty() != 0)
+        {
+            chose = DLG_OPTION_PARSER;
         }
-        else {
-          parserActivated = 0;
-          parserInput->IsActivated = 0;
+        else
+        {
+            parserActivated = 0;
+            parserInput->IsActivated = 0;
         }
-      }
-      if (mousewason != mouseison) {
-        Redraw();
-        return true; // continue running loop
-      }
-      if (newCustomRender)
-      {
+    }
+    else if (newCustomRender)
+    {
+        // New custom rendering: see if RunActiveOption was called
         if (ccDialogOptionsRendering.chosenOptionID >= 0)
         {
             chose = ccDialogOptionsRendering.chosenOptionID;
             ccDialogOptionsRendering.chosenOptionID = -1;
-            return false; // end dialog options running loop
         }
-        if (ccDialogOptionsRendering.needRepaint)
-        {
-            Redraw();
-            return true; // continue running loop
-        }
-      }
+        needRedraw = ccDialogOptionsRendering.needRepaint;
+    }
 
-      update_polled_stuff();
+    // Finally, if the option has been chosen, then break the options loop
+    if (chose >= 0)
+        return false;
 
-      if (!runGameLoopsInBackground && (play.fast_forward == 0))
-      { // note if runGameLoopsInBackground then it's called inside UpdateGameOnce
-          WaitForNextFrame();
-      }
+    // Redraw if needed
+    if (needRedraw)
+        Redraw();
 
-      return true; // continue running loop
+    // Go for another options loop round
+    update_polled_stuff();
+    if (!runGameLoopsInBackground && (play.fast_forward == 0))
+    { // NOTE: if runGameLoopsInBackground then it's called inside UpdateGameOnce
+        WaitForNextFrame();
+    }
+    return true; // continue running loop
 }
 
 bool DialogOptions::RunKeyControls()
@@ -986,16 +998,14 @@ bool DialogOptions::RunKeyControls()
     while (ags_keyevent_ready())
     {
         KeyInput ki;
-        if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+        if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
+            RunKey(ki))
         {
-            if (!RunKey(ki))
-            {
-                ags_clear_input_buffer();
-                return false; // end dialog options
-            }
+            ags_clear_input_buffer();
+            return true; // handled by dialog options
         }
     }
-    return true; // continue dialog options
+    return false; // not handled by dialog options
 }
 
 bool DialogOptions::RunKey(const KeyInput &ki)
@@ -1023,16 +1033,13 @@ bool DialogOptions::RunKey(const KeyInput &ki)
                 parserInput->Text.Append(entry);
             }
             needRedraw = true;
-            return true; // continue running loop
+            return true; // handled
         }
         else if ((agskey >= eAGSKeyCodeSpace) || (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
         {
             parserInput->OnKeyPress(ki);
-            if (!parserInput->IsActivated)
-            {
-                needRedraw = true;
-                return true; // continue running loop
-            }
+            needRedraw = true;
+            return true; // handled
         }
     }
     else if (newCustomRender)
@@ -1050,37 +1057,37 @@ bool DialogOptions::RunKey(const KeyInput &ki)
             runDialogOptionTextInputHandlerFunc.params[1].SetInt32(ki.UChar);
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
+        return (old_keyhandle || (ki.UChar == 0)) || (!old_keyhandle && (ki.UChar > 0));
     }
     // Allow selection of options by keyboard shortcuts
     else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&
         agskey >= '1' && agskey <= '9')
     {
         int numkey = agskey - '1';
-        if (numkey < numdisp) {
+        if (numkey < numdisp)
+        {
             chose = disporder[numkey];
-            return false; // end dialog options running loop
+            return true; // handled
         }
     }
-    return true; // continue running loop
+    return false; // not handled
 }
 
 bool DialogOptions::RunMouseControls()
 {
-    // Handle all the buffered key events
+    // Handle all the buffered mouse events
     while (ags_mouseevent_ready())
     {
         eAGSMouseButton mbut;
         int mwheelz;
-        if (run_service_mb_controls(mbut, mwheelz) && !play.IsIgnoringInput())
+        if (run_service_mb_controls(mbut, mwheelz) && !play.IsIgnoringInput() &&
+            RunMouse(mbut, mwheelz))
         {
-            if (!RunMouse(mbut, mwheelz))
-            {
-                ags_clear_input_buffer();
-                return false; // end dialog options
-            }
+            ags_clear_input_buffer();
+            return true; // handled by dialog options
         }
     }
-    return true; // continue dialog options
+    return false; // not handled by dialog options
 }
 
 bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mwheelz)
@@ -1094,16 +1101,11 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mwheelz)
                 runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
                 runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mbut);
                 run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
-
-                if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
-                {
-                    needRedraw = true;
-                    return true; // continue running loop
-                }
+                needRedraw = runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists;
             }
-            return true; // continue running loop
         }
-        if (mouseison == DLG_OPTION_PARSER) {
+        else if (mouseison == DLG_OPTION_PARSER)
+        {
             // they clicked the text box
             parserActivated = 1;
         }
@@ -1116,31 +1118,25 @@ bool DialogOptions::RunMouse(eAGSMouseButton mbut, int mwheelz)
         else if (usingCustomRendering)
         {
             chose = mouseison;
-            return false; // end dialog options running loop
         }
         else
         {
             chose = disporder[mouseison];
-            return false; // end dialog options running loop
         }
+        return true; // always treat handled, any mouse button does the same
     }
 
-    if (usingCustomRendering)
+    // Mouse wheel's special handling
+    if ((mwheelz != 0) && usingCustomRendering)
     {
-        if (mwheelz != 0)
-        {
-            runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mwheelz < 0) ? 9 : 8);
-            run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
-
-            if (!newCustomRender)
-            {
-                if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
-                    needRedraw = true;
-            }
-        }
+        runDialogOptionMouseClickHandlerFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mwheelz < 0) ? 9 : 8);
+        run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
+        needRedraw = !newCustomRender && runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists;
+        return true; // handled
     }
-    return true; // continue running loop
+
+    return false; // not handled
 }
 
 void DialogOptions::Close()

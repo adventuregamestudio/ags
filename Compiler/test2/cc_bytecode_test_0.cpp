@@ -2057,90 +2057,7 @@ TEST_F(Bytecode0, FreeLocalPtr_RTTI) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode0, Struct01_NoRTTI) {
-
-    char const *inpl = "\
-    	struct Struct                       \n\
-		{                                   \n\
-			float Float;                    \n\
-			import int[] Func(int i);       \n\
-		};                                  \n\
-                                            \n\
-		int[] Struct::Func(int i)           \n\
-		{                                   \n\
-			int Ret[];                      \n\
-			this.Float = 0.0;               \n\
-			Ret = new int[5];               \n\
-			Ret[3] = 77;                    \n\
-			return Ret;                     \n\
-		}                                   \n\
-                                            \n\
-		void main()                         \n\
-		{                                   \n\
-			Struct S;                       \n\
-			int I[] = S.Func(-1);           \n\
-			int J = I[3];                   \n\
-		}                                   \n\
-    ";
- 
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Struct01_NoRtti", scrip);
-
-    size_t const codesize = 145;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      36,    8,   38,    0,           36,    9,   51,    0,    // 7
-      49,    1,    1,    4,           36,   10,    3,    6,    // 15
-       2,   52,    6,    3,            0,    8,    3,   36,    // 23
-      11,    6,    3,    5,           72,    3,    4,    0,    // 31
-      51,    4,   47,    3,           36,   12,   51,    4,    // 39
-      48,    2,   52,    6,            3,   77,    1,    2,    // 47
-      12,    8,    3,   36,           13,   51,    4,   48,    // 55
-       3,   29,    3,   51,            4,   50,    3,   51,    // 63
-       8,   49,   51,    4,           48,    3,   69,   30,    // 71
-       4,    2,    1,    4,            5,   36,   17,   38,    // 79
-      77,   36,   18,    6,            3,    0,   29,    3,    // 87
-      36,   19,   51,    4,           29,    2,    6,    3,    // 95
-      -1,   29,    3,   51,            8,    7,    2,   45,    // 103
-       2,    6,    3,    0,           23,    3,    2,    1,    // 111
-       4,   30,    2,   51,            0,   47,    3,    1,    // 119
-       1,    4,   36,   20,           51,    4,   48,    2,    // 127
-      52,    1,    2,   12,            7,    3,   29,    3,    // 135
-      36,   21,   51,    8,           49,    2,    1,   12,    // 143
-       5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    size_t const numfixups = 1;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int32_t fixups[] = {
-     107,  -999
-    };
-    char fixuptypes[] = {
-      2,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode0, Struct01_RTTI) {
+TEST_F(Bytecode0, Struct01) {
 
     char const *inpl = "\
     	struct Struct                       \n\
@@ -2172,7 +2089,7 @@ TEST_F(Bytecode0, Struct01_RTTI) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct01_Rtti", scrip);
-    size_t const codesize = 145;
+    size_t const codesize = 155;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -2181,20 +2098,21 @@ TEST_F(Bytecode0, Struct01_RTTI) {
        2,   52,    6,    3,            0,    8,    3,   36,    // 23
       11,    6,    3,    5,           75,    3,    3,    4,    // 31
       51,    4,   47,    3,           36,   12,   51,    4,    // 39
-      48,    2,   52,    6,            3,   77,    1,    2,    // 47
-      12,    8,    3,   36,           13,   51,    4,   48,    // 55
-       3,   29,    3,   51,            4,   50,    3,   51,    // 63
-       8,   49,   51,    4,           48,    3,   69,   30,    // 71
-       4,    2,    1,    4,            5,   36,   17,   38,    // 79
-      77,   36,   18,    6,            3,    0,   29,    3,    // 87
-      36,   19,   51,    4,           29,    2,    6,    3,    // 95
-      -1,   29,    3,   51,            8,    7,    2,   45,    // 103
-       2,    6,    3,    0,           23,    3,    2,    1,    // 111
-       4,   30,    2,   51,            0,   47,    3,    1,    // 119
-       1,    4,   36,   20,           51,    4,   48,    2,    // 127
-      52,    1,    2,   12,            7,    3,   29,    3,    // 135
-      36,   21,   51,    8,           49,    2,    1,   12,    // 143
-       5,  -999
+      48,    2,   52,    6,            3,   12,   71,    3,    // 47
+       6,    3,   77,    1,            2,   12,    8,    3,    // 55
+      36,   13,   51,    4,           48,    3,   29,    3,    // 63
+      51,    4,   50,    3,           51,    8,   49,   51,    // 71
+       4,   48,    3,   69,           30,    4,    2,    1,    // 79
+       4,    5,   36,   17,           38,   82,   36,   18,    // 87
+       6,    3,    0,   29,            3,   36,   19,   51,    // 95
+       4,   29,    2,    6,            3,   -1,   29,    3,    // 103
+      51,    8,    7,    2,           45,    2,    6,    3,    // 111
+       0,   23,    3,    2,            1,    4,   30,    2,    // 119
+      51,    0,   47,    3,            1,    1,    4,   36,    // 127
+      20,   51,    4,   48,            2,   52,    6,    3,    // 135
+      12,   71,    3,    1,            2,   12,    7,    3,    // 143
+      29,    3,   36,   21,           51,    8,   49,    2,    // 151
+       1,   12,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -2202,7 +2120,7 @@ TEST_F(Bytecode0, Struct01_RTTI) {
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-     107,  -999
+     112,  -999
     };
     char fixuptypes[] = {
       2,  '\0'
@@ -2221,6 +2139,7 @@ TEST_F(Bytecode0, Struct01_RTTI) {
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+
 TEST_F(Bytecode0, Struct02) {   
 
     // test arrays; arrays in structs;
@@ -2558,70 +2477,7 @@ TEST_F(Bytecode0, Struct05) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode0, Struct06_NoRTTI) {
-
-    // NOTE: S1.Array[3] is null, so S1.Array[3].Payload should dump
-    // when executed in real.
-
-    char const *inpl = "\
-        managed struct Struct0;                             \n\
-                                                            \n\
-        struct Struct1                                      \n\
-        {                                                   \n\
-            Struct0 *Array[];                               \n\
-        };                                                  \n\
-                                                            \n\
-        managed struct Struct0                              \n\
-        {                                                   \n\
-            int Payload;                                    \n\
-        };                                                  \n\
-                                                            \n\
-        int main()                                          \n\
-        {                                                   \n\
-            Struct1 S1;                                     \n\
-            S1.Array = new Struct0[5];                      \n\
-            S1.Array[3].Payload = 77;                       \n\
-        }                                                   \n\
-    ";
-
-    ccSetOption(SCOPT_RTTIOPS, false);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Struct06_NoRtti", scrip);
-
-    size_t const codesize = 54;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      36,   14,   38,    0,           36,   15,    6,    3,    // 7
-       0,   29,    3,   36,           16,    6,    3,    5,    // 15
-      72,    3,    4,    1,           51,    4,   47,    3,    // 23
-      36,   17,   51,    4,           48,    2,   52,    1,    // 31
-       2,   12,   48,    2,           52,    6,    3,   77,    // 39
-       8,    3,   36,   18,           51,    4,   49,    2,    // 47
-       1,    4,    6,    3,            0,    5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode0, Struct06_RTTI) {
+TEST_F(Bytecode0, Struct06) {
 
     // NOTE: S1.Array[3] is null, so S1.Array[3].Payload should dump
     // when executed in real.
@@ -2653,17 +2509,18 @@ TEST_F(Bytecode0, Struct06_RTTI) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 
     // WriteOutput("Struct06_Rtti", scrip);
-    size_t const codesize = 54;
+    size_t const codesize = 59;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
       36,   14,   38,    0,           36,   15,    6,    3,    // 7
        0,   29,    3,   36,           16,    6,    3,    5,    // 15
       75,    3,   91,    4,           51,    4,   47,    3,    // 23
-      36,   17,   51,    4,           48,    2,   52,    1,    // 31
-       2,   12,   48,    2,           52,    6,    3,   77,    // 39
-       8,    3,   36,   18,           51,    4,   49,    2,    // 47
-       1,    4,    6,    3,            0,    5,  -999
+      36,   17,   51,    4,           48,    2,   52,    6,    // 31
+       3,   12,   71,    3,            1,    2,   12,   48,    // 39
+       2,   52,    6,    3,           77,    8,    3,   36,    // 47
+      18,   51,    4,   49,            2,    1,    4,    6,    // 55
+       3,    0,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3254,7 +3111,7 @@ TEST_F(Bytecode0, Struct11_RTTI) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode0, Struct12_NoRTTI) {
+TEST_F(Bytecode0, Struct12) {
 
     // Can have managed components in non-managed struct.
     // 'SS.IntArray[i]' requires run time calculations.
@@ -3311,7 +3168,7 @@ TEST_F(Bytecode0, Struct12_NoRTTI) {
 
     // WriteOutput("Struct12_NoRtti", scrip);
 
-    size_t const codesize = 133;
+    size_t const codesize = 147;
     EXPECT_EQ(codesize, scrip.codesize);
 
     int32_t code[] = {
@@ -3319,19 +3176,21 @@ TEST_F(Bytecode0, Struct12_NoRTTI) {
        0,   29,    3,   36,           10,    6,    3,   10,    // 15
       72,    3,    4,    0,            6,    2,    4,   47,    // 23
        3,   36,   14,    6,            2,    4,   48,    2,    // 31
-      52,   36,   16,    6,            3,    7,    1,    2,    // 39
-      12,    8,    3,   36,           20,    6,    2,    4,    // 47
-      48,    2,   52,   36,           21,   29,    2,   51,    // 55
-       8,    7,    3,   30,            2,   32,    3,    4,    // 63
-      71,    3,   11,    2,            3,   36,   22,    6,    // 71
-       3,    7,    8,    3,           36,   28,    6,    2,    // 79
-       4,   48,    2,   52,           36,   29,   29,    2,    // 87
-      51,    8,    7,    3,           30,    2,   32,    3,    // 95
-       4,   71,    3,   11,            2,    3,   36,   30,    // 103
-       7,    3,   36,   24,           51,    4,    8,    3,    // 111
-      36,   36,    6,    2,            4,   48,    2,   52,    // 119
-       1,    2,   12,   36,           38,    7,    3,   36,    // 127
-      39,    2,    1,    4,            5,  -999
+      52,   36,   15,    6,            3,   12,   71,    3,    // 39
+      36,   16,    6,    3,            7,    1,    2,   12,    // 47
+       8,    3,   36,   20,            6,    2,    4,   48,    // 55
+       2,   52,   36,   21,           29,    2,   51,    8,    // 63
+       7,    3,   30,    2,           32,    3,    4,   71,    // 71
+       3,   11,    2,    3,           36,   22,    6,    3,    // 79
+       7,    8,    3,   36,           28,    6,    2,    4,    // 87
+      48,    2,   52,   36,           29,   29,    2,   51,    // 95
+       8,    7,    3,   30,            2,   32,    3,    4,    // 103
+      71,    3,   11,    2,            3,   36,   30,    7,    // 111
+       3,   36,   24,   51,            4,    8,    3,   36,    // 119
+      36,    6,    2,    4,           48,    2,   52,   36,    // 127
+      37,    6,    3,   12,           71,    3,    1,    2,    // 135
+      12,   36,   38,    7,            3,   36,   39,    2,    // 143
+       1,    4,    5,  -999
     };
     CompareCode(&scrip, codesize, code);
 
@@ -3339,111 +3198,7 @@ TEST_F(Bytecode0, Struct12_NoRTTI) {
     EXPECT_EQ(numfixups, scrip.numfixups);
 
     int32_t fixups[] = {
-      22,   29,   47,   80,        116,  -999
-    };
-    char fixuptypes[] = {
-      1,   1,   1,   1,      1,  '\0'
-    };
-    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
-
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
-TEST_F(Bytecode0, Struct12_RTTI) {
-
-    // Can have managed components in non-managed struct.
-    // 'SS.IntArray[i]' requires run time calculations.
-    // 'SS.IntArray[3]' can largely be evaluated at compile time.
-
-    char const *inpl = "\
-        struct NonManaged               \n\
-        {                               \n\
-            long Dummy;                 \n\
-            int  IntArray[];            \n\
-        } SS;                           \n\
-                                        \n\
-        int main()                      \n\
-        {                               \n\
-           int i;                       \n\
-           SS.IntArray = new int[10];   \n\
-           SS                           \n\
-             .                          \n\
-              IntArray                  \n\
-                      [                 \n\
-                       3                \n\
-                        ] = 7;          \n\
-           SS                           \n\
-             .                          \n\
-              IntArray                  \n\
-                      [                 \n\
-                       i                \n\
-                        ]               \n\
-                         = 7;           \n\
-            i =                         \n\
-                SS                      \n\
-                  .                     \n\
-                   IntArray             \n\
-                           [            \n\
-                            i           \n\
-                             ]          \n\
-                              ;         \n\
-            return                      \n\
-                SS                      \n\
-                  .                     \n\
-                   IntArray             \n\
-                           [            \n\
-                            3           \n\
-                             ]          \n\
-                              ;         \n\
-        }                               \n\
-        ";
-
-    ccSetOption(SCOPT_RTTIOPS, true);
-
-    int compileResult = cc_compile(inpl, scrip);
-
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("Struct12_Rtti", scrip);
-    size_t const codesize = 133;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      36,    8,   38,    0,           36,    9,    6,    3,    // 7
-       0,   29,    3,   36,           10,    6,    3,   10,    // 15
-      75,    3,    3,    4,            6,    2,    4,   47,    // 23
-       3,   36,   14,    6,            2,    4,   48,    2,    // 31
-      52,   36,   16,    6,            3,    7,    1,    2,    // 39
-      12,    8,    3,   36,           20,    6,    2,    4,    // 47
-      48,    2,   52,   36,           21,   29,    2,   51,    // 55
-       8,    7,    3,   30,            2,   32,    3,    4,    // 63
-      71,    3,   11,    2,            3,   36,   22,    6,    // 71
-       3,    7,    8,    3,           36,   28,    6,    2,    // 79
-       4,   48,    2,   52,           36,   29,   29,    2,    // 87
-      51,    8,    7,    3,           30,    2,   32,    3,    // 95
-       4,   71,    3,   11,            2,    3,   36,   30,    // 103
-       7,    3,   36,   24,           51,    4,    8,    3,    // 111
-      36,   36,    6,    2,            4,   48,    2,   52,    // 119
-       1,    2,   12,   36,           38,    7,    3,   36,    // 127
-      39,    2,    1,    4,            5,  -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    size_t const numfixups = 5;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int32_t fixups[] = {
-      22,   29,   47,   80,        116,  -999
+      22,   29,   54,   87,        123,  -999
     };
     char fixuptypes[] = {
       1,   1,   1,   1,      1,  '\0'

@@ -315,7 +315,7 @@ bool DirectoryIterator::Next()
 #else
     DIR *dir = _i->dir;
     struct dirent *&ent = _i->ent;
-    while ((ent = readdir(dir)) != nullptr)
+    while (dir && ((ent = readdir(dir)) != nullptr))
     {
         // Always skip "." and ".."
         if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)

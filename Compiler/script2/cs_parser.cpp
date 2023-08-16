@@ -2614,17 +2614,21 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
     {
         // Find the start of the next parameter
         param_num--;
-        int paren_nesting_depth = 0;
+        int delimiter_nesting_depth = 0;
         for (size_t paramListIdx = end_of_current_param - 1; true; paramListIdx--)
         {
-            // going backwards so ')' increases the depth level
-            Symbol const &idx = parameters[paramListIdx];
-            if (kKW_CloseParenthesis == idx)
-                paren_nesting_depth++;
-            if (kKW_OpenParenthesis == idx)
-                paren_nesting_depth--;
-            if ((paren_nesting_depth == 0 && kKW_Comma == idx) ||
-                (paren_nesting_depth < 0 && kKW_OpenParenthesis == idx))
+            Symbol const &symb = parameters[paramListIdx];
+            if (_sym.IsDelimeter(symb))
+            {
+                bool const is_opener = _sym[symb].DelimeterD->Opening;
+                // Going backwards so closers increase the nesting depth, openers decrease it
+                if (is_opener)
+                    delimiter_nesting_depth--;
+                else
+                    delimiter_nesting_depth++;
+            }
+            if ((delimiter_nesting_depth == 0 && kKW_Comma == symb) ||
+                (delimiter_nesting_depth < 0 && kKW_OpenParenthesis == symb))
             {
                 start_of_current_param = paramListIdx + 1;
                 break;
@@ -2686,25 +2690,31 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
 // Count parameters, check that all the parameters are non-empty; find closing paren
 void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters,Symbol name_of_func, size_t &index_of_close_paren, size_t &num_supplied_args)
 {
-    size_t paren_nesting_depth = 1;
+    size_t delimeter_nesting_depth = 1;
     num_supplied_args = 1;
     size_t param_idx;
     bool found_param_symbol = false;
 
     for (param_idx = 1; param_idx < parameters.Length(); param_idx++)
     {
-        Symbol const &idx = parameters[param_idx];
+        Symbol const &symb = parameters[param_idx];
 
-        if (kKW_OpenParenthesis == idx)
-            paren_nesting_depth++;
-        if (kKW_CloseParenthesis == idx)
+        if (_sym.IsDelimeter(symb))
         {
-            paren_nesting_depth--;
-            if (paren_nesting_depth == 0)
-                break;
+            bool const is_opener = _sym[symb].DelimeterD->Opening;
+            if (is_opener)
+            {
+                delimeter_nesting_depth++;
+            }
+            else
+            {
+                delimeter_nesting_depth--;
+                if (0 == delimeter_nesting_depth)
+                    break;
+            }
         }
 
-        if (paren_nesting_depth == 1 && kKW_Comma == idx)
+        if (1 ==delimeter_nesting_depth && kKW_Comma == symb)
         {
             num_supplied_args++;
             if (found_param_symbol)
@@ -2729,7 +2739,7 @@ void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters,
         InternalError("Missing ')' at the end of the parameter list");
     if (index_of_close_paren > 0 && kKW_Comma == parameters[index_of_close_paren - 1])
         UserError("Last argument in function call is empty");
-    if (paren_nesting_depth > 0)
+    if (delimeter_nesting_depth > 0)
         InternalError("Parser confused near '%s'", _sym.GetName(name_of_func).c_str());
 }
 
@@ -2838,7 +2848,13 @@ void AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bool fu
     }
 	
     if (num_supplied_args > num_func_args && !_sym.IsVariadicFunc(name_of_func))
-        UserError("Expected just %d parameters but found %d", num_func_args, num_supplied_args);
+        UserError(
+            (1 == num_func_args) ?
+                "Expected just %d parameter but found %d" :
+                "Expected just %d parameters but found %d",
+            num_func_args,
+            num_supplied_args);
+
     // ASSERT at this point, the number of parameters is okay
 
     // Push the explicit arguments of the function

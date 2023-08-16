@@ -4804,6 +4804,65 @@ TEST_F(Bytecode0, Func18) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
+TEST_F(Bytecode0, Func19) {
+
+    // Call function with an element of a multidimensional array as a parameter
+    // One dimension is a CTC
+    // The way that the array index is written must not interfere
+    // with the way function parameters are delimited
+
+    char const *inpl = "\
+        int Foo(int t)                  \n\
+        {                               \n\
+            int Arr[2, 3, 5];           \n\
+            return Foo(Arr[t][1, t]);   \n\
+        }";
+
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+
+    // WriteOutput("Func19", scrip);
+    size_t const codesize = 66;
+    EXPECT_EQ(codesize, scrip.codesize);
+
+    int32_t code[] = {
+      36,    2,   38,    0,           36,    3,   51,    0,    // 7
+      63,  120,    1,    1,          120,   36,    4,   51,    // 15
+     128,    7,    3,   46,            3,    2,   32,    3,    // 23
+      60,   51,  120,   11,            2,    3,   29,    2,    // 31
+      51,  132,    7,    3,           30,    2,   46,    3,    // 39
+       5,   32,    3,    4,            1,    2,   20,   11,    // 47
+       2,    3,    7,    3,           29,    3,    6,    3,    // 55
+       0,   23,    3,    2,            1,    4,    2,    1,    // 63
+     120,    5,  -999
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 1;
+    EXPECT_EQ(numfixups, scrip.numfixups);
+
+    int32_t fixups[] = {
+      56,  -999
+    };
+    char fixuptypes[] = {
+      2,  '\0'
+    };
+    CompareFixups(&scrip, numfixups, fixups, fixuptypes);
+
+    int const numimports = 0;
+    std::string imports[] = {
+     "[[SENTINEL]]"
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.numexports);
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.stringssize);
+}
+
 TEST_F(Bytecode0, Export) {
     
     char const *inpl = "\

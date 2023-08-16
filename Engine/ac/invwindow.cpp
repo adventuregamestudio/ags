@@ -375,6 +375,7 @@ bool InventoryScreen::Run()
     break_code = 0;
     // Handle player's input
     RunControls(mx, my, isonitem);
+    ags_clear_input_buffer();
 
     // Test if need to break the loop
     if (break_code != 0)
@@ -408,7 +409,6 @@ bool InventoryScreen::RunControls(int mx, int my, int isonitem)
             KeyInput ki;
             if (run_service_key_controls(ki) && !play.IsIgnoringInput())
             {
-                ags_clear_input_buffer();
                 break_code = 1;
                 return true; // always handle for any key
             }
@@ -419,8 +419,7 @@ bool InventoryScreen::RunControls(int mx, int my, int isonitem)
             if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
                 RunMouse(mbut, mx, my, isonitem))
             {
-                ags_clear_input_buffer();
-                return true; // was handled
+                return true; // handled
             }
         }
     }
@@ -474,7 +473,6 @@ bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mx, int my, int isonite
                 }
 
                 need_redraw = true;
-                return true; // handled
             }
             else
             {

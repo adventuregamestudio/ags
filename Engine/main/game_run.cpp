@@ -608,6 +608,8 @@ static void check_controls() {
         else if (type == kInputMouse)
             check_mouse_controls();
     }
+
+    ags_clear_input_buffer();
 }
 
 static void check_room_edges(size_t numevents_was)

@@ -933,6 +933,7 @@ bool DialogOptions::Run()
 
     // Handle player's input
     RunControls();
+    ags_clear_input_buffer();
 
     // Post user input, processing changes
     // Handle default rendering changing an active option
@@ -1001,8 +1002,7 @@ bool DialogOptions::RunControls()
             if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
                 RunKey(ki))
             {
-                ags_clear_input_buffer();
-                return true; // handled by dialog options
+                return true; // handled
             }
         }
         else if (type == kInputMouse)
@@ -1011,8 +1011,7 @@ bool DialogOptions::RunControls()
             if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
                 RunMouse(mbut))
             {
-                ags_clear_input_buffer();
-                return true; // handled by dialog options
+                return true; // handled
             }
         }
     }

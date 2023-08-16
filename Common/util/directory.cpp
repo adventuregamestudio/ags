@@ -228,9 +228,11 @@ DirectoryIterator DirectoryIterator::Open(const String &path)
     // Android can opendir, but also has a AAssetDir,
     // which reads virtual file list from APK
     DIR *dir = opendir(path.GetCStr());
-    diint.aadir.reset(new AndroidADir(path));
-    if (!dir && !*diint.aadir)
+    std::unique_ptr<AndroidADir> aadir(new AndroidADir(path));
+    if (!dir && !*aadir) // test for valid aadir
         return {}; // return invalid object
+    diint.dir = dir;
+    diint.aadir = std::move(aadir);
 #else
     // On POSIX use standard opendir/readdir
     DIR *dir = opendir(path.GetCStr());
@@ -268,8 +270,7 @@ const FileEntry &DirectoryIterator::GetEntry() const
     if (!_i->ent)
     {
          // CHECKME: can AAsset report time?
-        _fileEntry = FileEntry(
-            _current, true, false, 0 /* ?? */);
+        _fileEntry = FileEntry(_current, true, false, 0 /* ?? */);
         return _fileEntry;
     }
 #endif // AGS_PLATFORM_OS_ANDROID

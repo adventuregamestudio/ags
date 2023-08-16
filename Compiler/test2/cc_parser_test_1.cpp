@@ -1105,6 +1105,26 @@ TEST_F(Compile1, FuncUndeclaredStruct2) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
 }
 
+TEST_F(Compile1, FuncCall_MultidimensionalArray) {
+
+    // Function parameter should be recognized as 1 parameter
+    // even though it is an element of a 3-dimensional array.
+
+    char const *inpl = "\
+        int arr[10, 10, 10];        \n\
+        import void Test(int x);    \n\
+                                    \n\
+        int game_start()            \n\
+        {                           \n\
+            Test(arr[1, 2, 3]);     \n\
+        }                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    std::string msg = last_seen_cc_error();
+    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}
+
 TEST_F(Compile1, TypeEqComponent) {
 
     // A struct component may have the same name as a type.
@@ -2599,3 +2619,4 @@ TEST_F(Compile1, ReportMissingFunction) {
     ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
     EXPECT_NE(std::string::npos, msg.find("pNZaFLjz3ajd"));
 }
+

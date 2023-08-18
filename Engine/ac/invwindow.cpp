@@ -196,12 +196,17 @@ struct InventoryScreen
     int btn_ok_sprite;
 
     int break_code;
+    int need_redraw;
 
     void Prepare();
     int  Redraw();
     void Draw(Bitmap *ds);
     void RedrawOverItem(Bitmap *ds, int isonitem);
     bool Run();
+    // Process all the buffered input events; returns if handled
+    bool RunControls(int mx, int my, int isonitem);
+    // Process single mouse event; returns if handled
+    bool RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem);
     void Close();
 };
 
@@ -351,139 +356,193 @@ bool InventoryScreen::Run()
     // Run() can be called in a loop, so keep events going.
     sys_evt_process_pending();
 
-    // Handle all the buffered key events
-    bool do_break = false;
-    while (ags_keyevent_ready())
+    need_redraw = false;
+
+    update_audio_system_on_game_loop();
+    refresh_gui_screen();
+
+    // Handle mouse over options
+    // NOTE: this is because old code was working with full game screen
+    const int mx = ::mousex - windowxp;
+    const int my = ::mousey - windowyp;
+
+    int isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
+    if (my<=bartop) isonitem=-1;
+    else if (isonitem >= 0) isonitem += top_item;
+    if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
+        isonitem=-1;
+
+    break_code = 0;
+    // Handle player's input
+    RunControls(mx, my, isonitem);
+    ags_clear_input_buffer();
+
+    // Test if need to break the loop
+    if (break_code != 0)
     {
-        KeyInput ki;
-        if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+        return false;
+    }
+    // Handle redraw
+    if (need_redraw)
+    {
+        break_code = Redraw();
+        return break_code == 0;
+    }
+    else if (isonitem!=wasonitem)
+    {
+        RedrawOverItem(get_gui_screen(), isonitem);
+    }
+    wasonitem=isonitem;
+
+    // Go for another inventory loop round
+    update_polled_stuff();
+    WaitForNextFrame();
+    return true; // continue inventory screen loop
+}
+
+bool InventoryScreen::RunControls(int mx, int my, int isonitem)
+{
+    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    {
+        if (type == kInputKeyboard)
         {
-            ags_clear_input_buffer();
-            do_break = true; // end inventory screen loop
+            KeyInput ki;
+            if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
+                !IsAGSServiceKey(ki.Key))
+            {
+                break_code = 1;
+                return true; // always handle for any key
+            }
+        }
+        else if (type == kInputMouse)
+        {
+            eAGSMouseButton mbut;
+            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput() &&
+                RunMouse(mbut, mx, my, isonitem))
+            {
+                return true; // handled
+            }
         }
     }
-    if (do_break)
-        return false;
+    return false; // not handled
+}
 
-        update_audio_system_on_game_loop();
-        refresh_gui_screen();
-
-        // NOTE: this is because old code was working with full game screen
-        const int mx = ::mousex - windowxp;
-        const int my = ::mousey - windowyp;
-
-        int isonitem=((my-bartop)/highest)*ICONSPERLINE+(mx-barxp)/widest;
-        if (my<=bartop) isonitem=-1;
-        else if (isonitem >= 0) isonitem += top_item;
-        if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
-            isonitem=-1;
-
-        eAGSMouseButton mbut;
-        int mwheelz;
-        if (!run_service_mb_controls(mbut, mwheelz) || play.IsIgnoringInput()) {
-            mbut = kMouseNone;
+bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem)
+{
+    if (mbut == kMouseLeft)
+    {
+        if ((my < 0) | (my > windowhit) | (mx < 0) | (mx > windowwid))
+        {
+            return false; // not handled
         }
+        else if (my < buttonyp)
+        {
+            // Left click on item
+            int clickedon=isonitem;
+            if (clickedon<0)
+                return false; // not handled
+            play.used_inv_on = dii[clickedon].num;
 
-        if (mbut == kMouseLeft) {
-            if ((my<0) | (my>windowhit) | (mx<0) | (mx>windowwid))
-                return true; // continue inventory screen loop
-            if (my<buttonyp) {
-                int clickedon=isonitem;
-                if (clickedon<0) return true; // continue inventory screen loop
-                play.used_inv_on = dii[clickedon].num;
+            if (cmode==MODE_LOOK)
+            {
+                RunInventoryInteraction(dii[clickedon].num, MODE_LOOK); 
+                // in case the script did anything to the screen, redraw it
+                UpdateGameOnce();
+                need_redraw = true;
+            }
+            else if (cmode==MODE_USE)
+            {
+                // set the activeinv so the script can check it
+                int activeinvwas = playerchar->activeinv;
+                playerchar->activeinv = toret;
 
-                if (cmode==MODE_LOOK) {
-                    RunInventoryInteraction(dii[clickedon].num, MODE_LOOK); 
-                    // in case the script did anything to the screen, redraw it
-                    UpdateGameOnce();
+                RunInventoryInteraction(dii[clickedon].num, MODE_USE);
 
-                    break_code = Redraw();
-                    return break_code == 0;
+                // if the script didn't change it, then put it back
+                if (playerchar->activeinv == toret)
+                    playerchar->activeinv = activeinvwas;
+
+                // in case the script did anything to the screen, redraw it
+                UpdateGameOnce();
+
+                // They used the active item and lost it
+                if (playerchar->inv[toret] < 1)
+                {
+                    cmode = CURS_ARROW;
+                    set_mouse_cursor(cmode);
+                    toret = -1;
                 }
-                else if (cmode==MODE_USE) {
-                    // set the activeinv so the script can check it
-                    int activeinvwas = playerchar->activeinv;
-                    playerchar->activeinv = toret;
 
-                    RunInventoryInteraction(dii[clickedon].num, MODE_USE);
-
-                    // if the script didn't change it, then put it back
-                    if (playerchar->activeinv == toret)
-                        playerchar->activeinv = activeinvwas;
-
-                    // in case the script did anything to the screen, redraw it
-                    UpdateGameOnce();
-
-                    // They used the active item and lost it
-                    if (playerchar->inv[toret] < 1) {
-                        cmode = CURS_ARROW;
-                        set_mouse_cursor(cmode);
-                        toret = -1;
-                    }
-
-                    break_code = Redraw();
-                    return break_code == 0;
-                }
+                need_redraw = true;
+            }
+            else
+            {
+                // Select item
                 toret=dii[clickedon].num;
-                //        int plusng=play.using; play.using=toret;
                 update_inv_cursor(toret);
                 set_mouse_cursor(MODE_USE);
                 cmode=MODE_USE;
-                //        play.using=plusng;
-                //        break;
-                return true; // continue inventory screen loop
             }
-            else {
-                if (mx >= windowwid-ARROWBUTTONWID) {
-                    if (my < buttonyp + get_fixed_pixel_size(2) + ARROWBUTTONWID) {
-                        if (top_item > 0) {
-                            top_item -= ICONSPERLINE;
-
-                            break_code = Redraw();
-                            return break_code == 0;
-                        }
-                    }
-                    else if ((my < buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
-                        top_item += ICONSPERLINE;
-                        
-                        break_code = Redraw();
-                        return break_code == 0;
-                    }
-                    return true; // continue inventory screen loop
-                }
-
-                int buton=mx-2;
-                if (buton<0) return true; // continue inventory screen loop
-                buton/=BUTTONWID;
-                if (buton>=3) return true; // continue inventory screen loop
-                if (buton==0) { toret=-1; cmode=MODE_LOOK; }
-                else if (buton==1) { cmode=CURS_ARROW; toret=-1; }
-                else
+            return true; // handled
+        }
+        else
+        {
+            // Left click on button strip
+            if (mx >= windowwid-ARROWBUTTONWID)
+            {
+                // Scroll arrows
+                if (my < buttonyp + get_fixed_pixel_size(2) + ARROWBUTTONWID)
                 {
-                    return false; // end inventory screen loop
+                    if (top_item > 0)
+                    {
+                        top_item -= ICONSPERLINE;
+                        need_redraw = true;
+                    }
                 }
+                else if ((my < buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems))
+                {
+                    top_item += ICONSPERLINE;
+                    need_redraw = true;
+                }
+                return true; // handled
+            }
+
+            int buton=mx-2;
+            if (buton<0)
+                return false; // no button, not handled
+            buton/=BUTTONWID;
+            if (buton>=3)
+                return false; // no button, not handled
+            // Click on actual button
+            if (buton==0)
+            { // Switch to Look cursor
+                toret=-1; cmode=MODE_LOOK;
                 set_mouse_cursor(cmode);
             }
-        }
-        else if (mbut == kMouseRight) {
-            if (cmode == CURS_ARROW)
-                cmode = MODE_LOOK;
+            else if (buton==1)
+            { // Switch to Select (arrow) cursor
+                cmode=CURS_ARROW; toret=-1;
+                set_mouse_cursor(cmode);
+            }
             else
-                cmode = CURS_ARROW;
-            toret = -1;
-            set_mouse_cursor(cmode);
+            { // Close inventory screen
+                break_code = 1;
+            }
+            return true; // handled
         }
-        else if (isonitem!=wasonitem)
-        {
-            RedrawOverItem(get_gui_screen(), isonitem);
-        }
-        wasonitem=isonitem;
+    }
+    else if (mbut == kMouseRight)
+    {
+        if (cmode == CURS_ARROW)
+            cmode = MODE_LOOK;
+        else
+            cmode = CURS_ARROW;
+        toret = -1;
+        set_mouse_cursor(cmode);
+        return true; // handled
+    }
 
-        update_polled_stuff();
-
-        WaitForNextFrame();
-
-    return true; // continue inventory screen loop
+    return false; // other mouse button, not handled
 }
 
 void InventoryScreen::Close()

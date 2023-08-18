@@ -391,14 +391,23 @@ void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle)
 void IAGSEngine::PollSystem () {
     update_polled_stuff();
     ags_domouse();
-    eAGSMouseButton mbut;
-    int mwheelz;
-    if (run_service_mb_controls(mbut, mwheelz) && mbut > kMouseNone && !play.IsIgnoringInput())
-        pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut);
-    KeyInput kp;
-    if (run_service_key_controls(kp) && !play.IsIgnoringInput()) {
-        pl_run_plugin_hooks(AGSE_KEYPRESS, kp.Key);
+    // Handle all the buffered input events
+    for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
+    {
+        eAGSMouseButton mbut;
+        KeyInput ki;
+        if (type == kInputKeyboard)
+        {
+            if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+                pl_run_plugin_hooks(AGSE_KEYPRESS, ki.Key);
+        }
+        else if (type == kInputMouse)
+        {
+            if (run_service_mb_controls(mbut) && !play.IsIgnoringInput())
+                pl_run_plugin_hooks(AGSE_MOUSECLICK, mbut);
+        }
     }
+    
 }
 AGSCharacter* IAGSEngine::GetCharacter (int32 charnum) {
     if (charnum >= game.numcharacters)

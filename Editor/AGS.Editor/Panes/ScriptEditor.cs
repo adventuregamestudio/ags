@@ -31,10 +31,12 @@ namespace AGS.Editor
         private Room _room;
         private int _roomNumber;
 
+        // Menu item refs, for tracking their state
+        MenuCommand _menuCmdWordWrap;
+
         private AutoComplete.BackgroundCacheUpdateStatusChangedHandler _autocompleteUpdateHandler;
         private Action<Script> _showMatchingScript;
         private bool _allowZoomToFunction = true;
-
 
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
@@ -123,14 +125,15 @@ namespace AGS.Editor
 
         protected override void AddEditMenuCommands(MenuCommands commands)
         {
-            commands.Commands.Add(new MenuCommand(TOGGLE_WORD_WRAP, "Word Wrap"));
+            _menuCmdWordWrap = new MenuCommand(TOGGLE_WORD_WRAP, "Word Wrap", "WordWrapIcon");
+            commands.Commands.Add(_menuCmdWordWrap);
             commands.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
             commands.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
         }
 
         protected override void AddToolbarCommands(List<MenuCommand> toolbar)
         {
-            toolbar.Add(new MenuCommand(TOGGLE_WORD_WRAP, "Word Wrap", "WordWrapIcon"));
+            toolbar.Add(_menuCmdWordWrap);
         }
 
         protected override void AddCtxCommands(ContextMenuStrip menuStrip)
@@ -507,11 +510,9 @@ namespace AGS.Editor
             base.UpdateToolbarButtonsIfNecessary();
 
             bool isWrapEnabled = scintilla.GetWrapMode() != ScintillaNET.WrapMode.None;
-            // FIXME: don't use literal indexes to access these commands!!
-            if ((ToolbarIcons[5].Checked != isWrapEnabled))
+            if ((_menuCmdWordWrap.Checked != isWrapEnabled))
             {
-                ToolbarIcons[5].Checked = isWrapEnabled;
-                ExtraMenu.Commands[19].Checked = isWrapEnabled;
+                _menuCmdWordWrap.Checked = isWrapEnabled;
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }

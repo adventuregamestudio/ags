@@ -6,6 +6,7 @@ namespace AGS.Types
     {
         None,
         RLE,
-        LZW
+        LZW,
+        PNG
     }
 }

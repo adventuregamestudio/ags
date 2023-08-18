@@ -23,7 +23,6 @@
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
 #include "util/lzw.h"
-#include "util/png.h"
 #include "util/memorystream.h"
 #if AGS_PLATFORM_ENDIAN_BIG
 #include "util/bbop.h"
@@ -478,85 +477,4 @@ void png_decompress(uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* in
     std::vector<uint8_t> in_buf(in_sz);
     in->Read(in_buf.data(), in_sz);
     pngexpand(in_buf.data(), in_sz, data, data_sz);
-}
-
-void save_png(Stream* out, const Bitmap* bmpp, const RGB(*pal)[256])
-{
-    // First write original bitmap's info and data into the memory buffer
-    // NOTE: we must do this purely for backward compatibility with old room formats:
-    // because they also included bmp width and height into compressed data!
-    std::vector<uint8_t> membuf;
-    {
-        VectorStream memws(membuf, kStream_Write);
-        int w = bmpp->GetWidth(), h = bmpp->GetHeight(), bpp = bmpp->GetBPP();
-        memws.WriteInt32(w * bpp); // stride
-        memws.WriteInt32(h);
-        switch (bpp)
-        {
-        case 1: memws.Write(bmpp->GetData(), w * h * bpp); break;
-        case 2: memws.WriteArrayOfInt16(reinterpret_cast<const int16_t*>(bmpp->GetData()), w * h); break;
-        case 4: memws.WriteArrayOfInt32(reinterpret_cast<const int32_t*>(bmpp->GetData()), w * h); break;
-        default: assert(0); break;
-        }
-    }
-
-    // Open same buffer for reading, and begin writing compressed data into the output
-    VectorStream mem_in(membuf);
-    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
-    if (pal)
-        out->WriteArray(*pal, sizeof(RGB), 256);
-    else
-        out->WriteByteCount(0, sizeof(RGB) * 256);
-    out->WriteInt32((uint32_t)mem_in.GetLength());
-
-    // reserve space for compressed size
-    soff_t cmpsz_at = out->GetPosition();
-    out->WriteInt32(0);
-    pngcompress(&mem_in, out);
-    soff_t toret = out->GetPosition();
-    out->Seek(cmpsz_at, kSeekBegin);
-    soff_t compressed_sz = (toret - cmpsz_at) - sizeof(uint32_t);
-    out->WriteInt32(compressed_sz); // write compressed size
-    // seek back to the end of the output stream
-    out->Seek(toret, kSeekBegin);
-}
-
-std::unique_ptr<Bitmap> load_png(Stream* in, int dst_bpp, RGB(*pal)[256])
-{
-    // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
-    if (pal)
-        in->Read(*pal, sizeof(RGB) * 256);
-    else
-        in->Seek(sizeof(RGB) * 256);
-    const size_t uncomp_sz = in->ReadInt32();
-    const size_t comp_sz = in->ReadInt32();
-    const soff_t end_pos = in->GetPosition() + comp_sz;
-
-    // First decompress data into the memory buffer
-    std::vector<uint8_t> inbuf(comp_sz);
-    std::vector<uint8_t> membuf(uncomp_sz);
-    in->Read(inbuf.data(), comp_sz);
-    pngexpand(inbuf.data(), comp_sz, membuf.data(), uncomp_sz);
-
-    // Open same buffer for reading and get params and pixels
-    VectorStream mem_in(membuf);
-    int stride = mem_in.ReadInt32(); // width * bpp
-    int height = mem_in.ReadInt32();
-    std::unique_ptr<Bitmap> bmm(BitmapHelper::CreateBitmap((stride / dst_bpp), height, dst_bpp * 8));
-    if (!bmm) return nullptr; // out of mem?
-
-    size_t num_pixels = stride * height / dst_bpp;
-    uint8_t* bmp_data = bmm->GetDataForWriting();
-    switch (dst_bpp)
-    {
-    case 1: mem_in.Read(bmp_data, num_pixels); break;
-    case 2: mem_in.ReadArrayOfInt16(reinterpret_cast<int16_t*>(bmp_data), num_pixels); break;
-    case 4: mem_in.ReadArrayOfInt32(reinterpret_cast<int32_t*>(bmp_data), num_pixels); break;
-    default: assert(0); break;
-    }
-
-    if (in->GetPosition() != end_pos)
-        in->Seek(end_pos, kSeekBegin);
-
-    return bmm;
 }

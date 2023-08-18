@@ -20,7 +20,7 @@
 #include "util/bbop.h"
 #include "util/stream.h"
 #include <algorithm>
-#include <zlib.h>
+#include "zlib1213/zlib.h"
 
 using namespace AGS::Common;
 
@@ -28,98 +28,6 @@ using namespace AGS::Common;
 // ensure this doesn't get compiled to .NET IL
 #pragma unmanaged
 #endif
-
-int insert(int, int);
-void _delete(int);
-
-#define N 4096
-#define F 16
-#define THRESHOLD 3
-
-#define dad (node+1)
-#define lson (node+1+N)
-#define rson (node+1+N+N)
-#define root (node+1+N+N+N)
-#define NIL -1
-
-uint8_t* lzbuffer;
-int* node;
-int pos;
-size_t outbytes = 0;
-
-int insert(int i, int run)
-{
-    int c, j, k, l, n, match;
-    int* p;
-
-    c = NIL;
-
-    k = l = 1;
-    match = THRESHOLD - 1;
-    p = &root[lzbuffer[i]];
-    lson[i] = rson[i] = NIL;
-    while ((j = *p) != NIL) {
-        for (n = std::min(k, l); n < run && (c = (lzbuffer[j + n] - lzbuffer[i + n])) == 0; n++);
-
-        if (n > match) {
-            match = n;
-            pos = j;
-        }
-
-        if (c < 0) {
-            p = &lson[j];
-            k = n;
-        }
-        else if (c > 0) {
-            p = &rson[j];
-            l = n;
-        }
-        else {
-            dad[j] = NIL;
-            dad[lson[j]] = lson + i - node;
-            dad[rson[j]] = rson + i - node;
-            lson[i] = lson[j];
-            rson[i] = rson[j];
-            break;
-        }
-    }
-
-    dad[i] = p - node;
-    *p = i;
-    return match;
-}
-
-void _delete(int z)
-{
-    int j;
-
-    if (dad[z] != NIL) {
-        if (rson[z] == NIL)
-            j = lson[z];
-        else if (lson[z] == NIL)
-            j = rson[z];
-        else {
-            j = lson[z];
-            if (rson[j] != NIL) {
-                do {
-                    j = rson[j];
-                } while (rson[j] != NIL);
-
-                node[dad[j]] = lson[j];
-                dad[lson[j]] = dad[j];
-                lson[j] = lson[z];
-                dad[lson[z]] = lson + j - node;
-            }
-
-            rson[j] = rson[z];
-            dad[rson[z]] = rson + j - node;
-        }
-
-        dad[j] = dad[z];
-        node[dad[z]] = j;
-        dad[z] = NIL;
-    }
-}
 
 bool pngcompress(Stream* input, Stream* output) {
     z_stream stream;

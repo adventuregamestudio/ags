@@ -153,6 +153,8 @@ target_sources(common
     util/path.cpp
     util/path_ex.cpp
     util/path.h
+    util/png.cpp
+    util/png.h
     util/proxystream.cpp
     util/proxystream.h
     util/resourcecache.h

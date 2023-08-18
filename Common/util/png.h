@@ -19,6 +19,7 @@
 #define __AGS_CN_UTIL__PNG_H
 
 #include "core/types.h"
+#include "zlib1213/zlib.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

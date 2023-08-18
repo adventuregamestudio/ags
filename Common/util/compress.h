@@ -44,9 +44,6 @@ std::unique_ptr<Common::Bitmap> load_lzw(Common::Stream *in, int dst_bpp, RGB (*
 // PNG compression
 void png_compress(const uint8_t* data, size_t data_sz, int image_bpp, Common::Stream* out);
 void png_decompress(uint8_t* data, size_t data_sz, int image_bpp, Common::Stream* in, size_t in_sz);
-// Saves bitmap with an optional palette compressed by PNG
-void save_png(Common::Stream* out, const Common::Bitmap* bmpp, const RGB(*pal)[256] = nullptr);
-// Loads bitmap decompressing
-std::unique_ptr<Common::Bitmap> load_png(Common::Stream* in, int dst_bpp, RGB(*pal)[256] = nullptr);
+
 
 #endif // __AC_COMPRESS_H

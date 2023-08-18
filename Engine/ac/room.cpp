@@ -94,7 +94,6 @@ extern unsigned int loopcounter;
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
-extern int mouse_z_was;
 extern bool logScriptRTTI;
 
 extern CCHotspot ccDynamicHotspot;
@@ -827,7 +826,6 @@ void first_room_initialization() {
     starting_room = displayed_room;
     playerchar->prevroom = -1;
     set_loop_counter(0);
-    mouse_z_was = sys_mouse_z;
     // Reset background frame state
     play.bg_frame = 0;
     play.bg_frame_locked = (thisroom.Options.Flags & kRoomFlag_BkgFrameLocked) != 0;

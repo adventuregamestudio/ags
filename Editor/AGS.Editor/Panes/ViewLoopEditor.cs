@@ -23,6 +23,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_PASTE_OVER_LOOP_FLIPPED = "PasteLoopFlipped";
         private const string MENU_ITEM_FLIP_ALL = "FlipAll";
         private const string MENU_ITEM_QUICK_IMPORT = "QuickImport";
+        private const string MENU_ITEM_QUICK_IMPORT_REPLACE = "QuickImportReplace";
         private Icon _audioIcon = Resources.ResourceManager.GetIcon("audio_indicator.ico");
         private Icon _delayIcon = Resources.ResourceManager.GetIcon("delay_indicator.ico");
         private const int ICON_WIDTH = 16;
@@ -299,6 +300,7 @@ namespace AGS.Editor
             }
             menu.Items.Add(new ToolStripMenuItem("Flip all frames in loop", null, onFlipAllClicked, MENU_ITEM_FLIP_ALL));
             menu.Items.Add(new ToolStripMenuItem("Add all sprites from folder...", null, onQuickImportFromFolderClicked, MENU_ITEM_QUICK_IMPORT));
+            menu.Items.Add(new ToolStripMenuItem("Replace with all sprites from folder...", null, onQuickImportReplaceFromFolderClicked, MENU_ITEM_QUICK_IMPORT_REPLACE));
 
             menu.Show(this, menuPosition);
         }
@@ -381,7 +383,7 @@ namespace AGS.Editor
             this.Invalidate();
         }
 
-        private void onQuickImportFromFolderClicked(object sender, EventArgs e)
+        private void QuickImportFromFolder(bool clear_loop_frames)
         {
             Sprite chosen = SpriteChooser.ShowSpriteChooser(_LastSelectedSprite, "Select the first sprite to be imported from the folder");
             if (chosen != null)
@@ -389,6 +391,7 @@ namespace AGS.Editor
                 SpriteFolder parent = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindFolderThatContainsSprite(chosen.Number);
                 if (parent != null)
                 {
+                    if (clear_loop_frames) _loop.Frames.Clear();
                     for (int i = 0; i < parent.Sprites.Count; i++)
                     {
                         if (parent.Sprites[i].Number >= chosen.Number)
@@ -396,8 +399,8 @@ namespace AGS.Editor
                             _loop.Frames.Add(new ViewFrame
                             {
                                 ID = _loop.Frames.Count,
-                                Image = parent.Sprites[i].Number,                                
-                            });                            
+                                Image = parent.Sprites[i].Number,
+                            });
                         }
                     }
 
@@ -405,7 +408,17 @@ namespace AGS.Editor
                     this.Invalidate();
                 }
             }
-        }                
+        }
+
+        private void onQuickImportFromFolderClicked(object sender, EventArgs e)
+        {
+            QuickImportFromFolder(false);
+        }
+
+        private void onQuickImportReplaceFromFolderClicked(object sender, EventArgs e)
+        {
+            QuickImportFromFolder(true);
+        }
 
         private void LoadColorTheme(ColorTheme t)
         {

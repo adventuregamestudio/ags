@@ -409,6 +409,8 @@ void remove_screen_overlay(int type)
     screenover[type] = ScreenOverlay();
     if (type >= OVER_FIRSTFREE)
         over_free_ids.push(type);
+
+    reset_drawobj_for_overlay(type);
 }
 
 void remove_all_overlays()

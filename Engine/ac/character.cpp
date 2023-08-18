@@ -2741,10 +2741,10 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             if (game.options[OPT_SPEECHTYPE] == 3)
                 overlay_x = 0;
             face_talking = add_screen_overlay(false,overlay_x,ovr_yp,ovr_type,closeupface);
+            facetalkview = useview;
+            facetalkloop = 0;
             facetalkframe = 0;
             facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
-            facetalkloop = 0;
-            facetalkview = useview;
             facetalkrepeat = (isThought) ? 0 : 1;
             facetalkBlinkLoop = 0;
             facetalkAllowBlink = 1;
@@ -2755,6 +2755,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 facetalkchar->blinktimer = facetalkchar->blinkinterval;
             textcol=-textcol;
             overlayPositionFixed = true;
+            // Process the first portrait view frame
+            const int frame_vol = charextra[facetalkchar->index_id].GetFrameSoundVolume(facetalkchar);
+            CheckViewFrame(facetalkview, facetalkloop, facetalkframe, frame_vol);
         }
         else if (useview >= 0) {
             // Lucasarts-style speech

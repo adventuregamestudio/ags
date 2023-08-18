@@ -1,9 +1,7 @@
 using AGS.Types;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using System.Collections;
 using System.Drawing;
-using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
@@ -12,7 +10,8 @@ namespace AGS.Editor
 {
     public partial class OutputPanel : DockContent
     {
-		private const string MENU_ITEM_COPY_TO_CLIPBOARD = "CopyToClipboard";
+        private const string MENU_ITEM_COPYSEL_TO_CLIPBOARD = "CopySelectedToClipboard";
+        private const string MENU_ITEM_COPYALL_TO_CLIPBOARD = "CopyAllToClipboard";
         private CompileMessages _errors;
 
         public OutputPanel()
@@ -82,11 +81,15 @@ namespace AGS.Editor
 					else
 					{
 						newItem.ImageKey = "CompileWarningIcon";
-					}
-					
-					if (error.ScriptName.Length > 0)
+                    }
+
+                    if (error.ScriptName.Length > 0)
                     {
                         newItem.SubItems.Add(error.ScriptName);
+                    }
+
+                    if (error.ScriptName.Length > 0 && error.LineNumber > 0)
+                    {
                         newItem.SubItems.Add(error.LineNumber.ToString());
                     }
                 }
@@ -105,35 +108,60 @@ namespace AGS.Editor
 				ListViewItem selectedItem = lvwResults.SelectedItems[0];
 				if (selectedItem.SubItems.Count > 1)
 				{
-					Factory.GUIController.ZoomToFile(selectedItem.SubItems[1].Text, Convert.ToInt32(selectedItem.SubItems[2].Text));
+                    int line = 0;
+                    if (selectedItem.SubItems.Count > 2 && selectedItem.SubItems[2].Text != null &&
+                        int.TryParse(selectedItem.SubItems[2].Text, out line))
+                    {
+                        Factory.GUIController.ZoomToFile(selectedItem.SubItems[1].Text, Convert.ToInt32(selectedItem.SubItems[2].Text));
+                    }
 				}
 			}
         }
 
+        private string ListItemToString(ListViewItem item)
+        {
+            string thisLine = string.Empty;
+            if (item.SubItems.Count > 1)
+            {
+                thisLine += item.SubItems[1].Text;  // filename
+
+                if ((item.SubItems.Count > 2) &&
+                    (item.SubItems[2].Text.Length > 0))
+                {
+                    thisLine += "(" + item.SubItems[2].Text + ")";  // line number
+                }
+            }
+            if (thisLine.Length > 0)
+            {
+                thisLine += ": ";
+            }
+            thisLine += item.SubItems[0].Text;
+            return thisLine;
+        }
+
+        private string ListItemsToString(IEnumerable list)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(ListViewItem item in list)
+            {
+                sb.Append(ListItemToString(item));
+                sb.Append(Environment.NewLine);
+            }
+            return sb.ToString();
+        }
+
 		private void ContextMenuEventHandler(object sender, EventArgs e)
 		{
-			String result = string.Empty;
-			foreach (ListViewItem item in lvwResults.Items)
-			{
-				String thisLine = string.Empty;
-				if (item.SubItems.Count > 1)
-				{
-					thisLine += item.SubItems[1].Text;  // filename
-
-					if ((item.SubItems.Count > 2) &&
-						(item.SubItems[2].Text.Length > 0))
-					{
-						thisLine += "(" + item.SubItems[2].Text + ")";  // line number
-					}
-				}
-				if (thisLine.Length > 0)
-				{
-					thisLine += ": ";
-				}
-				thisLine += item.SubItems[0].Text;
-				thisLine += Environment.NewLine;
-				result += thisLine;
-			}
+            String result = string.Empty;
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            if (item.Name == MENU_ITEM_COPYSEL_TO_CLIPBOARD)
+            {
+                result = ListItemsToString(lvwResults.SelectedItems);
+            }
+            else if (item.Name == MENU_ITEM_COPYALL_TO_CLIPBOARD)
+            {
+                result = ListItemsToString(lvwResults.Items);
+            }
 
             if (!string.IsNullOrEmpty(result))
             {
@@ -143,9 +171,9 @@ namespace AGS.Editor
 
 		private void ShowContextMenu(Point menuPosition)
 		{
-			EventHandler onClick = new EventHandler(ContextMenuEventHandler);
 			ContextMenuStrip menu = new ContextMenuStrip();
-			menu.Items.Add(new ToolStripMenuItem("Copy contents to clipboard", null, onClick, MENU_ITEM_COPY_TO_CLIPBOARD));
+            menu.Items.Add(new ToolStripMenuItem("Copy selection to clipboard", null, ContextMenuEventHandler, MENU_ITEM_COPYSEL_TO_CLIPBOARD));
+            menu.Items.Add(new ToolStripMenuItem("Copy all to clipboard", null, ContextMenuEventHandler, MENU_ITEM_COPYALL_TO_CLIPBOARD));
 
 			menu.Show(lvwResults, menuPosition);
 		}

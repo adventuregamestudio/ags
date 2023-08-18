@@ -173,8 +173,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         }
 
         eAGSMouseButton mbut;
-        int mwheelz;
-        if (run_service_mb_controls(mbut, mwheelz) && (mbut > kMouseNone) && !play.IsIgnoringInput()) {
+        if (run_service_mb_controls(mbut) && (mbut > kMouseNone) && !play.IsIgnoringInput()) {
             if (checkcontrols()) {
                 cscim->id = controlid;
                 cscim->code = CM_COMMAND;

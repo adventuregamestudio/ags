@@ -41,7 +41,7 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
 int sdl_mod_to_ags_mod(const SDL_KeyboardEvent &kbevt);
 
 // Converts SDL scan and key codes to the ags keycode
-KeyInput ags_keycode_from_sdl(const SDL_Event &event, bool old_keyhandle)
+KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
 {
     KeyInput ki;
     // Normally SDL_TEXTINPUT is meant for handling the printable characters,
@@ -249,36 +249,44 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 
 
 
-
-
-
-
 // ----------------------------------------------------------------------------
 // KEYBOARD INPUT
 // ----------------------------------------------------------------------------
 
 // Because our game engine still uses input polling, we have to accumulate
-// key events for our internal use whenever engine have to query key input.
-static std::deque<SDL_Event> g_keyEvtQueue;
+// input events for our internal use whenever engine have to query player input.
+static std::deque<SDL_Event> g_inputEvtQueue;
 
 int sys_modkeys = 0; // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
-bool ags_keyevent_ready()
+InputType ags_inputevent_ready()
 {
-    return g_keyEvtQueue.size() > 0;
+    if (g_inputEvtQueue.size() == 0)
+        return kInputNone;
+    switch (g_inputEvtQueue.front().type)
+    {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+    case SDL_TEXTINPUT:
+        return kInputKeyboard;
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+        return kInputMouse;
+    default:
+        return kInputNone;
+    }
 }
 
-SDL_Event ags_get_next_keyevent()
+SDL_Event ags_get_next_inputevent()
 {
-    if (g_keyEvtQueue.size() > 0)
+    if (g_inputEvtQueue.size() > 0)
     {
-        auto evt = g_keyEvtQueue.front();
-        g_keyEvtQueue.pop_front();
+        auto evt = g_inputEvtQueue.front();
+        g_inputEvtQueue.pop_front();
         return evt;
     }
-    SDL_Event empty = {};
-    return empty;
+    return {};
 }
 
 int ags_iskeydown(eAGSKeyCode ags_key)
@@ -316,20 +324,20 @@ static void on_sdl_key_down(const SDL_Event &event)
 {
     // Engine is not structured very well yet, and we cannot pass this event where it's needed;
     // instead we save it in the queue where it will be ready whenever any component asks for one.
-    g_keyEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_key_up(const SDL_Event &event)
 {
     // Key up events are only used for reacting on mod key combinations at the moment.
-    g_keyEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_textinput(const SDL_Event &event)
 {
     // We also push text input events to the same queue, as this is only valid way to get proper
     // text interpretation of the pressed key combination based on current system locale.
-    g_keyEvtQueue.push_back(event);
+    g_inputEvtQueue.push_back(event);
 }
 
 
@@ -346,9 +354,21 @@ enum eAGSMouseButtonMask
     MouseBitX2       = 0x10
 };
 
+eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut)
+{
+    switch (sdl_mbut)
+    {
+    case SDL_BUTTON_LEFT: return kMouseLeft;
+    case SDL_BUTTON_RIGHT: return kMouseRight;
+    case SDL_BUTTON_MIDDLE: return kMouseMiddle;
+    default: return kMouseNone;
+    }
+}
+
 static int sdl_button_to_mask(int button)
 {
-    switch (button) {
+    switch (button)
+    {
     case SDL_BUTTON_LEFT: return MouseBitLeft;
     case SDL_BUTTON_RIGHT: return MouseBitRight;
     case SDL_BUTTON_MIDDLE: return MouseBitMiddle;
@@ -358,15 +378,24 @@ static int sdl_button_to_mask(int button)
     return 0;
 }
 
-/* [sonneveld]
-Button tracking:
-On OSX, some tap to click up/down events happen too quickly to be detected on the polled mouse_b global variable.
-Instead we accumulate button presses over a couple of timer loops.
-// TODO: check again when/if we replace polling with different event handling.
-*/
+static int ags_button_to_sdl(eAGSMouseButton but)
+{
+    switch (but)
+    {
+    case kMouseLeft: return SDL_BUTTON_LEFT;
+    case kMouseRight: return SDL_BUTTON_RIGHT;
+    case kMouseMiddle: return SDL_BUTTON_MIDDLE;
+    default: return 0;
+    }
+}
+
+// Convert mouse button id to flags
+const int MouseButton2Bits[kNumMouseButtons] =
+    { 0, MouseBitLeft, MouseBitRight, MouseBitMiddle };
+
+
+// Latest mouse button state
 static int mouse_button_state = 0;
-static int mouse_accum_button_state = 0;
-static auto mouse_clear_at_time = AGS_Clock::now();
 // Accumulated absolute and relative mouse device motion.
 // May be retrieved by calling *acquire_absxy and *acquire_relxy functions,
 // after which these are reset, until next motion event is received.
@@ -377,17 +406,24 @@ volatile int sys_mouse_z = 0; // mouse wheel position
 static int mouse_accum_relx = 0, mouse_accum_rely = 0;
 // ID of a device, which mouse events will be ignored (for easier testing)
 static int disabled_mouse_device = UINT32_MAX - 10;
+// Cached values, remember old mouse state
+static int mouse_z_was = 0;
 
-// Returns accumulated mouse button state and clears internal cache by timer
-static int mouse_button_poll()
+bool ags_misbuttondown(eAGSMouseButton but)
 {
-    auto now = AGS_Clock::now();
-    int result = mouse_button_state | mouse_accum_button_state;
-    if (now >= mouse_clear_at_time) {
-        mouse_accum_button_state = 0;
-        mouse_clear_at_time = now + std::chrono::milliseconds(50);
-    }
-    return result;
+    return (mouse_button_state & MouseButton2Bits[but]) != 0;
+}
+
+void ags_simulate_mouseclick(eAGSMouseButton but)
+{
+    SDL_Event sdlevent = {};
+    sdlevent.type = SDL_MOUSEBUTTONDOWN;
+    sdlevent.button.button = ags_button_to_sdl(but);
+    sdlevent.button.x = sys_mouse_x; // CHECKME later if this is okay...
+    sdlevent.button.y = sys_mouse_y;
+    SDL_PushEvent(&sdlevent);
+    sdlevent.type = SDL_MOUSEBUTTONUP;
+    SDL_PushEvent(&sdlevent);
 }
 
 // Syncs all the emulated mouse devices with the real sys_mouse_* coords
@@ -405,21 +441,22 @@ static void on_sdl_mouse_motion(const SDL_MouseMotionEvent &event)
     sync_sys_mouse_pos();
 }
 
-static void on_sdl_mouse_button(const SDL_MouseButtonEvent &event)
+static void on_sdl_mouse_down(const SDL_Event &event)
 {
-    if (event.which == disabled_mouse_device)
+    if (event.button.which == disabled_mouse_device)
         return;
 
-    sys_mouse_x = event.x;
-    sys_mouse_y = event.y;
+    sys_mouse_x = event.button.x;
+    sys_mouse_y = event.button.y;
+    g_inputEvtQueue.push_back(event);
+}
 
-    if (event.type == SDL_MOUSEBUTTONDOWN) {
-        mouse_button_state |= sdl_button_to_mask(event.button);
-        mouse_accum_button_state |= sdl_button_to_mask(event.button);
-    }
-    else {
-        mouse_button_state &= ~sdl_button_to_mask(event.button);
-    }
+static void on_sdl_mouse_up(const SDL_Event &event)
+{
+    sys_mouse_x = event.button.x;
+    sys_mouse_y = event.button.y;
+    // Uncomment when need to handle mouse up event in the game states
+    //g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
@@ -430,59 +467,25 @@ static void on_sdl_mouse_wheel(const SDL_MouseWheelEvent &event)
     sys_mouse_z += event.y;
 }
 
-int butwas = 0;
-static eAGSMouseButton mgetbutton()
+void ags_mouse_acquire_relxy(int &x, int &y)
 {
-    const int butis = mouse_button_poll();
-    if ((butis > 0) & (butwas > 0))
-        return kMouseNone;  // don't allow holding button down
-
-    butwas = butis;
-    if (butis & MouseBitLeft)
-        return kMouseLeft;
-    else if (butis & MouseBitRight)
-        return kMouseRight;
-    else if (butis & MouseBitMiddle)
-        return kMouseMiddle;
-    return kMouseNone;
-}
-
-extern eAGSMouseButton simulatedClick;
-int mouse_z_was = 0;
-// Convert mouse button id to flags
-const int MouseButton2Bits[kNumMouseButtons] =
-    { 0, MouseBitLeft, MouseBitRight, MouseBitMiddle };
-
-bool ags_misbuttondown(eAGSMouseButton but)
-{
-    return (mouse_button_poll() & MouseButton2Bits[but]) != 0;
-}
-
-eAGSMouseButton ags_mgetbutton()
-{
-    if (simulatedClick > kMouseNone)
-    {
-        eAGSMouseButton mbut = simulatedClick;
-        simulatedClick = kMouseNone;
-        return mbut;
-    }
-    return mgetbutton();
-}
-
-void ags_mouse_acquire_relxy(int &x, int &y) {
     x = mouse_accum_relx;
     y = mouse_accum_rely;
     mouse_accum_relx = 0;
     mouse_accum_rely = 0;
 }
 
-void ags_domouse() {
+void ags_domouse()
+{
     Mouse::Poll();
 }
 
-int ags_check_mouse_wheel() {
-    if (game.options[OPT_MOUSEWHEEL] == 0) { return 0; }
-    if (sys_mouse_z == mouse_z_was) { return 0; }
+int ags_check_mouse_wheel()
+{
+    if (game.options[OPT_MOUSEWHEEL] == 0)
+        return 0;
+    if (sys_mouse_z == mouse_z_was)
+        return 0;
 
     int result = 0;
     if (sys_mouse_z > mouse_z_was)
@@ -896,23 +899,19 @@ static void on_sdl_touch_motion(const SDL_TouchFingerEvent &event)
 void ags_clear_input_state()
 {
     // clear everything related to the input state
-    g_keyEvtQueue.clear();
+    g_inputEvtQueue.clear();
     sys_modkeys = 0;
     sys_modkeys_fired = false;
     mouse_button_state = 0;
-    mouse_accum_button_state = 0;
-    mouse_clear_at_time = AGS_Clock::now();
     ags_clear_mouse_movement();
 }
 
 void ags_clear_input_buffer()
 {
-    g_keyEvtQueue.clear();
+    g_inputEvtQueue.clear();
     // accumulated mod keys have to be cleared because they depend on key evt queue
     sys_modkeys = 0;
     sys_modkeys_fired = false;
-    // accumulated state only helps to not miss clicks
-    mouse_accum_button_state = 0;
     // forget about accumulated mouse movement too
     ags_clear_mouse_movement();
 }
@@ -921,18 +920,6 @@ void ags_clear_mouse_movement()
 {
     mouse_accum_relx = 0;
     mouse_accum_rely = 0;
-}
-
-// TODO: this is an awful function that should be removed eventually.
-// Must replace with proper updateable game state.
-void ags_wait_until_keypress()
-{
-    do
-    {
-        sys_evt_process_pending();
-        platform->YieldCPU();
-    } while (!ags_keyevent_ready());
-    ags_clear_input_buffer();
 }
 
 
@@ -1001,8 +988,10 @@ void sys_evt_process_one(const SDL_Event &event) {
         on_sdl_mouse_motion(event.motion);
         break;
     case SDL_MOUSEBUTTONDOWN:
+        on_sdl_mouse_down(event);
+        break;
     case SDL_MOUSEBUTTONUP:
-        on_sdl_mouse_button(event.button);
+        on_sdl_mouse_up(event);
         break;
     case SDL_MOUSEWHEEL:
         on_sdl_mouse_wheel(event.wheel);

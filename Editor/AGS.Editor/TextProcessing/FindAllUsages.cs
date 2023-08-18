@@ -11,13 +11,13 @@ namespace AGS.Editor.TextProcessing
     public class FindAllUsages
     {
         ScintillaWrapper _scintilla;
-        ScriptEditor _scriptEditor;
+        ScriptEditorBase _scriptEditor;
         AGSEditor _agsEditor;
-        Script _script;
+        IScript _script;
         List<ScriptTokenReference> _results;
 
-        public FindAllUsages(ScintillaWrapper scintilla, ScriptEditor editor, 
-            Script script, AGSEditor agsEditor)
+        public FindAllUsages(ScintillaWrapper scintilla, ScriptEditorBase editor, 
+            IScript script, AGSEditor agsEditor)
         {
             this._scriptEditor = editor;
             this._scintilla = scintilla;

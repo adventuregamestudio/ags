@@ -52,8 +52,6 @@ Bitmap *dotted_mouse_cursor = nullptr;
 IDriverDependantBitmap *mouseCursor = nullptr;
 Bitmap *blank_mouse_cursor = nullptr;
 
-eAGSMouseButton simulatedClick = kMouseNone;
-
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
 void Mouse_SetVisible(int isOn) {
@@ -313,7 +311,7 @@ int IsModeEnabled(int which) {
 }
 
 void SimulateMouseClick(int button_id) {
-    simulatedClick = static_cast<eAGSMouseButton>(button_id);
+    ags_simulate_mouseclick(static_cast<eAGSMouseButton>(button_id));
 }
 
 void Mouse_EnableControl(bool on)

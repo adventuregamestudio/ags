@@ -285,7 +285,7 @@ build_editor_task:
   build_debug_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     set "UseEnv=true" &&
-    copy C:\Lib\irrKlang\*.dll Editor\References\ &&
+    copy C:\Lib\irrKlang\x86\*.dll Editor\References\ &&
     cd Solutions &&
     cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86;!LIB!" &&
     set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&
@@ -298,6 +298,12 @@ build_editor_task:
     cmd /v:on /c "!RUNNER! Editor\AGS.Editor.Tests\bin\Debug\AGS.Editor.Tests.dll --result=TestResult-junit.xml;transform=nunit3-junit.xslt"
   build_release_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    set "UseEnv=true" &&
+    copy C:\Lib\irrKlang\x86\*.dll Editor\References\ &&
+    cd Solutions &&
+    cmd /v:on /c "set "LIB=C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6\Lib\um\x86;!LIB!" &&
+    set "PATH=C:\Program Files (x86)\Windows Kits\8.1\bin\x86;!PATH!" &&
+    msbuild AGS.Editor.Full.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform="Mixed Platforms" /maxcpucount /nologo"
     set "UseEnv=true" &&
     copy C:\Lib\irrKlang\*.dll Editor\References\ &&
     cd Solutions &&
@@ -457,7 +463,7 @@ ags_windows_tests_task:
   build_legacy_compiler_test_runner_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
-    msbuild Compiler.Lib.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
+    msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
   run_legacy_compiler_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
   build_new_compiler_test_runner_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&

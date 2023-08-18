@@ -2,15 +2,20 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 using AGS.Types;
 
 namespace AGS.Editor.Components
 {
     class AudioComponent : BaseComponentWithFolders<AudioClip, AudioClipFolder>, IProjectTreeSingleClickHandler
     {
+        private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         private const string COMMAND_ADD_AUDIO = "AddAudioClipCmd";
+        private const string COMMAND_REIMPORT_ALL = "ReimportAllAudioClipCmd";
         private const string COMMAND_PROPERTIES = "PropertiesAudioClip";
         private const string COMMAND_RENAME = "RenameAudioClip";
+        private const string COMMAND_REIMPORT = "ReimportAudioClip";
+        private const string COMMAND_REPLACE = "ReplaceAudioClip";
         private const string COMMAND_DELETE = "DeleteAudioClip";
         private const string COMMAND_CHANGE_ID = "ChangeAudioID";
         private const string SPEECH_NODE_ID = "DummySpeechNode";
@@ -75,12 +80,26 @@ namespace AGS.Editor.Components
         private void RecreateDocument()
         {
             _editor = new AudioEditor();
-            _document = new ContentDocument(_editor, "Audio", this, AUDIO_CLIP_TYPE_ICON);             
+            _document = new ContentDocument(_editor, "Audio", this, AUDIO_CLIP_TYPE_ICON);
         }
 
         public override string ComponentID
         {
             get { return ComponentIDs.Audio; }
+        }
+
+        private static string GetCacheFileNameWithoutPath(int index, string sourceFileName)
+        {
+            return string.Format("{0}{1:X6}{2}", COMPILED_AUDIO_FILENAME_PREFIX, index, Path.GetExtension(sourceFileName));
+        }
+
+        private static string GetCacheFileName(int index, string sourceFileName)
+        {
+            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(index, sourceFileName));
+        }
+        public static string GetCacheFileName(AudioClip clip)
+        {
+            return Path.Combine(AudioClip.AUDIO_CACHE_DIRECTORY, GetCacheFileNameWithoutPath(clip.Index, clip.SourceFileName));
         }
 
         protected override void ItemCommandClick(string controlID)
@@ -93,6 +112,10 @@ namespace AGS.Editor.Components
                     ImportAudioFiles(selectedFiles);
                 }
             }
+            else if (controlID == COMMAND_REIMPORT_ALL)
+            {
+                CommandForceReimportOfAllAudioClips();
+            }
             else if (controlID == COMMAND_RENAME)
             {
                 _guiController.ProjectTree.BeginLabelEdit(this, _rightClickedID);
@@ -102,8 +125,18 @@ namespace AGS.Editor.Components
                 AudioClip clipToDelete = _items[_rightClickedID];
                 if (_guiController.ShowQuestion("Are you sure you want to delete audio '" + clipToDelete.ScriptName + "'?") == System.Windows.Forms.DialogResult.Yes)
                 {
-                    DeleteSingleItem(clipToDelete);                    
+                    DeleteSingleItem(clipToDelete);
                 }
+            }
+            else if (controlID == COMMAND_REIMPORT)
+            {
+                AudioClip clipToReimport = _items[_rightClickedID];
+                CommandForceReimportOfAudioClip(clipToReimport);
+            }
+            else if (controlID == COMMAND_REPLACE)
+            {
+                AudioClip clipToReplace = _items[_rightClickedID];
+                ReplaceAudioClipSource(clipToReplace);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
@@ -303,10 +336,6 @@ namespace AGS.Editor.Components
                     parentFolder.Items.Add(newClip);
                     lastAddedId = newClip.ScriptName;
                 }
-                else
-                {
-                    _guiController.ShowMessage("The file '" + fileName + "' could not be imported. The file type was not recognised.", MessageBoxIconType.Warning);
-                }
             }
 
             if (lastAddedId != null)
@@ -316,26 +345,69 @@ namespace AGS.Editor.Components
             }
         }
 
+        private AudioClip SetAudioClipSourceFile(AudioClip clip, string fullSourceFileName)
+        {
+            if (string.IsNullOrEmpty(fullSourceFileName))
+            {
+                return null;
+            }
+
+            if(!File.Exists(fullSourceFileName))
+            {
+                throw new FileNotFoundException("Source file doesn't exist.");
+            }
+            else
+            {
+                var clipSourceFileInfo = new FileInfo(fullSourceFileName);
+                if(clipSourceFileInfo.Length == 0) throw new FileLoadException("New source file is empty.");
+            }
+
+            string fileExtension = Path.GetExtension(fullSourceFileName).ToLower();
+            if (!_fileTypeMappings.ContainsKey(fileExtension))
+            {
+                throw new InvalidOperationException("Source file is of unsupported type.");
+            }
+
+            string sourceFileName = Utilities.GetRelativeToProjectPath(fullSourceFileName);
+            string newCacheFileName = GetCacheFileName(clip.Index, sourceFileName);
+            DateTime lastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
+
+            string previousCacheFileName = clip.CacheFileName;
+
+            Utilities.CopyFileAndSetDestinationWritable(sourceFileName, newCacheFileName);
+            if (!string.IsNullOrEmpty(previousCacheFileName) && previousCacheFileName != newCacheFileName) 
+                Utilities.TryDeleteFile(previousCacheFileName); // in case extension is different
+
+            Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
+
+            clip.FileType = _fileTypeMappings[fileExtension];
+            clip.FileLastModifiedDate = lastModifiedDate;
+            clip.SourceFileName = sourceFileName;
+            clip.CacheFileName = newCacheFileName;
+            clip.Length = TimeSpan.MinValue;
+            _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+            return clip;
+        }
+
+
         private AudioClip CreateAudioClipForFile(string sourceFileName)
         {
-            string fileExtension = Path.GetExtension(sourceFileName).ToLower();
-            if (_fileTypeMappings.ContainsKey(fileExtension))
+            string newScriptName = EnsureScriptNameIsUnique(
+                Path.GetFileNameWithoutExtension(sourceFileName), AudioClip.MAX_SCRIPTNAME_LENGTH);
+            AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
+            newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
+
+            try
             {
-                string newScriptName = EnsureScriptNameIsUnique(
-                    Path.GetFileNameWithoutExtension(sourceFileName), AudioClip.MAX_SCRIPTNAME_LENGTH);
-                AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
-                newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
-                newClip.SourceFileName = Utilities.GetRelativeToProjectPath(sourceFileName);
-                newClip.FileType = _fileTypeMappings[fileExtension];
-                newClip.FileLastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
-                newClip.Length = TimeSpan.MinValue;
-                Utilities.CopyFileAndSetDestinationWritable(sourceFileName, newClip.CacheFileName);
-                Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
-                    Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
-                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                return newClip;
+                SetAudioClipSourceFile(newClip, sourceFileName);
             }
-            return null;
+            catch (Exception ex)
+            {
+                _guiController.ShowMessage("Failed to create audio clip from " + sourceFileName + " with message " + ex.Message + ".", MessageBoxIconType.Warning);
+                return null;
+            }
+            return newClip;
         }
 
         /// <summary>
@@ -512,6 +584,105 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void CommandForceReimportOfAudioClip(AudioClip clip)
+        {
+            if (!ForceReimportOfAudioClip(clip))
+            {
+                _guiController.ShowMessage("Failed to reimport Audio Clip " + clip.ScriptName + ".", MessageBoxIconType.Warning);
+            }
+        }
+
+        private bool ForceReimportOfAudioClip(string sourceFileName, string cacheFileName)
+        {
+            if (File.Exists(sourceFileName) && !string.IsNullOrEmpty(cacheFileName))
+            {
+                return Utilities.SafeCopyFileOverwrite(sourceFileName, cacheFileName, true);
+            }
+            return false;
+        }
+
+        private bool ForceReimportOfAudioClip(AudioClip clip)
+        {
+            return ForceReimportOfAudioClip(clip.SourceFileName, clip.CacheFileName);
+        }
+
+        private void DoForceReimportOfAudioClips(IEnumerable<AudioClip> audioClips, IWorkProgress progress, out List<AudioClip> failedClips)
+        {
+            failedClips = new List<AudioClip>();
+            progress.Total = audioClips.Count();
+            progress.Current = 0;
+            foreach (AudioClip clip in audioClips)
+            {
+                if (!ForceReimportOfAudioClip(clip))
+                {
+                    failedClips.Add(clip);
+                }
+                progress.Current++;
+            }
+        }
+
+        private void CommandForceReimportOfAllAudioClips()
+        {
+            List<AudioClip> failedClips = new List<AudioClip>();
+            IEnumerable<AudioClip> allAudioClips = _agsEditor.CurrentGame.RootAudioClipFolder.AllItemsFlat;
+
+            try
+            {
+                BusyDialog.Show("Please wait while the Audio Clipes are reimported ...",
+                    new BusyDialog.ProcessingHandler(
+                        (IWorkProgress progress, object o) => {
+                            DoForceReimportOfAudioClips(allAudioClips, progress, out failedClips);
+                            return null;
+                        }), null);
+            }
+            catch (Exception e)
+            {
+                Factory.GUIController.ShowMessage(
+                    "The reimport of all audio clips was interrupted by error.\n\n" + e.Message,
+                    MessageBoxIconType.Error);
+                return;
+            }
+
+            Factory.GUIController.ClearOutputPanel();
+            if (!failedClips.Any()) return; // success!
+
+            CompileMessages errors = new CompileMessages();
+            errors.AddRange(failedClips.
+                Select(ac => new CompileWarning("Failed audio clip reimport of " + ac.ScriptName, ac.SourceFileName, 0)).
+                ToList<CompileMessage>());
+
+            Factory.GUIController.ShowOutputPanel(errors);
+        }
+
+        public void ReplaceAudioClipSource(AudioClip clip)
+        {
+            string dir = Path.GetDirectoryName(clip.SourceFileName);
+            if (!Directory.Exists(dir)) dir = Factory.AGSEditor.CurrentGame.DirectoryPath;
+            string selectedFile = _guiController.ShowOpenFileDialog("Select audio to add", AUDIO_FILES_FILTER, dir);
+            if (string.IsNullOrEmpty(selectedFile)) return; // clicked cancel in File Dialog, no need to report anything
+
+            try
+            {
+                clip = SetAudioClipSourceFile(clip, selectedFile);
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage(
+                     "Failed to Replace Audio Clip Source with error: " + ex.Message + ".",
+                    MessageBoxIconType.Error);
+                return;
+            }
+
+            if (_editor.SelectedItem is AudioClip)
+            {
+                if (_editor.SelectedItem.GetHashCode() == clip.GetHashCode())
+                {
+                    _editor.SelectedItem = clip;
+                    Factory.GUIController.RefreshPropertyGrid();
+                }
+            }
+        }
+
         private void AddAudioClipToListIfFileNeedsToBeCopiedFromSource(AudioClip clip, PreCompileGameEventArgs evArgs, List<AudioClip> filesToCopy, List<string> fileNamesToUpdate)
         {
             string compiledFileName = clip.CacheFileName;
@@ -676,6 +847,9 @@ namespace AGS.Editor.Components
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
                 menu.Add(MenuCommand.Separator);
+                menu.Add(new MenuCommand(COMMAND_REPLACE, "Replace Source File", null));
+                menu.Add(new MenuCommand(COMMAND_REIMPORT, "Force Reimport", null));
+                menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_PROPERTIES, "Properties", null));
             }
             return menu;
@@ -715,6 +889,7 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_ADD_AUDIO, "Add audio file(s)...", null));
+            menu.Add(new MenuCommand(COMMAND_REIMPORT_ALL, "Force reimport all file(s)", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -803,5 +978,6 @@ namespace AGS.Editor.Components
             Utilities.TryDeleteFile(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
                 Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
         }
+
     }
 }

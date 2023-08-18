@@ -682,25 +682,30 @@ namespace AGS.Editor
 			}
 		}
 
-        public string ShowOpenFileDialog(string title, string fileFilter, bool useFileImportPath)
+        public string ShowOpenFileDialog(string title, string fileFilter, string initialDirectory)
         {
-			EnsureLastImportDirectoryIsSet(useFileImportPath);
-
-			OpenFileDialog dialog = new OpenFileDialog();
-			dialog.Title = title;
-			dialog.RestoreDirectory = true;
-			dialog.CheckFileExists = true;
-			dialog.CheckPathExists = true;
-			dialog.InitialDirectory = _lastImportDirectory;
-			dialog.ValidateNames = true;
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Title = title;
+            dialog.RestoreDirectory = true;
+            dialog.CheckFileExists = true;
+            dialog.CheckPathExists = true;
+            dialog.InitialDirectory = initialDirectory == null ? Directory.GetCurrentDirectory() : initialDirectory;
+            dialog.ValidateNames = true;
             dialog.Filter = fileFilter;
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-				_lastImportDirectory = Path.GetDirectoryName(dialog.FileName);
+                _lastImportDirectory = Path.GetDirectoryName(dialog.FileName);
                 return dialog.FileName;
             }
             return null;
+        }
+
+        public string ShowOpenFileDialog(string title, string fileFilter, bool useFileImportPath)
+        {
+			EnsureLastImportDirectoryIsSet(useFileImportPath);
+
+            return ShowOpenFileDialog(title, fileFilter, _lastImportDirectory);
         }
 
         public string[] ShowOpenFileDialogMultipleFiles(string title, string fileFilter)
@@ -815,6 +820,7 @@ namespace AGS.Editor
                 RoomMessagesUIEditor.ShowRoomMessagesEditor = new RoomMessagesUIEditor.RoomMessagesEditorType(ShowRoomMessageEditorFromPropertyGrid);
                 CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
                 ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
+                AudioClipSourceFileUIEditor.AudioClipSourceFileGUI = new AudioClipSourceFileUIEditor.AudioClipSourceFileGUIType(ShowAudioClipSourceFileChooserFromPropertyGrid);
             }
         }
 
@@ -1376,6 +1382,12 @@ namespace AGS.Editor
         private void ShowRoomMessageEditorFromPropertyGrid(List<RoomMessage> messages)
         {
             RoomMessagesEditor.ShowEditor(messages);
+        }
+
+        private AudioClip ShowAudioClipSourceFileChooserFromPropertyGrid(AudioClip audioClip)
+        {
+            Factory.ComponentController.FindComponent<AudioComponent>()?.ReplaceAudioClipSource(audioClip);
+            return audioClip;
         }
 
         private int ShowSpriteChooserFromPropertyGrid(int currentSprite)

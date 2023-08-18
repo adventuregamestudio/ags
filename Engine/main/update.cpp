@@ -428,9 +428,9 @@ void update_sierra_speech()
       const auto &talking_chex = charextra[facetalkchar->index_id];
       const int frame_vol = talking_chex.GetFrameSoundVolume(facetalkchar);
       if (updatedFrame & 1)
-        CheckViewFrame(facetalkview, facetalkloop, facetalkframe);
+        CheckViewFrame(facetalkview, facetalkloop, facetalkframe, frame_vol);
       if (updatedFrame & 2)
-        CheckViewFrame(facetalkchar->blinkview, facetalkBlinkLoop, facetalkchar->blinkframe);
+        CheckViewFrame(facetalkchar->blinkview, facetalkBlinkLoop, facetalkchar->blinkframe, frame_vol);
 
       int thisPic = views[facetalkview].loops[facetalkloop].frames[facetalkframe].pic;      
       int view_frame_x = 0;

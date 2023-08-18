@@ -108,6 +108,7 @@ namespace AGS.Editor
             foreach (AudioClip audio in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
             {
                 audio.SourceFileName = Utilities.GetRelativeToProjectPath(audio.SourceFileName);
+                audio.CacheFileName = AudioComponent.GetCacheFileName(audio);
             }
         }
 

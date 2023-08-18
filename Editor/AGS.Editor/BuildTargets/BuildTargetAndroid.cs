@@ -411,6 +411,7 @@ namespace AGS.Editor
                 "library\\runtime\\src\\main\\java\\org\\libsdl\\app\\SDLActivity.java",
                 "library\\runtime\\src\\main\\java\\org\\libsdl\\app\\SDLAudioManager.java",
                 "library\\runtime\\src\\main\\java\\org\\libsdl\\app\\SDLControllerManager.java",
+                "library\\runtime\\src\\main\\java\\org\\libsdl\\app\\SDLSurface.java",
                 "library\\runtime\\src\\main\\java\\uk\\co\\adventuregamestudio\\runtime\\AGSRuntimeActivity.java",
                 "library\\runtime\\src\\main\\java\\uk\\co\\adventuregamestudio\\runtime\\AgsSettingsFragment.java",
                 "library\\runtime\\src\\main\\java\\uk\\co\\adventuregamestudio\\runtime\\CreditsActivity.java",

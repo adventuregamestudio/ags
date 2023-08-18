@@ -496,10 +496,10 @@ static bool video_check_user_input(VideoSkipType skip)
     {
         if (type == kInputKeyboard)
         {
-            KeyInput key;
-            if (run_service_key_controls(key))
+            KeyInput ki;
+            if (run_service_key_controls(ki) && !IsAGSServiceKey(ki.Key))
             {
-                if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
+                if ((ki.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
                     return true; // skip on Escape key
                 if (skip >= VideoSkipAnyKey)
                     return true;  // skip on any key

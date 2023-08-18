@@ -395,11 +395,11 @@ void IAGSEngine::PollSystem () {
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
     {
         eAGSMouseButton mbut;
-        KeyInput kp;
+        KeyInput ki;
         if (type == kInputKeyboard)
         {
-            if (run_service_key_controls(kp) && !play.IsIgnoringInput())
-                pl_run_plugin_hooks(AGSE_KEYPRESS, kp.Key);
+            if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+                pl_run_plugin_hooks(AGSE_KEYPRESS, ki.Key);
         }
         else if (type == kInputMouse)
         {

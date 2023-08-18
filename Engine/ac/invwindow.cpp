@@ -407,7 +407,8 @@ bool InventoryScreen::RunControls(int mx, int my, int isonitem)
         if (type == kInputKeyboard)
         {
             KeyInput ki;
-            if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+            if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
+                !IsAGSServiceKey(ki.Key))
             {
                 break_code = 1;
                 return true; // always handle for any key

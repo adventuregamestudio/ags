@@ -48,6 +48,9 @@ namespace AGS.Editor
         // Menus
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
         private List<MenuCommand> _toolbarIcons = new List<MenuCommand>();
+        // Menu item refs, for tracking their state
+        private MenuCommand _menuCmdUndo, _menuCmdRedo,
+            _menuCmdCut, _menuCmdCopy, _menuCmdPaste;
 
         // Find/replace data
         // TODO: pick this out into a separate Find/Replace class?
@@ -123,12 +126,17 @@ namespace AGS.Editor
 
         private void InitEditorMenus()
         {
-            _extraMenu.Commands.Add(new MenuCommand(UNDO_COMMAND, "Undo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z, "UndoMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(REDO_COMMAND, "Redo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y, "RedoMenuIcon"));
+            _menuCmdUndo = new MenuCommand(UNDO_COMMAND, "Undo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z, "UndoMenuIcon");
+            _menuCmdRedo = new MenuCommand(REDO_COMMAND, "Redo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y, "RedoMenuIcon");
+            _menuCmdCut = new MenuCommand(CUT_COMMAND, "Cut", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X, "CutMenuIcon");
+            _menuCmdCopy = new MenuCommand(COPY_COMMAND, "Copy", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C, "CopyMenuIcon");
+            _menuCmdPaste = new MenuCommand(PASTE_COMMAND, "Paste", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V, "PasteMenuIcon");
+            _extraMenu.Commands.Add(_menuCmdUndo);
+            _extraMenu.Commands.Add(_menuCmdRedo);
             _extraMenu.Commands.Add(MenuCommand.Separator);
-            _extraMenu.Commands.Add(new MenuCommand(CUT_COMMAND, "Cut", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X, "CutMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(COPY_COMMAND, "Copy", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C, "CopyMenuIcon"));
-            _extraMenu.Commands.Add(new MenuCommand(PASTE_COMMAND, "Paste", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V, "PasteMenuIcon"));
+            _extraMenu.Commands.Add(_menuCmdCut);
+            _extraMenu.Commands.Add(_menuCmdCopy);
+            _extraMenu.Commands.Add(_menuCmdPaste);
             _extraMenu.Commands.Add(MenuCommand.Separator);
             _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
@@ -142,11 +150,11 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             AddEditMenuCommands(_extraMenu);
 
-            _toolbarIcons.Add(new MenuCommand(CUT_COMMAND, "Cut", "CutIcon"));
-            _toolbarIcons.Add(new MenuCommand(COPY_COMMAND, "Copy", "CopyIcon"));
-            _toolbarIcons.Add(new MenuCommand(PASTE_COMMAND, "Paste", "PasteIcon"));
-            _toolbarIcons.Add(new MenuCommand(UNDO_COMMAND, "Undo", "UndoIcon"));
-            _toolbarIcons.Add(new MenuCommand(REDO_COMMAND, "Redo", "RedoIcon"));
+            _toolbarIcons.Add(_menuCmdCut);
+            _toolbarIcons.Add(_menuCmdCopy);
+            _toolbarIcons.Add(_menuCmdPaste);
+            _toolbarIcons.Add(_menuCmdUndo);
+            _toolbarIcons.Add(_menuCmdRedo);
             AddToolbarCommands(_toolbarIcons);
         }
 
@@ -256,21 +264,16 @@ namespace AGS.Editor
             bool canPaste = _scintilla.CanPaste();
             bool canUndo = _scintilla.CanUndo();
             bool canRedo = _scintilla.CanRedo();
-            if ((_toolbarIcons[0].Enabled != canCutAndCopy) ||
-                (_toolbarIcons[2].Enabled != canPaste) ||
-                (_toolbarIcons[3].Enabled != canUndo) ||
-                (_toolbarIcons[4].Enabled != canRedo))
+            if ((_menuCmdCopy.Enabled != canCutAndCopy) ||
+                (_menuCmdPaste.Enabled != canPaste) ||
+                (_menuCmdUndo.Enabled != canUndo) ||
+                (_menuCmdRedo.Enabled != canRedo))
             {
-                _toolbarIcons[0].Enabled = canCutAndCopy;
-                _toolbarIcons[1].Enabled = canCutAndCopy;
-                _toolbarIcons[2].Enabled = canPaste;
-                _toolbarIcons[3].Enabled = canUndo;
-                _toolbarIcons[4].Enabled = canRedo;
-                _extraMenu.Commands[0].Enabled = canUndo;
-                _extraMenu.Commands[1].Enabled = canRedo;
-                _extraMenu.Commands[3].Enabled = canCutAndCopy;
-                _extraMenu.Commands[4].Enabled = canCutAndCopy;
-                _extraMenu.Commands[5].Enabled = canPaste;
+                _menuCmdCopy.Enabled = canCutAndCopy;
+                _menuCmdCut.Enabled = canCutAndCopy;
+                _menuCmdPaste.Enabled = canPaste;
+                _menuCmdUndo.Enabled = canUndo;
+                _menuCmdRedo.Enabled = canRedo;
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }

@@ -11,43 +11,65 @@ namespace AGS.Editor
 {
     public partial class LipSyncEditor : EditorContentPanel
     {
-        private const int TEXT_BOX_START_X = 10;
-        private const int TEXT_BOX_START_Y = 65;
         private LipSync _lipSync;
 
         public LipSyncEditor(LipSync lipSync)
         {
             InitializeComponent();
-            _lipSync = lipSync;
-            this.AutoScroll = true;
 
-            int x = TEXT_BOX_START_X, y = TEXT_BOX_START_Y;
+            // This is required for the splitter to look good at both 100% and 200% scaling
+            splitContainerMain.SplitterDistance = 300; // some arbitrary large number so text gets a proper height in flow layout
+            int topSplitHeight = 0;
+            foreach (Control control in flowLayoutPanelTop.Controls)
+            {
+                topSplitHeight += control.Height;
+            }
+            splitContainerMain.SplitterDistance = topSplitHeight + splitContainerMain.SplitterWidth +
+                flowLayoutPanelTop.Margin.Top + flowLayoutPanelTop.Margin.Bottom; // compress the splitter size
+
+            _lipSync = lipSync;
+
+            int textBoxWidth = 150;
+            int labelWidth = 48;
+            int rowHeight = 24;
+
+            int columns = 4;
+            int rows = LipSync.MAX_LIP_SYNC_FRAMES / 2;
+            int cells = columns * rows;
+            tableLayoutPanelLP.ColumnCount = columns;
+            tableLayoutPanelLP.RowCount = rows;
+            tableLayoutPanelLP.SuspendDrawing();
+            tableLayoutPanelLP.SuspendLayout();
 
             for (int i = 0; i < _lipSync.CharactersPerFrame.Length; i++)
             {
                 Label label = new Label();
-                label.Left = x;
-                label.Top = y + 2;
-                label.AutoSize = true;
+                label.Left = 0;
+                label.Top = 0;
+                label.Size = new Size(labelWidth, rowHeight);
                 label.Text = i.ToString();
-                this.Controls.Add(label);
+                label.TextAlign = ContentAlignment.MiddleRight;
 
                 TextBox textBox = new TextBox();
-                textBox.Left = x + 20;
-                textBox.Top = y;
-                textBox.Size = new Size(150, 23);
+                textBox.Left = 0;
+                textBox.Top = 0;
+                textBox.Size = new Size(textBoxWidth, rowHeight);
                 textBox.Tag = i;
                 textBox.Text = _lipSync.CharactersPerFrame[i];
                 textBox.TextChanged += new EventHandler(textBox_TextChanged);
 
-                this.Controls.Add(textBox);
-                y += 25;
-                if (i % 10 == 9)
+                int row = i;
+                int column = 0;
+                if (i >= rows)
                 {
-                    x += 200;
-                    y = TEXT_BOX_START_Y;
+                    row -= rows;
+                    column = 2;
                 }
+                tableLayoutPanelLP.Controls.Add(label, column, row);
+                tableLayoutPanelLP.Controls.Add(textBox, column+1, row);
             }
+            tableLayoutPanelLP.ResumeLayout();
+            tableLayoutPanelLP.ResumeDrawing();
             UpdateControlsEnabled();
         }
 
@@ -79,7 +101,7 @@ namespace AGS.Editor
             {
                 shouldBeEnabled = false;
             }
-            foreach (Control control in this.Controls)
+            foreach (Control control in tableLayoutPanelLP.Controls)
             {
                 if (control is TextBox)
                 {
@@ -92,7 +114,7 @@ namespace AGS.Editor
         {
             t.ControlHelper(this, "lip-sync-editor");
 
-            foreach (Control control in Controls)
+            foreach (Control control in tableLayoutPanelLP.Controls)
             {
                 TextBox textBox = control as TextBox;
 

@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - Beta, July 2023
+VERSION 3.6.1 - Beta, August 2023
 
 Editor:
  - Discontinued Source control integration functionality, removed "Put sound and sprite files
@@ -13,12 +13,19 @@ Editor:
    Zoom is done by Ctrl + Mouse Wheel and room now zooms towards or outwards the cursor position.
  - In Room Editor the context menu is now displayed by RMB or Shift + RMB while editing masks.
    The individual room mode menu is merged with the "copy coordinates" command when shown.
+ - In Dialog Script editor support most Edit menu and context menu commands from the regular Script
+   editor, with a few exceptions.
  - In Sprite Manager added command "View" -> "Show filenames" which toggles display of a sprite's
    source filename under the sprites.
  - Reimplemented multiple sprites properties edit in the Sprite Manager. This ability was
    dropped in 3.5.0 unintentionally.
  - During sprite export Editor will display a proper progress dialog.
+ - Added "Replace with all sprites from folder" command to the View editor's context menu.
+ - For Audio Clips in the project tree added "Force Reimport", "Force reimport all file(s)" and
+   "Replace Source File" context menu commands.
+ - For Output Panel added "Copy selection" context menu command.
  - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
+ - Improved LipSync panel looks in case user's system has display scaling option enabled.
  - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
    the sizes of runtime texture and sound cache sizes respectively.
  - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
@@ -26,9 +33,7 @@ Editor:
    property tells whether this control's text has to be translated, and applied text direction
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
- - Export Game's Title into translations.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
- - Fixed Game.agf was not created after importing a 2.* game project (regression in 3.6.0).
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -57,6 +62,8 @@ Engine:
  - DrawingSurface.DrawString now supports Right-to-left text direction.
  - All the script File functions now treat paths in case-insensitive way (including subdirs),
    which makes them platform-independent.
+ - Support handling multiple mouse clicks per game frame, similar to how multiple key presses
+   were supported since 3.6.0.
  - Ensure that character and object scaling is updated even when the game is not drawn.
    This fixes rare issues when their scale property did not update in time whilst the game was
    completely fadeout, and similar cases.
@@ -65,7 +72,6 @@ Engine:
    of quitting the game.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
    "cachemax" in "misc") and "texture_cache_size".
- - Character.AnimationVolume now applies to the portrait animation too.
  - Object.SetView now lets invalid loop and frame values, and fallbacks to using loop 0, frame 0,
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
@@ -73,8 +79,6 @@ Engine:
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
- - Removed few of the less important game messages from logging, because they may quickly clutter
-   the log under some circumstances.
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -84,10 +88,6 @@ Engine:
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
- - Fixed IsSpeechVoxAvailable() returning positive result if run from IDE and Speech folder
-   is empty.
- - Fixed speech and messages were skipped by modifiers and other special keys (Ctrl, Alt, etc).
-   (regression since 3.6.0)
 
 Engine Plugin API:
  - Added IAGSEngine.ResolveFilePath() method, which resolves a script path (with location tokens)
@@ -109,6 +109,29 @@ Web / Emscripten:
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
+
+
+VERSION 3.6.0 - Patch 4, August 2023
+
+Editor:
+ - Export Game's Title into translations.
+ - Fixed Game.agf was not created after importing a 2.* game project (regression in 3.6.0).
+
+Engine:
+ - Character.AnimationVolume property is now applied to the portrait animation as well.
+ - Removed few of the less important game messages from logging, because they may quickly clutter
+   the log under some circumstances.
+ - Fixed when animating a character portrait, the first frame's linked sound is not played.
+ - Fixed IsSpeechVoxAvailable() returning positive result if run from IDE and Speech folder
+   is empty.
+ - Fixed speech and messages were skipped by modifiers and other special keys (Ctrl, Alt, etc).
+ - Fixed crash occuring when you resize DynamicSprite while it is displayed on screen.
+ - Fixed audio clip started right before a ChangeRoom would not play until after the room changes.
+ - Fixed in Software display mode the room Overlays may not be properly covered by a walk-behind
+   under very specific conditions.
+ - Fixed System.Log() would cause engine crash if there are more format placeholders than args.
+ - Fixed some game options that are not allowed to be changed at runtime could still be
+   overwritten when restoring an old save, leading to a weird game behavior.
 
 
 VERSION 3.6.0 - Patch 3, July 2023

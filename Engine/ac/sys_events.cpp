@@ -484,8 +484,6 @@ void ags_domouse()
 
 int ags_check_mouse_wheel()
 {
-    if (game.options[OPT_MOUSEWHEEL] == 0)
-        return 0;
     if (sys_mouse_z == mouse_z_was)
         return 0;
 

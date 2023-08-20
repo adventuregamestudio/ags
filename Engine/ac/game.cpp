@@ -337,8 +337,8 @@ static bool MakeSaveGameDir(const String &new_dir, FSLocation &fsdir)
     {
         fixed_newdir.ClipLeft(UserSavedgamesRootToken.GetLength());
     }
-    else if (game.options[OPT_SAFEFILEPATHS] > 0)
-    { // For games made in the safe-path-aware versions of AGS, report a warning
+    else
+    {
         debug_script_warn("Attempt to explicitly set savegame location relative to the game installation directory ('%s') denied;\nPath will be remapped to the user documents directory: '%s'",
             new_dir.GetCStr(), fsdir.FullDir.GetCStr());
     }

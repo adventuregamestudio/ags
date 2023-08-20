@@ -47,15 +47,15 @@
 #define OPT_SPEECHTYPE      10
 #define OPT_PIXPERFECT      11
 #define OPT_NOWALKMODE      12
-#define OPT_OBSOLETE_LETTERBOX 13 // [DEPRECATED] old-style resolution mode
+#define OPT_OBSOLETE_LETTERBOX      13 // [DEPRECATED] old-style resolution mode
 #define OPT_FIXEDINVCURSOR  14
 #define OPT_NOLOSEINV       15
-#define OPT_HIRES_FONTS     16
+#define OPT_OBSOLETE_HIRES_FONTS    16
 #define OPT_SPLITRESOURCES  17
 #define OPT_ROTATECHARS     18
 #define OPT_FADETYPE        19
 #define OPT_HANDLEINVCLICKS 20
-#define OPT_MOUSEWHEEL      21
+#define OPT_OBSOLETE_MOUSEWHEEL     21
 #define OPT_DIALOGNUMBERED  22
 #define OPT_DIALOGUPWARDS   23
 #define OPT_OBSOLETE_CROSSFADEMUSIC 24 // [DEPRECATED] old-style audio crossfade
@@ -66,30 +66,30 @@
 #define OPT_DUPLICATEINV    29  // if they have 2 of the item, draw it twice
 #define OPT_SAVESCREENSHOT  30
 #define OPT_PORTRAITSIDE    31
-#define OPT_STRICTSCRIPTING 32  // don't allow MoveCharacter-style commands
-#define OPT_OBSOLETE_LEFTTORIGHTEVAL 33  // [DEPRECATED] left-to-right operator evaluation
+#define OPT_OBSOLETE_STRICTSCRIPTING   32  // don't allow MoveCharacter-style commands
+#define OPT_OBSOLETE_LEFTTORIGHTEVAL   33  // [DEPRECATED] left-to-right operator evaluation
 #define OPT_COMPRESSSPRITES 34
-#define OPT_STRICTSTRINGS   35  // don't allow old-style strings, for reference only
-#define OPT_OBSOLETE_NEWGUIALPHA 36
+#define OPT_OBSOLETE_STRICTSTRINGS     35  // don't allow old-style strings, for reference only
+#define OPT_OBSOLETE_NEWGUIALPHA       36
 #define OPT_RUNGAMEDLGOPTS  37
 #define OPT_OBSOLETE_NATIVECOORDINATES 38 // [DEPRECATED] defines coordinate relation between game logic and game screen
 #define OPT_GLOBALTALKANIMSPD 39
 #define OPT_HIGHESTOPTION_321 39
-#define OPT_OBSOLETE_SPRITEALPHA 40
-#define OPT_SAFEFILEPATHS   41
-#define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
-#define OPT_BASESCRIPTAPI   43 // version of the Script API (ScriptAPIVersion) used to compile game script
-#define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility (ScriptAPIVersion) used to compile game script
-#define OPT_RENDERATSCREENRES 45 // scale sprites at the (final) screen resolution
-#define OPT_RELATIVEASSETRES 46 // relative asset resolution mode (where sprites are resized to match game type)
-#define OPT_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
-#define OPT_CLIPGUICONTROLS 48 // clip drawn gui control contents to the control's rectangle
-#define OPT_GAMETEXTENCODING 49 // how the text in the game data should be interpreted
-#define OPT_KEYHANDLEAPI    50 // key handling mode (old/new)
-#define OPT_CUSTOMENGINETAG 51 // custom engine tag (for overriding behavior)
+#define OPT_OBSOLETE_SPRITEALPHA       40
+#define OPT_OBSOLETE_SAFEFILEPATHS     41
+#define OPT_DIALOGOPTIONSAPI   42 // version of dialog options API (-1 for pre-3.4.0 API)
+#define OPT_BASESCRIPTAPI      43 // version of the Script API (ScriptAPIVersion) used to compile game script
+#define OPT_SCRIPTCOMPATLEV    44 // level of API compatibility (ScriptAPIVersion) used to compile game script
+#define OPT_RENDERATSCREENRES  45 // scale sprites at the (final) screen resolution
+#define OPT_OBSOLETE_RELATIVEASSETRES  46 // relative asset resolution mode (where sprites are resized to match game type)
+#define OPT_OBSOLETE_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
+#define OPT_CLIPGUICONTROLS    48 // clip drawn gui control contents to the control's rectangle
+#define OPT_GAMETEXTENCODING   49 // how the text in the game data should be interpreted
+#define OPT_KEYHANDLEAPI       50 // key handling mode (old/new)
+#define OPT_CUSTOMENGINETAG    51 // custom engine tag (for overriding behavior)
 #define OPT_HIGHESTOPTION   OPT_CUSTOMENGINETAG
-#define OPT_NOMODMUSIC      98 // [DEPRECATED]
-#define OPT_LIPSYNCTEXT     99
+#define OPT_OBSOLETE_NOMODMUSIC        98 // [DEPRECATED]
+#define OPT_LIPSYNCTEXT        99
 
 // Compatibility engine modes (hacks)
 #define CUSTOMENG_NONE      0

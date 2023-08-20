@@ -431,9 +431,8 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, ResolvedPath 
             alt_path = sc_path;
         }
 
-        // For games made in the safe-path-aware versions of AGS, report a warning
-        // if the unsafe path is used for write operation
-        if (!read_only && game.options[OPT_SAFEFILEPATHS])
+        // Report a warning if the unsafe path is used for write operation
+        if (!read_only)
         {
             debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
                 sc_path.GetCStr(), parent_dir.FullDir.GetCStr());

@@ -1948,7 +1948,7 @@ namespace AGS.Editor.Components
 
             if (!_backgroundCache.Any())
             {
-                _backgroundCache.Add(new RoomImage(new Bitmap(_loadedRoom.Width, _loadedRoom.Height), false));
+                _backgroundCache.Add(new RoomImage(new Bitmap(_loadedRoom.Width, _loadedRoom.Height), true));
                 _loadedRoom.BackgroundCount = 1;
                 imageNotFound = true;
                 _guiController.ShowMessage(
@@ -2137,15 +2137,18 @@ namespace AGS.Editor.Components
                 for (int i = 0; i < Room.MAX_BACKGROUNDS; i++)
                 {
                     string fileName = _loadedRoom.GetBackgroundFileName(i);
+                    // Delete remnants of unused backgrounds
+                    if (i >= _backgroundCache.Count)
+                    {
+                        Utilities.TryDeleteFile(fileName);
+                        continue;
+                    }
 
-                    if (i < _backgroundCache.Count &&
-                        (forced || _backgroundCache[i].Modified))
+                    if (forced || _backgroundCache[i].Modified)
                     {
                         _backgroundCache[i].Image.Save(fileName, ImageFormat.Png);
                         _backgroundCache[i].Modified = false;
                     }
-                    else
-                        File.Delete(fileName);
                 }
 
                 foreach (RoomAreaMaskType mask in Enum.GetValues(typeof(RoomAreaMaskType)))

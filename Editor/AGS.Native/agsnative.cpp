@@ -1582,7 +1582,6 @@ void GameUpdated(Game ^game, bool forceUpdate) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
-  thisgame.options[OPT_RELATIVEASSETRES] = game->Settings->AllowRelativeAssetResolutions;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
   thisgame.options[OPT_CLIPGUICONTROLS] = game->Settings->ClipGUIControls;
   thisgame.options[OPT_GAMETEXTENCODING] = game->TextEncoding->CodePage;
@@ -2344,7 +2343,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->DialogOptionsGUI = thisgame.options[OPT_DIALOGIFACE];
 	game->Settings->DialogOptionsBullet = thisgame.dialog_bullet;
 	game->Settings->DisplayMultipleInventory = (thisgame.options[OPT_DUPLICATEINV] != 0);
-    game->Settings->EnforceNewAudio = false;
 	game->Settings->GameName = gcnew String(thisgame.gamename);
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
@@ -2413,15 +2411,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(TextHelper::ConvertASCII(thisgamePlugins[i].Name), pluginData);
 		game->Plugins->Add(plugin);
 	}
-
-    /* CLNUP -- remove OldInteractionVariable?
-	for (i = 0; i < numGlobalVars; i++)
-	{
-		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(TextHelper::ConvertASCII(globalvars[i].Name), globalvars[i].Value);
-		game->OldInteractionVariables->Add(intVar);
-	}
-    */
 	
     AGS::Types::IViewFolder ^viewFolder = AGS::Types::FolderHelper::CreateDefaultViewFolder();
 	for (i = 0; i < thisgame.numviews; i++) 

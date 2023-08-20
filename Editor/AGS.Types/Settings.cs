@@ -626,16 +626,9 @@ namespace AGS.Types
         [Browsable(false)]
         public bool EnforceNewStrings { get { return true; } }
 
-        [DisplayName("Enforce new-style audio scripting")]
-        [Description("Disable old-style audio commands like PlaySound, IsChannelPlaying, etc")]
-        [DefaultValue(true)]
-        [Category("Backwards Compatibility")]
-        // CLNUP : leave for now, because some of the old functions dont have direct alternatives
-        public bool EnforceNewAudio
-        {
-            get { return _enforceNewAudio; }
-            set { _enforceNewAudio = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool EnforceNewAudio { get { return true; } }
 
         [Obsolete]
         [Browsable(false)]

@@ -1377,11 +1377,6 @@ namespace AGS.Editor
 
         private static bool WritePluginsToDisk(BinaryWriter writer, Game game, CompileMessages errors)
         {
-            if (game.Plugins.Count > NativeConstants.MAX_PLUGINS)
-            {
-                errors.Add(new CompileError("Too many plugins"));
-                return false;
-            }
             writer.Write(1); // version
             writer.Write(game.Plugins.Count);
             foreach (Plugin plugin in game.Plugins)

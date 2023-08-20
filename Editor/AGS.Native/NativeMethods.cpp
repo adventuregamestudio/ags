@@ -806,7 +806,6 @@ namespace AGS
             if (name->Equals("OPT_GAMETEXTENCODING")) return OPT_GAMETEXTENCODING;
             if (name->Equals("OPT_KEYHANDLEAPI")) return OPT_KEYHANDLEAPI;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
-			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
             return nullptr;
         }
 	}

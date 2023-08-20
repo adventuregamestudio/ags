@@ -1362,8 +1362,7 @@ HAGSError reset_sprite_file() {
   return HAGSError::None();
 }
 
-Common::PluginInfo thisgamePlugins[MAX_PLUGINS];
-int numThisgamePlugins = 0;
+std::vector<Common::PluginInfo> thisgamePlugins;
 
 HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
@@ -1378,10 +1377,9 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
         scModules[i].compiled = ents.ScriptModules[i];
     }
 
-    numThisgamePlugins = (int)ents.PluginInfos.size();
-    for (int i = 0; i < numThisgamePlugins; ++i)
+    thisgamePlugins = ents.PluginInfos;
+    for (size_t i = 0; i < thisgamePlugins.size(); ++i)
     {
-        thisgamePlugins[i] = ents.PluginInfos[i];
         // we don't care if it's an editor-only plugin or not
         if (thisgamePlugins[i].Name.GetLast() == '!')
             thisgamePlugins[i].Name.ClipRight(1);
@@ -3112,9 +3110,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	{
 		game->Settings->InventoryHotspotMarker->Style = InventoryHotspotMarkerStyle::None;
 	}
-
-	int i;
-	for (i = 0; i < 256; i++) 
+	
+	for (int i = 0; i < 256; i++) 
 	{
 		if (thisgame.paluses[i] == PAL_BACKGROUND) 
 		{
@@ -3127,7 +3124,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Palette[i]->Colour = Color::FromArgb(palette[i].r * 4, palette[i].g * 4, palette[i].b * 4);
 	}
 
-	for (i = 0; i < numThisgamePlugins; i++) 
+	for (size_t i = 0; i < thisgamePlugins.size(); ++i) 
 	{
 		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].Data.size());
 		for (size_t j = 0; j < thisgamePlugins[i].Data.size(); j++) 
@@ -3139,7 +3136,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Plugins->Add(plugin);
 	}
 
-	for (i = 0; i < numGlobalVars; i++)
+	for (int i = 0; i < numGlobalVars; i++)
 	{
 		OldInteractionVariable ^intVar;
 		intVar = gcnew OldInteractionVariable(TextHelper::ConvertASCII(globalvars[i].Name), globalvars[i].Value);
@@ -3147,7 +3144,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	}
 	
     AGS::Types::IViewFolder ^viewFolder = AGS::Types::FolderHelper::CreateDefaultViewFolder();
-	for (i = 0; i < thisgame.numviews; i++) 
+	for (int i = 0; i < thisgame.numviews; i++) 
 	{
 		AGS::Types::View ^view = gcnew AGS::Types::View();
 		view->Name = TextHelper::ConvertASCII(thisgame.viewNames[i]);
@@ -3177,7 +3174,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	}
     AGS::Types::FolderHelper::SetRootViewFolder(game, viewFolder);
 
-	for (i = 0; i < thisgame.numcharacters; i++) 
+	for (int i = 0; i < thisgame.numcharacters; i++) 
 	{
 		AGS::Types::Character ^character = gcnew AGS::Types::Character();
 		character->AdjustSpeedWithScaling = ((thisgame.chars[i].flags & CHF_SCALEMOVESPEED) != 0);
@@ -3221,7 +3218,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->PlayerCharacter = game->Characters[thisgame.playercharacter];
 
 	game->TextParser->Words->Clear();
-	for (i = 0; i < thisgame.dict->num_words; i++) 
+	for (int i = 0; i < thisgame.dict->num_words; i++) 
 	{
 		AGS::Types::TextParserWord ^newWord = gcnew AGS::Types::TextParserWord();
 		newWord->WordGroup = thisgame.dict->wordnum[i];
@@ -3231,7 +3228,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->TextParser->Words->Add(newWord);
 	}
 
-	for (i = 0; i < MAXGLOBALMES; i++) 
+	for (int i = 0; i < MAXGLOBALMES; i++) 
 	{
 		if (thisgame.messages[i] != NULL) 
 		{
@@ -3245,12 +3242,12 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
 	game->LipSync->Type = (thisgame.options[OPT_LIPSYNCTEXT] != 0) ? LipSyncType::Text : LipSyncType::None;
 	game->LipSync->DefaultFrame = thisgame.default_lipsync_frame;
-	for (i = 0; i < MAXLIPSYNCFRAMES; i++) 
+	for (int i = 0; i < MAXLIPSYNCFRAMES; i++) 
 	{
 		game->LipSync->CharactersPerFrame[i] = gcnew String(thisgame.lipSyncFrameLetters[i]);
 	}
 
-	for (i = 0; i < thisgame.numdialog; i++) 
+	for (int i = 0; i < thisgame.numdialog; i++) 
 	{
 		AGS::Types::Dialog ^newDialog = gcnew AGS::Types::Dialog();
 		newDialog->ID = i;
@@ -3272,7 +3269,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Dialogs->Add(newDialog);
 	}
 
-	for (i = 0; i < thisgame.numcursors; i++)
+	for (int i = 0; i < thisgame.numcursors; i++)
 	{
 		AGS::Types::MouseCursor ^cursor = gcnew AGS::Types::MouseCursor();
 		cursor->Animate = (thisgame.mcurs[i].view >= 0);
@@ -3290,7 +3287,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Cursors->Add(cursor);
 	}
 
-	for (i = 0; i < thisgame.numfonts; i++) 
+	for (int i = 0; i < thisgame.numfonts; i++) 
 	{
 		AGS::Types::Font ^font = gcnew AGS::Types::Font();
 		font->ID = i;
@@ -3313,7 +3310,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Fonts->Add(font);
 	}
 
-	for (i = 1; i < thisgame.numinvitems; i++)
+	for (int i = 1; i < thisgame.numinvitems; i++)
 	{
 		InventoryItem^ invItem = gcnew InventoryItem();
     invItem->CursorImage = thisgame.invinfo[i].pic;
@@ -3346,7 +3343,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
 	}
 
-	for (i = 0; i < thisgame.numgui; i++)
+	for (int i = 0; i < thisgame.numgui; i++)
 	{
 		guis[i].RebuildArray();
 	    guis[i].ResortZOrder();

@@ -27,8 +27,6 @@
 #include "Common/gui/guidefines.h"
 #include "Common/game/customproperties.h"
 
-#define CHUNKSIZE 256000
-
 // TODO: maybe remove this limit completely when engine's sprite cache
 // implements optimized container; see comments for SpriteCache class.
 #define MAX_STATIC_SPRITES 90000

@@ -39,6 +39,7 @@
 #include "util/stream.h"
 #include "media/audio/audio_system.h"
 #include "media/audio/openal.h"
+#include "ac/joystick.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -509,6 +510,13 @@ static bool video_check_user_input(VideoSkipType skip)
             eAGSMouseButton mbut;
             if (run_service_mb_controls(mbut) && (skip == VideoSkipKeyOrMouse))
                 return true; // skip on mouse click
+        }
+        else if (type == kInputGamepad)
+        {
+            GamepadInput gbut;
+            if (run_service_gamepad_controls(gbut) && (skip == VideoSkipAnyKey) &&
+                is_default_gamepad_skip_button_pressed(gbut.Button))
+                return true; // skip on ABXY
         }
     }
     return false;

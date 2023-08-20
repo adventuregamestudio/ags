@@ -130,6 +130,7 @@ enum LegacyScriptAlignment
 #define SKIP_AUTOTIMER  0x01
 #define SKIP_KEYPRESS   0x02
 #define SKIP_MOUSECLICK 0x04
+#define SKIP_GAMEPAD    0x08
 // Bit shift for packing skip type into result
 #define SKIP_RESULT_TYPE_SHIFT 24
 // Bit mask for packing skip key/button data into result

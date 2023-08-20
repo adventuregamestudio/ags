@@ -1112,6 +1112,17 @@ bool check_skip_cutscene_mclick(int mbut)
     return false;
 }
 
+bool check_skip_cutscene_gamepad(int gbut)
+{
+    CutsceneSkipStyle skip = get_cutscene_skipstyle();
+    if (gbut>0 && skip == eSkipSceneAnyKey)
+    {
+        start_skipping_cutscene();
+        return true;
+    }
+    return false;
+}
+
 // Helper functions used by StartCutscene/EndCutscene, but also
 // by SkipUntilCharacterStops
 void initialize_skippable_cutscene() {

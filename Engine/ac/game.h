@@ -154,6 +154,7 @@ CutsceneSkipStyle get_cutscene_skipstyle();
 void start_skipping_cutscene ();
 bool check_skip_cutscene_keypress(int kgn);
 bool check_skip_cutscene_mclick(int mbut);
+bool check_skip_cutscene_gamepad(int gbut);
 void initialize_skippable_cutscene();
 void stop_fast_forwarding();
 

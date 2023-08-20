@@ -18,6 +18,7 @@
 
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS::Engine; // FIXME later
+struct GamepadInput;
 
 // Loops game frames until certain event takes place (for blocking actions)
 void GameLoopUntilValueIsZero(const char *value);
@@ -50,6 +51,9 @@ bool run_service_key_controls(KeyInput &kgn);
 // Runs service mouse controls, returns false if mouse input was claimed by the engine,
 // otherwise returns true and provides mouse button code.
 bool run_service_mb_controls(eAGSMouseButton &mbut);
+// Runs service gamepad controls, returns false if no button was pressed or if button input was claimed by the engine,
+// otherwise returns true and provides the gamepad input.
+bool run_service_gamepad_controls(GamepadInput &out_key);
 // Polls few things (exit flag and debugger messages)
 // TODO: refactor this
 void update_polled_stuff();

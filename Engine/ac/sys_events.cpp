@@ -274,6 +274,8 @@ InputType ags_inputevent_ready()
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
         return kInputMouse;
+    case SDL_CONTROLLERBUTTONDOWN:
+        return kInputGamepad;
     default:
         return kInputNone;
     }
@@ -927,9 +929,9 @@ void ags_clear_mouse_movement()
 // JOYSTICK INPUT
 // ----------------------------------------------------------------------------
 
-static void on_sdl_joystick_button(const SDL_JoyButtonEvent &event)
+static void on_sdl_joystick_button(const SDL_Event &event)
 {
-
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_joystick_device(const SDL_JoyDeviceEvent &event)
@@ -941,9 +943,9 @@ static void on_sdl_joystick_device(const SDL_JoyDeviceEvent &event)
 // GAMEPAD INPUT
 // ----------------------------------------------------------------------------
 
-static void on_sdl_gamepad_button(const SDL_ControllerButtonEvent &event)
+static void on_sdl_gamepad_button(const SDL_Event &event)
 {
-
+    g_inputEvtQueue.push_back(event);
 }
 
 static void on_sdl_gamepad_device(const SDL_ControllerDeviceEvent &event)
@@ -1036,14 +1038,14 @@ void sys_evt_process_one(const SDL_Event &event) {
         break;
     // JOYSTICK INPUT
     case SDL_JOYBUTTONDOWN:
-        on_sdl_joystick_button(event.jbutton);
+        on_sdl_joystick_button(event);
         break;
     case SDL_JOYDEVICEADDED:
     case SDL_JOYDEVICEREMOVED:
         on_sdl_joystick_device(event.jdevice);
         break;
     case SDL_CONTROLLERBUTTONDOWN:
-        on_sdl_gamepad_button(event.cbutton);
+        on_sdl_gamepad_button(event);
         break;
     case SDL_CONTROLLERDEVICEADDED:
     case SDL_CONTROLLERDEVICEREMOVED:

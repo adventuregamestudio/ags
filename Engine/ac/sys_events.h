@@ -29,6 +29,7 @@ enum InputType
     // 0x01 is skipped for a purpose, because it has special meaning in script
     kInputKeyboard  = 0x02,
     kInputMouse     = 0x04,
+    kInputGamepad   = 0x08,
     kInputAny       = 0xFF
 };
 

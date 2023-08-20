@@ -68,7 +68,7 @@ namespace AGS.Editor
             get { return PreviousWords[2]; }
         }
 
-        public string[] PreviousWords = new string[6];
+        public string[] PreviousWords = new string[7];
         public string InsideIfNDefBlock = null;
         public string InsideIfDefBlock = null;
         public ScriptEnum InsideEnumDefinition = null;

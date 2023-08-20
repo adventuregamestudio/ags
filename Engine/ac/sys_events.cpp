@@ -448,6 +448,7 @@ static void on_sdl_mouse_down(const SDL_Event &event)
 
     sys_mouse_x = event.button.x;
     sys_mouse_y = event.button.y;
+    mouse_button_state |= sdl_button_to_mask(event.button.button);
     g_inputEvtQueue.push_back(event);
 }
 
@@ -455,6 +456,7 @@ static void on_sdl_mouse_up(const SDL_Event &event)
 {
     sys_mouse_x = event.button.x;
     sys_mouse_y = event.button.y;
+    mouse_button_state &= ~sdl_button_to_mask(event.button.button);
     // Uncomment when need to handle mouse up event in the game states
     //g_inputEvtQueue.push_back(event);
 }

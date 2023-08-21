@@ -319,7 +319,7 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, const PreservedParams& /*p
     }
 
     // Game state
-    play.ReadFromSavegame(in, svg_ver, r_data);
+    play.ReadFromSavegame(in, loaded_game_file_version, svg_ver, r_data);
 
     // Other dynamic values
     r_data.FPS = in->ReadInt32();
@@ -987,7 +987,7 @@ HSaveError WriteRoomStates(Stream *out)
             {
                 out->WriteInt32(i);
                 WriteFormatTag(out, "RoomState", true);
-                roomstat->WriteToSavegame(out);
+                roomstat->WriteToSavegame(out, loaded_game_file_version);
                 WriteFormatTag(out, "RoomState", false);
             }
             else
@@ -1014,7 +1014,7 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, const PreservedParams& /*
             if (!AssertFormatTagStrict(err, in, "RoomState", true))
                 return err;
             RoomStatus *roomstat = getRoomStatus(id);
-            roomstat->ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
+            roomstat->ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
             if (!AssertFormatTagStrict(err, in, "RoomState", false))
                 return err;
         }
@@ -1067,7 +1067,7 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteBool(persist);
     // write the current troom state, in case they save in temporary room
     if (!persist)
-        troom.WriteToSavegame(out);
+        troom.WriteToSavegame(out, loaded_game_file_version);
     return HSaveError::None();
 }
 
@@ -1118,7 +1118,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
 
     // read the current troom state, in case they saved in temporary room
     if (!in->ReadBool())
-        troom.ReadFromSavegame(in, (RoomStatSvgVersion)cmp_ver);
+        troom.ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
 
     return HSaveError::None();
 }

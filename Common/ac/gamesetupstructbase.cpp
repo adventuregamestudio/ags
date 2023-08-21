@@ -134,11 +134,11 @@ void GameSetupStructBase::OnResolutionSet()
     _relativeUIMult = IsLegacyHiRes() ? HIRES_COORD_MULTIPLIER : 1;
 }
 
-void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
+void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, SerializeInfo &info)
 {
     in->Read(&gamename[0], GAME_NAME_LENGTH);
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
-    if (loaded_game_file_version < kGameVersion_340_4)
+    if (game_ver < kGameVersion_340_4)
     { // TODO: this should probably be possible to deduce script API level
       // using game data version and other options like OPT_STRICTSCRIPTING
         options[OPT_BASESCRIPTAPI] = kScriptAPI_Undefined;
@@ -165,7 +165,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
     numcursors = in->ReadInt32();
     GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
     Size game_size;
-    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_330)
+    if (resolution_type == kGameResolution_Custom && game_ver >= kGameVersion_330)
     {
         game_size.Width = in->ReadInt32();
         game_size.Height = in->ReadInt32();
@@ -183,7 +183,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
     info.HasCCScript = in->ReadInt32() != 0;
 }
 
-void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info)
+void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) const
 {
     out->Write(&gamename[0], GAME_NAME_LENGTH);
     out->WriteArrayOfInt32(options, MAX_OPTIONS);

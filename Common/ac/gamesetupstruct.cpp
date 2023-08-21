@@ -384,12 +384,12 @@ void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in, size_t count)
     }
 }
 
-void GameSetupStruct::ReadFromSaveGame_v321(Stream *in)
+void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, GameDataVersion data_ver)
 {
     ReadInvInfo_Aligned(in);
     ReadMouseCursors_Aligned(in);
 
-    if (loaded_game_file_version <= kGameVersion_272)
+    if (data_ver <= kGameVersion_272)
     {
         for (int i = 0; i < numinvitems; ++i)
             intrInv[i]->ReadTimesRunFromSave_v321(in);

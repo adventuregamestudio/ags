@@ -397,9 +397,9 @@ struct GameState
     // Serialization
     //
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
-    void ReadCustomProperties_v340(Common::Stream *in);
-    void WriteCustomProperties_v340(Common::Stream *out) const;
-    void ReadFromSavegame(Common::Stream *in,  GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
+    void ReadCustomProperties_v340(Common::Stream *in, GameDataVersion data_ver);
+    void WriteCustomProperties_v340(Common::Stream *out, GameDataVersion data_ver) const;
+    void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
     void WriteForSavegame(Common::Stream *out) const;
     // This is required for freeing only particular parts when restoring the game;
     // FIXME: investigate and refactor to be able to simply reset whole object

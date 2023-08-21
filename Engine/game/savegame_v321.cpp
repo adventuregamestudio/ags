@@ -122,32 +122,28 @@ static HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, Re
     return HSaveError::None();
 }
 
-static void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
+static void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in, GameDataVersion data_ver)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    roomstat->ReadFromFile_v321(&align_s);
+    roomstat->ReadFromFile_v321(&align_s, data_ver);
 }
 
-static void restore_game_room_state(Stream *in)
+static void restore_game_room_state(Stream *in, GameDataVersion data_ver)
 {
-    int vv;
-
     displayed_room = in->ReadInt32();
 
     // read the room state for all the rooms the player has been in
-    RoomStatus* roomstat;
-    int beenhere;
-    for (vv=0;vv<MAX_ROOMS;vv++)
+    for (int vv = 0; vv < MAX_ROOMS; vv++)
     {
-        beenhere = in->ReadByte();
+        int beenhere = in->ReadByte();
         if (beenhere)
         {
-            roomstat = getRoomStatus(vv);
+            RoomStatus *roomstat = getRoomStatus(vv);
             roomstat->beenhere = beenhere;
 
             if (roomstat->beenhere)
             {
-                ReadRoomStatus_Aligned(roomstat, in);
+                ReadRoomStatus_Aligned(roomstat, in, data_ver);
                 if (roomstat->tsdatasize > 0)
                 {
                     roomstat->tsdata.resize(roomstat->tsdatasize);
@@ -158,10 +154,10 @@ static void restore_game_room_state(Stream *in)
     }
 }
 
-static void ReadGameState_Aligned(Stream *in, RestoredData &r_data)
+static void ReadGameState_Aligned(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, kGSSvgVersion_OldFormat, r_data);
+    play.ReadFromSavegame(&align_s, data_ver, kGSSvgVersion_OldFormat, r_data);
 }
 
 static void restore_game_play_ex_data(Stream *in)
@@ -176,12 +172,12 @@ static void restore_game_play_ex_data(Stream *in)
     in->Seek(game.numgui * sizeof(int32_t)); // gui_draw_order
 }
 
-static void restore_game_play(Stream *in, RestoredData &r_data)
+static void restore_game_play(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
     int screenfadedout_was = play.screen_is_faded_out;
     int roomchanges_was = play.room_changes;
 
-    ReadGameState_Aligned(in, r_data);
+    ReadGameState_Aligned(in, data_ver, r_data);
     r_data.Cameras[0].Flags = r_data.Camera0_Flags;
 
     play.screen_is_faded_out = screenfadedout_was;
@@ -200,10 +196,10 @@ static void ReadMoveList_Aligned(Stream *in)
     }
 }
 
-static void ReadGameSetupStructBase_Aligned(Stream *in)
+static void ReadGameSetupStructBase_Aligned(Stream *in, GameDataVersion data_ver)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    game.GameSetupStructBase::ReadFromFile(&align_s);
+    game.GameSetupStructBase::ReadFromFile(&align_s, data_ver);
 }
 
 static void ReadCharacterExtras_Aligned(Stream *in)
@@ -349,7 +345,7 @@ static void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
     }
 }
 
-static void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
+static void restore_game_displayed_room_status(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
     int bb;
     for (bb = 0; bb < MAX_ROOM_BGFRAMES; bb++)
@@ -369,7 +365,7 @@ static void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
             raw_saved_screen = read_serialized_bitmap(in);
 
         // get the current troom, in case they save in room 600 or whatever
-        ReadRoomStatus_Aligned(&troom, in);
+        ReadRoomStatus_Aligned(&troom, in, data_ver);
 
         if (troom.tsdatasize > 0) {
             troom.tsdata.resize(troom.tsdatasize);
@@ -413,7 +409,7 @@ static HSaveError restore_game_views(Stream *in)
     return HSaveError::None();
 }
 
-static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
+static HSaveError restore_game_audioclips_and_crossfade(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
     if ((uint32_t)in->ReadInt32() != game.audioClips.size())
     {
@@ -442,7 +438,7 @@ static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData
             chan_info.VolAsPercent = in->ReadInt32();
             chan_info.Pan = in->ReadInt32();
             chan_info.Speed = 1000;
-            if (loaded_game_file_version >= kGameVersion_340_2)
+            if (data_ver >= kGameVersion_340_2)
                 chan_info.Speed = in->ReadInt32();
         }
     }
@@ -453,7 +449,7 @@ static HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData
     return HSaveError::None();
 }
 
-HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     HSaveError err = restore_game_head_dynamic_values(in, r_data);
     if (!err)
@@ -463,8 +459,8 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
     err = restore_game_scripts(in, pp, r_data);
     if (!err)
         return err;
-    restore_game_room_state(in);
-    restore_game_play(in, r_data);
+    restore_game_room_state(in, data_ver);
+    restore_game_play(in, data_ver, r_data);
     ReadMoveList_Aligned(in);
 
     // save pointer members before reading
@@ -481,7 +477,7 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
     int numviewswas = game.numviews;
     int numGuisWas = game.numgui;
 
-    ReadGameSetupStructBase_Aligned(in);
+    ReadGameSetupStructBase_Aligned(in, data_ver);
 
     // Delete unneeded data
     // TODO: reorganize this (may be solved by optimizing safe format too)
@@ -505,10 +501,10 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
         return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views.");
     }
 
-    game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
+    game.ReadFromSaveGame_v321(in, data_ver, gswas, compsc, chwas, olddict, mesbk);
 
     // Modified custom properties are read separately to keep existing save format
-    play.ReadCustomProperties_v340(in);
+    play.ReadCustomProperties_v340(in, data_ver);
 
     ReadCharacterExtras_Aligned(in);
     restore_game_palette(in);
@@ -524,7 +520,7 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
     restore_game_ambientsounds(in, r_data);
     restore_game_overlays(in);
     restore_game_dynamic_surfaces(in, r_data);
-    restore_game_displayed_room_status(in, r_data);
+    restore_game_displayed_room_status(in, data_ver, r_data);
     err = restore_game_globalvars(in);
     if (!err)
         return err;
@@ -537,7 +533,7 @@ HSaveError restore_save_data_v321(Stream *in, const PreservedParams &pp, Restore
         return new SavegameError(kSvgErr_InconsistentFormat, "MAGICNUMBER not found before Audio Clips.");
     }
 
-    err = restore_game_audioclips_and_crossfade(in, r_data);
+    err = restore_game_audioclips_and_crossfade(in, data_ver, r_data);
     if (!err)
         return err;
 

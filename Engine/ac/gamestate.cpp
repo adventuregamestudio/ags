@@ -459,9 +459,10 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)
+void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
+    const bool extended_old_save = old_save && (data_ver >= kGameVersion_340_4);
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -621,7 +622,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver
     rtint_blue = in->ReadInt32();
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
-    if (!old_save || loaded_game_file_version >= kGameVersion_340_4)
+    if (!old_save || extended_old_save)
         rtint_enabled = in->ReadBool();
     else
         rtint_enabled = rtint_level > 0;
@@ -920,9 +921,9 @@ void GameState::FreeViewportsAndCameras()
     _scCameraHandles.clear();
 }
 
-void GameState::ReadCustomProperties_v340(Common::Stream *in)
+void GameState::ReadCustomProperties_v340(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (loaded_game_file_version >= kGameVersion_340_4)
+    if (data_ver >= kGameVersion_340_4)
     {
         // After runtime property values were read we also copy missing default,
         // because we do not keep defaults in the saved game, and also in case
@@ -935,9 +936,9 @@ void GameState::ReadCustomProperties_v340(Common::Stream *in)
     }
 }
 
-void GameState::WriteCustomProperties_v340(Common::Stream *out) const
+void GameState::WriteCustomProperties_v340(Common::Stream *out, GameDataVersion data_ver) const
 {
-    if (loaded_game_file_version >= kGameVersion_340_4)
+    if (data_ver >= kGameVersion_340_4)
     {
         // We temporarily remove properties that kept default values
         // just for the saving data time to avoid getting lots of 

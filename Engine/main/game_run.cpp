@@ -247,9 +247,11 @@ static eAGSMouseButton wasbutdown = kMouseNone;
 static int wasongui = 0;
 
 // Runs default handling of mouse movement, button state, and wheel
-static void check_mouse_state()
+static void check_mouse_state(int &was_mouse_on_iface)
 {
     mouse_on_iface = gui_on_mouse_move();
+    was_mouse_on_iface = mouse_on_iface;
+
     if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
         remove_popup_interface(ifacepopped);
 
@@ -270,7 +272,7 @@ static void check_mouse_state()
 }
 
 // Runs default mouse button handling
-static void check_mouse_controls()
+static void check_mouse_controls(const int was_mouse_on_iface)
 {
     eAGSMouseButton mbut;
     if (run_service_mb_controls(mbut) && mbut > kMouseNone) {
@@ -292,11 +294,11 @@ static void check_mouse_controls()
             // plugin took the click
             debug_script_log("Plugin handled mouse button %d", mbut);
         }
-        else if (mouse_on_iface >= 0) {
+        else if (was_mouse_on_iface >= 0) {
             if (wasbutdown == kMouseNone) {
-                gui_on_mouse_down(mouse_on_iface, mbut);
-            }            
-            wasongui = mouse_on_iface;
+                gui_on_mouse_down(was_mouse_on_iface, mbut);
+            }
+            wasongui = was_mouse_on_iface;
             wasbutdown = mbut;
         }
         else setevent(EV_TEXTSCRIPT, kTS_MouseClick, mbut);
@@ -598,7 +600,13 @@ static void check_controls() {
 
     // First handle mouse state, which does not depend on down/up events
     // (motion, wheel axis, etc)
-    check_mouse_state();
+    // FIXME: atm we must save the last mouse_on_iface value *locally* for use
+    // further in check_mouse_controls, because there may be 1+ nested
+    // check_controls() calls as a result of some triggered script callbacks,
+    // during which some global vars like mouse_on_iface may change...
+    // need to rewrite all this interface interaction ugliness!
+    int was_mouse_on_iface;
+    check_mouse_state(was_mouse_on_iface);
 
     // Handle all the buffered input events
     for (InputType type = ags_inputevent_ready(); type != kInputNone; type = ags_inputevent_ready())
@@ -606,7 +614,7 @@ static void check_controls() {
         if (type == kInputKeyboard)
             check_keyboard_controls();
         else if (type == kInputMouse)
-            check_mouse_controls();
+            check_mouse_controls(was_mouse_on_iface);
     }
 
     ags_clear_input_buffer();

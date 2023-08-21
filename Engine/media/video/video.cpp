@@ -492,16 +492,16 @@ bool TheoraPlayer::NextFrame()
 // Checks input events, tells if the video should be skipped
 static bool video_check_user_input(VideoSkipType skip)
 {
-    KeyInput key;
+    KeyInput ki;
     eAGSMouseButton mbut;
     int mwheelz;
     // Handle all the buffered key events
     bool do_break = false;
     while (ags_keyevent_ready())
     {
-        if (run_service_key_controls(key))
+        if (run_service_key_controls(ki) && !IsAGSServiceKey(ki.Key))
         {
-            if ((key.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
+            if ((ki.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
                 do_break = true;
             if (skip >= VideoSkipAnyKey)
                 do_break = true;  // skip on any key

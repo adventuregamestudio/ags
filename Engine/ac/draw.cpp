@@ -2122,7 +2122,7 @@ static void add_roomovers_for_drawing()
     {
         if (over.type < 0) continue; // empty slot
         if (!over.IsRoomLayer()) continue; // not a room layer
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (!over.IsVisible() || over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
         add_to_sprite_list(over.ddb, pos.X, pos.Y, over.zorder, false);
     }
@@ -2370,7 +2370,7 @@ void draw_gui_and_overlays()
     {
         if (over.type < 0) continue; // empty slot
         if (over.IsRoomLayer()) continue; // not a ui layer
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (!over.IsVisible() || over.transparency == 255) continue; // skip fully transparent
         Point pos = get_overlay_position(over);
         add_to_sprite_list(over.ddb, pos.X, pos.Y, over.zorder, false);
     }
@@ -2604,7 +2604,7 @@ static void construct_overlays()
     {
         auto &over = overs[i];
         if (over.type < 0) continue; // empty slot
-        if (over.transparency == 255) continue; // skip fully transparent
+        if (!over.IsVisible() || over.transparency == 255) continue; // skip fully transparent
 
         bool has_changed = over.HasChanged();
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated

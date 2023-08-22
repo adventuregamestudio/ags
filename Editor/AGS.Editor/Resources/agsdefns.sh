@@ -1343,6 +1343,14 @@ builtin managed struct Overlay {
   /// Gets/sets the overlay's z-order relative to other overlays and on-screen objects.
   import attribute int ZOrder;
 #endif
+#ifdef SCRIPT_API_v361
+  /// Gets the overlay that is at the specified position on the screen.
+  import static Overlay* GetAtScreenXY(int x, int y, bool roomOverlays = true);  // $AUTOCOMPLETESTATICONLY$
+  /// Gets the overlay that is at the specified position within this room.
+  import static Overlay* GetAtRoomXY(int x, int y);      // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets whether this Overlay is currently visible.
+  import attribute bool Visible;
+#endif
 };
 
 builtin managed struct DynamicSprite {

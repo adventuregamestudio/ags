@@ -278,6 +278,36 @@ ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int 
     return Overlay_CreateTextualImpl(true, x, y, width, font, colour, text);
 }
 
+ScriptOverlay* Overlay_GetAtXYImpl(int x, int y, bool on_screen, bool room_overlays) {
+    VpPoint vpt;
+    if (on_screen && room_overlays)
+    { // there has to be a room viewport under screen coords
+        vpt = play.ScreenToRoom(x, y);
+        room_overlays &= vpt.second >= 0;
+    }
+    // Test in the opposite order (from closer to further);
+    // include only visible overlays, optionally include or exclude room overlays
+    for (auto o = play.over_draw_order.crbegin(); o < play.over_draw_order.crend(); ++o) {
+        const auto &over = screenover[*o];
+        if (!over.IsVisible() || (over.IsRoomLayer() && !room_overlays))
+            continue;
+        Point pos = get_overlay_position(over);
+        Rect rc_over = RectWH(pos.X, pos.Y, over.scaleWidth, over.scaleHeight);
+        if ((on_screen && over.IsRoomLayer() && rc_over.IsInside(vpt.first.X, vpt.first.Y)) ||
+            (!on_screen || !over.IsRoomLayer()) && rc_over.IsInside(x, y))
+            return (ScriptOverlay*)ccGetObjectAddressFromHandle(over.associatedOverlayHandle);
+    }
+    return nullptr;
+}
+
+ScriptOverlay* Overlay_GetAtScreenXY(int x, int y, bool room_overlays) {
+    return Overlay_GetAtXYImpl(x, y, true, room_overlays);
+}
+
+ScriptOverlay* Overlay_GetAtRoomXY(int x, int y) {
+    return Overlay_GetAtXYImpl(x, y, false, true);
+}
+
 int Overlay_GetTransparency(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
@@ -296,6 +326,22 @@ void Overlay_SetTransparency(ScriptOverlay *scover, int trans) {
     over->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
+bool Overlay_GetVisible(ScriptOverlay *scover) {
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+
+    return over->IsVisible();
+}
+
+void Overlay_SetVisible(ScriptOverlay *scover, bool visible) {
+    auto *over = get_overlay(scover->overlayId);
+    if (!over)
+        quit("!invalid overlay ID specified");
+
+    over->SetVisible(visible);
+}
+
 int Overlay_GetZOrder(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
@@ -309,7 +355,11 @@ void Overlay_SetZOrder(ScriptOverlay *scover, int zorder) {
     if (!over)
         quit("!invalid overlay ID specified");
 
-    over->zorder = zorder;
+    if (over->zorder != zorder)
+    {
+        over->zorder = zorder;
+        update_overlay_sort(*over);
+    }
 }
 
 //=============================================================================
@@ -388,6 +438,9 @@ void remove_screen_overlay(int type)
     }
     dispose_overlay(over);
 
+    // Remove from z-sorted vector
+    play.over_draw_order.erase(play.over_draw_order.begin() + over.zSortIndex);
+
     // Don't erase vector elements, instead set invalid and record free index
     screenover[type] = ScreenOverlay();
     if (type >= OVER_FIRSTFREE)
@@ -406,6 +459,12 @@ ScreenOverlay *get_overlay(int type)
 {
     return (type >= 0 && static_cast<uint32_t>(type) < screenover.size() &&
         screenover[type].type >= 0) ? &screenover[type] : nullptr;
+}
+
+bool sort_over_less(const int type1, const int type2)
+{
+    return (screenover[type1].IsRoomLayer() > screenover[type2].IsRoomLayer()) ||
+        (screenover[type1].zorder < screenover[type2].zorder);
 }
 
 size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, Bitmap *piccy,
@@ -470,6 +529,14 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
     }
     over.MarkChanged();
     screenover[type] = std::move(over);
+
+    // Add to a z-sorted vector
+    if (play.over_draw_order.size() < screenover.size())
+        play.over_draw_order.resize(screenover.size());
+    auto new_pos = play.over_draw_order.insert(
+        std::upper_bound(play.over_draw_order.begin(), play.over_draw_order.end(), type, sort_over_less),
+        type);
+    screenover[type].zSortIndex = new_pos - play.over_draw_order.begin();
     return type;
 }
 
@@ -533,6 +600,14 @@ Point get_overlay_position(const ScreenOverlay &over)
     }
 }
 
+void update_overlay_sort(const ScreenOverlay &over)
+{
+    assert(over.zSortIndex >= 0);
+    auto old_pos = play.over_draw_order.begin() + over.zSortIndex;
+    auto new_pos = std::lower_bound(play.over_draw_order.begin(), play.over_draw_order.end(), over.type, sort_over_less);
+    std::rotate(new_pos, new_pos + 1, old_pos);
+}
+
 void restore_overlays()
 {
     // Will have to readjust free ids records, as overlays may be restored in any random slots
@@ -549,6 +624,10 @@ void restore_overlays()
             over_free_ids.push(i);
         }
     }
+    // Update z-sorted vector
+    std::sort(play.over_draw_order.begin(), play.over_draw_order.end(), sort_over_less);
+    for (size_t i = 0; i < play.over_draw_order.size(); ++i)
+        screenover[play.over_draw_order[i]].zSortIndex = i;
 }
 
 std::vector<ScreenOverlay> &get_overlays()
@@ -597,6 +676,17 @@ RuntimeScriptValue Sc_Overlay_CreateRoomTextual(const RuntimeScriptValue *params
     ScriptOverlay *overlay = Overlay_CreateRoomTextual(params[0].IValue, params[1].IValue, params[2].IValue,
         params[3].IValue, params[4].IValue, scsf_buffer);
     return RuntimeScriptValue().SetScriptObject(overlay, overlay);
+}
+
+RuntimeScriptValue Sc_Overlay_GetAtScreenXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2_PBOOL(ScriptOverlay, Overlay_GetAtScreenXY);
+}
+
+// CharacterInfo *(int xx, int yy)
+RuntimeScriptValue Sc_Overlay_GetAtRoomXY(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT2(ScriptOverlay, Overlay_GetAtRoomXY);
 }
 
 // void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
@@ -698,6 +788,16 @@ RuntimeScriptValue Sc_Overlay_SetTransparency(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetTransparency);
 }
 
+RuntimeScriptValue Sc_Overlay_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptOverlay, Overlay_GetVisible);
+}
+
+RuntimeScriptValue Sc_Overlay_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptOverlay, Overlay_SetVisible);
+}
+
 RuntimeScriptValue Sc_Overlay_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptOverlay, Overlay_GetZOrder);
@@ -743,6 +843,8 @@ void RegisterOverlayAPI()
         { "Overlay::CreateTextual^106",   Sc_Overlay_CreateTextual, ScPl_Overlay_CreateTextual },
         { "Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical) },
         { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
+        { "Overlay::GetAtScreenXY",       API_FN_PAIR(Overlay_GetAtScreenXY) },
+        { "Overlay::GetAtRoomXY",         API_FN_PAIR(Overlay_GetAtRoomXY) },
 
         { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
         { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
@@ -762,6 +864,8 @@ void RegisterOverlayAPI()
         { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
         { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
         { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
+        { "Overlay::get_Visible",         API_FN_PAIR(Overlay_GetVisible) },
+        { "Overlay::set_Visible",         API_FN_PAIR(Overlay_SetVisible) },
         { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
         { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
     };

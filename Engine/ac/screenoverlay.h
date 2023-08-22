@@ -29,19 +29,22 @@ namespace AGS { namespace Common { class Bitmap; class Stream; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS; // FIXME later
 
+// Flags are currently serialized as int16, so limited to that
 enum OverlayFlags
 {
     kOver_AlphaChannel     = 0x0001,
     kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
     kOver_SpriteReference  = 0x0008, // reference persistent sprite
+    kOver_Visible          = 0x0010,
 };
 
 struct ScreenOverlay
 {
     // Texture
     Engine::IDriverDependantBitmap *ddb = nullptr;
-    int type = -1, timeout = 0;
+    int type = -1;
+    int timeout = 0;
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offsetX, y + offsetY;
     int x = 0, y = 0;
@@ -54,6 +57,9 @@ struct ScreenOverlay
     int zorder = INT_MIN;
     int transparency = 0;
 
+    // Helper values
+    int zSortIndex = -1; // an index of this overlay in a z-sorted vector
+
     bool HasAlphaChannel() const { return (_flags & kOver_AlphaChannel) != 0; }
     bool IsSpriteReference() const { return (_flags & kOver_SpriteReference) != 0; }
     bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
@@ -65,6 +71,8 @@ struct ScreenOverlay
         on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
              _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
+    bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
+    void SetVisible(bool on) { on ? (_flags |= kOver_Visible) : _flags &= ~kOver_Visible; }
     // Gets actual overlay's image, whether owned by overlay or by a sprite reference
     Common::Bitmap *GetImage() const;
     // Get sprite reference id, or -1 if none set

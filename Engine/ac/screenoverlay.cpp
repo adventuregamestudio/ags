@@ -71,6 +71,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     timeout = in->ReadInt32();
     bgSpeechForChar = in->ReadInt32();
     associatedOverlayHandle = in->ReadInt32();
+    // version 3+: read flags as a single int16 set, vs two int8 flag values
     if (cmp_ver >= 3)
     {
         _flags = in->ReadInt16();
@@ -105,6 +106,12 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     {
         _sprnum = -1;
         has_bitmap = pic != 0;
+    }
+
+    // Upgrade flags for earlier versions
+    if (cmp_ver < 4)
+    {
+        _flags |= kOver_Visible;
     }
 }
 

@@ -49,6 +49,8 @@ void remove_all_overlays();
 // Creates and registers a managed script object for existing overlay object;
 // optionally adds an internal engine reference to prevent object's disposal
 ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);
+// Updates overlay's sorted position in draw/hit vector
+void update_overlay_sort(const ScreenOverlay &over);
 // Restores overlays, e.g. after restoring a game save
 void restore_overlays();
 

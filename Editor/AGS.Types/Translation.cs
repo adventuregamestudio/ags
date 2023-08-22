@@ -67,7 +67,11 @@ namespace AGS.Types
         public string Name
         {
             get { return _name; }
-            set { _name = value; _fileName = _name + TRANSLATION_SOURCE_FILE_EXTENSION; }
+            set
+            {
+                _name = value;
+                _fileName = _name + TRANSLATION_SOURCE_FILE_EXTENSION;
+            }
         }
         
         public string FileName
@@ -100,16 +104,19 @@ namespace AGS.Types
         public int? NormalFont
         {
             get { return _normalFont; }
+            set { _normalFont = value; }
         }
 
         public int? SpeechFont
         {
             get { return _speechFont; }
+            set { _speechFont = value; }
         }
 
         public bool? RightToLeftText
         {
             get { return _rightToLeftText; }
+            set { _rightToLeftText = value; }
         }
 
         public string EncodingHint
@@ -164,9 +171,9 @@ namespace AGS.Types
                 sw.WriteLine("# ** Translation settings are below");
                 sw.WriteLine("# ** Leave them as \"DEFAULT\" to use the game settings");
                 sw.WriteLine("# The normal font to use - DEFAULT or font number");
-                sw.WriteLine("# $NormalFont=" + WriteOptionalInt(_normalFont));
+                sw.WriteLine("# $NormalFont=" + _normalFont.NullableToString(TAG_DEFAULT));
                 sw.WriteLine("# The speech font to use - DEFAULT or font number");
-                sw.WriteLine("# $SpeechFont=" + WriteOptionalInt(_speechFont));
+                sw.WriteLine("# $SpeechFont=" + _speechFont.NullableToString(TAG_DEFAULT));
                 sw.WriteLine("# Text direction - DEFAULT, LEFT or RIGHT");
                 sw.WriteLine("# $TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
                 sw.WriteLine("# Text encoding hint - ASCII or UTF-8");
@@ -244,12 +251,8 @@ namespace AGS.Types
             _translatedEntries = new Dictionary<string, TranslationEntry>();
             string old_encoding = _encodingHint;
 
-            // .po file not found, check for legacy translation format
-            if (!File.Exists(FileName) && File.Exists(_name + ".trs"))
+            if (!File.Exists(FileName))
             {
-                LegacyLoadData();
-                SaveData();
-                File.Delete(_name + ".trs");
                 return;
             }
 
@@ -436,11 +439,11 @@ namespace AGS.Types
         {
             if (line.StartsWith(NORMAL_FONT_TAG))
             {
-                _normalFont = ReadOptionalInt(line.Substring(NORMAL_FONT_TAG.Length));
+                _normalFont = Utilities.ParseNullableInt(line.Substring(NORMAL_FONT_TAG.Length), TAG_DEFAULT);
             }
             else if (line.StartsWith(SPEECH_FONT_TAG))
             {
-                _speechFont = ReadOptionalInt(line.Substring(SPEECH_FONT_TAG.Length));
+                _speechFont = Utilities.ParseNullableInt(line.Substring(SPEECH_FONT_TAG.Length), TAG_DEFAULT);
             }
             else if (line.StartsWith(TEXT_DIRECTION_TAG))
             {
@@ -464,101 +467,5 @@ namespace AGS.Types
                 EncodingHint = line.Substring(ENCODING_TAG.Length);
             }
         }
-
-        private int? ReadOptionalInt(string textToParse)
-        {
-            if (textToParse == TAG_DEFAULT)
-            {
-                return null;
-            }
-            return Convert.ToInt32(textToParse);
-        }
-
-        private string WriteOptionalInt(int? currentValue)
-        {
-            if (currentValue == null)
-            {
-                return TAG_DEFAULT;
-            }
-            return currentValue.Value.ToString();
-        }
-
-        // Migrations from .trs files
-        private void LegacyLoadData()
-        {
-            _translatedEntries = new Dictionary<string, TranslationEntry>();
-            string old_encoding = _encodingHint;
-
-            using (StreamReader sr = new StreamReader(_name + ".trs", _encoding))
-            {
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line.StartsWith("//"))
-                    {
-                        LegacyReadSpecialTags(line);
-                        if (string.Compare(old_encoding, _encodingHint) != 0)
-                        {
-                            sr.Close();
-                            LoadData(); // try again with the new encoding
-                            return;
-                        }
-                        continue;
-                    }
-                    string originalText = line;
-                    string translatedText = sr.ReadLine();
-                    if (translatedText == null)
-                    {
-                        break;
-                    }
-                    // Silently ignore any duplicates, as we can't report warnings here
-                    if (!_translatedEntries.ContainsKey(originalText))
-                    {
-                        TranslationEntry entry = new TranslationEntry();
-                        entry.Key = originalText;
-                        entry.Value = translatedText;
-                        _translatedEntries.Add(originalText, entry);
-                    }
-                }
-            }
-        }
-
-        private void LegacyReadSpecialTags(string line)
-        {
-            const string NORMAL_FONT_TAG = "# $NormalFont=";
-            const string SPEECH_FONT_TAG = "# $SpeechFont=";
-            const string TEXT_DIRECTION_TAG = "# $TextDirection=";
-            const string ENCODING_TAG = "# $Encoding=";
-            if (line.StartsWith(NORMAL_FONT_TAG))
-            {
-                _normalFont = ReadOptionalInt(line.Substring(NORMAL_FONT_TAG.Length));
-            }
-            else if (line.StartsWith(SPEECH_FONT_TAG))
-            {
-                _speechFont = ReadOptionalInt(line.Substring(SPEECH_FONT_TAG.Length));
-            }
-            else if (line.StartsWith(TEXT_DIRECTION_TAG))
-            {
-                string directionText = line.Substring(TEXT_DIRECTION_TAG.Length);
-                if (directionText == TAG_DIRECTION_LEFT)
-                {
-                    _rightToLeftText = false;
-                }
-                else if (directionText == TAG_DIRECTION_RIGHT)
-                {
-                    _rightToLeftText = true;
-                }
-                else
-                {
-                    _rightToLeftText = null;
-                }
-            }
-            else if (line.StartsWith(ENCODING_TAG))
-            {
-                EncodingHint = line.Substring(ENCODING_TAG.Length);
-            }
-        }
-
-
     }
 }

@@ -256,6 +256,20 @@ namespace AGS.Types
                 return;
             }
 
+            string fileEncodingHint;
+            if (LoadDataImpl(errors, out fileEncodingHint))
+                return;
+            // If a different encoding is required, then try again with a proper encoding
+            if (string.Compare(EncodingHint, fileEncodingHint) != 0)
+            {
+                EncodingHint = fileEncodingHint;
+                LoadDataImpl(errors, out fileEncodingHint);
+            }
+        }
+
+        private bool LoadDataImpl(CompileMessages errors, out string fileEncodingHint)
+        {
+            fileEncodingHint = EncodingHint;
             ParseState state = ParseState.NewEntry;
             TranslationEntry entry = new TranslationEntry();
             using (StreamReader sr = new StreamReader(FileName, _encoding))
@@ -269,12 +283,11 @@ namespace AGS.Types
                     // TODO: track different types of metadata (flags, comments, etc)
                     if (line.StartsWith("#"))
                     {
-                        ReadSpecialTags(line);
-                        if (string.Compare(old_encoding, _encodingHint) != 0)
+                        ReadSpecialTags(line, ref fileEncodingHint);
+                        if (string.Compare(EncodingHint, fileEncodingHint) != 0)
                         {
-                            sr.Close();
-                            LoadDataImpl(errors); // try again with the new encoding
-                            return;
+                            // Source file requires different encoding
+                            return false;
                         }
                         entry.Metadata.Add(line);
                         continue;
@@ -345,6 +358,7 @@ namespace AGS.Types
 
                 // note: if there's not an empty line at the end, the last record won't be stored
             }
+            return true;
         }
 
         private readonly Regex POString = new Regex("^(?:msgctxt |msgid |msgstr |)+\"(.*)\"$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -435,7 +449,7 @@ namespace AGS.Types
             return builder.ToString();
         }
 
-        private void ReadSpecialTags(string line)
+        private void ReadSpecialTags(string line, ref string encodingHint)
         {
             if (line.StartsWith(NORMAL_FONT_TAG))
             {
@@ -464,7 +478,7 @@ namespace AGS.Types
             // TODO: make a generic dictionary instead and save any option
             else if (line.StartsWith(ENCODING_TAG))
             {
-                EncodingHint = line.Substring(ENCODING_TAG.Length);
+                encodingHint = line.Substring(ENCODING_TAG.Length);
             }
         }
     }

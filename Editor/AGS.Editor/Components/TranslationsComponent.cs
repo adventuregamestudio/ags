@@ -639,9 +639,23 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void LoadTranslationFromLegacySource(Translation translation, string fileName)
+        private bool LoadTranslationFromLegacySource(Translation translation, string fileName)
         {
-            string old_encoding = translation.EncodingHint;
+            string fileEncodingHint;
+            if (LoadTranslationFromLegacySource(translation, fileName, out fileEncodingHint))
+                return true;
+            if (string.Compare(fileEncodingHint, translation.EncodingHint) != 0)
+            {
+                // Try again with a proper encoding
+                translation.EncodingHint = fileEncodingHint;
+                return LoadTranslationFromLegacySource(translation, fileName, out fileEncodingHint);
+            }
+            return false;
+        }
+
+        private bool LoadTranslationFromLegacySource(Translation translation, string fileName, out string fileEncodingHint)
+        {
+            fileEncodingHint = translation.EncodingHint;
             using (StreamReader sr = new StreamReader(fileName, translation.Encoding))
             {
                 string line;
@@ -649,13 +663,11 @@ namespace AGS.Editor.Components
                 {
                     if (line.StartsWith("//"))
                     {
-                        LegacyReadSpecialTags(translation, line);
-                        if (string.Compare(old_encoding, translation.EncodingHint) != 0)
+                        LegacyReadSpecialTags(translation, line, ref fileEncodingHint);
+                        if (string.Compare(translation.EncodingHint, fileEncodingHint) != 0)
                         {
-                            // try again with the new encoding
-                            sr.Close();
-                            LoadTranslationFromLegacySource(translation, fileName);
-                            return;
+                            // Source file requires different encoding
+                            return false;
                         }
                         continue;
                     }
@@ -675,9 +687,10 @@ namespace AGS.Editor.Components
                     }
                 }
             }
+            return true;
         }
 
-        private void LegacyReadSpecialTags(Translation translation, string line)
+        private void LegacyReadSpecialTags(Translation translation, string line, ref string encodingHint)
         {
             const string NORMAL_FONT_TAG = "//#NormalFont=";
             const string SPEECH_FONT_TAG = "//#SpeechFont=";
@@ -713,7 +726,7 @@ namespace AGS.Editor.Components
             }
             else if (line.StartsWith(ENCODING_TAG))
             {
-                translation.EncodingHint = line.Substring(ENCODING_TAG.Length);
+                encodingHint = line.Substring(ENCODING_TAG.Length);
             }
         }
     }

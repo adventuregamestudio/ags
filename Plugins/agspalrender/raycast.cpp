@@ -97,7 +97,7 @@ unsigned char selectedColor;
 void Ray_SelectTile (int x,int y, unsigned char color)
 {
 	if (x < 0 || x >= mapWidth) selectedX = -1;
-	else if (y < 0 || y >= mapWidth) selectedY = -1;
+	else if (y < 0 || y >= mapHeight) selectedY = -1;
 	else
 	{
 		selectedX = x;
@@ -109,7 +109,7 @@ void Ray_SelectTile (int x,int y, unsigned char color)
 int Ray_HasSeenTile (int x,int y)
 {
 	if (x < 0 || x >= mapWidth) return -1;
-	else if (y < 0 || y >= mapWidth) return -1;
+	else if (y < 0 || y >= mapHeight) return -1;
 	return seenMap [x][y];
 }
 
@@ -127,8 +127,8 @@ void Ray_DrawTile (int spr,int tile)
 {
 	BITMAP *sprite = engine->GetSpriteGraphic (spr);
 	unsigned char** sprarray = engine->GetRawBitmapSurface (sprite);
-	for (int y=0;y<64;++y)
-		for (int x=0;x<64;++x)
+	for (int y=0;y<mapHeight;++y)
+		for (int x=0;x<mapWidth;++x)
 			sprarray [y][x] = texture [tile][(texWidth * y) + x];
 	engine->ReleaseBitmapSurface (sprite);
 }
@@ -137,8 +137,8 @@ void Ray_DrawOntoTile (int spr,int tile)
 {
 	BITMAP *sprite = engine->GetSpriteGraphic (spr);
 	unsigned char** sprarray = engine->GetRawBitmapSurface (sprite);
-	for (int y=0;y<64;++y)
-		for (int x=0;x<64;++x)
+	for (int y=0;y<mapHeight;++y)
+		for (int x=0;x<mapWidth;++x)
 			texture [tile][(texWidth * y) + x] = sprarray [y][x];
 	engine->ReleaseBitmapSurface (sprite);
 }

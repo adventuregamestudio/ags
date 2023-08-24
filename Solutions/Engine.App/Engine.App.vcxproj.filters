@@ -1631,6 +1631,9 @@
     <ClInclude Include="..\..\Engine\plugin\agsplugin_evts.h">
       <Filter>Header Files\plugin</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\png.h">
+      <Filter>Common Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">

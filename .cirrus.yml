@@ -40,6 +40,7 @@ build_windows_task:
     path: Solutions/.build/*/*
 
 build_linux_cmake_task:
+  skip: "!changesInclude('CMake/**')"
   only_if: $CIRRUS_RELEASE == ''
   container:
     dockerfile: ci/linux/Dockerfile
@@ -160,6 +161,7 @@ build_linux_make_task:
     path: bin_*/*
 
 build_macos_task:
+  skip: "!changesInclude('OSX/**')"
   only_if: $CIRRUS_RELEASE == ''
   macos_instance:
     matrix:

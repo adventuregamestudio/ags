@@ -94,7 +94,7 @@ message( "AGS_DESKTOP:" ${AGS_DESKTOP} )
 message("----------------------------------------")
 
 if (WIN32 AND NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
-	message(FATAL_ERROR "Windows builds only support 32bit for now")
+	message(WARNING "Windows builds only support 32bit for now, this is experimental.")
 endif()
 
 if(LINUX)

@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
+using TypeUtils = AGS.Types.Utilities;
 
 namespace AGS.Editor.Components
 {
@@ -21,6 +22,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_UPDATE_ALL = "UpdateAllTranslations";
         private const string COMMAND_COMPILE = "CompileTranslation";
         private const string COMMAND_MAKE_DEFAULT = "MakeDefaultTranslation";
+
+        private const string TRANSLATION_SOURCE_FILE_LEGACY_EXTENSION = ".trs";
 
         private const string COMPILED_TRANSLATION_FILE_SIGNATURE = "AGSTranslation\0";
         private const int TRANSLATION_BLOCK_TRANSLATION_DATA = 1;
@@ -47,6 +50,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("TranslationsIcon", Resources.ResourceManager.GetIcon("translations.ico"));
             _guiController.RegisterIcon("TranslationIcon", Resources.ResourceManager.GetIcon("translations.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Translations", "TranslationsIcon");
+            Factory.Events.GamePostLoad += ConvertTranslationsToPOFormat;
             RePopulateTreeView();
         }
 
@@ -612,5 +616,118 @@ namespace AGS.Editor.Components
             }
         }
 
+        /// <summary>
+        /// Finishes migration from old translation sources to the new PO format.
+        /// CHECKME: the format conversion itself is currently done within the Translation
+        /// class itself. I'm not entirely convinced this is the optimal way, as AGS.Types
+        /// may be linked by plugins and third-party tools, so maybe think that over later.
+        /// </summary>
+        private void ConvertTranslationsToPOFormat()
+        {
+            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS)
+                return; // Should be using PO source files at this point
+
+            foreach (var translation in _agsEditor.CurrentGame.Translations)
+            {
+                string legacyFileName = translation.Name + TRANSLATION_SOURCE_FILE_LEGACY_EXTENSION;
+                if (File.Exists(legacyFileName))
+                {
+                    LoadTranslationFromLegacySource(translation, legacyFileName);
+                    translation.SaveData();
+                    Utilities.TryDeleteFile(legacyFileName);
+                }
+            }
+        }
+
+        private bool LoadTranslationFromLegacySource(Translation translation, string fileName)
+        {
+            string fileEncodingHint;
+            if (LoadTranslationFromLegacySource(translation, fileName, out fileEncodingHint))
+                return true;
+            if (string.Compare(fileEncodingHint, translation.EncodingHint) != 0)
+            {
+                // Try again with a proper encoding
+                translation.EncodingHint = fileEncodingHint;
+                return LoadTranslationFromLegacySource(translation, fileName, out fileEncodingHint);
+            }
+            return false;
+        }
+
+        private bool LoadTranslationFromLegacySource(Translation translation, string fileName, out string fileEncodingHint)
+        {
+            fileEncodingHint = translation.EncodingHint;
+            using (StreamReader sr = new StreamReader(fileName, translation.Encoding))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line.StartsWith("//"))
+                    {
+                        LegacyReadSpecialTags(translation, line, ref fileEncodingHint);
+                        if (string.Compare(translation.EncodingHint, fileEncodingHint) != 0)
+                        {
+                            // Source file requires different encoding
+                            return false;
+                        }
+                        continue;
+                    }
+                    string originalText = line;
+                    string translatedText = sr.ReadLine();
+                    if (translatedText == null)
+                    {
+                        break;
+                    }
+                    // Silently ignore any duplicates, as we can't report warnings here
+                    if (!translation.TranslatedEntries.ContainsKey(originalText))
+                    {
+                        TranslationEntry entry = new TranslationEntry();
+                        entry.Key = originalText;
+                        entry.Value = translatedText;
+                        translation.TranslatedEntries.Add(originalText, entry);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private void LegacyReadSpecialTags(Translation translation, string line, ref string encodingHint)
+        {
+            const string NORMAL_FONT_TAG = "//#NormalFont=";
+            const string SPEECH_FONT_TAG = "//#SpeechFont=";
+            const string TEXT_DIRECTION_TAG = "//#TextDirection=";
+            const string ENCODING_TAG = "//#Encoding=";
+            const string TAG_DEFAULT = "DEFAULT";
+            const string TAG_DIRECTION_LEFT = "LEFT";
+            const string TAG_DIRECTION_RIGHT = "RIGHT";
+
+            if (line.StartsWith(NORMAL_FONT_TAG))
+            {
+                translation.NormalFont = TypeUtils.ParseNullableInt(line.Substring(NORMAL_FONT_TAG.Length), TAG_DEFAULT);
+            }
+            else if (line.StartsWith(SPEECH_FONT_TAG))
+            {
+                translation.SpeechFont = TypeUtils.ParseNullableInt(line.Substring(SPEECH_FONT_TAG.Length), TAG_DEFAULT);
+            }
+            else if (line.StartsWith(TEXT_DIRECTION_TAG))
+            {
+                string directionText = line.Substring(TEXT_DIRECTION_TAG.Length);
+                if (directionText == TAG_DIRECTION_LEFT)
+                {
+                    translation.RightToLeftText = false;
+                }
+                else if (directionText == TAG_DIRECTION_RIGHT)
+                {
+                    translation.RightToLeftText = true;
+                }
+                else
+                {
+                    translation.RightToLeftText = null;
+                }
+            }
+            else if (line.StartsWith(ENCODING_TAG))
+            {
+                encodingHint = line.Substring(ENCODING_TAG.Length);
+            }
+        }
     }
 }

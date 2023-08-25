@@ -2200,7 +2200,7 @@ namespace AGS.Editor.Components
         /// </remarks>
         private async void ConvertAllRoomsFromCrmToOpenFormat()
         {
-            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX)
+            if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
                 return; // Upgrade already completed
 
             IList<IRoom> rooms = _agsEditor.CurrentGame.Rooms;

@@ -84,6 +84,32 @@ namespace AGS.Types
             return v;
         }
 
+        /// <summary>
+        /// Parses a nullable int, treating user-provided string constant
+        /// as a "null value" indicator.
+        /// </summary>
+        public static int? ParseNullableInt(string text, string nullValueString)
+        {
+            if (text == nullValueString)
+            {
+                return null;
+            }
+            return Convert.ToInt32(text);
+        }
+
+        /// <summary>
+        /// Extension method writes a nullable int, using user-provided string constant
+        /// for a "null value".
+        /// </summary>
+        public static string NullableToString(this int? value, string nullValueString)
+        {
+            if (value == null)
+            {
+                return nullValueString;
+            }
+            return value.Value.ToString();
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();

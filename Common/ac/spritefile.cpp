@@ -445,6 +445,8 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
             break;
         case kSprCompress_LZW: lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get(), in_data_size);
             break;
+        case kSprCompress_PNG: png_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get(), in_data_size);
+            break;
         default: assert(!"Unsupported compression type!"); break;
         }
         // TODO: test that not more than data_size was read!
@@ -698,6 +700,8 @@ void SpriteFileWriter::WriteBitmap(Bitmap *image)
         case kSprCompress_RLE: rle_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
             break;
         case kSprCompress_LZW: lzw_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
+            break;
+        case kSprCompress_PNG: png_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
             break;
         default: assert(!"Unsupported compression type!"); break;
         }

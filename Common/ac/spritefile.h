@@ -83,7 +83,8 @@ enum SpriteCompression
 {
     kSprCompress_None = 0,
     kSprCompress_RLE,
-    kSprCompress_LZW
+    kSprCompress_LZW,
+    kSprCompress_PNG
 };
 
 typedef int32_t sprkey_t;

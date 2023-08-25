@@ -11,11 +11,6 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#ifdef _MANAGED
-// ensure this doesn't get compiled to .NET IL
-#pragma unmanaged
-#endif
-
 #include "util/compress.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,6 +22,7 @@
 #if AGS_PLATFORM_ENDIAN_BIG
 #include "util/bbop.h"
 #endif
+#include "util/png.h"
 
 using namespace AGS::Common;
 
@@ -448,4 +444,21 @@ std::unique_ptr<Bitmap> load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
     in->Seek(end_pos, kSeekBegin);
 
   return bmm;
+}
+
+//-----------------------------------------------------------------------------
+// PNG
+//-----------------------------------------------------------------------------
+
+void png_compress(const uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* out)
+{
+    MemoryStream mem_in(data, data_sz);
+    pngcompress(&mem_in, out);
+}
+
+void png_decompress(uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* in, size_t in_sz)
+{
+    std::vector<uint8_t> in_buf(in_sz);
+    in->Read(in_buf.data(), in_sz);
+    pngexpand(in_buf.data(), in_sz, data, data_sz);
 }

@@ -41,4 +41,8 @@ void save_lzw(Common::Stream *out, const Common::Bitmap *bmpp, const RGB (*pal)[
 // Loads bitmap decompressing
 std::unique_ptr<Common::Bitmap> load_lzw(Common::Stream *in, int dst_bpp, RGB (*pal)[256] = nullptr);
 
+// Deflate compression
+void deflate_compress(const uint8_t* data, size_t data_sz, int image_bpp, Common::Stream* out);
+void inflate_decompress(uint8_t* data, size_t data_sz, int image_bpp, Common::Stream* in, size_t in_sz);
+
 #endif // __AC_COMPRESS_H

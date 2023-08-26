@@ -65,5 +65,7 @@ APEG = libsrc/apeg-1.2.1/adisplay.c libsrc/apeg-1.2.1/getbits.c libsrc/apeg-1.2.
 
 AASTR = ../Common/libsrc/aastr-0.1.1/aarot.c ../Common/libsrc/aastr-0.1.1/aastr.c ../Common/libsrc/aastr-0.1.1/aautil.c
 
+MINIZ = ../libsrc/miniz/miniz.c
+
 include Makefile-defs.allegro
 

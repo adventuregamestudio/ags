@@ -22,11 +22,6 @@
 
 using namespace AGS::Common;
 
-#ifdef _MANAGED
-// ensure this doesn't get compiled to .NET IL
-#pragma unmanaged
-#endif
-
 int insert(int, int);
 void _delete(int);
 

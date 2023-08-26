@@ -76,6 +76,7 @@
 #include "util/error.h"
 #include "util/path.h"
 #include "util/string_utils.h"
+#include "ac/joystick.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -1227,6 +1228,8 @@ int initialize_engine(const ConfigTree &startup_opts)
     engine_init_fonts();
 
     our_eip = -195;
+
+    init_joystick();
 
     engine_init_keyboard();
 

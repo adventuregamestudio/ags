@@ -47,6 +47,7 @@
 #include "ac/mouse.h"
 #include "media/audio/audio_system.h"
 #include "ac/timer.h"
+#include "joystick.h"
 
 using namespace AGS::Common;
 using namespace AGS::Common::BitmapHelper;
@@ -241,6 +242,21 @@ bool display_check_user_input(int skip)
             if (skip & SKIP_MOUSECLICK && !play.IsIgnoringInput())
             {
                 play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
+                return true; // stop display
+            }
+        }
+        else if (type == kInputGamepad)
+        {
+            GamepadInput gbut;
+            if (!run_service_gamepad_controls(gbut) || play.fast_forward)
+                continue;
+            eAGSGamepad_Button gbn = gbut.Button;
+            if (check_skip_cutscene_gamepad(gbn))
+                return true;
+            if (skip & SKIP_GAMEPAD && !play.IsIgnoringInput() &&
+                    is_default_gamepad_skip_button_pressed(gbn))
+            {
+                play.SetWaitSkipResult(SKIP_GAMEPAD, gbn);
                 return true; // stop display
             }
         }

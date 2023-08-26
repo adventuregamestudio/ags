@@ -19,6 +19,7 @@
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
+#include "ac/joystick.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
@@ -273,6 +274,8 @@ InputType ags_inputevent_ready()
     case SDL_MOUSEBUTTONDOWN:
     case SDL_MOUSEBUTTONUP:
         return kInputMouse;
+    case SDL_CONTROLLERBUTTONDOWN:
+        return kInputGamepad;
     default:
         return kInputNone;
     }
@@ -922,6 +925,33 @@ void ags_clear_mouse_movement()
     mouse_accum_rely = 0;
 }
 
+// ----------------------------------------------------------------------------
+// JOYSTICK INPUT
+// ----------------------------------------------------------------------------
+
+static void on_sdl_joystick_button(const SDL_Event &event)
+{
+    g_inputEvtQueue.push_back(event);
+}
+
+static void on_sdl_joystick_device(const SDL_JoyDeviceEvent &event)
+{
+    JoystickConnectionEvent(event);
+}
+
+// ----------------------------------------------------------------------------
+// GAMEPAD INPUT
+// ----------------------------------------------------------------------------
+
+static void on_sdl_gamepad_button(const SDL_Event &event)
+{
+    g_inputEvtQueue.push_back(event);
+}
+
+static void on_sdl_gamepad_device(const SDL_ControllerDeviceEvent &event)
+{
+
+}
 
 // ----------------------------------------------------------------------------
 // EVENTS
@@ -1005,6 +1035,21 @@ void sys_evt_process_one(const SDL_Event &event) {
         break;
     case SDL_FINGERMOTION:
         on_sdl_touch_motion(event.tfinger);
+        break;
+    // JOYSTICK INPUT
+    case SDL_JOYBUTTONDOWN:
+        on_sdl_joystick_button(event);
+        break;
+    case SDL_JOYDEVICEADDED:
+    case SDL_JOYDEVICEREMOVED:
+        on_sdl_joystick_device(event.jdevice);
+        break;
+    case SDL_CONTROLLERBUTTONDOWN:
+        on_sdl_gamepad_button(event);
+        break;
+    case SDL_CONTROLLERDEVICEADDED:
+    case SDL_CONTROLLERDEVICEREMOVED:
+        on_sdl_gamepad_device(event.cdevice);
         break;
     default: break;
     }

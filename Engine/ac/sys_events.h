@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__SYS_EVENTS_H
 #define __AGS_EE_AC__SYS_EVENTS_H
 #include <SDL_keyboard.h>
+#include <SDL_events.h>
 #include "ac/keycode.h"
 
 // Internal AGS device and event type, made as flags
@@ -28,6 +29,7 @@ enum InputType
     // 0x01 is skipped for a purpose, because it has special meaning in script
     kInputKeyboard  = 0x02,
     kInputMouse     = 0x04,
+    kInputGamepad   = 0x08,
     kInputAny       = 0xFF
 };
 

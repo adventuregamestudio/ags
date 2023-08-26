@@ -13,6 +13,27 @@ RUN pushd %TEMP% && \
   robocopy empty %TEMP% /MIR > nul & \
   rd /s /q empty
 
+ARG ZLIB_VERSION=2.1.3
+RUN mkdir Lib\zlib && \
+  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 ^&^& pushd Lib\zlib\build_x86 ^&^& msbuild zlib.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo ^&^& popd > zlibvcbuild_x86.bat && \
+  echo "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64 ^&^& pushd Lib\zlib\build_x64 ^&^& msbuild zlib.sln /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo ^&^& popd > zlibvcbuild_x64.bat && \
+  mkdir Lib\zlib\build_x86  && \
+  mkdir Lib\zlib\build_x64  && \
+  curl -fLSs "https://github.com/zlib-ng/zlib-ng/archive/refs/tags/%ZLIB_VERSION%.tar.gz" | tar -f - -xvzC Lib\zlib --strip-components 1 && \
+  cmake -DCMAKE_SYSTEM_VERSION=8.1 -DZLIB_ENABLE_TESTS=0 -DZLIBNG_ENABLE_TESTS=0 -DWITH_GTEST=0 -DZLIB_COMPAT=1 -S Lib\zlib -B Lib\zlib\build_x86 -G "Visual Studio 14 2015" -T"v140" -A"Win32" && \
+  zlibvcbuild_x86.bat && \
+  cmake -DCMAKE_SYSTEM_VERSION=8.1 -DZLIB_ENABLE_TESTS=0 -DZLIBNG_ENABLE_TESTS=0 -DWITH_GTEST=0 -DZLIB_COMPAT=1 -S Lib\zlib -B Lib\zlib\build_x64 -G "Visual Studio 14 2015" -T"v140" -A"x64" && \
+  zlibvcbuild_x64.bat && \
+  mkdir Lib\zlib\include && \
+  copy Lib\zlib\build_x86\zlib.h Lib\zlib\include\zlib.h && \
+  copy Lib\zlib\build_x86\zconf.h Lib\zlib\include\zconf.h && \
+  copy Lib\zlib\build_x86\zlib_name_mangling.h Lib\zlib\include\zlib_name_mangling.h && \
+  mkdir Lib\zlib\lib && \
+  mkdir Lib\zlib\lib\x86 && \
+  mkdir Lib\zlib\lib\x64 && \
+  copy Lib\zlib\build_x86\Release\zlibstatic.lib Lib\zlib\lib\x86\zlib.lib && \
+  copy Lib\zlib\build_x64\Release\zlibstatic.lib Lib\zlib\lib\x64\zlib.lib
+
 ARG NUGET_VERSION=5.7.0
 ARG INNO_SETUP_VERSION=6.0.5
 RUN cinst nuget.commandline --version %NUGET_VERSION% -y && \

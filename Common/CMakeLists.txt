@@ -190,7 +190,8 @@ target_link_libraries(common PUBLIC
         Allegro::Allegro
         AlFont::AlFont
         AAStr::AAStr
-        glm::glm)
+        glm::glm
+        ${ZLIB_LIBRARIES})
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

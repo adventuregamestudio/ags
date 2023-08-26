@@ -69,6 +69,19 @@ RUN curl -fLsS "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSI
   ./configure --system-curl && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
   rm -r /tmp/cmake-$CMAKE_VERSION
 
+# Build and install zlib-ng
+ARG ZLIB_VERSION=2.1.3
+RUN cd /tmp && \
+  curl -fLsS "https://github.com/zlib-ng/zlib-ng/archive/refs/tags/$ZLIB_VERSION.tar.gz" --output zlib.tar.gz && \
+  tar -xvzf zlib.tar.gz && \
+  mv zlib-ng-$ZLIB_VERSION zlib &&  \
+  cd /tmp/zlib  && \
+  mkdir /tmp/zlib/build && \
+  cd /tmp/zlib/build && \
+  cmake -DZLIB_ENABLE_TESTS=0 -DZLIBNG_ENABLE_TESTS=0 -DWITH_GTEST=0 -DZLIB_COMPAT=1 ..  && make -j$(getconf _NPROCESSORS_ONLN) && make install && \
+  rm /usr/local/lib/libz.*so* && \
+  rm -r /tmp/zlib
+
 # Build newer libogg
 ARG LIBOGG_VERSION=1.3.5
 RUN curl -fLsS "https://github.com/xiph/ogg/releases/download/v${LIBOGG_VERSION}/libogg-${LIBOGG_VERSION}.tar.xz" --output /tmp/libogg-${LIBOGG_VERSION}.tar.xz && \

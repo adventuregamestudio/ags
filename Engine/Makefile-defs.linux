@@ -22,6 +22,7 @@ CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
 LIBS += $(FT_LDFLAGS)
 LIBS += $(shell pkg-config --libs ogg)
 LIBS += $(shell pkg-config --libs theora)
+LIBS += $(shell pkg-config --libs zlib)
 
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec

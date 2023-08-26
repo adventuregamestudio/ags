@@ -108,8 +108,8 @@ RUN echo "## Create emscripten user (1000:1000)" \
 
 # ------------------------------------------------------------------------------
 
-RUN embuilder.py build --lto libstubs libc libc++ libc++abi sdl2 ogg vorbis
-RUN embuilder.py build libstubs libc libc++ libc++abi sdl2 ogg vorbis
+RUN embuilder.py build --lto libstubs libc libc++ libc++abi sdl2 ogg vorbis zlib
+RUN embuilder.py build libstubs libc libc++ libc++abi sdl2 ogg vorbis zlib
 
 # ------------------------------------------------------------------------------
 # Use commonly used /src as working directory

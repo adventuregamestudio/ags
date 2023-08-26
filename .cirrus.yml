@@ -13,8 +13,10 @@ build_windows_task:
     AGS_LIBVORBIS_LIB: C:\Lib\Xiph\x86
     AGS_SDL_INCLUDE: C:\Lib\SDL2\include
     AGS_SDL_SOUND_INCLUDE: C:\Lib\SDL_sound\src
+    AGS_ZLIB_INCLUDE: C:\Lib\zlib\include
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
     AGS_SDL_SOUND_LIB: C:\Lib\SDL_sound\lib\x86
+    AGS_ZLIB_LIB: C:\Lib\zlib\lib\x86
   build_debug_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
@@ -278,6 +280,8 @@ build_editor_task:
   env:
     AGS_SDL_INCLUDE: C:\Lib\SDL2\include
     AGS_SDL_LIB: C:\Lib\SDL2\lib\x86
+    AGS_ZLIB_INCLUDE: C:\Lib\zlib\include
+    AGS_ZLIB_LIB: C:\Lib\zlib\lib\x86
   nuget_packages_cache:
     folder: Solutions\packages
     fingerprint_script: type Editor\AGS.Editor\packages.config

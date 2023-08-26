@@ -466,8 +466,9 @@ static Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool make_opaqu
     }
     // In 32-bit game hicolor bitmaps must be converted to the true color
     else if (game_col_depth == 32 && (bmp_col_depth > 8 && bmp_col_depth <= 16))
-    {
+    { // FIXME: optimize by passing a "how to copy pixels" function into CreateCopy
         new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, compat_col_depth);
+        BitmapHelper::MakeOpaqueSkipMask(new_bitmap);
     }
     // In non-32-bit game truecolor bitmaps must be downgraded
     else if ((game_col_depth <= 16) && (bmp_col_depth > 16))

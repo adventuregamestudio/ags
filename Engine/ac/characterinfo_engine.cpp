@@ -226,7 +226,10 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
           quitprintf("Unable to render character %d (%s) because there are no frames in loop %d", index_id, name, loop);
       }
 
-      if (walking<1) {
+      doing_nothing = 0; // still walking?
+
+      if (walking < 1) {
+        // Finished walking, stop and reset state
         chex->process_idle_this_time = 1;
         doing_nothing=1;
         walkwait=0;
@@ -238,8 +241,9 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
             CheckViewFrameForCharacter(this);
         }
       }
-      else if (chex->animwait > 0) chex->animwait--;
-      else {
+      else if (chex->animwait > 0) {
+          chex->animwait--;
+      } else {
         if (flags & CHF_ANTIGLIDE)
           walkwaitcounter++;
 
@@ -265,7 +269,6 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
           CheckViewFrameForCharacter(this);
         }
       }
-      doing_nothing = 0;
     }
 }
 

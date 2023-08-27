@@ -41,6 +41,12 @@
 #include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "media/audio/audio.h"
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
@@ -63,6 +69,21 @@ extern RoomStatus troom;
 
 static const uint32_t MAGICNUMBER = 0xbeefcafe;
 
+// List of game objects, used to compare with the save contents
+struct ObjectCounts
+{
+    int CharacterCount = 0;
+    int DialogCount = 0;
+    int InvItemCount = 0;
+    int ViewCount = 0;
+    int GUICount = 0;
+    int GUILabelCount = 0;
+    int GUIButtonCount = 0;
+    int GUIInvWindowCount = 0;
+    int GUIListBoxCount = 0;
+    int GUISliderCount = 0;
+    int GUITextBoxCount = 0;
+};
 
 static HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
@@ -241,17 +262,33 @@ void ReadAnimatedButtons_Aligned(Stream *in, int num_abuts)
     }
 }
 
-static HSaveError restore_game_gui(Stream *in, int numGuisWas)
+inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, const char *content_name)
 {
-    HError err = GUI::ReadGUI(in, true);
-    if (!err)
-        return new SavegameError(kSvgErr_GameObjectInitFailed, err);
+    if (new_val != original_val)
+    {
+        err = new SavegameError(kSvgErr_GameContentAssertion,
+            String::FromFormat("Mismatching number of %s (game: %d, save: %d).",
+            content_name, original_val, new_val));
+    }
+    return new_val == original_val;
+}
+
+static HSaveError restore_game_gui(Stream *in, const ObjectCounts &guiwas)
+{
+    HError guierr = GUI::ReadGUI(in, true);
+    if (!guierr)
+        return new SavegameError(kSvgErr_GameObjectInitFailed, guierr);
     game.numgui = guis.size();
 
-    if (numGuisWas != game.numgui)
-    {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of GUI.");
-    }
+    HSaveError err;
+    if (!AssertGameContent(err, game.numgui,      guiwas.GUICount,          "GUIs") ||
+        !AssertGameContent(err, guibuts.size(),   guiwas.GUIButtonCount,    "GUI Buttons") ||
+        !AssertGameContent(err, guiinv.size(),    guiwas.GUIInvWindowCount, "GUI InvWindows") ||
+        !AssertGameContent(err, guilabels.size(), guiwas.GUILabelCount,     "GUI Labels") ||
+        !AssertGameContent(err, guilist.size(),   guiwas.GUIListBoxCount,   "GUI ListBoxes") ||
+        !AssertGameContent(err, guislider.size(), guiwas.GUISliderCount,    "GUI Sliders") ||
+        !AssertGameContent(err, guitext.size(),   guiwas.GUITextBoxCount,   "GUI TextBoxes"))
+        return err;
 
     RemoveAllButtonAnimations();
     int anim_count = in->ReadInt32();
@@ -474,31 +511,27 @@ HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const Pr
     restore_game_play(in, data_ver, r_data);
     ReadMoveList_Aligned(in);
 
-    const int numchwas = game.numcharacters;
-    const int numdiwas = game.numdialog;
-    const int numinvwas = game.numinvitems;
-    const int numviewswas = game.numviews;
-    const int numGuisWas = game.numgui;
+    ObjectCounts objwas;
+    objwas.CharacterCount = game.numcharacters;
+    objwas.DialogCount = game.numdialog;
+    objwas.InvItemCount = game.numinvitems;
+    objwas.ViewCount = game.numviews;
+    objwas.GUICount = game.numgui;
+    objwas.GUIButtonCount = guibuts.size();
+    objwas.GUIInvWindowCount = guiinv.size();
+    objwas.GUILabelCount = guilabels.size();
+    objwas.GUIListBoxCount = guilist.size();
+    objwas.GUISliderCount = guislider.size();
+    objwas.GUITextBoxCount = guitext.size();
 
     GameSetupStruct::SerializeInfo info;
     ReadGameSetupStructBase_Aligned(in, data_ver, info);
 
-    if (game.numdialog!=numdiwas)
-    {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Dialogs.");
-    }
-    if (numchwas != game.numcharacters)
-    {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Characters.");
-    }
-    if (numinvwas != game.numinvitems)
-    {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Inventory Items.");
-    }
-    if (game.numviews != numviewswas)
-    {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views.");
-    }
+    if (!AssertGameContent(err, game.numcharacters, objwas.CharacterCount, "Characters") ||
+        !AssertGameContent(err, game.numdialog,     objwas.DialogCount,    "Dialogs") ||
+        !AssertGameContent(err, game.numinvitems,   objwas.InvItemCount,   "Inventory Items") ||
+        !AssertGameContent(err, game.numviews,      objwas.ViewCount,      "Views"))
+        return err;
 
     game.ReadFromSaveGame_v321(in, data_ver);
 
@@ -509,7 +542,7 @@ HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const Pr
     restore_game_palette(in);
     restore_game_dialogs(in);
     restore_game_more_dynamic_values(in);
-    err = restore_game_gui(in, numGuisWas);
+    err = restore_game_gui(in, objwas);
     if (!err)
         return err;
     err = restore_game_audiocliptypes(in);

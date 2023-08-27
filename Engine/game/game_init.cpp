@@ -208,7 +208,7 @@ void InitAndRegisterDialogOptions()
 // Initializes gui and registers them in the script system
 HError InitAndRegisterGUI(GameSetupStruct &game)
 {
-    scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
+    scrGui = new ScriptGUI[game.numgui];
     for (int i = 0; i < game.numgui; ++i)
     {
         scrGui[i].id = -1;

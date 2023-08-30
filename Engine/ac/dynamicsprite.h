@@ -54,6 +54,6 @@ int     add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, bool has_
 // Updates game.SpriteInfos[].
 int     add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, bool has_alpha = false);
 // Disposes a dynamic sprite, and frees the slot
-void    free_dynamic_sprite(int slot);
+void    free_dynamic_sprite(int slot, bool notify_all = true);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

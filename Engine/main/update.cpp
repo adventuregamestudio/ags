@@ -25,20 +25,21 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/lipsync.h"
+#include "ac/movelist.h"
 #include "ac/overlay.h"
+#include "ac/screenoverlay.h"
 #include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "main/update.h"
-#include "ac/screenoverlay.h"
+#include "ac/timer.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "media/audio/audio_system.h"
-#include "ac/timer.h"
 #include "main/game_run.h"
-#include "ac/movelist.h"
+#include "main/update.h"
+#include "media/audio/audio_system.h"
+
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

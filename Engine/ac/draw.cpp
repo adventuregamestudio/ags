@@ -2635,10 +2635,6 @@ static void construct_overlays()
                     use_bmp = overlaybmp[i].get();
                 }
             }
-            else if (over.GetSpriteNum() < 0)
-            {
-                use_bmp = over.GetImage();
-            }
 
             over.ddb = recycle_ddb_sprite(over.ddb, over.GetSpriteNum(), use_bmp, over.HasAlphaChannel());
             over.ClearChanged();

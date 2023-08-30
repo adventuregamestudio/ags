@@ -7,6 +7,10 @@ namespace AGS.Editor
 {
     internal class AutoCompleteParserState
     {
+        // FIXME: this is super ugly; auto complete parser can remember up to N last words
+        // when parsing a declaration. The number of words has to be enough to parse all modifiers.
+        private const int MAX_WORDS = 8;
+
         public AutoCompleteParserState()
         {
             for (int i = 0; i < PreviousWords.Length; i++)
@@ -68,7 +72,7 @@ namespace AGS.Editor
             get { return PreviousWords[2]; }
         }
 
-        public string[] PreviousWords = new string[6];
+        public string[] PreviousWords = new string[MAX_WORDS];
         public string InsideIfNDefBlock = null;
         public string InsideIfDefBlock = null;
         public ScriptEnum InsideEnumDefinition = null;

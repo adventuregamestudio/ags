@@ -2,6 +2,9 @@ REVISION HISTORY
 ================
 VERSION 3.6.1 - Beta, August 2023
 
+Common features:
+ - Implemented Deflate compression option for sprites.
+
 Editor:
  - Discontinued Source control integration functionality, removed "Put sound and sprite files
    in source control" option from General Settings.
@@ -34,6 +37,8 @@ Editor:
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed Autocomplete not treating certain struct members as "static" or "protected" if their
+   declaration is too long.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -70,8 +75,6 @@ Engine:
  - Ensure all the script API is now correctly available for the plugins.
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
- - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
-   "cachemax" in "misc") and "texture_cache_size".
  - Object.SetView now lets invalid loop and frame values, and fallbacks to using loop 0, frame 0,
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
@@ -79,15 +82,22 @@ Engine:
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
+ - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
+   "cachemax" in "misc") and "texture_cache_size".
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
+ - Fixed Character's idle animation getting reset to frame 0 when the speech is played without
+   a valid speech view (idle animation should continue playing in such case).
+ - Fixed idle animation sometimes not starting immediately after Character finishes walking.
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.
  - Fixed first Sierra-style speechline in a sequence was adjusting its Y position without need
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
+ - Fixed a crash occuring if script tries to get or set a custom property for a non-existing
+   Room Object (this seem possible to do by iterating over `object[]` array).
 
 Engine Plugin API:
  - Added IAGSEngine.ResolveFilePath() method, which resolves a script path (with location tokens)
@@ -103,9 +113,21 @@ Compatibility:
    "keep previous values" in older games.
  - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
    This lets particular old games to continue running instead of crashing with error.
+ - Implemented "dataver_for_legacysaves" override option in config, which lets to instruct the
+   engine which game data version to assume when loading legacy (pre-3.5.0) saves. This "hack"
+   appeared to be necessary because of a mistake done during development of the older engine
+   versions, where the save format was changed, but engine was made to rely on the game data
+   version instead of incrementing save format index.
+ - Fixed engine could try to load game data from game.exe without checking whether data is actually
+   appended to it when restoring a legacy save in a game with a different file structure.
+ - Fixed number of GUI elements were not tested when loading a legacy save, which could lead to
+   GUI data getting overwritten incorrectly without a warning if number of controls changed since.
 
 Web / Emscripten:
  - Fixed Safari cannot switch the game into fullscreen mode.
+
+Plugins:
+ - Fixed potential "index out of bounds" exceptions in the built-in PalRender plugin.
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
@@ -1026,7 +1048,9 @@ Engine:
  - Fixed Software renderer could freeze the game in case there are multiple room viewports.
  - Fixed Software renderer could draw room viewport in a wrong position if it was moved.
  - Fixed RunAGSGame crashed the game if it uses any font plugin (implementing IAGSFontRenderer).
- - Fixed built-in palgorithms plugin had uninitialized variable that could cause a crash.
+
+Plugins:
+ - Fixed built-in PalRender plugin had uninitialized variable that could cause a crash.
 
 
 VERSION 3.5.0 - Patch 5, October 2020

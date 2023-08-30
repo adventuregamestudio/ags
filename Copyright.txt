@@ -54,6 +54,7 @@ Thierry Crozat
 Tobias Hansen
 Tom Vandepoele
 Tzach Shabtay
+Walter Agazzi
 
 Members of development team would like to thank:
 

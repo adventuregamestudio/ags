@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:7.4.0"
+        classpath "com.android.tools.build:gradle:8.1.1"
     }
 }
 
@@ -26,6 +26,7 @@ android {
     compileSdk = 34
     buildToolsVersion = '34.0.0'
     ndkVersion '25.2.9519653'
+    namespace "uk.co.adventuregamestudio.runtime"
 
     defaultConfig {
         if (buildAsApplication) {
@@ -71,7 +72,7 @@ android {
     } else {
         externalNativeBuild {
             cmake {
-                version "3.16.3+"  // SET HERE YOUR CMAKE SYSTEM VERSION, must be above 3.14
+                version "3.22.1+"  // SET HERE YOUR CMAKE SYSTEM VERSION, must be above 3.19.1
                 path '../../../CMakeLists.txt'
             }
         }
@@ -96,10 +97,10 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.preference:preference:1.1.1'
-    testImplementation 'junit:junit:4.13.1'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }

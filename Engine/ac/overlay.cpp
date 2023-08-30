@@ -81,7 +81,6 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
 
     // Update overlay properties
     over->SetImage(std::unique_ptr<Bitmap>(image), has_alpha, adj_x - dummy_x, adj_y - dummy_y);
-    over->ddb = nullptr; // is generated during first draw pass
 }
 
 int Overlay_GetX(ScriptOverlay *scover) {
@@ -346,9 +345,6 @@ static void invalidate_and_subref(ScreenOverlay &over)
 static void dispose_overlay(ScreenOverlay &over)
 {
     over.SetImage(nullptr);
-    if (over.ddb != nullptr)
-        gfxDriver->DestroyDDB(over.ddb);
-    over.ddb = nullptr;
     // invalidate script object and dispose it if there are no more refs
     if (over.associatedOverlayHandle > 0)
     {
@@ -436,7 +432,6 @@ size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnu
     {
         over.SetSpriteNum(sprnum, pic_offx, pic_offy);
     }
-    over.ddb = nullptr; // is generated during first draw pass
     over.x=x;
     over.y=y;
     // by default draw speech and portraits over GUI, and the rest under GUI

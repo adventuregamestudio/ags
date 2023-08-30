@@ -94,7 +94,6 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
     ResetImage();
 
-    ddb = nullptr;
     in->ReadInt32(); // ddb 32-bit pointer value (nasty legacy format)
     int pic = in->ReadInt32();
     type = in->ReadInt32();

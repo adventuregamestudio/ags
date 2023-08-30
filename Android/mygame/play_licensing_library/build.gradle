@@ -2,14 +2,14 @@ apply plugin: 'com.android.library'
 
 buildscript {
     repositories {
-        google()
         mavenCentral()
+        google()
     }
 }
 
 repositories {
-    google()
     mavenCentral()
+    google()
 }
 
 android {

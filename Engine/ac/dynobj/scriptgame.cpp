@@ -12,11 +12,15 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptgame.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
+#include "gui/guimain.h"
 #include "script/cc_common.h" // cc_error
 
+using namespace AGS::Common;
 
+extern GameSetupStruct game;
 CCScriptGame GameStaticManager;
 
 
@@ -133,7 +137,10 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     // 5 -> 54: play.globalvars
     case 55:  play.messagetime = val; break;
     case 56:  play.usedinv = val; break;
-    case 57:  play.inv_top = val; break;
+    case 57:
+        play.inv_top = val;
+        GUI::MarkInventoryForUpdate(game.playercharacter, true);
+        break;
     case 58:  // play.inv_numdisp
     case 59:  // play.inv_numorder
     case 60:  // play.inv_numinline

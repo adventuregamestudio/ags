@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - Beta, August 2023
+VERSION 3.6.1 - Beta, September 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.

@@ -9,8 +9,8 @@ def projectProperties = new Properties()
 projectProperties.load(new FileInputStream(projectPropertiesFile))
 
 android {
-    compileSdkVersion = 33
-    buildToolsVersion = '33.0.1'
+    compileSdk = 34
+    buildToolsVersion = '34.0.0'
     def appIdParts = projectProperties['applicationId'].split(/\./)
     def nameCount = appIdParts.size()
     def appIdLastPart = appIdParts[nameCount-1]

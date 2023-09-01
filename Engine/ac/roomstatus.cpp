@@ -123,7 +123,7 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     }
 }
 
-void RoomStatus::WriteToSavegame(Stream *out) const
+void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);

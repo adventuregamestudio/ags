@@ -191,7 +191,8 @@ target_link_libraries(common PUBLIC
         Allegro::Allegro
         AlFont::AlFont
         AAStr::AAStr
-        glm::glm)
+        glm::glm
+        MiniZ::MiniZ)
 
 if (WIN32)
     target_link_libraries(common PUBLIC shlwapi)

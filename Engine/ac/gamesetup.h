@@ -14,6 +14,7 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
+#include "ac/game_version.h"
 #include "ac/sys_events.h"
 #include "main/graphics_mode.h"
 #include "util/string.h"
@@ -113,6 +114,8 @@ struct GameSetup
     // User's overrides and hacks
     int   override_script_os; // pretend engine is running on this eScriptSystemOSID
     char  override_multitasking; // -1 for none, 0 or 1 to lock in the on/off mode
+    // assume game data version when restoring legacy save format
+    GameDataVersion dataver_for_legacysavs = kGameVersion_Undefined;
     // Optional keys for calling built-in save/restore dialogs;
     // primarily meant for the test runs of the games where save functionality
     // is not implemented (or does not work correctly).

@@ -62,7 +62,7 @@ static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
 
 static bool SetBlender(BlendMode blend_mode, int alpha)
 {
-    if (blend_mode < 0 || blend_mode > kNumBlendModes)
+    if (blend_mode < 0 || blend_mode >= kNumBlendModes)
         return false;
     const auto &blender = BlendModeSets[blend_mode];
     set_blender_mode(nullptr, nullptr, blender, 0, 0, 0, alpha);
@@ -136,7 +136,7 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
         }
         sprite = &hctemp;
     }
-    
+
     if ((alpha < 0xFF) && (surface_depth > 8) && (sprite_depth > 8))
     {
         set_trans_blender(0, 0, 0, alpha);

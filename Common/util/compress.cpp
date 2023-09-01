@@ -11,15 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#ifdef _MANAGED
-// ensure this doesn't get compiled to .NET IL
-#pragma unmanaged
-#endif
-
 #include "util/compress.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
+#include <miniz.h>
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
 #include "util/lzw.h"
@@ -151,8 +147,6 @@ static int cunpackbitl(uint8_t *line, size_t size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    if (in->HasErrors())
-      break;
 
     signed char cx = ix;
     if (cx == -128)
@@ -180,7 +174,7 @@ static int cunpackbitl(uint8_t *line, size_t size, Stream *in)
     }
   }
 
-  return in->HasErrors() ? -1 : 0;
+  return 0;
 }
 
 static int cunpackbitl16(uint16_t *line, size_t size, Stream *in)
@@ -189,8 +183,6 @@ static int cunpackbitl16(uint16_t *line, size_t size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    if (in->HasErrors())
-      break;
 
     signed char cx = ix;
     if (cx == -128)
@@ -218,7 +210,7 @@ static int cunpackbitl16(uint16_t *line, size_t size, Stream *in)
     }
   }
 
-  return in->HasErrors() ? -1 : 0;
+  return 0;
 }
 
 static int cunpackbitl32(uint32_t *line, size_t size, Stream *in)
@@ -227,8 +219,6 @@ static int cunpackbitl32(uint32_t *line, size_t size, Stream *in)
 
   while (n < size) {
     int ix = in->ReadByte();     // get index byte
-    if (in->HasErrors())
-      break;
 
     signed char cx = ix;
     if (cx == -128)
@@ -256,10 +246,10 @@ static int cunpackbitl32(uint32_t *line, size_t size, Stream *in)
     }
   }
 
-  return in->HasErrors() ? -1 : 0;
+  return 0;
 }
 
-void rle_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *out)
+bool rle_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *out)
 {
     switch (image_bpp)
     {
@@ -268,9 +258,10 @@ void rle_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *ou
     case 4: cpackbitl32(reinterpret_cast<const uint32_t*>(data), data_sz / sizeof(uint32_t), out); break;
     default: assert(0); break;
     }
+    return true;
 }
 
-void rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in)
+bool rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in)
 {
     switch (image_bpp)
     {
@@ -279,6 +270,7 @@ void rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in)
     case 4: cunpackbitl32(reinterpret_cast<uint32_t*>(data), data_sz / sizeof(uint32_t), in); break;
     default: assert(0); break;
     }
+    return true;
 }
 
 void save_rle_bitmap8(Stream *out, const Bitmap *bmp, const RGB (*pal)[256])
@@ -344,29 +336,29 @@ void skip_rle_bitmap8(Stream *in)
 // LZW
 //-----------------------------------------------------------------------------
 
-void lzw_compress(const uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *out)
+bool lzw_compress(const uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *out)
 {
     // LZW algorithm that we use fails on sequence less than 16 bytes.
     if (data_sz < 16)
     {
         out->Write(data, data_sz);
-        return;
+        return true;
     }
     MemoryStream mem_in(data, data_sz);
-    lzwcompress(&mem_in, out);
+    return lzwcompress(&mem_in, out);
 }
 
-void lzw_decompress(uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *in, size_t in_sz)
+bool lzw_decompress(uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *in, size_t in_sz)
 {
     // LZW algorithm that we use fails on sequence less than 16 bytes.
     if (data_sz < 16)
     {
         in->Read(data, data_sz);
-        return;
+        return true;
     }
     std::vector<uint8_t> in_buf(in_sz);
     in->Read(in_buf.data(), in_sz);
-    lzwexpand(in_buf.data(), in_sz, data, data_sz);
+    return lzwexpand(in_buf.data(), in_sz, data, data_sz);
 }
 
 void save_lzw(Stream *out, const Bitmap *bmpp, const RGB (*pal)[256])
@@ -448,4 +440,87 @@ std::unique_ptr<Bitmap> load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
     in->Seek(end_pos, kSeekBegin);
 
   return bmm;
+}
+
+//-----------------------------------------------------------------------------
+// Deflate
+//-----------------------------------------------------------------------------
+
+bool z_deflate(Stream* input, Stream* output) {
+    z_stream stream;
+    memset(&stream, 0, sizeof(stream));
+
+    int ret = deflateInit(&stream, Z_DEFAULT_COMPRESSION);
+    if (ret != Z_OK) {
+        return false;
+    }
+
+    uint8_t inbuf[1024];
+    uint8_t outbuf[1024];
+
+    stream.avail_in = input->Read(inbuf, sizeof(inbuf));
+    while (stream.avail_in > 0) {
+        stream.next_in = (Bytef*)inbuf;
+        int flush = input->EOS() ? Z_FINISH : Z_NO_FLUSH;
+
+        do {
+            stream.next_out = (Bytef*)outbuf;
+            stream.avail_out = sizeof(outbuf);
+            ret = deflate(&stream, flush);
+            assert(ret != Z_STREAM_ERROR);
+            int have = sizeof(outbuf) - stream.avail_out;
+            output->Write(outbuf, have);
+        } while (stream.avail_out == 0);
+
+        stream.avail_in = input->Read(inbuf, sizeof(inbuf));
+    }
+
+    (void)deflateEnd(&stream);
+    return true;
+}
+
+bool z_inflate(const uint8_t* src, size_t src_sz, uint8_t* dst, size_t dst_sz) {
+    z_stream stream;
+    memset(&stream, 0, sizeof(stream));
+
+    int ret = inflateInit(&stream);
+    if (ret != Z_OK) {
+        return false;
+    }
+
+    stream.next_in = (Bytef*)src;
+    stream.avail_in = src_sz;
+    stream.next_out = dst;
+    stream.avail_out = dst_sz;
+
+    do {
+        ret = inflate(&stream, Z_FINISH);
+        switch (ret) {
+            case Z_NEED_DICT:
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+            case Z_BUF_ERROR:
+                (void)inflateEnd(&stream);
+                return false;
+            default:
+                stream.next_out = dst + (dst_sz - stream.avail_out);
+                break;
+        }
+    } while (stream.avail_out > 0);
+
+    (void)inflateEnd(&stream);
+    return true;
+}
+
+bool deflate_compress(const uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* out)
+{
+    MemoryStream mem_in(data, data_sz);
+    return z_deflate(&mem_in, out);
+}
+
+bool inflate_decompress(uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* in, size_t in_sz)
+{
+    std::vector<uint8_t> in_buf(in_sz);
+    in->Read(in_buf.data(), in_sz);
+    return z_inflate(in_buf.data(), in_sz, data, data_sz);
 }

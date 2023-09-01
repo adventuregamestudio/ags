@@ -76,7 +76,7 @@ void GameSetupStructBase::OnResolutionSet()
     _relativeUIMult = 1; // NOTE: this is remains of old logic, currently unused.
 }
 
-void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
+void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, SerializeInfo &info)
 {
     in->Read(&gamename[0], GAME_NAME_LENGTH);
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
@@ -117,7 +117,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, SerializeInfo &info)
     info.HasCCScript = in->ReadInt32() != 0;
 }
 
-void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info)
+void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) const
 {
     out->Write(&gamename[0], GAME_NAME_LENGTH);
     out->WriteArrayOfInt32(options, MAX_OPTIONS);

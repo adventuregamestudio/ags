@@ -448,7 +448,7 @@ namespace AGS.Editor
                                     }
                                     return "Unable to find file '" + ourlib.Files[j].Filename + "' for compilation in directory '" + Directory.GetCurrentDirectory() + "'. Do not remove files during the compilation process.";
                                 }
-                                if (Utilities.CopyStream(stream, writer.BaseStream, ourlib.Files[j].Length) < 1)
+                                if (Utilities.CopyStream(stream, writer.BaseStream, ourlib.Files[j].Length) < ourlib.Files[j].Length)
                                 {
                                     return "Error writing file '" + ourlib.Files[j].Filename + "': possibly disk full";
                                 }

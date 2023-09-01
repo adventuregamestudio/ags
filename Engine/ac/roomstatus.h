@@ -82,7 +82,7 @@ struct RoomStatus
     void FreeProperties();
 
     void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void WriteToSavegame(Common::Stream *out, GameDataVersion data_ver) const;
 };
 
 // Replaces all accesses to the roomstats array

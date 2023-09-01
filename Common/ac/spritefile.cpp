@@ -404,7 +404,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     ReadSprHeader(hdr, _stream.get(), _version, _compress);
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
     int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
-    Bitmap *image = BitmapHelper::CreateBitmap(w, h, bpp * 8);
+    std::unique_ptr<Bitmap> image(BitmapHelper::CreateBitmap(w, h, bpp * 8));
     if (image == nullptr)
     {
         return new Error(String::FromFormat("LoadSprite: failed to allocate bitmap %d (%dx%d%d).",
@@ -434,20 +434,28 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
         (uint32_t)_stream->ReadInt32() : (w * h * bpp);
     if (hdr.Compress != kSprCompress_None)
     {
+        // TODO: rewrite this to only make a choice once the SpriteFile is initialized
+        // and use either function ptr or a decompressing stream class object
         if (in_data_size == 0)
         {
-            delete image;
             return new Error(String::FromFormat("LoadSprite: bad compressed data for sprite %d.", index));
         }
+        bool result;
         switch (hdr.Compress)
         {
-        case kSprCompress_RLE: rle_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get());
+        case kSprCompress_RLE: result = rle_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get());
             break;
-        case kSprCompress_LZW: lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get(), in_data_size);
+        case kSprCompress_LZW: result = lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get(), in_data_size);
             break;
-        default: assert(!"Unsupported compression type!"); break;
+        case kSprCompress_Deflate: result = inflate_decompress(im_data.Buf, im_data.Size, im_data.BPP, _stream.get(), in_data_size);
+            break;
+        default: assert(!"Unsupported compression type!"); result = false; break;
         }
         // TODO: test that not more than data_size was read!
+        if (!result)
+        {
+            return new Error(String::FromFormat("LoadSprite: failed to decompress pixel array for sprite %d.", index));
+        }
     }
     // Otherwise (no compression) read directly
     else
@@ -468,10 +476,10 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     // Finally revert storage options
     if (pal_bpp > 0)
     {
-        UnpackIndexedBitmap(image, im_data.Buf, im_data.Size, palette, hdr.PalCount);
+        UnpackIndexedBitmap(image.get(), im_data.Buf, im_data.Size, palette, hdr.PalCount);
     }
 
-    sprite = image;
+    sprite = image.release(); // FIXME: pass unique_ptr in this function
     _curPos = index + 1; // mark correct pos
     return HError::None();
 }
@@ -691,18 +699,23 @@ void SpriteFileWriter::WriteBitmap(Bitmap *image)
     SpriteCompression compress = kSprCompress_None;
     if (_compress != kSprCompress_None)
     {
+        // TODO: rewrite this to only make a choice once the SpriteFile is initialized
+        // and use either function ptr or a decompressing stream class object
         compress = _compress;
         VectorStream mems(_membuf, kStream_Write);
+        bool result;
         switch (compress)
         {
-        case kSprCompress_RLE: rle_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
+        case kSprCompress_RLE: result = rle_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
             break;
-        case kSprCompress_LZW: lzw_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
+        case kSprCompress_LZW: result = lzw_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
             break;
-        default: assert(!"Unsupported compression type!"); break;
+        case kSprCompress_Deflate: result = deflate_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
+            break;
+        default: assert(!"Unsupported compression type!"); result = false; break;
         }
         // mark to write as a plain byte array
-        im_data = ImBufferCPtr(&_membuf[0], _membuf.size(), 1);
+        im_data = result ? ImBufferCPtr(&_membuf[0], _membuf.size(), 1) : ImBufferCPtr();
     }
 
     // Write the final data

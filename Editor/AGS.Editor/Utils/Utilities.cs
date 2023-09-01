@@ -330,17 +330,8 @@ namespace AGS.Editor
                 if (wasRead == 0)
                     return wroteTotal;
                 length -= wasRead;
-                int toWrite = wasRead;
-                while (toWrite > 0)
-                {
-                    long oldPos = outstream.Position;
-                    outstream.Write(buf, wasRead - toWrite, toWrite);
-                    int wrote = (int)(outstream.Position - oldPos);
-                    if (wrote == 0)
-                        return wroteTotal;
-                    toWrite -= wrote;
-                    wroteTotal += wrote;
-                }
+                outstream.Write(buf, 0, wasRead);
+                wroteTotal += wasRead;
             }
             return wroteTotal;
         }

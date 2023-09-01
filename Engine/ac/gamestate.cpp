@@ -441,7 +441,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameStateSvgVersion svg_ver, RestoredData &r_data)
+void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     score = in->ReadInt32();
     usedmode = in->ReadInt32();

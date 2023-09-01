@@ -81,8 +81,8 @@ struct GameSetupStructBase
         std::array<int, MAXGLOBALMES> HasMessages{};
     };
 
-    void ReadFromFile(Common::Stream *in, SerializeInfo &info);
-    void WriteToFile(Common::Stream *out, const SerializeInfo &info);
+    void ReadFromFile(Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);
+    void WriteToFile(Common::Stream *out, const SerializeInfo &info) const;
 
     // Game resolution is a size of a native game screen in pixels.
     // This is the "game resolution" that developer sets up in AGS Editor.

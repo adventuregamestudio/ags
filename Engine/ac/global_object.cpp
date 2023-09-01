@@ -506,6 +506,8 @@ int GetObjectProperty (int hss, const char *property)
 
 void GetObjectPropertyText (int item, const char *property, char *bufer)
 {
+    if (!AssertObject("GetObjectPropertyText", item))
+        return;
     get_text_property(thisroom.Objects[item].Properties, croom->objProps[item], property, bufer);
 }
 

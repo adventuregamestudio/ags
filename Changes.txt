@@ -13,6 +13,7 @@ Editor:
  - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
    component has its own separate file (room data, backgrounds, masks and scripts).
  - Support room backgrounds and masks as PNGs.
+ - Translation sources are now saved in PO format.
  - General panel look enhancements.
  - Support built-in Base Color Themes that have the custom themes applied over them.
  - Game template selection now displays template's description right in the dialog.
@@ -65,6 +66,7 @@ Script API:
    or new compiler.
  - Added SCRIPT_EXT_NESTEDPOINTERS macro which tells whether nested managed structs are
    supported by the compiler.
+ - Added Joystick struct, meant to work with joystics and gamepads in script.
  - Added ScriptName property to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
    InventoryItem, Object.
  - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
@@ -82,6 +84,7 @@ Script API:
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
 
 Engine:
+ - Support joystick and gamepad input.
  - Animated buttons now display flipped frames correctly.
  - (possibly) Fixed characters sometimes keep walking animation for a short time after arriving
    to their destination.

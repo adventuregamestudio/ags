@@ -204,8 +204,6 @@ void update_invorder() {
             }
         }
     }
-    // backwards compatibility
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
     GUI::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
@@ -215,8 +213,6 @@ void add_inventory(int inum) {
         quit("!AddInventory: invalid inventory number");
 
     Character_AddInventory(playerchar, &scrInv[inum], SCR_NO_VALUE);
-
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
 }
 
 // CLNUP still used by run_dialog_script and run_interaction_commandlist, investigate if we could just use Character_LoseInventory
@@ -225,8 +221,6 @@ void lose_inventory(int inum) {
         quit("!LoseInventory: invalid inventory number");
 
     Character_LoseInventory(playerchar, &scrInv[inum]);
-
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
 }
 
 // CLNUP investigate if I can just removed the following comments

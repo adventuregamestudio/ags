@@ -45,17 +45,6 @@ void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
     if (!enabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return;
 
-    // backwards compatibility
-    play.inv_numinline = ColCount;
-    play.inv_numdisp = RowCount * ColCount;
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
-    // if the user changes top_inv_item, switch into backwards
-    // compatibiltiy mode
-    if (play.inv_top)
-        play.inv_backwards_compatibility = 1;
-    if (play.inv_backwards_compatibility)
-        TopItem = play.inv_top;
-
     // draw the items
     const int leftmost_x = x;
     int at_x = x;

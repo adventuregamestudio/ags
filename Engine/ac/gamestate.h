@@ -68,10 +68,6 @@ struct GameState {
     int  globalvars[MAXGLOBALVARS]{};  // [OBSOLETE]
     int  messagetime = 0;           // time left for auto-remove messages
     int  usedinv = 0;               // inventory item last used
-    int  inv_top = 0;
-    int  inv_numdisp = 0;
-    int  obsolete_inv_numorder = 0;
-    int  inv_numinline = 0;
     int  text_speed = 0;            // how quickly text is removed
     int  sierra_inv_color = 0;      // background used to paint defualt inv window
     int  talkanim_speed = 0;        // animation speed of talking anims
@@ -213,7 +209,6 @@ struct GameState {
     int   next_screen_transition = 0;
     int   gamma_adjustment = 0;
     short temporarily_turned_off_character = 0;  // Hide Player Charactr ticked
-    short inv_backwards_compatibility = 0; // CLNUP probably remove, need to check
     std::vector<int> gui_draw_order; // used only for hit detection now
     std::unordered_set<AGS::Common::String> do_once_tokens;
     int   text_min_display_time_ms = 0;

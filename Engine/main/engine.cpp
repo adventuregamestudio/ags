@@ -700,9 +700,6 @@ void engine_init_game_settings()
     play.disabled_user_interface=0;
     play.gscript_timer=-1;
     play.debug_mode=game.options[OPT_DEBUGMODE];
-    play.inv_top=0;
-    play.inv_numdisp=0;
-    play.obsolete_inv_numorder=0;
     play.text_speed=15;
     play.text_min_display_time_ms = 1000;
     play.ignore_user_input_after_text_timeout_ms = 500;
@@ -733,7 +730,6 @@ void engine_init_game_settings()
     play.ground_level_areas_disabled = 0;
     play.next_screen_transition = -1;
     play.temporarily_turned_off_character = -1;
-    play.inv_backwards_compatibility = 0;
     play.gamma_adjustment = 100;
     play.shakesc_length = 0;
     play.wait_counter=0;

@@ -36,10 +36,10 @@ int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
     // 5 -> 54: play.globalvars
     case 55: return play.messagetime;
     case 56: return play.usedinv;
-    case 57: return play.inv_top;
-    case 58: return play.inv_numdisp;
-    case 59: return play.obsolete_inv_numorder;
-    case 60: return play.inv_numinline;
+    case 57: return 0;// [DEPRECATED]
+    case 58: return 0;// [DEPRECATED]
+    case 59: return 0;// [DEPRECATED]
+    case 60: return 0;// [DEPRECATED]
     case 61: return play.text_speed;
     case 62: return play.sierra_inv_color;
     case 63: return play.talkanim_speed;
@@ -133,10 +133,10 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     // 5 -> 54: play.globalvars
     case 55:  play.messagetime = val; break;
     case 56:  play.usedinv = val; break;
-    case 57:  play.inv_top = val; break;
-    case 58:  play.inv_numdisp = val; break;
-    case 59:  play.obsolete_inv_numorder = val; break;
-    case 60:  play.inv_numinline = val; break;
+    case 57:  break; // [DEPRECATED]
+    case 58:  break; // [DEPRECATED]
+    case 59:  break; // [DEPRECATED]
+    case 60:  break; // [DEPRECATED]
     case 61:  play.text_speed = val; break;
     case 62:  play.sierra_inv_color = val; break;
     case 63:  play.talkanim_speed = val; break;

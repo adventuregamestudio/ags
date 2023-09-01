@@ -451,10 +451,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     in->ReadArrayOfInt32(globalvars, MAXGLOBALVARS);
     messagetime = in->ReadInt32();
     usedinv = in->ReadInt32();
-    inv_top = in->ReadInt32();
-    inv_numdisp = in->ReadInt32();
-    obsolete_inv_numorder = in->ReadInt32();
-    inv_numinline = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
     text_speed = in->ReadInt32();
     sierra_inv_color = in->ReadInt32();
     talkanim_speed = in->ReadInt32();
@@ -620,7 +620,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     next_screen_transition = in->ReadInt32();
     in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
     temporarily_turned_off_character = in->ReadInt16();
-    inv_backwards_compatibility = in->ReadInt16();
+    in->ReadInt16(); // [DEPRECATED]
     uint32_t num_do_once_tokens = static_cast<uint32_t>(in->ReadInt32());
     for (size_t i = 0; i < num_do_once_tokens; ++i)
     {
@@ -650,10 +650,10 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteArrayOfInt32(globalvars, MAXGLOBALVARS);
     out->WriteInt32(messagetime);
     out->WriteInt32(usedinv);
-    out->WriteInt32(inv_top);
-    out->WriteInt32(inv_numdisp);
-    out->WriteInt32(obsolete_inv_numorder);
-    out->WriteInt32(inv_numinline);
+    out->WriteInt32(0); // [DEPRECATED]
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
     out->WriteInt32(text_speed);
     out->WriteInt32(sierra_inv_color);
     out->WriteInt32(talkanim_speed);
@@ -807,7 +807,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( next_screen_transition);
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
-    out->WriteInt16(inv_backwards_compatibility);
+    out->WriteInt16(0); // [DEPRECATED]
     out->WriteInt32(static_cast<uint32_t>(do_once_tokens.size()));
     for (const auto &token : do_once_tokens)
     {

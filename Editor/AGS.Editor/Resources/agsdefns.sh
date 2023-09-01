@@ -2327,7 +2327,7 @@ builtin struct GameState {
   int  globalvars[MAX_LEGACY_GLOBAL_VARS];
   int  messagetime;   // for auto-remove messages
   int  usedinv;
-  int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
   int  text_speed;
   int  sierra_inv_color;
   int  talkanim_speed;  // $AUTOCOMPLETEIGNORE$
@@ -2348,7 +2348,7 @@ builtin struct GameState {
   int  bgspeech_game_speed;
   int  bgspeech_stay_on_display;
   int  unfactor_speech_from_textlength;
-  int  reserved__9;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__9;   // $AUTOCOMPLETEIGNORE$
   int  speech_music_drop;
   readonly int  in_cutscene;
   readonly int  skipping_cutscene;
@@ -2361,9 +2361,9 @@ builtin struct GameState {
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
-  int  reserved__10;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__10;   // $AUTOCOMPLETEIGNORE$
   int  lipsync_speed;
-  int  reserved__4;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__4;   // $AUTOCOMPLETEIGNORE$
   int  disable_antialiasing;
   int  text_speed_modifier;
   int  text_align;
@@ -2391,10 +2391,10 @@ builtin struct GameState {
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__5;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__6;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__7;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__8;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__5;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__6;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__7;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__8;   // $AUTOCOMPLETEIGNORE$
   int  dialog_options_highlight_color;
   };
   

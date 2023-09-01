@@ -2882,13 +2882,13 @@ builtin struct GameState {
   int  messagetime;   // for auto-remove messages
   int  usedinv;
 #ifdef STRICT
-  int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
 #endif
 #ifndef STRICT
   int  top_inv_item;
-  int  num_inv_displayed;
-  int  num_inv_items;
-  int  items_per_line;
+  readonly int  num_inv_displayed;
+  readonly int  num_inv_items;
+  readonly int  items_per_line;
 #endif
   int  text_speed;
   int  sierra_inv_color;
@@ -2920,7 +2920,7 @@ builtin struct GameState {
   int  score_sound;
   int  previous_game_data;
 #ifndef SCRIPT_COMPAT_v341
-  readonly int unused__041; // $AUTOCOMPLETEIGNORE$
+  readonly readonly int unused__041; // $AUTOCOMPLETEIGNORE$
 #endif
 #ifdef SCRIPT_COMPAT_v341
   int  replay_hotkey;
@@ -2931,7 +2931,7 @@ builtin struct GameState {
   int  ambient_sounds_persist;
   int  lipsync_speed;
 #ifndef SCRIPT_COMPAT_v321
-  int  reserved__4;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__4;   // $AUTOCOMPLETEIGNORE$
 #endif
 #ifdef SCRIPT_COMPAT_v321
   int  close_mouth_end_speech_time;
@@ -2952,7 +2952,7 @@ builtin struct GameState {
   int  screenshot_height;
   int  top_bar_font;
 #ifndef SCRIPT_COMPAT_v321
-  int  reserved__2;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__2;   // $AUTOCOMPLETEIGNORE$
 #endif
 #ifdef SCRIPT_COMPAT_v321
   int  speech_text_align;
@@ -2960,7 +2960,7 @@ builtin struct GameState {
   int  auto_use_walkto_points;
   int  inventory_greys_out;
 #ifndef SCRIPT_COMPAT_v321
-  int  reserved__3;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__3;   // $AUTOCOMPLETEIGNORE$
 #endif
 #ifdef SCRIPT_COMPAT_v321
   int  skip_speech_specific_key;
@@ -2974,10 +2974,10 @@ builtin struct GameState {
   int  read_dialog_option_color;
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
 #ifdef SCRIPT_API_v340
-  int  reserved__5;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__6;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__7;   // $AUTOCOMPLETEIGNORE$
-  int  reserved__8;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__5;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__6;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__7;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__8;   // $AUTOCOMPLETEIGNORE$
   int  dialog_options_highlight_color;
 #endif
   };

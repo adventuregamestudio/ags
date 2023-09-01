@@ -464,7 +464,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     usedinv = in->ReadInt32();
     inv_top = in->ReadInt32();
     inv_numdisp = in->ReadInt32();
-    obsolete_inv_numorder = in->ReadInt32();
+    inv_numorder = in->ReadInt32();
     inv_numinline = in->ReadInt32();
     text_speed = in->ReadInt32();
     sierra_inv_color = in->ReadInt32();
@@ -696,7 +696,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(usedinv);
     out->WriteInt32(inv_top);
     out->WriteInt32(inv_numdisp);
-    out->WriteInt32(obsolete_inv_numorder);
+    out->WriteInt32(inv_numorder);
     out->WriteInt32(inv_numinline);
     out->WriteInt32(text_speed);
     out->WriteInt32(sierra_inv_color);

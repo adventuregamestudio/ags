@@ -482,7 +482,7 @@ void update_invorder() {
         }
     }
     // backwards compatibility
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].invorder_count;
     GUI::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
@@ -492,7 +492,7 @@ void add_inventory(int inum) {
 
     Character_AddInventory(playerchar, &scrInv[inum], SCR_NO_VALUE);
 
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].invorder_count;
 }
 
 void lose_inventory(int inum) {
@@ -501,7 +501,7 @@ void lose_inventory(int inum) {
 
     Character_LoseInventory(playerchar, &scrInv[inum]);
 
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.inv_numorder = charextra[game.playercharacter].invorder_count;
 }
 
 void AddInventoryToCharacter(int charid, int inum) {

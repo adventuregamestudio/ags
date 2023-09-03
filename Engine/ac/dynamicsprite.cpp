@@ -437,6 +437,8 @@ int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, bool has_alpha) 
         return 0; // invalid slot, or reserved for the static sprite
 
     spriteset.SetSprite(slot, std::move(image), SPF_DYNAMICALLOC | (SPF_ALPHACHANNEL * has_alpha));
+    if (play.spritemodified.size() < game.SpriteInfos.size())
+        play.spritemodified.resize(game.SpriteInfos.size());
     return slot;
 }
 
@@ -449,9 +451,9 @@ void free_dynamic_sprite(int slot, bool notify_all) {
 
     spriteset.DisposeSprite(slot);
     if (notify_all)
-        game_sprite_deleted(slot);
+        game_sprite_updated(slot, true);
     else
-        clear_shared_texture(slot);
+        notify_sprite_changed(slot, true);
 }
 
 //=============================================================================

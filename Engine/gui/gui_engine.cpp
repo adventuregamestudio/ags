@@ -34,11 +34,10 @@
 
 using namespace AGS::Common;
 
-// For engine these are defined in ac.cpp
 extern int eip_guiobj;
 extern void replace_macro_tokens(const char*, String&);
 
-extern SpriteCache spriteset; // in ac_runningame
+extern SpriteCache spriteset;
 extern GameSetupStruct game;
 
 bool GUIMain::HasAlphaChannel() const

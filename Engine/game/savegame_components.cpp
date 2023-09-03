@@ -836,8 +836,7 @@ HSaveError ReadDynamicSprites(Stream *in, int32_t /*cmp_ver*/, const PreservedPa
         int id = in->ReadInt32();
         int flags = in->ReadInt32();
         std::unique_ptr<Bitmap> image(read_serialized_bitmap(in));
-        add_dynamic_sprite(id, std::move(image));
-        game.SpriteInfos[id].Flags = flags; // FIXME, don't set directly; are these flags even necessary?
+        add_dynamic_sprite(id, std::move(image), (flags & SPF_ALPHACHANNEL) != 0);
     }
     return err;
 }

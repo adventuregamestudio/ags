@@ -16,6 +16,7 @@ namespace AGS.Editor
         private AGS.Types.View.ViewUpdatedHandler _viewUpdateHandler;
 		private delegate void CorrectAutoScrollDelegate(Point p);
         private GUIController _guiController;
+        private bool _processingSelection = false;
 
         public ViewEditor(AGS.Types.View viewToEdit)
         {
@@ -171,10 +172,22 @@ namespace AGS.Editor
 
         private void loopPane_SelectedFrameChanged(ViewLoop loop, int newSelectedFrame)
         {
+            _processingSelection = true;
             if (newSelectedFrame >= 0)
             {
                 _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(loop));
-                _guiController.SetPropertyGridObject(loop.Frames[newSelectedFrame]);
+                var selection = _loopPanes[loop.ID].SelectedFrames;
+                if (selection.Count == 1)
+                {
+                    _guiController.SetPropertyGridObject(loop.Frames[newSelectedFrame]);
+                }
+                else
+                {
+                    ViewFrame[] frames = new ViewFrame[selection.Count];
+                    for (int i = 0; i < frames.Length; ++i)
+                        frames[i] = loop.Frames[selection[i]];
+                    _guiController.SetPropertyGridObjects(frames);
+                }
             }
             else
             {
@@ -187,17 +200,23 @@ namespace AGS.Editor
             {
                 if (pane.Loop != loop)
                 {
-                    pane.SelectedFrame = -1;
+                    // FIXME: find a way to assign a property, with invalidation
+                    pane.SelectedFrames.Clear();
+                    pane.Invalidate();
                 }
             }
 
             // the view's Flipped setting might have changed, ensure
             // the preview is updated
             viewPreview.ViewUpdated();
+            _processingSelection = false;
         }
 
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
+            if (_processingSelection)
+                return;
+
             if (newPropertyObject is ViewFrame)
             {
                 foreach (ViewLoopEditor pane in _loopPanes)
@@ -206,7 +225,10 @@ namespace AGS.Editor
                     {
                         if (newPropertyObject == frame)
                         {
-                            pane.SelectedFrame = frame.ID;
+                            // FIXME: find a way to assign a property, with invalidation
+                            pane.SelectedFrames.Clear();
+                            pane.SelectedFrames.Add(frame.ID);
+                            pane.Invalidate();
                             break;
                         }
                     }
@@ -274,9 +296,9 @@ namespace AGS.Editor
             {
                 foreach (ViewLoopEditor pane in _loopPanes)
                 {
-                    if (pane.SelectedFrame >= 0)
+                    if (pane.SelectedFrames.Count > 0)
                     {
-                        pane.DeleteSelectedFrame();
+                        pane.DeleteSelectedFrames();
                         break;
                     }
                 }
@@ -285,9 +307,9 @@ namespace AGS.Editor
 			{
 				foreach (ViewLoopEditor pane in _loopPanes)
 				{
-					if (pane.SelectedFrame >= 0)
+					if (pane.SelectedFrames.Count > 0)
 					{
-						pane.FlipSelectedFrame();
+						pane.FlipSelectedFrames();
 						break;
 					}
 				}

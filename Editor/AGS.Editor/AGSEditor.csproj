@@ -123,6 +123,7 @@
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
+    <Compile Include="Entities\MultiSelectAction.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>

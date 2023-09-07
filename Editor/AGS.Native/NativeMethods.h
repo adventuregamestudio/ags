@@ -41,7 +41,7 @@ namespace AGS
 			// may be called with hDC = 0 to get required height without drawing anything
 			int  DrawFont(int hDC, int x, int y, int width, int fontNum);
 			void DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum);
-			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
+			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 			void ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 			Bitmap^ GetBitmapForSprite(int spriteSlot, int width, int height);

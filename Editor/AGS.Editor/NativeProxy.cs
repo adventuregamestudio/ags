@@ -132,11 +132,11 @@ namespace AGS.Editor
             _native.DrawBlockOfColour((int)hdc, x, y, width, height, colourNum);
         }
 
-        public void DrawViewLoop(IntPtr hdc, ViewLoop loop, int x, int y, int sizeInPixels, int selectedFrame)
+        public void DrawViewLoop(IntPtr hdc, ViewLoop loop, int x, int y, int sizeInPixels, List<int> selectedFrames)
         {
 			lock (_spriteSetLock)
 			{
-				_native.DrawViewLoop((int)hdc, loop, x, y, sizeInPixels, selectedFrame);
+				_native.DrawViewLoop((int)hdc, loop, x, y, sizeInPixels, selectedFrames);
 			}
         }
 

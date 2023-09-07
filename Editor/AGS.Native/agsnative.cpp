@@ -1020,7 +1020,8 @@ void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
   newy[0] = newsizy;
 }
 
-static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, int y, int size, int cursel) {
+static void doDrawViewLoop(int hdc, int numFrames, const std::vector<::ViewFrame> &frames,
+    int x, int y, int size, const std::vector<int> &cursel) {
   int wtoDraw = size * numFrames;
   
   if ((numFrames > 0) && (frames[numFrames-1].pic == -1))
@@ -1066,7 +1067,8 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       // Draw dividing line
 	  todraw->DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
     }
-    if (i == cursel) {
+    // FIXME optimize this!
+    if (std::count(cursel.begin(), cursel.end(), i) > 0) {
       // Selected item
       int linecol = makecol_depth(thisgame.color_depth * 8, 255, 255,255);
       if (thisgame.color_depth == 1)
@@ -2052,29 +2054,18 @@ void GameFontUpdated(Game ^game, int fontNumber, bool forceUpdate)
     font->Height = get_font_surface_height(fontNumber);
 }
 
-void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
+void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
 {
-  ::ViewFrame * frames = (::ViewFrame*)malloc(sizeof(::ViewFrame) * loopToDraw->Frames->Count);
-	for (int i = 0; i < loopToDraw->Frames->Count; i++) 
-	{
-		frames[i].pic = loopToDraw->Frames[i]->Image;
-		frames[i].flags = (loopToDraw->Frames[i]->Flipped) ? VFLG_FLIPSPRITE : 0;
-	}
-  // stretch_sprite is dodgy, retry a few times if it crashes
-  int retries = 0;
-  while (retries < 3)
-  {
-    try
+    std::vector<::ViewFrame> frames(loopToDraw->Frames->Count);
+    for (int i = 0; i < loopToDraw->Frames->Count; ++i) 
     {
-	    doDrawViewLoop(hdc, loopToDraw->Frames->Count, frames, x, y, size, cursel);
-      break;
+	    frames[i].pic = loopToDraw->Frames[i]->Image;
+	    frames[i].flags = (loopToDraw->Frames[i]->Flipped) ? VFLG_FLIPSPRITE : 0;
     }
-    catch (AccessViolationException ^)
-    {
-      retries++;
-    }
-  }
-  free(frames);
+    std::vector<int> selected(cursel->Count);
+    for (int i = 0; i < cursel->Count; ++i)
+        selected[i] = cursel[i];
+    doDrawViewLoop(hdc, loopToDraw->Frames->Count, frames, x, y, size, selected);
 }
 
 Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth)

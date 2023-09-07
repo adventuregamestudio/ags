@@ -1020,65 +1020,65 @@ void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
   newy[0] = newsizy;
 }
 
-static void doDrawViewLoop(int hdc, int numFrames, const std::vector<::ViewFrame> &frames,
-    int x, int y, int size, const std::vector<int> &cursel) {
-  int wtoDraw = size * numFrames;
-  
-  if ((numFrames > 0) && (frames[numFrames-1].pic == -1))
-    wtoDraw -= size;
+static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
+    int x, int y, int size, const std::vector<int> &cursel)
+{
+    int wtoDraw = size * frames.size();
+    if ((frames.size() > 0) && (frames.back().pic == -1))
+        wtoDraw -= size;
 
-  Common::Bitmap *todraw = Common::BitmapHelper::CreateBitmap (wtoDraw, size, thisgame.color_depth*8);
-  todraw->Clear (todraw->GetMaskColor ());
-  int neww, newh;
-  for (int i = 0; i < numFrames; i++) {
-    // don't draw the Go-To-Next-Frame jibble
-    if (frames[i].pic == -1)
-      break;
-    // work out the dimensions to stretch to
-    proportionalDraw (size, frames[i].pic, &neww, &newh);
-    Common::Bitmap *toblt = get_sprite(frames[i].pic);
-    bool freeBlock = false;
-    if (toblt->GetColorDepth () != todraw->GetColorDepth ()) {
-      // 256-col sprite in hi-col game, we need to copy first
-      Common::Bitmap *oldBlt = toblt;
-      toblt = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
-      toblt->Blit (oldBlt, 0, 0, 0, 0, oldBlt->GetWidth(), oldBlt->GetHeight());
-      freeBlock = true;
-    }
-    Common::Bitmap *flipped = NULL;
-    if (frames[i].flags & VFLG_FLIPSPRITE) {
-      // mirror the sprite
-      flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
-      flipped->Clear (flipped->GetMaskColor ());
-      flipped->FlipBlt(toblt, 0, 0, Common::kFlip_Horizontal);
-      if (freeBlock)
-        delete toblt;
-      toblt = flipped;
-      freeBlock = true;
-    }
-    todraw->StretchBlt(toblt, RectWH(size*i, 0, neww, newh));
-    if (freeBlock)
-      delete toblt;
-    if (i < numFrames-1) {
-      int linecol = makecol_depth(thisgame.color_depth * 8, 0, 64, 200);
-      if (thisgame.color_depth == 1)
+    std::unique_ptr<AGSBitmap> todraw(Common::BitmapHelper::CreateTransparentBitmap(wtoDraw, size, thisgame.GetColorDepth()));
+    std::unique_ptr<AGSBitmap> bmpbuf;
+
+    int linecol = makecol_depth(thisgame.GetColorDepth(), 0, 64, 200);
+    if (thisgame.GetColorDepth() == 8)
         linecol = 12;
+  
+    for (size_t i = 0; i < frames.size(); ++i)
+    {
+        // don't draw the Go-To-Next-Frame jibble
+        if (frames[i].pic == -1)
+            break;
+        // work out the dimensions to stretch to
+        int neww, newh;
+        proportionalDraw (size, frames[i].pic, &neww, &newh);
+        AGSBitmap *toblt = get_sprite(frames[i].pic);
+        if (toblt->GetColorDepth () != todraw->GetColorDepth ())
+        {
+            // Different color depth? make a copy
+            bmpbuf.reset(Common::BitmapHelper::CreateBitmap(toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth()));
+            bmpbuf->Blit (toblt, 0, 0, 0, 0, toblt->GetWidth(), toblt->GetHeight());
+            toblt = bmpbuf.get();
+        }
+        if (frames[i].flags & VFLG_FLIPSPRITE)
+        {
+            // Flipped bitmap? mirror the sprite
+            AGSBitmap *flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
+            flipped->Clear (flipped->GetMaskColor ());
+            flipped->FlipBlt(toblt, 0, 0, Common::kFlip_Horizontal);
+            bmpbuf.reset(flipped);
+            toblt = flipped;
+        }
+        todraw->StretchBlt(toblt, RectWH(size*i, 0, neww, newh));
+        bmpbuf.reset();
+        if (i < frames.size() - 1)
+        {
+            // Draw dividing line
+	        todraw->DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
+        }
+    }
 
-      // Draw dividing line
-	  todraw->DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
-    }
-    // FIXME optimize this!
-    if (std::count(cursel.begin(), cursel.end(), i) > 0) {
-      // Selected item
-      int linecol = makecol_depth(thisgame.color_depth * 8, 255, 255,255);
-      if (thisgame.color_depth == 1)
+    // Paint selection boxes over selected items
+    linecol = makecol_depth(thisgame.GetColorDepth(), 255, 255,255);
+    if (thisgame.GetColorDepth() == 8)
         linecol = 14;
-      
-      todraw->DrawRect(Rect (size * i, 0, size * (i+1) - 1, size-1), linecol);
+    for (int sel : cursel)
+    {
+        todraw->DrawRect(Rect(size * sel, 0, size * (sel+1) - 1, size-1), linecol);
     }
-  }
-  drawBlock ((HDC)hdc, todraw, x, y);
-  delete todraw;
+
+    // Paint result on the final GDI surface
+    drawBlock((HDC)hdc, todraw.get(), x, y);
 }
 
 // TODO: these functions duplicate ones in the engine, because game struct
@@ -2065,7 +2065,7 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<i
     std::vector<int> selected(cursel->Count);
     for (int i = 0; i < cursel->Count; ++i)
         selected[i] = cursel[i];
-    doDrawViewLoop(hdc, loopToDraw->Frames->Count, frames, x, y, size, selected);
+    doDrawViewLoop(hdc, frames, x, y, size, selected);
 }
 
 Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth)

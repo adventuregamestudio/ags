@@ -26,7 +26,7 @@ namespace AGS.Editor
         private Icon _delayIcon = Resources.ResourceManager.GetIcon("delay_indicator.ico");
         private const int ICON_WIDTH = 16;
 
-        public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame);
+        public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame, MultiSelectAction action);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
 
 		public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
@@ -40,6 +40,7 @@ namespace AGS.Editor
         private bool _isLastLoop;
         private int _loopDisplayY;
         private List<int> _selectedFrames = new List<int>();
+        private bool _handleRangeSelection = true;
         private int _lastSingleSelection = 0;
         private int _framelessWidth;
         private GUIController _guiController;
@@ -78,7 +79,17 @@ namespace AGS.Editor
         public List<int> SelectedFrames
         {
             get { return _selectedFrames; }
-            set { _selectedFrames = value; this.Invalidate(); }
+        }
+
+        /// <summary>
+        /// Get/set whether this ViewLoopEditor will handle frame range selection.
+        /// If not, then it will only send range selection events, but does not modify
+        /// its own SelectedFranes list.
+        /// </summary>
+        public bool HandleRangeSelection
+        {
+            get { return _handleRangeSelection; }
+            set { _handleRangeSelection = value; }
         }
 
         public bool IsLastLoop
@@ -131,7 +142,7 @@ namespace AGS.Editor
             btnNewFrame.Visible = true;
             UpdateControlWidth();
             this.Invalidate();
-            OnSelectedFrameChanged();
+            OnSelectedFrameChanged(-1, MultiSelectAction.ClearAll);
         }
 
         private void UpdateControlWidth()
@@ -224,7 +235,7 @@ namespace AGS.Editor
             return -1;
         }
 
-		private void ChangeSelectedFrame(int newSelection, MultiSelectAction action = MultiSelectAction.Set)
+        private void ChangeSelectedFrame(int newSelection, MultiSelectAction action = MultiSelectAction.Set)
 		{
             switch (action)
             {
@@ -234,10 +245,13 @@ namespace AGS.Editor
                     break;
                 case MultiSelectAction.AddRange:
                     _selectedFrames.Clear();
-                    int min = Math.Min(_lastSingleSelection, newSelection);
-                    int max = Math.Max(_lastSingleSelection, newSelection);
-                    for (int i = min; i <= max; ++i)
-                        _selectedFrames.Add(i);
+                    if (_handleRangeSelection)
+                    {
+                        int min = Math.Min(_lastSingleSelection, newSelection);
+                        int max = Math.Max(_lastSingleSelection, newSelection);
+                        for (int i = min; i <= max; ++i)
+                            _selectedFrames.Add(i);
+                    }
                     break;
                 case MultiSelectAction.ClearAll:
                     _selectedFrames.Clear();
@@ -255,10 +269,9 @@ namespace AGS.Editor
                     break;
             }
 
-			this.Invalidate();
-
-			OnSelectedFrameChanged();
-		}
+            this.Invalidate();
+            OnSelectedFrameChanged(newSelection, action);
+        }
 
         private void ViewLoopEditor_MouseUp(object sender, MouseEventArgs e)
         {
@@ -282,9 +295,9 @@ namespace AGS.Editor
             }
         }
 
-        private void OnSelectedFrameChanged()
+        private void OnSelectedFrameChanged(int selectedFrame, MultiSelectAction action)
         {
-            SelectedFrameChanged?.Invoke(_loop, _selectedFrames.Count > 0 ? _selectedFrames[_selectedFrames.Count - 1] : -1);
+            SelectedFrameChanged?.Invoke(_loop, selectedFrame, action);
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)
@@ -387,7 +400,7 @@ namespace AGS.Editor
                 btnNewFrame.Visible = true;
                 UpdateControlWidth();
                 this.Invalidate();
-                OnSelectedFrameChanged();
+                OnSelectedFrameChanged(-1, MultiSelectAction.ClearAll);
             }
         }
 

@@ -1,10 +1,8 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -17,6 +15,10 @@ namespace AGS.Editor
 		private delegate void CorrectAutoScrollDelegate(Point p);
         private GUIController _guiController;
         private bool _processingSelection = false;
+        // Multiframe selection cache, may contain frames from multiple loops too!
+        private List<ViewFrame> _selectedFrames = new List<ViewFrame>();
+        private int _lastSelectedLoop = 0;
+        private int _lastSelectedFrame = 0;
 
         public ViewEditor(AGS.Types.View viewToEdit)
         {
@@ -111,6 +113,7 @@ namespace AGS.Editor
             loopPane.Left = 10 + editorPanel.AutoScrollPosition.X;
             loopPane.ZoomLevel = sldZoomLevel.ZoomScale;
             loopPane.Top = 10 + _loopPanes.Count * loopPane.Height + editorPanel.AutoScrollPosition.Y;
+            loopPane.HandleRangeSelection = false; // we will handle multi-loop selection ourselves
             loopPane.SelectedFrameChanged += new ViewLoopEditor.SelectedFrameChangedHandler(loopPane_SelectedFrameChanged);
 			loopPane.NewFrameAdded += new ViewLoopEditor.NewFrameAddedHandler(loopPane_NewFrameAdded);
             if (loop.ID == _editingView.Loops.Count - 1)
@@ -170,40 +173,110 @@ namespace AGS.Editor
 			}
 		}
 
-        private void loopPane_SelectedFrameChanged(ViewLoop loop, int newSelectedFrame)
+        private void loopPane_SelectedFrameChanged(ViewLoop loop, int newSelectedFrame, MultiSelectAction action)
         {
             _processingSelection = true;
-            if (newSelectedFrame >= 0)
+
+            // If it's not a single frame Add or Remove, then reset all previous selection
+            if (action != MultiSelectAction.Add && action != MultiSelectAction.Remove)
+            {
+                _selectedFrames.Clear();
+                // Deselect all the other loops
+                foreach (ViewLoopEditor pane in _loopPanes)
+                {
+                    if (pane.Loop != loop)
+                    {
+                        pane.SelectedFrames.Clear();
+                        pane.Invalidate();
+                    }
+                }
+            }
+
+            switch (action)
+            {
+                case MultiSelectAction.Add:
+                case MultiSelectAction.Set:
+                    _selectedFrames.Add(loop.Frames[newSelectedFrame]);
+                    break;
+                case MultiSelectAction.Remove:
+                    _selectedFrames.Remove(loop.Frames[newSelectedFrame]);
+                    break;
+                case MultiSelectAction.AddRange:
+                    if (_lastSelectedLoop == loop.ID)
+                    {
+                        // Simplest case: a range within a single loop
+                        ViewLoopEditor loopPane = _loopPanes[loop.ID];
+                        int min = Math.Min(_lastSelectedFrame, newSelectedFrame);
+                        int max = Math.Max(_lastSelectedFrame, newSelectedFrame);
+                        for (int i = min; i <= max; ++i)
+                        {
+                            loopPane.SelectedFrames.Add(i);
+                            _selectedFrames.Add(loop.Frames[i]);
+                        }
+                    }
+                    else
+                    {
+                        // Selection across multiple loops
+                        // Select parts of the first and last loops in range
+                        int minLoop = Math.Min(_lastSelectedLoop, loop.ID);
+                        int maxLoop = Math.Max(_lastSelectedLoop, loop.ID);
+                        int minFrame = Math.Min(_lastSelectedFrame, newSelectedFrame);
+                        int maxFrame = Math.Max(_lastSelectedFrame, newSelectedFrame);
+                        ViewLoop firstLoop = _editingView.Loops[minLoop];
+                        ViewLoop lastLoop = _editingView.Loops[maxLoop];
+                        ViewLoopEditor firstLoopPane = _loopPanes[minLoop];
+                        ViewLoopEditor lastLoopPane = _loopPanes[maxLoop];
+
+                        for (int i = minFrame; i < firstLoop.Frames.Count; ++i)
+                        {
+                            firstLoopPane.SelectedFrames.Add(i);
+                            _selectedFrames.Add(firstLoop.Frames[i]);
+                        }
+                        for (int i = 0; i <= maxFrame; ++i)
+                        {
+                            lastLoopPane.SelectedFrames.Add(i);
+                            _selectedFrames.Add(lastLoop.Frames[i]);
+                        }
+                        firstLoopPane.Invalidate();
+                        lastLoopPane.Invalidate();
+
+                        // Now select all the loops in between
+                        for (int loopIndex = minLoop + 1; loopIndex < maxLoop; ++loopIndex)
+                        {
+                            ViewLoop otherLoop = _editingView.Loops[loopIndex];
+                            ViewLoopEditor otherPane = _loopPanes[loopIndex];
+                            for (int i = 0; i < otherLoop.Frames.Count; ++i)
+                            {
+                                _loopPanes[loopIndex].SelectedFrames.Add(i);
+                                _selectedFrames.Add(otherLoop.Frames[i]);
+                            }
+                            otherPane.Invalidate();
+                        }
+                    }
+                    break;
+            }
+
+            _lastSelectedLoop = loop != null ? loop.ID : 0;
+            _lastSelectedFrame = Math.Max(0, newSelectedFrame);
+
+            // Now refill the Property Grid
+            if (_selectedFrames.Count == 1)
             {
                 _guiController.SetPropertyGridObjectList(ConstructPropertyObjectList(loop));
-                var selection = _loopPanes[loop.ID].SelectedFrames;
-                if (selection.Count == 1)
-                {
-                    _guiController.SetPropertyGridObject(loop.Frames[newSelectedFrame]);
-                }
-                else
-                {
-                    ViewFrame[] frames = new ViewFrame[selection.Count];
-                    for (int i = 0; i < frames.Length; ++i)
-                        frames[i] = loop.Frames[selection[i]];
-                    _guiController.SetPropertyGridObjects(frames);
-                }
+                _guiController.SetPropertyGridObject(loop.Frames[newSelectedFrame]);
+            }
+            else if (_selectedFrames.Count > 1)
+            {
+                // NOTE: we could keep record of number of loops selected, and still
+                // fill loop frames in the objectlist, if all selection is within 1 loop
+                _guiController.SetPropertyGridObjectList(null);
+                var frames = _selectedFrames.Distinct().ToArray();
+                _guiController.SetPropertyGridObjects(frames);
             }
             else
             {
                 _guiController.SetPropertyGridObjectList(null);
                 _guiController.SetPropertyGridObject(_editingView);
-            }
-
-            // deselect all other loops
-            foreach (ViewLoopEditor pane in _loopPanes)
-            {
-                if (pane.Loop != loop)
-                {
-                    // FIXME: find a way to assign a property, with invalidation
-                    pane.SelectedFrames.Clear();
-                    pane.Invalidate();
-                }
             }
 
             // the view's Flipped setting might have changed, ensure
@@ -276,7 +349,7 @@ namespace AGS.Editor
             _loopPanes[_loopPanes.Count - 1].Dispose();
             _loopPanes.RemoveAt(_loopPanes.Count - 1);
 
-            loopPane_SelectedFrameChanged(null, -1);
+            loopPane_SelectedFrameChanged(null, -1, MultiSelectAction.ClearAll);
 
             if (_loopPanes.Count == 0)
             {

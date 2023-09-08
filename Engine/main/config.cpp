@@ -389,6 +389,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.override_upscale = CfgReadBoolInt(cfg, "override", "upscale", usetup.override_upscale);
         usetup.dataver_for_legacysavs = static_cast<GameDataVersion>
             (CfgReadInt(cfg, "override", "dataver_for_legacysaves", kGameVersion_Undefined));
+        usetup.legacysaves_let_gui_diff = CfgReadBoolInt(cfg, "override", "legacysaves_let_gui_diff");
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
     }

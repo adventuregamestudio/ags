@@ -1,4 +1,4 @@
-# base will already have Chocolatey installed
+# base will already have Chocolatey installed and other things
 FROM ericoporto/min-ags-dev-env:1.0.0
 
 # if no temp folder exists by default, create it

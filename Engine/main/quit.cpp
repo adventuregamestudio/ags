@@ -172,12 +172,6 @@ QuitReason quit_check_for_error_state(const char *qmsg, String &errmsg, String &
     }
 }
 
-void quit_release_data()
-{
-    unload_game_file();
-    AssetMgr.reset();
-}
-
 // quit - exits the engine, shutting down everything gracefully
 // The parameter is the message to print. If this message begins with
 // an '!' character, then it is printed as a "contact game author" error.
@@ -205,19 +199,11 @@ void quit(const char *quitmsg)
 
     our_eip = 9900;
 
-    quit_stop_cd();
-
-    our_eip = 9020;
-
     quit_shutdown_scripts();
-
-    // Be sure to unlock mouse on exit, or users will hate us
-    sys_window_lock_mouse(false);
 
     our_eip = 9016;
 
-    quit_check_dynamic_sprites(qreason);
-
+    quit_stop_cd();
     if (use_cdplayer)
         platform->ShutdownCDPlayer();
 
@@ -225,17 +211,18 @@ void quit(const char *quitmsg)
 
     video_shutdown();
     quit_shutdown_audio();
-    
-    our_eip = 9901;
-
-    spriteset.Reset();
 
     our_eip = 9908;
 
     shutdown_pathfinder();
 
-    quit_release_data();
+    // Release game data and unregister assets
+    quit_check_dynamic_sprites(qreason);
+    unload_game_file();
+    AssetMgr.reset();
 
+    // Be sure to unlock mouse on exit, or users will hate us
+    sys_window_lock_mouse(false);
     engine_shutdown_gfxmode();
 
     platform->PreBackendExit();

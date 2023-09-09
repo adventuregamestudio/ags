@@ -9,6 +9,9 @@ namespace AGS.Editor
 {
     public partial class ViewEditor : EditorContentPanel
     {
+        private const string MENU_ITEM_DELETE_FRAMES = "DeleteFrames";
+        private const string MENU_ITEM_FLIP_FRAMES = "FlipFrames";
+
         private AGS.Types.View _editingView;
         private List<ViewLoopEditor> _loopPanes = new List<ViewLoopEditor>();
         private AGS.Types.View.ViewUpdatedHandler _viewUpdateHandler;
@@ -116,6 +119,7 @@ namespace AGS.Editor
             loopPane.HandleRangeSelection = false; // we will handle multi-loop selection ourselves
             loopPane.SelectedFrameChanged += new ViewLoopEditor.SelectedFrameChangedHandler(loopPane_SelectedFrameChanged);
 			loopPane.NewFrameAdded += new ViewLoopEditor.NewFrameAddedHandler(loopPane_NewFrameAdded);
+            loopPane.OnContextMenu += loopPane_OnContextMenu;
             if (loop.ID == _editingView.Loops.Count - 1)
             {
                 loopPane.IsLastLoop = true;
@@ -175,6 +179,9 @@ namespace AGS.Editor
 
         private void loopPane_SelectedFrameChanged(ViewLoop loop, int newSelectedFrame, MultiSelectAction action)
         {
+            if (_processingSelection)
+                return; // avoid double entering, or something updates selection in a batch
+
             _processingSelection = true;
 
             // If it's not a single frame Add or Remove, then reset all previous selection
@@ -285,6 +292,53 @@ namespace AGS.Editor
             _processingSelection = false;
         }
 
+        private void loopPane_OnContextMenu(object sender, ViewLoopContextMenuArgs e)
+        {
+            // In case of a multi-loop selection, override with our own commands
+            e.ItemsOverriden = _loopPanes.Count(pane => pane.SelectedFrames.Count > 0) > 1;
+            if (e.ItemsOverriden)
+            {
+                var menu = e.Menu;
+                EventHandler onClick = new EventHandler(ContextMenuEventHandler);
+                menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAMES));
+                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAMES);
+                deleteOption.ShortcutKeys = Keys.Delete;
+                menu.Items.Add(deleteOption);
+            }
+        }
+
+        private void ContextMenuEventHandler(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            if (item.Name == MENU_ITEM_DELETE_FRAMES)
+            {
+                DeleteSelectedFrames();
+            }
+            else if (item.Name == MENU_ITEM_FLIP_FRAMES)
+            {
+                FlipSelectedFrames();
+            }
+        }
+
+        private void DeleteSelectedFrames()
+        {
+            _processingSelection = true;
+            foreach (ViewLoopEditor loopPane in _loopPanes)
+            {
+                loopPane.DeleteSelectedFrames();
+            }
+            _processingSelection = false;
+            loopPane_SelectedFrameChanged(null, 0, MultiSelectAction.ClearAll);
+        }
+
+        private void FlipSelectedFrames()
+        {
+            foreach (ViewLoopEditor loopPane in _loopPanes)
+            {
+                loopPane.FlipSelectedFrames();
+            }
+        }
+
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
             if (_processingSelection)
@@ -367,25 +421,11 @@ namespace AGS.Editor
         {
             if (keyData == Keys.Delete)
             {
-                foreach (ViewLoopEditor pane in _loopPanes)
-                {
-                    if (pane.SelectedFrames.Count > 0)
-                    {
-                        pane.DeleteSelectedFrames();
-                        break;
-                    }
-                }
+                DeleteSelectedFrames();
             }
 			else if (keyData == Keys.F)
 			{
-				foreach (ViewLoopEditor pane in _loopPanes)
-				{
-					if (pane.SelectedFrames.Count > 0)
-					{
-						pane.FlipSelectedFrames();
-						break;
-					}
-				}
+                FlipSelectedFrames();
 			}
         }
 

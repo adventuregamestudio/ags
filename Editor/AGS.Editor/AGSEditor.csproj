@@ -225,6 +225,7 @@
     <Compile Include="Panes\ScriptEditorBase.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Panes\ViewLoopContextMenuArgs.cs" />
     <Compile Include="Panes\ZoomTrackbar.cs">
       <SubType>UserControl</SubType>
     </Compile>

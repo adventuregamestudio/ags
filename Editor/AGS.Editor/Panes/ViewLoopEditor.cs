@@ -32,7 +32,9 @@ namespace AGS.Editor
 		public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
 		public event NewFrameAddedHandler NewFrameAdded;
 
-		private static int _LastSelectedSprite = 0;
+        public event EventHandler<ViewLoopContextMenuArgs> OnContextMenu;
+
+        private static int _LastSelectedSprite = 0;
         private static ViewLoop _copiedLoop;
 
         private float _zoomLevel = 1.0f;
@@ -109,13 +111,16 @@ namespace AGS.Editor
 
 		public void FlipSelectedFrames()
 		{
+            if (_selectedFrames.Count == 0)
+                return;
+
             foreach (int sel in _selectedFrames)
 			{
 				ViewFrame frame = _loop.Frames[sel];
 				frame.Flipped = !frame.Flipped;
-				this.Invalidate();
 			}
-		}
+            this.Invalidate();
+        }
 
         public void DeleteSelectedFrames()
         {
@@ -276,7 +281,7 @@ namespace AGS.Editor
         private void ViewLoopEditor_MouseUp(object sender, MouseEventArgs e)
         {
             int clickedOnFrame = GetFrameAtLocation(e.X, e.Y);
-            if (clickedOnFrame >= 0) 
+            if (e.Button == MouseButtons.Left && clickedOnFrame >= 0)
             {
                 MultiSelectAction action;
                 if ((Control.ModifierKeys & Keys.Shift) != 0)
@@ -291,7 +296,7 @@ namespace AGS.Editor
 
             if (e.Button == MouseButtons.Right)
             {
-                ShowContextMenu(e.Location, (clickedOnFrame >= 0));
+                ShowContextMenu(e.Location, clickedOnFrame);
             }
         }
 
@@ -323,20 +328,31 @@ namespace AGS.Editor
             }
         }
 
-        private void ShowContextMenu(Point menuPosition, bool frameIsSelected)
+        private void ShowContextMenu(Point menuPosition, int selectedFrame)
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
-            if (frameIsSelected)
+            ViewLoopContextMenuArgs ctxArgs = new ViewLoopContextMenuArgs(menu, _loop, selectedFrame >= 0 ? _loop.Frames[selectedFrame] : null);
+            OnContextMenu?.Invoke(this, ctxArgs);
+            if (ctxArgs.ItemsOverriden)
             {
-                menu.Items.Add(new ToolStripMenuItem("&Flip frame", null, onClick, MENU_ITEM_FLIP_FRAME));
-                menu.Items.Add(new ToolStripSeparator());
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete frame", null, onClick, MENU_ITEM_DELETE_FRAME);
+                if (menu.Items.Count > 0)
+                    menu.Show(this, menuPosition);
+                return;
+            }
+
+            if (selectedFrame >= 0)
+            {
+                menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAME));
+                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME);
                 deleteOption.ShortcutKeys = Keys.Delete;
                 menu.Items.Add(deleteOption);
-                menu.Items.Add(new ToolStripSeparator());
-                menu.Items.Add(new ToolStripMenuItem("Insert frame before this", null, onClick, MENU_ITEM_INSERT_BEFORE));
-                menu.Items.Add(new ToolStripMenuItem("Insert frame after this", null, onClick, MENU_ITEM_INSERT_AFTER));
+                if (_selectedFrames.Count == 1)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                    menu.Items.Add(new ToolStripMenuItem("Insert frame before this", null, onClick, MENU_ITEM_INSERT_BEFORE));
+                    menu.Items.Add(new ToolStripMenuItem("Insert frame after this", null, onClick, MENU_ITEM_INSERT_AFTER));
+                }
                 menu.Items.Add(new ToolStripSeparator());
             }
             menu.Items.Add(new ToolStripMenuItem("Cut loop", null, onCutLoopClicked, MENU_ITEM_CUT_LOOP));

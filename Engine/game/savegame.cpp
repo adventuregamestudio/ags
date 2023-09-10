@@ -717,8 +717,8 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion svg_version)
     }
     else
     {
-        GameDataVersion use_dataver = usetup.dataver_for_legacysavs != kGameVersion_Undefined ?
-                usetup.dataver_for_legacysavs : loaded_game_file_version;
+        GameDataVersion use_dataver = usetup.legacysave_assume_dataver != kGameVersion_Undefined ?
+                usetup.legacysave_assume_dataver : loaded_game_file_version;
         err = restore_save_data_v321(in, use_dataver, pp, r_data);
     }
     if (!err)

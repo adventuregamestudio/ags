@@ -387,9 +387,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.override_script_os = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
             CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
         usetup.override_upscale = CfgReadBoolInt(cfg, "override", "upscale", usetup.override_upscale);
-        usetup.dataver_for_legacysavs = static_cast<GameDataVersion>
-            (CfgReadInt(cfg, "override", "dataver_for_legacysaves", kGameVersion_Undefined));
-        usetup.legacysaves_let_gui_diff = CfgReadBoolInt(cfg, "override", "legacysaves_let_gui_diff");
+        usetup.legacysave_assume_dataver = static_cast<GameDataVersion>
+            (CfgReadInt(cfg, "override", "legacysave_assume_dataver", kGameVersion_Undefined));
+        usetup.legacysave_let_gui_diff = CfgReadBoolInt(cfg, "override", "legacysave_let_gui_diff");
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
     }

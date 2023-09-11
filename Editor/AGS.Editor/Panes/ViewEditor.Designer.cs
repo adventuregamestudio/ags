@@ -105,6 +105,7 @@ namespace AGS.Editor
             // 
             // viewPreview
             // 
+            this.viewPreview.AutoFrameFill = true;
             this.viewPreview.AutoResize = false;
             this.viewPreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.viewPreview.DynamicUpdates = false;

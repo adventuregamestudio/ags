@@ -63,7 +63,6 @@ namespace AGS.Editor
 
         private void sldZoomLevel_ValueChanged(object sender, EventArgs e)
         {
-            viewPreview.ZoomLevel = sldZoomLevel.ZoomScale;
             UpdateLoopVisuals();
         }
 
@@ -302,7 +301,6 @@ namespace AGS.Editor
                 viewPreview.Width = viewPreview.PreferredSize.Width;
                 viewPreview.Height = viewPreview.PreferredSize.Height;
 				viewPreview.ViewToPreview = _editingView;
-                viewPreview.ZoomLevel = sldZoomLevel.ZoomScale;
                 splitContainer1.Panel1Collapsed = false;
             }
 			else

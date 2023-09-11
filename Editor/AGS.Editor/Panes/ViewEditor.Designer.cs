@@ -121,12 +121,12 @@ namespace AGS.Editor
             // sldZoomLevel
             // 
             this.sldZoomLevel.Location = new System.Drawing.Point(172, 3);
-            this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.sldZoomLevel.Maximum = 600;
-            this.sldZoomLevel.Minimum = 75;
+            this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2);
+            this.sldZoomLevel.Maximum = 800;
+            this.sldZoomLevel.Minimum = 20;
             this.sldZoomLevel.Name = "sldZoomLevel";
-            this.sldZoomLevel.Size = new System.Drawing.Size(221, 31);
-            this.sldZoomLevel.Step = 25;
+            this.sldZoomLevel.Size = new System.Drawing.Size(280, 29);
+            this.sldZoomLevel.Step = 10;
             this.sldZoomLevel.TabIndex = 5;
             this.sldZoomLevel.Value = 100;
             this.sldZoomLevel.ZoomScale = 1F;

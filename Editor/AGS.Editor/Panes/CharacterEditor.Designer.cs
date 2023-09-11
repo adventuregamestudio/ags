@@ -34,8 +34,8 @@ namespace AGS.Editor
             this.btnMakePlayer = new System.Windows.Forms.Button();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.sldZoomLevel = new AGS.Editor.ZoomTrackbar();
-            this.viewPreview1 = new AGS.Editor.ViewPreview();
             this.viewPreview2 = new AGS.Editor.ViewPreview();
+            this.viewPreview1 = new AGS.Editor.ViewPreview();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -119,31 +119,17 @@ namespace AGS.Editor
             // 
             // sldZoomLevel
             // 
-            this.sldZoomLevel.Location = new System.Drawing.Point(356, 37);
-            this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.sldZoomLevel.Location = new System.Drawing.Point(295, 37);
+            this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2);
             this.sldZoomLevel.Maximum = 800;
-            this.sldZoomLevel.Minimum = 100;
+            this.sldZoomLevel.Minimum = 20;
             this.sldZoomLevel.Name = "sldZoomLevel";
-            this.sldZoomLevel.Size = new System.Drawing.Size(177, 32);
-            this.sldZoomLevel.Step = 25;
+            this.sldZoomLevel.Size = new System.Drawing.Size(280, 29);
+            this.sldZoomLevel.Step = 10;
             this.sldZoomLevel.TabIndex = 9;
             this.sldZoomLevel.Value = 100;
             this.sldZoomLevel.ZoomScale = 1F;
             this.sldZoomLevel.ValueChanged += new System.EventHandler(this.sldZoomLevel_ValueChanged);
-            // 
-            // viewPreview1
-            // 
-            this.viewPreview1.AutoResize = false;
-            this.viewPreview1.DynamicUpdates = false;
-            this.viewPreview1.IsCharacterView = false;
-            this.viewPreview1.Location = new System.Drawing.Point(3, 3);
-            this.viewPreview1.MinimumSize = new System.Drawing.Size(280, 320);
-            this.viewPreview1.Name = "viewPreview1";
-            this.viewPreview1.Size = new System.Drawing.Size(280, 328);
-            this.viewPreview1.TabIndex = 9;
-            this.viewPreview1.Title = "Normal view";
-            this.viewPreview1.ViewToPreview = null;
-            this.viewPreview1.ZoomLevel = 1F;
             // 
             // viewPreview2
             // 
@@ -158,6 +144,20 @@ namespace AGS.Editor
             this.viewPreview2.Title = "Speech view";
             this.viewPreview2.ViewToPreview = null;
             this.viewPreview2.ZoomLevel = 1F;
+            // 
+            // viewPreview1
+            // 
+            this.viewPreview1.AutoResize = false;
+            this.viewPreview1.DynamicUpdates = false;
+            this.viewPreview1.IsCharacterView = false;
+            this.viewPreview1.Location = new System.Drawing.Point(3, 3);
+            this.viewPreview1.MinimumSize = new System.Drawing.Size(280, 320);
+            this.viewPreview1.Name = "viewPreview1";
+            this.viewPreview1.Size = new System.Drawing.Size(280, 328);
+            this.viewPreview1.TabIndex = 9;
+            this.viewPreview1.Title = "Normal view";
+            this.viewPreview1.ViewToPreview = null;
+            this.viewPreview1.ZoomLevel = 1F;
             // 
             // CharacterEditor
             // 

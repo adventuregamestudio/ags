@@ -56,6 +56,7 @@ using namespace Common;
 extern GameSetupStruct game;
 extern RGB palette[256];
 extern std::vector<ViewStruct> views;
+extern std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
 
@@ -854,8 +855,6 @@ HSaveError WriteOverlays(Stream *out)
             continue;
         valid_count++;
         over.WriteToFile(out);
-        if (!over.IsSpriteReference())
-            serialize_bitmap(over.GetImage(), out);
     }
     out->Seek(count_off, kSeekBegin);
     out->WriteInt32(valid_count);
@@ -863,7 +862,7 @@ HSaveError WriteOverlays(Stream *out)
     return HSaveError::None();
 }
 
-HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& r_data)
 {
     // Remember that overlay indexes may be non-sequential
     // the vector may be resized during read
@@ -878,12 +877,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         if (over.type < 0)
             continue; // safety abort
         if (has_bitmap)
-            over.SetImage(std::unique_ptr<Bitmap>(read_serialized_bitmap(in)), over.offsetX, over.offsetY);
-        if (has_bitmap && (over.scaleWidth <= 0 || over.scaleHeight <= 0))
-        {
-            over.scaleWidth = over.GetImage()->GetWidth();
-            over.scaleHeight = over.GetImage()->GetHeight();
-        }
+            r_data.OverlayImages[over.type].reset(read_serialized_bitmap(in));
         if (overs.size() <= static_cast<uint32_t>(over.type))
             overs.resize(over.type + 1);
         overs[over.type] = std::move(over);
@@ -1230,7 +1224,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        3,
+        4,
         0,
         WriteOverlays,
         ReadOverlays

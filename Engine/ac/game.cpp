@@ -483,6 +483,8 @@ void unload_game_file()
     guis.clear();
     scrGui.clear();
 
+    get_overlays().clear();
+
     resetRoomStatuses();
 
     // Free game state and game struct

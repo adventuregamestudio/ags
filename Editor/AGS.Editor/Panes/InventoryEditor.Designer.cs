@@ -63,10 +63,8 @@ namespace AGS.Editor
             this.currentItemGroupBox.Controls.Add(this.splitContainer1);
             this.currentItemGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.currentItemGroupBox.Location = new System.Drawing.Point(0, 0);
-            this.currentItemGroupBox.Margin = new System.Windows.Forms.Padding(4);
             this.currentItemGroupBox.Name = "currentItemGroupBox";
-            this.currentItemGroupBox.Padding = new System.Windows.Forms.Padding(4);
-            this.currentItemGroupBox.Size = new System.Drawing.Size(791, 414);
+            this.currentItemGroupBox.Size = new System.Drawing.Size(633, 331);
             this.currentItemGroupBox.TabIndex = 1;
             this.currentItemGroupBox.TabStop = false;
             this.currentItemGroupBox.Text = "Selected inventory item settings";
@@ -76,7 +74,7 @@ namespace AGS.Editor
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.IsSplitterFixed = true;
-            this.splitContainer1.Location = new System.Drawing.Point(4, 21);
+            this.splitContainer1.Location = new System.Drawing.Point(3, 17);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(2);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -89,8 +87,9 @@ namespace AGS.Editor
             // 
             this.splitContainer1.Panel2.AutoScroll = true;
             this.splitContainer1.Panel2.Controls.Add(this.tableLayoutPanel1);
-            this.splitContainer1.Size = new System.Drawing.Size(783, 389);
+            this.splitContainer1.Size = new System.Drawing.Size(627, 311);
             this.splitContainer1.SplitterDistance = 70;
+            this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 9;
             this.splitContainer1.Layout += new System.Windows.Forms.LayoutEventHandler(this.splitContainer1_Layout);
             // 
@@ -102,8 +101,9 @@ namespace AGS.Editor
             this.flowLayoutPanel2.Controls.Add(this.sldZoomLevel);
             this.flowLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(0, 0);
+            this.flowLayoutPanel2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(783, 70);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(627, 70);
             this.flowLayoutPanel2.TabIndex = 10;
             // 
             // flowLayoutPanel1
@@ -111,39 +111,40 @@ namespace AGS.Editor
             this.flowLayoutPanel1.Controls.Add(this.label1);
             this.flowLayoutPanel1.Controls.Add(this.label2);
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(2, 2);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(510, 80);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(408, 64);
             this.flowLayoutPanel1.TabIndex = 9;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(4, 4);
-            this.label1.Margin = new System.Windows.Forms.Padding(4);
+            this.label1.Location = new System.Drawing.Point(3, 3);
+            this.label1.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(370, 17);
+            this.label1.Size = new System.Drawing.Size(292, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "Use the property grid on the right to change basic settings.";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(4, 29);
-            this.label2.Margin = new System.Windows.Forms.Padding(4);
+            this.label2.Location = new System.Drawing.Point(3, 22);
+            this.label2.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(314, 17);
+            this.label2.Size = new System.Drawing.Size(247, 13);
             this.label2.TabIndex = 4;
             this.label2.Text = "Click in the Mouse cursor image to set it\'s hotspot.";
             // 
             // sldZoomLevel
             // 
-            this.sldZoomLevel.Location = new System.Drawing.Point(518, 2);
+            this.sldZoomLevel.Location = new System.Drawing.Point(414, 2);
             this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2);
             this.sldZoomLevel.Maximum = 800;
             this.sldZoomLevel.Minimum = 100;
             this.sldZoomLevel.Name = "sldZoomLevel";
-            this.sldZoomLevel.Size = new System.Drawing.Size(221, 40);
+            this.sldZoomLevel.Size = new System.Drawing.Size(211, 35);
             this.sldZoomLevel.Step = 25;
             this.sldZoomLevel.TabIndex = 8;
             this.sldZoomLevel.Value = 400;
@@ -159,12 +160,11 @@ namespace AGS.Editor
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel1.Controls.Add(this.groupBox2, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.groupBox1, 0, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(8, 4);
-            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(6, 3);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(678, 308);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(540, 246);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // groupBox2
@@ -172,12 +172,10 @@ namespace AGS.Editor
             this.groupBox2.AutoSize = true;
             this.groupBox2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.groupBox2.Controls.Add(this.panelScrollAreaCursor);
-            this.groupBox2.Location = new System.Drawing.Point(354, 4);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(4);
-            this.groupBox2.MinimumSize = new System.Drawing.Size(300, 300);
+            this.groupBox2.Location = new System.Drawing.Point(282, 3);
+            this.groupBox2.MinimumSize = new System.Drawing.Size(240, 240);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox2.Size = new System.Drawing.Size(320, 300);
+            this.groupBox2.Size = new System.Drawing.Size(255, 240);
             this.groupBox2.TabIndex = 7;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Mouse cursor image";
@@ -189,18 +187,17 @@ namespace AGS.Editor
             this.panelScrollAreaCursor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.panelScrollAreaCursor.Controls.Add(this.pnlCursorImage);
             this.panelScrollAreaCursor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelScrollAreaCursor.Location = new System.Drawing.Point(4, 21);
+            this.panelScrollAreaCursor.Location = new System.Drawing.Point(3, 17);
             this.panelScrollAreaCursor.Margin = new System.Windows.Forms.Padding(2);
             this.panelScrollAreaCursor.Name = "panelScrollAreaCursor";
-            this.panelScrollAreaCursor.Size = new System.Drawing.Size(312, 275);
+            this.panelScrollAreaCursor.Size = new System.Drawing.Size(249, 220);
             this.panelScrollAreaCursor.TabIndex = 5;
             // 
             // pnlCursorImage
             // 
-            this.pnlCursorImage.Location = new System.Drawing.Point(4, 4);
-            this.pnlCursorImage.Margin = new System.Windows.Forms.Padding(4);
+            this.pnlCursorImage.Location = new System.Drawing.Point(3, 3);
             this.pnlCursorImage.Name = "pnlCursorImage";
-            this.pnlCursorImage.Size = new System.Drawing.Size(304, 244);
+            this.pnlCursorImage.Size = new System.Drawing.Size(243, 195);
             this.pnlCursorImage.TabIndex = 3;
             this.pnlCursorImage.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlCursorImage_Paint);
             this.pnlCursorImage.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pnlCursorImage_MouseDown);
@@ -211,12 +208,10 @@ namespace AGS.Editor
             this.groupBox1.AutoSize = true;
             this.groupBox1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.groupBox1.Controls.Add(this.panelScrollAreaImage);
-            this.groupBox1.Location = new System.Drawing.Point(4, 4);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
-            this.groupBox1.MinimumSize = new System.Drawing.Size(300, 300);
+            this.groupBox1.Location = new System.Drawing.Point(3, 3);
+            this.groupBox1.MinimumSize = new System.Drawing.Size(240, 240);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Size = new System.Drawing.Size(342, 300);
+            this.groupBox1.Size = new System.Drawing.Size(273, 240);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Image in inventory window";
@@ -228,32 +223,30 @@ namespace AGS.Editor
             this.panelScrollAreaImage.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.panelScrollAreaImage.Controls.Add(this.pnlInvWindowImage);
             this.panelScrollAreaImage.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelScrollAreaImage.Location = new System.Drawing.Point(4, 21);
+            this.panelScrollAreaImage.Location = new System.Drawing.Point(3, 17);
             this.panelScrollAreaImage.Margin = new System.Windows.Forms.Padding(2);
             this.panelScrollAreaImage.Name = "panelScrollAreaImage";
-            this.panelScrollAreaImage.Size = new System.Drawing.Size(334, 275);
+            this.panelScrollAreaImage.Size = new System.Drawing.Size(267, 220);
             this.panelScrollAreaImage.TabIndex = 6;
             // 
             // pnlInvWindowImage
             // 
-            this.pnlInvWindowImage.Location = new System.Drawing.Point(4, 4);
-            this.pnlInvWindowImage.Margin = new System.Windows.Forms.Padding(4);
+            this.pnlInvWindowImage.Location = new System.Drawing.Point(3, 3);
             this.pnlInvWindowImage.Name = "pnlInvWindowImage";
-            this.pnlInvWindowImage.Size = new System.Drawing.Size(326, 244);
+            this.pnlInvWindowImage.Size = new System.Drawing.Size(261, 195);
             this.pnlInvWindowImage.TabIndex = 5;
             this.pnlInvWindowImage.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlInvWindowImage_Paint);
             this.pnlInvWindowImage.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.pnlInvWindowImage_MouseWheel);
             // 
             // InventoryEditor
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.Controls.Add(this.currentItemGroupBox);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "InventoryEditor";
-            this.Size = new System.Drawing.Size(791, 414);
+            this.Size = new System.Drawing.Size(633, 331);
             this.Load += new System.EventHandler(this.InventoryEditor_Load);
             this.currentItemGroupBox.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);

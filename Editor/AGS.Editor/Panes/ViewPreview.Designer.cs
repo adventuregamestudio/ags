@@ -169,6 +169,7 @@ namespace AGS.Editor
             this.panelAutoScroll.Name = "panelAutoScroll";
             this.panelAutoScroll.Size = new System.Drawing.Size(240, 179);
             this.panelAutoScroll.TabIndex = 10;
+            this.panelAutoScroll.Resize += new System.EventHandler(this.panelAutoScroll_Resize);
             // 
             // previewPanel
             // 

@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
         if (argv[i][0] != '-' || strlen(argv[i]) != 2)
             continue;
-        char arg = argv[2][1];
+        char arg = argv[i][1];
         switch (arg)
         {
         case 'e': case 'i': case 'x':

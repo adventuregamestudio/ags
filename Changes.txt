@@ -1,5 +1,41 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 5, September 2023
+
+Editor:
+ - Reimplemented multiple sprites properties editing in the Sprite Manager. This ability was
+   dropped in 3.5.0 unintentionally.
+ - Fixed Autocomplete not treating certain struct members as "static" or "protected" if their
+   declaration is too long.
+
+Engine:
+ - Fixed Character.WalkStraight() was resetting walking animation if called during walking.
+ - Fixed Character's idle animation getting reset to frame 0 when the speech is played without
+   a valid speech view (idle animation should continue playing in such case).
+ - Fixed idle animation sometimes not starting immediately after Character finishes walking.
+ - Fixed a crash occuring if script tries to get or set a custom property for a non-existing
+   Room Object (this seem possible to do by iterating over `object[]` array).
+
+Compatibility:
+ - Implemented "legacysave_assume_dataver" override option in config, which lets to instruct the
+   engine which game data version to assume when restoring legacy (pre-3.5.0) saves. This "hack"
+   appeared to be necessary because of a mistake done during development of the older engine
+   versions, where the save format was changed, but engine was made to rely on the game data
+   version instead of incrementing save format index.
+ - Implemented "legacysave_let_gui_diff" override option in config, which lets the engine to
+   read less gui elements from restored save than the number registered by the game.
+   This is to emulate a (possibly unintended) effect in pre-3.5.0 saves.
+ - Fixed engine could try to load game data from game.exe without checking whether data is actually
+   appended to it when restoring a legacy save in a game with a different file structure.
+ - Fixed number of GUI elements were not tested when loading a legacy save, which could lead to
+   GUI data getting overwritten incorrectly without a warning if number of controls changed since.
+   If the test failed, engine will act according to "legacysave_let_gui_diff" config option:
+   either quit with error or log a warning and continue.
+
+Plugins:
+ - Fixed potential "index out of bounds" exceptions in the built-in PalRender plugin.
+
+
 VERSION 3.6.0 - Patch 4, August 2023
 
 Editor:

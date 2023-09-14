@@ -21,6 +21,11 @@ Editor:
  - In Sprite Manager added command "View" -> "Show filenames" which toggles display of a sprite's
    source filename under the sprites.
  - During sprite export Editor will display a proper progress dialog.
+ - Zoom controls in Character and View panes now allow downscaling too. View editor displays the
+   preview sprite stretched to fill the parent panel.
+ - View editor now allows to select multiple frames at once, across multiple loops too, using
+   standard Shift + LMB and Ctrl + LMB combinations. Properties panel lets modify properties for
+   all the selected frames at once.
  - Added "Replace with all sprites from folder" command to the View editor's context menu.
  - For Audio Clips in the project tree added "Force Reimport", "Force reimport all file(s)" and
    "Replace Source File" context menu commands.
@@ -44,6 +49,10 @@ Script API:
    now they all receive respective object's pointer as a parameter, similar to GUI event functions,
    as well as a cursor mode this interaction was run with, if applicable.
  - Added Game.ResetDoOnceOnly(), which completely resets all DoOnceOnly instances.
+ - Added ScriptName property to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
+   InventoryItem, Object.
+ - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
+   InventoryItem, Object.
  - Added Object.AnimationVolume property, which works similar to Character.AnimationVolume.
  - Added static File.ResolvePath() and File.Path attribute.
 
@@ -51,8 +60,11 @@ Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
    close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
- - Performance improvement to creating, deleting and manipulating Overlays; allows the game
+ - Improved performance when creating, deleting and manipulating Overlays; allows the game
    to have thousands of those with much less slowing down.
+ - Improved performance when updating and deleting dynamic sprites, and notifying any objects
+   that have to redraw themselves. Engine no longer resets Graphic properties of objects
+   referencing deleted dynamic sprite to 0.
  - Implemented "texture cache", in addition to the existing "sprite cache". The texture cache
    keeps textures generated from raw sprites and lets reusing them, improving performance
    and reducing CPU workload. The actual impact is proportional to the game's resolution and
@@ -75,6 +87,9 @@ Engine:
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
    play if Object.Animate is run right after.
+ - Text Overlays internal images are now registered as dynamic sprites, and their IDs may be
+   read from Overlay.Graphic. This lets find out their sizes using Game.SpriteWidth/SpriteHeight
+   and optionally draw them somewhere using DrawingSurface.DrawImage.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
@@ -99,11 +114,12 @@ Engine Plugin API:
 Compatibility:
  - In Editor, restored all the Character's variables available in "backward-compatible" mode.
    This is primarily to make it easier to import very old games.
+ - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
+   This lets particular old games to continue running instead of crashing with error.
  - Fixed slower character walking speeds in pre-3.1 upscaled and high-resolution games.
  - Fixed Object.SetView() and SetObjectFrame() not treating -1 for loop and frame as
    "keep previous values" in older games.
- - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
-   This lets particular old games to continue running instead of crashing with error.
+ - Fixed inventory window not updated after game.top_inv_item is assigned a new value.
 
 Web / Emscripten:
  - Fixed Safari cannot switch the game into fullscreen mode.

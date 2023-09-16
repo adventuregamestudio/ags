@@ -94,8 +94,10 @@ extern char check_dynamic_sprites_at_exit;
 // Checks if user interface should remain disabled for now
 static bool ShouldStayInWaitMode();
 
-static size_t numEventsAtStartOfFunction;
+float fps = std::numeric_limits<float>::quiet_NaN();
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
+unsigned int loopcounter=0;
+static unsigned int lastcounter=0;
 
 #define UNTIL_ANIMEND   1
 #define UNTIL_MOVEEND   2
@@ -120,8 +122,7 @@ struct RestrictUntil
     int data2 = 0;
 } restrict_until;
 
-unsigned int loopcounter=0;
-static unsigned int lastcounter=0;
+static size_t numEventsAtStartOfFunction;
 
 static void ProperExit()
 {
@@ -400,12 +401,6 @@ bool run_service_key_controls(KeyInput &out_key)
         Debug::Printf("Abort key pressed");
         check_dynamic_sprites_at_exit = 0;
         quit("!|");
-    }
-
-    // debug console
-    if ((agskey == '`') && (play.debug_mode > 0)) {
-        display_console = !display_console;
-        return false;
     }
 
     if ((agskey == eAGSKeyCodeCtrlE) && (display_fps == kFPS_Forced)) {
@@ -853,13 +848,17 @@ static void game_loop_update_fps()
     }
 }
 
-float get_current_fps() {
+float get_game_fps() {
     // if we have maxed out framerate then return the frame rate we're seeing instead
     // fps must be greater that 0 or some timings will take forever.
     if (isTimerFpsMaxed() && fps > 0.0f) {
         return fps;
     }
     return frames_per_second;
+}
+
+float get_real_fps() {
+    return fps;
 }
 
 void set_loop_counter(unsigned int new_counter) {

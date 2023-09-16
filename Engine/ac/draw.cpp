@@ -24,6 +24,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/draw_software.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -59,8 +60,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
-#include "ac/game.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
@@ -2273,6 +2274,7 @@ void draw_fps(const Rect &viewport)
 
     char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
+    float fps = get_real_fps();
     if (!std::isnan(fps)) {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
     } else {

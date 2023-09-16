@@ -86,7 +86,6 @@ int debug_flags=0;
 String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
-float fps = std::numeric_limits<float>::quiet_NaN();
 FPSDisplayMode display_fps = kFPS_Hide;
 
 void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,

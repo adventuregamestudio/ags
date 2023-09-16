@@ -275,7 +275,7 @@ void update_speech_and_messages()
     {
         if (!play.speech_in_post_state)
         {
-            play.messagetime = ::lround(play.speech_display_post_time_ms * get_current_fps() / 1000.0f);
+            play.messagetime = ::lround(play.speech_display_post_time_ms * get_game_fps() / 1000.0f);
         }
         play.speech_in_post_state = !play.speech_in_post_state;
     }

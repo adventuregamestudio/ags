@@ -774,8 +774,6 @@
 		526F279F1D3B5CC300EF4E1F /* walkbehind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F251D1D3B5CC300EF4E1F /* walkbehind.cpp */; };
 		526F27A01D3B5CC300EF4E1F /* walkbehind.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F251E1D3B5CC300EF4E1F /* walkbehind.h */; };
 		526F27A11D3B5CC300EF4E1F /* agseditordebugger.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25201D3B5CC300EF4E1F /* agseditordebugger.h */; };
-		526F27A21D3B5CC300EF4E1F /* consoleoutputtarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25211D3B5CC300EF4E1F /* consoleoutputtarget.cpp */; };
-		526F27A31D3B5CC300EF4E1F /* consoleoutputtarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25221D3B5CC300EF4E1F /* consoleoutputtarget.h */; };
 		526F27A41D3B5CC300EF4E1F /* debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25231D3B5CC300EF4E1F /* debug.cpp */; };
 		526F27A51D3B5CC300EF4E1F /* debug_log.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25241D3B5CC300EF4E1F /* debug_log.h */; };
 		526F27A61D3B5CC300EF4E1F /* debugger.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25251D3B5CC300EF4E1F /* debugger.h */; };
@@ -1727,8 +1725,6 @@
 		526F251D1D3B5CC300EF4E1F /* walkbehind.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = walkbehind.cpp; sourceTree = "<group>"; };
 		526F251E1D3B5CC300EF4E1F /* walkbehind.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = walkbehind.h; sourceTree = "<group>"; };
 		526F25201D3B5CC300EF4E1F /* agseditordebugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agseditordebugger.h; sourceTree = "<group>"; };
-		526F25211D3B5CC300EF4E1F /* consoleoutputtarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = consoleoutputtarget.cpp; sourceTree = "<group>"; };
-		526F25221D3B5CC300EF4E1F /* consoleoutputtarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = consoleoutputtarget.h; sourceTree = "<group>"; };
 		526F25231D3B5CC300EF4E1F /* debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = debug.cpp; sourceTree = "<group>"; };
 		526F25241D3B5CC300EF4E1F /* debug_log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug_log.h; sourceTree = "<group>"; };
 		526F25251D3B5CC300EF4E1F /* debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debugger.h; sourceTree = "<group>"; };
@@ -3163,8 +3159,6 @@
 				20522A6128E8F8FC00589E91 /* messagebuffer.cpp */,
 				20522A6028E8F8FC00589E91 /* messagebuffer.h */,
 				526F25201D3B5CC300EF4E1F /* agseditordebugger.h */,
-				526F25211D3B5CC300EF4E1F /* consoleoutputtarget.cpp */,
-				526F25221D3B5CC300EF4E1F /* consoleoutputtarget.h */,
 				526F25231D3B5CC300EF4E1F /* debug.cpp */,
 				526F25241D3B5CC300EF4E1F /* debug_log.h */,
 				526F25251D3B5CC300EF4E1F /* debugger.h */,
@@ -3637,7 +3631,6 @@
 				526F27B91D3B5CC300EF4E1F /* gfx_util.h in Headers */,
 				20E683E128F20C7200B95C00 /* masking.h in Headers */,
 				20522A3C28E8F86400589E91 /* scriptviewport.h in Headers */,
-				526F27A31D3B5CC300EF4E1F /* consoleoutputtarget.h in Headers */,
 				20522A3128E8F81C00589E91 /* aasset_stream.h in Headers */,
 				20E67DB028F1BDE000B95C00 /* palette.h in Headers */,
 				526F26D21D3B5CC300EF4E1F /* cc_region.h in Headers */,
@@ -4418,7 +4411,6 @@
 				20522A2728E8F81C00589E91 /* memorystream.cpp in Sources */,
 				205229F028E8F27800589E91 /* pshinter.c in Sources */,
 				20E684AB28F20CC700B95C00 /* huffdec.c in Sources */,
-				526F27A21D3B5CC300EF4E1F /* consoleoutputtarget.cpp in Sources */,
 				20E684B228F20CC700B95C00 /* dequant.c in Sources */,
 				526F281B1D3B5CC300EF4E1F /* mpeg1dec.c in Sources */,
 				20E6823728F1D2B400B95C00 /* load_ams.c in Sources */,

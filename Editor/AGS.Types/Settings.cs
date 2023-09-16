@@ -82,6 +82,7 @@ namespace AGS.Types
         private bool _enforceNewAudio = true;
         private bool _oldCustomDlgOptsAPI = false;
         private bool _oldKeyHandling = false;
+        private bool _scaleCharacterSpriteOffsets = true;
         private int _playSoundOnScore = -1;
         private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
@@ -776,6 +777,16 @@ namespace AGS.Types
         {
             get { return _leftToRightPrecedence; }
             set { _leftToRightPrecedence = value; }
+        }
+
+        [DisplayName("Scale Character sprite offsets")]
+        [Description("Scale sprite offsets along with the character sprite, such as Character.z property, and offsets set by Character.LockViewOffset()")]
+        [DefaultValue(true)]
+        [Category("Backwards Compatibility")]
+        public bool ScaleCharacterSpriteOffsets
+        {
+            get { return _scaleCharacterSpriteOffsets; }
+            set { _scaleCharacterSpriteOffsets = value; }
         }
 
         [DisplayName("Play sound when the player gets points")]

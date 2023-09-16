@@ -31,11 +31,14 @@ else
 endif
 LIBS += $(shell pkg-config --libs vorbisfile)
 
+SDL2_SOUND_CFLAGS = $(shell pkg-config --cflags SDL2_sound)
+SDL2_SOUND_LIBS = $(shell pkg-config --libs SDL2_sound)
+
 SDL2_CFLAGS = $(shell sdl2-config --cflags)
 SDL2_LIBS = $(shell sdl2-config --libs)
 
-CFLAGS += $(SDL2_CFLAGS)
-LIBS += $(SDL2_LIBS) -lSDL2_sound
+CFLAGS += $(SDL2_CFLAGS) $(SDL2_SOUND_CFLAGS)
+LIBS += $(SDL2_LIBS) $(SDL2_SOUND_LIBS)
 
 LIBS += -ldl -lpthread -lm
 

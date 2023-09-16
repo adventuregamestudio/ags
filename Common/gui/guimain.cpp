@@ -902,7 +902,7 @@ GUILabelMacro FindLabelMacros(const String &text)
     return (GUILabelMacro)macro_flags;
 }
 
-static HError ResortGUI()
+HError RebuildGUI()
 {
     // set up the reverse-lookup array
     for (auto &gui : guis)
@@ -996,7 +996,8 @@ HError ReadGUI(Stream *in)
     {
         guilist[i].ReadFromFile(in, GameGuiVersion);
     }
-    return ResortGUI();
+
+    return RebuildGUI();
 }
 
 void WriteGUI(Stream *out)

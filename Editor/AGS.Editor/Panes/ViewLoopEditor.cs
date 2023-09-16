@@ -1,10 +1,8 @@
 using AGS.Types;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace AGS.Editor
@@ -28,20 +26,24 @@ namespace AGS.Editor
         private Icon _delayIcon = Resources.ResourceManager.GetIcon("delay_indicator.ico");
         private const int ICON_WIDTH = 16;
 
-        public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame);
+        public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame, MultiSelectAction action);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
 
 		public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
 		public event NewFrameAddedHandler NewFrameAdded;
 
-		private static int _LastSelectedSprite = 0;
+        public event EventHandler<ViewLoopContextMenuArgs> OnContextMenu;
+
+        private static int _LastSelectedSprite = 0;
         private static ViewLoop _copiedLoop;
 
         private float _zoomLevel = 1.0f;
         private ViewLoop _loop;
         private bool _isLastLoop;
         private int _loopDisplayY;
-        private int _selectedFrame;
+        private List<int> _selectedFrames = new List<int>();
+        private bool _handleRangeSelection = true;
+        private int _lastSingleSelection = 0;
         private int _framelessWidth;
         private GUIController _guiController;
 
@@ -49,7 +51,6 @@ namespace AGS.Editor
         {
             InitializeComponent();
             _guiController = guiController;
-            _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
             chkRunNextLoop.DataBindings.Add("Checked", _loop, "RunNextLoop", false, DataSourceUpdateMode.OnPropertyChanged);
@@ -77,10 +78,20 @@ namespace AGS.Editor
             get { return _loop; }
         }
 
-        public int SelectedFrame
+        public List<int> SelectedFrames
         {
-            get { return _selectedFrame; }
-            set { _selectedFrame = value; this.Invalidate(); }
+            get { return _selectedFrames; }
+        }
+
+        /// <summary>
+        /// Get/set whether this ViewLoopEditor will handle frame range selection.
+        /// If not, then it will only send range selection events, but does not modify
+        /// its own SelectedFranes list.
+        /// </summary>
+        public bool HandleRangeSelection
+        {
+            get { return _handleRangeSelection; }
+            set { _handleRangeSelection = value; }
         }
 
         public bool IsLastLoop
@@ -98,38 +109,45 @@ namespace AGS.Editor
             }
         }
 
-		public void FlipSelectedFrame()
+		public void FlipSelectedFrames()
 		{
-			if ((_selectedFrame >= 0) && (_selectedFrame < _loop.Frames.Count))
-			{
-				ViewFrame frame = _loop.Frames[_selectedFrame];
-				frame.Flipped = !frame.Flipped;
-				this.Invalidate();
-				OnSelectedFrameChanged();
-			}
-		}
+            if (_selectedFrames.Count == 0)
+                return;
 
-        public void DeleteSelectedFrame()
+            foreach (int sel in _selectedFrames)
+			{
+				ViewFrame frame = _loop.Frames[sel];
+				frame.Flipped = !frame.Flipped;
+			}
+            this.Invalidate();
+        }
+
+        public void DeleteSelectedFrames()
         {
-            if ((_selectedFrame >= 0) && (_selectedFrame < _loop.Frames.Count))
+            if (_selectedFrames.Count == 0)
+                return;
+
+            _selectedFrames.Sort();
+            int lastSelected = _selectedFrames[_selectedFrames.Count - 1];
+            int removedCount = 0;
+            foreach (int sel in _selectedFrames)
             {
-                _loop.Frames.RemoveAt(_selectedFrame);
-                foreach (ViewFrame frame in _loop.Frames)
+                int remove_index = sel - (removedCount++);
+                _loop.Frames.RemoveAt(remove_index);
+                for (int frame = remove_index; frame < _loop.Frames.Count; ++frame)
                 {
-                    if (frame.ID > _selectedFrame)
-                    {
-                        frame.ID--;
-                    }
+                    _loop.Frames[frame].ID--;
                 }
-                if (_selectedFrame >= _loop.Frames.Count)
-                {
-                    _selectedFrame = -1;
-                }
-                btnNewFrame.Visible = true;
-                UpdateControlWidth();
-                this.Invalidate();
-                OnSelectedFrameChanged();
             }
+
+            _selectedFrames.Clear();
+            if (lastSelected < _loop.Frames.Count)
+                _selectedFrames.Add(lastSelected);
+
+            btnNewFrame.Visible = true;
+            UpdateControlWidth();
+            this.Invalidate();
+            OnSelectedFrameChanged(-1, MultiSelectAction.ClearAll);
         }
 
         private void UpdateControlWidth()
@@ -141,7 +159,7 @@ namespace AGS.Editor
         private void ViewLoopEditor_Paint(object sender, PaintEventArgs e)
         {
             IntPtr hdc = e.Graphics.GetHdc();
-            Factory.NativeProxy.DrawViewLoop(hdc, _loop, 0, _loopDisplayY, FRAME_DISPLAY_SIZE, _selectedFrame);
+            Factory.NativeProxy.DrawViewLoop(hdc, _loop, 0, _loopDisplayY, FRAME_DISPLAY_SIZE, _selectedFrames);
             e.Graphics.ReleaseHdc();
 
 			for (int i = 0; i < _loop.Frames.Count; i++)
@@ -222,34 +240,69 @@ namespace AGS.Editor
             return -1;
         }
 
-		private void ChangeSelectedFrame(int newSelection)
+        private void ChangeSelectedFrame(int newSelection, MultiSelectAction action = MultiSelectAction.Set)
 		{
-			_selectedFrame = newSelection;
-			this.Invalidate();
+            switch (action)
+            {
+                case MultiSelectAction.Add:
+                    _selectedFrames.Add(newSelection);
+                    _lastSingleSelection = newSelection;
+                    break;
+                case MultiSelectAction.AddRange:
+                    _selectedFrames.Clear();
+                    if (_handleRangeSelection)
+                    {
+                        int min = Math.Min(_lastSingleSelection, newSelection);
+                        int max = Math.Max(_lastSingleSelection, newSelection);
+                        for (int i = min; i <= max; ++i)
+                            _selectedFrames.Add(i);
+                    }
+                    break;
+                case MultiSelectAction.ClearAll:
+                    _selectedFrames.Clear();
+                    _lastSingleSelection = 0;
+                    break;
+                case MultiSelectAction.Remove:
+                    _selectedFrames.Remove(newSelection);
+                    _lastSingleSelection = newSelection;
+                    break;
+                case MultiSelectAction.Set:
+                default:
+                    _selectedFrames.Clear();
+                    _selectedFrames.Add(newSelection);
+                    _lastSingleSelection = newSelection;
+                    break;
+            }
 
-			OnSelectedFrameChanged();
-		}
+            this.Invalidate();
+            OnSelectedFrameChanged(newSelection, action);
+        }
 
         private void ViewLoopEditor_MouseUp(object sender, MouseEventArgs e)
         {
             int clickedOnFrame = GetFrameAtLocation(e.X, e.Y);
-            if (clickedOnFrame >= 0) 
+            if (e.Button == MouseButtons.Left && clickedOnFrame >= 0)
             {
-				ChangeSelectedFrame(clickedOnFrame);
+                MultiSelectAction action;
+                if ((Control.ModifierKeys & Keys.Shift) != 0)
+                    action = MultiSelectAction.AddRange;
+                else if ((Control.ModifierKeys & Keys.Control) != 0)
+                    action = MultiSelectAction.Add;
+                else
+                    action = MultiSelectAction.Set;
+
+                ChangeSelectedFrame(clickedOnFrame, action);
             }
 
             if (e.Button == MouseButtons.Right)
             {
-                ShowContextMenu(e.Location, (clickedOnFrame >= 0));
+                ShowContextMenu(e.Location, clickedOnFrame);
             }
         }
 
-        private void OnSelectedFrameChanged()
+        private void OnSelectedFrameChanged(int selectedFrame, MultiSelectAction action)
         {
-            if (SelectedFrameChanged != null)
-            {
-                SelectedFrameChanged(_loop, _selectedFrame);
-            }
+            SelectedFrameChanged?.Invoke(_loop, selectedFrame, action);
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)
@@ -257,36 +310,49 @@ namespace AGS.Editor
             ToolStripMenuItem item = (ToolStripMenuItem)sender;
             if (item.Name == MENU_ITEM_DELETE_FRAME)
             {
-                DeleteSelectedFrame();
+                DeleteSelectedFrames();
             }
 			else if (item.Name == MENU_ITEM_FLIP_FRAME)
 			{
-				FlipSelectedFrame();
+                FlipSelectedFrames();
 			}
 			else if (item.Name == MENU_ITEM_INSERT_AFTER)
             {
-                InsertNewFrame(_selectedFrame);
+                int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[_selectedFrames.Count - 1] : -1;
+                InsertNewFrame(selectedFrame);
             }
             else if (item.Name == MENU_ITEM_INSERT_BEFORE)
             {
-                InsertNewFrame(_selectedFrame - 1);
+                int selectedFrame = _selectedFrames.Count > 0 ? _selectedFrames[0] : 0;
+                InsertNewFrame(selectedFrame - 1);
             }
         }
 
-        private void ShowContextMenu(Point menuPosition, bool frameIsSelected)
+        private void ShowContextMenu(Point menuPosition, int selectedFrame)
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
-            if (frameIsSelected)
+            ViewLoopContextMenuArgs ctxArgs = new ViewLoopContextMenuArgs(menu, _loop, selectedFrame >= 0 ? _loop.Frames[selectedFrame] : null);
+            OnContextMenu?.Invoke(this, ctxArgs);
+            if (ctxArgs.ItemsOverriden)
             {
-                menu.Items.Add(new ToolStripMenuItem("&Flip frame", null, onClick, MENU_ITEM_FLIP_FRAME));
-                menu.Items.Add(new ToolStripSeparator());
-                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete frame", null, onClick, MENU_ITEM_DELETE_FRAME);
+                if (menu.Items.Count > 0)
+                    menu.Show(this, menuPosition);
+                return;
+            }
+
+            if (selectedFrame >= 0)
+            {
+                menu.Items.Add(new ToolStripMenuItem("&Flip selected frame(s)", null, onClick, MENU_ITEM_FLIP_FRAME));
+                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete selected frame(s)", null, onClick, MENU_ITEM_DELETE_FRAME);
                 deleteOption.ShortcutKeys = Keys.Delete;
                 menu.Items.Add(deleteOption);
-                menu.Items.Add(new ToolStripSeparator());
-                menu.Items.Add(new ToolStripMenuItem("Insert frame before this", null, onClick, MENU_ITEM_INSERT_BEFORE));
-                menu.Items.Add(new ToolStripMenuItem("Insert frame after this", null, onClick, MENU_ITEM_INSERT_AFTER));
+                if (_selectedFrames.Count == 1)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                    menu.Items.Add(new ToolStripMenuItem("Insert frame before this", null, onClick, MENU_ITEM_INSERT_BEFORE));
+                    menu.Items.Add(new ToolStripMenuItem("Insert frame after this", null, onClick, MENU_ITEM_INSERT_AFTER));
+                }
                 menu.Items.Add(new ToolStripSeparator());
             }
             menu.Items.Add(new ToolStripMenuItem("Cut loop", null, onCutLoopClicked, MENU_ITEM_CUT_LOOP));
@@ -344,16 +410,13 @@ namespace AGS.Editor
             copyLoop();
             if (_loop.Frames.Count > 0)
             {
-                if (_selectedFrame != -1)
-                {
-                    _selectedFrame = -1;
-                }
+                _selectedFrames.Clear();
                 _loop.Frames.Clear();
 
                 btnNewFrame.Visible = true;
                 UpdateControlWidth();
                 this.Invalidate();
-                OnSelectedFrameChanged();
+                OnSelectedFrameChanged(-1, MultiSelectAction.ClearAll);
             }
         }
 

@@ -1013,7 +1013,6 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     if (chaa->room != displayed_room)
         quit("!MoveCharacterStraight: specified character not in current room");
 
-    Character_StopMoving(chaa);
     int movetox = xx, movetoy = yy;
 
     set_walkablearea(prepare_walkable_areas(chaa->index_id));
@@ -1031,13 +1030,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
         movetoy = mask_to_room_coord(lastcy);
     }
 
-    walk_character(chaa->index_id, movetox, movetoy, 1, true);
-
-    if ((blocking == BLOCKING) || (blocking == 1))
-        GameLoopUntilNotMoving(&chaa->walking);
-    else if ((blocking != IN_BACKGROUND) && (blocking != 0))
-        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
-
+    walk_or_move_character(chaa, movetox, movetoy, blocking, 1 /* use ANYWHERE */, true);
 }
 
 void Character_RunInteraction(CharacterInfo *chaa, int mood) {
@@ -2047,7 +2040,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
     if ((blocking == BLOCKING) || (blocking == 1))
         GameLoopUntilNotMoving(&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
-        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
+        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGROUND");
 
 }
 

@@ -43,6 +43,19 @@ HError print_room_blockids(RoomDataSource &datasrc)
     return err;
 }
 
+static const char *passwencstring = "Avis Durgan";
+
+void UnpackScriptText(Stream *in, Stream *out)
+{
+    size_t len = static_cast<uint32_t>(in->ReadInt32());
+    std::vector<char> buf(len + 1);
+    in->Read(&buf.front(), len);
+    buf[len] = 0;
+    for (size_t i = 0; i < len; ++i)
+        buf[i] += passwencstring[i % 11];
+    out->Write(&buf.front(), buf.size());
+}
+
 
 const char *BIN_STRING = "crmpak v0.1.0 - AGS compiled room's (re)packer\n"
 "Copyright (c) 2021 AGS Team and contributors";
@@ -58,6 +71,7 @@ const char *HELP_STRING =
 "  -l                     list: print id of all blocks found in the room\n"
 "  -x <blockid> <file>    extract: remove a block and save it in this file\n"
 "Command options:\n"
+"  -u                     for '-e' and '-x': unpack (decode) encoded block data\n"
 "  -w <out-room.crm>      for all commands but '-e': write the resulting room\n"
 "                         into a new file; otherwise will modify the input file\n";
 
@@ -79,6 +93,7 @@ int main(int argc, char *argv[])
     const char *arg_block = nullptr;
     const char *arg_blockfile = nullptr;
     const char *out_roomfile = nullptr;
+    bool unpack = false;
     for (int i = 2; i < argc; ++i)
     {
         if (strcmp(argv[i], "--tell-blockids") == 0)
@@ -89,7 +104,7 @@ int main(int argc, char *argv[])
 
         if (argv[i][0] != '-' || strlen(argv[i]) != 2)
             continue;
-        char arg = argv[2][1];
+        char arg = argv[i][1];
         switch (arg)
         {
         case 'e': case 'i': case 'x':
@@ -107,7 +122,10 @@ int main(int argc, char *argv[])
         case 'w':
             if (argc > i + 1) out_roomfile = argv[(i++) + 1];
             break;
-        case 'l': command = arg; break;
+        case 'l': command = arg;
+            break;
+        case 'u': unpack = true;
+            break;
         }
     }
 
@@ -224,7 +242,16 @@ int main(int argc, char *argv[])
         }
         // Note we export only the internal block data, skipping the header
         datasrc.InputStream->Seek(block_data_at, kSeekBegin);
-        CopyStream(datasrc.InputStream.get(), block_out.get(), block_end - block_data_at);
+        // TODO: this TextScript case is a hack, the tool has to be redesigned
+        // with better options for unpacking blocks into a source data
+        if (unpack && block_strid == "TextScript")
+        {
+            UnpackScriptText(datasrc.InputStream.get(), block_out.get());
+        }
+        else
+        {
+            CopyStream(datasrc.InputStream.get(), block_out.get(), block_end - block_data_at);
+        }
     }
 
     // Export is complete - stop

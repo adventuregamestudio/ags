@@ -78,7 +78,6 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
 
     // Update overlay properties
     over->SetImage(std::unique_ptr<Bitmap>(image), adj_x - dummy_x, adj_y - dummy_y);
-    over->ddb = nullptr; // is generated during first draw pass
 }
 
 int Overlay_GetX(ScriptOverlay *scover) {
@@ -153,14 +152,14 @@ int Overlay_GetGraphicWidth(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
-    return over->GetImage()->GetWidth();
+    return over->GetGraphicSize().Width;
 }
 
 int Overlay_GetGraphicHeight(ScriptOverlay *scover) {
     auto *over = get_overlay(scover->overlayId);
     if (!over)
         quit("!invalid overlay ID specified");
-    return over->GetImage()->GetHeight();
+    return over->GetGraphicSize().Height;
 }
 
 void Overlay_SetScaledSize(ScreenOverlay &over, int width, int height) {
@@ -364,9 +363,6 @@ static void invalidate_and_subref(ScreenOverlay &over)
 static void dispose_overlay(ScreenOverlay &over)
 {
     over.SetImage(nullptr);
-    if (over.ddb != nullptr)
-        gfxDriver->DestroyDDB(over.ddb);
-    over.ddb = nullptr;
     // invalidate script object and dispose it if there are no more refs
     if (over.associatedOverlayHandle > 0)
     {
@@ -518,20 +514,20 @@ Point get_overlay_position(const ScreenOverlay &over)
         auto view = FindNearestViewport(charid);
         const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
         const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
-        Point screenpt = view->RoomToScreen(
+        const Point screenpt = view->RoomToScreen(
             game.chars[charid].x,
             game.chars[charid].get_effective_y() - height).first;
-        Bitmap *pic = over.GetImage();
-        int tdxp = std::max(0, screenpt.X - pic->GetWidth() / 2);
+        const Size pic_size = over.GetGraphicSize();
+        int tdxp = std::max(0, screenpt.X - pic_size.Width / 2);
         int tdyp = screenpt.Y - 5;
-        tdyp -= pic->GetHeight();
+        tdyp -= pic_size.Height;
         tdyp = std::max(5, tdyp);
 
-        if ((tdxp + pic->GetWidth()) >= ui_view.GetWidth())
-            tdxp = (ui_view.GetWidth() - pic->GetWidth()) - 1;
+        if ((tdxp + pic_size.Width) >= ui_view.GetWidth())
+            tdxp = (ui_view.GetWidth() - pic_size.Width) - 1;
         if (game.chars[charid].room != displayed_room) {
-            tdxp = ui_view.GetWidth()/2 - pic->GetWidth()/2;
-            tdyp = ui_view.GetHeight()/2 - pic->GetHeight()/2;
+            tdxp = ui_view.GetWidth()/2 - pic_size.Width / 2;
+            tdyp = ui_view.GetHeight()/2 - pic_size.Height / 2;
         }
         return Point(tdxp, tdyp);
     }

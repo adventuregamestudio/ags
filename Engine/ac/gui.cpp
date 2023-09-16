@@ -950,6 +950,7 @@ void RegisterGUIAPI()
         { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GetGUIAtLocation) },
         { "GUI::GetByName",               API_FN_PAIR(GUI_GetByName) },
 
+
         { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },
         { "GUI::Centre^0",                API_FN_PAIR(GUI_Centre) },
         { "GUI::Click^1",                 API_FN_PAIR(GUI_Click) },

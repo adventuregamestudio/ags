@@ -13,9 +13,17 @@
 //=============================================================================
 //
 // ScreenOverlay is a simple sprite container with no advanced functions.
-// May contain owned bitmap or reference persistent sprite's id, similar to how
-// other game objects do that.
+// Contains an id of a sprite, which may be either owned by overlay, or shared
+// to whole game similar to how other objects use sprites.
 // May logically exist either on UI or room layer.
+//
+// TODO: historically overlay objects contained an actual bitmap in them.
+// This was remade into having a dynamic sprite allocated exclusively for
+// overlay. But sprites do not have any kind of a ref count of their own
+// (unless exported into script as DynamicSprite), so we have to keep an
+// overlay's flag, which tells that the sprite it references must be deleted
+// on overlay's disposal. This should be improved at some point, by devising
+// a better kind of a sprite's ownership mechanic.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
@@ -34,14 +42,12 @@ enum OverlayFlags
 {
     kOver_PositionAtRoomXY = 0x0002, // room-relative position, may be in ui
     kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
-    kOver_SpriteReference  = 0x0008, // reference persistent sprite
+    kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
 };
 
 // TODO: what if we actually register a real dynamic sprite for overlay?
 struct ScreenOverlay
 {
-    // Texture
-    Engine::IDriverDependantBitmap *ddb = nullptr;
     int type = -1, timeout = 0;
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offsetX, y + offsetY;
@@ -59,12 +65,14 @@ struct ScreenOverlay
     Common::GraphicSpace _gs;
 
     ScreenOverlay() = default;
-    ScreenOverlay(ScreenOverlay &&) = default;
-    ScreenOverlay &operator =(ScreenOverlay &&) = default;
+    ScreenOverlay(ScreenOverlay&&);
+    ~ScreenOverlay();
+
+    ScreenOverlay &operator =(ScreenOverlay&&);
 
     // Returns Overlay's graphic space params
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
-    bool IsSpriteReference() const { return (_flags & kOver_SpriteReference) != 0; }
+    bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsRoomRelative() const { return (_flags & kOver_PositionAtRoomXY) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     void SetRoomRelative(bool on) { on ? _flags |= kOver_PositionAtRoomXY : _flags &= ~kOver_PositionAtRoomXY; }
@@ -75,9 +83,13 @@ struct ScreenOverlay
     }
     // Gets actual overlay's image, whether owned by overlay or by a sprite reference
     Common::Bitmap *GetImage() const;
-    // Get sprite reference id, or -1 if none set
+    // Get sprite id, or 0 if none set
     int GetSpriteNum() const { return _sprnum; }
+    Size GetGraphicSize() const;
+    // Assigns an exclusive image to this overlay; the image will be stored as a dynamic sprite
+    // in a sprite cache, but owned by this overlay and therefore disposed at its disposal
     void SetImage(std::unique_ptr<Common::Bitmap> pic, int offx = 0, int offy = 0);
+    // Assigns a shared sprite to this overlay
     void SetSpriteNum(int sprnum, int offx = 0, int offy = 0);
     // Tells if Overlay has graphically changed recently
     bool HasChanged() const { return _hasChanged; }
@@ -90,10 +102,13 @@ struct ScreenOverlay
     void WriteToFile(Common::Stream *out) const;
 
 private:
-    int _flags = 0; // OverlayFlags
-    std::unique_ptr<Common::Bitmap> _pic; // owned bitmap
-    int _sprnum = -1; // sprite reference
+    void ResetImage();
 
+    ScreenOverlay(const ScreenOverlay &) = default;
+    ScreenOverlay &operator =(const ScreenOverlay&) = default;
+
+    int _flags = 0; // OverlayFlags
+    int _sprnum = 0; // sprite id
     bool _hasChanged = false;
 };
 

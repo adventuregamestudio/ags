@@ -45,7 +45,7 @@ extern void drawGUI(int hdc, int x,int y, GUI^ gui, int resolutionFactor, float 
 extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
 extern void drawSpriteStretch(int hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum);
-extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
+extern void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
 extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
@@ -297,7 +297,7 @@ namespace AGS
 			drawBlockOfColour(hDC, x, y, width, height, colourNum);
 		}
 
-		void NativeMethods::DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
+		void NativeMethods::DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel)
 		{
 			drawViewLoop(hdc, loopToDraw, x, y, size, cursel);
 		}

@@ -12,11 +12,16 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptgame.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
+#include "debug/debug_log.h"
+#include "gui/guimain.h"
 #include "script/cc_common.h" // cc_error
 
+using namespace AGS::Common;
 
+extern GameSetupStruct game;
 CCScriptGame GameStaticManager;
 
 
@@ -163,7 +168,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 84: // play.fast_forward;
     case 85: // play.room_width;
     case 86: // play.room_height;
-        cc_error("ScriptGame: attempt to write readonly variable at offset %d", offset);
+        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 87:  play.game_speed_modifier = val; break;
     case 88:  play.score_sound = val; break;
@@ -198,7 +203,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 117: // play.fade_to_red;
     case 118: // play.fade_to_green;
     case 119: // play.fade_to_blue;
-        cc_error("ScriptGame: attempt to write readonly variable at offset %d", offset);
+        debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 120:  play.show_single_dialog_option = val; break;
     case 121:  play.keep_screen_during_instant_transition = val; break;

@@ -116,9 +116,12 @@ Editor:
    editor, with a few exceptions.
  - In Sprite Manager added command "View" -> "Show filenames" which toggles display of a sprite's
    source filename under the sprites.
- - Reimplemented multiple sprites properties edit in the Sprite Manager. This ability was
-   dropped in 3.5.0 unintentionally.
  - During sprite export Editor will display a proper progress dialog.
+ - Zoom controls in Character and View panes now allow downscaling too. View editor displays the
+   preview sprite stretched to fill the parent panel.
+ - View editor now allows to select multiple frames at once, across multiple loops too, using
+   standard Shift + LMB and Ctrl + LMB combinations. Properties panel lets modify properties for
+   all the selected frames at once.
  - Added "Replace with all sprites from folder" command to the View editor's context menu.
  - For Audio Clips in the project tree added "Force Reimport", "Force reimport all file(s)" and
    "Replace Source File" context menu commands.
@@ -133,8 +136,6 @@ Editor:
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
- - Fixed Autocomplete not treating certain struct members as "static" or "protected" if their
-   declaration is too long.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -144,6 +145,10 @@ Script API:
    now they all receive respective object's pointer as a parameter, similar to GUI event functions,
    as well as a cursor mode this interaction was run with, if applicable.
  - Added Game.ResetDoOnceOnly(), which completely resets all DoOnceOnly instances.
+ - Added ScriptName property to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
+   InventoryItem, Object.
+ - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
+   InventoryItem, Object.
  - Added Object.AnimationVolume property, which works similar to Character.AnimationVolume.
  - Added static File.ResolvePath() and File.Path attribute.
 
@@ -151,8 +156,11 @@ Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
    close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
- - Performance improvement to creating, deleting and manipulating Overlays; allows the game
+ - Improved performance when creating, deleting and manipulating Overlays; allows the game
    to have thousands of those with much less slowing down.
+ - Improved performance when updating and deleting dynamic sprites, and notifying any objects
+   that have to redraw themselves. Engine no longer resets Graphic properties of objects
+   referencing deleted dynamic sprite to 0.
  - Implemented "texture cache", in addition to the existing "sprite cache". The texture cache
    keeps textures generated from raw sprites and lets reusing them, improving performance
    and reducing CPU workload. The actual impact is proportional to the game's resolution and
@@ -175,6 +183,9 @@ Engine:
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
    play if Object.Animate is run right after.
+ - Text Overlays internal images are now registered as dynamic sprites, and their IDs may be
+   read from Overlay.Graphic. This lets find out their sizes using Game.SpriteWidth/SpriteHeight
+   and optionally draw them somewhere using DrawingSurface.DrawImage.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
@@ -183,17 +194,12 @@ Engine:
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
- - Fixed Character's idle animation getting reset to frame 0 when the speech is played without
-   a valid speech view (idle animation should continue playing in such case).
- - Fixed idle animation sometimes not starting immediately after Character finishes walking.
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.
  - Fixed first Sierra-style speechline in a sequence was adjusting its Y position without need
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
- - Fixed a crash occuring if script tries to get or set a custom property for a non-existing
-   Room Object (this seem possible to do by iterating over `object[]` array).
 
 Engine Plugin API:
  - Added IAGSEngine.ResolveFilePath() method, which resolves a script path (with location tokens)
@@ -204,29 +210,54 @@ Engine Plugin API:
 Compatibility:
  - In Editor, restored all the Character's variables available in "backward-compatible" mode.
    This is primarily to make it easier to import very old games.
+ - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
+   This lets particular old games to continue running instead of crashing with error.
  - Fixed slower character walking speeds in pre-3.1 upscaled and high-resolution games.
  - Fixed Object.SetView() and SetObjectFrame() not treating -1 for loop and frame as
    "keep previous values" in older games.
- - Allow to run an animation over a loop with zero frames, by using the placeholder frame.
-   This lets particular old games to continue running instead of crashing with error.
- - Implemented "dataver_for_legacysaves" override option in config, which lets to instruct the
-   engine which game data version to assume when loading legacy (pre-3.5.0) saves. This "hack"
-   appeared to be necessary because of a mistake done during development of the older engine
-   versions, where the save format was changed, but engine was made to rely on the game data
-   version instead of incrementing save format index.
- - Fixed engine could try to load game data from game.exe without checking whether data is actually
-   appended to it when restoring a legacy save in a game with a different file structure.
- - Fixed number of GUI elements were not tested when loading a legacy save, which could lead to
-   GUI data getting overwritten incorrectly without a warning if number of controls changed since.
+ - Fixed inventory window not updated after game.top_inv_item is assigned a new value.
 
 Web / Emscripten:
  - Fixed Safari cannot switch the game into fullscreen mode.
 
-Plugins:
- - Fixed potential "index out of bounds" exceptions in the built-in PalRender plugin.
-
 WinSetup:
  - Added options for setting texture cache and sound cache size.
+
+
+VERSION 3.6.0 - Patch 5, September 2023
+
+Editor:
+ - Reimplemented multiple sprites properties editing in the Sprite Manager. This ability was
+   dropped in 3.5.0 unintentionally.
+ - Fixed Autocomplete not treating certain struct members as "static" or "protected" if their
+   declaration is too long.
+
+Engine:
+ - Fixed Character.WalkStraight() was resetting walking animation if called during walking.
+ - Fixed Character's idle animation getting reset to frame 0 when the speech is played without
+   a valid speech view (idle animation should continue playing in such case).
+ - Fixed idle animation sometimes not starting immediately after Character finishes walking.
+ - Fixed a crash occuring if script tries to get or set a custom property for a non-existing
+   Room Object (this seem possible to do by iterating over `object[]` array).
+
+Compatibility:
+ - Implemented "legacysave_assume_dataver" override option in config, which lets to instruct the
+   engine which game data version to assume when restoring legacy (pre-3.5.0) saves. This "hack"
+   appeared to be necessary because of a mistake done during development of the older engine
+   versions, where the save format was changed, but engine was made to rely on the game data
+   version instead of incrementing save format index.
+ - Implemented "legacysave_let_gui_diff" override option in config, which lets the engine to
+   read less gui elements from restored save than the number registered by the game.
+   This is to emulate a (possibly unintended) effect in pre-3.5.0 saves.
+ - Fixed engine could try to load game data from game.exe without checking whether data is actually
+   appended to it when restoring a legacy save in a game with a different file structure.
+ - Fixed number of GUI elements were not tested when loading a legacy save, which could lead to
+   GUI data getting overwritten incorrectly without a warning if number of controls changed since.
+   If the test failed, engine will act according to "legacysave_let_gui_diff" config option:
+   either quit with error or log a warning and continue.
+
+Plugins:
+ - Fixed potential "index out of bounds" exceptions in the built-in PalRender plugin.
 
 
 VERSION 3.6.0 - Patch 4, August 2023

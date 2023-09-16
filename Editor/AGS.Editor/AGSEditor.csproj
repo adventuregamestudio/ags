@@ -133,6 +133,7 @@
     <Compile Include="Components\ViewsComponent.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
+    <Compile Include="Entities\MultiSelectAction.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -235,6 +236,7 @@
     <Compile Include="Panes\ScriptEditorBase.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Panes\ViewLoopContextMenuArgs.cs" />
     <Compile Include="Panes\FreePanControl.cs">
       <SubType>Component</SubType>
     </Compile>

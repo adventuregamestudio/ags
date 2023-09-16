@@ -960,7 +960,7 @@ builtin managed struct File {
 builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static InventoryItem* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Gets an integer custom property for this item.
@@ -983,10 +983,11 @@ builtin managed struct InventoryItem {
   import bool SetProperty(const string property, int value);
   /// Sets a text custom property for this item.
   import bool SetTextProperty(const string property, const string value);
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   /// Gets the script name of the inventory item.
   import readonly attribute String ScriptName;
 #endif
+
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1245,7 +1246,7 @@ builtin managed struct GUIControl {
   import void BringToFront();
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
   import static GUIControl* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static GUIControl* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Sends this control to the back of the z-order, behind all other controls.
@@ -1290,7 +1291,7 @@ builtin managed struct GUIControl {
   /// Gets/sets the control's transparency.
   import attribute int  Transparency;
 #endif
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   /// Gets the script name of this control.
   import readonly attribute String ScriptName;
 #endif
@@ -1451,7 +1452,7 @@ builtin managed struct GUI {
   import void Centre();
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static GUI* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Moves the GUI to have its top-left corner at the specified position.
@@ -1486,7 +1487,6 @@ builtin managed struct GUI {
   import void Click(MouseButton);
   /// Performs default processing of a mouse click at the specified co-ordinates.
   import static void ProcessClick(int x, int y, MouseButton);
-  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 #ifdef SCRIPT_API_v350
   /// Gets/sets the background color.
   import attribute int  BackgroundColor;
@@ -1503,14 +1503,17 @@ builtin managed struct GUI {
   /// Gets if this GUI is currently active on screen. In certain cases this is different than reading Visible property.
   import readonly attribute bool Shown;
 #endif
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   /// Gets the script name of this GUI.
   import readonly attribute String ScriptName;
+#endif
+#ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
   import attribute BlendMode BlendMode;
   /// Gets/sets the GUI's image rotation in degrees.
   import attribute float Rotation;
 #endif
+  readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
 #ifdef SCRIPT_API_v350
@@ -1525,7 +1528,7 @@ builtin managed struct TextWindowGUI extends GUI {
 builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static Hotspot* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Gets an integer Custom Property for this hotspot.
@@ -1558,10 +1561,11 @@ builtin managed struct Hotspot {
   /// Gets the drawing surface for the 8-bit hotspots mask
   import static DrawingSurface* GetDrawingSurface();     // $AUTOCOMPLETESTATICONLY$
 #endif
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   /// Gets the script name of this hotspot.
   import readonly attribute String ScriptName;
 #endif
+
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1602,7 +1606,7 @@ builtin managed struct Region {
 };
 
 builtin managed struct Dialog {
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Displays the options for this dialog and returns which one the player selected.
@@ -1625,11 +1629,11 @@ builtin managed struct Dialog {
   readonly import attribute bool ShowTextParser;
   /// Manually marks whether the option was chosen before or not.
   import void SetHasOptionBeenChosen(int option, bool chosen);
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   /// Gets the script name of this dialog.
   import readonly attribute String ScriptName;
 #endif
-  
+
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1761,7 +1765,7 @@ builtin managed struct AudioChannel {
 };
 
 builtin managed struct AudioClip {
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Plays this audio clip.
@@ -1786,7 +1790,7 @@ builtin managed struct AudioClip {
   /// Gets the clip's ID number.
   readonly import attribute int ID;
 #endif
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   /// Gets the script name of this clip.
   import readonly attribute String ScriptName;
 #endif
@@ -1851,7 +1855,7 @@ builtin managed struct Object {
   );
   /// Gets the object that is on the screen at the specified co-ordinates.
   import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static Object* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Gets an integer Custom Property for this object.
@@ -1951,10 +1955,10 @@ builtin managed struct Object {
 #ifdef SCRIPT_API_v361
   /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
   import attribute int  AnimationVolume;
-#endif
-#ifdef SCRIPT_API_v399
   /// Gets the script name of this object.
   import readonly attribute String ScriptName;
+#endif
+#ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this object.
   import attribute BlendMode BlendMode;
   /// Gets/sets the object's sprite rotation in degrees.
@@ -2001,7 +2005,7 @@ builtin managed struct Character {
   import function FollowCharacter(Character*, int dist=10, int eagerness=97);
   /// Returns the character that is at the specified position on the screen.
   import static Character* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
-#ifdef SCRIPT_API_v399
+#ifdef SCRIPT_API_v361
   import static Character* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif
   /// Gets a numeric custom property for this character.
@@ -2182,6 +2186,10 @@ builtin managed struct Character {
   /// Gets/sets the character's idle animation delay.
   import attribute int  IdleAnimationDelay;
 #endif
+#ifdef SCRIPT_API_v361
+  /// Gets the script name of this character.
+  import readonly attribute String ScriptName;
+#endif
   /// The character's current X-position.
   import attribute int  x;
   /// The character's current Y-position.
@@ -2189,8 +2197,6 @@ builtin managed struct Character {
   /// The character's current Z-position.
   import attribute int  z;
 #ifdef SCRIPT_API_v399
-  /// Gets the script name of this character.
-  import readonly attribute String ScriptName;
   /// Gets/sets the character's current blend mode.
   import attribute BlendMode BlendMode;
   /// Gets/sets the character's sprite rotation in degrees.
@@ -2357,7 +2363,7 @@ builtin struct GameState {
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
   int  score_sound;
   int  previous_game_data;
-  readonly int unused__041; // $AUTOCOMPLETEIGNORE$
+  readonly readonly int unused__041; // $AUTOCOMPLETEIGNORE$
   int  dialog_options_x;
   int  dialog_options_y;
   int  narrator_speech;
@@ -2379,10 +2385,10 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-  int  reserved__2;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__2;   // $AUTOCOMPLETEIGNORE$
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-  int  reserved__3;   // $AUTOCOMPLETEIGNORE$
+  readonly int  reserved__3;   // $AUTOCOMPLETEIGNORE$
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;

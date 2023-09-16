@@ -19,6 +19,8 @@ namespace AGS.Editor
 		private float _zoomLevel = 1.0f;
         private readonly Size _defaultFrameSize; // default picture frame size
         private bool _autoResize = false;
+        private bool _autoFrameFill = false;
+        private Point _defaultFramePos;
 
         private const int MILLISECONDS_IN_SECOND = 1000;
         private const int DEFUALT_FRAME_RATE = 40;
@@ -26,6 +28,7 @@ namespace AGS.Editor
         public ViewPreview()
         {
             InitializeComponent();
+            _defaultFramePos = panelAutoScroll.Location;
             _defaultFrameSize = previewPanel.ClientSize;
         }
 
@@ -62,6 +65,39 @@ namespace AGS.Editor
             set
             {
                 _zoomLevel = value;
+                UpdateSize();
+            }
+        }
+
+        /// <summary>
+        /// Whether the preview frame should automatically fill
+        /// available control space, disregarding zoom level.
+        /// </summary>
+        public bool AutoFrameFill
+        {
+            get
+            {
+                return _autoFrameFill;
+            }
+            set
+            {
+                _autoFrameFill = value;
+                if (_autoFrameFill)
+                {
+                    panelAutoScroll.Location = _defaultFramePos;
+                    // Use Left offset as a reference to "center" the previewPanel inside its parent control
+                    panelAutoScroll.Size = new Size(
+                        panelAutoScroll.Parent.Width - panelAutoScroll.Left * 2,
+                        panelAutoScroll.Parent.Height - panelAutoScroll.Top - panelAutoScroll.Left);
+                    panelAutoScroll.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
+                    previewPanel.Dock = DockStyle.Fill;
+                }
+                else
+                {
+                    panelAutoScroll.Location = _defaultFramePos;
+                    panelAutoScroll.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+                    previewPanel.Dock = DockStyle.None;
+                }
                 UpdateSize();
             }
         }
@@ -104,7 +140,12 @@ namespace AGS.Editor
 			}
 		}
 
-		private void UpdateFromView(AGS.Types.View view)
+        private void panelAutoScroll_Resize(object sender, EventArgs e)
+        {
+            previewPanel.Invalidate(); // in case was resized by rearranging panels
+        }
+
+        private void UpdateFromView(AGS.Types.View view)
         {
             if (view == null)
             {
@@ -146,6 +187,13 @@ namespace AGS.Editor
         {
             if (_view == null)
                 return;
+
+            if (_autoFrameFill)
+            {
+                previewPanel.Invalidate();
+                return;
+            }
+
             // Calculate the maximal view frame size,
             // see if the frame may be resized within the control's client size
             Size viewSize = Utilities.GetSizeViewWillBeRenderedInGame(_view);
@@ -185,7 +233,15 @@ namespace AGS.Editor
             ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
             int spriteNum = thisFrame.Image;
             Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
-            spriteSize = MathExtra.SafeScale(spriteSize, _zoomLevel);
+            if (_autoFrameFill)
+            {
+                spriteSize = MathExtra.SafeScale(spriteSize, previewPanel.ClientSize.Height / spriteSize.Height);
+            }
+            else
+            {
+                spriteSize = MathExtra.SafeScale(spriteSize, _zoomLevel);
+            }
+
             if (spriteSize.Width <= previewPanel.ClientSize.Width && spriteSize.Height <= previewPanel.ClientSize.Height)
             {
                 int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;

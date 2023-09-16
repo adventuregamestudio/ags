@@ -50,7 +50,7 @@ int Hotspot_GetID(ScriptHotspot *hss) {
 
 const char *Hotspot_GetScriptName(ScriptHotspot *hss)
 {
-    return CreateNewScriptString(croom->hotspot[hss->id].Name);
+    return CreateNewScriptString(thisroom.Hotspots[hss->id].ScriptName);
 }
 
 int Hotspot_GetWalkToX(ScriptHotspot *hss) {

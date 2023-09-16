@@ -50,10 +50,8 @@ namespace AGS.Editor
             this.currentItemGroupBox.Controls.Add(this.splitContainer1);
             this.currentItemGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.currentItemGroupBox.Location = new System.Drawing.Point(0, 0);
-            this.currentItemGroupBox.Margin = new System.Windows.Forms.Padding(4);
             this.currentItemGroupBox.Name = "currentItemGroupBox";
-            this.currentItemGroupBox.Padding = new System.Windows.Forms.Padding(4);
-            this.currentItemGroupBox.Size = new System.Drawing.Size(647, 418);
+            this.currentItemGroupBox.Size = new System.Drawing.Size(485, 340);
             this.currentItemGroupBox.TabIndex = 2;
             this.currentItemGroupBox.TabStop = false;
             this.currentItemGroupBox.Text = "Selected mouse cursor settings";
@@ -63,7 +61,8 @@ namespace AGS.Editor
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.IsSplitterFixed = true;
-            this.splitContainer1.Location = new System.Drawing.Point(4, 19);
+            this.splitContainer1.Location = new System.Drawing.Point(3, 16);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -76,27 +75,28 @@ namespace AGS.Editor
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.cursorPanelScrollArea);
-            this.splitContainer1.Size = new System.Drawing.Size(639, 395);
+            this.splitContainer1.Size = new System.Drawing.Size(479, 321);
             this.splitContainer1.SplitterDistance = 100;
+            this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 10;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(4, 6);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Location = new System.Drawing.Point(3, 5);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(379, 17);
+            this.label1.Size = new System.Drawing.Size(282, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "Use the property grid on the right to change basic settings.";
             // 
             // sldZoomLevel
             // 
-            this.sldZoomLevel.Location = new System.Drawing.Point(149, 50);
+            this.sldZoomLevel.Location = new System.Drawing.Point(112, 41);
+            this.sldZoomLevel.Margin = new System.Windows.Forms.Padding(2);
             this.sldZoomLevel.Maximum = 800;
             this.sldZoomLevel.Minimum = 100;
             this.sldZoomLevel.Name = "sldZoomLevel";
-            this.sldZoomLevel.Size = new System.Drawing.Size(221, 31);
+            this.sldZoomLevel.Size = new System.Drawing.Size(248, 29);
             this.sldZoomLevel.Step = 25;
             this.sldZoomLevel.TabIndex = 9;
             this.sldZoomLevel.Value = 400;
@@ -106,10 +106,9 @@ namespace AGS.Editor
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(4, 30);
-            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label2.Location = new System.Drawing.Point(3, 24);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(320, 17);
+            this.label2.Size = new System.Drawing.Size(241, 13);
             this.label2.TabIndex = 4;
             this.label2.Text = "Click in the image below to set the cursor hotspot:";
             // 
@@ -121,28 +120,27 @@ namespace AGS.Editor
             this.cursorPanelScrollArea.Controls.Add(this.imagePanel);
             this.cursorPanelScrollArea.Dock = System.Windows.Forms.DockStyle.Fill;
             this.cursorPanelScrollArea.Location = new System.Drawing.Point(0, 0);
+            this.cursorPanelScrollArea.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.cursorPanelScrollArea.Name = "cursorPanelScrollArea";
-            this.cursorPanelScrollArea.Size = new System.Drawing.Size(639, 291);
+            this.cursorPanelScrollArea.Size = new System.Drawing.Size(479, 218);
             this.cursorPanelScrollArea.TabIndex = 5;
             // 
             // imagePanel
             // 
-            this.imagePanel.Location = new System.Drawing.Point(4, 4);
-            this.imagePanel.Margin = new System.Windows.Forms.Padding(4);
+            this.imagePanel.Location = new System.Drawing.Point(3, 3);
             this.imagePanel.Name = "imagePanel";
-            this.imagePanel.Size = new System.Drawing.Size(320, 195);
+            this.imagePanel.Size = new System.Drawing.Size(240, 158);
             this.imagePanel.TabIndex = 3;
             this.imagePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.imagePanel_Paint);
             this.imagePanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.imagePanel_MouseDown);
             // 
             // CursorEditor
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.currentItemGroupBox);
-            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "CursorEditor";
-            this.Size = new System.Drawing.Size(647, 418);
+            this.Size = new System.Drawing.Size(485, 340);
             this.Load += new System.EventHandler(this.CursorEditor_Load);
             this.currentItemGroupBox.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);

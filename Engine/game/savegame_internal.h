@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include "ac/common_defines.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "game/roomstruct.h"
@@ -72,6 +73,8 @@ struct RestoredData
     int                     FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<std::unique_ptr<Bitmap>> DynamicSurfaces;
+    // Unserialized bitmaps for overlays (old-style saves)
+    std::unordered_map<int, std::unique_ptr<Bitmap>> OverlayImages;
     // Scripts global data
     struct ScriptData
     {

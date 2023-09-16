@@ -476,6 +476,8 @@ void unload_game_file()
     guis.clear();
     scrGui.clear();
 
+    get_overlays().clear();
+
     resetRoomStatuses();
 
     // Free game state and game struct
@@ -1045,6 +1047,7 @@ bool try_restore_save(int slot)
 bool try_restore_save(const Common::String &path, int slot)
 {
     bool data_overwritten;
+    Debug::Printf(kDbgMsg_Info, "Restoring saved game '%s'", path.GetCStr());
     HSaveError err = load_game(path, slot, data_overwritten);
     if (!err)
     {
@@ -1374,11 +1377,14 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
 }
 
-void game_sprite_updated(int sprnum)
+void game_sprite_updated(int sprnum, bool deleted)
 {
-    update_shared_texture(sprnum);
-    // character and object draw caches
-    reset_objcache_for_sprite(sprnum, false);
+    // Notify draw system about dynamic sprite change
+    notify_sprite_changed(sprnum, deleted);
+
+    // GUI still have a special draw route, so cannot rely on object caches;
+    // will have to do a per-GUI and per-control check.
+    //
     // gui backgrounds
     for (auto &gui : guis)
     {
@@ -1402,84 +1408,6 @@ void game_sprite_updated(int sprnum)
         {
             slider.MarkChanged();
         }
-    }
-    // overlays
-    auto &overs = get_overlays();
-    for (auto &over : overs)
-    {
-        if (over.GetSpriteNum() == sprnum)
-            over.MarkChanged();
-    }
-}
-
-void game_sprite_deleted(int sprnum)
-{
-    clear_shared_texture(sprnum);
-    // character and object draw caches
-    reset_objcache_for_sprite(sprnum, true);
-
-    // room object graphics
-    if (croom != nullptr)
-    {
-        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
-        {
-            if (objs[i].num == sprnum)
-                objs[i].num = 0;
-        }
-    }
-    // gui buttons
-    for (auto &but : guibuts)
-    {
-        if (but.Image == sprnum)
-            but.Image = 0;
-        if (but.MouseOverImage == sprnum)
-            but.MouseOverImage = 0;
-        if (but.PushedImage == sprnum)
-            but.PushedImage = 0;
-
-        if (but.CurrentImage() == sprnum)
-        {
-            but.SetCurrentImage(0);
-        }
-    }
-
-    // gui backgrounds
-    for (size_t i = 0; i < (size_t)game.numgui; ++i)
-    {
-        if (guis[i].BgImage == sprnum)
-        {
-            guis[i].BgImage = 0;
-            guis[i].MarkChanged();
-        }
-    }
-    // gui sliders
-    for (auto &slider : guislider)
-    {
-        if ((slider.BgImage == sprnum) || (slider.HandleImage == sprnum))
-            slider.MarkChanged();
-        if (slider.BgImage == sprnum)
-            slider.BgImage = 0;
-        if (slider.HandleImage == sprnum)
-            slider.HandleImage = 0;
-    }
-    // views
-    for (size_t v = 0; v < (size_t)game.numviews; ++v)
-    {
-        for (size_t l = 0; l < (size_t)views[v].numLoops; ++l)
-        {
-            for (size_t f = 0; f < (size_t)views[v].loops[l].numFrames; ++f)
-            {
-                if (views[v].loops[l].frames[f].pic == sprnum)
-                    views[v].loops[l].frames[f].pic = 0;
-            }
-        }
-    }
-    // overlays
-    auto &overs = get_overlays();
-    for (auto &over : overs)
-    {
-        if (over.GetSpriteNum() == sprnum)
-            over.SetSpriteNum(0);
     }
 }
 

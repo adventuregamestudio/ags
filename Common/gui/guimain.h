@@ -241,6 +241,10 @@ namespace GUI
     // Writes all GUIs and their controls.
     // WARNING: the data is written from the global arrays (guis, guibuts, and so on)
     void WriteGUI(Stream *out);
+
+    // Rebuilds GUIs, connecting them to the child controls in memory.
+    // WARNING: the data is processed in the global arrays (guis, guibuts, and so on)
+    HError RebuildGUI();
 }
 
 } // namespace Common

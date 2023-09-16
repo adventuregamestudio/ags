@@ -241,6 +241,13 @@ build_android_task:
     memory: 8G
     greedy: true
   git_submodules_script: git submodule update --init --recursive
+  gradle_cache:
+    folder: ~/.gradle/caches
+    fingerprint_script:
+      - echo $CIRRUS_OS
+      - cat **/*.gradle* **/gradle-wrapper.properties || true
+    populate_script:
+      - mkdir -p ~/.gradle/caches
   build_prepare_script: |
     cd Android && ./and-build.sh prepare
   build_debug_library_and_runtime_script: |
@@ -255,6 +262,11 @@ build_android_task:
     cd Android && ./and-build.sh archive_project
   proj_artifacts:
     path: AGS-*-android-proj-*.zip
+  # FIXME: adjust the cleanup so Cirrus CI doesn't re-upload the cache every time.
+  cleanup_gradle_script: |
+    rm -rf ~/.gradle/daemon/
+    rm -rf ~/.gradle/caches/transforms-1
+    rm -rf ~/.gradle/caches/journal-1
 
 
 build_emscripten_task:

@@ -577,7 +577,6 @@
     <ClCompile Include="..\..\Engine\ac\viewport_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkbehind.cpp" />
-    <ClCompile Include="..\..\Engine\debug\consoleoutputtarget.cpp" />
     <ClCompile Include="..\..\Engine\debug\debug.cpp" />
     <ClCompile Include="..\..\Engine\debug\filebasedagsdebugger.cpp" />
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
@@ -839,7 +838,6 @@
     <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
     <ClInclude Include="..\..\Engine\ac\walkbehind.h" />
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
-    <ClInclude Include="..\..\Engine\debug\consoleoutputtarget.h" />
     <ClInclude Include="..\..\Engine\debug\debugger.h" />
     <ClInclude Include="..\..\Engine\debug\debug_log.h" />
     <ClInclude Include="..\..\Engine\debug\dummyagsdebugger.h" />

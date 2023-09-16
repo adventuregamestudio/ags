@@ -111,7 +111,6 @@ COLOR_MAP maincoltable;
 IGraphicsDriver *gfxDriver = nullptr;
 IDriverDependantBitmap *blankImage = nullptr;
 IDriverDependantBitmap *blankSidebarImage = nullptr;
-IDriverDependantBitmap *debugConsole = nullptr;
 
 // ObjTexture is a helper struct that pairs a raw bitmap with
 // a renderer's texture and an optional position
@@ -323,8 +322,6 @@ RoomAreaMask debugRoomMask = kRoomAreaNone;
 ObjTexture debugRoomMaskObj;
 int debugMoveListChar = -1;
 ObjTexture debugMoveListObj;
-// For in-game "console" surface
-Bitmap *debugConsoleBuffer = nullptr;
 
 // Draw cache: keep record of all kinds of things related to the previous drawing state
 //
@@ -2779,36 +2776,6 @@ void construct_engine_overlay()
 {
     const Rect &viewport = RectWH(game.GetGameRes());
     gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
-
-    // draw the debug console, if appropriate
-    if ((play.debug_mode > 0) && (display_console != 0))
-    {
-        const int font = FONT_NORMAL;
-        int ypp = 1;
-        int txtspacing = get_font_linespacing(font);
-        int barheight = get_text_lines_surf_height(font, DEBUG_CONSOLE_NUMLINES - 1) + 4;
-
-        if (debugConsoleBuffer == nullptr)
-        {
-            debugConsoleBuffer = CreateCompatBitmap(viewport.GetWidth(), barheight);
-        }
-
-        color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
-        debugConsoleBuffer->FillRect(Rect(0, 0, viewport.GetWidth() - 1, barheight), draw_color);
-        color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
-        for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, font, text_color, debug_line[jj].GetCStr());
-            ypp += txtspacing;
-        }
-
-        if (debugConsole == nullptr)
-            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
-        else
-            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer, false);
-
-        gfxDriver->DrawSprite(0, 0, debugConsole);
-        invalidate_sprite_glob(0, 0, debugConsole);
-    }
 
     if (display_fps != kFPS_Hide)
         draw_fps(viewport);

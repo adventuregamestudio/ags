@@ -25,9 +25,6 @@ void init_debug(const AGS::Common::ConfigTree &cfg, bool stderr_only);
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 
-// Toggle in-game console output
-void debug_set_console(bool enable);
-
 // prints debug messages of given type tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
 void debug_script_print(AGS::Common::MessageType mt, const char *msg, ...);
@@ -45,8 +42,5 @@ void quitprintf(const char *texx, ...);
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook (ccInstance *ccinst, int linenum) ;
-
-extern AGS::Common::String debug_line[DEBUG_CONSOLE_NUMLINES];
-extern int first_debug_line, last_debug_line, display_console;
 
 #endif // __AC_DEBUG_LOG_H

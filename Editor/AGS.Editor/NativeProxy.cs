@@ -19,8 +19,6 @@ namespace AGS.Editor
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 		[DllImport("kernel32.dll")]
-		public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
-		[DllImport("kernel32.dll")]
 		public static extern int GetPrivateProfileString(string section, string key, string def, System.Text.StringBuilder retVal, int size, string filePath);
 
         public const uint WM_MOUSEACTIVATE = 0x21;
@@ -482,6 +480,11 @@ namespace AGS.Editor
         {
             NativeProxy.GetPrivateProfileString(section, key, def.ToString(), IniBuf, 4096, filePath);
             return IniBuf.ToString();
+        }
+
+        public void WriteIniFile(string fileName, Dictionary<string, Dictionary<string, string>> sections, bool mergeExisting)
+        {
+            _native.WriteIniFile(fileName, sections, mergeExisting);
         }
 
         public void Dispose()

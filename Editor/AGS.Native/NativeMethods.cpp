@@ -22,6 +22,7 @@ see the license.txt for details.
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
+#include "util/ini_util.h"
 #include "util/multifilelib.h"
 #include "util/string_utils.h"
 
@@ -806,6 +807,29 @@ namespace AGS
             if (name->Equals("OPT_KEYHANDLEAPI")) return OPT_KEYHANDLEAPI;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
             return nullptr;
+        }
+
+        void NativeMethods::WriteIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections, bool mergeExisting)
+        {
+            AGSString filename = TextHelper::ConvertUTF8(fileName);
+            AGS::Common::ConfigTree cfg;
+            for each (auto section in sections)
+            {
+                AGSString secname = TextHelper::ConvertASCII(section.Key);
+                AGS::Common::StringOrderMap secmap;
+                for each (auto item in section.Value)
+                {
+                    AGSString key = TextHelper::ConvertASCII(item.Key);
+                    AGSString value = TextHelper::ConvertUTF8(item.Value);
+                    secmap[key] = value;
+                }
+                cfg[secname] = std::move(secmap);
+            }
+
+            if (mergeExisting)
+                AGS::Common::IniUtil::Merge(filename, cfg);
+            else
+                AGS::Common::IniUtil::Write(filename, cfg);
         }
 	}
 }

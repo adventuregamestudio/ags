@@ -50,64 +50,75 @@ namespace AGS.Editor
             string super_sampling = NativeProxy.GetIniString("graphics", "super_sampling", "0", configPath);
             string logging = NativeProxy.GetIniString("debug", "logging", "0", configPath);
 
-            NativeProxy.WritePrivateProfileString("misc", "config_enabled", config_enabled, configPath);
+            var cfg = new Dictionary<string, Dictionary<string, string>>();
+            cfg.Add("controls", new Dictionary<string, string>());
+            cfg.Add("compatibility", new Dictionary<string, string>());
+            cfg.Add("debug", new Dictionary<string, string>());
+            cfg.Add("graphics", new Dictionary<string, string>());
+            cfg.Add("misc", new Dictionary<string, string>());
+            cfg.Add("sound", new Dictionary<string, string>());
+            cfg.Add("video", new Dictionary<string, string>());
+
+            cfg["misc"]["config_enabled"] = config_enabled;
 
             // Misc options
             int rotation = (int)setup.Rotation;
-            NativeProxy.WritePrivateProfileString("misc", "rotation", rotation.ToString(), configPath);
-            NativeProxy.WritePrivateProfileString("misc", "translation", setup.Translation, configPath);
-            NativeProxy.WritePrivateProfileString("compatibility", "clear_cache_on_room_change", clear_cache, configPath);
+            cfg["misc"]["rotation"] = rotation.ToString();
+            cfg["misc"]["translation"] = setup.Translation;
+            cfg["compatibility"]["clear_cache_on_room_change"] = clear_cache;
 
             // Touch-to-mouse options
             int mouse_emulation = (int)setup.TouchToMouseEmulation;
             int mouse_speed = (int)Math.Round(setup.MouseSpeed * 10.0f);
             int mouse_control_mode = (int)setup.TouchToMouseMotionMode;
-            NativeProxy.WritePrivateProfileString("controls", "mouse_emulation", mouse_emulation.ToString(), configPath);
-            NativeProxy.WritePrivateProfileString("controls", "mouse_speed", mouse_speed.ToString(), configPath);
-            NativeProxy.WritePrivateProfileString("controls", "mouse_method", mouse_control_mode.ToString(), configPath);
+            cfg["controls"]["mouse_emulation"] = mouse_emulation.ToString();
+            cfg["controls"]["mouse_speed"] = mouse_speed.ToString();
+            cfg["controls"]["mouse_method"] = mouse_control_mode.ToString();
 
             // Sound options
-            NativeProxy.WritePrivateProfileString("sound", "enabled", sound_enabled, configPath);
-            NativeProxy.WritePrivateProfileString("sound", "cache_size", sound_cache_size, configPath);
+            cfg["sound"]["enabled"] = sound_enabled;
+            cfg["sound"]["cache_size"] = sound_cache_size;
 
             // Video options
-            NativeProxy.WritePrivateProfileString("video", "framedrop", frame_drop, configPath);
+            cfg["video"]["framedrop"] = frame_drop;
 
             // Graphic options
             if (setup.GraphicsDriver == GraphicsDriver.Software) {
-                NativeProxy.WritePrivateProfileString("graphics", "renderer", "0", configPath);
+                cfg["graphics"]["renderer"] = "0";
             } else {
-                NativeProxy.WritePrivateProfileString("graphics", "renderer", "1", configPath);
+                cfg["graphics"]["renderer"] = "1";
             }
 
             if (setup.GraphicsFilter == "StdScale") {
-                NativeProxy.WritePrivateProfileString("graphics", "smoothing", "0", configPath);
+                cfg["graphics"]["smoothing"] = "0";
             } else {
-                NativeProxy.WritePrivateProfileString("graphics", "smoothing", "1", configPath);
+                cfg["graphics"]["smoothing"] = "1";
             }
 
             if (setup.FullscreenGameScaling == GameScaling.ProportionalStretch) {
-                NativeProxy.WritePrivateProfileString("graphics", "scaling", "1", configPath);
+                cfg["graphics"]["scaling"] = "1";
             } else if (setup.FullscreenGameScaling == GameScaling.StretchToFit) {
-                NativeProxy.WritePrivateProfileString("graphics", "scaling", "2", configPath);
+                cfg["graphics"]["scaling"] = "2";
             } else {
-                NativeProxy.WritePrivateProfileString("graphics", "scaling", "0", configPath);
+                cfg["graphics"]["scaling"] = "0";
             }
 
-            NativeProxy.WritePrivateProfileString("graphics", "super_sampling", super_sampling, configPath);
-            NativeProxy.WritePrivateProfileString("graphics", "smooth_sprites", setup.AAScaledSprites ? "1" : "0", configPath);
+            cfg["graphics"]["super_sampling"] = super_sampling;
+            cfg["graphics"]["smooth_sprites"] = setup.AAScaledSprites ? "1" : "0";
 
             // Debug options
             if (Factory.AGSEditor.CurrentGame.Settings.DebugMode) // Make sure to not have debug options in production
             {
-                NativeProxy.WritePrivateProfileString("debug", "show_fps", setup.ShowFPS ? "1" : "0", configPath);
-                NativeProxy.WritePrivateProfileString("debug", "logging", logging, configPath);
+                cfg["debug"]["show_fps"] = setup.ShowFPS ? "1" : "0";
+                cfg["debug"]["logging"] = logging;
             } 
             else
             {
-                NativeProxy.WritePrivateProfileString("debug", "show_fps", "0", configPath);
-                NativeProxy.WritePrivateProfileString("debug", "logging", "0", configPath);
+                cfg["debug"]["show_fps"] = "0";
+                cfg["debug"]["logging"] = "0";
             }
+
+            NativeProxy.Instance.WriteIniFile(configPath, cfg, true);
         }
 
         private IconAssetType GetGameIconType()

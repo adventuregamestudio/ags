@@ -231,7 +231,10 @@ namespace AGS.Editor.Components
             }
             else if (controlID == OPEN_BUILD_FILE_EXPLORER_COMMAND)
             {
-                Utilities.OpenFileOrDirInFileExplorer(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY));
+                if(!Utilities.OpenFileOrDirInFileExplorer(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY)))
+                {
+                    Factory.GUIController.ShowMessage("The Compiled directory doesn't exist or has been deleted. Click Build EXE at least once to create the directory.",MessageBoxIcon.Exclamation);
+                }
             }
             else if (controlID == TEST_GAME_COMMAND)
             {

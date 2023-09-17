@@ -660,7 +660,7 @@ namespace AGS.Editor
             return proportion;
         }
 
-        public static void OpenFileOrDirInFileExplorer(string path)
+        public static bool OpenFileOrDirInFileExplorer(string path)
         {
             if (File.Exists(path))
             {
@@ -673,6 +673,7 @@ namespace AGS.Editor
                 {
                     Hacks.ShowInExplorer(path);
                 }
+                return true;
             }
             else if(Directory.Exists(path))
             {
@@ -685,7 +686,9 @@ namespace AGS.Editor
                 {
                     Hacks.ShowInExplorer(path, null);
                 }
+                return true;
             }
+            return false;
         }
     }
 }

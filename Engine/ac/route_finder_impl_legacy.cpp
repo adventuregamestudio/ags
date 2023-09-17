@@ -638,22 +638,21 @@ findroutebk:
   return 1;
 }
 
-void set_route_move_speed(int speed_x, int speed_y)
+inline fixed input_speed_to_fixed(int speed_val)
 {
   // negative move speeds like -2 get converted to 1/2
-  if (speed_x < 0) {
-    move_speed_x = itofix(1) / (-speed_x);
+  if (speed_val < 0) {
+    return itofix(1) / (-speed_val);
   }
   else {
-    move_speed_x = itofix(speed_x);
+    return itofix(speed_val);
   }
+}
 
-  if (speed_y < 0) {
-    move_speed_y = itofix(1) / (-speed_y);
-  }
-  else {
-    move_speed_y = itofix(speed_y);
-  }
+void set_route_move_speed(int speed_x, int speed_y)
+{
+  move_speed_x = input_speed_to_fixed(speed_x);
+  move_speed_y = input_speed_to_fixed(speed_y);
 }
 
 // Calculates the X and Y per game loop, for this stage of the

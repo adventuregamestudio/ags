@@ -54,5 +54,9 @@ namespace AGS.Editor.Components
         public virtual void EditorShutdown()
         {
         }
+
+        public virtual void ShowItemPaneByName(string name)
+        {
+        }
     }
 }

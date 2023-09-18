@@ -541,11 +541,59 @@ namespace AGS.Editor
             {
                 if (foundInScript.FileName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
                 {
-                    Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
+                    if (_goToDefinition == "player")
+                    {
+                        CharactersComponent charactersComponent = Factory.ComponentController.FindComponent<CharactersComponent>();
+                        charactersComponent.ShowPlayerCharacter();
+                    }
+                    else
+                    {
+                        Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
+                    }
                 }
                 else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
                 {
-                    Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a Character or Inventory Item.", MessageBoxIcon.Information);
+                    if (found is ScriptVariable)
+                    {
+                        ScriptVariable sVar = found as ScriptVariable;
+                        string varType = sVar.Type;
+                        string varName = sVar.VariableName;
+
+                        // FIX-ME: at some version (ags4?) we can break IEditorComponent compatibility and just move the script type to the component
+                        // then we can add FindComponentThatManageScriptType to the ComponentController and get the managed script types from the components 
+                        BaseComponent component = null;
+                        switch (varType)
+                        {
+                            case "InventoryItem":
+                                component = Factory.ComponentController.FindComponent<InventoryComponent>();
+                                break;
+                            case "Character":
+                                component = Factory.ComponentController.FindComponent<CharactersComponent>();
+                                break;
+                            case "Dialog":
+                                component = Factory.ComponentController.FindComponent<DialogsComponent>();
+                                break;
+                            case "GUI":
+                                component = Factory.ComponentController.FindComponent<GuiComponent>();
+                                break;
+                            case "AudioClip":
+                                component = Factory.ComponentController.FindComponent<AudioComponent>();
+                                break;
+                        }
+
+                        if(component != null)
+                        {
+                            component.ShowItemPaneByName(varName);
+                        }
+                        else
+                        {
+                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a GUIControl or Inventory Item.", MessageBoxIcon.Information);
+                        }
+                    }
+                    else
+                    {
+                        Factory.GUIController.ShowMessage("This is internally defined by AGS.", MessageBoxIcon.Information);
+                    }
                 }
                 else if (foundInScript.FileName == GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME)
                 {

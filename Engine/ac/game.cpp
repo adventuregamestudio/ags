@@ -1417,7 +1417,7 @@ void game_sprite_updated(int sprnum, bool deleted)
     // gui buttons
     for (auto &but : guibuts)
     {
-        if (but.CurrentImage == sprnum)
+        if (but.GetCurrentImage() == sprnum)
         {
             but.MarkChanged();
         }

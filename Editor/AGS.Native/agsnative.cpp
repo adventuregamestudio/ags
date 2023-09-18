@@ -2582,10 +2582,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUIButton nbut;
           nbut.TextColor = button->TextColor;
           nbut.Font = button->Font;
-          nbut.Image = button->Image;
-          nbut.CurrentImage = nbut.Image;
-          nbut.MouseOverImage = button->MouseoverImage;
-          nbut.PushedImage = button->PushedImage;
+          nbut.SetNormalImage(button->Image);
+          nbut.SetCurrentImage(button->Image);
+          nbut.SetMouseOverImage(button->MouseoverImage);
+          nbut.SetPushedImage(button->PushedImage);
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
           nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
           nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
@@ -2662,8 +2662,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (textwindowedge)
 	  {
           Common::GUIButton nbut;
-          nbut.Image = textwindowedge->Image;
-          nbut.CurrentImage = nbut.Image;
+          nbut.SetNormalImage(textwindowedge->Image);
+          nbut.SetCurrentImage(textwindowedge->Image);
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
@@ -3380,7 +3380,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					AGS::Types::GUITextWindowEdge^ edge = gcnew AGS::Types::GUITextWindowEdge();
 					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = edge;
-					edge->Image = copyFrom->Image;
+					edge->Image = copyFrom->GetNormalImage();
 				}
 				else
 				{
@@ -3389,9 +3389,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newControl = newButton;
 					newButton->TextColor = copyFrom->TextColor;
 					newButton->Font = copyFrom->Font;
-					newButton->Image = copyFrom->Image;
-					newButton->MouseoverImage = copyFrom->MouseOverImage;
-					newButton->PushedImage = copyFrom->PushedImage;
+					newButton->Image = copyFrom->GetNormalImage();
+					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
+					newButton->PushedImage = copyFrom->GetPushedImage();
 					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kGUIClickLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kGUIClickLeft];

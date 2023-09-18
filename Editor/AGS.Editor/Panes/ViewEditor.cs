@@ -198,6 +198,9 @@ namespace AGS.Editor
 
         private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
+            if (GUIController.Instance.ActivePane != ContentDocument)
+                return; // not this pane
+
             if (newPropertyObject is ViewFrame)
             {
                 foreach (ViewLoopEditor pane in _loopPanes)

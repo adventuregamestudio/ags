@@ -2672,8 +2672,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
       Common::GUIObject *newObj = gui->GetControl(gui->GetControlCount() - 1);
 	  newObj->X = control->Left;
 	  newObj->Y = control->Top;
-	  newObj->Width = control->Width;
-	  newObj->Height = control->Height;
+	  newObj->SetSize(control->Width, control->Height);
 	  newObj->Id = control->ID;
 	  newObj->ZOrder = control->ZOrder;
       newObj->Name = TextHelper::ConvertASCII(control->Name);
@@ -3467,8 +3466,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			default:
 				throw gcnew AGSEditorException("Unknown control type found: " + ((int)ctrl_type).ToString());
 			}
-			newControl->Width = (curObj->Width > 0) ? curObj->Width : 1;
-			newControl->Height = (curObj->Height > 0) ? curObj->Height : 1;
+            ::Size size = curObj->GetSize();
+			newControl->Width = (size.Width > 0) ? size.Width : 1;
+			newControl->Height = (size.Height > 0) ? size.Height : 1;
 			newControl->Left = curObj->X;
 			newControl->Top = curObj->Y;
 			newControl->ZOrder = curObj->ZOrder;

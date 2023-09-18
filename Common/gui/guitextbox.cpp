@@ -54,10 +54,10 @@ void GUITextBox::Draw(Bitmap *ds, int x, int y)
     color_t draw_color = ds->GetCompatibleColor(TextColor);
     if (IsBorderShown())
     {
-        ds->DrawRect(RectWH(x, y, Width, Height), draw_color);
+        ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
         if (get_fixed_pixel_size(1) > 1)
         {
-            ds->DrawRect(Rect(x + 1, y + 1, x + Width - get_fixed_pixel_size(1), y + Height - get_fixed_pixel_size(1)), draw_color);
+            ds->DrawRect(Rect(x + 1, y + 1, x + _width - get_fixed_pixel_size(1), y + _height - get_fixed_pixel_size(1)), draw_color);
         }
     }
     DrawTextBoxContents(ds, x, y, text_color);
@@ -102,7 +102,7 @@ void GUITextBox::OnKeyPress(const KeyInput &ki)
         Text.Append(ki.Text) :
         Text.AppendChar(ki.UChar);
     // if the new string is too long, remove the new character
-    if (get_text_width(Text.GetCStr(), Font) > (Width - (6 + get_fixed_pixel_size(5))))
+    if (get_text_width(Text.GetCStr(), Font) > (_width - (6 + get_fixed_pixel_size(5))))
         Backspace(Text);
     MarkChanged();
 }

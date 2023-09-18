@@ -2303,7 +2303,7 @@ static void construct_guictrl_tex(GUIMain &gui)
     {
         GUIObject *obj = gui.GetControl(i);
         if (!obj->IsVisible() ||
-            (obj->Width <= 0 || obj->Height <= 0) ||
+            (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
             continue;
         if (!obj->HasChanged())
@@ -2338,7 +2338,7 @@ static void draw_gui_controls_batch(int gui_id)
     {
         GUIObject *obj = gui.GetControl(obj_id);
         if (!obj->IsVisible() ||
-            (obj->Width <= 0 || obj->Height <= 0) ||
+            (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
             continue;
         const auto &obj_tx = guiobjbg[draw_index + obj_id];

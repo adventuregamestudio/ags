@@ -55,7 +55,7 @@ struct MoveList
 
     void ReadFromFile_Legacy(Common::Stream *in);
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #endif // __AGS_EN_AC__MOVELIST_H

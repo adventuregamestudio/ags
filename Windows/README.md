@@ -8,8 +8,8 @@
     * https://visualstudio.microsoft.com/vs/older-downloads/
   * If you are using MSVS 2019 and higher you might need to manually download [Windows 10 SDK (10.0.10240)](https://go.microsoft.com/fwlink/p/?LinkId=619296) from the [SDK Archive](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/).
 * Specifically for the Engine:
-  * SDL 2.0.12 or higher (https://www.libsdl.org/download-2.0.php)
-  * SDL_Sound 2.0.* (revision 495e948b455 or higher) https://github.com/icculus/SDL_sound/archive/495e948b455af48eb45f75cccc060498f1e0e8a2.tar.gz
+  * SDL 2.0.12 or higher (https://github.com/libsdl-org/SDL/tree/SDL2)
+  * SDL_Sound 2.0.* (https://github.com/icculus/sdl_sound)
   * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
   * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
@@ -20,11 +20,7 @@
   * (optional) PowerShell ([Download](https://aka.ms/powershell-release?tag=stable))
 **IMPORTANT:** all libraries should match the Engine's architecture: e.g. if you are building engine using 32-bit (x86) configuration then link libraries for 32-bit (x86) too.
 
-**NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the following archive:
-  * https://github.com/adventuregamestudio/ags/releases/download/v.3.6.0.48/WinDevDependenciesVS.zip
-
-You still have to download library sources though, because you'd need header files.
-If you go this way, then skip **"Building the libraries"** sections altogether.
+**NOTE:** You may skip building libraries from the source completely by using prebuilt libs from the archive called "WinDevDependenciesVS.zip", which is attached to any [latest release of AGS](https://github.com/adventuregamestudio/ags/releases). If you go this way, then skip **"Building the libraries"** sections altogether.
 
 
 ## Building the libraries

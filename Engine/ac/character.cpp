@@ -1928,7 +1928,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
         else if (mls[chi->walking].onpart > 0) {
-            mls[chi->walking].onpart --;
+            mls[chi->walking].onpart -= itofix(1);
             chi->x = xwas;
             chi->y = ywas;
         }

@@ -1717,11 +1717,16 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     // moving it looks smoother
     int oldframe = chin->frame;
     int waitWas = 0, animWaitWas = 0;
+    float wasStepFrac = 0.f;
     // if they are currently walking, save the current Wait
     if (chin->walking)
     {
         waitWas = chin->walkwait;
         animWaitWas = charextra[chac].animwait;
+        const auto &movelist = mls[chin->walking % TURNING_AROUND];
+        // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
+        if (movelist.onpart > 0)
+            wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
     StopMoving (chac);
@@ -1746,6 +1751,11 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
         convert_move_path_to_room_resolution(&mls[mslot]);
+
+        if (wasStepFrac > 0.f)
+        {
+            mls[mslot].SetPixelUnitFraction(wasStepFrac);
+        }
 
         // cancel any pending waits on current animations
         // or if they were already moving, keep the current wait - 

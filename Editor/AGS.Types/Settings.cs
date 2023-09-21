@@ -416,7 +416,7 @@ namespace AGS.Types
         [DisplayName("Characters turn to face direction")]
         [Description("Characters will turn on the spot to face their new direction when FaceLocation is used")]
         [DefaultValue(true)]
-        [Category("Character movement")]
+        [Category("Character behavior")]
         public bool TurnBeforeFacing
         {
             get { return _turnBeforeFacing; }
@@ -426,7 +426,7 @@ namespace AGS.Types
         [DisplayName("Characters turn before walking")]
         [Description("Characters will turn on the spot to face their new direction before starting to move")]
         [DefaultValue(true)]
-        [Category("Character movement")]
+        [Category("Character behavior")]
         public bool TurnBeforeWalking
         {
             get { return _turnBeforeWalking; }
@@ -436,7 +436,7 @@ namespace AGS.Types
         [DisplayName("Scale movement speed with room's mask resolution")]
         [Description("Character walking and object movement speeds will scale inversely in proportion to the current room's Mask Resolution, for example having 1:2 mask resolution will multiply speed by 2. " +
             "This is a backward compatible setting that should not be enabled without real need.")]
-        [Category("Character movement")]
+        [Category("Character behavior")]
         [DefaultValue(false)]
         public bool ScaleMovementSpeedWithMaskResolution
         {
@@ -490,7 +490,7 @@ namespace AGS.Types
         [DisplayName("Automatically move the player in Walk mode")]
         [Description("When the player clicks somewhere in Walk mode, the player character will be sent there rather than processing it as an interaction")]
         [DefaultValue(true)]
-        [Category("Character movement")]
+        [Category("Character behavior")]
         public bool AutoMoveInWalkMode
         {
             get { return _autoMoveInWalkMode; }
@@ -611,7 +611,7 @@ namespace AGS.Types
         [DisplayName("Automatically walk to hotspots in Look mode")]
         [Description("Whenever the player clicks somewhere in Look mode, the player character will automatically be moved there")]
         [DefaultValue(false)]
-        [Category("Character movement")]
+        [Category("Character behavior")]
         public bool WalkInLookMode
         {
             get { return _walkInLookMode; }
@@ -624,6 +624,16 @@ namespace AGS.Types
 		    get { return _antiGlideMode;}
 		    set { _antiGlideMode = value;}
 	    }
+
+        [DisplayName("Scale Character sprite offsets")]
+        [Description("Scale sprite offsets along with the character sprite, such as Character.z property, and offsets set by Character.LockViewOffset()")]
+        [DefaultValue(true)]
+        [Category("Character behavior")]
+        public bool ScaleCharacterSpriteOffsets
+        {
+            get { return _scaleCharacterSpriteOffsets; }
+            set { _scaleCharacterSpriteOffsets = value; }
+        }
 
         [DisplayName("Enable Debug Mode")]
         [Description("Enable various debugging keys that help you while developing your game")]
@@ -777,16 +787,6 @@ namespace AGS.Types
         {
             get { return _leftToRightPrecedence; }
             set { _leftToRightPrecedence = value; }
-        }
-
-        [DisplayName("Scale Character sprite offsets")]
-        [Description("Scale sprite offsets along with the character sprite, such as Character.z property, and offsets set by Character.LockViewOffset()")]
-        [DefaultValue(true)]
-        [Category("Backwards Compatibility")]
-        public bool ScaleCharacterSpriteOffsets
-        {
-            get { return _scaleCharacterSpriteOffsets; }
-            set { _scaleCharacterSpriteOffsets = value; }
         }
 
         [DisplayName("Play sound when the player gets points")]

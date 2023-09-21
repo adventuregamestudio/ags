@@ -671,7 +671,7 @@ namespace AGS.Editor
                 }
                 else
                 {
-                    Process.Start("explorer.exe", String.Format("/select,\"{0}\"", path));
+                    Hacks.ShowInExplorer(path);
                 }
             }
             else if(Directory.Exists(path))
@@ -683,7 +683,7 @@ namespace AGS.Editor
                 }
                 else
                 {
-                    Process.Start("explorer.exe", path);
+                    Hacks.ShowInExplorer(path, null);
                 }
             }
         }

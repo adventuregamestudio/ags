@@ -201,7 +201,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -229,7 +229,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -256,7 +256,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -285,7 +285,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -313,7 +313,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -346,7 +346,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -381,7 +381,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -417,7 +417,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Engine\libsrc\libcda-0.5;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Engine\libsrc\apeg-1.2.1;..\..\Engine\libsrc\glad\include;..\..\libsrc\glm;..\..\Plugins;..\..\libsrc\allegro\include;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC;ALLEGRO_STATICLINK;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -728,7 +728,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h" /> 
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptgui.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scripthotspot.h" />

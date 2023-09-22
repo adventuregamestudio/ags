@@ -42,17 +42,19 @@ namespace AGS.Editor
             // These option values are not present in the Setup properties at the moment,
             // so we read them from the file, in case the file has been modified by a user manually
             // (this is a temporary measure, to avoid not letting a user to define these values).
-            string config_enabled = NativeProxy.GetIniString("misc", "config_enabled", "1", configPath);
-            string clear_cache = NativeProxy.GetIniString("compatibility", "clear_cache_on_room_change", "0", configPath);
-            string sound_enabled = NativeProxy.GetIniString("sound", "enabled", "1", configPath);
-            string sound_cache_size = NativeProxy.GetIniString("sound", "cache_size", "32768", configPath);
-            string frame_drop = NativeProxy.GetIniString("video", "framedrop", "0", configPath);
-            string super_sampling = NativeProxy.GetIniString("graphics", "super_sampling", "0", configPath);
-            string logging = NativeProxy.GetIniString("debug", "logging", "0", configPath);
-
             var cfg = new Dictionary<string, Dictionary<string, string>>();
-            cfg.Add("controls", new Dictionary<string, string>());
+            NativeProxy.Instance.ReadIniFile(configPath, cfg);
+            string config_enabled = Utilities.GetConfigString(cfg, "misc", "config_enabled", "1");
+            string clear_cache = Utilities.GetConfigString(cfg, "compatibility", "clear_cache_on_room_change", "0");
+            string sound_enabled = Utilities.GetConfigString(cfg, "sound", "enabled", "1");
+            string sound_cache_size = Utilities.GetConfigString(cfg, "sound", "cache_size", "32768");
+            string frame_drop = Utilities.GetConfigString(cfg, "video", "framedrop", "0");
+            string super_sampling = Utilities.GetConfigString(cfg, "graphics", "super_sampling", "0");
+            string logging = Utilities.GetConfigString(cfg, "debug", "logging", "0");
+
+            cfg = new Dictionary<string, Dictionary<string, string>>();
             cfg.Add("compatibility", new Dictionary<string, string>());
+            cfg.Add("controls", new Dictionary<string, string>());
             cfg.Add("debug", new Dictionary<string, string>());
             cfg.Add("graphics", new Dictionary<string, string>());
             cfg.Add("misc", new Dictionary<string, string>());

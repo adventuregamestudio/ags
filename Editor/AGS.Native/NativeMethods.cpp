@@ -809,6 +809,28 @@ namespace AGS
             return nullptr;
         }
 
+        void NativeMethods::ReadIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections)
+        {
+            AGSString filename = TextHelper::ConvertUTF8(fileName);
+            AGS::Common::ConfigTree cfg;
+            if (!AGS::Common::IniUtil::Read(filename, cfg))
+                return;
+
+            sections->Clear();
+            for (const auto &section : cfg)
+            {
+                String ^secname = TextHelper::ConvertASCII(section.first);
+                Dictionary<String^, String^>^ secmap = gcnew Dictionary<String^, String^>();
+                for (const auto &item : section.second)
+                {
+                    String ^key = TextHelper::ConvertASCII(item.first);
+                    String ^value = TextHelper::ConvertUTF8(item.second);
+                    secmap[key] = value;
+                }
+                sections[secname] = secmap;
+            }
+        }
+
         void NativeMethods::WriteIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections, bool mergeExisting)
         {
             AGSString filename = TextHelper::ConvertUTF8(fileName);

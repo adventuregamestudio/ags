@@ -131,6 +131,11 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "InventoryItem" };
+        }
+
         public override void ShowItemPaneByName(string name)
         {
             InventoryItem selectedItem = _agsEditor.CurrentGame.RootInventoryItemFolder.FindInventoryItemByName(name, true);

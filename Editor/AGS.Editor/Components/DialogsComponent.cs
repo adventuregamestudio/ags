@@ -229,6 +229,11 @@ namespace AGS.Editor.Components
             }
         }
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "Dialog" };
+        }
+
         public override void ShowItemPaneByName(string name)
         {
             IList<Dialog> dialogs = GetFlatList();

@@ -559,28 +559,7 @@ namespace AGS.Editor
                         string varType = sVar.Type;
                         string varName = sVar.VariableName;
 
-                        // FIX-ME: at some version (ags4?) we can break IEditorComponent compatibility and just move the script type to the component
-                        // then we can add FindComponentThatManageScriptType to the ComponentController and get the managed script types from the components 
-                        BaseComponent component = null;
-                        switch (varType)
-                        {
-                            case "InventoryItem":
-                                component = Factory.ComponentController.FindComponent<InventoryComponent>();
-                                break;
-                            case "Character":
-                                component = Factory.ComponentController.FindComponent<CharactersComponent>();
-                                break;
-                            case "Dialog":
-                                component = Factory.ComponentController.FindComponent<DialogsComponent>();
-                                break;
-                            case "GUI":
-                                component = Factory.ComponentController.FindComponent<GuiComponent>();
-                                break;
-                            case "AudioClip":
-                                component = Factory.ComponentController.FindComponent<AudioComponent>();
-                                break;
-                        }
-
+                        BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptType(varType) as BaseComponent;
                         if(component != null)
                         {
                             component.ShowItemPaneByName(varName);

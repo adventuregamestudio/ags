@@ -58,5 +58,10 @@ namespace AGS.Editor.Components
         public virtual void ShowItemPaneByName(string name)
         {
         }
+
+        public virtual IList<string> GetManagedScriptTypes()
+        {
+            return new string[] {};
+        }
     }
 }

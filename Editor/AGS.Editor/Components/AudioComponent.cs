@@ -288,6 +288,11 @@ namespace AGS.Editor.Components
             AudioClipTypeTypeConverter.RefreshAudioClipTypeList();
         }
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "AudioClip" };
+        }
+
         private void ShowPaneForItem(string controlID)
         {
             object itemToEdit = null;

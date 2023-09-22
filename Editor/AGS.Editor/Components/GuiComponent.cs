@@ -193,6 +193,11 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "GUI" };
+        }
+
         public override void ShowItemPaneByName(string name)
         {
             IList<GUI> guis = GetFlatList();

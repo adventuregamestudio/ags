@@ -154,6 +154,11 @@ namespace AGS.Editor.Components
 			_guiController.AddOrShowPane(document);
 		}
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "Character" };
+        }
+
         public override void ShowItemPaneByName(string name)
         {
             IList<Character> characters = GetFlatList();

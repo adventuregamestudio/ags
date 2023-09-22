@@ -26,6 +26,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_CLOSE_ALL = "CloseAll";
         private const string MENU_ITEM_CLOSE_ALL_BUT_THIS = "CloseAllOthers";
         private const string MENU_ITEM_NAVIGATE = "Navigate";
+        private const string MENU_ITEM_OPEN_IN_FILEXPLORER = "OpenItemInFileExplorer";
 
         private ContentDocument _currentPane;
         private List<ContentDocument> _panes;
@@ -481,7 +482,15 @@ namespace AGS.Editor
             if (document.TreeNodeID != null)
             {
                 menu.Items.Add(new ToolStripMenuItem("Navigate (In Tree)", null, onClick, MENU_ITEM_NAVIGATE));
+
+                if (document.Control is ScriptEditor)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                    menu.Items.Add(new ToolStripMenuItem("Open Containing Folder", GUIController.Instance.ImageList.Images["OpenContainingFolderIcon"], onClick, MENU_ITEM_OPEN_IN_FILEXPLORER));                    
+                }
             }
+
+            menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Help", GUIController.Instance.ImageList.Images["MenuIconDynamicHelp"],
                 new EventHandler(TreeContextMenuOnHelp), Keys.F1));
             document.Control.DockingContainer.TabPageContextMenuStrip = menu;
@@ -512,6 +521,14 @@ namespace AGS.Editor
             else if (item.Name == MENU_ITEM_NAVIGATE)
             {
                 Factory.GUIController.ProjectTree.SelectNode(null, document.TreeNodeID);
+            }
+            else if (item.Name == MENU_ITEM_OPEN_IN_FILEXPLORER)
+            {
+
+                ScriptEditor scriptEditor = document.Control as ScriptEditor;
+                string proj_dir = Factory.AGSEditor.CurrentGame.DirectoryPath;
+                string script_path = Path.Combine(proj_dir, scriptEditor.Script.FileName);
+                Utilities.OpenFileOrDirInFileExplorer(script_path);
             }
         }
 

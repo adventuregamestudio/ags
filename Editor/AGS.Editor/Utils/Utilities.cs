@@ -659,5 +659,36 @@ namespace AGS.Editor
             graphics.Dispose();
             return proportion;
         }
+
+        public static bool OpenFileOrDirInFileExplorer(string path)
+        {
+            if (File.Exists(path))
+            {
+                if (Utilities.IsMonoRunning())
+                {
+                    // FIXME - this probably needs to be more platform specific
+                    Process.Start(path);
+                }
+                else
+                {
+                    Hacks.ShowInExplorer(path);
+                }
+                return true;
+            }
+            else if(Directory.Exists(path))
+            {
+                if (Utilities.IsMonoRunning())
+                {
+                    // FIXME - this probably needs to be more platform specific
+                    Process.Start(path);
+                }
+                else
+                {
+                    Hacks.ShowInExplorer(path, null);
+                }
+                return true;
+            }
+            return false;
+        }
     }
 }

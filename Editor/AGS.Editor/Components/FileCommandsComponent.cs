@@ -22,6 +22,7 @@ namespace AGS.Editor.Components
         private const string RECREATE_SPRITEFILE_COMMAND = "RecreateSpriteFile";
         private const string SHOW_PREFERENCES_COMMAND = "ShowPreferences";
         private const string EXIT_COMMAND = "Exit";
+        private const string OPEN_PROJ_FILE_EXPLORER_COMMAND = "OpenProjFileExplorerGame";
         private const string DEFAULT_FONT_RESOURCE_PATH = "AGS.Editor.Resources.";
 
         private List<MenuCommand> _toolbarCommands = new List<MenuCommand>();
@@ -44,6 +45,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("MenuIconStatistics", Resources.ResourceManager.GetIcon("menu_file_stats.ico"));
             _guiController.RegisterIcon("MenuIconVoiceActingScript", Resources.ResourceManager.GetIcon("menu_file_voicescript.ico"));
             _guiController.RegisterIcon("MenuIconGoToEventsGrid", Resources.ResourceManager.GetIcon("menu_file_eventsgrid.ico"));
+            _guiController.RegisterIcon("OpenProjFolderIcon", Resources.ResourceManager.GetIcon("menu_file_openfolder.ico"));
 
             MenuCommands commands = new MenuCommands(GUIController.FILE_MENU_ID, 0);
             commands.Commands.Add(new MenuCommand(OPEN_GAME_COMMAND, "&Open...", Keys.Control | Keys.L, "MenuIconOpen"));
@@ -64,7 +66,11 @@ namespace AGS.Editor.Components
 			commands.Commands.Add(new MenuCommand(SHOW_PREFERENCES_COMMAND, "&Preferences...", "MenuIconPreferences"));
 			_guiController.AddMenuItems(this, commands);
 
-			commands = new MenuCommands(GUIController.FILE_MENU_ID, 9999);
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 800);
+            commands.Commands.Add(new MenuCommand(OPEN_PROJ_FILE_EXPLORER_COMMAND, "Open Project in File Explorer", "OpenProjFolderIcon"));
+            _guiController.AddMenuItems(this, commands);
+
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 9999);
 			commands.Commands.Add(new MenuCommand(EXIT_COMMAND, "E&xit", Keys.Control | Keys.Q, "MenuIconExit"));
 			_guiController.AddMenuItems(this, commands);
 
@@ -159,6 +165,10 @@ namespace AGS.Editor.Components
             else if (controlID == SHOW_PREFERENCES_COMMAND)
             {
                 _guiController.ShowPreferencesEditor();
+            }
+            else if(controlID == OPEN_PROJ_FILE_EXPLORER_COMMAND)
+            {
+                Utilities.OpenFileOrDirInFileExplorer(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.GAME_FILE_NAME));
             }
             else if (controlID == EXIT_COMMAND)
             {

@@ -101,6 +101,8 @@ namespace AGS
       void UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode);
 			bool HaveSpritesBeenModified();
             Object^ GetNativeConstant(String ^name);
+            void ReadIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections);
+            void WriteIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections, bool mergeExisting);
 		};
 	}
 }

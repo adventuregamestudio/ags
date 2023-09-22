@@ -154,6 +154,32 @@ namespace AGS.Editor.Components
 			_guiController.AddOrShowPane(document);
 		}
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "Character" };
+        }
+
+        public override void ShowItemPaneByName(string name)
+        {
+            IList<Character> characters = GetFlatList();
+            foreach(Character c in characters)
+            {
+                if(c.ScriptName == name)
+                {
+                    _guiController.ProjectTree.SelectNode(this, GetNodeID(c));
+                    ShowOrAddPane(c);
+                    return;
+                }
+            }
+        }
+
+        public void ShowPlayerCharacter()
+        {
+            Character player = Factory.AGSEditor.CurrentGame.PlayerCharacter;
+            _guiController.ProjectTree.SelectNode(this, GetNodeID(player));
+            ShowOrAddPane(player);
+        }
+
         private void OnItemIDOrNameChanged(Character item, bool name_only)
         {
             // Refresh tree, property grid and open windows

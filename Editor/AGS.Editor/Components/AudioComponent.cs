@@ -288,6 +288,11 @@ namespace AGS.Editor.Components
             AudioClipTypeTypeConverter.RefreshAudioClipTypeList();
         }
 
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "AudioClip" };
+        }
+
         private void ShowPaneForItem(string controlID)
         {
             object itemToEdit = null;
@@ -314,6 +319,20 @@ namespace AGS.Editor.Components
                 _document.SelectedPropertyGridObject = itemToEdit;
                 _document.TreeNodeID = _rightClickedID;
                 _guiController.AddOrShowPane(_document);
+            }
+        }
+
+        public override void ShowItemPaneByName(string name)
+        {
+            IList<AudioClip> audioClips = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders();
+            foreach (AudioClip ac in audioClips)
+            {
+                if (ac.ScriptName == name)
+                {
+                    _guiController.ProjectTree.SelectNode(this, GetNodeID(ac));
+                    ShowPaneForItem(GetNodeID(ac));
+                    return;
+                }
             }
         }
 

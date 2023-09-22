@@ -38,6 +38,11 @@ namespace AGS.Types
             return FindItem(IsItem, inventoryItemID, recursive);
         }
 
+        public InventoryItem FindInventoryItemByName(string inventoryItemName, bool recursive)
+        {
+            return FindItem(IsItemByName, inventoryItemName, recursive);
+        }
+
         protected override void FromXmlBackwardsCompatability(System.Xml.XmlNode parentNodeForBackwardsCompatability)
         {
             Init(MAIN_INVENTORY_ITEM_FOLDER_NAME);
@@ -60,6 +65,11 @@ namespace AGS.Types
         private bool IsItem(InventoryItem inventoryItem, int inventoryItemID)
         {
             return inventoryItem.ID == inventoryItemID;
+        }
+
+        private bool IsItemByName(InventoryItem inventoryItem, string inventoryItemName)
+        {
+            return inventoryItem.Name == inventoryItemName;
         }
     }
 }

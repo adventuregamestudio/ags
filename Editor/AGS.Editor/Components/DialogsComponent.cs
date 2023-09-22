@@ -229,7 +229,26 @@ namespace AGS.Editor.Components
             }
         }
 
-		private DialogEditor ShowPaneForDialog(int dialogNumber)
+        public override IList<string> GetManagedScriptTypes()
+        {
+            return new string[] { "Dialog" };
+        }
+
+        public override void ShowItemPaneByName(string name)
+        {
+            IList<Dialog> dialogs = GetFlatList();
+            foreach (Dialog d in dialogs)
+            {
+                if (d.Name == name)
+                {
+                    _guiController.ProjectTree.SelectNode(this, GetNodeID(d));
+                    ShowPaneForDialog(d);
+                    return;
+                }
+            }
+        }
+
+        private DialogEditor ShowPaneForDialog(int dialogNumber)
 		{
             Dialog chosenItem = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
             return ShowPaneForDialog(chosenItem);

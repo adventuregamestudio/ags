@@ -101,8 +101,9 @@ namespace AGS.Editor
          * 3.6.0.20       - Settings.GameTextEncoding, Settings.UseOldKeyboardHandling;
          * 3.6.1.2        - GUIListBox.Translated property moved to GUIControl parent
          * 3.6.1.3        - RuntimeSetup.TextureCache, SoundCache
+         * 3.6.1.9        - Settings.ScaleCharacterSpriteOffsets
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3060103;
+        public const int    LATEST_XML_VERSION_INDEX = 3060109;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

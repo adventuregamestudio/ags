@@ -17,6 +17,11 @@
 
 using AGS::Common::Stream;
 
+int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const
+{
+    return chi->y - (chi->z * zoom_offs) / 100;
+}
+
 int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
 {
     return ::CalcFrameSoundVolume(

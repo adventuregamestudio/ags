@@ -93,6 +93,25 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
+        public override IList<string> GetManagedScriptElements()
+        {
+            return new string[] { "CursorMode" };
+        }
+
+        public override void ShowItemPaneByName(string name)
+        {
+            foreach (MouseCursor mc in _agsEditor.CurrentGame.Cursors)
+            {
+                if (mc.ScriptID == name)
+                {
+                    MouseCursor chosenCursor = mc;
+                    _guiController.ProjectTree.SelectNode(this, GetNodeID(chosenCursor));
+                    ShowOrAddPane(chosenCursor);
+                    return;
+                }
+            }
+        }
+
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             if (propertyName == "Name")

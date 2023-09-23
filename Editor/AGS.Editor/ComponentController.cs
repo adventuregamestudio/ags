@@ -195,14 +195,14 @@ namespace AGS.Editor
             }
         }
 
-		public IEditorComponent FindComponentThatManageScriptType(string scriptType)
+		public IEditorComponent FindComponentThatManageScriptElement(string scriptType)
 		{
 			foreach (IEditorComponent component in _components)
 			{
 				if (component is Components.BaseComponent)
 				{
 					Components.BaseComponent bComponent = component as Components.BaseComponent;
-					if (bComponent.GetManagedScriptTypes().Contains(scriptType)) return bComponent;
+					if (bComponent.GetManagedScriptElements().Contains(scriptType)) return bComponent;
 				}
 			}
 			return null;

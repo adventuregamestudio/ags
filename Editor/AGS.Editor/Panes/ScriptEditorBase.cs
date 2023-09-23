@@ -553,20 +553,30 @@ namespace AGS.Editor
                 }
                 else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
                 {
+                    string scriptElementType = null, scriptElementName = null;
                     if (found is ScriptVariable)
                     {
                         ScriptVariable sVar = found as ScriptVariable;
-                        string varType = sVar.Type;
-                        string varName = sVar.VariableName;
+                        scriptElementType = sVar.Type;
+                        scriptElementName = sVar.VariableName;
+                    }
+                    else if (found is ScriptEnumValue)
+                    {
+                        ScriptEnumValue sEnum = found as ScriptEnumValue;
+                        scriptElementType = sEnum.Type;
+                        scriptElementName = sEnum.Name;
+                    }
 
-                        BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptType(varType) as BaseComponent;
+                    if (!string.IsNullOrEmpty(scriptElementType))
+                    { 
+                        BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptElement(scriptElementType) as BaseComponent;
                         if(component != null)
                         {
-                            component.ShowItemPaneByName(varName);
+                            component.ShowItemPaneByName(scriptElementName);
                         }
                         else
                         {
-                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a GUIControl or Inventory Item.", MessageBoxIcon.Information);
+                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a GUIControl or Room Object.", MessageBoxIcon.Information);
                         }
                     }
                     else

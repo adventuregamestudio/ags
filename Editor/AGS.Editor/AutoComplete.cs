@@ -461,7 +461,7 @@ namespace AGS.Editor
             {
                 if (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE))
                 {
-                    insideEnumDefinition.EnumValues.Add(new ScriptEnumValue(lastWord, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex));
+                    insideEnumDefinition.EnumValues.Add(new ScriptEnumValue(lastWord, insideEnumDefinition.Name, state.InsideIfDefBlock, state.InsideIfNDefBlock, state.CurrentScriptCharacterIndex));
                 }
             }
         }

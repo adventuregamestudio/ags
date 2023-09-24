@@ -147,10 +147,10 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
     return;
   }
 
-  short ourx = (mlsp->pos[aaa] >> 16) & 0x000ffff;
-  short oury = (mlsp->pos[aaa] & 0x000ffff);
-  short destx = ((mlsp->pos[aaa + 1] >> 16) & 0x000ffff);
-  short desty = (mlsp->pos[aaa + 1] & 0x000ffff);
+  short ourx = mlsp->pos[aaa].X;
+  short oury = mlsp->pos[aaa].Y;
+  short destx = mlsp->pos[aaa + 1].X;
+  short desty = mlsp->pos[aaa + 1].Y;
 
   // Special case for vertical and horizontal movements
   if (ourx == destx) {
@@ -257,13 +257,11 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   for (i=0; i<num_navpoints-1; i++)
     calculate_move_stage(&mls[mlist], i);
 
-  mls[mlist].fromx = srcx;
-  mls[mlist].fromy = srcy;
+  mls[mlist].from = { srcx, srcy };
   mls[mlist].onstage = 0;
   mls[mlist].onpart = 0;
   mls[mlist].doneflag = 0;
-  mls[mlist].lastx = -1;
-  mls[mlist].lasty = -1;
+  mls[mlist].last = { -1, -1 };
   return mlist;
 }
 

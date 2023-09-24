@@ -669,10 +669,10 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
     return;
   }
 
-  short ourx = (mlsp->pos[aaa] >> 16) & 0x000ffff;
-  short oury = (mlsp->pos[aaa] & 0x000ffff);
-  short destx = ((mlsp->pos[aaa + 1] >> 16) & 0x000ffff);
-  short desty = (mlsp->pos[aaa + 1] & 0x000ffff);
+  short ourx = mlsp->pos[aaa].X;
+  short oury = mlsp->pos[aaa].Y;
+  short destx = mlsp->pos[aaa + 1].X;
+  short desty = mlsp->pos[aaa + 1].Y;
 
   // Special case for vertical and horizontal movements
   if (ourx == destx) {
@@ -871,13 +871,11 @@ stage_again:
       calculate_move_stage(&mls[mlist], aaa);
     }
 
-    mls[mlist].fromx = orisrcx;
-    mls[mlist].fromy = orisrcy;
+    mls[mlist].from = { orisrcx, orisrcy };
     mls[mlist].onstage = 0;
     mls[mlist].onpart = 0;
     mls[mlist].doneflag = 0;
-    mls[mlist].lastx = -1;
-    mls[mlist].lasty = -1;
+    mls[mlist].last = { -1, -1 };
 #ifdef DEBUG_PATHFINDER
     // getch();
 #endif

@@ -182,7 +182,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    cmls->pos[cmls->numstage] = (x << 16) + y;
+    cmls->pos[cmls->numstage] = { x, y };
     // They're already walking there anyway
     if (cmls->pos[cmls->numstage] == cmls->pos[cmls->numstage - 1])
         return;
@@ -1397,7 +1397,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 int Character_GetDestinationX(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1] >> 16;
+        return cmls->pos[cmls->numstage - 1].X;
     }
     else
         return chaa->x;
@@ -1406,7 +1406,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
 int Character_GetDestinationY(CharacterInfo *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
-        return cmls->pos[cmls->numstage - 1] & 0xFFFF;
+        return cmls->pos[cmls->numstage - 1].Y;
     }
     else
         return chaa->y;

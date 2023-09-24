@@ -1077,16 +1077,12 @@ void convert_move_path_to_room_resolution(MoveList *ml)
     if (thisroom.MaskResolution == game.GetDataUpscaleMult())
         return;
 
-    ml->fromx = mask_to_room_coord(ml->fromx);
-    ml->fromy = mask_to_room_coord(ml->fromy);
-    ml->lastx = mask_to_room_coord(ml->lastx);
-    ml->lasty = mask_to_room_coord(ml->lasty);
+    ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+    ml->last = { mask_to_room_coord(ml->last.X), mask_to_room_coord(ml->last.Y) };
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        uint16_t low = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
-        uint16_t high = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
-        ml->pos[i] = ((int)high << 16) | (low & 0x0000ffff);
+        ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
     }
 
     if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)

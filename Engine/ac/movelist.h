@@ -45,6 +45,10 @@ struct MoveList
     uint8_t doneflag = 0u;
     uint8_t direct = 0;  // MoveCharDirect was used or not
 
+    // Gets a movelist's step length, in coordinate units
+    // (normally the coord unit is a game pixel)
+    float GetStepLength() const;
+
     void ReadFromFile_Legacy(Common::Stream *in);
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out);

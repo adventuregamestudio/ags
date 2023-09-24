@@ -742,8 +742,6 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 }
 
 
-#define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
-
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
   assert(onscreen != nullptr);
@@ -801,14 +799,16 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   }
 
   if (pathbackstage >= 0) {
-    int nearestpos = 0, nearestindx;
-    int reallyneed[MAXNEEDSTAGES], numstages = 0;
-    reallyneed[numstages] = MAKE_INTCOORD(srcx,srcy);
+    Point nearestpos;
+    int nearestindx;
+    Point reallyneed[MAXNEEDSTAGES];
+    int numstages = 0;
+    reallyneed[numstages] = { srcx,srcy };
     numstages++;
     nearestindx = -1;
 
 stage_again:
-    nearestpos = 0;
+    nearestpos = {};
     aaa = 1;
     // find the furthest point that can be seen from this stage
     for (aaa = pathbackstage - 1; aaa >= 0; aaa--) {
@@ -816,26 +816,26 @@ stage_again:
       AGS::Common::Debug::Printf("stage %2d: %2d,%2d\n",aaa,pathbackx[aaa],pathbacky[aaa]);
 #endif
       if (can_see_from(srcx, srcy, pathbackx[aaa], pathbacky[aaa])) {
-        nearestpos = MAKE_INTCOORD(pathbackx[aaa], pathbacky[aaa]);
+        nearestpos = {pathbackx[aaa], pathbacky[aaa]};
         nearestindx = aaa;
       }
     }
 
-    if ((nearestpos == 0) && (can_see_from(srcx, srcy, xx, yy) == 0) &&
+    if ((nearestpos.Equals(0,0)) && (can_see_from(srcx, srcy, xx, yy) == 0) &&
         (srcx >= 0) && (srcy >= 0) && (srcx < wallscreen->GetWidth()) && (srcy < wallscreen->GetHeight()) && (pathbackstage > 0)) {
       // If we couldn't see anything, we're stuck in a corner so advance
       // to the next square anyway (but only if they're on the screen)
       nearestindx = pathbackstage - 1;
-      nearestpos = MAKE_INTCOORD(pathbackx[nearestindx], pathbacky[nearestindx]);
+      nearestpos = { pathbackx[nearestindx], pathbacky[nearestindx] };
     }
 
-    if (nearestpos > 0) {
+    if ( (nearestpos.X + nearestpos.Y) > 0) { // NOTE: we only deal with positive coordinates here
       reallyneed[numstages] = nearestpos;
       numstages++;
       if (numstages >= MAXNEEDSTAGES - 1)
         quit("too many stages for auto-walk");
-      srcx = (nearestpos >> 16) & 0x000ffff;
-      srcy = nearestpos & 0x000ffff;
+      srcx = nearestpos.X;
+      srcy = nearestpos.Y;
 #ifdef DEBUG_PATHFINDER
      AGS::Common::Debug::Printf("Added: %d, %d pbs:%d",srcx,srcy,pathbackstage);
 #endif
@@ -844,13 +844,13 @@ stage_again:
     }
 
     if (finalpartx >= 0) {
-      reallyneed[numstages] = MAKE_INTCOORD(finalpartx, finalparty);
+      reallyneed[numstages] = {finalpartx, finalparty};
       numstages++;
     }
 
     // Make sure the end co-ord is in there
-    if (reallyneed[numstages - 1] != MAKE_INTCOORD(xx, yy)) {
-      reallyneed[numstages] = MAKE_INTCOORD(xx, yy);
+    if (reallyneed[numstages - 1] != Point(xx, yy)) {
+      reallyneed[numstages] = { xx, yy };
       numstages++;
     }
 
@@ -862,7 +862,7 @@ stage_again:
 #endif
     int mlist = movlst;
     mls[mlist].numstage = numstages;
-    memcpy(&mls[mlist].pos[0], &reallyneed[0], sizeof(int) * numstages);
+    memcpy(&mls[mlist].pos[0], &reallyneed[0], sizeof(Point) * numstages);
 #ifdef DEBUG_PATHFINDER
     AGS::Common::Debug::Printf("stages: %d\n",numstages);
 #endif

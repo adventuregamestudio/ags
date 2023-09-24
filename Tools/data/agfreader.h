@@ -66,8 +66,22 @@ private:
     DocElem _gameRoot;
 };
 
+// Helper class, providing static methods for reading values from a doc element
+class ValueParser
+{
+protected:
+    ValueParser() = default;
+    ~ValueParser() = default;
+
+    // Helper functions for reading certain field;
+    // all of them return default value if the field cannot be read
+    static const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
+    static int ReadInt(DocElem elem, const char *field, int def_value = 0);
+    static bool ReadBool(DocElem elem, const char *field, bool def_value = false);
+};
+
 // EntityParser: parent class meant for parsing a game entity
-class EntityParser
+class EntityParser : public ValueParser
 {
 public:
     EntityParser() = default;
@@ -79,12 +93,6 @@ public:
     virtual int ReadID(DocElem elem) = 0;
     // Read entity's script name (may be null)
     virtual String ReadScriptName(DocElem elem) = 0;
-
-protected:
-    // Helper functions for reading certain field;
-    // all of them return default value if the field cannot be read
-    const char *ReadString(DocElem elem, const char *field, const char *def_value = "");
-    int ReadInt(DocElem elem, const char *field, int def_value = 0);
 };
 
 // EntityListParser: parent class meant for parsing a list of game entities
@@ -110,6 +118,10 @@ protected:
     //     be ignored: this is useful if the list contains multiple types;
     void GetAllElems(DocElem root, std::vector<DocElem> &elems,
         const char *folder_elem, const char *list_elem, const char *type_elem);
+    // Special case of above: when the root elem and list elem have different names;
+    // root_elem - name of the topmost list element, cannot be null;
+    void GetAllElems(DocElem root, std::vector<DocElem> &elems,
+        const char *root_elem, const char *folder_elem, const char *list_elem, const char *type_elem);
 
 private:
     // Internal implementation of recursive subfolder parsing
@@ -353,6 +365,50 @@ public:
     String ReadNarrateFunction(DocElem elem) { return ReadString(elem, "DialogScriptNarrateFunction"); }
 };
 
+// Parses a description of an individual script file (header or body)
+class ScriptElem : public ValueParser
+{
+public:
+    bool   IsHeader(DocElem elem) { return ReadBool(elem, "IsHeader"); }
+    String ReadFilename(DocElem elem) { return ReadString(elem, "FileName"); }
+};
+
+// Parses a description of a script module with header
+class ScriptWithHeader : public ValueParser
+{
+public:
+    DocElem GetHeader(DocElem elem);
+    DocElem GetBody(DocElem elem);
+};
+
+// Parses a list of script modules
+class ScriptModules : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, "Scripts", "ScriptFolder", "ScriptAndHeaders", "ScriptAndHeader");
+    }
+};
+
+// Parses a description of a room
+class Room : public ValueParser
+{
+public:
+    int ReadNumber(DocElem elem) { return ReadInt(elem, "Number", -1); }
+    String ReadDescription(DocElem elem) { return ReadString(elem, "Description"); }
+};
+
+// Parses a list of rooms
+class Rooms : public EntityListParser
+{
+public:
+    void GetAll(DocElem root, std::vector<DocElem> &elems) override
+    {
+        GetAllElems(root, elems, "Rooms", "UnloadedRoomFolder", "UnloadedRooms", "UnloadedRoom");
+    }
+};
+
 
 //
 // Helper functions
@@ -370,6 +426,10 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root);
 void ReadGameSettings(DataUtil::GameSettings &opt, DocElem root);
 // Reads full game reference data using AGFReader
 void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
+// Reads an ordered list of script module names (their order determines dependency).
+void ReadScriptList(std::vector<String> &script_list, DocElem root);
+// Reads a list of room ID and descriptions found in the game document.
+void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root);
 
 } // namespace AGF
 } // namespace AGS

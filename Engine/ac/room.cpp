@@ -1078,7 +1078,6 @@ void convert_move_path_to_room_resolution(MoveList *ml)
         return;
 
     ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
-    ml->last = { mask_to_room_coord(ml->last.X), mask_to_room_coord(ml->last.Y) };
 
     for (int i = 0; i < ml->numstage; i++)
     {

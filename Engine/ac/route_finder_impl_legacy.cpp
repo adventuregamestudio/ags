@@ -875,7 +875,6 @@ stage_again:
     mls[mlist].onstage = 0;
     mls[mlist].onpart = 0;
     mls[mlist].doneflag = 0;
-    mls[mlist].last = { -1, -1 };
 #ifdef DEBUG_PATHFINDER
     // getch();
 #endif

@@ -259,7 +259,6 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   mls[mlist].onstage = 0;
   mls[mlist].onpart = 0;
   mls[mlist].doneflag = 0;
-  mls[mlist].last = { -1, -1 };
   return mlist;
 }
 

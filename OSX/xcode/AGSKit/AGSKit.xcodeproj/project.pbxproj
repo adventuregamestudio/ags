@@ -142,6 +142,8 @@
 		20522A9428E8FD7700589E91 /* sys_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A9228E8FD7700589E91 /* sys_main.cpp */; };
 		209139302A5072A6006AC67A /* agsplugin_evts.h in Headers */ = {isa = PBXBuildFile; fileRef = 2091392F2A5072A6006AC67A /* agsplugin_evts.h */; };
 		209139322A5072AF006AC67A /* plugin_stubs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 209139312A5072AF006AC67A /* plugin_stubs.cpp */; };
+		20A5CCE82AC09016002AE475 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A5CCE62AC09015002AE475 /* miniz.c */; };
+		20A5CCE92AC09016002AE475 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = 20A5CCE72AC09015002AE475 /* miniz.h */; };
 		20C76AB528F34A1900772CFC /* include in Resources */ = {isa = PBXBuildFile; fileRef = 205229C128E8ED4400589E91 /* include */; };
 		20CB641C2A202C59001BA2C1 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2034CAB92A202B0900824C80 /* SDL2.framework */; };
 		20E67D6428F1BDE000B95C00 /* gfx.c in Sources */ = {isa = PBXBuildFile; fileRef = 20E67D0A28F1BDDF00B95C00 /* gfx.c */; };
@@ -1093,6 +1095,8 @@
 		20522A9228E8FD7700589E91 /* sys_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sys_main.cpp; sourceTree = "<group>"; };
 		2091392F2A5072A6006AC67A /* agsplugin_evts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsplugin_evts.h; sourceTree = "<group>"; };
 		209139312A5072AF006AC67A /* plugin_stubs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_stubs.cpp; sourceTree = "<group>"; };
+		20A5CCE62AC09015002AE475 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = miniz.c; path = ../../../../libsrc/miniz/miniz.c; sourceTree = "<group>"; };
+		20A5CCE72AC09015002AE475 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = miniz.h; path = ../../../../libsrc/miniz/miniz.h; sourceTree = "<group>"; };
 		20E67D0A28F1BDDF00B95C00 /* gfx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gfx.c; sourceTree = "<group>"; };
 		20E67D0B28F1BDDF00B95C00 /* unicode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unicode.c; sourceTree = "<group>"; };
 		20E67D0C28F1BDDF00B95C00 /* blit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = blit.c; sourceTree = "<group>"; };
@@ -2019,9 +2023,19 @@
 			path = src;
 			sourceTree = "<group>";
 		};
+		20A5CCE52AC08FFC002AE475 /* miniz */ = {
+			isa = PBXGroup;
+			children = (
+				20A5CCE62AC09015002AE475 /* miniz.c */,
+				20A5CCE72AC09015002AE475 /* miniz.h */,
+			);
+			name = miniz;
+			sourceTree = "<group>";
+		};
 		20E67D0428F1BD6400B95C00 /* libsrc */ = {
 			isa = PBXGroup;
 			children = (
+				20A5CCE52AC08FFC002AE475 /* miniz */,
 				20E6828B28F20A8800B95C00 /* vorbis */,
 				20E6828A28F20A8200B95C00 /* ogg */,
 				20E6828928F20A7C00B95C00 /* theora */,
@@ -3906,6 +3920,7 @@
 				20E6852D28F2219B00B95C00 /* color.h in Headers */,
 				20E684B928F20CC700B95C00 /* dequant.h in Headers */,
 				20E6811828F1C98400B95C00 /* common.h in Headers */,
+				20A5CCE92AC09016002AE475 /* miniz.h in Headers */,
 				526F278F1D3B5CC300EF4E1F /* system.h in Headers */,
 				526F27801D3B5CC300EF4E1F /* slider.h in Headers */,
 				526F27471D3B5CC300EF4E1F /* gui.h in Headers */,
@@ -4057,6 +4072,7 @@
 				20E6823528F1D2B400B95C00 /* snd_fx.c in Sources */,
 				526F285B1D3B5CC300EF4E1F /* config.cpp in Sources */,
 				526F28161D3B5CC300EF4E1F /* getblk.c in Sources */,
+				20A5CCE82AC09016002AE475 /* miniz.c in Sources */,
 				20E67D6528F1BDE000B95C00 /* unicode.c in Sources */,
 				20522A2D28E8F81C00589E91 /* data_ext.cpp in Sources */,
 				526F27DE1D3B5CC300EF4E1F /* mypushbutton.cpp in Sources */,
@@ -4574,6 +4590,7 @@
 					"${SOURCE_ROOT}/../../../libsrc/theora/include",
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/include",
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/lib",
+					"${SOURCE_ROOT}/../../../libsrc/miniz",
 					"${SOURCE_ROOT}/../../../Common/libsrc/freetype-2.1.3",
 					"${SOURCE_ROOT}/../../../Common/libsrc/alfont-2.0.9",
 					"${SOURCE_ROOT}/../../../Common/lbsrc/aastr-0.1.1",
@@ -4655,6 +4672,7 @@
 					"${SOURCE_ROOT}/../../../libsrc/theora/include",
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/include",
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/lib",
+					"${SOURCE_ROOT}/../../../libsrc/miniz",
 					"${SOURCE_ROOT}/../../../Common/libsrc/freetype-2.1.3",
 					"${SOURCE_ROOT}/../../../Common/libsrc/alfont-2.0.9",
 					"${SOURCE_ROOT}/../../../Common/lbsrc/aastr-0.1.1",
@@ -4706,6 +4724,7 @@
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/include",
 					"${SOURCE_ROOT}/../../../libsrc/ogg/include",
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/lib",
+					"${SOURCE_ROOT}/../../../libsrc/miniz",
 					"${SOURCE_ROOT}/../../../Common/libsrc/aastr-0.1.1",
 					"${SOURCE_ROOT}/../../../Common/libsrc/alfont-2.0.9",
 					"${SOURCE_ROOT}/../../../Engine/libsrc/apeg-1.2.1",
@@ -4756,6 +4775,7 @@
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/include",
 					"${SOURCE_ROOT}/../../../libsrc/ogg/include",
 					"${SOURCE_ROOT}/../../../libsrc/vorbis/lib",
+					"${SOURCE_ROOT}/../../../libsrc/miniz",
 					"${SOURCE_ROOT}/../../../Common/libsrc/aastr-0.1.1",
 					"${SOURCE_ROOT}/../../../Common/libsrc/alfont-2.0.9",
 					"${SOURCE_ROOT}/../../../Engine/libsrc/apeg-1.2.1",

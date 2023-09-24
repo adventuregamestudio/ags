@@ -48,9 +48,8 @@ static const char *passwencstring = "Avis Durgan";
 void UnpackScriptText(Stream *in, Stream *out)
 {
     size_t len = static_cast<uint32_t>(in->ReadInt32());
-    std::vector<char> buf(len + 1);
+    std::vector<char> buf(len);
     in->Read(&buf.front(), len);
-    buf[len] = 0;
     for (size_t i = 0; i < len; ++i)
         buf[i] += passwencstring[i % 11];
     out->Write(&buf.front(), buf.size());

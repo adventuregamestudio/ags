@@ -195,7 +195,7 @@ namespace AGS.Editor.Components
 
         public override IList<string> GetManagedScriptElements()
         {
-            return new string[] { "GUI" };
+            return new string[] { "GUI", "Label", "Button", "Slider", "ListBox", "TextBox", "InvWindow" };
         }
 
         public override void ShowItemPaneByName(string name)
@@ -208,6 +208,17 @@ namespace AGS.Editor.Components
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
                     ShowOrAddPane(g);
                     return;
+                }
+                
+                foreach(GUIControl gctrl in g.Controls)
+                {
+                    if(gctrl.Name == name)
+                    {
+                        _guiController.ProjectTree.SelectNode(this, GetNodeID(g));
+                        ShowOrAddPane(g);
+                        Factory.GUIController.SetPropertyGridObject(gctrl);
+                        return;
+                    }
                 }
             }
         }

@@ -118,6 +118,24 @@ namespace AGS.Editor.Components
             document.TreeNodeID = GetNodeID(chosenFont);
             _guiController.AddOrShowPane(document);
         }
+        public override IList<string> GetManagedScriptElements()
+        {
+            return new string[] { "FontType" };
+        }
+
+        public override void ShowItemPaneByName(string name)
+        {
+            foreach(AGS.Types.Font f in _agsEditor.CurrentGame.Fonts)
+            {
+                if(f.ScriptID == name)
+                {
+                    AGS.Types.Font chosenFont = f;
+                    _guiController.ProjectTree.SelectNode(this, GetNodeID(chosenFont));
+                    ShowOrAddPane(chosenFont);
+                    return;
+                }
+            }
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {

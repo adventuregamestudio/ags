@@ -288,9 +288,9 @@ namespace AGS.Editor.Components
             AudioClipTypeTypeConverter.RefreshAudioClipTypeList();
         }
 
-        public override IList<string> GetManagedScriptTypes()
+        public override IList<string> GetManagedScriptElements()
         {
-            return new string[] { "AudioClip" };
+            return new string[] { "AudioClip", "AudioType" };
         }
 
         private void ShowPaneForItem(string controlID)
@@ -331,6 +331,17 @@ namespace AGS.Editor.Components
                 {
                     _guiController.ProjectTree.SelectNode(this, GetNodeID(ac));
                     ShowPaneForItem(GetNodeID(ac));
+                    return;
+                }
+            }
+
+            // it can be an AudioType
+            foreach (AudioClipType clipType in _agsEditor.CurrentGame.AudioClipTypes)
+            {
+                if(clipType.ScriptID == name)
+                {
+                    _guiController.ProjectTree.SelectNode(this, GetClipTypeNodeID(clipType));
+                    ShowPaneForItem(GetClipTypeNodeID(clipType));
                     return;
                 }
             }
@@ -870,6 +881,11 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.AudioClipFlatList;
         }
 
+        private string GetClipTypeNodeID(AudioClipType clipType)
+        {
+            return NODE_ID_PREFIX_CLIP_TYPE + clipType.TypeID;
+        }
+
         private string GetNodeID(AudioClip clip)
         {
             return ITEM_COMMAND_PREFIX + clip.ScriptName;
@@ -926,7 +942,7 @@ namespace AGS.Editor.Components
 
         private string AddTreeNodeForAudioClipType(AudioClipType clipType)
         {
-            string newNodeID = NODE_ID_PREFIX_CLIP_TYPE + clipType.TypeID;
+            string newNodeID = GetClipTypeNodeID(clipType);
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, newNodeID, clipType.Name, AUDIO_CLIP_TYPE_ICON);
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = clipType.GetType().GetProperty("Name");

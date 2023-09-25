@@ -59,7 +59,7 @@ namespace AGS.Editor.Components
         {
         }
 
-        public virtual IList<string> GetManagedScriptTypes()
+        public virtual IList<string> GetManagedScriptElements()
         {
             return new string[] {};
         }

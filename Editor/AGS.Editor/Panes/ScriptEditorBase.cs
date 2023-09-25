@@ -576,7 +576,7 @@ namespace AGS.Editor
                         }
                         else
                         {
-                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a GUIControl or Room Object.", MessageBoxIcon.Information);
+                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity which does not support Go to Definition at the moment.", MessageBoxIcon.Information);
                         }
                     }
                     else

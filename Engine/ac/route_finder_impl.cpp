@@ -39,10 +39,8 @@ namespace AGS {
 namespace Engine {
 namespace RouteFinder {
 
-#define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
-
 static const int MAXNAVPOINTS = MAXNEEDSTAGES;
-static int navpoints[MAXNAVPOINTS];
+static Point navpoints[MAXNAVPOINTS];
 static int num_navpoints;
 static fixed move_speed_x, move_speed_y;
 static Navigation nav;
@@ -112,7 +110,7 @@ static int find_route_jps(int fromx, int fromy, int destx, int desty)
     int x, y;
     nav.UnpackSquare(cpath[i], x, y);
 
-    navpoints[num_navpoints++] = MAKE_INTCOORD(x, y);
+    navpoints[num_navpoints++] = { x, y };
   }
 
   return 1;
@@ -147,10 +145,10 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
     return;
   }
 
-  short ourx = (mlsp->pos[aaa] >> 16) & 0x000ffff;
-  short oury = (mlsp->pos[aaa] & 0x000ffff);
-  short destx = ((mlsp->pos[aaa + 1] >> 16) & 0x000ffff);
-  short desty = (mlsp->pos[aaa + 1] & 0x000ffff);
+  short ourx = mlsp->pos[aaa].X;
+  short oury = mlsp->pos[aaa].Y;
+  short destx = mlsp->pos[aaa + 1].X;
+  short desty = mlsp->pos[aaa + 1].Y;
 
   // Special case for vertical and horizontal movements
   if (ourx == destx) {
@@ -225,8 +223,8 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   if (ignore_walls || can_see_from(srcx, srcy, xx, yy))
   {
     num_navpoints = 2;
-    navpoints[0] = MAKE_INTCOORD(srcx, srcy);
-    navpoints[1] = MAKE_INTCOORD(xx, yy);
+    navpoints[0] = { srcx, srcy };
+    navpoints[1] = { xx, yy };
   } else {
     if ((nocross == 0) && (wallscreen->GetPixel(xx, yy) == 0))
       return 0; // clicked on a wall
@@ -249,7 +247,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
 
   int mlist = movlst;
   mls[mlist].numstage = num_navpoints;
-  memcpy(&mls[mlist].pos[0], &navpoints[0], sizeof(int) * num_navpoints);
+  memcpy(&mls[mlist].pos[0], &navpoints[0], sizeof(Point) * num_navpoints);
 #ifdef DEBUG_PATHFINDER
   AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
 #endif
@@ -257,13 +255,10 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   for (i=0; i<num_navpoints-1; i++)
     calculate_move_stage(&mls[mlist], i);
 
-  mls[mlist].fromx = srcx;
-  mls[mlist].fromy = srcy;
+  mls[mlist].from = { srcx, srcy };
   mls[mlist].onstage = 0;
   mls[mlist].onpart = 0;
   mls[mlist].doneflag = 0;
-  mls[mlist].lastx = -1;
-  mls[mlist].lasty = -1;
   return mlist;
 }
 

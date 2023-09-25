@@ -11,10 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-#ifndef __AC_MOVE_H
-#define __AC_MOVE_H
+#ifndef __AGS_EN_AC__MOVELIST_H
+#define __AGS_EN_AC__MOVELIST_H
 #include <allegro.h> // fixed math
 #include "game/savegame.h"
+#include "util/geometry.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -23,19 +24,34 @@ using namespace AGS; // FIXME later
 #define MAXNEEDSTAGES 256
 #define MAXNEEDSTAGES_LEGACY 40
 
-struct MoveList {
-    int   pos[MAXNEEDSTAGES]{};
-    int   numstage = 0;
-    fixed xpermove[MAXNEEDSTAGES]{}, ypermove[MAXNEEDSTAGES]{};
-    int   fromx = 0, fromy = 0;
-    int   onstage = 0, onpart = 0;
-    int   lastx = 0, lasty = 0;
-    char  doneflag = 0;
-    char  direct = 0;  // MoveCharDirect was used or not
+enum MoveListDoneFlags
+{
+    kMoveListDone_X = 0x01,
+    kMoveListDone_Y = 0x02,
+    kMoveListDone_XY = kMoveListDone_X | kMoveListDone_Y
+};
+
+struct MoveList
+{
+    int     numstage = 0;
+    Point   pos[MAXNEEDSTAGES];
+    // xpermove and ypermove contain number of pixels done per a single step
+    // along x and y axes; i.e. this is a movement vector, per path stage
+    fixed   xpermove[MAXNEEDSTAGES]{};
+    fixed   ypermove[MAXNEEDSTAGES]{};
+    Point   from;
+    int     onstage = 0; // current path stage
+    int     onpart = 0; // total number of steps done on this stage
+    uint8_t doneflag = 0u;
+    uint8_t direct = 0;  // MoveCharDirect was used or not
+
+    // Gets a movelist's step length, in coordinate units
+    // (normally the coord unit is a game pixel)
+    float GetStepLength() const;
 
     void ReadFromFile_Legacy(Common::Stream *in);
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out);
 };
 
-#endif // __AC_MOVE_H
+#endif // __AGS_EN_AC__MOVELIST_H

@@ -100,7 +100,7 @@ static void movelist_handle_targetfix(const fixed xpermove, const fixed ypermove
 // Handle remaining move along a single axis; uses generic parameters.
 static void movelist_handle_remainer(
     const fixed xpermove, const fixed ypermove,
-    const int xdistance, const int onpart, const float step_length,
+    const int xdistance, const float step_length, int &onpart,
     int &fin_ymove, int &fin_onpart)
 {
     // Walk along the remaining axis with the full walking speed
@@ -108,6 +108,7 @@ static void movelist_handle_remainer(
     fin_ymove = ypermove > 0 ? ftofix(step_length) : -ftofix(step_length);
     float onpart_to_dist = (float)xdistance / fixtof(xpermove);
     fin_onpart = (int)((float)onpart - onpart_to_dist);
+    onpart = onpart_to_dist;
 }
 
 int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
@@ -124,6 +125,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     int targetx = cmls.pos[cmls.onstage + 1].X;
     int targety = cmls.pos[cmls.onstage + 1].Y;
     int xps = pos_x, yps = pos_y;
+    int main_onpart = cmls.onpart;
     const bool do_fix_target = loaded_game_file_version < kGameVersion_361;
     fixed fin_xmove = 0, fin_ymove = 0;
     int fin_onpart = 0;
@@ -135,7 +137,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
             movelist_handle_targetfix(xpermove, ypermove, targety);
         if (xpermove != 0)
             movelist_handle_remainer(xpermove, ypermove, targetx - cmls.from.X,
-                cmls.onpart, cmls.GetStepLength(), fin_ymove, fin_onpart);
+                cmls.GetStepLength(), main_onpart, fin_ymove, fin_onpart);
     }
     if ((xpermove != 0) && (cmls.doneflag & kMoveListDone_Y) != 0)
     { // Y-move has finished, handle the X-move remainer
@@ -143,19 +145,19 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
             movelist_handle_targetfix(xpermove, ypermove, targety);
         if (ypermove != 0)
             movelist_handle_remainer(ypermove, xpermove, targety - cmls.from.Y,
-                cmls.onpart, cmls.GetStepLength(), fin_xmove, fin_onpart);
+                cmls.GetStepLength(), main_onpart, fin_xmove, fin_onpart);
     }
 
     // Calculate next positions, as required
     if ((cmls.doneflag & kMoveListDone_X) == 0)
     {
-        xps = cmls.from.X + (int)(fixtof(xpermove)*(float)cmls.onpart) +
-          (int)(fixtof(fin_xmove)*(float)fin_onpart);
+        xps = cmls.from.X + (int)(fixtof(xpermove) * (float)main_onpart) +
+          (int)(fixtof(fin_xmove) * (float)fin_onpart);
     }
     if ((cmls.doneflag & kMoveListDone_Y) == 0)
     {
-        yps = cmls.from.Y + (int)(fixtof(ypermove)*(float)cmls.onpart) +
-          (int)(fixtof(fin_ymove)*(float)fin_onpart);
+        yps = cmls.from.Y + (int)(fixtof(ypermove) * (float)main_onpart) +
+          (int)(fixtof(fin_ymove) * (float)fin_onpart);
     }
 
     // Check if finished horizontal movement

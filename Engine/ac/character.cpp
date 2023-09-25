@@ -1725,7 +1725,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         animWaitWas = charextra[chac].animwait;
         const auto &movelist = mls[chin->walking % TURNING_AROUND];
         // We set (fraction + 1), because movelist is always +1 ahead of current character pos;
-        if (movelist.onpart > 0)
+        if (movelist.onpart > 0.f)
             wasStepFrac = movelist.GetPixelUnitFraction() + movelist.GetStepLength();
     }
 
@@ -1937,8 +1937,8 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
         }
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mls[chi->walking].onpart > 0) {
-            mls[chi->walking].onpart -= itofix(1);
+        else if (mls[chi->walking].onpart > 0.f) {
+            mls[chi->walking].onpart -= 1.f;
             chi->x = xwas;
             chi->y = ywas;
         }

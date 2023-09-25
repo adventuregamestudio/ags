@@ -255,12 +255,12 @@ void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, i
   }
 
   // now adjust current passed stage fraction
-  if (mlsp->onpart >= 0)
+  if (mlsp->onpart >= 0.f)
   {
     if (old_stage_xpermove != 0)
-      mlsp->onpart = fixdiv(fixmul(mlsp->onpart, old_stage_xpermove), mlsp->xpermove[mlsp->onstage]);
+      mlsp->onpart = (mlsp->onpart * fixtof(old_stage_xpermove)) / fixtof(mlsp->xpermove[mlsp->onstage]);
     else
-      mlsp->onpart = fixdiv(fixmul(mlsp->onpart, old_stage_ypermove), mlsp->ypermove[mlsp->onstage]);
+      mlsp->onpart = (mlsp->onpart * fixtof(old_stage_ypermove)) / fixtof(mlsp->ypermove[mlsp->onstage]);
   }
 }
 
@@ -310,7 +310,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
 
   mls[mlist].from = { srcx, srcy };
   mls[mlist].onstage = 0;
-  mls[mlist].onpart = 0;
+  mls[mlist].onpart = 0.f;
   mls[mlist].doneflag = 0;
   return mlist;
 }

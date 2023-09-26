@@ -46,6 +46,10 @@ struct MoveList
     // distance passed is calculated as xpermove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
+    // Final section move speed and steps, used when an object
+    // finishes one of the axes sooner than the other
+    fixed   fin_move = 0;
+    float   fin_from_part = 0.f;
     uint8_t doneflag = 0u;
     uint8_t direct = 0;  // MoveCharDirect was used or not
 

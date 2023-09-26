@@ -45,13 +45,18 @@ struct MoveList
     // Steps made during current stage;
     // distance passed is calculated as xpermove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
-    fixed   onpart = 0;
+    float   onpart = 0.f;
     uint8_t doneflag = 0u;
     uint8_t direct = 0;  // MoveCharDirect was used or not
 
     // Gets a movelist's step length, in coordinate units
     // (normally the coord unit is a game pixel)
     float GetStepLength() const;
+    // Gets a fraction of a coordinate unit that is in progress of stepping over;
+    // (normally the coord unit is a game pixel)
+    float GetPixelUnitFraction() const;
+    // Sets a step progress to this fraction of a coordinate unit
+    void  SetPixelUnitFraction(float frac);
 
     void ReadFromFile_Legacy(Common::Stream *in);
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);

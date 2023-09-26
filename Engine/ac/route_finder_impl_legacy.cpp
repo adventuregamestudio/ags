@@ -872,7 +872,7 @@ stage_again:
 
     mls[mlist].from = { orisrcx, orisrcy };
     mls[mlist].onstage = 0;
-    mls[mlist].onpart = 0;
+    mls[mlist].onpart = 0.f;
     mls[mlist].doneflag = 0;
 #ifdef DEBUG_PATHFINDER
     // getch();

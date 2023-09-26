@@ -34,14 +34,18 @@ enum MoveListDoneFlags
 struct MoveList
 {
     int     numstage = 0;
+    // Waypoints, per stage
     Point   pos[MAXNEEDSTAGES];
     // xpermove and ypermove contain number of pixels done per a single step
     // along x and y axes; i.e. this is a movement vector, per path stage
     fixed   xpermove[MAXNEEDSTAGES]{};
     fixed   ypermove[MAXNEEDSTAGES]{};
-    Point   from;
     int     onstage = 0; // current path stage
-    int     onpart = 0; // total number of steps done on this stage
+    Point   from; // current stage's starting position
+    // Steps made during current stage;
+    // distance passed is calculated as xpermove[onstage] * onpart;
+    // made a fractional value to let recalculate movelist dynamically
+    fixed   onpart = 0;
     uint8_t doneflag = 0u;
     uint8_t direct = 0;  // MoveCharDirect was used or not
 
@@ -51,7 +55,7 @@ struct MoveList
 
     void ReadFromFile_Legacy(Common::Stream *in);
     AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #endif // __AGS_EN_AC__MOVELIST_H

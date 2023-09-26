@@ -40,7 +40,7 @@ void MoveList::ReadFromFile_Legacy(Stream *in)
     from.X = in->ReadInt32();
     from.Y = in->ReadInt32();
     onstage = in->ReadInt32();
-    onpart = in->ReadInt32();
+    onpart = itofix(in->ReadInt32());
     in->ReadInt32(); // UNUSED
     in->ReadInt32(); // UNUSED
     doneflag = in->ReadInt8();
@@ -49,6 +49,8 @@ void MoveList::ReadFromFile_Legacy(Stream *in)
 
 HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
+    *this = MoveList();
+
     if (cmp_ver < 1)
     {
         ReadFromFile_Legacy(in);
@@ -56,6 +58,8 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     }
 
     numstage = in->ReadInt32();
+    if ((numstage == 0) && cmp_ver >= 2)
+        return HSaveError::None();
     // TODO: reimplement MoveList stages as vector to avoid these limits
     if (numstage > MAXNEEDSTAGES)
     {
@@ -72,6 +76,9 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
 
+    if (cmp_ver < 2)
+        onpart = itofix(onpart); // convert to fixed-point value
+
     for (int i = 0; i < numstage; ++i)
     { // X & Y was packed as high/low shorts, and hence reversed in lo-end
         pos[i].Y = in->ReadInt16();
@@ -82,9 +89,12 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     return HSaveError::None();
 }
 
-void MoveList::WriteToFile(Stream *out)
+void MoveList::WriteToFile(Stream *out) const
 {
     out->WriteInt32(numstage);
+    if (numstage == 0)
+        return;
+
     out->WriteInt32(from.X);
     out->WriteInt32(from.Y);
     out->WriteInt32(onstage);

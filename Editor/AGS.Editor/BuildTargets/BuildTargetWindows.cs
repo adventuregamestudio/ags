@@ -26,14 +26,10 @@ namespace AGS.Editor
 
         public override void DeleteMainGameData(string name)
         {
+            DeleteCommonGameFiles(OutputDirectoryFullPath, name);
+
             string filename = Path.Combine(OutputDirectoryFullPath, name + ".exe");
             Utilities.TryDeleteFile(filename);
-
-            if (!Factory.AGSEditor.CurrentGame.Settings.AttachDataToExe)
-            {
-                string ags_filename = Path.Combine(OutputDirectoryFullPath, name + ".ags");
-                Utilities.TryDeleteFile(ags_filename);
-            }
         }
 
         public void CopyPlugins(CompileMessages errors)

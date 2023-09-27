@@ -150,5 +150,22 @@ namespace AGS.Editor
             }
             AGSEditor.Instance.WriteConfigFile(destPath, false);
         }
+
+        /// <summary>
+        /// Deletes all the common game's data files:
+        ///  * primary: <name>.ags,
+        ///  * split resources: <name>.001, <name>.002, etc.
+        /// </summary>
+        protected void DeleteCommonGameFiles(string dir, string gamename)
+        {
+            string filename = Path.Combine(dir, gamename + ".ags");
+            Utilities.TryDeleteFile(filename);
+
+            // Delete split resources (if any)
+            foreach (string fileName in Utilities.GetDirectoryFileList(dir, gamename + ".0*"))
+            {
+                Utilities.TryDeleteFile(fileName);
+            }
+        }
     }
 }

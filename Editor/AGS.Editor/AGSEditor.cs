@@ -937,15 +937,6 @@ namespace AGS.Editor
             return errorToReturn;
         }
 
-        private void DeleteAnyExistingSplitResourceFiles()
-        {
-            string dir = Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
-            foreach (string fileName in Utilities.GetDirectoryFileList(dir, this.BaseGameFileName + ".0*"))
-            {
-                Utilities.TryDeleteFile(fileName);
-            }
-        }
-
         private void CreateAudioVOXFile(bool forceRebuild)
         {
             List<string> fileListForVox = new List<string>();
@@ -989,6 +980,10 @@ namespace AGS.Editor
             var buildNames = Factory.AGSEditor.CurrentGame.WorkspaceState.GetLastBuildGameFiles();
             foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
+                // Primary cleanup
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+
+                // Old files cleanup (if necessary)
                 string oldName;
                 if (!buildNames.TryGetValue(target.Name, out oldName)) continue;
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
@@ -1245,6 +1240,9 @@ namespace AGS.Editor
             string oldName;
             if (buildNames.TryGetValue(target.Name, out oldName))
             {
+                // Primary cleanup
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+                // Old files cleanup (if necessary)
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
                     target.DeleteMainGameData(oldName);
             }

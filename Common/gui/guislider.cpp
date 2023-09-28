@@ -42,7 +42,7 @@ GUISlider::GUISlider()
 
 bool GUISlider::IsHorizontal() const
 {
-    return Width > Height;
+    return _width > _height;
 }
 
 bool GUISlider::IsOverControl(int x, int y, int leeway) const
@@ -59,7 +59,7 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
     // Sliders are never clipped as of 3.6.0
     // TODO: precalculate everything on width/height/graphic change!!
     UpdateMetrics();
-    Rect logical = RectWH(0, 0, Width, Height);
+    Rect logical = RectWH(0, 0, _width, _height);
     Rect bar = _cachedBar;
     Rect handle = _cachedHandle;
     return Rect(
@@ -81,7 +81,7 @@ void GUISlider::UpdateMetrics()
     const int handle_im = ((HandleImage > 0) && spriteset.DoesSpriteExist(HandleImage)) ? HandleImage : 0;
 
     // Depending on slider's orientation, thickness is either Height or Width
-    const int thickness = IsHorizontal() ? Height : Width;
+    const int thickness = IsHorizontal() ? _height : _width;
     // "thick_f" is the factor for calculating relative element positions
     const int thick_f = thickness / 3; // one third of the control's thickness
     // Bar thickness
@@ -109,8 +109,8 @@ void GUISlider::UpdateMetrics()
     if (IsHorizontal()) // horizontal slider
     {
         // Value pos is a coordinate corresponding to current slider's value
-        bar = RectWH(1, Height / 2 - thick_f, Width - 1, bar_thick);
-        handle_range = Width - 4;
+        bar = RectWH(1, _height / 2 - thick_f, _width - 1, bar_thick);
+        handle_range = _width - 4;
         int value_pos = (int)(((float)(Value - MinValue) * (float)handle_range) / (float)(MaxValue - MinValue));
         handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + 1 + value_pos - 2,
             bar.Top + (bar.GetHeight() - handle_sz.Height) / 2,
@@ -120,8 +120,8 @@ void GUISlider::UpdateMetrics()
     // vertical slider
     else
     {
-        bar = RectWH(Width / 2 - thick_f, 1, bar_thick, Height - 1);
-        handle_range = Height - 4;
+        bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
+        handle_range = _height - 4;
         int value_pos = (int)(((float)(MaxValue - Value) * (float)handle_range) / (float)(MaxValue - MinValue));
         handle = RectWH(bar.Left + (bar.GetWidth() - handle_sz.Width) / 2,
             (bar.Top + 2) - (handle_sz.Height / 2) + 1 + value_pos - 2,
@@ -151,13 +151,13 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
         {
             x_inc = get_adjusted_spritewidth(BgImage);
             // centre the image vertically
-            bar.Top = y + (Height / 2) - get_adjusted_spriteheight(BgImage) / 2;
+            bar.Top = y + (_height / 2) - get_adjusted_spriteheight(BgImage) / 2;
         }
         else
         {
             y_inc = get_adjusted_spriteheight(BgImage);
             // centre the image horizontally
-            bar.Left = x + (Width / 2) - get_adjusted_spritewidth(BgImage) / 2;
+            bar.Left = x + (_width / 2) - get_adjusted_spritewidth(BgImage) / 2;
         }
         int cx = bar.Left;
         int cy = bar.Top;
@@ -221,7 +221,7 @@ void GUISlider::OnMouseMove(int x, int y)
     if (IsHorizontal())
         value = (int)(((float)((x - X) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
     else
-        value = (int)(((float)(((Y + Height) - y) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
+        value = (int)(((float)(((Y + _height) - y) - 2) * (float)(MaxValue - MinValue)) / (float)_handleRange) + MinValue;
 
     value = Math::Clamp(value, MinValue, MaxValue);
     if (value != Value)

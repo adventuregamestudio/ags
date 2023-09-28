@@ -73,7 +73,7 @@ bool GUIListBox::IsSvgIndex() const
 
 bool GUIListBox::IsInRightMargin(int x) const
 {
-    if (x >= (Width - 6) && IsBorderShown() && AreArrowsShown())
+    if (x >= (_width - 6) && IsBorderShown() && AreArrowsShown())
         return 1;
     return 0;
 }
@@ -81,15 +81,15 @@ bool GUIListBox::IsInRightMargin(int x) const
 Rect GUIListBox::CalcGraphicRect(bool clipped)
 {
     if (clipped)
-        return RectWH(0, 0, Width, Height);
+        return RectWH(0, 0, _width, _height);
     // TODO: need to find a way to text position, or there'll be some repetition
     // have to precache text and size on some events:
     // - translation change
     // - macro value change (score, overhotspot etc)
-    Rect rc = RectWH(0, 0, Width, Height);
+    Rect rc = RectWH(0, 0, _width, _height);
     UpdateMetrics();
-    const int width = Width - 1;
-    const int height = Height - 1;
+    const int width = _width - 1;
+    const int height = _height - 1;
     const int pixel_size = 1;
     int right_hand_edge = width - pixel_size - 1;
     // calculate the scroll bar's width if necessary
@@ -105,7 +105,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
             (FrameAlignment)TextAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
-    return SumRects(rc, RectWH(0, 0, max_line.X2 - max_line.X1 + 1, Height));
+    return SumRects(rc, RectWH(0, 0, max_line.X2 - max_line.X1 + 1, _height));
 }
 
 int GUIListBox::AddItem(const String &text)
@@ -131,8 +131,8 @@ void GUIListBox::Clear()
 
 void GUIListBox::Draw(Bitmap *ds, int x, int y)
 {
-    const int width  = Width - 1;
-    const int height = Height - 1;
+    const int width  = _width - 1;
+    const int height = _height - 1;
     const int pixel_size = 1;
 
     color_t text_color = ds->GetCompatibleColor(TextColor);
@@ -177,7 +177,7 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
 
     Rect old_clip = ds->GetClip();
     if (scrollbar && GUI::Options.ClipControls)
-        ds->SetClip(Rect(x, y, right_hand_edge + 1, y + Height - 1));
+        ds->SetClip(Rect(x, y, right_hand_edge + 1, y + _height - 1));
     for (int item = 0; (item < VisibleItemCount) && (item + TopItem < ItemCount); ++item)
     {
         int at_y = y + pixel_size + item * RowHeight;
@@ -289,9 +289,9 @@ bool GUIListBox::OnMouseDown()
     if (IsInRightMargin(MousePos.X))
     {
         int top_item = TopItem;
-        if (MousePos.Y < Height / 2 && TopItem > 0)
+        if (MousePos.Y < _height / 2 && TopItem > 0)
             top_item = TopItem - 1;
-        if (MousePos.Y >= Height / 2 && ItemCount > TopItem + VisibleItemCount)
+        if (MousePos.Y >= _height / 2 && ItemCount > TopItem + VisibleItemCount)
             top_item = TopItem + 1;
         if (TopItem != top_item)
         {
@@ -329,7 +329,7 @@ void GUIListBox::UpdateMetrics()
 {
     int font_height = get_font_height_outlined(Font);
     RowHeight = font_height + 2; // +1 top/bottom margin
-    VisibleItemCount = Height / RowHeight;
+    VisibleItemCount = _height / RowHeight;
     if (ItemCount <= VisibleItemCount)
         TopItem = 0; // reset scroll if all items are visible
 }

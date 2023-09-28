@@ -482,7 +482,7 @@ int GetTextDisplayLength(const char *text)
 
 int GetTextDisplayTime(const char *text, int canberel) {
     int uselen = 0;
-    auto fpstimer = ::lround(get_current_fps());
+    auto fpstimer = ::lround(get_game_fps());
 
     // if it's background speech, make it stay relative to game speed
     if ((canberel == 1) && (play.bgspeech_game_speed == 1))
@@ -673,7 +673,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
 int get_but_pic(GUIMain*guo,int indx)
 {
     int butid = guo->GetControlID(indx);
-    return butid >= 0 ? guibuts[butid].Image : 0;
+    return butid >= 0 ? guibuts[butid].GetNormalImage() : 0;
 }
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {

@@ -262,7 +262,6 @@ int Game_GetDialogCount()
 void set_debug_mode(bool on)
 {
     play.debug_mode = on ? 1 : 0;
-    debug_set_console(on);
 }
 
 void set_game_speed(int new_fps) {
@@ -1396,7 +1395,7 @@ void game_sprite_updated(int sprnum, bool deleted)
     // gui buttons
     for (auto &but : guibuts)
     {
-        if (but.CurrentImage() == sprnum)
+        if (but.GetCurrentImage() == sprnum)
         {
             but.MarkChanged();
         }

@@ -116,6 +116,9 @@ namespace AGS.Editor
 
         void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
+            if (GUIController.Instance.ActivePane != ContentDocument)
+                return; // not this pane
+
             if (newPropertyObject is GUIControl)
             {
                 _selectedControl = (GUIControl)newPropertyObject;

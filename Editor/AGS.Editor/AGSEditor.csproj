@@ -644,6 +644,10 @@
     </Content>
     <Content Include="agsico-1.ico" />
     <EmbeddedResource Include="Resources\word-wrap.ico" />
+    <EmbeddedResource Include="Resources\menu_build_openfolder.over.ico" />
+    <EmbeddedResource Include="Resources\menu_file_openfolder.ico" />
+    <EmbeddedResource Include="Resources\menu_file_openfolder.over.ico" />
+    <EmbeddedResource Include="Resources\menu_build_openfolder.ico" />
     <EmbeddedResource Include="Resources\log_autoscroll.ico" />
     <EmbeddedResource Include="Resources\log_quiet.ico" />
     <EmbeddedResource Include="Resources\log_run.ico" />

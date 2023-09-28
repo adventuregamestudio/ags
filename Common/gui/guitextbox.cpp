@@ -46,7 +46,7 @@ void GUITextBox::Draw(Bitmap *ds, int x, int y)
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
     if (IsBorderShown())
-        ds->DrawRect(RectWH(x, y, Width, Height), draw_color);
+        ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
     DrawTextBoxContents(ds, x, y, text_color);
 }
 
@@ -89,7 +89,7 @@ void GUITextBox::OnKeyPress(const KeyInput &ki)
         Text.Append(ki.Text) :
         Text.AppendChar(ki.UChar);
     // if the new string is too long, remove the new character
-    if (get_text_width(Text.GetCStr(), Font) > (Width - (6 + 5)))
+    if (get_text_width(Text.GetCStr(), Font) > (_width - (6 + 5)))
         Backspace(Text);
     MarkChanged();
 }

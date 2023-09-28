@@ -53,18 +53,25 @@ class GUIButton : public GUIObject
 public:
     GUIButton();
 
+    int32_t GetCurrentImage() const;
+    int32_t GetNormalImage() const;
+    int32_t GetMouseOverImage() const;
+    int32_t GetPushedImage() const;
+    GUIButtonPlaceholder GetPlaceholder() const;
     const String &GetText() const;
     bool IsImageButton() const;
     bool IsClippingImage() const;
     int32_t CurrentImage() const;
-    GUIButtonPlaceholder GetPlaceholder() const;
 
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
     void SetClipImage(bool on);
-    void SetText(const String &text);
+    void SetMouseOverImage(int32_t image);
+    void SetNormalImage(int32_t image);
+    void SetPushedImage(int32_t image);
     void SetCurrentImage(int32_t image, uint32_t flags = 0);
+    void SetText(const String &text);
 
     // Events
     bool OnMouseDown() override;
@@ -80,9 +87,6 @@ public:
 
 // TODO: these members are currently public; hide them later
 public:
-    int32_t     Image;
-    int32_t     MouseOverImage;
-    int32_t     PushedImage;
     int32_t     Font;
     color_t     TextColor;
     FrameAlignment TextAlignment;
@@ -95,14 +99,19 @@ public:
     bool        IsMouseOver;
 
 private:
-    int32_t     _currentImage;
-    uint32_t    _imageFlags;
-
     void DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void PrepareTextToDraw();
+    // Update current image depending on the button's state
+    void UpdateCurrentImage();
 
+    int32_t _image;
+    int32_t _mouseOverImage;
+    int32_t _pushedImage;
+    // Active displayed image
+    int32_t _currentImage;
+    uint32_t _imageFlags;
     // Text property set by user
     String _text;
     // type of content placeholder, if any

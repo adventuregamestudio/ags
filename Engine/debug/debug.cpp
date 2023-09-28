@@ -29,7 +29,6 @@
 #include "debug/debugger.h"
 #include "debug/debugmanager.h"
 #include "debug/out.h"
-#include "debug/consoleoutputtarget.h"
 #include "debug/logfile.h"
 #include "debug/messagebuffer.h"
 #include "main/config.h"
@@ -83,10 +82,6 @@ IAGSEditorDebugger *GetEditorDebugger(const char* /*instanceToken*/)
 
 int debug_flags=0;
 
-String debug_line[DEBUG_CONSOLE_NUMLINES];
-int first_debug_line = 0, last_debug_line = 0, display_console = 0;
-
-float fps = std::numeric_limits<float>::quiet_NaN();
 FPSDisplayMode display_fps = kFPS_Hide;
 
 void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
@@ -132,14 +127,12 @@ private:
 
 std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;
-std::unique_ptr<ConsoleOutputTarget> DebugConsole;
 std::unique_ptr<DebuggerLogOutputTarget> DebuggerLog;
 
 const String OutputMsgBufID = "buffer";
 const String OutputFileID = "file";
 const String OutputSystemID = "stdout";
 const String OutputDebuggerLogID = "debugger";
-const String OutputGameConsoleID = "console";
 
 
 // ----------------------------------------------------------------------------
@@ -190,11 +183,6 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
         Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
         auto dbgout = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
         return dbgout;
-    }
-    else if (name.CompareNoCase(OutputGameConsoleID) == 0)
-    {
-        DebugConsole.reset(new ConsoleOutputTarget());
-        return DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsg_None);
     }
     else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&
         editor_debugger != nullptr)
@@ -344,19 +332,6 @@ void apply_debug_config(const ConfigTree &cfg)
 #endif
         });
 
-    // Init game console if the game was compiled in Debug mode or is run in test mode
-    if (game.options[OPT_DEBUGMODE] != 0 || (debug_flags & DBG_DEBUGMODE) != 0)
-    {
-        apply_log_config(cfg, OutputGameConsoleID,
-            /* defaults */
-            true,
-            { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Game, kDbgMsg_All),
-              DbgGroupOption(kDbgGroup_Script, kDbgMsg_All)
-            });
-        debug_set_console(true);
-    }
-
     // If the game was compiled in Debug mode *and* there's no regular file log,
     // then open "warnings.log" for printing script warnings.
     if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
@@ -387,14 +362,7 @@ void shutdown_debug()
 
     DebugMsgBuff.reset();
     DebugLogFile.reset();
-    DebugConsole.reset();
     DebuggerLog.reset();
-}
-
-void debug_set_console(bool enable)
-{
-    if (DebugConsole)
-        DbgMgr.GetOutput(OutputGameConsoleID)->SetEnabled(enable);
 }
 
 // Prepends message text with current room number and running script info, then logs result

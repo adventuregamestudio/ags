@@ -102,7 +102,7 @@ Locations of two latter files differ between running platforms:
   * \[outputname\] = +GROUPLIST[:LEVEL];
     Groups may be defined either by name or by a LIST of one-letter IDs, preceded by '+', e.g. +ABCD:LEVEL. Verbosity may be defined either by name or a numeric ID.
     - OUTPUTs are:
-      * stdout, file, console (where \"console\" is internal engine's console);
+      * stdout, file, debugger (external debugging program);
     - GROUPs are:
       * all, main (m), game (g), manobj (o), sdl (l), script(s), sprcache (c);
     - LEVELs are:
@@ -188,7 +188,7 @@ Following OPTIONS are supported when running from command line:
   * --tell-engine - print engine name and version.
   * --tell-filepath - print all filepaths engine uses for the game.
   * --tell-graphicdriver - print list of supported graphic drivers.
-* --test - run game in the test mode, unlocking test key combinations and console.
+* --test - run game in the test mode, unlocking test key combinations.
 * --translation - select the given translation on start.
 * --user-data-dir \<DIR\> - set the save game directory. Corresponds to "user_data_dir" config option.
 * --windowed - run in windowed mode.

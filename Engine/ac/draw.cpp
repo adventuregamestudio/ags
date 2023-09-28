@@ -24,6 +24,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/draw_software.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -59,8 +60,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
-#include "ac/game.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
@@ -110,7 +111,6 @@ COLOR_MAP maincoltable;
 IGraphicsDriver *gfxDriver = nullptr;
 IDriverDependantBitmap *blankImage = nullptr;
 IDriverDependantBitmap *blankSidebarImage = nullptr;
-IDriverDependantBitmap *debugConsole = nullptr;
 
 // ObjTexture is a helper struct that pairs a raw bitmap with
 // a renderer's texture and an optional position
@@ -326,8 +326,6 @@ RoomAreaMask debugRoomMask = kRoomAreaNone;
 ObjTexture debugRoomMaskObj;
 int debugMoveListChar = -1;
 ObjTexture debugMoveListObj;
-// For in-game "console" surface
-Bitmap *debugConsoleBuffer = nullptr;
 
 // Draw cache: keep record of all kinds of things related to the previous drawing state
 //
@@ -2305,6 +2303,7 @@ void draw_fps(const Rect &viewport)
 
     char fps_buffer[60];
     // Don't display fps if we don't have enough information (because loop count was just reset)
+    float fps = get_real_fps();
     if (!std::isnan(fps)) {
         snprintf(fps_buffer, sizeof(fps_buffer), "FPS: %2.1f / %s", fps, base_buffer);
     } else {
@@ -2336,7 +2335,7 @@ static void construct_guictrl_tex(GUIMain &gui)
     {
         GUIObject *obj = gui.GetControl(i);
         if (!obj->IsVisible() ||
-            (obj->Width <= 0 || obj->Height <= 0) ||
+            (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
             continue;
         if (!obj->HasChanged())
@@ -2371,7 +2370,7 @@ static void draw_gui_controls_batch(int gui_id)
     {
         GUIObject *obj = gui.GetControl(obj_id);
         if (!obj->IsVisible() ||
-            (obj->Width <= 0 || obj->Height <= 0) ||
+            (obj->GetSize().IsNull()) ||
             (!obj->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)))
             continue;
         const auto &obj_tx = guiobjbg[draw_index + obj_id];
@@ -2852,36 +2851,6 @@ void construct_engine_overlay()
 {
     const Rect &viewport = RectWH(game.GetGameRes());
     gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
-
-    // draw the debug console, if appropriate
-    if ((play.debug_mode > 0) && (display_console != 0))
-    {
-        const int font = FONT_NORMAL;
-        int ypp = 1;
-        int txtspacing = get_font_linespacing(font);
-        int barheight = get_text_lines_surf_height(font, DEBUG_CONSOLE_NUMLINES - 1) + 4;
-
-        if (debugConsoleBuffer == nullptr)
-        {
-            debugConsoleBuffer = CreateCompatBitmap(viewport.GetWidth(), barheight);
-        }
-
-        color_t draw_color = debugConsoleBuffer->GetCompatibleColor(15);
-        debugConsoleBuffer->FillRect(Rect(0, 0, viewport.GetWidth() - 1, barheight), draw_color);
-        color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
-        for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, font, text_color, debug_line[jj].GetCStr());
-            ypp += txtspacing;
-        }
-
-        if (debugConsole == nullptr)
-            debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, true /*opaque*/);
-        else
-            gfxDriver->UpdateDDBFromBitmap(debugConsole, debugConsoleBuffer);
-
-        gfxDriver->DrawSprite(0, 0, debugConsole);
-        invalidate_sprite_glob(0, 0, debugConsole);
-    }
 
     if (display_fps != kFPS_Hide)
         draw_fps(viewport);

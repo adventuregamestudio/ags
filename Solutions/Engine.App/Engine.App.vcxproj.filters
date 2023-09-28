@@ -564,9 +564,6 @@
     <ClCompile Include="..\..\Engine\media\video\video.cpp">
       <Filter>Source Files\media\video</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\debug\consoleoutputtarget.cpp">
-      <Filter>Source Files\debug</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\debug\debug.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
@@ -1212,9 +1209,6 @@
       <Filter>Header Files\media\video</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\debug\agseditordebugger.h">
-      <Filter>Header Files\debug</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\debug\consoleoutputtarget.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\debug\debug_log.h">

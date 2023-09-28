@@ -285,8 +285,9 @@ void GUIMain::DrawWithControls(Bitmap *ds)
         set_eip_guiobj(_ctrlDrawOrder[ctrl_index]);
 
         GUIObject *objToDraw = _controls[_ctrlDrawOrder[ctrl_index]];
+        Size obj_size = objToDraw->GetSize();
 
-        if (!objToDraw->IsVisible() || (objToDraw->Width <= 0 || objToDraw->Height <= 0))
+        if (!objToDraw->IsVisible() || (obj_size.Width <= 0 || obj_size.Height <= 0))
             continue;
         if (!objToDraw->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
             continue;
@@ -295,7 +296,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
         if (objToDraw->GetTransparency() == 0)
         {
             if (GUI::Options.ClipControls && objToDraw->IsContentClipped())
-                ds->SetClip(RectWH(objToDraw->X, objToDraw->Y, objToDraw->Width, objToDraw->Height));
+                ds->SetClip(RectWH(objToDraw->X, objToDraw->Y, obj_size.Width, obj_size.Height));
             else
                 ds->ResetClip();
             objToDraw->Draw(ds, objToDraw->X, objToDraw->Y);
@@ -317,25 +318,25 @@ void GUIMain::DrawWithControls(Bitmap *ds)
             if (GUI::Options.OutlineControls)
                 selectedColour = 13;
             color_t draw_color = ds->GetCompatibleColor(selectedColour);
-            DrawBlob(ds, objToDraw->X + objToDraw->Width - 1 - 1, objToDraw->Y, draw_color);
-            DrawBlob(ds, objToDraw->X, objToDraw->Y + objToDraw->Height - 1 - 1, draw_color);
+            DrawBlob(ds, objToDraw->X + obj_size.Width - 1 - 1, objToDraw->Y, draw_color);
+            DrawBlob(ds, objToDraw->X, objToDraw->Y + obj_size.Height - 1 - 1, draw_color);
             DrawBlob(ds, objToDraw->X, objToDraw->Y, draw_color);
-            DrawBlob(ds, objToDraw->X + objToDraw->Width - 1 - 1,
-                    objToDraw->Y + objToDraw->Height - 1 - 1, draw_color);
+            DrawBlob(ds, objToDraw->X + obj_size.Width - 1 - 1,
+                    objToDraw->Y + obj_size.Height - 1 - 1, draw_color);
         }
         if (GUI::Options.OutlineControls)
         {
             // draw a dotted outline round all objects
             color_t draw_color = ds->GetCompatibleColor(selectedColour);
-            for (int i = 0; i < objToDraw->Width; i += 2)
+            for (int i = 0; i < obj_size.Width; i += 2)
             {
                 ds->PutPixel(i + objToDraw->X, objToDraw->Y, draw_color);
-                ds->PutPixel(i + objToDraw->X, objToDraw->Y + objToDraw->Height - 1, draw_color);
+                ds->PutPixel(i + objToDraw->X, objToDraw->Y + obj_size.Height - 1, draw_color);
             }
-            for (int i = 0; i < objToDraw->Height; i += 2)
+            for (int i = 0; i < obj_size.Height; i += 2)
             {
                 ds->PutPixel(objToDraw->X, i + objToDraw->Y, draw_color);
-                ds->PutPixel(objToDraw->X + objToDraw->Width - 1, i + objToDraw->Y, draw_color);
+                ds->PutPixel(objToDraw->X + obj_size.Width - 1, i + objToDraw->Y, draw_color);
             }
         }
     }
@@ -460,6 +461,11 @@ void GUIMain::SetClickable(bool on)
         _flags |= kGUIMain_Clickable;
     else
         _flags &= ~kGUIMain_Clickable;
+
+    if (!on)
+    {
+        ResetOverControl();
+    }
 }
 
 void GUIMain::SetConceal(bool on)

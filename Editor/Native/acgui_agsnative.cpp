@@ -85,7 +85,7 @@ void GUIObject::NotifyParentChanged()
 int GUILabel::PrepareTextToDraw()
 {
     _textToDraw = Text;
-    return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), false, Lines, Font, Width);
+    return GUI::SplitLinesForDrawing(_textToDraw.GetCStr(), false, Lines, Font, _width);
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_color)
@@ -102,7 +102,7 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
     color_t draw_color = ds->GetCompatibleColor(15);
-    ds->DrawRect(RectWH(x, y, Width, Height), draw_color);
+    ds->DrawRect(RectWH(x, y, _width, _height), draw_color);
 }
 
 void GUIButton::PrepareTextToDraw()

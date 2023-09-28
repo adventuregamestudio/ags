@@ -738,18 +738,7 @@ namespace AGS.Editor
                 Sprite sprite = FindSpriteByNumber(_spriteNumberOnMenuActivation);
                 string path = Utilities.ResolveSourcePath(sprite.SourceFile);
 
-                if (File.Exists(path))
-                {
-                    if (Utilities.IsMonoRunning())
-                    {
-                        // FIXME - this probably needs to be more platform specific
-                        Process.Start(path);
-                    }
-                    else
-                    {
-                        Process.Start("explorer.exe", String.Format("/select,\"{0}\"", path));
-                    }
-                }
+                Utilities.OpenFileOrDirInFileExplorer(path);
             }
             else if (item.Name == MENU_ITEM_DELETE_SPRITE)
             {

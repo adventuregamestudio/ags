@@ -199,6 +199,7 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
     RunScriptFunction(dialogScriptsInst.get(), func_name, 1, params);
     result = dialogScriptsInst->returnValue;
   }
+              in_new_room = 1; // set only in case NewRoom was scheduled
 
   if (in_new_room > 0)
     return RUN_DIALOG_STOP_DIALOG;
@@ -275,7 +276,7 @@ int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mous
     break_up_text_into_lines(get_translation(dtop->optionnames[disporder[i]]), Lines, areawid-(2*padding+2+bullet_wid), usingfont);\
     needheight += get_text_lines_surf_height(usingfont, Lines.Count()) + game.options[OPT_DIALOGGAP];\
   }\
-  if (parserInput) needheight += parserInput->Height + game.options[OPT_DIALOGGAP];\
+  if (parserInput) needheight += parserInput->GetHeight() + game.options[OPT_DIALOGGAP];\
  }
 
 
@@ -419,7 +420,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   parserActivated = 0;
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
-    parserInput->Height = lineheight + 4;
+    parserInput->SetHeight(lineheight + 4);
     parserInput->SetShowBorder(true);
     parserInput->Font = usingfont;
   }
@@ -678,7 +679,7 @@ void DialogOptions::Redraw()
     if (parserInput) {
       // Set up the text box, if present
       parserInput->Y = curyp + game.options[OPT_DIALOGGAP];
-      parserInput->Width = areawid - 10;
+      parserInput->SetWidth(areawid - 10);
       parserInput->TextColor = playerchar->talkcolor;
       if (mouseison == DLG_OPTION_PARSER)
         parserInput->TextColor = forecol;
@@ -688,7 +689,7 @@ void DialogOptions::Redraw()
           draw_gui_sprite(ds, game.dialog_bullet, parserInput->X, parserInput->Y);
       }
 
-      parserInput->Width -= bullet_wid;
+      parserInput->SetWidth(parserInput->GetWidth() - bullet_wid);
       parserInput->X += bullet_wid;
 
       parserInput->Draw(ds, parserInput->X, parserInput->Y);
@@ -805,7 +806,7 @@ bool DialogOptions::Run()
             relativeMousey -= dirtyy;
 
         if ((relativeMousey > parserInput->Y) &&
-            (relativeMousey < parserInput->Y + parserInput->Height))
+            (relativeMousey < parserInput->Y + parserInput->GetHeight()))
             mouseison = DLG_OPTION_PARSER;
     }
 

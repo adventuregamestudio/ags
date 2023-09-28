@@ -121,5 +121,55 @@ namespace AGS.Editor
 
             type.InvokeMember("OnViewTabButtonClick", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod, null, propGrid, new object[] { viewTabButton, EventArgs.Empty });
         }
+
+        // Using explorer through the process interface opens a new window, this allows to keep an existing window and highlight a file in it
+        // Taken from SO, with slight adjustments, from here https://stackoverflow.com/a/72200643
+        [DllImport("shell32.dll", SetLastError = true)]
+        public static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl, uint dwFlags);
+
+        [DllImport("shell32.dll", SetLastError = true)]
+        public static extern void SHParseDisplayName([MarshalAs(UnmanagedType.LPWStr)] string name, IntPtr bindingContext, [Out] out IntPtr pidl, uint sfgaoIn, [Out] out uint psfgaoOut);
+
+        public static void ShowInExplorer(string filePath)
+        {
+            ShowInExplorer(System.IO.Path.GetDirectoryName(filePath), System.IO.Path.GetFileName(filePath));
+        }
+        public static void ShowInExplorer(string folderPath, string file)
+        {
+            IntPtr nativeFolder;
+            uint psfgaoOut;
+            SHParseDisplayName(folderPath, IntPtr.Zero, out nativeFolder, 0, out psfgaoOut);
+
+            if (nativeFolder == IntPtr.Zero)
+            {
+                // can't find folder
+                return;
+            }
+
+            IntPtr nativeFile = IntPtr.Zero;
+            if (!string.IsNullOrEmpty(file))
+            {
+                SHParseDisplayName(System.IO.Path.Combine(folderPath, file), IntPtr.Zero, out nativeFile, 0, out psfgaoOut);
+            }
+
+            IntPtr[] fileArray;
+            if (nativeFile == IntPtr.Zero)
+            {
+                // Open the folder without the file selected if we can't find the file
+                fileArray = new IntPtr[] { nativeFolder };
+            }
+            else
+            {
+                fileArray = new IntPtr[] { nativeFile };
+            }
+
+            SHOpenFolderAndSelectItems(nativeFolder, (uint)fileArray.Length, fileArray, 0);
+
+            Marshal.FreeCoTaskMem(nativeFolder);
+            if (nativeFile != IntPtr.Zero)
+            {
+                Marshal.FreeCoTaskMem(nativeFile);
+            }
+        }
     }
 }

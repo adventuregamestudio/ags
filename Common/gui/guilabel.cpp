@@ -48,12 +48,12 @@ GUILabelMacro GUILabel::GetTextMacros() const
 Rect GUILabel::CalcGraphicRect(bool clipped)
 {
     if (clipped)
-        return RectWH(0, 0, Width, Height);
+        return RectWH(0, 0, _width, _height);
     // TODO: need to find a way to text position, or there'll be some repetition
     // have to precache text and size on some events:
     // - translation change
     // - macro value change (score, overhotspot etc)
-    Rect rc = RectWH(0, 0, Width, Height);
+    Rect rc = RectWH(0, 0, _width, _height);
     if (PrepareTextToDraw() == 0)
         return rc;
     const int linespacing = get_font_linespacing(Font);
@@ -61,10 +61,10 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
     int at_y = 0;
     Line max_line;
     for (size_t i = 0;
-        i < Lines.Count() && (!limit_by_label_frame || at_y <= Height);
+        i < Lines.Count() && (!limit_by_label_frame || at_y <= _height);
         ++i, at_y += linespacing)
     {
-        Line lpos = GUI::CalcTextPositionHor(Lines[i].GetCStr(), Font, 0, 0 + Width - 1, at_y,
+        Line lpos = GUI::CalcTextPositionHor(Lines[i].GetCStr(), Font, 0, 0 + _width - 1, at_y,
             (FrameAlignment)TextAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
@@ -83,10 +83,10 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     const bool limit_by_label_frame = true;
     int at_y = y;
     for (size_t i = 0;
-        i < Lines.Count() && (!limit_by_label_frame || at_y <= y + Height);
+        i < Lines.Count() && (!limit_by_label_frame || at_y <= y + _height);
         ++i, at_y += linespacing)
     {
-        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), Font, text_color, x, x + Width - 1, at_y,
+        GUI::DrawTextAlignedHor(ds, Lines[i].GetCStr(), Font, text_color, x, x + _width - 1, at_y,
             (FrameAlignment)TextAlignment);
     }
 }

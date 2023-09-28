@@ -208,7 +208,6 @@
 		526F203D1D3B513400EF4E1F /* viewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E411D3B513400EF4E1F /* viewport.cpp */; };
 		526F203E1D3B513400EF4E1F /* walkablearea.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E431D3B513400EF4E1F /* walkablearea.cpp */; };
 		526F203F1D3B513400EF4E1F /* walkbehind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E451D3B513400EF4E1F /* walkbehind.cpp */; };
-		526F20401D3B513400EF4E1F /* consoleoutputtarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E491D3B513400EF4E1F /* consoleoutputtarget.cpp */; };
 		526F20411D3B513400EF4E1F /* debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E4B1D3B513400EF4E1F /* debug.cpp */; };
 		526F20421D3B513400EF4E1F /* filebasedagsdebugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E4F1D3B513400EF4E1F /* filebasedagsdebugger.cpp */; };
 		526F20431D3B513400EF4E1F /* logfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1E511D3B513400EF4E1F /* logfile.cpp */; };
@@ -838,8 +837,6 @@
 		526F1E451D3B513400EF4E1F /* walkbehind.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = walkbehind.cpp; sourceTree = "<group>"; };
 		526F1E461D3B513400EF4E1F /* walkbehind.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = walkbehind.h; sourceTree = "<group>"; };
 		526F1E481D3B513400EF4E1F /* agseditordebugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agseditordebugger.h; sourceTree = "<group>"; };
-		526F1E491D3B513400EF4E1F /* consoleoutputtarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = consoleoutputtarget.cpp; sourceTree = "<group>"; };
-		526F1E4A1D3B513400EF4E1F /* consoleoutputtarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = consoleoutputtarget.h; sourceTree = "<group>"; };
 		526F1E4B1D3B513400EF4E1F /* debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = debug.cpp; sourceTree = "<group>"; };
 		526F1E4C1D3B513400EF4E1F /* debug_log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug_log.h; sourceTree = "<group>"; };
 		526F1E4D1D3B513400EF4E1F /* debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debugger.h; sourceTree = "<group>"; };
@@ -1845,8 +1842,6 @@
 			isa = PBXGroup;
 			children = (
 				526F1E481D3B513400EF4E1F /* agseditordebugger.h */,
-				526F1E491D3B513400EF4E1F /* consoleoutputtarget.cpp */,
-				526F1E4A1D3B513400EF4E1F /* consoleoutputtarget.h */,
 				526F1E4B1D3B513400EF4E1F /* debug.cpp */,
 				526F1E4C1D3B513400EF4E1F /* debug_log.h */,
 				526F1E4D1D3B513400EF4E1F /* debugger.h */,
@@ -2588,7 +2583,6 @@
 				526F20101D3B513400EF4E1F /* global_viewport.cpp in Sources */,
 				526F20551D3B513400EF4E1F /* gui_engine.cpp in Sources */,
 				526F1C741D3B50B900EF4E1F /* guitextbox.cpp in Sources */,
-				526F20401D3B513400EF4E1F /* consoleoutputtarget.cpp in Sources */,
 				526F208A1D3B513400EF4E1F /* getblk.c in Sources */,
 				526F20271D3B513400EF4E1F /* region.cpp in Sources */,
 				526F1FED1D3B513400EF4E1F /* gamestate.cpp in Sources */,

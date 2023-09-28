@@ -17,6 +17,7 @@ namespace AGS.Editor.Components
         private const string COMPILE_GAME_COMMAND = "CompileGame";
 		private const string REBUILD_GAME_COMMAND = "RebuildGame";
 		private const string SETUP_GAME_COMMAND = "SetupGame";
+        private const string OPEN_BUILD_FILE_EXPLORER_COMMAND = "OpenFileExplorerBuildGame";
         private const string TEST_GAME_COMMAND = "TestGame";
         private const string RUN_COMMAND = "RunGame";
         private const string STEP_INTO_COMMAND = "StepIntoDebug";
@@ -45,6 +46,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("PauseMenuIcon", Resources.ResourceManager.GetIcon("menu_build_pause.ico"));
 			_guiController.RegisterIcon("RebuildAllMenuIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
 			_guiController.RegisterIcon("SetupGameMenuIcon", Resources.ResourceManager.GetIcon("menu_build_gamesetup.ico"));
+            _guiController.RegisterIcon("OpenFolderBuildIcon", Resources.ResourceManager.GetIcon("menu_build_openfolder.ico"));
 
             _guiController.RegisterIcon("MenuIconBuildEXE", Resources.ResourceManager.GetIcon("menu_file_built-exe.ico"));
             _guiController.RegisterIcon("MenuIconTest", Resources.ResourceManager.GetIcon("menu_build_runwithout.ico"));
@@ -60,6 +62,7 @@ namespace AGS.Editor.Components
             debugCommands.Commands.Add(new MenuCommand(COMPILE_GAME_COMMAND, "&Build EXE", Keys.F7, "MenuIconBuildEXE"));
 			debugCommands.Commands.Add(new MenuCommand(REBUILD_GAME_COMMAND, "Rebuild &all files", "RebuildAllMenuIcon"));
 			debugCommands.Commands.Add(new MenuCommand(SETUP_GAME_COMMAND, "Run game setu&p...", "SetupGameMenuIcon"));
+            debugCommands.Commands.Add(new MenuCommand(OPEN_BUILD_FILE_EXPLORER_COMMAND, "Open Build Folder in File Explorer", "OpenFolderBuildIcon"));
             _guiController.AddMenuItems(this, debugCommands);
 
             _guiController.SetMenuItemEnabled(this, STEP_INTO_COMMAND, false);
@@ -224,6 +227,13 @@ namespace AGS.Editor.Components
                 catch (FileNotFoundException ex)
                 {
                     _guiController.ShowMessage(ex.Message, MessageBoxIcon.Warning);
+                }
+            }
+            else if (controlID == OPEN_BUILD_FILE_EXPLORER_COMMAND)
+            {
+                if(!Utilities.OpenFileOrDirInFileExplorer(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY)))
+                {
+                    Factory.GUIController.ShowMessage("The Compiled directory doesn't exist or has been deleted. Click Build EXE at least once to create the directory.",MessageBoxIcon.Exclamation);
                 }
             }
             else if (controlID == TEST_GAME_COMMAND)

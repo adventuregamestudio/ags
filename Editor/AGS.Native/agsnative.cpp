@@ -2111,10 +2111,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::GUIButton nbut;
           nbut.TextColor = button->TextColor;
           nbut.Font = button->Font;
-          nbut.Image = button->Image;
-          nbut.SetCurrentImage(nbut.Image);
-          nbut.MouseOverImage = button->MouseoverImage;
-          nbut.PushedImage = button->PushedImage;
+          nbut.SetNormalImage(button->Image);
+          nbut.SetCurrentImage(button->Image);
+          nbut.SetMouseOverImage(button->MouseoverImage);
+          nbut.SetPushedImage(button->PushedImage);
           nbut.TextAlignment = (::FrameAlignment)button->TextAlignment;
           nbut.ClickAction[Common::kGUIClickLeft] = (Common::GUIClickAction)button->ClickAction;
           nbut.ClickData[Common::kGUIClickLeft] = button->NewModeNumber;
@@ -2191,8 +2191,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  else if (textwindowedge)
 	  {
           Common::GUIButton nbut;
-          nbut.Image = textwindowedge->Image;
-          nbut.SetCurrentImage(nbut.Image);
+          nbut.SetNormalImage(textwindowedge->Image);
+          nbut.SetCurrentImage(textwindowedge->Image);
           guibuts.push_back(nbut);
 		  
           gui->AddControl(Common::kGUIButton, guibuts.size() - 1, &guibuts.back());
@@ -2201,8 +2201,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
       Common::GUIObject *newObj = gui->GetControl(gui->GetControlCount() - 1);
 	  newObj->X = control->Left;
 	  newObj->Y = control->Top;
-	  newObj->Width = control->Width;
-	  newObj->Height = control->Height;
+	  newObj->SetSize(control->Width, control->Height);
 	  newObj->Id = control->ID;
 	  newObj->ZOrder = control->ZOrder;
       newObj->Name = TextHelper::ConvertASCII(control->Name);
@@ -2634,7 +2633,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					AGS::Types::GUITextWindowEdge^ edge = gcnew AGS::Types::GUITextWindowEdge();
 					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = edge;
-					edge->Image = copyFrom->Image;
+					edge->Image = copyFrom->GetNormalImage();
 				}
 				else
 				{
@@ -2643,9 +2642,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 					newControl = newButton;
 					newButton->TextColor = copyFrom->TextColor;
 					newButton->Font = copyFrom->Font;
-					newButton->Image = copyFrom->Image;
-					newButton->MouseoverImage = copyFrom->MouseOverImage;
-					newButton->PushedImage = copyFrom->PushedImage;
+					newButton->Image = copyFrom->GetNormalImage();
+					newButton->MouseoverImage = copyFrom->GetMouseOverImage();
+					newButton->PushedImage = copyFrom->GetPushedImage();
 					newButton->TextAlignment = (AGS::Types::FrameAlignment)copyFrom->TextAlignment;
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kGUIClickLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kGUIClickLeft];
@@ -2721,8 +2720,9 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 			default:
 				throw gcnew AGSEditorException("Unknown control type found: " + ((int)ctrl_type).ToString());
 			}
-			newControl->Width = (curObj->Width > 0) ? curObj->Width : 1;
-			newControl->Height = (curObj->Height > 0) ? curObj->Height : 1;
+            ::Size size = curObj->GetSize();
+			newControl->Width = (size.Width > 0) ? size.Width : 1;
+			newControl->Height = (size.Height > 0) ? size.Height : 1;
 			newControl->Left = curObj->X;
 			newControl->Top = curObj->Y;
 			newControl->ZOrder = curObj->ZOrder;

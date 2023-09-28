@@ -39,11 +39,14 @@ std::vector<AnimatingGUIButton> animbuts;
 // Update the actual button's image from the current animation frame
 void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
-    const uint32_t image_flags = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags;
-    guibuts[abtn.buttonid].Image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
-    guibuts[abtn.buttonid].SetCurrentImage(guibuts[abtn.buttonid].Image, image_flags);
-    guibuts[abtn.buttonid].PushedImage = 0;
-    guibuts[abtn.buttonid].MouseOverImage = 0;
+    int image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
+    uint32_t flags = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags;
+    guibuts[abtn.buttonid].SetPushedImage(0);
+    guibuts[abtn.buttonid].SetMouseOverImage(0);
+    // FIXME: in original logic this also changed normal Image;
+    // perhaps set flags with normal image instead? or even couple with each image kind
+    guibuts[abtn.buttonid].SetNormalImage(image);
+    guibuts[abtn.buttonid].SetCurrentImage(image, flags);
 }
 
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
@@ -137,28 +140,24 @@ void Button_SetClipImage(GUIButton *butt, int newval) {
 
 int Button_GetGraphic(GUIButton *butt) {
     // return currently displayed pic
-    if (butt->CurrentImage() < 0)
-        return butt->Image;
-    return butt->CurrentImage();
+    if (butt->GetCurrentImage() < 0)
+        return butt->GetNormalImage();
+    return butt->GetCurrentImage();
 }
 
 int Button_GetMouseOverGraphic(GUIButton *butt) {
-    return butt->MouseOverImage;
+    return butt->GetMouseOverImage();
 }
 
 void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
     debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->ParentId, guil->Id, slotn);
 
-    if ((guil->IsMouseOver != 0) && (guil->IsPushed == 0) && (guil->CurrentImage() != slotn))
-    {
-        guil->SetCurrentImage(slotn);
-    }
-    guil->MouseOverImage = slotn;
+    guil->SetMouseOverImage(slotn);
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
 int Button_GetNormalGraphic(GUIButton *butt) {
-    return butt->Image;
+    return butt->GetNormalImage();
 }
 
 void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
@@ -176,32 +175,23 @@ void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
         height = game.SpriteInfos[slotn].Height;
     }
 
-    if ((slotn != guil->Image) || (width != guil->Width) || (height != guil->Height))
+    if ((slotn != guil->GetNormalImage()) || (width != guil->GetWidth()) || (height != guil->GetHeight()))
     {
-        // normal pic - update if mouse is not over, or if there's no MouseOverImage
-        if (((guil->IsMouseOver == 0) || (guil->MouseOverImage < 1)) && (guil->IsPushed == 0))
-            guil->SetCurrentImage(slotn);
-        guil->Image = slotn;
-        guil->Width = width;
-        guil->Height = height;
-        guil->MarkChanged();
+        guil->SetNormalImage(slotn);
+        guil->SetSize(width, height);
     }
 
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
 int Button_GetPushedGraphic(GUIButton *butt) {
-    return butt->PushedImage;
+    return butt->GetPushedImage();
 }
 
 void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
     debug_script_log("GUI %d Button %d pushed set to slot %d", guil->ParentId, guil->Id, slotn);
 
-    if (guil->IsPushed && (guil->CurrentImage() != slotn))
-    {
-        guil->SetCurrentImage(slotn);
-    }
-    guil->PushedImage = slotn;
+    guil->SetPushedImage(slotn);
     FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 

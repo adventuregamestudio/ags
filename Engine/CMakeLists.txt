@@ -261,8 +261,6 @@ target_sources(engine
     ac/walkbehind.cpp
     ac/walkbehind.h
     debug/agseditordebugger.h
-    debug/consoleoutputtarget.cpp
-    debug/consoleoutputtarget.h
     debug/debug.cpp
     debug/debug_log.h
     debug/debugger.h

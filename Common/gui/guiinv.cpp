@@ -77,10 +77,10 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     ItemHeight = in->ReadInt32();
 
     // ensure that some items are visible
-        if (ItemWidth > Width)
-            ItemWidth = Width;
-        if (ItemHeight > Height)
-            ItemHeight = Height;
+        if (ItemWidth > _width)
+            ItemWidth = _width;
+        if (ItemHeight > _height)
+            ItemHeight = _height;
 
     CalculateNumCells();
 }
@@ -113,8 +113,8 @@ void GUIInvWindow::CalculateNumCells()
     }
     else
     {
-        ColCount = Width / ItemWidth;
-        RowCount = Height / ItemHeight;
+        ColCount = _width / ItemWidth;
+        RowCount = _height / ItemHeight;
     }
 }
 

@@ -16,6 +16,11 @@ namespace AGS.Editor
         public const string LINUX_DATA_DIR = "data";
         private IList<string> _plugins = new List<string>();
 
+        private string GetScriptFileNameFromBasename(string basename)
+        {
+            return basename.Replace(" ", ""); // strip whitespace from script name
+        }
+
         public override IDictionary<string, string> GetRequiredLibraryPaths()
         {
             Dictionary<string, string> paths = new Dictionary<string, string>();
@@ -64,6 +69,9 @@ namespace AGS.Editor
         {
             string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, LINUX_DATA_DIR), name + ".ags");
             Utilities.TryDeleteFile(filename);
+
+            string script_filename = Path.Combine(OutputDirectoryFullPath, GetScriptFileNameFromBasename(name));
+            Utilities.TryDeleteFile(script_filename);
         }
 
         private bool CheckPluginsHaveSharedLibraries()
@@ -158,7 +166,7 @@ namespace AGS.Editor
                 Utilities.HardlinkOrCopy(Path.Combine(linuxDataLib64Dir, soName),
                     Path.Combine(editorLinuxLib64Dir, soName), true);
             }
-            string scriptFileName = GetCompiledPath(Factory.AGSEditor.BaseGameFileName.Replace(" ", "")); // strip whitespace from script name
+            string scriptFileName = GetCompiledPath(GetScriptFileNameFromBasename(Factory.AGSEditor.BaseGameFileName)); 
             string scriptText =
 @"#!/bin/sh
 scriptpath=$(readlink -f ""$0"")

@@ -541,11 +541,38 @@ namespace AGS.Editor
             {
                 if (foundInScript.FileName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
                 {
-                    Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
+                    if (_goToDefinition == "player")
+                    {
+                        CharactersComponent charactersComponent = Factory.ComponentController.FindComponent<CharactersComponent>();
+                        charactersComponent.ShowPlayerCharacter();
+                    }
+                    else
+                    {
+                        Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
+                    }
                 }
                 else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
                 {
-                    Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a Character or Inventory Item.", MessageBoxIcon.Information);
+                    if (found is ScriptVariable)
+                    {
+                        ScriptVariable sVar = found as ScriptVariable;
+                        string varType = sVar.Type;
+                        string varName = sVar.VariableName;
+
+                        BaseComponent component = Factory.ComponentController.FindComponentThatManageScriptType(varType) as BaseComponent;
+                        if(component != null)
+                        {
+                            component.ShowItemPaneByName(varName);
+                        }
+                        else
+                        {
+                            Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a GUIControl or Inventory Item.", MessageBoxIcon.Information);
+                        }
+                    }
+                    else
+                    {
+                        Factory.GUIController.ShowMessage("This is internally defined by AGS.", MessageBoxIcon.Information);
+                    }
                 }
                 else if (foundInScript.FileName == GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME)
                 {

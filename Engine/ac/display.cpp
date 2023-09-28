@@ -304,9 +304,12 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     if (disp_type < DISPLAYTEXT_NORMALOVERLAY)
         remove_screen_overlay(play.text_overlay_on);
 
-    int adjustedXX, adjustedYY;
-    Bitmap *text_window_ds = create_textual_image(text, asspch, isThought,
-        xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink);
+    // If fast-forwarding, then skip any blocking message immediately
+    if (play.fast_forward && (disp_type < DISPLAYTEXT_NORMALOVERLAY)) {
+        play.SetWaitSkipResult(SKIP_AUTOTIMER);
+        play.messagetime=-1;
+        return nullptr;
+    }
 
     //
     // Configure and create an overlay object
@@ -320,6 +323,10 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     case DISPLAYTEXT_NORMALOVERLAY: ovrtype = OVER_CUSTOM; break;
     default: ovrtype = disp_type; break; // must be precreated overlay id
     }
+
+    int adjustedXX, adjustedYY;
+    Bitmap *text_window_ds = create_textual_image(text, asspch, isThought,
+        xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink);
 
     size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy);
     auto *over = get_overlay(nse); // FIXME: optimize return value
@@ -335,14 +342,6 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     //
 
     if (disp_type == DISPLAYTEXT_MESSAGEBOX) {
-        // If fast-forwarding, then skip immediately
-        if (play.fast_forward) {
-            remove_screen_overlay(OVER_TEXTMSG);
-            play.SetWaitSkipResult(SKIP_AUTOTIMER);
-            play.messagetime=-1;
-            return nullptr;
-        }
-
         int countdown = GetTextDisplayTime(text);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         // Loop until skipped
@@ -393,11 +392,6 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
         invalidate_screen();
     }
     else { /* DISPLAYTEXT_SPEECH */
-        // if the speech does not time out, but we are skipping a cutscene,
-        // allow it to time out
-        if ((play.messagetime < 0) && (play.fast_forward))
-            play.messagetime = 2;
-
         if (!overlayPositionFixed)
         {
             over->SetRoomRelative(true);

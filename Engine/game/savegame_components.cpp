@@ -451,31 +451,6 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
     return err;
 }
 
-HSaveError WriteMoveLists(Stream *out)
-{
-    out->WriteInt32(static_cast<int32_t>(mls.size()));
-    for (const auto &movelist : mls)
-    {
-        movelist.WriteToFile(out);
-    }
-    return HSaveError::None();
-}
-
-HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
-{
-    HSaveError err;
-    size_t movelist_count = in->ReadInt32();
-    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists"))
-        return err;
-    for (size_t i = 0; i < movelist_count; ++i)
-    {
-        err = mls[i].ReadFromFile(in, cmp_ver);
-        if (!err)
-            return err;
-    }
-    return err;
-}
-
 HSaveError WriteCharacters(Stream *out)
 {
     out->WriteInt32(game.numcharacters);
@@ -1026,6 +1001,35 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
     return HSaveError::None();
 }
 
+HSaveError WriteMoveLists(Stream *out)
+{
+    out->WriteInt32(static_cast<int32_t>(mls.size()));
+    for (const auto &movelist : mls)
+    {
+        movelist.WriteToFile(out);
+    }
+    return HSaveError::None();
+}
+
+HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData& /*r_data*/)
+{
+    HSaveError err;
+    size_t movelist_count = in->ReadInt32();
+    // TODO: this assertion is needed only because mls size is fixed to the
+    // number of characters + max number of objects, where each game object
+    // has a fixed movelist index. It may be removed if movelists will be
+    // allocated on demand with an arbitrary index instead.
+    if (!AssertGameContent(err, movelist_count, mls.size(), "Move Lists"))
+        return err;
+    for (size_t i = 0; i < movelist_count; ++i)
+    {
+        err = mls[i].ReadFromFile(in, cmp_ver);
+        if (!err)
+            return err;
+    }
+    return err;
+}
+
 HSaveError WriteManagedPool(Stream *out)
 {
     ccSerializeAllObjects(out);
@@ -1242,6 +1246,13 @@ ComponentHandler ComponentHandlers[] =
         ReadThisRoom
     },
     {
+        "Move Lists",
+        2, // FIXME version must be raised, as ags3 now has this too (> 2)
+        0,
+        WriteMoveLists,
+        ReadMoveLists
+    },
+    {
         "Managed Pool",
         kManagedPoolSvgVersion_39999,
         kManagedPoolSvgVersion_Initial,
@@ -1261,13 +1272,6 @@ ComponentHandler ComponentHandlers[] =
         0,
         WritePluginData,
         ReadPluginData
-    },
-    {
-        "Move Lists",
-        0,
-        0,
-        WriteMoveLists,
-        ReadMoveLists
     },
     { nullptr, 0, 0, nullptr, nullptr } // end of array
 };

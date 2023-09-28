@@ -31,6 +31,7 @@ public:
     virtual void set_route_move_speed(int speed_x, int speed_y) = 0;
     virtual int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) = 0;
     virtual void calculate_move_stage(MoveList * mlsp, int aaa) = 0;
+    virtual void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) = 0;
 };
 
 class AGSRouteFinder : public IRouteFinder 
@@ -68,7 +69,12 @@ public:
     { 
         AGS::Engine::RouteFinder::calculate_move_stage(mlsp, aaa); 
     }
+    void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) override
+    {
+        AGS::Engine::RouteFinder::recalculate_move_speeds(mlsp, old_speed_x, old_speed_y, new_speed_x, new_speed_y);
+    }
 };
+
 
 std::unique_ptr<IRouteFinder> route_finder_impl;
 
@@ -113,4 +119,9 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
 void calculate_move_stage(MoveList * mlsp, int aaa)
 {
     route_finder_impl->calculate_move_stage(mlsp, aaa);
+}
+
+void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
+{
+    route_finder_impl->recalculate_move_speeds(mlsp, old_speed_x, old_speed_y, new_speed_x, new_speed_y);
 }

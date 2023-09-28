@@ -40,6 +40,7 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_Initial  = 0,
     kRoomStatSvgVersion_36025    = 3,
     kRoomStatSvgVersion_36041    = 4,
+    kRoomStatSvgVersion_36109    = 5,
     kRoomStatSvgVersion_39999    = 10,
     kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_39999
 };

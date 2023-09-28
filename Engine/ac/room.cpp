@@ -919,15 +919,11 @@ void convert_move_path_to_room_resolution(MoveList *ml)
     if (thisroom.MaskResolution <= 1)
         return;
 
-    ml->fromx = mask_to_room_coord(ml->fromx);
-    ml->fromy = mask_to_room_coord(ml->fromy);
-    ml->lastx = mask_to_room_coord(ml->lastx);
-    ml->lasty = mask_to_room_coord(ml->lasty);
+    ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
 
     for (int i = 0; i < ml->numstage; i++)
     {
-        ml->pos[i].X = mask_to_room_coord(ml->pos[i].X);
-        ml->pos[i].Y = mask_to_room_coord(ml->pos[i].Y);
+        ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
     }
 }
 

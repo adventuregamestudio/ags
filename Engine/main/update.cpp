@@ -66,124 +66,174 @@ bool movelist_float_equals(float a, float b) {
   return fabs(a - b) < 0.0001;
 }
 
-// Receives and modifies movelist_id and entity coordinates
-// Returns whether to there's a need to update the sprite due to a change in direction
-int do_movelist_move(short &movelist_id, int &xx, int &yy) {
-  // TODO: make sense of contradicting comments
-  int need_to_fix_sprite=0;
-  if (movelist_id<1) quit("movelist_move: attempted to move on a non-existent movelist");
-  MoveList* cmls = &mls[movelist_id];
-  float xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
 
-  int targetx = cmls->pos[cmls->onstage+1].X;
-  int targety = cmls->pos[cmls->onstage+1].Y;
-  int xps=xx, yps=yy; // the new position that will be assigned to xx and yy
-  if (cmls->doneflag & kMoveListDone_X) {
+// Optionally fixes target position, when one axis is left to move along.
+// This is done only for backwards compatibility now.
+// Uses generic parameters.
+static void movelist_handle_targetfix(const float xpermove, const float ypermove, int &targety)
+{
+    // Old comment about ancient behavior:
     // if the X-movement has finished, and the Y-per-move is < 1, finish
     // This can cause jump at the end, but without it the character will
     // walk on the spot for a while if the Y-per-move is for example 0.2
-//    if ((ypermove & 0xfffff000) == 0) cmls->doneflag|=2;
-//    int ypmm=(ypermove >> 16) & 0x0000ffff;
+    //    if ((ypermove & 0xfffff000) == 0) cmls.doneflag|=2;
+    //    int ypmm=(ypermove >> 16) & 0x0000ffff;
 
     // NEW 2.15 SR-1 plan: if X-movement has finished, and Y-per-move is < 1,
     // allow it to finish more easily by moving target zone
+    // NOTE: interesting fact: this fix was also done for the strictly vertical
+    // move, probably because of the logical mistake in condition.
 
-    int adjAmnt = 3;
-    // 2.70: if the X permove is also <=1, don't do the skipping
+    int tfix = 3;
+    // 2.70: if the X permove is also <=1, don't skip as far
     if ((trunc(xpermove) == -1) ||
         (trunc(xpermove) == 0) )
-      adjAmnt = 2;
+        tfix = 2;
 
     // 2.61 RC1: correct this to work with > -1 as well as < 1
     if (movelist_float_equals(ypermove, 0)) { }
     // Y per move is < 1, so finish the move
     else if (trunc(ypermove) == 0)
-      targety -= adjAmnt;
+        targety -= tfix;
     // Y per move is -1 exactly, don't snap to finish
     else if (movelist_float_equals(ypermove, -1)) { }
     // Y per move is > -1, so finish the move
     else if (trunc(ypermove) == -1)
-      targety += adjAmnt;
-  }
-  else xps=cmls->fromx+(int)(xpermove*(float)cmls->onpart);
-
-  if (cmls->doneflag & kMoveListDone_Y) {
-    // Y-movement has finished
-
-    int adjAmnt = 3;
-
-    // if the Y permove is also <=1, don't skip as far
-    if ((trunc(ypermove) == -1) ||
-        (trunc(ypermove) == 0))
-      adjAmnt = 2;
-
-    if (movelist_float_equals(xpermove, 0)) { }
-    // Y per move is < 1, so finish the move
-    else if (trunc(xpermove) == 0)
-      targetx -= adjAmnt;
-    // X per move is -1 exactly, don't snap to finish
-    else if (movelist_float_equals(xpermove, -1)) { }
-    // X per move is > -1, so finish the move
-    else if (trunc(xpermove) == -1)
-      targetx += adjAmnt;
-
-/*    int xpmm=(xpermove >> 16) & 0x0000ffff;
-//    if ((xpmm==0) | (xpmm==0xffff)) cmls->doneflag|=1;
-    if (xpmm==0) cmls->doneflag|=1;*/
-  }
-  else yps=cmls->fromy+(int)(ypermove*(float)cmls->onpart);
-
-  // check if finished horizontal movement
-  if (((xpermove > 0) && (xps >= targetx)) ||
-      ((xpermove < 0) && (xps <= targetx))) {
-    cmls->doneflag |= kMoveListDone_X;
-    xps = targetx;
-    // if the Y is almost there too, finish it
-    // this is new in v2.40
-    // removed in 2.70
-    /*if (abs(yps - targety) <= 2)
-      yps = targety;*/
-  }
-  else if (xpermove == 0)
-    cmls->doneflag |= kMoveListDone_X;
-
-  // check if finished vertical movement
-  if ((ypermove > 0) & (yps>=targety)) {
-    cmls->doneflag |= kMoveListDone_Y;
-    yps = targety;
-  }
-  else if ((ypermove < 0) & (yps<=targety)) {
-    cmls->doneflag |= kMoveListDone_Y;
-    yps = targety;
-  }
-  else if (ypermove == 0)
-    cmls->doneflag |= kMoveListDone_Y;
-
-  if ((cmls->doneflag & kMoveListDone_XY) == kMoveListDone_XY) {
-    // this stage is done, go on to the next stage
-    cmls->fromx=cmls->pos[cmls->onstage+1].X;
-    cmls->fromy=cmls->pos[cmls->onstage+1].Y;
-
-    cmls->onstage++;
-    cmls->onpart = -1;
-    cmls->doneflag = 0; // this used to clear only the lower 4 bits, but no upper bit was ever assigned in the first place
-    cmls->lastx = -1;
-    if (cmls->onstage < cmls->numstage) {
-      xps=cmls->fromx; yps=cmls->fromy;
-    }
-    if (cmls->onstage>=cmls->numstage-1) {  // last stage is just dest pos
-      cmls->numstage = 0;
-      movelist_id = 0; // movelist 0 means "not moving/walking"
-      need_to_fix_sprite = 1; // WARNING: value 1 is not used anywhere, could be a mistake
-    }
-    else need_to_fix_sprite = 2; // used to request a sprite direction update
-  }
-  cmls->onpart++;
-  xx = xps;
-  yy = yps;
-  return need_to_fix_sprite;
+        targety += tfix;
 }
 
+// Handle remaining move along a single axis; uses generic parameters.
+static void movelist_handle_remainer(const float xpermove, const float ypermove,
+    const int xdistance, const float step_length, fixed &fin_ymove, float &fin_from_part)
+{
+    // Walk along the remaining axis with the full walking speed
+    assert(xpermove != 0 && ypermove != 0);
+    fin_ymove = ypermove > 0 ? ftofix(step_length) : -ftofix(step_length);
+    fin_from_part = (float)xdistance / xpermove;
+}
+
+// Receives and modifies movelist_id and entity coordinates
+// Returns whether to there's a need to update the sprite due to a change in direction
+int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
+{
+    // TODO: find out why movelist 0 is not being used
+    assert(mslot >= 1);
+    if (mslot < 1)
+        return 0;
+
+    int need_to_fix_sprite = 0; // TODO: find out what this value means and refactor
+    MoveList &cmls = mls[mslot];
+    const float xpermove = cmls.xpermove[cmls.onstage];
+    const float ypermove = cmls.ypermove[cmls.onstage];
+    const fixed fin_move = cmls.fin_move;
+    const float main_onpart = (cmls.fin_from_part > 0.f) ? cmls.fin_from_part : cmls.onpart;
+    const float fin_onpart = cmls.onpart - main_onpart;
+    int targetx = cmls.pos[cmls.onstage + 1].X;
+    int targety = cmls.pos[cmls.onstage + 1].Y;
+    // the new position that will be assigned to pos_x and pos_y
+    int xps = pos_x, yps = pos_y;
+
+    // Old-style optional move target fixup
+    if (loaded_game_file_version < kGameVersion_361)
+    {
+        if ((ypermove != 0) && (cmls.doneflag & kMoveListDone_X) != 0)
+        { // X-move has finished, handle the Y-move remainer
+            movelist_handle_targetfix(xpermove, ypermove, targety);
+        }
+        else if ((xpermove != 0) && (cmls.doneflag & kMoveListDone_Y) != 0)
+        { // Y-move has finished, handle the X-move remainer
+            movelist_handle_targetfix(xpermove, ypermove, targety);
+        }
+    }
+
+    // Calculate next positions, as required
+    if ((cmls.doneflag & kMoveListDone_X) == 0)
+    {
+        xps = cmls.from.X + (int)(xpermove * main_onpart) +
+          (int)(fixtof(fin_move) * fin_onpart);
+  }
+    if ((cmls.doneflag & kMoveListDone_Y) == 0)
+    {
+        yps = cmls.from.Y + (int)(ypermove * main_onpart) +
+          (int)(fixtof(fin_move) * fin_onpart);
+    }
+
+    // Check if finished horizontal movement
+    if ((cmls.doneflag & kMoveListDone_X) == 0)
+    {
+        if (((xpermove > 0) && (xps >= targetx)) ||
+            ((xpermove < 0) && (xps <= targetx)))
+        {
+            cmls.doneflag |= kMoveListDone_X;
+            xps = targetx; // snap to the target (in case run over)
+            if (ypermove != 0)
+                movelist_handle_remainer(xpermove, ypermove, targetx - cmls.from.X,
+                    cmls.GetStepLength(), cmls.fin_move, cmls.fin_from_part);
+            // Comment about old engine behavior:
+            // if the Y is almost there too, finish it
+            // this is new in v2.40
+            // removed in 2.70
+            /*if (abs(yps - targety) <= 2)
+              yps = targety;*/
+        }
+        else if (xpermove == 0)
+        {
+            cmls.doneflag |= kMoveListDone_X;
+        }
+    }
+
+    // Check if finished vertical movement
+    if ((cmls.doneflag & kMoveListDone_Y) == 0)
+    {
+        if (((ypermove > 0) && (yps >= targety)) ||
+            ((ypermove < 0) & (yps <= targety)))
+        {
+            cmls.doneflag |= kMoveListDone_Y;
+            yps = targety; // snap to the target (in case run over)
+            if (xpermove != 0)
+                movelist_handle_remainer(ypermove, xpermove, targety - cmls.from.Y,
+                    cmls.GetStepLength(), cmls.fin_move, cmls.fin_from_part);
+        }
+        else if (ypermove == 0)
+        {
+            cmls.doneflag |= kMoveListDone_Y;
+        }
+    }
+
+    // Handle end of move stage
+    if ((cmls.doneflag & kMoveListDone_XY) == kMoveListDone_XY)
+    {
+        // this stage is done, go on to the next stage
+        cmls.from = cmls.pos[cmls.onstage + 1];
+        cmls.onstage++;
+        cmls.onpart = -1.f;
+        cmls.fin_from_part = 0.f;
+        cmls.fin_move = 0;
+        cmls.doneflag = 0;
+        if (cmls.onstage < cmls.numstage)
+        {
+            xps = cmls.from.X;
+            yps = cmls.from.Y;
+        }
+
+        if (cmls.onstage >= cmls.numstage - 1)
+        {  // last stage is just dest pos
+            cmls.numstage=0;
+            mslot = 0; // movelist 0 means "not moving/walking"
+            need_to_fix_sprite = 1; // WARNING: value 1 is not used anywhere, could be a mistake
+        }
+        else
+        {
+            need_to_fix_sprite = 2; // used to request a sprite direction update
+        }
+    }
+
+    // Make a step along the current vector and return
+    cmls.onpart += 1.f;
+    pos_x = xps;
+    pos_y = yps;
+    return need_to_fix_sprite;
+}
 
 void update_script_timers()
 {

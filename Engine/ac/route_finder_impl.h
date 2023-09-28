@@ -37,6 +37,7 @@ void set_route_move_speed(int speed_x, int speed_y);
 
 int find_route(short srcx, short srcy, short xx, short yy, AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
 void calculate_move_stage(MoveList * mlsp, int aaa);
+void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
 
 } // namespace RouteFinder
 } // namespace Engine

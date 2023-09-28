@@ -850,17 +850,6 @@ namespace AGS.Editor
 
 			preProcessedCode.Add(preprocessor.Preprocess(script.Text, script.FileName));
 
-#if DEBUG
-			// TODO: REMOVE BEFORE DISTRIBUTION
-/*			if (true)
-			{
-                string wholeScript = string.Join("\n", preProcessedCode.ToArray());
-				IScriptCompiler compiler = CompilerFactory.CreateScriptCompiler();
-				CompileResults output = compiler.CompileScript(wholeScript);
-				preprocessor.Results.AddRange(output);
-			}*/
-#endif
-
 			if (preprocessor.Results.Count > 0)
 			{
 				foreach (AGS.CScript.Compiler.Error error in preprocessor.Results)
@@ -1538,7 +1527,7 @@ namespace AGS.Editor
             NativeProxy.Instance.WriteIniFile(configFilePath, sections, true);
         }
 
-        private void SaveUserDataFile()
+        public void SaveUserDataFile()
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);

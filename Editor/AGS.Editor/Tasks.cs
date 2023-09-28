@@ -467,6 +467,11 @@ namespace AGS.Editor
                 game.Settings.UseOldKeyboardHandling = true;
             }
 
+            if (xmlVersionIndex < 3060109)
+            {
+                game.Settings.ScaleCharacterSpriteOffsets = false;
+            }
+
             System.Version editorVersion = new System.Version(AGS.Types.Version.AGS_EDITOR_VERSION);
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)

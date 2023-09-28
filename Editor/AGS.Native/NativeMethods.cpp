@@ -22,6 +22,7 @@ see the license.txt for details.
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
+#include "util/ini_util.h"
 #include "util/multifilelib.h"
 #include "util/string_utils.h"
 
@@ -676,8 +677,54 @@ namespace AGS
             if (name->Equals("OPT_CLIPGUICONTROLS")) return OPT_CLIPGUICONTROLS;
             if (name->Equals("OPT_GAMETEXTENCODING")) return OPT_GAMETEXTENCODING;
             if (name->Equals("OPT_KEYHANDLEAPI")) return OPT_KEYHANDLEAPI;
+            if (name->Equals("OPT_SCALECHAROFFSETS")) return OPT_SCALECHAROFFSETS;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
             return nullptr;
+        }
+
+        void NativeMethods::ReadIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections)
+        {
+            AGSString filename = TextHelper::ConvertUTF8(fileName);
+            AGS::Common::ConfigTree cfg;
+            if (!AGS::Common::IniUtil::Read(filename, cfg))
+                return;
+
+            sections->Clear();
+            for (const auto &section : cfg)
+            {
+                String ^secname = TextHelper::ConvertASCII(section.first);
+                Dictionary<String^, String^>^ secmap = gcnew Dictionary<String^, String^>();
+                for (const auto &item : section.second)
+                {
+                    String ^key = TextHelper::ConvertASCII(item.first);
+                    String ^value = TextHelper::ConvertUTF8(item.second);
+                    secmap[key] = value;
+                }
+                sections[secname] = secmap;
+            }
+        }
+
+        void NativeMethods::WriteIniFile(String ^fileName, Dictionary<String^, Dictionary<String^, String^>^>^ sections, bool mergeExisting)
+        {
+            AGSString filename = TextHelper::ConvertUTF8(fileName);
+            AGS::Common::ConfigTree cfg;
+            for each (auto section in sections)
+            {
+                AGSString secname = TextHelper::ConvertASCII(section.Key);
+                AGS::Common::StringOrderMap secmap;
+                for each (auto item in section.Value)
+                {
+                    AGSString key = TextHelper::ConvertASCII(item.Key);
+                    AGSString value = TextHelper::ConvertUTF8(item.Value);
+                    secmap[key] = value;
+                }
+                cfg[secname] = std::move(secmap);
+            }
+
+            if (mergeExisting)
+                AGS::Common::IniUtil::Merge(filename, cfg);
+            else
+                AGS::Common::IniUtil::Write(filename, cfg);
         }
 	}
 }

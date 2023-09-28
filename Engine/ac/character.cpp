@@ -549,7 +549,7 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     int charWidth = charpic->GetWidth();
     int charHeight = charpic->GetHeight();
     int o2x = chin->x - charWidth / 2;
-    int o2y = chin->get_effective_y() - 5;  // only check feet
+    int o2y = charextra[chin->index_id].GetEffectiveY(chin) - 5;  // only check feet
 
     if ((o2x >= o1x - charWidth) &&
         (o2x <= o1x + objWidth) &&
@@ -2231,10 +2231,11 @@ void update_character_scale(int charid)
     }
 
     const int pic = views[chin.view].loops[chin.loop].frames[chin.frame].pic;
-    int zoom, scale_width, scale_height;
+    int zoom, zoom_offs, scale_width, scale_height;
     update_object_scale(zoom, scale_width, scale_height,
         chin.x, chin.y, pic,
         chex.zoom, (chin.flags & CHF_MANUALSCALING) == 0);
+    zoom_offs = (game.options[OPT_SCALECHAROFFSETS] != 0) ? zoom : 100;
 
     // Save calculated properties and recalc GS
     chex.zoom = zoom;
@@ -2242,6 +2243,7 @@ void update_character_scale(int charid)
     chex.spr_height = game.SpriteInfos[pic].Height;
     chex.width = scale_width;
     chex.height = scale_height;
+    chex.zoom_offs = zoom_offs;
     chex.UpdateGraphicSpace(&chin);
 }
 
@@ -2549,8 +2551,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
             int height = (charextra[aschar].height < 1) ? game.SpriteInfos[sppic].Height : charextra[aschar].height;
-            tdyp = view->RoomToScreen(0, game.chars[aschar].get_effective_y() - height).first.Y
-                    - 5;
+            tdyp = view->RoomToScreen(0, charextra[aschar].GetEffectiveY(speakingChar) - height).first.Y
+                - 5;
             if (isThought) // if it's a thought, lift it a bit further up
                 tdyp -= 10;
         }
@@ -2927,6 +2929,15 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr) {
 
     talkframeptr[0] = talkframe;
     return talkwait;
+}
+
+void restore_characters()
+{
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        charextra[i].zoom_offs = (game.options[OPT_SCALECHAROFFSETS] != 0) ?
+            charextra[i].zoom : 100;
+    }
 }
 
 Rect GetCharacterRoomBBox(int charid, bool use_frame_0)

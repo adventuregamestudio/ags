@@ -363,10 +363,12 @@ void processallevents() {
         return;
     }
 
-    // make a copy of the events - if processing an event includes
-    // a blocking function it will continue to the next game loop
-    // and wipe out the event pointer we were passed
-    std::vector<EventHappened> evtcopy = std::move(events);
+    // Make a copy of the events to process them safely.
+    // WARNING: engine may actually add more events to the global events array,
+    // and they must NOT be processed here, but instead discarded at the end
+    // of this function; otherwise game may glitch.
+    // TODO: need to redesign engine events system?
+    std::vector<EventHappened> evtcopy = events;
 
     int room_was = play.room_changes;
 
@@ -380,6 +382,7 @@ void processallevents() {
             break;  // changed room, so discard other events
     }
 
+    events.clear();
     inside_processevent--;
 }
 

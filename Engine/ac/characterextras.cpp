@@ -24,6 +24,11 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
         chin->y - height - chin->z + chin->pic_yoffs, spr_width, spr_height, width, height, rotation);
 }
 
+int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const
+{
+    return chi->y - (chi->z * zoom_offs) / 100;
+}
+
 int CharacterExtras::GetFrameSoundVolume(CharacterInfo *chi) const
 {
     return ::CalcFrameSoundVolume(

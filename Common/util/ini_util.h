@@ -84,8 +84,6 @@ namespace IniUtil
     // If item already exists, only value is overwrited, if section exists,
     // new items are appended to the end of it; completely new sections are
     // appended to the end of text.
-    // Source and destination streams may refer either to different objects,
-    // or same stream opened for both reading and writing.
     // Returns FALSE if the file could not be opened for writing.
     bool Merge(const String &file, const ConfigTree &tree);
     // Similar to the above, but merges the key-value tree into the provided

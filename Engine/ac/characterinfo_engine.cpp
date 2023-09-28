@@ -39,10 +39,6 @@ extern unsigned int loopcounter;
 
 #define Random __Rand
 
-int CharacterInfo::get_effective_y() const {
-    return y - z;
-}
-
 int CharacterInfo::get_baseline() const {
     if (baseline < 1)
         return y;

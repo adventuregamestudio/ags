@@ -654,5 +654,20 @@ namespace AGS.Editor
             }
             return false;
         }
+
+        /// <summary>
+        /// Tries to get a config value stored in particular section, under certain key.
+        /// If either section or key does not exist, then returns provided default value.
+        /// </summary>
+        public static string GetConfigString(Dictionary<string, Dictionary<string, string>> cfg, string section, string key, string def)
+        {
+            Dictionary<string, string> secmap;
+            if (!cfg.TryGetValue(section, out secmap))
+                return def;
+            string value;
+            if (!secmap.TryGetValue(key, out value))
+                return def;
+            return value;
+        }
     }
 }

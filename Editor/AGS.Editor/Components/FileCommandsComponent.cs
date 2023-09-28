@@ -62,12 +62,12 @@ namespace AGS.Editor.Components
             commands.Commands.Add(new MenuCommand(RECREATE_SPRITEFILE_COMMAND, "Restore all sprites from sources"));
             _guiController.AddMenuItems(this, commands);
 
-			commands = new MenuCommands(GUIController.FILE_MENU_ID, 400);
-			commands.Commands.Add(new MenuCommand(SHOW_PREFERENCES_COMMAND, "&Preferences...", "MenuIconPreferences"));
-			_guiController.AddMenuItems(this, commands);
-
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 800);
             commands.Commands.Add(new MenuCommand(OPEN_PROJ_FILE_EXPLORER_COMMAND, "Open Project in File Explorer", "OpenProjFolderIcon"));
+            _guiController.AddMenuItems(this, commands);
+
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 9000);
+            commands.Commands.Add(new MenuCommand(SHOW_PREFERENCES_COMMAND, "&Preferences...", "MenuIconPreferences"));
             _guiController.AddMenuItems(this, commands);
 
             commands = new MenuCommands(GUIController.FILE_MENU_ID, 9999);

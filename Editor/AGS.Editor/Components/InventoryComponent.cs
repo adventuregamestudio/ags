@@ -131,7 +131,7 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
 		}
 
-        public override IList<string> GetManagedScriptTypes()
+        public override IList<string> GetManagedScriptElements()
         {
             return new string[] { "InventoryItem" };
         }

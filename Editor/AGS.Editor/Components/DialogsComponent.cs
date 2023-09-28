@@ -229,7 +229,7 @@ namespace AGS.Editor.Components
             }
         }
 
-        public override IList<string> GetManagedScriptTypes()
+        public override IList<string> GetManagedScriptElements()
         {
             return new string[] { "Dialog" };
         }

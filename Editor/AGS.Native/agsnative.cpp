@@ -2355,6 +2355,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
     game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
     game->Settings->UseOldKeyboardHandling = (thisgame.options[OPT_KEYHANDLEAPI] == 0);
+    game->Settings->ScaleCharacterSpriteOffsets = (thisgame.options[OPT_SCALECHAROFFSETS] != 0);
 
     TextConverter^ tcv = gcnew TextConverter(game->TextEncoding);
 

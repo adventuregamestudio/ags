@@ -516,7 +516,7 @@ Point get_overlay_position(const ScreenOverlay &over)
         const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
         const Point screenpt = view->RoomToScreen(
             game.chars[charid].x,
-            game.chars[charid].get_effective_y() - height).first;
+            charextra[charid].GetEffectiveY(&game.chars[charid]) - height).first;
         const Size pic_size = over.GetGraphicSize();
         int tdxp = std::max(0, screenpt.X - pic_size.Width / 2);
         int tdyp = screenpt.Y - 5;

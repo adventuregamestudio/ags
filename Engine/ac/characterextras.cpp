@@ -20,8 +20,10 @@ using namespace AGS::Common;
 
 void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
 {
-    _gs = GraphicSpace(chin->x - width / 2 + chin->pic_xoffs,
-        chin->y - height - chin->z + chin->pic_yoffs, spr_width, spr_height, width, height, rotation);
+    _gs = GraphicSpace(
+        chin->x - width / 2 + chin->pic_xoffs * zoom_offs / 100,
+        chin->y - height    - (chin->z + chin->pic_yoffs) * zoom_offs / 100,
+        spr_width, spr_height, width, height, rotation);
 }
 
 int CharacterExtras::GetEffectiveY(CharacterInfo *chi) const

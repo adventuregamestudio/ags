@@ -14,7 +14,6 @@
 #include "ac/movelist.h"
 #include <cmath>
 #include "ac/common.h"
-#include "util/bbop.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
@@ -46,7 +45,7 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
     *this = MoveList(); // reset struct
     numstage = in->ReadInt32();
-    if ((numstage == 0) && cmp_ver >= 2)
+    if (numstage == 0)
     {
         return HSaveError::None();
     }
@@ -60,9 +59,9 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     from.X = in->ReadInt32();
     from.Y = in->ReadInt32();
     onstage = in->ReadInt32();
-    BBOp::IntFloatSwap onpart_u(in->ReadInt32());
-    int finmove = in->ReadInt32();
-    BBOp::IntFloatSwap finpart_u(in->ReadInt32());
+    onpart = in->ReadFloat32();
+    fin_move = in->ReadFloat32();
+    fin_from_part = in->ReadFloat32();
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
 
@@ -73,12 +72,6 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     }
     in->ReadArrayOfFloat32(xpermove, numstage);
     in->ReadArrayOfFloat32(ypermove, numstage);
-
-    // Some variables require conversion depending on a save version
-    onpart = onpart_u.val.f;
-    fin_move = finmove;
-    fin_from_part = finpart_u.val.f;
-
     return HSaveError::None();
 }
 
@@ -91,9 +84,9 @@ void MoveList::WriteToFile(Stream *out) const
     out->WriteInt32(from.X);
     out->WriteInt32(from.Y);
     out->WriteInt32(onstage);
-    out->WriteInt32(BBOp::IntFloatSwap(onpart).val.i32);
-    out->WriteInt32(fin_move);
-    out->WriteInt32(BBOp::IntFloatSwap(fin_from_part).val.i32);
+    out->WriteFloat32(onpart);
+    out->WriteFloat32(fin_move);
+    out->WriteFloat32(fin_from_part);
     out->WriteInt8(doneflag);
     out->WriteInt8(direct);
 

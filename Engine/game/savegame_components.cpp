@@ -1247,8 +1247,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Move Lists",
-        2, // FIXME version must be raised, as ags3 now has this too (> 2)
-        0,
+        10,
+        10,
         WriteMoveLists,
         ReadMoveLists
     },

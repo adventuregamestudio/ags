@@ -104,11 +104,11 @@ static void movelist_handle_targetfix(const float xpermove, const float ypermove
 
 // Handle remaining move along a single axis; uses generic parameters.
 static void movelist_handle_remainer(const float xpermove, const float ypermove,
-    const int xdistance, const float step_length, fixed &fin_ymove, float &fin_from_part)
+    const int xdistance, const float step_length, float &fin_ymove, float &fin_from_part)
 {
     // Walk along the remaining axis with the full walking speed
     assert(xpermove != 0 && ypermove != 0);
-    fin_ymove = ypermove > 0 ? ftofix(step_length) : -ftofix(step_length);
+    fin_ymove = ypermove > 0 ? step_length : -step_length;
     fin_from_part = (float)xdistance / xpermove;
 }
 
@@ -125,7 +125,7 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     MoveList &cmls = mls[mslot];
     const float xpermove = cmls.xpermove[cmls.onstage];
     const float ypermove = cmls.ypermove[cmls.onstage];
-    const fixed fin_move = cmls.fin_move;
+    const float fin_move = cmls.fin_move;
     const float main_onpart = (cmls.fin_from_part > 0.f) ? cmls.fin_from_part : cmls.onpart;
     const float fin_onpart = cmls.onpart - main_onpart;
     int targetx = cmls.pos[cmls.onstage + 1].X;
@@ -150,12 +150,12 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     if ((cmls.doneflag & kMoveListDone_X) == 0)
     {
         xps = cmls.from.X + (int)(xpermove * main_onpart) +
-          (int)(fixtof(fin_move) * fin_onpart);
+          (int)(fin_move * fin_onpart);
   }
     if ((cmls.doneflag & kMoveListDone_Y) == 0)
     {
         yps = cmls.from.Y + (int)(ypermove * main_onpart) +
-          (int)(fixtof(fin_move) * fin_onpart);
+          (int)(fin_move * fin_onpart);
     }
 
     // Check if finished horizontal movement

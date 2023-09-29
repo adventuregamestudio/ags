@@ -850,17 +850,6 @@ namespace AGS.Editor
 
 			preProcessedCode.Add(preprocessor.Preprocess(script.Text, script.FileName));
 
-#if DEBUG
-			// TODO: REMOVE BEFORE DISTRIBUTION
-/*			if (true)
-			{
-                string wholeScript = string.Join("\n", preProcessedCode.ToArray());
-				IScriptCompiler compiler = CompilerFactory.CreateScriptCompiler();
-				CompileResults output = compiler.CompileScript(wholeScript);
-				preprocessor.Results.AddRange(output);
-			}*/
-#endif
-
 			if (preprocessor.Results.Count > 0)
 			{
 				foreach (AGS.CScript.Compiler.Error error in preprocessor.Results)
@@ -937,15 +926,6 @@ namespace AGS.Editor
             return errorToReturn;
         }
 
-        private void DeleteAnyExistingSplitResourceFiles()
-        {
-            string dir = Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
-            foreach (string fileName in Utilities.GetDirectoryFileList(dir, this.BaseGameFileName + ".0*"))
-            {
-                Utilities.TryDeleteFile(fileName);
-            }
-        }
-
         private void CreateAudioVOXFile(bool forceRebuild)
         {
             List<string> fileListForVox = new List<string>();
@@ -989,6 +969,10 @@ namespace AGS.Editor
             var buildNames = Factory.AGSEditor.CurrentGame.WorkspaceState.GetLastBuildGameFiles();
             foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
+                // Primary cleanup
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+
+                // Old files cleanup (if necessary)
                 string oldName;
                 if (!buildNames.TryGetValue(target.Name, out oldName)) continue;
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
@@ -1245,6 +1229,9 @@ namespace AGS.Editor
             string oldName;
             if (buildNames.TryGetValue(target.Name, out oldName))
             {
+                // Primary cleanup
+                target.DeleteMainGameData(Factory.AGSEditor.BaseGameFileName);
+                // Old files cleanup (if necessary)
                 if (!string.IsNullOrWhiteSpace(oldName) && oldName != Factory.AGSEditor.BaseGameFileName)
                     target.DeleteMainGameData(oldName);
             }
@@ -1540,7 +1527,7 @@ namespace AGS.Editor
             NativeProxy.Instance.WriteIniFile(configFilePath, sections, true);
         }
 
-        private void SaveUserDataFile()
+        public void SaveUserDataFile()
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);

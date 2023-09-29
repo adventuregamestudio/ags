@@ -67,8 +67,7 @@ namespace AGS.Editor
 
         public override void DeleteMainGameData(string name)
         {
-            string filename = Path.Combine(Path.Combine(OutputDirectoryFullPath, LINUX_DATA_DIR), name + ".ags");
-            Utilities.TryDeleteFile(filename);
+            DeleteCommonGameFiles(Path.Combine(OutputDirectoryFullPath, LINUX_DATA_DIR), name);
 
             string script_filename = Path.Combine(OutputDirectoryFullPath, GetScriptFileNameFromBasename(name));
             Utilities.TryDeleteFile(script_filename);

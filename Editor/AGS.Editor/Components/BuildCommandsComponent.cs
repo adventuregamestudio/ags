@@ -170,7 +170,10 @@ namespace AGS.Editor.Components
             forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
             if (_agsEditor.SaveGameFiles())
             {
-                if (!_agsEditor.CompileGame(forceRebuild, true).HasErrors)
+                var messages = _agsEditor.CompileGame(forceRebuild, true);
+                // The user data may have been amended by the building process
+                _agsEditor.SaveUserDataFile();
+                if (!messages.HasErrors)
                 {
                     _testGameInProgress = true;
                     _guiController.InteractiveTasks.TestGame(withDebugger);
@@ -247,7 +250,10 @@ namespace AGS.Editor.Components
 			forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
 			if (_agsEditor.SaveGameFiles())
 			{
-				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
+                var messages = _agsEditor.CompileGame(forceRebuild, false);
+                // The user data may have been amended by the building process
+                _agsEditor.SaveUserDataFile();
+                if (messages.Count == 0)
 				{
 					string message = "Compilation successful!";
 					Factory.GUIController.ShowOutputPanel(message);

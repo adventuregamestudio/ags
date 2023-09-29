@@ -45,6 +45,7 @@
 #include "main/game_run.h"
 #include "main/engine.h"
 #include "main/main.h"
+#include "main/update.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/agsplugin_evts.h"
@@ -674,6 +675,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
 
     restore_characters();
     restore_overlays();
+    restore_movelists();
 
     GUI::MarkAllGUIForUpdate(true, true);
 

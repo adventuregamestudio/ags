@@ -913,7 +913,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if ((xspeed == 0) || (yspeed == 0))
         quit("!SetCharacterSpeedEx: invalid speed value");
-    if ((chaa->walking > 0) && (loaded_game_file_version < kGameVersion_350))
+    if ((chaa->walking > 0) && (loaded_game_file_version < kGameVersion_361))
     {
         debug_script_warn("Character_SetSpeed: cannot change speed while walking");
         return;

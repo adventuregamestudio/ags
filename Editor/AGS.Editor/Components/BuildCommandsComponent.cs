@@ -62,6 +62,7 @@ namespace AGS.Editor.Components
             debugCommands.Commands.Add(new MenuCommand(COMPILE_GAME_COMMAND, "&Build EXE", Keys.F7, "MenuIconBuildEXE"));
 			debugCommands.Commands.Add(new MenuCommand(REBUILD_GAME_COMMAND, "Rebuild &all files", "RebuildAllMenuIcon"));
 			debugCommands.Commands.Add(new MenuCommand(SETUP_GAME_COMMAND, "Run game setu&p...", "SetupGameMenuIcon"));
+            debugCommands.Commands.Add(MenuCommand.Separator);
             debugCommands.Commands.Add(new MenuCommand(OPEN_BUILD_FILE_EXPLORER_COMMAND, "Open Build Folder in File Explorer", "OpenFolderBuildIcon"));
             _guiController.AddMenuItems(this, debugCommands);
 

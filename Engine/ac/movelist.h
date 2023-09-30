@@ -22,13 +22,6 @@ using namespace AGS; // FIXME later
 
 #define MAXNEEDSTAGES 256
 
-enum MoveListDoneFlags
-{
-    kMoveListDone_X = 0x01,
-    kMoveListDone_Y = 0x02,
-    kMoveListDone_XY = kMoveListDone_X | kMoveListDone_Y
-};
-
 struct MoveList
 {
     int     numstage = 0;
@@ -44,14 +37,8 @@ struct MoveList
     // distance passed is calculated as xpermove[onstage] * onpart;
     // made a fractional value to let recalculate movelist dynamically
     float   onpart = 0.f;
-    uint8_t doneflag = 0u;
+    uint8_t doneflag = 0u; // currently unused, but reserved
     uint8_t direct = 0;  // MoveCharDirect was used or not
-
-    // Dynamic fixups, not serialized
-    // Final section move speed and steps, used when an object
-    // finishes one of the axes sooner than the other
-    float   fin_move = 0.f;
-    float   fin_from_part = 0.f;
 
     // Gets a movelist's step length, in coordinate units
     // (normally the coord unit is a game pixel)

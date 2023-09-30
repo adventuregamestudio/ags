@@ -61,101 +61,6 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern IGraphicsDriver *gfxDriver;
 
-// specific implementation for do_movelist_move, until we understand better the algorithm and what precision is required
-bool movelist_float_equals(float a, float b) {
-  return fabs(a - b) < 0.0001;
-}
-
-
-// Optionally fixes target position, when one axis is left to move along.
-// This is done only for backwards compatibility now.
-// Uses generic parameters.
-static void movelist_handle_targetfix(const float xpermove, const float ypermove, int &targety)
-{
-    // Old comment about ancient behavior:
-    // if the X-movement has finished, and the Y-per-move is < 1, finish
-    // This can cause jump at the end, but without it the character will
-    // walk on the spot for a while if the Y-per-move is for example 0.2
-    //    if ((ypermove & 0xfffff000) == 0) cmls.doneflag|=2;
-    //    int ypmm=(ypermove >> 16) & 0x0000ffff;
-
-    // NEW 2.15 SR-1 plan: if X-movement has finished, and Y-per-move is < 1,
-    // allow it to finish more easily by moving target zone
-    // NOTE: interesting fact: this fix was also done for the strictly vertical
-    // move, probably because of the logical mistake in condition.
-
-    int tfix = 3;
-    // 2.70: if the X permove is also <=1, don't skip as far
-    if ((trunc(xpermove) == -1) ||
-        (trunc(xpermove) == 0) )
-        tfix = 2;
-
-    // 2.61 RC1: correct this to work with > -1 as well as < 1
-    if (movelist_float_equals(ypermove, 0)) { }
-    // Y per move is < 1, so finish the move
-    else if (trunc(ypermove) == 0)
-        targety -= tfix;
-    // Y per move is -1 exactly, don't snap to finish
-    else if (movelist_float_equals(ypermove, -1)) { }
-    // Y per move is > -1, so finish the move
-    else if (trunc(ypermove) == -1)
-        targety += tfix;
-}
-
-// Handle remaining move along a single axis; uses generic parameters.
-static void movelist_handle_remainer(const float xpermove, const float ypermove,
-    const int xdistance, const float step_length, float &fin_ymove, float &fin_from_part)
-{
-    // Walk along the remaining axis with the full walking speed
-    assert(xpermove != 0 && ypermove != 0);
-    fin_ymove = ypermove > 0 ? step_length : -step_length;
-    fin_from_part = (float)xdistance / xpermove;
-}
-
-// Handle remaining move fixup, but only if necessary
-static void movelist_handle_remainer(MoveList &m)
-{
-    assert(m.numstage > 0);
-    const fixed xpermove = m.xpermove[m.onstage];
-    const fixed ypermove = m.ypermove[m.onstage];
-    const Point target = m.pos[m.onstage + 1];
-    // Apply remainer to movelists where LONGER axis was completed, and SHORTER remains
-    if ((xpermove != 0) && (ypermove != 0))
-    {
-        if ((m.doneflag & kMoveListDone_XY) == kMoveListDone_X && (ypermove < xpermove))
-            movelist_handle_remainer(xpermove, ypermove, target.X - m.from.X,
-                m.GetStepLength(), m.fin_move, m.fin_from_part);
-        else if ((m.doneflag & kMoveListDone_XY) == kMoveListDone_Y && (xpermove < ypermove))
-            movelist_handle_remainer(ypermove, xpermove, target.Y - m.from.Y,
-                m.GetStepLength(), m.fin_move, m.fin_from_part);
-    }
-}
-
-// Test if move completed, returns if just completed
-static bool movelist_handle_donemove(const uint8_t testflag, const fixed xpermove, const int targetx, uint8_t &doneflag, int &xps)
-{
-    if ((doneflag & testflag) != 0)
-        return false; // already done before
-
-    if (((xpermove > 0) && (xps >= targetx)) || ((xpermove < 0) && (xps <= targetx)))
-    {
-        doneflag |= testflag;
-        xps = targetx; // snap to the target (in case run over)
-        // Comment about old engine behavior:
-        // if the Y is almost there too, finish it
-        // this is new in v2.40
-        // removed in 2.70
-        /*if (abs(yps - targety) <= 2)
-            yps = targety;*/
-        return true;
-    }
-    else if (xpermove == 0)
-    {
-        doneflag |= testflag;
-        return true;
-    }
-    return false;
-}
 
 // Receives and modifies movelist_id and entity coordinates
 // Returns whether to there's a need to update the sprite due to a change in direction
@@ -170,55 +75,33 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     MoveList &cmls = mls[mslot];
     const float xpermove = cmls.xpermove[cmls.onstage];
     const float ypermove = cmls.ypermove[cmls.onstage];
-    const float fin_move = cmls.fin_move;
-    const float main_onpart = (cmls.fin_from_part > 0.f) ? cmls.fin_from_part : cmls.onpart;
-    const float fin_onpart = cmls.onpart - main_onpart;
+    const float onpart = cmls.onpart;
     Point target = cmls.pos[cmls.onstage + 1];
     // the new position that will be assigned to pos_x and pos_y
     int xps = pos_x, yps = pos_y;
 
-    // Old-style optional move target fixup
-    if (loaded_game_file_version < kGameVersion_361)
-    {
-        if ((ypermove != 0) && (cmls.doneflag & kMoveListDone_X) != 0)
-        { // X-move has finished, handle the Y-move remainer
-            movelist_handle_targetfix(xpermove, ypermove, target.Y);
-        }
-        else if ((xpermove != 0) && (cmls.doneflag & kMoveListDone_Y) != 0)
-        { // Y-move has finished, handle the X-move remainer
-            movelist_handle_targetfix(xpermove, ypermove, target.Y);
-        }
-    }
-
-    // Calculate next positions, as required
-    if ((cmls.doneflag & kMoveListDone_X) == 0)
-    {
-        xps = cmls.from.X + (int)(xpermove * main_onpart) +
-          (int)(fin_move * fin_onpart);
-  }
-    if ((cmls.doneflag & kMoveListDone_Y) == 0)
-    {
-        yps = cmls.from.Y + (int)(ypermove * main_onpart) +
-          (int)(fin_move * fin_onpart);
-    }
+    // Calculate next positions
+    xps = cmls.from.X + (int)(xpermove * onpart);
+    yps = cmls.from.Y + (int)(ypermove * onpart);
 
     // Check if finished either horizontal or vertical movement;
-    // if any was finished just now, then also handle remainer fixup
-    if (movelist_handle_donemove(kMoveListDone_X, xpermove, target.X, cmls.doneflag, xps) ||
-        movelist_handle_donemove(kMoveListDone_Y, ypermove, target.Y, cmls.doneflag, yps))
-    {
-        movelist_handle_remainer(cmls);
-    }
+    // snap to the target (in case run over)
+    if (((xpermove > 0) && (xps >= target.X)) || ((xpermove < 0) && (xps <= target.X)))
+        xps = target.X;
+    if (((ypermove > 0) && (yps >= target.Y)) || ((ypermove < 0) && (yps <= target.Y)))
+        yps = target.Y;
+    // NOTE: since we're using floats now, let's assume that xps and yps will
+    // reach target with proper timing, in accordance to their speeds.
+    // If something goes wrong on big distances with very sharp angles,
+    // we may restore one of the old fixups, like, snap at a remaining 1 px.
 
     // Handle end of move stage
-    if ((cmls.doneflag & kMoveListDone_XY) == kMoveListDone_XY)
+    if (xps == target.X && yps == target.Y)
     {
         // this stage is done, go on to the next stage
         cmls.from = cmls.pos[cmls.onstage + 1];
         cmls.onstage++;
         cmls.onpart = -1.f;
-        cmls.fin_from_part = 0.f;
-        cmls.fin_move = 0;
         cmls.doneflag = 0;
         if (cmls.onstage < cmls.numstage)
         {
@@ -243,16 +126,6 @@ int do_movelist_move(short &mslot, int &pos_x, int &pos_y)
     pos_x = xps;
     pos_y = yps;
     return need_to_fix_sprite;
-}
-
-void restore_movelists()
-{
-    // Recalculate move remainer fixups, where necessary
-    for (auto &m : mls)
-    {
-        if (m.numstage > 0)
-            movelist_handle_remainer(m);
-    }
 }
 
 void update_script_timers()

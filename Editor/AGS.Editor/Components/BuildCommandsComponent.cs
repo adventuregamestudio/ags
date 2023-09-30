@@ -62,6 +62,7 @@ namespace AGS.Editor.Components
             debugCommands.Commands.Add(new MenuCommand(COMPILE_GAME_COMMAND, "&Build EXE", Keys.F7, "MenuIconBuildEXE"));
 			debugCommands.Commands.Add(new MenuCommand(REBUILD_GAME_COMMAND, "Rebuild &all files", "RebuildAllMenuIcon"));
 			debugCommands.Commands.Add(new MenuCommand(SETUP_GAME_COMMAND, "Run game setu&p...", "SetupGameMenuIcon"));
+            debugCommands.Commands.Add(MenuCommand.Separator);
             debugCommands.Commands.Add(new MenuCommand(OPEN_BUILD_FILE_EXPLORER_COMMAND, "Open Build Folder in File Explorer", "OpenFolderBuildIcon"));
             _guiController.AddMenuItems(this, debugCommands);
 
@@ -170,7 +171,10 @@ namespace AGS.Editor.Components
             forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
             if (_agsEditor.SaveGameFiles())
             {
-                if (!_agsEditor.CompileGame(forceRebuild, true).HasErrors)
+                var messages = _agsEditor.CompileGame(forceRebuild, true);
+                // The user data may have been amended by the building process
+                _agsEditor.SaveUserDataFile();
+                if (!messages.HasErrors)
                 {
                     _testGameInProgress = true;
                     _guiController.InteractiveTasks.TestGame(withDebugger);
@@ -247,7 +251,10 @@ namespace AGS.Editor.Components
 			forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
 			if (_agsEditor.SaveGameFiles())
 			{
-				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
+                var messages = _agsEditor.CompileGame(forceRebuild, false);
+                // The user data may have been amended by the building process
+                _agsEditor.SaveUserDataFile();
+                if (messages.Count == 0)
 				{
 					string message = "Compilation successful!";
 					Factory.GUIController.ShowOutputPanel(message);

@@ -128,6 +128,13 @@ Editor:
  - For Output Panel added "Copy selection" context menu command.
  - Implemented Log Panel that lets you see the engine and game logs right in the Editor.
  - Improved LipSync panel looks in case user's system has display scaling option enabled.
+ - "Goto Definition" command in script will now work for most of the game entities too, such as
+   Characters, GUIs, and so forth. In that case it will find a game's entity and open a respective
+   editor panel for it. This still does not work for some types, such as Room objects, and Views.
+ - Added main menu commands for opening a Project folder and Compiled folder.
+ - For script's tabs added a context menu command for opening this script's location.
+ - Added "Scale Character sprite offsets" property to General Settings. This property refers to
+   scaling of Character.z and sprite offsets added by LockViewOffset script command.
  - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
    the sizes of runtime texture and sound cache sizes respectively.
  - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
@@ -135,7 +142,12 @@ Editor:
    property tells whether this control's text has to be translated, and applied text direction
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
+ - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed GUI editor could display selection rectangle from a different GUI editor pane,
+   if two or more are displayed on screen at the same time.
+ - Fixed Editor could miss some of the files when cleaning up old compiled files after the
+   Game's Filename property is changed.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -173,33 +185,47 @@ Engine:
    which makes them platform-independent.
  - Support handling multiple mouse clicks per game frame, similar to how multiple key presses
    were supported since 3.6.0.
+ - Characters will now have their graphic offsets, set by Character.z property and LockViewOffset()
+   function, scaled along with the character's own scaling. This is done so long as the respective
+   game option is enabled in the General Settings.
  - Ensure that character and object scaling is updated even when the game is not drawn.
    This fixes rare issues when their scale property did not update in time whilst the game was
    completely fadeout, and similar cases.
- - Ensure all the script API is now correctly available for the plugins.
+ - Allow to change Character's move speed while its moving.
+ - When Character is ordered a new move command while already moving, the engine will try to make
+   a smooth transition between old and new moving without a delay.
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
+ - Engine will now skip blocking Character.Say commands instantly while skipping a cutscene.
  - Object.SetView now lets invalid loop and frame values, and fallbacks to using loop 0, frame 0,
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
    play if Object.Animate is run right after.
+ - Fixed buttons on a non-clickable GUI were still changing to "mouse over" graphic under cursor.
  - Text Overlays internal images are now registered as dynamic sprites, and their IDs may be
    read from Overlay.Graphic. This lets find out their sizes using Game.SpriteWidth/SpriteHeight
    and optionally draw them somewhere using DrawingSurface.DrawImage.
+ - Ensure all the script API is now correctly available for the plugins.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
+ - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
    "cachemax" in "misc") and "texture_cache_size".
- - Fixed script behavior in case a local variable was assigned a value without being initialized
-   with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
-   compiler, but technically could be an issue with any custom implementation.
+ - Fixed Characters may be seemingly "walking in place" for some time when arriving at destination.
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.
  - Fixed first Sierra-style speechline in a sequence was adjusting its Y position without need
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
+ - Fixed script behavior in case a local variable was assigned a value without being initialized
+   with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
+   compiler, but technically could be an issue with any custom implementation.
+ - Fixed "Before fade-in" event could be called recursively under some peculiar conditions
+   (this is a regression since 3.6.0).
+ - Fixed button click not registered if it has been made not visible and visible again during a
+   single game frame (this is a regression since 3.6.0).
 
 Engine Plugin API:
  - Added IAGSEngine.ResolveFilePath() method, which resolves a script path (with location tokens)
@@ -216,6 +242,8 @@ Compatibility:
  - Fixed Object.SetView() and SetObjectFrame() not treating -1 for loop and frame as
    "keep previous values" in older games.
  - Fixed inventory window not updated after game.top_inv_item is assigned a new value.
+ - Fixed a "New Room" command in old-style dialog scripts was preventing "First time Enter room"
+   event to be called.
 
 Web / Emscripten:
  - Fixed Safari cannot switch the game into fullscreen mode.

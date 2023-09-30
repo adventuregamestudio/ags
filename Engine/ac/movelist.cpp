@@ -60,8 +60,8 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     from.Y = in->ReadInt32();
     onstage = in->ReadInt32();
     onpart = in->ReadFloat32();
-    fin_move = in->ReadFloat32();
-    fin_from_part = in->ReadFloat32();
+    in->ReadInt32(); // UNUSED
+    in->ReadInt32(); // UNUSED
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
 
@@ -85,8 +85,8 @@ void MoveList::WriteToFile(Stream *out) const
     out->WriteInt32(from.Y);
     out->WriteInt32(onstage);
     out->WriteFloat32(onpart);
-    out->WriteFloat32(fin_move);
-    out->WriteFloat32(fin_from_part);
+    out->WriteInt32(0); // UNUSED
+    out->WriteInt32(0); // UNUSED
     out->WriteInt8(doneflag);
     out->WriteInt8(direct);
 

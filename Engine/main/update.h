@@ -12,7 +12,9 @@
 //
 //=============================================================================
 //
-//
+// Contains various update functions (moving, animating, etc).
+// TODO: cleanup this h/cpp pair, the header is mostly useless, merge with
+// something else.
 //
 //=============================================================================
 #ifndef __AGS_EE_MAIN__UPDATE_H
@@ -24,6 +26,9 @@
 // TODO: find out what this return value means, and refactor.
 // TODO: do not reset mslot in this function, reset externally instead.
 int do_movelist_move(short &mslot, int &pos_x, int &pos_y);
+// Recalculate derived (non-serialized) values in movelists
+void restore_movelists();
+// Update various things on the game frame (historical code mess...)
 void update_stuff();
 
 #endif // __AGS_EE_MAIN__UPDATE_H

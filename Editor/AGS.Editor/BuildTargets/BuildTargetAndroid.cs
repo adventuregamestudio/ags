@@ -521,9 +521,7 @@ namespace AGS.Editor
 
         public override void DeleteMainGameData(string name)
         {
-            string assetsDir = GetAssetsDir();
-            string filename = Path.Combine(assetsDir, name + ".ags");
-            Utilities.TryDeleteFile(filename);
+            DeleteCommonGameFiles(GetAssetsDir(), name);
         }
 
         public override bool Build(CompileMessages errors, bool forceRebuild)

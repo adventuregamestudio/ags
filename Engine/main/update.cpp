@@ -21,6 +21,7 @@
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
+#include "ac/game.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
@@ -28,6 +29,7 @@
 #include "ac/movelist.h"
 #include "ac/overlay.h"
 #include "ac/screenoverlay.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
@@ -382,7 +384,7 @@ void update_sierra_speech()
 
       auto *face_over = get_overlay(face_talking);
       assert(face_over != nullptr);
-      Bitmap *frame_pic = face_over->GetImage();
+      Bitmap *frame_pic = spriteset[face_over->GetSpriteNum()];
       if (game.options[OPT_SPEECHTYPE] == 3) {
         // QFG4-style fullscreen dialog
         if (facetalk_qfg4_override_placement_x)
@@ -412,6 +414,8 @@ void update_sierra_speech()
         DrawViewFrame(frame_pic, blink_vf, view_frame_x, view_frame_y);
       }
 
+      // Make sure overlay texture will get updated on screen
+      game_sprite_updated(face_over->GetSpriteNum());
       face_over->MarkChanged();
     }  // end if updatedFrame
   }

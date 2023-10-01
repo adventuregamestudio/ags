@@ -87,7 +87,17 @@ void GUIObject::MarkChanged()
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUIObject::NotifyParentChanged()
+void GUIObject::MarkParentChanged()
+{
+    // do nothing: in Editor "guis" array is not even guaranteed to be filled!
+}
+
+void GUIObject::MarkPositionChanged(bool)
+{
+    // do nothing: in Editor "guis" array is not even guaranteed to be filled!
+}
+
+void GUIObject::MarkStateChanged(bool, bool)
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }

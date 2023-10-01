@@ -120,12 +120,24 @@ size_t GUI::SplitLinesForDrawing(const char *text, bool is_translated, SplitLine
 void GUIObject::MarkChanged()
 {
     _hasChanged = true;
-    guis[ParentId].MarkControlsChanged();
+    guis[ParentId].MarkControlChanged();
 }
 
-void GUIObject::NotifyParentChanged()
+void GUIObject::MarkParentChanged()
 {
-    guis[ParentId].MarkControlsChanged();
+    guis[ParentId].MarkControlChanged();
+}
+
+void GUIObject::MarkPositionChanged(bool self_changed)
+{
+    _hasChanged |= self_changed;
+    guis[ParentId].NotifyControlPosition();
+}
+
+void GUIObject::MarkStateChanged(bool self_changed, bool parent_changed)
+{
+    _hasChanged |= self_changed;
+    guis[ParentId].NotifyControlState(Id, self_changed | parent_changed);
 }
 
 void GUIObject::ClearChanged()

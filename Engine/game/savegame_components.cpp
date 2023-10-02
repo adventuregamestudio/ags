@@ -376,6 +376,14 @@ HSaveError WriteAudio(Stream *out)
     return HSaveError::None();
 }
 
+// Savegame data format for RoomStatus
+enum AudioSvgVersion
+{
+    kAudioSvgVersion_Initial  = 0,
+    kAudioSvgVersion_35026    = 1, // source position settings
+    kAudioSvgVersion_36009    = 2, // up number of channels
+};
+
 HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/, RestoredData &r_data)
 {
     HSaveError err;
@@ -383,7 +391,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
     if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypes.size(), "Audio Clip Types"))
         return err;
     int total_channels, max_game_channels;
-    if (cmp_ver >= 2)
+    if (cmp_ver >= kAudioSvgVersion_36009)
     {
         total_channels = in->ReadInt8();
         max_game_channels = in->ReadInt8();
@@ -423,7 +431,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp*/,
             chan_info.Pan = in->ReadInt32();
             chan_info.Speed = 1000;
             chan_info.Speed = in->ReadInt32();
-            if (cmp_ver >= 1)
+            if (cmp_ver >= kAudioSvgVersion_35026)
             {
                 chan_info.XSource = in->ReadInt32();
                 chan_info.YSource = in->ReadInt32();
@@ -1159,8 +1167,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Audio",
-        2,
-        0,
+        kAudioSvgVersion_36009,
+        kAudioSvgVersion_Initial,
         WriteAudio,
         ReadAudio
     },
@@ -1194,8 +1202,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Mouse Cursors",
-        1,
-        0,
+        kCursorSvgVersion_36016,
+        kCursorSvgVersion_Initial,
         WriteMouseCursors,
         ReadMouseCursors
     },
@@ -1215,8 +1223,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        4000000,
-        0,
+        kOverSvgVersion_400,
+        kOverSvgVersion_Initial,
         WriteOverlays,
         ReadOverlays
     },
@@ -1250,8 +1258,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Move Lists",
-        4000000,
-        4000000,
+        kMoveSvgVersion_400,
+        kMoveSvgVersion_400,
         WriteMoveLists,
         ReadMoveLists
     },

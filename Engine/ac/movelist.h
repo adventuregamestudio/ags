@@ -22,6 +22,14 @@ using namespace AGS; // FIXME later
 
 #define MAXNEEDSTAGES 256
 
+enum MoveListSvgVersion
+{
+    kMoveSvgVersion_Initial = 0,
+    kMoveSvgVersion_350     = 1, // new pathfinder, arbitrary number of stages
+    kMoveSvgVersion_36109   = 2, // skip empty lists, progress as float
+    kMoveSvgVersion_400     = 4000000, // fixed->floats, positions are int32
+};
+
 struct MoveList
 {
     int     numstage = 0;

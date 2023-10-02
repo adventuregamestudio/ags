@@ -151,7 +151,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
     }
-    if (cmp_ver >= 10)
+    if (cmp_ver >= kRoomStatSvgVersion_400)
     {
         blend_mode = (BlendMode)in->ReadInt32();
         // Reserved for colour options

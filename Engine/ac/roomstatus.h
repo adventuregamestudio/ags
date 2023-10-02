@@ -39,11 +39,11 @@ enum RoomStatSvgVersion
 {
     kRoomStatSvgVersion_Initial  = 0,
     kRoomStatSvgVersion_36016    = 1, // hotspot and object names
-    // 2 is skipped because of mistake
+    // 2 was practically unused
     kRoomStatSvgVersion_36025    = 3, // object animation volume
     kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
-    kRoomStatSvgVersion_400      = 4000000,
+    kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
     kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_400
 };
 

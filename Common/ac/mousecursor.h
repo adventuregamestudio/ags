@@ -23,6 +23,13 @@ using namespace AGS; // FIXME later
 #define MCF_STANDARD 4
 #define MCF_HOTSPOT  8  // only animate when over hotspot
 
+enum CursorSvgVersion
+{
+    kCursorSvgVersion_Initial = 0,
+    kCursorSvgVersion_36016   = 1, // animation delay
+};
+
+
 struct MouseCursor {
     int   pic = 0;
     short hotx = 0, hoty = 0;

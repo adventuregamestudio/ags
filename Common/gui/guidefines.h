@@ -42,6 +42,7 @@
 // 3.4.0      (118): Removed GUI limits
 // 3.5.0      (119): Game data contains GUI properties that previously
 //                   could be set only at runtime.
+// Since then format value is defined as AGS version represented as NN,NN,NN,NN
 //=============================================================================
 
 enum GuiVersion
@@ -153,8 +154,7 @@ enum GuiSvgVersion
     kGuiSvgVersion_36020,
     kGuiSvgVersion_36023,
     kGuiSvgVersion_36025,
-    kGuiSvgVersion_399      = 10,
-    kGuiSvgVersion_3991
+    kGuiSvgVersion_400      = 4000000
 };
 
 enum GuiDisableStyle

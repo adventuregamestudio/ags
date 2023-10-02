@@ -38,11 +38,13 @@ struct HotspotState
 enum RoomStatSvgVersion
 {
     kRoomStatSvgVersion_Initial  = 0,
-    kRoomStatSvgVersion_36025    = 3,
-    kRoomStatSvgVersion_36041    = 4,
-    kRoomStatSvgVersion_36109    = 5,
-    kRoomStatSvgVersion_39999    = 10,
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_39999
+    kRoomStatSvgVersion_36016    = 1, // hotspot and object names
+    // 2 is skipped because of mistake
+    kRoomStatSvgVersion_36025    = 3, // object animation volume
+    kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
+    kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
+    kRoomStatSvgVersion_400      = 4000000,
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_400
 };
 
 // RoomStatus contains everything about a room that could change at runtime.

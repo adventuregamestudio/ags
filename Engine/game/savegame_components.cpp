@@ -1128,10 +1128,11 @@ HSaveError ReadPluginData(Stream *in, int32_t /*cmp_ver*/, const PreservedParams
 
 
 // TODO: move elsewhere later
+// FIXME: currently not passed into the dynamic object deserializer
 enum ManagedPoolSavegameVersion
 {
     kManagedPoolSvgVersion_Initial = 0,
-    kManagedPoolSvgVersion_39999   = 10
+    kManagedPoolSvgVersion_400     = 4000000 // typeinfo for dynamic objects
 };
 
 // Description of a supported game state serialization component
@@ -1147,10 +1148,12 @@ struct ComponentHandler
 // Array of supported components
 ComponentHandler ComponentHandlers[] =
 {
+    // NOTE: the new format values should now be defined as AGS version
+    // at which a change was introduced, represented as NN,NN,NN,NN.
     {
         "Game State",
-        kGSSvgVersion_399,
-        kGSSvgVersion_399,
+        kGSSvgVersion_400,
+        kGSSvgVersion_400,
         WriteGameState,
         ReadGameState
     },
@@ -1163,8 +1166,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        10,
-        10,
+        kCharSvgVersion_400,
+        kCharSvgVersion_400,
         WriteCharacters,
         ReadCharacters
     },
@@ -1177,7 +1180,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "GUI",
-        kGuiSvgVersion_3991,
+        kGuiSvgVersion_400,
         kGuiSvgVersion_Initial,
         WriteGUI,
         ReadGUI
@@ -1212,7 +1215,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Overlays",
-        10,
+        4000000,
         0,
         WriteOverlays,
         ReadOverlays
@@ -1233,36 +1236,36 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_39999,
-        kRoomStatSvgVersion_39999,
+        kRoomStatSvgVersion_400,
+        kRoomStatSvgVersion_400,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_39999, // must correspond to "Room States"
-        kRoomStatSvgVersion_39999,
+        kRoomStatSvgVersion_400, // must correspond to "Room States"
+        kRoomStatSvgVersion_400,
         WriteThisRoom,
         ReadThisRoom
     },
     {
         "Move Lists",
-        10,
-        10,
+        4000000,
+        4000000,
         WriteMoveLists,
         ReadMoveLists
     },
     {
         "Managed Pool",
-        kManagedPoolSvgVersion_39999,
+        kManagedPoolSvgVersion_400,
         kManagedPoolSvgVersion_Initial,
         WriteManagedPool,
         ReadManagedPool
     },
     {
         "RTTI",
-        0,
-        0,
+        4000000,
+        4000000,
         WriteRTTI,
         ReadRTTI
     },

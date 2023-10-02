@@ -369,7 +369,15 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         TextAlignment = (FrameAlignment)in->ReadInt32();
     // Dynamic state
     _currentImage = in->ReadInt32();
-    _imageFlags = (svg_ver >= kGuiSvgVersion_3991 ? in->ReadInt32() : false);
+
+    if (svg_ver >= kGuiSvgVersion_400)
+    {
+        _imageFlags = in->ReadInt32();
+    }
+    else
+    {
+        _imageFlags = 0;
+    }
 
     // Update current state after reading
     IsPushed = false;

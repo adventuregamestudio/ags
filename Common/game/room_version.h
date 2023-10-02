@@ -47,14 +47,17 @@
 32:  v3.5.0 - 64-bit file offsets
 33:  v3.5.0.8 - deprecated room resolution, added mask resolution
 40:  v3.9.9 - room object blend modes
+Since then format value is defined as AGS version represented as NN,NN,NN,NN.
+v4.0.0: Raised for org purposes without format changes
 */
 enum RoomFileVersion
 {
     kRoomVersion_Undefined  = 0,
     kRoomVersion_3508       = 33,
     kRoomVersion_399        = 40,
+    kRoomVersion_400        = 4000000,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_399
+    kRoomVersion_Current    = kRoomVersion_400
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

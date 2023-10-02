@@ -17,6 +17,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/object.h"
+#include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -139,11 +140,11 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     flags = in->ReadInt8();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
-    if (cmp_ver >= 1)
+    if (cmp_ver >= kRoomStatSvgVersion_36016)
     {
         name = StrUtil::ReadString(in);
     }
-    if (cmp_ver >= 2)
+    if (cmp_ver >= kRoomStatSvgVersion_36025)
     { // anim vols order inverted compared to character, by mistake :(
         cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
         anim_volume = static_cast<uint8_t>(in->ReadInt8());

@@ -117,7 +117,8 @@ In RTL mode all text is reversed, not only wrappable (labels etc).
 
 3.9.9 :
 BlendModes
-
+4.0.0 :
+Raised for org purposes without format changes
 */
 
 enum GameDataVersion
@@ -126,8 +127,9 @@ enum GameDataVersion
     kGameVersion_360_21         = 3060021,
     kGameVersion_361            = 3060100,
     kGameVersion_399            = 3999999,
+    kGameVersion_400            = 4000000,
     kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_399
+    kGameVersion_Current        = kGameVersion_400
 };
 
 // Data format version of the loaded game

@@ -100,7 +100,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     timeout = in->ReadInt32();
     bgSpeechForChar = in->ReadInt32();
     associatedOverlayHandle = in->ReadInt32();
-    if (cmp_ver >= 3)
+    if (cmp_ver >= kOverSvgVersion_36025)
     {
         _flags = in->ReadInt16();
     }
@@ -111,12 +111,12 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
             _flags |= kOver_PositionAtRoomXY;
     }
 
-    if (cmp_ver >= 1)
+    if (cmp_ver >= kOverSvgVersion_35028)
     {
         offsetX = in->ReadInt32();
         offsetY = in->ReadInt32();
     }
-    if (cmp_ver >= 2)
+    if (cmp_ver >= kOverSvgVersion_36008)
     {
         zorder = in->ReadInt32();
         transparency = in->ReadInt32();
@@ -126,7 +126,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 
     // New saves always save overlay images as a part of the dynamicsprite set;
     // old saves could contain images saved along with overlays
-    if ((cmp_ver >= 4) || (_flags & kOver_SpriteShared))
+    if ((cmp_ver >= kOverSvgVersion_36108) || (_flags & kOver_SpriteShared))
     {
         _sprnum = pic;
         has_bitmap = false;
@@ -137,7 +137,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
         has_bitmap = pic != 0;
     }
 
-    if (cmp_ver >= 10)
+    if (cmp_ver >= kOverSvgVersion_400)
     {
         blendMode = (BlendMode)in->ReadInt32();
         // Reserved for colour options

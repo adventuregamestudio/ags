@@ -29,6 +29,13 @@ using namespace AGS; // FIXME later
 
 struct CharacterInfo;
 
+enum CharacterSvgVersion
+{
+    kCharSvgVersion_Initial = 0,
+    kCharSvgVersion_36025   = 2, // animation volume
+    kCharSvgVersion_400     = 4000000,
+};
+
 // The CharacterInfo struct size is fixed because it's exposed to script
 // and plugin API, therefore new stuff has to go here
 // TODO: now safe to merge with CharacterInfo into one class

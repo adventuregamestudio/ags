@@ -672,7 +672,7 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_version)
     MouseWasAt.X = in->ReadInt32();
     MouseWasAt.Y = in->ReadInt32();
 
-    if (svg_version >= kGuiSvgVersion_399)
+    if (svg_version >= kGuiSvgVersion_400)
     {
         BlendMode = (Common::BlendMode)in->ReadInt32();
 

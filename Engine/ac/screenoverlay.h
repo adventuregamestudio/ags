@@ -46,6 +46,15 @@ enum OverlayFlags
     kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
 };
 
+enum OverlaySvgVersion
+{
+    kOverSvgVersion_Initial = 0,
+    kOverSvgVersion_35028   = 1, // offset x,y
+    kOverSvgVersion_36008   = 2, // z, transparency
+    kOverSvgVersion_36025   = 3, // merged options into flags
+    kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
+};
+
 struct ScreenOverlay
 {
     int type = -1, timeout = 0;

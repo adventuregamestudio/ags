@@ -22,6 +22,14 @@ using namespace AGS; // FIXME later
 #define MCF_DISABLED 2
 #define MCF_STANDARD 4
 #define MCF_HOTSPOT  8  // only animate when over hotspot
+
+enum CursorSvgVersion
+{
+    kCursorSvgVersion_Initial = 0,
+    kCursorSvgVersion_36016   = 1, // animation delay
+};
+
+
 // IMPORTANT: exposed to plugin API as AGSCursor!
 // do not change topmost fields, unless planning breaking compatibility.
 struct MouseCursor {

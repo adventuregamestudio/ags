@@ -42,7 +42,6 @@ namespace AGS.Editor
         public const string OUTPUT_DIRECTORY = "Compiled";
         public const string DATA_OUTPUT_DIRECTORY = "Data"; // subfolder in OUTPUT_DIRECTORY for data file outputs
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
-        //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
 		public const string BACKUP_EXTENSION = "bak";
         public const string OLD_GAME_FILE_NAME = "ac2game.dta";
@@ -108,9 +107,10 @@ namespace AGS.Editor
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
          * 3.99.99.07     - PO translations
+         * 4.00.00.00     - Raised for org purposes without project changes
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 3999907;
+        public const int    LATEST_XML_VERSION_INDEX = 4000000;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.

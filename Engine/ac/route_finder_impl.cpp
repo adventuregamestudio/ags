@@ -166,6 +166,8 @@ inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist,
     float v_squared = (a_squared * b_squared * (1.f + m_squared)) / (b_squared + a_squared * m_squared);
     useMoveSpeed = sqrtf(v_squared);
   }
+  // validate that the computed speed is in a valid range
+  assert(useMoveSpeed >= std::min(speed_x, speed_y) && useMoveSpeed <= std::max(speed_x, speed_y));
   return useMoveSpeed;
 }
 
@@ -217,6 +219,9 @@ void calculate_move_stage(MoveList * mlsp, int index)
   // since adj=hyp*cos, work out X step size
   //fixed newxmove = useMoveSpeed * fcos(angl);
   float newxmove = useMoveSpeed * cos(angl);
+
+  // validate that the computed movement isn't larger than the set maxima
+  assert(newxmove <= move_speed_x && newymove <= move_speed_y);
 
   if (destx < ourx)
     newxmove = -newxmove;

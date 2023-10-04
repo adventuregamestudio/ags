@@ -323,7 +323,7 @@ enum DirectionalLoop
 
 // Internal direction-facing functions
 
-DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff)
+DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
 
@@ -1845,7 +1845,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
     const float ypmove = cmls->ypermove[cmls->onstage];
 
     // if not moving, do nothing
-    if ((xpmove == 0) && (ypmove == 0))
+    if ((xpmove == 0.f) && (ypmove == 0.f))
         return;
 
     const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove);

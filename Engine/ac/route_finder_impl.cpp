@@ -135,24 +135,39 @@ void set_route_move_speed(int speed_x, int speed_y)
 inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist, float ydist)
 {
   float useMoveSpeed;
-  if (speed_x == speed_y) {
+  // short circuit degenerate "simple" cases
+  if (xdist == 0.f || speed_x == 0.f) {
+      useMoveSpeed = speed_y;
+  }
+  else if (ydist == 0.f || speed_y == 0.f) {
+      useMoveSpeed = speed_x;
+  }
+  else if (speed_x == speed_y) {
     useMoveSpeed = speed_x;
   }
   else {
     // different X and Y move speeds
-    // the X proportion of the movement is (x / (x + y))
-    float xproportion = xdist / (xdist + ydist);
-
-    // TODO: Investigate why the following comments are the opposite of what's being done
-    if (move_speed_x > move_speed_y) {
-      // speed = y + ((1 - xproportion) * (x - y))
-      useMoveSpeed = move_speed_y + (xproportion * (move_speed_x - move_speed_y));
-    }
-    else {
-      // speed = x + (xproportion * (y - x))
-      useMoveSpeed = move_speed_x + ((1.f - xproportion) * (move_speed_y - move_speed_x));
-    }
+    // speed_x and speed_y are the axis of an ellipse, whose border represent the "valid"
+    // movement speeds at each angle. The equation for that is
+    // (x/a)^2 + (y/b)^2 = 1
+    // where
+    // a == speed_x
+    // b == speed_y
+    // ydist and xdist give a straight line for the movement at this stage. Its equation is
+    // y = mx
+    // The slope m is ydist/xdist.
+    // The velocity we want to compute is the length of the segment of that line from the
+    // origin to its intersection with the ellipse. The coordinates of that intersection
+    // can be found by substituting y = mx into the equation of the ellipse to solve for
+    // x, and then solving back for y. The velocity is then computed by Pithagora's theorem.
+    float a_squared = speed_x * speed_x;
+    float b_squared = speed_y * speed_y;
+    float m_squared = (ydist * ydist) / (xdist * xdist);
+    float v_squared = (a_squared * b_squared * (1.f + m_squared)) / (b_squared + a_squared * m_squared);
+    useMoveSpeed = sqrtf(v_squared);
   }
+  // validate that the computed speed is in a valid range
+  assert(useMoveSpeed >= std::min(speed_x, speed_y) && useMoveSpeed <= std::max(speed_x, speed_y));
   return useMoveSpeed;
 }
 
@@ -204,6 +219,9 @@ void calculate_move_stage(MoveList * mlsp, int index)
   // since adj=hyp*cos, work out X step size
   //fixed newxmove = useMoveSpeed * fcos(angl);
   float newxmove = useMoveSpeed * cos(angl);
+
+  // validate that the computed movement isn't larger than the set maxima
+  assert(newxmove <= move_speed_x && newymove <= move_speed_y);
 
   if (destx < ourx)
     newxmove = -newxmove;

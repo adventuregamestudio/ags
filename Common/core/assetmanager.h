@@ -30,6 +30,7 @@
 #define __AGS_CN_CORE__ASSETMANAGER_H
 
 #include <memory>
+#include <functional>
 #include "core/asset.h"
 #include "util/file.h" // TODO: extract filestream mode constants or introduce generic ones
 

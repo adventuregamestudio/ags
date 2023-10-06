@@ -40,6 +40,7 @@
 
 #include <stdarg.h>
 #include <vector>
+#include <string>
 #include "core/platform.h"
 #include "core/types.h"
 #include "debug/assert.h"

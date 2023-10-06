@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string>
+#include <stdexcept>
 #include "cc_compiledscript.h"
 #include "script/cc_common.h"
 #include "script/cc_internal.h"

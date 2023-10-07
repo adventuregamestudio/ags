@@ -741,7 +741,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 }
 
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
 {
   assert(onscreen != nullptr);
   assert((movlst >= 0) && (mls.size() > static_cast<size_t>(movlst)));
@@ -859,25 +859,23 @@ stage_again:
 #ifdef DEBUG_PATHFINDER
     AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stage, %d stages", orisrcx,orisrcy,xx,yy,pathbackstage,numstages);
 #endif
-    int mlist = movlst;
-    mls[mlist].numstage = numstages;
-    memcpy(&mls[mlist].pos[0], &reallyneed[0], sizeof(Point) * numstages);
+    MoveList mlist;
+    mlist.numstage = numstages;
+    memcpy(&mlist.pos[0], &reallyneed[0], sizeof(Point) * numstages);
 #ifdef DEBUG_PATHFINDER
     AGS::Common::Debug::Printf("stages: %d\n",numstages);
 #endif
 
     for (aaa = 0; aaa < numstages - 1; aaa++) {
-      calculate_move_stage(&mls[mlist], aaa);
+      calculate_move_stage(&mlist, aaa);
     }
 
-    mls[mlist].from = { orisrcx, orisrcy };
-    mls[mlist].onstage = 0;
-    mls[mlist].onpart = 0.f;
-    mls[mlist].doneflag = 0;
+    mlist.from = { orisrcx, orisrcy };
+    mls[move_id] = mlist;
 #ifdef DEBUG_PATHFINDER
     // getch();
 #endif
-    return mlist;
+    return move_id;
   } else {
     return 0;
   }

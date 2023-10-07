@@ -282,7 +282,7 @@ void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, i
 }
 
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
 {
   int i;
 
@@ -315,21 +315,19 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,num_navpoints);
 #endif
 
-  int mlist = movlst;
-  mls[mlist].numstage = num_navpoints;
-  memcpy(&mls[mlist].pos[0], &navpoints[0], sizeof(Point) * num_navpoints);
+  MoveList mlist;
+  mlist.numstage = num_navpoints;
+  memcpy(&mlist.pos[0], &navpoints[0], sizeof(Point) * num_navpoints);
 #ifdef DEBUG_PATHFINDER
   AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
 #endif
 
   for (i=0; i<num_navpoints-1; i++)
-    calculate_move_stage(&mls[mlist], i);
+    calculate_move_stage(&mlist, i);
 
-  mls[mlist].from = { srcx, srcy };
-  mls[mlist].onstage = 0;
-  mls[mlist].onpart = 0.f;
-  mls[mlist].doneflag = 0;
-  return mlist;
+  mlist.from = { srcx, srcy };
+  mls[move_id] = mlist;
+  return move_id;
 }
 
 

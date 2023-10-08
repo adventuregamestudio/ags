@@ -586,7 +586,7 @@ void shutdown_sound()
     stop_all_sound_and_music(); // game logic
     audio_core_shutdown(); // audio core system
     soundcache_clear(); // clear cached data
-    sys_audio_shutdown(); // backend
+    if(usetup.audio_enabled) sys_audio_shutdown(); // backend
     usetup.audio_enabled = false;
 }
 

@@ -39,15 +39,22 @@ int sys_main_init(/*config*/) {
     SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
 #endif
     // TODO: setup these subsystems in config rather than keep hardcoded?
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0) {
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
+    }
+    if(SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0) {
+        // In non-desktop pc platforms, there is a chance that the gamecontroller is indeed necessary
+        // For now, it's better to just warn and rely on other input methods, in ags4 we can review this
+        Debug::Printf(kDbgMsg_Warn, "Unable to initialize SDL Gamepad: %s", SDL_GetError());
     }
     return 0;
 }
 
 void sys_main_shutdown() {
     sys_window_destroy();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
+    // TO-DO: find somewhere to save if gamecontroller subsystem was initialized or not and quit it specifically too
     SDL_Quit();
 }
 
@@ -140,6 +147,8 @@ bool sys_audio_init(const String &driver_name)
 
 void sys_audio_shutdown()
 {
+    // Note: a subsystem that failed to initialize, doesn't increment ref-count
+    // Additionally, we may not have init it at all, see engine_init_audio
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 

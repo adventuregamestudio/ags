@@ -665,8 +665,10 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         if (iep->BgColor > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
-        int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
-        int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
+        const int leftRightWidth = game.SpriteInfos[get_but_pic(iep,4)].Width;
+        const int topBottomHeight = game.SpriteInfos[get_but_pic(iep,6)].Height;
+        const bool clip_borders = loaded_game_file_version >= kGameVersion_361;
+        // GUI middle space
         if (iep->BgImage>0) {
             {
                 // offset the background image and clip it so that it is drawn
@@ -692,14 +694,22 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                 ds->ResetClip();
             }
         }
+        // Vertical borders
+        if (clip_borders)
+            ds->SetClip(Rect(xx1 - leftRightWidth, yy1, xx2 + 1 + leftRightWidth, yy2));
         for (int uu=yy1;uu <= yy2;uu+= game.SpriteInfos[get_but_pic(iep,4)].Height) {
             do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
             do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
         }
+        // Horizontal borders
+        if (clip_borders)
+            ds->SetClip(Rect(xx1, yy1 - topBottomHeight, xx2, yy2 + 1 + topBottomHeight));
         for (int uu=xx1;uu <= xx2;uu+=game.SpriteInfos[get_but_pic(iep,6)].Width) {
             do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
             do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
         }
+        ds->ResetClip();
+        // Four corners
         do_corner(ds, get_but_pic(iep,0),xx1,yy1,-1,-1);  // top left
         do_corner(ds, get_but_pic(iep,1),xx1,yy2+1,-1,0);  // bottom left
         do_corner(ds, get_but_pic(iep,2),xx2+1,yy1,0,-1);  //  top right

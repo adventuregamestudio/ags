@@ -22,6 +22,13 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+// TODO: prehaps refactor the whole sys_main into the singleton class at some point
+struct SysMainInfo
+{
+    // Indicates which subsystems did we initialize
+    uint32_t SDLSubsystems = 0u;
+} static gl_SysMainInfo;
+
 // ----------------------------------------------------------------------------
 // INIT / SHUTDOWN
 // ----------------------------------------------------------------------------
@@ -43,19 +50,24 @@ int sys_main_init(/*config*/) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
     }
-    if(SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0) {
+    bool controller_res = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0;
+    if (!controller_res) {
         // In non-desktop pc platforms, there is a chance that the gamecontroller is indeed necessary
         // For now, it's better to just warn and rely on other input methods, in ags4 we can review this
         Debug::Printf(kDbgMsg_Warn, "Unable to initialize SDL Gamepad: %s", SDL_GetError());
     }
+    gl_SysMainInfo.SDLSubsystems =
+          SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS |
+          SDL_INIT_GAMECONTROLLER * controller_res;
     return 0;
 }
 
 void sys_main_shutdown() {
     sys_window_destroy();
-    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
-    // TO-DO: find somewhere to save if gamecontroller subsystem was initialized or not and quit it specifically too
+    sys_audio_shutdown(); // in case it's still on
+    SDL_QuitSubSystem(gl_SysMainInfo.SDLSubsystems);
     SDL_Quit();
+    gl_SysMainInfo.SDLSubsystems = 0u;
 }
 
 void sys_set_background_mode(bool /*on*/) {
@@ -114,6 +126,8 @@ void sys_renderer_set_output(const String &name)
 
 bool sys_audio_init(const String &driver_name)
 {
+    if ((gl_SysMainInfo.SDLSubsystems & SDL_INIT_AUDIO) != 0)
+        return true;
     // IMPORTANT: we must use a combination of SDL_setenv and SDL_InitSubSystem
     // here, and NOT use SDL_AudioInit, because SDL_AudioInit does not increment
     // subsystem's reference count. Which in turn may cause problems down the
@@ -142,6 +156,7 @@ bool sys_audio_init(const String &driver_name)
     else
         Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver; error: %s",
             SDL_GetError());
+    gl_SysMainInfo.SDLSubsystems |= SDL_INIT_AUDIO * res;
     return res;
 }
 
@@ -149,7 +164,9 @@ void sys_audio_shutdown()
 {
     // Note: a subsystem that failed to initialize, doesn't increment ref-count
     // Additionally, we may not have init it at all, see engine_init_audio
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    if ((gl_SysMainInfo.SDLSubsystems & SDL_INIT_AUDIO) != 0)
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    gl_SysMainInfo.SDLSubsystems &= ~SDL_INIT_AUDIO;
 }
 
 

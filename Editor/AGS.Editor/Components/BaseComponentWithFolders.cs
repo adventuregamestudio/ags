@@ -9,7 +9,9 @@ using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {
-    public abstract class BaseComponentWithFolders<ItemType,FolderType> : BaseComponent, IRePopulatableComponent
+    public abstract class BaseComponentWithFolders<ItemType,FolderType> :
+            BaseComponent,
+            IRePopulatableComponent
         where ItemType : IToXml
         where FolderType : BaseFolderCollection<ItemType,FolderType>
     {
@@ -460,21 +462,39 @@ namespace AGS.Editor.Components
             return null;
         }
 
+        #region IRePopulatableComponent
+
         public void RePopulateTreeView(string selectedNodeID)
         {
-            RePopulateTreeView();
+            RePopulateTreeViewImpl(true);
             _guiController.ProjectTree.SelectNode(this, selectedNodeID);
         }
 
         public void RePopulateTreeView()
-        {            
+        {
+            RePopulateTreeViewImpl(false);
+        }
+
+        #endregion // IRePopulatableComponent
+
+        private void RePopulateTreeViewImpl(bool restoreNodeStates)
+        {
+            List<string> savedExpansionState = null;
+            if (restoreNodeStates)
+                savedExpansionState = _guiController.ProjectTree.GetExpansionState();
+
             _items.Clear();
             _folders.Clear();
             _folders.Add(TOP_LEVEL_COMMAND_ID, this.GetRootFolder());
+            _guiController.ProjectTree.BeginUpdate();
             _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
             AddExtraManualNodesToTree();
             PopulateTreeForFolder(this.GetRootFolder(), TOP_LEVEL_COMMAND_ID);
+
+            if (restoreNodeStates)
+                _guiController.ProjectTree.SetExpansionState(savedExpansionState);
+            _guiController.ProjectTree.EndUpdate();
         }
     }
 }

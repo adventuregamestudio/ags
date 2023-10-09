@@ -1732,6 +1732,33 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 	if (colDepth == 8)
 	{
 		cli::array<System::Drawing::Color> ^bmpPalette = bmp->Palette->Entries;
+    
+    // determine actual transparency index, in case of GIF or other formats that can mark a specific palette entry
+    int transparency_index = 0;
+    for (int i = 0; i < bmpPalette->Length; ++i) {
+      if (bmpPalette[i].A == 0) {
+        transparency_index = i;
+        System::Drawing::Color toswap = bmpPalette[0];
+        bmpPalette[0] = bmpPalette[i];
+        bmpPalette[i] = toswap;
+        break; // to avoid blank palette entries
+      }
+    }
+    
+    // normalize tranparency to palette entry zero
+    if (transparency_index != 0)
+    {
+      for (int tt = 0; tt<tempsprite->GetWidth(); tt++) {
+        for (int uu = 0; uu<tempsprite->GetHeight(); uu++) {
+          const int pixel = tempsprite->GetPixel(tt, uu);
+          if (pixel == 0)
+            tempsprite->PutPixel(tt, uu, transparency_index);
+          else if (pixel == transparency_index)
+            tempsprite->PutPixel(tt, uu, 0);
+        }
+      }
+    }
+    
 		for (int i = 0; i < 256; i++) {
       if (i >= bmpPalette->Length)
       {

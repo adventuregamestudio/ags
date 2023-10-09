@@ -308,7 +308,6 @@ namespace AGS.Editor.Components
             {
                 _guiController.ShowMessage("An error occurred importing the character file. The error was: " + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
             }
-            RePopulateTreeView();
         }        
 
         private Dictionary<string, object> ConstructPropertyObjectList(Character item)

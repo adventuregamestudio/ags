@@ -50,20 +50,14 @@ int sys_main_init(/*config*/) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
     }
-    bool controller_res = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0;
-    if (!controller_res) {
-        // In non-desktop pc platforms, there is a chance that the gamecontroller is indeed necessary
-        // For now, it's better to just warn and rely on other input methods, in ags4 we can review this
-        Debug::Printf(kDbgMsg_Warn, "Unable to initialize SDL Gamepad: %s", SDL_GetError());
-    }
     gl_SysMainInfo.SDLSubsystems =
-          SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS |
-          SDL_INIT_GAMECONTROLLER * controller_res;
+        SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS;
     return 0;
 }
 
 void sys_main_shutdown() {
     sys_window_destroy();
+    sys_audio_shutdown(); // in case it's still on
     SDL_QuitSubSystem(gl_SysMainInfo.SDLSubsystems);
     SDL_Quit();
     gl_SysMainInfo.SDLSubsystems = 0u;
@@ -125,6 +119,8 @@ void sys_renderer_set_output(const String &name)
 
 bool sys_audio_init(const String &driver_name)
 {
+    if ((gl_SysMainInfo.SDLSubsystems & SDL_INIT_AUDIO) != 0)
+        return true;
     // IMPORTANT: we must use a combination of SDL_setenv and SDL_InitSubSystem
     // here, and NOT use SDL_AudioInit, because SDL_AudioInit does not increment
     // subsystem's reference count. Which in turn may cause problems down the

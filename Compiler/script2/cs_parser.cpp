@@ -4613,8 +4613,8 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in
 
     if (tqs[TQ::kAutoptr])
     {
-        if (!tqs[TQ::kBuiltin] || !tqs[TQ::kManaged])
-            UserError("'autoptr' must be combined with 'builtin' and 'managed'");
+        if (!tqs[TQ::kManaged])
+            UserError("'autoptr' must be combined with 'managed'");
     }
 
     // Note: 'builtin' does not always presuppose 'managed'

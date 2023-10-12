@@ -6,7 +6,7 @@ namespace AGS.Types
 {
 	public static class Constants
 	{
-		public const string SCRIPT_KEY_WORDS = "int char short long void return function string if else while struct import export readonly this enum bool false true managed null extends attribute static protected writeprotected float const noloopcheck new for break continue do switch case default";
+		public const string SCRIPT_KEY_WORDS = "int char short long void return function string if else while struct import export readonly this enum bool false true managed builtin autoptr null extends attribute static protected writeprotected float const noloopcheck new for break continue do switch case default";
 		public const string AUTOCOMPLETE_ACCEPT_KEYS = "([,.=+-";
         public const string IMAGE_FILE_FILTER = "All supported images (*.bmp; *.gif; *.jpg; *.png; *.tif; *.tiff)|*.bmp;*.gif;*.jpg;*.png;*.tif;*.tiff|Windows bitmap files (*.bmp)|*.bmp|Compuserve Graphics Interchange (*.gif)|*.gif|JPEG (*.jpg)|*.jpg|Portable Network Graphics (*.png)|*.png|Tagged Image File (*.tif; *.tiff)|*.tif;*.tiff";
         public const string FONT_FILE_FILTER = "All supported fonts (font.*; *.ttf; *.wfn)|font.*;*.ttf;*.wfn|TrueType font files (*.ttf)|*.ttf|SCI font files (FONT.*)|font.*|WFN font files (*.wfn)|*.wfn";

@@ -199,7 +199,6 @@ int run_dialog_script(int dialogID, int offse, int optionIndex) {
     RunScriptFunction(dialogScriptsInst.get(), func_name, 1, params);
     result = dialogScriptsInst->returnValue;
   }
-              in_new_room = 1; // set only in case NewRoom was scheduled
 
   if (in_new_room > 0)
     return RUN_DIALOG_STOP_DIALOG;

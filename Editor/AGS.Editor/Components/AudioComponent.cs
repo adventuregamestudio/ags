@@ -805,7 +805,7 @@ namespace AGS.Editor.Components
             if (name_only)
                 ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
             else
-                RePopulateTreeView(); // currently this is the only way to update tree item ids
+                RePopulateTreeView(GetNodeID(item)); // currently this is the only way to update tree item ids
             AudioClipTypeConverter.RefreshAudioClipList();
         }
 
@@ -827,15 +827,10 @@ namespace AGS.Editor.Components
             }
             else if (propertyName == "Name")
             {
-                RePopulateTreeView();
-                if (_editor.SelectedItem is AudioClipFolder)
-                {
-                    _guiController.ProjectTree.SelectNode(this, GetNodeIDForFolder((AudioClipFolder)_editor.SelectedItem));
-                }
-                else
-                {
-                    _guiController.ProjectTree.SelectNode(this, AUDIO_TYPES_FOLDER_NODE_ID);
-                }
+                string nodeId = (_editor.SelectedItem is AudioClipFolder) ?
+                    GetNodeIDForFolder(_editor.SelectedItem as AudioClipFolder) :
+                    AUDIO_TYPES_FOLDER_NODE_ID;
+                RePopulateTreeView(nodeId);
             }
         }
 

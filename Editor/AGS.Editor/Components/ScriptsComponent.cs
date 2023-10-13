@@ -137,7 +137,6 @@ namespace AGS.Editor.Components
                 ScriptAndHeader scripts = new ScriptAndHeader(newHeader, newScript);
                 AddSingleItem(scripts);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                RePopulateTreeView(GetNodeID(newScript));
                 _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.NameForLabelEdit);
             }
 			else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
@@ -238,7 +237,6 @@ namespace AGS.Editor.Components
                 ScriptAndHeader scripts = new ScriptAndHeader(newScripts[0], newScripts[1]);
                 AddSingleItem(scripts);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                RePopulateTreeView(GetNodeID(scripts));
                 foreach (Script script in newScripts)
                     AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
             }

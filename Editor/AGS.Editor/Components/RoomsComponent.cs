@@ -397,10 +397,10 @@ namespace AGS.Editor.Components
                 }
 
                 UnloadedRoom newRoom = new UnloadedRoom(newRoomNumber);
-                AddSingleItem(newRoom);                
+                var nodeId = AddSingleItem(newRoom);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
-                RePopulateTreeView();
+                RePopulateTreeView(nodeId);
                 RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
                 _guiController.ShowMessage("Room file imported successfully as room " + newRoomNumber + ".", MessageBoxIcon.Information);
             }
@@ -1094,7 +1094,7 @@ namespace AGS.Editor.Components
             {
                 UnloadedRoom room = FindRoomByID(_loadedRoom.Number);
                 room.Description = _loadedRoom.Description;
-                RePopulateTreeView();
+                RePopulateTreeView(GetItemNodeID(room));
                 RoomListTypeConverter.RefreshRoomList();
             }
 
@@ -1154,7 +1154,7 @@ namespace AGS.Editor.Components
                 _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + numberRequested;
 				_guiController.AddOrShowPane(_roomSettings);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-				RePopulateTreeView();
+				RePopulateTreeView(GetItemNodeID(oldRoom));
 			}
 		}
 
@@ -1609,6 +1609,11 @@ namespace AGS.Editor.Components
         protected override IList<IRoom> GetFlatList()
         {
             return null;
+        }
+
+        private string GetItemNodeID(UnloadedRoom room)
+        {
+            return TREE_PREFIX_ROOM_NODE + room.Number;
         }
     }
 }

@@ -229,7 +229,7 @@ namespace AGS.Editor.Components
             if (name_only)
                 ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
             else
-                RePopulateTreeView(); // currently this is the only way to update tree item ids
+                RePopulateTreeView(GetNodeID(item)); // currently this is the only way to update tree item ids
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -341,7 +341,8 @@ namespace AGS.Editor.Components
 
         private void _guiEditor_OnGuiNameChanged()
         {
-            RePopulateTreeView();
+            GUI itemBeingEdited = ((GUIEditor)_guiController.ActivePane.Control).GuiToEdit;
+            RePopulateTreeView(GetNodeID(itemBeingEdited));
         }
 
         private string GetNodeID(GUI item)

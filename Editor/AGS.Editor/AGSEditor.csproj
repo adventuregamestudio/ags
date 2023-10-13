@@ -204,6 +204,7 @@
     <Compile Include="GUI\SpriteChooser.Designer.cs">
       <DependentUpon>SpriteChooser.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\TreeViewExtensions.cs" />
     <Compile Include="GUI\ViewChooser.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -859,32 +859,17 @@ namespace AGS.Editor.Components
                     return scriptModified;
                 }
 
-                string scriptName = room.Interactions.GetScriptFunctionNameForInteractionSuffix(Room.EVENT_SUFFIX_ROOM_LOAD);
-                if (string.IsNullOrEmpty(scriptName))
+                string functionName = room.Interactions.GetScriptFunctionNameForInteractionSuffix(Room.EVENT_SUFFIX_ROOM_LOAD);
+                if (string.IsNullOrEmpty(functionName))
                 {
-                    scriptName = "Room_" + Room.EVENT_SUFFIX_ROOM_LOAD;
-                    room.Interactions.SetScriptFunctionNameForInteractionSuffix(Room.EVENT_SUFFIX_ROOM_LOAD, scriptName);
-                    room.Script.Text += Environment.NewLine + "function " + scriptName + "()" +
-                        Environment.NewLine + "{" + Environment.NewLine +
-                        "}" + Environment.NewLine;
-                    scriptModified = true;
+                    functionName = "Room_" + Room.EVENT_SUFFIX_ROOM_LOAD;
+                    room.Interactions.SetScriptFunctionNameForInteractionSuffix(Room.EVENT_SUFFIX_ROOM_LOAD, functionName);
                 }
-                int functionOffset = room.Script.Text.IndexOf(scriptName);
-                if (functionOffset < 0)
-                {
-                    errors.Add(new CompileWarning("Room " + room.Number + ": Unable to find definition for " + scriptName + " to add Room Load music " + room.PlayMusicOnRoomLoad));
-                }
-                else
-                {
-                    functionOffset = room.Script.Text.IndexOf('{', functionOffset);
-                    functionOffset = room.Script.Text.IndexOf('\n', functionOffset) + 1;
-                    string newScript = room.Script.Text.Substring(0, functionOffset);
-                    newScript += "  " + clip.ScriptName + ".Play();" + Environment.NewLine;
-                    newScript += room.Script.Text.Substring(functionOffset);
-                    room.Script.Text = newScript;
-                    room.PlayMusicOnRoomLoad = 0;
-                    scriptModified = true;
-                }
+
+                room.Script.Text = ScriptGeneration.InsertFunction(room.Script.Text, functionName, "",
+                    "  " + clip.ScriptName + ".Play();", amendExisting: true, insertBeforeExistingCode: true);
+                room.PlayMusicOnRoomLoad = 0;
+                scriptModified = true;
             }
 
             return scriptModified;

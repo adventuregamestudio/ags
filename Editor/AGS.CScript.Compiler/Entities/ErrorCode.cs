@@ -15,6 +15,7 @@ namespace AGS.CScript.Compiler
 		UserDefinedError,
 		EndIfWithoutIf,
 		IfWithoutEndIf,
+		ElseWithoutIf,
 		InvalidVersionNumber,
 		UnexpectedToken = 100,
 		InvalidUseOfKeyword,

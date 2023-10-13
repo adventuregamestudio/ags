@@ -1,3 +1,4 @@
+#include <stack>
 #include "script/cs_parser_common.h"
 #include "script/cc_macrotable.h"
 #include "util/string.h"
@@ -17,6 +18,7 @@ namespace Preprocessor {
         UserDefinedError,
         EndIfWithoutIf,
         IfWithoutEndIf,
+        ElseIfWithoutIf,
         InvalidVersionNumber,
         UnterminatedString
     };
@@ -28,7 +30,7 @@ namespace Preprocessor {
         int _lineNumber;
         String _scriptName;
         Version _applicationVersion;
-        std::vector<bool> _conditionalStatements = std::vector<bool>();
+        std::stack<bool> _conditionalStatements;
 
         static void LogError(ErrorCode error, const String &message = nullptr);
 

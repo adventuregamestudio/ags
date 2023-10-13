@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
+using System.IO;
 using System.Xml;
 
 namespace AGS.Types
@@ -250,7 +251,14 @@ namespace AGS.Types
             _sprite.RemapToRoomPalette = remapToRoomPalette;
             _sprite.TransparentColour = importMethod;
             _sprite.ImportAlphaChannel = importAlphaChannel;
-            XmlDocument doc = _sprite.ToXmlDocument();
+
+            XmlDocument doc = new XmlDocument();
+            using (StringWriter stringWriter = new StringWriter())
+            {
+                XmlTextWriter xmlWriter = new XmlTextWriter(stringWriter);
+                _sprite.ToXml(xmlWriter);
+                doc.LoadXml(stringWriter.ToString());
+            }
 
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["Slot"].InnerText, Is.EqualTo(_sprite.Number.ToString()));
             Assert.That(doc.SelectSingleNode("/Sprite").Attributes["Width"].InnerText, Is.EqualTo(_sprite.Width.ToString()));

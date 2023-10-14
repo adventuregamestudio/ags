@@ -199,7 +199,7 @@ void GUIMain::NotifyControlState(int objid, bool mark_changed)
     // Update cursor-over-control state, if necessary
     const int overctrl = MouseOverCtrl;
     if (!_polling &&
-        (objid >= 0) && (objid == overctrl) &&
+        (objid >= 0) && (objid == overctrl) && ((size_t)objid < _controls.size()) &&
         (!_controls[overctrl]->IsClickable() ||
             !_controls[overctrl]->IsVisible() ||
             !_controls[overctrl]->IsEnabled()))
@@ -217,7 +217,7 @@ void GUIMain::ClearChanged()
 
 void GUIMain::ResetOverControl()
 {
-    if (MouseOverCtrl >= 0)
+    if ((MouseOverCtrl >= 0) && ((size_t)MouseOverCtrl < _controls.size()))
         _controls[MouseOverCtrl]->OnMouseLeave();
     // Force it to re-check for which control is under the mouse
     MouseWasAt.X = -1;

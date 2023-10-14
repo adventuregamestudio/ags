@@ -27,13 +27,13 @@ const char *CCRegion::GetType() {
     return "Region";
 }
 
-size_t CCRegion::CalcSerializeSize(void* /*address*/)
+size_t CCRegion::CalcSerializeSize(const void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCRegion::Serialize(void *address, Stream *out) {
-    ScriptRegion *shh = (ScriptRegion*)address;
+void CCRegion::Serialize(const void *address, Stream *out) {
+    const ScriptRegion *shh = static_cast<const ScriptRegion*>(address);
     out->WriteInt32(shh->id);
 }
 

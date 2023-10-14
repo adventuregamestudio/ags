@@ -474,13 +474,8 @@ static HSaveError restore_game_views(Stream *in)
     return HSaveError::None();
 }
 
-static HSaveError restore_game_audioclips_and_crossfade(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
+static HSaveError restore_game_audio_and_crossfade(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
-    if ((uint32_t)in->ReadInt32() != game.audioClips.size())
-    {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
-    }
-
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS_v320; ++i)
     {
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
@@ -575,10 +570,10 @@ HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const Pr
 
     if (static_cast<uint32_t>(in->ReadInt32()) != (MAGICNUMBER + 1))
     {
-        return new SavegameError(kSvgErr_InconsistentFormat, "MAGICNUMBER not found before Audio Clips.");
+        return new SavegameError(kSvgErr_InconsistentFormat, "Audio section header expected but not found.");
     }
 
-    err = restore_game_audioclips_and_crossfade(in, data_ver, r_data);
+    err = restore_game_audio_and_crossfade(in, data_ver, r_data);
     if (!err)
         return err;
 

@@ -476,6 +476,8 @@ static HSaveError restore_game_views(Stream *in)
 
 static HSaveError restore_game_audio_and_crossfade(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
+    in->ReadInt32(); // audio clips count, ignore
+
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS_v320; ++i)
     {
         RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];

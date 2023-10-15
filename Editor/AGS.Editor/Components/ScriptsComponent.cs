@@ -76,6 +76,8 @@ namespace AGS.Editor.Components
             _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
             _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
             _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -629,6 +631,27 @@ namespace AGS.Editor.Components
         protected override IList<ScriptAndHeader> GetFlatList()
         {
             return null;
+        }
+
+        private void Events_GamePostLoad()
+        {
+            var game = _agsEditor.CurrentGame;
+            if (game.SavedXmlVersionIndex >= 3060110)
+                return; // no upgrade necessary
+
+            // < 3060110 - SetRestartPoint() has to be added to Global Script's game_start,
+            // emulate legacy behavior where its call was hardcoded in the engine.
+            if (game.SavedXmlVersionIndex < 3060110)
+            {
+                Script script = AGSEditor.Instance.CurrentGame.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
+                if (script != null)
+                {
+                    script.Text = 
+                        ScriptGeneration.InsertFunction(script.Text, "game_start", "", "  SetRestartPoint();", amendExisting: true);
+                    // CHECKME: do not save the script here, in case user made a mistake opening this in a newer editor
+                    // and closes project without saving after upgrade? Upgrade process is not well defined...
+                }
+            }
         }
     }
 }

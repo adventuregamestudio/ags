@@ -67,7 +67,14 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set { _text = value ?? string.Empty; _modified = true; }
+            set
+            {
+                if (_text != value)
+                {
+                    _text = value ?? string.Empty;
+                    _modified = true;
+                }
+            }
         }
 
         [ReadOnly(true)]

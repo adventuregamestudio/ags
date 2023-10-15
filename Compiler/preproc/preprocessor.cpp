@@ -87,6 +87,9 @@ namespace Preprocessor {
                 case ErrorCode::IfWithoutEndIf:
                     cc_error("Missing #endif");
                     break;
+                case ErrorCode::ElseIfWithoutIf:
+                    cc_error("#else has no matching #if");
+                    break;
                 case ErrorCode::MacroDoesNotExist:
                 case ErrorCode::MacroAlreadyExists:
                 case ErrorCode::MacroNameInvalid:
@@ -114,7 +117,7 @@ namespace Preprocessor {
 
         bool includeCodeBlock = true;
 
-        if ((!_conditionalStatements.empty()) && !_conditionalStatements.back())
+        if ((!_conditionalStatements.empty()) && !_conditionalStatements.top())
         {
             includeCodeBlock = false;
         }
@@ -140,12 +143,12 @@ namespace Preprocessor {
             }
         }
 
-        _conditionalStatements.push_back(includeCodeBlock);
+        _conditionalStatements.push(includeCodeBlock);
     }
 
     bool Preprocessor::DeletingCurrentLine()
     {
-        return ((!_conditionalStatements.empty()) && !_conditionalStatements.back());
+        return ((!_conditionalStatements.empty()) && !_conditionalStatements.top());
     }
 
     String Preprocessor::GetNextWord(String &text, bool trimText, bool includeDots) {
@@ -231,11 +234,25 @@ namespace Preprocessor {
         {
             ProcessConditionalDirective(directive, line);
         }
+        else if (directive == "else")
+        {
+            if (!_conditionalStatements.empty())
+            {
+                // Negate previous condition
+                bool prev_value = _conditionalStatements.top();
+                _conditionalStatements.pop();
+                _conditionalStatements.push(!prev_value);
+            }
+            else
+            {
+                LogError(ErrorCode::ElseIfWithoutIf);
+            }
+        }
         else if (directive == "endif")
         {
             if (!_conditionalStatements.empty())
             {
-                _conditionalStatements.pop_back();
+                _conditionalStatements.pop();
             }
             else
             {

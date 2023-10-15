@@ -446,6 +446,20 @@ namespace AGS.Editor
                     state.InsideIfDefBlock = macroName;
                 }
             }
+            else if (preProcessorDirective == "else")
+            {
+                // Negate previous condition
+                if (state.InsideIfDefBlock != null)
+                {
+                    state.InsideIfNDefBlock = state.InsideIfDefBlock;
+                    state.InsideIfDefBlock = null;
+                }
+                else if (state.InsideIfNDefBlock != null)
+                {
+                    state.InsideIfDefBlock = state.InsideIfNDefBlock;
+                    state.InsideIfNDefBlock = null;
+                }
+            }
             else if (preProcessorDirective == "endif")
             {
                 state.InsideIfNDefBlock = null;

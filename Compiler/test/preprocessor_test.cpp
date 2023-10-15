@@ -303,6 +303,68 @@ Display("This does");
 }
 
 
+TEST(Preprocess, IfDefElse) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+#define FOO
+#ifdef FOO
+Display("This displays!");
+#else
+Display("This doesn't");
+#endif
+#ifndef FOO
+Display("This doesn't");
+#else
+Display("This displays!");
+#endif
+#undef FOO
+#ifdef FOO
+Display("This doesn't");
+#else
+Display("This displays!");
+#endif
+#ifndef FOO
+Display("This displays!");
+#else
+Display("This doesn't");
+#endif
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ScriptIfDefElse");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 25);
+
+    ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptIfDefElse\"");
+    ASSERT_STREQ(lines[1].GetCStr(), "");
+    ASSERT_STREQ(lines[2].GetCStr(), "");
+    ASSERT_STREQ(lines[3].GetCStr(), "");
+    ASSERT_STREQ(lines[4].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[5].GetCStr(), "");
+    ASSERT_STREQ(lines[6].GetCStr(), "");
+    ASSERT_STREQ(lines[7].GetCStr(), "");
+    ASSERT_STREQ(lines[8].GetCStr(), "");
+    ASSERT_STREQ(lines[9].GetCStr(), "");
+    ASSERT_STREQ(lines[10].GetCStr(), "");
+    ASSERT_STREQ(lines[11].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[12].GetCStr(), "");
+    ASSERT_STREQ(lines[13].GetCStr(), "");
+    ASSERT_STREQ(lines[14].GetCStr(), "");
+    ASSERT_STREQ(lines[15].GetCStr(), "");
+    ASSERT_STREQ(lines[16].GetCStr(), "");
+    ASSERT_STREQ(lines[17].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[18].GetCStr(), "");
+    ASSERT_STREQ(lines[19].GetCStr(), "");
+    ASSERT_STREQ(lines[20].GetCStr(), "Display(\"This displays!\");");
+    ASSERT_STREQ(lines[21].GetCStr(), "");
+    ASSERT_STREQ(lines[22].GetCStr(), "");
+    ASSERT_STREQ(lines[23].GetCStr(), "");
+}
+
+
 TEST(Preprocess, IfVer) {
     Preprocessor pp = Preprocessor();
     pp.SetAppVersion("3.6.0.5");
@@ -388,6 +450,21 @@ Display("test");
     String res = pp.Preprocess(inpl, "EndIfWithoutIf");
 
     EXPECT_STREQ(last_seen_cc_error(), "#endif has no matching #if");
+}
+
+TEST(Preprocess, ElseWithoutIf) {
+    Preprocessor pp = Preprocessor();
+    const char* inpl = R"EOS(
+#ifdef BAR
+#endif
+Display("test");
+#else
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ElseWithoutIf");
+
+    EXPECT_STREQ(last_seen_cc_error(), "#else has no matching #if");
 }
 
 

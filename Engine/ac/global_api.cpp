@@ -264,7 +264,9 @@ RuntimeScriptValue Sc_DisplayAt(const RuntimeScriptValue *params, int32_t param_
 // void  (int ypos, char *texx)
 RuntimeScriptValue Sc_DisplayAtY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT_POBJ(DisplayAtY, const char);
+    API_SCALL_SCRIPT_SPRINTF(DisplayAtY, 2);
+    DisplayAtY(params[0].IValue, scsf_buffer);
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (int msnum)
@@ -2242,18 +2244,22 @@ int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *t
     return CreateTextOverlay(xx, yy, wii, fontid, clr, scsf_buffer, DISPLAYTEXT_NORMALOVERLAY);
 }
 
-// void (char*texx, ...)
 void ScPl_Display(char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplaySimple(scsf_buffer);
 }
 
-// void (int xxp,int yyp,int widd,char*texx, ...)
 void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplayAt(xxp, yyp, widd, scsf_buffer);
+}
+
+void ScPl_DisplayAtY(int ypos, char *texx, ...)
+{
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    DisplayAtY(ypos, scsf_buffer);
 }
 
 // void (int chid,char*texx, ...)
@@ -2334,7 +2340,10 @@ void RegisterGlobalAPI()
         { "DisableRegion",            API_FN_PAIR(DisableRegion) },
         { "Display",                  Sc_Display, ScPl_Display },
         { "DisplayAt",                Sc_DisplayAt, ScPl_DisplayAt },
-        { "DisplayAtY",               API_FN_PAIR(DisplayAtY) },
+        // CHECKME: this function was non-variadic prior to 3.6.1, but AGS compiler does
+        // not produce "name^argnum" symbol id for non-member functions for some reason :/
+        // do we have to do anything about this here? like, test vs script API version...
+        { "DisplayAtY",               Sc_DisplayAtY, ScPl_DisplayAtY },
         { "DisplayMessage",           API_FN_PAIR(DisplayMessage) },
         { "DisplayMessageAtY",        API_FN_PAIR(DisplayMessageAtY) },
         { "DisplayMessageBar",        API_FN_PAIR(DisplayMessageBar) },

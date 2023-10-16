@@ -2505,18 +2505,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->TextParser->Words->Add(newWord);
 	}
 
-	for (int i = 0; i < MAXGLOBALMES; i++) 
-	{
-		if (thisgame.messages[i] != NULL) 
-		{
-			game->GlobalMessages[i] = gcnew String(thisgame.messages[i].GetCStr());
-		}
-		else
-		{
-			game->GlobalMessages[i] = String::Empty;
-		}
-	}
-
 	game->LipSync->Type = (thisgame.options[OPT_LIPSYNCTEXT] != 0) ? LipSyncType::Text : LipSyncType::None;
 	game->LipSync->DefaultFrame = thisgame.default_lipsync_frame;
 	for (int i = 0; i < MAXLIPSYNCFRAMES; i++) 

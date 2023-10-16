@@ -67,11 +67,6 @@ namespace AGS.Editor
                 script.Script.Text = processor.ProcessText(script.Script.Text, GameTextType.Script);                
             }
 
-			for (int i = 0; i < game.GlobalMessages.Length; i++)
-			{
-				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message, Character.NARRATOR_CHARACTER_ID);
-			}
-
             if (_errors.HasErrors)
             {
                 // we're on a different thread here, so Invoke to show the errors

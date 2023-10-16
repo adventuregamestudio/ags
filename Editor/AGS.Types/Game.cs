@@ -17,8 +17,6 @@ namespace AGS.Types
 			"views", "player", "object", "mouse", "system", "game", "palette",
 			"hotspot", "region", "dialog", "gui", "GUI"};
         private const int PALETTE_SIZE = 256;
-        private const int NUMBER_OF_GLOBAL_MESSAGES = 500;
-        private const int GLOBAL_MESSAGE_ID_START = 500;
 
         public const int MAX_INV_ITEMS = 300;
         public const int MAX_SOUND_CHANNELS = 16;
@@ -44,7 +42,6 @@ namespace AGS.Types
         private List<Translation> _translations;
         private UnloadedRoomFolders _rooms;
         private List<OldInteractionVariable> _oldInteractionVariables;
-        private string[] _globalMessages;
         private Character _playerCharacter;
         private Settings _settings;
         private RuntimeSetup _defaultSetup;
@@ -94,7 +91,6 @@ namespace AGS.Types
             _lipSync = new LipSync();
             _propertySchema = new CustomPropertySchema();
             _globalVariables = new GlobalVariables();
-            _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
 			_deletedViewIDs = new SortedDictionary<int, object>();
             _scripts = new ScriptFolders(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
             _scriptsToCompile = new ScriptsAndHeaders();
@@ -103,11 +99,6 @@ namespace AGS.Types
                 new Script(Script.GLOBAL_SCRIPT_FILE_NAME, "// global script\r\n", false));
             ((IList<ScriptAndHeader>)_scripts).Add(globalScript);            
             _playerCharacter = null;
-
-            for (int i = 0; i < _globalMessages.Length; i++)
-            {
-                _globalMessages[i] = string.Empty;
-            }
 
             InitializeDefaultPalette();
         }
@@ -120,11 +111,6 @@ namespace AGS.Types
         public bool UnicodeMode
         {
             get { return string.Compare(_settings.GameTextEncoding, "UTF-8", true) == 0; }
-        }
-
-        public string[] GlobalMessages
-        {
-            get { return _globalMessages; }
         }
 
         public IList<GUI> GUIs
@@ -663,18 +649,6 @@ namespace AGS.Types
 
             _propertySchema.ToXml(writer);
 
-            writer.WriteStartElement("GlobalMessages");
-            int messageIndex = GLOBAL_MESSAGE_ID_START;
-            foreach (string message in _globalMessages)
-            {
-                writer.WriteStartElement("Message");
-                writer.WriteAttributeString("ID", messageIndex.ToString());
-                writer.WriteValue(message);
-                writer.WriteEndElement();
-                messageIndex++;
-            }
-            writer.WriteEndElement();
-
 			// We need to serialize the interaction variables in case
 			// they don't upgrade a room until later, and it might
 			// use the global interaction variables
@@ -805,11 +779,6 @@ namespace AGS.Types
                 InventoryHotspotMarker marker = new InventoryHotspotMarker();
                 marker.FromXml(node);
                 _settings.InventoryHotspotMarker = marker;
-            }
-
-            foreach (XmlNode msgNode in SerializeUtils.GetChildNodes(node, "GlobalMessages"))
-            {
-                _globalMessages[Convert.ToInt32(msgNode.Attributes["ID"].InnerText) - GLOBAL_MESSAGE_ID_START] = msgNode.InnerText;
             }
 
             _plugins.Clear();

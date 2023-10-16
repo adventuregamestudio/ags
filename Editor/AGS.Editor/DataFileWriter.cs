@@ -581,9 +581,9 @@ namespace AGS.Editor
             writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
                 game.Settings.InventoryHotspotMarker.Image : 0);
             writer.Write(new byte[17 * sizeof(int)]); // reserved; 17 ints, alignment preserved
-            for (int i = 0; i < 500; ++i) // MAXGLOBALMES; write 500 ints, alignment preserved
+            for (int i = 0; i < 500; ++i) // [DEPRECATED]; write 500 ints, alignment preserved
             {
-                writer.Write(string.IsNullOrEmpty(game.GlobalMessages[i]) ? 0 : 1);
+                writer.Write(0);
             }
             // the rest are ints, alignment is correct
             writer.Write(1); // dict != null
@@ -1570,11 +1570,6 @@ namespace AGS.Editor
             for (int i = 0; i < NativeConstants.MAXLIPSYNCFRAMES; ++i)
             {
                 WriteString(game.LipSync.CharactersPerFrame[i], 50, writer);
-            }
-            for (int i = 0; i < NativeConstants.MAXGLOBALMES; ++i)
-            {
-                if (string.IsNullOrEmpty(game.GlobalMessages[i])) continue;
-                WriteStringEncrypted(writer, game.GlobalMessages[i]);
             }
             foreach (Dialog curDialog in game.Dialogs)
             {

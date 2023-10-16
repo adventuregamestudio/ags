@@ -602,7 +602,6 @@ namespace AGS
             if (name->Equals("MAX_PARSER_WORD_LENGTH")) return MAX_PARSER_WORD_LENGTH;
             if (name->Equals("MAX_INV")) return MAX_INV;
             if (name->Equals("MAXLIPSYNCFRAMES")) return MAXLIPSYNCFRAMES;
-            if (name->Equals("MAXGLOBALMES")) return MAXGLOBALMES;
             if (name->Equals("MAXTOPICOPTIONS")) return MAXTOPICOPTIONS;
             if (name->Equals("UNIFORM_WALK_SPEED")) return safe_cast<Object^>(UNIFORM_WALK_SPEED);
             if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;

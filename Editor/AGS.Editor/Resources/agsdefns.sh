@@ -698,8 +698,6 @@ builtin struct Room {
   readonly import static attribute int Height;
   /// Gets the X co-ordinate of the left edge of the room.
   readonly import static attribute int LeftEdge;
-  /// Accesses room messages, as set up in the Room Message Editor.
-  readonly import static attribute String Messages[];
   /// Gets the number of objects in this room.
   readonly import static attribute int ObjectCount;
   /// Gets the X co-ordinate of the right edge of the room.

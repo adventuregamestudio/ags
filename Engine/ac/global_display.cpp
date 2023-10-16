@@ -110,39 +110,6 @@ void DisplayMessageAtY(int msnum, int ypos) {
         display_message_aschar=0;
         return;
     }
-
-    if (display_message_aschar > 0) {
-        display_message_aschar=0;
-        quit("!DisplayMessage: data column specified a character for local\n"
-            "message; use the message editor to select the character for room\n"
-            "messages.\n");
-    }
-
-    int repeatloop=1;
-    while (repeatloop) {
-        get_message_text (msnum, msgbufr);
-
-        if (thisroom.MessageInfos[msnum].DisplayAs > 0) {
-            DisplaySpeech(msgbufr, thisroom.MessageInfos[msnum].DisplayAs - 1);
-        }
-        else {
-            // time out automatically if they have set that
-            int oldGameSkipDisp = play.skip_display;
-            if (thisroom.MessageInfos[msnum].Flags & MSG_TIMELIMIT)
-                play.skip_display = 0;
-
-            DisplayAtY(ypos, msgbufr);
-
-            play.skip_display = oldGameSkipDisp;
-        }
-        if (thisroom.MessageInfos[msnum].Flags & MSG_DISPLAYNEXT) {
-            msnum++;
-            repeatloop=1;
-        }
-        else
-            repeatloop=0;
-    }
-
 }
 
 void DisplayMessage(int msnum) {

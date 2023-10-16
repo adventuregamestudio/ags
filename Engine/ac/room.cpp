@@ -185,16 +185,6 @@ bool Room_SetTextProperty(const char *property, const char *value)
     return set_text_property(croom->roomProps, property, value);
 }
 
-const char* Room_GetMessages(int index) {
-    if ((index < 0) || ((size_t)index >= thisroom.MessageCount)) {
-        return nullptr;
-    }
-    char buffer[STD_BUFFER_SIZE];
-    buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[index].GetCStr()), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
-}
-
 bool Room_Exists(int room)
 {
     String room_filename;
@@ -993,12 +983,6 @@ RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t
     API_SCALL_INT(Room_GetLeftEdge);
 }
 
-// const char* (int index)
-RuntimeScriptValue Sc_Room_GetMessages(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Room_GetMessages);
-}
-
 // int ()
 RuntimeScriptValue Sc_Room_GetObjectCount(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1048,7 +1032,6 @@ void RegisterRoomAPI()
         { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
         { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },
         { "Room::get_LeftEdge",                       API_FN_PAIR(Room_GetLeftEdge) },
-        { "Room::geti_Messages",                      API_FN_PAIR(Room_GetMessages) },
         { "Room::get_ObjectCount",                    API_FN_PAIR(Room_GetObjectCount) },
         { "Room::get_RightEdge",                      API_FN_PAIR(Room_GetRightEdge) },
         { "Room::get_TopEdge",                        API_FN_PAIR(Room_GetTopEdge) },

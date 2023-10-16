@@ -1354,7 +1354,6 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
         maxlen = MAX_MAXSTRLEN;
 
     if (msnum>=500) {
-
         if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500].IsEmpty())) {
             if (giveErr)
                 quit("!DisplayGlobalMessage: message does not exist");
@@ -1365,15 +1364,12 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
         replace_tokens(get_translation(game.messages[msnum-500].GetCStr()), buffer, maxlen);
         return;
     }
-    else if (msnum < 0 || (size_t)msnum >= thisroom.MessageCount) {
+    else {
         if (giveErr)
             quit("!DisplayMessage: Invalid message number to display");
         buffer[0] = 0;
         return;
     }
-
-    buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
 }
 
 void game_sprite_updated(int sprnum, bool deleted)

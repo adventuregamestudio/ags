@@ -219,7 +219,6 @@ namespace AGS.Types
                     <Event Index=""7"" />
                     <Event Index=""8"" />
                 </Interactions>
-                <Messages/>
                 <Objects/>
                 <Hotspots/>
                 <WalkableAreas/>

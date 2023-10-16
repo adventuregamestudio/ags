@@ -818,7 +818,6 @@ namespace AGS.Editor
                 PropertyTabInteractions.UpdateEventName = new PropertyTabInteractions.UpdateEventNameHandler(PropertyTabInteractions_UpdateEventName);
                 ScriptFunctionUIEditor.OpenScriptEditor = new ScriptFunctionUIEditor.OpenScriptEditorHandler(ScriptFunctionUIEditor_OpenScriptEditor);
                 ScriptFunctionUIEditor.CreateScriptFunction = new ScriptFunctionUIEditor.CreateScriptFunctionHandler(ScriptFunctionUIEditor_CreateScriptFunction);
-                RoomMessagesUIEditor.ShowRoomMessagesEditor = new RoomMessagesUIEditor.RoomMessagesEditorType(ShowRoomMessageEditorFromPropertyGrid);
                 CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
                 ColorUIEditor.ColorGUI = new ColorUIEditor.ColorGUIType(ShowColorDialog);
                 AudioClipSourceFileUIEditor.AudioClipSourceFileGUI = new AudioClipSourceFileUIEditor.AudioClipSourceFileGUIType(ShowAudioClipSourceFileChooserFromPropertyGrid);
@@ -1385,11 +1384,6 @@ namespace AGS.Editor
             }
 
             Factory.GUIController.CustomPropertiesEditor(props, propertyTypes);
-        }
-
-        private void ShowRoomMessageEditorFromPropertyGrid(List<RoomMessage> messages)
-        {
-            RoomMessagesEditor.ShowEditor(messages);
         }
 
         private AudioClip ShowAudioClipSourceFileChooserFromPropertyGrid(AudioClip audioClip)

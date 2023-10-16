@@ -14,7 +14,6 @@ namespace AGS.Types
 		IList<RoomHotspot> Hotspots { get; }
 		Interactions Interactions { get; }
 		int LeftEdgeX { get; set; }
-		IList<RoomMessage> Messages { get; }
 		bool Modified { get; set; }
         /// <summary>
         /// Gets the room number of this room.

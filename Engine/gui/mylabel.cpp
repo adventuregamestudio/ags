@@ -19,7 +19,7 @@
 #include "font/fonts.h"
 #include "gui/guidefines.h"
 #include "gui/mylabel.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 
 using namespace Common;
 

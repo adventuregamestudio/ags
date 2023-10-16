@@ -66,6 +66,23 @@ char *get_gui_dialog_buffer()
 // TODO: rewrite the whole thing to work inside the main game update and render loop!
 //
 
+// These were GlobalMessages (984 - 995).
+const char *GUIDialog_Strings[NUM_GUIDIALOGMSG] =
+{
+    "Restore",
+    "Cancel",
+    "Select a game to restore:",
+    "Save",
+    "Type a name to save as:",
+    "Replace",
+    "The save directory is full. You must replace an existing game:",
+    "Replace:",
+    "With:",
+    "Quit",
+    "Play",
+    "Are you sure you want to quit?",
+};
+
 Bitmap *prepare_gui_screen(int x, int y, int width, int height, bool opaque)
 {
     windowPosX = x;
@@ -115,12 +132,12 @@ int loadgamedialog()
 
   int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
   int ctrlok =
-    CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, get_global_message(MSG_RESTORE));
+    CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, GUIDialog_Strings[MSG_RESTORE]);
   int ctrlcancel =
     CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 5 + buttonhit, 60, 10,
-                      get_global_message(MSG_CANCEL));
+                      GUIDialog_Strings[MSG_CANCEL]);
   int ctrllist = CSCICreateControl(CNT_LISTBOX, 10, 30, 120, 80, nullptr);
-  int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, 5, 120, 0, get_global_message(MSG_SELECTLOAD));
+  int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, 5, 120, 0, GUIDialog_Strings[MSG_SELECTLOAD]);
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);
 
   preparesavegamelist(ctrllist);
@@ -159,9 +176,9 @@ int loadgamedialog()
 int savegamedialog()
 {
   char okbuttontext[50];
-  strcpy(okbuttontext, get_global_message(MSG_SAVEBUTTON));
+  strcpy(okbuttontext, GUIDialog_Strings[MSG_SAVEBUTTON]);
   char labeltext[200];
-  strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
+  strcpy(labeltext, GUIDialog_Strings[MSG_SAVEDIALOG]);
   const int wnd_width = 200;
   const int wnd_height = 120;
   const int boxleft = myscrnwid / 2 - wnd_width / 2;
@@ -172,15 +189,15 @@ int savegamedialog()
   int handl = CSCIDrawWindow(boxleft, boxtop, wnd_width, wnd_height);
   int ctrlcancel =
     CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 5 + buttonhit, 60, 10,
-                      get_global_message(MSG_CANCEL));
+                      GUIDialog_Strings[MSG_CANCEL]);
   int ctrllist = CSCICreateControl(CNT_LISTBOX, 10, 40, 120, 80, nullptr);
   int ctrltbox = 0;
 
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);    // clear the list box
   preparesavegamelist(ctrllist);
   if (toomanygames) {
-    strcpy(okbuttontext, get_global_message(MSG_REPLACE));
-    strcpy(labeltext, get_global_message(MSG_MUSTREPLACE));
+    strcpy(okbuttontext, GUIDialog_Strings[MSG_REPLACE]);
+    strcpy(labeltext, GUIDialog_Strings[MSG_MUSTREPLACE]);
     labeltop = 2;
   } else
     ctrltbox = CSCICreateControl(CNT_TEXTBOX, 10, 29, 120, 0, nullptr);
@@ -213,17 +230,17 @@ int savegamedialog()
         if (toomanygames) {
           int nwhand = CSCIDrawWindow(boxleft + 5, boxtop + 20, 190, 65);
           int lbl1 =
-            CSCICreateControl(CNT_LABEL, 15, 5, 160, 0, get_global_message(MSG_REPLACEWITH1));
+            CSCICreateControl(CNT_LABEL, 15, 5, 160, 0, GUIDialog_Strings[MSG_REPLACEWITH1]);
           int lbl2 = CSCICreateControl(CNT_LABEL, 25, 14, 160, 0, bufTemp);
           int lbl3 =
-            CSCICreateControl(CNT_LABEL, 15, 25, 160, 0, get_global_message(MSG_REPLACEWITH2));
+            CSCICreateControl(CNT_LABEL, 15, 25, 160, 0, GUIDialog_Strings[MSG_REPLACEWITH2]);
           int txt1 = CSCICreateControl(CNT_TEXTBOX, 15, 35, 160, 0, bufTemp);
           int btnOk =
             CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 25, 50, 60, 10,
-                              get_global_message(MSG_REPLACE));
+                              GUIDialog_Strings[MSG_REPLACE]);
           int btnCancel =
             CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 95, 50, 60, 10,
-                              get_global_message(MSG_CANCEL));
+                              GUIDialog_Strings[MSG_CANCEL]);
 
           CSCIMessage cmes;
           do {
@@ -330,7 +347,7 @@ void enterstringwindow(const char *prompttext, char *stouse)
   int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, 135, 5, 60, 10, "OK");
   int ctrlcancel = -1;
   if (wantCancel)
-    ctrlcancel = CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 20, 60, 10, get_global_message(MSG_CANCEL));
+    ctrlcancel = CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, 135, 20, 60, 10, GUIDialog_Strings[MSG_CANCEL]);
   int ctrltbox = CSCICreateControl(CNT_TEXTBOX, 10, 29, 120, 0, nullptr);
   int ctrltex1 = CSCICreateControl(CNT_LABEL, 10, 5, 120, 0, prompttext);
   CSCIMessage mes;
@@ -368,7 +385,7 @@ int roomSelectorWindow(int currentRoom, int numRooms,
     const std::vector<int> &roomNumbers, const std::vector<String> &roomNames)
 {
   char labeltext[200];
-  strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
+  strcpy(labeltext, GUIDialog_Strings[MSG_SAVEDIALOG]);
   const int wnd_width = 240;
   const int wnd_height = 160;
   const int boxleft = myscrnwid / 2 - wnd_width / 2;
@@ -483,7 +500,7 @@ int myscimessagebox(const char *lpprompt, char *btn1, char *btn2)
 int quitdialog()
 {
     char quitbut[50], playbut[50];
-    strcpy(quitbut, get_global_message(MSG_QUITBUTTON));
-    strcpy(playbut, get_global_message(MSG_PLAYBUTTON));
-    return myscimessagebox(get_global_message(MSG_QUITDIALOG), quitbut, playbut);
+    strcpy(quitbut, GUIDialog_Strings[MSG_QUITBUTTON]);
+    strcpy(playbut, GUIDialog_Strings[MSG_PLAYBUTTON]);
+    return myscimessagebox(GUIDialog_Strings[MSG_QUITDIALOG], quitbut, playbut);
 }

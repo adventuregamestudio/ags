@@ -324,7 +324,6 @@ target_sources(engine
     gui/guidialog.cpp
     gui/guidialog.h
     gui/guidialogdefines.h
-    gui/guidialoginternaldefs.h
     gui/mycontrols.h
     gui/mylabel.cpp
     gui/mylabel.h

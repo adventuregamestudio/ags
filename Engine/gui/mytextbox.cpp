@@ -16,7 +16,7 @@
 #include "ac/keycode.h"
 #include "font/fonts.h"
 #include "gui/mytextbox.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;

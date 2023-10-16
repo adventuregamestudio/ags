@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_GUI__CSCIDIALOG_H
 #define __AGS_EE_GUI__CSCIDIALOG_H
 
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 
 int  CSCIGetVersion();
 int  CSCIDrawWindow(int xx, int yy, int wid, int hit);

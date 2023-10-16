@@ -875,7 +875,6 @@
     <ClInclude Include="..\..\Engine\gui\gui.h" />
     <ClInclude Include="..\..\Engine\gui\guidialog.h" />
     <ClInclude Include="..\..\Engine\gui\guidialogdefines.h" />
-    <ClInclude Include="..\..\Engine\gui\guidialoginternaldefs.h" />
     <ClInclude Include="..\..\Engine\gui\mycontrols.h" />
     <ClInclude Include="..\..\Engine\gui\mylabel.h" />
     <ClInclude Include="..\..\Engine\gui\mylistbox.h" />

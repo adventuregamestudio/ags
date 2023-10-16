@@ -11,15 +11,13 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "gui/mylabel.h"
 #include <string.h>
 #include "ac/display.h"
 #include "ac/gamesetup.h"
 #include "ac/string.h"
 #include "font/fonts.h"
-#include "gui/guidefines.h"
-#include "gui/mylabel.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 
 using namespace Common;
 

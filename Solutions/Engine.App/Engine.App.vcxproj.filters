@@ -1364,9 +1364,6 @@
     <ClInclude Include="..\..\Engine\gui\guidialogdefines.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\gui\guidialoginternaldefs.h">
-      <Filter>Header Files\gui</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\gui\mycontrols.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>

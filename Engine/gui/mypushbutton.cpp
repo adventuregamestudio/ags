@@ -11,19 +11,19 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "gui/mypushbutton.h"
 #include <string.h>
 #include "ac/common.h"
 #include "ac/sys_events.h"
-#include "font/fonts.h"
-#include "gui/mypushbutton.h"
-#include "gui/guidialog.h"
-#include "gui/guidialoginternaldefs.h"
-#include "main/game_run.h"
-#include "gfx/bitmap.h"
-#include "platform/base/agsplatformdriver.h"
 #include "ac/timer.h"
+#include "font/fonts.h"
+#include "gfx/bitmap.h"
+#include "gui/guidialog.h"
+#include "gui/guidialogdefines.h"
+#include "main/game_run.h"
+#include "platform/base/agsplatformdriver.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;

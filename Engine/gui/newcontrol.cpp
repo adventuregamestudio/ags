@@ -11,10 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "gui/newcontrol.h"
 #include "gui/guidialog.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 
 extern int topwindowhandle;
 

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// Constants for built-in GUI dialogs.
 //
 //=============================================================================
 #ifndef __AGS_EE_GUI__GUIDIALOGDEFINES_H
@@ -32,6 +32,7 @@
 #define MSG_QUITDIALOG   995    // "Do you want to quit?"
 
 #include "ac/gamesetup.h"
+#define TEXT_HT usetup.textheight
 
 /*#define COL251 26
 #define COL252 28

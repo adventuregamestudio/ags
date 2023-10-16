@@ -11,15 +11,15 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "gui/mytextbox.h"
 #include <stdio.h>
 #include <string.h>
 #include "ac/keycode.h"
 #include "font/fonts.h"
-#include "gui/mytextbox.h"
-#include "gui/guidialoginternaldefs.h"
 #include "gfx/bitmap.h"
+#include "gui/guidialogdefines.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern int windowbackgroundcolor;
 extern int cbuttfont;

@@ -166,16 +166,16 @@ const char* File_ReadStringBack(sc_File *fil) {
     return CreateNewScriptString("");
   }
 
-  size_t lle = (uint32_t)in->ReadInt32();
-  if (lle == 0)
+  size_t data_sz = (uint32_t)in->ReadInt32();
+  if (data_sz == 0)
   {
     debug_script_warn("File.ReadStringBack: file was not written by WriteString");
     return CreateNewScriptString("");;
   }
 
-  char *buffer = CreateNewScriptString(lle);
-  in->Read(buffer, lle);
-  return buffer;
+  auto buf = ScriptString::CreateBuffer(data_sz); // stored len + 1
+  in->Read(buf.Get(), data_sz);
+  return CreateNewScriptString(std::move(buf));
 }
 
 int File_ReadInt(sc_File *fil) {

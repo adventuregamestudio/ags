@@ -14,6 +14,7 @@
 #ifndef __AC_SCRIPTSTRING_H
 #define __AC_SCRIPTSTRING_H
 
+#include <memory>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
 struct ScriptString final : AGSCCDynamicObject
@@ -24,6 +25,25 @@ public:
         uint32_t Length = 0u;
     };
 
+    struct Buffer
+    {
+        friend ScriptString;
+    public:
+        Buffer() = default;
+        ~Buffer() = default;
+        Buffer(Buffer &&buf) = default;
+        char *Get() { return reinterpret_cast<char*>(_buf.get() - MemHeaderSz); }
+        size_t GetSize() const { return _sz; }
+
+    private:
+        Buffer(std::unique_ptr<uint8_t[]> &&buf, size_t buf_sz)
+            : _buf(std::move(buf)), _sz(buf_sz) {}
+
+        std::unique_ptr<uint8_t[]> _buf;
+        size_t _sz;
+    };
+
+
     ScriptString() = default;
     ~ScriptString() = default;
 
@@ -32,22 +52,25 @@ public:
         return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
     }
 
+    // 
+    static Buffer CreateBuffer(size_t data_sz);
     // Create a new script string by copying the given text
-    static DynObjectRef Create(const char *text) { return CreateImpl(text, -1); }
-    // Create a new script string with a buffer of at least the given text length
-    static DynObjectRef Create(size_t buf_len)  { return CreateImpl(nullptr, buf_len); }
+    static DynObjectRef Create(const char *text);
+    //
+    static DynObjectRef Create(Buffer &&strbuf);
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
 private:
+    friend ScriptString::Buffer;
     // The size of the array's header in memory, prepended to the element data
     static const size_t MemHeaderSz = sizeof(Header);
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t);
 
-    static DynObjectRef CreateImpl(const char *text, size_t buf_len);
+    static DynObjectRef CreateObject(uint8_t *buf);
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes

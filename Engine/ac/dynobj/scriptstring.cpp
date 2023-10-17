@@ -58,15 +58,9 @@ void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     ccRegisterUnserializedObject(index, text_ptr, this);
 }
 
-DynObjectRef ScriptString::CreateImpl(const char *text, size_t buf_len)
+DynObjectRef ScriptString::CreateObject(uint8_t *buf)
 {
-    size_t len = text ? strlen(text) : buf_len;
-    uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
-    Header &hdr = reinterpret_cast<Header&>(*buf);
-    hdr.Length = len;
     char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
-    if (text)
-        memcpy(text_ptr, text, len + 1);
     int32_t handle = ccRegisterManagedObject(text_ptr, &myScriptStringImpl);
     if (handle == 0)
     {
@@ -74,4 +68,30 @@ DynObjectRef ScriptString::CreateImpl(const char *text, size_t buf_len)
         return DynObjectRef();
     }
     return DynObjectRef(handle, text_ptr, &myScriptStringImpl);
+}
+
+ScriptString::Buffer ScriptString::CreateBuffer(size_t data_sz)
+{
+    std::unique_ptr<uint8_t[]> buf(new uint8_t[data_sz + MemHeaderSz]);
+    return Buffer(std::move(buf), data_sz + MemHeaderSz);
+}
+
+DynObjectRef ScriptString::Create(const char *text)
+{
+    size_t len = strlen(text);
+    uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
+    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    memcpy(buf, text, len + 1);
+    Header &hdr = reinterpret_cast<Header&>(*buf);
+    hdr.Length = len;
+    return CreateObject(buf);
+}
+
+DynObjectRef ScriptString::Create(Buffer &&strbuf)
+{
+    uint8_t *buf = strbuf._buf.release();
+    Header &hdr = reinterpret_cast<Header&>(*buf);
+    hdr.Length = strbuf._sz - 1;
+    strbuf._sz = 0u;
+    return CreateObject(buf);
 }

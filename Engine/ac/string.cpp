@@ -35,12 +35,7 @@ extern int longestline;
 
 const char *CreateNewScriptString(const char *text)
 {
-    return (const char*)ScriptString::Create(text).Obj;
-}
-
-char *CreateNewScriptString(size_t buf_length)
-{
-    return (char*)ScriptString::Create(buf_length).Obj;
+    return static_cast<const char*>(ScriptString::Create(text).Obj);
 }
 
 
@@ -57,20 +52,22 @@ const char* String_Copy(const char *srcString) {
 }
 
 const char* String_Append(const char *thisString, const char *extrabit) {
-    size_t new_len = strlen(thisString) + strlen(extrabit);
-    char *buffer = CreateNewScriptString(new_len);
-    strcpy(buffer, thisString);
-    strcat(buffer, extrabit);
-    return buffer;
+    size_t old_len = strlen(thisString);
+    size_t str2_len = strlen(extrabit);
+    auto buf = ScriptString::CreateBuffer(old_len + str2_len + 1);
+    memcpy(buf.Get(), thisString, old_len);
+    memcpy(buf.Get() + old_len, extrabit, str2_len + 1);
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_AppendChar(const char *thisString, int extraOne) {
     char chr[5]{};
-    size_t chw = usetc(chr, extraOne);
-    size_t new_len = strlen(thisString) + chw;
-    char *buffer = CreateNewScriptString(new_len);
-    sprintf(buffer, "%s%s", thisString, chr);
-    return buffer;
+    size_t old_len = strlen(thisString);
+    size_t new_chw = usetc(chr, extraOne);
+    auto buf = ScriptString::CreateBuffer(old_len + new_chw + 1);
+    memcpy(buf.Get(), thisString, old_len);
+    memcpy(buf.Get() + old_len, chr, new_chw + 1);
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_ReplaceCharAt(const char *thisString, int index, int newChar) {
@@ -79,17 +76,17 @@ const char* String_ReplaceCharAt(const char *thisString, int index, int newChar)
         quit("!String.ReplaceCharAt: index outside range of string");
 
     size_t off = uoffset(thisString, index);
-    int uchar = ugetc(thisString + off);
+    int old_char = ugetc(thisString + off);
     size_t remain_sz = strlen(thisString + off);
-    size_t old_sz = ucwidth(uchar);
+    size_t old_chw = ucwidth(old_char);
     char new_chr[5]{};
     size_t new_chw = usetc(new_chr, newChar);
-    size_t new_len = off + remain_sz + new_chw - old_sz;
-    char *buffer = CreateNewScriptString(new_len);
-    memcpy(buffer, thisString, off);
-    memcpy(buffer + off, new_chr, new_chw);
-    memcpy(buffer + off + new_chw, thisString + off + old_sz, remain_sz - old_sz + 1);
-    return buffer;
+    size_t new_len = off + remain_sz + new_chw - old_chw;
+    auto buf = ScriptString::CreateBuffer(new_len + 1);
+    memcpy(buf.Get(), thisString, off);
+    memcpy(buf.Get() + off, new_chr, new_chw);
+    memcpy(buf.Get() + off + new_chw, thisString + off + old_chw, remain_sz - old_chw + 1);
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_Truncate(const char *thisString, int length) {
@@ -99,11 +96,11 @@ const char* String_Truncate(const char *thisString, int length) {
     if ((size_t)length >= strlen)
         return thisString;
 
-    size_t sz = uoffset(thisString, length);
-    char *buffer = CreateNewScriptString(sz);
-    memcpy(buffer, thisString, sz);
-    buffer[sz] = 0;
-    return buffer;
+    size_t new_len = uoffset(thisString, length);
+    auto buf = ScriptString::CreateBuffer(new_len + 1);
+    memcpy(buf.Get(), thisString, new_len);
+    buf.Get()[new_len] = 0;
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_Substring(const char *thisString, int index, int length) {
@@ -115,12 +112,12 @@ const char* String_Substring(const char *thisString, int index, int length) {
     size_t sublen = std::min((size_t)length, strlen - index);
     size_t start = uoffset(thisString, index);
     size_t end = uoffset(thisString + start, sublen) + start;
-    size_t copysz = end - start;
+    size_t copylen = end - start;
 
-    char *buffer = CreateNewScriptString(copysz);
-    memcpy(buffer, thisString + start, copysz);
-    buffer[copysz] = 0;
-    return buffer;
+    auto buf = ScriptString::CreateBuffer(copylen + 1);
+    memcpy(buf.Get(), thisString + start, copylen);
+    buf.Get()[copylen] = 0;
+    return CreateNewScriptString(std::move(buf));
 }
 
 int String_CompareTo(const char *thisString, const char *otherString, bool caseSensitive) {
@@ -210,18 +207,18 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
 
 const char* String_LowerCase(const char *thisString) {
     size_t len = strlen(thisString);
-    char *buffer = CreateNewScriptString(len);
-    memcpy(buffer, thisString, len);
-    ustrlwr(buffer);
-    return buffer;
+    auto buf = ScriptString::CreateBuffer(len + 1);
+    memcpy(buf.Get(), thisString, len + 1);
+    ustrlwr(buf.Get());
+    return CreateNewScriptString(std::move(buf));
 }
 
 const char* String_UpperCase(const char *thisString) {
     size_t len = strlen(thisString);
-    char *buffer = CreateNewScriptString(len);
-    memcpy(buffer, thisString, len);
-    ustrupr(buffer);
-    return buffer;
+    auto buf = ScriptString::CreateBuffer(len + 1);
+    memcpy(buf.Get(), thisString, len + 1);
+    ustrupr(buf.Get());
+    return CreateNewScriptString(std::move(buf));
 }
 
 int String_GetChars(const char *texx, int index) {
@@ -312,14 +309,6 @@ void check_strlen(char*ptt) {
     if (((uintptr_t)&ptt[0] >= charstart) && ((uintptr_t)&ptt[0] <= charend))
         MAXSTRLEN=30;
 }
-
-/*void GetLanguageString(int indxx,char*buffr) {
-VALIDATE_STRING(buffr);
-char*bptr=get_language_text(indxx);
-if (bptr==NULL) strcpy(buffr,"[language string error]");
-else strncpy(buffr,bptr,199);
-buffr[199]=0;
-}*/
 
 void my_strncpy(char *dest, const char *src, int len) {
     // the normal strncpy pads out the string with zeros up to the

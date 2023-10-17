@@ -22,7 +22,8 @@ struct ScriptString final : AGSCCDynamicObject
 public:
     struct Header
     {
-        uint32_t Length = 0u;
+        uint32_t Length = 0u;  // string length in bytes (not counting 0)
+        uint32_t ULength = 0u; // UTF-8 compatible length in characters
     };
 
     struct Buffer
@@ -32,8 +33,10 @@ public:
         Buffer() = default;
         ~Buffer() = default;
         Buffer(Buffer &&buf) = default;
-        char *Get() { return reinterpret_cast<char*>(_buf.get() - MemHeaderSz); }
-        size_t GetSize() const { return _sz; }
+        // Returns a pointer to the beginning of a text buffer
+        char *Get() { return reinterpret_cast<char*>(_buf.get() + MemHeaderSz); }
+        // Returns size allocated for a text content (includes null pointer)
+        size_t GetSize() const { return _sz - MemHeaderSz; }
 
     private:
         Buffer(std::unique_ptr<uint8_t[]> &&buf, size_t buf_sz)
@@ -70,7 +73,7 @@ private:
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t);
 
-    static DynObjectRef CreateObject(uint8_t *buf);
+    static DynObjectRef CreateObject(uint8_t *buf, size_t len, size_t ulen);
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes

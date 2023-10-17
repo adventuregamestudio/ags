@@ -71,6 +71,7 @@ AL_FUNC(char *, _ustrdup, (AL_CONST char *src, AL_METHOD(void *, malloc_func, (s
 AL_FUNC(char *, ustrzcpy, (char *dest, int size, AL_CONST char *src));
 AL_FUNC(char *, ustrzcat, (char *dest, int size, AL_CONST char *src));
 AL_FUNC(int, ustrlen, (AL_CONST char *s));
+AL_FUNC(void, ustrlen2, (AL_CONST char *s, int *len, int *ulen));
 AL_FUNC(int, ustrcmp, (AL_CONST char *s1, AL_CONST char *s2));
 AL_FUNC(char *, ustrzncpy, (char *dest, int size, AL_CONST char *src, int n));
 AL_FUNC(char *, ustrzncat, (char *dest, int size, AL_CONST char *src, int n));

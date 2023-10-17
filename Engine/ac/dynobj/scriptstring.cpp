@@ -14,6 +14,7 @@
 #include "ac/dynobj/scriptstring.h"
 #include <stdlib.h>
 #include <string.h>
+#include <allegro.h>
 #include "ac/string.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "util/stream.h"
@@ -50,16 +51,20 @@ void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     size_t len = in->ReadInt32();
     uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
-    Header &hdr = reinterpret_cast<Header&>(*buf);
-    hdr.Length = len;
     char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
     in->Read(text_ptr, len + 1); // it was writing trailing 0 for some reason
     text_ptr[len] = 0; // for safety
+    Header &hdr = reinterpret_cast<Header&>(*buf);
+    hdr.Length = len;
+    hdr.ULength = ustrlen(text_ptr);
     ccRegisterUnserializedObject(index, text_ptr, this);
 }
 
-DynObjectRef ScriptString::CreateObject(uint8_t *buf)
+DynObjectRef ScriptString::CreateObject(uint8_t *buf, size_t len, size_t ulen)
 {
+    Header &hdr = reinterpret_cast<Header&>(*buf);
+    hdr.Length = len;
+    hdr.ULength = ulen;
     char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
     int32_t handle = ccRegisterManagedObject(text_ptr, &myScriptStringImpl);
     if (handle == 0)
@@ -78,20 +83,19 @@ ScriptString::Buffer ScriptString::CreateBuffer(size_t data_sz)
 
 DynObjectRef ScriptString::Create(const char *text)
 {
-    size_t len = strlen(text);
+    int len, ulen;
+    ustrlen2(text, &len, &ulen);
     uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
     char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
     memcpy(buf, text, len + 1);
-    Header &hdr = reinterpret_cast<Header&>(*buf);
-    hdr.Length = len;
-    return CreateObject(buf);
+    return CreateObject(buf, len, ulen);
 }
 
 DynObjectRef ScriptString::Create(Buffer &&strbuf)
 {
+    int len, ulen;
+    ustrlen2(strbuf.Get(), &len, &ulen);
     uint8_t *buf = strbuf._buf.release();
-    Header &hdr = reinterpret_cast<Header&>(*buf);
-    hdr.Length = strbuf._sz - 1;
     strbuf._sz = 0u;
-    return CreateObject(buf);
+    return CreateObject(buf, len, ulen);
 }

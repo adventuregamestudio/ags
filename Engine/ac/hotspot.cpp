@@ -143,8 +143,6 @@ int get_hotspot_at(int xpp,int ypp) {
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 
 ScriptHotspot *Hotspot_GetByName(const char *name)
 {

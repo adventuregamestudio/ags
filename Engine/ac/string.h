@@ -30,6 +30,10 @@ inline void VALIDATE_STRING(const char *strin)
         quit("!String argument was null: make sure you pass a valid string as a buffer.");
 }
 
+const char* CreateNewScriptString(const char *text);
+inline const char* CreateNewScriptString(const AGS::Common::String &text) { return CreateNewScriptString(text.GetCStr()); }
+char* CreateNewScriptString(size_t buf_len); // FIXME, unsafe to expose raw buf like this
+
 int String_IsNullOrEmpty(const char *thisString);
 const char* String_Copy(const char *srcString);
 const char* String_Append(const char *thisString, const char *extrabit);
@@ -49,10 +53,6 @@ int StrContains (const char *s1, const char *s2);
 
 //=============================================================================
 
-const char* CreateNewScriptString(const AGS::Common::String &fromText);
-const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
-DynObjectRef CreateNewScriptStringObj(const AGS::Common::String &fromText);
-DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate = true);
 class SplitLines;
 // Break up the text into lines restricted by the given width;
 // returns number of lines, or 0 if text cannot be split well to fit in this width.

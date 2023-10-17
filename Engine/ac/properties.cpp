@@ -23,7 +23,6 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern ScriptString myScriptStringImpl;
 
 // begin custom property functions
 

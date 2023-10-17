@@ -173,10 +173,9 @@ const char* File_ReadStringBack(sc_File *fil) {
     return CreateNewScriptString("");;
   }
 
-  char *retVal = (char*)malloc(lle);
-  in->Read(retVal, lle);
-
-  return CreateNewScriptString(retVal, false);
+  char *buffer = CreateNewScriptString(lle);
+  in->Read(buffer, lle);
+  return buffer;
 }
 
 int File_ReadInt(sc_File *fil) {
@@ -726,7 +725,6 @@ Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
 
 // int (const char *fnmm)
 RuntimeScriptValue Sc_File_Delete(const RuntimeScriptValue *params, int32_t param_count)

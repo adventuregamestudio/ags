@@ -20,59 +20,58 @@
 
 using namespace AGS::Common;
 
+ScriptString myScriptStringImpl;
 
-DynObjectRef ScriptString::CreateString(const char *fromText) {
-    return CreateNewScriptStringObj(fromText);
-}
-
-int ScriptString::Dispose(void* /*address*/, bool /*force*/) {
-    // always dispose
-    if (_text) {
-        free(_text);
-        _text = nullptr;
-    }
-    delete this;
-    return 1;
-}
-
-const char *ScriptString::GetType() {
+const char *ScriptString::GetType()
+{
     return "String";
 }
 
-size_t ScriptString::CalcSerializeSize(const void* /*address*/)
+int ScriptString::Dispose(void *address, bool /*force*/)
 {
-    return _len + 1 + sizeof(int32_t);
+    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
+    return 1;
 }
 
-void ScriptString::Serialize(const void* /*address*/, Stream *out) {
-    const auto *cstr = _text ? _text : "";
-    out->WriteInt32(_len);
-    out->Write(cstr, _len + 1);
+size_t ScriptString::CalcSerializeSize(const void *address)
+{
+    const Header &hdr = GetHeader(address);
+    return hdr.Length + 1 + FileHeaderSz;
 }
 
-void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
-    _len = in->ReadInt32();
-    _text = (char*)malloc(_len + 1);
-    in->Read(_text, _len + 1);
-    _text[_len] = 0; // for safety
-    ccRegisterUnserializedObject(index, _text, this);
+void ScriptString::Serialize(const void* address, Stream *out)
+{
+    const Header &hdr = GetHeader(address);
+    out->WriteInt32(hdr.Length);
+    out->Write(address, hdr.Length + 1); // it was writing trailing 0 for some reason
 }
 
-ScriptString::ScriptString(const char *text) {
-    _len = strlen(text);
-    _text = (char*)malloc(_len + 1);
-    memcpy(_text, text, _len + 1);
+void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
+    size_t len = in->ReadInt32();
+    uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
+    Header &hdr = reinterpret_cast<Header&>(*buf);
+    hdr.Length = len;
+    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    in->Read(text_ptr, len + 1); // it was writing trailing 0 for some reason
+    text_ptr[len] = 0; // for safety
+    ccRegisterUnserializedObject(index, text_ptr, this);
 }
 
-ScriptString::ScriptString(char *text, bool take_ownership) {
-    _len = strlen(text);
-    if (take_ownership)
+DynObjectRef ScriptString::CreateImpl(const char *text, size_t buf_len)
+{
+    size_t len = text ? strlen(text) : buf_len;
+    uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
+    Header &hdr = reinterpret_cast<Header&>(*buf);
+    hdr.Length = len;
+    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    if (text)
+        memcpy(text_ptr, text, len + 1);
+    int32_t handle = ccRegisterManagedObject(text_ptr, &myScriptStringImpl);
+    if (handle == 0)
     {
-        _text = text;
+        delete[] buf;
+        return DynObjectRef();
     }
-    else
-    {
-        _text = (char*)malloc(_len + 1);
-        memcpy(_text, text, _len + 1);
-    }
+    return DynObjectRef(handle, text_ptr, &myScriptStringImpl);
 }

@@ -70,7 +70,6 @@
 #include "media/audio/audio_system.h"
 
 #include "ac/dynobj/scriptstring.h"
-extern ScriptString myScriptStringImpl;
 
 // void (char*texx, ...)
 RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t param_count)

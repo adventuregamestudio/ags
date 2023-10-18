@@ -129,17 +129,9 @@ namespace AGS.Editor.Components
             }
             else if (controlID == MENU_COMMAND_NEW)
             {
-                string newFileName = FindFirstAvailableFileName("NewScript");
-                Script newScript = new Script(newFileName + ".asc", "// new module script\r\n", false);
-                Script newHeader = new Script(newFileName + ".ash", "// new module header\r\n", true);
-                newScript.Modified = true;
-                newScript.SaveToDisk();
-                newHeader.Modified = true;
-                newHeader.SaveToDisk();
-                ScriptAndHeader scripts = new ScriptAndHeader(newHeader, newScript);
+                var scripts = AddNewScript("NewScript", "// new module header\r\n", "// new module script\r\n");
                 AddSingleItem(scripts);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.NameForLabelEdit);
+                _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + scripts.Script.NameForLabelEdit);
             }
 			else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
 			{
@@ -155,6 +147,35 @@ namespace AGS.Editor.Components
                 string scriptName = controlID.Substring(ITEM_COMMAND_PREFIX.Length);
 				CreateOrShowEditorForScript(scriptName);
 			}
+        }
+
+        /// <summary>
+        /// Adds a new script module (header/script pair) item to the project,
+        /// finds the first available name based on requested one,
+        /// assigns header and body text. Returns added Script object.
+        /// </summary>
+        public ScriptAndHeader AddNewScript(string scriptName, string headerText, string scriptText, bool insertOnTop)
+        {
+            var scripts = AddNewScript(scriptName, headerText, scriptText);
+            if (insertOnTop)
+                _agsEditor.CurrentGame.RootScriptFolder.Items.Insert(0, scripts);
+            else
+                _agsEditor.CurrentGame.RootScriptFolder.Items.Add(scripts);
+            RePopulateTreeView();
+            return scripts;
+        }
+
+        private ScriptAndHeader AddNewScript(string scriptName, string headerText, string scriptText)
+        {
+            string newFileName = FindFirstAvailableFileName(scriptName);
+            Script newScript = new Script(newFileName + ".asc", scriptText, false);
+            Script newHeader = new Script(newFileName + ".ash", headerText, true);
+            newScript.Modified = true;
+            newScript.SaveToDisk();
+            newHeader.Modified = true;
+            newHeader.SaveToDisk();
+            _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+            return new ScriptAndHeader(newHeader, newScript);
         }
 
         protected override void DeleteResourcesUsedByItem(ScriptAndHeader item)

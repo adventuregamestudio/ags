@@ -18,6 +18,7 @@ namespace AGS.Editor.Components
         private const string MAKE_TEMPLATE_COMMAND = "CreateTemplate";
         private const string AUTO_NUMBER_SPEECH_COMMAND = "AutoNumberSpeech";
 		private const string CREATE_VOICE_ACTING_SCRIPT_COMMAND = "CreateVoiceActingScript";
+        private const string EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND = "ExportGlobalMessagesToScript";
         private const string REMOVE_GLOBAL_MESSAGES_COMMAND = "RemoveGlobalMessages";
         private const string RECREATE_SPRITEFILE_COMMAND = "RecreateSpriteFile";
         private const string SHOW_PREFERENCES_COMMAND = "ShowPreferences";
@@ -58,7 +59,10 @@ namespace AGS.Editor.Components
 			commands.Commands.Add(new MenuCommand(MAKE_TEMPLATE_COMMAND, "&Make template from this game...", "MenuIconMakeTemplate"));
             commands.Commands.Add(new MenuCommand(AUTO_NUMBER_SPEECH_COMMAND, "&Auto-number speech lines...", "MenuIconAutoNumber"));
 			commands.Commands.Add(new MenuCommand(CREATE_VOICE_ACTING_SCRIPT_COMMAND, "Create &voice acting script...", "MenuIconVoiceActingScript"));
-            commands.Commands.Add(new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "&Remove Global Messages"));
+            // TODO: I do not see any way to schedule sub-menus in this system!?
+            // but if it's supported, maybe put these 2 global messages commands int a submenu
+            commands.Commands.Add(new MenuCommand(EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND, "Export Global Messages to script"));
+            commands.Commands.Add(new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "Remove Global Messages"));
             commands.Commands.Add(new MenuCommand(RECREATE_SPRITEFILE_COMMAND, "Restore all sprites from sources"));
             _guiController.AddMenuItems(this, commands);
 
@@ -147,6 +151,13 @@ namespace AGS.Editor.Components
             {
                 _guiController.ShowCreateVoiceActingScriptWizard();
             }
+            else if (controlID == EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND)
+            {
+                if (_guiController.ShowQuestion("This will move any remaining AGS 2.x Global Messages from this game's internal data to the generated script module. This will let you see these texts again and do with them whatever you prefer. But this will also make script commands like DisplayMessage no longer work, and you will have to replace them with contemporary commands for displaying these texts. Are you sure you want to do this?") == DialogResult.Yes)
+                {
+                    ExportGlobalMessagesToScript();
+                }
+            }
             else if (controlID == REMOVE_GLOBAL_MESSAGES_COMMAND)
             {
                 if (_guiController.ShowQuestion("This will remove all traces of AGS 2.x Global Messages from this game. Do not proceed if you are still using any of the Global Messages that you created with a previous version of AGS. Are you sure you want to do this?") == DialogResult.Yes)
@@ -188,7 +199,43 @@ namespace AGS.Editor.Components
                 }
             }
 
+            _guiController.SetMenuItemEnabled(this, EXPORT_GLOBAL_MESSAGES_TO_SCRIPT_COMMAND, globalMessagesExist);
             _guiController.SetMenuItemEnabled(this, REMOVE_GLOBAL_MESSAGES_COMMAND, globalMessagesExist);
+        }
+
+        private void ExportGlobalMessagesToScript()
+        {
+            int validMessages = 0;
+            for (int i = 0; i < _agsEditor.CurrentGame.GlobalMessages.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(_agsEditor.CurrentGame.GlobalMessages[i]))
+                    validMessages++;
+            }
+
+            if (validMessages > 0)
+            {
+                string scriptName = _agsEditor.Tasks.GenerateScriptWithGlobalMessages("_GlobalMessages");
+                if (scriptName == null)
+                {
+                    _guiController.ShowMessage("Global Messages were not moved, operation cancelled", MessageBoxIcon.Exclamation);
+                    return;
+                }
+
+                for (int i = 0; i < _agsEditor.CurrentGame.GlobalMessages.Length; i++)
+                {
+                    _agsEditor.CurrentGame.GlobalMessages[i] = string.Empty;
+                }
+
+                _guiController.ShowMessage(
+                    string.Format("{0} Global Messages were moved to a String array in {1}.",
+                        validMessages, scriptName),
+                    MessageBoxIcon.Information);
+            }
+            else
+            {
+                _guiController.ShowMessage("No valid Global Messages were found, nothing to move.", MessageBoxIcon.Information);
+            }
+            RefreshDataFromGame(); // update menu state
         }
 
         private void RemoveGlobalMessagesFromGame()
@@ -204,7 +251,7 @@ namespace AGS.Editor.Components
             }
 
             _guiController.ShowMessage(messagesRemoved.ToString() + " Global Messages were removed.", MessageBoxIcon.Information);
-            _guiController.SetMenuItemEnabled(this, REMOVE_GLOBAL_MESSAGES_COMMAND, false);
+            RefreshDataFromGame(); // update menu state
         }
 
         private int CountSprites(SpriteFolder folder)

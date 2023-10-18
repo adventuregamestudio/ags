@@ -142,7 +142,9 @@ struct GameSetupStruct : public GameSetupStructBase
     // Part 2
     void read_characters(Common::Stream *in);
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
-    void read_messages(Common::Stream *in, const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver);
+    // NOTE: Global messages are cut out, but we still have to check them
+    // so long as we keep support of loading an older game data
+    void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver);
 
     void ReadCharacters_Aligned(Common::Stream *in, bool is_save);
     void WriteCharacters_Aligned(Common::Stream *out);

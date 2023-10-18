@@ -17,7 +17,7 @@
 #include "font/fonts.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 #include "main/game_run.h"
 #include "gfx/bitmap.h"
 #include "platform/base/agsplatformdriver.h"

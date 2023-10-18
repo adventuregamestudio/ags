@@ -386,36 +386,6 @@ void RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views,
 {
 }
 
-// Assigns default global message at given index
-void SetDefaultGlmsg(GameSetupStruct &game, int msgnum, const char *val)
-{
-    // TODO: find out why the index should be lowered by 500
-    // (or rather if we may pass correct index right away)
-    msgnum -= 500;
-    if (game.messages[msgnum].IsEmpty())
-        game.messages[msgnum] = val;
-}
-
-// CLNUP not to remove yet, global messages may be deprecated but these are used by the engine
-// Sets up default global messages (these are used mainly in older games)
-void SetDefaultGlobalMessages(GameSetupStruct &game)
-{
-    SetDefaultGlmsg(game, 983, "Sorry, not now.");
-    SetDefaultGlmsg(game, 984, "Restore");
-    SetDefaultGlmsg(game, 985, "Cancel");
-    SetDefaultGlmsg(game, 986, "Select a game to restore:");
-    SetDefaultGlmsg(game, 987, "Save");
-    SetDefaultGlmsg(game, 988, "Type a name to save as:");
-    SetDefaultGlmsg(game, 989, "Replace");
-    SetDefaultGlmsg(game, 990, "The save directory is full. You must replace an existing game:");
-    SetDefaultGlmsg(game, 991, "Replace:");
-    SetDefaultGlmsg(game, 992, "With:");
-    SetDefaultGlmsg(game, 993, "Quit");
-    SetDefaultGlmsg(game, 994, "Play");
-    SetDefaultGlmsg(game, 995, "Are you sure you want to quit?");
-    SetDefaultGlmsg(game, 996, "You are carrying nothing.");
-}
-
 void FixupSaveDirectory(GameSetupStruct &game)
 {
     // If the save game folder was not specified by game author, create one of
@@ -581,7 +551,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     game.read_characters(in);
     game.read_lipsync(in, data_ver);
-    game.read_messages(in, sinfo.HasMessages, data_ver);
+    game.skip_messages(in, sinfo.HasMessages, data_ver);
 
     ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
     HError err2 = GUI::ReadGUI(in);
@@ -619,7 +589,6 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeCharacters(game, data_ver);
     UpgradeGUI(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
-    SetDefaultGlobalMessages(game);
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }

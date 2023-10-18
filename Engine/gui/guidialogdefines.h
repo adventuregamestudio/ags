@@ -12,26 +12,29 @@
 //
 //=============================================================================
 //
-//
+// Constants for built-in GUI dialogs.
 //
 //=============================================================================
 #ifndef __AGS_EE_GUI__GUIDIALOGDEFINES_H
 #define __AGS_EE_GUI__GUIDIALOGDEFINES_H
 
-#define MSG_RESTORE      984
-#define MSG_CANCEL       985    // "Cancel"
-#define MSG_SELECTLOAD   986    // "Select game to restore"
-#define MSG_SAVEBUTTON   987    // "Save"
-#define MSG_SAVEDIALOG   988    // "Save game name:"
-#define MSG_REPLACE      989    // "Replace"
-#define MSG_MUSTREPLACE  990    // "The folder is full. you must replace"
-#define MSG_REPLACEWITH1 991    // "Replace:"
-#define MSG_REPLACEWITH2 992    // "With:"
-#define MSG_QUITBUTTON   993    // "Quit"
-#define MSG_PLAYBUTTON   994    // "Play"
-#define MSG_QUITDIALOG   995    // "Do you want to quit?"
+// These were GlobalMessages (984 - 995).
+#define MSG_RESTORE      0     // "Restore"
+#define MSG_CANCEL       1     // "Cancel"
+#define MSG_SELECTLOAD   2     // "Select game to restore"
+#define MSG_SAVEBUTTON   3     // "Save"
+#define MSG_SAVEDIALOG   4     // "Save game name:"
+#define MSG_REPLACE      5     // "Replace"
+#define MSG_MUSTREPLACE  6     // "The folder is full. you must replace"
+#define MSG_REPLACEWITH1 7     // "Replace:"
+#define MSG_REPLACEWITH2 8     // "With:"
+#define MSG_QUITBUTTON   9     // "Quit"
+#define MSG_PLAYBUTTON   10    // "Play"
+#define MSG_QUITDIALOG   11    // "Do you want to quit?"
+#define NUM_GUIDIALOGMSG 12
 
 #include "ac/gamesetup.h"
+#define TEXT_HT usetup.textheight
 
 /*#define COL251 26
 #define COL252 28

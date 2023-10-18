@@ -18,7 +18,7 @@
 #include "font/fonts.h"
 #include "gfx/bitmap.h"
 #include "gui/guidialog.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 #include "gui/mylistbox.h"
 
 using AGS::Common::Bitmap;

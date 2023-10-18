@@ -85,12 +85,6 @@ WalkBehind::WalkBehind()
 {
 }
 
-MessageInfo::MessageInfo()
-    : DisplayAs(0)
-    , Flags(0)
-{
-}
-
 RoomStruct::RoomStruct()
 {
     InitDefaults();
@@ -121,22 +115,6 @@ void RoomStruct::Free()
         Regions[i].Properties.clear();
     }
 
-    FreeMessages();
-    FreeScripts();
-}
-
-void RoomStruct::FreeMessages()
-{
-    for (size_t i = 0; i < MessageCount; ++i)
-    {
-        Messages[i].Free();
-        MessageInfos[i] = MessageInfo();
-    }
-    MessageCount = 0;
-}
-
-void RoomStruct::FreeScripts()
-{
     CompiledScript.reset();
 
     EventHandlers.reset();
@@ -165,7 +143,6 @@ void RoomStruct::InitDefaults()
     RegionCount     = 0;
     WalkAreaCount   = 0;
     WalkBehindCount = 0;
-    MessageCount    = 0;
 
     for (size_t i = 0; i < (size_t)MAX_ROOM_HOTSPOTS; ++i)
         Hotspots[i] = RoomHotspot();

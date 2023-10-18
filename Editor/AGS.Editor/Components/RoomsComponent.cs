@@ -1565,16 +1565,6 @@ namespace AGS.Editor.Components
                     room.Script.SaveToDisk();
                 }
 
-                foreach (RoomMessage message in room.Messages)
-                {
-                    int charId = message.CharacterID;
-                    if (!message.ShowAsSpeech)
-                    {
-                        charId = Character.NARRATOR_CHARACTER_ID;
-                    }
-                    message.Text = processor.ProcessText(message.Text, GameTextType.Message, charId);
-                }
-
                 TextProcessingHelper.ProcessProperties(processor, _agsEditor.CurrentGame.PropertySchema, room.Properties, errors);
 
                 foreach (RoomHotspot hotspot in room.Hotspots)

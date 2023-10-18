@@ -2505,18 +2505,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->TextParser->Words->Add(newWord);
 	}
 
-	for (int i = 0; i < MAXGLOBALMES; i++) 
-	{
-		if (thisgame.messages[i] != NULL) 
-		{
-			game->GlobalMessages[i] = gcnew String(thisgame.messages[i].GetCStr());
-		}
-		else
-		{
-			game->GlobalMessages[i] = String::Empty;
-		}
-	}
-
 	game->LipSync->Type = (thisgame.options[OPT_LIPSYNCTEXT] != 0) ? LipSyncType::Text : LipSyncType::None;
 	game->LipSync->DefaultFrame = thisgame.default_lipsync_frame;
 	for (int i = 0; i < MAXLIPSYNCFRAMES; i++) 
@@ -2816,17 +2804,6 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->BackgroundCount = rs.BgFrameCount;
     room->MaskResolution = rs.MaskResolution;
 
-    for (size_t i = 0; i < rs.MessageCount; ++i)
-	{
-		RoomMessage ^newMessage = gcnew RoomMessage(i);
-		newMessage->Text = tcv->Convert(rs.Messages[i]);
-		newMessage->ShowAsSpeech = (rs.MessageInfos[i].DisplayAs > 0);
-		newMessage->CharacterID = (rs.MessageInfos[i].DisplayAs - 1);
-		newMessage->DisplayNextMessageAfter = ((rs.MessageInfos[i].Flags & MSG_DISPLAYNEXT) != 0);
-		newMessage->AutoRemoveAfterTime = ((rs.MessageInfos[i].Flags & MSG_TIMELIMIT) != 0);
-		room->Messages->Add(newMessage);
-	}
-
 	for (size_t i = 0; i < rs.Objects.size(); ++i) 
 	{
 		RoomObject ^obj = gcnew RoomObject(room);
@@ -2940,24 +2917,6 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
     rs.Options.Flags = 0;
     if (!room->BackgroundAnimationEnabled)
         rs.Options.Flags |= kRoomFlag_BkgFrameLocked;
-
-	rs.MessageCount = room->Messages->Count;
-	for (size_t i = 0; i < rs.MessageCount; ++i)
-	{
-		RoomMessage ^newMessage = room->Messages[i];
-		rs.Messages[i] = tcv->ConvertTextProperty(newMessage->Text);
-		if (newMessage->ShowAsSpeech)
-		{
-			rs.MessageInfos[i].DisplayAs = newMessage->CharacterID + 1;
-		}
-		else
-		{
-			rs.MessageInfos[i].DisplayAs = 0;
-		}
-		rs.MessageInfos[i].Flags = 0;
-		if (newMessage->DisplayNextMessageAfter) rs.MessageInfos[i].Flags |= MSG_DISPLAYNEXT;
-		if (newMessage->AutoRemoveAfterTime) rs.MessageInfos[i].Flags |= MSG_TIMELIMIT;
-	}
 
 	rs.Objects.resize(room->Objects->Count);
 	for (size_t i = 0; i < rs.Objects.size(); ++i)

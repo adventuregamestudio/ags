@@ -117,6 +117,12 @@ void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
   buf[slen] = 0;
 }
 
+void skip_string_decrypt(Stream *in)
+{
+    size_t len = in->ReadInt32();
+    in->Seek(len);
+}
+
 void read_dictionary (WordsDictionary *dict, Stream *out) {
   int ii;
 

@@ -66,11 +66,6 @@ namespace AGS.Editor
                 ProcessProperties(processor, game.PropertySchema, item.Properties, errors);
             }
 
-			for (int i = 0; i < game.GlobalMessages.Length; i++)
-			{
-				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message);
-			}
-
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, errors);
         }
 

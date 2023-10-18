@@ -159,24 +159,6 @@ RuntimeScriptValue Sc_DisplayAtY(const RuntimeScriptValue *params, int32_t param
     API_SCALL_VOID_PINT_POBJ(DisplayAtY, const char);
 }
 
-// void (int msnum)
-RuntimeScriptValue Sc_DisplayMessage(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(DisplayMessage);
-}
-
-// void (int msnum, int ypos)
-RuntimeScriptValue Sc_DisplayMessageAtY(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(DisplayMessageAtY);
-}
-
-// void (int ypos, int ttexcol, int backcol, char *title, int msgnum)
-RuntimeScriptValue Sc_DisplayMessageBar(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3_POBJ_PINT(DisplayMessageBar, const char);
-}
-
 // void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
 RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -349,12 +331,6 @@ RuntimeScriptValue Sc_GetGameOption(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_GetGameSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(GetGameSpeed);
-}
-
-// int (int index)
-RuntimeScriptValue Sc_GetGlobalInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(GetGlobalInt);
 }
 
 // int (int xxx,int yyy)
@@ -1213,9 +1189,6 @@ void RegisterGlobalAPI()
         { "Display",                  Sc_Display, ScPl_Display },
         { "DisplayAt",                Sc_DisplayAt, ScPl_DisplayAt },
         { "DisplayAtY",               API_FN_PAIR(DisplayAtY) },
-        { "DisplayMessage",           API_FN_PAIR(DisplayMessage) },
-        { "DisplayMessageAtY",        API_FN_PAIR(DisplayMessageAtY) },
-        { "DisplayMessageBar",        API_FN_PAIR(DisplayMessageBar) },
         { "DisplayTopBar",            Sc_DisplayTopBar, ScPl_DisplayTopBar },
         { "EnableCursorMode",         API_FN_PAIR(enable_cursor_mode) },
         { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },
@@ -1247,7 +1220,6 @@ void RegisterGlobalAPI()
         { "GetDialogOption",          API_FN_PAIR(GetDialogOption) },
         { "GetGameOption",            API_FN_PAIR(GetGameOption) },
         { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
-        { "GetGlobalInt",             API_FN_PAIR(GetGlobalInt) },
         { "GetHotspotAt",             API_FN_PAIR(GetHotspotIDAtScreen) },
         { "GetHotspotName",           API_FN_PAIR(GetHotspotName) },
         { "GetHotspotPointX",         API_FN_PAIR(GetHotspotPointX) },

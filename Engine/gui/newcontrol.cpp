@@ -14,7 +14,7 @@
 
 #include "gui/newcontrol.h"
 #include "gui/guidialog.h"
-#include "gui/guidialoginternaldefs.h"
+#include "gui/guidialogdefines.h"
 
 extern int topwindowhandle;
 

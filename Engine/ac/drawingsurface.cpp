@@ -316,17 +316,6 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     sds->FinishedDrawing();
 }
 
-void DrawingSurface_DrawMessageWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int msgm)
-{
-    char displbuf[3000];
-    get_message_text(msgm, displbuf);
-    // it's probably too late but check anyway
-    if (strlen(displbuf) > 2899)
-        quit("!RawPrintMessageWrapped: message too long");
-
-    DrawingSurface_DrawStringWrapped_Old(sds, xx, yy, wid, font, kLegacyScAlignLeft, displbuf);
-}
-
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness) {
     int ii,jj,xx,yy;
     Bitmap *ds = sds->StartDrawing();
@@ -433,12 +422,6 @@ RuntimeScriptValue Sc_DrawingSurface_BlendImage(void *self, const RuntimeScriptV
 RuntimeScriptValue Sc_DrawingSurface_DrawLine(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawLine);
-}
-
-// void (ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int msgm)
-RuntimeScriptValue Sc_DrawingSurface_DrawMessageWrapped(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawMessageWrapped);
 }
 
 // void (ScriptDrawingSurface *sds, int x, int y)
@@ -553,7 +536,6 @@ void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*com
         { "DrawingSurface::DrawCircle^3",         API_FN_PAIR(DrawingSurface_DrawCircle) },
         { "DrawingSurface::DrawImage^10",         API_FN_PAIR(DrawingSurface_DrawImage) },
         { "DrawingSurface::DrawLine^5",           API_FN_PAIR(DrawingSurface_DrawLine) },
-        { "DrawingSurface::DrawMessageWrapped^5", API_FN_PAIR(DrawingSurface_DrawMessageWrapped) },
         { "DrawingSurface::DrawStringWrapped^6",  API_FN_PAIR(DrawingSurface_DrawStringWrapped) },
         { "DrawingSurface::DrawPixel^2",          API_FN_PAIR(DrawingSurface_DrawPixel) },
         { "DrawingSurface::DrawRectangle^4",      API_FN_PAIR(DrawingSurface_DrawRectangle) },

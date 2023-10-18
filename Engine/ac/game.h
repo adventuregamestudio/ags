@@ -27,7 +27,6 @@
 namespace AGS { namespace Common { class Bitmap; class Stream; } }
 using namespace AGS; // FIXME later
 
-#define RAGMODE_PRESERVEGLOBALINT 1
 #define RAGMODE_LOADNOW 0x8000000  // just to make sure it's non-zero
 
 enum CutsceneSkipStyle
@@ -102,8 +101,6 @@ int Game_GetColorFromRGB(int red, int grn, int blu);
 const char* Game_InputBox(const char *msg);
 const char* Game_GetLocationName(int x, int y);
 
-const char* Game_GetGlobalMessages(int index);
-
 int Game_GetSpeechFont();
 int Game_GetNormalFont();
 
@@ -168,10 +165,6 @@ void display_switch_in();
 void display_switch_out_suspend();
 // Called when the game gets input focus and should resume
 void display_switch_in_resume();
-
-void replace_tokens(const char*srcmes,char*destm, int maxlen = 99999);
-const char *get_global_message (int msnum);
-void get_message_text (int msnum, char *buffer, char giveErr = 1);
 
 // Notifies the game objects that certain sprite was updated.
 // This make them update their render states, caches, and so on.

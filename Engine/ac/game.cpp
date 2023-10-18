@@ -400,7 +400,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 void restore_game_dialog() {
     can_run_delayed_command();
     if (thisroom.Options.SaveLoadDisabled == 1) {
-        DisplayMessage(983);
+        // DisplayMessage(983); FIXME: remove deprecated SaveLoadDisabled
         return;
     }
     if (inside_script) {
@@ -421,7 +421,7 @@ bool do_restore_game_dialog() {
 
 void save_game_dialog() {
     if (thisroom.Options.SaveLoadDisabled == 1) {
-        DisplayMessage(983);
+        // DisplayMessage(983); FIXME: remove deprecated SaveLoadDisabled
         return;
     }
     if (inside_script) {
@@ -696,16 +696,6 @@ const char* Game_InputBox(const char *msg) {
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
     GetLocationName(x, y, buffer);
-    return CreateNewScriptString(buffer);
-}
-
-const char* Game_GetGlobalMessages(int index) {
-    if ((index < 500) || (index >= MAXGLOBALMES + 500)) {
-        return nullptr;
-    }
-    char buffer[STD_BUFFER_SIZE];
-    buffer[0] = 0;
-    replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 
@@ -1298,84 +1288,6 @@ void display_switch_in_resume()
     game_update_suspend = false;
 }
 
-void replace_tokens(const char*srcmes,char*destm, int maxlen) {
-    int indxdest=0,indxsrc=0;
-    const char*srcp;
-    char *destp;
-    while (srcmes[indxsrc]!=0) {
-        srcp=&srcmes[indxsrc];
-        destp=&destm[indxdest];
-        if ((strncmp(srcp,"@IN",3)==0) | (strncmp(srcp,"@GI",3)==0)) {
-            int tokentype=0;
-            if (srcp[1]=='I') tokentype=1;
-            else tokentype=2;
-            int inx=atoi(&srcp[3]);
-            srcp++;
-            indxsrc+=2;
-            while (srcp[0]!='@') {
-                if (srcp[0]==0) quit("!Display: special token not terminated");
-                srcp++;
-                indxsrc++;
-            }
-            char tval[10];
-            if (tokentype==1) {
-                if ((inx<1) | (inx>=game.numinvitems))
-                    quit("!Display: invalid inv item specified in @IN@");
-                snprintf(tval,sizeof(tval),"%d",playerchar->inv[inx]);
-            }
-            else {
-                if ((inx<0) | (inx>=MAXGSVALUES))
-                    quit("!Display: invalid global int index speicifed in @GI@");
-                snprintf(tval,sizeof(tval),"%d",GetGlobalInt(inx));
-            }
-            snprintf(destp, maxlen, "%s", tval);
-            indxdest+=strlen(tval);
-        }
-        else {
-            destp[0]=srcp[0];
-            indxdest++;
-            indxsrc++;
-        }
-        if (indxdest >= maxlen - 3)
-            break;
-    }
-    destm[indxdest]=0;
-}
-
-const char *get_global_message (int msnum) {
-    if (game.messages[msnum - 500].IsEmpty())
-        return "";
-    return get_translation(game.messages[msnum - 500].GetCStr());
-}
-
-void get_message_text (int msnum, char *buffer, char giveErr) {
-    int maxlen = 9999;
-    if (!giveErr)
-        maxlen = MAX_MAXSTRLEN;
-
-    if (msnum>=500) {
-
-        if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500].IsEmpty())) {
-            if (giveErr)
-                quit("!DisplayGlobalMessage: message does not exist");
-            buffer[0] = 0;
-            return;
-        }
-        buffer[0] = 0;
-        replace_tokens(get_translation(game.messages[msnum-500].GetCStr()), buffer, maxlen);
-        return;
-    }
-    else if (msnum < 0 || (size_t)msnum >= thisroom.MessageCount) {
-        if (giveErr)
-            quit("!DisplayMessage: Invalid message number to display");
-        buffer[0] = 0;
-        return;
-    }
-
-    buffer[0]=0;
-    replace_tokens(get_translation(thisroom.Messages[msnum].GetCStr()), buffer, maxlen);
-}
-
 void game_sprite_updated(int sprnum, bool deleted)
 {
     // Notify draw system about dynamic sprite change
@@ -1542,12 +1454,6 @@ RuntimeScriptValue Sc_Game_GetFileName(const RuntimeScriptValue *params, int32_t
 RuntimeScriptValue Sc_Game_GetFontCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_GetFontCount);
-}
-
-// const char* (int index)
-RuntimeScriptValue Sc_Game_GetGlobalMessages(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetGlobalMessages);
 }
 
 // int ()
@@ -1749,7 +1655,6 @@ void RegisterGameAPI()
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },
         { "Game::get_FontCount",                          API_FN_PAIR(Game_GetFontCount) },
-        { "Game::geti_GlobalMessages",                    API_FN_PAIR(Game_GetGlobalMessages) },
         { "Game::get_GUICount",                           API_FN_PAIR(Game_GetGUICount) },
         { "Game::get_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_GetIgnoreUserInputAfterTextTimeoutMs) },
         { "Game::set_IgnoreUserInputAfterTextTimeoutMs",  API_FN_PAIR(Game_SetIgnoreUserInputAfterTextTimeoutMs) },

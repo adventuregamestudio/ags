@@ -1908,7 +1908,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     ParseExpression_CheckArgOfNew(argument_vartype);
     
     bool const is_managed = _sym.IsManagedVartype(argument_vartype);
-    bool const with_bracket_expr = !expression.ReachedEOF(); // "new FOO[BAR]"
+    bool const with_bracket_expr = kKW_OpenBracket == expression.PeekNext(); // "new FOO[BAR]"
 
     Vartype element_vartype = kKW_NoSymbol;
     if (with_bracket_expr)
@@ -1936,6 +1936,14 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
             UserError("Expected '[' after the built-in type '%s'", _sym.GetName(argument_vartype).c_str());
         if (!is_managed)
             UserError("Expected '[' after the integer type '%s'", _sym.GetName(argument_vartype).c_str());
+
+        if (kKW_OpenParenthesis == expression.PeekNext())
+        {
+            Warning("'()' after 'new' isn't implemented, is currently ignored");
+            expression.GetNext();
+            SkipTo(SymbolList{}, expression);
+            expression.GetNext();
+        }
 
         // Only do this check for new, not for new[]. 
         if (0 == _sym.GetSize(argument_vartype))

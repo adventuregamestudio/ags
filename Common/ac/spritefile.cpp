@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/spritefile.h"
 #include <algorithm>
+#include <array>
 #include <time.h>
 #include "core/assetmanager.h"
 #include "gfx/bitmap.h"
@@ -102,13 +103,15 @@ static bool CreateIndexedBitmap(const Bitmap *image, std::vector<uint8_t> &dst_d
 // Unpacks an indexed image's pixel data into the 16/32-bit image;
 // NOTE: the palette is expected to contain colors in the same format as the destination.
 static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_size,
-    uint32_t *palette, uint32_t pal_count)
+                                const std::array<uint32_t, 256> &palette, uint32_t pal_count)
 {
-    assert(pal_count > 0);
-    if (pal_count == 0) return; // meaningless
-    const uint8_t bpp = image->GetBPP();
+    assert(pal_count > 0 && pal_count <= 256);
+    if (pal_count == 0 || pal_count > 256) return; // meaningless
+
+    const uint8_t bpp = static_cast<uint8_t>(image->GetBPP());
     const size_t dst_size = image->GetWidth() * image->GetHeight() * image->GetBPP();
-    uint8_t *dst = image->GetDataForWriting(), *dst_end = dst + dst_size;
+    uint8_t *dst = image->GetDataForWriting();
+    uint8_t const *dst_end = dst + dst_size;
 
     switch (bpp)
     {
@@ -116,7 +119,7 @@ static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_
             for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
                 uint8_t index = data[p];
                 assert(index < pal_count);
-                uint32_t color = palette[(index < pal_count) ? index : 0];
+                uint32_t color = palette[index];
                 *((uint16_t *) dst) = color;
             }
         break;
@@ -124,7 +127,7 @@ static void UnpackIndexedBitmap(Bitmap *image, const uint8_t *data, size_t data_
             for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
                 uint8_t index = data[p];
                 assert(index < pal_count);
-                uint32_t color = palette[(index < pal_count) ? index : 0];
+                uint32_t color = palette[index];
                 *((uint32_t*)dst) = color;
             }
         break;
@@ -413,7 +416,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, Common::Bitmap *&sprite)
     ImBufferPtr im_data(image->GetDataForWriting(), w * h * bpp, bpp);
     // (Optional) Handle storage options, reverse
     std::vector<uint8_t> indexed_buf;
-    uint32_t palette[256];
+    std::array<uint32_t, 256> palette {};
     uint32_t pal_bpp = GetPaletteBPP(hdr.SFormat);
     if (pal_bpp > 0)
     { // read palette if format assumes one

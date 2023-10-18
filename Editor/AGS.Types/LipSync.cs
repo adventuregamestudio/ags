@@ -59,8 +59,11 @@ namespace AGS.Types
         public void FromXml(XmlNode node)
         {
             XmlNode lipSyncNode = node.SelectSingleNode("LipSync");
-            this.Type = (LipSyncType)Enum.Parse(typeof(LipSyncType), SerializeUtils.GetElementString(lipSyncNode, "Type"));
-            this.DefaultFrame = Convert.ToInt32(SerializeUtils.GetElementString(lipSyncNode, "DefaultFrame"));
+            if (lipSyncNode == null)
+                return;
+
+            Type = (LipSyncType)Enum.Parse(typeof(LipSyncType), SerializeUtils.GetElementString(lipSyncNode, "Type"));
+            DefaultFrame = Convert.ToInt32(SerializeUtils.GetElementString(lipSyncNode, "DefaultFrame"));
             int nodeIndex = 0;
             foreach (XmlNode frameNode in SerializeUtils.GetChildNodes(lipSyncNode, "Frames"))
             {
@@ -72,8 +75,8 @@ namespace AGS.Types
         public void ToXml(XmlTextWriter writer)
         {
             writer.WriteStartElement("LipSync");
-            writer.WriteElementString("Type", this.Type.ToString());
-            writer.WriteElementString("DefaultFrame", this.DefaultFrame.ToString());
+            writer.WriteElementString("Type", Type.ToString());
+            writer.WriteElementString("DefaultFrame", DefaultFrame.ToString());
             writer.WriteStartElement("Frames");
             foreach (string lipSyncForFrame in _lipSyncCharsForFrame)
             {

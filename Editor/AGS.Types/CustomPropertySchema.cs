@@ -21,6 +21,9 @@ namespace AGS.Types
         public void FromXml(XmlNode node)
         {
             _propertyDefinitions.Clear();
+            if (node.SelectSingleNode("PropertyDefinitions") == null)
+                return;
+
             foreach (XmlNode child in SerializeUtils.GetChildNodes(node, "PropertyDefinitions"))
             {
                 _propertyDefinitions.Add(new CustomPropertySchemaItem(child));

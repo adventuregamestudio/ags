@@ -59,8 +59,6 @@ extern AGSPlatformDriver *platform;
 extern int loops_per_character;
 extern SpriteCache spriteset;
 
-int display_message_aschar=0;
-
 TopBarSettings topBar;
 struct DisplayVars
 {

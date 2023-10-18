@@ -230,30 +230,12 @@ int GetLastSaveSlot()
     return saves[0].Slot;
 }
 
-void SetGlobalInt(int index,int valu) {
-    if ((index<0) | (index>=MAXGSVALUES))
-        quitprintf("!SetGlobalInt: invalid index %d, supported range is %d - %d", index, 0, MAXGSVALUES - 1);
-
-    if (play.globalscriptvars[index] != valu) {
-        debug_script_log("GlobalInt %d set to %d", index, valu);
-    }
-
-    play.globalscriptvars[index]=valu;
-}
-
-
-int GetGlobalInt(int index) {
-    if ((index<0) | (index>=MAXGSVALUES))
-        quitprintf("!GetGlobalInt: invalid index %d, supported range is %d - %d", index, 0, MAXGSVALUES - 1);
-    return play.globalscriptvars[index];
-}
-
 // TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
 int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 
     can_run_delayed_command();
 
-    int AllowedModes = RAGMODE_PRESERVEGLOBALINT | RAGMODE_LOADNOW;
+    int AllowedModes = RAGMODE_LOADNOW;
 
     if ((mode & (~AllowedModes)) != 0)
         quit("!RunAGSGame: mode value unknown");
@@ -277,13 +259,6 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
             load_new_game = mode | RAGMODE_LOADNOW;
 
         return 0;
-    }
-
-    // Optionally save legacy GlobalInts
-    int savedscriptvars[MAXGSVALUES];
-    if ((mode & RAGMODE_PRESERVEGLOBALINT) != 0)
-    {
-        memcpy(savedscriptvars, play.globalscriptvars, sizeof(play.globalscriptvars));
     }
 
     unload_old_room();
@@ -314,12 +289,6 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);
     if (!err)
         quitprintf("!RunAGSGame: error loading new sprites:\n%s", err->FullMessage().GetCStr());
-
-    // Restore saved GlobalInts
-    if ((mode & RAGMODE_PRESERVEGLOBALINT) != 0)
-    {
-        memcpy(play.globalscriptvars, savedscriptvars, sizeof(play.globalscriptvars));
-    }
 
     engine_init_game_settings();
     play.screen_is_faded_out = 1;

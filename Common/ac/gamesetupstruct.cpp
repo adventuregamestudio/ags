@@ -168,17 +168,14 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
     in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-// CLNUP global messages are supposed to be gone, check later
-void GameSetupStruct::read_messages(Common::Stream *in,
-    const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver)
+void GameSetupStruct::skip_messages(Common::Stream *in,
+    const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver)
 {
-    char mbuf[GLOBALMESLENGTH];
-    for (int i = 0; i < MAXGLOBALMES; ++i)
+    for (int i = 0; i < NUM_LEGACY_GLOBALMES; ++i)
     {
         if (!load_messages[i])
             continue;
-        read_string_decrypt(in, mbuf, GLOBALMESLENGTH);
-        messages[i] = mbuf;
+        skip_string_decrypt(in);
     }
 }
 

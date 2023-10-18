@@ -39,6 +39,8 @@ struct GameSetupStructBase
     static const int  GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
     static const int  NUM_INTS_RESERVED = 17;
+    // TODO: this is left purely to load older format version, revise later
+    static const int  NUM_LEGACY_GLOBALMES = 500;
 
     char              gamename[GAME_NAME_LENGTH];
     int               options[MAX_OPTIONS];
@@ -61,7 +63,6 @@ struct GameSetupStructBase
     int               default_lipsync_frame; // used for unknown chars
     int               invhotdotsprite;
     int               reserved[NUM_INTS_RESERVED];
-    Common::String    messages[MAXGLOBALMES];
     std::unique_ptr<WordsDictionary> dict;
     std::vector<CharacterInfo> chars;
 
@@ -78,7 +79,9 @@ struct GameSetupStructBase
     {
         bool HasCCScript = false;
         bool HasWordsDict = false;
-        std::array<int, MAXGLOBALMES> HasMessages{};
+        // NOTE: Global messages are cut out, but we still have to check them
+        // so long as we keep support of loading an older game data
+        std::array<int, NUM_LEGACY_GLOBALMES> HasMessages{};
     };
 
     void ReadFromFile(Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);

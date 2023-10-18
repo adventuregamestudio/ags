@@ -448,7 +448,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     disabled_user_interface = in->ReadInt32();
     gscript_timer = in->ReadInt32();
     debug_mode = in->ReadInt32();
-    in->ReadArrayOfInt32(globalvars, MAXGLOBALVARS);
+    in->Seek(sizeof(int32_t) * LEGACY_MAXGLOBALVARS);
     messagetime = in->ReadInt32();
     usedinv = in->ReadInt32();
     in->ReadInt32(); // [DEPRECATED]
@@ -542,7 +542,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     mboundy2 = in->ReadInt16();
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
-    in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
+    in->Seek(sizeof(int32_t) * LEGACY_MAXGSVALUES);
     in->ReadInt32();// [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
@@ -611,9 +611,9 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     crossfade_in_volume_per_step = in->ReadInt16();
     crossfade_final_volume_in = in->ReadInt16();
 
-    in->Read(takeover_from, 50);
     in->Seek(50);// [DEPRECATED]
-    in->Read(globalstrings, MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
+    in->Seek(50);// [DEPRECATED]
+    in->Seek(LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     in->Read(lastParserEntry, MAX_MAXSTRLEN);
     in->Read(game_name, 100);
     ground_level_areas_disabled = in->ReadInt32();
@@ -647,7 +647,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(disabled_user_interface);
     out->WriteInt32(gscript_timer);
     out->WriteInt32(debug_mode);
-    out->WriteArrayOfInt32(globalvars, MAXGLOBALVARS);
+    out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGLOBALVARS);
     out->WriteInt32(messagetime);
     out->WriteInt32(usedinv);
     out->WriteInt32(0); // [DEPRECATED]
@@ -736,7 +736,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt16(mboundy2);
     out->WriteInt32( fade_effect);
     out->WriteInt32( bg_frame_locked);
-    out->WriteArrayOfInt32(globalscriptvars, MAXGSVALUES);
+    out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGSVALUES);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( 0);
     out->WriteInt32( 0);
@@ -798,9 +798,9 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt16( crossfade_in_volume_per_step);
     out->WriteInt16( crossfade_final_volume_in);
 
-    out->Write(takeover_from, 50);
     out->WriteByteCount(0, 50);// [DEPRECATED]
-    out->Write(globalstrings, MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
+    out->WriteByteCount(0, 50);// [DEPRECATED]
+    out->WriteByteCount(0, LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     out->Write(lastParserEntry, MAX_MAXSTRLEN);
     out->Write(game_name, 100);
     out->WriteInt32( ground_level_areas_disabled);

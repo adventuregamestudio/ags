@@ -21,10 +21,6 @@ void DisplaySimple(const char* text); // does not apply translation
 void DisplayMB(const char* text); // forces standard Display message box
 void DisplayAt(int xxp,int yyp,int widd, const char*text);
 void DisplayAtY (int ypos, const char *texx);
-void DisplayMessage(int msnum);
-void DisplayMessageAtY(int msnum, int ypos);
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text);
-// Display a room/global message in the bar
-void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, int msgnum);
 
 #endif // __AGS_EE_AC__GLOBALDISPLAY_H

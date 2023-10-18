@@ -27,10 +27,6 @@
 #define PAL_LOCKED          1
 #define PAL_BACKGROUND      2
 
-// Global messages constants
-#define MAXGLOBALMES        500
-#define GLOBALMESLENGTH     500
-
 // Game options
 
 // General game options

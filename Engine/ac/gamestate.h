@@ -60,12 +60,16 @@ enum GameStateSvgVersion
 
 // Runtime game state
 struct GameState {
+    // TODO: this is left purely to load older save version, revise later
+    static const int LEGACY_MAXGLOBALVARS = 50;
+    static const int LEGACY_MAXGSVALUES = 500;
+    static const int LEGACY_MAXGLOBALSTRINGS = 51;
+
     int  score = 0;                 // player's current score
     int  usedmode = 0;              // set by ProcessClick to last cursor mode used
     int  disabled_user_interface = 0;  // >0 while in cutscene/etc
     int  gscript_timer = 0;         // obsolete
     int  debug_mode = 0;            // whether we're in debug mode
-    int  globalvars[MAXGLOBALVARS]{};  // [OBSOLETE]
     int  messagetime = 0;           // time left for auto-remove messages
     int  usedinv = 0;               // inventory item last used
     int  text_speed = 0;            // how quickly text is removed
@@ -149,7 +153,6 @@ struct GameState {
     short mboundy2 = 0;
     int   fade_effect = 0;
     int   bg_frame_locked = 0;
-    int   globalscriptvars[MAXGSVALUES]{}; // CLNUP some ancient integer list
     int   audio_master_volume = 0; // in 0-100
     char  walkable_areas_on[MAX_WALK_AREAS + 1]{};
     short screen_flipped = 0;
@@ -201,8 +204,6 @@ struct GameState {
     short crossfade_final_volume_in = 0;
     short new_music_queue_size = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
-    char  takeover_from[50]{};
-    char  globalstrings[MAXGLOBALSTRINGS][MAX_MAXSTRLEN]{};
     char  lastParserEntry[MAX_MAXSTRLEN]{};
     char  game_name[100]{};
     int   ground_level_areas_disabled = 0;

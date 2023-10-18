@@ -24,11 +24,8 @@
 
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
-#define MAXGLOBALVARS 50
 
 #define INVALID_X  30000
-#define MAXGSVALUES 500
-#define MAXGLOBALSTRINGS 51
 #define MAX_INVORDER 500
 #define DIALOG_NONE      0
 #define DIALOG_RUNNING   1

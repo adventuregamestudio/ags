@@ -52,8 +52,6 @@ int  GetLastSaveSlot();
 void PauseGame();
 void UnPauseGame();
 int  IsGamePaused();
-void SetGlobalInt(int index,int valu);
-int  GetGlobalInt(int index);
 int  RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
 void QuitGame(int dialog);
 void SetRestartPoint();

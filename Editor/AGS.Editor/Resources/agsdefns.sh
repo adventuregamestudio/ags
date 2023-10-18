@@ -654,8 +654,6 @@ builtin managed struct DrawingSurface {
 #endif
   /// Draws a straight line between the two points on the surface.
   import void DrawLine(int x1, int y1, int x2, int y2, int thickness=1);
-  /// Draws a message from the Room Message Editor, wrapping at the specified width.
-  import void DrawMessageWrapped(int x, int y, int width, FontType, int messageNumber);
   /// Changes the colour of a single pixel on the surface.
   import void DrawPixel(int x, int y);
   /// Draws a filled rectangle to the surface.
@@ -738,14 +736,8 @@ import void Display(const string message, ...);
 import void DisplayAt(int x, int y, int width, const string message, ...);
 /// Displays the text in a standard text window at the specified y-coordinate.
 import void DisplayAtY (int y, const string message);
-/// Displays a message from the Room Message Editor.
-import void DisplayMessage(int messageNumber);
-/// Displays a message from the Room Message Editor at the specified y-coordinate.
-import void DisplayMessageAtY(int messageNumber, int y);
 /// Displays a message in a text window with a title, used for speech in SCI0 games.
 import void DisplayTopBar(int y, int textColor, int backColor, const string title, const string text, ...);
-/// Displays a Room Message Editor message in a text window with a title, used for speech in SCI0 games.
-import void DisplayMessageBar(int y, int textColor, int backColor, const string title, int message);
 /// Resets the room state back to how it was initially set up in the editor.
 import void ResetRoom(int roomNumber);
 /// Checks whether the player has been in the specified room yet.
@@ -2250,10 +2242,6 @@ builtin struct Game {
   readonly import static attribute String FileName;
   /// Gets the number of fonts in the game.
   readonly import static attribute int FontCount;
-  /// Accesses the legacy Global Messages, from AGS 2.x
-  readonly import static attribute String GlobalMessages[];
-  /// Accesses the global strings collection. This is obsolete.
-  import static attribute String GlobalStrings[];
   /// Gets the number of GUIs in the game.
   readonly import static attribute int GUICount;
   /// Gets/sets the time for which user input is ignored after some text is automatically removed

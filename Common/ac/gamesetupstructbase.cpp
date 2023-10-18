@@ -55,10 +55,6 @@ GameSetupStructBase::~GameSetupStructBase()
 
 void GameSetupStructBase::Free()
 {
-    for (int i = 0; i < MAXGLOBALMES; ++i)
-    {
-        messages[i].Free();
-    }
     dict.reset();
     chars.clear();
 
@@ -109,7 +105,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
-    in->ReadArrayOfInt32(&info.HasMessages.front(), MAXGLOBALMES);
+    in->ReadArrayOfInt32(&info.HasMessages.front(), NUM_LEGACY_GLOBALMES);
 
     info.HasWordsDict = in->ReadInt32() != 0;
     in->ReadInt32(); // globalscript (dummy 32-bit pointer value)
@@ -146,10 +142,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);
     out->WriteArrayOfInt32(reserved, NUM_INTS_RESERVED);
-    for (int i = 0; i < MAXGLOBALMES; ++i)
-    {
-        out->WriteInt32(!messages[i].IsEmpty() ? 1 : 0);
-    }
+    out->WriteByteCount(0, sizeof(int32_t) * NUM_LEGACY_GLOBALMES);
     out->WriteInt32(dict ? 1 : 0);
     out->WriteInt32(0); // globalscript (dummy 32-bit pointer value)
     out->WriteInt32(0); // chars  (dummy 32-bit pointer value)

@@ -720,6 +720,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
+    if (CfgReadBoolInt(_cfgIn, "disabled", "translation"))
+        EnableWindow(_hLanguageList, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect, border;
     GetWindowRect(_hwnd, &win_rect);

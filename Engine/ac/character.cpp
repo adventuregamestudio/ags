@@ -2439,6 +2439,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
+    if (play.screen_is_faded_out > 0)
+        debug_script_warn("Warning: blocking Say call during fade-out.");
     if (play.text_overlay_on > 0)
     {
         debug_script_warn("DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");

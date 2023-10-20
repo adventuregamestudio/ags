@@ -492,9 +492,11 @@ namespace AGS.Editor
                 splitSize, baseFileName, makeFileNameAssumptions);
         }
 
-        private static void WriteGameSetupStructBase_Aligned(BinaryWriter writer, Game game)
+        private static void WriteGameSetupStructBase(BinaryWriter writer, Game game)
         {
-            // assume stream is aligned at start
+            // NOTE: historically the struct was saved by dumping whole memory
+            // into the file stream, which added padding from memory alignment;
+            // here we mark the padding bytes, as they do not belong to actual data.
             WriteString(SafeTruncate(TextProperty(game.Settings.GameName), 49), 50, writer);
             writer.Write(new byte[2]); // alignment padding
             int[] options = new int[100];
@@ -537,11 +539,11 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_KEYHANDLEAPI] = (game.Settings.UseOldKeyboardHandling ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_SCALECHAROFFSETS] = (game.Settings.ScaleCharacterSpriteOffsets ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
-            for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
+            for (int i = 0; i < options.Length; ++i)
             {
                 writer.Write(options[i]);
             }
-            for (int i = 0; i < 256; ++i) // writing 256 bytes, alignment preserved
+            for (int i = 0; i < 256; ++i)
             {
                 if (game.Palette[i].ColourType == PaletteColourType.Background)
                 {
@@ -549,7 +551,7 @@ namespace AGS.Editor
                 }
                 else writer.Write((byte)0); // PAL_GAMEWIDE
             }
-            for (int i = 0; i < 256; ++i) // writing 256*4 bytes, alignment preserved
+            for (int i = 0; i < 256; ++i)
             {
                 writer.Write((byte)(game.Palette[i].Colour.R / 4));
                 writer.Write((byte)(game.Palette[i].Colour.G / 4));
@@ -567,10 +569,10 @@ namespace AGS.Editor
             writer.Write(game.Fonts.Count);
             writer.Write((int)game.Settings.ColorDepth);
             writer.Write(0); // target_win
-            writer.Write(game.Settings.DialogOptionsBullet); // aligned so far
+            writer.Write(game.Settings.DialogOptionsBullet);
             writer.Write(game.Settings.InventoryHotspotMarker.Style != InventoryHotspotMarkerStyle.None ?
-                (short)game.Settings.InventoryHotspotMarker.DotColor : (short)0); // need 2 bytes for alignment
-            writer.Write((short)game.Settings.InventoryHotspotMarker.CrosshairColor); // aligned again
+                (short)game.Settings.InventoryHotspotMarker.DotColor : (short)0);
+            writer.Write((short)game.Settings.InventoryHotspotMarker.CrosshairColor);
             writer.Write(game.Settings.UniqueID);
             writer.Write(game.GUIs.Count);
             writer.Write(game.Cursors.Count);
@@ -580,17 +582,15 @@ namespace AGS.Editor
             writer.Write(game.LipSync.DefaultFrame);
             writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
                 game.Settings.InventoryHotspotMarker.Image : 0);
-            writer.Write(new byte[17 * sizeof(int)]); // reserved; 17 ints, alignment preserved
-            for (int i = 0; i < 500; ++i) // [DEPRECATED]; write 500 ints, alignment preserved
+            writer.Write(new byte[17 * sizeof(int)]); // reserved; 17 ints
+            for (int i = 0; i < 500; ++i) // [DEPRECATED]; write 500 ints
             {
                 writer.Write(0);
             }
-            // the rest are ints, alignment is correct
             writer.Write(1); // dict != null
             writer.Write(0); // globalscript != null
             writer.Write(0); // chars != null
             writer.Write(1); // compiled_script != null
-            // no final padding required
         }
 
         private static void UpdateSpriteFlags(SpriteFolder folder, byte[] flags, out int mostTopmost)
@@ -1370,7 +1370,7 @@ namespace AGS.Editor
             //   foreach (cap in caps)
             //       FilePutString(cap.Name);
             //
-            WriteGameSetupStructBase_Aligned(writer, game);
+            WriteGameSetupStructBase(writer, game);
             WriteString(game.Settings.GUIDAsString, NativeConstants.MAX_GUID_LENGTH, writer);
             WriteString(game.Settings.SaveGameFileExtension, NativeConstants.MAX_SG_EXT_LENGTH, writer);
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);

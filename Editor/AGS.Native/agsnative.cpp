@@ -29,7 +29,6 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/compress.h"
 #include "util/string_types.h"
 #include "util/string_utils.h"    // fputstring, etc
-#include "util/alignedstream.h"
 #include "util/directory.h"
 #include "util/filestream.h"
 #include "util/path.h"
@@ -39,7 +38,6 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 
 using AGS::Types::AGSEditorException;
 
-using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 using AGS::Common::AssetLibInfo;
 using AGS::Common::AssetManager;

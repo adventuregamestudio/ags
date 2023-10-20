@@ -127,7 +127,7 @@ void main_print_help() {
 #endif
            "  --gfxfilter FILTER [SCALING]\n"
            "                               Request graphics filter. Available options:\n"           
-           "                                 none, linear, stdscale\n"
+           "                                 stdscale, linear\n"
            "                               (support may differ between graphic drivers);\n"
            "                               Scaling is specified as:\n"
            "                                 proportional, round, stretch,\n"

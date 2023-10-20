@@ -67,6 +67,7 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver, int save_
     in->Read(name, 40);
     in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
+    in->ReadInt8(); // alignment padding to int32
 }
 
 void CharacterInfo::WriteToFile(Stream *out) const
@@ -117,4 +118,5 @@ void CharacterInfo::WriteToFile(Stream *out) const
     out->Write(name, 40);
     out->Write(scrname, MAX_SCRIPT_NAME_LEN);
     out->WriteInt8(on);
+    out->WriteInt8(0); // alignment padding to int32
 }

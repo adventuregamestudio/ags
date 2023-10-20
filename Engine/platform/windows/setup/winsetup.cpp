@@ -1036,7 +1036,8 @@ void WinSetupDialog::FillGfxFilterList()
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
-        if (!CfgReadBoolInt(_cfgIn, "disabled", info.Id))
+        String item = CfgFindKey(_cfgIn, "disabled", info.Id, true);
+        if (item.IsEmpty() || !CfgReadBoolInt(_cfgIn, "disabled", item))
             AddString(_hGfxFilterList, STR(info.Name), (DWORD_PTR)info.Id.GetCStr());
     }
 

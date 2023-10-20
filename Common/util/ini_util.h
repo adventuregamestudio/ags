@@ -43,6 +43,11 @@ String  CfgReadString(const ConfigTree &cfg, const String &sectn, const String &
 // Specialized variant for reading into char buffer, for code compatibility
 void    CfgReadString(char *cbuf, size_t buf_sz,
     const ConfigTree &cfg, const String &sectn, const String &item, const String &def = "");
+// Looks up for a item key in a given section, returns actual key if one exists, or empty string otherwise,
+// optionally compares item name in case-insensitive way.
+// NOTE: this is a compatibility hack, in case we cannot enforce key case-sensitivity in some case.
+String  CfgFindKey(const ConfigTree &cfg, const String &sectn, const String &item, bool nocase = false);
+
 //
 // Helper functions for writing values into a ConfigTree
 void    CfgWriteInt(ConfigTree &cfg, const String &sectn, const String &item, int value);

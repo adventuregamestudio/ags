@@ -822,16 +822,6 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(voice_speech_flags);
 }
 
-void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
-{
-    AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-    {
-        new_music_queue[i].ReadFromFile(&align_s);
-        align_s.Reset();
-    }
-}
-
 void GameState::FreeProperties()
 {
     for (auto &p : charProps)

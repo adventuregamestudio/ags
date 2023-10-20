@@ -4,12 +4,12 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-
 #include "cs_parser_common.h"
+#include "cc_symboltable.h"
 
 namespace AGS
 {
-// A helper class that contains post-parsed list of sections,
+// A helper class that contains post-parsed list of sections
 // and a offset-to-section map, useful for finding a symbol's location.
 class SectionList
 {
@@ -17,6 +17,7 @@ class SectionList
     std::vector<std::string> _sections;
     // starting line offset to section index
     std::map<size_t, size_t> _off2sec;
+
 public:
     SectionList() = default;
     SectionList(const std::vector<std::string> &sections,
@@ -93,8 +94,8 @@ private:
     std::vector<Symbol> &_script;
     LineHandler &_lineHandler;
     size_t _offset; 
-    size_t _len;    // note: _len has the length relative to [0], not relative to [_offset]
-    size_t &_cursor; // note: _cursor has the position relative to [0], not relative to [_offset]
+    size_t _len;    // Length relative to [0], not relative to [_offset]
+    size_t &_cursor; // Position relative to [0], not relative to [_offset]
 
 public:
     SrcList(std::vector<Symbol> &script, LineHandler &line_handler, size_t &cursor);
@@ -103,7 +104,7 @@ public:
     // but the resulting SrcList starts at [offset] and has the length len.
     // No symbols are actually copied.
     // NOTE: If you move the cursor of the new list then the cursor of the original list
-    // moves by the same amount because the cursor variable is shared. This is intentional.
+    // moves correspondingly because the cursor variable is shared. This is intentional.
     SrcList(SrcList const &src_list, size_t offset, size_t len);
 
     inline size_t GetCursor() const { return _cursor - _offset; }
@@ -111,6 +112,8 @@ public:
     
     inline size_t Length() const { return _len; };
     inline bool ReachedEOF() const { return _cursor - _offset >= _len  || _cursor >= _script.size(); }
+    // Whether the cursor has gone _beyond_ the start when going backwards
+    inline bool ReachedStartOF() const { return _cursor < _offset; }
 
     // Set the cursor to the start of the list
     inline void StartRead() { SetCursor(0); }
@@ -118,8 +121,25 @@ public:
     Symbol GetNext();
     // Look at the symbol that will be read next, but don't read it yet
     inline Symbol PeekNext() const { return ReachedEOF() ? kEOF : _script[_cursor]; }
+    // Look at the symbol that comes next when going backwards when reading
+    inline Symbol PeekPrev() const { return ReachedStartOF() ? kEOF : _script[GetCursor() - 1u]; }
     // Move the cursor back by 1 space.
     inline void BackUp() { size_t c = GetCursor(); SetCursor((c > 0u) ? c - 1u : 0u); }
+
+    // Skim through the list, ignoring delimited content completely. Stop in the following cases:
+    // .  A symbol in 'stoplist' is encountered
+    // .  A closing symbol is encountered that hasn't been opened.
+    // Don't consume the symbol that stops the scan.
+    void SkipTo(SymbolList const &stoplist);
+    // Skim through the list, ignoring delimited content completely. Stop in the following cases:
+    // .  The symbol 'stopsym' is encountered.
+    // .  A closing symbol is encountered that hasn't been opened.
+    // Don't consume the symbol that stops the scan.
+    inline void SkipTo(Symbol stopsym) { SkipTo(SymbolList{ stopsym }); }
+    // Skim through the list, ignoring delimited content completely. 
+    // Stop whem a closing symbol is encountered that hasn't been opened.
+    // Don't consume that symbol.
+    inline void SkipToCloser(void) { SkipTo(SymbolList{}); }
 
     // Get symbol at idx. Moves the cursor, too.
     // Note: Can't assign through this operator, this is intentional.
@@ -133,7 +153,7 @@ public:
     void EatLastSymbol();
 
     // Note that when this is a sub-list of an original list, the line numbers and sections
-    // will still be relative to the original list. This is intentional.
+    // will still be relative to the original list. This is intentional
     // (When the user gets an error, they want to know the "real" line where the error is,
     // not a line reference that is relative to an excerpt of their program.)
     inline size_t GetLinenoAt(size_t pos) const { return _lineHandler.GetLinenoAt(pos + _offset); }

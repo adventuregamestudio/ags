@@ -392,20 +392,6 @@ private:
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
-    // Skim through 'source', ignoring delimited content completely. Stop in the following cases:
-    // .  A symbol is encountered whose type is in 'stoplist[]'
-    // .  A closing symbol is encountered that hasn't been opened.
-    // Don't consume the symbol that stops the scan.
-    void SkipTo(SymbolList const &stoplist, SrcList &source);
-    // Skim through 'source'. Stop when 'stopsym' is encountered or a closing symbol
-    // that hasn't been opened. Don't consume the symbol that stops the scan.
-    inline void SkipTo(Symbol stopsym, SrcList &source) { SkipTo(SymbolList{ stopsym }, source); }
-
-    // Skim through source, ignoring delimited content completely.
-    // Stop when a closing symbol is encountered that hasn't been opened.
-    // Eat that symbol and if it isn't 'closer', report an _internal_ error.
-    void SkipToClose(Predefined closer);
-
     // If the symbol 'actual' isn't in the list 'expected', give an error.
     // 'custom_msg', if given, replaces the "Expected ..." part of the message
     void Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg = "");
@@ -690,7 +676,7 @@ private:
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly
     void AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres);
-
+    
     void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     void AGS::Parser::AccessData_This(EvaluationResult &eres);

@@ -229,48 +229,6 @@ AGS::Symbol AGS::Parser::MangleStructAndComponent(Symbol stname, Symbol componen
     return _sym.FindOrAdd(fullname_str);
 }
 
-void AGS::Parser::SkipTo(SymbolList const &stoplist, SrcList &source)
-{
-    int delimeter_nesting_depth = 0;
-    for (; !source.ReachedEOF(); source.GetNext())
-    {
-        // Note that the scanner/tokenizer has already verified
-        // that all opening symbols get closed and 
-        // that we don't have (...] or similar in the input
-        Symbol const next_sym = _src.PeekNext();
-        switch (next_sym)
-        {
-        case kKW_OpenBrace:
-        case kKW_OpenBracket:
-        case kKW_OpenParenthesis:
-            ++delimeter_nesting_depth;
-            continue;
-        
-        case kKW_CloseBrace:
-        case kKW_CloseBracket:
-        case kKW_CloseParenthesis:
-            if (--delimeter_nesting_depth < 0)
-                return;
-            continue;
-        
-        }
-        if (0 < delimeter_nesting_depth)
-            continue;
-
-        for (auto it = stoplist.begin(); it != stoplist.end(); ++it)
-            if (next_sym == *it)
-                return;
-    }
-}
-
-void AGS::Parser::SkipToClose(Predefined closer)
-{
-    SkipTo(SymbolList{}, _src);
-    Symbol const punctuation = _src.GetNext();
-    if (closer != punctuation)    
-		InternalError("Unexpected closing symbol %s", _sym.GetName(punctuation).c_str());
-}
-
 void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg)
 {
     for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
@@ -639,16 +597,6 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array)
     if (_sym.IsStructVartype(element_vartype))
         FreeDynpointersOfStdArrayOfStruct(element_vartype, elements_count);
 }
-
-// Note: Currently, the structs/arrays that are pointed to cannot contain
-// pointers in their turn.
-// If they do, we need a solution at runtime to chase the pointers to release;
-// we cannot do it at compile time. Also, the pointers might form "rings"
-// (e.g., A contains a field that points to B; B contains a field that
-// points to A), so we cannot rely on reference counting for identifying
-// _all_ the unreachable memory chunks. (If nothing else points to A or B,
-// both are unreachable so _could_ be released, but they still point to each
-// other and so have a reference count of 1; the reference count will never reach 0).
 
 void AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
 {
@@ -1339,7 +1287,8 @@ void AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool bo
 bool AGS::Parser::ParseFuncdecl_DoesBodyFollow()
 {
     int const cursor = _src.GetCursor();
-    SkipToClose(kKW_CloseParenthesis);
+    _src.SkipToCloser();
+    _src.GetNext(); // Eat ')'
     bool body_follows = (kKW_OpenBrace == _src.PeekNext());
     _src.SetCursor(cursor);
     return body_follows;
@@ -1941,7 +1890,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         {
             Warning("'()' after 'new' isn't implemented, is currently ignored");
             expression.GetNext();
-            SkipTo(SymbolList{}, expression);
+            expression.SkipToCloser();
             expression.GetNext();
         }
 
@@ -2168,7 +2117,7 @@ void AGS::Parser::StripOutermostParens(SrcList &expression)
         if (kKW_CloseParenthesis != expression[last])
             return;
         expression.SetCursor(1u);
-        SkipTo(SymbolList{}, expression);
+        expression.SkipToCloser();
         if (expression.GetCursor() != last)
             return;
         expression.EatFirstSymbol();
@@ -2277,7 +2226,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
 
     // Find beginning of third term
     after_term1.StartRead();
-    SkipTo(kKW_Colon, after_term1);
+    after_term1.SkipTo(kKW_Colon);
     if (after_term1.ReachedEOF() || kKW_Colon != after_term1.PeekNext())
     {
         expression.SetCursor(tern_idx);
@@ -2545,7 +2494,7 @@ void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult
 {
     // Check for spurious symbols after the closing paren.
     expression.SetCursor(1u);
-    SkipTo(SymbolList{}, expression);
+    expression.SkipToCloser();
     expression.GetNext(); // Eat the closing parenthesis
     ParseExpression_CheckUsedUp(expression);
     
@@ -2736,7 +2685,7 @@ void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &params,Symb
     // Special case: "()" means 0 arguments
     if (supplied_args_count == 1u &&
         params.Length() > 1u &&
-        kKW_CloseParenthesis == params[1])
+        kKW_CloseParenthesis == params[1u])
     {
         supplied_args_count = 0u;
     }
@@ -3174,7 +3123,7 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
 {
     // Get the index
     size_t const index_start = expression.GetCursor();
-    SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket }, expression);
+    expression.SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket });
     size_t const index_end = expression.GetCursor();
     SrcList current_index = SrcList(expression, index_start, index_end - index_start);
     if (0u == current_index.Length())
@@ -3249,8 +3198,6 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
     _reg_track.SetRegister(SREG_MAR);
 }
 
-// We're processing some struct component or global or local variable.
-// If an array index follows, parse it and shorten symlist accordingly
 void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres)
 {
     if (kKW_OpenBracket != expression.PeekNext())
@@ -3290,7 +3237,7 @@ void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, Evalu
             eres.SideEffects = true;
         Symbol divider = expression.PeekNext();
         Expect(SymbolList{ kKW_CloseBracket, kKW_Comma }, divider);
-        
+
         if (kKW_CloseBracket == divider)
         {
             expression.GetNext(); // Eat ']'
@@ -3584,7 +3531,7 @@ AGS::Symbol AGS::Parser::FindComponentInStruct(Vartype strct, Symbol unqualified
 bool AGS::Parser::AccessData_IsClauseLast(SrcList &expression)
 {
     size_t const cursor = expression.GetCursor();
-    SkipTo(kKW_Dot,  expression);
+    expression.SkipTo(kKW_Dot);
     bool is_last = (kKW_Dot != expression.PeekNext());
     expression.SetCursor(cursor);
     return is_last;
@@ -4060,7 +4007,7 @@ void AGS::Parser::ParseStruct_ConstantDefn(Symbol const name_of_struct)
 {
     if (PP::kMain != _pp)
     {
-        SkipTo(kKW_Semicolon, _src);
+        _src.SkipTo(kKW_Semicolon);
         Expect(kKW_Semicolon, _src.GetNext());
         return;
     }
@@ -4901,7 +4848,7 @@ void AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
         // Skip the sequence of [...]
         while (true)
         {
-            SkipToClose(kKW_CloseBracket);
+            _src.SkipToCloser();
             if (kKW_OpenBracket != _src.PeekNext())
                 return;
             _src.GetNext(); // Eat '['
@@ -4934,7 +4881,7 @@ void AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
 
         EvaluationResult eres;
         int const cursor = _src.GetCursor();
-        SkipTo(kKW_Comma, _src);
+        _src.SkipTo(kKW_Comma);
         SrcList expression = SrcList(_src, cursor, _src.GetCursor() - cursor);
         expression.StartRead();
         ParseIntegerExpression(expression, eres, msg);
@@ -4967,7 +4914,7 @@ void AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
 void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname)
 {
     if (PP::kMain != _pp)
-        return SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
+        return _src.SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon });
 
     if (_sym.IsDynarrayVartype(vartype)) // e.g., 'int [] zonk;', disallowed
         Expect(kKW_OpenParenthesis, _src.PeekNext());
@@ -5519,7 +5466,7 @@ void AGS::Parser::ParseExport()
 {
     if (PP::kPreAnalyze == _pp)
     {
-        SkipTo(kKW_Semicolon, _src);
+        _src.SkipTo(kKW_Semicolon);
         _src.GetNext(); // Eat ';'
         return;
     }
@@ -5621,7 +5568,7 @@ void AGS::Parser::ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType sco
     _givm[var_name] = (ScT::kGlobal == scope_type);
 
     // Apart from this, we aren't interested in var defns at this stage, so skip this defn
-    SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon }, _src);
+    _src.SkipTo(SymbolList{ kKW_Comma, kKW_Semicolon });
 }
 
 void AGS::Parser::ParseVartype_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol vname, ScopeType scope_type)
@@ -6430,7 +6377,9 @@ void AGS::Parser::ParseCommand(Symbol leading_sym, Symbol &struct_of_current_fun
         if (PP::kPreAnalyze == _pp)
         {
             struct_of_current_func = name_of_current_func = kKW_NoSymbol;
-            return SkipToClose(kKW_CloseBrace);
+            _src.SkipToCloser();
+            _src.GetNext(); // Eat ']'
+            return;
         }
         return ParseOpenBrace(struct_of_current_func, name_of_current_func);
 

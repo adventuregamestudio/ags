@@ -91,6 +91,28 @@ void CfgReadString(char *cbuf, size_t buf_sz,
     snprintf(cbuf, buf_sz, "%s", str.GetCStr());
 }
 
+String CfgFindKey(const ConfigTree &cfg, const String &sectn, const String &item, bool nocase)
+{
+    const auto sec_it = cfg.find(sectn);
+    if (sec_it == cfg.end())
+        return "";
+    if (nocase)
+    {
+        for (auto item_it : sec_it->second)
+        {
+            if (item_it.first.CompareNoCase(item) == 0)
+                return item_it.first;
+        }
+    }
+    else
+    {
+        const auto item_it = sec_it->second.find(item);
+        if (item_it != sec_it->second.end())
+            return item_it->first;
+    }
+    return "";
+}
+
 //-----------------------------------------------------------------------------
 // ConfigWriter
 //-----------------------------------------------------------------------------

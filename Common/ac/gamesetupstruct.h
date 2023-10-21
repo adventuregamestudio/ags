@@ -134,10 +134,10 @@ struct GameSetupStruct : public GameSetupStructBase
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);
 
-    void ReadInvInfo_Aligned(Common::Stream *in);
-    void WriteInvInfo_Aligned(Common::Stream *out);
-    void ReadMouseCursors_Aligned(Common::Stream *in);
-    void WriteMouseCursors_Aligned(Common::Stream *out);
+    void ReadInvInfo(Common::Stream *in);
+    void WriteInvInfo(Common::Stream *out);
+    void ReadMouseCursors(Common::Stream *in);
+    void WriteMouseCursors(Common::Stream *out);
     //------------------------------
     // Part 2
     void read_characters(Common::Stream *in);
@@ -146,15 +146,15 @@ struct GameSetupStruct : public GameSetupStructBase
     // so long as we keep support of loading an older game data
     void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver);
 
-    void ReadCharacters_Aligned(Common::Stream *in, bool is_save);
-    void WriteCharacters_Aligned(Common::Stream *out);
+    void ReadCharacters(Common::Stream *in);
+    void WriteCharacters(Common::Stream *out);
     //------------------------------
     // Part 3
     HGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver);
     HGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
     void read_room_names(Common::Stream *in, GameDataVersion data_ver);
 
-    void ReadAudioClips_Aligned(Common::Stream *in, size_t count);
+    void ReadAudioClips(Common::Stream *in, size_t count);
     //--------------------------------------------------------------------
 
     void ReadFromSavegame(Common::Stream *in);

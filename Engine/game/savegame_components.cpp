@@ -464,7 +464,7 @@ HSaveError WriteCharacters(Stream *out)
     out->WriteInt32(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].WriteToFile(out);
+        game.chars[i].WriteToSavegame(out);
         charextra[i].WriteToSavegame(out);
         Properties::WriteValues(play.charProps[i], out);
     }
@@ -478,7 +478,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         return err;
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].ReadFromFile(in, kGameVersion_Undefined, cmp_ver);
+        game.chars[i].ReadFromSavegame(in, cmp_ver);
         charextra[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(play.charProps[i], in);
     }

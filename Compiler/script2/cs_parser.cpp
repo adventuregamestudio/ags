@@ -6788,13 +6788,21 @@ void AGS::Parser::Parse()
         _scrip.ReplaceLabels();
         Symbol first_unresolved_function = _callpointLabels.GetFirstUnresolvedFunction();
         if (kKW_NoSymbol != first_unresolved_function)
+        {
+            // We're at the end of the file, so set the cursor to the loc of the function
+            size_t const error_loc = _sym[first_unresolved_function].Declared;
+            if (error_loc != SymbolTable::kNoSrcLocation)
+                _src.SetCursor(error_loc);
             UserError(
-                "Local function '%s' has been referenced in this file but never defined with body",
+                "The local function '%s' is never defined with body (did you forget 'import'?)",
                 _sym.GetName(first_unresolved_function).c_str());
+        }
+
         first_unresolved_function = _importLabels.GetFirstUnresolvedFunction();
         if (kKW_NoSymbol != first_unresolved_function)
-            UserError(
-                "Imported function '%s' has been referenced in this file but never defined",
+            // This shouldn't be possible.
+            InternalError(
+                "The 'import' function '%s' has been referenced in this file but never defined",
                 _sym.GetName(first_unresolved_function).c_str());
 
         Parse_CheckForUnresolvedStructForwardDecls();

@@ -27,7 +27,6 @@
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "script/cc_common.h"
-#include "util/alignedstream.h"
 #include "util/data_ext.h"
 #include "util/directory.h"
 #include "util/path.h"
@@ -256,12 +255,10 @@ HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, Game
 
 void ReadViewStruct272_Aligned(std::vector<ViewStruct272> &oldv, Stream *in, size_t count)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     oldv.resize(count);
     for (size_t i = 0; i < count; ++i)
     {
-        oldv[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        oldv[i].ReadFromFile(in);
     }
 }
 
@@ -843,10 +840,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     // The classic data section.
     //-------------------------------------------------------------------------
     GameSetupStruct::SerializeInfo sinfo;
-    {
-        AlignedStream align_s(in, Common::kAligned_Read);
-        game.GameSetupStructBase::ReadFromFile(&align_s, data_ver, sinfo);
-    }
+    game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
 
     Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
     Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
@@ -860,7 +854,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
     if (!err)
         return err;
-    game.ReadInvInfo_Aligned(in);
+    game.ReadInvInfo(in);
     err = game.read_cursors(in);
     if (!err)
         return err;
@@ -965,10 +959,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
 void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver)
 {
     GameSetupStruct::SerializeInfo sinfo;
-    {
-        AlignedStream align_s(in, Common::kAligned_Read);
-        game.ReadFromFile(&align_s, data_ver, sinfo);
-    }
+    game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver);
 }
 

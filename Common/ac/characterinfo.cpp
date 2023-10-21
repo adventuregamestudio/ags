@@ -67,7 +67,9 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver, int save_
     in->Read(name, 40);
     in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
+    in->ReadInt8(); // alignment padding to int32
 
+    // Upgrade data
     if ((data_ver > kGameVersion_Undefined && data_ver < kGameVersion_360_16) ||
         ((data_ver == kGameVersion_Undefined) && save_ver >= 0 && save_ver < 2))
     {
@@ -123,6 +125,7 @@ void CharacterInfo::WriteToFile(Stream *out)
     out->Write(name, 40);
     out->Write(scrname, MAX_SCRIPT_NAME_LEN);
     out->WriteInt8(on);
+    out->WriteInt8(0); // alignment padding to int32
 }
 
 #if defined (OBSOLETE)

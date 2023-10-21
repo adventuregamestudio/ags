@@ -11,13 +11,11 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include <string.h>
 #include "ac/view.h"
-#include "util/alignedstream.h"
+#include "util/stream.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 ViewFrame::ViewFrame()
     : pic(0)
@@ -38,6 +36,7 @@ void ViewFrame::ReadFromFile(Stream *in)
     xoffs = in->ReadInt16();
     yoffs = in->ReadInt16();
     speed = in->ReadInt16();
+    in->ReadInt16(); // alignment padding to int32
     flags = in->ReadInt32();
     sound = in->ReadInt32();
     in->ReadInt32(); // reserved 1
@@ -50,6 +49,7 @@ void ViewFrame::WriteToFile(Stream *out)
     out->WriteInt16(xoffs);
     out->WriteInt16(yoffs);
     out->WriteInt16(speed);
+    out->WriteInt16(0); // alignment padding to int32
     out->WriteInt32(flags);
     out->WriteInt32(sound);
     out->WriteInt32(0); // reserved 1
@@ -85,16 +85,14 @@ void ViewLoopNew::WriteToFile_v321(Stream *out)
 {
     out->WriteInt16(static_cast<uint16_t>(numFrames));
     out->WriteInt32(flags);
-    WriteFrames_Aligned(out);
+    WriteFrames(out);
 }
 
-void ViewLoopNew::WriteFrames_Aligned(Stream *out)
+void ViewLoopNew::WriteFrames(Stream *out)
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
     for (int i = 0; i < numFrames; ++i)
     {
-        frames[i].WriteToFile(&align_s);
-        align_s.Reset();
+        frames[i].WriteToFile(out);
     }
 }
 
@@ -102,16 +100,14 @@ void ViewLoopNew::ReadFromFile_v321(Stream *in)
 {
     Initialize(static_cast<uint16_t>(in->ReadInt16()));
     flags = in->ReadInt32();
-    ReadFrames_Aligned(in);
+    ReadFrames(in);
 }
 
-void ViewLoopNew::ReadFrames_Aligned(Stream *in)
+void ViewLoopNew::ReadFrames(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < numFrames; ++i)
     {
-        frames[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        frames[i].ReadFromFile(in);
     }
 }
 
@@ -165,6 +161,7 @@ void ViewStruct272::ReadFromFile(Stream *in)
     {
         numframes[i] = in->ReadInt16();
     }
+    in->ReadInt16(); // alignment padding to int32
     in->ReadArrayOfInt32(loopflags, 16);
     for (int j = 0; j < 16; ++j)
     {

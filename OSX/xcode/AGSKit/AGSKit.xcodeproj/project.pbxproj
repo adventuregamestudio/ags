@@ -426,8 +426,6 @@
 		526F22AB1D3B5C4900EF4E1F /* gamesetupstructbase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21291D3B5C4800EF4E1F /* gamesetupstructbase.cpp */; };
 		526F22AC1D3B5C4900EF4E1F /* gamesetupstructbase.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212A1D3B5C4800EF4E1F /* gamesetupstructbase.h */; };
 		526F22AD1D3B5C4900EF4E1F /* gamestructdefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212B1D3B5C4800EF4E1F /* gamestructdefines.h */; };
-		526F22AE1D3B5C4900EF4E1F /* interfacebutton.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212C1D3B5C4800EF4E1F /* interfacebutton.h */; };
-		526F22AF1D3B5C4900EF4E1F /* interfaceelement.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212D1D3B5C4800EF4E1F /* interfaceelement.h */; };
 		526F22B01D3B5C4900EF4E1F /* inventoryiteminfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F212E1D3B5C4800EF4E1F /* inventoryiteminfo.h */; };
 		526F22B31D3B5C4900EF4E1F /* mousecursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F21311D3B5C4800EF4E1F /* mousecursor.cpp */; };
 		526F22B41D3B5C4900EF4E1F /* mousecursor.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F21321D3B5C4800EF4E1F /* mousecursor.h */; };
@@ -712,8 +710,6 @@
 		526F274A1D3B5CC300EF4E1F /* guiinv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C71D3B5CC300EF4E1F /* guiinv.cpp */; };
 		526F274B1D3B5CC300EF4E1F /* hotspot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24C81D3B5CC300EF4E1F /* hotspot.cpp */; };
 		526F274C1D3B5CC300EF4E1F /* hotspot.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24C91D3B5CC300EF4E1F /* hotspot.h */; };
-		526F274D1D3B5CC300EF4E1F /* interfacebutton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CA1D3B5CC300EF4E1F /* interfacebutton.cpp */; };
-		526F274E1D3B5CC300EF4E1F /* interfaceelement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CB1D3B5CC300EF4E1F /* interfaceelement.cpp */; };
 		526F274F1D3B5CC300EF4E1F /* inventoryitem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CC1D3B5CC300EF4E1F /* inventoryitem.cpp */; };
 		526F27501D3B5CC300EF4E1F /* inventoryitem.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F24CD1D3B5CC300EF4E1F /* inventoryitem.h */; };
 		526F27521D3B5CC300EF4E1F /* invwindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F24CF1D3B5CC300EF4E1F /* invwindow.cpp */; };
@@ -1379,8 +1375,6 @@
 		526F21291D3B5C4800EF4E1F /* gamesetupstructbase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gamesetupstructbase.cpp; sourceTree = "<group>"; };
 		526F212A1D3B5C4800EF4E1F /* gamesetupstructbase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gamesetupstructbase.h; sourceTree = "<group>"; };
 		526F212B1D3B5C4800EF4E1F /* gamestructdefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gamestructdefines.h; sourceTree = "<group>"; };
-		526F212C1D3B5C4800EF4E1F /* interfacebutton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interfacebutton.h; sourceTree = "<group>"; };
-		526F212D1D3B5C4800EF4E1F /* interfaceelement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interfaceelement.h; sourceTree = "<group>"; };
 		526F212E1D3B5C4800EF4E1F /* inventoryiteminfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inventoryiteminfo.h; sourceTree = "<group>"; };
 		526F21311D3B5C4800EF4E1F /* mousecursor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mousecursor.cpp; sourceTree = "<group>"; };
 		526F21321D3B5C4800EF4E1F /* mousecursor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mousecursor.h; sourceTree = "<group>"; };
@@ -1665,8 +1659,6 @@
 		526F24C71D3B5CC300EF4E1F /* guiinv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guiinv.cpp; sourceTree = "<group>"; };
 		526F24C81D3B5CC300EF4E1F /* hotspot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hotspot.cpp; sourceTree = "<group>"; };
 		526F24C91D3B5CC300EF4E1F /* hotspot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hotspot.h; sourceTree = "<group>"; };
-		526F24CA1D3B5CC300EF4E1F /* interfacebutton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = interfacebutton.cpp; sourceTree = "<group>"; };
-		526F24CB1D3B5CC300EF4E1F /* interfaceelement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = interfaceelement.cpp; sourceTree = "<group>"; };
 		526F24CC1D3B5CC300EF4E1F /* inventoryitem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inventoryitem.cpp; sourceTree = "<group>"; };
 		526F24CD1D3B5CC300EF4E1F /* inventoryitem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inventoryitem.h; sourceTree = "<group>"; };
 		526F24CF1D3B5CC300EF4E1F /* invwindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = invwindow.cpp; sourceTree = "<group>"; };
@@ -2612,8 +2604,6 @@
 				526F21291D3B5C4800EF4E1F /* gamesetupstructbase.cpp */,
 				526F212A1D3B5C4800EF4E1F /* gamesetupstructbase.h */,
 				526F212B1D3B5C4800EF4E1F /* gamestructdefines.h */,
-				526F212C1D3B5C4800EF4E1F /* interfacebutton.h */,
-				526F212D1D3B5C4800EF4E1F /* interfaceelement.h */,
 				52F5D8601DA1219D006F8F4B /* inventoryiteminfo.cpp */,
 				526F212E1D3B5C4800EF4E1F /* inventoryiteminfo.h */,
 				2052299328E8EAE600589E91 /* keycode.cpp */,
@@ -3018,8 +3008,6 @@
 				526F24C71D3B5CC300EF4E1F /* guiinv.cpp */,
 				526F24C81D3B5CC300EF4E1F /* hotspot.cpp */,
 				526F24C91D3B5CC300EF4E1F /* hotspot.h */,
-				526F24CA1D3B5CC300EF4E1F /* interfacebutton.cpp */,
-				526F24CB1D3B5CC300EF4E1F /* interfaceelement.cpp */,
 				526F24CC1D3B5CC300EF4E1F /* inventoryitem.cpp */,
 				526F24CD1D3B5CC300EF4E1F /* inventoryitem.h */,
 				526F24CF1D3B5CC300EF4E1F /* invwindow.cpp */,
@@ -3579,7 +3567,6 @@
 				526F27451D3B5CC300EF4E1F /* global_walkbehind.h in Headers */,
 				526F27BC1D3B5CC300EF4E1F /* gfxdriverbase.h in Headers */,
 				2034CAAD2A201E4F00824C80 /* dr_mp3.h in Headers */,
-				526F22AE1D3B5C4900EF4E1F /* interfacebutton.h in Headers */,
 				526F22AC1D3B5C4900EF4E1F /* gamesetupstructbase.h in Headers */,
 				526F22A01D3B5C4900EF4E1F /* audiocliptype.h in Headers */,
 				20522A4928E8F8AA00589E91 /* draw_software.h in Headers */,
@@ -3699,7 +3686,6 @@
 				20E6827828F1D2C400B95C00 /* instrum.h in Headers */,
 				526F28681D3B5CC300EF4E1F /* graphics_mode.h in Headers */,
 				20522A2A28E8F81C00589E91 /* utf8.h in Headers */,
-				526F22AF1D3B5C4900EF4E1F /* interfaceelement.h in Headers */,
 				526F275F1D3B5CC300EF4E1F /* movelist.h in Headers */,
 				526F27161D3B5CC300EF4E1F /* global_hotspot.h in Headers */,
 				526F23CC1D3B5C4900EF4E1F /* compress.h in Headers */,
@@ -4307,7 +4293,6 @@
 				526F280E1D3B5CC300EF4E1F /* layer2.c in Sources */,
 				205229CE28E8EDE100589E91 /* ftbdf.c in Sources */,
 				526F27B61D3B5CC300EF4E1F /* color_engine.cpp in Sources */,
-				526F274E1D3B5CC300EF4E1F /* interfaceelement.cpp in Sources */,
 				526F28101D3B5CC300EF4E1F /* mpg123.c in Sources */,
 				526F26DD1D3B5CC300EF4E1F /* scriptdrawingsurface.cpp in Sources */,
 				20E67D7328F1BDE000B95C00 /* vtable16.c in Sources */,
@@ -4392,7 +4377,6 @@
 				20E67D9728F1BDE000B95C00 /* vtable24.c in Sources */,
 				526F23CD1D3B5C4900EF4E1F /* datastream.cpp in Sources */,
 				20402A712A227CE5001C7642 /* scriptmouse.cpp in Sources */,
-				526F274D1D3B5CC300EF4E1F /* interfacebutton.cpp in Sources */,
 				526F27421D3B5CC300EF4E1F /* global_walkablearea.cpp in Sources */,
 				20522A1D28E8F81C00589E91 /* stdio_compat.c in Sources */,
 				526F28091D3B5CC300EF4E1F /* dct64.c in Sources */,

@@ -168,8 +168,6 @@
 		526F20141D3B513400EF4E1F /* guicontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DED1D3B513300EF4E1F /* guicontrol.cpp */; };
 		526F20151D3B513400EF4E1F /* guiinv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DEF1D3B513300EF4E1F /* guiinv.cpp */; };
 		526F20161D3B513400EF4E1F /* hotspot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DF01D3B513300EF4E1F /* hotspot.cpp */; };
-		526F20171D3B513400EF4E1F /* interfacebutton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DF21D3B513300EF4E1F /* interfacebutton.cpp */; };
-		526F20181D3B513400EF4E1F /* interfaceelement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DF31D3B513300EF4E1F /* interfaceelement.cpp */; };
 		526F20191D3B513400EF4E1F /* inventoryitem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DF41D3B513300EF4E1F /* inventoryitem.cpp */; };
 		526F201B1D3B513400EF4E1F /* invwindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DF71D3B513300EF4E1F /* invwindow.cpp */; };
 		526F201C1D3B513400EF4E1F /* label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F1DFA1D3B513300EF4E1F /* label.cpp */; };
@@ -414,8 +412,6 @@
 		526F1AE11D3B50B900EF4E1F /* gamesetupstructbase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gamesetupstructbase.cpp; sourceTree = "<group>"; };
 		526F1AE21D3B50B900EF4E1F /* gamesetupstructbase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gamesetupstructbase.h; sourceTree = "<group>"; };
 		526F1AE31D3B50B900EF4E1F /* gamestructdefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gamestructdefines.h; sourceTree = "<group>"; };
-		526F1AE41D3B50B900EF4E1F /* interfacebutton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interfacebutton.h; sourceTree = "<group>"; };
-		526F1AE51D3B50B900EF4E1F /* interfaceelement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = interfaceelement.h; sourceTree = "<group>"; };
 		526F1AE61D3B50B900EF4E1F /* inventoryiteminfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inventoryiteminfo.h; sourceTree = "<group>"; };
 		526F1AE71D3B50B900EF4E1F /* messageinfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = messageinfo.cpp; sourceTree = "<group>"; };
 		526F1AE81D3B50B900EF4E1F /* messageinfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = messageinfo.h; sourceTree = "<group>"; };
@@ -754,8 +750,6 @@
 		526F1DEF1D3B513300EF4E1F /* guiinv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guiinv.cpp; sourceTree = "<group>"; };
 		526F1DF01D3B513300EF4E1F /* hotspot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hotspot.cpp; sourceTree = "<group>"; };
 		526F1DF11D3B513300EF4E1F /* hotspot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hotspot.h; sourceTree = "<group>"; };
-		526F1DF21D3B513300EF4E1F /* interfacebutton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = interfacebutton.cpp; sourceTree = "<group>"; };
-		526F1DF31D3B513300EF4E1F /* interfaceelement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = interfaceelement.cpp; sourceTree = "<group>"; };
 		526F1DF41D3B513300EF4E1F /* inventoryitem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inventoryitem.cpp; sourceTree = "<group>"; };
 		526F1DF51D3B513300EF4E1F /* inventoryitem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inventoryitem.h; sourceTree = "<group>"; };
 		526F1DF71D3B513300EF4E1F /* invwindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = invwindow.cpp; sourceTree = "<group>"; };
@@ -1262,8 +1256,6 @@
 				526F1AE11D3B50B900EF4E1F /* gamesetupstructbase.cpp */,
 				526F1AE21D3B50B900EF4E1F /* gamesetupstructbase.h */,
 				526F1AE31D3B50B900EF4E1F /* gamestructdefines.h */,
-				526F1AE41D3B50B900EF4E1F /* interfacebutton.h */,
-				526F1AE51D3B50B900EF4E1F /* interfaceelement.h */,
 				52F5D86C1DA132D3006F8F4B /* inventoryiteminfo.cpp */,
 				526F1AE61D3B50B900EF4E1F /* inventoryiteminfo.h */,
 				526F1AE71D3B50B900EF4E1F /* messageinfo.cpp */,
@@ -1678,8 +1670,6 @@
 				526F1DEF1D3B513300EF4E1F /* guiinv.cpp */,
 				526F1DF01D3B513300EF4E1F /* hotspot.cpp */,
 				526F1DF11D3B513300EF4E1F /* hotspot.h */,
-				526F1DF21D3B513300EF4E1F /* interfacebutton.cpp */,
-				526F1DF31D3B513300EF4E1F /* interfaceelement.cpp */,
 				526F1DF41D3B513300EF4E1F /* inventoryitem.cpp */,
 				526F1DF51D3B513300EF4E1F /* inventoryitem.h */,
 				526F1DF71D3B513300EF4E1F /* invwindow.cpp */,
@@ -2564,7 +2554,6 @@
 				1D3623260D0F684500981E51 /* agsAppDelegate.mm in Sources */,
 				526F20DA1D3B513400EF4E1F /* ambientsound.cpp in Sources */,
 				526F1FDC1D3B513400EF4E1F /* cc_object.cpp in Sources */,
-				526F20171D3B513400EF4E1F /* interfacebutton.cpp in Sources */,
 				526F20E11D3B513400EF4E1F /* clip_mystaticmp3.cpp in Sources */,
 				526F1FEC1D3B513400EF4E1F /* gamesetup.cpp in Sources */,
 				526F208B1D3B513400EF4E1F /* gethdr.c in Sources */,
@@ -2689,7 +2678,6 @@
 				526F1C701D3B50B900EF4E1F /* guilistbox.cpp in Sources */,
 				526F20BF1D3B513400EF4E1F /* hq2x3x.cpp in Sources */,
 				526F202A1D3B513400EF4E1F /* room_engine.cpp in Sources */,
-				526F20181D3B513400EF4E1F /* interfaceelement.cpp in Sources */,
 				526F1D071D3B50B900EF4E1F /* cc_script.cpp in Sources */,
 				526F1C581D3B50B900EF4E1F /* scriptaudioclip.cpp in Sources */,
 				526F203D1D3B513400EF4E1F /* viewport.cpp in Sources */,

@@ -27,7 +27,6 @@
 #include "ac/global_inventoryitem.h"
 #include "ac/global_screen.h"
 #include "ac/guicontrol.h"
-#include "ac/interfacebutton.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/runtime_defines.h"

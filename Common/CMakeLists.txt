@@ -32,8 +32,6 @@ target_sources(common
     ac/gamesetupstructbase.cpp
     ac/gamesetupstructbase.h
     ac/gamestructdefines.h
-    ac/interfacebutton.h
-    ac/interfaceelement.h
     ac/inventoryiteminfo.cpp
     ac/inventoryiteminfo.h
     ac/keycode.cpp

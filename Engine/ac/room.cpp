@@ -497,16 +497,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->region_enabled[cc] = 1;
         }
 
-#if defined (OBSOLETE)
-        for (cc = 0; cc<MAX_LEGACY_ROOM_FLAGS; cc++) croom->flagstates[cc] = 0;
-        // we copy these structs for the Score column to work
-        croom->misccond = thisroom.misccond;
-        for (cc = 0; cc<MAX_ROOM_HOTSPOTS; cc++)
-            croom->hscond[cc] = thisroom.hscond[cc];
-        for (cc = 0; cc<MAX_ROOM_OBJECTS; cc++)
-            croom->objcond[cc] = thisroom.objcond[cc];
-#endif
-
         croom->beenhere=1;
         in_new_room=2;
     }

@@ -287,11 +287,6 @@ void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in, size_t count)
     }
 }
 
-//=============================================================================
-#if defined (OBSOLETE)
-#include <stdio.h>
-#endif // OBSOLETE
-
 void GameSetupStruct::ReadFromSavegame(Stream *in)
 {
     // of GameSetupStruct

@@ -294,12 +294,6 @@
     <ClCompile Include="..\..\Engine\ac\hotspot.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\interfacebutton.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\interfaceelement.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\inventoryitem.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>

@@ -528,8 +528,6 @@
     <ClCompile Include="..\..\Engine\ac\guicontrol.cpp" />
     <ClCompile Include="..\..\Engine\ac\guiinv.cpp" />
     <ClCompile Include="..\..\Engine\ac\hotspot.cpp" />
-    <ClCompile Include="..\..\Engine\ac\interfacebutton.cpp" />
-    <ClCompile Include="..\..\Engine\ac\interfaceelement.cpp" />
     <ClCompile Include="..\..\Engine\ac\inventoryitem.cpp" />
     <ClCompile Include="..\..\Engine\ac\invwindow.cpp" />
     <ClCompile Include="..\..\Engine\ac\label.cpp" />

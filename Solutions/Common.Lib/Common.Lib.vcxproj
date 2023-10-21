@@ -699,12 +699,9 @@
     <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h" />
     <ClInclude Include="..\..\Common\ac\gamestructdefines.h" />
     <ClInclude Include="..\..\Common\ac\game_version.h" />
-    <ClInclude Include="..\..\Common\ac\interfacebutton.h" />
-    <ClInclude Include="..\..\Common\ac\interfaceelement.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\keycode.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
-    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h" />
     <ClInclude Include="..\..\Common\ac\spritecache.h" />
     <ClInclude Include="..\..\Common\ac\spritefile.h" />
     <ClInclude Include="..\..\Common\ac\view.h" />

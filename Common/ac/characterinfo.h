@@ -151,33 +151,4 @@ struct CharacterInfo {
     void WriteToFile(Common::Stream *out) const;
 };
 
-
-#if defined (OBSOLETE)
-struct OldCharacterInfo {
-    int   defview;
-    int   talkview;
-    int   view;
-    int   room, prevroom;
-    int   x, y, wait;
-    int   flags;
-    short following;
-    short followinfo;
-    int   idleview;           // the loop will be randomly picked
-    short idletime, idleleft; // num seconds idle before playing anim
-    short transparency;       // if character is transparent
-    short baseline;
-    int   activeinv;          // this is an INT to support SeeR (no signed shorts)
-    short loop, frame;
-    short walking, animating;
-    short walkspeed, animspeed;
-    short inv[100];
-    short actx__, acty__;
-    char  name[30];
-    char  scrname[16];
-    char  on;
-};
-
-void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci);
-#endif // OBSOLETE
-
 #endif // __AC_CHARACTERINFO_H

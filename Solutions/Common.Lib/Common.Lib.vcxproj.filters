@@ -550,19 +550,10 @@
     <ClInclude Include="..\..\Common\ac\gamestructdefines.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\interfacebutton.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\ac\interfaceelement.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\mousecursor.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\spritecache.h">

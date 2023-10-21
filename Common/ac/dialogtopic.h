@@ -56,10 +56,6 @@ struct DialogTopic {
     short         codesize;
     int           numoptions;
     int           topicFlags;
-    // NOTE: optionscripts is an unknown data from before AGS 2.5
-#ifdef OBSOLETE
-    std::vector<uint8_t> optionscripts;
-#endif
 
     void ReadFromFile(Common::Stream *in);
 

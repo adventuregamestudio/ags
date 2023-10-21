@@ -80,7 +80,7 @@ void ViewLoopNew::Dispose()
     numFrames = 0;
 }
 
-void ViewLoopNew::WriteToFile_v321(Stream *out)
+void ViewLoopNew::WriteToFile(Stream *out)
 {
     out->WriteInt16(static_cast<uint16_t>(numFrames));
     out->WriteInt32(flags);
@@ -97,7 +97,7 @@ void ViewLoopNew::WriteFrames_Aligned(Stream *out)
     }
 }
 
-void ViewLoopNew::ReadFromFile_v321(Stream *in)
+void ViewLoopNew::ReadFromFile(Stream *in)
 {
     Initialize(static_cast<uint16_t>(in->ReadInt16()));
     flags = in->ReadInt32();
@@ -136,7 +136,7 @@ void ViewStruct::WriteToFile(Stream *out)
     out->WriteInt16(static_cast<uint16_t>(numLoops));
     for (int i = 0; i < numLoops; i++)
     {
-        loops[i].WriteToFile_v321(out);
+        loops[i].WriteToFile(out);
     }
 }
 
@@ -146,54 +146,6 @@ void ViewStruct::ReadFromFile(Stream *in)
 
     for (int i = 0; i < numLoops; i++)
     {
-        loops[i].ReadFromFile_v321(in);
+        loops[i].ReadFromFile(in);
     }
-}
-
-ViewStruct272::ViewStruct272()
-    : numloops(0)
-{
-    memset(numframes, 0, sizeof(numframes));
-    memset(loopflags, 0, sizeof(loopflags));
-}
-
-void ViewStruct272::ReadFromFile(Stream *in)
-{
-    numloops = in->ReadInt16();
-    for (int i = 0; i < 16; ++i)
-    {
-        numframes[i] = in->ReadInt16();
-    }
-    in->ReadArrayOfInt32(loopflags, 16);
-    for (int j = 0; j < 16; ++j)
-    {
-        for (int i = 0; i < 20; ++i)
-        {
-            frames[j][i].ReadFromFile(in);
-        }
-    }
-}
-
-void Convert272ViewsToNew(const std::vector<ViewStruct272> &oldv, std::vector<ViewStruct> &newv)
-{
-  for (size_t a = 0; a < oldv.size(); a++) {
-    newv[a].Initialize(oldv[a].numloops);
-    
-    for (int b = 0; b < oldv[a].numloops; b++) 
-    {
-      newv[a].loops[b].Initialize(oldv[a].numframes[b]);
-
-      if ((oldv[a].numframes[b] > 0) &&
-          (oldv[a].frames[b][oldv[a].numframes[b] - 1].pic == -1))
-      {
-        newv[a].loops[b].flags = LOOPFLAG_RUNNEXTLOOP;
-        newv[a].loops[b].numFrames--;
-      }
-      else
-        newv[a].loops[b].flags = 0;
-
-      for (int c = 0; c < newv[a].loops[b].numFrames; c++)
-        newv[a].loops[b].frames[c] = oldv[a].frames[b][c];
-    }
-  }
 }

@@ -49,8 +49,8 @@ struct ViewLoopNew
     void Initialize(int frameCount);
     void Dispose();
     bool RunNextLoop();
-    void WriteToFile_v321(Common::Stream *out);
-    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(Common::Stream *in);
     void WriteFrames_Aligned(Common::Stream *out);
     void ReadFrames_Aligned(Common::Stream *in);
 };
@@ -66,17 +66,5 @@ struct ViewStruct
     void WriteToFile(Common::Stream *out);
     void ReadFromFile(Common::Stream *in);
 };
-
-struct ViewStruct272 {
-    short     numloops;
-    short     numframes[16];
-    int       loopflags[16];
-    ViewFrame frames[16][20];
-
-    ViewStruct272();
-    void ReadFromFile(Common::Stream *in);
-};
-
-void Convert272ViewsToNew(const std::vector<ViewStruct272> &oldv, std::vector<ViewStruct> &newv);
 
 #endif // __AC_VIEW_H

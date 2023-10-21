@@ -63,14 +63,6 @@ struct RoomStatus
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
 
-    // Likely pre-2.5 data
-#if defined (OBSOLETE)
-    short flagstates[MAX_LEGACY_ROOM_FLAGS]{};
-    EventBlock hscond[MAX_ROOM_HOTSPOTS];
-    EventBlock objcond[MAX_ROOM_OBJECTS];
-    EventBlock misccond;
-#endif
-
     // A version of a save this RoomStatus was restored from.
     // This is used as a hint when merging RoomStatus with the loaded room file (upon room enter).
     // We need this for cases when an old format save is restored within an upgraded game

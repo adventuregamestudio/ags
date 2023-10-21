@@ -96,14 +96,14 @@ struct InteractionCommand
     void Assign(const InteractionCommand &ic, InteractionCommandList *parent);
     void Reset();
 
-    void Read_v321(Stream *in, bool &has_children);
-    void Write_v321(Stream *out) const;
+    void Read(Stream *in, bool &has_children);
+    void Write(Stream *out) const;
 
     InteractionCommand &operator = (const InteractionCommand &ic);
 
 private:
-    void ReadValues_Aligned(Stream *in);
-    void WriteValues_Aligned(Stream *out) const;
+    void ReadValues(Stream *in);
+    void WriteValues(Stream *out) const;
 };
 
 
@@ -120,12 +120,12 @@ struct InteractionCommandList
 
     void Reset();
 
-    void Read_v321(Stream *in);
-    void Write_v321(Stream *out) const;
+    void Read(Stream *in);
+    void Write(Stream *out) const;
 
 protected:
-    void Read_Aligned(Common::Stream *in, std::vector<bool> &cmd_children);
-    void Write_Aligned(Common::Stream *out) const;
+    void ReadCommands(Common::Stream *in, std::vector<bool> &cmd_children);
+    void WriteCommands(Common::Stream *out) const;
 };
 
 

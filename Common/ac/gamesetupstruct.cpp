@@ -151,7 +151,7 @@ void GameSetupStruct::WriteMouseCursors(Stream *out)
 void GameSetupStruct::read_characters(Common::Stream *in)
 {
     chars.resize(numcharacters);
-    ReadCharacters(in, false);
+    ReadCharacters(in);
 }
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
@@ -170,13 +170,11 @@ void GameSetupStruct::skip_messages(Common::Stream *in,
     }
 }
 
-void GameSetupStruct::ReadCharacters(Stream *in, bool is_save)
+void GameSetupStruct::ReadCharacters(Stream *in)
 {
-    const GameDataVersion data_ver = is_save ? kGameVersion_Undefined : loaded_game_file_version;
-    const int save_ver = is_save ? 0 : -1;
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
-        chars[iteratorCount].ReadFromFile(in, data_ver, save_ver);
+        chars[iteratorCount].ReadFromFile(in, loaded_game_file_version);
     }
 }
 

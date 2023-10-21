@@ -146,7 +146,7 @@ struct GameSetupStruct : public GameSetupStructBase
     // so long as we keep support of loading an older game data
     void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver);
 
-    void ReadCharacters(Common::Stream *in, bool is_save);
+    void ReadCharacters(Common::Stream *in);
     void WriteCharacters(Common::Stream *out);
     //------------------------------
     // Part 3

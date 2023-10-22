@@ -145,7 +145,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
     void read_messages(Common::Stream *in, const std::array<int, MAXGLOBALMES> &load_messages, GameDataVersion data_ver);
 
-    void ReadCharacters(Common::Stream *in, bool is_save);
+    void ReadCharacters(Common::Stream *in);
     void WriteCharacters(Common::Stream *out);
     //------------------------------
     // Part 3

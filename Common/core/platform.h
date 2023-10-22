@@ -123,6 +123,12 @@
     #error "Unknown platform"
 #endif
 
+#if defined(__MINGW32__)
+#define AGS_PLATFORM_WINDOWS_MINGW (1)
+#else
+#define AGS_PLATFORM_WINDOWS_MINGW (0)
+#endif
+
 #if defined(_DEBUG)
     #define AGS_PLATFORM_DEBUG  (1)
 #elif ! defined(NDEBUG)

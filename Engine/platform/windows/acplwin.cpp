@@ -20,7 +20,6 @@
 #include "platform/windows/windows.h"
 #include <shlobj.h>
 #include <shlwapi.h>
-#include <gameux.h>
 #include <libcda.h>
 
 #include "ac/common.h"

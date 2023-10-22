@@ -55,12 +55,15 @@
    #define ALLEGRO_UNIX
 #elif defined(__FreeBSD__)
     #define ALLEGRO_UNIX
+#elif defined(__MINGW32__)
+    #define ALLEGRO_MINGW
+    #define ALLEGRO_WINDOWS
 #endif
 
 
 /* include platform-specific stuff */
 #ifndef SCAN_EXPORT
-   #if defined ALLEGRO_MSVC
+   #if defined ALLEGRO_MSVC || defined(ALLEGRO_MINGW)
       #include "allegro/platform/almsvc.h"
    #elif defined ALLEGRO_MACOSX
       #include "allegro/platform/alosxcfg.h"

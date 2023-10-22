@@ -6,3 +6,7 @@ if(MSVC)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /DNDEBUG")
     set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /DNDEBUG")
 endif()
+
+if(MINGW)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+endif ()

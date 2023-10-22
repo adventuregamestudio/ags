@@ -13,7 +13,8 @@
 //=============================================================================
 #include "core/platform.h"
 
-#if AGS_PLATFORM_OS_WINDOWS
+// TODO: port exception handling to mingw
+#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_WINDOWS_MINGW
 #include <new.h>
 #include <cinttypes>
 #include <stdio.h>

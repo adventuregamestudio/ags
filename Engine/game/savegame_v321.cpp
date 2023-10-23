@@ -190,8 +190,7 @@ static void restore_game_room_state(Stream *in, GameDataVersion data_ver)
 
 static void ReadGameState_Aligned(Stream *in, GameDataVersion data_ver, RestoredData &r_data)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromSavegame(&align_s, data_ver, kGSSvgVersion_OldFormat, r_data);
+    play.ReadFromSavegame(in, data_ver, kGSSvgVersion_OldFormat, r_data);
 }
 
 static void restore_game_play(Stream *in, GameDataVersion data_ver, RestoredData &r_data)

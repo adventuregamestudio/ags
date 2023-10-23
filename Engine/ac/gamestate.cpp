@@ -28,7 +28,6 @@
 #include "game/savegame_internal.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
-#include "util/alignedstream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -450,10 +449,12 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
+void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     const bool old_save = svg_ver < kGSSvgVersion_Initial;
     const bool extended_old_save = old_save && (data_ver >= kGameVersion_340_4);
+    const bool do_align_pad = old_save;
+
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -548,6 +549,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
         in->ReadInt32(); // recording
         in->ReadInt32(); // playback
         in->ReadInt16(); // gamestep
+        in->ReadInt16(); // alignment padding to int32
     }
     randseed = in->ReadInt32();    // random seed
     player_on_region = in->ReadInt32();    // player's current region
@@ -562,6 +564,8 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     mboundx2 = in->ReadInt16();
     mboundy1 = in->ReadInt16();
     mboundy2 = in->ReadInt16();
+    if (do_align_pad)
+        in->ReadInt16(); // alignment padding to int32
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
@@ -588,6 +592,8 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     normal_font = in->ReadInt32();
     speech_font = in->ReadInt32();
     key_skip_wait = in->ReadInt8();
+    if (do_align_pad)
+        in->Seek(3); // alignment padding to int32
     swap_portrait_lastchar = in->ReadInt32();
     separate_music_lib = in->ReadInt32() != 0;
     in_conversation = in->ReadInt32();
@@ -595,6 +601,8 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     num_parsed_words = in->ReadInt32();
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     in->Read( bad_parsed_word, 100);
+    if (do_align_pad)
+        in->ReadInt16(); // alignment padding to int32 (15 int16 + 100 int8 = 65 int16 -> 66)
     raw_color = in->ReadInt32();
     if (old_save)
         in->ReadArrayOfInt32(raw_modified, MAX_ROOM_BGFRAMES);
@@ -614,9 +622,15 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
     if (!old_save || extended_old_save)
+    {
         rtint_enabled = in->ReadBool();
+        if (do_align_pad)
+            in->Seek(3); // alignment padding to int32
+    }
     else
+    {
         rtint_enabled = rtint_level > 0;
+    }
     end_cutscene_music = in->ReadInt32();
     skip_until_char_stops = in->ReadInt32();
     get_loc_name_last_time = in->ReadInt32();
@@ -630,7 +644,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     {
         for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
         {
-            new_music_queue[i].ReadFromFile(in);
+            new_music_queue[i].ReadFromSavegame(in);
         }
     }
 
@@ -643,7 +657,10 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     crossfade_final_volume_in = in->ReadInt16();
 
     if (old_save)
+    {
+        in->ReadInt16(); // alignment padding to int32 (before array of structs)
         ReadQueuedAudioItems_Aligned(in);
+    }
 
     in->Read(takeover_from, 50);
     in->Read(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
@@ -682,7 +699,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     }
 }
 
-void GameState::WriteForSavegame(Common::Stream *out) const
+void GameState::WriteForSavegame(Stream *out) const
 {
     // NOTE: following parameters are never saved:
     // recording, playback, gamestep, screen_is_faded_out, room_changes
@@ -831,7 +848,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt16(new_music_queue_size);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].WriteToFile(out);
+        new_music_queue[i].WriteToSavegame(out);
     }
 
     out->WriteInt16( crossfading_out_channel);
@@ -866,13 +883,11 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(voice_speech_flags);
 }
 
-void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
+void GameState::ReadQueuedAudioItems_Aligned(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        new_music_queue[i].ReadFromSavegame_v321(in);
     }
 }
 
@@ -911,7 +926,7 @@ void GameState::FreeViewportsAndCameras()
     _scCameraHandles.clear();
 }
 
-void GameState::ReadCustomProperties_v340(Common::Stream *in, GameDataVersion data_ver)
+void GameState::ReadCustomProperties_v340(Stream *in, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_340_4)
     {
@@ -926,7 +941,7 @@ void GameState::ReadCustomProperties_v340(Common::Stream *in, GameDataVersion da
     }
 }
 
-void GameState::WriteCustomProperties_v340(Common::Stream *out, GameDataVersion data_ver) const
+void GameState::WriteCustomProperties_v340(Stream *out, GameDataVersion data_ver) const
 {
     if (data_ver >= kGameVersion_340_4)
     {

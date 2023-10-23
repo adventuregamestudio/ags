@@ -253,15 +253,6 @@ HGameFileError ReadScriptModules(std::vector<PScript> &sc_mods, Stream *in, Game
     return HGameFileError::None();
 }
 
-void ReadViewStruct272_Aligned(std::vector<ViewStruct272> &oldv, Stream *in, size_t count)
-{
-    oldv.resize(count);
-    for (size_t i = 0; i < count; ++i)
-    {
-        oldv[i].ReadFromFile(in);
-    }
-}
-
 void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
 {
     views.resize(game.numviews);
@@ -274,8 +265,11 @@ void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in
     }
     else // 2.x views
     {
-        std::vector<ViewStruct272> oldv;
-        ReadViewStruct272_Aligned(oldv, in, game.numviews);
+        std::vector<ViewStruct272> oldv(game.numviews);
+        for (size_t i = 0; i < game.numviews; ++i)
+        {
+            oldv[i].ReadFromFile(in);
+        }
         Convert272ViewsToNew(oldv, views);
     }
 }

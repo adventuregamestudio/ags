@@ -84,10 +84,13 @@ void RoomStatus::ReadFromSavegame_v321(Stream *in, GameDataVersion data_ver)
 
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
-    ReadRoomObjects_Aligned(in);
+    // NOTE: legacy format always contained max object slots
+    for (auto &o : obj)
+    {
+        o.ReadFromSavegame(in, -1 /* legacy save with padding */);
+    }
 
-    int16_t dummy[MAX_LEGACY_ROOM_FLAGS]; // cannot seek with AlignedStream
-    in->ReadArrayOfInt16(dummy, MAX_LEGACY_ROOM_FLAGS); // flagstates (OBSOLETE)
+    in->Seek(MAX_LEGACY_ROOM_FLAGS * sizeof(int16_t)); // flagstates (OBSOLETE)
     in->ReadInt16(); // alignment padding to int32
     tsdatasize = static_cast<uint32_t>(in->ReadInt32());
     in->ReadInt32(); // tsdata
@@ -122,14 +125,6 @@ void RoomStatus::ReadFromSavegame_v321(Stream *in, GameDataVersion data_ver)
         {
             Properties::ReadValues(props, in);
         }
-    }
-}
-
-void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
-{
-    for (auto &o : obj)
-    {
-        o.ReadFromSavegame(in, -1 /* legacy save with padding */);
     }
 }
 

@@ -66,18 +66,22 @@ size_t GUI::SplitLinesForDrawing(const char *text, bool /*apply_direction*/, Spl
     return split_lines(text, lines, width, font, max_lines);
 }
 
-bool GUIObject::IsClickable() const
-{
-    // make sure the button can be selected in the editor
-    return true;
-}
-
 void GUIObject::MarkChanged()
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }
 
-void GUIObject::NotifyParentChanged()
+void GUIObject::MarkParentChanged()
+{
+    // do nothing: in Editor "guis" array is not even guaranteed to be filled!
+}
+
+void GUIObject::MarkPositionChanged(bool)
+{
+    // do nothing: in Editor "guis" array is not even guaranteed to be filled!
+}
+
+void GUIObject::MarkStateChanged(bool, bool)
 {
     // do nothing: in Editor "guis" array is not even guaranteed to be filled!
 }

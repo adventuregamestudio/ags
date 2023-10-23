@@ -80,12 +80,13 @@ int ViewFrame_GetFrame(ScriptViewFrame *svf) {
 
 //=============================================================================
 
-void precache_view(int view) 
+void precache_view(int view, int max_loops)
 {
     if (view < 0) 
         return;
 
-    for (int i = 0; i < views[view].numLoops; i++) {
+    max_loops = std::min(views[view].numLoops, max_loops);
+    for (int i = 0; i < max_loops; i++) {
         for (int j = 0; j < views[view].loops[i].numFrames; j++)
             spriteset.Precache(views[view].loops[i].frames[j].pic);
     }

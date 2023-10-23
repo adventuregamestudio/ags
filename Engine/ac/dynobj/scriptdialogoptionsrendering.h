@@ -36,9 +36,9 @@ struct ScriptDialogOptionsRendering final : AGSCCDynamicObject {
 
 protected:
     // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(void *address) override;
+    size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
-    void Serialize(void *address, AGS::Common::Stream *out) override;
+    void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
 
 

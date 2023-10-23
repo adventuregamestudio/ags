@@ -606,6 +606,10 @@ namespace AGS.Types
                 palette[i] = new PaletteEntry(i, _palette[i].Colour);
                 palette[i].ColourType = _palette[i].ColourType;
             }
+
+            if (parentOfPaletteNode.SelectSingleNode("Palette") == null)
+                return palette;
+
             foreach (XmlNode palNode in SerializeUtils.GetChildNodes(parentOfPaletteNode, "Palette"))
             {
                 PaletteEntry paletteEntry = palette[Convert.ToInt32(palNode.Attributes["Index"].InnerText)];
@@ -782,20 +786,26 @@ namespace AGS.Types
             }
 
             _plugins.Clear();
-            foreach (XmlNode pluginNode in SerializeUtils.GetChildNodes(node, "Plugins"))
+            if (node.SelectSingleNode("Plugins") != null)
             {
-                _plugins.Add(new Plugin(pluginNode));
+                foreach (XmlNode pluginNode in SerializeUtils.GetChildNodes(node, "Plugins"))
+                {
+                    _plugins.Add(new Plugin(pluginNode));
+                }
             }
 
-            _rooms = new UnloadedRoomFolders(node.SelectSingleNode("Rooms").FirstChild, node);
+            _rooms = new UnloadedRoomFolders(SerializeUtils.GetFirstChild(node, "Rooms"), node);
             
-            _guis = new GUIFolders(node.SelectSingleNode("GUIs").FirstChild, node);            
+            _guis = new GUIFolders(SerializeUtils.GetFirstChild(node, "GUIs"), node);            
 
-            _inventoryItems = new InventoryItemFolders(node.SelectSingleNode("InventoryItems").FirstChild, node);            
+            _inventoryItems = new InventoryItemFolders(SerializeUtils.GetFirstChild(node, "InventoryItems"), node);
 
-            _textParser = new TextParser(node.SelectSingleNode("TextParser"));
+            if (node.SelectSingleNode("TextParser") != null)
+                _textParser = new TextParser(node.SelectSingleNode("TextParser"));
+            else
+                _textParser = new TextParser();
 
-            _characters = new CharacterFolders(node.SelectSingleNode("Characters").FirstChild, node);            
+            _characters = new CharacterFolders(SerializeUtils.GetFirstChild(node, "Characters"), node);            
 
             _playerCharacter = null;
             string playerCharText = SerializeUtils.GetElementString(node, "PlayerCharacter");
@@ -812,7 +822,7 @@ namespace AGS.Types
                 }
             }
 
-            _dialogs = new DialogFolders(node.SelectSingleNode("Dialogs").FirstChild, node);                                    
+            _dialogs = new DialogFolders(SerializeUtils.GetFirstChild(node, "Dialogs"), node);                                    
 
             _cursors.Clear();
             foreach (XmlNode cursNode in SerializeUtils.GetChildNodes(node, "Cursors"))
@@ -828,9 +838,17 @@ namespace AGS.Types
 
             _palette = ReadPaletteFromXML(node);
 
-            _sprites = new SpriteFolder(node.SelectSingleNode("Sprites").FirstChild);
+            var spriteNode = SerializeUtils.GetFirstChild(node, "Sprites");
+            if (spriteNode != null)
+                _sprites = new SpriteFolder(spriteNode);
+            else
+                _sprites = new SpriteFolder("Main");
 
-            _views = new ViewFolders(node.SelectSingleNode("Views").FirstChild);
+            var viewNode = SerializeUtils.GetFirstChild(node, "Views");
+            if (viewNode != null)
+                _views = new ViewFolders(viewNode);
+            else
+                _views = new ViewFolders("Main");
 
             _deletedViewIDs.Clear();
 			if (node.SelectSingleNode("DeletedViews") != null)
@@ -841,11 +859,11 @@ namespace AGS.Types
 				}
 			}
 
-            _scripts = new ScriptFolders(node.SelectSingleNode("Scripts").FirstChild, node);
+            _scripts = new ScriptFolders(SerializeUtils.GetFirstChild(node, "Scripts"), node);
 
             if (node.SelectSingleNode("AudioClips") != null)
             {
-                _audioClips = new AudioClipFolders(node.SelectSingleNode("AudioClips").FirstChild);
+                _audioClips = new AudioClipFolders(SerializeUtils.GetFirstChild(node, "AudioClips"));
             }
             else
             {

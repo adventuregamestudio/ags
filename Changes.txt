@@ -96,7 +96,7 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.1 - Beta, September 2023
+VERSION 3.6.1 - Beta, October 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -132,6 +132,9 @@ Editor:
    Characters, GUIs, and so forth. In that case it will find a game's entity and open a respective
    editor panel for it. This still does not work for some types, such as Room objects, and Views.
  - Added main menu commands for opening a Project folder and Compiled folder.
+ - Added "Export Global Messages to script" menu command. This command is meant for upgraded
+   pre-3.2 game projects, and will generate a script with a String array, moving global messages
+   texts there.
  - For script's tabs added a context menu command for opening this script's location.
  - Added "Scale Character sprite offsets" property to General Settings. This property refers to
    scaling of Character.z and sprite offsets added by LockViewOffset script command.
@@ -143,11 +146,26 @@ Editor:
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
  - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.
+ - Made Editor be somewhat more tolerate to missing XML nodes in Game.agf, in many cases it will
+   still let open a game.
+ - When upgrading older game projects, Editor will insert a call to SetRestartPoint() in the end
+   of the 'game_start' function in GlobalScript.asc. This is done to complement removal of an
+   automatic restart point in the engine. This inserted command is safe to remove.
+ - When upgrading pre-3.2 rooms with disabled SaveLoadEnabled property the Editor will reset
+   this property and insert a comment with a warning into the corresponding room's script.
+   This is done because this property is deprecated as is no longer accessible.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
+   items or renaming things.
  - Fixed GUI editor could display selection rectangle from a different GUI editor pane,
    if two or more are displayed on screen at the same time.
+ - Fixed Script editor not marking "autoptr" and "builtin" as keywords.
+ - Fixed Script editor not applying color theme to character literals.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
+
+Scripting:
+ - Support "#else" preprocessor directive.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -163,6 +181,8 @@ Script API:
    InventoryItem, Object.
  - Added Object.AnimationVolume property, which works similar to Character.AnimationVolume.
  - Added static File.ResolvePath() and File.Path attribute.
+ - Added support for a text formatting to a number of functions:
+   DisplayAtY(), Character.SayAt(), Character.SayBackground(), DrawingSurface.DrawStringWrapped().
 
 Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
@@ -183,8 +203,13 @@ Engine:
  - DrawingSurface.DrawString now supports Right-to-left text direction.
  - All the script File functions now treat paths in case-insensitive way (including subdirs),
    which makes them platform-independent.
+ - Removed an automatic SetRestartPoint() call at startup. This is done in case user does not want
+   to use default "restart" save slot, or has a custom save system.
  - Support handling multiple mouse clicks per game frame, similar to how multiple key presses
    were supported since 3.6.0.
+ - When starting up, engine will now precache only first 4 or 8 loops of the starting player
+   character's View. This is done to avoid filling sprite cache with too much sprites at once
+   in case when the player's View contains lots of additional animations.
  - Characters will now have their graphic offsets, set by Character.z property and LockViewOffset()
    function, scaled along with the character's own scaling. This is done so long as the respective
    game option is enabled in the General Settings.
@@ -212,6 +237,8 @@ Engine:
  - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
    "cachemax" in "misc") and "texture_cache_size".
+ - Fixed engine failing to startup sometimes if controller device subsystem failed to init
+   (it should not init at all in this version, as we do not support joysticks yet).
  - Fixed Characters may be seemingly "walking in place" for some time when arriving at destination.
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.

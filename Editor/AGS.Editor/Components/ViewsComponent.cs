@@ -191,7 +191,7 @@ namespace AGS.Editor.Components
             if (name_only)
                 ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
             else
-                RePopulateTreeView(); // currently this is the only way to update tree item ids
+                RePopulateTreeView(GetNodeID(item)); // currently this is the only way to update tree item ids
 
             UpdateOpenWindowTitles();
             ComponentController.Instance.FindComponent<CharactersComponent>()?.UpdateCharacterViews();
@@ -325,8 +325,7 @@ namespace AGS.Editor.Components
 
         protected override ProjectTreeItem CreateTreeItemForItem(View item)
         {
-            string nodeID = GetNodeID(item);
-            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, nodeID, item.ID.ToString() + ": " + item.Name, "ViewIcon");
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "ViewIcon");
             treeItem.AllowLabelEdit = true;
             treeItem.LabelTextProperty = item.GetType().GetProperty("Name");
             treeItem.LabelTextDescriptionProperty = item.GetType().GetProperty("NameAndID");

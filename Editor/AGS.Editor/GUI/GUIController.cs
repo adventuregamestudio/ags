@@ -1286,18 +1286,11 @@ namespace AGS.Editor
                 OnGetScript(scriptToRetrieve, ref script);
                 if (script != null)
                 {
-                    string functionStart = "function " + functionName + "(";
-                    if (script.Text.IndexOf(functionStart) < 0)
+                    if (_agsEditor.AttemptToGetWriteAccess(script.FileName))
                     {
-                        if (_agsEditor.AttemptToGetWriteAccess(script.FileName))
-                        {
-                            script.Text += Environment.NewLine + functionStart + parameters + ")" + Environment.NewLine;
-                            script.Text += "{" + Environment.NewLine + Environment.NewLine + "}" + Environment.NewLine;
-                            if (OnScriptChanged != null)
-                            {
-                                OnScriptChanged(script);
-                            }
-                        }
+                        script.Text = ScriptGeneration.InsertFunction(script.Text, functionName, parameters);
+                        if (script.Modified)
+                            OnScriptChanged?.Invoke(script);
                     }
                 }
             }

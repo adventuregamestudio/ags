@@ -43,13 +43,13 @@ int CCDynamicArray::Dispose(void *address, bool force)
     return 1;
 }
 
-size_t CCDynamicArray::CalcSerializeSize(void *address)
+size_t CCDynamicArray::CalcSerializeSize(const void *address)
 {
     const Header &hdr = GetHeader(address);
     return hdr.TotalSize + FileHeaderSz;
 }
 
-void CCDynamicArray::Serialize(void *address, AGS::Common::Stream *out)
+void CCDynamicArray::Serialize(const void *address, AGS::Common::Stream *out)
 {
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.TypeID);

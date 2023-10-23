@@ -33,12 +33,12 @@ int ScriptCamera::Dispose(void* /*address*/, bool /*force*/)
     return 1;
 }
 
-size_t ScriptCamera::CalcSerializeSize(void* /*address*/)
+size_t ScriptCamera::CalcSerializeSize(const void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void ScriptCamera::Serialize(void* /*address*/, Stream *out)
+void ScriptCamera::Serialize(const void* /*address*/, Stream *out)
 {
     out->WriteInt32(_id);
 }

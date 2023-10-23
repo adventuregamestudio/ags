@@ -819,7 +819,6 @@
 		526F27D51D3B5CC300EF4E1F /* guidialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F25581D3B5CC300EF4E1F /* guidialog.cpp */; };
 		526F27D61D3B5CC300EF4E1F /* guidialog.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F25591D3B5CC300EF4E1F /* guidialog.h */; };
 		526F27D71D3B5CC300EF4E1F /* guidialogdefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255A1D3B5CC300EF4E1F /* guidialogdefines.h */; };
-		526F27D81D3B5CC300EF4E1F /* guidialoginternaldefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255B1D3B5CC300EF4E1F /* guidialoginternaldefs.h */; };
 		526F27D91D3B5CC300EF4E1F /* mycontrols.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255C1D3B5CC300EF4E1F /* mycontrols.h */; };
 		526F27DA1D3B5CC300EF4E1F /* mylabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F255D1D3B5CC300EF4E1F /* mylabel.cpp */; };
 		526F27DB1D3B5CC300EF4E1F /* mylabel.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F255E1D3B5CC300EF4E1F /* mylabel.h */; };
@@ -1768,7 +1767,6 @@
 		526F25581D3B5CC300EF4E1F /* guidialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guidialog.cpp; sourceTree = "<group>"; };
 		526F25591D3B5CC300EF4E1F /* guidialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guidialog.h; sourceTree = "<group>"; };
 		526F255A1D3B5CC300EF4E1F /* guidialogdefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guidialogdefines.h; sourceTree = "<group>"; };
-		526F255B1D3B5CC300EF4E1F /* guidialoginternaldefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guidialoginternaldefs.h; sourceTree = "<group>"; };
 		526F255C1D3B5CC300EF4E1F /* mycontrols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mycontrols.h; sourceTree = "<group>"; };
 		526F255D1D3B5CC300EF4E1F /* mylabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mylabel.cpp; sourceTree = "<group>"; };
 		526F255E1D3B5CC300EF4E1F /* mylabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mylabel.h; sourceTree = "<group>"; };
@@ -3241,7 +3239,6 @@
 				526F25581D3B5CC300EF4E1F /* guidialog.cpp */,
 				526F25591D3B5CC300EF4E1F /* guidialog.h */,
 				526F255A1D3B5CC300EF4E1F /* guidialogdefines.h */,
-				526F255B1D3B5CC300EF4E1F /* guidialoginternaldefs.h */,
 				526F255C1D3B5CC300EF4E1F /* mycontrols.h */,
 				526F255D1D3B5CC300EF4E1F /* mylabel.cpp */,
 				526F255E1D3B5CC300EF4E1F /* mylabel.h */,
@@ -3895,7 +3892,6 @@
 				526F22EC1D3B5C4900EF4E1F /* guislider.h in Headers */,
 				526F22EF1D3B5C4900EF4E1F /* aastr.h in Headers */,
 				205229A028E8EBA900589E91 /* debugmanager.h in Headers */,
-				526F27D81D3B5CC300EF4E1F /* guidialoginternaldefs.h in Headers */,
 				526F27DF1D3B5CC300EF4E1F /* mypushbutton.h in Headers */,
 				20E67DB328F1BDE000B95C00 /* system.h in Headers */,
 				526F23131D3B5C4900EF4E1F /* vorbisenc.h in Headers */,

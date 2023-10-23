@@ -214,6 +214,7 @@
     <Compile Include="GUI\SpriteChooser.Designer.cs">
       <DependentUpon>SpriteChooser.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\TreeViewExtensions.cs" />
     <Compile Include="GUI\ViewChooser.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -387,6 +388,7 @@
     <Compile Include="Utils\DirectoryInfoExtensions.cs" />
     <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\MathExtra.cs" />
+    <Compile Include="Utils\ScriptGeneration.cs" />
     <Compile Include="Utils\Validation.cs" />
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>

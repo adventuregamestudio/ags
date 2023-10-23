@@ -39,14 +39,11 @@ std::vector<AnimatingGUIButton> animbuts;
 // Update the actual button's image from the current animation frame
 void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
+    // Assign view frame as normal image and reset all the rest
     int image = views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic;
     uint32_t flags = views[abtn.view].loops[abtn.loop].frames[abtn.frame].flags;
-    guibuts[abtn.buttonid].SetPushedImage(0);
-    guibuts[abtn.buttonid].SetMouseOverImage(0);
-    // FIXME: in original logic this also changed normal Image;
-    // perhaps set flags with normal image instead? or even couple with each image kind
-    guibuts[abtn.buttonid].SetNormalImage(image);
-    guibuts[abtn.buttonid].SetCurrentImage(image, flags);
+    guibuts[abtn.buttonid].SetImages(
+        views[abtn.view].loops[abtn.loop].frames[abtn.frame].pic, 0, 0, flags);
 }
 
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,

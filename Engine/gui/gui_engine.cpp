@@ -92,25 +92,27 @@ size_t GUI::SplitLinesForDrawing(const char *text, bool is_translated, SplitLine
     return break_up_text_into_lines(text, is_translated, lines, width, font);
 }
 
-bool GUIObject::IsClickable() const
-{
-    return (Flags & kGUICtrl_Clickable) != 0;
-}
-
 void GUIObject::MarkChanged()
 {
     _hasChanged = true;
-    guis[ParentId].MarkControlsChanged();
+    guis[ParentId].MarkControlChanged();
 }
 
-void GUIObject::NotifyParentChanged()
+void GUIObject::MarkParentChanged()
 {
-    guis[ParentId].MarkControlsChanged();
+    guis[ParentId].MarkControlChanged();
 }
 
-bool GUIObject::HasChanged() const
+void GUIObject::MarkPositionChanged(bool self_changed)
 {
-    return _hasChanged;
+    _hasChanged |= self_changed;
+    guis[ParentId].NotifyControlPosition();
+}
+
+void GUIObject::MarkStateChanged(bool self_changed, bool parent_changed)
+{
+    _hasChanged |= self_changed;
+    guis[ParentId].NotifyControlState(Id, self_changed | parent_changed);
 }
 
 void GUIObject::ClearChanged()

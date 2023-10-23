@@ -61,6 +61,16 @@ namespace AGS.Editor
 		{
             _expandedAtTime = DateTime.Now;
 		}
+
+        public void BeginUpdate()
+        {
+            _projectTree.BeginUpdate();
+        }
+
+        public void EndUpdate()
+        {
+            _projectTree.EndUpdate();
+        }
         
 		public void CollapseAll()
 		{
@@ -210,6 +220,24 @@ namespace AGS.Editor
             {
                 results[0].Expand();
             }
+        }
+
+        /// <summary>
+        /// Returns a list of currently expanded tree nodes.
+        /// </summary>
+        public List<string> GetExpansionState()
+        {
+            return _projectTree.Nodes.GetExpansionState(
+                    (node) => { return node.Name; });
+        }
+
+        /// <summary>
+        /// Applies expanded state to the tree nodes which match given paths.
+        /// </summary>
+        public void SetExpansionState(List<string> state)
+        {
+            _projectTree.Nodes.SetExpansionState(state,
+                (node) => { return state.Contains(node.Name); } );
         }
 
         public void BeginLabelEdit(IEditorComponent plugin, string nodeID)

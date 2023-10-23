@@ -660,10 +660,16 @@ builtin managed struct DrawingSurface {
   import void DrawRectangle(int x1, int y1, int x2, int y2);
   /// Draws the specified text to the surface.
   import void DrawString(int x, int y, FontType, const string text, ...);
+#ifdef SCRIPT_API_v361
+  /// Draws the text to the surface, wrapping it at the specified width.
+  import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text, ...);
+#endif
+#ifndef SCRIPT_API_v361
 #ifdef SCRIPT_API_v350
   /// Draws the text to the surface, wrapping it at the specified width.
   import void DrawStringWrapped(int x, int y, int width, FontType, HorizontalAlignment, const string text);
 #endif
+#endif // !SCRIPT_API_v361
   /// Draws a filled triangle onto the surface.
   import void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
   /// Gets the colour of a single pixel on the surface.
@@ -734,8 +740,14 @@ builtin struct Parser {
 import void Display(const string message, ...);
 /// Displays the text in a standard text window at the specified location.
 import void DisplayAt(int x, int y, int width, const string message, ...);
+#ifdef SCRIPT_API_v361
+/// Displays the text in a standard text window at the specified y-coordinate.
+import void DisplayAtY (int y, const string message, ...);
+#endif
+#ifndef SCRIPT_API_v361
 /// Displays the text in a standard text window at the specified y-coordinate.
 import void DisplayAtY (int y, const string message);
+#endif
 /// Displays a message in a text window with a title, used for speech in SCI0 games.
 import void DisplayTopBar(int y, int textColor, int backColor, const string title, const string text, ...);
 /// Resets the room state back to how it was initially set up in the editor.
@@ -2030,10 +2042,22 @@ builtin managed struct Character {
   import function RunInteraction(CursorMode);
   /// Says the specified text using the character's speech settings.
   import function Say(const string message, ...);
+#ifdef SCRIPT_API_v361
+  /// Says the specified text at the specified position on the screen using the character's speech settings.
+  import function SayAt(int x, int y, int width, const string message, ...);
+#endif
+#ifndef SCRIPT_API_v361
   /// Says the specified text at the specified position on the screen using the character's speech settings.
   import function SayAt(int x, int y, int width, const string message);
+#endif
+#ifdef SCRIPT_API_v361
+  /// Displays the text as lucasarts-style speech but does not block the game.
+  import Overlay* SayBackground(const string message, ...);
+#endif
+#ifndef SCRIPT_API_v361
   /// Displays the text as lucasarts-style speech but does not block the game.
   import Overlay* SayBackground(const string message);
+#endif
   /// Makes this character the player character.
   import function SetAsPlayer();
   /// Changes the character's idle view.

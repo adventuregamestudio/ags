@@ -239,6 +239,18 @@ namespace AGS.CScript.Compiler
 			{
 				ProcessConditionalDirective(directive, line, _results);
 			}
+			else if (directive == "else")
+			{
+				if (_conditionalStatements.Count > 0)
+				{
+					// Negate previous condition
+					_conditionalStatements.Push(!_conditionalStatements.Pop());
+				}
+				else
+				{
+					RecordError(ErrorCode.ElseWithoutIf, "#else has no matching #if");
+				}
+			}
 			else if (directive == "endif")
 			{
 				if (_conditionalStatements.Count > 0)

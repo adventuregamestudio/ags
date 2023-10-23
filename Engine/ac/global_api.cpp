@@ -156,7 +156,9 @@ RuntimeScriptValue Sc_DisplayAt(const RuntimeScriptValue *params, int32_t param_
 // void  (int ypos, char *texx)
 RuntimeScriptValue Sc_DisplayAtY(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT_POBJ(DisplayAtY, const char);
+    API_SCALL_SCRIPT_SPRINTF(DisplayAtY, 2);
+    DisplayAtY(params[0].IValue, scsf_buffer);
+    return RuntimeScriptValue((int32_t)0);
 }
 
 // void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
@@ -1146,18 +1148,22 @@ void ScPl_sc_AbortGame(const char *texx, ...)
     _sc_AbortGame(scsf_buffer);
 }
 
-// void (char*texx, ...)
 void ScPl_Display(char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplaySimple(scsf_buffer);
 }
 
-// void (int xxp,int yyp,int widd,char*texx, ...)
 void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplayAt(xxp, yyp, widd, scsf_buffer);
+}
+
+void ScPl_DisplayAtY(int ypos, char *texx, ...)
+{
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    DisplayAtY(ypos, scsf_buffer);
 }
 
 // void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
@@ -1188,7 +1194,10 @@ void RegisterGlobalAPI()
         { "DisableRegion",            API_FN_PAIR(DisableRegion) },
         { "Display",                  Sc_Display, ScPl_Display },
         { "DisplayAt",                Sc_DisplayAt, ScPl_DisplayAt },
-        { "DisplayAtY",               API_FN_PAIR(DisplayAtY) },
+        // CHECKME: this function was non-variadic prior to 3.6.1, but AGS compiler does
+        // not produce "name^argnum" symbol id for non-member functions for some reason :/
+        // do we have to do anything about this here? like, test vs script API version...
+        { "DisplayAtY",               Sc_DisplayAtY, ScPl_DisplayAtY },
         { "DisplayTopBar",            Sc_DisplayTopBar, ScPl_DisplayTopBar },
         { "EnableCursorMode",         API_FN_PAIR(enable_cursor_mode) },
         { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },

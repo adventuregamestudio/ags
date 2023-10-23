@@ -556,12 +556,15 @@ static void video_run(std::unique_ptr<VideoPlayer> video, int flags, VideoSkipTy
 
     // Clear the screen after stopping playback
     // TODO: needed for FLIC, but perhaps may be done differently
-    if (gfxDriver->UsesMemoryBackBuffer())
+    if ((flags & kVideo_ClearScreen) != 0)
     {
-        Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
-        screen_bmp->Clear();
+        if (gfxDriver->UsesMemoryBackBuffer())
+        {
+            Bitmap *screen_bmp = gfxDriver->GetMemoryBackBuffer();
+            screen_bmp->Clear();
+        }
+        render_to_screen();
     }
-    render_to_screen();
 
     invalidate_screen();
     ags_clear_input_state();

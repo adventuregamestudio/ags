@@ -77,6 +77,8 @@ namespace AGS.Editor.Components
             _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
             _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
             _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+
+            Factory.Events.GamePostLoad += Events_GamePostLoad;
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -128,18 +130,9 @@ namespace AGS.Editor.Components
             }
             else if (controlID == MENU_COMMAND_NEW)
             {
-                string newFileName = FindFirstAvailableFileName("NewScript");
-                Script newScript = new Script(newFileName + ".asc", "// new module script\r\n", false);
-                Script newHeader = new Script(newFileName + ".ash", "// new module header\r\n", true);
-                newScript.Modified = true;
-                newScript.SaveToDisk();
-                newHeader.Modified = true;
-                newHeader.SaveToDisk();
-                ScriptAndHeader scripts = new ScriptAndHeader(newHeader, newScript);
+                var scripts = AddNewScript("NewScript", "// new module header\r\n", "// new module script\r\n");
                 AddSingleItem(scripts);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                RePopulateTreeView(GetNodeID(newScript));
-                _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.NameForLabelEdit);
+                _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + scripts.Script.NameForLabelEdit);
             }
 			else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
 			{
@@ -155,6 +148,35 @@ namespace AGS.Editor.Components
                 string scriptName = controlID.Substring(ITEM_COMMAND_PREFIX.Length);
 				CreateOrShowEditorForScript(scriptName);
 			}
+        }
+
+        /// <summary>
+        /// Adds a new script module (header/script pair) item to the project,
+        /// finds the first available name based on requested one,
+        /// assigns header and body text. Returns added Script object.
+        /// </summary>
+        public ScriptAndHeader AddNewScript(string scriptName, string headerText, string scriptText, bool insertOnTop)
+        {
+            var scripts = AddNewScript(scriptName, headerText, scriptText);
+            if (insertOnTop)
+                _agsEditor.CurrentGame.RootScriptFolder.Items.Insert(0, scripts);
+            else
+                _agsEditor.CurrentGame.RootScriptFolder.Items.Add(scripts);
+            RePopulateTreeView();
+            return scripts;
+        }
+
+        private ScriptAndHeader AddNewScript(string scriptName, string headerText, string scriptText)
+        {
+            string newFileName = FindFirstAvailableFileName(scriptName);
+            Script newScript = new Script(newFileName + ".asc", scriptText, false);
+            Script newHeader = new Script(newFileName + ".ash", headerText, true);
+            newScript.Modified = true;
+            newScript.SaveToDisk();
+            newHeader.Modified = true;
+            newHeader.SaveToDisk();
+            _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+            return new ScriptAndHeader(newHeader, newScript);
         }
 
         protected override void DeleteResourcesUsedByItem(ScriptAndHeader item)
@@ -239,7 +261,6 @@ namespace AGS.Editor.Components
                 ScriptAndHeader scripts = new ScriptAndHeader(newScripts[0], newScripts[1]);
                 AddSingleItem(scripts);
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                RePopulateTreeView(GetNodeID(scripts));
                 foreach (Script script in newScripts)
                     AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
             }
@@ -632,6 +653,27 @@ namespace AGS.Editor.Components
         protected override IList<ScriptAndHeader> GetFlatList()
         {
             return null;
+        }
+
+        private void Events_GamePostLoad()
+        {
+            var game = _agsEditor.CurrentGame;
+            if (game.SavedXmlVersionIndex >= 3060110)
+                return; // no upgrade necessary
+
+            // < 3060110 - SetRestartPoint() has to be added to Global Script's game_start,
+            // emulate legacy behavior where its call was hardcoded in the engine.
+            if (game.SavedXmlVersionIndex < 3060110)
+            {
+                Script script = AGSEditor.Instance.CurrentGame.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
+                if (script != null)
+                {
+                    script.Text = 
+                        ScriptGeneration.InsertFunction(script.Text, "game_start", "", "  SetRestartPoint();", amendExisting: true);
+                    // CHECKME: do not save the script here, in case user made a mistake opening this in a newer editor
+                    // and closes project without saving after upgrade? Upgrade process is not well defined...
+                }
+            }
         }
     }
 }

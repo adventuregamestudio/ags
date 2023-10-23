@@ -27,13 +27,13 @@ const char *CCObject::GetType() {
     return "Object";
 }
 
-size_t CCObject::CalcSerializeSize(void* /*address*/)
+size_t CCObject::CalcSerializeSize(const void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCObject::Serialize(void *address, Stream *out) {
-    ScriptObject *shh = (ScriptObject*)address;
+void CCObject::Serialize(const void *address, Stream *out) {
+    const ScriptObject *shh = static_cast<const ScriptObject*>(address);
     out->WriteInt32(shh->id);
 }
 

@@ -32,6 +32,7 @@ struct CharacterInfo;
 enum CharacterSvgVersion
 {
     kCharSvgVersion_Initial = 0,
+    kCharSvgVersion_350     = 1, // new movelist format (along with pathfinder)
     kCharSvgVersion_36025   = 2, // animation volume
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
     kCharSvgVersion_400     = 4000000,

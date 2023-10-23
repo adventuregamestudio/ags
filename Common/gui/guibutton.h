@@ -70,6 +70,8 @@ public:
     void SetMouseOverImage(int32_t image);
     void SetNormalImage(int32_t image);
     void SetPushedImage(int32_t image);
+    // TODO: flags for each kind of image?
+    void SetImages(int32_t normal, int32_t over, int32_t pushed, uint32_t flags = 0);
     void SetCurrentImage(int32_t image, uint32_t flags = 0);
     void SetText(const String &text);
 
@@ -111,6 +113,7 @@ private:
     int32_t _pushedImage;
     // Active displayed image
     int32_t _currentImage;
+    // TODO: flags for each kind of image, not just "current"?
     uint32_t _imageFlags;
     // Text property set by user
     String _text;

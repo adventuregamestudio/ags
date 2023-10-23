@@ -30,11 +30,11 @@ int ScriptJoystick::Dispose(void *address, bool force) {
     return 1;
 }
 
-size_t ScriptJoystick::CalcSerializeSize(void* /*address*/){
+size_t ScriptJoystick::CalcSerializeSize(const void* /*address*/){
     return 0;
 }
 
-void ScriptJoystick::Serialize(void *address, AGS::Common::Stream *out) {
+void ScriptJoystick::Serialize(const void *address, AGS::Common::Stream *out) {
 
 }
 

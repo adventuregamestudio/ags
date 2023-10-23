@@ -103,6 +103,8 @@ namespace AGS.Editor
          * 3.6.1.2        - GUIListBox.Translated property moved to GUIControl parent
          * 3.6.1.3        - RuntimeSetup.TextureCache, SoundCache
          * 3.6.1.9        - Settings.ScaleCharacterSpriteOffsets
+         * 3.6.1.10       - SetRestartPoint() is no longer auto called in the engine,
+         *                  add one into the global script when importing older games.
          * 
          * 3.99.99.00     - BlendMode for various objects, Character.Transparency.
          * 3.99.99.01     - Open rooms
@@ -877,13 +879,16 @@ namespace AGS.Editor
             DialogScriptConverter dialogConverter = new DialogScriptConverter();
             string dialogScriptsText = dialogConverter.ConvertGameDialogScripts(_game, errors, rebuildAll);
             Script dialogScripts = new Script(Script.DIALOG_SCRIPTS_FILE_NAME, dialogScriptsText, false);
-            Script globalScript = _game.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
-            if (!System.Text.RegularExpressions.Regex.IsMatch(globalScript.Text, @"function\s+dialog_request\s*\("))
+
+            // A dialog_request must exist in the global script, otherwise
+            // the dialogs script fails to load at run-time
+            // TODO: check if it's still true, and is necessary!
+            Script script = CurrentGame.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
+            if (script != null)
             {
-                // A dialog_request must exist in the global script, otherwise
-                // the dialogs script fails to load at run-time
-                globalScript.Text += Environment.NewLine + "function dialog_request(int param) {" + Environment.NewLine + "}";
+                script.Text = ScriptGeneration.InsertFunction(script.Text, "dialog_request", "int param");
             }
+
             return dialogScripts;
         }
 

@@ -284,8 +284,6 @@ void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, i
 
 int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
 {
-  int i;
-
   walkablearea = onscreen;
 
   num_navpoints = 0;
@@ -322,7 +320,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
 #endif
 
-  for (i=0; i<num_navpoints-1; i++)
+  for (int i=0; i<num_navpoints-1; i++)
     calculate_move_stage(&mlist, i);
 
   mlist.from = { srcx, srcy };

@@ -235,6 +235,7 @@ namespace AGS.Editor
 
         private void SetDefaultValuesForNewFeatures(Game game)
         {
+#pragma warning disable 0618
             // TODO: this may be noticably if upgrading lots of items. Display some kind of
             // progress window to notify user.
 
@@ -476,6 +477,7 @@ namespace AGS.Editor
             System.Version projectVersion = game.SavedXmlEditorVersion != null ? Types.Utilities.TryParseVersion(game.SavedXmlEditorVersion) : null;
             if (projectVersion == null || projectVersion < editorVersion)
                 game.SetScriptAPIForOldProject();
+#pragma warning restore 0618
         }
 
         private static int RemapAudioClipIDToFixedIndex(int id, Dictionary<int, int> audioIDToIndex)

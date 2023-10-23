@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "gui/mylistbox.h"
 #include <string.h>
 #include "ac/common.h"
 #include "ac/gamesetup.h"
@@ -19,9 +20,8 @@
 #include "gfx/bitmap.h"
 #include "gui/guidialog.h"
 #include "gui/guidialogdefines.h"
-#include "gui/mylistbox.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern int numcurso, hotx, hoty;
 

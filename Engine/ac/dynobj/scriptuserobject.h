@@ -43,9 +43,9 @@ public:
     ScriptUserObject() = default;
     ~ScriptUserObject() = default;
 
-    inline static const Header &GetHeader(void *address)
+    inline static const Header &GetHeader(const void *address)
     {
-        return reinterpret_cast<const Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
     }
 
     // Create managed struct object and return a pointer to the beginning of a buffer
@@ -75,9 +75,9 @@ private:
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(void *address) override;
+    size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
-    void Serialize(void *address, AGS::Common::Stream *out) override;
+    void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
 
 extern ScriptUserObject globalDynamicStruct;

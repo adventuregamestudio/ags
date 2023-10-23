@@ -71,7 +71,10 @@ void start_game() {
 
     our_eip = -43;
 
-    SetRestartPoint();
+    // Only auto-set first restart point in < 3.6.1 games,
+    // since 3.6.1+ users are suggested to set one manually in script.
+    if (loaded_game_file_version < kGameVersion_361_10)
+        SetRestartPoint();
 
     our_eip=-3;
 

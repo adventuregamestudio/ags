@@ -39,15 +39,13 @@ public:
     String          GetEventArgs(int event) const;
     int             GetEventCount() const;
     String          GetEventName(int event) const;
-    bool            IsDeleted() const;
-    // tells if control itself is enabled
-    bool            IsEnabled() const;
+    bool            IsClickable() const { return (Flags & kGUICtrl_Clickable) != 0; }
+    bool            IsDeleted() const { return (Flags & kGUICtrl_Deleted) != 0; }
+    bool            IsEnabled() const { return (Flags & kGUICtrl_Enabled) != 0; }
+    bool            IsTranslated() const { return (Flags & kGUICtrl_Translated) != 0; }
+    bool            IsVisible() const { return (Flags & kGUICtrl_Visible) != 0; }
     // overridable routine to determine whether the mouse is over the control
     virtual bool    IsOverControl(int x, int y, int leeway) const;
-    bool            IsTranslated() const;
-    bool            IsVisible() const;
-    // implemented separately in engine and editor
-    bool            IsClickable() const;
     Size            GetSize() const { return Size(_width, _height); }
     int             GetWidth() const { return _width; }
     int             GetHeight() const { return _height; }
@@ -83,7 +81,7 @@ public:
     // Mouse button up
     virtual void    OnMouseUp() { }
     // Control was resized
-    virtual void    OnResized() { MarkChanged(); }
+    virtual void    OnResized() { MarkPositionChanged(true); }
 
     // Serialization
     virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
@@ -94,12 +92,16 @@ public:
 // TODO: these members are currently public; hide them later
 public:
     // Manually marks GUIObject as graphically changed
-    // NOTE: this only matters if control's own graphic changes (content, size etc),
-    // but not its state (visible) or texture drawing mode (transparency, etc).
+    // NOTE: this only matters if control's own graphic changes, but not its
+    // logical (visible, clickable, etc) or visual (e.g. transparency) state.
     void     MarkChanged();
-    // Notifies parent GUI that this control has changed its state (but not graphic)
-    void     NotifyParentChanged();
-    bool     HasChanged() const;
+    // Notifies parent GUI that this control has changed its visual state
+    void     MarkParentChanged();
+    // Notifies parent GUI that this control has changed its location (pos, size)
+    void     MarkPositionChanged(bool self_changed);
+    // Notifies parent GUI that this control's interactive state has changed
+    void     MarkStateChanged(bool self_changed, bool parent_changed);
+    bool     HasChanged() const { return _hasChanged; }
     void     ClearChanged();
 
     int32_t  Id;         // GUI object's identifier

@@ -55,6 +55,7 @@ void GUIMain::InitDefaults()
     _flags        = kGUIMain_DefFlags;
     _hasChanged   = true; // must be updated after creation
     _hasControlsChanged = true;
+    _polling      = false;
 
     X             = 0;
     Y             = 0;
@@ -141,21 +142,6 @@ const std::vector<int> &GUIMain::GetControlsDrawOrder() const
     return _ctrlDrawOrder;
 }
 
-bool GUIMain::IsClickable() const
-{
-    return (_flags & kGUIMain_Clickable) != 0;
-}
-
-bool GUIMain::IsConcealed() const
-{
-    return (_flags & kGUIMain_Concealed) != 0;
-}
-
-bool GUIMain::IsDisplayed() const
-{
-    return IsVisible() && !IsConcealed();
-}
-
 bool GUIMain::IsInteractableAt(int x, int y) const
 {
     if (!IsDisplayed())
@@ -173,37 +159,40 @@ bool GUIMain::IsInteractableAt(int x, int y) const
     return ((pt.X >= 0) && (pt.Y >= 0) && (pt.X < Width) && (pt.Y < Height));
 }
 
-bool GUIMain::IsTextWindow() const
-{
-    return (_flags & kGUIMain_TextWindow) != 0;
-}
-
-bool GUIMain::IsVisible() const
-{
-    return (_flags & kGUIMain_Visible) != 0;
-}
-
-bool GUIMain::HasChanged() const
-{
-    return _hasChanged;
-}
-
-bool GUIMain::HasControlsChanged() const
-{
-    return _hasControlsChanged;
-}
-
 void GUIMain::MarkChanged()
 {
     _hasChanged = true;
 }
 
-void GUIMain::MarkControlsChanged()
+void GUIMain::MarkControlChanged()
 {
     _hasControlsChanged = true;
-    // force it to re-check for which control is under the mouse
+}
+
+void GUIMain::NotifyControlPosition()
+{
+    // Force it to re-check for which control is under the mouse
     MouseWasAt.X = -1;
     MouseWasAt.Y = -1;
+    _hasControlsChanged = true; // for software render, and in case of shape change
+}
+
+void GUIMain::NotifyControlState(int objid, bool mark_changed)
+{
+    MouseWasAt.X = -1;
+    MouseWasAt.Y = -1;
+    _hasControlsChanged |= mark_changed;
+    // Update cursor-over-control state, if necessary
+    const int overctrl = MouseOverCtrl;
+    if (!_polling &&
+        (objid >= 0) && (objid == overctrl) && ((size_t)objid < _controls.size()) &&
+        (!_controls[overctrl]->IsClickable() ||
+            !_controls[overctrl]->IsVisible() ||
+            !_controls[overctrl]->IsEnabled()))
+    {
+        MouseOverCtrl = -1;
+        _controls[overctrl]->OnMouseLeave();
+    }
 }
 
 void GUIMain::ClearChanged()
@@ -214,7 +203,7 @@ void GUIMain::ClearChanged()
 
 void GUIMain::ResetOverControl()
 {
-    if (MouseOverCtrl >= 0)
+    if ((MouseOverCtrl >= 0) && ((size_t)MouseOverCtrl < _controls.size()))
         _controls[MouseOverCtrl]->OnMouseLeave();
     // Force it to re-check for which control is under the mouse
     MouseWasAt.X = -1;
@@ -356,6 +345,7 @@ void GUIMain::UpdateGraphicSpace()
 
 void GUIMain::Poll(int mx, int my)
 {
+    _polling = true;
     // transform to GUI's local coordinates
     Point pt = _gs.WorldToLocal(mx, my);
     mx = pt.X; my = pt.Y;
@@ -394,6 +384,7 @@ void GUIMain::Poll(int mx, int my)
 
     MouseWasAt.X = mx;
     MouseWasAt.Y = my;
+    _polling = false;
 }
 
 HError GUIMain::RebuildArray()
@@ -457,23 +448,20 @@ void GUIMain::SetAt(int x, int y)
 
 void GUIMain::SetClickable(bool on)
 {
-    if (on)
-        _flags |= kGUIMain_Clickable;
-    else
-        _flags &= ~kGUIMain_Clickable;
-
-    if (!on)
+    if (on != ((_flags & kGUIMain_Clickable) != 0))
     {
-        ResetOverControl();
+        _flags = (_flags & ~kGUIMain_Clickable) | kGUIMain_Clickable * on;
+        ResetOverControl(); // clear the cursor-over-control
     }
 }
 
 void GUIMain::SetConceal(bool on)
 {
-    if (on)
-        _flags |= kGUIMain_Concealed;
-    else
-        _flags &= ~kGUIMain_Concealed;
+    if (on != ((_flags & kGUIMain_Concealed) != 0))
+    {
+        _flags = (_flags & ~kGUIMain_Concealed) | kGUIMain_Concealed * on;
+        ResetOverControl(); // clear the cursor-over-control
+    }
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -509,7 +497,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         }
     }
     ResortZOrder();
-    MarkControlsChanged();
+    NotifyControlPosition();
     return true;
 }
 
@@ -529,10 +517,7 @@ void GUIMain::SetSize(int w, int h)
 
 void GUIMain::SetTextWindow(bool on)
 {
-    if (on)
-        _flags |= kGUIMain_TextWindow;
-    else
-        _flags &= ~kGUIMain_TextWindow;
+    _flags = (_flags & ~kGUIMain_TextWindow) | kGUIMain_TextWindow * on;
 }
 
 void GUIMain::SetTransparencyAsPercentage(int percent)
@@ -542,10 +527,11 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 
 void GUIMain::SetVisible(bool on)
 {
-    if (on)
-        _flags |= kGUIMain_Visible;
-    else
-        _flags &= ~kGUIMain_Visible;
+    if (on != ((_flags & kGUIMain_Visible) != 0))
+    {
+        _flags = (_flags & ~kGUIMain_Visible) | kGUIMain_Visible * on;
+        ResetOverControl(); // clear the cursor-over-control
+    }
 }
 
 void GUIMain::OnMouseButtonDown(int mx, int my)

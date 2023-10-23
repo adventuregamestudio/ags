@@ -2905,7 +2905,7 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.Edges.Left = room->LeftEdgeX;
 	rs.Options.PlayerView = room->PlayerCharacterView;
 	rs.Edges.Right = room->RightEdgeX;
-	rs.Options.SaveLoadDisabled = room->SaveLoadEnabled ? 0 : 1;
+	rs.Options.SaveLoadDisabled = false; // [OBSOLETE]
 	rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
 	rs.Edges.Top = room->TopEdgeY;
 	rs.Width = room->Width;

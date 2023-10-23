@@ -108,7 +108,7 @@ namespace AGS.Editor
         private int _calltipFontSize = Factory.AGSEditor.Settings.ScriptTipFontSize;
         private ColorTheme _theme;
 
-        private void UpdateColorTheme()
+        private void UpdateColorThemeStyleDefault()
         {
             if (_theme == null) return;
             ColorTheme t = _theme;
@@ -116,6 +116,15 @@ namespace AGS.Editor
             if (!t.Has("script-editor/text-editor")) return;
             t.SetColor("script-editor/text-editor/global-default/background", c => scintillaControl1.Styles[Style.Default].BackColor = c);
             t.SetColor("script-editor/text-editor/global-default/foreground", c => scintillaControl1.Styles[Style.Default].ForeColor = c);
+        }
+
+        private void UpdateColorTheme()
+        {
+            if (_theme == null) return;
+            ColorTheme t = _theme;
+
+            if (!t.Has("script-editor/text-editor")) return;
+            UpdateColorThemeStyleDefault();
             t.SetColor("script-editor/text-editor/default/background", c => scintillaControl1.Styles[Style.Cpp.Default].BackColor = c);
             t.SetColor("script-editor/text-editor/default/foreground", c => scintillaControl1.Styles[Style.Cpp.Default].ForeColor = c);
             t.SetColor("script-editor/text-editor/word-1/background", c => scintillaControl1.Styles[Style.Cpp.Word].BackColor = c);
@@ -256,8 +265,9 @@ namespace AGS.Editor
 
             this.scintillaControl1.Styles[Style.Default].Font = _scriptFont;
             this.scintillaControl1.Styles[Style.Default].Size = _scriptFontSize;
+            UpdateColorThemeStyleDefault();
 
-            scintillaControl1.StyleClearAll();
+            scintillaControl1.StyleClearAll(); // propagates default style to other styles
 
             this.scintillaControl1.Styles[Style.BraceBad].Font = _scriptFont;
             this.scintillaControl1.Styles[Style.BraceBad].Size = _scriptFontSize;

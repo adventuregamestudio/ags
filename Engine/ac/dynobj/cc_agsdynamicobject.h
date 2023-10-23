@@ -93,9 +93,9 @@ public:
 protected:
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes
-    virtual size_t CalcSerializeSize(void *address) = 0;
+    virtual size_t CalcSerializeSize(const void *address) = 0;
     // Write object data into the provided stream
-    virtual void Serialize(void *address, AGS::Common::Stream *out) = 0;
+    virtual void Serialize(const void *address, AGS::Common::Stream *out) = 0;
 };
 
 

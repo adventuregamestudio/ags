@@ -30,14 +30,14 @@ const char *CCCharacter::GetType()
     return "Character";
 }
 
-size_t CCCharacter::CalcSerializeSize(void* /*address*/)
+size_t CCCharacter::CalcSerializeSize(const void* /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCCharacter::Serialize(void *address, Stream *out)
+void CCCharacter::Serialize(const void *address, Stream *out)
 {
-    CharacterInfo *chaa = (CharacterInfo*)address;
+    const CharacterInfo *chaa = static_cast<const CharacterInfo*>(address);
     out->WriteInt32(chaa->index_id);
 }
 

@@ -741,6 +741,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
+    if (CfgReadBoolInt(_cfgIn, "disabled", "translation"))
+        EnableWindow(_hLanguageList, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect, border;
     GetWindowRect(_hwnd, &win_rect);
@@ -1024,7 +1026,8 @@ void WinSetupDialog::FillGfxFilterList()
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
-        if (!CfgReadBoolInt(_cfgIn, "disabled", info.Id))
+        String item = CfgFindKey(_cfgIn, "disabled", info.Id, true);
+        if (item.IsEmpty() || !CfgReadBoolInt(_cfgIn, "disabled", item))
             AddString(_hGfxFilterList, STR(info.Name), (DWORD_PTR)info.Id.GetCStr());
     }
 

@@ -186,7 +186,7 @@ namespace AGS.Editor.Components
             if (name_only)
                 ChangeItemLabel(GetNodeID(item), GetNodeLabel(item));
             else
-                RePopulateTreeView(); // currently this is the only way to update tree item ids
+                RePopulateTreeView(GetNodeID(item)); // currently this is the only way to update tree item ids
 
             foreach (ContentDocument doc in _documents.Values)
             {
@@ -308,7 +308,6 @@ namespace AGS.Editor.Components
             {
                 _guiController.ShowMessage("An error occurred importing the character file. The error was: " + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
             }
-            RePopulateTreeView();
         }        
 
         private Dictionary<string, object> ConstructPropertyObjectList(Character item)

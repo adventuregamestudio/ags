@@ -476,6 +476,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
     HSaveError err;
     if (!AssertGameContent(err, in->ReadInt32(), game.numcharacters, "Characters"))
         return err;
+    const int mls_cmp_ver = cmp_ver > kCharSvgVersion_Initial ? kMoveSvgVersion_350 : kMoveSvgVersion_Initial;
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].ReadFromSavegame(in, cmp_ver);

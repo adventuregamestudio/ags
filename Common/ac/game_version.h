@@ -114,6 +114,8 @@ Idle animation speed, modifiable hotspot names, fixed video frame
 Some adjustments to gui text alignment.
 3.6.1:
 In RTL mode all text is reversed, not only wrappable (labels etc).
+3.6.1.10:
+Disabled automatic SetRestartPoint.
 
 3.9.9 :
 BlendModes
@@ -126,6 +128,7 @@ enum GameDataVersion
     kGameVersion_Undefined      = 0,
     kGameVersion_360_21         = 3060021,
     kGameVersion_361            = 3060100,
+    kGameVersion_361_10         = 3060110,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_LowSupported   = kGameVersion_360_21,

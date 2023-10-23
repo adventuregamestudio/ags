@@ -36,7 +36,6 @@ namespace AGS.Types
         private int _rightEdgeX;
         private int _topEdgeY;
         private int _bottomEdgeY;
-        private bool _saveLoadEnabled = true;
         private bool _showPlayerCharacter = true;
         private int _playerCharacterView;
         private int _maskResolution = 1;
@@ -290,12 +289,10 @@ namespace AGS.Types
         [Browsable(false)]
         public int PlayMusicOnRoomLoad { get; }
 
+        [Obsolete]
         [Browsable(false)]
-        public bool SaveLoadEnabled
-        {
-            get { return _saveLoadEnabled; }
-            set { _saveLoadEnabled = value; }
-        }
+        // NOTE: have to keep setter here because we load old rooms before upgrading them
+        public bool SaveLoadEnabled { get; set; }
 
         [Description("Whether the player character is visible on this screen")]
         [DefaultValue(true)]

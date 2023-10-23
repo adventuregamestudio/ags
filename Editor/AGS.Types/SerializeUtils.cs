@@ -56,6 +56,21 @@ namespace AGS.Types
             return foundNode.ChildNodes;
         }
 
+        /// <summary>
+        /// Wrapper function for SelectSingleNode that throws an exception
+        /// mentioning the node name if it is not found. Returns the node's
+        /// first child if successful.
+        /// </summary>
+        public static XmlNode GetFirstChild(XmlNode parent, string elementName)
+        {
+            XmlNode foundNode = parent.SelectSingleNode(elementName);
+            if (foundNode == null)
+            {
+                throw new InvalidDataException("Missing XML element: " + elementName);
+            }
+            return foundNode.FirstChild;
+        }
+
         public static void SerializeToXML(object obj, XmlTextWriter writer)
         {
             SerializeToXML(obj, writer, true);

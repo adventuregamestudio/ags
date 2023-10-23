@@ -569,7 +569,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         // character movement path (for old saves)
         if (cmp_ver < kCharSvgVersion_36109)
         {
-            err = mls[CHMLSOFFS + i].ReadFromFile(in, mls_cmp_ver);
+            err = mls[CHMLSOFFS + i].ReadFromSavegame(in, mls_cmp_ver);
             if (!err)
                 return err;
         }
@@ -864,7 +864,7 @@ HSaveError WriteOverlays(Stream *out)
         if (over.type < 0)
             continue;
         valid_count++;
-        over.WriteToFile(out);
+        over.WriteToSavegame(out);
     }
     out->Seek(count_off, kSeekBegin);
     out->WriteInt32(valid_count);
@@ -883,7 +883,7 @@ HSaveError ReadOverlays(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
     {
         ScreenOverlay over;
         bool has_bitmap;
-        over.ReadFromFile(in, has_bitmap, cmp_ver);
+        over.ReadFromSavegame(in, has_bitmap, cmp_ver);
         if (over.type < 0)
             continue; // safety abort
         if (has_bitmap)
@@ -1106,7 +1106,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, const PreservedParams& /*pp
         const int mls_cmp_ver = cmp_ver > kRoomStatSvgVersion_Initial ? kMoveSvgVersion_350 : kMoveSvgVersion_Initial;
         for (int i = 0; i < objmls_count; ++i)
         {
-            err = mls[i].ReadFromFile(in, mls_cmp_ver);
+            err = mls[i].ReadFromSavegame(in, mls_cmp_ver);
             if (!err)
                 return err;
         }
@@ -1127,7 +1127,7 @@ HSaveError WriteMoveLists(Stream *out)
     out->WriteInt32(static_cast<int32_t>(mls.size()));
     for (const auto &movelist : mls)
     {
-        movelist.WriteToFile(out);
+        movelist.WriteToSavegame(out);
     }
     return HSaveError::None();
 }
@@ -1144,7 +1144,7 @@ HSaveError ReadMoveLists(Stream *in, int32_t cmp_ver, const PreservedParams& /*p
         return err;
     for (size_t i = 0; i < movelist_count; ++i)
     {
-        err = mls[i].ReadFromFile(in, cmp_ver);
+        err = mls[i].ReadFromSavegame(in, cmp_ver);
         if (!err)
             return err;
     }

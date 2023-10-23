@@ -52,7 +52,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
-#include "util/alignedstream.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -217,11 +216,9 @@ static void restore_game_play(Stream *in, GameDataVersion data_ver, RestoredData
 
 static void ReadMoveList_Aligned(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters + MAX_ROOM_OBJECTS_v300 + 1; ++i)
     {
-        mls[i].ReadFromFile_Legacy(&align_s);
-        align_s.Reset();
+        mls[i].ReadFromSavegame_Legacy(in);
     }
 }
 
@@ -232,11 +229,9 @@ static void ReadGameSetupStructBase_Aligned(Stream *in, GameDataVersion data_ver
 
 static void ReadCharacterExtras_Aligned(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].ReadFromSavegame(&align_s, 0);
-        align_s.Reset();
+        charextra[i].ReadFromSavegame(in, 0);
     }
 }
 
@@ -262,13 +257,11 @@ static void restore_game_more_dynamic_values(Stream *in)
 
 void ReadAnimatedButtons_Aligned(Stream *in, int num_abuts)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < num_abuts; ++i)
     {
         AnimatingGUIButton abtn;
-        abtn.ReadFromSavegame(&align_s, 0);
+        abtn.ReadFromSavegame(in, 0);
         AddButtonAnimation(abtn);
-        align_s.Reset();
     }
 }
 
@@ -349,15 +342,13 @@ static void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 
 static void ReadOverlays_Aligned(Stream *in, std::vector<int> &has_bitmap, size_t num_overs)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     // Remember that overlay indexes may be non-sequential
     auto &overs = get_overlays();
     for (size_t i = 0; i < num_overs; ++i)
     {
         bool has_bm;
         ScreenOverlay over;
-        over.ReadFromFile(&align_s, has_bm, 0);
-        align_s.Reset();
+        over.ReadFromSavegame(in, has_bm, -1);
         if (over.type < 0)
             continue; // safety abort
         if (overs.size() <= static_cast<uint32_t>(over.type))

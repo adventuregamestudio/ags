@@ -71,9 +71,9 @@ struct MoveList
     // Sets a step progress to this fraction of a coordinate unit
     void  SetPixelUnitFraction(float frac);
 
-    void ReadFromFile_Legacy(Common::Stream *in);
-    AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromSavegame_Legacy(Common::Stream *in);
+    AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AGS_EN_AC__MOVELIST_H

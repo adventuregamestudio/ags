@@ -28,7 +28,7 @@ using namespace AGS; // FIXME later
 enum CharacterSvgVersion
 {
     kCharSvgVersion_Initial = 0,
-    // 1 was skipped somehow
+    kCharSvgVersion_350     = 1, // new movelist format (along with pathfinder)
     kCharSvgVersion_36025   = 2, // animation volume
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
 };

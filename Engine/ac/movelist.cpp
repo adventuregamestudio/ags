@@ -68,8 +68,8 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     if (cmp_ver < kMoveSvgVersion_350)
     {
-        ReadFromSavegame_Legacy(in); // FIXME: pass an arg to not use padding; OR remove support of kMoveSvgVersion_Initial?
-        return HSaveError::None();
+        return new SavegameError(kSvgErr_UnsupportedComponentVersion,
+            String::FromFormat("Movelist format %d is no longer supported", cmp_ver));
     }
 
     *this = MoveList(); // reset struct

@@ -175,8 +175,8 @@ namespace AGS.Types
             Assert.Throws<ArgumentException>(() => _room.GetMaskScale(RoomAreaMaskType.None));
         }
 
-        [TestCase(1, 2, 1174750494, 320, 240, 5, true, false, 1, 1, 2, 3, 4, 2, "description1")]
-        [TestCase(2, 1, 1174750495, 640, 480, 4, false, true, 0, 2, 3, 4, 5, 3, "description2")]
+        [TestCase(1, 2, 1174750494, 320, 240, 5, false, 1, 1, 2, 3, 4, 2, "description1")]
+        [TestCase(2, 1, 1174750495, 640, 480, 4, true, 0, 2, 3, 4, 5, 3, "description2")]
         public void DeserializesFromXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
             int backgroundAnimationDelay, bool showPlayerCharacter,
             int playerCharacterView, int leftEdgeX, int rightEdgeX,
@@ -252,8 +252,8 @@ namespace AGS.Types
             File.Delete("TestScript.asc");
         }
 
-        [TestCase(1, 2, 1174750494, 320, 240, 5, true, false, 1, 1, 2, 3, 4, 2, "description1")]
-        [TestCase(2, 1, 1174750495, 640, 480, 4, false, true, 0, 2, 3, 4, 5, 3, "description2")]
+        [TestCase(1, 2, 1174750494, 320, 240, 5, false, 1, 1, 2, 3, 4, 2, "description1")]
+        [TestCase(2, 1, 1174750495, 640, 480, 4, true, 0, 2, 3, 4, 5, 3, "description2")]
         public void SerializesToXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
             int backgroundAnimationDelay, bool showPlayerCharacter,
             int playerCharacterView, int leftEdgeX, int rightEdgeX,

@@ -2791,7 +2791,6 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
     room->LeftEdgeX = rs.Edges.Left;
     room->PlayerCharacterView = rs.Options.PlayerView;
     room->RightEdgeX = rs.Edges.Right;
-    room->SaveLoadEnabled = (rs.Options.SaveLoadDisabled == 0);
     room->ShowPlayerCharacter = (rs.Options.PlayerCharOff == 0);
     room->TopEdgeY = rs.Edges.Top;
     room->Width = rs.Width;
@@ -2905,7 +2904,6 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
 	rs.Edges.Left = room->LeftEdgeX;
 	rs.Options.PlayerView = room->PlayerCharacterView;
 	rs.Edges.Right = room->RightEdgeX;
-	rs.Options.SaveLoadDisabled = false; // [OBSOLETE]
 	rs.Options.PlayerCharOff = room->ShowPlayerCharacter ? 0 : 1;
 	rs.Edges.Top = room->TopEdgeY;
 	rs.Width = room->Width;

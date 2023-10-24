@@ -399,10 +399,6 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 
 void restore_game_dialog() {
     can_run_delayed_command();
-    if (thisroom.Options.SaveLoadDisabled == 1) {
-        // DisplayMessage(983); FIXME: remove deprecated SaveLoadDisabled
-        return;
-    }
     if (inside_script) {
         curscript->queue_action(ePSARestoreGameDialog, 0, "RestoreGameDialog");
         return;
@@ -420,10 +416,6 @@ bool do_restore_game_dialog() {
 }
 
 void save_game_dialog() {
-    if (thisroom.Options.SaveLoadDisabled == 1) {
-        // DisplayMessage(983); FIXME: remove deprecated SaveLoadDisabled
-        return;
-    }
     if (inside_script) {
         curscript->queue_action(ePSASaveGameDialog, 0, "SaveGameDialog");
         return;

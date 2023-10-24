@@ -23,8 +23,7 @@ namespace Common
 {
 
 RoomOptions::RoomOptions()
-    : SaveLoadDisabled(false)
-    , PlayerCharOff(false)
+    : PlayerCharOff(false)
     , PlayerView(0)
     , Flags(0)
 {

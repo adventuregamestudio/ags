@@ -104,9 +104,6 @@ typedef std::shared_ptr<Bitmap> PBitmap;
 // Various room options
 struct RoomOptions
 {
-    // If saving and loading game is disabled in the room;
-    // this is a deprecated option that affects only built-in save/load dialogs
-    bool SaveLoadDisabled;
     // If player character is turned off in the room
     bool PlayerCharOff;
     // Apply player character's normal view when entering this room

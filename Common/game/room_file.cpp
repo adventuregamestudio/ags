@@ -184,7 +184,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     in->Seek(LEGACY_ROOM_PASSWORD_LENGTH); // skip password
     in->ReadInt8();// [DEPRECATED]
-    room->Options.SaveLoadDisabled = in->ReadInt8() != 0;
+    in->ReadInt8();// [DEPRECATED]
     room->Options.PlayerCharOff = in->ReadInt8() != 0;
     room->Options.PlayerView = in->ReadInt8();
     in->ReadInt8();// [DEPRECATED]
@@ -530,7 +530,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
 
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
     out->WriteInt8(0);// [DEPRECATED]
-    out->WriteInt8(room->Options.SaveLoadDisabled ? 1 : 0);
+    out->WriteInt8(0);// [DEPRECATED]
     out->WriteInt8(room->Options.PlayerCharOff ? 1 : 0);
     out->WriteInt8(room->Options.PlayerView);
     out->WriteInt8(0);// [DEPRECATED]

@@ -235,7 +235,7 @@ namespace AGS.Editor
             Size spriteSize = Utilities.GetSizeSpriteWillBeRenderedInGame(spriteNum);
             if (_autoFrameFill)
             {
-                spriteSize = MathExtra.SafeScale(spriteSize, previewPanel.ClientSize.Height / spriteSize.Height);
+                spriteSize = MathExtra.SafeScale(spriteSize, (float)previewPanel.ClientSize.Height / spriteSize.Height);
             }
             else
             {

@@ -173,7 +173,7 @@ const char* File_ReadStringBack(sc_File *fil) {
     return CreateNewScriptString("");;
   }
 
-  auto buf = ScriptString::CreateBuffer(data_sz); // stored len + 1
+  auto buf = ScriptString::CreateBuffer(data_sz - 1); // stored len + 1
   in->Read(buf.Get(), data_sz);
   return CreateNewScriptString(std::move(buf));
 }

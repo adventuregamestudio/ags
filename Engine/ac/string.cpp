@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cstdio>
+#include <allegro.h>
 #include "ac/string.h"
 #include "ac/common.h"
 #include "ac/display.h"
@@ -53,8 +54,9 @@ const char* String_Copy(const char *srcString) {
 
 const char* String_Append(const char *thisString, const char *extrabit) {
     const auto &header = ScriptString::GetHeader(thisString);
-    size_t str2_len = strlen(extrabit);
-    auto buf = ScriptString::CreateBuffer(header.Length + str2_len + 1);
+    int str2_len, str2_ulen;
+    ustrlen2(extrabit, &str2_len, &str2_ulen);
+    auto buf = ScriptString::CreateBuffer(header.Length + str2_len, header.ULength + str2_ulen);
     memcpy(buf.Get(), thisString, header.Length);
     memcpy(buf.Get() + header.Length, extrabit, str2_len + 1);
     return CreateNewScriptString(std::move(buf));
@@ -64,7 +66,7 @@ const char* String_AppendChar(const char *thisString, int extraOne) {
     char chr[5]{};
     const auto &header = ScriptString::GetHeader(thisString);
     size_t new_chw = usetc(chr, extraOne);
-    auto buf = ScriptString::CreateBuffer(header.Length + new_chw + 1);
+    auto buf = ScriptString::CreateBuffer(header.Length + new_chw, header.ULength + 1);
     memcpy(buf.Get(), thisString, header.Length);
     memcpy(buf.Get() + header.Length, chr, new_chw + 1);
     return CreateNewScriptString(std::move(buf));
@@ -81,7 +83,7 @@ const char* String_ReplaceCharAt(const char *thisString, int index, int newChar)
     char new_chr[5]{};
     size_t new_chw = usetc(new_chr, newChar);
     size_t new_len = header.Length + new_chw - old_chw;
-    auto buf = ScriptString::CreateBuffer(new_len + 1);
+    auto buf = ScriptString::CreateBuffer(new_len, header.ULength); // text length is the same
     memcpy(buf.Get(), thisString, off);
     memcpy(buf.Get() + off, new_chr, new_chw);
     memcpy(buf.Get() + off + new_chw, thisString + off + old_chw, header.Length - off - old_chw + 1);
@@ -96,7 +98,7 @@ const char* String_Truncate(const char *thisString, int length) {
         return thisString;
 
     size_t new_len = uoffset(thisString, length);
-    auto buf = ScriptString::CreateBuffer(new_len + 1);
+    auto buf = ScriptString::CreateBuffer(new_len, length); // arg is a text length
     memcpy(buf.Get(), thisString, new_len);
     buf.Get()[new_len] = 0;
     return CreateNewScriptString(std::move(buf));
@@ -113,7 +115,7 @@ const char* String_Substring(const char *thisString, int index, int length) {
     size_t end = uoffset(thisString + start, sublen) + start;
     size_t copylen = end - start;
 
-    auto buf = ScriptString::CreateBuffer(copylen + 1);
+    auto buf = ScriptString::CreateBuffer(copylen, length); // arg is a text length
     memcpy(buf.Get(), thisString + start, copylen);
     buf.Get()[copylen] = 0;
     return CreateNewScriptString(std::move(buf));
@@ -207,7 +209,7 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
 
 const char* String_LowerCase(const char *thisString) {
     const auto &header = ScriptString::GetHeader(thisString);
-    auto buf = ScriptString::CreateBuffer(header.Length + 1);
+    auto buf = ScriptString::CreateBuffer(header.Length, header.ULength);
     memcpy(buf.Get(), thisString, header.Length + 1);
     ustrlwr(buf.Get());
     return CreateNewScriptString(std::move(buf));
@@ -215,7 +217,7 @@ const char* String_LowerCase(const char *thisString) {
 
 const char* String_UpperCase(const char *thisString) {
     const auto &header = ScriptString::GetHeader(thisString);
-    auto buf = ScriptString::CreateBuffer(header.Length + 1);
+    auto buf = ScriptString::CreateBuffer(header.Length, header.ULength);
     memcpy(buf.Get(), thisString, header.Length + 1);
     ustrupr(buf.Get());
     return CreateNewScriptString(std::move(buf));

@@ -60,11 +60,8 @@ void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     ccRegisterUnserializedObject(index, text_ptr, this);
 }
 
-DynObjectRef ScriptString::CreateObject(uint8_t *buf, size_t len, size_t ulen)
+DynObjectRef ScriptString::CreateObject(uint8_t *buf)
 {
-    Header &hdr = reinterpret_cast<Header&>(*buf);
-    hdr.Length = len;
-    hdr.ULength = ulen;
     char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
     int32_t handle = ccRegisterManagedObject(text_ptr, &myScriptStringImpl);
     if (handle == 0)
@@ -75,27 +72,32 @@ DynObjectRef ScriptString::CreateObject(uint8_t *buf, size_t len, size_t ulen)
     return DynObjectRef(handle, text_ptr, &myScriptStringImpl);
 }
 
-ScriptString::Buffer ScriptString::CreateBuffer(size_t data_sz)
+ScriptString::Buffer ScriptString::CreateBuffer(size_t len, size_t ulen)
 {
-    std::unique_ptr<uint8_t[]> buf(new uint8_t[data_sz + MemHeaderSz]);
-    return Buffer(std::move(buf), data_sz + MemHeaderSz);
+    assert(ulen <= len);
+    std::unique_ptr<uint8_t[]> buf(new uint8_t[len + 1 + MemHeaderSz]);
+    auto *header = reinterpret_cast<Header*>(buf.get());
+    header->Length = len;
+    header->ULength = ulen;
+    return Buffer(std::move(buf), len + 1 + MemHeaderSz);
 }
 
 DynObjectRef ScriptString::Create(const char *text)
 {
     int len, ulen;
     ustrlen2(text, &len, &ulen);
-    uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
-    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
-    memcpy(buf, text, len + 1);
-    return CreateObject(buf, len, ulen);
+    auto buf = CreateBuffer(len, ulen);
+    memcpy(buf.Get(), text, len + 1);
+    return CreateObject(buf._buf.release());
 }
 
 DynObjectRef ScriptString::Create(Buffer &&strbuf)
 {
-    int len, ulen;
-    ustrlen2(strbuf.Get(), &len, &ulen);
     uint8_t *buf = strbuf._buf.release();
-    strbuf._sz = 0u;
-    return CreateObject(buf, len, ulen);
+    auto *header = reinterpret_cast<Header*>(buf);
+    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    if ((header->Length > 0) && (header->ULength == 0u))
+        header->ULength = ustrlen(text_ptr);
+    text_ptr[header->Length] = 0; // for safety
+    return CreateObject(buf);
 }

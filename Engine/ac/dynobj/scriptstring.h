@@ -55,11 +55,15 @@ public:
         return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
     }
 
-    // 
-    static Buffer CreateBuffer(size_t data_sz);
+    // Allocates a ScriptString-compatible buffer large enough to accomodate
+    // given length in bytes (len). This buffer may be filled by the caller
+    // and then passed into Create(). If ulen is left eq 0, then it will be
+    // recalculated on script string's creation.
+    static Buffer CreateBuffer(size_t len, size_t ulen = 0u);
     // Create a new script string by copying the given text
     static DynObjectRef Create(const char *text);
-    //
+    // Create a new script string by taking ownership over the given buffer;
+    // passed buffer variable becomes invalid after this call.
     static DynObjectRef Create(Buffer &&strbuf);
 
     const char *GetType() override;
@@ -73,7 +77,7 @@ private:
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t);
 
-    static DynObjectRef CreateObject(uint8_t *buf, size_t len, size_t ulen);
+    static DynObjectRef CreateObject(uint8_t *buf);
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes

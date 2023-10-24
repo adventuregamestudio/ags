@@ -89,14 +89,6 @@ namespace AGS.Types
 
         [TestCase(false)]
         [TestCase(true)]
-        public void GetsAndSetsSaveLoadEnabled(bool saveLoadEnabled)
-        {
-            _room.SaveLoadEnabled = saveLoadEnabled;
-            Assert.That(_room.SaveLoadEnabled, Is.EqualTo(saveLoadEnabled));
-        }
-
-        [TestCase(false)]
-        [TestCase(true)]
         public void GetsAndSetsShowPlayerCharacter(bool showPlayerCharacter)
         {
             _room.ShowPlayerCharacter = showPlayerCharacter;
@@ -186,7 +178,7 @@ namespace AGS.Types
         [TestCase(1, 2, 1174750494, 320, 240, 5, true, false, 1, 1, 2, 3, 4, 2, "description1")]
         [TestCase(2, 1, 1174750495, 640, 480, 4, false, true, 0, 2, 3, 4, 5, 3, "description2")]
         public void DeserializesFromXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
-            int backgroundAnimationDelay, bool saveLoadEnabled, bool showPlayerCharacter,
+            int backgroundAnimationDelay, bool showPlayerCharacter,
             int playerCharacterView, int leftEdgeX, int rightEdgeX,
             int topEdgeY, int bottomEdgeY, int number, string description)
         {
@@ -198,7 +190,6 @@ namespace AGS.Types
                 <Width>{width}</Width>
                 <Height>{height}</Height>
                 <BackgroundAnimationDelay>{backgroundAnimationDelay}</BackgroundAnimationDelay>
-                <SaveLoadEnabled>{saveLoadEnabled}</SaveLoadEnabled>
                 <ShowPlayerCharacter>{showPlayerCharacter}</ShowPlayerCharacter>
                 <PlayerCharacterView>{playerCharacterView}</PlayerCharacterView>
                 <LeftEdgeX>{leftEdgeX}</LeftEdgeX>
@@ -239,7 +230,6 @@ namespace AGS.Types
             Assert.That(_room.Width, Is.EqualTo(width));
             Assert.That(_room.Height, Is.EqualTo(height));
             Assert.That(_room.BackgroundAnimationDelay, Is.EqualTo(backgroundAnimationDelay));
-            Assert.That(_room.SaveLoadEnabled, Is.EqualTo(saveLoadEnabled));
             Assert.That(_room.ShowPlayerCharacter, Is.EqualTo(showPlayerCharacter));
             Assert.That(_room.PlayerCharacterView, Is.EqualTo(playerCharacterView));
             Assert.That(_room.LeftEdgeX, Is.EqualTo(leftEdgeX));
@@ -265,7 +255,7 @@ namespace AGS.Types
         [TestCase(1, 2, 1174750494, 320, 240, 5, true, false, 1, 1, 2, 3, 4, 2, "description1")]
         [TestCase(2, 1, 1174750495, 640, 480, 4, false, true, 0, 2, 3, 4, 5, 3, "description2")]
         public void SerializesToXml(int maskResolution, int backgroundCount, int gameId, int width, int height,
-            int backgroundAnimationDelay, bool saveLoadEnabled, bool showPlayerCharacter,
+            int backgroundAnimationDelay, bool showPlayerCharacter,
             int playerCharacterView, int leftEdgeX, int rightEdgeX,
             int topEdgeY, int bottomEdgeY, int number, string description)
         {
@@ -275,7 +265,6 @@ namespace AGS.Types
             _room.Width = width;
             _room.Height = height;
             _room.BackgroundAnimationDelay = backgroundAnimationDelay;
-            _room.SaveLoadEnabled = saveLoadEnabled;
             _room.ShowPlayerCharacter = showPlayerCharacter;
             _room.PlayerCharacterView = playerCharacterView;
             _room.LeftEdgeX = leftEdgeX;
@@ -296,7 +285,6 @@ namespace AGS.Types
             Assert.That(doc.SelectSingleNode("/Room/Width").InnerText, Is.EqualTo(width.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/Height").InnerText, Is.EqualTo(height.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/BackgroundAnimationDelay").InnerText, Is.EqualTo(backgroundAnimationDelay.ToString()));
-            Assert.That(doc.SelectSingleNode("/Room/SaveLoadEnabled").InnerText, Is.EqualTo(saveLoadEnabled.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/ShowPlayerCharacter").InnerText, Is.EqualTo(showPlayerCharacter.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/PlayerCharacterView").InnerText, Is.EqualTo(playerCharacterView.ToString()));
             Assert.That(doc.SelectSingleNode("/Room/LeftEdgeX").InnerText, Is.EqualTo(leftEdgeX.ToString()));

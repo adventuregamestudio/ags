@@ -291,7 +291,7 @@ namespace AGS.Types
 
         [Obsolete]
         [Browsable(false)]
-        // NOTE: have to keep setter here because we load old rooms before upgrading them
+        // TODO: check if it's okay to adjust ILoadedRoom interface and let remove the setter here
         public bool SaveLoadEnabled { get; set; }
 
         [Description("Whether the player character is visible on this screen")]

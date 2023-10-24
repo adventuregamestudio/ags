@@ -928,16 +928,7 @@ namespace AGS.Editor.Components
         {
 #pragma warning disable 0612
             bool scriptModified = false;
-            if (!room.SaveLoadEnabled)
-            {
-                // Simply add a warning in script comments, to let user know that something may be missing
-                room.Script.Text = string.Format("{0}{1}{2}{3}{4}{5}{6}{7}",
-                    "// WARNING: this Room had a \"Save/Load disabled\" setting, which is now deprecated,", Environment.NewLine,
-                    "// and so it was removed during upgrade. If you like to restore this behavior,", Environment.NewLine,
-                    "// you would have to implement it in script. (This warning is safe to remove)", Environment.NewLine, Environment.NewLine,
-                    room.Script.Text);
-                room.SaveLoadEnabled = true;
-            }
+            // Add operations here as necessary
             return scriptModified;
 #pragma warning restore 0612
         }

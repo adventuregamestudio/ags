@@ -165,8 +165,7 @@ void WinConfig::Load(const ConfigTree &cfg)
         RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
     else
         RenderAtScreenRes = locked_render_at_screenres != 0;
-
-    AntialiasSprites = CfgReadInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
+    AntialiasSprites = CfgReadInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
     AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", AudioEnabled);
     AudioDriverId = CfgReadString(cfg, "sound", "driver", AudioDriverId);
@@ -201,8 +200,7 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
     CfgWriteInt(cfg, "graphics", "windowed", Windowed ? 1 : 0);
     CfgWriteInt(cfg, "graphics", "vsync", VSync ? 1 : 0);
     CfgWriteInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
-
-    CfgWriteInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0);
 
     CfgWriteInt(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
     CfgWriteString(cfg, "sound", "driver", AudioDriverId);

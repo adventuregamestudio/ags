@@ -748,6 +748,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         EnableWindow(_hUseVoicePack, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "filters"))
         EnableWindow(_hGfxFilterList, FALSE);
+    if (CfgReadBoolInt(_cfgIn, "disabled", "antialias"))
+        EnableWindow(_hAntialiasSprites, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);

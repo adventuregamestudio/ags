@@ -1,5 +1,6 @@
 FetchContent_Declare(
   vorbis_content
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   URL https://github.com/xiph/vorbis/releases/download/v1.3.7/libvorbis-1.3.7.tar.xz
   URL_HASH MD5=50902641d358135f06a8392e61c9ac77
 )

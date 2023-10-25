@@ -1,5 +1,6 @@
 FetchContent_Declare(
   ogg_content
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   URL https://github.com/xiph/ogg/releases/download/v1.3.5/libogg-1.3.5.tar.xz
   URL_HASH MD5=3178c98341559657a15b185bf5d700a5
 )

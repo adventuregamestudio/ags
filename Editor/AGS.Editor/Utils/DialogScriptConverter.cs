@@ -252,10 +252,6 @@ namespace AGS.Editor
                     convertedScriptLine = ProcessSingleIntParameterCommand(dlgScriptCommand, "new-room", "player.ChangeRoom({0}); return RUN_DIALOG_STOP_DIALOG;") + "}";
                     _currentlyInsideCodeArea = false;
                 }
-                else if (dlgScriptCommand.StartsWith("give-score"))
-                {
-                    convertedScriptLine = ProcessSingleIntParameterCommand(dlgScriptCommand, "give-score", "GiveScore({0});");
-                }
                 else
                 {
                     RaiseDialogScriptCompileError("Unknown command: " + dlgScriptCommand + ". The command may require parameters which you have not supplied.");

@@ -878,8 +878,6 @@ import int  GetTextHeight(const string text, FontType, int width);
 import int  GetFontHeight(FontType);
 /// Gets the default step between two lines of text for the specified font
 import int  GetFontLineSpacing(FontType);
-/// Adds to the player's score and plays the score sound, if set.
-import void GiveScore(int points);
 /// Refreshes the on-screen inventory display.
 import void UpdateInventory();
 /// From within dialog_request, tells AGS not to return to the dialog after this function ends.
@@ -1193,7 +1191,7 @@ enum EventType {
   eEventLeaveRoom = 1,
   eEventEnterRoomBeforeFadein = 2,
   // 3 is reserved by an obsolete "death" event
-  eEventGotScore = 4,
+  // 4 is reserved by an obsolete "got score" event
   eEventGUIMouseDown = 5,
   eEventGUIMouseUp = 6,
   eEventAddInventory = 7,
@@ -2335,7 +2333,7 @@ builtin struct Game {
 };
 
 builtin struct GameState {
-  int  score;
+  readonly int  reserved__11; // $AUTOCOMPLETEIGNORE$
   int  used_mode;
   int  disabled_user_interface;
   int  gscript_timer;
@@ -2353,7 +2351,7 @@ builtin struct GameState {
   int  swap_portrait;
   int  speech_text_gui;
   int  following_room_timer;
-  int  total_score;
+  int  reserved__12;  // $AUTOCOMPLETEIGNORE$
   int  skip_display;
   int  no_multiloop_repeat;
   int  roomscript_finished;
@@ -2371,7 +2369,7 @@ builtin struct GameState {
   readonly int  room_width;
   readonly int  room_height;
   int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
-  int  score_sound;
+  int  reserved__13;  // $AUTOCOMPLETEIGNORE$
   int  previous_game_data;
   readonly readonly int unused__041; // $AUTOCOMPLETEIGNORE$
   int  dialog_options_x;

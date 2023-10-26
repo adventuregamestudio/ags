@@ -790,7 +790,7 @@ namespace AGS.Types
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]
         [DefaultValue(AudioClip.FixedIndexNoValue)]
-        [Category("Sound")]
+        [Category("Score")]
         [TypeConverter(typeof(AudioClipTypeConverter))]
         public int PlaySoundOnScore
         {
@@ -1023,7 +1023,7 @@ namespace AGS.Types
 
         [DisplayName("Maximum possible score")]
         [Description("The maximum score that the player can achieve (displayed by @TOTALSCORE@ on GUI labels)")]
-        [Category("(Basic properties)")]
+        [Category("Score")]
         public int MaximumScore
         {
             get { return _totalScore; }

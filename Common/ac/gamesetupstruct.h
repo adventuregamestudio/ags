@@ -80,9 +80,6 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
-    // A clip to play when player gains score in game
-    // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
-    int               scoreClipID;
     // number of accessible game audio channels (the ones under direct user control)
     int               numGameChannels = 0;
     // backward-compatible channel limit that may be exported to script and reserved by audiotypes

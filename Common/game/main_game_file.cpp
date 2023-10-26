@@ -380,11 +380,6 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
 {
 }
 
-// Adjusts score clip id, depending on game data version
-void RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver)
-{
-}
-
 void FixupSaveDirectory(GameSetupStruct &game)
 {
     // If the save game folder was not specified by game author, create one of

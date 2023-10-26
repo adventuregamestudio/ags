@@ -25,7 +25,7 @@
 #define GE_LEAVE_ROOM    1
 #define GE_ENTER_ROOM    2
 // #define GE_MAN_DIES 3 // ancient obsolete event
-#define GE_GOT_SCORE     4
+// #define GE_GOT_SCORE 4 // deprecated
 #define GE_GUI_MOUSEDOWN 5
 #define GE_GUI_MOUSEUP   6
 #define GE_ADD_INV       7

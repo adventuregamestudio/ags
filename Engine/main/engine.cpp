@@ -681,7 +681,6 @@ void engine_init_game_settings()
 
     //
     // TODO: following big initialization sequence could be in GameState ctor
-    play.score=0;
     play.sierra_inv_color=7;
     // copy the value set by the editor
     if (game.options[OPT_GLOBALTALKANIMSPD] >= 0)
@@ -753,7 +752,6 @@ void engine_init_game_settings()
     play.no_multiloop_repeat = 0;
     play.in_cutscene = 0;
     play.fast_forward = 0;
-    play.totalscore = game.totalscore;
     play.roomscript_finished = 0;
     play.no_textbg_when_voice = 0;
     play.max_dialogoption_width = 180;

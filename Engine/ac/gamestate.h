@@ -65,7 +65,6 @@ struct GameState {
     static const int LEGACY_MAXGSVALUES = 500;
     static const int LEGACY_MAXGLOBALSTRINGS = 51;
 
-    int  score = 0;                 // player's current score
     int  usedmode = 0;              // set by ProcessClick to last cursor mode used
     int  disabled_user_interface = 0;  // >0 while in cutscene/etc
     int  gscript_timer = 0;         // obsolete
@@ -80,7 +79,6 @@ struct GameState {
     int  swap_portrait_side = 0;         // sierra-style speech swap sides
     int  speech_textwindow_gui = 0;      // textwindow used for sierra-style speech
     int  follow_change_room_timer = 0;   // delay before moving following characters into new room
-    int  totalscore = 0;            // maximum possible score
     int  skip_display = 0;          // how the user can skip normal Display windows
     int  no_multiloop_repeat = 0;   // for backwards compatibility
     int  roomscript_finished = 0;   // on_call finished in room
@@ -97,7 +95,6 @@ struct GameState {
     int  room_width = 0;            // width of current room
     int  room_height = 0;           // height of current room
     int  game_speed_modifier = 0;
-    int  score_sound = 0;
     int  takeover_data = 0;         // value passed to RunAGSGame in previous game
     int  replay_hotkey_unused = 0;  // (UNUSED!) StartRecording: not supported
     int  dialog_options_x = 0;

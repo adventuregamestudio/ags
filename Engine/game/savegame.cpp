@@ -419,9 +419,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         play.new_music_queue[i].cachedClip = nullptr;
     }
 
-    // Remap old sound nums in case we restored a save having a different list of audio clips
-    RemapLegacySoundNums(game, views, loaded_game_file_version);
-
     // Restore Overlay bitmaps (older save format, which stored them along with overlays)
     auto &overs = get_overlays();
     for (auto &over_im : r_data.OverlayImages)

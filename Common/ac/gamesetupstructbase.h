@@ -49,7 +49,6 @@ struct GameSetupStructBase
     int               numviews;
     int               numcharacters;
     int               playercharacter;
-    int               totalscore;
     short             numinvitems;
     int               numdialog, numdlgmessage;
     int               numfonts;

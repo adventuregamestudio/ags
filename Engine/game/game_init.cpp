@@ -452,7 +452,6 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         svg_suffix.Format(".%s", game.saveGameFileExtension);
     set_save_game_suffix(svg_suffix);
 
-    play.score_sound = game.scoreClipID;
     play.fade_effect = game.options[OPT_FADETYPE];
 
     //

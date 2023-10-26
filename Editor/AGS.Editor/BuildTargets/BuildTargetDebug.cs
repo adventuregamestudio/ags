@@ -42,7 +42,6 @@ namespace AGS.Editor
 
         private object CreateDebugFiles(IWorkProgress progress, object parameter)
         {
-            Factory.AGSEditor.SetMODMusicFlag();
             CompileMessages errors = (parameter as CompileMessages);
             if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
             {

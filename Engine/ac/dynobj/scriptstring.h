@@ -23,7 +23,13 @@ public:
     struct Header
     {
         uint32_t Length = 0u;  // string length in bytes (not counting 0)
-        uint32_t ULength = 0u; // UTF-8 compatible length in characters
+        uint32_t ULength = 0u; // Unicode compatible length in characters
+        // Saved last requested character index and buffer offset;
+        // significantly speeds up Unicode string iteration, but adds 4 bytes
+        // per ScriptString object. Replace with a proper str iterator later!
+        // NOTE: intentionally limited to 64k chars/bytes to save bit of mem.
+        uint16_t LastCharIdx = 0u;
+        uint16_t LastCharOff = 0u;
     };
 
     struct Buffer
@@ -53,6 +59,11 @@ public:
     inline static const Header &GetHeader(const void *address)
     {
         return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
+    }
+
+    inline static Header &GetHeader(void *address)
+    {
+        return reinterpret_cast<Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
     }
 
     // Allocates a ScriptString-compatible buffer large enough to accomodate

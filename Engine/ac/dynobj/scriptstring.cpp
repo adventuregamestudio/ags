@@ -79,6 +79,8 @@ ScriptString::Buffer ScriptString::CreateBuffer(size_t len, size_t ulen)
     auto *header = reinterpret_cast<Header*>(buf.get());
     header->Length = len;
     header->ULength = ulen;
+    header->LastCharIdx = 0;
+    header->LastCharOff = 0;
     return Buffer(std::move(buf), len + 1 + MemHeaderSz);
 }
 

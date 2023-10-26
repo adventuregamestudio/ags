@@ -224,10 +224,19 @@ const char* String_UpperCase(const char *thisString) {
 }
 
 int String_GetChars(const char *thisString, int index) {
-    const auto &header = ScriptString::GetHeader(thisString);
+    auto &header = ScriptString::GetHeader((void*)thisString);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
         return 0;
-    return ugetat(thisString, index);
+    int off = (header.LastCharIdx <= index) ?
+        (uoffset(thisString + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff) :
+         uoffset(thisString, index);
+    // NOTE: works up to 64k chars/bytes, then stops; this is intentional to save a bit of mem
+    if (off <= UINT16_MAX)
+    {
+        header.LastCharIdx = static_cast<uint16_t>(index);
+        header.LastCharOff = static_cast<uint16_t>(off);
+    }
+    return ugetc(thisString + off);
 }
 
 int StringToInt(const char*stino) {

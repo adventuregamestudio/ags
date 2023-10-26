@@ -913,7 +913,6 @@ namespace AGS.Editor.Components
             _loadedRoom.Modified |= ImportExport.CreateInteractionScripts(_loadedRoom, errors);
             _loadedRoom.Modified |= HookUpInteractionVariables(_loadedRoom);
             _loadedRoom.Modified |= HandleObsoleteSettings(_loadedRoom, errors);
-            _loadedRoom.Modified |= AddPlayMusicCommandToPlayerEntersRoomScript(_loadedRoom, errors);
 			if (_loadedRoom.Script.Modified)
 			{
 				if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
@@ -929,35 +928,6 @@ namespace AGS.Editor.Components
 #pragma warning disable 0612
             bool scriptModified = false;
             // Add operations here as necessary
-            return scriptModified;
-#pragma warning restore 0612
-        }
-
-        private bool AddPlayMusicCommandToPlayerEntersRoomScript(Room room, CompileMessages errors)
-        {
-#pragma warning disable 0612
-            bool scriptModified = false;
-            if (room.PlayMusicOnRoomLoad > 0)
-            {
-                AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldMusicNumber(null, room.PlayMusicOnRoomLoad);
-                if (clip == null)
-                {
-                    errors.Add(new CompileWarning("Room " + room.Number + ": Unable to find aMusic" + room.PlayMusicOnRoomLoad + " which was set as this room's start music"));
-                    return scriptModified;
-                }
-
-                string functionName = room.Interactions.GetScriptFunctionNameForInteractionSuffix(Room.EVENT_SUFFIX_ROOM_LOAD);
-                if (string.IsNullOrEmpty(functionName))
-                {
-                    functionName = "Room_" + Room.EVENT_SUFFIX_ROOM_LOAD;
-                    room.Interactions.SetScriptFunctionNameForInteractionSuffix(Room.EVENT_SUFFIX_ROOM_LOAD, functionName);
-                }
-
-                room.Script.Text = ScriptGeneration.InsertFunction(room.Script.Text, functionName, "",
-                    "  " + clip.ScriptName + ".Play();", amendExisting: true, insertBeforeExistingCode: true);
-                scriptModified = true;
-            }
-
             return scriptModified;
 #pragma warning restore 0612
         }

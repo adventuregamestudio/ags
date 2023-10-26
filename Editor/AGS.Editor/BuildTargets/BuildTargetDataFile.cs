@@ -156,8 +156,8 @@ namespace AGS.Editor
 
         public override bool Build(CompileMessages errors, bool forceRebuild)
         {
-            if (!base.Build(errors, forceRebuild)) return false;
-            Factory.AGSEditor.SetMODMusicFlag();
+            if (!base.Build(errors, forceRebuild))
+                return false;
             if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
             {
                 return false;

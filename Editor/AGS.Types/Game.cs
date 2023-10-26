@@ -551,40 +551,6 @@ namespace AGS.Types
 			return startingFromNumber;
 		}
 
-        public AudioClip FindAudioClipForOldSoundNumber(IList<AudioClip> allAudio, int soundNumber)
-        {
-            if (allAudio == null)
-            {
-                allAudio = _audioClips.RootFolder.GetAllAudioClipsFromAllSubFolders();
-            }
-            string searchForName = string.Format("aSound{0}", soundNumber);
-            foreach (AudioClip clip in allAudio)
-            {
-                if (clip.ScriptName == searchForName)
-                {
-                    return clip;
-                }
-            }
-            return null;
-        }
-
-        public AudioClip FindAudioClipForOldMusicNumber(IList<AudioClip> allAudio, int musicNumber)
-        {
-            if (allAudio == null)
-            {
-                allAudio = _audioClips.RootFolder.GetAllAudioClipsFromAllSubFolders();
-            }
-            string searchForName = string.Format("aMusic{0}", musicNumber);
-            foreach (AudioClip clip in allAudio)
-            {
-                if (clip.ScriptName == searchForName)
-                {
-                    return clip;
-                }
-            }
-            return null;
-        }
-
         // CLNUP
         // TODO: remove this after we have proper zoom controls in all editors;
         // default zoom-in should be relied on the actual image size if on anything

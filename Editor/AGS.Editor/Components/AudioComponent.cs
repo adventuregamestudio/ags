@@ -479,72 +479,11 @@ namespace AGS.Editor.Components
                 CreateDefaultAudioClipTypes();
             }
 
-            IList<AudioClip> allAudio = null;
-
-            if ((!_agsEditor.CurrentGame.SavedXmlVersionIndex.HasValue) ||
-                (_agsEditor.CurrentGame.SavedXmlVersionIndex < 5))
-            {
-                ImportSoundAndMusicFromOldVersion();
-                allAudio = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders();
-
-                UpdateScoreSound(allAudio);
-                UpdateViewFrameSounds(allAudio, _agsEditor.CurrentGame.RootViewFolder);
-            }
-
-            if (allAudio == null)
-            {
-                allAudio = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders();
-            }
+            IList<AudioClip> allAudio = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders();
             AudioClipTypeTypeConverter.SetAudioClipTypeList(_agsEditor.CurrentGame.AudioClipTypes);
             AudioClipTypeConverter.SetAudioClipList(allAudio);
 
             RePopulateTreeView();
-        }
-
-        private void UpdateScoreSound(IList<AudioClip> allAudio)
-        {
-            if (_agsEditor.CurrentGame.Settings.PlaySoundOnScore > 0)
-            {
-                AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, _agsEditor.CurrentGame.Settings.PlaySoundOnScore);
-                if (clip != null)
-                {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = clip.Index;
-                }
-                else
-                {
-                    _agsEditor.CurrentGame.Settings.PlaySoundOnScore = AudioClip.FixedIndexNoValue;
-                }
-            }
-        }
-
-        private void UpdateViewFrameSounds(IList<AudioClip> allAudio, ViewFolder views)
-        {
-            foreach (View view in views.Views)
-            {
-                foreach (ViewLoop loop in view.Loops)
-                {
-                    foreach (ViewFrame frame in loop.Frames)
-                    {
-                        if (frame.Sound > 0)
-                        {
-                            AudioClip clip = _agsEditor.CurrentGame.FindAudioClipForOldSoundNumber(allAudio, frame.Sound);
-                            if (clip != null)
-                            {
-                                frame.Sound = clip.Index;
-                            }
-                            else
-                            {
-                                frame.Sound = AudioClip.FixedIndexNoValue;
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach (ViewFolder folder in views.SubFolders)
-            {
-                UpdateViewFrameSounds(allAudio, folder);
-            }
         }
 
         private void CreateDefaultAudioClipTypes()
@@ -552,12 +491,6 @@ namespace AGS.Editor.Components
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(1, "Ambient Sound", 1, 0, true, CrossfadeSpeed.No));
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_MUSIC, "Music", 1, 30, true, _agsEditor.CurrentGame.Settings.CrossfadeMusic));
             _agsEditor.CurrentGame.AudioClipTypes.Add(new AudioClipType(DEFAULT_AUDIO_TYPE_SOUND, "Sound", 0, 0, false, CrossfadeSpeed.No));
-        }
-
-        private void ImportSoundAndMusicFromOldVersion()
-        {
-            ImportAllFilesFromDirectoryIntoNewFolder("Music", "Music", "music*.*", AudioFileBundlingType.InSeparateVOX, true, DEFAULT_AUDIO_TYPE_MUSIC);
-            ImportAllFilesFromDirectoryIntoNewFolder("Sounds", "Sound", "sound*.*", AudioFileBundlingType.InGameEXE, false, DEFAULT_AUDIO_TYPE_SOUND);
         }
 
         private void ImportAllFilesFromDirectoryIntoNewFolder(string newFolderName, string sourceDir, string fileMask, AudioFileBundlingType bundlingType, bool repeat, int type)

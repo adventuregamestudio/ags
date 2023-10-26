@@ -73,7 +73,6 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
-        private bool _enforceNewAudio = true;
         private bool _oldKeyHandling = false;
         private bool _scaleCharacterSpriteOffsets = true;
         private int _playSoundOnScore = -1;
@@ -98,7 +97,6 @@ namespace AGS.Types
         private bool _backwardsText = false;
         private int _uniqueID;
 		private Guid _guid;
-        private bool _hasMODMusic = false;
         private int _totalScore = 0;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
@@ -893,13 +891,6 @@ namespace AGS.Types
             set { _totalScore = value; }
         }
 
-        [Browsable(false)]
-        public bool HasMODMusic
-        {
-            get { return _hasMODMusic; }
-            set { _hasMODMusic = value; }
-        }
-
         [DisplayName("Default mask resolution")]
         [Description("What resolution do room region masks have relative to the room size")]
         [Category("Rooms")]
@@ -1087,7 +1078,6 @@ namespace AGS.Types
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _audioIndexer = AudioClip.FixedIndexBase;
-            _enforceNewAudio = false;
             _gameFileName = string.Empty;
 
             SerializeUtils.DeserializeFromXML(this, node);

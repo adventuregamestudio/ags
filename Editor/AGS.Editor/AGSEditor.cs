@@ -1334,19 +1334,6 @@ namespace AGS.Editor
             return files.ToArray();
         }
 
-        public void SetMODMusicFlag()
-        {
-            foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
-            {
-                if (clip.FileType == AudioClipFileType.MOD)
-                {
-                    _game.Settings.HasMODMusic = true;
-                    return;
-                }
-            }
-            _game.Settings.HasMODMusic = false;
-        }
-
 		public bool AboutToDeleteSprite(int spriteNumber)
 		{
 			PreDeleteSpriteEventArgs evArgs = new PreDeleteSpriteEventArgs(spriteNumber);

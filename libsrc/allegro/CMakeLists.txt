@@ -162,6 +162,7 @@ endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # WIN32 is set by CMake for any Windows platform
+    set(ALLEGRO_WINDOWS TRUE)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(ALLEGRO_UNIX TRUE)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Android")
@@ -238,7 +239,7 @@ set(ALLEGRO_NO_ASM 1)
 
 set(PLATFORM_SOURCES)
 
-if(ALLEGRO_MSVC)
+if(ALLEGRO_WINDOWS)
    list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_WIN_FILES})
 else()
     # non-windows platforms are use unixy/posix file handling and have no gdi

@@ -71,7 +71,7 @@
 #define INLINE       __inline
 
 #define LONG_LONG    __int64
-#if (_MSC_VER >= 1600)
+#if defined(ALLEGRO_MINGW) || (_MSC_VER >= 1600)
    #define ALLEGRO_HAVE_STDINT_H
 #else
    #define int64_t      signed __int64

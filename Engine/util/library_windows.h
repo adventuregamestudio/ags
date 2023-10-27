@@ -15,6 +15,7 @@
 #define __AGS_EE_UTIL__LIBRARY_WINDOWS_H
 
 #include <utility>
+#include "core/platform.h"
 #include "debug/out.h"
 #include "platform/windows/winapi_exclusive.h"
 #include "util/path.h"
@@ -103,7 +104,7 @@ public:
     {
         if (!_library)
             return nullptr;
-        return GetProcAddress(_library, fn_name.GetCStr());
+        return reinterpret_cast<void *>(GetProcAddress(_library, fn_name.GetCStr()));
     }
 
 private:

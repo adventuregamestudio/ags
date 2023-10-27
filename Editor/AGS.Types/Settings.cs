@@ -891,6 +891,10 @@ namespace AGS.Types
             set { _totalScore = value; }
         }
 
+        [Obsolete]
+        [Browsable(false)]
+        public bool HasMODMusic { get; }
+
         [DisplayName("Default mask resolution")]
         [Description("What resolution do room region masks have relative to the room size")]
         [Category("Rooms")]

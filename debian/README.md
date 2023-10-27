@@ -15,7 +15,7 @@ parentheses are known to work, but other versions will also
 probably work.
 
 -   libsdl2 (2.0.12 or higher)
--   libsdl_sound for sdl2 (revision 1507be95c3 or higher)
+-   libsdl2_sound (2.0.x, revision 1507be95c3 or higher)
 -   libogg (1.2.2-1.3.0)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)

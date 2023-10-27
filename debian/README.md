@@ -36,7 +36,8 @@ Other Linux systems use their respective package managers.
 ## SDL_Sound library installation
 
 At the time of writing SDL_Sound `2.*` has just been released, but almost no linux distro provides it.
-Until that is resolved, we recommend to download particular revision archive using following url:
+Until that is resolved, we recommend to clone their repository from https://github.com/icculus/SDL_sound.
+Or download particular revision archive using following url:
 
     https://github.com/icculus/SDL_sound/archive/1507be95c3605e4fd6a48ea4c527e4aa711a1566.tar.gz
 

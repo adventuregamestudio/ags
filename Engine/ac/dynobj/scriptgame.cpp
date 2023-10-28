@@ -33,7 +33,7 @@ int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
 
     switch (index)
     {
-    case 0: return play.score;
+    case 0: return 0;// [DEPRECATED]
     case 1: return play.usedmode;
     case 2: return play.disabled_user_interface;
     case 3: return play.gscript_timer;
@@ -54,7 +54,7 @@ int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
     case 67: return play.swap_portrait_side;
     case 68: return play.speech_textwindow_gui;
     case 69: return play.follow_change_room_timer;
-    case 70: return play.totalscore;
+    case 70: return 0;// [DEPRECATED]
     case 71: return play.skip_display;
     case 72: return play.no_multiloop_repeat;
     case 73: return play.roomscript_finished;
@@ -72,7 +72,7 @@ int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
     case 85: return play.room_width;
     case 86: return play.room_height;
     case 87: return play.game_speed_modifier;
-    case 88: return play.score_sound;
+    case 88: return 0;// [DEPRECATED]
     case 89: return play.takeover_data;
     case 90: return 0;// [DEPRECATED]
     case 91: return play.dialog_options_x;
@@ -127,7 +127,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
 
     switch (index)
     {
-    case 0:  play.score = val; break;
+    case 0:  break; // [DEPRECATED]
     case 1:  play.usedmode = val; break;
     case 2:  play.disabled_user_interface = val; break;
     case 3:  play.gscript_timer = val; break;
@@ -148,7 +148,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 67:  play.swap_portrait_side = val; break;
     case 68:  play.speech_textwindow_gui = val; break;
     case 69:  play.follow_change_room_timer = val; break;
-    case 70:  play.totalscore = val; break;
+    case 70:  break; // [DEPRECATED]
     case 71:  play.skip_display = val; break;
     case 72:  play.no_multiloop_repeat = val; break;
     case 73:  play.roomscript_finished = val; break;
@@ -168,7 +168,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
         debug_script_warn("ScriptGame: attempt to write in readonly variable at offset %d, value %d", offset, val);
         break;
     case 87:  play.game_speed_modifier = val; break;
-    case 88:  play.score_sound = val; break;
+    case 88:  break; // [DEPRECATED]
     case 89:  play.takeover_data = val; break;
     case 90:  break; // [DEPRECATED]
     case 91:  play.dialog_options_x = val; break;

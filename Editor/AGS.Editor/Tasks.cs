@@ -410,7 +410,6 @@ namespace AGS.Editor
                     audioIDToIndex.Add(clip.ID, clip.Index);
                 }
 
-                game.Settings.PlaySoundOnScore = RemapAudioClipIDToFixedIndex(game.Settings.PlaySoundOnScore, audioIDToIndex);
                 foreach (Types.View view in game.RootViewFolder.AllItemsFlat)
                 {
                     foreach (Types.ViewLoop loop in view.Loops)

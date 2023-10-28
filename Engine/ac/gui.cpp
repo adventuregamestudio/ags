@@ -416,7 +416,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
                     curptr++;
                     break;
                 }
-                // unterminated macro (eg. "@SCORETEXT"), so abort
+                // unterminated macro (eg. "@OVERHOTSPOT"), so abort
                 if (curptr[0] == 0)
                     break;
                 macroname[idd]=curptr[0];
@@ -424,13 +424,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
             }
             macroname[idd]=0; 
             tempo[0]=0;
-            if (ags_stricmp(macroname,"score")==0)
-                snprintf(tempo, sizeof(tempo), "%d",play.score);
-            else if (ags_stricmp(macroname,"totalscore")==0)
-                snprintf(tempo, sizeof(tempo), "%d",MAXSCORE);
-            else if (ags_stricmp(macroname,"scoretext")==0)
-                snprintf(tempo, sizeof(tempo), "%d of %d",play.score,MAXSCORE);
-            else if (ags_stricmp(macroname,"gamename")==0)
+            if (ags_stricmp(macroname,"gamename")==0)
                 snprintf(tempo, sizeof(tempo), "%s", play.game_name);
             else if (ags_stricmp(macroname,"overhotspot")==0) {
                 // While game is in Wait mode, no overhotspot text

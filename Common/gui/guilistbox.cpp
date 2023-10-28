@@ -85,7 +85,7 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     // TODO: need to find a way to text position, or there'll be some repetition
     // have to precache text and size on some events:
     // - translation change
-    // - macro value change (score, overhotspot etc)
+    // - macro value change (overhotspot etc)
     Rect rc = RectWH(0, 0, _width, _height);
     UpdateMetrics();
     const int width = _width - 1;

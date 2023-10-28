@@ -2360,10 +2360,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
 	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
-	game->Settings->MaximumScore = thisgame.totalscore;
     game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0) ? DialogOptionsNumbering::Normal : DialogOptionsNumbering::KeyShortcutsOnly;
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
-	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
 	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];

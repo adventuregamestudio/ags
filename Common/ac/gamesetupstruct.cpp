@@ -22,7 +22,6 @@ using namespace AGS::Common;
 GameSetupStruct::GameSetupStruct()
     : filever(0)
     , roomCount(0)
-    , scoreClipID(0)
 {
     memset(invinfo, 0, sizeof(invinfo));
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
@@ -235,7 +234,7 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
     audioClips.resize(audioclip_count);
     ReadAudioClips(in, audioclip_count);
 
-    scoreClipID = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     return HGameFileError::None();
 }
 

@@ -72,10 +72,6 @@ enum LegacyScriptAlignment
 #define SCR_NO_VALUE   31998
 #define SCR_COLOR_TRANSPARENT -1
 
-
-#define TXT_SCOREBAR        29
-#define MAXSCORE play.totalscore
-
 #define FONT_STATUSBAR  0
 #define FONT_NORMAL     play.normal_font
 //#define FONT_SPEECHBACK 1

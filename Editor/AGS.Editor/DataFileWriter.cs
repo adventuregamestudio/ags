@@ -561,7 +561,7 @@ namespace AGS.Editor
             writer.Write(game.ViewCount);
             writer.Write(game.Characters.Count);
             writer.Write(game.PlayerCharacter.ID);
-            writer.Write(game.Settings.MaximumScore);
+            writer.Write(0); // [DEPRECATED]
             writer.Write((short)(game.InventoryItems.Count + 1));
             writer.Write(new byte[2]); // alignment padding
             writer.Write(game.Dialogs.Count);
@@ -1680,7 +1680,7 @@ namespace AGS.Editor
                 writer.Write(new byte[2]); // struct alignment padding
                 writer.Write(0); // reserved
             }
-            writer.Write(game.GetAudioArrayIDFromFixedIndex(game.Settings.PlaySoundOnScore));
+            writer.Write(0); // [DEPRECATED]
             if (game.Settings.DebugMode)
             {
                 writer.Write(game.Rooms.Count);

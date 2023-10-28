@@ -25,7 +25,6 @@ GameSetupStructBase::GameSetupStructBase()
     : numviews(0)
     , numcharacters(0)
     , playercharacter(-1)
-    , totalscore(0)
     , numinvitems(0)
     , numdialog(0)
     , numdlgmessage(0)
@@ -86,7 +85,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     numviews = in->ReadInt32();
     numcharacters = in->ReadInt32();
     playercharacter = in->ReadInt32();
-    totalscore = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     numinvitems = in->ReadInt16();
     in->ReadInt16(); // alignment padding to int32
     numdialog = in->ReadInt32();
@@ -132,7 +131,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(numviews);
     out->WriteInt32(numcharacters);
     out->WriteInt32(playercharacter);
-    out->WriteInt32(totalscore);
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt16(numinvitems);
     out->WriteInt16(0); // alignment padding to int32
     out->WriteInt32(numdialog);

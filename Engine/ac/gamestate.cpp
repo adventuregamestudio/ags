@@ -442,7 +442,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
 
 void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
-    score = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
     gscript_timer = in->ReadInt32();
@@ -463,7 +463,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     swap_portrait_side = in->ReadInt32();
     speech_textwindow_gui = in->ReadInt32();
     follow_change_room_timer = in->ReadInt32();
-    totalscore = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     skip_display = in->ReadInt32();
     no_multiloop_repeat = in->ReadInt32();
     roomscript_finished = in->ReadInt32();
@@ -481,7 +481,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     room_width = in->ReadInt32();
     room_height = in->ReadInt32();
     game_speed_modifier = in->ReadInt32();
-    score_sound = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     takeover_data = in->ReadInt32();
     replay_hotkey_unused = in->ReadInt32();
     dialog_options_x = in->ReadInt32();
@@ -641,7 +641,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
 {
     // NOTE: following parameters are never saved:
     // recording, playback, gamestep, screen_is_faded_out, room_changes
-    out->WriteInt32(score);
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(usedmode);
     out->WriteInt32(disabled_user_interface);
     out->WriteInt32(gscript_timer);
@@ -662,7 +662,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(swap_portrait_side);
     out->WriteInt32(speech_textwindow_gui);
     out->WriteInt32(follow_change_room_timer);
-    out->WriteInt32(totalscore);
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(skip_display);
     out->WriteInt32(no_multiloop_repeat);
     out->WriteInt32(roomscript_finished);
@@ -680,7 +680,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32(room_width);
     out->WriteInt32(room_height);
     out->WriteInt32(game_speed_modifier);
-    out->WriteInt32(score_sound);
+    out->WriteInt32(0);// [DEPRECATED]
     out->WriteInt32(takeover_data);
     out->WriteInt32(replay_hotkey_unused);         // StartRecording: not supported
     out->WriteInt32(dialog_options_x);

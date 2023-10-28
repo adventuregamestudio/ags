@@ -528,12 +528,6 @@ RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *p
     API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkbehind);
 }
 
-// void (int amnt) 
-RuntimeScriptValue Sc_GiveScore(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(GiveScore);
-}
-
 // int (int roomnum)
 RuntimeScriptValue Sc_HasPlayerBeenInRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1264,7 +1258,6 @@ void RegisterGlobalAPI()
         { "GetWalkableAreaAtScreen",  API_FN_PAIR(GetWalkableAreaAtScreen) },
         { "GetDrawingSurfaceForWalkableArea", API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
         { "GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
-        { "GiveScore",                API_FN_PAIR(GiveScore) },
         { "HasPlayerBeenInRoom",      API_FN_PAIR(HasPlayerBeenInRoom) },
         { "InputBox",                 API_FN_PAIR(sc_inputbox) },
         { "InterfaceOff",             API_FN_PAIR(InterfaceOff) },

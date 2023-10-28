@@ -88,17 +88,6 @@ void AbortGame()
     cancel_all_scripts();
 }
 
-void GiveScore(int amnt) 
-{
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_AllScore);
-    play.score += amnt;
-
-    if ((amnt > 0) && (play.score_sound >= 0))
-        play_audio_clip_by_index(play.score_sound);
-
-    run_on_event (GE_GOT_SCORE, RuntimeScriptValue().SetInt32(amnt));
-}
-
 void restart_game() {
     can_run_delayed_command();
     if (inside_script) {

@@ -881,12 +881,6 @@ GUILabelMacro FindLabelMacros(const String &text)
                     macro_flags |= kLabelMacro_Gamename;
                 else if (ags_strnicmp(macro_at, "overhotspot", macro_len) == 0)
                     macro_flags |= kLabelMacro_Overhotspot;
-                else if (ags_strnicmp(macro_at, "score", macro_len) == 0)
-                    macro_flags |= kLabelMacro_Score;
-                else if (ags_strnicmp(macro_at, "scoretext", macro_len) == 0)
-                    macro_flags |= kLabelMacro_ScoreText;
-                else if (ags_strnicmp(macro_at, "totalscore", macro_len) == 0)
-                    macro_flags |= kLabelMacro_TotalScore;
                 macro_at = nullptr;
             }
         }

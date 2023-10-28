@@ -39,7 +39,6 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/cc_common.h"
 #include "script/script.h"
-#include "util/alignedstream.h"
 #include "util/stream.h"
 #include "util/textstreamreader.h"
 

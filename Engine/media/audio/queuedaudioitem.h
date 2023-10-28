@@ -26,8 +26,9 @@ struct QueuedAudioItem {
     bool  repeat;
     SOUNDCLIP *cachedClip;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromSavegame_v321(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AC_QUEUEDAUDIOITEM_H

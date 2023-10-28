@@ -37,7 +37,7 @@ struct HotspotState
 // Savegame data format for RoomStatus
 enum RoomStatSvgVersion
 {
-    kRoomStatSvgVersion_Initial  = 0,
+    kRoomStatSvgVersion_Initial  = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
     kRoomStatSvgVersion_350      = 1, // new movelist format (along with pathfinder)
     kRoomStatSvgVersion_36016    = 2, // hotspot and object names
     kRoomStatSvgVersion_36025    = 3, // object animation volume
@@ -88,8 +88,7 @@ struct RoomStatus
     void FreeScriptData();
     void FreeProperties();
 
-    void ReadFromFile_v321(Common::Stream *in, GameDataVersion data_ver);
-    void ReadRoomObjects_Aligned(Common::Stream *in);
+    void ReadFromSavegame_v321(Common::Stream *in, GameDataVersion data_ver);
     void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, RoomStatSvgVersion save_ver);
     void WriteToSavegame(Common::Stream *out, GameDataVersion data_ver) const;
 };

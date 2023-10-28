@@ -30,7 +30,6 @@
     <ClCompile Include="..\..\Common\test\stream_test.cpp" />
     <ClCompile Include="..\..\Common\test\string_test.cpp" />
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
-    <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
     <ClCompile Include="..\..\Common\util\datastream.cpp" />
@@ -41,7 +40,6 @@
     <ClCompile Include="..\..\Common\util\memorystream.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
     <ClCompile Include="..\..\Common\util\path_ex.cpp" />
-    <ClCompile Include="..\..\Common\util\proxystream.cpp" />
     <ClCompile Include="..\..\Common\util\stdio_compat.c" />
     <ClCompile Include="..\..\Common\util\stream.cpp" />
     <ClCompile Include="..\..\Common\util\string.cpp" />
@@ -58,7 +56,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
-    <ClInclude Include="..\..\Common\util\alignedstream.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />
@@ -70,7 +67,6 @@
     <ClInclude Include="..\..\Common\util\memory.h" />
     <ClInclude Include="..\..\Common\util\memorystream.h" />
     <ClInclude Include="..\..\Common\util\path.h" />
-    <ClInclude Include="..\..\Common\util\proxystream.h" />
     <ClInclude Include="..\..\Common\util\stdio_compat.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />

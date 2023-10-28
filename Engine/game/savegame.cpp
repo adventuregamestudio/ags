@@ -11,6 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+#include "ac/button.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -52,7 +53,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
-#include "util/alignedstream.h"
 #include "util/file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -410,6 +410,7 @@ void DoBeforeRestore(PreservedParams &pp)
     play.FreeViewportsAndCameras();
     free_do_once_tokens();
 
+    RemoveAllButtonAnimations();
     // unregister gui controls from API exports
     // CHECKME: find out why are we doing this here? why only to gui controls?
     for (int i = 0; i < game.numgui; ++i)

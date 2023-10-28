@@ -17,7 +17,6 @@
 #include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/interactions.h"
-#include "util/alignedstream.h"
 
 using namespace AGS::Common;
 
@@ -140,30 +139,26 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
+void GameSetupStruct::ReadInvInfo(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
     {
-        invinfo[iteratorCount].ReadFromFile(&align_s);
-        align_s.Reset();
+        invinfo[iteratorCount].ReadFromFile(in);
     }
 }
 
-void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
+void GameSetupStruct::WriteInvInfo(Stream *out)
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
     for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
     {
-        invinfo[iteratorCount].WriteToFile(&align_s);
-        align_s.Reset();
+        invinfo[iteratorCount].WriteToFile(out);
     }
 }
 
 HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 {
     mcurs.resize(numcursors);
-    ReadMouseCursors_Aligned(in);
+    ReadMouseCursors(in);
     return HGameFileError::None();
 }
 
@@ -201,23 +196,19 @@ void GameSetupStruct::read_words_dictionary(Common::Stream *in)
     read_dictionary(dict.get(), in);
 }
 
-void GameSetupStruct::ReadMouseCursors_Aligned(Stream *in)
+void GameSetupStruct::ReadMouseCursors(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
     {
-        mcurs[iteratorCount].ReadFromFile(&align_s);
-        align_s.Reset();
+        mcurs[iteratorCount].ReadFromFile(in);
     }
 }
 
-void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
+void GameSetupStruct::WriteMouseCursors(Stream *out)
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
     for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
     {
-        mcurs[iteratorCount].WriteToFile(&align_s);
-        align_s.Reset();
+        mcurs[iteratorCount].WriteToFile(out);
     }
 }
 
@@ -227,7 +218,7 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 void GameSetupStruct::read_characters(Common::Stream *in)
 {
     chars.resize(numcharacters);
-    ReadCharacters_Aligned(in, false);
+    ReadCharacters(in);
 }
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
@@ -264,25 +255,19 @@ void GameSetupStruct::read_messages(Common::Stream *in,
     }
 }
 
-void GameSetupStruct::ReadCharacters_Aligned(Stream *in, bool is_save)
+void GameSetupStruct::ReadCharacters(Stream *in)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    const GameDataVersion data_ver = is_save ? kGameVersion_Undefined : loaded_game_file_version;
-    const int save_ver = is_save ? 0 : -1;
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
-        chars[iteratorCount].ReadFromFile(&align_s, data_ver, save_ver);
-        align_s.Reset();
+        chars[iteratorCount].ReadFromFile(in, loaded_game_file_version);
     }
 }
 
-void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
+void GameSetupStruct::WriteCharacters(Stream *out)
 {
-    AlignedStream align_s(out, Common::kAligned_Write);
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
-        chars[iteratorCount].WriteToFile(&align_s);
-        align_s.Reset();
+        chars[iteratorCount].WriteToFile(out);
     }
 }
 
@@ -344,8 +329,8 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
 
         size_t audioclip_count = in->ReadInt32();
         audioClips.resize(audioclip_count);
-        ReadAudioClips_Aligned(in, audioclip_count);
-        
+        ReadAudioClips(in, audioclip_count);
+
         scoreClipID = in->ReadInt32();
     }
     return HGameFileError::None();
@@ -374,20 +359,20 @@ void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
     }
 }
 
-void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in, size_t count)
+void GameSetupStruct::ReadAudioClips(Common::Stream *in, size_t count)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
     for (size_t i = 0; i < count; ++i)
     {
-        audioClips[i].ReadFromFile(&align_s);
-        align_s.Reset();
+        audioClips[i].ReadFromFile(in);
     }
 }
 
 void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, GameDataVersion data_ver)
 {
-    ReadInvInfo_Aligned(in);
-    ReadMouseCursors_Aligned(in);
+    // NOTE: the individual object data is read from legacy saves
+    // same way as if it were from a game file
+    ReadInvInfo(in);
+    ReadMouseCursors(in);
 
     if (data_ver <= kGameVersion_272)
     {
@@ -400,7 +385,7 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, GameDataVersion data_ver
     in->ReadArrayOfInt32(&options[0], OPT_HIGHESTOPTION_321 + 1);
     options[OPT_LIPSYNCTEXT] = in->ReadByte();
 
-    ReadCharacters_Aligned(in, true);
+    ReadCharacters(in);
 }
 
 //=============================================================================

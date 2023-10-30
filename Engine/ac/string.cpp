@@ -227,9 +227,20 @@ int String_GetChars(const char *thisString, int index) {
     auto &header = ScriptString::GetHeader((void*)thisString);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
         return 0;
-    int off = (header.LastCharIdx <= index) ?
-        (uoffset(thisString + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff) :
-         uoffset(thisString, index);
+    int off;
+    if (get_uformat() == U_ASCII)
+    {
+        return thisString[index];
+    }
+    else if (header.LastCharIdx <= index)
+    {
+        off = uoffset(thisString + header.LastCharOff, index - header.LastCharIdx) + header.LastCharOff;
+    }
+    // TODO: support faster reverse iteration too? that would require reverse-dir uoffset
+    else
+    {
+        off = uoffset(thisString, index);
+    }
     // NOTE: works up to 64k chars/bytes, then stops; this is intentional to save a bit of mem
     if (off <= UINT16_MAX)
     {

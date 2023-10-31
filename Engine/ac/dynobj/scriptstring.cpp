@@ -57,6 +57,8 @@ void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     Header &hdr = reinterpret_cast<Header&>(*buf);
     hdr.Length = len;
     hdr.ULength = ustrlen(text_ptr);
+    hdr.LastCharIdx = 0u;
+    hdr.LastCharOff = 0u;
     ccRegisterUnserializedObject(index, text_ptr, this);
 }
 

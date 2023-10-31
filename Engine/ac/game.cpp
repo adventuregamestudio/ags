@@ -128,7 +128,6 @@ CCObject    ccDynamicObject;
 CCDialog    ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
-ScriptString myScriptStringImpl;
 ScriptObject scrObj[MAX_ROOM_OBJECTS];
 std::vector<ScriptGUI> scrGui;
 ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];

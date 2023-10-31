@@ -38,6 +38,7 @@ struct DynObjectRef
     DynObjectRef() = default;
     DynObjectRef(int handle, void *obj, IScriptObject *mgr)
         : Handle(handle), Obj(obj), Mgr(mgr) {}
+    inline operator bool() const { return Handle > 0; }
 };
 
 
@@ -103,12 +104,6 @@ struct ICCObjectCollectionReader
 struct ICCObjectReader
 {
     virtual void Unserialize(int32_t handle, const char *serializedData, int dataSize) = 0;
-};
-
-// The interface of a dynamic String allocator.
-struct ICCStringClass
-{
-    virtual DynObjectRef CreateString(const char *fromText) = 0;
 };
 
 #endif // __CC_SCRIPTOBJECT_H

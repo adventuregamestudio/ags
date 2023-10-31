@@ -27,8 +27,6 @@
 #include "script/script_runtime.h"
 #include "util/bbop.h"
 
-extern ScriptString myScriptStringImpl;
-
 //=============================================================================
 //
 // Dictionary of strings script API.

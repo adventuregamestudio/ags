@@ -302,8 +302,6 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 // int (const char *wordToFind)
 RuntimeScriptValue Sc_Parser_FindWordID(const RuntimeScriptValue *params, int32_t param_count)
 {

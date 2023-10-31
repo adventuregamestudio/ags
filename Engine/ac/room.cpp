@@ -1105,8 +1105,6 @@ void convert_move_path_to_room_resolution(MoveList *ml)
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 // ScriptDrawingSurface* (int backgroundNumber)
 RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(const RuntimeScriptValue *params, int32_t param_count)
 {

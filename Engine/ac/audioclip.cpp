@@ -104,8 +104,6 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-extern ScriptString myScriptStringImpl;
-
 ScriptAudioClip *AudioClip_GetByName(const char *name)
 {
     return static_cast<ScriptAudioClip*>(ccGetScriptObjectAddress(name, ccDynamicAudioClip.GetType()));

@@ -8,6 +8,7 @@ namespace AGS.Editor
     public class ComboBoxCustom : ComboBox
     {
         private const int WM_PAINT = 0x000F;
+        private const int WM_WINDOWPOSCHANGED = 0x0047;
 
         private readonly ColorTheme _theme;
         private readonly string _root;
@@ -101,6 +102,7 @@ namespace AGS.Editor
             switch (m.Msg)
             {
                 case WM_PAINT:
+                case WM_WINDOWPOSCHANGED:
                     Graphics graphics = Graphics.FromHwnd(Handle);
                     Rectangle rectBorder = new Rectangle(0, 0, Width, Height);
                     Rectangle rectButton = new Rectangle(Width - 19, 0, 19, Height);
@@ -133,6 +135,13 @@ namespace AGS.Editor
 
                     //Draw button arrow
                     graphics.FillPath(arrow, path);
+
+                    // Draw text
+                    Rectangle rectText = new Rectangle(3, 3, Width-19, Height- 3);
+                    if (Text != null)
+                        graphics.DrawString(Text, Font,
+                            new SolidBrush(_theme.GetColor(_root + "/item-selected/foreground")), rectText);
+
                     break;
             }
         }

@@ -302,5 +302,29 @@ namespace AGS.Editor
                 _glue = IsScrollAtBottom();
             }
         }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            
+            t.SetColor("log-panel/background", c => BackColor = c);
+            t.SetColor("log-panel/splitter", c => splitContainer.BackColor = c);
+            t.SetColor("log-panel/background", c => logTextBox.BackColor = c);
+            t.SetColor("log-panel/foreground", c => logTextBox.ForeColor = c);
+            t.PropertyGridHelper(propertyGrid, "log-panel/grid");
+            if (t.Has("tool-bar"))
+            {
+                t.SetColor("tool-bar/background", c => toolStrip.BackColor = c);
+                toolStrip.Renderer = t.GetToolStripRenderer("tool-bar");
+            }
+        }
+
+        private void LogPanel_Load(object sender, EventArgs e)
+        {
+            if (!DesignMode)
+            {
+                Hacks.SetRichTextBoxMargins(logTextBox, 12, 12);
+                Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
+            }
+        }
     }
 }

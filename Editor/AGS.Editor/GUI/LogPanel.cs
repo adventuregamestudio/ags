@@ -307,6 +307,7 @@ namespace AGS.Editor
         {
             
             t.SetColor("log-panel/background", c => BackColor = c);
+            t.SetColor("log-panel/splitter", c => splitContainer.BackColor = c);
             t.SetColor("log-panel/background", c => logTextBox.BackColor = c);
             t.SetColor("log-panel/foreground", c => logTextBox.ForeColor = c);
             t.PropertyGridHelper(propertyGrid, "log-panel/grid");

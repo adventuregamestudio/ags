@@ -495,8 +495,6 @@
 		526F23191D3B5C4900EF4E1F /* aautil.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F21A41D3B5C4900EF4E1F /* aautil.h */; };
 		526F23C21D3B5C4900EF4E1F /* cc_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22691D3B5C4900EF4E1F /* cc_script.cpp */; };
 		526F23C31D3B5C4900EF4E1F /* cc_script.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F226A1D3B5C4900EF4E1F /* cc_script.h */; };
-		526F23C81D3B5C4900EF4E1F /* alignedstream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22701D3B5C4900EF4E1F /* alignedstream.cpp */; };
-		526F23C91D3B5C4900EF4E1F /* alignedstream.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F22711D3B5C4900EF4E1F /* alignedstream.h */; };
 		526F23CA1D3B5C4900EF4E1F /* bbop.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F22721D3B5C4900EF4E1F /* bbop.h */; };
 		526F23CB1D3B5C4900EF4E1F /* compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22731D3B5C4900EF4E1F /* compress.cpp */; };
 		526F23CC1D3B5C4900EF4E1F /* compress.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F22741D3B5C4900EF4E1F /* compress.h */; };
@@ -522,8 +520,6 @@
 		526F23E21D3B5C4900EF4E1F /* multifilelib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228A1D3B5C4900EF4E1F /* multifilelib.cpp */; };
 		526F23E31D3B5C4900EF4E1F /* path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228B1D3B5C4900EF4E1F /* path.cpp */; };
 		526F23E41D3B5C4900EF4E1F /* path.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F228C1D3B5C4900EF4E1F /* path.h */; };
-		526F23E51D3B5C4900EF4E1F /* proxystream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228D1D3B5C4900EF4E1F /* proxystream.cpp */; };
-		526F23E61D3B5C4900EF4E1F /* proxystream.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F228E1D3B5C4900EF4E1F /* proxystream.h */; };
 		526F23E71D3B5C4900EF4E1F /* stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F228F1D3B5C4900EF4E1F /* stream.cpp */; };
 		526F23E81D3B5C4900EF4E1F /* stream.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F22901D3B5C4900EF4E1F /* stream.h */; };
 		526F23E91D3B5C4900EF4E1F /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 526F22911D3B5C4900EF4E1F /* string.cpp */; };
@@ -1443,8 +1439,6 @@
 		526F21A41D3B5C4900EF4E1F /* aautil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aautil.h; sourceTree = "<group>"; };
 		526F22691D3B5C4900EF4E1F /* cc_script.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_script.cpp; sourceTree = "<group>"; };
 		526F226A1D3B5C4900EF4E1F /* cc_script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cc_script.h; sourceTree = "<group>"; };
-		526F22701D3B5C4900EF4E1F /* alignedstream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = alignedstream.cpp; sourceTree = "<group>"; };
-		526F22711D3B5C4900EF4E1F /* alignedstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = alignedstream.h; sourceTree = "<group>"; };
 		526F22721D3B5C4900EF4E1F /* bbop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbop.h; sourceTree = "<group>"; };
 		526F22731D3B5C4900EF4E1F /* compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress.cpp; sourceTree = "<group>"; };
 		526F22741D3B5C4900EF4E1F /* compress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = compress.h; sourceTree = "<group>"; };
@@ -1470,8 +1464,6 @@
 		526F228A1D3B5C4900EF4E1F /* multifilelib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = multifilelib.cpp; sourceTree = "<group>"; };
 		526F228B1D3B5C4900EF4E1F /* path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = path.cpp; sourceTree = "<group>"; };
 		526F228C1D3B5C4900EF4E1F /* path.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = path.h; sourceTree = "<group>"; };
-		526F228D1D3B5C4900EF4E1F /* proxystream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = proxystream.cpp; sourceTree = "<group>"; };
-		526F228E1D3B5C4900EF4E1F /* proxystream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = proxystream.h; sourceTree = "<group>"; };
 		526F228F1D3B5C4900EF4E1F /* stream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stream.cpp; sourceTree = "<group>"; };
 		526F22901D3B5C4900EF4E1F /* stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stream.h; sourceTree = "<group>"; };
 		526F22911D3B5C4900EF4E1F /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string.cpp; sourceTree = "<group>"; };
@@ -2824,8 +2816,6 @@
 				20522A1428E8F81A00589E91 /* string_compat.c */,
 				20522A1328E8F81A00589E91 /* string_compat.h */,
 				20522A1528E8F81A00589E91 /* utf8.h */,
-				526F22701D3B5C4900EF4E1F /* alignedstream.cpp */,
-				526F22711D3B5C4900EF4E1F /* alignedstream.h */,
 				526F22721D3B5C4900EF4E1F /* bbop.h */,
 				526F22731D3B5C4900EF4E1F /* compress.cpp */,
 				526F22741D3B5C4900EF4E1F /* compress.h */,
@@ -2851,8 +2841,6 @@
 				526F228A1D3B5C4900EF4E1F /* multifilelib.cpp */,
 				526F228B1D3B5C4900EF4E1F /* path.cpp */,
 				526F228C1D3B5C4900EF4E1F /* path.h */,
-				526F228D1D3B5C4900EF4E1F /* proxystream.cpp */,
-				526F228E1D3B5C4900EF4E1F /* proxystream.h */,
 				526F228F1D3B5C4900EF4E1F /* stream.cpp */,
 				526F22901D3B5C4900EF4E1F /* stream.h */,
 				526F22911D3B5C4900EF4E1F /* string.cpp */,
@@ -3515,7 +3503,6 @@
 				2034CA9F2A20174B00824C80 /* plugin_builtin.h in Headers */,
 				526F28641D3B5CC300EF4E1F /* game_run.h in Headers */,
 				521C3BEE1D1E545100BD619E /* AGSKit.h in Headers */,
-				526F23E61D3B5C4900EF4E1F /* proxystream.h in Headers */,
 				526F27561D3B5CC300EF4E1F /* label.h in Headers */,
 				526F26EA1D3B5CC300EF4E1F /* scriptregion.h in Headers */,
 				20E67D9B28F1BDE000B95C00 /* allegro.h in Headers */,
@@ -3688,7 +3675,6 @@
 				526F23CC1D3B5C4900EF4E1F /* compress.h in Headers */,
 				526F23C31D3B5C4900EF4E1F /* cc_script.h in Headers */,
 				526F26B41D3B5CC300EF4E1F /* drawingsurface.h in Headers */,
-				526F23C91D3B5C4900EF4E1F /* alignedstream.h in Headers */,
 				526F27201D3B5CC300EF4E1F /* global_mouse.h in Headers */,
 				20E6811A28F1C98400B95C00 /* huffman.h in Headers */,
 				20E67DAE28F1BDE000B95C00 /* fmaths.h in Headers */,
@@ -4033,7 +4019,6 @@
 				526F274A1D3B5CC300EF4E1F /* guiinv.cpp in Sources */,
 				526F274B1D3B5CC300EF4E1F /* hotspot.cpp in Sources */,
 				20E67D6628F1BDE000B95C00 /* blit.c in Sources */,
-				526F23E51D3B5C4900EF4E1F /* proxystream.cpp in Sources */,
 				526F26A81D3B5CC300EF4E1F /* datetime.cpp in Sources */,
 				20E6840828F20C7300B95C00 /* codebook.c in Sources */,
 				526F23E71D3B5C4900EF4E1F /* stream.cpp in Sources */,
@@ -4347,7 +4332,6 @@
 				52F5D8641DA121CC006F8F4B /* version.cpp in Sources */,
 				526F278E1D3B5CC300EF4E1F /* system.cpp in Sources */,
 				20E67D6428F1BDE000B95C00 /* gfx.c in Sources */,
-				526F23C81D3B5C4900EF4E1F /* alignedstream.cpp in Sources */,
 				20E681F628F1D2A800B95C00 /* SDL_sound_mp3.c in Sources */,
 				526F27AE1D3B5CC300EF4E1F /* fonts_engine.cpp in Sources */,
 				526F26FA1D3B5CC300EF4E1F /* gamestate.cpp in Sources */,

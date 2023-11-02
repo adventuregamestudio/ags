@@ -192,8 +192,6 @@ void System_SetRenderAtScreenResolution(int enable)
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 // int ()
 RuntimeScriptValue Sc_System_GetAudioChannelCount(const RuntimeScriptValue *params, int32_t param_count)
 {

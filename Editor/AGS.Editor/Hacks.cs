@@ -18,6 +18,9 @@ namespace AGS.Editor
         private const int EM_REPLACESEL = 0x00C2;
         private const int EM_GETSCROLLPOS = WM_USER + 221;
         private const int EM_SETSCROLLPOS = WM_USER + 222;
+        private const int EM_SETMARGINS = 0xD3;
+        private const int EC_LEFTMARGIN = 0x1;
+        private const int EC_RIGHTMARGIN = 0x2;
         // TreeView messages
         private const int TV_FIRST = 0x1100;
         private const int TVM_GETEDITCONTROL = (TV_FIRST + 15);
@@ -87,6 +90,14 @@ namespace AGS.Editor
             SendMessage(rtb.Handle, EM_SETSEL, at, (IntPtr)at + length);
             SendMessage(rtb.Handle, EM_REPLACESEL, 0, strPtr);
             Marshal.FreeHGlobal(strPtr);
+        }
+
+        /// <summary>
+        /// Sets RichTextBox's margins
+        /// </summary>
+        public static void SetRichTextBoxMargins(this RichTextBox rtb, int left, int right)
+        {
+            SendMessage(rtb.Handle, EM_SETMARGINS, (EC_LEFTMARGIN | EC_RIGHTMARGIN), (IntPtr)(right * 0x10000 + left));
         }
 
         // Hack to get around the fact that the BeforeLabelEdit event provides no way to

@@ -1198,7 +1198,6 @@ void do_conversation(int dlgnum)
 #include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
 extern CCDialog     ccDynamicDialog;
 
 ScriptDialog *Dialog_GetByName(const char *name)

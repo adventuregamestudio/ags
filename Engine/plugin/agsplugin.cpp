@@ -93,7 +93,6 @@ extern RGB palette[256];
 extern int displayed_room;
 extern RoomStruct thisroom;
 extern RoomStatus *croom;
-extern ScriptString myScriptStringImpl;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern RuntimeScriptValue GlobalReturnValue;
 

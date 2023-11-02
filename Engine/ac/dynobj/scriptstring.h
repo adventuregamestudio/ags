@@ -14,31 +14,89 @@
 #ifndef __AC_SCRIPTSTRING_H
 #define __AC_SCRIPTSTRING_H
 
+#include <memory>
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptString final : AGSCCDynamicObject, ICCStringClass {
-    int Dispose(void *address, bool force) override;
-    const char *GetType() override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+struct ScriptString final : AGSCCDynamicObject
+{
+public:
+    struct Header
+    {
+        uint32_t Length = 0u;  // string length in bytes (not counting 0)
+        uint32_t ULength = 0u; // Unicode compatible length in characters
+        // Saved last requested character index and buffer offset;
+        // significantly speeds up Unicode string iteration, but adds 4 bytes
+        // per ScriptString object. Replace with a proper str iterator later!
+        // NOTE: intentionally limited to 64k chars/bytes to save bit of mem.
+        uint16_t LastCharIdx = 0u;
+        uint16_t LastCharOff = 0u;
+    };
 
-    DynObjectRef CreateString(const char *fromText) override;
+    struct Buffer
+    {
+        friend ScriptString;
+    public:
+        Buffer() = default;
+        ~Buffer() = default;
+        Buffer(Buffer &&buf) = default;
+        // Returns a pointer to the beginning of a text buffer
+        char *Get() { return reinterpret_cast<char*>(_buf.get() + MemHeaderSz); }
+        // Returns size allocated for a text content (includes null pointer)
+        size_t GetSize() const { return _sz - MemHeaderSz; }
+
+    private:
+        Buffer(std::unique_ptr<uint8_t[]> &&buf, size_t buf_sz)
+            : _buf(std::move(buf)), _sz(buf_sz) {}
+
+        std::unique_ptr<uint8_t[]> _buf;
+        size_t _sz;
+    };
+
 
     ScriptString() = default;
-    ScriptString(const char *text);
-    ScriptString(char *text, bool take_ownership);
-    char *GetTextPtr() const { return _text; }
+    ~ScriptString() = default;
 
-protected:
+    inline static const Header &GetHeader(const void *address)
+    {
+        return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
+    }
+
+    inline static Header &GetHeader(void *address)
+    {
+        return reinterpret_cast<Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+    }
+
+    // Allocates a ScriptString-compatible buffer large enough to accomodate
+    // given length in bytes (len). This buffer may be filled by the caller
+    // and then passed into Create(). If ulen is left eq 0, then it will be
+    // recalculated on script string's creation.
+    static Buffer CreateBuffer(size_t len, size_t ulen = 0u);
+    // Create a new script string by copying the given text
+    static DynObjectRef Create(const char *text);
+    // Create a new script string by taking ownership over the given buffer;
+    // passed buffer variable becomes invalid after this call.
+    static DynObjectRef Create(Buffer &&strbuf);
+
+    const char *GetType() override;
+    int Dispose(void *address, bool force) override;
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
+private:
+    friend ScriptString::Buffer;
+    // The size of the array's header in memory, prepended to the element data
+    static const size_t MemHeaderSz = sizeof(Header);
+    // The size of the serialized header
+    static const size_t FileHeaderSz = sizeof(uint32_t);
+
+    static DynObjectRef CreateObject(uint8_t *buf);
+
+    // Savegame serialization
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
-
-private:
-    // TODO: the preallocated text buffer may be assigned externally;
-    // find out if it's possible to refactor while keeping same functionality
-    char *_text = nullptr;
-    size_t _len = 0;
 };
+
+extern ScriptString myScriptStringImpl;
 
 #endif // __AC_SCRIPTSTRING_H

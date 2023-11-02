@@ -41,7 +41,7 @@ void MoveList::SetPixelUnitFraction(float frac)
     onpart = permove_dist > 0.f ? (1.f / permove_dist) * frac : 0.f;
 }
 
-HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
+HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     *this = MoveList(); // reset struct
     numstage = in->ReadInt32();
@@ -75,7 +75,7 @@ HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     return HSaveError::None();
 }
 
-void MoveList::WriteToFile(Stream *out) const
+void MoveList::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(numstage);
     if (numstage == 0)

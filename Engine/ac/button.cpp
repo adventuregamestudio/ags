@@ -322,8 +322,6 @@ void Button_SetTextAlignment(GUIButton *butt, int align)
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 // void | GUIButton *butt, int view, int loop, int speed, int repeat
 RuntimeScriptValue Sc_Button_Animate4(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {

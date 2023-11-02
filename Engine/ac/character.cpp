@@ -3003,8 +3003,6 @@ PViewport FindNearestViewport(int charid)
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 CharacterInfo *Character_GetByName(const char *name)
 {
     return static_cast<CharacterInfo*>(ccGetScriptObjectAddress(name, ccDynamicCharacter.GetType()));

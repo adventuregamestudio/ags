@@ -18,18 +18,18 @@
 
 using AGS::Common::Stream;
 
-void QueuedAudioItem::ReadFromFile(Stream *in)
+void QueuedAudioItem::ReadFromSavegame(Stream *in)
 {
     audioClipIndex = in->ReadInt16();
     priority = in->ReadInt16();
     repeat = in->ReadBool();
-    in->ReadInt32(); // cachedClip 32-bit ptr (legacy format)
+    in->ReadInt32(); // reserved
 }
 
-void QueuedAudioItem::WriteToFile(Stream *out) const
+void QueuedAudioItem::WriteToSavegame(Stream *out) const
 {
     out->WriteInt16(audioClipIndex);
     out->WriteInt16(priority);
     out->WriteBool(repeat);
-    out->WriteInt32(0); // cachedClip 32-bit ptr (legacy format)
+    out->WriteInt32(0); // reserved
 }

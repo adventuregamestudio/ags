@@ -43,7 +43,7 @@
 #include "platform/windows/win_ex_handling.h"
 #endif
 
-#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_DEBUG
+#if AGS_PLATFORM_OS_WINDOWS && (!AGS_PLATFORM_DEBUG) && !AGS_PLATFORM_WINDOWS_MINGW
 #define USE_CUSTOM_EXCEPTION_HANDLER
 #endif
 
@@ -361,7 +361,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
 int ags_entry_point(int argc, char *argv[]) { 
     main_init(argc, argv);
 
-#if AGS_PLATFORM_OS_WINDOWS
+#if AGS_PLATFORM_OS_WINDOWS && !AGS_PLATFORM_WINDOWS_MINGW
     setup_malloc_handling();
 #endif
     debug_flags=0;

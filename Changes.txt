@@ -136,6 +136,7 @@ Editor:
    pre-3.2 game projects, and will generate a script with a String array, moving global messages
    texts there.
  - For script's tabs added a context menu command for opening this script's location.
+ - In General Settings moved few properties to different groups for better consistency.
  - Added "Scale Character sprite offsets" property to General Settings. This property refers to
    scaling of Character.z and sprite offsets added by LockViewOffset script command.
  - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
@@ -157,10 +158,6 @@ Editor:
  - Fixed Editor refusing to open a game if one of the translation files is missing.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
- - Fixed GUI editor could display selection rectangle from a different GUI editor pane,
-   if two or more are displayed on screen at the same time.
- - Fixed Script editor not marking "autoptr" and "builtin" as keywords.
- - Fixed Script editor not applying color theme to character literals.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
 
@@ -188,6 +185,10 @@ Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
    close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
+ - Improved performance of String objects in script. For instance, appending a character to
+   a String is now roughly x2 times faster, *sequential* iteration of String.Chars[] in Unicode
+   mode is about x12 (!) times faster (Strings in ASCII mode have relatively less improvement,
+   because they have been faster than Unicode mode already).
  - Improved performance when creating, deleting and manipulating Overlays; allows the game
    to have thousands of those with much less slowing down.
  - Improved performance when updating and deleting dynamic sprites, and notifying any objects
@@ -226,7 +227,6 @@ Engine:
    printing a warning. This is also consistent with backwards-compatble SetObjectFrame() behavior.
  - Changed Object.SetView() to not play a frame's sound, which could lead to a duplicated sound
    play if Object.Animate is run right after.
- - Fixed buttons on a non-clickable GUI were still changing to "mouse over" graphic under cursor.
  - Text Overlays internal images are now registered as dynamic sprites, and their IDs may be
    read from Overlay.Graphic. This lets find out their sizes using Game.SpriteWidth/SpriteHeight
    and optionally draw them somewhere using DrawingSurface.DrawImage.
@@ -237,8 +237,6 @@ Engine:
  - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
    "cachemax" in "misc") and "texture_cache_size".
- - Fixed engine failing to startup sometimes if controller device subsystem failed to init
-   (it should not init at all in this version, as we do not support joysticks yet).
  - Fixed Characters may be seemingly "walking in place" for some time when arriving at destination.
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.
@@ -249,10 +247,6 @@ Engine:
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
- - Fixed "Before fade-in" event could be called recursively under some peculiar conditions
-   (this is a regression since 3.6.0).
- - Fixed button click not registered if it has been made not visible and visible again during a
-   single game frame (this is a regression since 3.6.0).
 
 Engine Plugin API:
  - Added IAGSEngine.ResolveFilePath() method, which resolves a script path (with location tokens)
@@ -277,6 +271,37 @@ Web / Emscripten:
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
+
+
+VERSION 3.6.0 - Patch 6, November 2023
+
+Editor:
+ - Fixed GUI editor could display selection rectangle from a different GUI editor pane,
+   if two or more are displayed on screen at the same time.
+ - Fixed "autoptr" and "builtin" keywords not colored as valid keywords in the script editor.
+ - Fixed character literals in a script editor having wrong colors when a Color Theme is applied.
+
+Engine:
+ - Made String.Chars and Length properties work faster in ASCII mode.
+ - Issue a warning when blocking Display or Say commands are called during fade-out.
+ - Fixed engine failing to startup sometimes if controller device subsystem failed to init
+   (it should not init at all in this version, as we do not support joysticks yet).
+ - Fixed "Before fade-in" event could be called recursively under some peculiar conditions
+   (regression since 3.6.0).
+ - Fixed buttons on a non-clickable GUI were still changing to "mouse over" graphic under cursor.
+ - Fixed button click not registered if it has been made not visible and visible again during a
+   single game frame (regression since 3.6.0).
+ - Fixed TextWindow borders drawn behind the rightmost corner pieces, which may be seen if the
+   edge sprites are half-transparent.
+ - Fixed a brief black screen flash occuring right after the video playback ends
+   (regression since 3.6.0).
+ - Fixed engine refusing to load legacy saves if the audio clip count does not match
+   (number of audio clips should not affect saves).
+
+WinSetup:
+ - Added an option to disable "smooth scaled sprites" setting.
+ - Added an option to disable language selection.
+ - Made filter names in "disabled" section treated in case insensitive way.
 
 
 VERSION 3.6.0 - Patch 5, September 2023

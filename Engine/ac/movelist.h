@@ -24,7 +24,7 @@ using namespace AGS; // FIXME later
 
 enum MoveListSvgVersion
 {
-    kMoveSvgVersion_Initial = 0,
+    kMoveSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
     kMoveSvgVersion_350     = 1, // new pathfinder, arbitrary number of stages
     kMoveSvgVersion_36109   = 2, // skip empty lists, progress as float
     kMoveSvgVersion_400     = 4000000, // fixed->floats, positions are int32
@@ -57,8 +57,8 @@ struct MoveList
     // Sets a step progress to this fraction of a coordinate unit
     void  SetPixelUnitFraction(float frac);
 
-    AGS::Engine::HSaveError ReadFromFile(Common::Stream *in, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out) const;
+    AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AGS_EN_AC__MOVELIST_H

@@ -154,7 +154,6 @@ const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fi
 
 
 extern new_line_hook_type new_line_hook;
-extern ScriptString myScriptStringImpl;
 
 ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = { nullptr };
 
@@ -1655,20 +1654,9 @@ int ccInstance::Run(int32_t curpc)
         case SCMD_CREATESTRING:
         {
             auto &reg1 = registers[codeOp.Arg1i()];
-            // FIXME: provide a dummy impl to avoid this?
-            // why arrays can be created using global mgr and strings not?
-            if (stringClassImpl == nullptr)
-            {
-                cc_error("No string class implementation set, but opcode was used");
-                return -1;
-            }
-            else
-            {
-                const char *ptr = reinterpret_cast<const char*>(reg1.GetDirectPtr());
-                reg1.SetScriptObject(
-                    stringClassImpl->CreateString(ptr).Obj,
-                    &myScriptStringImpl);
-            }
+            const char *ptr = reinterpret_cast<const char*>(reg1.GetDirectPtr());
+            DynObjectRef ref = ScriptString::Create(ptr);
+            reg1.SetScriptObject(ref.Obj, &myScriptStringImpl);
             break;
         }
         case SCMD_STRINGSEQUAL:

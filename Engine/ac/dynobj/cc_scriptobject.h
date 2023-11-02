@@ -40,6 +40,7 @@ struct DynObjectRef
     DynObjectRef() = default;
     DynObjectRef(int handle, void *obj, IScriptObject *mgr)
         : Handle(handle), Obj(obj), Mgr(mgr) {}
+    inline operator bool() const { return Handle > 0; }
 };
 
 

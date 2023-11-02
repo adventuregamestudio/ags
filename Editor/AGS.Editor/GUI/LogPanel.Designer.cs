@@ -100,7 +100,7 @@ namespace AGS.Editor
             // 
             // toolStrip
             // 
-            this.toolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.toolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnRun,
             this.btnPause,
@@ -113,6 +113,7 @@ namespace AGS.Editor
             this.btnProperties});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
+            this.toolStrip.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
             this.toolStrip.Size = new System.Drawing.Size(1059, 27);
             this.toolStrip.TabIndex = 1;
             // 
@@ -212,6 +213,7 @@ namespace AGS.Editor
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "LogPanel";
             this.Text = "Log Panel";
+            this.Load += new System.EventHandler(this.LogPanel_Load);
             this.splitContainer.Panel1.ResumeLayout(false);
             this.splitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();

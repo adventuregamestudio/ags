@@ -186,6 +186,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "graphics", "refresh");
         usetup.Screen.Params.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
         usetup.RenderAtScreenRes = CfgReadBoolInt(cfg, "graphics", "render_at_screenres");
+        usetup.enable_antialiasing = CfgReadBoolInt(cfg, "graphics", "antialias", usetup.enable_antialiasing);
         usetup.Supersampling = CfgReadInt(cfg, "graphics", "supersampling", 1);
         usetup.software_render_driver = CfgReadString(cfg, "graphics", "software_driver");
 
@@ -194,8 +195,6 @@ void apply_config(const ConfigTree &cfg)
         usetup.rotation = StrUtil::ParseEnum<ScreenRotation>(
                 rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
                 usetup.rotation);
-
-        usetup.enable_antialiasing = CfgReadBoolInt(cfg, "misc", "antialias");
 
         // Custom paths
         usetup.load_latest_save = CfgReadBoolInt(cfg, "misc", "load_latest_save", usetup.load_latest_save);

@@ -133,8 +133,6 @@ void set_inv_item_cursorpic(int invItemId, int piccy)
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 
 ScriptInvItem *InventoryItem_GetByName(const char *name)
 {

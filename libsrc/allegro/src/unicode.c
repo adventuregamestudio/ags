@@ -1900,6 +1900,25 @@ int ustrlen(AL_CONST char *s)
 
 
 
+/* ustrlen2:
+ *  Similar to ustrlen, but returns both length in characters
+    and length in bytes.
+ */
+void ustrlen2(AL_CONST char *s, int *len, int *ulen)
+{
+   int c = 0;
+   AL_CONST char *src = s;
+   ASSERT(s);
+
+   while (ugetxc(&s))
+      c++;
+
+   *len = (int)(s - src) - 1;
+   *ulen = c;
+}
+
+
+
 /* ustrcmp:
  *  Unicode-aware version of the ANSI strcmp() function.
  */

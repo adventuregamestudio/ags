@@ -28,9 +28,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-
-// set the class that will be used for dynamic strings
-extern void  ccSetStringClassImpl(ICCStringClass *theClass);
 // register a memory handle for the object and allow script pointers to point to it
 extern int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // register a new object and add a reference count
@@ -58,7 +55,5 @@ extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, vo
 
 extern int ccAddObjectReference(int32_t handle);
 extern int ccReleaseObjectReference(int32_t handle);
-
-extern ICCStringClass *stringClassImpl;
 
 #endif // __AGS_EE_DYNOBJ__DYNOBJMANAGER_H

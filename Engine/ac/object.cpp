@@ -787,8 +787,6 @@ bool CycleViewAnim(int view, uint16_t &o_loop, uint16_t &o_frame, bool forwards,
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 
 ScriptObject *Object_GetByName(const char *name)
 {

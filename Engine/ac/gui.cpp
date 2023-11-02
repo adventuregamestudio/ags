@@ -672,8 +672,6 @@ void gui_on_mouse_down(const int guin, const int mbut)
 #include "script/script_runtime.h"
 
 
-extern ScriptString myScriptStringImpl;
-
 ScriptGUI *GUI_GetByName(const char *name)
 {
     return static_cast<ScriptGUI*>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));

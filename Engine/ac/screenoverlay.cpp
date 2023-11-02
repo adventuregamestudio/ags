@@ -88,7 +88,7 @@ void ScreenOverlay::SetSpriteNum(int sprnum, int offx, int offy)
     MarkChanged();
 }
 
-void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
+void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
     ResetImage();
 
@@ -159,7 +159,7 @@ void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
     }
 }
 
-void ScreenOverlay::WriteToFile(Stream *out) const
+void ScreenOverlay::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(0); // ddb 32-bit pointer value (nasty legacy format)
     out->WriteInt32(_sprnum); // sprite id

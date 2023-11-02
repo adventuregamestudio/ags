@@ -397,8 +397,7 @@ template <typename T> void get_pixel_if_not_transparent(const T *pixel, T *red, 
 template <typename T, bool UsingLinearFiltering> void
 VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
         const Bitmap *bitmap, const TextureTile *tile,
-        uint8_t *dst_ptr, const int dst_pitch
-)
+        uint8_t *dst_ptr, const int dst_pitch)
 {
     // tell the compiler these won't change mid loop execution
     const int t_width = tile->width;
@@ -497,8 +496,7 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const Tex
 template <typename T> void
 VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(
         const Bitmap *bitmap, const TextureTile *tile,
-        uint8_t *dst_ptr, const int dst_pitch
-)
+        uint8_t *dst_ptr, const int dst_pitch)
 {
     const int t_width = tile->width;
     const int t_height = tile->height;
@@ -542,5 +540,5 @@ void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, con
 }
 
 
-    } // namespace Engine
+} // namespace Engine
 } // namespace AGS

@@ -94,8 +94,6 @@ void Label_SetFont(GUILabel *guil, int fontnum) {
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 // void (GUILabel *labl, char *buffer)
 RuntimeScriptValue Sc_Label_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {

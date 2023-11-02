@@ -18,6 +18,7 @@
 #include "script/cc_instance.h"
 #include "script/cc_script.h" // RTTI
 #include "util/memorystream.h"
+#include "ac/dynobj/scriptstring.h"
 
 using namespace AGS::Common;
 
@@ -49,7 +50,7 @@ size_t CCDynamicArray::CalcSerializeSize(const void *address)
     return hdr.TotalSize + FileHeaderSz;
 }
 
-void CCDynamicArray::Serialize(const void *address, AGS::Common::Stream *out)
+void CCDynamicArray::Serialize(const void *address, Stream *out)
 {
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.TypeID);
@@ -161,7 +162,7 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
     int32_t *slots = static_cast<int32_t*>(arr.Obj);
     for (auto s : items)
     {
-        DynObjectRef str = stringClassImpl->CreateString(s);
+        DynObjectRef str = ScriptString::Create(s);
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
         ccAddObjectReference(str.Handle);

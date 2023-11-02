@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// Script String API implementation.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__STRING_H
@@ -20,7 +20,7 @@
 
 #include <stdarg.h>
 #include "ac/common.h" // quit
-#include "ac/dynobj/cc_scriptobject.h"
+#include "ac/dynobj/scriptstring.h"
 #include "util/string.h"
 
 // Check that a supplied buffer from a text script function was not null
@@ -29,6 +29,12 @@ inline void VALIDATE_STRING(const char *strin)
     if (!strin)
         quit("!String argument was null: make sure you pass a valid string as a buffer.");
 }
+
+const char *CreateNewScriptString(const char *text);
+inline const char *CreateNewScriptString(const AGS::Common::String &text)
+    { return CreateNewScriptString(text.GetCStr()); }
+inline const char *CreateNewScriptString(ScriptString::Buffer &&buf)
+    { return static_cast<const char*>(ScriptString::Create(std::move(buf)).Obj); }
 
 int String_IsNullOrEmpty(const char *thisString);
 const char* String_Copy(const char *srcString);
@@ -49,10 +55,6 @@ int StrContains (const char *s1, const char *s2);
 
 //=============================================================================
 
-const char* CreateNewScriptString(const AGS::Common::String &fromText);
-const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
-DynObjectRef CreateNewScriptStringObj(const AGS::Common::String &fromText);
-DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate = true);
 class SplitLines;
 // Break up the text into lines restricted by the given width;
 // returns number of lines, or 0 if text cannot be split well to fit in this width.

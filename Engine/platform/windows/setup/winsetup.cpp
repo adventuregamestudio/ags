@@ -158,8 +158,7 @@ void WinConfig::Load(const ConfigTree &cfg)
         RenderAtScreenRes = CfgReadInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
     else
         RenderAtScreenRes = locked_render_at_screenres != 0;
-
-    AntialiasSprites = CfgReadInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
+    AntialiasSprites = CfgReadInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
     AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", AudioEnabled);
     AudioDriverId = CfgReadString(cfg, "sound", "driver", AudioDriverId);
@@ -194,8 +193,7 @@ void WinConfig::Save(ConfigTree &cfg, const Size &desktop_res)
     CfgWriteInt(cfg, "graphics", "windowed", Windowed ? 1 : 0);
     CfgWriteInt(cfg, "graphics", "vsync", VSync ? 1 : 0);
     CfgWriteInt(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
-
-    CfgWriteInt(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
+    CfgWriteInt(cfg, "graphics", "antialias", AntialiasSprites ? 1 : 0);
 
     CfgWriteInt(cfg, "sound", "enabled", AudioEnabled ? 1 : 0);
     CfgWriteString(cfg, "sound", "driver", AudioDriverId);
@@ -738,6 +736,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         EnableWindow(_hUseVoicePack, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "filters"))
         EnableWindow(_hGfxFilterList, FALSE);
+    if (CfgReadBoolInt(_cfgIn, "disabled", "antialias"))
+        EnableWindow(_hAntialiasSprites, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "render_at_screenres") ||
         CfgReadInt(_cfgIn, "gameproperties", "render_at_screenres", -1) >= 0)
         EnableWindow(_hRenderAtScreenRes, FALSE);
@@ -870,9 +870,9 @@ void WinSetupDialog::OnGfxModeUpdate()
     DWORD_PTR sel = GetCurItemData(_hGfxModeList);
     switch (sel)
     {
-    case kGfxMode_Desktop:
+    case static_cast<DWORD_PTR>(kGfxMode_Desktop):
         _winCfg.FsSetup = WindowSetup(_desktopSize, kWnd_Fullscreen); break;
-    case kGfxMode_GameRes:
+    case static_cast<DWORD_PTR>(kGfxMode_GameRes):
         _winCfg.FsSetup = WindowSetup(_winCfg.GameResolution, kWnd_Fullscreen); break;
     default:
         {

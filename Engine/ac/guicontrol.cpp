@@ -231,8 +231,6 @@ void GUIControl_SetTransparency(GUIObject *guio, int trans) {
 #include "script/script_runtime.h"
 
 
-extern ScriptString myScriptStringImpl;
-
 GUIObject *GUIControl_GetByName(const char *name)
 {
     return static_cast<GUIObject*>(ccGetScriptObjectAddress(name, ccDynamicGUIObject.GetType()));

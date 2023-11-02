@@ -440,7 +440,7 @@ bool GameState::ShouldPlayVoiceSpeech() const
         (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
-void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
+void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     in->ReadInt32(); // [DEPRECATED]
     usedmode = in->ReadInt32();
@@ -599,7 +599,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     new_music_queue_size = in->ReadInt16();
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].ReadFromFile(in);
+            new_music_queue[i].ReadFromSavegame(in);
     }
 
     crossfading_out_channel = in->ReadInt16();
@@ -637,7 +637,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, G
     }
 }
 
-void GameState::WriteForSavegame(Common::Stream *out) const
+void GameState::WriteForSavegame(Stream *out) const
 {
     // NOTE: following parameters are never saved:
     // recording, playback, gamestep, screen_is_faded_out, room_changes
@@ -786,7 +786,7 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt16(new_music_queue_size);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue[i].WriteToFile(out);
+        new_music_queue[i].WriteToSavegame(out);
     }
 
     out->WriteInt16( crossfading_out_channel);

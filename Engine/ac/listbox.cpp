@@ -351,8 +351,6 @@ GUIListBox* is_valid_listbox (int guin, int objn) {
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-extern ScriptString myScriptStringImpl;
-
 // int (GUIListBox *lbb, const char *text)
 RuntimeScriptValue Sc_ListBox_AddItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {

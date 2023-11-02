@@ -128,6 +128,7 @@ Locations of two latter files differ between running platforms:
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.
   * filters = \[0; 1\] - tells to lock "Graphics filter" selection in a default state;
   * \<filter id\> = \[0; 1\] - tells to remove particular graphics filter from the selection list;
+  * antialias = \[0; 1\] - tells to lock "Smooth scaled sprites" in a default state;
   * render_at_screenres = \[0; 1\] - tells to lock "Render sprites in screen resolution" in a default state;
   * speechvox = \[0; 1\] - tells to lock "Use digital speech pack" in a default state;
   * translation = \[0; 1\] - tells to lock "Game language" in a default state;

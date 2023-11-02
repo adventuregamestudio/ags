@@ -2328,7 +2328,7 @@ builtin struct Game {
 #endif
 #ifdef SCRIPT_API_v361
   /// Resets all of the "DoOnceOnly" token states
-  import static bool   ResetDoOnceOnly();
+  import static void   ResetDoOnceOnly();
 #endif
 };
 

@@ -108,8 +108,8 @@ struct ScreenOverlay
     // Clears changed flag
     void ClearChanged() { _hasChanged = false; }
 
-    void ReadFromFile(Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
-    void WriteToFile(Common::Stream *out) const;
+    void ReadFromSavegame(Common::Stream *in, bool &has_bitmap, int32_t cmp_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 
 private:
     void ResetImage();

@@ -40,6 +40,7 @@ Editor:
    pre-3.2 game projects, and will generate a script with a String array, moving global messages
    texts there.
  - For script's tabs added a context menu command for opening this script's location.
+ - In General Settings moved few properties to different groups for better consistency.
  - Added "Scale Character sprite offsets" property to General Settings. This property refers to
    scaling of Character.z and sprite offsets added by LockViewOffset script command.
  - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
@@ -88,6 +89,10 @@ Engine:
  - Significant performance improvement to scripts. Script running speed restored to a level
    close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
+ - Improved performance of String objects in script. For instance, appending a character to
+   a String is now roughly x2 times faster, *sequential* iteration of String.Chars[] in Unicode
+   mode is about x12 (!) times faster (Strings in ASCII mode have relatively less improvement,
+   because they have been faster than Unicode mode already).
  - Improved performance when creating, deleting and manipulating Overlays; allows the game
    to have thousands of those with much less slowing down.
  - Improved performance when updating and deleting dynamic sprites, and notifying any objects

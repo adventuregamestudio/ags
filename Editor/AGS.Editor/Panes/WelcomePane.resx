@@ -118,15 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
-    <value>Some of the new features in AGS 3.6 include:
-* Engine backend now uses SDL2
-* Multiplatform support extended
-* Unicode support
-* New game package options
-* Multiple speech voxes
-* New sprite compression options
-* Room Overlays and new Overlay properties
-* Room objects limit increased
+    <value>Some of the new features in AGS 4.0 include:
+* Open Room format
+* New script compiler with new syntax features
+* Managed pointers inside managed structs
+* Blend modes
+* Rotation property
+* PO format translations
+* FLAC support
+* Joystick and Gamepad input
 * And loads more!
 </value>
   </data>

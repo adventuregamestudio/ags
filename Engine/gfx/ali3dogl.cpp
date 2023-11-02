@@ -1700,7 +1700,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   fixedTile.width = std::min(tile->width, tileWidth);
   fixedTile.height = std::min(tile->height, tileHeight);
 
-  assert(!opaque || !has_alpha); // has_alpha is meaningless with opaque
   if (opaque)
     BitmapToVideoMemOpaque(bitmap, &fixedTile, memPtr, pitch);
   else

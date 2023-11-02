@@ -463,8 +463,12 @@ public:
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
-    // The "Dynarray / Dynpointer/ Const ... of vartype" vartype
-    Vartype VartypeWith(VartypeType vtt, Vartype vartype);
+    // The "Const of vartype" vartype
+    Vartype VartypeWithConst(AGS::Vartype vartype);
+    // The "Dynarray of vartype" vartype
+    Vartype VartypeWithDynarray(AGS::Vartype vartype);
+    // The "Const ... of vartype" vartype
+    Vartype VartypeWithDynpointer(Vartype vartype);
     // The vartype without the qualifier given in vtt
     Vartype VartypeWithout(VartypeType vtt, Vartype vartype) const;
 

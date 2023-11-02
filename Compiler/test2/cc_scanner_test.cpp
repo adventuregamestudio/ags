@@ -284,7 +284,7 @@ TEST_F(Scan, StringCollect)
     AGS::Symbol const s1 = sym.Find("\"Zwiebelkuchen\"");
     ASSERT_LT(0, s1);
     ASSERT_TRUE(sym.IsLiteral(s1));
-    EXPECT_EQ(sym.VartypeWith(AGS::VTT::kConst, AGS::kKW_String), sym[s1].LiteralD->Vartype);
+    EXPECT_EQ(sym.VartypeWithConst(AGS::kKW_String), sym[s1].LiteralD->Vartype);
     int const pos1 = sym[s1].LiteralD->Value;
     ASSERT_LE(0, pos1);
     text_in_buffer.assign(string_collector.strings + pos1);

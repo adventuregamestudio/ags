@@ -486,7 +486,7 @@ private:
     void ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
 
     // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
-    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t parameters_count, CodeLoc &function_soffs);
+    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs);
 
     // We're at something like 'int foo(', directly before the '('
     // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
@@ -533,9 +533,9 @@ private:
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
-    void AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
+    void AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count, Symbol func_symbol, bool func_is_import);
 
-    void AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
+    void AccessData_FunctionCall_PushParams(SrcList &params, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
     void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count);
@@ -550,7 +550,7 @@ private:
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
     // Return the number of the parameters pushed
-    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_args_count);
+    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &params, size_t &actual_args_count);
 
     // Process a function call. The parameter list begins with 'expression[1u]' (!)
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres);
@@ -678,7 +678,7 @@ private:
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it and shorten symlist accordingly
     void AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres);
-    
+
     void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     void AGS::Parser::AccessData_This(EvaluationResult &eres);
@@ -758,7 +758,6 @@ private:
 
     // we have accepted something like "int a" and we're expecting "["
     void ParseArray(Symbol vname, Vartype &vartype);
-
     void ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type);
 
     // there was a forward declaration -- check that the real declaration matches it
@@ -794,7 +793,7 @@ private:
 
     void ParseQualifiers(TypeQualifierSet &tqs);
 
-    void ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
+    void ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
 
     void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
@@ -810,7 +809,7 @@ private:
     void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
 
     // We're inside a struct decl, processing a member variable
-    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
+    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname);
     
     // We're inside a struct decl, processing a compile-time constant
     void ParseStruct_ConstantDefn(Symbol name_of_struct);

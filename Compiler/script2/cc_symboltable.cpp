@@ -374,7 +374,7 @@ AGS::SymbolTable::SymbolTable()
         entries[float_zero_sym].LiteralD->Value = 0;
         entries[float_zero_sym].LiteralD->Vartype = kKW_Float;
     }
-    _lastAllocated = VartypeWith(VTT::kConst, kKW_String);
+    _lastAllocated = VartypeWithConst(kKW_String);
 }
 
 bool AGS::SymbolTable::IsVTT(Symbol s, VartypeType vtt) const
@@ -406,7 +406,7 @@ bool AGS::SymbolTable::IsVTF(Symbol s, VartypeFlag flag) const
 void AGS::SymbolTable::SetStringStructSym(Symbol const s)
 {
     _stringStructSym = s;
-    _stringStructPtrSym = VartypeWith(VTT::kDynpointer, s);
+    _stringStructPtrSym = VartypeWithDynpointer(s);
 }
 
 bool AGS::SymbolTable::IsInUse(Symbol s) const
@@ -545,67 +545,125 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
 
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)
 {
-    // Can't have classic arrays of classic arrays
-    if (IsVTT(vartype, VTT::kArray))
-        return vartype;
+    bool const is_array_of_array = IsVTT(vartype, VTT::kArray);
 
-    std::string conv_name = entries[vartype].Name + "[";
-    size_t const last_idx = dims.size() - 1u;
-    size_t elements_count = 1u;
-    for (size_t dims_idx = 0u; dims_idx <= last_idx; ++dims_idx)
+    std::vector<size_t> aoa_dims;
+    if (is_array_of_array)
     {
-        elements_count *= dims[dims_idx];
-        conv_name += std::to_string(dims[dims_idx]);
-        conv_name += (dims_idx == last_idx) ? "]" : ", ";
+        // Classic array of classic array: Make the vartype of one joint array of them both
+        std::vector<size_t> const &old_dims = entries[vartype].VartypeD->Dims;
+        aoa_dims.reserve(old_dims.size() + dims.size());
+        aoa_dims = old_dims;
+        aoa_dims.insert(aoa_dims.end(), dims.begin(), dims.end());
     }
-    Vartype const array_vartype = FindOrAdd(conv_name);
-    if (IsVartype(array_vartype))
-        return array_vartype;
+    std::vector<size_t> const &dims_to_use = is_array_of_array ? aoa_dims : dims;
 
-    entries[array_vartype].VartypeD = new SymbolTableEntry::VartypeDesc;
-    entries[array_vartype].VartypeD->Type = VTT::kArray;
-    entries[array_vartype].VartypeD->BaseVartype = vartype;
-    entries[array_vartype].VartypeD->Size = elements_count * GetSize(vartype);
-    entries[array_vartype].VartypeD->Dims = dims;
+    std::string vartype_name = entries[vartype].Name + "[";
+    size_t element_count = 1u;
+    for (auto it = dims_to_use.cbegin(); it != dims_to_use.cend(); ++it)
+    {
+        element_count *= *it;
+        vartype_name += std::to_string(*it);
+        vartype_name += (it + 1 == dims_to_use.cend()) ? "]" : ", ";
+    }
+    Vartype const array_vartype = FindOrAdd(vartype_name);
+    if (!IsVartype(array_vartype))
+    {
+        entries[array_vartype].VartypeD = new SymbolTableEntry::VartypeDesc;
+        entries[array_vartype].VartypeD->Type = VTT::kArray;
+        entries[array_vartype].VartypeD->BaseVartype = vartype;
+        entries[array_vartype].VartypeD->Size = element_count * GetSize(vartype);
+        entries[array_vartype].VartypeD->Dims = dims;
+    }
     return array_vartype;
 }
 
-AGS::Vartype AGS::SymbolTable::VartypeWith(VartypeType vtt, AGS::Vartype vartype)
+AGS::Vartype AGS::SymbolTable::VartypeWithConst(AGS::Vartype vartype)
 {
+    if (IsVTT(vartype, VTT::kConst))
+        return vartype; // Nothing to be done
+
     // Return cached result if existent 
-    std::pair<Vartype, VartypeType> const arg = { vartype, vtt };
+    std::pair<Vartype, VartypeType> const arg = { vartype, VTT::kConst };
     Vartype &valref(_vartypesCache[arg]);
     if (valref)
         return valref;
 
-    if (IsVTT(vartype, vtt))
-        return (valref = vartype); // Nothing to be done
-
-    std::string pre = "";
-    std::string post = "";
-    switch (vtt)
+    std::string const new_typename = "const " + entries[vartype].Name;
+    Vartype new_type = valref = FindOrAdd(new_typename);
+    if (!IsVartype(new_type))
     {
-    default: pre = "QUAL" + std::to_string(static_cast<int>(vtt)) + " "; break;
-    case VTT::kConst: pre = "const "; break;
-        // Note: Even if we have an autoptr and suppress the '*', we still need to add _something_ to the name.
-        // The name for the pointered type must be different from the name of the unpointered type.
-        // (If this turns out to be too ugly, then we need two fields for vartypes:
-        // one field that is output to the user, another field that is guaranteed to have different values
-        // for different vartypes.)
-    case VTT::kDynpointer: post = (IsVartype(vartype) && entries[vartype].VartypeD->Flags[VTF::kAutoptr]) ? " " : " *"; break;
-    case VTT::kDynarray: post = "[]"; break;
+        // Initialise entry for new type
+        SymbolTableEntry &entry = entries[new_type];
+        entry.VartypeD = new SymbolTableEntry::VartypeDesc;
+        entry.VartypeD->Type = VTT::kConst;
+        entry.VartypeD->BaseVartype = vartype;
+        entry.VartypeD->Size = GetSize(vartype);
     }
-    std::string const conv_name = (pre + entries[vartype].Name) + post;
-    valref = FindOrAdd(conv_name);
-    if (IsVartype(valref))
+    return new_type;
+}
+
+AGS::Vartype AGS::SymbolTable::VartypeWithDynarray(AGS::Vartype vartype)
+{
+    // Return cached result if it exists
+    std::pair<Vartype, VartypeType> const arg = { vartype, VTT::kDynarray };
+    Vartype &valref(_vartypesCache[arg]);
+    if (valref)
         return valref;
 
-    SymbolTableEntry &entry = entries[valref];
-    entry.VartypeD = new SymbolTableEntry::VartypeDesc;
-    entry.VartypeD->Type = vtt;
-    entry.VartypeD->BaseVartype = vartype;
-    entry.VartypeD->Size = (VTT::kConst == vtt) ? GetSize(vartype) : SIZE_OF_DYNPOINTER;
-    return valref;
+    // For the new typename, insert '[}' in front of the first bracket of the actual typename
+    std::string &act_typename = entries[vartype].Name;
+    size_t pos_of_first_openbracket = act_typename.find_first_of('[');
+    if (std::string::npos == pos_of_first_openbracket)
+        pos_of_first_openbracket = act_typename.length();
+    std::string const pre = act_typename.substr(0u, pos_of_first_openbracket);
+    std::string const post = act_typename.substr(pos_of_first_openbracket);
+    std::string const new_typename = pre + "[]" + post;
+
+    Vartype new_type = valref = FindOrAdd(new_typename);
+    if (!IsVartype(new_type))
+    {
+        // Initialise entry for new type
+        SymbolTableEntry &entry = entries[new_type];
+        entry.VartypeD = new SymbolTableEntry::VartypeDesc;
+        entry.VartypeD->Type = VTT::kDynarray;
+        entry.VartypeD->BaseVartype = vartype;
+        entry.VartypeD->Size = SIZE_OF_DYNPOINTER;
+    }
+    return new_type;
+}
+
+AGS::Vartype AGS::SymbolTable::VartypeWithDynpointer(Vartype vartype)
+{
+    if (IsVTT(vartype, VTT::kDynpointer))
+        return vartype; // Nothing to be done
+
+    // Return cached result if it exists
+    std::pair<Vartype, VartypeType> const arg = { vartype, VTT::kDynpointer };
+    Vartype &valref(_vartypesCache[arg]);
+    if (valref)
+        return valref;
+
+    std::string post = " *";
+    // Note: Different types must have different names. So even if we have an
+    // autoptr and suppress the '*', we still need to add _something_ to the new name.
+    // (If this turns out to be too ugly for users to see, then we need two
+    // fields per vartype: one field that is output to the user, another field for
+    // internal use that is guaranteed to have different values for different vartypes.)
+    if (IsVartype(vartype) && entries[vartype].VartypeD->Flags[VTF::kAutoptr])
+        post = " ";
+    std::string const new_typename = entries[vartype].Name + post;
+    Vartype new_type = valref = FindOrAdd(new_typename);
+    if (!IsVartype(new_type))
+    {
+        // Initialise entry for new type
+        SymbolTableEntry &entry = entries[new_type];
+        entry.VartypeD = new SymbolTableEntry::VartypeDesc;
+        entry.VartypeD->Type = VTT::kDynpointer;
+        entry.VartypeD->BaseVartype = vartype;
+        entry.VartypeD->Size = SIZE_OF_DYNPOINTER;
+    }
+    return new_type;
 }
 
 AGS::Vartype AGS::SymbolTable::VartypeWithout(VartypeType const vtt, AGS::Vartype vartype) const

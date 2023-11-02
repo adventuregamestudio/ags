@@ -700,7 +700,7 @@ void AGS::Scanner::ReadInGTCombi(std::string &symstring)
 
 void AGS::Scanner::SymstringToSym(std::string const &symstring, ScanType scan_type, CodeCell value, Symbol &symb)
 {
-    static Symbol const const_string_vartype = _sym.VartypeWith(VTT::kConst, kKW_String);
+    static Symbol const const_string_vartype = _sym.VartypeWithConst(kKW_String);
     static const char *const one_past_long_max_string = "2147483648";
 
     symb = _sym.FindOrAdd(symstring);

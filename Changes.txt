@@ -1,5 +1,36 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 6, November 2023
+
+Editor:
+ - Fixed GUI editor could display selection rectangle from a different GUI editor pane,
+   if two or more are displayed on screen at the same time.
+ - Fixed "autoptr" and "builtin" keywords not colored as valid keywords in the script editor.
+ - Fixed character literals in a script editor having wrong colors when a Color Theme is applied.
+   
+Engine:
+ - Made String.Chars and Length properties work faster in ASCII mode.
+ - Issue a warning when blocking Display or Say commands are called during fade-out.
+ - Fixed engine failing to startup sometimes if controller device subsystem failed to init
+   (it should not init at all in this version, as we do not support joysticks yet).
+ - Fixed "Before fade-in" event could be called recursively under some peculiar conditions
+   (regression since 3.6.0).
+ - Fixed buttons on a non-clickable GUI were still changing to "mouse over" graphic under cursor.
+ - Fixed button click not registered if it has been made not visible and visible again during a
+   single game frame (regression since 3.6.0).
+ - Fixed TextWindow borders drawn behind the rightmost corner pieces, which may be seen if the
+   edge sprites are half-transparent.
+ - Fixed a brief black screen flash occuring right after the video playback ends
+   (regression since 3.6.0).
+ - Fixed engine refusing to load legacy saves if the audio clip count does not match
+   (number of audio clips should not affect saves).
+   
+WinSetup:
+ - Added an option to disable "smooth scaled sprites" setting.
+ - Added an option to disable language selection.
+ - Made filter names in "disabled" section treated in case insensitive way.
+
+
 VERSION 3.6.0 - Patch 5, September 2023
 
 Editor:

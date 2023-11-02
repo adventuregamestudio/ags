@@ -5,8 +5,8 @@ VERSION 3.6.0 - Patch 6, November 2023
 Editor:
  - Fixed GUI editor could display selection rectangle from a different GUI editor pane,
    if two or more are displayed on screen at the same time.
- - Fixed "autoptr" and "builtin" keywords not colored as valid keywords in the script editor.
- - Fixed character literals in a script editor having wrong colors when a Color Theme is applied.
+ - Fixed Script editor not marking "autoptr" and "builtin" as keywords.
+ - Fixed Script editor not applying color theme to character literals.
    
 Engine:
  - Made String.Chars and Length properties work faster in ASCII mode.

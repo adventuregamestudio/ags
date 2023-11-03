@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - Beta, October 2023
+VERSION 3.6.1 - Beta, November 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -60,6 +60,8 @@ Editor:
    this property and insert a comment with a warning into the corresponding room's script.
    This is done because this property is deprecated as is no longer accessible.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed importing GIFs or 8-bit PNGs may loose transparent pixels if source images used
+   other palette index than 0 for transparency.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the

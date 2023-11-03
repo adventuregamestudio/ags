@@ -7,6 +7,9 @@ Common:
    Editor and Engine, and is no longer supported. The Editor guarantees to import the projects
    saved by AGS 3.6.0 and later. The Engine may run games compiled in 3.6.0, but only so long
    as they don't use any deprecated settings or script commands.
+ - Completely removed Global Messages and Room Messages.
+ - Removed built-in support for Game Score, including related game settings and GiveScore
+   script command. Users are advised to script their own score counter if they need one.
  - Removed support for '[' as a linebreak character in text.
 
 Editor:
@@ -85,9 +88,9 @@ Script API:
 
 Engine:
  - Support joystick and gamepad input.
+ - Implemented more accurate Character movement. The movement direction is now more precise
+   and diagonal movement speed no longer may exceed MovementSpeed setting.
  - Animated buttons now display flipped frames correctly.
- - (possibly) Fixed characters sometimes keep walking animation for a short time after arriving
-   to their destination.
  - Added FLAC support for music, speech and sound effects.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced
@@ -96,7 +99,7 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.1 - Beta, October 2023
+VERSION 3.6.1 - Beta, November 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -156,6 +159,8 @@ Editor:
    this property and insert a comment with a warning into the corresponding room's script.
    This is done because this property is deprecated as is no longer accessible.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed importing GIFs or 8-bit PNGs may loose transparent pixels if source images used
+   other palette index than 0 for transparency.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the

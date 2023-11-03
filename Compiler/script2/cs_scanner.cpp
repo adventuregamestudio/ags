@@ -237,7 +237,7 @@ void AGS::Scanner::SkipWhitespace()
             continue;
 
         if ('\n' == ch)
-            NewLine(_lineno + 1);
+            NewLine(_lineno + 1u);
     }
 }
 
@@ -246,7 +246,7 @@ long long AGS::Scanner::StringToLongLong(std::string const &valstring, bool &con
     errno = 0;
     char *endptr;
     int base = 0;
-    if (valstring.length() > 1 &&
+    if (valstring.length() > 1u &&
         valstring[0] == '0' &&
         IsDigit(valstring[1]))
     {
@@ -288,7 +288,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
             if (!valstring.empty() && IsDigit(valstring.back()) && IsDigit(Peek()))
                 continue;
 
-            if (valstring.length() > 1 &&
+            if (valstring.length() > 1u &&
                 '0' == valstring[0] &&
                 ('x' == valstring[1] || 'X' == valstring[1]) &&
                 IsHexDigit(valstring.back()) &&
@@ -308,8 +308,8 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
 
         if (('-' == ch || '+' == ch) &&
             IsDigit(Peek()) &&
-            valstring.length() > 1 &&
-            std::string::npos != exponent_leadin.find(valstring[valstring.length() - 2]))
+            valstring.length() > 1u &&
+            std::string::npos != exponent_leadin.find(valstring[valstring.length() - 2u]))
             continue; // Is neither an int nor a float yet but will become a number in later loop traversals
 
         // Test convert to a long long (!) so that -LONG_MIN is still within the range that we must allow.
@@ -341,12 +341,12 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
     long long longlong_value = StringToLongLong(valstring.c_str(), can_be_an_integer);
     if (can_be_an_integer)
     {
-        if (valstring.length() > 1 && '0' == valstring[0] && IsDigit(valstring[1]))
+        if (valstring.length() > 1u && '0' == valstring[0] && IsDigit(valstring[1]))
             Warning("'%s' is interpreted as a number in decimal notation", symstring.c_str());
 
         if (longlong_value > LONG_MAX)
         {
-            if (valstring.length() > 2 &&
+            if (valstring.length() > 2u &&
                 IsDigit(valstring[0]) &&
                 IsDigit(valstring[1]) &&
                 longlong_value == -static_cast<long long>(LONG_MIN))
@@ -362,7 +362,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
             }
 
             if (longlong_value >= 0x80000000 &&
-                valstring.length() > 1 &&
+                valstring.length() > 1u &&
                 valstring[0] == '0' &&
                 (valstring[1] == 'x' || valstring[1] == 'X'))
             {
@@ -370,7 +370,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
                 if (longlong_value > 0xFFFFFFFF)
                     UserError(
                         "Too many significant hex digits in '%s' (at most 8 significant digits allowed)",
-                        (symstring.length() <= 20? symstring : symstring.substr(0, 20) + "...").c_str());
+                        (symstring.length() <= 20u? symstring : symstring.substr(0u, 20u) + "...").c_str());
                 // 'strtoll()' has converted this hexadecimal into a value that
                 // is too large for a long. However, this is still legal and
                 // yields a negative long number.
@@ -380,7 +380,7 @@ void AGS::Scanner::ReadInNumberLit(std::string &symstring, ScanType &scan_type, 
             {
                 UserError(
                     "Literal integer '%s' is out of bounds (maximum is '%d')",
-                    symstring.length() <= 20 ? symstring.c_str() : (symstring.substr(0, 20) + "...").c_str(),
+                    symstring.length() <= 20u ? symstring.c_str() : (symstring.substr(0u, 20u) + "...").c_str(),
                     LONG_MAX);
             }
         }
@@ -456,7 +456,7 @@ void AGS::Scanner::ReadInCharLit(std::string &symstring, CodeCell &value)
 int AGS::Scanner::OctDigits2Char(int first_digit_char, std::string &symstring)
 {
     int ret = first_digit_char - '0';
-    for (size_t digit_idx = 0; digit_idx < 2; ++digit_idx)
+    for (size_t digit_idx = 0u; digit_idx < 2u; ++digit_idx)
     {
         int const digit = Peek() - '0';
         if (digit < 0 || digit >= 8)
@@ -473,7 +473,7 @@ int AGS::Scanner::OctDigits2Char(int first_digit_char, std::string &symstring)
 int AGS::Scanner::HexDigits2Char(std::string &symstring)
 {
     int ret = 0;
-    for (size_t digit_idx = 0; digit_idx < 2; ++digit_idx)
+    for (size_t digit_idx = 0u; digit_idx < 2u; ++digit_idx)
     {
         int hexdigit = Peek();
         //convert a..f to A..F
@@ -586,8 +586,8 @@ void AGS::Scanner::ReadInStringLit(std::string &symstring, std::string &valstrin
             pos_before_skip = _inputStream.tellg();
             lineno_before_skip = _lineno;
             Get(); // Eat leading '"'
-            char tbuffer[kNewSectionLitPrefixSize + 1];
-            _inputStream.get(tbuffer, kNewSectionLitPrefixSize + 1, 0);
+            char tbuffer[kNewSectionLitPrefixSize + 1u];
+            _inputStream.get(tbuffer, kNewSectionLitPrefixSize + 1u, 0);
             _eofReached |= _inputStream.eof();
             _failed |= _inputStream.fail();
             // Undo the reading

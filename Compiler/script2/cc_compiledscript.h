@@ -36,7 +36,7 @@ public:
     struct FuncProps
     {
         std::string Name;
-        size_t NumOfParams;
+        size_t ParamsCount;
         CodeLoc CodeOffs;
     };
     std::vector<FuncProps> Functions = {};
@@ -73,7 +73,7 @@ public:
     inline void FixupPrevious(FixupType ftype) { AddFixup(codesize - 1, ftype); };
 
     // Add a function named 'func_name' to the functions repository
-    CodeLoc AddNewFunction(std::string const &func_name, size_t num_of_parameters);
+    CodeLoc AddNewFunction(std::string const &func_name, size_t params_count);
 
     inline bool IsImport(std::string const &name) const { return 0 < ImportIdx.count(name); }
 
@@ -83,7 +83,7 @@ public:
     // Add an exported entity to the export repository;
     // it has type vartype, resides at location; if it is a function
     // Note: This function returns -1 on error
-    int AddExport(std::string const &name, CodeLoc location, size_t num_of_arguments = INT_MAX);
+    int AddExport(std::string const &name, CodeLoc location, size_t arguments_count = INT_MAX);
 
     // Start a new section of the code.
     ErrorType StartNewSection(std::string const &name);

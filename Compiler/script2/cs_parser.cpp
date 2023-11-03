@@ -285,9 +285,9 @@ void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string 
         for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
         {
             errmsg += "'" + _sym.GetName(expected[expected_idx]) + "'";
-            if (expected_idx + 2 < expected.size())
+            if (expected_idx + 2u < expected.size())
                 errmsg += ", ";
-            else if (expected_idx + 2 == expected.size())
+            else if (expected_idx + 2u == expected.size())
                 errmsg += " or ";
         }
     }
@@ -514,15 +514,15 @@ bool AGS::Parser::ContainsReleasableDynpointers(Vartype vartype)
 
 // We're at the end of a block and releasing a standard array of pointers.
 // MAR points to the array start. Release each array element (pointer).
-void AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements)
+void AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t elements_count)
 {
-    if (num_of_elements == 0)
+    if (elements_count == 0u)
         return;
 
-    if (num_of_elements < 4)
+    if (elements_count < SIZE_OF_STACK_CELL)
     {
         WriteCmd(SCMD_MEMZEROPTR);
-        for (size_t loop = 1; loop < num_of_elements; ++loop)
+        for (size_t loop = 1u; loop < elements_count; ++loop)
         {
             WriteCmd(SCMD_ADD, SREG_MAR, SIZE_OF_DYNPOINTER);
             _reg_track.SetRegister(SREG_MAR);
@@ -531,7 +531,7 @@ void AGS::Parser::FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements)
         return;
     }
 
-    WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, elements_count);
     _reg_track.SetRegister(SREG_AX);
 
     BackwardJumpDest loop_start(_scrip);
@@ -598,11 +598,11 @@ void AGS::Parser::FreeDynpointersOfStruct(Vartype struct_vtype)
 
 // We're at the end of a block and we're releasing a standard array of struct.
 // MAR points to the start of the array. Release all the pointers in the array.
-void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements)
+void AGS::Parser::FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t elements_count)
 {
 
     // AX will be the index of the current element
-    WriteCmd(SCMD_LITTOREG, SREG_AX, num_of_elements);
+    WriteCmd(SCMD_LITTOREG, SREG_AX, elements_count);
 
     BackwardJumpDest loop_start(_scrip);
     loop_start.Set();
@@ -625,19 +625,19 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array)
 {
     Vartype const array_vartype =
         _sym.IsVartype(the_array) ? the_array : _sym.GetVartype(the_array);
-    size_t const num_of_elements = _sym.NumArrayElements(array_vartype);
-    if (num_of_elements < 1)
+    size_t const elements_count = _sym.ArrayElementsCount(array_vartype);
+    if (elements_count < 1u)
         return; // nothing to do
     Vartype const element_vartype =
         _sym[array_vartype].VartypeD->BaseVartype;
     if (_sym.IsDynpointerVartype(element_vartype))
     {
-        FreeDynpointersOfStdArrayOfDynpointer(num_of_elements);
+        FreeDynpointersOfStdArrayOfDynpointer(elements_count);
         return;
     }
 
     if (_sym.IsStructVartype(element_vartype))
-        FreeDynpointersOfStdArrayOfStruct(element_vartype, num_of_elements);
+        FreeDynpointersOfStdArrayOfStruct(element_vartype, elements_count);
 }
 
 // Note: Currently, the structs/arrays that are pointed to cannot contain
@@ -1153,7 +1153,7 @@ void AGS::Parser::ParseFuncdecl_Paramlist(Symbol funcsym, bool body_follows)
         if ((++param_idx) >= MAX_FUNCTION_PARAMETERS)
             UserError("Too many parameters defined for function (max. allowed: %u)", MAX_FUNCTION_PARAMETERS - 1u);
 
-        ParseParamlist_Param(funcsym, body_follows, tqs, ParseVartype(), _sym.NumOfFuncParams(funcsym) + 1);
+        ParseParamlist_Param(funcsym, body_follows, tqs, ParseVartype(), _sym.FuncParamsCount(funcsym) + 1u);
             
         tqs = {}; // type qualifiers have been used up
 
@@ -1218,16 +1218,16 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
         UserError(msg.c_str(), func_name.c_str(), this_tq_str.c_str(), known_tq_str.c_str());
     }
 
-    size_t const known_num_parameters = known_info->Parameters.size() - 1;
-    size_t const this_num_parameters = this_entry->Parameters.size() - 1;
-    if (known_num_parameters != this_num_parameters)
+    size_t const known_parameters_count = known_info->Parameters.size() - 1u;
+    size_t const this_parameters_count = this_entry->Parameters.size() - 1u;
+    if (known_parameters_count != this_parameters_count)
         UserError(
 			ReferenceMsgLoc(
 				"Function '%s' is declared with %d mandatory parameters here, %d mandatory parameters elswehere",
 				known_declared).c_str(), 
 			func_name.c_str(), 
-			this_num_parameters, 
-			known_num_parameters);
+			this_parameters_count, 
+			known_parameters_count);
 
     if (known_info->IsVariadic != this_entry->IsVariadic)
     {
@@ -1257,7 +1257,7 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
 
     auto const &known_params = known_info->Parameters;
     auto const &this_params = this_entry->Parameters;
-    for (size_t param_idx = 1; param_idx <= this_num_parameters; param_idx++)
+    for (size_t param_idx = 1u; param_idx <= this_parameters_count; param_idx++)
     {
         Vartype const known_param_vartype = known_params[param_idx].Vartype;
         Vartype const this_param_vartype = this_params[param_idx].Vartype;
@@ -1276,7 +1276,7 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
     {
         // If none of the parameters have a default, we'll let this through.
         bool has_default = false;
-        for (size_t param_idx = 1; param_idx < this_params.size(); ++param_idx)
+        for (size_t param_idx = 1u; param_idx < this_params.size(); ++param_idx)
             if (kKW_NoSymbol != this_params[param_idx].Default)
             {
                 has_default = true;
@@ -1286,7 +1286,7 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
             return;
     }
 
-    for (size_t param_idx = 1; param_idx < this_params.size(); ++param_idx)
+    for (size_t param_idx = 1u; param_idx < this_params.size(); ++param_idx)
     {
         auto const this_default = this_params[param_idx].Default;
         auto const known_default = known_params[param_idx].Default;
@@ -1311,12 +1311,12 @@ void AGS::Parser::ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &fun
 }
 
 // Enter the function in the imports[] or functions[] array; get its index   
-void AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t num_of_parameters, CodeLoc &function_soffs)
+void AGS::Parser::ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs)
 {
     if (body_follows)
     {
         // Index of the function in the ccCompiledScript::functions[] array
-        function_soffs = _scrip.AddNewFunction(_sym.GetName(name_of_func), num_of_parameters);
+        function_soffs = _scrip.AddNewFunction(_sym.GetName(name_of_func), params_count);
         if (function_soffs < 0)
             UserError("Max. number of functions exceeded");
 		
@@ -1378,7 +1378,7 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
     {
         // Functions only become struct components if they are declared in a struct or as extender
         std::string component = _sym.GetName(name_of_func);
-        component.erase(0, component.rfind(':') + 1);
+        component.erase(0, component.rfind(':') + 1u);
         UserError(
             ReferenceMsgSym("Function '%s' has not been declared within struct '%s' as a component", struct_of_func).c_str(),
             component.c_str(), _sym.GetName(struct_of_func).c_str());
@@ -1390,7 +1390,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     if (PP::kMain == _pp)
     {
         int func_startoffs;
-        ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport], _sym.NumOfFuncParams(name_of_func), func_startoffs);
+        ParseFuncdecl_EnterAsImportOrFunc(name_of_func, body_follows, tqs[TQ::kImport], _sym.FuncParamsCount(name_of_func), func_startoffs);
         _sym[name_of_func].FunctionD->Offset = func_startoffs;
     }
 
@@ -1414,7 +1414,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     {
         char appendage[10];
         
-        sprintf(appendage, "^%d", _sym.NumOfFuncParams(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
+        sprintf(appendage, "^%d", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
         strcat(_scrip.imports[imports_idx], appendage);
     }
 
@@ -1621,10 +1621,10 @@ CodeCell AGS::Parser::GetOpcode(Symbol const op_sym, Vartype vartype1, Vartype v
     CodeCell opcode = _sym[op_sym].OperatorD->IntOpcode;
 
     std::string msg = "Left-hand side of '<op>' term";
-    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
+    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym));
     CheckVartypeMismatch(vartype1, kKW_Int, true, msg);
     msg = "Right-hand side of '<op>' term";
-    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
+    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym));
     CheckVartypeMismatch(vartype2, kKW_Int, true, msg);
     return opcode;
 }
@@ -2037,7 +2037,7 @@ void AGS::Parser::ParseExpression_PrefixNegate(Symbol op_sym, SrcList &expressio
     bool const bitwise_negation = kKW_BitNeg == op_sym;
 
     std::string msg = "Argument of '<op>'";
-    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym));
+    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym));
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
     
     if (eres.kTY_Literal == eres.Type)
@@ -2081,7 +2081,7 @@ void AGS::Parser::ParseExpression_PrefixCrement(Symbol op_sym, AGS::SrcList &exp
     ParseAssignment_ReadLHSForModification(expression, eres);
     
     std::string msg = "Argument of '<op>'";
-    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym).c_str());
+    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym).c_str());
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg); 
     
     WriteCmd((op_is_inc ? SCMD_ADD : SCMD_SUB), SREG_AX, 1);
@@ -2118,7 +2118,7 @@ void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &
 {
     Symbol const op_sym = expression[0];
 
-    if (expression.Length() < 2)
+    if (expression.Length() < 2u)
         UserError(
             "Expected a term after '%s' but didn't find any",
             _sym.GetName(op_sym).c_str());
@@ -2138,7 +2138,7 @@ void AGS::Parser::ParseExpression_Prefix(SrcList &expression, EvaluationResult &
     // We treat this here in the parser because the scanner doesn't know
     // whether a minus symbol stands for a unary minus.
     if (op_sym == kKW_Minus &&
-        expression.Length() == 1 &&
+        expression.Length() == 1u &&
         expression[0] == kKW_OnePastLongMax)
         return ParseExpression_LongMin(eres);
 
@@ -2164,7 +2164,7 @@ void AGS::Parser::StripOutermostParens(SrcList &expression)
 {
     while (expression[0] == kKW_OpenParenthesis)
     {
-        size_t const last = expression.Length() - 1;
+        size_t const last = expression.Length() - 1u;
         if (kKW_CloseParenthesis != expression[last])
             return;
         expression.SetCursor(1u);
@@ -2186,7 +2186,7 @@ void AGS::Parser::ParseExpression_PostfixCrement(Symbol const op_sym, SrcList &e
     ParseAssignment_ReadLHSForModification(expression, eres);
     
     std::string msg = "Argument of '<op>'";
-    msg.replace(msg.find("<op>"), 4, _sym.GetName(op_sym).c_str());
+    msg.replace(msg.find("<op>"), 4u, _sym.GetName(op_sym).c_str());
     CheckVartypeMismatch(eres.Vartype, kKW_Int, true, msg);
     
     // Really do the assignment the long way so that all the checks and safeguards will run.
@@ -2273,7 +2273,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
     SrcList term1 = SrcList(expression, 0, tern_idx);
 
     // Second term begins after the '?', we don't know how long it is yet
-    SrcList after_term1 = SrcList(expression, tern_idx + 1, expression.Length() - (tern_idx + 1));
+    SrcList after_term1 = SrcList(expression, tern_idx + 1u, expression.Length() - (tern_idx + 1u));
 
     // Find beginning of third term
     after_term1.StartRead();
@@ -2283,7 +2283,7 @@ void AGS::Parser::ParseExpression_Ternary(size_t tern_idx, SrcList &expression, 
         expression.SetCursor(tern_idx);
         UserError("Didn't find the matching ':' to '?'");
     }
-    size_t const term3_start = after_term1.GetCursor() + 1;
+    size_t const term3_start = after_term1.GetCursor() + 1u;
     SrcList term3 = SrcList(after_term1, term3_start, after_term1.Length() - term3_start);
     SrcList term2 = SrcList(after_term1, 0u, after_term1.GetCursor());
     if (0 == term3.Length())
@@ -2440,7 +2440,7 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
         // if AX is 0 then the AND has failed, so just jump directly to the end of the term
         // AX will still be 0 so that will do as the result of the calculation
         lazy_evaluation = true;
-        expression.SetCursor(op_idx + 1);
+        expression.SetCursor(op_idx + 1u);
         WriteCmd(SCMD_JZ, kDestinationPlaceholder);
         to_exit.AddParam();
     }
@@ -2449,7 +2449,7 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
         // If AX is non-zero then the OR has succeeded, so just jump directly to the end of the term; 
         // AX will still be non-zero so that will do as the result of the calculation
         lazy_evaluation = true;
-        expression.SetCursor(op_idx + 1);
+        expression.SetCursor(op_idx + 1u);
         WriteCmd(SCMD_JNZ, kDestinationPlaceholder);
         to_exit.AddParam();
     }
@@ -2463,11 +2463,11 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
         PushReg(SREG_AX);
     }
 
-    SrcList rhs = SrcList(expression, op_idx + 1, expression.Length());
-    if (0 == rhs.Length())
+    SrcList rhs = SrcList(expression, op_idx + 1u, expression.Length());
+    if (0u == rhs.Length())
     {
         // there is no right hand side for the expression
-        expression.SetCursor(op_idx + 1);
+        expression.SetCursor(op_idx + 1u);
         UserError("Binary operator '%s' doesn't have a right hand side", _sym.GetName(operator_sym).c_str());
     }
 
@@ -2479,7 +2479,7 @@ void AGS::Parser::ParseExpression_Binary(size_t const op_idx, SrcList &expressio
 
     if (!lazy_evaluation)
     {
-        expression.SetCursor(op_idx + 1);
+        expression.SetCursor(op_idx + 1u);
         PopReg(SREG_BX); // Note, we pop to BX although we have pushed AX
         _reg_track.SetRegister(SREG_BX);
         // now the result of the left side is in BX, of the right side is in AX
@@ -2555,9 +2555,9 @@ void AGS::Parser::ParseExpression_InParens(SrcList &expression, EvaluationResult
 
 // We're in the parameter list of a function call, and we have less parameters than declared.
 // Provide defaults for the missing values
-void AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args,Symbol funcSymbol, bool func_is_import)
+void AGS::Parser::AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count,Symbol funcSymbol, bool func_is_import)
 {
-    for (size_t arg_idx = num_func_args; arg_idx > num_supplied_args; arg_idx--)
+    for (size_t arg_idx = func_args_count; arg_idx > supplied_args_count; arg_idx--)
     {
         Symbol const param_default = _sym[funcSymbol].FunctionD->Parameters[arg_idx].Default;
         if (kKW_NoSymbol == param_default)
@@ -2612,20 +2612,20 @@ std::string const AGS::Parser::ReferenceMsgSym(std::string const &msg,Symbol sym
     return ReferenceMsgLoc(msg, _sym.GetDeclared(symb));
 }
 
-void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t num_func_args, size_t num_supplied_args,Symbol funcSymbol, bool func_is_import)
+void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &params, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count,Symbol funcSymbol, bool func_is_import)
 {
-    size_t param_num = num_supplied_args + 1;
-    size_t start_of_current_param = 0;
+    size_t param_count = supplied_args_count + 1u;
+    size_t start_of_current_param = 0u;
     int end_of_current_param = closed_paren_idx;  // can become < 0, points to (last symbol of parameter + 1)
     // Go backwards through the parameters since they must be pushed that way
     do
     {
         // Find the start of the next parameter
-        param_num--;
+        param_count--;
         int delimiter_nesting_depth = 0;
-        for (size_t paramListIdx = end_of_current_param - 1; true; paramListIdx--)
+        for (size_t paramListIdx = end_of_current_param - 1u; true; paramListIdx--)
         {
-            Symbol const &symb = parameters[paramListIdx];
+            Symbol const &symb = params[paramListIdx];
             if (_sym.IsDelimeter(symb))
             {
                 bool const is_opener = _sym[symb].DelimeterD->Opening;
@@ -2638,7 +2638,7 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
             if ((delimiter_nesting_depth == 0 && kKW_Comma == symb) ||
                 (delimiter_nesting_depth < 0 && kKW_OpenParenthesis == symb))
             {
-                start_of_current_param = paramListIdx + 1;
+                start_of_current_param = paramListIdx + 1u;
                 break;
             }
             if (paramListIdx == 0)
@@ -2651,7 +2651,7 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
         // Compile the parameter
         EvaluationResult eres;
 
-        SrcList current_param = SrcList(parameters, start_of_current_param, end_of_current_param - start_of_current_param);
+        SrcList current_param = SrcList(params, start_of_current_param, end_of_current_param - start_of_current_param);
         // Note, don't use 'ParseExpression_Term()' here; that function doesn't check
         // whether its parameter is nothing but an expression.
         ParseExpression(current_param, eres);
@@ -2659,10 +2659,10 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
             Expect(SymbolList{ kKW_Comma, kKW_CloseParenthesis }, current_param.PeekNext());
         EvaluationResultToAx(eres);
 
-        if (param_num <= num_func_args) // we know what type to expect
+        if (param_count <= func_args_count) // we know what type to expect
         {
             // If we need a string object ptr but AX contains a normal string, convert AX
-            Vartype const param_vartype = _sym[funcSymbol].FunctionD->Parameters[param_num].Vartype;
+            Vartype const param_vartype = _sym[funcSymbol].FunctionD->Parameters[param_count].Vartype;
             ConvertAXStringToStringObject(param_vartype, eres.Vartype);
             // If we need a normal string but AX contains a string object ptr, 
             // check that this ptr isn't null
@@ -2671,7 +2671,7 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
                 WriteCmd(SCMD_CHECKNULLREG, SREG_AX);
 
             std::string msg = "Parameter #<num> of call to function <func>";
-            msg.replace(msg.find("<num>"), 5, std::to_string(param_num));
+            msg.replace(msg.find("<num>"), 5, std::to_string(param_count));
             msg.replace(msg.find("<func>"), 6, _sym.GetName(funcSymbol));
             CheckVartypeMismatch(eres.Vartype, param_vartype, true, msg);
         }
@@ -2689,23 +2689,23 @@ void AGS::Parser::AccessData_FunctionCall_PushParams(SrcList &parameters, size_t
         else
             PushReg(SREG_AX);
 
-        end_of_current_param = start_of_current_param - 1;
+        end_of_current_param = start_of_current_param - 1u;
     }
     while (end_of_current_param > 0);
 }
 
 
 // Count parameters, check that all the parameters are non-empty; find closing paren
-void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters,Symbol name_of_func, size_t &index_of_close_paren, size_t &num_supplied_args)
+void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &params,Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count)
 {
-    size_t delimeter_nesting_depth = 1;
-    num_supplied_args = 1;
+    size_t delimeter_nesting_depth = 1u;
+    supplied_args_count = 1u;
     size_t param_idx;
     bool found_param_symbol = false;
 
-    for (param_idx = 1; param_idx < parameters.Length(); param_idx++)
+    for (param_idx = 1u; param_idx < params.Length(); param_idx++)
     {
-        Symbol const &symb = parameters[param_idx];
+        Symbol const &symb = params[param_idx];
 
         if (_sym.IsDelimeter(symb))
         {
@@ -2724,40 +2724,40 @@ void AGS::Parser::AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters,
 
         if (1 ==delimeter_nesting_depth && kKW_Comma == symb)
         {
-            num_supplied_args++;
+            supplied_args_count++;
             if (found_param_symbol)
                 continue;
 
-            UserError("Argument %d in function call is empty", num_supplied_args - 1);
+            UserError("Argument %d in function call is empty", supplied_args_count - 1u);
         }
         found_param_symbol = true;
     }
 
     // Special case: "()" means 0 arguments
-    if (num_supplied_args == 1 &&
-        parameters.Length() > 1 &&
-        kKW_CloseParenthesis == parameters[1])
+    if (supplied_args_count == 1u &&
+        params.Length() > 1u &&
+        kKW_CloseParenthesis == params[1])
     {
-        num_supplied_args = 0;
+        supplied_args_count = 0u;
     }
 
     index_of_close_paren = param_idx;
 
-    if (kKW_CloseParenthesis != parameters[index_of_close_paren])
+    if (kKW_CloseParenthesis != params[index_of_close_paren])
         InternalError("Missing ')' at the end of the parameter list");
-    if (index_of_close_paren > 0 && kKW_Comma == parameters[index_of_close_paren - 1])
+    if (index_of_close_paren > 0u && kKW_Comma == params[index_of_close_paren - 1u])
         UserError("Last argument in function call is empty");
-    if (delimeter_nesting_depth > 0)
+    if (delimeter_nesting_depth > 0u)
         InternalError("Parser confused near '%s'", _sym.GetName(name_of_func).c_str());
 }
 
 // We are processing a function call. General the actual function call
-void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import)
+void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t args_count, bool func_is_import)
 {
     if (func_is_import)
     {
         // tell it how many args for this call (nested imported functions cause stack problems otherwise)
-        WriteCmd(SCMD_NUMFUNCARGS, num_args);
+        WriteCmd(SCMD_NUMFUNCARGS, args_count);
     }
 
     // Load function address into AX
@@ -2778,8 +2778,8 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
         WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
         _reg_track.SetAllRegisters();
         // At runtime, we will arrive here when the function call has returned: Restore the stack
-        if (num_args > 0)
-            WriteCmd(SCMD_SUBREALSTACK, num_args);
+        if (args_count > 0u)
+            WriteCmd(SCMD_SUBREALSTACK, args_count);
         return;
     }
 
@@ -2796,9 +2796,9 @@ void AGS::Parser::AccessData_GenerateFunctionCall(Symbol name_of_func, size_t nu
     _reg_track.SetAllRegisters();
 
     // At runtime, we will arrive here when the function call has returned: Restore the stack
-    if (num_args > 0)
+    if (args_count > 0u)
     {
-        size_t const size_of_passed_args = num_args * SIZE_OF_STACK_CELL;
+        size_t const size_of_passed_args = args_count * SIZE_OF_STACK_CELL;
         WriteCmd(SCMD_SUB, SREG_SP, size_of_passed_args);
         _scrip.OffsetToLocalVarBlock -= size_of_passed_args;
     }
@@ -2840,39 +2840,39 @@ void AGS::Parser::AccessData_GenerateDynarrayLengthFuncCall(EvaluationResult &er
 
 // We are processing a function call.
 // Get the parameters of the call and push them onto the stack.
-void AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args)
+void AGS::Parser::AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &params, size_t &actual_args_count)
 {
-    size_t const num_func_args = _sym.NumOfFuncParams(name_of_func);
+    size_t const func_args_count = _sym.FuncParamsCount(name_of_func);
 
-    size_t num_supplied_args = 0;
+    size_t supplied_args_count = 0u;
     size_t closed_paren_idx;
-    AccessData_FunctionCall_CountAndCheckParm(parameters, name_of_func, closed_paren_idx, num_supplied_args);
+    AccessData_FunctionCall_CountAndCheckParm(params, name_of_func, closed_paren_idx, supplied_args_count);
     
     // Push default parameters onto the stack when applicable
     // This will give an error if there aren't enough default parameters
-    if (num_supplied_args < num_func_args)
+    if (supplied_args_count < func_args_count)
     {
-        AccessData_FunctionCall_ProvideDefaults(num_func_args, num_supplied_args, name_of_func, func_is_import);
+        AccessData_FunctionCall_ProvideDefaults(func_args_count, supplied_args_count, name_of_func, func_is_import);
     }
 	
-    if (num_supplied_args > num_func_args && !_sym.IsVariadicFunc(name_of_func))
+    if (supplied_args_count > func_args_count && !_sym.IsVariadicFunc(name_of_func))
         UserError(
-            (1 == num_func_args) ?
+            (1 == func_args_count) ?
                 "Expected just %d parameter but found %d" :
                 "Expected just %d parameters but found %d",
-            num_func_args,
-            num_supplied_args);
+            func_args_count,
+            supplied_args_count);
 
     // ASSERT at this point, the number of parameters is okay
 
     // Push the explicit arguments of the function
-    if (num_supplied_args > 0)
+    if (supplied_args_count > 0u)
     {
-        AccessData_FunctionCall_PushParams(parameters, closed_paren_idx, num_func_args, num_supplied_args, name_of_func, func_is_import);
+        AccessData_FunctionCall_PushParams(params, closed_paren_idx, func_args_count, supplied_args_count, name_of_func, func_is_import);
     }
 
-    actual_num_args = std::max(num_supplied_args, num_func_args);
-    parameters.SetCursor(closed_paren_idx + 1); // Go to the end of the parameter list
+    actual_args_count = std::max(supplied_args_count, func_args_count);
+    params.SetCursor(closed_paren_idx + 1u); // Go to the end of the parameter list
 }
 
 void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres)
@@ -2915,12 +2915,12 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
         mar_pushed = true;
     }
 
-    size_t num_args = 0;
-    AccessData_PushFunctionCallParams(name_of_func, func_is_import, expression, num_args);
+    size_t args_count = 0u;
+    AccessData_PushFunctionCallParams(name_of_func, func_is_import, expression, args_count);
     
     if (called_func_uses_this)
     {
-        if (0 == num_args)
+        if (0u == args_count)
         {   // MAR must still be current, so undo the unneeded PUSH above.
             _scrip.OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
             _scrip.codesize -= 2;
@@ -2930,14 +2930,14 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
         {   // Recover the value of MAR from the stack. It's in front of the parameters.
             WriteCmd(
                 SCMD_LOADSPOFFS,
-                (1 + (func_uses_normal_stack ? num_args : 0)) * SIZE_OF_STACK_CELL);
+                (1 + (func_uses_normal_stack ? args_count : 0)) * SIZE_OF_STACK_CELL);
             WriteCmd(SCMD_MEMREAD, SREG_MAR);
             _reg_track.SetRegister(SREG_MAR);
         }
         WriteCmd(SCMD_CALLOBJ, SREG_MAR);
     }
 
-    AccessData_GenerateFunctionCall(name_of_func, num_args, func_is_import);
+    AccessData_GenerateFunctionCall(name_of_func, args_count, func_is_import);
 
     eres.Type = eres.kTY_RunTimeValue;
     eres.Location = eres.kLOC_AX;
@@ -2992,7 +2992,7 @@ bool AGS::Parser::ParseExpression_CompileTime(Symbol const op_sym, EvaluationRes
 
 void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &eres, bool result_used)
 {
-    if (kKW_OpenParenthesis == expression[0])
+    if (kKW_OpenParenthesis == expression[0u])
         return ParseExpression_InParens(expression, eres, result_used);
 
     AccessData(VAC::kReading, expression, eres);
@@ -3001,7 +3001,7 @@ void AGS::Parser::ParseExpression_NoOps(SrcList &expression, EvaluationResult &e
 
 void AGS::Parser::ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used)
 {
-    if (expression.Length() == 0)
+    if (expression.Length() == 0u)
         InternalError("Cannot parse empty subexpression");
 
     int const least_binding_op_idx = IndexOfLeastBondingOperator(expression);  // can be < 0
@@ -3053,7 +3053,7 @@ Symbol  AGS::Parser::ConstructAttributeFuncName(Symbol attribsym, bool is_setter
     // If "::" in the name, take the part after the last "::"
     size_t const m_access_position = member_str.rfind("::");
     if (std::string::npos != m_access_position)
-        member_str = member_str.substr(m_access_position + 2);
+        member_str = member_str.substr(m_access_position + 2u);
     char const *stem_str = is_setter ? "set" : "get";
     char const *indx_str = is_indexed ? "i_" : "_";
     std::string func_str = stem_str + (indx_str + member_str);
@@ -3105,14 +3105,14 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
     if (attrib_uses_this)
         PushReg(SREG_OP); // is the current this ptr, must be restored after call
 
-    size_t num_of_args = 0;
+    size_t args_count = 0u;
     if (is_setter)
     {
         if (func_is_import)
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             PushReg(SREG_AX);
-        ++num_of_args;
+        ++args_count;
     }
 
     if (call_is_indexed)
@@ -3133,13 +3133,13 @@ void AGS::Parser::AccessData_CallAttributeFunc(bool is_setter, SrcList &expressi
             WriteCmd(SCMD_PUSHREAL, SREG_AX);
         else
             PushReg(SREG_AX);
-        ++num_of_args;
+        ++args_count;
     }
 
     if (attrib_uses_this)
         WriteCmd(SCMD_CALLOBJ, SREG_MAR); // make MAR the new this ptr
 
-    AccessData_GenerateFunctionCall(qualified_func_name, num_of_args, func_is_import);
+    AccessData_GenerateFunctionCall(qualified_func_name, args_count, func_is_import);
 
     if (attrib_uses_this)
         PopReg(SREG_OP); // restore old this ptr after the func call
@@ -3177,7 +3177,7 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
     SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket }, expression);
     size_t const index_end = expression.GetCursor();
     SrcList current_index = SrcList(expression, index_start, index_end - index_start);
-    if (0 == current_index.Length())
+    if (0u == current_index.Length())
         UserError("Array index #u is empty, this is not supported here", idx + 1u);
 
     // If all ops are pending on the MAR register, it hasn't been set yet at all.
@@ -3205,7 +3205,7 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
                 "Array index #%u is %d, thus too low (minimum is 0)",
                 idx + 1u,
                 index_value);
-        if (dim > 0 && static_cast<size_t>(index_value) >= dim)
+        if (dim > 0u && static_cast<size_t>(index_value) >= dim)
             UserError(
                 "Array index #%u is %d, thus too high (maximum is %u)",
                 idx + 1u,
@@ -3236,7 +3236,7 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
     // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
     if (!is_dynarray)
         WriteCmd(SCMD_CHECKBOUNDS, SREG_AX, dim);
-    if (factor != 1)
+    if (factor != 1u)
     {
         WriteCmd(SCMD_MUL, SREG_AX, factor);
         _reg_track.SetRegister(SREG_AX);
@@ -3265,7 +3265,7 @@ void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, Evalu
     Vartype const element_vartype = _sym[eres.Vartype].VartypeD->BaseVartype;
     size_t const element_size = _sym.GetSize(element_vartype);
     std::vector<size_t> dim_sizes;
-    std::vector<size_t> dynarray_dims = { 0, };
+    std::vector<size_t> dynarray_dims = { 0u, };
     std::vector<size_t> &dims = is_dynarray ? dynarray_dims : _sym[eres.Vartype].VartypeD->Dims;
     eres.Vartype = element_vartype;
 
@@ -3273,16 +3273,16 @@ void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, Evalu
         AccessData_Dereference(eres);
 
     // Number of dimensions and the the size of the dimension for each dimension
-    size_t const num_of_dims = dims.size();
-    dim_sizes.resize(num_of_dims);
+    size_t const dims_count = dims.size();
+    dim_sizes.resize(dims_count);
     size_t factor = element_size;
-    for (int dim_idx = num_of_dims - 1; dim_idx >= 0; dim_idx--) // yes, "int"
+    for (int dim_idx = dims_count - 1; dim_idx >= 0; dim_idx--) // yes, "int"
     {
         dim_sizes[dim_idx] = factor;
         factor *= dims[dim_idx];
     }
 
-    for (size_t dim_idx = 0; dim_idx < num_of_dims; dim_idx++)
+    for (size_t dim_idx = 0u; dim_idx < dims_count; dim_idx++)
     {
         EvaluationResult eres_index;
         AccessData_ProcessCurrentArrayIndex(dim_idx, dims[dim_idx], dim_sizes[dim_idx], is_dynarray, expression, eres_index);
@@ -3298,13 +3298,13 @@ void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, Evalu
         }
         if (kKW_Comma == divider || kKW_OpenBracket == divider)
         {
-            if (num_of_dims == dim_idx + 1)
-                UserError("Expected %d indexes, found more", num_of_dims);
+            if (dims_count == dim_idx + 1u)
+                UserError("Expected %d indexes, found more", dims_count);
             expression.GetNext(); // Eat ',' or '['
             continue;
         }
-        if (num_of_dims != dim_idx + 1)
-            UserError("Expected %d indexes, but only found %d", num_of_dims, dim_idx + 1);
+        if (dims_count != dim_idx + 1u)
+            UserError("Expected %d indexes, but only found %d", dims_count, dim_idx + 1u);
     }
 }
 
@@ -3560,7 +3560,7 @@ AGS::Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol unqualified
     while (strct > 0 && _sym.IsVartype(strct))
     {
         auto const &components = _sym[strct].VartypeD->Components;
-        if (0 < components.count(unqualified_component))
+        if (0u < components.count(unqualified_component))
             return strct;
         strct = _sym[strct].VartypeD->Parent;
     }
@@ -3572,7 +3572,7 @@ AGS::Symbol AGS::Parser::FindComponentInStruct(Vartype strct, Symbol unqualified
     while (strct > 0 && _sym.IsVartype(strct))
     {
         auto const &components = _sym[strct].VartypeD->Components;
-        if (0 < components.count(unqualified_component))
+        if (0u < components.count(unqualified_component))
             return components.at(unqualified_component);
         strct = _sym[strct].VartypeD->Parent;
     }
@@ -3596,7 +3596,7 @@ bool AGS::Parser::AccessData_IsClauseLast(SrcList &expression)
 void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, EvaluationResult &eres)
 {
     expression.StartRead();
-    if (0 == expression.Length())
+    if (0u == expression.Length())
         InternalError("Empty expression");
    
     bool implied_this_dot = false; // only true when "this." is implied
@@ -3865,7 +3865,7 @@ void AGS::Parser::SkipToEndOfExpression(SrcList &src)
 
         // Let a symbol through if it can be considered a component of 'this'.
         if (kKW_NoSymbol != vartype_of_this &&
-            0 < _sym[vartype_of_this].VartypeD->Components.count(peeksym))
+            0u < _sym[vartype_of_this].VartypeD->Components.count(peeksym))
         {
             src.GetNext(); // Eat the peeked symbol
             continue;
@@ -3885,7 +3885,7 @@ void AGS::Parser::ParseExpression(SrcList &src, EvaluationResult &eres)
     size_t const expr_start = src.GetCursor();
     SkipToEndOfExpression(src);
     SrcList expression = SrcList(src, expr_start, src.GetCursor() - expr_start);
-    if (0 == expression.Length())
+    if (0u == expression.Length())
         UserError("Expected an expression, found '%s' instead", _sym.GetName(src.GetNext()).c_str());
 
     size_t const expr_end = src.GetCursor();
@@ -3988,13 +3988,13 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_IntOrFloatVartype(Vartype co
     default:
         UserError("Cannot give an initial value to a variable of type '%s' here", _sym.GetName(wanted_vartype));
         return;
-    case 1:
+    case 1u:
         initial_val[0] = litval;
         return;
-    case 2:
+    case 2u:
         (reinterpret_cast<int16_t *> (&initial_val[0]))[0] = litval;
         return;
-    case 4:
+    case 4u:
         (reinterpret_cast<int32_t *> (&initial_val[0]))[0] = litval;
         return;
     }
@@ -4015,8 +4015,8 @@ void AGS::Parser::ParseVardecl_InitialValAssignment_OldString(std::vector<char> 
     
     if (lit_value.length() >= STRINGBUFFER_LENGTH)
         UserError(
-            "Initializer string is too long (max. chars allowed: %d)",
-            STRINGBUFFER_LENGTH - 1);
+            "Initializer string is too long (max. chars allowed: %u)",
+            STRINGBUFFER_LENGTH - 1u);
 
     initial_val.assign(lit_value.begin(), lit_value.end());
     initial_val.push_back('\0');
@@ -4097,7 +4097,7 @@ void AGS::Parser::ParseStruct_ConstantDefn(Symbol const name_of_struct)
                     _sym.GetName(parent).c_str(),
                     _sym.GetName(qualified_component).c_str());
         }
-        if (!in_struct && _nest.TopLevel() > 1)
+        if (!in_struct && _nest.TopLevel() > 1u)
             ParseVardecl_CheckAndStashOldDefn(qualified_component);
 
         if (_src.PeekNext() == kKW_OpenBracket)
@@ -4141,7 +4141,7 @@ void AGS::Parser::ParseConstantDefn()
 
 void AGS::Parser::ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type)
 {
-    if (vartype == kKW_String && FlagIsSet(_options, SCOPT_OLDSTRINGS) == 0)
+    if (vartype == kKW_String && !FlagIsSet(_options, SCOPT_OLDSTRINGS))
         UserError("Variables of type 'string' aren't supported any longer (use the type 'String' instead)");
     if (vartype == kKW_String && ScT::kImport == scope_type)
         // cannot import because string is really char *, and the pointer won't resolve properly
@@ -4220,7 +4220,7 @@ void AGS::Parser::ParseVardecl_Import(Symbol var_name)
 void AGS::Parser::ParseVardecl_Global(Symbol var_name, Vartype vartype)
 {
     size_t const vartype_size = _sym.GetSize(vartype);
-    std::vector<char> initial_val(vartype_size + 1, '\0');
+    std::vector<char> initial_val(vartype_size + 1u, '\0');
 
     if (kKW_Assign == _src.PeekNext())
         ParseVardecl_InitialValAssignment(var_name, initial_val);
@@ -4320,7 +4320,7 @@ void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scop
 		ParseArray(var_name, vartype);
 
     // Don't warn for builtins or imports, they might have been predefined
-    if (!_sym.IsBuiltinVartype(vartype) && ScT::kImport != scope_type && 0 == _sym.GetSize(vartype))
+    if (!_sym.IsBuiltinVartype(vartype) && ScT::kImport != scope_type && 0u == _sym.GetSize(vartype))
         Warning(
             ReferenceMsgSym("Variable '%s' has zero size", vartype).c_str(),
             _sym.GetName(var_name).c_str());
@@ -4420,8 +4420,8 @@ void AGS::Parser::ParseFuncBodyStart(Symbol struct_of_func,Symbol name_of_func)
     // If there are dynpointer parameters, then the caller has simply "pushed" them onto the stack.
     // We catch up here by reading each dynpointer and writing it again using MEMINITPTR
     // to declare that the respective cells will from now on be used for dynpointers.
-    size_t const num_params = _sym.NumOfFuncParams(name_of_func);
-    for (size_t param_idx = 1; param_idx <= num_params; param_idx++) // skip return value param_idx == 0
+    size_t const params_count = _sym.FuncParamsCount(name_of_func);
+    for (size_t param_idx = 1u; param_idx <= params_count; param_idx++) // skip return value param_idx == 0
     {
         Vartype const param_vartype = _sym[name_of_func].FunctionD->Parameters[param_idx].Vartype;
         if (!_sym.IsDynVartype(param_vartype))
@@ -4686,13 +4686,13 @@ void AGS::Parser::ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_fun
 void AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype)
 {
     SymbolTableEntry &entry = _sym[name_of_func];
-    size_t const num_parameters_wanted = (is_indexed ? 1 : 0) + (is_setter ? 1 : 0);
-    if (num_parameters_wanted != _sym.NumOfFuncParams(name_of_func))
+    size_t const params_wanted_count = (is_indexed ? 1u : 0u) + (is_setter ? 1u : 0u);
+    if (params_wanted_count != _sym.FuncParamsCount(name_of_func))
     {
         std::string const msg = ReferenceMsgSym(
             "The attribute function '%s' should have %d parameter(s) but is declared with %d parameter(s) instead",
             name_of_func);
-        UserError(msg.c_str(), entry.Name.c_str(), num_parameters_wanted, _sym.NumOfFuncParams(name_of_func));
+        UserError(msg.c_str(), entry.Name.c_str(), params_wanted_count, _sym.FuncParamsCount(name_of_func));
     }
 
     Vartype const ret_vartype = is_setter ? kKW_Void : vartype;
@@ -4707,7 +4707,7 @@ void AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_s
             _sym.GetName(_sym.FuncReturnVartype(name_of_func)).c_str());
     }
 
-    size_t p_idx = 1;
+    size_t p_idx = 1u;
     if (is_indexed)
     {
         auto actual_vartype = entry.FunctionD->Parameters[p_idx].Vartype;
@@ -4738,17 +4738,17 @@ void AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_s
 
 void AGS::Parser::ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype)
 {
-    auto &parameters = _sym[name_of_func].FunctionD->Parameters;
+    auto &params = _sym[name_of_func].FunctionD->Parameters;
     FuncParameterDesc fpd = {};
     if (is_indexed)
     {
         fpd.Vartype = kKW_Int;
-        parameters.push_back(fpd);
+        params.push_back(fpd);
     }
     if (is_setter)
     {
         fpd.Vartype = vartype;
-        parameters.push_back(fpd);
+        params.push_back(fpd);
     }
 }
 
@@ -5196,7 +5196,7 @@ void AGS::Parser::ParseStruct(TypeQualifierSet tqs, Symbol &struct_of_current_fu
     {
         // round up size to nearest multiple of STRUCT_ALIGNTO
         size_t &struct_size = _sym[stname].VartypeD->Size;
-        if (0 != (struct_size % STRUCT_ALIGNTO))
+        if (0u != (struct_size % STRUCT_ALIGNTO))
             struct_size += STRUCT_ALIGNTO - (struct_size % STRUCT_ALIGNTO);
     }
 
@@ -5488,7 +5488,7 @@ void AGS::Parser::ParseExport_Function(Symbol func)
     int retval = _scrip.AddExport(
         _sym.GetName(func).c_str(),
         _sym[func].FunctionD->Offset,
-        _sym.NumOfFuncParams(func) + 100 * _sym[func].FunctionD->IsVariadic);
+        _sym.FuncParamsCount(func) + 100u * _sym[func].FunctionD->IsVariadic);
     if (retval < 0)
         InternalError("Could not export function");
 }
@@ -5611,7 +5611,7 @@ void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, S
 
 void AGS::Parser::ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type)
 {
-    if (0 != _givm.count(var_name))
+    if (0u != _givm.count(var_name))
     {
         if (_givm[var_name])
             UserError("'%s' is already defined as a global non-import variable", _sym.GetName(var_name).c_str());
@@ -5955,7 +5955,7 @@ void AGS::Parser::ParseAssignmentOrExpression()
     SkipToEndOfExpression(_src);
     SrcList expression = SrcList(_src, expr_start, _src.GetCursor() - expr_start);
 
-    if (expression.Length() == 0)
+    if (expression.Length() == 0u)
         UserError("Unexpected symbol '%s'", _sym.GetName(_src.GetNext()).c_str());
 
     Symbol const assignment_symbol = _src.PeekNext();
@@ -6210,7 +6210,7 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
     {
         if (NestingStack::kNoDefault != _nest.SwitchDefaultIdx())
             UserError("This switch block already has a 'default:' label");
-        _nest.SwitchDefaultIdx() = _nest.SwitchCaseStart().size() - 1;
+        _nest.SwitchDefaultIdx() = _nest.SwitchCaseStart().size() - 1u;
     }
     else // "case"
     {
@@ -6245,7 +6245,7 @@ void AGS::Parser::ParseSwitchLabel(Symbol case_or_default)
 void AGS::Parser::RemoveLocalsFromStack(size_t nesting_level)
 {
     size_t const size_of_local_vars = StacksizeOfLocals(nesting_level);
-    if (size_of_local_vars > 0)
+    if (size_of_local_vars > 0u)
     {
         _scrip.OffsetToLocalVarBlock -= size_of_local_vars;
         WriteCmd(SCMD_SUB, SREG_SP, size_of_local_vars);
@@ -6292,7 +6292,7 @@ void AGS::Parser::ParseBreak()
     // Find the (level of the) looping construct to which the break applies
     // Note that this is similar, but _different_ from what happens at 'continue'.
     size_t nesting_level;
-    for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
+    for (nesting_level = _nest.TopLevel(); nesting_level > 0u; nesting_level--)
     {
         NSType const ltype = _nest.Type(nesting_level);
         if (NSType::kDo == ltype || NSType::kSwitch == ltype || NSType::kWhile == ltype)
@@ -6305,8 +6305,8 @@ void AGS::Parser::ParseBreak()
     _nest.JumpOutLevel() = std::min(_nest.JumpOutLevel(), nesting_level);
 
     size_t const save_offset = _scrip.OffsetToLocalVarBlock;
-    FreeDynpointersOfLocals(nesting_level + 1);
-    RemoveLocalsFromStack(nesting_level + 1);
+    FreeDynpointersOfLocals(nesting_level + 1u);
+    RemoveLocalsFromStack(nesting_level + 1u);
     
     // Jump out of the loop or switch
     WriteCmd(SCMD_JMP, kDestinationPlaceholder);
@@ -6325,21 +6325,21 @@ void AGS::Parser::ParseContinue()
     // Find the level of the looping construct to which the 'continue' applies
     // Note that this is similar, but _different_ from what happens at 'break'.
     size_t nesting_level;
-    for (nesting_level = _nest.TopLevel(); nesting_level > 0; nesting_level--)
+    for (nesting_level = _nest.TopLevel(); nesting_level > 0u; nesting_level--)
     {
         NSType const ltype = _nest.Type(nesting_level);
         if (NSType::kDo == ltype || NSType::kWhile == ltype)
             break;
     }
 
-    if (nesting_level == 0)
+    if (nesting_level == 0u)
         UserError("Can only use 'continue' inside a loop");
 
     _nest.JumpOutLevel() = std::min(_nest.JumpOutLevel(), nesting_level);
 
     size_t const save_offset = _scrip.OffsetToLocalVarBlock;
-    FreeDynpointersOfLocals(nesting_level + 1);
-    RemoveLocalsFromStack(nesting_level + 1);
+    FreeDynpointersOfLocals(nesting_level + 1u);
+    RemoveLocalsFromStack(nesting_level + 1u);
 
     // Jump to the start of the loop
     _nest.Start(nesting_level).WriteJump(SCMD_JMP, _src.GetLineno());
@@ -6525,7 +6525,7 @@ void AGS::Parser::HandleSrcSectionChangeAt(size_t pos)
 void AGS::Parser::ParseInput()
 {
     Parser::NestingStack nesting_stack(_scrip);
-    size_t nesting_level = 0;
+    size_t nesting_level = 0u;
 
     // We start off in the global data part - no code is allowed until a function definition is started
     Symbol struct_of_current_func = kKW_NoSymbol; // non-zero only when a struct member function is open
@@ -6619,7 +6619,7 @@ void AGS::Parser::Parse_ReinitSymTable(size_t size_after_scanning)
 
 void AGS::Parser::Parse_BlankOutUnusedImports()
 {
-    for (size_t entries_idx = 0; entries_idx < _sym.entries.size(); entries_idx++)
+    for (size_t entries_idx = 0u; entries_idx < _sym.entries.size(); entries_idx++)
     {
         if (_sym[entries_idx].Accessed)
             continue;
@@ -6743,7 +6743,7 @@ void AGS::Parser::Parse_CheckForUnresolvedStructForwardDecls()
 
 void AGS::Parser::Parse_CheckFixupSanity()
 {
-    for (size_t fixup_idx = 0; fixup_idx < static_cast<size_t>(_scrip.numfixups); fixup_idx++)
+    for (size_t fixup_idx = 0u; fixup_idx < static_cast<size_t>(_scrip.numfixups); fixup_idx++)
     {
         if (FIXUP_IMPORT != _scrip.fixuptypes[fixup_idx])
             continue;
@@ -6764,12 +6764,12 @@ void AGS::Parser::Parse_CheckFixupSanity()
 
 void AGS::Parser::Parse_ExportAllFunctions()
 {
-    for (size_t func_num = 0; func_num < _scrip.Functions.size(); func_num++)
+    for (size_t func_idx = 0; func_idx < _scrip.Functions.size(); func_idx++)
     {
         if (0 > _scrip.AddExport(
-            _scrip.Functions[func_num].Name,
-            _scrip.Functions[func_num].CodeOffs,
-            _scrip.Functions[func_num].NumOfParams))
+            _scrip.Functions[func_idx].Name,
+            _scrip.Functions[func_idx].CodeOffs,
+            _scrip.Functions[func_idx].ParamsCount))
             InternalError("Function export failed. Out of memory?");
     }
 }

@@ -434,7 +434,7 @@ bool AGS::SymbolTable::IsIdentifier(Symbol s) const
         return false;
     if ('0' <= name[0] && name[0] <= '9')
         return false;
-    for (size_t idx = 0; idx < name.size(); ++idx)
+    for (size_t idx = 0u; idx < name.size(); ++idx)
     {
         char const &ch = name[idx];
         if ('0' <= ch && ch <= '9') continue;
@@ -495,7 +495,7 @@ bool AGS::SymbolTable::IsPrimitiveVartype(Symbol s) const
     return kKW_NoSymbol == entries.at(s).VartypeD->BaseVartype;
 }
 
-size_t AGS::SymbolTable::NumArrayElements(Symbol s) const
+size_t AGS::SymbolTable::ArrayElementsCount(Symbol s) const
 {
     if (IsVariable(s))
         s = entries.at(s).VariableD->Vartype;
@@ -507,10 +507,10 @@ size_t AGS::SymbolTable::NumArrayElements(Symbol s) const
     if (0u == dims_size)
         return 0u;
 
-    size_t num = 1;
-    for (size_t dims_idx = 0; dims_idx < dims_size; ++dims_idx)
-        num *= vdesc->Dims[dims_idx];
-    return num;
+    size_t count = 1u;
+    for (size_t dims_idx = 0u; dims_idx < dims_size; ++dims_idx)
+        count *= vdesc->Dims[dims_idx];
+    return count;
 }
 
 bool AGS::SymbolTable::IsManagedVartype(Symbol s) const
@@ -535,7 +535,7 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
     if (IsAutoptrVartype(symbl))
     {
         std::string name = entries[symbl].Name;
-        int const pos_of_last_ch = name.length() - 1;
+        int const pos_of_last_ch = name.length() - 1u;
         if (pos_of_last_ch >= 0 && ' ' == name[pos_of_last_ch])
             name.resize(pos_of_last_ch); // cut off trailing ' '
         return name;
@@ -550,11 +550,11 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
         return vartype;
 
     std::string conv_name = entries[vartype].Name + "[";
-    size_t const last_idx = dims.size() - 1;
-    size_t num_elements = 1;
-    for (size_t dims_idx = 0; dims_idx <= last_idx; ++dims_idx)
+    size_t const last_idx = dims.size() - 1u;
+    size_t elements_count = 1u;
+    for (size_t dims_idx = 0u; dims_idx <= last_idx; ++dims_idx)
     {
-        num_elements *= dims[dims_idx];
+        elements_count *= dims[dims_idx];
         conv_name += std::to_string(dims[dims_idx]);
         conv_name += (dims_idx == last_idx) ? "]" : ", ";
     }
@@ -565,7 +565,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims,
     entries[array_vartype].VartypeD = new SymbolTableEntry::VartypeDesc;
     entries[array_vartype].VartypeD->Type = VTT::kArray;
     entries[array_vartype].VartypeD->BaseVartype = vartype;
-    entries[array_vartype].VartypeD->Size = num_elements * GetSize(vartype);
+    entries[array_vartype].VartypeD->Size = elements_count * GetSize(vartype);
     entries[array_vartype].VartypeD->Dims = dims;
     return array_vartype;
 }
@@ -717,8 +717,8 @@ AGS::Symbol AGS::SymbolTable::Add(std::string const &name)
     // Extend the entries in chunks instead of one-by-one: Experiments show that this saves time
     if (entries.size() == entries.capacity())
     {
-        size_t const new_size1 = entries.capacity() * 2;
-        size_t const new_size2 = entries.capacity() + 1000;
+        size_t const new_size1 = entries.capacity() * 2u;
+        size_t const new_size2 = entries.capacity() + 1000u;
         entries.reserve((new_size1 < new_size2) ? new_size1 : new_size2);
     }
     int const idx_of_new_entry = entries.size();

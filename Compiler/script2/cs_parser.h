@@ -426,7 +426,7 @@ private:
 
     // We're at the end of a block and releasing a standard array of dynpointers.
     // MAR points to the array start. Release each array element (dynpointer).
-    void FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements);
+    void FreeDynpointersOfStdArrayOfDynpointer(size_t elements_count);
 
     // We're at the end of a block and releasing all the dynpointers in a struct.
     // MAR already points to the start of the struct.
@@ -434,7 +434,7 @@ private:
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements);
+    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t elements_count);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
@@ -498,7 +498,7 @@ private:
     void ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
 
     // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
-    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t num_of_parameters, CodeLoc &function_soffs);
+    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t parameters_count, CodeLoc &function_soffs);
 
     // We're at something like 'int foo(', directly before the '('
     // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
@@ -545,15 +545,15 @@ private:
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
-    void AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+    void AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
 
-    void AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+    void AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
-    void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &num_supplied_args);
+    void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count);
 
     // We are processing a function call. General the actual function call
-    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
+    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t args_count, bool func_is_import);
 
     // Generate the function call for the function that returns the number of elements
     // of a dynarray.
@@ -562,7 +562,7 @@ private:
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
     // Return the number of the parameters pushed
-    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args);
+    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_args_count);
 
     // Process a function call. The parameter list begins with 'expression[1u]' (!)
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres);

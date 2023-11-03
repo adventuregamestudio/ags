@@ -217,10 +217,10 @@ TEST(SymbolTable, ArrayClassic)
     EXPECT_TRUE(symt.IsArrayVartype(array_sym));
     EXPECT_TRUE(symt.IsAnyArrayVartype(array_sym));
     EXPECT_FALSE(symt.IsDynarrayVartype(array_sym));
-    EXPECT_EQ(2, symt.NumArrayElements(array_sym));
+    EXPECT_EQ(2, symt.ArrayElementsCount(array_sym));
 
     symt[array_sym].VartypeD->Dims = { 2, 3, 5, 7, };
-    EXPECT_EQ(2 * 3 * 5 * 7, symt.NumArrayElements(array_sym));
+    EXPECT_EQ(2 * 3 * 5 * 7, symt.ArrayElementsCount(array_sym));
 }
 
 TEST(SymbolTable, OperatorPrio)

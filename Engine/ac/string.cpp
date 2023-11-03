@@ -115,7 +115,7 @@ const char* String_Substring(const char *thisString, int index, int length) {
     size_t end = uoffset(thisString + start, sublen) + start;
     size_t copylen = end - start;
 
-    auto buf = ScriptString::CreateBuffer(copylen, length); // arg is a text length
+    auto buf = ScriptString::CreateBuffer(copylen, sublen);
     memcpy(buf.Get(), thisString + start, copylen);
     buf.Get()[copylen] = 0;
     return CreateNewScriptString(std::move(buf));

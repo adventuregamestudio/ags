@@ -1589,22 +1589,6 @@ namespace AGS.Editor
             if (resetFile)
                 Utilities.TryDeleteFile(configFilePath);
 
-            if (_game.Settings.LetterboxMode)
-            {
-                NativeProxy.WritePrivateProfileString("misc", "defaultres", ((int)_game.Settings.LegacyLetterboxResolution).ToString(), configFilePath);
-                NativeProxy.WritePrivateProfileString("misc", "letterbox", "1", configFilePath);
-                NativeProxy.WritePrivateProfileString("misc", "game_width", null, configFilePath);
-                NativeProxy.WritePrivateProfileString("misc", "game_height", null, configFilePath);
-            }
-            else
-            {
-                NativeProxy.WritePrivateProfileString("misc", "defaultres", null, configFilePath);
-                NativeProxy.WritePrivateProfileString("misc", "letterbox", null, configFilePath);
-                NativeProxy.WritePrivateProfileString("misc", "game_width", _game.Settings.CustomResolution.Width.ToString(), configFilePath);
-                NativeProxy.WritePrivateProfileString("misc", "game_height", _game.Settings.CustomResolution.Height.ToString(), configFilePath);
-            }
-			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
-
             NativeProxy.WritePrivateProfileString("graphics", "driver", GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver), configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "fullscreen",

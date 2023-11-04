@@ -1448,22 +1448,6 @@ namespace AGS.Editor
             sections.Add("sound", new Dictionary<string, string>());
             sections.Add("touch", new Dictionary<string, string>());
 
-            if (_game.Settings.LetterboxMode)
-            {
-                sections["misc"]["defaultres"] = ((int)_game.Settings.LegacyLetterboxResolution).ToString();
-                sections["misc"]["letterbox"] = "1";
-                sections["misc"]["game_width"] = null;
-                sections["misc"]["game_height"] = null;
-            }
-            else
-            {
-                sections["misc"]["defaultres"] = null;
-                sections["misc"]["letterbox"] = null;
-                sections["misc"]["game_width"] = _game.Settings.CustomResolution.Width.ToString();
-                sections["misc"]["game_height"] = _game.Settings.CustomResolution.Height.ToString();
-            }
-            sections["misc"]["gamecolordepth"] = (((int)_game.Settings.ColorDepth) * 8).ToString();
-
             sections["graphics"]["driver"] = GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver);
             sections["graphics"]["windowed"] = _game.DefaultSetup.Windowed ? "1" : "0";
             sections["graphics"]["fullscreen"] =

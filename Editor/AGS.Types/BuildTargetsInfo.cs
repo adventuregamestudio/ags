@@ -6,6 +6,12 @@ using System.Text;
 
 namespace AGS.Types
 {
+    // FIXME: this class should not be in AGS.Types at all.
+    // There should not be any global static collections of interface-implementing
+    // objects in AGS.Types. Also - no hardcoded target names.
+    // Keep in mind: AGS.Types may be linked to virtually any program, not just Editor.
+    // Unfortunately it's coupled in AGS.Types.Settings. Need to find out how to
+    // decouple it, use assigned reference, or delegate, or anything.
     public class BuildTargetsInfo
     {
         public const string DATAFILE_TARGET_NAME = "DataFile";

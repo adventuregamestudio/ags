@@ -41,7 +41,7 @@ def replace_in_file(file_path, encoding, version):
         print('\t\t- READ FAILED')
         return
 
-    m = re.search(r'// Copyright \(C\) 1999-2011 Chris Jones and \d+-(\w*) (\S*)\s*//', data)
+    m = re.search(r'// Copyright \(C\) 1999-2011 Chris Jones and \d+-(\w*) ([\S ]*)\s*//', data)
     if m is None:
         print('\t\t- NO PATTERN')
         return # first pattern not found, no sense in searching for the rest

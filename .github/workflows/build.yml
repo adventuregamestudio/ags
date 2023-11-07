@@ -9,22 +9,28 @@ jobs:
   build:
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.platform.shell }}
+
     strategy:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows, os: windows-latest }
-        - { name: Ubuntu,  os: ubuntu-latest }
-        - { name: macOS,   os: macos-latest } 
+        - { name: Windows,         os: windows-latest, artifact: 'ags-windows', shell: cmd }
+        - { name: Ubuntu,          os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh  }
+        - { name: macOS,           os: macos-latest,   artifact: 'ags-macos',   shell: sh  }
 
-    steps:
-    - uses: actions/checkout@v3
+    steps:    
+    - uses: actions/checkout@v4
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: |
+        cmake --version
+        cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel 2
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 2
 
     - name: Test
       working-directory: ${{github.workspace}}/build
@@ -33,7 +39,8 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: binaries-${{ matrix.platform.name }}
+        name: ${{ matrix.platform.artifact }}
         path: |
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
+          ${{github.workspace}}/build/ags.exe

@@ -5,5 +5,6 @@
     "versionYear": "2023",
     "versionMonth": "November",
     "versionIsBeta": "true",
-    "appID": "6fcbc804-4887-4786-bcf6-b0786e1e983d"
+    "appID": "6fcbc804-4887-4786-bcf6-b0786e1e983d",
+    "licenseLink": "https://opensource.org/license/artistic-2-0/"
 }

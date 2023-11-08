@@ -26,6 +26,10 @@ android {
         versionName projectProperties['versionName']
     }
 
+    androidResources {
+        noCompress = ['ags', 'vox']
+    }
+
     signingConfigs {
         release {
             storeFile file(keyStoreProperties['storeFile'])

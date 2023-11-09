@@ -107,7 +107,8 @@ AndroidADir::AndroidADir(const String &dirname)
 {
     AAssetManager* mgr = GetAAssetManager();
     if(mgr == nullptr) {_dir = nullptr; return; }
-    _dir = AAssetManager_openDir(mgr, dirname.GetCStr());
+    String assetDirName = Path::GetPathInForeignAsset(dirname);
+    _dir = AAssetManager_openDir(mgr, assetDirName.GetCStr());
 }
 
 AndroidADir::~AndroidADir()

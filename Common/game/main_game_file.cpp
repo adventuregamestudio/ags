@@ -422,6 +422,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
     int temp_number;
     char temp_extension[10];
 
+    // FIXME: use audio type constants instead of obscure numeric literals
     for (const String &asset : assets)
     {
         if (sscanf(asset.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) != 3)
@@ -543,21 +544,10 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
     if (data_ver >= kGameVersion_320)
         return;
 
-    // An explanation of building audio clips array for pre-3.2 games.
-    //
-    // When AGS version 3.2 was released, it contained new audio system.
-    // In the nutshell, prior to 3.2 audio files had to be manually put
-    // to game project directory and their IDs were taken out of filenames.
-    // Since 3.2 this information is stored inside the game data.
-    // To make the modern engine compatible with pre-3.2 games, we have
-    // to scan game data packages for audio files, and enumerate them
-    // ourselves, then add this information to game struct.
-
-    // Create soundClips and audioClipTypes structures.
+    // Create new-style audioClipTypes array.
     std::vector<AudioClipType> audiocliptypes;
-    std::vector<ScriptAudioClip> audioclips;
-
-    // TODO: find out what is 4 (maybe music, sound, ambient sound, voice?)
+    // FIXME: use audio type constants instead of obscure numeric literals
+    // (maybe music, sound, ambient sound, voice???)
     audiocliptypes.resize(4);
     for (int i = 0; i < 4; i++)
     {
@@ -567,22 +557,40 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
     }
     audiocliptypes[3].reservedChannels = 0;
 
+    // Assign new types to the game
+    game.audioClipTypes = audiocliptypes;
+}
+
+void ScanOldStyleAudio(AssetManager *asset_mgr, GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver)
+{
+    // An explanation of building audio clips array for pre-3.2 games.
+    //
+    // When AGS version 3.2 was released, it contained new audio system.
+    // In the nutshell, prior to 3.2 audio files had to be manually put
+    // to game project directory and their IDs were taken out of filenames.
+    // Since 3.2 this information is stored inside the game data.
+    // To make the modern engine compatible with pre-3.2 games, we have
+    // to scan game data packages for audio files, and enumerate them
+    // ourselves, then add this information to game struct.
+    if (data_ver >= kGameVersion_320)
+        return;
+
     // Read audio clip names from registered libraries
     std::vector<String> assets;
     std::vector<String> filtered_assets;
-    AssetMgr->FindAssets(assets, "*.*", "audio");
+    asset_mgr->FindAssets(assets, "*.*", "audio");
     for (const String &filename : assets)
     {
         if (filename.CompareLeftNoCase("music", 5) == 0 || filename.CompareLeftNoCase("sound", 5) == 0)
             filtered_assets.push_back(filename);
     }
-    BuildAudioClipArray(filtered_assets, audioclips);
 
-    // Copy gathered data over to game
-    game.audioClipTypes = audiocliptypes;
+    // Build new-style audio clips array and assign to the game
+    std::vector<ScriptAudioClip> audioclips;
+    BuildAudioClipArray(filtered_assets, audioclips);
     game.audioClips = audioclips;
     
-    RemapLegacySoundNums(game, ents.Views, data_ver);
+    RemapLegacySoundNums(game, views, data_ver);
 }
 
 // Convert character data to the current version

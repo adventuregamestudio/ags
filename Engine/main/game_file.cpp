@@ -218,6 +218,9 @@ HError load_game_file()
     err = (HError)UpdateGameData(ents, src.DataVersion);
     if (!err)
         return err;
+    // Search the asset locations for old-style audio files and recreate clips array;
+    // we do this separately after UpdateGameData, because this involves scanning enviroment.
+    ScanOldStyleAudio(AssetMgr.get(), ents.Game, ents.Views, src.DataVersion);
     err = LoadGameScripts(ents);
     if (!err)
         return err;

@@ -149,6 +149,9 @@ void               PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVe
 HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
 void               FixupSaveDirectory(GameSetupStruct &game);
+// Scans the Asset libraries for the old-style music and sound files and generate
+// new-style audio clip array for the game
+void               ScanOldStyleAudio(AssetManager *asset_mgr, GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver);
 // Maps legacy sound numbers to real audio clips
 void               RemapLegacySoundNums(GameSetupStruct &game, std::vector<ViewStruct> &views, GameDataVersion data_ver);
 

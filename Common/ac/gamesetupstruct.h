@@ -82,7 +82,8 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
     // A clip to play when player gains score in game
-    // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
+    // NOTE: this stores an internal audio clip index, which may or not correspond
+    // to the OPT_SCORESOUND, and also depends on whether the game was upgraded from <3.2 data.
     int               scoreClipID;
     // number of accessible game audio channels (the ones under direct user control)
     int               numGameChannels = 0;
@@ -122,8 +123,6 @@ struct GameSetupStruct : public GameSetupStructBase
     // being read between them;
     // b) use a helper struct to pass some arguments
     //
-    // I also had to move BuildAudioClipArray from the engine and make it
-    // GameSetupStruct member.
 
     //--------------------------------------------------------------------
     // Do not call these directly

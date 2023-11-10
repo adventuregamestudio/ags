@@ -784,22 +784,15 @@ namespace AGS.Editor
 			{
 				preprocessor.DefineMacro("DEBUG", "1");
 			}
-			if (_game.Settings.EnforceObjectBasedScript)
-			{
-				preprocessor.DefineMacro("STRICT", "1");
-			}
-			if (_game.Settings.EnforceNewStrings)
-			{
-				preprocessor.DefineMacro("STRICT_STRINGS", "1");
-			}
-            if (_game.Settings.EnforceNewAudio)
-            {
-                preprocessor.DefineMacro("STRICT_AUDIO", "1");
-            }
-            if (!_game.Settings.UseOldCustomDialogOptionsAPI)
-            {
-                preprocessor.DefineMacro("NEW_DIALOGOPTS_API", "1");
-            }
+            // Some settings have become obsolete and now have default values
+            // EnforceObjectBasedScript => true
+            preprocessor.DefineMacro("STRICT", "1");
+            // EnforceNewStrings => true
+            preprocessor.DefineMacro("STRICT_STRINGS", "1");
+            // EnforceNewAudio => true
+            preprocessor.DefineMacro("STRICT_AUDIO", "1");
+            // UseOldCustomDialogOptionsAPI => false
+            preprocessor.DefineMacro("NEW_DIALOGOPTS_API", "1");
             if (!_game.Settings.UseOldKeyboardHandling)
             {
                 preprocessor.DefineMacro("NEW_KEYINPUT_API", "1");

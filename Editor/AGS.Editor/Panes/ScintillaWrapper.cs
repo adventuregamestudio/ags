@@ -2017,35 +2017,24 @@ namespace AGS.Editor
         private bool ShouldShowThis(ScriptToken token, List<ScriptDefine> defines)
         {
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
-            if ((token.IfNDefOnly == "STRICT") && (gameSettings.EnforceObjectBasedScript))
+            // Some settings have become obsolete and now have default values
+            // EnforceObjectBasedScript => true
+            if (token.IfNDefOnly == "STRICT")
             {
                 return false;
             }
-            if ((token.IfDefOnly == "STRICT") && (!gameSettings.EnforceObjectBasedScript))
+            // EnforceNewStrings => true
+            if (token.IfNDefOnly == "STRICT_STRINGS")
             {
                 return false;
             }
-            if ((token.IfNDefOnly == "STRICT_STRINGS") && (gameSettings.EnforceNewStrings))
+            // EnforceNewAudio => true
+            if (token.IfNDefOnly == "STRICT_AUDIO")
             {
                 return false;
             }
-            if ((token.IfDefOnly == "STRICT_STRINGS") && (!gameSettings.EnforceNewStrings))
-            {
-                return false;
-            }
-            if ((token.IfNDefOnly == "STRICT_AUDIO") && (gameSettings.EnforceNewAudio))
-            {
-                return false;
-            }
-            if ((token.IfDefOnly == "STRICT_AUDIO") && (!gameSettings.EnforceNewAudio))
-            {
-                return false;
-            }
-            if ((token.IfNDefOnly == "NEW_DIALOGOPTS_API") && (!gameSettings.UseOldCustomDialogOptionsAPI))
-            {
-                return false;
-            }
-            if ((token.IfDefOnly == "NEW_DIALOGOPTS_API") && (gameSettings.UseOldCustomDialogOptionsAPI))
+            // UseOldCustomDialogOptionsAPI => false
+            if (token.IfNDefOnly == "NEW_DIALOGOPTS_API")
             {
                 return false;
             }
@@ -2086,16 +2075,18 @@ namespace AGS.Editor
             // as precompiler. Instead it makes its own parsing, and somewhat limits perfomance and capabilities.
             // This is (one) reason why all those checks are made here explicitly, instead of relying on some
             // prefetched macro list.
+            // Some settings have become obsolete and now have default values
+            // EnforceObjectBasedScript => true
             if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("STRICT_IN_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("STRICT_IN_".Length));
-                if (v.HasValue && (gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevelReal))
+                if (v.HasValue && (v <= gameSettings.ScriptCompatLevelReal))
                     return false;
             }
             if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("STRICT_IN_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("STRICT_IN_".Length));
-                if (v.HasValue && !(gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevelReal))
+                if (v.HasValue && !(v <= gameSettings.ScriptCompatLevelReal))
                     return false;
             }
             return true;

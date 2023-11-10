@@ -567,40 +567,16 @@ void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersi
     }
     audiocliptypes[3].reservedChannels = 0;
 
-    audioclips.reserve(1000);
+    // Read audio clip names from registered libraries
     std::vector<String> assets;
-    // Read audio clip names from from registered libraries
-    for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
+    std::vector<String> filtered_assets;
+    AssetMgr->FindAssets(assets, "*.*", "audio");
+    for (const String &filename : assets)
     {
-        const AssetLibInfo *game_lib = AssetMgr->GetLibraryInfo(i);
-        if (File::IsDirectory(game_lib->BasePath))
-            continue; // might be a directory
-
-        for (const AssetInfo &info : game_lib->AssetInfos)
-        {
-            if (info.FileName.CompareLeftNoCase("music", 5) == 0 || info.FileName.CompareLeftNoCase("sound", 5) == 0)
-                assets.push_back(info.FileName);
-        }
+        if (filename.CompareLeftNoCase("music", 5) == 0 || filename.CompareLeftNoCase("sound", 5) == 0)
+            filtered_assets.push_back(filename);
     }
-    // Append contents of the registered directories
-    // TODO: implement pattern search or asset query with callback (either of two or both)
-    // within AssetManager to avoid doing this in place here. Alternatively we could maybe
-    // make AssetManager to do directory scans by demand and fill AssetInfos...
-    // but that have to be done consistently if done at all.
-    for (size_t i = 0; i < AssetMgr->GetLibraryCount(); ++i)
-    {
-        const AssetLibInfo *game_lib = AssetMgr->GetLibraryInfo(i);
-        if (!File::IsDirectory(game_lib->BasePath))
-            continue; // might be a library
-
-        for (FindFile ff = FindFile::OpenFiles(game_lib->BasePath, "*.*"); !ff.AtEnd(); ff.Next())
-        {
-            String filename = ff.Current();
-            if (ags_strnicmp(filename.GetCStr(), "music", 5) == 0 || ags_strnicmp(filename.GetCStr(), "sound", 5) == 0)
-                assets.push_back(filename);
-        }
-    }
-    BuildAudioClipArray(assets, audioclips);
+    BuildAudioClipArray(filtered_assets, audioclips);
 
     // Copy gathered data over to game
     game.audioClipTypes = audiocliptypes;

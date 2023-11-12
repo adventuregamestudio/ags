@@ -149,7 +149,7 @@ namespace AGS.Editor
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
             this.lblUpgradingInfo.Size = new System.Drawing.Size(273, 14);
             this.lblUpgradingInfo.TabIndex = 2;
-            this.lblUpgradingInfo.Text = "With AGS 3.6 you can build your game for Web!";
+            this.lblUpgradingInfo.Text = "With AGS 4.0 you can make use of the new extended compiler!";
             // 
             // lnkUpgrading
             // 
@@ -162,7 +162,7 @@ namespace AGS.Editor
             this.lnkUpgrading.TabIndex = 1;
             this.lnkUpgrading.TabStop = true;
             this.lnkUpgrading.Text = "If you\'ve come from an older version of AGS be sure to read \"Upgrading to ...\" ar" +
-    "ticles in the manual. \"Upgrading to AGS 3.6\" page gives insight into most import" +
+    "ticles in the manual. \"Upgrading to AGS 4.0\" page gives insight into most import" +
     "ant changes in current version.";
             this.lnkUpgrading.UseCompatibleTextRendering = true;
             this.lnkUpgrading.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgrading_LinkClicked);
@@ -175,7 +175,7 @@ namespace AGS.Editor
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(154, 14);
             this.label5.TabIndex = 0;
-            this.label5.Text = "What\'s new in AGS 3.6?";
+            this.label5.Text = "What\'s new in AGS 4.0?";
             // 
             // pnlTipOfTheDay
             // 

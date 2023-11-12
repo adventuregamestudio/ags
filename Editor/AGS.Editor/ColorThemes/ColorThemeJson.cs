@@ -72,7 +72,11 @@ namespace AGS.Editor
 
         public override ToolStripRenderer GetToolStripRenderer(string id)
         {
-            return DoTransform(id, t => new ToolStripProfessionalRenderer(new ToolStripColorTable(this, t.Path)));
+            return DoTransform(id, t => {
+                var tspr = new ToolStripProfessionalRenderer(new ToolStripColorTable(this, t.Path));
+                tspr.RoundedEdges = false;
+                return tspr;
+            });
         }
 
         public override ComboBox GetComboBox(string id, ComboBox original)

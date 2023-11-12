@@ -55,6 +55,7 @@ namespace AGS.Editor
             // logTextBox
             // 
             this.logTextBox.BackColor = System.Drawing.Color.Black;
+            this.logTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.logTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.logTextBox.ForeColor = System.Drawing.Color.White;
             this.logTextBox.Location = new System.Drawing.Point(0, 0);

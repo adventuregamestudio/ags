@@ -1417,7 +1417,7 @@ NOTE: VERSION 3.4.2 was cancelled and never released: the WIP build was renamed 
 VERSION 3.4.1 - Patch 4, September 2018
 
 Engine:
- - Fixed dynamic array of Dynamic Sprites or Overlays could loose some of its elements
+ - Fixed dynamic array of Dynamic Sprites or Overlays could lose some of its elements
    after restoring a savedgame.
  - Fixed Debug(2) and Debug(5) commands (regression).
  - Fixed "warnings.log" was never created (regression).

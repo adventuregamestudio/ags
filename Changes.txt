@@ -60,7 +60,7 @@ Editor:
    this property and insert a comment with a warning into the corresponding room's script.
    This is done because this property is deprecated as is no longer accessible.
  - Fixed Editor refusing to open a game if one of the translation files is missing.
- - Fixed importing GIFs or 8-bit PNGs may loose transparent pixels if source images used
+ - Fixed importing GIFs or 8-bit PNGs may lose transparent pixels if source images used
    other palette index than 0 for transparency.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
@@ -1598,7 +1598,7 @@ NOTE: VERSION 3.4.2 was cancelled and never released: the WIP build was renamed 
 VERSION 3.4.1 - Patch 4, September 2018
 
 Engine:
- - Fixed dynamic array of Dynamic Sprites or Overlays could loose some of its elements
+ - Fixed dynamic array of Dynamic Sprites or Overlays could lose some of its elements
    after restoring a savedgame.
  - Fixed Debug(2) and Debug(5) commands (regression).
  - Fixed "warnings.log" was never created (regression).

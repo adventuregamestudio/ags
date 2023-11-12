@@ -49,10 +49,11 @@ extern GameState play;
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern RGB old_palette[256];
 extern int displayed_room;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
+// FIXME: refactor further to get rid of this extern, maybe move part of the code to screen.cpp?
+extern std::unique_ptr<Bitmap> saved_viewport_bitmap;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -204,11 +205,12 @@ void process_event(const EventHappened *evp) {
         if ((evp->data1 == EVB_ROOM) && (evp->data3 == EVROM_BEFOREFADEIN))
             in_enters_screen --;
     }
-    else if (evp->type==EV_FADEIN) {
+    else if (evp->type==EV_FADEIN)
+    {
+        // TODO: move most of this code into a separate function,
+        // see current_fade_out_effect() for example
+
         debug_script_log("Transition-in in room %d", displayed_room);
-        // if they change the transition type before the fadein, make
-        // sure the screen doesn't freeze up
-        play.screen_is_faded_out = 0;
 
         // determine the transition style
         int theTransition = play.fade_effect;
@@ -220,10 +222,16 @@ void process_event(const EventHappened *evp) {
         }
 
         if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
+        {
+            play.screen_is_faded_out = 0; // mark screen as clear
             return;
+        }
 
         if (play.fast_forward)
+        {
+            play.screen_is_faded_out = 0; // mark screen as clear
             return;
+        }
 
         const bool ignore_transition = (play.screen_tint > 0);
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
@@ -232,7 +240,7 @@ void process_event(const EventHappened *evp) {
             // transition type was not crossfade/dissolve when the screen faded out,
             // but it is now when the screen fades in (Eg. a save game was restored
             // with a different setting). Therefore just fade normally.
-            fadeout_impl(5);
+            screen_effect_fade(false, 5);
             theTransition = FADE_NORMAL;
         }
 
@@ -240,126 +248,36 @@ void process_event(const EventHappened *evp) {
         const Rect &viewport = play.GetMainViewport();
 
         if ((theTransition == FADE_INSTANT) || ignore_transition)
+        {
             set_palette_range(palette, 0, 255, 0);
+        }
         else if (theTransition == FADE_NORMAL)
         {
-            fadein_impl(palette, 5);
+            screen_effect_fade(true, 5);
         }
         else if (theTransition == FADE_BOXOUT) 
         {
-            if (!gfxDriver->UsesMemoryBackBuffer())
-            {
-                gfxDriver->BoxOutEffect(false, get_fixed_pixel_size(16), 1000 / GetGameSpeed());
-            }
-            else
-            {
-                // First of all we render the game once again and save backbuffer from further editing.
-                // We put temporary bitmap as a new backbuffer for the transition period, and
-                // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
-                set_palette_range(palette, 0, 255, 0);
-                construct_game_scene(true);
-                construct_game_screen_overlay(false);
-                gfxDriver->RenderToBackBuffer();
-                Bitmap *saved_backbuf = gfxDriver->GetMemoryBackBuffer();
-                Bitmap *temp_scr = new Bitmap(saved_backbuf->GetWidth(), saved_backbuf->GetHeight(), saved_backbuf->GetColorDepth());
-                gfxDriver->SetMemoryBackBuffer(temp_scr);
-                temp_scr->Clear();
-                render_to_screen();
-
-                const int speed = get_fixed_pixel_size(16);
-                const int yspeed = viewport.GetHeight() / (viewport.GetWidth() / speed);
-                int boxwid = speed, boxhit = yspeed;
-                while (boxwid < temp_scr->GetWidth())
-                {
-                    boxwid += speed;
-                    boxhit += yspeed;
-                    boxwid = Math::Clamp(boxwid, 0, viewport.GetWidth());
-                    boxhit = Math::Clamp(boxhit, 0, viewport.GetHeight());
-                    int lxp = viewport.GetWidth() / 2 - boxwid / 2;
-                    int lyp = viewport.GetHeight() / 2 - boxhit / 2;
-                    temp_scr->Blit(saved_backbuf, lxp, lyp, lxp, lyp, 
-                        boxwid, boxhit);
-                    render_to_screen();
-                    WaitForNextFrame();
-                }
-                gfxDriver->SetMemoryBackBuffer(saved_backbuf);
-            }
-            play.screen_is_faded_out = 0;
+            screen_effect_box(true, get_fixed_pixel_size(16));
         }
         else if (theTransition == FADE_CROSSFADE) 
         {
-            if (game.color_depth == 1)
-                quit("!Cannot use crossfade screen transition in 256-colour games");
-
-            // TODO: crossfade does not need a screen with transparency, it should be opaque;
-            // but Software renderer cannot alpha-blend non-masked sprite at the moment,
-            // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
-            IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
-            for (int alpha = 254; alpha > 0; alpha -= 16)
-            {
-                // do the crossfade
-                ddb->SetAlpha(alpha);
-                invalidate_screen();
-                construct_game_scene(true);
-                construct_game_screen_overlay(false);
-                // draw old screen on top while alpha > 16
-                if (alpha > 16)
-                {
-                    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
-                    gfxDriver->DrawSprite(0, 0, ddb);
-                    gfxDriver->EndSpriteBatch();
-                }
-                render_to_screen();
-                update_polled_stuff();
-                WaitForNextFrame();
-            }
-
-            delete saved_viewport_bitmap;
-            saved_viewport_bitmap = nullptr;
-            set_palette_range(palette, 0, 255, 0);
-            gfxDriver->DestroyDDB(ddb);
+            screen_effect_crossfade();
         }
-        else if (theTransition == FADE_DISSOLVE) {
-            int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
-            int aa,bb,cc;
-            RGB interpal[256];
-
-            IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
-            for (aa=0;aa<16;aa++) {
-                // merge the palette while dithering
-                if (game.color_depth == 1) 
-                {
-                    fade_interpolate(old_palette,palette,interpal,aa*4,0,255);
-                    set_palette_range(interpal, 0, 255, 0);
-                }
-                // do the dissolving
-                int maskCol = saved_viewport_bitmap->GetMaskColor();
-                for (bb=0;bb<viewport.GetWidth();bb+=4) {
-                    for (cc=0;cc<viewport.GetHeight();cc+=4) {
-                        saved_viewport_bitmap->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
-                    }
-                }
-                gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
-                construct_game_scene(true);
-                construct_game_screen_overlay(false);
-                gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
-                gfxDriver->DrawSprite(0, 0, ddb);
-                gfxDriver->EndSpriteBatch();
-                render_to_screen();
-                update_polled_stuff();
-                WaitForNextFrame();
-            }
-
-            delete saved_viewport_bitmap;
-            saved_viewport_bitmap = nullptr;
-            set_palette_range(palette, 0, 255, 0);
-            gfxDriver->DestroyDDB(ddb);
+        else if (theTransition == FADE_DISSOLVE)
+        {
+            screen_effect_dissolve();
         }
 
+        play.screen_is_faded_out = 0; // mark screen as clear
     }
-    else if (evp->type==EV_IFACECLICK)
+    else if (evp->type == EV_IFACECLICK)
+    {
         process_interface_click(evp->data1, evp->data2, evp->data3);
-    else quit("process_event: unknown event to process");
+    }
+    else
+    {
+        quit("process_event: unknown event to process");
+    }
 }
 
 

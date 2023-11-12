@@ -27,7 +27,6 @@ namespace Engine
 
 GraphicsDriverBase::GraphicsDriverBase()
     : _pollingCallback(nullptr)
-    , _drawScreenCallback(nullptr)
     , _spriteEvtCallback(nullptr)
     , _initGfxCallback(nullptr)
 {

@@ -79,6 +79,7 @@ void ShakeScreen(int severe) {
     else
     {
         // Optimized variant for software render: create game scene once and shake it
+        gfxDriver->ClearDrawLists();
         construct_game_scene();
         gfxDriver->RenderToBackBuffer();
         for (int hh = 0; hh < 40; hh++)
@@ -142,18 +143,8 @@ void FadeOut(int sppd) {
     // FIXME: we have to sync audio here explicitly, because FadeOut
     // does not call any game update function while it works
     sync_audio_playback();
-    fadeout_impl(sppd);
+    screen_effect_fade(false, sppd);
     sync_audio_playback();
-}
-
-void fadeout_impl(int spdd) {
-    if (play.screen_is_faded_out == 0)
-    {
-        gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
-    }
-
-    if (game.color_depth > 1)
-        play.screen_is_faded_out = 1;
 }
 
 void SetScreenTransition(int newtrans) {
@@ -193,6 +184,6 @@ void FadeIn(int sppd) {
     // FIXME: we have to sync audio here explicitly, because FadeIn
     // does not call any game update function while it works
     sync_audio_playback();
-    fadein_impl(palette,sppd);
+    screen_effect_fade(true, sppd);
     sync_audio_playback();
 }

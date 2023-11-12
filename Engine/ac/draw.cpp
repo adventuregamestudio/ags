@@ -701,7 +701,6 @@ void init_draw_method()
 
     if (drawstate.SoftwareRender)
     {
-        drawstate.SoftwareRender = true;
         drawstate.WalkBehindMethod = DrawOverCharSprite;
     }
     else
@@ -1229,12 +1228,6 @@ void clear_letterbox_borders()
     const Rect &viewport = play.GetMainViewport();
     gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
     gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
-}
-
-void draw_game_screen_callback()
-{
-    construct_game_scene(true);
-    construct_game_screen_overlay(false);
 }
 
 void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
@@ -2706,11 +2699,6 @@ static void reset_spritemodified()
 
 void construct_game_scene(bool full_redraw)
 {
-    gfxDriver->ClearDrawLists();
-
-    if (play.fast_forward)
-        return;
-
     set_our_eip(3);
 
     // React to changes to viewports and cameras (possibly from script) just before the render
@@ -2928,6 +2916,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // TODO: find out if it's okay to move shake to update function
     update_shakescreen();
 
+    gfxDriver->ClearDrawLists();
     construct_game_scene(false);
     set_our_eip(5);
     // TODO: extraBitmap is a hack, used to place an additional gui element

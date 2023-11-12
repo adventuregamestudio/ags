@@ -987,8 +987,8 @@ namespace AGS.Editor
             _state.Offset = newOffset;
 
             // Update scroll positions and redraw
-            bufferedPanel1.HorizontalScroll.Value = _state.Offset.X;
-            bufferedPanel1.VerticalScroll.Value = _state.Offset.Y;
+            bufferedPanel1.HorizontalScroll.Value = MathExtra.Clamp(_state.Offset.X, bufferedPanel1.HorizontalScroll.Minimum, bufferedPanel1.HorizontalScroll.Maximum);
+            bufferedPanel1.VerticalScroll.Value = MathExtra.Clamp(_state.Offset.Y, bufferedPanel1.VerticalScroll.Minimum, bufferedPanel1.VerticalScroll.Maximum);
             bufferedPanel1.Invalidate();
             // Update slider position (in case zoom was set by other controls)
             sldZoomLevel.Value = zoom;

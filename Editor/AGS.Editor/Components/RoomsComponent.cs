@@ -1977,6 +1977,7 @@ namespace AGS.Editor.Components
             _backgroundCache[i]?.Dispose();
             _backgroundCache[i] = new RoomImage(LoadBackground(i), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+            _loadedRoom.Modified = true;
         }
 
         /// <summary>

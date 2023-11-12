@@ -14,10 +14,20 @@ namespace AGS.Editor.Components
         public DefaultSetupComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _settingsPane = new DefaultRuntimeSetupPane();
-            _document = new ContentDocument(_settingsPane, "Default Setup", this, ICON_KEY);
+            RecreateDocument();
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconsett.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, ComponentID, "Default Setup", ICON_KEY);
+        }
+
+        private void RecreateDocument()
+        {
+            if (_document != null)
+            {
+                _guiController.RemovePaneIfExists(_document);
+                _document.Dispose();
+            }
+            _settingsPane = new DefaultRuntimeSetupPane();
+            _document = new ContentDocument(_settingsPane, "Default Setup", this, ICON_KEY);
         }
 
         public override string ComponentID
@@ -38,7 +48,7 @@ namespace AGS.Editor.Components
 
         public override void RefreshDataFromGame()
         {
-            _settingsPane.RefreshData();
+            RecreateDocument();
         }
     }
 }

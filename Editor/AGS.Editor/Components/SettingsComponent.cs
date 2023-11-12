@@ -18,10 +18,20 @@ namespace AGS.Editor.Components
         public SettingsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _settingsPane = new GeneralSettingsPane();
-            _document = new ContentDocument(_settingsPane, "General Settings", this, ICON_KEY);
+            RecreateDocument();
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconsett.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, "GeneralSettings", "General Settings", ICON_KEY);
+        }
+
+        private void RecreateDocument()
+        {
+            if (_document != null)
+            {
+                _guiController.RemovePaneIfExists(_document);
+                _document.Dispose();
+            }
+            _settingsPane = new GeneralSettingsPane();
+            _document = new ContentDocument(_settingsPane, "General Settings", this, ICON_KEY);
         }
 
         public override string ComponentID
@@ -37,13 +47,12 @@ namespace AGS.Editor.Components
 
         public override void RefreshDataFromGame()
         {
-            _settingsPane.RefreshData();
+            RecreateDocument();
 
 			if (Factory.AGSEditor.Settings.StartupPane == StartupPane.GeneralSettings)
 			{
 				_guiController.AddOrShowPane(_document);
 			}
         }
-
     }
 }

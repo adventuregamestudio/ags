@@ -1,0 +1,13 @@
+Expected pre-built plugins tha can be placed in this directory as below.
+These are optional
+
+.
+├── arm64-v8a
+│   └── libagsMYPLUGIN.so
+├── armeabi-v7a
+│   └── libagsMYPLUGIN.so
+├── x86
+│   └── libagsMYPLUGIN.so
+└── x86_64
+    └── libagsMYPLUGIN.so
+

@@ -547,8 +547,11 @@ public:
   AGSIFUNC(void)  NotifyFontUpdated(int fontNumber);
 
   // *** BELOW ARE INTERFACE VERSION 27 AND ABOVE ONLY
-  // Resolves a script path to a system filepath, same way as script command File.Open does.
-  AGSIFUNC(const char*) ResolveFilePath(const char *script_path);
+  // Resolve a script path to a system filepath, same way as script command File.Open does.
+  // Caller should provide an output buffer and its length in bytes.
+  // Passing NULL instead of a buffer pointer will make function calculate and return
+  // length necessary to store a resulting path (in bytes).
+  AGSIFUNC(int) ResolveFilePath(const char *script_path, char *buf, int buf_len);
 };
 
 

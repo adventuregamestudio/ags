@@ -97,7 +97,7 @@ extern RuntimeScriptValue GlobalReturnValue;
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 26;
+const int PLUGIN_API_VERSION = 27;
 struct EnginePlugin
 {
     EnginePlugin() {
@@ -795,24 +795,6 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
     return old_render;
 }
 
-IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
-{
-    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUI::MarkForFontUpdate(fontNumber);
-    return old_render;
-}
-
-void IAGSEngine::NotifyFontUpdated(int fontNumber)
-{
-    font_recalc_metrics(fontNumber);
-    GUI::MarkForFontUpdate(fontNumber);
-}
-
-const char *IAGSEngine::ResolveFilePath(const char *script_path)
-{
-    return File_ResolvePath(script_path);
-}
-
 void IAGSEngine::GetRenderStageDesc(AGSRenderStageDesc* desc)
 {
     if (desc->Version >= 25)
@@ -829,6 +811,31 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
         snprintf(ginfo->Guid, sizeof(ginfo->Guid), "%s", game.guid);
         ginfo->UniqueId = game.uniqueid;
     }
+}
+
+IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
+{
+    auto *old_render = font_replace_renderer(fontNumber, newRenderer);
+    GUI::MarkForFontUpdate(fontNumber);
+    return old_render;
+}
+
+void IAGSEngine::NotifyFontUpdated(int fontNumber)
+{
+    font_recalc_metrics(fontNumber);
+    GUI::MarkForFontUpdate(fontNumber);
+}
+
+int IAGSEngine::ResolveFilePath(const char *script_path, char *buf, int buf_len)
+{
+    ResolvedPath rp = ResolveScriptPathAndFindFile(script_path, true, true);
+    String path = Path::MakeAbsolutePath(rp.FullPath); // make it pretty
+    if (!buf || buf_len <= 0)
+        return static_cast<int>(path.GetLength() + 1);
+    size_t copy_len = std::min<size_t>(buf_len - 1, path.GetLength());
+    memcpy(buf, path.GetCStr(), copy_len);
+    buf[copy_len] = 0;
+    return copy_len + 1;
 }
 
 // *********** General plugin implementation **********

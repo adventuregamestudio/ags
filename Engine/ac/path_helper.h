@@ -88,7 +88,11 @@ struct ResolvedPath
 
     ResolvedPath() = default;
     ResolvedPath(const String &file, bool asset_mgr = false)
-        : FullPath(file), AssetMgr(asset_mgr) {}
+        : Loc(AGS::Common::Path::GetParent(file))
+        , FullPath(file)
+        , SubPath(AGS::Common::Path::GetFilename(file))
+        , AssetMgr(asset_mgr)
+    {}
     ResolvedPath(const FSLocation &loc, const String &file)
         : Loc(loc)
         , FullPath(AGS::Common::Path::ConcatPaths(loc.FullDir, file))

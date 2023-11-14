@@ -12,6 +12,9 @@ namespace AGS.Editor
     /// Comment by Shane Stevens:
     /// CharactersEditorFilter is an entirely new file created for displaying characters in rooms.
     /// Most of the methods are adapted from ObjectsEditorFilter as their functionality is similar.
+    /// 
+    /// TODO: it must be possible to pick out a base class from ObjectsEditorFilter and
+    /// CharactersEditorFilter, there much common functionality here.
     /// </summary>
     public class CharactersEditorFilter : IRoomEditorFilter
     {
@@ -28,6 +31,8 @@ namespace AGS.Editor
         private int _menuClickX = 0;
         private int _menuClickY = 0;
         private int _mouseOffsetX, _mouseOffsetY;
+        private bool _movingCharacterWithKeyboard = false;
+        private int _movingKeysDown = 0;
 
         public Character SelectedCharacter { get { return _selectedCharacter; } }
 
@@ -215,7 +220,7 @@ namespace AGS.Editor
                 Rectangle rect = GetCharacterRect(_selectedCharacter, state);
                 graphics.DrawRectangle(pen, rect);
 
-                if (_movingCharacterWithMouse)
+                if (_movingCharacterWithMouse || _movingCharacterWithKeyboard)
                 {
                     System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                     string toDraw = String.Format("X:{0}, Y:{1}", _selectedCharacter.StartX, _selectedCharacter.StartY);
@@ -282,12 +287,18 @@ namespace AGS.Editor
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             _isOn = true;
+            _movingKeysDown = 0;
+            _movingCharacterWithMouse = false;
+            _movingCharacterWithKeyboard = false;
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
             _isOn = false;
+            _movingKeysDown = 0;
+            _movingCharacterWithMouse = false;
+            _movingCharacterWithKeyboard = false;
         }
 
         public void UpdateCharactersRoom(Character character, int oldRoom)
@@ -403,14 +414,41 @@ namespace AGS.Editor
 
             switch (key)
             {
-                case Keys.Right:
-                    return MoveCharacter(_selectedCharacter.StartX + 1, _selectedCharacter.StartY);
                 case Keys.Left:
+                    _movingKeysDown |= 1; _movingCharacterWithKeyboard = true;
                     return MoveCharacter(_selectedCharacter.StartX - 1, _selectedCharacter.StartY);
-                case Keys.Down:
-                    return MoveCharacter(_selectedCharacter.StartX, _selectedCharacter.StartY + 1);
+                case Keys.Right:
+                    _movingKeysDown |= 2; _movingCharacterWithKeyboard = true;
+                    return MoveCharacter(_selectedCharacter.StartX + 1, _selectedCharacter.StartY);
                 case Keys.Up:
+                    _movingKeysDown |= 4; _movingCharacterWithKeyboard = true;
                     return MoveCharacter(_selectedCharacter.StartX, _selectedCharacter.StartY - 1);
+                case Keys.Down:
+                    _movingKeysDown |= 8; _movingCharacterWithKeyboard = true;
+                    return MoveCharacter(_selectedCharacter.StartX, _selectedCharacter.StartY + 1);
+            }
+            return false;
+        }
+
+        public bool KeyReleased(Keys key)
+        {
+            int moveKeys = _movingKeysDown;
+            switch (key)
+            {
+                case Keys.Left: moveKeys &= ~1; break;
+                case Keys.Right: moveKeys &= ~2; break;
+                case Keys.Up: moveKeys &= ~4; break;
+                case Keys.Down: moveKeys &= ~8; break;
+            }
+            if (moveKeys != _movingKeysDown)
+            {
+                _movingKeysDown = moveKeys;
+                if (_movingKeysDown == 0)
+                {
+                    _movingCharacterWithKeyboard = false;
+                    Invalidate();
+                    return true;
+                }
             }
             return false;
         }

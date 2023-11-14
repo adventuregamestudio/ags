@@ -210,8 +210,8 @@ typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
 class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
-    const char*GetDriverName() override { return "Direct3D 9"; }
-    const char*GetDriverID() override { return "D3D9"; }
+    const char *GetDriverID() override { return "D3D9"; }
+    const char *GetDriverName() override { return "Direct3D 9"; }
 
     bool ShouldReleaseRenderTargets() override { return true; }
 

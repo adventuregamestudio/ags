@@ -188,6 +188,7 @@ namespace AGS.Editor
 
             if (_movingObjectWithMouse || _movingObjectWithKeyboard)
             {
+                Brush shadeBrush = new SolidBrush(Color.FromArgb(200, Color.Black));
                 System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                 string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
@@ -201,6 +202,7 @@ namespace AGS.Editor
                 if (scaledy + textSize.Height >= graphics.VisibleClipBounds.Height)
                     scaledy = (int)(graphics.VisibleClipBounds.Height - textSize.Height);
 
+                graphics.FillRectangle(shadeBrush, scaledx, scaledy, textSize.Width, textSize.Height);
                 graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
             }
             else if (design.Locked)

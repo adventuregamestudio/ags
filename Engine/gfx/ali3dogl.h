@@ -203,8 +203,8 @@ class OGLGfxFilter;
 class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
-    const char*GetDriverName() override { return "OpenGL"; }
-    const char*GetDriverID() override { return "OGL"; }
+    const char *GetDriverID() override { return "OGL"; }
+    const char *GetDriverName() override { return "OpenGL"; }
     void SetTintMethod(TintMethod method) override;
     bool SetDisplayMode(const DisplayMode &mode) override;
     void UpdateDeviceScreen(const Size &screen_size) override;

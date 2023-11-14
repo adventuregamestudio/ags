@@ -817,9 +817,6 @@
     <ClInclude Include="..\..\Common\util\matrix.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\iagsstream.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\resourcecache.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>

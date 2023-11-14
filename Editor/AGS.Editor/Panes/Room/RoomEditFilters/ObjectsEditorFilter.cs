@@ -342,17 +342,10 @@ namespace AGS.Editor
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (!_movingObjectWithMouse) return false;
-            int realX = state.WindowXToRoom(x);
-            int realY = state.WindowYToRoom(y);
 
-            if ((_movingObjectWithMouse) && (realY < _room.Height) &&
-                (realX < _room.Width) && (realY >= 0) && (realX >= 0))
-            {
-                int newX = realX - _mouseOffsetX;
-                int newY = realY - _mouseOffsetY;
-                return MoveObject(newX, newY);
-            }
-            return false;
+            int newX = state.WindowXToRoom(x) - _mouseOffsetX;
+            int newY = state.WindowYToRoom(y) - _mouseOffsetY;
+            return MoveObject(newX, newY);
         }
 
         private bool MoveObject(int newX, int newY)
@@ -371,7 +364,7 @@ namespace AGS.Editor
                     _room.Modified = true;
                 }
             }
-            return true;            
+            return true;
         }
 
         private int GetArrowMoveStepSize()

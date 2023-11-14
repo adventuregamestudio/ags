@@ -126,21 +126,28 @@ namespace AGS.Editor
         public bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (!_movingCharacterWithMouse) return false;
-            
+
             int newX = state.WindowXToRoom(x) - _mouseOffsetX;
             int newY = state.WindowYToRoom(y) - _mouseOffsetY;
-            return MoveCharacter(newX, newY);                     
+            return MoveCharacter(newX, newY);
         }
 
         private bool MoveCharacter(int newX, int newY)
         {
-            if (_selectedCharacter.StartX == newX &&
-                _selectedCharacter.StartY == newY)
+            if (_selectedCharacter == null)
             {
-                return false;
+                _movingCharacterWithMouse = false;
             }
-            _selectedCharacter.StartX = newX;
-            _selectedCharacter.StartY = newY;
+            else
+            {
+                if ((newX != _selectedCharacter.StartX) ||
+                    (newY != _selectedCharacter.StartY))
+                {
+                    _selectedCharacter.StartX = newX;
+                    _selectedCharacter.StartY = newY;
+                    // NOTE: do not mark room as modified, as characters are not part of room data
+                }
+            }
             return true;
         }
 

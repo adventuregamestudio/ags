@@ -101,7 +101,7 @@ void File_WriteRawChar(sc_File *fil, int towrite) {
 }
 
 void File_WriteRawInt(sc_File *fil, int towrite) {
-  Stream *out = get_valid_file_stream_from_handle(fil->handle, "FileWriteRawInt");
+  Stream *out = get_file_stream(fil->handle, "FileWriteRawInt");
   out->WriteInt32(towrite);
 }
 
@@ -114,7 +114,7 @@ void File_WriteRawLine(sc_File *fil, const char *towrite) {
 // guarantees null-terminator in the buffer.
 static bool File_ReadRawLineImpl(sc_File *fil, char* buffer, size_t buf_len) {
     if (buf_len == 0) return false;
-    Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
+    Stream *in = get_file_stream(fil->handle, "File.ReadRawLine");
     for (size_t i = 0; i < buf_len - 1; ++i)
     {
         int c = in->ReadByte();
@@ -161,7 +161,7 @@ void File_ReadString(sc_File *fil, char *toread) {
 }
 
 const char* File_ReadStringBack(sc_File *fil) {
-  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
+  Stream *in = get_file_stream(fil->handle, "File.ReadStringBack");
   if (in->EOS()) {
     return CreateNewScriptString("");
   }
@@ -192,7 +192,7 @@ int File_ReadRawInt(sc_File *fil) {
 
 int File_Seek(sc_File *fil, int offset, int origin)
 {
-    Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.Seek");
+    Stream *in = get_file_stream(fil->handle, "File.Seek");
     if (!in->Seek(offset, (StreamSeek)origin)) { return -1; }
     return in->GetPosition();
 }
@@ -213,7 +213,7 @@ int File_GetPosition(sc_File *fil)
 {
     if (fil->handle <= 0)
         return -1;
-    Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Position");
+    Stream *stream = get_file_stream(fil->handle, "File.Position");
     // TODO: a problem is that AGS script does not support unsigned or long int
     return (int)stream->GetPosition();
 }
@@ -222,7 +222,7 @@ const char *File_GetPath(sc_File *fil)
 {
     if (fil->handle <= 0)
         return nullptr;
-    Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Path");
+    Stream *stream = get_file_stream(fil->handle, "File.Path");
     return CreateNewScriptString(stream->GetPath());
 }
 
@@ -668,50 +668,68 @@ AssetPath get_voice_over_assetpath(const String &filename)
     return AssetPath(filename, "voice");
 }
 
-ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
-// [IKM] NOTE: this is not precisely the number of files opened at this moment,
-// but rather maximal number of handles that were used simultaneously during game run
-int num_open_script_files = 0;
-ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *operation_name)
-{
-  if (stream_ptr)
-  {
-      for (int i = 0; i < num_open_script_files; ++i)
-      {
-          if (stream_ptr == valid_handles[i].stream.get())
-          {
-              return &valid_handles[i];
-          }
-      }
-  }
+//=============================================================================
 
-  String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
-  quit(exmsg);
-  return nullptr;
+// ScriptFileHandle manages a Stream object prepared for script or plugin's use.
+struct ScriptFileHandle
+{
+    std::unique_ptr<Stream> stream;
+    int32_t  handle = 0;
+
+    ScriptFileHandle() = default;
+    ScriptFileHandle(std::unique_ptr<Stream> &&s, int32_t h)
+        : stream(std::move(s)), handle(h) {}
+};
+
+std::vector<ScriptFileHandle> file_streams;
+
+int32_t add_file_stream(std::unique_ptr<Stream> &&stream, const char * /*operation_name*/)
+{
+    uint32_t handle = 1;
+    for (; handle < file_streams.size() && file_streams[handle].handle > 0; ++handle) {}
+    if (handle >= file_streams.size())
+        file_streams.resize(handle + 1);
+    file_streams[handle] = ScriptFileHandle(std::move(stream), handle);
+    return static_cast<int32_t>(handle);
 }
 
-ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name)
+static ScriptFileHandle *check_file_stream(int32_t fhandle, const char *operation_name)
 {
-  if (handle > 0)
-  {
-    for (int i = 0; i < num_open_script_files; ++i)
+    if (fhandle <= 0 || static_cast<uint32_t>(fhandle) >= file_streams.size()
+        || !file_streams[fhandle].stream)
     {
-        if (handle == valid_handles[i].handle)
-        {
-            return &valid_handles[i];
-        }
+        quitprintf("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
+        return nullptr;
     }
-  }
-
-  String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
-  quit(exmsg);
-  return nullptr;
+    return &file_streams[fhandle];
 }
 
-Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
+void close_file_stream(int32_t fhandle, const char *operation_name)
 {
-    ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
-    return sc_handle ? sc_handle->stream.get() : nullptr;
+    ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
+    if (fh)
+        *fh = ScriptFileHandle();
+}
+
+Stream *get_file_stream(int32_t fhandle, const char *operation_name)
+{
+    ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
+    return fh ? fh->stream.get() : nullptr;
+}
+
+Stream *release_file_stream(int32_t fhandle, const char *operation_name)
+{
+    ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
+    if (!fh)
+        return nullptr;
+    Stream *s = fh->stream.release();
+    *fh = ScriptFileHandle();
+    return s;
+}
+
+void close_all_file_streams()
+{
+    file_streams.clear();
 }
 
 //=============================================================================

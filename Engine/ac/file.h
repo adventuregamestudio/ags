@@ -45,16 +45,11 @@ int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 int     File_GetPosition(sc_File *fil);
 
-struct ScriptFileHandle
-{
-    std::unique_ptr<Stream> stream;
-    int32_t  handle = 0;
-};
-extern ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
-extern int num_open_script_files;
-
-ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *operation_name);
-ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name);
-Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name);
+// Managed file streams: for script and plugin use
+int32_t add_file_stream(std::unique_ptr<AGS::Common::Stream> &&stream, const char *operation_name);
+void    close_file_stream(int32_t fhandle, const char *operation_name);
+Stream *get_file_stream(int32_t fhandle, const char *operation_name);
+Stream *release_file_stream(int32_t fhandle, const char *operation_name);
+void    close_all_file_streams();
 
 #endif // __AGS_EE_AC__FILE_H

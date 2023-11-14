@@ -330,22 +330,27 @@ namespace AGS.Editor
         {
             // Test for a valid config file, in case of corrupt config
             // delete the file and notify the user that the prefs will be reset.
+            AppSettings appSettings;
+            string configFileName = null;
             try
             {
-                ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal);
+                var cfg = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal);
+                configFileName = cfg.FilePath;
+                appSettings = new AppSettings();
             }
             catch (ConfigurationErrorsException ex)
             {
-                string filename = ex.Filename;
+                string filename = !string.IsNullOrEmpty(ex.Filename) ? ex.Filename : configFileName;
                 Factory.GUIController.ShowMessage("Editor's configuration is corrupt and cannot be loaded. " +
                         "This could happen because of an improper program exit, a disk malfunction, or an invalid file edit. " +
                         "The configuration file will be deleted and user preferences reset to allow Editor start." +
-                        "\n\n\nConfiguration file's location: " + filename,
+                        "\n\n\nConfiguration file's location: " + (!string.IsNullOrEmpty(filename) ? configFileName : "(undefined)"),
                         MessageBoxIcon.Error);
                 Utilities.TryDeleteFile(filename);
+                appSettings = new AppSettings();
             }
 
-            _applicationSettings = new AppSettings();
+            _applicationSettings = appSettings;
         }
 
         private void _debugger_BreakAtLocation(DebugCallStack callStack)

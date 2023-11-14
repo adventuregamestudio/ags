@@ -279,40 +279,14 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
         coldepth[0] = bitmap_color_depth(bmp);
 }
 
-// On save/restore, the Engine will provide the plugin with a handle. Because we only ever save to one file at a time,
-// we can reuse the same handle.
-
-static long pl_file_handle = -1;
-static Stream *pl_file_stream = nullptr;
-
-void pl_set_file_handle(long data, Stream *stream) {
-    pl_file_handle = data;
-    pl_file_stream = stream;
-}
-
-void pl_clear_file_handle() {
-    pl_file_handle = -1;
-    pl_file_stream = nullptr;
-}
-
 int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
-    if (handle != pl_file_handle) {
-        quitprintf("IAGSEngine::FRead: invalid file handle: %d", handle);
-    }
-    if (!pl_file_stream) {
-        quit("IAGSEngine::FRead: file stream not set");
-    }
-    return pl_file_stream->Read(buffer, len);
+    Stream *stream = get_file_stream(handle, "IAGSEngine::FRead");
+    return stream->Read(buffer, len);
 }
 
 int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
-    if (handle != pl_file_handle) {
-        quitprintf("IAGSEngine::FWrite: invalid file handle: %d", handle);
-    }
-    if (!pl_file_stream) {
-        quit("IAGSEngine::FWrite: file stream not set");
-    }
-    return pl_file_stream->Write(buffer, len);
+    Stream *stream = get_file_stream(handle, "IAGSEngine::FWrite");
+    return stream->Write(buffer, len);
 }
 
 void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text)

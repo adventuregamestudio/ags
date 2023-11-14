@@ -225,10 +225,15 @@ namespace AGS.Editor
                     System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                     string toDraw = String.Format("X:{0}, Y:{1}", _selectedCharacter.StartX, _selectedCharacter.StartY);
 
-                    int scaledx = rect.X + (rect.Width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
-                    int scaledy = rect.Y - (int)graphics.MeasureString(toDraw, font).Height;
+                    var textSize = graphics.MeasureString(toDraw, font);
+                    int scaledx = rect.X + (rect.Width / 2) - ((int)textSize.Width / 2);
+                    int scaledy = rect.Y - (int)textSize.Height;
                     if (scaledx < 0) scaledx = 0;
                     if (scaledy < 0) scaledy = 0;
+                    if (scaledx + textSize.Width >= graphics.VisibleClipBounds.Width)
+                        scaledx = (int)(graphics.VisibleClipBounds.Width - textSize.Width);
+                    if (scaledy + textSize.Height >= graphics.VisibleClipBounds.Height)
+                        scaledy = (int)(graphics.VisibleClipBounds.Height - textSize.Height);
 
                     graphics.DrawString(toDraw, font, pen.Brush, scaledx, scaledy);
                 }

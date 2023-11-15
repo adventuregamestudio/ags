@@ -523,7 +523,7 @@ namespace AGS.Editor
             {
                 base.OnCommandClick(command);
             }
-            UpdateToolbarButtonsIfNecessary();
+            UpdateUICommands();
         }
 
         protected override void OnWindowActivated()
@@ -611,7 +611,6 @@ namespace AGS.Editor
 
         private void scintilla_UpdateUI(object sender, EventArgs e)
         {
-            UpdateToolbarButtonsIfNecessary();
             if (cmbFunctions.Items.Count > 0)
             {
                 SelectFunctionInListForCurrentPosition();

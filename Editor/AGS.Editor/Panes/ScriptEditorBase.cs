@@ -113,12 +113,14 @@ namespace AGS.Editor
             _scintilla = scintilla;
             _scintilla.ConstructContextMenu += scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu += scintilla_ActivateContextMenu;
+            _scintilla.UpdateUI += scintilla_UpdateUI;
         }
 
         private void DisconnectScintilla()
         {
             _scintilla.ConstructContextMenu -= scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
+            _scintilla.UpdateUI -= scintilla_UpdateUI;
             _scintilla = null;
         }
 
@@ -252,13 +254,14 @@ namespace AGS.Editor
                     _scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
                 }
             }
+            UpdateUICommands();
         }
 
         /// <summary>
-        /// Updates the state of toolbar icons.
+        /// Updates the state of menu commands (this affects both menu and toolbar icons).
         /// May be overriden in derived classes for their specific commands.
         /// </summary>
-        protected virtual void UpdateToolbarButtonsIfNecessary()
+        protected virtual void UpdateUICommands()
         {
             bool canCutAndCopy = _scintilla.CanCutAndCopy();
             bool canPaste = _scintilla.CanPaste();
@@ -277,6 +280,11 @@ namespace AGS.Editor
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }
+        }
+
+        private void scintilla_UpdateUI(object sender, EventArgs e)
+        {
+            UpdateUICommands();
         }
 
         private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
@@ -333,7 +341,7 @@ namespace AGS.Editor
 
         private void scintilla_ActivateContextMenu(string commandName)
         {
-            UpdateToolbarButtonsIfNecessary();
+            UpdateUICommands();
         }
 
         private void ContextMenuChooseOption(object sender, EventArgs e)

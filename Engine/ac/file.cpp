@@ -37,6 +37,7 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern AGSPlatformDriver *platform;
@@ -670,51 +671,109 @@ AssetPath get_voice_over_assetpath(const String &filename)
 
 //=============================================================================
 
-// ScriptFileHandle manages a Stream object prepared for script or plugin's use.
-struct ScriptFileHandle
+// ScriptFileHandle is a wrapper over a Stream object, prepared for script
+// or plugin. Implements IManagedStream, which is a plugin API contract.
+class ScriptFileHandle : public IManagedStream
 {
-    std::unique_ptr<Stream> stream;
-    int32_t  handle = 0;
-
+public:
     ScriptFileHandle() = default;
-    ScriptFileHandle(std::unique_ptr<Stream> &&s, int32_t h)
-        : stream(std::move(s)), handle(h) {}
+    ScriptFileHandle(std::unique_ptr<Stream> &&s, int32_t handle)
+        : _s(std::move(s)), _handle(handle) {}
+
+    Stream *GetStream() const { return _s.get(); }
+    int32_t GetHandle() const { return _handle; }
+
+    // Releases Stream ownership; used in case of temporary stream wrap
+    Stream *ReleaseStream() { return _s.release(); }
+
+    //-------------------------------------------------------------------------
+    // IManagedStream implementation
+    // Flushes and closes the stream, deallocates the stream object.
+    // After calling this the IAGSStream pointer becomes INVALID.
+    void Close() override
+    {
+        close_file_stream(_handle, "IAGSStream::Close"); // this will dealloc us
+    }
+    // Returns an optional stream's source description.
+    // This may be a file path, or a resource name, or anything of that kind.
+    const char *GetPath() override { return _s->GetPath().GetCStr(); }
+    // Reads number of bytes into the provided buffer
+    virtual size_t Read(void *buffer, size_t len) override { return _s->Read(buffer, len); }
+    // Writes number of bytes from the provided buffer
+    virtual size_t Write(void *buffer, size_t len) override { return _s->Write(buffer, len); }
+    // Returns the total stream's length in bytes
+    virtual int64_t GetLength() override { return _s->GetLength(); }
+    // Returns stream's position
+    virtual int64_t GetPosition() override { return _s->GetPosition(); }
+    // Tells whether the stream's position is at its end
+    virtual bool   EOS() override { return _s->EOS(); }
+    // Seeks to offset from the origin, see AGSSTREAM_SEEK_* constants
+    virtual bool   Seek(int64_t offset, int origin) override
+        { return _s->Seek(offset, static_cast<StreamSeek>(origin)); }
+    // Flushes stream, forcing it to write any buffered data to the
+    // underlying device. Note that the effect may depend on implementation.
+    virtual void   Flush() override { _s->Flush(); }
+
+private:
+    std::unique_ptr<Stream> _s;
+    int32_t _handle = 0;
 };
 
-std::vector<ScriptFileHandle> file_streams;
+std::vector<std::unique_ptr<ScriptFileHandle>> file_streams;
 
 int32_t add_file_stream(std::unique_ptr<Stream> &&stream, const char * /*operation_name*/)
 {
     uint32_t handle = 1;
-    for (; handle < file_streams.size() && file_streams[handle].handle > 0; ++handle) {}
+    for (; handle < file_streams.size() && file_streams[handle]; ++handle) {}
     if (handle >= file_streams.size())
         file_streams.resize(handle + 1);
-    file_streams[handle] = ScriptFileHandle(std::move(stream), handle);
+    file_streams[handle].reset(new ScriptFileHandle(std::move(stream), handle));
     return static_cast<int32_t>(handle);
 }
 
 static ScriptFileHandle *check_file_stream(int32_t fhandle, const char *operation_name)
 {
     if (fhandle <= 0 || static_cast<uint32_t>(fhandle) >= file_streams.size()
-        || !file_streams[fhandle].stream)
+        || !file_streams[fhandle])
     {
         quitprintf("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
         return nullptr;
     }
-    return &file_streams[fhandle];
+    return file_streams[fhandle].get();
 }
 
 void close_file_stream(int32_t fhandle, const char *operation_name)
 {
-    ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
-    if (fh)
-        *fh = ScriptFileHandle();
+    if (fhandle <= 0 || static_cast<uint32_t>(fhandle) >= file_streams.size()
+        || !file_streams[fhandle])
+    {
+        quitprintf("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
+    }
+    else
+    {
+        file_streams[fhandle] = nullptr;
+    }
 }
 
 Stream *get_file_stream(int32_t fhandle, const char *operation_name)
 {
     ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
-    return fh ? fh->stream.get() : nullptr;
+    return fh ? fh->GetStream() : nullptr;
+}
+
+IManagedStream *get_file_stream_iface(int32_t fhandle, const char *operation_name)
+{
+    return check_file_stream(fhandle, operation_name);
+}
+
+int32_t find_file_stream_handle(AGS::Engine::IManagedStream *iface)
+{
+    for (auto &pfh : file_streams)
+    {
+        if (pfh.get() == iface)
+            return pfh->GetHandle();
+    }
+    return 0;
 }
 
 Stream *release_file_stream(int32_t fhandle, const char *operation_name)
@@ -722,8 +781,8 @@ Stream *release_file_stream(int32_t fhandle, const char *operation_name)
     ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
     if (!fh)
         return nullptr;
-    Stream *s = fh->stream.release();
-    *fh = ScriptFileHandle();
+    Stream *s = fh->ReleaseStream();
+    close_file_stream(fhandle, operation_name);
     return s;
 }
 

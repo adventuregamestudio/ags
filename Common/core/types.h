@@ -18,9 +18,8 @@
 #ifndef __AGS_CN_CORE__TYPES_H
 #define __AGS_CN_CORE__TYPES_H
 
-#include <stddef.h>
+#include <stddef.h> // for size_t
 #include <stdint.h>
-#include <stdlib.h> // for size_t
 #include <limits.h> // for _WORDSIZE
 
 #ifndef NULL

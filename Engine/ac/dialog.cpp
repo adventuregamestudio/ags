@@ -54,6 +54,7 @@
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameState play;

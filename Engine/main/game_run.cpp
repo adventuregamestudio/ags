@@ -67,6 +67,7 @@
 #include "script/script_runtime.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;

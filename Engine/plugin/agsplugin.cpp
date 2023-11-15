@@ -97,7 +97,7 @@ extern RuntimeScriptValue GlobalReturnValue;
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 27;
+const int PLUGIN_API_VERSION = 28;
 struct EnginePlugin
 {
     EnginePlugin() {
@@ -751,9 +751,9 @@ int IAGSEngine::IsRunningUnderDebugger()
     return (editor_debugging_initialized != 0) ? 1 : 0;
 }
 
-void IAGSEngine::GetPathToFileInCompiledFolder(const char*fileName, char *buffer)
+void IAGSEngine::GetPathToFileInCompiledFolder(const char *fileName, char *buffer)
 {
-    // TODO: this is very unsafe, deprecate and make a better API function if still necessary
+    // TODO: this is very unsafe, deprecate in the future
     strcpy(buffer, PathFromInstallDir(fileName).GetCStr());
 }
 
@@ -810,6 +810,27 @@ int IAGSEngine::ResolveFilePath(const char *script_path, char *buf, int buf_len)
     memcpy(buf, path.GetCStr(), copy_len);
     buf[copy_len] = 0;
     return copy_len + 1;
+}
+
+::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, const char *mode)
+{
+    FileOpenMode open_mode;
+    FileWorkMode work_mode;
+    File::GetFileModesFromCMode(mode, open_mode, work_mode);
+    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path, open_mode, work_mode));
+    if (!s)
+        return nullptr;
+    int32_t fhandle = add_file_stream(std::move(s), "IAGSEngine::OpenFileStream");
+    if (fhandle <= 0)
+        return nullptr;
+    return reinterpret_cast<::IAGSStream*>(
+        get_file_stream_iface(fhandle, "IAGSEngine::OpenFileStream"));
+}
+
+::IAGSStream *IAGSEngine::GetFileStreamByHandle(int32 fhandle)
+{
+    return reinterpret_cast<::IAGSStream*>(
+        get_file_stream_iface(fhandle, "IAGSEngine::GetFileStreamByHandle"));
 }
 
 // *********** General plugin implementation **********

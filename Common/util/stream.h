@@ -49,7 +49,28 @@ enum StreamSeek
 };
 
 
-class Stream
+// IStream is a contract for the basic stream class.
+class IStream
+{
+public:
+    // Reads number of bytes into the provided buffer
+    virtual size_t Read(void *buffer, size_t len) = 0;
+    // Writes number of bytes from the provided buffer
+    virtual size_t Write(const void *buffer, size_t len) = 0;
+    // Returns the total stream's length in bytes
+    virtual soff_t GetLength() const = 0;
+    // Returns stream's position
+    virtual soff_t GetPosition() const = 0;
+    // Seeks to offset from the origin
+    virtual bool   Seek(soff_t offset, StreamSeek origin) = 0;
+
+protected:
+    IStream() = default;
+    ~IStream() = default;
+};
+
+
+class Stream : public IStream
 {
 public:
     Stream() = default;

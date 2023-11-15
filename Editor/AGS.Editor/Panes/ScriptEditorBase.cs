@@ -196,6 +196,18 @@ namespace AGS.Editor
         /// <param name="command"></param>
         protected override void OnCommandClick(string command)
         {
+            Control c = Utilities.GetControlThatHasFocus();
+            TextBox tbox = c as TextBox;
+            if (tbox != null)
+            {
+                if (command == CUT_COMMAND) tbox.Cut();
+                else if (command == COPY_COMMAND) tbox.Copy();
+                else if (command == PASTE_COMMAND) tbox.Paste();
+                else if (command == UNDO_COMMAND) tbox.Undo();
+
+                return;
+            }
+
             if (command == CUT_COMMAND)
             {
                 _scintilla.Cut();

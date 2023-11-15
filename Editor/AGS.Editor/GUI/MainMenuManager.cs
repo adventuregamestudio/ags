@@ -166,6 +166,7 @@ namespace AGS.Editor
                     newItem.Checked = command.Checked;
                     newItem.Tag = doc;
                     newItem.ShortcutKeys = command.ShortcutKey;
+                    newItem.ShortcutKeyDisplayString = command.ShortcutKeyDisplayString;
                     if (command.IconKey != null)
                     {
                         newItem.Image = Factory.GUIController.ImageList.Images[command.IconKey];

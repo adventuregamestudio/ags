@@ -48,6 +48,7 @@ namespace AGS.Types
 		private bool _enabled;
 		private bool _checked;
 		private Keys _shortcutKey = Keys.None;
+        private string _shortcutKeyDisplayString = string.Empty;
 
 		public bool IsSeparator
 		{
@@ -59,6 +60,12 @@ namespace AGS.Types
 			get { return _shortcutKey; }
 			set { _shortcutKey = value; }
 		}
+
+        public string ShortcutKeyDisplayString
+        {
+            get { return _shortcutKeyDisplayString; }
+            set { _shortcutKeyDisplayString = value; }
+        }
 
 		public string IconKey
 		{

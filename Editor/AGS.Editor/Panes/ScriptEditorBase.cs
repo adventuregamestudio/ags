@@ -128,11 +128,16 @@ namespace AGS.Editor
 
         private void InitEditorMenus()
         {
-            _menuCmdUndo = new MenuCommand(UNDO_COMMAND, "Undo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z, "UndoMenuIcon");
-            _menuCmdRedo = new MenuCommand(REDO_COMMAND, "Redo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y, "RedoMenuIcon");
-            _menuCmdCut = new MenuCommand(CUT_COMMAND, "Cut", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X, "CutMenuIcon");
-            _menuCmdCopy = new MenuCommand(COPY_COMMAND, "Copy", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C, "CopyMenuIcon");
-            _menuCmdPaste = new MenuCommand(PASTE_COMMAND, "Paste", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V, "PasteMenuIcon");
+            _menuCmdUndo = new MenuCommand(UNDO_COMMAND, "Undo", "UndoMenuIcon");
+            _menuCmdUndo.ShortcutKeyDisplayString = "Ctrl+Z";
+            _menuCmdRedo = new MenuCommand(REDO_COMMAND, "Redo", "RedoMenuIcon");
+            _menuCmdRedo.ShortcutKeyDisplayString = "Ctrl+Y";
+            _menuCmdCut = new MenuCommand(CUT_COMMAND, "Cut", "CutMenuIcon");
+            _menuCmdCut.ShortcutKeyDisplayString = "Ctrl+X";
+            _menuCmdCopy = new MenuCommand(COPY_COMMAND, "Copy", "CopyMenuIcon");
+            _menuCmdCopy.ShortcutKeyDisplayString = "Ctrl+C";
+            _menuCmdPaste = new MenuCommand(PASTE_COMMAND, "Paste", "PasteMenuIcon");
+            _menuCmdPaste.ShortcutKeyDisplayString = "Ctrl+V";
             _extraMenu.Commands.Add(_menuCmdUndo);
             _extraMenu.Commands.Add(_menuCmdRedo);
             _extraMenu.Commands.Add(MenuCommand.Separator);

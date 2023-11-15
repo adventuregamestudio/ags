@@ -1779,7 +1779,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     if ((objsav.image != nullptr) &&
         (objsav.sppic == specialpic) &&
         // not a dynamic sprite, or not sprite modified lately
-        (!play.spritemodified[objsav.sppic]) &&
+        (!play.spritemodified[pic]) &&
         (objsav.tintamnt == tint_level) &&
         (objsav.tintlight == tint_light) &&
         (objsav.tintr == tint_red) &&

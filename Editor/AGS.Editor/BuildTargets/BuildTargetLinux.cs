@@ -73,7 +73,7 @@ namespace AGS.Editor
             Utilities.TryDeleteFile(script_filename);
         }
 
-        private bool CheckPluginsHaveSharedLibraries()
+        private void CheckPluginsHaveSharedLibraries(CompileMessages errors)
         {
             _plugins.Clear();
             string linuxDir = Path.Combine(Factory.AGSEditor.EditorDirectory, LINUX_DIR);
@@ -84,21 +84,17 @@ namespace AGS.Editor
                 string soName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
                 bool has32bit = File.Exists(Path.Combine(lib32Dir, soName));
                 bool has64bit = File.Exists(Path.Combine(lib64Dir, soName));
-                if ((!has32bit) || (!has64bit))
+                if(has32bit || has64bit)
                 {
-                    DialogResult ignore = MessageBox.Show("WARNING! The plugin '" + plugin.FileName +
-                        "' does not have a Linux equivalent ('" + soName +
-                        "' (" + (has32bit ? "" : "32-bit") + (has64bit ? "" : (has32bit ? "" : ", ") + "64-bit") + ")" +
-                        ") available. Your game may not run or function properly without it. Do you wish to continue building for Linux anyway?",
-                        "Missing plugin for Linux",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Warning);
-                    if (ignore == DialogResult.Yes) continue;
-                    return false;
+                    _plugins.Add(soName);
+                    if (!has32bit) errors.Add(new CompileWarning("Linux: plugin " + soName + " is missing for 32-bit."));
+                    if (!has64bit) errors.Add(new CompileWarning("Linux: plugin " + soName + " is missing for 64-bit."));
                 }
-                _plugins.Add(soName);
+                else
+                {
+                    errors.Add(new CompileWarning("Linux: plugin " + soName + " not found for any arch."));
+                }                
             }
-            return true;
         }
 
         private string GetSymLinkScriptForEachPlugin(bool is64bit)
@@ -120,11 +116,7 @@ namespace AGS.Editor
         public override bool Build(CompileMessages errors, bool forceRebuild)
         {
             if (!base.Build(errors, forceRebuild)) return false;
-            if (!CheckPluginsHaveSharedLibraries())
-            {
-                errors.Add(new CompileError("Could not build for Linux due to missing plugins."));
-                return false;
-            }
+            CheckPluginsHaveSharedLibraries(errors);
             foreach (string fileName in Directory.GetFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY)))
             {
                 if ((File.GetAttributes(fileName) & (FileAttributes.Hidden | FileAttributes.System | FileAttributes.Temporary)) != 0)
@@ -160,10 +152,19 @@ namespace AGS.Editor
             string editorLinuxLib64Dir = Path.Combine(editorLinuxDir, LINUX_LIB64_DIR);
             foreach (string soName in _plugins)
             {
-                Utilities.HardlinkOrCopy(Path.Combine(linuxDataLib32Dir, soName),
-                    Path.Combine(editorLinuxLib32Dir, soName), true);
-                Utilities.HardlinkOrCopy(Path.Combine(linuxDataLib64Dir, soName),
-                    Path.Combine(editorLinuxLib64Dir, soName), true);
+                string pathSoEditor32bit = Path.Combine(editorLinuxLib32Dir, soName);
+                string pathSoEditor64bit = Path.Combine(editorLinuxLib64Dir, soName);
+                string pathSoData32bit = Path.Combine(linuxDataLib32Dir, soName);
+                string pathSoData64bit = Path.Combine(linuxDataLib64Dir, soName);
+                if (File.Exists(pathSoEditor32bit))
+                {
+                    Utilities.HardlinkOrCopy(pathSoData32bit, pathSoEditor32bit, true);
+                }
+                if(File.Exists(pathSoEditor64bit))
+                {
+                    Utilities.HardlinkOrCopy(pathSoData64bit, pathSoEditor64bit, true);
+                }
+                
             }
             string scriptFileName = GetCompiledPath(GetScriptFileNameFromBasename(Factory.AGSEditor.BaseGameFileName)); 
             string scriptText =

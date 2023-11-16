@@ -89,6 +89,11 @@ Once you placed your game in the appropriate directory, in Android Studio click 
 
 To properly build your app for delivery (`mygame/app/build/outputs/bundle/release`), you will need to sign your app. Go to `Build -> Generate Signed Bundle or APK`, select `Android App Bundle` and follow the screens. Make sure to note down your passwords!
 
+## Including binary plugins
+
+In the `../plugins` dir, you can place binary prebuilts of plugins, in their respective arch directories, which gradle will then package in place in the same directory as the ags and sdl libraries in the app.
+
+Read the [`../plugins/plugins_go_here.txt`](../plugins/plugins_go_here.txt) file for description of expected directory structure.
 
 ## Packaging the AGS game as APK for other stores
 
@@ -115,8 +120,8 @@ If you want to make sure that the built `.aab` bundle actually has your game pac
 Now, you will need to set `JAVA_HOME`, `ANDROID_HOME` and make sure java is on your Path to be able to use this tool. Below is an example for configuring via `cmd.exe` on Windows, but adjust it accordingly, attention to java directory that will change on each version.
 
     setx ANDROID_HOME "%USERPROFILE%\AppData\Local\Android\Sdk"
-	setx JAVA_HOME "%ProgramFiles%\Android\Android Studio\jre"
-	setx Path "%Path%;%JAVA_HOME%\bin"
+    setx JAVA_HOME "%ProgramFiles%\Android\Android Studio\jre"
+    setx Path "%Path%;%JAVA_HOME%\bin"
 
 With that set, generate APKs with the `--local-testing` flag
 

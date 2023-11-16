@@ -3,23 +3,19 @@ If you don't supply, then they will be built with CMake and Ninja on NDK
 
 .
 ├── arm64-v8a
-│   ├── libags.so
-│   ├── libengine.so
-│   ├── libpe.so
-│   └── libSDL2.so
+│   ├── libags.so
+│   ├── libengine.so
+│   └── libSDL2.so
 ├── armeabi-v7a
-│   ├── libags.so
-│   ├── libengine.so
-│   ├── libpe.so
-│   └── libSDL2.so
+│   ├── libags.so
+│   ├── libengine.so
+│   └── libSDL2.so
 ├── x86
-│   ├── libags.so
-│   ├── libengine.so
-│   ├── libpe.so
-│   └── libSDL2.so
+│   ├── libags.so
+│   ├── libengine.so
+│   └── libSDL2.so
 └── x86_64
     ├── libags.so
     ├── libengine.so
-    ├── libpe.so
     └── libSDL2.so
 

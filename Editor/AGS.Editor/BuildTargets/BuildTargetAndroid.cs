@@ -24,10 +24,19 @@ namespace AGS.Editor
 
         private const string ANDROID_CFG = "android.cfg";
 
-        private const string PROJECT_DIR = "icons\\android";
+        private const string ICON_PROJECT_DIR = "icons\\android";
         private const string ICON_FILENAME = "ic_launcher.png";
         private const string ICON_ROUND_FILENAME = "ic_launcher_round.png";
         private const string ICON_RES_DIR = "app\\src\\main\\res";
+        private const string ANDROID_ARCH_X86 = "x86";
+        private const string ANDROID_ARCH_X86_64 = "x86_64";
+        private const string ANDROID_ARCH_ARM_V7A = "armeabi-v7a";
+        private const string ANDROID_ARCH_ARM64_V8A = "arm64-v8a";
+
+        private static readonly IList<string> ANDROID_ARCHS = new ReadOnlyCollection<string>(new List<string> {
+            ANDROID_ARCH_X86, ANDROID_ARCH_X86_64, ANDROID_ARCH_ARM_V7A, ANDROID_ARCH_ARM64_V8A,
+        });
+
         public static readonly IList<string> ICON_DIRS = new ReadOnlyCollection<string> (new List<string> {
             "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi",
         });
@@ -125,7 +134,7 @@ namespace AGS.Editor
 
         private IconAssetType GetGameIconType()
         {
-            string projIconDir = PROJECT_DIR;
+            string projIconDir = ICON_PROJECT_DIR;
 
             if (!Directory.Exists(projIconDir)) return IconAssetType.NoIconFiles;
 
@@ -149,7 +158,7 @@ namespace AGS.Editor
 
         private void SetGameIcons(IconAssetType icType, string destDir)
         {
-            string projIconDir = PROJECT_DIR;
+            string projIconDir = ICON_PROJECT_DIR;
             string destIconDir = Path.Combine(destDir, ICON_RES_DIR);
 
             switch (icType)
@@ -228,6 +237,11 @@ namespace AGS.Editor
             string packages = "\"build-tools;34.0.0\" \"ndk;25.2.9519653\" \"platforms;android-34\"";
 
             AndroidUtilities.RunSdkManager(packages, prjDir);
+        }
+
+        private string GetEditorAndroidBundleDir()
+        {
+            return Path.Combine(Factory.AGSEditor.EditorDirectory, ANDROID_DIR);
         }
 
         private string GetAndroidProjectInCompiledDir()
@@ -384,11 +398,58 @@ namespace AGS.Editor
             WriteStringToFile(fileName, fileText);
         }
 
+        private IDictionary<string, string> GetRequiredPluginFilePaths(CompileMessages errors)
+        {
+            Dictionary<string, string> paths = new Dictionary<string, string>();
+
+            string androidDir = GetEditorAndroidBundleDir();
+            string pluginDir = "plugins";
+
+            foreach (Plugin plugin in Factory.AGSEditor.CurrentGame.Plugins)
+            {
+                string soName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
+
+                bool hasPluginSo = false;
+                string missing_archs = "";
+                foreach (string arch in ANDROID_ARCHS)
+                {
+                    string pluginSoDir = Path.Combine(pluginDir, Path.Combine(arch, soName));
+                    string pluginSoDirInEditor = Path.Combine(androidDir, pluginSoDir);
+                    bool hasThisSo = File.Exists(pluginSoDirInEditor);
+                    if(hasThisSo)
+                    {
+                        paths.Add(pluginSoDir, androidDir);
+                    }
+                    else
+                    {
+                        missing_archs += arch + ", ";
+                    }
+
+                    hasPluginSo |= hasThisSo;
+                }
+                if (hasPluginSo)
+                {
+                    if (!string.IsNullOrEmpty(missing_archs))
+                    {
+                        missing_archs = missing_archs.Substring(0, missing_archs.Length - 2);
+                        string warn_msg = "Android: plugin " + soName + " is missing for " + missing_archs + ".";
+                        errors.Add(new CompileWarning(warn_msg));
+                    }
+                }
+                else
+                {
+                    errors.Add(new CompileWarning("Android: plugin " + soName + " not found for any arch."));
+                }
+            }
+
+            return paths;
+        }
+
         public override IDictionary<string, string> GetRequiredLibraryPaths()
         {
             Dictionary<string, string> paths = new Dictionary<string, string>();
 
-            string androidDir = Path.Combine(Factory.AGSEditor.EditorDirectory, ANDROID_DIR);
+            string androidDir = GetEditorAndroidBundleDir();
 
             List<string> files = new List<string>()
             {
@@ -504,7 +565,8 @@ namespace AGS.Editor
                 "mygame\\play_licensing_library\\src\\main\\java\\com\\google\\android\\vending\\licensing\\StrictPolicy.java",
                 "mygame\\play_licensing_library\\src\\main\\java\\com\\google\\android\\vending\\licensing\\ValidationException.java",
                 "mygame\\play_licensing_library\\src\\main\\java\\com\\google\\android\\vending\\licensing\\util\\Base64.java",
-                "mygame\\play_licensing_library\\src\\main\\java\\com\\google\\android\\vending\\licensing\\util\\Base64DecoderException.java"
+                "mygame\\play_licensing_library\\src\\main\\java\\com\\google\\android\\vending\\licensing\\util\\Base64DecoderException.java",
+                "plugins\\plugins_go_here.txt"
             };
 
             foreach(string file in files)
@@ -562,7 +624,14 @@ namespace AGS.Editor
             GenerateConfigFile(assetsDir);
             WriteAndroidCfg(assetsDir);
 
-            foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())
+            Dictionary<string, string> all_file_paths = new Dictionary<string, string>(GetRequiredLibraryPaths());
+            {
+                Dictionary<string, string> plugin_paths = new Dictionary<string, string>(GetRequiredPluginFilePaths(errors));
+                foreach (var plugin_path in plugin_paths)
+                    all_file_paths.Add(plugin_path.Key, plugin_path.Value);
+            }
+
+            foreach (KeyValuePair<string, string> pair in all_file_paths)
             {
                 string fileName = pair.Key;
                 string originDir = pair.Value;

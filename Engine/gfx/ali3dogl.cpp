@@ -1368,9 +1368,9 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
     for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
-        // Test if we are entering this batch (and not continuing after coming back from nested)
         const auto &batch = _spriteBatches[cur_bat];
-        if (cur_spr <= _spriteBatchRange[cur_bat].first)
+        // Test if we are entering this batch (and not continuing after coming back from nested)
+        if (cur_bat == last_bat)
         {
             // If batch introduces a new render target, or the first using backbuffer, then remember it
             if (rt_parents.empty() || batch.RenderTarget)
@@ -1379,7 +1379,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
                 rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        // Render immediate batch sprites, if any, update cur_spr iterator
+        // Render immediate batch sprites, if any, update cur_spr iterator;
+        // we know that the batch has sprites, if next sprite in list belongs to it ("node" ref)
         if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
         {
             // If render target is different in this batch, then set it up
@@ -1396,6 +1397,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;
             cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
+            // at this point cur_spr iterator is updated past the last sprite in a sequence;
+            // this may be the end of batch, but also may be the a begginning of a sub-batch
         }
 
         // Test if we're exiting current batch (and not going into nested ones):

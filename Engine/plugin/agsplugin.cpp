@@ -800,13 +800,13 @@ void IAGSEngine::NotifyFontUpdated(int fontNumber)
     GUI::MarkForFontUpdate(fontNumber);
 }
 
-int IAGSEngine::ResolveFilePath(const char *script_path, char *buf, int buf_len)
+size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t buf_len)
 {
     ResolvedPath rp = ResolveScriptPathAndFindFile(script_path, true, true);
     String path = Path::MakeAbsolutePath(rp.FullPath); // make it pretty
-    if (!buf || buf_len <= 0)
-        return static_cast<int>(path.GetLength() + 1);
-    size_t copy_len = std::min<size_t>(buf_len - 1, path.GetLength());
+    if (!buf || buf_len == 0)
+        return path.GetLength() + 1;
+    size_t copy_len = std::min(buf_len - 1, path.GetLength());
     memcpy(buf, path.GetCStr(), copy_len);
     buf[copy_len] = 0;
     return copy_len + 1;

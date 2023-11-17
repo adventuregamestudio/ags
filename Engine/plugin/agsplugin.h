@@ -594,7 +594,7 @@ public:
   // Caller should provide an output buffer and its length in bytes.
   // Passing NULL instead of a buffer pointer will make function calculate and return
   // length necessary to store a resulting path (in bytes).
-  AGSIFUNC(int) ResolveFilePath(const char *script_path, char *buf, int buf_len);
+  AGSIFUNC(size_t) ResolveFilePath(const char *script_path, char *buf, size_t buf_len);
 
   // *** BELOW ARE INTERFACE VERSION 28 AND ABOVE ONLY
   // Opens a data stream, resolving a script path.

@@ -37,8 +37,8 @@ namespace Common
 // TODO: merge with FileWorkMode (historical mistake)
 enum StreamWorkMode
 {
-    kStream_Read,
-    kStream_Write
+    kStream_Read    = 0x1,
+    kStream_Write   = 0x2
 };
 
 enum StreamSeek

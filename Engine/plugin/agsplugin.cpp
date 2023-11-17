@@ -812,12 +812,10 @@ int IAGSEngine::ResolveFilePath(const char *script_path, char *buf, int buf_len)
     return copy_len + 1;
 }
 
-::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, const char *mode)
+::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, int file_mode, int work_mode)
 {
-    FileOpenMode open_mode;
-    FileWorkMode work_mode;
-    File::GetFileModesFromCMode(mode, open_mode, work_mode);
-    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path, open_mode, work_mode));
+    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path,
+        static_cast<FileOpenMode>(file_mode), static_cast<FileWorkMode>(work_mode)));
     if (!s)
         return nullptr;
     int32_t fhandle = add_file_stream(std::move(s), "IAGSEngine::OpenFileStream");

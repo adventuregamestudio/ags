@@ -294,6 +294,14 @@ struct AGSGameInfo {
   int UniqueId;
 };
 
+#define AGSSTREAM_FILE_OPEN         0
+#define AGSSTREAM_FILE_CREATE       1
+#define AGSSTREAM_FILE_CREATEALWAYS 2
+
+#define AGSSTREAM_MODE_READ  0x1
+#define AGSSTREAM_MODE_WRITE 0x2
+#define AGSSTREAM_MODE_READWRITE (AGSSTREAM_MODE_READ | AGSSTREAM_MODE_WRITE)
+
 #define AGSSTREAM_SEEK_SET 0
 #define AGSSTREAM_SEEK_CUR 1
 #define AGSSTREAM_SEEK_END 2
@@ -589,11 +597,12 @@ public:
   AGSIFUNC(int) ResolveFilePath(const char *script_path, char *buf, int buf_len);
 
   // *** BELOW ARE INTERFACE VERSION 28 AND ABOVE ONLY
-  // Opens a data stream, resolving a script path. Mode param must contain file mode
-  // similar to the one used in C fopen function.
+  // Opens a data stream, resolving a script path.
+  // File mode should contain one of the AGSSTREAM_FILE_* values,
+  // work mode should contain flag set of the AGSSTREAM_MODE_* values.
   // Returns IAGSStream object, or null on failure.
   // IAGSStream must be disposed by calling its Close() function.
-  AGSIFUNC(IAGSStream*) OpenFileStream(const char *script_path, const char *mode);
+  AGSIFUNC(IAGSStream*) OpenFileStream(const char *script_path, int file_mode, int work_mode);
   // Returns IAGSStream object identified by the given stream handle.
   // This lets to retrieve IAGSStream object from a handle received in a event callback.
   // Returns null if handle is invalid.

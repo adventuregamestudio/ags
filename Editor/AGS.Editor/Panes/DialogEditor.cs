@@ -240,7 +240,31 @@ namespace AGS.Editor
 
         private void dialogOptionsEditorTextBox_GotFocus(object sender, EventArgs e)
         {
-            EnableAllStandardEditCommands();
+            TextBox tbox = sender as TextBox;
+            if (tbox == null) return;
+
+            bool can_copy_cut = tbox.SelectionLength > 0;
+            EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo:false);
+        }
+
+        protected override void OnCommandClick(string command)
+        {
+            if (IsStandardEditCommand(command))
+            {
+                Control c = Utilities.GetControlThatHasFocus();
+                TextBox tbox = c as TextBox;
+                if (tbox != null)
+                {
+                    if (command == CUT_COMMAND) tbox.Cut();
+                    else if (command == COPY_COMMAND) tbox.Copy();
+                    else if (command == PASTE_COMMAND) tbox.Paste();
+                    else if (command == UNDO_COMMAND) tbox.Undo();
+
+                    return;
+                }
+            }
+
+            base.OnCommandClick(command);
         }
 
         private void btnNewOption_Click(object sender, EventArgs e)

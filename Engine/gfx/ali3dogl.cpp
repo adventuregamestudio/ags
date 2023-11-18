@@ -1359,6 +1359,11 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     if (_do_render_to_texture)
         glEnable(GL_SCISSOR_TEST);
 
+    // TODO: following algorithm is repeated for both Direct3D and OpenGL renderer
+    // classes. The problem is that some data has different types and contents
+    // specific to the renderer. But there has to be a good way to make a shared
+    // algorithm in a base class.
+
     // Render all the sprite batches with necessary transformations;
     // some of them may be rendered to a separate texture instead.
     // For these we save their IDs in a stack (rt_parents).

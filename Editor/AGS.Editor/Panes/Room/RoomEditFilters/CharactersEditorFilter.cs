@@ -33,6 +33,7 @@ namespace AGS.Editor
         private int _mouseOffsetX, _mouseOffsetY;
         private bool _movingCharacterWithKeyboard = false;
         private int _movingKeysDown = 0;
+        private Timer _movingHintTimer = new Timer();
 
         public Character SelectedCharacter { get { return _selectedCharacter; } }
 
@@ -53,6 +54,9 @@ namespace AGS.Editor
                 cmp.OnCharacterIDChanged += OnCharacterIDChanged;
                 cmp.OnCharacterRoomChanged += OnCharacterRoomChanged;
             }
+
+            _movingHintTimer.Interval = 2000;
+            _movingHintTimer.Tick += MovingHintTimer_Tick;
         }
 
         public bool MouseDown(MouseEventArgs e, RoomEditorState state)
@@ -141,7 +145,7 @@ namespace AGS.Editor
         {
             if (_selectedCharacter == null)
             {
-                _movingCharacterWithMouse = false;
+                ClearMovingState();
             }
             else
             {
@@ -152,8 +156,23 @@ namespace AGS.Editor
                     _selectedCharacter.StartY = newY;
                     // NOTE: do not mark room as modified, as characters are not part of room data
                 }
+                _movingHintTimer.Stop();
             }
             return true;
+        }
+
+        private void ClearMovingState()
+        {
+            _movingCharacterWithMouse = false;
+            _movingCharacterWithKeyboard = false;
+            _movingKeysDown = 0;
+            _movingHintTimer.Stop();
+        }
+
+        private void MovingHintTimer_Tick(object sender, EventArgs e)
+        {
+            ClearMovingState();
+            Invalidate();
         }
 
         private void CharCoordMenuEventHandler(object sender, EventArgs e)
@@ -294,18 +313,14 @@ namespace AGS.Editor
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             _isOn = true;
-            _movingKeysDown = 0;
-            _movingCharacterWithMouse = false;
-            _movingCharacterWithKeyboard = false;
+            ClearMovingState();
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
             _isOn = false;
-            _movingKeysDown = 0;
-            _movingCharacterWithMouse = false;
-            _movingCharacterWithKeyboard = false;
+            ClearMovingState();
         }
 
         public void UpdateCharactersRoom(Character character, int oldRoom)
@@ -452,8 +467,7 @@ namespace AGS.Editor
                 _movingKeysDown = moveKeys;
                 if (_movingKeysDown == 0)
                 {
-                    _movingCharacterWithKeyboard = false;
-                    Invalidate();
+                    _movingHintTimer.Start();
                     return true;
                 }
             }
@@ -536,6 +550,7 @@ namespace AGS.Editor
             {
                 OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(character.ScriptName));
             }
+            ClearMovingState();
         }
 
         private void InitGameEntities()

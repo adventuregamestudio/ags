@@ -30,6 +30,7 @@ namespace AGS.Editor
         private int _menuClickX, _menuClickY;
         private bool _movingObjectWithKeyboard = false;
         private int _movingKeysDown = 0;
+        private Timer _movingHintTimer = new Timer();
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
 
         public ObjectsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
@@ -42,6 +43,9 @@ namespace AGS.Editor
             RoomItemRefs = new SortedDictionary<string, RoomObject>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
+
+            _movingHintTimer.Interval = 2000;
+            _movingHintTimer.Tick += MovingHintTimer_Tick;
         }
 
         public string Name { get { return "Objects"; } }
@@ -129,8 +133,7 @@ namespace AGS.Editor
                 _movingKeysDown = moveKeys;
                 if (_movingKeysDown == 0)
                 {
-                    _movingObjectWithKeyboard = false;
-                    Invalidate();
+                    _movingHintTimer.Start();
                     return true;
                 }
             }
@@ -392,7 +395,7 @@ namespace AGS.Editor
         {            
             if (_selectedObject == null)
             {
-                _movingObjectWithMouse = false;
+                ClearMovingState();
             }
             else
             {
@@ -403,8 +406,23 @@ namespace AGS.Editor
                     _selectedObject.StartY = SetObjectCoordinate(newY);
                     _room.Modified = true;
                 }
+                _movingHintTimer.Stop();
             }
             return true;
+        }
+
+        private void ClearMovingState()
+        {
+            _movingObjectWithMouse = false;
+            _movingObjectWithKeyboard = false;
+            _movingKeysDown = 0;
+            _movingHintTimer.Stop();
+        }
+
+        private void MovingHintTimer_Tick(object sender, EventArgs e)
+        {
+            ClearMovingState();
+            Invalidate();
         }
 
         private int GetArrowMoveStepSize()
@@ -428,18 +446,14 @@ namespace AGS.Editor
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             _isOn = true;
-            _movingKeysDown = 0;
-            _movingObjectWithMouse = false;
-            _movingObjectWithKeyboard = false;
+            ClearMovingState();
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
             _isOn = false;
-            _movingKeysDown = 0;
-            _movingObjectWithMouse = false;
-            _movingObjectWithKeyboard = false;
+            ClearMovingState();
         }
 
         public void Dispose()
@@ -510,6 +524,7 @@ namespace AGS.Editor
             {
                 OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(roomObject.PropertyGridTitle));
             }
+            ClearMovingState();
         }
 
         private void SetPropertyGridList()

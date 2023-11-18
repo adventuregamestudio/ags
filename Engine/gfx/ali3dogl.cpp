@@ -1379,9 +1379,9 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
                 rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        // Render immediate batch sprites, if any, update cur_spr iterator;
-        // we know that the batch has sprites, if next sprite in list belongs to it ("node" ref)
-        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        // If this batch has ANY sprites in it at all (own, or nested),
+        // then we would need to update render target; otherwise there's no need
+        if (_spriteBatchRange[cur_bat].first < _spriteBatchRange[cur_bat].second)
         {
             // If render target is different in this batch, then set it up
             const auto &rt_parent = _spriteBatches[rt_parents.top()];
@@ -1391,6 +1391,12 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
                 cur_rt = (batch.Fbo > 0u) ? batch.Fbo : back_buffer;
                 SetRenderTarget(&batch, surface_sz, use_projection);
             }
+        }
+
+        // Render immediate batch sprites, if any, update cur_spr iterator;
+        // we know that the batch has sprites, if next sprite in list belongs to it ("node" ref)
+        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        {
             // Now set clip (scissor), and render sprites
             const bool render_to_texture = (_do_render_to_texture) || (cur_rt != back_buffer);
             SetScissor(batch.Viewport, render_to_texture, surface_sz);

@@ -399,7 +399,7 @@ private:
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     // Configures rendering mode for the render target, depending on its properties
-    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection);
+    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection, bool clear);
     void RenderSpriteBatches(const glm::mat4 &projection);
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);

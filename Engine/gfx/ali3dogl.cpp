@@ -1299,16 +1299,20 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, con
     glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
 }
 
-void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection)
+void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz,
+    glm::mat4 &projection, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, batch->Fbo);
-        glDisable(GL_SCISSOR_TEST);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glEnable(GL_SCISSOR_TEST);
+        if (clear)
+        {
+            glDisable(GL_SCISSOR_TEST);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glEnable(GL_SCISSOR_TEST);
+        }
         surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
         projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
         glViewport(0, 0, surface_sz.Width, surface_sz.Height);
@@ -1370,7 +1374,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     {
         const auto &batch = _spriteBatches[cur_bat];
         // Test if we are entering this batch (and not continuing after coming back from nested)
-        if (cur_bat == last_bat)
+        const bool new_batch = cur_bat == last_bat;
+        if (new_batch)
         {
             // If batch introduces a new render target, or the first using backbuffer, then remember it
             if (rt_parents.empty() || batch.RenderTarget)
@@ -1388,8 +1393,8 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
             if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
                 (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
             {
-                cur_rt = (batch.Fbo > 0u) ? batch.Fbo : back_buffer;
-                SetRenderTarget(&batch, surface_sz, use_projection);
+                cur_rt = (rt_parent.Fbo > 0u) ? rt_parent.Fbo : back_buffer;
+                SetRenderTarget(&rt_parent, surface_sz, use_projection, new_batch);
             }
         }
 
@@ -1427,7 +1432,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
         }
     }
 
-    SetRenderTarget(nullptr, surface_sz, use_projection);
+    SetRenderTarget(nullptr, surface_sz, use_projection, false);
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     SetScissor(Rect(), _do_render_to_texture, _srcRect.GetSize()); // TODO: simply disable scissor test?

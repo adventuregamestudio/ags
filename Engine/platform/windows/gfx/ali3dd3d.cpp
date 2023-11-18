@@ -1299,14 +1299,17 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
 }
 
 void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch,
-    IDirect3DSurface9 *back_buffer, Size &surface_sz)
+    IDirect3DSurface9 *back_buffer, Size &surface_sz, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         HRESULT hr = direct3ddevice->SetRenderTarget(0, batch->RenderSurface);
         assert(hr == D3D_OK);
-        direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+        if (clear)
+        {
+            direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+        }
         surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
         SetD3DViewport(RectWH(surface_sz));
         glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
@@ -1358,7 +1361,8 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     {
         const auto &batch = _spriteBatches[cur_bat];
         // Test if we are entering this batch (and not continuing after coming back from nested)
-        if (cur_bat == last_bat)
+        const bool new_batch = cur_bat == last_bat;
+        if (new_batch)
         {
             // If batch introduces a new render target, or the first using backbuffer, then remember it
             if (rt_parents.empty() || batch.RenderTarget)
@@ -1376,8 +1380,8 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             if (rt_parent.RenderSurface && (cur_rt != rt_parent.RenderSurface) ||
                 !rt_parent.RenderSurface && (cur_rt != back_buffer))
             {
-                cur_rt = batch.RenderSurface ? batch.RenderSurface : back_buffer;
-                SetRenderTarget(&batch, back_buffer, surface_sz);
+                cur_rt = rt_parent.RenderSurface ? rt_parent.RenderSurface : back_buffer;
+                SetRenderTarget(&rt_parent, back_buffer, surface_sz, new_batch);
             }
         }
 
@@ -1415,7 +1419,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         }
     }
 
-    SetRenderTarget(nullptr, back_buffer, surface_sz);
+    SetRenderTarget(nullptr, back_buffer, surface_sz, false);
     back_buffer->Release();
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;

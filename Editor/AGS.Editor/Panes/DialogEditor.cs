@@ -62,6 +62,7 @@ namespace AGS.Editor
                 if (textBox != null)
                 {
                     textBox.GotFocus += dialogOptionsEditorTextBox_GotFocus;
+                    textBox.MouseUp += dialogOptionsEditorTextBox_MouseUp;
                 }
             }
         }
@@ -74,6 +75,7 @@ namespace AGS.Editor
                 if (textBox != null)
                 {
                     textBox.GotFocus -= dialogOptionsEditorTextBox_GotFocus;
+                    textBox.MouseUp -= dialogOptionsEditorTextBox_MouseUp;
                 }
             }
         }
@@ -238,13 +240,23 @@ namespace AGS.Editor
             UpdateUICommands(force:true);
         }
 
-        private void dialogOptionsEditorTextBox_GotFocus(object sender, EventArgs e)
+        private void dialogOptionsEditorTextBox_Event(object sender, EventArgs e)
         {
             TextBox tbox = sender as TextBox;
             if (tbox == null) return;
 
             bool can_copy_cut = tbox.SelectionLength > 0;
-            EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo:false);
+            EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo: false);
+        }
+
+        private void dialogOptionsEditorTextBox_MouseUp(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        private void dialogOptionsEditorTextBox_GotFocus(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
         }
 
         protected override void OnCommandClick(string command)

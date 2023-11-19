@@ -266,6 +266,65 @@ Display(""This does"");
         }
 
         [Test]
+        public void IfDefElse()
+        {
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+#define FOO
+#ifdef FOO
+Display(""This displays!"");
+#else
+Display(""This doesn't"");
+#endif
+#ifndef FOO
+            Display(""This doesn't"");
+#else
+            Display(""This displays!"");
+#endif
+#undef FOO
+#ifdef FOO
+            Display(""This doesn't"");
+#else
+            Display(""This displays!"");
+#endif
+#ifndef FOO
+            Display(""This displays!"");
+#else
+            Display(""This doesn't"");
+#endif
+";
+            string res = preprocessor.Preprocess(script, "ScriptIfDefElse");
+            Assert.That(preprocessor.Results.Count == 0);
+            string script_res = $@"""__NEWSCRIPTSTART_ScriptIfDefElse""
+
+
+
+Display(""This displays!"");
+
+
+
+
+
+
+Display(""This displays!"");
+
+
+
+
+
+Display(""This displays!"");
+
+
+Display(""This displays!"");
+
+
+
+";
+
+            AssertStringEqual(res, script_res);
+        }
+
+        [Test]
         public void IfVer()
         {
             IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor("3.6.0.5");

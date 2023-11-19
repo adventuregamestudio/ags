@@ -50,7 +50,7 @@ namespace AGS.CScript.Compiler
 			{
 				return false;
 			}
-            return (_data[_offset] == text[0]) && (_data.Substring(_offset).StartsWith(text));
+            return (_data[_offset] == text[0]) && (_data.Substring(_offset).StartsWith(text, StringComparison.Ordinal));
         }
 
         public int IndexOf(string text, int offset)

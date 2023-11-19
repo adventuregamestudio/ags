@@ -34,6 +34,7 @@ namespace AGS.Editor
             foreach (DialogOption option in _dialog.Options)
             {
                 DialogOptionEditor optionEditor = new DialogOptionEditor(option, DialogOptionChanged);
+                RegisterDialogOptionsEditorEvents(optionEditor);
                 _optionPanes.Add(optionEditor);
                 flowLayoutPanel1.Controls.Add(optionEditor);
             }
@@ -53,6 +54,36 @@ namespace AGS.Editor
             scintillaEditor.ActivateTextEditor();
         }
 
+        private void RegisterDialogOptionsEditorEvents(DialogOptionEditor dialogOptionEditor)
+        {
+            foreach (Control c in dialogOptionEditor.Controls)
+            {
+                TextBox textBox = c as TextBox;
+                if (textBox != null)
+                {
+                    textBox.GotFocus += dialogOptionsEditorTextBox_GotFocus;
+                    textBox.MouseUp += dialogOptionsEditorTextBox_MouseUp;
+                    textBox.TextChanged += dialogOptionsEditorTextBox_TextChanged;
+                    textBox.KeyUp += dialogOptionsEditorTextBox_KeyUp;
+                }
+            }
+        }
+
+        private void UnregisterDialogOptionsEditorEvents(DialogOptionEditor dialogOptionEditor)
+        {
+            foreach (Control c in dialogOptionEditor.Controls)
+            {
+                TextBox textBox = c as TextBox;
+                if (textBox != null)
+                {
+                    textBox.GotFocus -= dialogOptionsEditorTextBox_GotFocus;
+                    textBox.MouseUp -= dialogOptionsEditorTextBox_MouseUp;
+                    textBox.TextChanged -= dialogOptionsEditorTextBox_TextChanged;
+                    textBox.KeyUp -= dialogOptionsEditorTextBox_KeyUp;
+                }
+            }
+        }
+
         private void DialogEditor_Load(object sender, EventArgs e)
         {
             if (!DesignMode)
@@ -63,10 +94,20 @@ namespace AGS.Editor
 
         private void RegisterEvents()
         {
+            scintillaEditor.GotFocus += scintillaEditor_GotFocus;
         }
 
         private void UnregisterEvents()
         {
+            scintillaEditor.GotFocus -= scintillaEditor_GotFocus;
+            foreach(Control c in flowLayoutPanel1.Controls)
+            {
+                DialogOptionEditor dialogOptionEditor = c as DialogOptionEditor;
+                if(dialogOptionEditor != null)
+                {
+                    UnregisterDialogOptionsEditorEvents(dialogOptionEditor);
+                }
+            }
         }
 
         private void InitScintilla()
@@ -180,7 +221,9 @@ namespace AGS.Editor
             if (Factory.GUIController.ShowQuestion("Are you sure you want to delete the last option?") == DialogResult.Yes)
             {
                 _dialog.Options.RemoveAt(_dialog.Options.Count - 1);
-                flowLayoutPanel1.Controls.Remove(_optionPanes[_optionPanes.Count - 1]);
+                DialogOptionEditor editorToDelete = _optionPanes[_optionPanes.Count - 1];
+                UnregisterDialogOptionsEditorEvents(editorToDelete);
+                flowLayoutPanel1.Controls.Remove(editorToDelete);
                 _optionPanes.RemoveAt(_optionPanes.Count - 1);
 
                 SaveData();
@@ -194,6 +237,67 @@ namespace AGS.Editor
                     btnNewOption.Visible = true;
                 }
             }
+        }
+
+        private void scintillaEditor_GotFocus(object sender, EventArgs e)
+        {
+            UpdateUICommands(force:true);
+        }
+
+        private void updateEditMenuForTextbox(TextBox tbox)
+        {
+            bool can_copy_cut = tbox.SelectionLength > 0;
+            EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo: false);
+
+        }
+
+        private void dialogOptionsEditorTextBox_Event(object sender, EventArgs e)
+        {
+            TextBox tbox = sender as TextBox;
+            if (tbox == null) return;
+            updateEditMenuForTextbox(tbox);
+        }
+
+        private void dialogOptionsEditorTextBox_MouseUp(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        private void dialogOptionsEditorTextBox_GotFocus(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        private void dialogOptionsEditorTextBox_TextChanged(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        private void dialogOptionsEditorTextBox_KeyUp(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        protected override void OnCommandClick(string command)
+        {
+            if (IsStandardEditCommand(command))
+            {
+                Control c = Utilities.GetControlThatHasFocus();
+                TextBox tbox = c as TextBox;
+                if (tbox != null)
+                {
+                    if (command == CUT_COMMAND) tbox.Cut();
+                    else if (command == COPY_COMMAND) tbox.Copy();
+                    else if (command == PASTE_COMMAND) tbox.Paste();
+                    else if (command == UNDO_COMMAND) tbox.Undo();
+
+                    updateEditMenuForTextbox(tbox);
+
+                    return;
+                }
+            }
+
+            base.OnCommandClick(command);
         }
 
         private void btnNewOption_Click(object sender, EventArgs e)
@@ -213,6 +317,8 @@ namespace AGS.Editor
             }
             _dialog.Options.Add(newOption);
             DialogOptionEditor newEditor = new DialogOptionEditor(newOption, DialogOptionChanged);
+            RegisterDialogOptionsEditorEvents(newEditor);
+
             _optionPanes.Add(newEditor);
             flowLayoutPanel1.Controls.Remove(btnNewOption);
             flowLayoutPanel1.Controls.Remove(btnDeleteOption);

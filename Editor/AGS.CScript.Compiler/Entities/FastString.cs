@@ -12,6 +12,7 @@ namespace AGS.CScript.Compiler
     {
         private string _data;
         private int _offset;
+        private const StringComparison _useComparison = StringComparison.Ordinal;
 
         public FastString(string source)
         {
@@ -50,17 +51,17 @@ namespace AGS.CScript.Compiler
 			{
 				return false;
 			}
-            return (_data[_offset] == text[0]) && (_data.Substring(_offset).StartsWith(text));
+            return (_data[_offset] == text[0]) && (_data.Substring(_offset).StartsWith(text, _useComparison));
         }
 
         public int IndexOf(string text, int offset)
         {
-            return _data.IndexOf(text, _offset + offset) - _offset;
+            return _data.IndexOf(text, _offset + offset, _useComparison) - _offset;
         }
 
         public int IndexOf(string text)
         {
-            return _data.IndexOf(text, _offset) - _offset;
+            return _data.IndexOf(text, _offset, _useComparison) - _offset;
         }
 
         public int IndexOf(char text)

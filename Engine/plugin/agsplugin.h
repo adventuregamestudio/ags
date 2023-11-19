@@ -294,16 +294,28 @@ struct AGSGameInfo {
   int UniqueId;
 };
 
+// File open modes
+// Opens existing file, fails otherwise
 #define AGSSTREAM_FILE_OPEN         0
+// Opens existing file, creates one if it did not exist
 #define AGSSTREAM_FILE_CREATE       1
+// Always creates a new file, completely overwrites any existing one
 #define AGSSTREAM_FILE_CREATEALWAYS 2
 
+// Stream work modes
+// Read-only
 #define AGSSTREAM_MODE_READ  0x1
+// Write-only
 #define AGSSTREAM_MODE_WRITE 0x2
+// Support both read and write
 #define AGSSTREAM_MODE_READWRITE (AGSSTREAM_MODE_READ | AGSSTREAM_MODE_WRITE)
 
+// Stream seek origins
+// Seek from the beginning of a stream (towards positive offset)
 #define AGSSTREAM_SEEK_SET 0
+// Seek from the current position (towards positive or negative offset)
 #define AGSSTREAM_SEEK_CUR 1
+// Seek from the end of a stream (towards negative offset)
 #define AGSSTREAM_SEEK_END 2
 
 class IAGSStream {
@@ -324,7 +336,10 @@ public:
   virtual int64_t GetPosition() = 0;
   // Tells whether the stream's position is at its end
   virtual bool   EOS() = 0;
-  // Seeks to offset from the origin, see AGSSTREAM_SEEK_* constants
+  // Seeks to offset from the origin defined by AGSSTREAM_SEEK_* constants:
+  //  * AGSSTREAM_SEEK_SET - seek from the beginning;
+  //  * AGSSTREAM_SEEK_CUR - seek from the current position;
+  //  * AGSSTREAM_SEEK_END - seek from the end (pass negative offset)
   virtual void   Seek(int64_t offset, int origin) = 0;
   // Flushes stream, forcing it to write any buffered data to the
   // underlying device. Note that the effect may depend on implementation.

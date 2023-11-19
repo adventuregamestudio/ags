@@ -63,6 +63,8 @@ namespace AGS.Editor
                 {
                     textBox.GotFocus += dialogOptionsEditorTextBox_GotFocus;
                     textBox.MouseUp += dialogOptionsEditorTextBox_MouseUp;
+                    textBox.TextChanged += dialogOptionsEditorTextBox_TextChanged;
+                    textBox.KeyUp += dialogOptionsEditorTextBox_KeyUp;
                 }
             }
         }
@@ -76,6 +78,8 @@ namespace AGS.Editor
                 {
                     textBox.GotFocus -= dialogOptionsEditorTextBox_GotFocus;
                     textBox.MouseUp -= dialogOptionsEditorTextBox_MouseUp;
+                    textBox.TextChanged -= dialogOptionsEditorTextBox_TextChanged;
+                    textBox.KeyUp -= dialogOptionsEditorTextBox_KeyUp;
                 }
             }
         }
@@ -240,13 +244,18 @@ namespace AGS.Editor
             UpdateUICommands(force:true);
         }
 
+        private void updateEditMenuForTextbox(TextBox tbox)
+        {
+            bool can_copy_cut = tbox.SelectionLength > 0;
+            EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo: false);
+
+        }
+
         private void dialogOptionsEditorTextBox_Event(object sender, EventArgs e)
         {
             TextBox tbox = sender as TextBox;
             if (tbox == null) return;
-
-            bool can_copy_cut = tbox.SelectionLength > 0;
-            EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo: false);
+            updateEditMenuForTextbox(tbox);
         }
 
         private void dialogOptionsEditorTextBox_MouseUp(object sender, EventArgs e)
@@ -255,6 +264,16 @@ namespace AGS.Editor
         }
 
         private void dialogOptionsEditorTextBox_GotFocus(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        private void dialogOptionsEditorTextBox_TextChanged(object sender, EventArgs e)
+        {
+            dialogOptionsEditorTextBox_Event(sender, e);
+        }
+
+        private void dialogOptionsEditorTextBox_KeyUp(object sender, EventArgs e)
         {
             dialogOptionsEditorTextBox_Event(sender, e);
         }
@@ -271,6 +290,8 @@ namespace AGS.Editor
                     else if (command == COPY_COMMAND) tbox.Copy();
                     else if (command == PASTE_COMMAND) tbox.Paste();
                     else if (command == UNDO_COMMAND) tbox.Undo();
+
+                    updateEditMenuForTextbox(tbox);
 
                     return;
                 }

@@ -195,7 +195,7 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
 
     // clamp
     _position = std::min(std::max(want_pos, (soff_t)_start), _end);
-    return _position == want_pos;
+    return true;
 }
 
 //-----------------------------------------------------------------------------

@@ -62,6 +62,7 @@
 #include "ac/movelist.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;

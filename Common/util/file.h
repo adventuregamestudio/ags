@@ -38,9 +38,9 @@ enum FileOpenMode
 
 enum FileWorkMode
 {
-    kFile_Read,
-    kFile_Write,
-    kFile_ReadWrite
+    kFile_Read      = 0x1,
+    kFile_Write     = 0x2,
+    kFile_ReadWrite = kFile_Read | kFile_Write
 };
 
 namespace File

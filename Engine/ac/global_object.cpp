@@ -41,6 +41,7 @@
 #include "gfx/gfx_def.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 #define OVERLAPPING_OBJECT 1000
 

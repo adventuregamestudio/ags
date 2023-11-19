@@ -43,70 +43,38 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
   return FileOpen(fnmm, open_mode, work_mode);
 }
 
-// Find a free file slot to use
-int32_t FindFreeFileSlot()
-{
-  int useindx = 0;
-  for (; useindx < num_open_script_files; useindx++) 
-  {
-    if (valid_handles[useindx].stream == nullptr)
-      break;
-  }
-
-  if (useindx >= num_open_script_files &&
-      num_open_script_files >= MAX_OPEN_SCRIPT_FILES)
-  {
-    quit("!FileOpen: tried to open more than 10 files simultaneously - close some first");
-    return -1;
-  }
-  return useindx;
-}
-
 int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
   
   debug_script_print(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s",
                      fnmm, File::GetCMode(open_mode, work_mode).GetCStr());
-
-  int32_t useindx = FindFreeFileSlot();
-  if (useindx < 0)
-  {
-    debug_script_warn("FileOpen: no free handles: %s", fnmm);
-    return 0;
-  }
-  
-  Stream *s = ResolveScriptPathAndOpen(fnmm, open_mode, work_mode);
+  std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(fnmm, open_mode, work_mode));
   if (!s)
     return 0;
 
-  valid_handles[useindx].stream.reset(s);
-  valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based
-  debug_script_print(kDbgMsg_Info, "FileOpen: success: %s", s->GetPath().GetCStr());
-
-  if (useindx >= num_open_script_files)
-    num_open_script_files++;
-  return valid_handles[useindx].handle;
+  int32_t handle = add_file_stream(std::move(s), "FileOpen");
+  debug_script_print(kDbgMsg_Info, "FileOpen: success, handle %d, path: %s", handle, s->GetPath().GetCStr());
+  return handle;
 }
 
 void FileClose(int32_t handle) {
-  ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle,"FileClose");
-  *sc_handle = ScriptFileHandle();
+  close_file_stream(handle, "FileClose");
   }
 void FileWrite(int32_t handle, const char *towrite) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWrite");
+  Stream *out = get_file_stream(handle, "FileWrite");
   size_t len = strlen(towrite);
   out->WriteInt32(len + 1); // write with null-terminator
   out->Write(towrite, len + 1);
   }
 void FileWriteRawLine(int32_t handle, const char*towrite) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawLine");
+  Stream *out = get_file_stream(handle, "FileWriteRawLine");
   out->Write(towrite,strlen(towrite));
   out->WriteInt8('\r');
   out->WriteInt8('\n');
   }
 void FileRead(int32_t handle,char*toread) {
   VALIDATE_STRING(toread);
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileRead");
+  Stream *in = get_file_stream(handle, "FileRead");
   if (in->EOS()) {
     toread[0] = 0;
     return;
@@ -121,7 +89,7 @@ void FileRead(int32_t handle,char*toread) {
   in->Read(toread,lle);
   }
 int FileIsEOF (int32_t handle) {
-  Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsEOF");
+  Stream *stream = get_file_stream(handle, "FileIsEOF");
   if (stream->EOS())
     return 1;
 
@@ -134,7 +102,7 @@ int FileIsEOF (int32_t handle) {
   return 0;
 }
 int FileIsError(int32_t handle) {
-  Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsError");
+  Stream *stream = get_file_stream(handle, "FileIsError");
 
   // TODO: stream errors
   if (stream->HasErrors())
@@ -143,12 +111,12 @@ int FileIsError(int32_t handle) {
   return 0;
 }
 void FileWriteInt(int32_t handle,int into) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteInt");
+  Stream *out = get_file_stream(handle, "FileWriteInt");
   out->WriteInt8('I');
   out->WriteInt32(into);
   }
 int FileReadInt(int32_t handle) {
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadInt");
+  Stream *in = get_file_stream(handle, "FileReadInt");
   if (in->EOS())
     return -1;
   if (in->ReadInt8() != 'I')
@@ -159,19 +127,19 @@ int FileReadInt(int32_t handle) {
   return in->ReadInt32();
   }
 char FileReadRawChar(int32_t handle) {
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawChar");
+  Stream *in = get_file_stream(handle, "FileReadRawChar");
   return static_cast<uint8_t>(in->ReadByte());
   // NOTE: this function has incorrect return value for historical reasons;
   // we keep this strictly for backwards compatibility with old scripts
   }
 int FileReadRawInt(int32_t handle) {
-  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawInt");
+  Stream *in = get_file_stream(handle, "FileReadRawInt");
   if (in->EOS())
     return -1;
   return in->ReadInt32();
 }
 void FileWriteRawChar(int32_t handle, int chartoWrite) {
-  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawChar");
+  Stream *out = get_file_stream(handle, "FileWriteRawChar");
   if ((chartoWrite < 0) || (chartoWrite > 255))
     debug_script_warn("FileWriteRawChar: can only write values 0-255");
 

@@ -65,6 +65,7 @@
 #include "platform/base/sys_main.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameState play;
 extern ExecutingScript*curscript;

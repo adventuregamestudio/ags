@@ -33,8 +33,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "ac/timer.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 

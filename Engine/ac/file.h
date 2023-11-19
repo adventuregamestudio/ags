@@ -78,8 +78,9 @@ namespace Engine
         virtual int64_t GetPosition() = 0;
         // Tells whether the stream's position is at its end
         virtual bool   EOS() = 0;
-        // Seeks to offset from the origin, see AGSSTREAM_SEEK_* constants
-        virtual bool   Seek(int64_t offset, int origin) = 0;
+        // Seeks to offset from the origin, returns new position in stream,
+        // or -1 on error.
+        virtual int64_t Seek(int64_t offset, int origin) = 0;
         // Flushes stream, forcing it to write any buffered data to the
         // underlying device. Note that the effect may depend on implementation.
         virtual void   Flush() = 0;

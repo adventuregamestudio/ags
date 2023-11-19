@@ -708,8 +708,12 @@ public:
     // Tells whether the stream's position is at its end
     virtual bool   EOS() override { return _s->EOS(); }
     // Seeks to offset from the origin, see AGSSTREAM_SEEK_* constants
-    virtual bool   Seek(int64_t offset, int origin) override
-        { return _s->Seek(offset, static_cast<StreamSeek>(origin)); }
+    virtual int64_t Seek(int64_t offset, int origin) override
+    {
+        if (_s->Seek(offset, static_cast<StreamSeek>(origin)))
+            return _s->GetPosition();
+        return -1ll;
+    }
     // Flushes stream, forcing it to write any buffered data to the
     // underlying device. Note that the effect may depend on implementation.
     virtual void   Flush() override { _s->Flush(); }

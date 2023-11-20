@@ -113,7 +113,7 @@ void precache_view(int view, int max_loops)
     max_loops = std::min(views[view].numLoops, max_loops);
     for (int i = 0; i < max_loops; i++) {
         for (int j = 0; j < views[view].loops[i].numFrames; j++)
-            spriteset.Precache(views[view].loops[i].frames[j].pic);
+            spriteset.PrecacheSprite(views[view].loops[i].frames[j].pic);
     }
 }
 

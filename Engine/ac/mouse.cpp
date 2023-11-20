@@ -171,7 +171,7 @@ void ChangeCursorGraphic (int curs, int newslot) {
         debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
     game.mcurs[curs].pic = newslot;
-    spriteset.Precache(newslot);
+    spriteset.PrecacheSprite(newslot);
     if (curs == cur_mode)
         set_mouse_cursor (curs);
 }
@@ -368,7 +368,7 @@ void update_inv_cursor(int invnum) {
 
         game.mcurs[MODE_USE].pic = cursorSprite;
         // all cursor images must be pre-cached
-        spriteset.Precache(cursorSprite);
+        spriteset.PrecacheSprite(cursorSprite);
 
         if ((game.invinfo[invnum].hotx > 0) || (game.invinfo[invnum].hoty > 0)) {
             // if the hotspot was set (unfortunately 0,0 isn't a valid co-ord)

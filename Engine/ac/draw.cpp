@@ -83,7 +83,7 @@ extern int displayed_room;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
-extern IDriverDependantBitmap *mouseCursor;
+extern IDriverDependantBitmap *mouse_cur_ddb;
 extern int hotx,hoty;
 extern int bg_just_changed;
 
@@ -2749,8 +2749,8 @@ void construct_game_screen_overlay(bool draw_mouse)
         // Stage: mouse cursor
         if (draw_mouse && !play.mouse_cursor_hidden)
         {
-            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-            invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
+            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouse_cur_ddb);
+            invalidate_sprite(mousex - hotx, mousey - hoty, mouse_cur_ddb, false);
         }
         // Stage: screen fx
         if (play.screen_tint >= 1)

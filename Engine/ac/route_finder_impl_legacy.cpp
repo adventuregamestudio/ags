@@ -36,10 +36,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 // #define DEBUG_PATHFINDER
 
-#ifdef DEBUG_PATHFINDER
-// extern Bitmap *mousecurs[10];
-#endif
-
 namespace AGS {
 namespace Engine {
 namespace RouteFinderLegacy {
@@ -286,10 +282,6 @@ static int try_this_square(int srcx, int srcy, int tox, int toy)
     pathbackstage = 0;
     return 2;
   }
-
-#ifdef DEBUG_PATHFINDER
-  // wputblock(lastcx, lastcy, mousecurs[C_CROSS], 1);
-#endif
 
   int trydir = DIR_UP;
   int xdiff = abs(srcx - tox), ydiff = abs(srcy - toy);

@@ -16,6 +16,8 @@ Editor:
    Zoom is done by Ctrl + Mouse Wheel and room now zooms towards or outwards the cursor position.
  - In Room Editor the context menu is now displayed by RMB or Shift + RMB while editing masks.
    The individual room mode menu is merged with the "copy coordinates" command when shown.
+ - In Room Editor the hint with coordinates is now also displayed when moving Objects or Characters
+   with keyboard.
  - In Dialog Script editor support most Edit menu and context menu commands from the regular Script
    editor, with a few exceptions.
  - In Sprite Manager added command "View" -> "Show filenames" which toggles display of a sprite's
@@ -50,7 +52,11 @@ Editor:
    property tells whether this control's text has to be translated, and applied text direction
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
+ - For Android build target Editor now supports a directory to place plugins in.
+ - When building a game for Android and Linux the Editor will now be more tolerant to missing
+   plugins and only issue a warning instead of stopping with error.
  - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.
+ - For Color Themes: implemented character literal, braces match and braces error settings.
  - Made Editor be somewhat more tolerate to missing XML nodes in Game.agf, in many cases it will
    still let open a game.
  - When upgrading older game projects, Editor will insert a call to SetRestartPoint() in the end
@@ -59,13 +65,21 @@ Editor:
  - When upgrading pre-3.2 rooms with disabled SaveLoadEnabled property the Editor will reset
    this property and insert a comment with a warning into the corresponding room's script.
    This is done because this property is deprecated as is no longer accessible.
+ - Fixed Editor failing to start if user preferences file is corrupted
+   (this is a second fix, complementing one done in AGS 3.5.1).
  - Fixed Editor refusing to open a game if one of the translation files is missing.
+ - Fixed General Settings and Default Setup not working correctly right after importing
+   a pre-3.* game project.
  - Fixed importing GIFs or 8-bit PNGs may lose transparent pixels if source images used
    other palette index than 0 for transparency.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
+ - Fixed Dialog properties displaying internal values not meant to be seen by a user.
+ - Fixed selecting parent GUI after its control did not display GUI's own properties in
+   the Properties Grid.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
+ - Fixed Editor generating deprecated settings in the default config file.
 
 Scripting:
  - Support "#else" preprocessor directive.
@@ -155,6 +169,7 @@ Engine:
    compiler, but technically could be an issue with any custom implementation.
 
 Engine Plugin API:
+ - Added IAGSStream interface, IAGSEngine.OpenFileStream() and GetFileStreamByHandle().
  - Added IAGSEngine.ResolveFilePath() method, which resolves a script path (with location tokens)
    into a proper system filepath.
  - Fixed IAGSEngine.GetFontType() incorrectly reporting TTF font type for WFN fonts with more than

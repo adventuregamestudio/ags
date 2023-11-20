@@ -928,7 +928,6 @@ namespace AGS.Editor
         {
             if (_selectedControl != null)
             {
-
                 Factory.GUIController.SetPropertyGridObject(_selectedControl);
             }
             else
@@ -943,7 +942,10 @@ namespace AGS.Editor
             _snappedx = -1;
             _snappedy = -1;
 
-            if ((_drawingSelectionBox) && (e.X == _selectionBoxX) && (e.Y == _selectionBoxY))
+            int mouseX = _state.WindowXToGUI(e.X);
+            int mouseY = _state.WindowYToGUI(e.Y);
+
+            if ((_drawingSelectionBox) && (mouseX == _selectionBoxX) && (mouseY == _selectionBoxY))
             {
                 _drawingSelectionBox = false;
             }
@@ -967,6 +969,7 @@ namespace AGS.Editor
                }
                if (_selected.Count > 0) _selectedControl = _selected[_selected.Count - 1];
                bgPanel.Invalidate();
+               refreshProperties();
             }
             else
             {

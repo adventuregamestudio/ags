@@ -13,6 +13,7 @@
 //=============================================================================
 #include "util/string_compat.h"
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 #include "core/platform.h"
 

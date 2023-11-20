@@ -89,10 +89,8 @@ namespace AGS.Editor
             DataFileWriter.TextEncoding = _agsEditor.CurrentGame.TextEncoding;
         }
 
-        private void _events_GamePostLoad()
+        private void _events_GamePostLoad(Game game)
         {
-            Game game = Factory.AGSEditor.CurrentGame;
-
             // TODO: this may be noticably slow especially for sprites. Display some kind of
             // progress window to notify user.
             // Convert absolute paths to relative paths. This is an automatic fixup from when the

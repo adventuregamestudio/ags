@@ -124,6 +124,11 @@ namespace AGS.Editor
             return false;
 		}
 
+        public bool KeyReleased(Keys key)
+        {
+            return false;
+        }
+
         public void Paint(Graphics graphics, RoomEditorState state)
         {
             if (DesignItems[GetItemID(SelectedEdge.Left)].Visible)

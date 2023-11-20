@@ -284,8 +284,8 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
         return {}; // fail, cannot be handled
 
     // First try exact match
-    if ((is_dir && ags_directory_exists(test.GetCStr())) ||
-        (!is_dir && ags_file_exists(test.GetCStr())))
+    if ((is_dir && File::IsDirectory(test.GetCStr())) ||
+        (!is_dir && File::IsFile(test.GetCStr())))
         return test; // success
 
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)

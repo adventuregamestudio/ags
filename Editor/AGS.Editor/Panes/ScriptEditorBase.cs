@@ -18,11 +18,11 @@ namespace AGS.Editor
     public class ScriptEditorBase : EditorContentPanel
     {
         // Common Edit menu commands
-        private const string CUT_COMMAND = "ScriptCut";
-        private const string COPY_COMMAND = "ScriptCopy";
-        private const string PASTE_COMMAND = "ScriptPaste";
-        private const string UNDO_COMMAND = "ScriptUndo";
-        private const string REDO_COMMAND = "ScriptRedo";
+        protected const string CUT_COMMAND = "ScriptCut";
+        protected const string COPY_COMMAND = "ScriptCopy";
+        protected const string PASTE_COMMAND = "ScriptPaste";
+        protected const string UNDO_COMMAND = "ScriptUndo";
+        protected const string REDO_COMMAND = "ScriptRedo";
         private const string SHOW_AUTOCOMPLETE_COMMAND = "ScriptShowAutoComplete";
         private const string MATCH_BRACE_COMMAND = "MatchBrace";
         private const string FIND_COMMAND = "ScriptFind";
@@ -113,12 +113,14 @@ namespace AGS.Editor
             _scintilla = scintilla;
             _scintilla.ConstructContextMenu += scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu += scintilla_ActivateContextMenu;
+            _scintilla.UpdateUI += scintilla_UpdateUI;
         }
 
         private void DisconnectScintilla()
         {
             _scintilla.ConstructContextMenu -= scintilla_ConstructContextMenu;
             _scintilla.ActivateContextMenu -= scintilla_ActivateContextMenu;
+            _scintilla.UpdateUI -= scintilla_UpdateUI;
             _scintilla = null;
         }
 
@@ -126,11 +128,16 @@ namespace AGS.Editor
 
         private void InitEditorMenus()
         {
-            _menuCmdUndo = new MenuCommand(UNDO_COMMAND, "Undo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z, "UndoMenuIcon");
-            _menuCmdRedo = new MenuCommand(REDO_COMMAND, "Redo", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Y, "RedoMenuIcon");
-            _menuCmdCut = new MenuCommand(CUT_COMMAND, "Cut", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X, "CutMenuIcon");
-            _menuCmdCopy = new MenuCommand(COPY_COMMAND, "Copy", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C, "CopyMenuIcon");
-            _menuCmdPaste = new MenuCommand(PASTE_COMMAND, "Paste", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V, "PasteMenuIcon");
+            _menuCmdUndo = new MenuCommand(UNDO_COMMAND, "Undo", "UndoMenuIcon");
+            _menuCmdUndo.ShortcutKeyDisplayString = "Ctrl+Z";
+            _menuCmdRedo = new MenuCommand(REDO_COMMAND, "Redo", "RedoMenuIcon");
+            _menuCmdRedo.ShortcutKeyDisplayString = "Ctrl+Y";
+            _menuCmdCut = new MenuCommand(CUT_COMMAND, "Cut", "CutMenuIcon");
+            _menuCmdCut.ShortcutKeyDisplayString = "Ctrl+X";
+            _menuCmdCopy = new MenuCommand(COPY_COMMAND, "Copy", "CopyMenuIcon");
+            _menuCmdCopy.ShortcutKeyDisplayString = "Ctrl+C";
+            _menuCmdPaste = new MenuCommand(PASTE_COMMAND, "Paste", "PasteMenuIcon");
+            _menuCmdPaste.ShortcutKeyDisplayString = "Ctrl+V";
             _extraMenu.Commands.Add(_menuCmdUndo);
             _extraMenu.Commands.Add(_menuCmdRedo);
             _extraMenu.Commands.Add(MenuCommand.Separator);
@@ -189,76 +196,85 @@ namespace AGS.Editor
         /// <param name="command"></param>
         protected override void OnCommandClick(string command)
         {
-            if (command == CUT_COMMAND)
+            if (IsStandardEditCommand(command))
             {
-                _scintilla.Cut();
-            }
-            else if (command == COPY_COMMAND)
-            {
-                _scintilla.Copy();
-            }
-            else if (command == PASTE_COMMAND)
-            {
-                _scintilla.Paste();
-            }
-            else if (command == UNDO_COMMAND)
-            {
-                if (_scintilla.CanUndo())
+                if (!_scintilla.ContainsFocus) return;
+                if (command == CUT_COMMAND)
                 {
-                    _scintilla.Undo();
+                    _scintilla.Cut();
+                }
+                else if (command == COPY_COMMAND)
+                {
+                    _scintilla.Copy();
+                }
+                else if (command == PASTE_COMMAND)
+                {
+                    _scintilla.Paste();
+                }
+                else if (command == UNDO_COMMAND)
+                {
+                    if (_scintilla.CanUndo())
+                    {
+                        _scintilla.Undo();
+                    }
+                }
+                else if (command == REDO_COMMAND)
+                {
+                    if (_scintilla.CanRedo())
+                    {
+                        _scintilla.Redo();
+                    }
                 }
             }
-            else if (command == REDO_COMMAND)
+            else 
             {
-                if (_scintilla.CanRedo())
+                _scintilla.Focus();
+                if (command == SHOW_AUTOCOMPLETE_COMMAND)
                 {
-                    _scintilla.Redo();
+                    _scintilla.ShowAutocompleteNow();
+                }
+                else if (command == MATCH_BRACE_COMMAND)
+                {
+                    _scintilla.ShowMatchingBraceIfPossible();
+                }
+                else if (command == GOTO_LINE_COMMAND)
+                {
+                    GotoLineDialog gotoLineDialog = new GotoLineDialog
+                    {
+                        Minimum = 1,
+                        Maximum = _scintilla.LineCount,
+                        LineNumber = _scintilla.CurrentLine + 1
+                    };
+                    if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
+                    GoToLine(gotoLineDialog.LineNumber);
+                }
+                else if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
+                    || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
+                {
+                    if (_scintilla.IsSomeSelectedText())
+                    {
+                        _lastSearchText = _scintilla.SelectedText;
+                    }
+                    else _lastSearchText = string.Empty;
+                    ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
+                        command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
+                }
+                else if (command == FIND_NEXT_COMMAND)
+                {
+                    if (_lastSearchText.Length > 0)
+                    {
+                        _scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
+                    }
                 }
             }
-            else if (command == SHOW_AUTOCOMPLETE_COMMAND)
-            {
-                _scintilla.ShowAutocompleteNow();
-            }
-            else if (command == MATCH_BRACE_COMMAND)
-            {
-                _scintilla.ShowMatchingBraceIfPossible();
-            }
-            else if (command == GOTO_LINE_COMMAND)
-            {
-                GotoLineDialog gotoLineDialog = new GotoLineDialog
-                {
-                    Minimum = 1,
-                    Maximum = _scintilla.LineCount,
-                    LineNumber = _scintilla.CurrentLine + 1
-                };
-                if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
-                GoToLine(gotoLineDialog.LineNumber);
-            }
-            else if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
-                || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
-            {
-                if (_scintilla.IsSomeSelectedText())
-                {
-                    _lastSearchText = _scintilla.SelectedText;
-                }
-                else _lastSearchText = string.Empty;
-                ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
-                    command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
-            }
-            else if (command == FIND_NEXT_COMMAND)
-            {
-                if (_lastSearchText.Length > 0)
-                {
-                    _scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
-                }
-            }
+            UpdateUICommands();
         }
 
         /// <summary>
-        /// Updates the state of toolbar icons.
+        /// Updates the state of menu commands (this affects both menu and toolbar icons).
         /// May be overriden in derived classes for their specific commands.
         /// </summary>
-        protected virtual void UpdateToolbarButtonsIfNecessary()
+        protected virtual void UpdateUICommands(bool force = false)
         {
             bool canCutAndCopy = _scintilla.CanCutAndCopy();
             bool canPaste = _scintilla.CanPaste();
@@ -267,7 +283,7 @@ namespace AGS.Editor
             if ((_menuCmdCopy.Enabled != canCutAndCopy) ||
                 (_menuCmdPaste.Enabled != canPaste) ||
                 (_menuCmdUndo.Enabled != canUndo) ||
-                (_menuCmdRedo.Enabled != canRedo))
+                (_menuCmdRedo.Enabled != canRedo) || force)
             {
                 _menuCmdCopy.Enabled = canCutAndCopy;
                 _menuCmdCut.Enabled = canCutAndCopy;
@@ -277,6 +293,27 @@ namespace AGS.Editor
                 Factory.ToolBarManager.RefreshCurrentPane();
                 Factory.MenuManager.RefreshCurrentPane();
             }
+        }
+
+        protected static bool IsStandardEditCommand(string c)
+        {
+            return (c == CUT_COMMAND) || (c == COPY_COMMAND) || (c == PASTE_COMMAND) || (c == UNDO_COMMAND) || (c == REDO_COMMAND);
+        }
+
+        protected void EnableStandardEditCommands(bool copy = true, bool cut = true, bool paste = true, bool undo = true, bool redo = true)
+        {
+            _menuCmdCopy.Enabled = copy;
+            _menuCmdCut.Enabled = cut;
+            _menuCmdPaste.Enabled = paste;
+            _menuCmdUndo.Enabled = undo;
+            _menuCmdRedo.Enabled = redo;
+            Factory.ToolBarManager.RefreshCurrentPane();
+            Factory.MenuManager.RefreshCurrentPane();
+        }
+
+        private void scintilla_UpdateUI(object sender, EventArgs e)
+        {
+            UpdateUICommands();
         }
 
         private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
@@ -333,7 +370,7 @@ namespace AGS.Editor
 
         private void scintilla_ActivateContextMenu(string commandName)
         {
-            UpdateToolbarButtonsIfNecessary();
+            UpdateUICommands();
         }
 
         private void ContextMenuChooseOption(object sender, EventArgs e)

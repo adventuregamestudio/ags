@@ -2160,7 +2160,7 @@ namespace AGS.Editor.Components
         /// worthwhile to refactor this hindrance if we're getting a standalone room CLI tool in the future that can
         /// do the same job.
         /// </remarks>
-        private async void ConvertAllRoomsFromCrmToOpenFormat()
+        private async void ConvertAllRoomsFromCrmToOpenFormat(Game game)
         {
             if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_OPEN_ROOMS)
                 return; // Upgrade already completed

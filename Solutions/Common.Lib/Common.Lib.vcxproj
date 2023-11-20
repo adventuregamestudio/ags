@@ -754,7 +754,6 @@
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />
     <ClInclude Include="..\..\Common\util\geometry.h" />
-    <ClInclude Include="..\..\Common\util\iagsstream.h" />
     <ClInclude Include="..\..\Common\util\inifile.h" />
     <ClInclude Include="..\..\Common\util\ini_util.h" />
     <ClInclude Include="..\..\Common\util\lzw.h" />

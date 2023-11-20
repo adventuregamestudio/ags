@@ -25,6 +25,14 @@ android {
         versionCode Integer.parseInt(projectProperties.getProperty('versionCode'))
         versionName projectProperties['versionName']
     }
+    
+    sourceSets.main {
+        jniLibs.srcDir '../../plugins'
+    }
+
+    androidResources {
+        noCompress = ['ags', 'vox']
+    }
 
     signingConfigs {
         release {

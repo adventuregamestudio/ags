@@ -1365,14 +1365,17 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
 }
 
 void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch,
-    IDirect3DSurface9 *back_buffer, Size &surface_sz)
+    IDirect3DSurface9 *back_buffer, Size &surface_sz, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         HRESULT hr = direct3ddevice->SetRenderTarget(0, batch->RenderSurface);
         assert(hr == D3D_OK);
-        direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+        if (clear)
+        {
+            direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+        }
         surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
         SetD3DViewport(RectWH(surface_sz));
         glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
@@ -1408,6 +1411,11 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         return; // no batches - no render
     }
 
+    // TODO: following algorithm is repeated for both Direct3D and OpenGL renderer
+    // classes. The problem is that some data has different types and contents
+    // specific to the renderer. But there has to be a good way to make a shared
+    // algorithm in a base class.
+
     // Render all the sprite batches with necessary transformations;
     // some of them may be rendered to a separate texture instead.
     // For these we save their IDs in a stack (rt_parents).
@@ -1422,9 +1430,10 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
     for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
-        // Test if we are entering this batch (and not continuing after coming back from nested)
         const auto &batch = _spriteBatches[cur_bat];
-        if (cur_spr <= _spriteBatchRange[cur_bat].first)
+        // Test if we are entering this batch (and not continuing after coming back from nested)
+        const bool new_batch = cur_bat == last_bat;
+        if (new_batch)
         {
             // If batch introduces a new render target, or the first using backbuffer, then remember it
             if (rt_parents.empty() || batch.RenderTarget)
@@ -1433,23 +1442,32 @@ void D3DGraphicsDriver::RenderSpriteBatches()
                 rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        // Render immediate batch sprites, if any, update cur_spr iterator
-        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        // If this batch has ANY sprites in it at all (own, or nested),
+        // then we would need to update render target; otherwise there's no need
+        if (_spriteBatchRange[cur_bat].first < _spriteBatchRange[cur_bat].second)
         {
             // If render target is different in this batch, then set it up
             const auto &rt_parent = _spriteBatches[rt_parents.top()];
             if (rt_parent.RenderSurface && (cur_rt != rt_parent.RenderSurface) ||
                 !rt_parent.RenderSurface && (cur_rt != back_buffer))
             {
-                cur_rt = batch.RenderSurface ? batch.RenderSurface : back_buffer;
-                SetRenderTarget(&batch, back_buffer, surface_sz);
+                cur_rt = rt_parent.RenderSurface ? rt_parent.RenderSurface : back_buffer;
+                SetRenderTarget(&rt_parent, back_buffer, surface_sz, new_batch);
             }
+        }
+
+        // Render immediate batch sprites, if any, update cur_spr iterator;
+        // we know that the batch has sprites, if next sprite in list belongs to it ("node" ref)
+        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        {
             // Now set clip (scissor), and render sprites
             const bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt != back_buffer);
             SetScissor(batch.Viewport, render_to_texture);
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;
             cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
+            // at this point cur_spr iterator is updated past the last sprite in a sequence;
+            // this may be the end of batch, but also may be the a begginning of a sub-batch
         }
 
         // Test if we're exiting current batch (and not going into nested ones):
@@ -1472,7 +1490,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         }
     }
 
-    SetRenderTarget(nullptr, back_buffer, surface_sz);
+    SetRenderTarget(nullptr, back_buffer, surface_sz, false);
     back_buffer->Release();
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;

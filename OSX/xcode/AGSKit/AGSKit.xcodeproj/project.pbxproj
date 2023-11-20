@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2034CA8A2A20161300824C80 /* iagsstream.h in Headers */ = {isa = PBXBuildFile; fileRef = 2034CA882A20161200824C80 /* iagsstream.h */; };
 		2034CA8B2A20161300824C80 /* matrix.h in Headers */ = {isa = PBXBuildFile; fileRef = 2034CA892A20161300824C80 /* matrix.h */; };
 		2034CA9F2A20174B00824C80 /* plugin_builtin.h in Headers */ = {isa = PBXBuildFile; fileRef = 2034CA9E2A20174B00824C80 /* plugin_builtin.h */; };
 		2034CAA92A201E4F00824C80 /* SDL_sound_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2034CAA42A201E4F00824C80 /* SDL_sound_internal.h */; };
@@ -950,7 +949,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		2034CA882A20161200824C80 /* iagsstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iagsstream.h; sourceTree = "<group>"; };
 		2034CA892A20161300824C80 /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
 		2034CA9E2A20174B00824C80 /* plugin_builtin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_builtin.h; sourceTree = "<group>"; };
 		2034CAA42A201E4F00824C80 /* SDL_sound_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SDL_sound_internal.h; path = ../../../../libsrc/SDL_sound/src/SDL_sound_internal.h; sourceTree = "<group>"; };
@@ -2793,7 +2791,6 @@
 		526F226F1D3B5C4900EF4E1F /* util */ = {
 			isa = PBXGroup;
 			children = (
-				2034CA882A20161200824C80 /* iagsstream.h */,
 				2034CA892A20161300824C80 /* matrix.h */,
 				20522A1128E8F81900589E91 /* aasset_stream.cpp */,
 				20522A1C28E8F81C00589E91 /* aasset_stream.h */,
@@ -3805,7 +3802,6 @@
 				526F23D81D3B5C4900EF4E1F /* ini_util.h in Headers */,
 				20E6852B28F2219B00B95C00 /* SpriteFontRendererClifftopGames.h in Headers */,
 				20E67D9F28F1BDE000B95C00 /* file.h in Headers */,
-				2034CA8A2A20161300824C80 /* iagsstream.h in Headers */,
 				526F288C1D3B5CC300EF4E1F /* queuedaudioitem.h in Headers */,
 				526F27A91D3B5CC300EF4E1F /* filebasedagsdebugger.h in Headers */,
 				526F271C1D3B5CC300EF4E1F /* global_label.h in Headers */,

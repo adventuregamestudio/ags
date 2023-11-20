@@ -21,7 +21,7 @@
 #include <memory>
 #include "ac/dynobj/scriptfile.h"
 #include "ac/runtime_defines.h"
-using AGS::Common::Stream;
+#include "util/stream.h"
 
 int		File_Exists(const char *fnmm);
 int		File_Delete(const char *fnmm);
@@ -45,16 +45,59 @@ int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 int     File_GetPosition(sc_File *fil);
 
-struct ScriptFileHandle
-{
-    std::unique_ptr<Stream> stream;
-    int32_t  handle = 0;
-};
-extern ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
-extern int num_open_script_files;
+//=============================================================================
 
-ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *operation_name);
-ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name);
-Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name);
+namespace AGS
+{
+namespace Engine
+{
+    // IManagedStream interface is a contract for the plugin API,
+    // matching IAGSStream interface there. Having this here is mostly an
+    // issue of code organization. Perhaps this may be reviewed if we change
+    // how plugin API is declared and reused within the engine itself.
+    // NOTE: we cannot use our utility IStream for this, because:
+    //    1) different, extended expectation for Close function;
+    //    2) different types in args or return values: we cannot use
+    //       some of them in plugin API.
+    class IManagedStream
+    {
+    public:
+        // Flushes and closes the stream, deallocates the stream object.
+        // After calling this the IAGSStream pointer becomes INVALID.
+        virtual void   Close() = 0;
+        // Returns an optional stream's source description.
+        // This may be a file path, or a resource name, or anything of that kind.
+        virtual const char *GetPath() = 0;
+        // Reads number of bytes into the provided buffer
+        virtual size_t Read(void *buffer, size_t len) = 0;
+        // Writes number of bytes from the provided buffer
+        virtual size_t Write(void *buffer, size_t len) = 0;
+        // Returns the total stream's length in bytes
+        virtual int64_t GetLength() = 0;
+        // Returns stream's position
+        virtual int64_t GetPosition() = 0;
+        // Tells whether the stream's position is at its end
+        virtual bool   EOS() = 0;
+        // Seeks to offset from the origin, returns new position in stream,
+        // or -1 on error.
+        virtual int64_t Seek(int64_t offset, int origin) = 0;
+        // Flushes stream, forcing it to write any buffered data to the
+        // underlying device. Note that the effect may depend on implementation.
+        virtual void   Flush() = 0;
+    protected:
+        IManagedStream() = default;
+        virtual ~IManagedStream() = default;
+    };
+} // namespace Engine
+} // namespace AGS
+
+// Managed file streams: for script and plugin use
+int32_t add_file_stream(std::unique_ptr<AGS::Common::Stream> &&stream, const char *operation_name);
+void    close_file_stream(int32_t fhandle, const char *operation_name);
+AGS::Common::Stream *get_file_stream(int32_t fhandle, const char *operation_name);
+AGS::Engine::IManagedStream *get_file_stream_iface(int32_t fhandle, const char *operation_name);
+int32_t find_file_stream_handle(AGS::Engine::IManagedStream *iface);
+AGS::Common::Stream *release_file_stream(int32_t fhandle, const char *operation_name);
+void    close_all_file_streams();
 
 #endif // __AGS_EE_AC__FILE_H

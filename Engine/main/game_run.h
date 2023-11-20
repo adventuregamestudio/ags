@@ -17,7 +17,6 @@
 #include "ac/keycode.h"
 
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
-using namespace AGS::Engine; // FIXME later
 struct GamepadInput;
 
 // Loops game frames until certain event takes place (for blocking actions)
@@ -34,7 +33,7 @@ void GameLoopUntilButAnimEnd(int guin, int objn);
 // Run the actual game until it ends, or aborted by player/error; loops GameTick() internally
 void RunGameUntilAborted();
 // Update everything game related; wait for the next frame
-void UpdateGameOnce(bool checkControls = false, IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
+void UpdateGameOnce(bool checkControls = false, AGS::Engine::IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 // Update minimal required game state: audio, loop counter, etc; wait for the next frame
 void UpdateGameAudioOnly();
 // Updates everything related to object views that could have changed in the midst of a

@@ -126,8 +126,7 @@ bool MemoryStream::Seek(soff_t offset, StreamSeek origin)
     case kSeekBegin:    pos = 0 + offset; break;
     case kSeekCurrent:  pos = _pos + offset; break;
     case kSeekEnd:      pos = _len + offset; break;
-    default:
-        return false;
+    default: return false;
     }
     _pos = static_cast<size_t>(std::max<soff_t>(0, pos));
     _pos = std::min(_len, _pos); // clamp to EOS

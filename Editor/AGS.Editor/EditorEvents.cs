@@ -15,7 +15,7 @@ namespace AGS.Editor
         public event ParameterlessDelegate RefreshAllComponentsFromGame;
         public delegate void GameLoadHandler(XmlNode rootNode);
         public event GameLoadHandler GameLoad;
-        public delegate void GamePostLoadHandler();
+        public delegate void GamePostLoadHandler(Game game);
         public event GamePostLoadHandler GamePostLoad;
         public delegate void SavingGameHandler(XmlTextWriter writer);
         public event SavingGameHandler SavingGame;
@@ -54,11 +54,11 @@ namespace AGS.Editor
             }
         }
 
-        public void OnGamePostLoad()
+        public void OnGamePostLoad(Game game)
         {
             if (GamePostLoad != null)
             {
-                GamePostLoad();
+                GamePostLoad(game);
             }
         }
 

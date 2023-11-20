@@ -193,6 +193,13 @@ namespace AGS.Editor
             t.SetColor("script-editor/text-editor/caret/caret-fore", c => scintillaControl1.CaretForeColor = c);
             t.SetColor("script-editor/text-editor/caret/caret-line-back", c => scintillaControl1.CaretLineBackColor = c);
             t.SetInt("script-editor/text-editor/caret/caret-line-back-alpha", i => scintillaControl1.CaretLineBackColorAlpha = i);
+
+            t.SetColor("script-editor/text-editor/character/background", c => scintillaControl1.Styles[Style.Cpp.Character].BackColor = c);
+            t.SetColor("script-editor/text-editor/character/foreground", c => scintillaControl1.Styles[Style.Cpp.Character].ForeColor = c);
+            t.SetColor("script-editor/text-editor/brace-light/background", c => scintillaControl1.Styles[Style.BraceLight].BackColor = c);
+            t.SetColor("script-editor/text-editor/brace-light/foreground", c => scintillaControl1.Styles[Style.BraceLight].ForeColor = c);
+            t.SetColor("script-editor/text-editor/brace-bad/background", c => scintillaControl1.Styles[Style.BraceBad].BackColor = c);
+            t.SetColor("script-editor/text-editor/brace-bad/foreground", c => scintillaControl1.Styles[Style.BraceBad].ForeColor = c);
         }
 
         private void UpdateColors()

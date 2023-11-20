@@ -1048,39 +1048,6 @@ namespace AGS.Types
             }
         }
 
-        public void ToXml(XmlTextWriter writer)
-        {
-            SerializeUtils.SerializeToXML(this, writer);
-        }
-
-        public void FromXml(XmlNode node)
-        {
-			_guid = Guid.Empty;
-			_description = string.Empty;
-			_releaseDate = DateTime.Now;
-			_genre = DEFAULT_GENRE;
-			_version = DEFAULT_VERSION;
-			_developerName = string.Empty;
-			_developerURL = string.Empty;
-			_saveGameExtension = string.Empty;
-            _saveGamesFolderName = null;
-            _runGameLoopsWhileDialogOptionsDisplayed = false;
-            _inventoryHotspotMarker = new InventoryHotspotMarker();
-            _audioIndexer = AudioClip.FixedIndexBase;
-            _gameFileName = string.Empty;
-
-            SerializeUtils.DeserializeFromXML(this, node);
-
-			if (_guid == Guid.Empty)
-			{
-				_guid = Guid.NewGuid();
-			}
-            if (_saveGamesFolderName == null)
-            {
-                this.SaveGameFolderName = _gameName;
-            }
-        }
-
         [DisplayName("Render sprites at screen resolution")]
         [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
         [DefaultValue(RenderAtScreenResolution.UserDefined)]
@@ -1142,8 +1109,7 @@ namespace AGS.Types
         {
             get { return _androidBuildFormat; }
             set { _androidBuildFormat = value; }
-        }        
-
+        }
 
         [Obsolete]
         [Browsable(false)]
@@ -1163,6 +1129,39 @@ namespace AGS.Types
         [Obsolete]
         [Browsable(false)]
         public SpriteAlphaStyle SpriteAlphaStyle { get; }
+
+        public void ToXml(XmlTextWriter writer)
+        {
+            SerializeUtils.SerializeToXML(this, writer);
+        }
+
+        public void FromXml(XmlNode node)
+        {
+            _guid = Guid.Empty;
+            _description = string.Empty;
+            _releaseDate = DateTime.Now;
+            _genre = DEFAULT_GENRE;
+            _version = DEFAULT_VERSION;
+            _developerName = string.Empty;
+            _developerURL = string.Empty;
+            _saveGameExtension = string.Empty;
+            _saveGamesFolderName = null;
+            _runGameLoopsWhileDialogOptionsDisplayed = false;
+            _inventoryHotspotMarker = new InventoryHotspotMarker();
+            _audioIndexer = AudioClip.FixedIndexBase;
+            _gameFileName = string.Empty;
+
+            SerializeUtils.DeserializeFromXML(this, node);
+
+            if (_guid == Guid.Empty)
+            {
+                _guid = Guid.NewGuid();
+            }
+            if (_saveGamesFolderName == null)
+            {
+                this.SaveGameFolderName = _gameName;
+            }
+        }
 
         #region ICustomTypeDescriptor Members
 

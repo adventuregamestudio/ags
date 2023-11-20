@@ -99,6 +99,7 @@ public:
     inline bool  DoesAssetExist(const AssetPath &apath) const { return DoesAssetExist(apath.Name, apath.Filter); }
     // Searches in all the registered locations and collects a list of
     // assets using given wildcard pattern
+    // TODO: variant accepting std::regex instead of wildcard, and replace uses where convenient
     void         FindAssets(std::vector<String> &assets, const String &wildcard,
                                    const String &filter = "") const;
     // Open asset stream in the given work mode; returns null if asset is not found or cannot be opened

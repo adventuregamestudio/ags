@@ -18,6 +18,7 @@ Additionally, there are other directories too:
 
 - `gradle` : to hold shared gradle scripts when needed
 - `misc` : has an example `android.cfg` file 
+- `plugins` : this is an empty directory for placing prebuilt plugins that will be used by the project in `mygame/` dir.
 
 ### Building Requirements
 

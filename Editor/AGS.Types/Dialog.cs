@@ -46,10 +46,13 @@ namespace AGS.Types
             set { _name = Utilities.ValidateScriptName(value); }
         }
 
+        [Browsable(false)]
         public string FileName { get { return "Dialog " + ID; } }
 
+        [Browsable(false)]
         public string Text { get { return _script; } }
 
+        [Browsable(false)]
         public ScriptAutoCompleteData AutoCompleteData { get { return null; } }
 
         [Description("Whether to show a text box along with the options so that the user can type in custom text")]

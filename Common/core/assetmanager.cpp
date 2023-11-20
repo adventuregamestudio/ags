@@ -213,8 +213,8 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
     }
 
     // Sort and remove duplicates
-    std::sort(assets.begin(), assets.end());
-    assets.erase(std::unique(assets.begin(), assets.end()), assets.end());
+    std::sort(assets.begin(), assets.end(), StrLessNoCase());
+    assets.erase(std::unique(assets.begin(), assets.end(), StrEqNoCase()), assets.end());
 }
 
 AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_lib)

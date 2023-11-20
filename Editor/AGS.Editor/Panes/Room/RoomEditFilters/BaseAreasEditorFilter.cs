@@ -392,6 +392,11 @@ namespace AGS.Editor
             return false;
 		}
 
+        public bool KeyReleased(Keys key)
+        {
+            return false;
+        }
+
         public virtual void CommandClick(string command)
         {
             foreach (MenuCommand menuCommand in _toolbarIcons)

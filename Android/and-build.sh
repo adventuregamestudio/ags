@@ -22,11 +22,13 @@ function prepare_package {
   cp -r misc package_debug/misc
   cp -r mygame package_debug/mygame
   cp -r gradle package_debug/gradle
+  cp -r plugins package_debug/plugins
   
   cp -r library package_release/library
   cp -r misc package_release/misc
   cp -r mygame package_release/mygame
   cp -r gradle package_release/gradle
+  cp -r plugins package_release/plugins
   
   mkdir package_release/mygame/gradle
   mkdir package_release/mygame/gradle/wrapper

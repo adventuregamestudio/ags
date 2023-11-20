@@ -41,6 +41,7 @@
 #include "ac/movelist.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];

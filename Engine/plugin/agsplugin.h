@@ -20,6 +20,8 @@
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
+#include <stddef.h> // for size_t
+#include <stdint.h>
 #include "agsplugin_evts.h"
 
 // If the plugin isn't using DDraw, don't require the headers
@@ -184,6 +186,63 @@ struct AGSGameInfo {
   int UniqueId;
 };
 
+// File open modes
+// Opens existing file, fails otherwise
+#define AGSSTREAM_FILE_OPEN         0
+// Opens existing file, creates one if it did not exist
+#define AGSSTREAM_FILE_CREATE       1
+// Always creates a new file, completely overwrites any existing one
+#define AGSSTREAM_FILE_CREATEALWAYS 2
+
+// Stream work modes
+// Read-only
+#define AGSSTREAM_MODE_READ  0x1
+// Write-only
+#define AGSSTREAM_MODE_WRITE 0x2
+// Support both read and write
+#define AGSSTREAM_MODE_READWRITE (AGSSTREAM_MODE_READ | AGSSTREAM_MODE_WRITE)
+
+// Stream seek origins
+// Seek from the beginning of a stream (towards positive offset)
+#define AGSSTREAM_SEEK_SET 0
+// Seek from the current position (towards positive or negative offset)
+#define AGSSTREAM_SEEK_CUR 1
+// Seek from the end of a stream (towards negative offset)
+#define AGSSTREAM_SEEK_END 2
+
+class IAGSStream {
+public:
+  // Flushes and closes the stream, deallocates the stream object.
+  // After calling this the IAGSStream pointer becomes INVALID.
+  virtual void   Close() = 0;
+  // Returns an optional stream's source description.
+  // This may be a file path, or a resource name, or anything of that kind.
+  virtual const char *GetPath() = 0;
+  // Reads number of bytes into the provided buffer
+  virtual size_t Read(void *buffer, size_t len) = 0;
+  // Writes number of bytes from the provided buffer
+  virtual size_t Write(void *buffer, size_t len) = 0;
+  // Returns the total stream's length in bytes
+  virtual int64_t GetLength() = 0;
+  // Returns stream's position
+  virtual int64_t GetPosition() = 0;
+  // Tells whether the stream's position is at its end
+  virtual bool   EOS() = 0;
+  // Seeks to offset from the origin defined by AGSSTREAM_SEEK_* constants:
+  //  * AGSSTREAM_SEEK_SET - seek from the beginning;
+  //  * AGSSTREAM_SEEK_CUR - seek from the current position;
+  //  * AGSSTREAM_SEEK_END - seek from the end (pass negative offset)
+  // Returns new position in stream, or -1 on error.
+  virtual int64_t Seek(int64_t offset, int origin) = 0;
+  // Flushes stream, forcing it to write any buffered data to the
+  // underlying device. Note that the effect may depend on implementation.
+  virtual void   Flush() = 0;
+
+protected:
+  IAGSStream() = default;
+  ~IAGSStream() = default;
+};
+
 
 // The plugin-to-engine interface
 class IAGSEngine {
@@ -243,9 +302,9 @@ public:
 
   // *** BELOW ARE INTERFACE VERSION 5 AND ABOVE ONLY
   // similar to fwrite - buffer, size, filehandle
-  AGSIFUNC(int)  FWrite (void *, int32, int32);
+  AGSIFUNC(int)  FWrite (void *out_buf, int32 len, int32 fhandle);
   // similar to fread - buffer, size, filehandle
-  AGSIFUNC(int)  FRead (void *, int32, int32);
+  AGSIFUNC(int)  FRead (void *in_buf, int32 len, int32 fhandle);
   // print text, wrapping as usual
   AGSIFUNC(void) DrawTextWrapped (int32 x, int32 y, int32 width, int32 font, int32 color, const char *text);
   // set the current active 'screen'
@@ -439,8 +498,23 @@ public:
   AGSIFUNC(void)  NotifyFontUpdated(int fontNumber);
 
   // *** BELOW ARE INTERFACE VERSION 27 AND ABOVE ONLY
-  // Resolves a script path to a system filepath, same way as script command File.Open does.
-  AGSIFUNC(const char*) ResolveFilePath(const char *script_path);
+  // Resolve a script path to a system filepath, same way as script command File.Open does.
+  // Caller should provide an output buffer and its length in bytes.
+  // Passing NULL instead of a buffer pointer will make function calculate and return
+  // length necessary to store a resulting path (in bytes).
+  AGSIFUNC(size_t) ResolveFilePath(const char *script_path, char *buf, size_t buf_len);
+
+  // *** BELOW ARE INTERFACE VERSION 28 AND ABOVE ONLY
+  // Opens a data stream, resolving a script path.
+  // File mode should contain one of the AGSSTREAM_FILE_* values,
+  // work mode should contain flag set of the AGSSTREAM_MODE_* values.
+  // Returns IAGSStream object, or null on failure.
+  // IAGSStream must be disposed by calling its Close() function.
+  AGSIFUNC(IAGSStream*) OpenFileStream(const char *script_path, int file_mode, int work_mode);
+  // Returns IAGSStream object identified by the given stream handle.
+  // This lets to retrieve IAGSStream object from a handle received in a event callback.
+  // Returns null if handle is invalid.
+  AGSIFUNC(IAGSStream*) GetFileStreamByHandle(int32 fhandle);
 };
 
 

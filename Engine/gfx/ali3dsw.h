@@ -161,8 +161,8 @@ class SDLRendererGraphicsDriver : public GraphicsDriverBase
 public:
     SDLRendererGraphicsDriver();
 
-    const char*GetDriverName() override { return "SDL 2D Software renderer"; }
-    const char*GetDriverID() override { return "Software"; }
+    const char *GetDriverID() override { return "Software"; }
+    const char *GetDriverName() override { return "SDL 2D Software renderer"; }
 
     bool RequiresFullRedrawEachFrame() override { return false; }
     bool HasAcceleratedTransform() override { return false; }

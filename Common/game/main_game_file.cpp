@@ -185,7 +185,7 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Try to open given file
     Stream *in = File::OpenFileRead(filename);
     if (!in)
-        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Tried filename: %s.", filename.GetCStr()));
     src.Filename = filename;
     src.InputStream.reset(in);
     return OpenMainGameFileBase(in, src);
@@ -204,7 +204,8 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
         in = mgr->OpenAsset(filename);
     }
     if (!in)
-        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
+        return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Tried filenames: %s, %s.",
+            MainGameSource::DefaultFilename_v3.GetCStr(), MainGameSource::DefaultFilename_v2.GetCStr()));
     src.Filename = filename;
     src.InputStream.reset(in);
     return OpenMainGameFileBase(in, src);
@@ -285,6 +286,7 @@ void BuildAudioClipArray(const std::vector<String> &assets, std::vector<ScriptAu
     int temp_number;
     char temp_extension[10];
 
+    // FIXME: use audio type constants instead of obscure numeric literals
     for (const String &asset : assets)
     {
         if (sscanf(asset.GetCStr(), "%5s%d.%3s", temp_name, &temp_number, temp_extension) != 3)

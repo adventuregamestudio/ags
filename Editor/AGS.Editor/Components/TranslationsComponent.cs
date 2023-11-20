@@ -622,7 +622,7 @@ namespace AGS.Editor.Components
         /// class itself. I'm not entirely convinced this is the optimal way, as AGS.Types
         /// may be linked by plugins and third-party tools, so maybe think that over later.
         /// </summary>
-        private void ConvertTranslationsToPOFormat()
+        private void ConvertTranslationsToPOFormat(Game game)
         {
             if (_agsEditor.CurrentGame.SavedXmlVersionIndex >= AGSEditor.AGS_4_0_0_XML_VERSION_INDEX_PO_TRANSLATIONS)
                 return; // Should be using PO source files at this point

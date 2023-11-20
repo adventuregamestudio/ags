@@ -132,7 +132,6 @@ target_sources(common
     util/filestream.h
     util/geometry.cpp
     util/geometry.h
-    util/iagsstream.h
     util/ini_util.cpp
     util/ini_util.h
     util/inifile.cpp
@@ -198,7 +197,7 @@ if(ANDROID)
 endif()
 
 # NOTE: You can optionally create case sensitive filesystems on Macos and Windows now.
-if (LINUX)
+if (LINUX OR ANDROID)
     target_compile_definitions(common PRIVATE AGS_CASE_SENSITIVE_FILESYSTEM)
 endif()
 

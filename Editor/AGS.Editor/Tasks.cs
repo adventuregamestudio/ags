@@ -170,8 +170,10 @@ namespace AGS.Editor
             }
             Factory.AGSEditor.Settings.RecentGames.Insert(0, recentGame);
 
-            Factory.Events.OnGamePostLoad();
+            Factory.Events.OnGamePostLoad(game);
 
+            // WARNING: this is where the "global" Factory.AGSEditor.CurrentGame is set;
+            // any tasks and events that expect to reference it must be called after!
             Factory.AGSEditor.RefreshEditorAfterGameLoad(game, errors);
             if (needToSave)
             {

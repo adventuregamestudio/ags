@@ -85,6 +85,10 @@ namespace AGS.Editor
         /// </summary>
         bool KeyPressed(Keys keyData);
         /// <summary>
+        /// Notifies key release event. Returns whether event is handled by this filter.
+        /// </summary>
+        bool KeyReleased(Keys keyData);
+        /// <summary>
         /// Gets a human-readable area name.
         /// </summary>
         /// <param name="id"></param>

@@ -118,8 +118,6 @@ struct GameSetupStruct : public GameSetupStructBase
     // being read between them;
     // b) use a helper struct to pass some arguments
     //
-    // I also had to move BuildAudioClipArray from the engine and make it
-    // GameSetupStruct member.
 
     //--------------------------------------------------------------------
     // Do not call these directly

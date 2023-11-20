@@ -49,6 +49,12 @@ bin/
 gen/
 out/
 
+# ags game in Android single game project used for testing
+Android/mygame/app/src/main/assets
+
+# Ignore prebuilt libraries
+Android/library/runtime/libs/
+
 ## end Android related
 
 ## Xcode Build generated

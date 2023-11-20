@@ -368,7 +368,7 @@ private:
     size_t _fxIndex; // next free pool item
 
     // specialized method to convert bitmap to video memory depending on bit depth
-    template <typename T, bool UsingLinearFiltering> void
+    template <typename T, bool HasAlpha> void
     BitmapToVideoMemImpl(
             const Bitmap *bitmap, const TextureTile *tile,
             uint8_t *dst_ptr, const int dst_pitch
@@ -376,6 +376,12 @@ private:
 
     template <typename T> void
     BitmapToVideoMemOpaqueImpl(
+            const Bitmap *bitmap, const TextureTile *tile,
+            uint8_t *dst_ptr, const int dst_pitch
+    );
+
+    template <typename T, bool HasAlpha> void
+    BitmapToVideoMemLinearImpl(
             const Bitmap *bitmap, const TextureTile *tile,
             uint8_t *dst_ptr, const int dst_pitch
     );

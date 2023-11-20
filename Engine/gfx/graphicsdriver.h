@@ -93,8 +93,10 @@ typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 class IGraphicsDriver
 {
 public:
-  virtual const char *GetDriverName() = 0;
+  // Gets graphic driver's identifier
   virtual const char *GetDriverID() = 0;
+  // Gets graphic driver's "friendly name"
+  virtual const char *GetDriverName() = 0;
 
   // Tells if this gfx driver has to redraw whole scene each time
   virtual bool RequiresFullRedrawEachFrame() = 0;

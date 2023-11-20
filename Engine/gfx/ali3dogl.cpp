@@ -1366,16 +1366,20 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, con
     glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
 }
 
-void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection)
+void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz,
+    glm::mat4 &projection, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, batch->Fbo);
-        glDisable(GL_SCISSOR_TEST);
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glEnable(GL_SCISSOR_TEST);
+        if (clear)
+        {
+            glDisable(GL_SCISSOR_TEST);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glEnable(GL_SCISSOR_TEST);
+        }
         surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
         projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
         glViewport(0, 0, surface_sz.Width, surface_sz.Height);
@@ -1422,6 +1426,11 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     if (_do_render_to_texture)
         glEnable(GL_SCISSOR_TEST);
 
+    // TODO: following algorithm is repeated for both Direct3D and OpenGL renderer
+    // classes. The problem is that some data has different types and contents
+    // specific to the renderer. But there has to be a good way to make a shared
+    // algorithm in a base class.
+
     // Render all the sprite batches with necessary transformations;
     // some of them may be rendered to a separate texture instead.
     // For these we save their IDs in a stack (rt_parents).
@@ -1435,9 +1444,10 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
     for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
-        // Test if we are entering this batch (and not continuing after coming back from nested)
         const auto &batch = _spriteBatches[cur_bat];
-        if (cur_spr <= _spriteBatchRange[cur_bat].first)
+        // Test if we are entering this batch (and not continuing after coming back from nested)
+        const bool new_batch = cur_bat == last_bat;
+        if (new_batch)
         {
             // If batch introduces a new render target, or the first using backbuffer, then remember it
             if (rt_parents.empty() || batch.RenderTarget)
@@ -1446,23 +1456,32 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
                 rt_parents.push(rt_parents.top()); // copy same current parent
         }
 
-        // Render immediate batch sprites, if any, update cur_spr iterator
-        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        // If this batch has ANY sprites in it at all (own, or nested),
+        // then we would need to update render target; otherwise there's no need
+        if (_spriteBatchRange[cur_bat].first < _spriteBatchRange[cur_bat].second)
         {
             // If render target is different in this batch, then set it up
             const auto &rt_parent = _spriteBatches[rt_parents.top()];
             if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
                 (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
             {
-                cur_rt = (batch.Fbo > 0u) ? batch.Fbo : back_buffer;
-                SetRenderTarget(&batch, surface_sz, use_projection);
+                cur_rt = (rt_parent.Fbo > 0u) ? rt_parent.Fbo : back_buffer;
+                SetRenderTarget(&rt_parent, surface_sz, use_projection, new_batch);
             }
+        }
+
+        // Render immediate batch sprites, if any, update cur_spr iterator;
+        // we know that the batch has sprites, if next sprite in list belongs to it ("node" ref)
+        if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
+        {
             // Now set clip (scissor), and render sprites
             const bool render_to_texture = (_do_render_to_texture) || (cur_rt != back_buffer);
             SetScissor(batch.Viewport, render_to_texture, surface_sz);
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;
             cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
+            // at this point cur_spr iterator is updated past the last sprite in a sequence;
+            // this may be the end of batch, but also may be the a begginning of a sub-batch
         }
 
         // Test if we're exiting current batch (and not going into nested ones):
@@ -1485,7 +1504,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
         }
     }
 
-    SetRenderTarget(nullptr, surface_sz, use_projection);
+    SetRenderTarget(nullptr, surface_sz, use_projection, false);
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     SetScissor(Rect(), _do_render_to_texture, _srcRect.GetSize()); // TODO: simply disable scissor test?

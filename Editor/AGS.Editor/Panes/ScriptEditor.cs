@@ -502,12 +502,12 @@ namespace AGS.Editor
             {
                 base.OnCommandClick(command);
             }
-            UpdateToolbarButtonsIfNecessary();
+            UpdateUICommands();
         }
 
-        protected override void UpdateToolbarButtonsIfNecessary()
+        protected override void UpdateUICommands(bool force = false)
         {
-            base.UpdateToolbarButtonsIfNecessary();
+            base.UpdateUICommands(force);
 
             bool isWrapEnabled = scintilla.GetWrapMode() != ScintillaNET.WrapMode.None;
             if ((_menuCmdWordWrap.Checked != isWrapEnabled))
@@ -601,7 +601,6 @@ namespace AGS.Editor
 
         private void scintilla_UpdateUI(object sender, EventArgs e)
         {
-            UpdateToolbarButtonsIfNecessary();
             if (cmbFunctions.Items.Count > 0)
             {
                 SelectFunctionInListForCurrentPosition();

@@ -125,6 +125,7 @@ Source: "Source\Web\index.html"; DestDir: "{app}\Web"; Flags: ignoreversion; Com
 Source: "Source\Android\mygame\*"; DestDir: "{app}\Android\mygame"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
 Source: "Source\Android\gradle\*"; DestDir: "{app}\Android\gradle"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
 Source: "Source\Android\library\*"; DestDir: "{app}\Android\library"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
+Source: "Source\Android\plugins\*"; DestDir: "{app}\Android\plugins"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: android
 ; Demo game
 ; Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: demogame
 ; Visual C++ runtime

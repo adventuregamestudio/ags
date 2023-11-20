@@ -138,9 +138,7 @@ bool FileStream::Seek(soff_t offset, StreamSeek origin)
     case kSeekBegin:    stdclib_origin = SEEK_SET; break;
     case kSeekCurrent:  stdclib_origin = SEEK_CUR; break;
     case kSeekEnd:      stdclib_origin = SEEK_END; break;
-    default:
-        // TODO: warning to the log
-        return false;
+    default: return false;
     }
 
     return ags_fseek(_file, (file_off_t)offset, stdclib_origin) == 0;

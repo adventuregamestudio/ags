@@ -9,6 +9,10 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
+    /// <summary>
+    /// TODO: it must be possible to pick out a base class from ObjectsEditorFilter and
+    /// CharactersEditorFilter, there much common functionality here.
+    /// </summary>
     public class ObjectsEditorFilter : IRoomEditorFilter
     {
         private const string MENU_ITEM_DELETE = "DeleteObject";
@@ -26,6 +30,9 @@ namespace AGS.Editor
         private int _mouseOffsetX, _mouseOffsetY;
         // mouse click location in ROOM's coordinates
         private int _menuClickX, _menuClickY;
+        private bool _movingObjectWithKeyboard = false;
+        private int _movingKeysDown = 0;
+        private Timer _movingHintTimer = new Timer();
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
 
         public ObjectsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
@@ -38,6 +45,9 @@ namespace AGS.Editor
             RoomItemRefs = new SortedDictionary<string, RoomObject>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
+
+            _movingHintTimer.Interval = 2000;
+            _movingHintTimer.Tick += MovingHintTimer_Tick;
         }
 
         public string Name { get { return "Objects"; } }
@@ -94,14 +104,40 @@ namespace AGS.Editor
             int step = GetArrowMoveStepSize();
             switch (key)
             {
-                case Keys.Right:
-                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);
                 case Keys.Left:
+                    _movingKeysDown |= 1; _movingObjectWithKeyboard = true;
                     return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);
-                case Keys.Down:
-                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
+                case Keys.Right:
+                    _movingKeysDown |= 2; _movingObjectWithKeyboard = true;
+                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);
                 case Keys.Up:
+                    _movingKeysDown |= 4; _movingObjectWithKeyboard = true;
                     return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);
+                case Keys.Down:
+                    _movingKeysDown |= 8; _movingObjectWithKeyboard = true;
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
+            }
+            return false;
+        }
+
+        public bool KeyReleased(Keys key)
+        {
+            int moveKeys = _movingKeysDown;
+            switch (key)
+            {
+                case Keys.Left: moveKeys &= ~1; break;
+                case Keys.Right: moveKeys &= ~2; break;
+                case Keys.Up: moveKeys &= ~4; break;
+                case Keys.Down: moveKeys &= ~8; break;
+            }
+            if (moveKeys != _movingKeysDown)
+            {
+                _movingKeysDown = moveKeys;
+                if (_movingKeysDown == 0)
+                {
+                    _movingHintTimer.Start();
+                    return true;
+                }
             }
             return false;
         }
@@ -151,16 +187,23 @@ namespace AGS.Editor
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
             graphics.DrawRectangle(pen, xPos, yPos, width, height);
 
-            if (_movingObjectWithMouse)
+            if (_movingObjectWithMouse || _movingObjectWithKeyboard)
             {
+                Brush shadeBrush = new SolidBrush(Color.FromArgb(200, Color.Black));
                 System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                 string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
-                int scaledx = xPos + (width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
-                int scaledy = yPos - (int)graphics.MeasureString(toDraw, font).Height;
+                var textSize = graphics.MeasureString(toDraw, font);
+                int scaledx = xPos + (width / 2) - ((int)textSize.Width / 2);
+                int scaledy = yPos - (int)textSize.Height;
                 if (scaledx < 0) scaledx = 0;
                 if (scaledy < 0) scaledy = 0;
+                if (scaledx + textSize.Width >= graphics.VisibleClipBounds.Width)
+                    scaledx = (int)(graphics.VisibleClipBounds.Width - textSize.Width);
+                if (scaledy + textSize.Height >= graphics.VisibleClipBounds.Height)
+                    scaledy = (int)(graphics.VisibleClipBounds.Height - textSize.Height);
 
+                graphics.FillRectangle(shadeBrush, scaledx, scaledy, textSize.Width, textSize.Height);
                 graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
             }
             else if (design.Locked)
@@ -339,24 +382,17 @@ namespace AGS.Editor
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (!_movingObjectWithMouse) return false;
-            int realX = state.WindowXToRoom(x);
-            int realY = state.WindowYToRoom(y);
 
-            if ((_movingObjectWithMouse) && (realY < _room.Height) &&
-                (realX < _room.Width) && (realY >= 0) && (realX >= 0))
-            {
-                int newX = realX - _mouseOffsetX;
-                int newY = realY - _mouseOffsetY;
-                return MoveObject(newX, newY);
-            }
-            return false;
+            int newX = state.WindowXToRoom(x) - _mouseOffsetX;
+            int newY = state.WindowYToRoom(y) - _mouseOffsetY;
+            return MoveObject(newX, newY);
         }
 
         private bool MoveObject(int newX, int newY)
         {            
             if (_selectedObject == null)
             {
-                _movingObjectWithMouse = false;
+                ClearMovingState();
             }
             else
             {
@@ -367,8 +403,23 @@ namespace AGS.Editor
                     _selectedObject.StartY = SetObjectCoordinate(newY);
                     _room.Modified = true;
                 }
+                _movingHintTimer.Stop();
             }
-            return true;            
+            return true;
+        }
+
+        private void ClearMovingState()
+        {
+            _movingObjectWithMouse = false;
+            _movingObjectWithKeyboard = false;
+            _movingKeysDown = 0;
+            _movingHintTimer.Stop();
+        }
+
+        private void MovingHintTimer_Tick(object sender, EventArgs e)
+        {
+            ClearMovingState();
+            Invalidate();
         }
 
         private int GetArrowMoveStepSize() // CLNUP probably remove
@@ -386,12 +437,14 @@ namespace AGS.Editor
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             _isOn = true;
+            ClearMovingState();
         }
 
         public void FilterOff()
         {
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
             _isOn = false;
+            ClearMovingState();
         }
 
         public void Dispose()
@@ -462,6 +515,7 @@ namespace AGS.Editor
             {
                 OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(roomObject.PropertyGridTitle));
             }
+            ClearMovingState();
         }
 
         private void SetPropertyGridList()

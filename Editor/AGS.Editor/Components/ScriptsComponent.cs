@@ -655,9 +655,8 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        private void Events_GamePostLoad()
+        private void Events_GamePostLoad(Game game)
         {
-            var game = _agsEditor.CurrentGame;
             if (game.SavedXmlVersionIndex >= 3060110)
                 return; // no upgrade necessary
 
@@ -665,7 +664,7 @@ namespace AGS.Editor.Components
             // emulate legacy behavior where its call was hardcoded in the engine.
             if (game.SavedXmlVersionIndex < 3060110)
             {
-                Script script = AGSEditor.Instance.CurrentGame.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
+                Script script = game.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
                 if (script != null)
                 {
                     script.Text = 

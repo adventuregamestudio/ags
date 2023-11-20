@@ -854,6 +854,10 @@ namespace AGS.Editor
                 return false;
             }
 
+            if (_layer != null && !IsLocked(_layer) && _layer.KeyReleased(keyData))
+            {
+                return true;
+            }
             return ProcessPanKeyRelease(keyData);
         }
 

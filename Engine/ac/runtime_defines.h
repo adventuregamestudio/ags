@@ -147,8 +147,6 @@ enum LegacyScriptAlignment
 
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
 
-#define MAX_OPEN_SCRIPT_FILES 10
-
 #define RETURN_CONTINUE 1
 
 #endif // __AC_RUNTIMEDEFINES_H

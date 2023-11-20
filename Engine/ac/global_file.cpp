@@ -52,8 +52,9 @@ int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::FileW
   if (!s)
     return 0;
 
+  String res_path = s->GetPath();
   int32_t handle = add_file_stream(std::move(s), "FileOpen");
-  debug_script_print(kDbgMsg_Info, "FileOpen: success, handle %d, path: %s", handle, s->GetPath().GetCStr());
+  debug_script_print(kDbgMsg_Info, "FileOpen: success, handle %d, path: %s", handle, res_path.GetCStr());
   return handle;
 }
 

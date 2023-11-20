@@ -822,6 +822,17 @@ int Game_BlockingWaitSkipped()
     return play.GetWaitSkipResult();
 }
 
+void Game_PrecacheSprite(int sprnum)
+{
+    spriteset.PrecacheSprite(sprnum);
+    texturecache_precache(sprnum);
+}
+
+void Game_PrecacheView(int view, int first_loop, int last_loop)
+{
+    precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
+}
+
 //=============================================================================
 
 // save game functions
@@ -1431,6 +1442,32 @@ void game_sprite_updated(int sprnum, bool deleted)
     }
 }
 
+void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
+{
+    if (view < 0)
+        return;
+    if (first_loop > last_loop)
+        return;
+
+    first_loop = Math::Clamp(first_loop, 0, views[view].numLoops - 1);
+    last_loop = Math::Clamp(last_loop, 0, views[view].numLoops - 1);
+    for (int i = first_loop; i <= last_loop; ++i)
+    {
+        for (int j = 0; j < views[view].loops[i].numFrames; ++j)
+        {
+            const ViewFrame &frame = views[view].loops[i].frames[j];
+            spriteset.PrecacheSprite(frame.pic);
+            texturecache_precache(frame.pic);
+            if (with_sounds && frame.audioclip >= 0)
+            {
+                ScriptAudioClip *clip = &game.audioClips[frame.audioclip];
+                auto assetpath = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
+                soundcache_precache(assetpath);
+            }
+        }
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -1777,6 +1814,16 @@ RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params,
     API_SCALL_INT(Game_BlockingWaitSkipped);
 }
 
+RuntimeScriptValue Sc_Game_PrecacheSprite(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_PrecacheSprite);
+}
+
+RuntimeScriptValue Sc_Game_PrecacheView(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(Game_PrecacheView);
+}
+
 void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {
@@ -1797,7 +1844,13 @@ void RegisterGameAPI()
         { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },
         { "Game::StopSound^1",                            API_FN_PAIR(StopAllSounds) },
+        { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
+        { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
+        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
+        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
+        { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },
+        { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },
@@ -1829,10 +1882,6 @@ void RegisterGameAPI()
         { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
         { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
-        { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
-        { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
-        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
-        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
         { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },

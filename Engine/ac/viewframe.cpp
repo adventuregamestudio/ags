@@ -105,18 +105,6 @@ int ViewFrame_GetFrame(ScriptViewFrame *svf) {
 
 //=============================================================================
 
-void precache_view(int view, int max_loops)
-{
-    if (view < 0) 
-        return;
-
-    max_loops = std::min(views[view].numLoops, max_loops);
-    for (int i = 0; i < max_loops; i++) {
-        for (int j = 0; j < views[view].loops[i].numFrames; j++)
-            spriteset.PrecacheSprite(views[view].loops[i].frames[j].pic);
-    }
-}
-
 int CalcFrameSoundVolume(int obj_vol, int anim_vol, int scale)
 {
     // We view the audio property relation as the relation of the entities:

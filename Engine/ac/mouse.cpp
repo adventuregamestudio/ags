@@ -17,6 +17,7 @@
 #include "ac/draw.h"
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/dynobj/scriptsystem.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

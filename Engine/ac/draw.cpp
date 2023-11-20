@@ -1054,6 +1054,11 @@ void clear_shared_texture(uint32_t sprite_id)
     texturecache.Dispose(sprite_id);
 }
 
+void texturecache_precache(uint32_t sprite_id)
+{
+    texturecache.GetOrLoad(sprite_id, nullptr, (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0, false);
+}
+
 void mark_screen_dirty()
 {
     drawstate.ScreenIsDirty = true;

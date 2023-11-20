@@ -53,6 +53,8 @@ Editor:
    (in right-to-left text mode).
  - Support '\n' linebreak character in the Label's Text and potentially other text properties.
  - For Android build target Editor now supports a directory to place plugins in.
+ - For Android build target disabled compression of `.ags` and `.vox` assets, as that slows down
+   engine streaming resources (sprites etc).
  - When building a game for Android and Linux the Editor will now be more tolerant to missing
    plugins and only issue a warning instead of stopping with error.
  - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.

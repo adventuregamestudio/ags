@@ -17,11 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows,         os: windows-latest, artifact: 'ags-windows', shell: cmd }
-        - { name: Ubuntu,          os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh  }
-        - { name: macOS,           os: macos-latest,   artifact: 'ags-macos',   shell: sh  }
+        - { name: Windows,    os: windows-latest, artifact: 'ags-windows', shell: cmd, runbin: ".\\ags.exe", bindir: "Release" }
+        - { name: Ubuntu,     os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh,  runbin: "./ags",      bindir: ""        }
+        - { name: macOS,      os: macos-latest,   artifact: 'ags-macos',   shell: sh,  runbin: "./ags",      bindir: ""        }
 
-    steps:    
+    steps:
     - uses: actions/checkout@v4
 
     - name: Configure CMake
@@ -44,3 +44,11 @@ jobs:
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
           ${{github.workspace}}/build/ags.exe
+            
+    - name: Run game auto-test  # we are using tap.py so that the pipeline fails if a test fails
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        pip install tap.py
+        curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/auto-test.ags
+        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags        
+        tappy agstest.tap

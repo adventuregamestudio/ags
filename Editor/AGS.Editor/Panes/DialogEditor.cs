@@ -94,12 +94,10 @@ namespace AGS.Editor
 
         private void RegisterEvents()
         {
-            scintillaEditor.GotFocus += scintillaEditor_GotFocus;
         }
 
         private void UnregisterEvents()
         {
-            scintillaEditor.GotFocus -= scintillaEditor_GotFocus;
             foreach(Control c in flowLayoutPanel1.Controls)
             {
                 DialogOptionEditor dialogOptionEditor = c as DialogOptionEditor;
@@ -239,16 +237,10 @@ namespace AGS.Editor
             }
         }
 
-        private void scintillaEditor_GotFocus(object sender, EventArgs e)
-        {
-            UpdateUICommands(force:true);
-        }
-
         private void updateEditMenuForTextbox(TextBox tbox)
         {
             bool can_copy_cut = tbox.SelectionLength > 0;
             EnableStandardEditCommands(copy: can_copy_cut, cut: can_copy_cut, paste: true, undo: tbox.CanUndo, redo: false);
-
         }
 
         private void dialogOptionsEditorTextBox_Event(object sender, EventArgs e)

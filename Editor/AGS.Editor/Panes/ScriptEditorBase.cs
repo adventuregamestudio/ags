@@ -274,7 +274,7 @@ namespace AGS.Editor
         /// Updates the state of menu commands (this affects both menu and toolbar icons).
         /// May be overriden in derived classes for their specific commands.
         /// </summary>
-        protected virtual void UpdateUICommands(bool force = false)
+        protected virtual void UpdateUICommands()
         {
             bool canCutAndCopy = _scintilla.CanCutAndCopy();
             bool canPaste = _scintilla.CanPaste();
@@ -283,7 +283,7 @@ namespace AGS.Editor
             if ((_menuCmdCopy.Enabled != canCutAndCopy) ||
                 (_menuCmdPaste.Enabled != canPaste) ||
                 (_menuCmdUndo.Enabled != canUndo) ||
-                (_menuCmdRedo.Enabled != canRedo) || force)
+                (_menuCmdRedo.Enabled != canRedo))
             {
                 _menuCmdCopy.Enabled = canCutAndCopy;
                 _menuCmdCut.Enabled = canCutAndCopy;

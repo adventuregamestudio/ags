@@ -505,9 +505,9 @@ namespace AGS.Editor
             UpdateUICommands();
         }
 
-        protected override void UpdateUICommands(bool force = false)
+        protected override void UpdateUICommands()
         {
-            base.UpdateUICommands(force);
+            base.UpdateUICommands();
 
             bool isWrapEnabled = scintilla.GetWrapMode() != ScintillaNET.WrapMode.None;
             if ((_menuCmdWordWrap.Checked != isWrapEnabled))

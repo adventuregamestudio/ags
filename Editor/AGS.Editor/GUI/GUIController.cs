@@ -367,18 +367,33 @@ namespace AGS.Editor
             _mainForm.pnlOutput.ErrorsToList = errors;
             if (errors.Count > 0)
             {
+                if (StdConsoleWriter.IsEnabled)
+                {
+                    foreach (CompileError cerr in errors.Errors)
+                    {
+                        StdConsoleWriter.WriteLine(cerr.AsString);
+                    }
+                }
                 _mainForm.pnlOutput.Show();
             }
         }
 
         public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
         {
+            if (StdConsoleWriter.IsEnabled)
+            {
+                foreach(string msg in messages)
+                {
+                    StdConsoleWriter.WriteLine(msg);
+                }
+            }
             _mainForm.pnlOutput.SetMessages(messages, imageKey);
             _mainForm.pnlOutput.Show();
         }
 
         public void ShowOutputPanel(string message, string imageKey = "BuildIcon")
         {
+            StdConsoleWriter.WriteLine(message);
             _mainForm.pnlOutput.SetMessage(message, imageKey);
             _mainForm.pnlOutput.Show();
         }

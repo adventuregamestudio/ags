@@ -894,12 +894,10 @@ namespace AGS.Editor
                             var messages = _agsEditor.CompileGame(forceRebuild, false);
                             if (forceRebuild)
                                 _agsEditor.SaveUserDataFile(); // in case pending config is applied
-                            if (!messages.HasErrors)
-							{
-								_batchProcessShutdown = true;
-								this.ExitApplication();
-							}
-						}
+
+                            _batchProcessShutdown = true;
+                            this.ExitApplication();
+                        }
 						return false;
 					}
 				}

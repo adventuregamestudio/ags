@@ -896,6 +896,7 @@ namespace AGS.Editor
                                 _agsEditor.SaveUserDataFile(); // in case pending config is applied
 
                             _batchProcessShutdown = true;
+                            if (messages.Count > 0) Program.SetExitCode(1);
                             this.ExitApplication();
                         }
 						return false;

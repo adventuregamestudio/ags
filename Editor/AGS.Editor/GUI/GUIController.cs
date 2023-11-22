@@ -165,6 +165,12 @@ namespace AGS.Editor
 
         public void ShowMessage(string message, MessageBoxIcon icon)
         {
+            if(StdConsoleWriter.IsEnabled)
+            {
+                StdConsoleWriter.WriteLine(message);
+                return;
+            }
+
             if ((Form.ActiveForm == null) || (Form.ActiveForm.InvokeRequired))
             {
                 MessageBox.Show(message, "Adventure Game Studio", MessageBoxButtons.OK, icon);
@@ -853,7 +859,8 @@ namespace AGS.Editor
 				if (arg.ToLower() == "/compile")
 				{
 					compileAndExit = true;
-				}
+                    StdConsoleWriter.Enable();
+                }
 				else if (arg.StartsWith("/") || arg.StartsWith("-"))
 				{
 					this.ShowMessage("Invalid command line argument " + arg, MessageBoxIcon.Warning);

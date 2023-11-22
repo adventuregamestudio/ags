@@ -376,6 +376,7 @@
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
     <Compile Include="Utils\MathExtra.cs" />
     <Compile Include="Utils\ScriptGeneration.cs" />
+    <Compile Include="Utils\StdConsoleWriter.cs" />
     <Compile Include="Utils\Validation.cs" />
     <EmbeddedResource Include="GUI\frmMain.resx">
       <SubType>Designer</SubType>

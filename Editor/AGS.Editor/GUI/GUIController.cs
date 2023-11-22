@@ -894,6 +894,11 @@ namespace AGS.Editor
 
 			bool showWelcomeScreen = ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen();
 
+            if (AGS.Types.Version.IS_BETA_VERSION)
+            {
+                Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
+            }
+
             while (showWelcomeScreen)
             {
 				Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);

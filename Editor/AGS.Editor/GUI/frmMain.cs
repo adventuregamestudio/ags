@@ -413,11 +413,6 @@ namespace AGS.Editor
         private void frmMain_Shown(object sender, EventArgs e)
         {
             this.tabbedDocumentContainer1.Init();
-            
-            if (AGS.Types.Version.IS_BETA_VERSION)
-			{
-				Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
-			}
 
             Factory.GUIController.ShowWelcomeScreen();
         }

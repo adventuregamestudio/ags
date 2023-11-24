@@ -47,9 +47,10 @@ namespace AGS.Editor.Utils
             // Unfortunately the Bitmap.Clone method will crash later due to
             // a .NET bug when it's loaded from a stream. Therefore we need
             // to make a fresh copy.
+            Bitmap oldBmp = loadedBmp;
             loadedBmp = Utilities.CreateCopyOfBitmapPreservingColourDepth(loadedBmp);
+            oldBmp.Dispose();
 
-            //Bitmap loadedBmp = new Bitmap(fileName);
             if ((System.IO.Path.GetExtension(fileName).ToLower() == ".gif") &&
                 (loadedBmp.PixelFormat != PixelFormat.Format8bppIndexed))
             {

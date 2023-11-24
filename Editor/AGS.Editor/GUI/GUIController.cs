@@ -877,7 +877,14 @@ namespace AGS.Editor
                     _agsEditor.SaveUserDataFile(); // in case pending config is applied
 
                 _batchProcessShutdown = true;
-                if (messages.Count > 0) error = true;
+                if (messages.Count == 0)
+                {
+                    BuildCommandsComponent.ShowCompileSuccessMessage();
+                }
+                else
+                {
+                    error = true;
+                }
             }
             if(error) Program.SetExitCode(1);
             this.ExitApplication();

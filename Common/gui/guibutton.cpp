@@ -127,6 +127,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
 {
     if (clipped)
         return RectWH(0, 0, _width, _height);
+
     // TODO: need to find a way to cache image and text position, or there'll be some repetition
     Rect rc = RectWH(0, 0, _width, _height);
     if (IsImageButton())
@@ -165,7 +166,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             frame.Left++;
             frame.Top++;
         }
-        rc = SumRects(rc, GUI::CalcTextPosition(_textToDraw.GetCStr(), Font, frame, TextAlignment));
+        rc = SumRects(rc, GUI::CalcTextGraphicalRect(_textToDraw.GetCStr(), Font, frame, TextAlignment));
     }
     return rc;
 }

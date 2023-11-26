@@ -2643,3 +2643,19 @@ TEST_F(Compile1, ParensAfterNew) {
     ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : mh.GetError().Message.c_str());
     ASSERT_EQ(1u, mh.GetMessages().size());
 }
+
+TEST_F(Compile1, DynarrayOfArray) {
+
+    // Refuse a dynarray of an array
+
+    char *inpl = "\
+        int game_start()                \n\
+        {                               \n\
+            float Test[][5, 7];         \n\
+        }                               \n\
+        ";
+
+    ccSetOption(SCOPT_RTTIOPS, false);
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+}

@@ -559,9 +559,6 @@ private:
     // Return whether this is possible.
     bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
 
-    // Check the vartype following 'new'
-    void ParseExpression_CheckArgOfNew(Vartype new_vartype);
-
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
     void ParseExpression_New(SrcList &expression, EvaluationResult &eres);
@@ -673,12 +670,12 @@ private:
     void AccessData_Dereference(EvaluationResult &eres);
 
     // Process one index in a sequence of array indexes
-    void AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, EvaluationResult &eres);
+    void AccessData_ProcessArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &index_expr, EvaluationResult &eres);
 
     // We're processing some struct component or global or local variable.
-    // If a sequence of array indexes follows, parse it and shorten symlist accordingly
-    void AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres);
-
+    // If a sequence of array indexes follows, parse it
+    void AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eres);
+    
     void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     void AGS::Parser::AccessData_This(EvaluationResult &eres);
@@ -757,7 +754,7 @@ private:
     void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype);
 
     // we have accepted something like "int a" and we're expecting "["
-    void ParseArray(Symbol vname, Vartype &vartype);
+    void ParseArrayDecl(Symbol vname, Vartype &vartype);
     void ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type);
 
     // there was a forward declaration -- check that the real declaration matches it

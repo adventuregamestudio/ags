@@ -545,35 +545,51 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
 
 AGS::Vartype AGS::SymbolTable::VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype)
 {
-    bool const is_array_of_array = IsVTT(vartype, VTT::kArray);
+    // If 'vartype' is an array, the new array index must be spliced into the vartype name
+    // in front of the first '['
+    std::string pre = GetName(vartype);
+    size_t first_bracket_pos = pre.find_first_of('[');
+    if (std::string::npos == first_bracket_pos)
+        first_bracket_pos = pre.length();
+    std::string post = pre.substr(first_bracket_pos);
+    pre = pre.substr(0u, first_bracket_pos);
 
+    bool const is_array_of_array = IsVTT(vartype, VTT::kArray);
     std::vector<size_t> aoa_dims;
     if (is_array_of_array)
     {
         // Classic array of classic array: Make the vartype of one joint array of them both
         std::vector<size_t> const &old_dims = entries[vartype].VartypeD->Dims;
         aoa_dims.reserve(old_dims.size() + dims.size());
-        aoa_dims = old_dims;
-        aoa_dims.insert(aoa_dims.end(), dims.begin(), dims.end());
+        aoa_dims = dims;
+        aoa_dims.insert(aoa_dims.end(), old_dims.begin(), old_dims.end());
+        // Cut off the first '[…]', it will be replaced by the index of the joint array
+        first_bracket_pos = post.find_first_of('[', 1u);
+        if (std::string::npos == first_bracket_pos)
+            first_bracket_pos = post.length();
+        post = post.substr(first_bracket_pos);
+        vartype = entries[vartype].VartypeD->BaseVartype;
     }
     std::vector<size_t> const &dims_to_use = is_array_of_array ? aoa_dims : dims;
 
-    std::string vartype_name = entries[vartype].Name + "[";
+    std::string insert = "";
     size_t element_count = 1u;
     for (auto it = dims_to_use.cbegin(); it != dims_to_use.cend(); ++it)
     {
         element_count *= *it;
-        vartype_name += std::to_string(*it);
-        vartype_name += (it + 1 == dims_to_use.cend()) ? "]" : ", ";
+        insert += std::to_string(*it) + ", ";
     }
+    insert = "[" + insert.substr(0u, insert.length() - 2u) + "]";
+    std::string const vartype_name = pre + insert + post;
     Vartype const array_vartype = FindOrAdd(vartype_name);
     if (!IsVartype(array_vartype))
     {
+        // Initialise the new vartype
         entries[array_vartype].VartypeD = new SymbolTableEntry::VartypeDesc;
         entries[array_vartype].VartypeD->Type = VTT::kArray;
         entries[array_vartype].VartypeD->BaseVartype = vartype;
         entries[array_vartype].VartypeD->Size = element_count * GetSize(vartype);
-        entries[array_vartype].VartypeD->Dims = dims;
+        entries[array_vartype].VartypeD->Dims = dims_to_use;
     }
     return array_vartype;
 }

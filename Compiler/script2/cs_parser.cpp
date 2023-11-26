@@ -242,7 +242,7 @@ void AGS::Parser::SkipNextSymbol(SrcList src, Symbol expected)
 
 void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg)
 {
-    for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
+    for (size_t expected_idx = 0u; expected_idx < expected.size(); expected_idx++)
         if (actual == expected[expected_idx])
             return;
 
@@ -251,7 +251,7 @@ void AGS::Parser::Expect(SymbolList const &expected, Symbol actual, std::string 
     {
         // Provide a default message
         errmsg = "Expected ";
-        for (size_t expected_idx = 0; expected_idx < expected.size(); expected_idx++)
+        for (size_t expected_idx = 0u; expected_idx < expected.size(); expected_idx++)
         {
             errmsg += "'" + _sym.GetName(expected[expected_idx]) + "'";
             if (expected_idx + 2u < expected.size())
@@ -343,14 +343,18 @@ void AGS::Parser::MarMgr::UpdateMAR(size_t lineno, ccCompiledScript &scrip)
     default:
         // The start offset is already reached (e.g., when a Dynpointer chain is dereferenced) 
         // but the component offset may need to be processed.
-        if (_componentOffs > 0)
+        if (_componentOffs > 0u)
+        {
             scrip.WriteCmd(SCMD_ADD, SREG_MAR, _componentOffs);
+            _parser._reg_track.SetRegister(SREG_MAR);
+        }
         break;
 
     case ScT::kGlobal:
         scrip.RefreshLineno(lineno);
         scrip.WriteCmd(SCMD_LITTOREG, SREG_MAR, _startOffs + _componentOffs);
         scrip.FixupPrevious(Parser::kFx_GlobalData);
+        _parser._reg_track.SetRegister(SREG_MAR);
         break;
 
     case ScT::kImport:
@@ -359,8 +363,9 @@ void AGS::Parser::MarMgr::UpdateMAR(size_t lineno, ccCompiledScript &scrip)
         scrip.RefreshLineno(lineno);
         scrip.WriteCmd(SCMD_LITTOREG, SREG_MAR, _startOffs);
         scrip.FixupPrevious(Parser::kFx_Import);
-        if (_componentOffs != 0)
+        if (_componentOffs != 0u)
             scrip.WriteCmd(SCMD_ADD, SREG_MAR, _componentOffs);
+        _parser._reg_track.SetRegister(SREG_MAR);
         break;
 
     case ScT::kLocal:
@@ -371,6 +376,7 @@ void AGS::Parser::MarMgr::UpdateMAR(size_t lineno, ccCompiledScript &scrip)
             _parser.InternalError("Trying to emit the negative offset %d to the top-of-stack", (int) offset);
 
         scrip.WriteCmd(SCMD_LOADSPOFFS, offset);
+        _parser._reg_track.SetRegister(SREG_MAR);
         break;
     }
     Reset();
@@ -1854,28 +1860,16 @@ void AGS::Parser::EvaluationResultToAx(EvaluationResult &eres)
     }
 }
 
-void AGS::Parser::ParseExpression_CheckArgOfNew(Vartype argument_vartype)
-{
-    if (!_sym.IsVartype(argument_vartype))
-        UserError("Expected a type after 'new', found '%s' instead", _sym.GetName(argument_vartype).c_str());
-    if (_sym[argument_vartype].VartypeD->Flags[VTF::kUndefined])
-        UserError(
-            ReferenceMsgSym("The struct '%s' hasn't been completely defined yet", argument_vartype).c_str(),
-            _sym.GetName(argument_vartype).c_str());
-    if (!_sym.IsAnyIntegerVartype(argument_vartype) && kKW_Float != argument_vartype && !_sym.IsManagedVartype(argument_vartype))
-        UserError("Can only use integer types or 'float' or managed types with 'new'");
-
-    // Note: While it is an error to use a built-in type with new, it is
-    // allowed to use a built-in type with new[].
-}
-
 void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &eres)
 {
     if (expression.ReachedEOF())
         UserError("Expected a type after 'new' but didn't find any");
     Vartype const argument_vartype = expression.GetNext();
 
-    ParseExpression_CheckArgOfNew(argument_vartype);
+    if (!_sym.IsVartype(argument_vartype))
+        UserError(
+            "Expected a type after 'new', found '%s' instead",
+            _sym.GetName(argument_vartype).c_str());
     
     bool const is_managed = _sym.IsManagedVartype(argument_vartype);
     bool const with_bracket_expr = kKW_OpenBracket == expression.PeekNext(); // "new FOO[BAR]"
@@ -1899,13 +1893,26 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
 
         element_vartype = is_managed ? _sym.VartypeWithDynpointer(argument_vartype) : argument_vartype;
         eres.Vartype = _sym.VartypeWithDynarray(element_vartype);
+
+        while (kKW_OpenBracket == expression.PeekNext())
+        {
+            SkipNextSymbol(_src, kKW_OpenBracket);
+            Expect(kKW_CloseBracket, expression.GetNext());
+            element_vartype = eres.Vartype;
+            eres.Vartype = _sym.VartypeWithDynarray(element_vartype);
+        }
     }
     else
     {
+        if (_sym[argument_vartype].VartypeD->Flags[VTF::kUndefined])
+            UserError(
+                ReferenceMsgSym("The struct '%s' hasn't been completely defined yet", argument_vartype).c_str(),
+                _sym.GetName(argument_vartype).c_str());
+        
         if (_sym.IsBuiltinVartype(argument_vartype))  
             UserError("Expected '[' after the built-in type '%s'", _sym.GetName(argument_vartype).c_str());
         if (!is_managed)
-            UserError("Expected '[' after the integer type '%s'", _sym.GetName(argument_vartype).c_str());
+            UserError("Expected '[' after the non-managed type '%s'", _sym.GetName(argument_vartype).c_str());
 
         if (kKW_OpenParenthesis == expression.PeekNext())
         {
@@ -1916,7 +1923,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
         }
 
         // Only do this check for new, not for new[]. 
-        if (0 == _sym.GetSize(argument_vartype))
+        if (0u == _sym.GetSize(argument_vartype))
             UserError(
                 ReferenceMsgSym(
                     "Struct '%s' doesn't contain any variables, cannot use 'new' with it",
@@ -1928,7 +1935,7 @@ void AGS::Parser::ParseExpression_New(SrcList &expression, EvaluationResult &ere
     }
 
     size_t const element_size = _sym.GetSize(element_vartype);
-    if (0 == element_size)
+    if (0u == element_size)
         // The Engine really doesn't like that (division by zero error)
         InternalError("Trying to emit allocation of zero dynamic memory");
 
@@ -2876,7 +2883,6 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
     {
         // MAR contains the address of "outer"; this is what will be used for "this" in the called function.
         _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
-        _reg_track.SetRegister(SREG_MAR);
 
         // Parameter processing might entail calling yet other functions, e.g., in "f(...g(x)...)".
         // So we cannot emit SCMD_CALLOBJ here, before parameters have been processed.
@@ -3140,31 +3146,36 @@ void AGS::Parser::AccessData_Dereference(EvaluationResult &eres)
     }
 }
 
-void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t const dim, size_t const factor, bool const is_dynarray, SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::AccessData_ProcessArrayIndex(size_t const dim, size_t const factor, bool const is_dynarray, SrcList &index_expr, EvaluationResult &eres)
 {
-    // Get the index
-    size_t const index_start = expression.GetCursor();
-    expression.SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket });
-    size_t const index_end = expression.GetCursor();
-    SrcList current_index = SrcList(expression, index_start, index_end - index_start);
-    if (0u == current_index.Length())
-        UserError("Array index #u is empty, this is not supported here", idx + 1u);
-
+    index_expr.StartRead();
     // If all ops are pending on the MAR register, it hasn't been set yet at all.
     // So then we don't need to protect MAR against being clobbered, 
-    // but we do need to keep track of those pending ops in this case.
-    bool const all_ops_are_pending = _marMgr.AreAllOpsPending();
-    MarMgr save_mar_state(_marMgr);
-    RegisterGuard(all_ops_are_pending ? RegisterList{} : RegisterList{ SREG_MAR },
+    bool const guard_mar_register = !_marMgr.AreAllOpsPending();
+    MarMgr orig_mar_state(_marMgr);
+    RegisterGuard(guard_mar_register ? RegisterList{ SREG_MAR } : RegisterList{},
         [&]
         {
-            std::string msg = "In array index #<idx>: ";
-            msg.replace(msg.find("<idx>"), 5u, std::to_string(idx + 1u));
-            current_index.StartRead();
-            ParseIntegerExpression(current_index, eres, msg);
+            ParseIntegerExpression(index_expr, eres);
+            // We need the result of the array index expression (i.e., the offset to
+            // add to the location of the base variable) in AX unless it is a literal.
+            // That's the only location we can use. We can't use the address that MAR
+            // points to as the location because MAR will be clobbered by the 'POP(MAR)'
+            // that will be generated at the end of 'RegisterGuard()'. 
             if (eres.kTY_Literal != eres.Type)
                 EvaluationResultToAx(eres);
         });
+
+    // Restore the state that the MAR register has been in
+    // This is important because we compute the correct MAR value lazily,
+    // directly before the value is needed. The state contains accumulated
+    // instructions that haven't been emitted yet.
+    _marMgr = orig_mar_state;
+
+    if (!index_expr.ReachedEOF())
+        UserError(
+            "Unexpected '%s' after array index",
+            _sym.GetName(index_expr.GetNext()).c_str()); 
 
     if (eres.kTY_Literal == eres.Type)
     {
@@ -3172,22 +3183,17 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
         int const index_value = _sym[eres.Symbol].LiteralD->Value;
         if (index_value < 0)
             UserError(
-                "Array index #%u is %d, thus too low (minimum is 0)",
-                idx + 1u,
-                index_value);
+                "Array index is %d, thus too low (minimum is 0)", index_value);
         if (dim > 0u && static_cast<size_t>(index_value) >= dim)
             UserError(
-                "Array index #%u is %d, thus too high (maximum is %u)",
-                idx + 1u,
-                index_value,
-                dim - 1u);
+                "Array index is %d, thus too high (maximum is %u)", index_value, dim - 1u);
 
         if (is_dynarray && index_value > 0)
         {
             // We need to check the offset at runtime because we can't know the
             // array size that has been allocated.
             // Make sure that a _whole_ array element fits, so 'index_value * factor' isn't enough
-            WriteCmd(SCMD_LITTOREG, SREG_AX, (index_value + 1) * factor);
+            WriteCmd(SCMD_LITTOREG, SREG_AX, (index_value + 1) * factor - 1);
             _reg_track.SetRegister(SREG_AX);
             WriteCmd(SCMD_DYNAMICBOUNDS, SREG_AX);
         }
@@ -3195,16 +3201,13 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
         _marMgr.AddComponentOffset(index_value * factor);
         return;
     }
-
-    if (all_ops_are_pending)
-        _marMgr = save_mar_state;
-
+    
     // DYNAMICBOUNDS compares the offset into the memory block:
     // it mustn't be larger than the size of the allocated memory. 
     // On the other hand, CHECKBOUNDS checks the index: it mustn't be
     // larger than the maximum given. So dynamic bounds must be checked
     // _after_ the multiplication; static bounds _before_ the multiplication.
-    // For better error messages at runtime, don't do CHECKBOUNDS after the multiplication.
+    // For better error messages at runtime, do CHECKBOUNDS first, then multiply.
     if (!is_dynarray)
         WriteCmd(SCMD_CHECKBOUNDS, SREG_AX, dim);
     if (factor != 1u)
@@ -3220,62 +3223,67 @@ void AGS::Parser::AccessData_ProcessCurrentArrayIndex(size_t const idx, size_t c
     _reg_track.SetRegister(SREG_MAR);
 }
 
-// We're processing some struct component or global or local variable.
-// If an array index follows, parse it and shorten symlist accordingly
-void AGS::Parser::AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres)
+void AGS::Parser::AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eres)
 {
-    if (kKW_OpenBracket != expression.PeekNext())
-        return;
-    SkipNextSymbol(expression, kKW_OpenBracket);
-
-    bool const is_dynarray = _sym.IsDynarrayVartype(eres.Vartype);
-    bool const is_array = _sym.IsArrayVartype(eres.Vartype);
-    if (!is_dynarray && !is_array)
-        UserError("Array index is only legal after an array expression");
-
-    Vartype const element_vartype = _sym[eres.Vartype].VartypeD->BaseVartype;
-    size_t const element_size = _sym.GetSize(element_vartype);
-    std::vector<size_t> dim_sizes;
-    std::vector<size_t> dynarray_dims = { 0u, };
-    std::vector<size_t> &dims = is_dynarray ? dynarray_dims : _sym[eres.Vartype].VartypeD->Dims;
-    eres.Vartype = element_vartype;
-
-    if (is_dynarray)
-        AccessData_Dereference(eres);
-
-    // Number of dimensions and the the size of the dimension for each dimension
-    size_t const dims_count = dims.size();
-    dim_sizes.resize(dims_count);
-    size_t factor = element_size;
-    for (int dim_idx = dims_count - 1; dim_idx >= 0; dim_idx--) // yes, "int"
+    while (kKW_OpenBracket == expression.PeekNext())
     {
-        dim_sizes[dim_idx] = factor;
-        factor *= dims[dim_idx];
-    }
+        if (!_sym.IsAnyArrayVartype(eres.Vartype))
+            UserError(
+                "An array index cannot follow an expression of type '%s'",
+                _sym.GetName(eres.Vartype));
 
-    for (size_t dim_idx = 0u; dim_idx < dims_count; dim_idx++)
-    {
-        EvaluationResult eres_index;
-        AccessData_ProcessCurrentArrayIndex(dim_idx, dims[dim_idx], dim_sizes[dim_idx], is_dynarray, expression, eres_index);
-        if (eres_index.SideEffects)
-            eres.SideEffects = true;
-        Symbol divider = expression.PeekNext();
-        Expect(SymbolList{ kKW_CloseBracket, kKW_Comma }, divider);
+        Vartype const array_vartype = eres.Vartype;
+        Vartype const element_vartype = _sym[array_vartype].VartypeD->BaseVartype;
+        bool const is_dynarray = _sym.IsDynarrayVartype(array_vartype);
 
-        if (kKW_CloseBracket == divider)
+        if (is_dynarray)
+            AccessData_Dereference(eres);
+
+        std::vector<size_t> dynarray_dims = { 0u, }; // Dynarrays have just 1 dimension
+        std::vector<size_t> &dims = is_dynarray ? dynarray_dims : _sym[array_vartype].VartypeD->Dims;
+        std::vector<size_t> factors;
+        factors.resize(dims.size());
+        size_t factor = _sym.GetSize(element_vartype);
+        for (int idx = dims.size() - 1; idx >= 0; idx--) // yes, 'int'
         {
-            SkipNextSymbol(expression, kKW_CloseBracket);
-            divider = expression.PeekNext();
+            factors[idx] = factor;
+            factor *= dims[idx];
         }
-        if (kKW_Comma == divider || kKW_OpenBracket == divider)
+
+        Expect(kKW_OpenBracket, expression.GetNext());
+
+        for (size_t dim_idx = 0u; dim_idx < dims.size(); dim_idx++)
         {
-            if (dims_count == dim_idx + 1u)
-                UserError("Expected %u indexes, found more", dims_count);
-            expression.GetNext(); // Eat ',' or '['
-            continue;
+            // Get the current index
+            size_t const index_start = expression.GetCursor();
+            expression.SkipTo(SymbolList{ kKW_Comma, kKW_CloseBracket });
+            size_t const index_end = expression.GetCursor();
+            SrcList index_expr = SrcList(expression, index_start, index_end - index_start);
+            if (0u == index_expr.Length())
+                UserError("Array index must not be empty");
+
+            EvaluationResult eres_index;
+            AccessData_ProcessArrayIndex(dims[dim_idx], factors[dim_idx], is_dynarray, index_expr, eres_index);
+            if (eres_index.SideEffects)
+                eres.SideEffects = true;
+
+            Symbol const divider = expression.GetNext();
+            if (dim_idx + 1u == dims.size())
+            {
+                Expect(kKW_CloseBracket, divider);
+                break;
+            }
+            Expect(SymbolList{ kKW_CloseBracket, kKW_Comma }, divider);
+            if (kKW_CloseBracket == divider)
+            {
+                Expect(
+                    kKW_OpenBracket,
+                    expression.GetNext(),
+                    "Another index should follow: Expected");
+            }
         }
-        if (dims_count != dim_idx + 1u)
-            UserError("Expected %u indexes, but only found %d", dims_count, dim_idx + 1u);
+
+        eres.Vartype = element_vartype;
     }
 }
 
@@ -3295,7 +3303,7 @@ void AGS::Parser::AccessData_Variable(VariableAccess access_type, SrcList &expre
 
     _marMgr.Reset();
     _marMgr.SetStart(scope_type, soffs);
-    _reg_track.SetRegister(SREG_MAR);
+    // Note, no instructions are generated, so MAR is not set here
 
     eres.Type = eres.kTY_RunTimeValue;
     eres.Location = eres.kLOC_MemoryAtMAR;
@@ -3303,7 +3311,7 @@ void AGS::Parser::AccessData_Variable(VariableAccess access_type, SrcList &expre
     eres.Vartype = _sym.GetVartype(varname);
     eres.LocalNonParameter = (ScT::kLocal == scope_type && entry.Scope != _sym.kParameterScope);
     eres.Modifiable = !var_tqs[TQ::kReadonly];
-    return AccessData_ProcessArrayIndexIfThere(expression, eres);
+    return AccessData_ProcessArrayIndexes(expression, eres);
 
 }
 
@@ -3362,7 +3370,7 @@ void AGS::Parser::AccessData_FirstClause(VariableAccess access_type, SrcList &ex
 
         AccessData_FunctionCall(first_sym, expression, eres);
         if (_sym.IsDynarrayVartype(eres.Vartype))
-            AccessData_ProcessArrayIndexIfThere(expression, eres);
+            AccessData_ProcessArrayIndexes(expression, eres);
         return;
     }
 
@@ -3449,7 +3457,6 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
     {
         // make MAR point to the struct of the attribute
         _marMgr.UpdateMAR(_src.GetLineno(), _scrip);
-        _reg_track.SetRegister(SREG_MAR);
 
         if (VAC::kWriting == access_type)
         {
@@ -3507,7 +3514,7 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
         SrcList start_of_funccall = SrcList(expression, expression.GetCursor(), expression.Length());
         AccessData_FunctionCall(qualified_component, start_of_funccall, eres);
         if (_sym.IsDynarrayVartype(vartype))
-            return AccessData_ProcessArrayIndexIfThere(expression, eres);
+            return AccessData_ProcessArrayIndexes(expression, eres);
         return;
     }
 
@@ -3519,7 +3526,7 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
                 _sym.GetName(qualified_component).c_str());
 
         AccessData_StructMember(qualified_component, access_type, access_via_this, expression, eres);
-        return AccessData_ProcessArrayIndexIfThere(expression, eres);
+        return AccessData_ProcessArrayIndexes(expression, eres);
     }
 
     InternalError("Unknown kind of component of '%s'", _sym.GetName(vartype).c_str());
@@ -3611,7 +3618,7 @@ void AGS::Parser::AccessData(VariableAccess access_type, SrcList &expression, Ev
                 continue;
             }
 
-            if (_sym.IsArrayVartype(eres.Vartype) || _sym.IsDynarrayVartype(eres.Vartype))
+            if (_sym.IsAnyArrayVartype(eres.Vartype))
                 UserError("Expected a struct in front of '.' but found an array instead");
             else if (!_sym.IsStructVartype(eres.Vartype))
                 UserError(
@@ -4249,7 +4256,8 @@ void AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
     EvaluationResultToAx(rhs_eres);
     
     // Vartypes must match. This is true even if the lhs is readonly.
-    // As a special case, a string may be assigned a const string because the const string will be copied, not modified.
+    // As a special case, a string may be assigned a const string
+    //  because the const string will be copied, not modified.
     Vartype rhsvartype = rhs_eres.Vartype;
     Vartype const lhsvartype = vartype;
 
@@ -4287,7 +4295,7 @@ void AGS::Parser::ParseVardecl_Local(Symbol var_name, Vartype vartype)
 void AGS::Parser::ParseVardecl0(Symbol var_name, Vartype vartype, ScopeType scope_type, TypeQualifierSet tqs)
 {
     if (kKW_OpenBracket == _src.PeekNext())
-		ParseArray(var_name, vartype);
+		ParseArrayDecl(var_name, vartype);
 
     // Don't warn for builtins or imports, they might have been predefined
     if (!_sym.IsBuiltinVartype(vartype) && ScT::kImport != scope_type && 0u == _sym.GetSize(vartype))
@@ -4861,77 +4869,82 @@ void AGS::Parser::ParseStruct_Attribute(TypeQualifierSet tqs, Symbol const name_
     }
 }
 
-// We're parsing an array var.
-void AGS::Parser::ParseArray(Symbol vname, Vartype &vartype)
+
+void AGS::Parser::ParseArrayDecl(Symbol vname, Vartype &vartype)
 {
+    // To the end of the '[…]' clause
     SkipNextSymbol(_src, kKW_OpenBracket);
+    size_t const array_expr_start = _src.GetCursor();
+
+    _src.SkipToCloser();
+    SkipNextSymbol(_src, kKW_CloseBracket);
+
+    // When more '[…]' clauses follow, they need to be processed first, so call this func recursively
+    if (kKW_OpenBracket == _src.PeekNext())
+        ParseArrayDecl(vname, vartype);
 
     if (PP::kPreAnalyze == _pp)
-    {
-        // Skip the sequence of [...]
-        while (true)
-        {
-            _src.SkipToCloser();
-            if (kKW_OpenBracket != _src.PeekNext())
-                return;
-            SkipNextSymbol(_src, kKW_OpenBracket);
-        }
-    }
+        return; // No need to analyse it further in this phase
+
+    size_t const array_expr_end = _src.GetCursor();
+    _src.SetCursor(array_expr_start);
 
     if (kKW_CloseBracket == _src.PeekNext())
     {
         // Dynamic array
         SkipNextSymbol(_src, kKW_CloseBracket);
         if (vartype == kKW_String)
-            UserError("Dynamic arrays of old-style strings are not supported");
-        if (!_sym.IsAnyIntegerVartype(vartype) && !_sym.IsManagedVartype(vartype) && kKW_Float != vartype)
-            UserError(
-				"Can only have dynamic arrays of integer types, 'float', or managed structs. '%s' isn't any of this.", 
-				_sym.GetName(vartype).c_str());
+            UserError("Cannot have a dynamic array of old-style strings");
+        if (_sym.IsArrayVartype(vartype))
+            UserError("Cannot have a dynamic array of a classic array");
         vartype = _sym.VartypeWithDynarray(vartype);
+        _src.SetCursor(array_expr_end);
         return;
     }
 
-    std::vector<size_t> dims;
-
     // Static array
+    std::vector<size_t> dims;
     while (true)
     {
-        std::string msg = "For dimension #<dim> of array '<arr>': ";
-        msg.replace(msg.find("<dim>"), 5u, std::to_string(dims.size()));
-        msg.replace(msg.find("<arr>"), 5u, _sym.GetName(vname).c_str());
-        Symbol const first_sym = _src.PeekNext();
-
         EvaluationResult eres;
-        int const cursor = _src.GetCursor();
+        int const dim_start = _src.GetCursor();
         _src.SkipTo(kKW_Comma);
-        SrcList expression = SrcList(_src, cursor, _src.GetCursor() - cursor);
+        SrcList expression = SrcList(_src, dim_start, _src.GetCursor() - dim_start);
+        if (0u == expression.Length())
+            UserError(
+                "Expected an integer expression for array dimension #%u, did not find any",
+                dims.size() + 1);
         expression.StartRead();
-        ParseIntegerExpression(expression, eres, msg);
+        ParseIntegerExpression(expression, eres);
         if (eres.kTY_Literal != eres.Type)
             UserError(
-                (msg + "Cannot evaluate the expression starting with '%s' at compile time").c_str(),
-                _sym.GetName(first_sym).c_str());
+                "Cannot evaluate the integer expression for array dimension #%u at compile time",
+                dims.size() + 1u);
+        if (!expression.ReachedEOF())
+            UserError(
+                "Unexpected '%s' after the integer expression for array dimension #%u",
+                _sym.GetName(expression.GetNext()).c_str(),
+                dims.size() + 1u);
             
         CodeCell const dimension_as_int = _sym[eres.Symbol].LiteralD->Value;
         if (dimension_as_int < 1)
             UserError(
-                "Array dimension #%u of array '%s' must be at least 1 but is %d instead",
-                dims.size(),
-                _sym.GetName(vname).c_str(),
+                "Array dimension #%u must be at least 1 but is %d instead",
+                dims.size() + 1u,
                 dimension_as_int);
 
-        dims.push_back(dimension_as_int);
+        dims.push_back(static_cast<size_t>(dimension_as_int));
 
         Symbol const punctuation = _src.GetNext();
         Expect(SymbolList{ kKW_Comma, kKW_CloseBracket }, punctuation);
         if (kKW_Comma == punctuation)
             continue;
-        if (kKW_OpenBracket != _src.PeekNext())
-            break;
-        SkipNextSymbol(_src, kKW_OpenBracket);
+        // Successive static arrays will be joined within 'VartypeWithArray()', below.
+        break; 
     }
+
     vartype = _sym.VartypeWithArray(dims, vartype);
+    _src.SetCursor(array_expr_end);
 }
 
 void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol name_of_struct, Symbol vname)
@@ -4967,7 +4980,7 @@ void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype
     if (_src.PeekNext() == kKW_OpenBracket)
     {
         Vartype vartype = _sym[vname].VariableD->Vartype;
-        ParseArray(vname, vartype);
+        ParseArrayDecl(vname, vartype);
         _sym[vname].VariableD->Vartype = vartype;
     }
 

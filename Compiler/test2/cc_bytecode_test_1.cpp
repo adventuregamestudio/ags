@@ -2564,7 +2564,7 @@ TEST_F(Bytecode1, StructWOldstyleString2) {
        0,    8,    3,   36,           14,   51,    8,   48,    // 95
        2,   52,    1,    2,            2,    3,    2,    3,    // 103
       29,    3,   51,    8,           48,    2,   52,    6,    // 111
-       3,   12,   71,    3,            1,    2,    8,   48,    // 119
+       3,   11,   71,    3,            1,    2,    8,   48,    // 119
        2,   52,   30,    3,            1,    2,    2,    3,    // 127
        3,    5,    3,    2,            4,    6,    7,  199,    // 135
        3,    4,    2,    7,            3,    3,    5,    2,    // 143
@@ -3215,60 +3215,6 @@ TEST_F(Bytecode1, DynarrayLength2_RTTI) {
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
 
-TEST_F(Bytecode1, DynarrayOfPrimitives) {
-
-    // Dynamic arrays of primitives are allowed.
-
-    char const *inpl = "\
-        int main()                              \n\
-        {                                       \n\
-            short PrmArray[] = new short[10];   \n\
-            PrmArray[7] = 0;                    \n\
-            PrmArray[3] = PrmArray[7];          \n\
-        }                                       \n\
-    ";
-
-    ccSetOption(SCOPT_RTTIOPS, true);
-
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STREQ("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-
-    // WriteOutput("DynarrayOfPrimitives_Rtti", scrip);
-    size_t const codesize = 88;
-    EXPECT_EQ(codesize, scrip.codesize);
-
-    int32_t code[] = {
-      36,    2,   38,    0,           36,    3,    6,    3,    // 7
-      10,   75,    3,    5,            2,   51,    0,   47,    // 15
-       3,    1,    1,    4,           36,    4,   51,    4,    // 23
-      48,    2,   52,    6,            3,   16,   71,    3,    // 31
-       6,    3,    0,    1,            2,   14,   27,    3,    // 39
-      36,    5,   51,    4,           48,    2,   52,    6,    // 47
-       3,   16,   71,    3,            1,    2,   14,   25,    // 55
-       3,   29,    3,   51,            8,   48,    2,   52,    // 63
-       6,    3,    8,   71,            3,   30,    3,    1,    // 71
-       2,    6,   27,    3,           36,    6,   51,    4,    // 79
-      49,    2,    1,    4,            6,    3,    0,    5,    // 87
-     -999
-    };
-    CompareCode(&scrip, codesize, code);
-
-    size_t const numfixups = 0;
-    EXPECT_EQ(numfixups, scrip.numfixups);
-
-    int const numimports = 0;
-    std::string imports[] = {
-     "[[SENTINEL]]"
-    };
-    CompareImports(&scrip, numimports, imports);
-
-    size_t const numexports = 0;
-    EXPECT_EQ(numexports, scrip.numexports);
-
-    size_t const stringssize = 0;
-    EXPECT_EQ(stringssize, scrip.stringssize);
-}
-
 TEST_F(Bytecode1, StringLiteral2String) {
 
     char const *inpl = "\
@@ -3486,3 +3432,4 @@ TEST_F(Bytecode1, Linenum02)
     size_t const stringssize = 0;
     EXPECT_EQ(stringssize, scrip.stringssize);
 }
+

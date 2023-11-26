@@ -1143,30 +1143,9 @@ TEST_F(Compile0, ImportOverride1) {
     EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
-TEST_F(Compile0, DynamicNonManaged1) {    
-
-    // Dynamic array of non-managed struct not allowed
-
-    char const *inpl = "\
-        struct Inner                                        \n\
-        {                                                   \n\
-            short Payload;                                  \n\
-        };                                                  \n\
-        managed struct Struct                               \n\
-        {                                                   \n\
-            Inner In[];                                     \n\
-        };                                                  \n\
-    ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("Inner"));
-}
-
 TEST_F(Compile0, DynamicNonManaged2) {    
 
-    // Dynamic array of non-managed struct not allowed
+    // Dynamic pointer to non-managed struct not allowed
 
     char const *inpl = "\
         struct Inner                                        \n\
@@ -1187,7 +1166,7 @@ TEST_F(Compile0, DynamicNonManaged2) {
 
 TEST_F(Compile0, DynamicNonManaged3) {  
 
-    // Dynamic array of non-managed struct not allowed
+    // Dynamic pointer to non-managed struct not allowed
 
     char const *inpl = "\
         struct Inner                                        \n\

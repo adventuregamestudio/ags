@@ -1024,6 +1024,11 @@ void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_s
     ext_size = texturecache.GetExternalSize();
 }
 
+size_t texturecache_get_size()
+{
+    return texturecache.GetCacheSize();
+}
+
 void texturecache_clear()
 {
     texturecache.Clear();

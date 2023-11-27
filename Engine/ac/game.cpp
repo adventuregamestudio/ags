@@ -824,8 +824,16 @@ int Game_BlockingWaitSkipped()
 
 void Game_PrecacheSprite(int sprnum)
 {
+    const auto tp_start = AGS_FastClock::now();
     spriteset.PrecacheSprite(sprnum);
+    const auto tp_filedone = AGS_FastClock::now();
     texturecache_precache(sprnum);
+    const auto tp_texturedone = AGS_FastClock::now();
+
+    const auto dur1 = ToMilliseconds(tp_filedone - tp_start);
+    const auto dur2 = ToMilliseconds(tp_texturedone - tp_filedone);
+    const auto dur_t = ToMilliseconds(tp_texturedone - tp_start);
+    Debug::Printf("Precache sprite %d; file->mem = %lld ms, bm->tx = %lld ms, total = %lld ms", sprnum, dur1, dur2, dur_t);
 }
 
 void Game_PrecacheView(int view, int first_loop, int last_loop)
@@ -1451,21 +1459,47 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
 
     first_loop = Math::Clamp(first_loop, 0, views[view].numLoops - 1);
     last_loop = Math::Clamp(last_loop, 0, views[view].numLoops - 1);
+
+    // Record cache sizes and timestamps, for diagnostic purposes
+    const size_t spcache_before = spriteset.GetCacheSize();
+    const size_t txcache_before = texturecache_get_size();
+    int total_frames = 0, total_sounds = 0;
+
+    const auto tp_start = AGS_FastClock::now();
+    int64_t dur_sp_load = 0, dur_tx_make = 0, dur_sound_load = 0;
     for (int i = first_loop; i <= last_loop; ++i)
     {
-        for (int j = 0; j < views[view].loops[i].numFrames; ++j)
+        for (int j = 0; j < views[view].loops[i].numFrames; ++j, ++total_frames)
         {
-            const ViewFrame &frame = views[view].loops[i].frames[j];
+            const auto &frame = views[view].loops[i].frames[j];
+            const auto tp_detail1 = AGS_FastClock::now();
             spriteset.PrecacheSprite(frame.pic);
+            const auto tp_detail2 = AGS_FastClock::now();
             texturecache_precache(frame.pic);
+            const auto tp_detail3 = AGS_FastClock::now();
+
             if (with_sounds && frame.audioclip >= 0)
             {
                 ScriptAudioClip *clip = &game.audioClips[frame.audioclip];
                 auto assetpath = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
                 soundcache_precache(assetpath);
+                dur_sound_load += ToMilliseconds(AGS_FastClock::now() - tp_detail3);
+                total_sounds++;
             }
+            dur_sp_load += ToMilliseconds(tp_detail2 - tp_detail1);
+            dur_tx_make += ToMilliseconds(tp_detail3 - tp_detail2);
         }
     }
+
+    // Print gathered time and size info
+    size_t spcache_after = spriteset.GetCacheSize();
+    size_t txcache_after = texturecache_get_size();
+    Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %lld ms, average file->mem = %lld ms, bm->tx = %lld ms,"
+                  "\n\t\tloaded %d sounds = %lld ms",
+        view, first_loop, last_loop, total_frames, dur_sp_load + dur_tx_make + dur_sound_load,
+        dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
+    Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",
+        spcache_before / 1024u, spcache_after / 1024u, txcache_before / 1024u, txcache_after / 1024u);
 }
 
 //=============================================================================

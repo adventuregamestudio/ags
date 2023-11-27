@@ -81,6 +81,8 @@ void notify_sprite_changed(int sprnum, bool deleted);
 // size of locked items (included into cur_size),
 // size of external items (excluded from cur_size)
 void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_size, size_t &ext_size);
+// Returns current cache size
+size_t texturecache_get_size();
 // Completely resets texture cache
 void texturecache_clear();
 // Update shared and cached texture from the sprite's pixels

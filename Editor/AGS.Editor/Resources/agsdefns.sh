@@ -2949,6 +2949,10 @@ builtin struct Game {
 #ifdef SCRIPT_API_v361
   /// Resets all of the "DoOnceOnly" token states
   import static void   ResetDoOnceOnly();
+  /// Preloads and caches a single sprite.
+  import static void   PrecacheSprite(int sprnum);
+  /// Preloads and caches sprites and linked sounds for a view, within a selected range of loops.
+  import static void   PrecacheView(int view, int first_loop, int last_loop);
 #endif
 };
 

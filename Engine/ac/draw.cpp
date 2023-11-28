@@ -83,7 +83,7 @@ extern int displayed_room;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
-extern IDriverDependantBitmap *mouseCursor;
+extern IDriverDependantBitmap *mouse_cur_ddb;
 extern int hotx,hoty;
 extern int bg_just_changed;
 
@@ -1024,6 +1024,11 @@ void texturecache_get_state(size_t &max_size, size_t &cur_size, size_t &locked_s
     ext_size = texturecache.GetExternalSize();
 }
 
+size_t texturecache_get_size()
+{
+    return texturecache.GetCacheSize();
+}
+
 void texturecache_clear()
 {
     texturecache.Clear();
@@ -1052,6 +1057,11 @@ void update_shared_texture(uint32_t sprite_id)
 void clear_shared_texture(uint32_t sprite_id)
 {
     texturecache.Dispose(sprite_id);
+}
+
+void texturecache_precache(uint32_t sprite_id)
+{
+    texturecache.GetOrLoad(sprite_id, nullptr, (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0, false);
 }
 
 void mark_screen_dirty()
@@ -2749,8 +2759,8 @@ void construct_game_screen_overlay(bool draw_mouse)
         // Stage: mouse cursor
         if (draw_mouse && !play.mouse_cursor_hidden)
         {
-            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
-            invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor, false);
+            gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouse_cur_ddb);
+            invalidate_sprite(mousex - hotx, mousey - hoty, mouse_cur_ddb, false);
         }
         // Stage: screen fx
         if (play.screen_tint >= 1)

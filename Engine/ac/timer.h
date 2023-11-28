@@ -29,6 +29,12 @@ using AGS_Clock = std::conditional<
       >::type;
 using AGS_FastClock = std::chrono::system_clock;
 
+template <typename TDur>
+inline int64_t ToMilliseconds(TDur dur)
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+}
+
 // Sleeps for time remaining until the next game frame, updates next frame timestamp
 extern void WaitForNextFrame();
 

@@ -653,9 +653,8 @@ void SDLRendererGraphicsDriver::Present(int xoff, int yoff, GraphicFlip flip)
 
     BlitToTexture();
 
-    SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_NONE);
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderFillRect(_renderer, nullptr);
+    SDL_RenderClear(_renderer);
 
     int xoff_final = _scaling.X.ScalePt(xoff);
     int yoff_final = _scaling.Y.ScalePt(yoff);

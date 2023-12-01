@@ -1,5 +1,24 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 7, December 2023
+
+Editor:
+ - For Android build target disabled compression of `.ags` and `.vox` assets, as that slows down
+   engine streaming resources (sprites etc).
+ - Fixed Editor failing to start if user preferences file is corrupted
+   (this is a second fix, complementing one done in AGS 3.5.1).
+ - Fixed RAM use spiking fast during batch sprite reimport from sources, which could randomly
+   lead to program errors.
+ - Fixed Dialog properties displaying internal values not meant to be seen by a user.
+ - Fixed selecting parent GUI after its control did not display GUI's own properties in
+   the Properties Grid.
+ - Fixed Editor generating deprecated settings in the default config file.
+
+Engine:
+ - Fixed GUI controls unexpectedly clipping parts of text even if "controls clip contents"
+   setting is disabled, in case when their Font has VerticalOffset property set.
+
+
 VERSION 3.6.0 - Patch 6, November 2023
 
 Editor:

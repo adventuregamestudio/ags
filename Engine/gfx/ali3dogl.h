@@ -322,6 +322,7 @@ private:
     int _super_sampling {};
     unsigned int _backbuffer {};
     unsigned int _fbo {};
+    GLint _screenFramebuffer = 0;
     // Size of the backbuffer drawing area, equals to native size
     // multiplied by _super_sampling
     Size _backRenderSize {};

@@ -1640,26 +1640,25 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
         return false;
     }
 
-    // Note: CanNOT convert String * or const string to string;
-    // a function that has a string parameter may modify it, but a String or const string may not be modified.
+    // Note: CanNOT convert 'String *' or 'const string' to 'string';
+    // a function that has a 'string' parameter may modify it,
+    // but a 'String' or 'const string' may not be modified.
 
     if (_sym.IsOldstring(vartype_is) != _sym.IsOldstring(vartype_wants_to_be))
         return true;
 
     // Note: the position of this test is important.
     // Don't "group" string tests "together" and move this test above or below them.
-    // cannot convert const to non-const
+    // Cannot convert 'const' to non-'const'
     if (_sym.IsConstVartype(vartype_is) && !_sym.IsConstVartype(vartype_wants_to_be))
         return true;
 
     if (_sym.IsOldstring(vartype_is))
         return false;
 
-    // From here on, don't mind constness or dynarray-ness
+    // From here on, don't mind constness
     vartype_is = _sym.VartypeWithout(VTT::kConst, vartype_is);
-    vartype_is = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
     vartype_wants_to_be = _sym.VartypeWithout(VTT::kConst, vartype_wants_to_be);
-    vartype_wants_to_be = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
 
     // floats cannot mingle with other types
     if ((vartype_is == kKW_Float) != (vartype_wants_to_be == kKW_Float))
@@ -1676,12 +1675,12 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
         if (_sym.IsDynarrayVartype(vartype_is) != _sym.IsDynarrayVartype(vartype_wants_to_be))
             return false;
 
-        // The underlying core vartypes must be identical:
-        // A dynarray contains a sequence of elements whose size are used
-        // to index the individual element, so no extending elements
-        Symbol const target_core_vartype = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
-        Symbol const current_core_vartype = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
-        return current_core_vartype != target_core_vartype;
+        // Array types must match exactly. We can't allow a 'child*[]' to be
+        // assigned to 'pareent[]' without additional dynamic type checking
+        Symbol const core_wants_to_be = _sym.VartypeWithout(VTT::kDynarray, vartype_wants_to_be);
+        Symbol const core_is = _sym.VartypeWithout(VTT::kDynarray, vartype_is);
+        
+        return core_is != core_wants_to_be;
     }
 
     // Checks to do if at least one is dynpointer
@@ -1697,7 +1696,7 @@ bool AGS::Parser::IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_w
         while (current_core_vartype != target_core_vartype)
         {
             current_core_vartype = _sym[current_core_vartype].VartypeD->Parent;
-            if (current_core_vartype == 0)
+            if (kKW_NoSymbol == current_core_vartype)
                 return true;
         }
         return false;
@@ -3230,7 +3229,7 @@ void AGS::Parser::AccessData_ProcessArrayIndexes(SrcList &expression, Evaluation
         if (!_sym.IsAnyArrayVartype(eres.Vartype))
             UserError(
                 "An array index cannot follow an expression of type '%s'",
-                _sym.GetName(eres.Vartype));
+                _sym.GetName(eres.Vartype).c_str());
 
         Vartype const array_vartype = eres.Vartype;
         Vartype const element_vartype = _sym[array_vartype].VartypeD->BaseVartype;

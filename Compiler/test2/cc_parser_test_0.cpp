@@ -106,6 +106,25 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
     EXPECT_STREQ("Type mismatch: Cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
 
+TEST_F(Compile0, DynarrayOfDynarrayTypecheck1) {
+
+    // Can't convert 'int[]' to 'int[][]'
+
+    char const *inpl = "\
+        int game_start()            \n\
+        {                           \n\
+            int arr1[][], arr2[][]; \n\
+            arr1 = new int[10][];   \n\
+            arr1[5] = new int[20];  \n\
+            arr2 = arr1[5];         \n\
+        }                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    EXPECT_STREQ("Cannot assign a type 'int[]' value to a type 'int[][]' variable", last_seen_cc_error());
+}
+
 TEST_F(Compile0, StructMemberQualifierOrder) {    
 
     // The order of qualifiers shouldn't matter.
@@ -1112,6 +1131,7 @@ TEST_F(Compile0, StructRecursiveComponent02)
     EXPECT_NE(std::string::npos, err.find("'Foo'"));
     EXPECT_NE(std::string::npos, err.find("'Bar'"));
 }
+
 
 TEST_F(Compile0, Undefined) {   
 

@@ -307,9 +307,9 @@ namespace AGS.Types
         }
 
         [DisplayName("Sprite cache size (in megabytes)")]
-        [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better perfomance if your game has lots of high-res animations.")]
+        [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better performance if your game has lots of high-res animations.")]
         [DefaultValue(128)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int SpriteCacheSize
         {
             get;

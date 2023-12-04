@@ -7,7 +7,7 @@ namespace AGS.Types
 {
     public enum RenderAtScreenResolution
     {
-        [Description("User defined")]
+        [Description("Configured by player")]
         UserDefined = 0,
         [Description("Enabled")]
         True = 1,

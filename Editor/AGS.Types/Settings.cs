@@ -113,7 +113,7 @@ namespace AGS.Types
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
         private int _defRoomMaskResolution = 1;
-        // Description fields (previously: made for Windows Game Explorer)
+        // Game Description fields
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
 		private string _genre = DEFAULT_GENRE;
@@ -1145,7 +1145,7 @@ namespace AGS.Types
 		}
 
         [DisplayName("Save games folder name")]
-        [Description("If set, creates a folder of this name inside the user's Saved Games folder in Windows Vista and higher (or My Documents in XP) to store the save games in.")]
+        [Description("If set, creates a folder of this name inside the player's Saved Games folder to store the save games in.")]
         [Category("Saved Games")]
         public string SaveGameFolderName
         {

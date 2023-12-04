@@ -353,7 +353,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Use custom game saves path")]
-        [Description("Define your own location for saved games and individual user files created by game script. Players are able to change this option freely.")]
+        [Description("Define your own location for saved games and individual player files created by game script. Players are able to change this option freely.")]
         [DefaultValue(false)]
         [Category("Enviroment")]
         [RefreshProperties(RefreshProperties.All)]
@@ -364,7 +364,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Custom game saves path")]
-        [Description("Define your own location for saved games and individual user files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
+        [Description("Define your own location for saved games and individual player files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
         [Category("Enviroment")]
         public String CustomSavePath
         {

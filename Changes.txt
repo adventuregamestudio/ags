@@ -8,6 +8,16 @@ Common features:
 Editor:
  - Discontinued Source control integration functionality, removed "Put sound and sprite files
    in source control" option from General Settings.
+ - In General Settings moved few properties to different groups for better consistency.
+ - Added "Scale Character sprite offsets" property to General Settings. This property refers to
+   scaling of Character.z and sprite offsets added by LockViewOffset script command.
+ - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
+   the sizes of runtime texture and sound cache sizes respectively.
+ - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
+ - Added Translated property to all GUI Controls (was available only in ListBox). Translated
+   property tells whether this control's text has to be translated, and applied text direction
+   (in right-to-left text mode).
+ - Support '\n' linebreak character in the Label's Text and potentially other text properties.
  - Improved Room Editor controls:
    Added free panning mode done by holding the middle mouse button, or alternatively -
    by holding Space + LMB.
@@ -42,19 +52,9 @@ Editor:
    pre-3.2 game projects, and will generate a script with a String array, moving global messages
    texts there.
  - For script's tabs added a context menu command for opening this script's location.
- - In General Settings moved few properties to different groups for better consistency.
- - Added "Scale Character sprite offsets" property to General Settings. This property refers to
-   scaling of Character.z and sprite offsets added by LockViewOffset script command.
- - Added TextureCacheSize and SoundCacheSize properties to Default Setup. These let configure
-   the sizes of runtime texture and sound cache sizes respectively.
- - Added "Leave room after fade-out" event to Rooms (called "Unload" by default).
- - Added Translated property to all GUI Controls (was available only in ListBox). Translated
-   property tells whether this control's text has to be translated, and applied text direction
-   (in right-to-left text mode).
- - Support '\n' linebreak character in the Label's Text and potentially other text properties.
+ - When run with "/compile" argument Editor will print all messages to the console (stdout),
+   instead of displaying modal message windows.
  - For Android build target Editor now supports a directory to place plugins in.
- - For Android build target disabled compression of `.ags` and `.vox` assets, as that slows down
-   engine streaming resources (sprites etc).
  - When building a game for Android and Linux the Editor will now be more tolerant to missing
    plugins and only issue a warning instead of stopping with error.
  - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.
@@ -67,8 +67,6 @@ Editor:
  - When upgrading pre-3.2 rooms with disabled SaveLoadEnabled property the Editor will reset
    this property and insert a comment with a warning into the corresponding room's script.
    This is done because this property is deprecated as is no longer accessible.
- - Fixed Editor failing to start if user preferences file is corrupted
-   (this is a second fix, complementing one done in AGS 3.5.1).
  - Fixed Editor refusing to open a game if one of the translation files is missing.
  - Fixed General Settings and Default Setup not working correctly right after importing
    a pre-3.* game project.
@@ -76,12 +74,8 @@ Editor:
    other palette index than 0 for transparency.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
- - Fixed Dialog properties displaying internal values not meant to be seen by a user.
- - Fixed selecting parent GUI after its control did not display GUI's own properties in
-   the Properties Grid.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
- - Fixed Editor generating deprecated settings in the default config file.
 
 Scripting:
  - Support "#else" preprocessor directive.
@@ -94,6 +88,8 @@ Script API:
    now they all receive respective object's pointer as a parameter, similar to GUI event functions,
    as well as a cursor mode this interaction was run with, if applicable.
  - Added Game.ResetDoOnceOnly(), which completely resets all DoOnceOnly instances.
+ - Added Game.PrecacheSprite() and Game.PrecacheView(), which preload certain sprites and linked
+   frame sounds into the engine's sprite cache memory.
  - Added ScriptName property to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
    InventoryItem, Object.
  - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
@@ -194,6 +190,25 @@ Web / Emscripten:
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
+
+
+VERSION 3.6.0 - Patch 7, December 2023
+
+Editor:
+ - For Android build target disabled compression of `.ags` and `.vox` assets, as that slows down
+   engine streaming resources (sprites etc).
+ - Fixed Editor failing to start if user preferences file is corrupted
+   (this is a second fix, complementing one done in AGS 3.5.1).
+ - Fixed RAM use spiking fast during batch sprite reimport from sources, which could randomly
+   lead to program errors.
+ - Fixed Dialog properties displaying internal values not meant to be seen by a user.
+ - Fixed selecting parent GUI after its control did not display GUI's own properties in
+   the Properties Grid.
+ - Fixed Editor generating deprecated settings in the default config file.
+
+Engine:
+ - Fixed GUI controls unexpectedly clipping parts of text even if "controls clip contents"
+   setting is disabled, in case when their Font has VerticalOffset property set.
 
 
 VERSION 3.6.0 - Patch 6, November 2023

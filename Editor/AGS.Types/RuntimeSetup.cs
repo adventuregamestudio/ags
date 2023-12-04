@@ -311,7 +311,7 @@ namespace AGS.Types
         [DisplayName("Sprite cache size (in megabytes)")]
         [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better performance if your game has lots of high-res animations.")]
         [DefaultValue(128)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int SpriteCacheSize
         {
             get;
@@ -321,7 +321,7 @@ namespace AGS.Types
         [DisplayName("Texture cache size (in megabytes)")]
         [Description("The limit for runtime texture cache. The cache is used to keep textures loaded in VRAM (your graphics card memory), and improves performance.")]
         [DefaultValue(128)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int TextureCacheSize
         {
             get;
@@ -331,7 +331,7 @@ namespace AGS.Types
         [DisplayName("Sound cache size (in megabytes)")]
         [Description("The limit for runtime sound cache. The cache is used to keep small sound clips loaded (typically the ones less than 1 MB each). Bigger cache means less loading of the same clips, such as frame-linked sounds, and improves performance.")]
         [DefaultValue(32)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int SoundCacheSize
         {
             get;

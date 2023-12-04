@@ -104,10 +104,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
 {
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-#if AGS_PLATFORM_OS_IOS
-  device_screen_physical_width  = ios_screen_physical_width;
-  device_screen_physical_height = ios_screen_physical_height;
-#endif
 
   _firstTimeInit = false;
   _backbuffer = 0;
@@ -281,18 +277,6 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
   _capsVsync = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
   if (mode.Vsync && !_capsVsync)
     Debug::Printf(kDbgMsg_Warn, "OGL: SetVsync (%d) failed: %s", mode.Vsync, SDL_GetError());
-
-#if AGS_PLATFORM_OS_IOS
-  // Setup library mouse to have 1:1 coordinate transformation.
-  // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
-  // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
-  // is selected in AGS. This ugly situation causes trouble...
-  float device_scale = 1.0f;
-
-  device_scale = get_device_scale();
-
-  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, device_scale, device_scale);
-#endif
 
   // View matrix is always identity in OpenGL renderer, use the workaround to fill it with GL format
   _stageMatrixes.View = glm::mat4(1.0);
@@ -1181,20 +1165,6 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
 
 void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 {
-#if 0
-  // TODO:
-  // For some reason, mobile ports initialize actual display size after a short delay.
-  // This is why we update display mode and related parameters (projection, viewport)
-  // at the first render pass.
-  // Ofcourse this is not a good thing, ideally the display size should be made
-  // known before graphic mode is initialized. This would require analysis and rewrite
-  // of the platform-specific part of the code (Java app for Android / XCode for iOS).
-  if (!device_screen_initialized)
-  {
-    UpdateDeviceScreen();
-    device_screen_initialized = 1;
-  }
-#endif
   glm::mat4 projection;
 
   if (_do_render_to_texture)
@@ -1236,11 +1206,7 @@ void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
     glUniform1f(program.Alpha, 1.0f);
 
     // Texture is ready, now create rectangle in the world space and draw texture upon it
-#if AGS_PLATFORM_OS_IOS
-    ios_select_buffer();
-#else
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-#endif
 
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
 

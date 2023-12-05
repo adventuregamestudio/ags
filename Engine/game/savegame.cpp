@@ -493,8 +493,8 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     set_mouse_cursor(r_data.CursorID);
     if (r_data.CursorMode == MODE_USE)
         SetActiveInventory(playerchar->activeinv);
-    // ensure that the current cursor is locked
-    spriteset.Precache(game.mcurs[r_data.CursorID].pic);
+    // precache current cursor
+    spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
     sys_window_set_title(play.game_name);
 

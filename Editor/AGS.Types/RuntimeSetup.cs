@@ -311,7 +311,7 @@ namespace AGS.Types
         [DisplayName("Sprite cache size (in megabytes)")]
         [Description("The limit for runtime sprite cache. The cache is used to keep game graphics loaded even if they are not currently used. Bigger cache means faster room transitions and generally better performance if your game has lots of high-res animations.")]
         [DefaultValue(128)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int SpriteCacheSize
         {
             get;
@@ -321,7 +321,7 @@ namespace AGS.Types
         [DisplayName("Texture cache size (in megabytes)")]
         [Description("The limit for runtime texture cache. The cache is used to keep textures loaded in VRAM (your graphics card memory), and improves performance.")]
         [DefaultValue(128)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int TextureCacheSize
         {
             get;
@@ -331,7 +331,7 @@ namespace AGS.Types
         [DisplayName("Sound cache size (in megabytes)")]
         [Description("The limit for runtime sound cache. The cache is used to keep small sound clips loaded (typically the ones less than 1 MB each). Bigger cache means less loading of the same clips, such as frame-linked sounds, and improves performance.")]
         [DefaultValue(32)]
-        [Category("Perfomance")]
+        [Category("Performance")]
         public int SoundCacheSize
         {
             get;
@@ -353,7 +353,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Use custom game saves path")]
-        [Description("Define your own location for saved games and individual user files created by game script. Players are able to change this option freely.")]
+        [Description("Define your own location for saved games and individual player files created by game script. Players are able to change this option freely.")]
         [DefaultValue(false)]
         [Category("Enviroment")]
         [RefreshProperties(RefreshProperties.All)]
@@ -364,7 +364,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Custom game saves path")]
-        [Description("Define your own location for saved games and individual user files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
+        [Description("Define your own location for saved games and individual player files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
         [Category("Enviroment")]
         public String CustomSavePath
         {

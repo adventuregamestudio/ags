@@ -630,7 +630,7 @@ void engine_init_game_settings()
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
         if (game.mcurs[ee].pic >= 0)
-            spriteset.Precache(game.mcurs[ee].pic);
+            spriteset.PrecacheSprite(game.mcurs[ee].pic);
 
         // just in case they typed an invalid view number in the editor
         if (game.mcurs[ee].view >= game.numviews)
@@ -641,7 +641,7 @@ void engine_init_game_settings()
     }
     // may as well preload the character gfx
     if (playerchar->view >= 0)
-        precache_view (playerchar->view, Character_GetDiagonalWalking(playerchar) ? 8 : 4);
+        precache_view(playerchar->view, 0, Character_GetDiagonalWalking(playerchar) ? 8 : 4);
 
     our_eip=-6;
 

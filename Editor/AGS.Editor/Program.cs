@@ -16,12 +16,20 @@ namespace AGS.Editor
     {
         private static ApplicationController _application;
 
+        private static int _exitCode = 0;
+
+        public static void SetExitCode(int exit_code)
+        {
+            _exitCode = exit_code;
+        }
+
         [STAThread]
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             RunApplication(args);
+            return _exitCode;
         }
 
         private static void RunApplication(string[] args)

@@ -31,6 +31,7 @@ const size_t DEFAULT_SOUNDCACHESIZE_KB = 1024u * 32; // 32 MB
 // * max_cachesize - sound cache limit, in bytes
 void soundcache_set_rules(size_t max_loadatonce, size_t max_cachesize);
 void soundcache_clear();
+void soundcache_precache(const AssetPath &apath);
 
 SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop);
 

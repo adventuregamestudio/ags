@@ -164,6 +164,12 @@ namespace AGS.Editor
 
         public void ShowMessage(string message, MessageBoxIcon icon)
         {
+            if(StdConsoleWriter.IsEnabled)
+            {
+                StdConsoleWriter.WriteLine(message);
+                return;
+            }
+
             if ((Form.ActiveForm == null) || (Form.ActiveForm.InvokeRequired))
             {
                 MessageBox.Show(message, "Adventure Game Studio", MessageBoxButtons.OK, icon);
@@ -360,18 +366,33 @@ namespace AGS.Editor
             _mainForm.pnlOutput.ErrorsToList = errors;
             if (errors.Count > 0)
             {
+                if (StdConsoleWriter.IsEnabled)
+                {
+                    foreach (CompileError cerr in errors.Errors)
+                    {
+                        StdConsoleWriter.WriteLine(cerr.AsString);
+                    }
+                }
                 _mainForm.pnlOutput.Show();
             }
         }
 
         public void ShowOutputPanel(string[] messages, string imageKey = "BuildIcon")
         {
+            if (StdConsoleWriter.IsEnabled)
+            {
+                foreach(string msg in messages)
+                {
+                    StdConsoleWriter.WriteLine(msg);
+                }
+            }
             _mainForm.pnlOutput.SetMessages(messages, imageKey);
             _mainForm.pnlOutput.Show();
         }
 
         public void ShowOutputPanel(string message, string imageKey = "BuildIcon")
         {
+            StdConsoleWriter.WriteLine(message);
             _mainForm.pnlOutput.SetMessage(message, imageKey);
             _mainForm.pnlOutput.Show();
         }
@@ -842,46 +863,30 @@ namespace AGS.Editor
             _mainForm.Close();
         }
 
-		private bool ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen()
-		{
-			bool compileAndExit = false;
+        public void CompileAndExit(string projectPath)
+        {
+            bool error = true;
+            if (_interactiveTasks.LoadGameFromDisk(projectPath))
+            {
+                error = false;
+                bool forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
+                var messages = _agsEditor.CompileGame(forceRebuild, false);
+                if (forceRebuild)
+                    _agsEditor.SaveUserDataFile(); // in case pending config is applied
 
-			foreach (string arg in _commandLineArgs)
-			{
-				if (arg.ToLower() == "/compile")
-				{
-					compileAndExit = true;
-				}
-				else if (arg.StartsWith("/") || arg.StartsWith("-"))
-				{
-					this.ShowMessage("Invalid command line argument " + arg, MessageBoxIcon.Warning);
-				}
-				else
-				{
-					if (!File.Exists(arg))
-					{
-						this.ShowMessage("Unable to load the game '" + arg + "' because it does not exist", MessageBoxIcon.Warning);
-					}
-					else if (_interactiveTasks.LoadGameFromDisk(arg))
-					{
-						if (compileAndExit)
-						{
-                            bool forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
-                            var messages = _agsEditor.CompileGame(forceRebuild, false);
-                            if (forceRebuild)
-                                _agsEditor.SaveUserDataFile(); // in case pending config is applied
-                            if (!messages.HasErrors)
-							{
-								_batchProcessShutdown = true;
-								this.ExitApplication();
-							}
-						}
-						return false;
-					}
-				}
-			}
-			return true;
-		}
+                _batchProcessShutdown = true;
+                if (messages.Count == 0)
+                {
+                    BuildCommandsComponent.ShowCompileSuccessMessage();
+                }
+                else
+                {
+                    error = true;
+                }
+            }
+            if(error) Program.SetExitCode(1);
+            this.ExitApplication();
+        }
 
         public bool ShowWelcomeScreen()
         {
@@ -890,7 +895,27 @@ namespace AGS.Editor
 				this.ShowMessage("You are running AGS on a computer with Windows 98 or Windows ME. AGS is no longer supported on these operating systems. You are STRONGLY ADVISED to run the AGS Editor on Windows 2000, XP or higher.", MessageBoxIcon.Warning);
 			}
 
-			bool showWelcomeScreen = ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen();
+            CommandLineOptions options = new CommandLineOptions(_commandLineArgs);
+
+            if (AGS.Types.Version.IS_BETA_VERSION)
+            {
+                Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
+            }
+
+            bool showWelcomeScreen = false;
+
+            if (options.CompileAndExit)
+            {
+                CompileAndExit(options.ProjectPath);
+            }
+            else if(!string.IsNullOrEmpty(options.ProjectPath))
+            {
+                _interactiveTasks.LoadGameFromDisk(options.ProjectPath);
+            }
+            else
+            {
+                showWelcomeScreen = true;
+            }
 
             while (showWelcomeScreen)
             {

@@ -246,6 +246,18 @@ namespace AGS.Editor.Components
             }
         }
 
+        public static void ShowCompileSuccessMessage()
+        {
+            string message = "Compilation successful!";
+
+            Factory.GUIController.ShowOutputPanel(message);
+
+            if (Factory.AGSEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
+            {
+                Factory.GUIController.ShowMessage(message, MessageBoxIcon.Information);
+            }
+        }
+
 		private void CompileGame(bool forceRebuild)
 		{
 			forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
@@ -256,14 +268,8 @@ namespace AGS.Editor.Components
                 _agsEditor.SaveUserDataFile();
                 if (messages.Count == 0)
 				{
-					string message = "Compilation successful!";
-					Factory.GUIController.ShowOutputPanel(message);
-
-					if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
-					{
-						_guiController.ShowMessage(message, MessageBoxIcon.Information);
-					}
-				}
+                    ShowCompileSuccessMessage();
+                }
 			}
 		}
 

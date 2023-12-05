@@ -41,6 +41,28 @@ bool GUITextBox::IsBorderShown() const
     return (TextBoxFlags & kTextBox_ShowBorder) != 0;
 }
 
+Rect GUITextBox::CalcGraphicRect(bool clipped)
+{
+    if (clipped)
+        return RectWH(0, 0, _width, _height);
+
+    // TODO: need to find a way to cache text position, or there'll be some repetition
+    Rect rc = RectWH(0, 0, _width, _height);
+    Point text_at(1 + 1, 1 + 1);
+    Rect text_rc = GUI::CalcTextGraphicalRect(Text.GetCStr(), Font, text_at);
+    if (IsGUIEnabled(this))
+    {
+        // add a cursor
+        Rect cur_rc = RectWH(
+            text_rc.Right + 3,
+            1 + get_font_height(Font),
+            5,
+            1);
+        text_rc = SumRects(text_rc, cur_rc);
+    }
+    return SumRects(rc, text_rc);
+}
+
 void GUITextBox::Draw(Bitmap *ds, int x, int y)
 {
     color_t text_color = ds->GetCompatibleColor(TextColor);

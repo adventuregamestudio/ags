@@ -56,5 +56,19 @@ namespace AGS.Types
             get { return _lineNumber; }
         }
 
+        public string AsString
+        {
+            get
+            {
+                if(_lineNumber == 0 && string.IsNullOrEmpty(_scriptName))
+                {
+                    return Message;
+                }
+                else
+                {
+                    return Message + " at line " + _lineNumber.ToString() + " in " + _scriptName + ".";
+                }
+            }
+        }
     }
 }

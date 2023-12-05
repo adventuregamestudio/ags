@@ -100,6 +100,24 @@ void soundcache_clear()
     SndCache.Clear();
 }
 
+void soundcache_precache(const AssetPath &apath)
+{
+    if (SndCache.GetMaxCacheSize() == 0)
+        return; // cache is disabled
+    if (SndCache.Exists(apath.Name))
+        return; // already in cache
+    std::unique_ptr<Stream> s_in(AssetMgr->OpenAsset(apath));
+    if (!s_in)
+        return; // failed to open asset
+    size_t asset_size = static_cast<size_t>(s_in->GetLength());
+    if (asset_size > MaxLoadAtOnce)
+        return; // too big for the cache
+    // Read and put into the cache
+    auto sounddata = std::make_shared<std::vector<uint8_t>>(asset_size);
+    s_in->Read(sounddata->data(), asset_size);
+    SndCache.Put(apath.Name, sounddata);
+}
+
 SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, bool loop)
 {
     size_t asset_size;

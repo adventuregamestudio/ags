@@ -777,6 +777,25 @@ int Game_BlockingWaitSkipped()
     return play.GetWaitSkipResult();
 }
 
+void Game_PrecacheSprite(int sprnum)
+{
+    const auto tp_start = AGS_FastClock::now();
+    spriteset.PrecacheSprite(sprnum);
+    const auto tp_filedone = AGS_FastClock::now();
+    texturecache_precache(sprnum);
+    const auto tp_texturedone = AGS_FastClock::now();
+
+    const auto dur1 = ToMilliseconds(tp_filedone - tp_start);
+    const auto dur2 = ToMilliseconds(tp_texturedone - tp_filedone);
+    const auto dur_t = ToMilliseconds(tp_texturedone - tp_start);
+    Debug::Printf("Precache sprite %d; file->mem = %lld ms, bm->tx = %lld ms, total = %lld ms", sprnum, dur1, dur2, dur_t);
+}
+
+void Game_PrecacheView(int view, int first_loop, int last_loop)
+{
+    precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
+}
+
 //=============================================================================
 
 // save game functions
@@ -1313,6 +1332,58 @@ void game_sprite_updated(int sprnum, bool deleted)
     }
 }
 
+void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
+{
+    if (view < 0)
+        return;
+    if (first_loop > last_loop)
+        return;
+
+    first_loop = Math::Clamp(first_loop, 0, views[view].numLoops - 1);
+    last_loop = Math::Clamp(last_loop, 0, views[view].numLoops - 1);
+
+    // Record cache sizes and timestamps, for diagnostic purposes
+    const size_t spcache_before = spriteset.GetCacheSize();
+    const size_t txcache_before = texturecache_get_size();
+    int total_frames = 0, total_sounds = 0;
+
+    const auto tp_start = AGS_FastClock::now();
+    int64_t dur_sp_load = 0, dur_tx_make = 0, dur_sound_load = 0;
+    for (int i = first_loop; i <= last_loop; ++i)
+    {
+        for (int j = 0; j < views[view].loops[i].numFrames; ++j, ++total_frames)
+        {
+            const auto &frame = views[view].loops[i].frames[j];
+            const auto tp_detail1 = AGS_FastClock::now();
+            spriteset.PrecacheSprite(frame.pic);
+            const auto tp_detail2 = AGS_FastClock::now();
+            texturecache_precache(frame.pic);
+            const auto tp_detail3 = AGS_FastClock::now();
+
+            if (with_sounds && frame.sound >= 0)
+            {
+                ScriptAudioClip *clip = &game.audioClips[frame.sound];
+                auto assetpath = get_audio_clip_assetpath(clip->bundlingType, clip->fileName);
+                soundcache_precache(assetpath);
+                dur_sound_load += ToMilliseconds(AGS_FastClock::now() - tp_detail3);
+                total_sounds++;
+            }
+            dur_sp_load += ToMilliseconds(tp_detail2 - tp_detail1);
+            dur_tx_make += ToMilliseconds(tp_detail3 - tp_detail2);
+        }
+    }
+
+    // Print gathered time and size info
+    size_t spcache_after = spriteset.GetCacheSize();
+    size_t txcache_after = texturecache_get_size();
+    Debug::Printf("Precache view %d (loops %d-%d) with %d frames, total = %lld ms, average file->mem = %lld ms, bm->tx = %lld ms,"
+                  "\n\t\tloaded %d sounds = %lld ms",
+        view, first_loop, last_loop, total_frames, dur_sp_load + dur_tx_make + dur_sound_load,
+        dur_sp_load / total_frames, dur_tx_make / total_frames, total_sounds, dur_sound_load);
+    Debug::Printf("\tSprite cache: %zu -> %zu KB, texture cache: %zu -> %zu KB",
+        spcache_before / 1024u, spcache_after / 1024u, txcache_before / 1024u, txcache_after / 1024u);
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -1623,6 +1694,16 @@ RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params,
     API_SCALL_INT(Game_BlockingWaitSkipped);
 }
 
+RuntimeScriptValue Sc_Game_PrecacheSprite(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_PrecacheSprite);
+}
+
+RuntimeScriptValue Sc_Game_PrecacheView(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(Game_PrecacheView);
+}
+
 void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {
@@ -1641,7 +1722,13 @@ void RegisterGameAPI()
         { "Game::GetViewFrame^3",                         API_FN_PAIR(Game_GetViewFrame) },
         { "Game::InputBox^1",                             API_FN_PAIR(Game_InputBox) },
         { "Game::SetSaveGameDirectory^1",                 API_FN_PAIR(Game_SetSaveGameDirectory) },
+        { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
+        { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
+        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
+        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::ResetDoOnceOnly",                        API_FN_PAIR(Game_ResetDoOnceOnly) },
+        { "Game::PrecacheSprite",                         API_FN_PAIR(Game_PrecacheSprite) },
+        { "Game::PrecacheView",                           API_FN_PAIR(Game_PrecacheView) },
         { "Game::get_CharacterCount",                     API_FN_PAIR(Game_GetCharacterCount) },
         { "Game::get_DialogCount",                        API_FN_PAIR(Game_GetDialogCount) },
         { "Game::get_FileName",                           API_FN_PAIR(Game_GetFileName) },
@@ -1669,10 +1756,6 @@ void RegisterGameAPI()
         { "Game::get_ViewCount",                          API_FN_PAIR(Game_GetViewCount) },
         { "Game::get_AudioClipCount",                     API_FN_PAIR(Game_GetAudioClipCount) },
         { "Game::geti_AudioClips",                        API_FN_PAIR(Game_GetAudioClip) },
-        { "Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded, pl_is_plugin_loaded },
-        { "Game::ChangeSpeechVox",                        API_FN_PAIR(Game_ChangeSpeechVox) },
-        { "Game::PlayVoiceClip",                          Sc_Game_PlayVoiceClip, PlayVoiceClip },
-        { "Game::SimulateKeyPress",                       API_FN_PAIR(Game_SimulateKeyPress) },
         { "Game::get_BlockingWaitSkipped",                API_FN_PAIR(Game_BlockingWaitSkipped) },
         { "Game::get_SpeechVoxFilename",                  API_FN_PAIR(Game_GetSpeechVoxFilename) },
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },

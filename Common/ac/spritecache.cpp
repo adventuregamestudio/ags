@@ -228,7 +228,7 @@ void SpriteCache::DisposeAllCached()
     ResourceCache::DisposeFreeItems();
 }
 
-void SpriteCache::Precache(sprkey_t index)
+void SpriteCache::PrecacheSprite(sprkey_t index)
 {
     assert(index >= 0); // out of positive range indexes are valid to fail
     if (index < 0 || (size_t)index >= _spriteData.size())
@@ -238,11 +238,41 @@ void SpriteCache::Precache(sprkey_t index)
 
     if (!ResourceCache::Exists(index))
         LoadSprite(index);
-
-    // make sure locked sprites can't fill the cache
-    ResourceCache::Lock(index);
-    _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
     SprCacheLog("Precached %d", index);
+}
+
+void SpriteCache::LockSprite(sprkey_t index)
+{
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    if (index < 0 || (size_t)index >= _spriteData.size())
+        return;
+    if (!_spriteData[index].IsAssetSprite())
+        return; // cannot lock a non-asset sprite
+
+    if (ResourceCache::Exists(index))
+    {
+        ResourceCache::Lock(index);
+        _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
+    }
+    else
+    {
+        LoadSprite(index, true);
+    }
+    SprCacheLog("Locked %d", index);
+}
+
+void SpriteCache::UnlockSprite(sprkey_t index)
+{
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    if (index < 0 || (size_t)index >= _spriteData.size())
+        return;
+    if (!_spriteData[index].IsAssetSprite() ||
+        !_spriteData[index].IsLocked())
+        return; // cannot unlock a non-asset sprite, or non-locked sprite
+
+    ResourceCache::Release(index);
+    _spriteData[index].Flags &= ~SPRCACHEFLAG_LOCKED;
+    SprCacheLog("Unlocked %d", index);
 }
 
 size_t SpriteCache::CalcSize(const std::unique_ptr<Bitmap> &item)
@@ -251,7 +281,7 @@ size_t SpriteCache::CalcSize(const std::unique_ptr<Bitmap> &item)
     return item ? (item->GetWidth() * item->GetHeight() * item->GetBPP()) : 0u;
 }
 
-Bitmap *SpriteCache::LoadSprite(sprkey_t index)
+Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
 {
     assert((index >= 0) && ((size_t)index < _spriteData.size()));
     if (index < 0 || (size_t)index >= _spriteData.size())
@@ -283,12 +313,13 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index)
     _sprInfos[index].Width = image->GetWidth();
     _sprInfos[index].Height = image->GetHeight();
 
-    // Add to the cache
-    ResourceCache::Put(index, std::unique_ptr<Bitmap>(image));
-    _spriteData[index].Flags = SPRCACHEFLAG_ISASSET;
-    if (index == 0) // keep sprite 0 locked
-        _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
-    SprCacheLog("Loaded %d, size now %zu KB", index, _cacheSize / 1024);
+    // Add to the cache, lock if requested or if it's sprite 0
+    const bool should_lock = lock || (index == 0);
+    ResourceCache::Put(index, std::unique_ptr<Bitmap>(image), kCacheItem_Locked * should_lock);
+    _spriteData[index].Flags =
+          SPRCACHEFLAG_ISASSET |
+          SPRCACHEFLAG_LOCKED * should_lock;
+    SprCacheLog("Loaded %d, normal size %zu KB", index, _cacheSize / 1024);
 
     // Let the external user to react to the new sprite;
     // note that this callback is allowed to modify the sprite's pixels,

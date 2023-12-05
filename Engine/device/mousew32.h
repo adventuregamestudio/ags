@@ -14,8 +14,6 @@
 #include "ac/sys_events.h"
 #include "util/geometry.h"
 
-#define MAXCURSORS 20
-
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -66,5 +64,3 @@ namespace Mouse
 extern int mousex, mousey;
 extern int hotx, hoty;
 extern char currentcursor;
-
-extern Common::Bitmap *mousecurs[MAXCURSORS];

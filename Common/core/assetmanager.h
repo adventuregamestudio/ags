@@ -127,7 +127,7 @@ private:
     std::vector<std::unique_ptr<AssetLibEx>> _libs;
     std::vector<AssetLibEx*> _activeLibs;
 
-    struct LibsByPriority : public std::binary_function<const AssetLibInfo*, const AssetLibInfo*, bool>
+    struct LibsByPriority
     {
         AssetSearchPriority Priority = kAssetPriorityDir;
         bool operator()(const AssetLibInfo*, const AssetLibInfo*) const;

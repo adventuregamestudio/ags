@@ -48,6 +48,7 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glGenerateMipmapEXT glGenerateMipmap
 #define glFramebufferTexture2DEXT glFramebufferTexture2D
 #define glFramebufferRenderbufferEXT glFramebufferRenderbuffer
+#define GL_FRAMEBUFFER_COMPLETE_EXT GL_FRAMEBUFFER_COMPLETE
 // TODO: probably should use EGL and function eglSwapInterval on mobile to support setting swap interval
 // For now this is a dummy function pointer which is only used to test that function is not supported
 const void (*glSwapIntervalEXT)(int) = NULL;

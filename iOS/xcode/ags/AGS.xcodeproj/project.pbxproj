@@ -5340,6 +5340,26 @@
 					"SOUND_SUPPORTS_COREAUDIO=1",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"\"${SOURCE_ROOT}/../../../Common/libsrc/freetype-2.1.3/include\"",
+					"\"${SOURCE_ROOT}/../../../Common/libinclude\"",
+					"\"${SOURCE_ROOT}/../../../Common/libsrc/aastr-0.1.1\"",
+					"\"${SOURCE_ROOT}/../../../Common/libsrc/alfont-2.0.9\"",
+					"\"${SOURCE_ROOT}/../../../Engine/libsrc/apeg-1.2.1\"",
+					"\"${SOURCE_ROOT}/../../../Engine/libsrc/glad-gles2/include\"",
+					"\"${SOURCE_ROOT}/../../../Common\"",
+					"\"${SOURCE_ROOT}/../../../Plugins\"",
+					"\"${SOURCE_ROOT}/../../../Engine\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/allegro/include\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/glm\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/SDL/include\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/SDL_Sound/src\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/mojoAL\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/miniz\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/ogg/include\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/theora/include\"",
+					"\"${SOURCE_ROOT}/../../../libsrc/vorbis/include\"",
+				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -5538,15 +5558,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GCC_C_LANGUAGE_STANDARD = c11;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"ZLIB_DEBUG=1",
-					"DISABLE_MPEG_AUDIO=1",
-					"IOS_VERSION=1",
-					"BUILTIN_PLUGINS=1",
-					"SOUND_SUPPORTS_COREAUDIO=1",
-					"SOUND_SUPPORTS_MODPLUG=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"${SOURCE_ROOT}/../../../Common/libsrc/freetype-2.1.3/include\"",
@@ -5585,13 +5597,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GCC_C_LANGUAGE_STANDARD = c11;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DISABLE_MPEG_AUDIO=1",
-					"IOS_VERSION=1",
-					"BUILTIN_PLUGINS=1",
-					"SOUND_SUPPORTS_MODPLUG=1",
-					"SOUND_SUPPORTS_COREAUDIO=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"${SOURCE_ROOT}/../../../Common/libsrc/freetype-2.1.3/include\"",

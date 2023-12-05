@@ -69,7 +69,7 @@ struct AssetPath
 class AssetManager
 {
 public:
-    AssetManager();
+    AssetManager() = default;
     ~AssetManager() = default;
 
     // Test if given file is main data file
@@ -128,12 +128,9 @@ private:
 
     std::vector<std::unique_ptr<AssetLibEx>> _libs;
     std::vector<AssetLibEx*> _activeLibs;
-
-    struct LibsByPriority
-    {
-        AssetSearchPriority Priority = kAssetPriorityDir;
-        bool operator()(const AssetLibInfo*, const AssetLibInfo*) const;
-    } _libsByPriority;
+    AssetSearchPriority _libsPriority = kAssetPriorityDir;
+    // Sorting function, depends on priority setting
+    std::function<bool(const AssetLibInfo*, const AssetLibInfo*)> _libsSorter;
 };
 
 

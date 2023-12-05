@@ -355,13 +355,14 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   }
 
   for (aa = 0; aa < numSprites; aa++) {
-    Common::Bitmap *sprit = get_sprite(sprites[aa]);
+    int sprnum = sprites[aa];
+    AGSBitmap *sprit = get_sprite(sprnum);
     // create a new, smaller sprite and copy across
-	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
+	AGSBitmap *newsprit = BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     delete sprit;
     // set new image and keep old flags
-    spriteset.SetSprite(sprites[aa], newsprit, thisgame.SpriteInfos[aa].Flags);
+    spriteset.SetSprite(sprnum, newsprit, thisgame.SpriteInfos[sprnum].Flags);
   }
 
   spritesModified = true;

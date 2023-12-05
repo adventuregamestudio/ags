@@ -350,12 +350,13 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   }
 
   for (aa = 0; aa < numSprites; aa++) {
-    AGSBitmap *sprit = get_sprite(sprites[aa]);
+    int sprnum = sprites[aa];
+    AGSBitmap *sprit = get_sprite(sprnum);
     // create a new, smaller sprite and copy across
 	std::unique_ptr<AGSBitmap> newsprit(new AGSBitmap(newWidth, newHeight, sprit->GetColorDepth()));
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     // set new image and keep old flags
-    spriteset.SetSprite(sprites[aa], std::move(newsprit), thisgame.SpriteInfos[aa].Flags);
+    spriteset.SetSprite(sprnum, std::move(newsprit), thisgame.SpriteInfos[sprnum].Flags);
   }
 
   spritesModified = true;

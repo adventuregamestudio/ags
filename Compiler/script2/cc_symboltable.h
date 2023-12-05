@@ -218,14 +218,14 @@ struct SymbolTableEntry;
 class SymbolTableConstant
 {
 public:
-    static size_t const kParameterScope = 1;
-    static size_t const kFunctionScope = 2;
+    static size_t const kParameterScope = 1u;
+    static size_t const kFunctionScope = 2u;
 
     static size_t const kNoSrcLocation = INT_MAX;
 
-    static size_t const kNoPrio = -1;
-    static size_t const kNoOpcode = -1;
-    static size_t const kSpecialLogic = -2;
+    static int const kNoPrio = -1;
+    static int const kNoOpcode = -1;
+    static int const kSpecialLogic = -2;
 };
 
 struct SymbolTableEntry : public SymbolTableConstant
@@ -463,13 +463,17 @@ public:
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
     Vartype VartypeWithArray(std::vector<size_t> const &dims, AGS::Vartype vartype);
-    // The "Dynarray / Dynpointer/ Const ... of vartype" vartype
-    Vartype VartypeWith(VartypeType vtt, Vartype vartype);
+    // The "Const of vartype" vartype
+    Vartype VartypeWithConst(AGS::Vartype vartype);
+    // The "Dynarray of vartype" vartype
+    Vartype VartypeWithDynarray(AGS::Vartype vartype);
+    // The "Const ... of vartype" vartype
+    Vartype VartypeWithDynpointer(Vartype vartype);
     // The vartype without the qualifier given in vtt
     Vartype VartypeWithout(VartypeType vtt, Vartype vartype) const;
 
     inline bool IsArrayVartype(Symbol s) const { return IsVTT(s, VTT::kArray); }
-    size_t NumArrayElements(Symbol s) const;
+    size_t ArrayElementsCount(Symbol s) const;
     inline bool IsDynarrayVartype(Symbol s) const { return IsVTT(s, VTT::kDynarray); }
     inline bool IsAnyArrayVartype(Symbol s) const { return IsArrayVartype(s) || IsDynarrayVartype(s); }
     
@@ -480,8 +484,8 @@ public:
     bool IsManagedVartype(Symbol s) const;
 
     // Functions
-    inline size_t NumOfFuncParams(Symbol func) const
-        { return IsFunction(func) ? entries.at(func).FunctionD->Parameters.size() - 1 : 0; }
+    inline size_t FuncParamsCount(Symbol func) const
+        { return IsFunction(func) ? entries.at(func).FunctionD->Parameters.size() - 1u : 0u; }
     inline bool IsVariadicFunc(Symbol func) const
         { return IsFunction(func) && entries.at(func).FunctionD->IsVariadic; }
     inline AGS::Vartype FuncReturnVartype(Symbol func) const

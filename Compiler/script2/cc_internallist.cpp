@@ -1,6 +1,4 @@
-#include <vector>
 #include <string>
-#include <algorithm>
 #include <limits>
 #include <stdlib.h>
 #include "cc_internallist.h"
@@ -89,6 +87,40 @@ AGS::Symbol AGS::SrcList::GetNext()
     if (!ReachedEOF())
         _cursor++;
     return p;
+}
+
+void AGS::SrcList::SkipTo(SymbolList const &stoplist)
+{
+    int delimeter_nesting_depth = 0;
+    for (; !ReachedEOF(); GetNext())
+    {
+        // Note that the scanner/tokenizer has already verified
+        // that all opening symbols get closed and 
+        // that we don't have (...] or similar in the input
+        Symbol const next_sym = PeekNext();
+        switch (next_sym)
+        {
+        case kKW_OpenBrace:
+        case kKW_OpenBracket:
+        case kKW_OpenParenthesis:
+            ++delimeter_nesting_depth;
+            continue;
+
+        case kKW_CloseBrace:
+        case kKW_CloseBracket:
+        case kKW_CloseParenthesis:
+            if (--delimeter_nesting_depth < 0)
+                return;
+            continue;
+
+        }
+        if (0 < delimeter_nesting_depth)
+            continue;
+
+        for (auto it = stoplist.begin(); it != stoplist.end(); ++it)
+            if (next_sym == *it)
+                return;
+    }
 }
 
 void AGS::SrcList::EatFirstSymbol()

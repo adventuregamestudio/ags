@@ -106,6 +106,25 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
     EXPECT_STREQ("Type mismatch: Cannot convert 'DynamicSprite *[]' to 'int[]'", last_seen_cc_error());
 }
 
+TEST_F(Compile0, DynarrayOfDynarrayTypecheck1) {
+
+    // Can't convert 'int[]' to 'int[][]'
+
+    char const *inpl = "\
+        int game_start()            \n\
+        {                           \n\
+            int arr1[][], arr2[][]; \n\
+            arr1 = new int[10][];   \n\
+            arr1[5] = new int[20];  \n\
+            arr2 = arr1[5];         \n\
+        }                           \n\
+        ";
+
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
+    EXPECT_STREQ("Cannot assign a type 'int[]' value to a type 'int[][]' variable", last_seen_cc_error());
+}
+
 TEST_F(Compile0, StructMemberQualifierOrder) {    
 
     // The order of qualifiers shouldn't matter.
@@ -1113,6 +1132,7 @@ TEST_F(Compile0, StructRecursiveComponent02)
     EXPECT_NE(std::string::npos, err.find("'Bar'"));
 }
 
+
 TEST_F(Compile0, Undefined) {   
 
     char const *inpl = "\
@@ -1143,30 +1163,9 @@ TEST_F(Compile0, ImportOverride1) {
     EXPECT_EQ(std::string::npos, err.find("xception"));
 }
 
-TEST_F(Compile0, DynamicNonManaged1) {    
-
-    // Dynamic array of non-managed struct not allowed
-
-    char const *inpl = "\
-        struct Inner                                        \n\
-        {                                                   \n\
-            short Payload;                                  \n\
-        };                                                  \n\
-        managed struct Struct                               \n\
-        {                                                   \n\
-            Inner In[];                                     \n\
-        };                                                  \n\
-    ";
-    
-    int compileResult = cc_compile(inpl, scrip);
-    ASSERT_STRNE("Ok", (compileResult >= 0) ? "Ok" : last_seen_cc_error());
-    std::string res(last_seen_cc_error());
-    EXPECT_NE(std::string::npos, res.find("Inner"));
-}
-
 TEST_F(Compile0, DynamicNonManaged2) {    
 
-    // Dynamic array of non-managed struct not allowed
+    // Dynamic pointer to non-managed struct not allowed
 
     char const *inpl = "\
         struct Inner                                        \n\
@@ -1187,7 +1186,7 @@ TEST_F(Compile0, DynamicNonManaged2) {
 
 TEST_F(Compile0, DynamicNonManaged3) {  
 
-    // Dynamic array of non-managed struct not allowed
+    // Dynamic pointer to non-managed struct not allowed
 
     char const *inpl = "\
         struct Inner                                        \n\

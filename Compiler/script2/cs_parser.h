@@ -392,20 +392,8 @@ private:
     // Combine the arguments to stname::component, get the symbol for that
     Symbol MangleStructAndComponent(Symbol stname, Symbol component);
 
-    // Skim through 'source', ignoring delimited content completely. Stop in the following cases:
-    // .  A symbol is encountered whose type is in 'stoplist[]'
-    // .  A closing symbol is encountered that hasn't been opened.
-    // Don't consume the symbol that stops the scan.
-    void SkipTo(SymbolList const &stoplist, SrcList &source);
-    // Skim through 'source'. Stop when 'stopsym' is encountered or a closing symbol
-    // that hasn't been opened. Don't consume the symbol that stops the scan.
-    inline void SkipTo(Symbol stopsym, SrcList &source) { SkipTo(SymbolList{ stopsym }, source); }
-
-    // Skim through source, ignoring delimited content completely.
-    // Stop when a closing symbol is encountered that hasn't been opened.
-    // Eat that symbol and if it isn't 'closer', report an _internal_ error.
-    void SkipToClose(Predefined closer);
-
+    // Skip over the next symbol in 'src' which _must_ be 'expected', or else an internal (!) error is given.
+    void SkipNextSymbol(SrcList src, Symbol sym);
     // If the symbol 'actual' isn't in the list 'expected', give an error.
     // 'custom_msg', if given, replaces the "Expected ..." part of the message
     void Expect(SymbolList const &expected, Symbol actual, std::string const &custom_msg = "");
@@ -426,7 +414,7 @@ private:
 
     // We're at the end of a block and releasing a standard array of dynpointers.
     // MAR points to the array start. Release each array element (dynpointer).
-    void FreeDynpointersOfStdArrayOfDynpointer(size_t num_of_elements);
+    void FreeDynpointersOfStdArrayOfDynpointer(size_t elements_count);
 
     // We're at the end of a block and releasing all the dynpointers in a struct.
     // MAR already points to the start of the struct.
@@ -434,7 +422,7 @@ private:
 
     // We're at the end of a block and we're releasing a standard array of struct.
     // MAR points to the start of the array. Release all the pointers in the array.
-    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t num_of_elements);
+    void FreeDynpointersOfStdArrayOfStruct(Vartype element_vtype, size_t elements_count);
 
     // We're at the end of a block and releasing a standard array. MAR points to the start.
     // Release the pointers that the array contains.
@@ -498,7 +486,7 @@ private:
     void ParseFuncdecl_CheckThatKnownInfoMatches(std::string const &func_name, SymbolTableEntry::FunctionDesc const *this_entry, SymbolTableEntry::FunctionDesc const *known_info, size_t declared, bool body_follows);
 
     // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
-    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t num_of_parameters, CodeLoc &function_soffs);
+    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs);
 
     // We're at something like 'int foo(', directly before the '('
     // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
@@ -545,15 +533,15 @@ private:
 
     // We're in the parameter list of a function call, and we have less parameters than declared.
     // Provide defaults for the missing values
-    void AccessData_FunctionCall_ProvideDefaults(int num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+    void AccessData_FunctionCall_ProvideDefaults(int func_args_count, size_t supplied_args_count, Symbol func_symbol, bool func_is_import);
 
-    void AccessData_FunctionCall_PushParams(SrcList &parameters, size_t closed_paren_idx, size_t num_func_args, size_t num_supplied_args, Symbol funcSymbol, bool func_is_import);
+    void AccessData_FunctionCall_PushParams(SrcList &params, size_t closed_paren_idx, size_t func_args_count, size_t supplied_args_count, Symbol funcSymbol, bool func_is_import);
 
     // Count parameters, check that all the parameters are non-empty; find closing paren
-    void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &num_supplied_args);
+    void AccessData_FunctionCall_CountAndCheckParm(SrcList &parameters, Symbol name_of_func, size_t &index_of_close_paren, size_t &supplied_args_count);
 
     // We are processing a function call. General the actual function call
-    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t num_args, bool func_is_import);
+    void AccessData_GenerateFunctionCall(Symbol name_of_func, size_t args_count, bool func_is_import);
 
     // Generate the function call for the function that returns the number of elements
     // of a dynarray.
@@ -562,7 +550,7 @@ private:
     // We are processing a function call.
     // Get the parameters of the call and push them onto the stack.
     // Return the number of the parameters pushed
-    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &parameters, size_t &actual_num_args);
+    void AccessData_PushFunctionCallParams(Symbol name_of_func, bool func_is_import, SrcList &params, size_t &actual_args_count);
 
     // Process a function call. The parameter list begins with 'expression[1u]' (!)
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &expression, EvaluationResult &eres);
@@ -570,9 +558,6 @@ private:
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.
     bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
-
-    // Check the vartype following 'new'
-    void ParseExpression_CheckArgOfNew(Vartype new_vartype);
 
     // Parse the term given in 'expression'. The lowest-binding operator is unary 'new'
     // 'expression' is parsed from the beginning. The term must use up 'expression' completely.
@@ -685,12 +670,12 @@ private:
     void AccessData_Dereference(EvaluationResult &eres);
 
     // Process one index in a sequence of array indexes
-    void AccessData_ProcessCurrentArrayIndex(size_t idx, size_t dim, size_t factor, bool is_dynarray, SrcList &expression, EvaluationResult &eres);
+    void AccessData_ProcessArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &index_expr, EvaluationResult &eres);
 
     // We're processing some struct component or global or local variable.
-    // If a sequence of array indexes follows, parse it and shorten symlist accordingly
-    void AccessData_ProcessArrayIndexIfThere(SrcList &expression, EvaluationResult &eres);
-
+    // If a sequence of array indexes follows, parse it
+    void AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eres);
+    
     void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     void AGS::Parser::AccessData_This(EvaluationResult &eres);
@@ -769,8 +754,7 @@ private:
     void ParseVardecl_Var2SymTable(Symbol var_name, Vartype vartype);
 
     // we have accepted something like "int a" and we're expecting "["
-    void ParseArray(Symbol vname, Vartype &vartype);
-
+    void ParseArrayDecl(Symbol vname, Vartype &vartype);
     void ParseVardecl_CheckIllegalCombis(Vartype vartype, ScopeType scope_type);
 
     // there was a forward declaration -- check that the real declaration matches it
@@ -806,7 +790,7 @@ private:
 
     void ParseQualifiers(TypeQualifierSet &tqs);
 
-    void ParseStruct_FuncDecl(Symbol struct_of_func, Symbol name_of_func, TypeQualifierSet tqs, Vartype vartype);
+    void ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
 
     void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
@@ -822,7 +806,7 @@ private:
     void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
 
     // We're inside a struct decl, processing a member variable
-    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype curtype, Symbol stname, Symbol vname);
+    void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname);
     
     // We're inside a struct decl, processing a compile-time constant
     void ParseStruct_ConstantDefn(Symbol name_of_struct);

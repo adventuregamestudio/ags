@@ -79,7 +79,7 @@ void AGS::ccCompiledScript::ReplaceLabels()
 {
     std::vector<CodeLoc> RemainingLabels;
 
-    for (size_t idx = 0; idx < Labels.size(); idx++)
+    for (size_t idx = 0u; idx < Labels.size(); idx++)
     {
         CodeLoc const loc = Labels[idx];
         if (loc >= codesize)
@@ -182,12 +182,12 @@ int AGS::ccCompiledScript::AddFixup(CodeLoc const where, FixupType const ftype)
     return numfixups++;
 }
 
-AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name, size_t const num_of_parameters)
+AGS::CodeLoc AGS::ccCompiledScript::AddNewFunction(std::string const &func_name, size_t const params_count)
 {
     FuncProps fp;
     fp.Name = func_name;
     fp.CodeOffs = codesize;
-    fp.NumOfParams = num_of_parameters;
+    fp.ParamsCount = params_count;
     Functions.push_back(fp);
     return codesize;
 }
@@ -215,12 +215,12 @@ int AGS::ccCompiledScript::FindOrAddImport(std::string const &import_name)
     return (ImportIdx[import_name] = numimports++);
 }
 
-int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const location, size_t const num_of_arguments)
+int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const location, size_t const arguments_count)
 {
-    bool const is_function = (INT_MAX != num_of_arguments);
+    bool const is_function = (INT_MAX != arguments_count);
     // Exported functions get the number of parameters appended
     std::string const export_name =
-        is_function ? name + "$" + std::to_string(num_of_arguments) : name;
+        is_function ? name + "$" + std::to_string(arguments_count) : name;
 
     if (location >= 0x00ffffff)
     {
@@ -345,17 +345,17 @@ void AGS::Snippet::Paste(ccCompiledScript &scrip)
 {
     CodeLoc const code_start = scrip.codesize;
     // Don't generate additional LINUM directives, that would throw off the fixups and labels
-    for (size_t idx = 0; idx < Code.size(); idx++)
+    for (size_t idx = 0u; idx < Code.size(); idx++)
         scrip.WriteCode(Code[idx]);
-    for (size_t idx = 0; idx < Fixups.size(); idx++)
+    for (size_t idx = 0u; idx < Fixups.size(); idx++)
         scrip.AddFixup(code_start + Fixups[idx], FixupTypes[idx]);
-    for (size_t idx = 0; idx < Labels.size(); idx++)
+    for (size_t idx = 0u; idx < Labels.size(); idx++)
         scrip.Labels.push_back(code_start + Labels[idx]);
 }
 
 bool AGS::Snippet::IsEmpty()
 {
-    for (size_t idx = 0; idx < Code.size(); idx++)
+    for (size_t idx = 0u; idx < Code.size(); idx++)
     {
         if (SCMD_LINENUM != Code[idx])
             return false; // found some content

@@ -42,11 +42,11 @@ TEST(SymbolTable, GetVartypeName)
     symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
     EXPECT_STREQ(
         "foo[]",
-        symt.GetName(symt.VartypeWith(AGS::VTT::kDynarray, foo_vartype)).c_str());
+        symt.GetName(symt.VartypeWithDynarray(foo_vartype)).c_str());
 
     EXPECT_STREQ(
         "foo *",
-        symt.GetName(symt.VartypeWith(AGS::VTT::kDynpointer, foo_vartype)).c_str());
+        symt.GetName(symt.VartypeWithDynpointer(foo_vartype)).c_str());
 
     std::vector<size_t> const dims = { 3, 5, 7 };
     EXPECT_STREQ(
@@ -62,10 +62,10 @@ TEST(SymbolTable, VartypeWithWithout)
     symt.MakeEntryVartype(foo_vartype);
     symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
 
-    AGS::Vartype foo_converted = symt.VartypeWith(AGS::VTT::kDynarray, foo_vartype);
+    AGS::Vartype foo_converted = symt.VartypeWithDynarray(foo_vartype);
     EXPECT_EQ(foo_vartype, symt.VartypeWithout(AGS::VTT::kDynarray, foo_converted));
 
-    foo_converted = symt.VartypeWith(AGS::VTT::kConst, foo_vartype);
+    foo_converted = symt.VartypeWithConst(foo_vartype);
     EXPECT_EQ(foo_vartype, symt.VartypeWithout(AGS::VTT::kConst, foo_converted));
     EXPECT_EQ(foo_converted, symt.VartypeWithout(AGS::VTT::kDynarray, foo_converted));
 }
@@ -199,7 +199,7 @@ TEST(SymbolTable, IsPrimitiveAtomic)
     EXPECT_FALSE(symt.IsPrimitiveVartype(structy_sym));
     EXPECT_TRUE(symt.IsAtomicVartype(structy_sym));
 
-    AGS::Symbol const structy_ptr_sym = symt.VartypeWith(AGS::VTT::kDynpointer, structy_sym);
+    AGS::Symbol const structy_ptr_sym = symt.VartypeWithDynpointer(structy_sym);
     EXPECT_FALSE(symt.IsPrimitiveVartype(structy_ptr_sym));
     EXPECT_FALSE(symt.IsAtomicVartype(structy_ptr_sym));
 }
@@ -217,10 +217,10 @@ TEST(SymbolTable, ArrayClassic)
     EXPECT_TRUE(symt.IsArrayVartype(array_sym));
     EXPECT_TRUE(symt.IsAnyArrayVartype(array_sym));
     EXPECT_FALSE(symt.IsDynarrayVartype(array_sym));
-    EXPECT_EQ(2, symt.NumArrayElements(array_sym));
+    EXPECT_EQ(2, symt.ArrayElementsCount(array_sym));
 
     symt[array_sym].VartypeD->Dims = { 2, 3, 5, 7, };
-    EXPECT_EQ(2 * 3 * 5 * 7, symt.NumArrayElements(array_sym));
+    EXPECT_EQ(2 * 3 * 5 * 7, symt.ArrayElementsCount(array_sym));
 }
 
 TEST(SymbolTable, OperatorPrio)

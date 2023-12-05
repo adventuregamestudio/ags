@@ -126,7 +126,7 @@ private:
 
     // Read in a character literal
     void ReadInCharLit(std::string &symstring, CodeCell &value);
-
+    
     // Read in a string literal. valstring is the interpreted literal (no quotes, '\\' combinations resolved)
     void ReadInStringLit(std::string &symstring, std::string &valstring);
 

@@ -1183,11 +1183,11 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
 void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
 {
   glm::mat4 projection;
-  
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _do_render_to_texture ? _fbo : _screenFramebuffer);
+
 
   if (_do_render_to_texture)
   {
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 

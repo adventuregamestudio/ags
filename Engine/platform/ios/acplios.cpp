@@ -366,7 +366,7 @@ void AGSIOS::DisplayAlert(const char *text, ...) {
 }
 
 void AGSIOS::Delay(int millis) {
-  usleep(millis);
+  SDL_Delay(millis);
 }
 
 unsigned long AGSIOS::GetDiskFreeSpaceMB() {

@@ -239,7 +239,7 @@ void setStringConfigValue(int id, const char* value)
 int getAvailableTranslations(char* translations)
 {
   int i = 0;
-  int length;
+  size_t length;
   DIR* dir;
   struct dirent* entry;
   char buffer[200];
@@ -267,9 +267,6 @@ int getAvailableTranslations(char* translations)
   return i;
 }
 
-//extern void ios_show_message_box(char* buffer);
-volatile int ios_wait_for_ui = 0;
-
 
 void startEngine(char* filename, char* directory, int loadLastSave)
 {
@@ -288,7 +285,7 @@ void startEngine(char* filename, char* directory, int loadLastSave)
     // Get the games path.
     char path[256];
     strcpy(path, setup.game_file_name.GetCStr());
-    int lastindex = strlen(path) - 1;
+    size_t lastindex = strlen(path) - 1;
     while (path[lastindex] != '/')
     {
     path[lastindex] = 0;
@@ -359,11 +356,13 @@ void AGSIOS::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsnprintf(displbuf, 2000, text, ap);
   va_end(ap);
-  printf("%s", displbuf);
-//  ios_show_message_box(displbuf);
   
-  //while (ios_wait_for_ui)
-  //  usleep(200);
+  // TODO: Print this properly?
+  printf("%s", displbuf);
+  
+//  Debug::Printf(kDbgMsg_Info, text);
+  
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, nullptr, displbuf, nullptr);
 }
 
 void AGSIOS::Delay(int millis) {

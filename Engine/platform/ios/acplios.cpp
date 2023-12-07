@@ -357,11 +357,7 @@ void AGSIOS::DisplayAlert(const char *text, ...) {
   vsnprintf(displbuf, 2000, text, ap);
   va_end(ap);
   
-  // TODO: Print this properly?
-  printf("%s", displbuf);
-  
-//  Debug::Printf(kDbgMsg_Info, text);
-  
+  Debug::Printf(kDbgMsg_Warn, displbuf);
   SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, nullptr, displbuf, nullptr);
 }
 

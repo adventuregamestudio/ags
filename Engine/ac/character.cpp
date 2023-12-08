@@ -15,7 +15,7 @@
 // AGS Character functions
 //
 //=============================================================================
-#include <stdio.h>
+#include <cstdio>
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"

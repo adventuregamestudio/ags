@@ -545,7 +545,7 @@ HSaveError WriteCharacters(Stream *out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].WriteToSavegame(out);
-        charextra[i].WriteToSavegame(out);
+        charextra[i].WriteToSavegame(out, game.chars[i]);
         Properties::WriteValues(play.charProps[i], out);
         if (loaded_game_file_version <= kGameVersion_272)
             WriteTimesRun272(*game.intrChar[i], out);
@@ -560,8 +560,8 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         return err;
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].ReadFromSavegame(in, cmp_ver);
-        charextra[i].ReadFromSavegame(in, cmp_ver);
+        game.chars[i].ReadFromSavegame(in);
+        charextra[i].ReadFromSavegame(in, game.chars[i], cmp_ver);
         Properties::ReadValues(play.charProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
             ReadTimesRun272(*game.intrChar[i], in);
@@ -1209,7 +1209,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        kCharSvgVersion_36109,
+        kCharSvgVersion_36114,
         kCharSvgVersion_350, // skip pre-alpha 3.5.0 ver
         WriteCharacters,
         ReadCharacters

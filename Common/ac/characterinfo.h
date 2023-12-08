@@ -162,12 +162,12 @@ struct CharacterInfo {
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;
     // TODO: move to runtime-only class (?)
-    void ReadFromSavegame(Common::Stream *in, int save_ver);
+    void ReadFromSavegame(Common::Stream *in);
     void WriteToSavegame(Common::Stream *out) const;
 
 private:
     // TODO: this is likely temp here until runtime class is factored out
-    void ReadFromFileImpl(Common::Stream *in, GameDataVersion data_ver, int save_ver);
+    void ReadFromFileImpl(Common::Stream *in, bool is_save);
     void WriteToFileImpl(Common::Stream *out, bool is_save) const;
 };
 

@@ -3206,8 +3206,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		character->MovementSpeedX = thisgame.chars[i].walkspeed;
 		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
 		character->NormalView = thisgame.chars[i].defview + 1;
-		character->RealName = gcnew String(thisgame.chars[i].name);
-		character->ScriptName = gcnew String(thisgame.chars[i].scrname);
+		character->RealName = gcnew String(thisgame.chars[i].name.GetCStr());
+		character->ScriptName = gcnew String(thisgame.chars[i].scrname.GetCStr());
 		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
 		character->SpeechColor = thisgame.chars[i].talkcolor;
 		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);
@@ -3296,7 +3296,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		cursor->HotspotX = thisgame.mcurs[i].hotx;
 		cursor->HotspotY = thisgame.mcurs[i].hoty;
 		cursor->ID = i;
-		cursor->Name = gcnew String(thisgame.mcurs[i].name);
+		cursor->Name = gcnew String(thisgame.mcurs[i].name.GetCStr());
 		cursor->StandardMode = ((thisgame.mcurs[i].flags & MCF_STANDARD) != 0);
 		cursor->View = thisgame.mcurs[i].view + 1;
 		if (cursor->View < 1) cursor->View = 0;
@@ -3331,7 +3331,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	{
 		InventoryItem^ invItem = gcnew InventoryItem();
     invItem->CursorImage = thisgame.invinfo[i].pic;
-		invItem->Description = gcnew String(thisgame.invinfo[i].name);
+		invItem->Description = gcnew String(thisgame.invinfo[i].name.GetCStr());
 		invItem->Image = thisgame.invinfo[i].pic;
 		invItem->HotspotX = thisgame.invinfo[i].hotx;
 		invItem->HotspotY = thisgame.invinfo[i].hoty;

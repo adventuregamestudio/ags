@@ -574,7 +574,7 @@ namespace AGS.Editor
             writer.Write(game.Characters.Count);
             writer.Write(game.PlayerCharacter.ID);
             writer.Write(game.Settings.MaximumScore);
-            writer.Write((short)(game.InventoryItems.Count + 1));
+            writer.Write((short)(game.InventoryItems.Count + 1)); // +1 for a dummy item at id 0
             writer.Write(new byte[2]); // alignment padding
             writer.Write(game.Dialogs.Count);
             writer.Write(0); // numdlgmessage
@@ -1437,6 +1437,7 @@ namespace AGS.Editor
             writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
+                // legacy name field of fixed length
                 WriteString(TextProperty(game.InventoryItems[i].Description), 24, writer);
                 writer.Write(new byte[4]); // null terminator plus 3 bytes padding
                 writer.Write(game.InventoryItems[i].Image);
@@ -1463,6 +1464,7 @@ namespace AGS.Editor
                     if (game.Cursors[i].AnimateOnlyWhenMoving) flags |= NativeConstants.MCF_ANIMMOVE;
                 }
                 else writer.Write((short)-1);
+                // legacy scriptname field of fixed length
                 WriteString(game.Cursors[i].Name, 9, writer);
                 writer.Write((byte)0); // null terminator
                 if (game.Cursors[i].StandardMode) flags |= NativeConstants.MCF_STANDARD;
@@ -1584,7 +1586,8 @@ namespace AGS.Editor
                 }
                 writer.Write((short)0);                                // actx
                 writer.Write((short)0);                                // acty
-                WriteString(TextProperty(character.RealName), 40, writer);           // name
+                // legacy name and scriptname fields of fixed length
+                WriteString(TextProperty(character.RealName), 40, writer); // name
                 WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname
                 writer.Write((char)1);                                 // on
                 writer.Write((byte)0);                                 // alignment padding
@@ -1695,6 +1698,7 @@ namespace AGS.Editor
             {
                 AudioClip clip = allClips[i];
                 writer.Write(clip.ID); // id
+                // legacy scriptname and filename fields of fixed length
                 WriteString(SafeTruncate(clip.ScriptName, 29), 30, writer); // scriptName
                 WriteString(SafeTruncate(clip.CacheFileNameWithoutPath, 14), 15, writer); // fileName
                 writer.Write((byte)clip.BundlingType); // bundlingType
@@ -1730,6 +1734,7 @@ namespace AGS.Editor
 
             WriteExtension("v360_fonts", WriteExt_360Fonts, writer, game, errors);
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, game, errors);
+            WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, game, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1766,6 +1771,39 @@ namespace AGS.Editor
                 writer.Write((int)0);
                 writer.Write((int)0);
                 writer.Write((int)0);
+            }
+        }
+
+        // >= 3.6.1: object script names and names of unrestricted length
+        // this saves only those properties that were restricted in length previously
+        private static void WriteExt_361ObjNames(BinaryWriter writer, Game game, CompileMessages errors)
+        {
+            // Characters
+            writer.Write((int)game.Characters.Count);
+            for (int i = 0; i < game.Characters.Count; ++i)
+            {
+                FilePutString(game.Characters[i].ScriptName, writer);
+                FilePutString(TextProperty(game.Characters[i].RealName), writer);
+            }
+            // Inventory items
+            writer.Write((int)game.InventoryItems.Count + 1); // +1 for a dummy item at id 0
+            writer.Write((int)0); // inventory slot 0 is unused, so its name is just a single 0-length
+            for (int i = 0; i < game.InventoryItems.Count; ++i)
+            {
+                FilePutString(TextProperty(game.InventoryItems[i].Description), writer);
+            }
+            // Mouse cursors
+            writer.Write((int)game.Cursors.Count);
+            for (int i = 0; i < game.Cursors.Count; ++i)
+            {
+                FilePutString(game.Cursors[i].ScriptID, writer);
+            }
+            // Audio clips
+            writer.Write((int)game.AudioClips.Count);
+            for (int i = 0; i < game.AudioClips.Count; ++i)
+            {
+                FilePutString(game.AudioClips[i].ScriptName, writer);
+                FilePutString(game.AudioClips[i].CacheFileNameWithoutPath, writer);
             }
         }
 

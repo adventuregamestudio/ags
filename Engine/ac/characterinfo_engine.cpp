@@ -82,7 +82,7 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, st
         if (loop == views[view].numLoops) // view has no frames?!
         { // amazingly enough there are old games that allow this to happen...
             if (loaded_game_file_version >= kGameVersion_300)
-                quitprintf("!Character %s is assigned view %d that has no frames!", name, view);
+                quitprintf("!Character %s is assigned view %d that has no frames!", scrname.GetCStr(), view);
             loop = 0;
         }
     }
@@ -210,7 +210,8 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
       }
 
       if (loop >= views[view].numLoops)
-        quitprintf("Unable to render character %d (%s) because loop %d does not exist in view %d", index_id, name, loop, view + 1);
+        quitprintf("Unable to render character %d (%s) because loop %d does not exist in view %d",
+            index_id, scrname.GetCStr(), loop, view + 1);
 
       // check don't overflow loop
       int framesInLoop = views[view].loops[loop].numFrames;
@@ -222,7 +223,8 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
           frame = 0;
 
         if (framesInLoop < 1)
-          quitprintf("Unable to render character %d (%s) because there are no frames in loop %d", index_id, name, loop);
+          quitprintf("Unable to render character %d (%s) because there are no frames in loop %d",
+              index_id, scrname.GetCStr(), loop);
       }
 
       doing_nothing = 0; // still walking?
@@ -449,7 +451,7 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
       idleleft--;
       if (idleleft == -1) {
         int useloop=loop;
-        debug_script_log("%s: Now idle (view %d)", scrname, idleview+1);
+        debug_script_log("%s: Now idle (view %d)", scrname.GetCStr(), idleview+1);
 		Character_LockView(this, idleview+1);
         // SetCharView resets it to 0
         idleleft = -2;

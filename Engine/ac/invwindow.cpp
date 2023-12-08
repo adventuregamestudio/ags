@@ -258,7 +258,7 @@ int InventoryScreen::Redraw()
     }
 
     for (int i = 0; i < charextra[game.playercharacter].invorder_count; ++i) {
-        if (game.invinfo[charextra[game.playercharacter].invorder[i]].name[0]!=0) {
+        if (!game.invinfo[charextra[game.playercharacter].invorder[i]].name.IsEmpty()) {
             dii[numitems].num = charextra[game.playercharacter].invorder[i];
             dii[numitems].sprnum = game.invinfo[charextra[game.playercharacter].invorder[i]].pic;
             int snn=dii[numitems].sprnum;

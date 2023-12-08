@@ -72,7 +72,7 @@ void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {
 }
 
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
-  return CreateNewScriptString(get_translation(game.invinfo[invitem->id].name));
+  return CreateNewScriptString(get_translation(game.invinfo[invitem->id].name.GetCStr()));
 }
 
 int InventoryItem_GetGraphic(ScriptInvItem *iitem) {

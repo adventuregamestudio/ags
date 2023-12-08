@@ -11,27 +11,26 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_INVENTORYITEMINFO_H
 #define __AC_INVENTORYITEMINFO_H
 
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
+#include "util/stream.h"
+#include "util/string.h"
 
 #define IFLG_STARTWITH 1
-#define MAX_INVENTORY_NAME_LENGTH 25
+#define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
 struct InventoryItemInfo {
-    char name[MAX_INVENTORY_NAME_LENGTH];
+    AGS::Common::String name;
     int  pic;
     int  cursorPic, hotx, hoty;
     int  reserved[5];
-    char flags;
+    uint8_t flags; // IFLG_STARTWITH
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in);
+    void WriteToFile(AGS::Common::Stream *out);
+    void ReadFromSavegame(AGS::Common::Stream *in);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

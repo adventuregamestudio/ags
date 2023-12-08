@@ -50,6 +50,8 @@
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "media/audio/openalsource.h"
+#include "media/audio/sdldecoder.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "plugin/plugin_engine.h"
@@ -97,7 +99,7 @@ extern RuntimeScriptValue GlobalReturnValue;
 // **************** PLUGIN IMPLEMENTATION ****************
 
 
-const int PLUGIN_API_VERSION = 28;
+const int PLUGIN_API_VERSION = 29;
 struct EnginePlugin
 {
     EnginePlugin() {
@@ -825,6 +827,60 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 {
     return reinterpret_cast<::IAGSStream*>(
         get_file_stream(fhandle, "IAGSEngine::GetFileStreamByHandle"));
+}
+
+class AGSAudioPlayer : public IAGSAudioPlayer
+{
+public:
+    AGSAudioPlayer(std::unique_ptr<OpenAlSource> &&src)
+        : _audioOut(std::move(src))
+    {
+        _audioOut->Play();
+    }
+    virtual ~AGSAudioPlayer() = default;
+
+    // Tells which version of the plugin API this object corresponds to;
+    // this lets users know which of the following methods are valid to use.
+    int    GetVersion() override
+    {
+        return PLUGIN_API_VERSION;
+    }
+    void   SetConfig(AGSAudioPlayConfig *config) override
+    {
+        _audioOut->SetVolume(config->Volume);
+    }
+    void   Close() override
+    {
+        delete this; // darn...
+    }
+    void   Pause() override
+    {
+        _audioOut->Pause();
+    }
+    void   Resume() override
+    {
+        _audioOut->Resume();
+    }
+    size_t PutData(AGSAudioFrame *frame) override
+    {
+        SoundBuffer buf(frame->Data, frame->DataSize, frame->Timestamp);
+        size_t put_sz = _audioOut->PutData(buf);
+        _audioOut->Poll();
+        return put_sz;
+    }
+
+private:
+    std::unique_ptr<OpenAlSource> _audioOut;
+};
+
+IAGSAudioPlayer *IAGSEngine::OpenAudioPlayer(AGSAudioFormat *in_format, AGSAudioPlayConfig *config)
+{
+    SDL_AudioFormat sdl_fmt = in_format->Format; // todo convert
+    int chans = in_format->Channels;
+    int freq = in_format->Freq;
+    auto *player = new AGSAudioPlayer(
+        std::unique_ptr<OpenAlSource>(new OpenAlSource(sdl_fmt, chans, freq)));
+    return player; // todo: should save somewhere for safe close on exit??
 }
 
 // *********** General plugin implementation **********

@@ -405,9 +405,10 @@ void set_new_cursor_graphic (int spriteslot)
     {
         mouse_cur_bmp = spriteset[spriteslot];
     }
-    mouse_cur_pic = spriteslot;
 
-    alpha_blend_cursor = (game.SpriteInfos[spriteslot].Flags & SPF_ALPHACHANNEL) != 0;
+    mouse_cur_pic = spriteslot;
+    alpha_blend_cursor = (spriteslot >= 0) ?
+        ((game.SpriteInfos[spriteslot].Flags & SPF_ALPHACHANNEL) != 0) : false;
     update_cached_mouse_cursor(mouse_cur_bmp);
 }
 

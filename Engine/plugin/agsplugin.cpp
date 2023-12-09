@@ -57,6 +57,7 @@
 #include "plugin/plugin_engine.h"
 #include "plugin/plugin_builtin.h"
 #include "util/library.h"
+#include "util/memory_compat.h"
 #include "util/string.h"
 #include "util/wgt2allg.h"
 
@@ -879,7 +880,7 @@ IAGSAudioPlayer *IAGSEngine::OpenAudioPlayer(AGSAudioFormat *in_format, AGSAudio
     int chans = in_format->Channels;
     int freq = in_format->Freq;
     auto *player = new AGSAudioPlayer(
-        std::unique_ptr<OpenAlSource>(new OpenAlSource(sdl_fmt, chans, freq)));
+        std::make_unique<OpenAlSource>(sdl_fmt, chans, freq));
     return player; // todo: should save somewhere for safe close on exit??
 }
 

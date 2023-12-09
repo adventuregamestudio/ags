@@ -36,9 +36,10 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
-#include "util/stream.h"
 #include "media/audio/audio_system.h"
 #include "media/audio/openal.h"
+#include "util/memory_compat.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -73,7 +74,7 @@ HError VideoPlayer::Open(const String &name, int flags)
     {
         if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
         {
-            _audioOut.reset(new OpenAlSource(_audioFormat, _audioChannels, _audioFreq));
+            _audioOut = std::make_unique<OpenAlSource>(_audioFormat, _audioChannels, _audioFreq);
             _audioOut->Play();
             _wantAudio = true;
         }

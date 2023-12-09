@@ -33,12 +33,9 @@ namespace Engine
 class OpenAlSource
 {
 public:
-    // Max sound buffers to queue before/during processing
-    static const ALuint MaxQueue = 2;
-
     // Initializes Al source for the given format; if there's no direct format equivalent
     // found, setups a resampler.
-    OpenAlSource(SDL_AudioFormat format, int channels, int freq);
+    OpenAlSource(SDL_AudioFormat format, int channels, int freq, uint32_t max_queue = 1024u);
     OpenAlSource(OpenAlSource&& src);
     ~OpenAlSource();
 
@@ -87,7 +84,13 @@ private:
     PlaybackState _playState = PlayStateInitial;
     float _speed = 1.f; // change in playback rate
     float _predictTs = 0.f; // next timestamp prediction
-    unsigned _queued = 0u;
+    // Max sound buffers to queue during processing.
+    // TODO: replace limit of buffer count with limit of memory and/or duration.
+    // TODO: add a comment explaining why do we have to set very small queue limit
+    // for regular audio slot play (to decrease custom effects lag),
+    // alternatively have this logic externally to OpenALSource, somewhere in AudioCoreSlot.
+    uint32_t _maxQueue = 1024u;
+    uint32_t _queued = 0u;
 
     // SDL resampler state, in case dynamic resampling in necessary
     SDLResampler _resampler;

@@ -77,7 +77,9 @@ AudioCoreSlot::AudioCoreSlot(int handle, std::unique_ptr<SDLDecoder> decoder)
     : handle_(handle), _decoder(std::move(decoder))
 {
     _source = std::make_unique<OpenAlSource>(
-        _decoder->GetFormat(), _decoder->GetChannels(), _decoder->GetFreq());
+        _decoder->GetFormat(), _decoder->GetChannels(), _decoder->GetFreq(),
+        2 /* TODO: make this a constant,
+          and add comment explaining why we keep this queue limit low for now */);
 }
 
 void AudioCoreSlot::Init()

@@ -300,17 +300,15 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s", SDL_GetError());
 #endif
-#if AGS_PLATFORM_OS_IOS
   // minimum number of bits for the depth buffer
   if (SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DEPTH_SIZE: %s", SDL_GetError());
-    if (SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8) != 0 ||
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8) != 0 ||
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8) != 0)
-    {
-      SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting one of the attributes SDL_GL_(RED|GREEN| BLUE)_SIZE: %s", SDL_GetError());
-    }
-#endif
+  if (SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8) != 0 ||
+      SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8) != 0 ||
+      SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8) != 0)
+  {
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting one of the attributes SDL_GL_(RED|GREEN| BLUE)_SIZE: %s", SDL_GetError());
+  }
   if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
     SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s", SDL_GetError());
 

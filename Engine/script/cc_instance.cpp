@@ -545,7 +545,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
         // originally commented -- CHECKME: could this be used in very old versions of AGS?
         //      code[fixup] += (long)&code[0];
         // This is a program counter value, presumably will be used as SCMD_CALL argument
-        arg.SetInt32((int32_t)code);
+        arg.SetInt32(static_cast<int32_t>(code));
         return true;
     case FIXUP_STRING:
         arg.SetStringLiteral(strings + code);
@@ -567,7 +567,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
     case FIXUP_DATADATA:
         return false; // placeholder, fail at this as not supposed to be here
     case FIXUP_STACK:
-        arg = GetStackPtrOffsetFw(stack, (int32_t)code);
+        arg = GetStackPtrOffsetFw(stack, static_cast<int32_t>(code));
         return true;
     default:
         cc_error("internal fixup type error: %d", fixup);
@@ -636,13 +636,13 @@ int ccInstance::Run(int32_t curpc)
         switch (codeOp.ArgCount)
         {
         case 3:
-            codeOp.Args[2].SetInt32((int32_t)codeInst->code[pc + 3]);
+            codeOp.Args[2].SetInt32(static_cast<int32_t>(codeInst->code[pc + 3]));
             /* fall-through */
         case 2:
-            codeOp.Args[1].SetInt32((int32_t)codeInst->code[pc + 2]);
+            codeOp.Args[1].SetInt32(static_cast<int32_t>(codeInst->code[pc + 2]));
             /* fall-through */
         case 1:
-            codeOp.Args[0].SetInt32((int32_t)codeInst->code[pc + 1]);
+            codeOp.Args[0].SetInt32(static_cast<int32_t>(codeInst->code[pc + 1]));
             break;
         default:
             break;
@@ -1287,7 +1287,7 @@ int ccInstance::Run(int32_t curpc)
             }
             callAddr /= sizeof(intptr_t); // size of ccScript::code elements
 
-            if (Run((int32_t)callAddr))
+            if (Run(static_cast<int32_t>(callAddr)))
                 return -1;
 
             runningInst = wasRunning;
@@ -1799,7 +1799,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         globaldata = nullptr;
         if (globaldatasize > 0)
         {
-            globaldata = (char *)malloc(globaldatasize);
+            globaldata = static_cast<char *>(malloc(globaldatasize));
             memcpy(globaldata, scri->globaldata, globaldatasize);
         }
 
@@ -1807,7 +1807,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         code = nullptr;
         if (codesize > 0)
         {
-            code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
+            code = static_cast<intptr_t *>(malloc(codesize * sizeof(intptr_t)));
             // 64 bit: Read code into 8 byte array, necessary for being able to perform
             // relocations on the references.
             for (int i = 0; i < codesize; ++i)
@@ -1870,7 +1870,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         {
             // NOTE: unfortunately, there seems to be no way to know if
             // that's an extender function that expects object pointer
-            exports[i].SetCodePtr(((intptr_t)eaddr * sizeof(intptr_t) + reinterpret_cast<uint8_t*>(&code[0])));
+            exports[i].SetCodePtr((static_cast<intptr_t>(eaddr) * sizeof(intptr_t) + reinterpret_cast<uint8_t*>(&code[0])));
         }
         else if (etype == EXPORT_DATA)
         {
@@ -2144,10 +2144,10 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         {
         case FIXUP_GLOBALDATA:
             {
-                ScriptVariable *gl_var = FindGlobalVar((int32_t)code[fixup]);
+                ScriptVariable *gl_var = FindGlobalVar(static_cast<int32_t>(code[fixup]));
                 if (!gl_var)
                 {
-                    cc_error_fixups(scri, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, (int32_t)code[fixup]);
+                    cc_error_fixups(scri, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, static_cast<int32_t>(code[fixup]));
                     return false;
                 }
                 code[fixup] = (intptr_t)gl_var;

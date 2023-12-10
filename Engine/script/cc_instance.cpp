@@ -606,7 +606,6 @@ int ccInstance::Run(int32_t curpc)
     unsigned loopCheckIterations = 0u; // loop iterations accumulated only if check is enabled
 
     const auto timeout = std::chrono::milliseconds(_timeoutCheckMs);
-    const auto timeout_abort = std::chrono::milliseconds(_timeoutAbortMs);
     _lastAliveTs = AGS_FastClock::now();
 
     /* Main bytecode execution loop */
@@ -942,7 +941,6 @@ int ccInstance::Run(int32_t curpc)
         case SCMD_NOTREG:
         {
             auto       &reg1 = registers[codeOp.Arg1i()];
-            const auto &reg2 = registers[codeOp.Arg2i()];
             reg1 = !(reg1);
             break;
         }

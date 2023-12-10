@@ -665,8 +665,9 @@ DLLEXPORT void   AGS_EngineShutdown (void);
 DLLEXPORT int    AGS_EngineOnEvent (int, int);
 DLLEXPORT int    AGS_EngineDebugHook(const char *, int, int);
 DLLEXPORT void   AGS_EngineInitGfx(const char* driverID, void *data); 
-// We export this to verify that we are an AGS Plugin
-DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
+// Export this to let engine verify that this is a compatible AGS Plugin;
+// exact return value is not essential, but should be non-zero for consistency.
+DLLEXPORT int    AGS_PluginV2 ();
 
 #endif // THIS_IS_THE_PLUGIN
 

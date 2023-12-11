@@ -3076,7 +3076,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
   game->Settings->EnforceNewAudio = false;
 	game->Settings->EnforceObjectBasedScript = (thisgame.options[OPT_STRICTSCRIPTING] != 0);
 	game->Settings->FontsForHiRes = (thisgame.options[OPT_HIRES_FONTS] != 0);
-	game->Settings->GameName = gcnew String(thisgame.gamename);
+	game->Settings->GameName = gcnew String(thisgame.gamename.GetCStr());
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;
     game->Settings->SpriteAlphaStyle = SpriteAlphaStyle::Classic;
@@ -3103,7 +3103,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
-    game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
+    game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename.GetCStr());
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
     game->Settings->AllowRelativeAssetResolutions = (thisgame.options[OPT_RELATIVEASSETRES] != 0);
     game->Settings->ScaleMovementSpeedWithMaskResolution = (thisgame.options[OPT_WALKSPEEDABSOLUTE] == 0);

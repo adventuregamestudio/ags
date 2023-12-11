@@ -1778,6 +1778,8 @@ namespace AGS.Editor
         // this saves only those properties that were restricted in length previously
         private static void WriteExt_361ObjNames(BinaryWriter writer, Game game, CompileMessages errors)
         {
+            FilePutString(game.Settings.GameName, writer);
+            FilePutString(game.Settings.SaveGameFolderName, writer);
             // Characters
             writer.Write((int)game.Characters.Count);
             for (int i = 0; i < game.Characters.Count; ++i)

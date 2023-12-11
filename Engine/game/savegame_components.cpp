@@ -1195,7 +1195,7 @@ ComponentHandler ComponentHandlers[] =
     // at which a change was introduced, represented as NN,NN,NN,NN.
     {
         "Game State",
-        kGSSvgVersion_350_10,
+        kGSSvgVersion_361_14,
         kGSSvgVersion_Initial,
         WriteGameState,
         ReadGameState

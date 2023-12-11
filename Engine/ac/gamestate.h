@@ -49,6 +49,7 @@ struct ScriptOverlay;
 
 #define MAX_GAME_STATE_NAME_LENGTH 100
 #define GAME_STATE_RESERVED_INTS 5
+#define LEGACY_GAMESTATE_GAMENAMELENGTH 100
 
 // Savegame data format
 enum GameStateSvgVersion
@@ -58,6 +59,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_350_9     = 2,
     kGSSvgVersion_350_10    = 3,
+    kGSSvgVersion_361_14    = 4,
 };
 
 
@@ -237,7 +239,7 @@ struct GameState
     char  playmp3file_name[PLAYMP3FILE_MAX_FILENAME_LEN]{};
     char  globalstrings[MAXGLOBALSTRINGS][MAX_MAXSTRLEN]{};
     char  lastParserEntry[MAX_MAXSTRLEN]{};
-    char  game_name[MAX_GAME_STATE_NAME_LENGTH]{};
+    AGS::Common::String game_name;
     int   ground_level_areas_disabled = 0;
     int   next_screen_transition = 0;
     int   gamma_adjustment = 0;

@@ -51,6 +51,9 @@ using namespace AGS; // FIXME later
 #define UNIFORM_WALK_SPEED  0
 #define FOLLOW_ALWAYSONTOP  0x7ffe
 
+// Length of deprecated character name field, in bytes
+#define MAX_CHAR_NAME_LEN 40
+
 // Character's internal flags, packed in CharacterInfo::animating
 #define CHANIM_MASK         0xFF
 #define CHANIM_ON           0x01
@@ -112,7 +115,7 @@ struct CharacterInfo {
     short walkspeed, animspeed;
     short inv[MAX_INV];
     short actx, acty;
-    char  name[40];
+    char  name[MAX_CHAR_NAME_LEN];
     char  scrname[MAX_SCRIPT_NAME_LEN];
     char  on;
 

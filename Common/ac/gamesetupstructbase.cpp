@@ -11,15 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/game_version.h"
 #include "ac/wordsdictionary.h"
 #include "script/cc_script.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 GameSetupStructBase::GameSetupStructBase()
     : numviews(0)
@@ -139,7 +139,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    in->Read(&gamename[0], GAME_NAME_LENGTH);
+    StrUtil::ReadCStrCount(gamename, in, GAME_NAME_LENGTH);
     in->ReadInt16(); // alignment padding to int32 (gamename: 50 -> 52 bytes)
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
     if (game_ver < kGameVersion_340_4)
@@ -193,7 +193,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    out->Write(&gamename[0], GAME_NAME_LENGTH);
+    out->Write(gamename, GAME_NAME_LENGTH);
     out->WriteInt16(0); // alignment padding to int32
     out->WriteArrayOfInt32(options, MAX_OPTIONS);
     out->Write(&paluses[0], sizeof(paluses));

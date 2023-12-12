@@ -266,8 +266,7 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             if (argc < ee+2)
                 break;
             play.takeover_data = atoi (argv[ee + 1]);
-            strncpy (play.takeover_from, argv[ee + 2], 49);
-            play.takeover_from[49] = 0;
+            snprintf(play.takeover_from, sizeof(play.takeover_from), "%s", argv[ee + 2]);
             ee += 2;
         }
         else if (ags_stricmp(arg, "--clear-cache-on-room-change") == 0)

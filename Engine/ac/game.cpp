@@ -704,8 +704,7 @@ const char *Game_GetName() {
 }
 
 void Game_SetName(const char *newName) {
-    strncpy(play.game_name, newName, 99);
-    play.game_name[99] = 0;
+    snprintf(play.game_name, MAX_GAME_STATE_NAME_LENGTH, "%s", newName);
     sys_window_set_title(play.game_name);
     GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }

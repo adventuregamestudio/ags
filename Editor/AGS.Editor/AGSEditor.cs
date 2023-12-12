@@ -1445,6 +1445,8 @@ namespace AGS.Editor
             if (resetFile)
                 Utilities.TryDeleteFile(configFilePath);
 
+            RuntimeSetup setup = _game.DefaultSetup;
+
             var sections = new Dictionary<string, Dictionary<string, string>>();
             sections.Add("graphics", new Dictionary<string, string>());
             sections.Add("language", new Dictionary<string, string>());
@@ -1453,56 +1455,55 @@ namespace AGS.Editor
             sections.Add("sound", new Dictionary<string, string>());
             sections.Add("touch", new Dictionary<string, string>());
 
-            sections["graphics"]["driver"] = GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver);
-            sections["graphics"]["windowed"] = _game.DefaultSetup.Windowed ? "1" : "0";
-            sections["graphics"]["fullscreen"] =
-                _game.DefaultSetup.FullscreenDesktop ? "full_window" : "desktop";
-            if (_game.DefaultSetup.GameScaling == GameScaling.Integer)
+            sections["graphics"]["driver"] = GetGfxDriverConfigID(setup.GraphicsDriver);
+            sections["graphics"]["windowed"] = setup.Windowed ? "1" : "0";
+            sections["graphics"]["fullscreen"] = setup.FullscreenDesktop ? "full_window" : "desktop";
+            if (setup.GameScaling == GameScaling.Integer)
                 sections["graphics"]["window"] =
-                    String.Format("x{0}", _game.DefaultSetup.GameScalingMultiplier);
+                    String.Format("x{0}", setup.GameScalingMultiplier);
             else
                 sections["graphics"]["window"] = "desktop";
 
-            sections["graphics"]["game_scale_fs"] = MakeGameScalingConfig(_game.DefaultSetup.FullscreenGameScaling);
-            sections["graphics"]["game_scale_win"] = MakeGameScalingConfig(_game.DefaultSetup.GameScaling);
+            sections["graphics"]["game_scale_fs"] = MakeGameScalingConfig(setup.FullscreenGameScaling);
+            sections["graphics"]["game_scale_win"] = MakeGameScalingConfig(setup.GameScaling);
 
-            sections["graphics"]["filter"] = _game.DefaultSetup.GraphicsFilter;
-            sections["graphics"]["vsync"] = _game.DefaultSetup.VSync ? "1" : "0";
-            sections["graphics"]["antialias"] = _game.DefaultSetup.AAScaledSprites ? "1" : "0";
+            sections["graphics"]["filter"] = setup.GraphicsFilter;
+            sections["graphics"]["vsync"] = setup.VSync ? "1" : "0";
+            sections["graphics"]["antialias"] = setup.AAScaledSprites ? "1" : "0";
             bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
-                _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
+                setup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
             sections["graphics"]["render_at_screenres"] = render_at_screenres ? "1" : "0";
             string[] rotation_str = new string[] { "unlocked", "portrait", "landscape" };
-            sections["graphics"]["rotation"] = rotation_str[(int)_game.DefaultSetup.Rotation];
+            sections["graphics"]["rotation"] = rotation_str[(int)setup.Rotation];
 
-            bool audio_enabled = _game.DefaultSetup.DigitalSound != RuntimeAudioDriver.Disabled;
+            bool audio_enabled = setup.DigitalSound != RuntimeAudioDriver.Disabled;
             sections["sound"]["enabled"] = audio_enabled ? "1" : "0";
             sections["sound"]["driver"] = ""; // always default
-            sections["sound"]["usespeech"] = _game.DefaultSetup.UseVoicePack ? "1" : "0";
+            sections["sound"]["usespeech"] = setup.UseVoicePack ? "1" : "0";
 
-            sections["language"]["translation"] = _game.DefaultSetup.Translation;
-            sections["mouse"]["auto_lock"] = _game.DefaultSetup.AutoLockMouse ? "1" : "0";
-            sections["mouse"]["speed"] = _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture);
+            sections["language"]["translation"] = setup.Translation;
+            sections["mouse"]["auto_lock"] = setup.AutoLockMouse ? "1" : "0";
+            sections["mouse"]["speed"] = setup.MouseSpeed.ToString(CultureInfo.InvariantCulture);
 
             // Touch input
             string[] emulate_mouse_str = new string[] { "off", "one_finger", "two_fingers" };
             sections["touch"]["emul_mouse_mode"] =
-                emulate_mouse_str[(int)_game.DefaultSetup.TouchToMouseEmulation];
+                emulate_mouse_str[(int)setup.TouchToMouseEmulation];
             sections["touch"]["emul_mouse_relative"] =
-                ((int)_game.DefaultSetup.TouchToMouseMotionMode).ToString();
+                ((int)setup.TouchToMouseMotionMode).ToString();
 
             // Note: the cache sizes are written in KB (while we have it in MB on the editor pane)
-            sections["graphics"]["sprite_cache_size"] = (_game.DefaultSetup.SpriteCacheSize * 1024).ToString();
-            sections["graphics"]["texture_cache_size"] = (_game.DefaultSetup.TextureCacheSize * 1024).ToString();
-            sections["sound"]["cache_size"] = (_game.DefaultSetup.SoundCacheSize * 1024).ToString();
+            sections["graphics"]["sprite_cache_size"] = (setup.SpriteCacheSize * 1024).ToString();
+            sections["graphics"]["texture_cache_size"] = (setup.TextureCacheSize * 1024).ToString();
+            sections["sound"]["cache_size"] = (setup.SoundCacheSize * 1024).ToString();
 
-            sections["misc"]["user_data_dir"] = CustomPathForConfig(_game.DefaultSetup.UseCustomSavePath, _game.DefaultSetup.CustomSavePath);
-            sections["misc"]["shared_data_dir"] = CustomPathForConfig(_game.DefaultSetup.UseCustomAppDataPath, _game.DefaultSetup.CustomAppDataPath);
-            sections["misc"]["titletext"] = _game.DefaultSetup.TitleText;
+            sections["misc"]["user_data_dir"] = CustomPathForConfig(setup.UseCustomSavePath, setup.CustomSavePath);
+            sections["misc"]["shared_data_dir"] = CustomPathForConfig(setup.UseCustomAppDataPath, setup.CustomAppDataPath);
+            sections["misc"]["titletext"] = setup.TitleText;
 
             if(_game.Settings.DebugMode) // Do not write show_fps in a release build, this is only intended for the developer
             {
-                sections["misc"]["show_fps"] = _game.DefaultSetup.ShowFPS ? "1" : "0";
+                sections["misc"]["show_fps"] = setup.ShowFPS ? "1" : "0";
             }
 
             NativeProxy.Instance.WriteIniFile(configFilePath, sections, true);

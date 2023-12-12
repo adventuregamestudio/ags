@@ -15,8 +15,9 @@
 #include <string.h>
 #include "ac/game_version.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 
 void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver, int save_ver)
@@ -64,8 +65,8 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver, int save_
     in->ReadArrayOfInt16(inv, MAX_INV);
     actx = in->ReadInt16();
     acty = in->ReadInt16();
-    in->Read(name, 40);
-    in->Read(scrname, MAX_SCRIPT_NAME_LEN);
+    StrUtil::ReadCStrCount(name, in, MAX_CHAR_NAME_LEN);
+    StrUtil::ReadCStrCount(scrname, in, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
 
     if ((data_ver > kGameVersion_Undefined && data_ver < kGameVersion_360_16) ||

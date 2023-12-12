@@ -18,6 +18,7 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/interactions.h"
 #include "util/alignedstream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -26,7 +27,6 @@ GameSetupStruct::GameSetupStruct()
     , roomCount(0)
     , scoreClipID(0)
 {
-    memset(invinfo, 0, sizeof(invinfo));
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
     memset(guid, 0, sizeof(guid));
     memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
@@ -103,9 +103,9 @@ void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion dat
 {
     if (data_ver > kGameVersion_272) // only 3.x
     {
-        in->Read(&guid[0], MAX_GUID_LENGTH);
-        in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
-        in->Read(&saveGameFolderName[0], MAX_SG_FOLDER_LEN);
+        StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
+        StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
+        StrUtil::ReadCStrCount(saveGameFolderName, in, MAX_SG_FOLDER_LEN);
     }
 }
 

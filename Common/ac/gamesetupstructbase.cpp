@@ -11,15 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/game_version.h"
 #include "ac/wordsdictionary.h"
 #include "script/cc_script.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 GameSetupStructBase::GameSetupStructBase()
     : numviews(0)
@@ -149,7 +149,7 @@ void GameSetupStructBase::OnResolutionSet()
 
 void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver)
 {
-    in->Read(&gamename[0], GAME_NAME_LENGTH);
+    StrUtil::ReadCStrCount(gamename, in, GAME_NAME_LENGTH);
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
     if (game_ver < kGameVersion_340_4)
     { // TODO: this should probably be possible to deduce script API level
@@ -201,7 +201,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver)
 
 void GameSetupStructBase::WriteToFile(Stream *out) const
 {
-    out->Write(&gamename[0], GAME_NAME_LENGTH);
+    out->Write(gamename, GAME_NAME_LENGTH);
     out->WriteArrayOfInt32(options, MAX_OPTIONS);
     out->Write(&paluses[0], sizeof(paluses));
     // colors are an array of chars

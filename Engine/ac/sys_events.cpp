@@ -61,7 +61,7 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event, bool old_keyhandle)
             ki.Key = static_cast<eAGSKeyCode>(ascii[0]);
             ki.CompatKey = ki.Key;
         }
-        strncpy(ki.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
+        snprintf(ki.Text, KeyInput::UTF8_ARR_SIZE, "%s", event.text.text);
         Utf8::GetChar(event.text.text, sizeof(SDL_TextInputEvent::text), &ki.UChar);
         return ki;
     case SDL_KEYDOWN:

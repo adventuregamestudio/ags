@@ -192,7 +192,7 @@ static const char *EncryptText(std::vector<char> &en_buf, const String &s)
 {
     if (en_buf.size() < s.GetLength() + 1)
         en_buf.resize(s.GetLength() + 1);
-    strncpy(&en_buf.front(), s.GetCStr(), s.GetLength() + 1);
+    memcpy(&en_buf.front(), s.GetCStr(), s.GetLength() + 1);
     encrypt_text(&en_buf.front());
     return &en_buf.front();
 }

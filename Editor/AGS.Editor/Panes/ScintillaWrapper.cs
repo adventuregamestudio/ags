@@ -420,6 +420,8 @@ namespace AGS.Editor
 
             scintillaControl1.SetFoldFlags(FoldFlags.LineAfterContracted); // Draw line below if collapsed
             scintillaControl1.Margins[2].Sensitive = true;
+
+            scintillaControl1.AutomaticFold = ScintillaNET.AutomaticFold.Show | ScintillaNET.AutomaticFold.Change;
         }
 
         void scintillaControl1_MarginClick(object sender, MarginClickEventArgs e)

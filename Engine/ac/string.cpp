@@ -324,28 +324,16 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     return lines.Count();
 }
 
-// FIXME!!
-// This is a ugly "safety fix" that tests whether the script tries
+// This is a somewhat ugly safety fix that tests whether the script tries
 // to write inside the Character's struct (e.g. char.name?), and truncates
-// the write limit... except it does not use full length anymore (40 now).
-size_t MAXSTRLEN = MAX_MAXSTRLEN;
-void check_strlen(char*ptt) {
-    MAXSTRLEN = MAX_MAXSTRLEN;
+// the write limit accordingly.
+size_t check_strcapacity(char *ptt)
+{
     uintptr_t charstart = (uintptr_t)&game.chars[0];
     uintptr_t charend = charstart + sizeof(CharacterInfo)*game.numcharacters;
     if (((uintptr_t)&ptt[0] >= charstart) && ((uintptr_t)&ptt[0] <= charend))
-        MAXSTRLEN=30;
-}
-
-void my_strncpy(char *dest, const char *src, int len) {
-    // the normal strncpy pads out the string with zeros up to the
-    // max length -- we don't want that
-    if (strlen(src) >= (unsigned)len) {
-        strncpy(dest, src, len);
-        dest[len] = 0;
-    }
-    else
-        strcpy(dest, src);
+        return sizeof(CharacterInfo::name);
+    return MAX_MAXSTRLEN;
 }
 
 //=============================================================================

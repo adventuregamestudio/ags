@@ -42,8 +42,6 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern AGSPlatformDriver *platform;
 
-extern size_t MAXSTRLEN;
-
 // object-based File routines
 
 int File_Exists(const char *fnmm) {
@@ -139,8 +137,8 @@ static bool File_ReadRawLineImpl(sc_File *fil, char* buffer, size_t buf_len) {
 }
 
 void File_ReadRawLine(sc_File *fil, char* buffer) {
-  check_strlen(buffer);
-  File_ReadRawLineImpl(fil, buffer, MAXSTRLEN);
+  size_t buflen = check_strcapacity(buffer);
+  File_ReadRawLineImpl(fil, buffer, buflen);
 }
 
 const char* File_ReadRawLineBack(sc_File *fil) {

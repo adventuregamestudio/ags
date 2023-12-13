@@ -492,7 +492,7 @@ namespace AGS.Editor
                 splitSize, baseFileName, makeFileNameAssumptions);
         }
 
-        private static void WriteGameSetupStructBase(BinaryWriter writer, Game game)
+        private static void WriteGameSetupStructBase(BinaryWriter writer, Game game, out long ext_off_pos)
         {
             // NOTE: historically the struct was saved by dumping whole memory
             // into the file stream, which added padding from memory alignment;
@@ -601,7 +601,12 @@ namespace AGS.Editor
             writer.Write(game.LipSync.DefaultFrame);
             writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
                 game.Settings.InventoryHotspotMarker.Image : 0);
-            writer.Write(new byte[17 * sizeof(int)]); // reserved; 17 ints
+            writer.Write(new byte[16 * sizeof(int)]); // reserved; 16 ints
+
+            // reserve a 32-bit position for extension offset
+            ext_off_pos = writer.BaseStream.Position;
+            writer.Write((uint)0);
+
             for (int i = 0; i < 500; ++i) // MAXGLOBALMES; write 500 ints
             {
                 writer.Write(string.IsNullOrEmpty(game.GlobalMessages[i]) ? 0 : 1);
@@ -1392,7 +1397,8 @@ namespace AGS.Editor
             //   foreach (cap in caps)
             //       FilePutString(cap.Name);
             //
-            WriteGameSetupStructBase(writer, game);
+            long ext_off_pos; // position to write extensions offset to
+            WriteGameSetupStructBase(writer, game, out ext_off_pos);
             WriteString(game.Settings.GUIDAsString, NativeConstants.MAX_GUID_LENGTH, writer);
             WriteString(game.Settings.SaveGameFileExtension, NativeConstants.MAX_SG_EXT_LENGTH, writer);
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
@@ -1731,6 +1737,10 @@ namespace AGS.Editor
             // Extensions list
             // Use WriteExtension to write them according to format and provide your method
             // of type WriteExtensionProc that does the actual writing job.
+            long ext_off = writer.BaseStream.Position;
+            writer.Seek((int)ext_off_pos, SeekOrigin.Begin);
+            writer.Write((uint)ext_off);
+            writer.Seek((int)ext_off, SeekOrigin.Begin);
 
             WriteExtension("v360_fonts", WriteExt_360Fonts, writer, game, errors);
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, game, errors);

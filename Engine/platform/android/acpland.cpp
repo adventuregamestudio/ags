@@ -15,9 +15,7 @@
 
 #if AGS_PLATFORM_OS_ANDROID
 #include <ctype.h>
-#include <dirent.h>
 #include <stdio.h>
-#include <sys/stat.h> 
 #include <unistd.h>
 #include <SDL.h>
 #include <allegro.h>
@@ -25,14 +23,15 @@
 #include <android/log.h>
 #include <android/asset_manager_jni.h>
 #include "platform/base/agsplatformdriver.h"
+#include "platform/base/mobile_base.h"
 #include "ac/runtime_defines.h"
 #include "game/main_game_file.h"
-#include "platform/base/mobile_base.h"
 #include "plugin/agsplugin.h"
 #include "util/android_file.h"
+#include "util/directory.h"
+#include "util/file.h"
 #include "util/path.h"
 #include "util/string_compat.h"
-#include "util/file.h"
 
 using namespace AGS::Common;
 
@@ -272,33 +271,13 @@ JNIEXPORT void JNICALL
 JNIEXPORT jint JNICALL
   Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_getAvailableTranslations(JNIEnv* env, jobject object, jobjectArray translations)
 {
-  int i = 0;
-  int length;
-  DIR* dir;
-  struct dirent* entry;
-  char buffer[200];
-
-  dir = opendir(".");
-  if (dir)
-  {
-    while ((entry = readdir(dir)) != 0)
+    int count = 0;
+    for (FindFile ff = FindFile::OpenFiles(".", "*.tra"); !ff.AtEnd(); ff.Next())
     {
-      length = strlen(entry->d_name);
-      if (length > 4)
-      {
-        if (ags_stricmp(&entry->d_name[length - 4], ".tra") == 0)
-        {
-          memset(buffer, 0, 200);
-          strncpy(buffer, entry->d_name, length - 4);
-          env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0]));
-          i++;
-        }
-      }
+        String filename = Path::RemoveExtension(Path::GetFilename(ff.Current()));
+        env->SetObjectArrayElement(translations, count++, env->NewStringUTF(filename.GetCStr()));
     }
-    closedir(dir);
-  }
-
-  return i;
+    return count;
 }
 
 JNIEXPORT void JNICALL

@@ -247,7 +247,7 @@ int getAvailableTranslations(char* translations)
 }
 
 
-void startEngine(char* filename, char* directory, int loadLastSave)
+void startEngine(const char* filename, const char* directory, int loadLastSave)
 {
     auto &setup = AGSIOS::GetMobileSetup();
     setup.game_file_name = filename;
@@ -262,15 +262,8 @@ void startEngine(char* filename, char* directory, int loadLastSave)
     ReadConfiguration(setup, IOS_CONFIG_FILENAME, true);
 
     // Get the games path.
-    char path[256];
-    strcpy(path, setup.game_file_name.GetCStr());
-    size_t lastindex = strlen(path) - 1;
-    while (path[lastindex] != '/')
-    {
-    path[lastindex] = 0;
-    lastindex--;
-    }
-    chdir(path);
+    String gamepath = Path::GetParent(setup.game_file_name);
+    chdir(gamepath.GetCStr());
 
     setenv("ULTRADIR", "..", 1);
 

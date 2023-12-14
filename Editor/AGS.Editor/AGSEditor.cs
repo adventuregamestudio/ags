@@ -1440,12 +1440,10 @@ namespace AGS.Editor
         /// <summary>
         /// Writes the config file using particular game Settings and DefaultSetup options.
         /// </summary>
-		public void WriteConfigFile(string configFilePath, bool resetFile = true)
+		public void WriteConfigFile(string configFilePath, RuntimeSetup setup, bool resetFile = true)
 		{
             if (resetFile)
                 Utilities.TryDeleteFile(configFilePath);
-
-            RuntimeSetup setup = _game.DefaultSetup;
 
             var sections = new Dictionary<string, Dictionary<string, string>>();
             sections.Add("graphics", new Dictionary<string, string>());

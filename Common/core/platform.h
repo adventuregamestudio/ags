@@ -170,6 +170,7 @@
 #define AGS_SEARCH_FOR_GAME_ON_LAUNCH (AGS_PLATFORM_OS_WINDOWS    || \
                                        AGS_PLATFORM_OS_LINUX      || \
                                        AGS_PLATFORM_OS_MACOS      || \
+                                       AGS_PLATFORM_OS_IOS        || \
                                        AGS_PLATFORM_OS_EMSCRIPTEN || \
                                        AGS_PLATFORM_OS_FREEBSD )
 

@@ -18,23 +18,13 @@ Helper functions for touch devices
 
 #include "plugin/agsplugin.h"
 
+#include <SDL.h>
+
 #if defined(BUILTIN_PLUGINS)
 namespace agstouch {
 #endif
 
 IAGSEngine* engine;
-
-
-#if defined(IOS_VERSION)
-
-extern "C"
-{
-  void ios_show_keyboard();
-  void ios_hide_keyboard();
-  int ios_is_keyboard_visible();
-}
-
-#endif
 
 
 
@@ -46,7 +36,7 @@ extern "C"
 void TouchShowKeyboard()
 {
 #if defined(IOS_VERSION)
-  ios_show_keyboard();
+  SDL_StartTextInput();
 #endif
 }
 
@@ -54,7 +44,7 @@ void TouchShowKeyboard()
 void TouchHideKeyboard()
 {
 #if defined(IOS_VERSION)
-  ios_hide_keyboard();
+  SDL_StopTextInput();
 #endif
 }
 
@@ -62,7 +52,7 @@ void TouchHideKeyboard()
 bool TouchIsKeyboardVisible()
 {
 #if defined(IOS_VERSION)
-  return (ios_is_keyboard_visible() != 0);
+  return SDL_IsTextInputActive();
 #else
   return false;
 #endif
@@ -164,5 +154,5 @@ void AGS_EditorLoadGame(char* buffer, int bufsize)
 
 
 #if defined(BUILTIN_PLUGINS)
-}
+} // namespace agstouch
 #endif

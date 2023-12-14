@@ -337,7 +337,7 @@ void AGSIOS::DisplayAlert(const char *text, ...) {
   va_end(ap);
   
   Debug::Printf(kDbgMsg_Warn, "%s", displbuf);
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, nullptr, displbuf, nullptr);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative", displbuf, nullptr);
 }
 
 void AGSIOS::Delay(int millis) {

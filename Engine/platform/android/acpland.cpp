@@ -402,8 +402,10 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
   va_list args;
   va_start(args, text);
   vsprintf(displbuf, text, args);
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative",displbuf, nullptr);
   va_end(args);
+
+  Debug::Printf(kDbgMsg_Warn, "%s", displbuf);
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative", displbuf, nullptr);
 }
 
 void AGSAndroid::Delay(int millis) {

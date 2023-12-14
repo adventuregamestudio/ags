@@ -68,9 +68,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Editor\AutoComplete\AutoCompleteTests.cs" />
+    <Compile Include="Editor\BuildTargets\BuildTargetBaseTests.cs" />
     <Compile Include="Editor\Panes\FreePanControlTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCompiler\PreprocessorTests.cs" />
+    <Compile Include="Types\RuntimeSetupTests.cs" />
     <Compile Include="Types\SpriteTests.cs" />
   </ItemGroup>
   <ItemGroup>

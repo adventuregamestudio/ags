@@ -44,7 +44,6 @@ GameSetupStructBase::GameSetupStructBase()
     , _dataUpscaleMult(1)
     , _screenUpscaleMult(1)
 {
-    memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
     memset(paluses, 0, sizeof(paluses));
     memset(defpal, 0, sizeof(defpal));
@@ -139,7 +138,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    StrUtil::ReadCStrCount(gamename, in, GAME_NAME_LENGTH);
+    gamename.ReadCount(in, LEGACY_GAME_NAME_LENGTH);
     in->ReadInt16(); // alignment padding to int32 (gamename: 50 -> 52 bytes)
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
     if (game_ver < kGameVersion_340_4)
@@ -180,6 +179,8 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
+
+    info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
     in->ReadArrayOfInt32(&info.HasMessages.front(), MAXGLOBALMES);
 
     info.HasWordsDict = in->ReadInt32() != 0;
@@ -193,7 +194,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    out->Write(gamename, GAME_NAME_LENGTH);
+    gamename.WriteCount(out, LEGACY_GAME_NAME_LENGTH);
     out->WriteInt16(0); // alignment padding to int32
     out->WriteArrayOfInt32(options, MAX_OPTIONS);
     out->Write(&paluses[0], sizeof(paluses));

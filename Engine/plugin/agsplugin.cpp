@@ -781,7 +781,7 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
 {
     if (ginfo->Version >= 26)
     {
-        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename);
+        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename.GetCStr());
         snprintf(ginfo->Guid, sizeof(ginfo->Guid), "%s", game.guid);
         ginfo->UniqueId = game.uniqueid;
     }

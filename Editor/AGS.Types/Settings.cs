@@ -1134,7 +1134,7 @@ namespace AGS.Types
 				}
 				if (value.Length > 19)
 				{
-					throw new ArgumentException("Save game extension cannot be longer than 15 letters");
+					throw new ArgumentException("Save game extension cannot be longer than 19 letters");
 				}
 				if ((value.Length > 0) && (value.Length < 5))
 				{

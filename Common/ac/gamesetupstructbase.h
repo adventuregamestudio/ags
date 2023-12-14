@@ -36,11 +36,11 @@ struct ccScript;
 
 struct GameSetupStructBase
 {
-    static const int  GAME_NAME_LENGTH = 50;
+    static const int  LEGACY_GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
-    static const int  NUM_INTS_RESERVED = 17;
+    static const int  NUM_INTS_RESERVED = 16;
 
-    char              gamename[GAME_NAME_LENGTH];
+    Common::String    gamename;
     int               options[MAX_OPTIONS];
     unsigned char     paluses[256];
     RGB               defpal[256];
@@ -83,6 +83,8 @@ struct GameSetupStructBase
         bool HasCCScript = false;
         bool HasWordsDict = false;
         std::array<int, MAXGLOBALMES> HasMessages{};
+        // File offset at which game data extensions begin
+        uint32_t ExtensionOffset = 0u;
     };
 
     void ReadFromFile(Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);

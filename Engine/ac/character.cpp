@@ -2520,18 +2520,6 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if (useview >= game.numviews)
         quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", useview + 1);
 
-    int tdxp = xx,tdyp = yy;
-    int oldview=-1, oldloop = -1;
-    int ovr_type = 0;
-
-    text_lips_offset = 0;
-    text_lips_text = texx;
-
-    Bitmap *closeupface=nullptr;
-    // TODO: we always call _display_at later which may also start voice-over;
-    // find out if this may be refactored and voice started only in one place.
-    try_auto_play_speech(texx, texx, aschar);
-
     if (game.options[OPT_SPEECHTYPE] == 3)
         remove_screen_overlay(OVER_COMPLETE);
     our_eip=1500;
@@ -2544,11 +2532,20 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         ReleaseCharacterView(aschar);
     }
 
+    int tdxp = xx,tdyp = yy;
+    int oldview=-1, oldloop = -1;
+    int ovr_type = 0;
+    text_lips_offset = 0;
+    text_lips_text = texx;
+    Bitmap *closeupface = nullptr;
     bool overlayPositionFixed = false;
     int charFrameWas = 0;
     int viewWasLocked = 0;
     if (speakingChar->flags & CHF_FIXVIEW)
         viewWasLocked = 1;
+
+    // Start voice-over, if requested by the tokens in speech text
+    try_auto_play_speech(texx, texx, aschar);
 
     if (speakingChar->room == displayed_room) {
         // If the character is in this room, go for it - otherwise
@@ -2874,7 +2871,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         char_thinking = aschar;
 
     our_eip=155;
-    _display_at(tdxp, tdyp, bwidth, texx, DISPLAYTEXT_SPEECH, textcol, isThought, allowShrink, overlayPositionFixed);
+    display_main(tdxp, tdyp, bwidth, texx, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, overlayPositionFixed);
     our_eip=156;
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;
@@ -2903,6 +2900,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     }
     char_speaking = -1;
     char_thinking = -1;
+    // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())
         stop_voice_speech();
 }

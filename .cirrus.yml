@@ -38,6 +38,20 @@ build_windows_task:
     del /s *.pdb *.map *.ilk *.iobj *.ipdb
   binaries_artifacts:
     path: Solutions/.build/*/*
+  delete_engine_build_script: >
+    cd Solutions/ &&
+    rd /s /q .build
+  build_x64_release_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Engine.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+  engine_x64_pdb_artifacts:
+    path: Solutions/.build/*/acwin.pdb
+  delete_x64_engine_pdb_script: >
+    cd Solutions/.build &&
+    del /s *.pdb *.map *.ilk *.iobj *.ipdb
+  binaries_x64_artifacts:
+    path: Solutions/.build/*/*
 
 build_linux_cmake_task:
   skip: "!changesInclude('CMake/**')"

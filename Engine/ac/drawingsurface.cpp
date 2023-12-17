@@ -347,7 +347,8 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
     sds->PointToGameResolution(&xx, &yy);
     sds->SizeToGameResolution(&wid);
 
-    if (break_up_text_into_lines(msg, Lines, wid, font) == 0)
+    const char *draw_text = skip_voiceover_token(msg);
+    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
     Bitmap *ds = sds->StartDrawing();

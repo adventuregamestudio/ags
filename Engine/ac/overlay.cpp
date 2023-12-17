@@ -71,12 +71,16 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (text_color == 0) text_color = 16;
 
+    const char *draw_text = get_translation(text);
+    // Skip a voice-over token, if present
+    draw_text = skip_voiceover_token(draw_text);
+
     // Recreate overlay image
     int dummy_x = x, dummy_y = y, adj_x = x, adj_y = y;
     bool has_alpha = false;
     // NOTE: we pass text_color negated to let optionally use textwindow (if applicable)
     // this is a generic ugliness of _display_main args, need to refactor later.
-    Bitmap *image = create_textual_image(get_translation(text), -text_color, 0, dummy_x, dummy_y, adj_x, adj_y,
+    Bitmap *image = create_textual_image(draw_text, -text_color, 0, dummy_x, dummy_y, adj_x, adj_y,
         width, fontid, allow_shrink, has_alpha);
 
     // Update overlay properties
@@ -236,7 +240,9 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
     if (x < 0) x = play.GetUIViewport().GetWidth() / 2 - width / 2;
     if (text_color == 0) text_color = 16;
-    return display_main(x, y, width, text, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
+    // Skip a voice-over token, if present
+    const char *draw_text = skip_voiceover_token(text);
+    return display_main(x, y, width, draw_text, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool transparent, bool clone)

@@ -364,7 +364,8 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
       else text_color = ds->GetCompatibleColor(utextcol);
     }
 
-    break_up_text_into_lines(get_translation(dtop->optionnames[disporder[ww]]), Lines, areawid-(2*padding+2+bullet_wid), usingfont);
+    const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[ww]]));
+    break_up_text_into_lines(draw_text, Lines, areawid-(2*padding+2+bullet_wid), usingfont);
     dispyp[ww]=curyp;
     if (game.dialog_bullet > 0)
     {
@@ -388,18 +389,6 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
   }
   return curyp;
 }
-
-
-
-#define GET_OPTIONS_HEIGHT {\
-  needheight = 0;\
-  for (int i = 0; i < numdisp; ++i) {\
-    break_up_text_into_lines(get_translation(dtop->optionnames[disporder[i]]), Lines, areawid-(2*padding+2+bullet_wid), usingfont);\
-    needheight += get_text_lines_surf_height(usingfont, Lines.Count()) + data_to_game_coord(game.options[OPT_DIALOGGAP]);\
-  }\
-  if (parserInput) needheight += parserInput->GetHeight() + data_to_game_coord(game.options[OPT_DIALOGGAP]);\
- }
-
 
 void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
   if (guib->BgColor != 0) {
@@ -494,7 +483,25 @@ struct DialogOptions
     // Process mouse wheel scroll
     bool RunMouseWheel(int mwheelz);
     void Close();
+
+private:
+    void CalcOptionsHeight();
 };
+
+void DialogOptions::CalcOptionsHeight()
+{
+    needheight = 0;
+    for (int i = 0; i < numdisp; ++i)
+    {
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+        break_up_text_into_lines(draw_text, Lines, areawid-(2*padding+2+bullet_wid), usingfont);
+        needheight += get_text_lines_surf_height(usingfont, Lines.Count()) + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+    }
+    if (parserInput)
+    {
+        needheight += parserInput->GetHeight() + data_to_game_coord(game.options[OPT_DIALOGGAP]);
+    }
+}
 
 void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 {
@@ -613,7 +620,7 @@ void DialogOptions::Show()
         areawid=guib->Width - 5;
         padding = TEXTWINDOW_PADDING_DEFAULT;
 
-        GET_OPTIONS_HEIGHT
+        CalcOptionsHeight();
 
         if (game.options[OPT_DIALOGUPWARDS]) {
           // They want the options upwards from the bottom
@@ -626,7 +633,7 @@ void DialogOptions::Show()
       //dlgyp=(play.viewport.GetHeight()-numdisp*txthit)-1;
       areawid= ui_view.GetWidth()-5;
       padding = TEXTWINDOW_PADDING_DEFAULT;
-      GET_OPTIONS_HEIGHT
+      CalcOptionsHeight();
       dlgyp = ui_view.GetHeight() - needheight;
 
       dirtyx = 0;
@@ -706,7 +713,8 @@ void DialogOptions::Redraw()
       int biggest = 0;
       padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
       for (int i = 0; i < numdisp; ++i) {
-        break_up_text_into_lines(get_translation(dtop->optionnames[disporder[i]]), Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
+        const char *draw_text = skip_voiceover_token(get_translation(dtop->optionnames[disporder[i]]));
+        break_up_text_into_lines(draw_text, Lines, areawid-((2*padding+2)+bullet_wid), usingfont);
         if (longestline > biggest)
           biggest = longestline;
       }
@@ -719,7 +727,7 @@ void DialogOptions::Redraw()
           quit("!game.min_dialogoption_width is larger than game.max_dialogoption_width");
       }
 
-      GET_OPTIONS_HEIGHT
+      CalcOptionsHeight();
 
       int savedwid = areawid;
       int txoffs=0,tyoffs=0,yspos = ui_view.GetHeight()/2-(2*padding+needheight)/2;

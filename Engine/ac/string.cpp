@@ -284,12 +284,8 @@ int String_GetLength(const char *thisString) {
 
 //=============================================================================
 
-size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
-    if (fonnt == -1)
-        fonnt = play.normal_font;
-
-    // Skip voice-over token; FIXME: should not be done in this line-splitting func!
-    todis = parse_voiceover_token(todis, nullptr);
+size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines)
+{
     lines.Reset();
     longestline=0;
 
@@ -297,10 +293,9 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     if (wii < 3)
         return 0;
 
-    int line_length;
-
     split_lines(todis, lines, wii, fonnt, max_lines);
 
+    int line_length;
     // Right-to-left just means reverse the text then
     // write it as normal
     if (apply_direction && (game.options[OPT_RIGHTLEFTWRITE] != 0))

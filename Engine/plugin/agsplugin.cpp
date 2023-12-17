@@ -294,7 +294,8 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     // TODO: use generic function from the engine instead of having copy&pasted code here
     const int linespacing = get_font_linespacing(font);
 
-    if (break_up_text_into_lines(text, Lines, wid, font) == 0)
+    const char *draw_text = skip_voiceover_token(text);
+    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
     Bitmap *ds = gfxDriver->GetStageBackBuffer(true);

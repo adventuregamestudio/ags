@@ -58,8 +58,8 @@ int StrContains (const char *s1, const char *s2);
 class SplitLines;
 // Break up the text into lines restricted by the given width;
 // returns number of lines, or 0 if text cannot be split well to fit in this width.
-// Does additional processing, like removal of voice-over tags and text reversal if right-to-left text display is on.
-// Optionally applies text direction rules (apply_direction param), otherwise leaves left-to-right always.
+// Optionally applies text direction rules (apply_direction param) and reverses the lines if necessary,
+// otherwise leaves left-to-right always.
 size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines = -1);
 inline size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines = -1)
 {
@@ -77,5 +77,9 @@ size_t check_strcapacity(char *ptt);
 // voice_num must be > 0 for a valid token, it's assigned 0 if no token was found,
 // or if there have been a parsing error.
 const char *parse_voiceover_token(const char *text, int *voice_num);
+inline const char *skip_voiceover_token(const char *text)
+{
+    return parse_voiceover_token(text, nullptr);
+}
 
 #endif // __AGS_EE_AC__STRING_H

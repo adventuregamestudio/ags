@@ -81,6 +81,8 @@ int ccCompiledScript::add_string(const char*strr) {
     return toret;
 }
 void ccCompiledScript::add_fixup(int32_t locc, char ftype) {
+    assert(locc >= 0 && locc < codesize);
+    assert(ftype >= FIXUP_GLOBALDATA && ftype <= FIXUP_STACK);
     fixuptypes = (char*)realloc(fixuptypes, numfixups + 5);
     fixups = (int32_t*)realloc(fixups, (numfixups * sizeof(int32_t)) + 10);
     fixuptypes[numfixups] = ftype;

@@ -21,7 +21,7 @@ downloaded by `./download.sh` and located in the in the `/libsrc` folder.
 3. Select the target "AGS Game" in the AGS project
 4. Edit the Identity section (Category, Display Name, bundle identifier, and version)
 5. Under Build Phases -> Copy Bundle Resources, add additional game resources that need to be embedded with the game, the ones that were added to `AGS/Resources` (e.g. Lip Sync files)
-4. Build and run the AGS Game target on the simulator or device!
+4. Build and run the AGS Game target on the simulator or device! Remember you need to set a Team, like your Personal Team, and a Bundle identifier (e.g. com.mystudio.mygame).
 5. Modify the `AGS/Resources/ios.cfg` file to make game setup changes (see below)
 
 You may also need to manually assign a launch screen and game icons the way you normally would for an iOS app.

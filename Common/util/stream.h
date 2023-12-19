@@ -87,8 +87,9 @@ public:
     //-----------------------------------------------------
 
     virtual bool        IsValid() const = 0;
-    // Tells if the stream has errors
-    virtual bool        HasErrors() const { return false; }
+    // Tells if there were errors during previous io operation(s);
+    // the call to GetError() *resets* the error record.
+    virtual bool        GetError() const { return false; }
     virtual bool        EOS() const = 0;
     virtual soff_t      GetLength() const = 0;
     virtual soff_t      GetPosition() const = 0;

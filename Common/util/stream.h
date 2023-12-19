@@ -64,20 +64,47 @@ enum StreamSeek
 class IStream
 {
 public:
-    // Reads number of bytes into the provided buffer
-    virtual size_t Read(void *buffer, size_t len) = 0;
-    // Writes number of bytes from the provided buffer
-    virtual size_t Write(const void *buffer, size_t len) = 0;
+    // Tells which mode the stream is working in, which defines
+    // supported io operations, such as reading, writing, seeking, etc.
+    // Invalid streams return kStream_None to indicate that they are not functional.
+    virtual StreamMode GetMode() const = 0;
+    // Returns an optional path of a stream's source, such as a filepath;
+    // this is purely for diagnostic purposes
+    virtual const char *GetPath() const = 0;
+    // Tells whether this stream's position is at its end;
+    // note that unlike standard C feof this does not wait for a read attempt
+    // past the stream end, and reports positive when position = length.
+    virtual bool   EOS() const = 0;
+    // Tells if there were errors during previous io operation(s);
+    // the call to GetError() *resets* the error record.
+    virtual bool   GetError() const = 0;
     // Returns the total stream's length in bytes
     virtual soff_t GetLength() const = 0;
     // Returns stream's position
     virtual soff_t GetPosition() const = 0;
+
+    // Reads number of bytes into the provided buffer
+    virtual size_t Read(void *buffer, size_t len) = 0;
+    // ReadByte conforms to standard C fgetc behavior:
+    // - on success returns an *unsigned char* packed in the int32
+    // - on failure (EOS or other error), returns -1
+    virtual int32_t ReadByte() = 0;
+    // Writes number of bytes from the provided buffer
+    virtual size_t Write(const void *buffer, size_t len) = 0;
+    // WriteByte conforms to standard C fputc behavior:
+    // - on success, returns the written unsigned char packed in the int32
+    // - on failure, returns -1
+    virtual int32_t WriteByte(uint8_t b) = 0;
     // Seeks to offset from the origin
     virtual bool   Seek(soff_t offset, StreamSeek origin) = 0;
+    // Flush stream buffer to the underlying device
+    virtual bool   Flush() = 0;
+    // Closes the stream
+    virtual void   Close() = 0;
 
 protected:
     IStream() = default;
-    ~IStream() = default;
+    virtual ~IStream() = default;
 };
 
 
@@ -89,18 +116,9 @@ public:
         : _path(path) {}
     virtual ~Stream() = default;
 
-    // Returns an optional path of a stream's source, such as a filepath;
-    // primarily for diagnostic purposes
-    const String &GetPath() const { return _path; }
-
     //-----------------------------------------------------
-    // Stream interface
+    // Helpers for learning the stream's state and capabilities
     //-----------------------------------------------------
-
-    // Tells which mode the stream is working in, which defines
-    // supported io operations, such as reading, writing, seeking, etc.
-    // Invalid streams return kStream_None to indicate that they are not functional.
-    virtual StreamMode GetMode() const = 0;
 
     // Tells if stream is functional, and which operations are supported
     bool        IsValid() const  { return GetMode() != kStream_None; }
@@ -108,6 +126,17 @@ public:
     bool        CanWrite() const { return (GetMode() & kStream_Write) != 0; }
     bool        CanSeek() const  { return (GetMode() & kStream_Seek) != 0; }
 
+    //-----------------------------------------------------
+    // Stream interface
+    //-----------------------------------------------------
+
+    // Returns an optional path of a stream's source, such as a filepath;
+    // primarily for diagnostic purposes
+    const char         *GetPath() const override { return _path.GetCStr(); }
+    // Tells which mode the stream is working in, which defines
+    // supported io operations, such as reading, writing, seeking, etc.
+    // Invalid streams return kStream_None to indicate that they are not functional.
+    virtual StreamMode  GetMode() const = 0;
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
     virtual bool        GetError() const { return false; }
@@ -156,7 +185,7 @@ public:
     virtual bool        Flush() = 0;
 
     //-----------------------------------------------------
-    // Helper methods
+    // Helper methods for read and write
     //-----------------------------------------------------
     bool ReadBool()
     {

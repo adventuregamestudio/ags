@@ -694,7 +694,7 @@ public:
     }
     // Returns an optional stream's source description.
     // This may be a file path, or a resource name, or anything of that kind.
-    const char *GetPath() override { return _s->GetPath().GetCStr(); }
+    const char *GetPath() override { return _s->GetPath(); }
     // Reads number of bytes into the provided buffer
     virtual size_t Read(void *buffer, size_t len) override { return _s->Read(buffer, len); }
     // Writes number of bytes from the provided buffer

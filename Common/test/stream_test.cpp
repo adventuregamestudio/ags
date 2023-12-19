@@ -210,7 +210,7 @@ protected:
 TEST_F(FileBasedTest, BufferedStreamRead) {
     //-------------------------------------------------------------------------
     // Write data into the temp file
-    FileStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    FileStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     out.WriteInt32(0);
     out.WriteInt32(1);
     out.WriteInt32(2);
@@ -231,7 +231,7 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
 
     //-------------------------------------------------------------------------
     // Read data back
-    BufferedStream in(DummyFile, kFile_Open, kFile_Read);
+    BufferedStream in(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_EQ(in.GetLength(), file_len);
     ASSERT_EQ(in.ReadInt32(), 0);
@@ -255,7 +255,7 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
     in.Close();
 
     // Test seeks
-    BufferedStream in2(DummyFile, kFile_Open, kFile_Read);
+    BufferedStream in2(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in2.CanRead());
     ASSERT_TRUE(in2.CanSeek());
     ASSERT_EQ(in2.GetLength(), file_len);
@@ -279,7 +279,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite1) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 10;
-    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    BufferedStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     ASSERT_TRUE(out.CanWrite());
     out.WriteInt32(0);
     out.WriteInt32(1);
@@ -296,7 +296,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite1) {
     out.Close();
     //-------------------------------------------------------------------------
     // Read data back
-    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    FileStream in(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_TRUE(in.CanSeek());
     ASSERT_EQ(in.GetLength(), file_len);
@@ -324,7 +324,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite2) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 10 + fill_len;
-    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    BufferedStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     ASSERT_TRUE(out.CanWrite());
     out.WriteInt32(0);
     out.WriteInt32(1);
@@ -342,7 +342,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite2) {
     out.Close();
     //-------------------------------------------------------------------------
     // Read data back
-    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    FileStream in(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_TRUE(in.CanSeek());
     ASSERT_EQ(in.GetLength(), file_len);
@@ -368,7 +368,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite3) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 10;
-    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    BufferedStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     ASSERT_TRUE(out.CanWrite());
     ASSERT_TRUE(out.CanSeek());
     out.WriteInt32(0);
@@ -391,7 +391,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite3) {
     out.Close();
     //-------------------------------------------------------------------------
     // Read data back
-    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    FileStream in(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_EQ(in.GetLength(), file_len);
     ASSERT_EQ(in.ReadInt32(), 0);
@@ -418,7 +418,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite4) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 8 + fill_len;
-    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    BufferedStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     ASSERT_TRUE(out.CanWrite());
     out.WriteInt32(0);
     out.WriteInt32(1);
@@ -439,7 +439,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite4) {
     out.Close();
     //-------------------------------------------------------------------------
     // Read data back
-    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    FileStream in(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_TRUE(in.CanSeek());
     ASSERT_EQ(in.GetLength(), file_len);
@@ -466,7 +466,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite5) {
     //-------------------------------------------------------------------------
     // Write data
     const soff_t file_len = sizeof(int32_t) * 7 + fill_len;
-    BufferedStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    BufferedStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     ASSERT_TRUE(out.CanWrite());
     out.WriteByteCount(0, fill_len); // fill to (nearly) force buffer flush
     out.WriteInt32(0);
@@ -486,7 +486,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite5) {
     out.Close();
     //-------------------------------------------------------------------------
     // Read data back
-    FileStream in(DummyFile, kFile_Open, kFile_Read);
+    FileStream in(DummyFile, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_TRUE(in.CanSeek());
     ASSERT_EQ(in.GetLength(), file_len);
@@ -507,7 +507,7 @@ TEST_F(FileBasedTest, BufferedStreamWrite5) {
 TEST_F(FileBasedTest, BufferedSectionStream) {
     //-------------------------------------------------------------------------
     // Write data into the temp file
-    FileStream out(DummyFile, kFile_CreateAlways, kFile_Write);
+    FileStream out(DummyFile, kFile_CreateAlways, kStream_Write);
     out.WriteInt32(0);
     out.WriteInt32(1);
     out.WriteInt32(2);
@@ -530,7 +530,7 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
 
     //-------------------------------------------------------------------------
     // Read data back from section 1 and test read limits
-    BufferedSectionStream in(DummyFile, section1_start, section1_end, kFile_Open, kFile_Read);
+    BufferedSectionStream in(DummyFile, section1_start, section1_end, kFile_Open, kStream_Read);
     ASSERT_TRUE(in.CanRead());
     ASSERT_EQ(in.GetPosition(), 0);
     ASSERT_EQ(in.GetLength(), section1_end - section1_start);
@@ -552,7 +552,7 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
 
     // Test limits - reading large chunks: optimized by reading directly
     // into the provided user's buffer, without use of internal buffer
-    BufferedSectionStream in3(DummyFile, section1_start, section1_end, kFile_Open, kFile_Read);
+    BufferedSectionStream in3(DummyFile, section1_start, section1_end, kFile_Open, kStream_Read);
     const size_t try_read = 4 * sizeof(int32_t) + BufferedStream::BufferSize;
     const size_t must_read = 4 * sizeof(int32_t);
     char buf[try_read];
@@ -564,7 +564,7 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
     in3.Close();
 
     // Test seeks limited to section 1
-    BufferedSectionStream in2(DummyFile, section1_start, section2_end, kFile_Open, kFile_Read);
+    BufferedSectionStream in2(DummyFile, section1_start, section2_end, kFile_Open, kStream_Read);
     ASSERT_TRUE(in2.CanRead());
     ASSERT_TRUE(in2.CanSeek());
     ASSERT_EQ(in2.GetPosition(), 0);

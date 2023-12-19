@@ -89,7 +89,7 @@ Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth)
 Bitmap *LoadFromFile(const char *filename)
 {
     std::unique_ptr<Stream> in (
-            File::OpenFile(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read));
+            File::OpenFile(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
     if(!in)
         return nullptr;
 
@@ -1267,7 +1267,7 @@ void SaveBitmap(const String& ext, Stream *out, const Bitmap *bmp, const RGB *pa
 bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal)
 {
     std::unique_ptr<Stream> out (
-            File::OpenFile(filename, FileOpenMode::kFile_CreateAlways, FileWorkMode::kFile_Write));
+            File::OpenFile(filename, FileOpenMode::kFile_CreateAlways, StreamMode::kStream_Write));
     if (!out)
         return false;
 

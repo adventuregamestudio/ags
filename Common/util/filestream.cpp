@@ -20,7 +20,9 @@ namespace AGS
 namespace Common
 {
 
-FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
+FileStream::FFileCloseNotify FileStream::FileCloseNotify = nullptr;
+
+FileStream::FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode,
             DataEndianess stream_endianess)
     : DataStream(stream_endianess)
     , _file(nullptr)
@@ -30,13 +32,16 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWork
     Open(file_name, open_mode, work_mode);
 }
 
-FileStream::FileStream(FILE *file, bool own, FileWorkMode work_mode, DataEndianess stream_end)
+FileStream::FileStream(FILE *file, bool own, StreamMode work_mode, DataEndianess stream_end)
     : DataStream(stream_end)
     , _file(file)
     , _ownHandle(own)
-    , _openMode(kFile_Open)
-    , _workMode(work_mode)
 {
+    if (_file)
+    {
+        _openMode = kFile_Open;
+        _workMode = static_cast<StreamMode>(work_mode | kStream_Seek);
+    }
 }
 
 FileStream::~FileStream()
@@ -55,7 +60,7 @@ bool FileStream::GetError() const
 
 void FileStream::Close()
 {
-    if (_ownHandle)
+    if (_file && _ownHandle)
     {
         fclose(_file);
     }
@@ -68,16 +73,13 @@ void FileStream::Close()
         args.WorkMode = _workMode;
         FileCloseNotify(args);
     }
+    _openMode = kFile_None;
+    _workMode = kStream_None;
 }
 
 bool FileStream::Flush()
 {
     return fflush(_file) == 0;
-}
-
-bool FileStream::IsValid() const
-{
-    return _file != nullptr;
 }
 
 bool FileStream::EOS() const
@@ -97,21 +99,6 @@ soff_t FileStream::GetLength() const
 soff_t FileStream::GetPosition() const
 {
     return static_cast<soff_t>(ags_ftell(_file));
-}
-
-bool FileStream::CanRead() const
-{
-    return IsValid() && _workMode != kFile_Write;
-}
-
-bool FileStream::CanWrite() const
-{
-    return IsValid() && _workMode != kFile_Read;
-}
-
-bool FileStream::CanSeek() const
-{
-    return IsValid();
 }
 
 size_t FileStream::Read(void *buffer, size_t size)
@@ -148,7 +135,7 @@ bool FileStream::Seek(soff_t offset, StreamSeek origin)
     return ags_fseek(_file, (file_off_t)offset, stdclib_origin) == 0;
 }
 
-void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+void FileStream::Open(const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
 {
     String mode = File::GetCMode(open_mode, work_mode);
     if (mode.IsEmpty())
@@ -158,9 +145,9 @@ void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkM
         throw std::runtime_error("Error opening file.");
     _ownHandle = true;
     _path = file_name;
+    _openMode = open_mode;
+    _workMode = static_cast<StreamMode>(work_mode | kStream_Seek);
 }
-
-FileStream::FFileCloseNotify FileStream::FileCloseNotify = nullptr;
 
 } // namespace Common
 } // namespace AGS

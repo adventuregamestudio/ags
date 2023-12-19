@@ -532,10 +532,10 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
 }
 
 Stream *ResolveScriptPathAndOpen(const String &sc_path,
-    FileOpenMode open_mode, FileWorkMode work_mode)
+    FileOpenMode open_mode, StreamMode work_mode)
 {
     ResolvedPath rp;
-    if (open_mode == kFile_Open && work_mode == kFile_Read)
+    if (open_mode == kFile_Open && work_mode == kStream_Read)
         rp = ResolveScriptPathAndFindFile(sc_path, true);
     else
         rp = ResolveWritePathAndCreateDirs(sc_path);

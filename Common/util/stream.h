@@ -34,11 +34,22 @@ namespace AGS
 namespace Common
 {
 
+// The mode in which the stream is opened,
+// defines acceptable operations and capabilities.
 // TODO: merge with FileWorkMode (historical mistake)
-enum StreamWorkMode
+enum StreamMode
 {
-    kStream_Read    = 0x1,
-    kStream_Write   = 0x2
+    // kStream_None defines an invalid (non-functional) stream
+    kStream_None    = 0,
+    // Following capabilities should be passed as request
+    // when opening a stream subclass
+    kStream_Read    = 0x01,
+    kStream_Write   = 0x02,
+    kStream_ReadWrite = kStream_Read | kStream_Write,
+    
+    // Following capabilities should not be requested,
+    // but are defined by each particular stream subclass
+    kStream_Seek    = 0x04
 };
 
 enum StreamSeek
@@ -86,16 +97,23 @@ public:
     // Stream interface
     //-----------------------------------------------------
 
-    virtual bool        IsValid() const = 0;
+    // Tells which mode the stream is working in, which defines
+    // supported io operations, such as reading, writing, seeking, etc.
+    // Invalid streams return kStream_None to indicate that they are not functional.
+    virtual StreamMode GetMode() const = 0;
+
+    // Tells if stream is functional, and which operations are supported
+    bool        IsValid() const  { return GetMode() != kStream_None; }
+    bool        CanRead() const  { return (GetMode() & kStream_Read) != 0; }
+    bool        CanWrite() const { return (GetMode() & kStream_Write) != 0; }
+    bool        CanSeek() const  { return (GetMode() & kStream_Seek) != 0; }
+
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
     virtual bool        GetError() const { return false; }
     virtual bool        EOS() const = 0;
     virtual soff_t      GetLength() const = 0;
     virtual soff_t      GetPosition() const = 0;
-    virtual bool        CanRead() const = 0;
-    virtual bool        CanWrite() const = 0;
-    virtual bool        CanSeek() const = 0;
 
     virtual void        Close() = 0;
 

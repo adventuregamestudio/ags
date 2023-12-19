@@ -815,7 +815,7 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 ::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, int file_mode, int work_mode)
 {
     std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path,
-        static_cast<FileOpenMode>(file_mode), static_cast<FileWorkMode>(work_mode)));
+        static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode)));
     if (!s)
         return nullptr;
     int32_t fhandle = add_file_stream(std::move(s), "IAGSEngine::OpenFileStream");

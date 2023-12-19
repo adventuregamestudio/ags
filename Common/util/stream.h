@@ -102,6 +102,13 @@ public:
     // Closes the stream
     virtual void   Close() = 0;
 
+    // Closes the stream and deallocates the object memory.
+    // NOTE: this effectively deletes the stream object, making it unusable.
+    // This method is purposed for the plugin API, it should be used instead
+    // of regular *delete* on stream objects that may have been provided
+    // by plugins.
+    virtual void   Dispose() = 0;
+
 protected:
     IStream() = default;
     virtual ~IStream() = default;
@@ -213,6 +220,10 @@ public:
 
 protected:
     String _path; // optional name of the stream's source (e.g. filepath)
+
+private:
+    // Standard streams do not expose this method to avoid incorrect use.
+    void Dispose() override { delete this; }
 };
 
 // Copies N bytes from one stream into another;

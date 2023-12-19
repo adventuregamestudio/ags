@@ -296,19 +296,21 @@ struct AGSGameInfo {
 
 // File open modes
 // Opens existing file, fails otherwise
-#define AGSSTREAM_FILE_OPEN         0
+#define AGSSTREAM_FILE_OPEN         1
 // Opens existing file, creates one if it did not exist
-#define AGSSTREAM_FILE_CREATE       1
+#define AGSSTREAM_FILE_CREATE       2
 // Always creates a new file, completely overwrites any existing one
-#define AGSSTREAM_FILE_CREATEALWAYS 2
+#define AGSSTREAM_FILE_CREATEALWAYS 3
 
 // Stream work modes
 // Read-only
-#define AGSSTREAM_MODE_READ  0x1
+#define AGSSTREAM_MODE_READ  0x01
 // Write-only
-#define AGSSTREAM_MODE_WRITE 0x2
-// Support both read and write
+#define AGSSTREAM_MODE_WRITE 0x02
+// Supports both read and write
 #define AGSSTREAM_MODE_READWRITE (AGSSTREAM_MODE_READ | AGSSTREAM_MODE_WRITE)
+// Supports seeking
+#define AGSSTREAM_MODE_SEEK  0x04
 
 // Stream seek origins
 // Seek from the beginning of a stream (towards positive offset)
@@ -320,31 +322,56 @@ struct AGSGameInfo {
 
 class IAGSStream {
 public:
-  // Flushes and closes the stream, deallocates the stream object.
-  // After calling this the IAGSStream pointer becomes INVALID.
-  virtual void   Close() = 0;
+  // Tells which mode the stream is working in, which defines
+  // supported io operations, such as reading, writing, seeking, etc.
+  // Returns combination of AGSSTREAM_MODE_* flags.
+  // Invalid or non-functional streams return 0.
+  virtual int    GetMode() const = 0;
   // Returns an optional stream's source description.
-  // This may be a file path, or a resource name, or anything of that kind.
-  virtual const char *GetPath() = 0;
+  // This may be a file path, or a resource name, or anything of that kind,
+  // and is purely for diagnostic purposes.
+  virtual const char *GetPath() const = 0;
+  // Tells whether this stream's position is at its end;
+  // note that unlike standard C feof this does not wait for a read attempt
+  // past the stream end, and reports positive when position = length.
+  virtual bool   EOS() const = 0;
+  // Tells if there were errors during previous io operation(s);
+  // the call to GetError() *resets* the error record.
+  virtual bool   GetError() const = 0;
+  // Returns the total stream's length in bytes
+  virtual int64_t GetLength() const = 0;
+  // Returns stream's position
+  virtual int64_t GetPosition() const = 0;
+
   // Reads number of bytes into the provided buffer
   virtual size_t Read(void *buffer, size_t len) = 0;
+  // ReadByte conforms to standard C fgetc behavior:
+  // - on success returns an *unsigned char* packed in the int32
+  // - on failure (EOS or other error), returns -1
+  virtual int32_t ReadByte() = 0;
   // Writes number of bytes from the provided buffer
-  virtual size_t Write(void *buffer, size_t len) = 0;
-  // Returns the total stream's length in bytes
-  virtual int64_t GetLength() = 0;
-  // Returns stream's position
-  virtual int64_t GetPosition() = 0;
-  // Tells whether the stream's position is at its end
-  virtual bool   EOS() = 0;
+  virtual size_t Write(const void *buffer, size_t len) = 0;
+  // WriteByte conforms to standard C fputc behavior:
+  // - on success, returns the written unsigned char packed in the int32
+  // - on failure, returns -1
+  virtual int32_t WriteByte(uint8_t b) = 0;
   // Seeks to offset from the origin defined by AGSSTREAM_SEEK_* constants:
   //  * AGSSTREAM_SEEK_SET - seek from the beginning;
   //  * AGSSTREAM_SEEK_CUR - seek from the current position;
   //  * AGSSTREAM_SEEK_END - seek from the end (pass negative offset)
   // Returns new position in stream, or -1 on error.
-  virtual int64_t Seek(int64_t offset, int origin) = 0;
+  virtual bool   Seek(int64_t offset, int origin) = 0;
   // Flushes stream, forcing it to write any buffered data to the
   // underlying device. Note that the effect may depend on implementation.
-  virtual void   Flush() = 0;
+  virtual bool   Flush() = 0;
+  // Flushes and closes the stream.
+  // Usually you do not have to call this, use Dispose() to close
+  // and delete stream object instead.
+  virtual void   Close() = 0;
+
+  // Closes the stream and deallocates the stream object.
+  // After calling this the IAGSStream pointer becomes INVALID.
+  virtual void   Dispose() = 0;
 
 protected:
   IAGSStream() = default;
@@ -616,11 +643,13 @@ public:
   // Opens a data stream, resolving a script path.
   // File mode should contain one of the AGSSTREAM_FILE_* values,
   // work mode should contain flag set of the AGSSTREAM_MODE_* values.
-  // Returns IAGSStream object, or null on failure.
-  // IAGSStream must be disposed by calling its Close() function.
+  // Returns IAGSStream object, or null on failure. The returned stream object
+  // is owned by the caller, and must be deleted by calling its Dispose() method.
   AGSIFUNC(IAGSStream*) OpenFileStream(const char *script_path, int file_mode, int work_mode);
   // Returns IAGSStream object identified by the given stream handle.
   // This lets to retrieve IAGSStream object from a handle received in a event callback.
+  // *IMPORTANT*: The returned stream's ownership is NOT passed to the caller;
+  // this stream should not be closed or disposed, doing so will lead to errors in the engine.
   // Returns null if handle is invalid.
   AGSIFUNC(IAGSStream*) GetFileStreamByHandle(int32 fhandle);
 };

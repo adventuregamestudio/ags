@@ -117,7 +117,7 @@ namespace AGS
 
         size_t AAssetStream::Read(void *buffer, size_t size)
         {
-            if(!IsValid()) return -1;
+            if(!IsValid()) return 0;
 
             size = std::min<size_t>(size, _end - _cur_offset);
             if(size == 0) return 0;
@@ -138,7 +138,7 @@ namespace AGS
 
         size_t AAssetStream::Write(const void *buffer, size_t size)
         {
-            return -1;
+            return 0;
         }
 
         int32_t AAssetStream::WriteByte(uint8_t val)

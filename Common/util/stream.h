@@ -96,7 +96,7 @@ public:
     // - on failure, returns -1
     virtual int32_t WriteByte(uint8_t b) = 0;
     // Seeks to offset from the origin
-    virtual bool   Seek(soff_t offset, StreamSeek origin) = 0;
+    virtual bool   Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
     // Flush stream buffer to the underlying device
     virtual bool   Flush() = 0;
     // Closes the stream
@@ -126,7 +126,6 @@ public:
     //-----------------------------------------------------
     // Helpers for learning the stream's state and capabilities
     //-----------------------------------------------------
-
     // Tells if stream is functional, and which operations are supported
     bool        IsValid() const  { return GetMode() != kStream_None; }
     bool        CanRead() const  { return (GetMode() & kStream_Read) != 0; }
@@ -134,38 +133,22 @@ public:
     bool        CanSeek() const  { return (GetMode() & kStream_Seek) != 0; }
 
     //-----------------------------------------------------
-    // Stream interface
+    // IStream interface
     //-----------------------------------------------------
-
     // Returns an optional path of a stream's source, such as a filepath;
     // primarily for diagnostic purposes
     const char         *GetPath() const override { return _path.GetCStr(); }
     // Tells which mode the stream is working in, which defines
     // supported io operations, such as reading, writing, seeking, etc.
     // Invalid streams return kStream_None to indicate that they are not functional.
-    virtual StreamMode  GetMode() const = 0;
+    StreamMode          GetMode() const override { return kStream_None; }
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
-    virtual bool        GetError() const { return false; }
-    virtual bool        EOS() const = 0;
-    virtual soff_t      GetLength() const = 0;
-    virtual soff_t      GetPosition() const = 0;
+    bool                GetError() const override { return false; }
 
-    virtual void        Close() = 0;
-
-    // Reads number of bytes in the provided buffer
-    virtual size_t      Read(void *buffer, size_t size) = 0;
-    // ReadByte conforms to fgetc behavior:
-    // - if stream is valid, then returns an *unsigned char* packed in the int
-    // - if EOS, then returns -1
-    virtual int32_t     ReadByte() = 0;
-    // Writes number of bytes from the provided buffer
-    virtual size_t      Write(const void *buffer, size_t size) = 0;
-    // WriteByte conforms to fputc behavior:
-    // - on success, returns the unsigned char packed in the int
-    // - on failure, returns -1
-    virtual int32_t     WriteByte(uint8_t b) = 0;
-
+    //-----------------------------------------------------
+    // Values reading and writing interface
+    //-----------------------------------------------------
     // Convenience methods for reading values of particular size
     virtual int8_t      ReadInt8() = 0;
     virtual int16_t     ReadInt16() = 0;
@@ -185,11 +168,6 @@ public:
     virtual size_t      WriteArrayOfInt16(const int16_t *buffer, size_t count) = 0;
     virtual size_t      WriteArrayOfInt32(const int32_t *buffer, size_t count) = 0;
     virtual size_t      WriteArrayOfInt64(const int64_t *buffer, size_t count) = 0;
-
-    virtual bool        Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
-
-    // Flush stream buffer to the underlying device
-    virtual bool        Flush() = 0;
 
     //-----------------------------------------------------
     // Helper methods for read and write

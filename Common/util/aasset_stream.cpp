@@ -168,6 +168,7 @@ namespace AGS
             _cur_offset = 0;
             _start = 0;
             _end = AAsset_getLength64(_aAsset);
+            _assetMode = asset_mode;
             _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
         }
 

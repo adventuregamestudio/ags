@@ -59,14 +59,16 @@ public:
         { return new FileStream(file, false, work_mode, stream_end); }
     ~FileStream() override;
 
+    // Tells which open mode was used when opening a file.
+    FileOpenMode GetFileOpenMode() const { return _openMode; }
+    // Tells which mode the stream is working in, which defines
+    // supported io operations, such as reading, writing, seeking, etc.
+    // Invalid streams return kStream_None to indicate that they are not functional.
     StreamMode GetMode() const override { return _workMode; }
 
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
     bool    GetError() const override;
-    void    Close() override;
-    bool    Flush() override;
-
     // Is end of stream
     bool    EOS() const override;
     // Total length of stream (if known)
@@ -80,6 +82,9 @@ public:
     int32_t WriteByte(uint8_t b) override;
 
     bool    Seek(soff_t offset, StreamSeek origin) override;
+
+    bool    Flush() override;
+    void    Close() override;
 
 private:
     FileStream(FILE *file, bool own, StreamMode work_mode, DataEndianess stream_end);

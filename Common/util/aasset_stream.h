@@ -57,9 +57,8 @@ namespace AGS
             { return new AAssetStream(aasset, false, asset_mode, stream_end); }
             ~AAssetStream() override;
 
-            void    Close() override;
-            bool    Flush() override;
-
+            // Tells the AASSET_MODE this stream is working in.
+            int     GetAssetMode() const { return _assetMode; }
             // Tells which mode the stream is working in, which defines
             // supported io operations, such as reading, writing, seeking, etc.
             // Invalid streams return kStream_None to indicate that they are not functional.
@@ -78,6 +77,9 @@ namespace AGS
 
             bool    Seek(soff_t offset, StreamSeek origin) override;
 
+            bool    Flush() override;
+            void    Close() override;
+
         protected:
             soff_t _start = 0;
             soff_t _end = 0;
@@ -91,6 +93,7 @@ namespace AGS
 
             bool    _ownHandle = false;
             AAsset *_aAsset = nullptr;
+            int     _assetMode = AASSET_MODE_UNKNOWN;
             StreamMode _mode = kStream_None;
         };
 

@@ -35,7 +35,7 @@ public:
     struct CloseNotifyArgs
     {
         String Filepath;
-        FileWorkMode WorkMode;
+        StreamMode WorkMode;
     };
 
     // definition of function called when file closes
@@ -47,35 +47,34 @@ public:
     // The constructor may raise std::runtime_error if 
     // - there is an issue opening the file (does not exist, locked, permissions, etc)
     // - the open mode could not be determined
-    FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
+    FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode,
         DataEndianess stream_endianess = kLittleEndian);
     // Constructs a file stream over an open FILE handle;
     // Take an ownership over it and will close upon disposal
-    static FileStream *OwnHandle(FILE *file, FileWorkMode work_mode, DataEndianess stream_end = kLittleEndian)
+    static FileStream *OwnHandle(FILE *file, StreamMode work_mode, DataEndianess stream_end = kLittleEndian)
         { return new FileStream(file, true, work_mode, stream_end); }
     // Constructs a file stream over an open FILE handle;
     // does NOT take an ownership over it
-    static FileStream *WrapHandle(FILE *file, FileWorkMode work_mode, DataEndianess stream_end = kLittleEndian)
+    static FileStream *WrapHandle(FILE *file, StreamMode work_mode, DataEndianess stream_end = kLittleEndian)
         { return new FileStream(file, false, work_mode, stream_end); }
     ~FileStream() override;
 
-    FileWorkMode GetWorkMode() const { return _workMode; }
+    // Tells which open mode was used when opening a file.
+    FileOpenMode GetFileOpenMode() const { return _openMode; }
+    // Tells which mode the stream is working in, which defines
+    // supported io operations, such as reading, writing, seeking, etc.
+    // Invalid streams return kStream_None to indicate that they are not functional.
+    StreamMode GetMode() const override { return _workMode; }
 
-    bool    HasErrors() const override;
-    void    Close() override;
-    bool    Flush() override;
-
-    // Is stream valid (underlying data initialized properly)
-    bool    IsValid() const override;
+    // Tells if there were errors during previous io operation(s);
+    // the call to GetError() *resets* the error record.
+    bool    GetError() const override;
     // Is end of stream
     bool    EOS() const override;
     // Total length of stream (if known)
     soff_t  GetLength() const override;
     // Current position (if known)
     soff_t  GetPosition() const override;
-    bool    CanRead() const override;
-    bool    CanWrite() const override;
-    bool    CanSeek() const override;
 
     size_t  Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
@@ -84,14 +83,17 @@ public:
 
     bool    Seek(soff_t offset, StreamSeek origin) override;
 
-private:
-    FileStream(FILE *file, bool own, FileWorkMode work_mode, DataEndianess stream_end);
-    void    Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+    bool    Flush() override;
+    void    Close() override;
 
-    FILE                *_file;
-    bool                 _ownHandle;
-    const FileOpenMode  _openMode;
-    const FileWorkMode  _workMode;
+private:
+    FileStream(FILE *file, bool own, StreamMode work_mode, DataEndianess stream_end);
+    void    Open(const String &file_name, FileOpenMode open_mode, StreamMode work_mode);
+
+    FILE         *_file = nullptr;
+    bool          _ownHandle = false;
+    FileOpenMode  _openMode = kFile_None;
+    StreamMode    _workMode = kStream_None;
 };
 
 } // namespace Common

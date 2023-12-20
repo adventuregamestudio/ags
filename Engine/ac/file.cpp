@@ -532,10 +532,10 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
 }
 
 Stream *ResolveScriptPathAndOpen(const String &sc_path,
-    FileOpenMode open_mode, FileWorkMode work_mode)
+    FileOpenMode open_mode, StreamMode work_mode)
 {
     ResolvedPath rp;
-    if (open_mode == kFile_Open && work_mode == kFile_Read)
+    if (open_mode == kFile_Open && work_mode == kStream_Read)
         rp = ResolveScriptPathAndFindFile(sc_path, true);
     else
         rp = ResolveWritePathAndCreateDirs(sc_path);
@@ -611,7 +611,7 @@ static int ags_pf_feof(void *userdata)
 
 static int ags_pf_ferror(void *userdata)
 {
-    return ((AGS_PACKFILE_OBJ*)userdata)->stream->HasErrors() ? 1 : 0;
+    return ((AGS_PACKFILE_OBJ*)userdata)->stream->GetError() ? 1 : 0;
 }
 
 // Custom PACKFILE callback table
@@ -669,9 +669,8 @@ AssetPath get_voice_over_assetpath(const String &filename)
 
 //=============================================================================
 
-// ScriptFileHandle is a wrapper over a Stream object, prepared for script
-// or plugin. Implements IManagedStream, which is a plugin API contract.
-class ScriptFileHandle : public IManagedStream
+// ScriptFileHandle is a wrapper over a Stream object, prepared for script.
+class ScriptFileHandle
 {
 public:
     ScriptFileHandle() = default;
@@ -683,38 +682,6 @@ public:
 
     // Releases Stream ownership; used in case of temporary stream wrap
     Stream *ReleaseStream() { return _s.release(); }
-
-    //-------------------------------------------------------------------------
-    // IManagedStream implementation
-    // Flushes and closes the stream, deallocates the stream object.
-    // After calling this the IAGSStream pointer becomes INVALID.
-    void Close() override
-    {
-        close_file_stream(_handle, "IAGSStream::Close"); // this will dealloc us
-    }
-    // Returns an optional stream's source description.
-    // This may be a file path, or a resource name, or anything of that kind.
-    const char *GetPath() override { return _s->GetPath().GetCStr(); }
-    // Reads number of bytes into the provided buffer
-    virtual size_t Read(void *buffer, size_t len) override { return _s->Read(buffer, len); }
-    // Writes number of bytes from the provided buffer
-    virtual size_t Write(void *buffer, size_t len) override { return _s->Write(buffer, len); }
-    // Returns the total stream's length in bytes
-    virtual int64_t GetLength() override { return _s->GetLength(); }
-    // Returns stream's position
-    virtual int64_t GetPosition() override { return _s->GetPosition(); }
-    // Tells whether the stream's position is at its end
-    virtual bool   EOS() override { return _s->EOS(); }
-    // Seeks to offset from the origin, see AGSSTREAM_SEEK_* constants
-    virtual int64_t Seek(int64_t offset, int origin) override
-    {
-        if (_s->Seek(offset, static_cast<StreamSeek>(origin)))
-            return _s->GetPosition();
-        return -1ll;
-    }
-    // Flushes stream, forcing it to write any buffered data to the
-    // underlying device. Note that the effect may depend on implementation.
-    virtual void   Flush() override { _s->Flush(); }
 
 private:
     std::unique_ptr<Stream> _s;
@@ -763,19 +730,9 @@ Stream *get_file_stream(int32_t fhandle, const char *operation_name)
     return fh ? fh->GetStream() : nullptr;
 }
 
-IManagedStream *get_file_stream_iface(int32_t fhandle, const char *operation_name)
+IStream *get_file_stream_iface(int32_t fhandle, const char *operation_name)
 {
-    return check_file_stream(fhandle, operation_name);
-}
-
-int32_t find_file_stream_handle(AGS::Engine::IManagedStream *iface)
-{
-    for (auto &pfh : file_streams)
-    {
-        if (pfh.get() == iface)
-            return pfh->GetHandle();
-    }
-    return 0;
+    return check_file_stream(fhandle, operation_name)->GetStream();
 }
 
 Stream *release_file_stream(int32_t fhandle, const char *operation_name)

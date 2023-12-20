@@ -693,7 +693,7 @@ int SaveScreenShot(const char*namm) {
         filename = Path::ConcatPaths(svg_dir, namm);
     }
 
-    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kFile_Write));
+    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kStream_Write));
     if (!out)
         return 0;
     std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight()));

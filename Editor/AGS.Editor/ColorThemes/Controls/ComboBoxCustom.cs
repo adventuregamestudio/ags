@@ -63,7 +63,7 @@ namespace AGS.Editor
 
             DrawItem += (s, a) =>
             {
-                if (a.Index >= 0)
+                if (a.Index >= 0 && a.Index < this.Items.Count)
                 {
                     a.DrawBackground();
 

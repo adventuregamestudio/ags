@@ -284,15 +284,8 @@ int String_GetLength(const char *thisString) {
 
 //=============================================================================
 
-size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
-    if (fonnt == -1)
-        fonnt = play.normal_font;
-
-    //  char sofar[100];
-    if (todis[0]=='&') {
-        while ((todis[0]!=' ') & (todis[0]!=0)) todis++;
-        if (todis[0]==' ') todis++;
-    }
+size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines)
+{
     lines.Reset();
     longestline=0;
 
@@ -300,10 +293,9 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     if (wii < 3)
         return 0;
 
-    int line_length;
-
     split_lines(todis, lines, wii, fonnt, max_lines);
 
+    int line_length;
     // Right-to-left just means reverse the text then
     // write it as normal
     if (apply_direction && (game.options[OPT_RIGHTLEFTWRITE] != 0))
@@ -334,6 +326,24 @@ size_t check_strcapacity(char *ptt)
     if (((uintptr_t)&ptt[0] >= charstart) && ((uintptr_t)&ptt[0] <= charend))
         return sizeof(CharacterInfo::name);
     return MAX_MAXSTRLEN;
+}
+
+const char *parse_voiceover_token(const char *text, int *voice_num)
+{
+    if (*text != '&')
+    {
+        if (voice_num)
+            *voice_num = 0;
+        return text; // no token
+    }
+
+    if (voice_num)
+        *voice_num = atoi(&text[1]);
+    // Skip the token and a single following space char
+    for (; *text && *text != ' '; ++text) {}
+    if (*text == ' ')
+        ++text;
+    return text;
 }
 
 //=============================================================================

@@ -114,7 +114,8 @@ String GUI::TransformTextForDrawing(const String &text, bool translate, bool app
 size_t GUI::SplitLinesForDrawing(const char *text, bool is_translated, SplitLines &lines, int font, int width, size_t max_lines)
 {
     // Use the engine's word wrap tool, to have RTL writing and other features
-    return break_up_text_into_lines(text, is_translated, lines, width, font);
+    const char *draw_text = skip_voiceover_token(text);
+    return break_up_text_into_lines(draw_text, is_translated, lines, width, font);
 }
 
 void GUIObject::MarkChanged()

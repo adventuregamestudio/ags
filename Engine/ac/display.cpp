@@ -92,6 +92,8 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     // Just in case screen size does is not neatly divisible by 320x200
     const int paddingDoubledScaled = get_fixed_pixel_size(padding * 2);
 
+    // NOTE: we do not process the text using prepare_text_for_drawing() here,
+    // as it is assumed to be done prior to passing into this function
     // Make message copy, because ensure_text_valid_for_font() may modify it
     char todis[STD_BUFFER_SIZE];
     snprintf(todis, STD_BUFFER_SIZE - 1, "%s", text);
@@ -430,18 +432,16 @@ void display_at(int xx, int yy, int wii, const char *text)
 
 bool try_auto_play_speech(const char *text, const char *&replace_text, int charid)
 {
-    const char *src = text;
-    if (src[0] != '&')
-        return false;
-
-    int sndid = atoi(&src[1]);
-    while ((src[0] != ' ') & (src[0] != 0)) src++;
-    if (src[0] == ' ') src++;
-    if (sndid <= 0)
+    int voice_num;
+    const char *src = parse_voiceover_token(text, &voice_num);
+    if (src == text)
+        return false; // no token
+    
+    if (voice_num <= 0)
         quit("DisplaySpeech: auto-voice symbol '&' not followed by valid integer");
 
     replace_text = src; // skip voice tag
-    if (play_voice_speech(charid, sndid))
+    if (play_voice_speech(charid, voice_num))
     {
         // if Voice Only, then blank out the text
         if (play.speech_mode == kSpeech_VoiceOnly)
@@ -457,17 +457,10 @@ int source_text_length = -1;
 
 int GetTextDisplayLength(const char *text)
 {
-    int len = (int)strlen(text);
-    if ((text[0] == '&') && (play.unfactor_speech_from_textlength != 0))
-    {
-        // if there's an "&12 text" type line, remove "&12 " from the source length
-        size_t j = 0;
-        while ((text[j] != ' ') && (text[j] != 0))
-            j++;
-        j++;
-        len -= j;
-    }
-    return len;
+    // Skip voice-over token from the length calculation if required
+    if (play.unfactor_speech_from_textlength != 0)
+        text = skip_voiceover_token(text);
+    return static_cast<int>(strlen(text));
 }
 
 int GetTextDisplayTime(const char *text, int canberel) {

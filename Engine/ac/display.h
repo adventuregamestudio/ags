@@ -33,7 +33,8 @@ using AGS::Common::GUIMain;
 
 struct ScreenOverlay;
 // Generates a textual image from the given text and parameters;
-// see _display_main's comment below for parameters description
+// see _display_main's comment below for parameters description.
+// NOTE: this function treats text as-is, not doing any processing over it.
 Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
     bool &alphaChannel);
@@ -46,6 +47,8 @@ Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought
 //   != 0 - text color for a speech or a regular textual overlay, where
 //     < 0 - use text window if applicable
 //     > 0 - suppose it's a classic LA-style speech above character's head
+// NOTE: this function treats the text as-is; it assumes that any processing
+// (translation, parsing voice token) was done prior to its call.
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont,
     int asspch, int isThought, int allowShrink, bool overlayPositionFixed, bool roomlayer = false);
 // Displays a standard blocking message box at a given position

@@ -41,9 +41,15 @@ Scripting:
  - When declaring a pointer to managed struct you may now omit "*" sign.
  - When writing struct's function's code you may now omit "this" keyword when addressing
    current struct's member (variable, attribute or function).
- - Support for extender attributes.
- - Support for multi-dimensional regular (non-dynamic) arrays. They may have any positive
-   number of dimensions.
+ - Extender attributes; similar to extender functions, but these define a pair of
+   get_ and set_ functions.
+ - Multi-dimensional regular arrays. They may have any positive number of dimensions.
+ - Multi-dimensional dynamic arrays, also known as "jagged arrays". These are
+   arrays of arrays, where each parent array's element has to be created separately,
+   but may be of any independent length.
+ - Regular arrays of dynamic arrays: that is a regular array where each element is a
+   pointer to a dynamic array of the same type.
+ - Dynamic arrays of regular structs.
  - Dynamic arrays now have Length pseudo-attribute used to retrieve their length.
  - Global variables may now be declared right after struct's or enum's declaration, between
    the closing bracket and closing semi-colon.
@@ -99,7 +105,7 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.1 - Beta, November 2023
+VERSION 3.6.1 - Beta, December 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.

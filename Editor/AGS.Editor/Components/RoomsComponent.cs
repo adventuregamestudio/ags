@@ -1997,6 +1997,7 @@ namespace AGS.Editor.Components
         {
             SetMaskDirect(mask, LoadMask(mask), false);
             ((RoomSettingsEditor)_roomSettings.Control).InvalidateDrawingBuffer();
+            _loadedRoom.Modified = true;
         }
 
         /// <summary>

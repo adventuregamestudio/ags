@@ -44,23 +44,20 @@ public:
     // Construct memory stream in the chosen mode over a given C-buffer;
     // neither reading nor writing will ever exceed buf_sz bytes;
     // buffer must persist in memory until the stream is closed.
-    MemoryStream(uint8_t *buf, size_t buf_sz, StreamWorkMode mode, DataEndianess stream_endianess = kLittleEndian);
+    MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode, DataEndianess stream_endianess = kLittleEndian);
     ~MemoryStream() override = default;
 
     void    Close() override;
     bool    Flush() override;
 
-    // Is stream valid (underlying data initialized properly)
-    bool    IsValid() const override;
+    StreamMode GetMode() const override { return _mode; }
+    bool    GetError() const override { return false; }
     // Is end of stream
     bool    EOS() const override;
     // Total length of stream (if known)
     soff_t  GetLength() const override;
     // Current position (if known)
     soff_t  GetPosition() const override;
-    bool    CanRead() const override;
-    bool    CanWrite() const override;
-    bool    CanSeek() const override;
 
     size_t  Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
@@ -73,7 +70,7 @@ protected:
     const uint8_t           *_cbuf = nullptr; // readonly buffer ptr
     size_t                   _buf_sz = 0u; // hard buffer limit
     size_t                   _len = 0u; // calculated length of stream
-    const StreamWorkMode     _mode;
+    StreamMode               _mode = kStream_None;
     size_t                   _pos = 0u; // current stream pos
 
 private:
@@ -89,13 +86,10 @@ public:
     VectorStream(const std::vector<uint8_t> &cbuf, DataEndianess stream_endianess = kLittleEndian);
     // Construct memory stream in the chosen mode over a given std::vector;
     // vector must persist in memory until the stream is closed.
-    VectorStream(std::vector<uint8_t> &buf, StreamWorkMode mode, DataEndianess stream_endianess = kLittleEndian);
+    VectorStream(std::vector<uint8_t> &buf, StreamMode mode, DataEndianess stream_endianess = kLittleEndian);
     ~VectorStream() override = default;
 
     void    Close() override;
-
-    bool    CanRead() const override;
-    bool    CanWrite() const override;
 
     size_t  Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t b) override;

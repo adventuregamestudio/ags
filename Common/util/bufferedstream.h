@@ -43,7 +43,7 @@ public:
     // - could not determine the length of the stream
     // It is recommended to use File::OpenFile to safely construct this object.
     BufferedStream(const String &file_name, FileOpenMode open_mode,
-        FileWorkMode work_mode, DataEndianess stream_endianess = kLittleEndian);
+        StreamMode work_mode, DataEndianess stream_endianess = kLittleEndian);
     ~BufferedStream();
 
     // Is end of stream
@@ -84,7 +84,7 @@ class BufferedSectionStream : public BufferedStream
 {
 public:
     BufferedSectionStream(const String &file_name, soff_t start_pos, soff_t end_pos,
-        FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess = kLittleEndian);
+        FileOpenMode open_mode, StreamMode work_mode, DataEndianess stream_endianess = kLittleEndian);
 };
 
 } // namespace Common

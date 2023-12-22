@@ -312,12 +312,13 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   }
 
   for (aa = 0; aa < numSprites; aa++) {
-    AGSBitmap *sprit = get_sprite(sprites[aa]);
+    int sprnum = sprites[aa];
+    AGSBitmap *sprit = get_sprite(sprnum);
     // create a new, smaller sprite and copy across
 	std::unique_ptr<AGSBitmap> newsprit(new AGSBitmap(newWidth, newHeight, sprit->GetColorDepth()));
     newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     // set new image and keep old flags
-    spriteset.SetSprite(sprites[aa], std::move(newsprit), thisgame.SpriteInfos[aa].Flags);
+    spriteset.SetSprite(sprnum, std::move(newsprit), thisgame.SpriteInfos[sprnum].Flags);
   }
 
   spritesModified = true;
@@ -2356,7 +2357,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->DialogOptionsGUI = thisgame.options[OPT_DIALOGIFACE];
 	game->Settings->DialogOptionsBullet = thisgame.dialog_bullet;
 	game->Settings->DisplayMultipleInventory = (thisgame.options[OPT_DUPLICATEINV] != 0);
-	game->Settings->GameName = gcnew String(thisgame.gamename);
+	game->Settings->GameName = gcnew String(thisgame.gamename.GetCStr());
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
 	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
@@ -2375,7 +2376,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
-    game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
+    game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename.GetCStr());
     game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
     game->Settings->UseOldKeyboardHandling = (thisgame.options[OPT_KEYHANDLEAPI] == 0);
     game->Settings->ScaleCharacterSpriteOffsets = (thisgame.options[OPT_SCALECHAROFFSETS] != 0);
@@ -2469,8 +2470,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		character->MovementSpeedX = thisgame.chars[i].walkspeed;
 		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
 		character->NormalView = thisgame.chars[i].defview + 1;
-		character->RealName = gcnew String(thisgame.chars[i].name);
-		character->ScriptName = gcnew String(thisgame.chars[i].scrname);
+		character->RealName = gcnew String(thisgame.chars[i].name.GetCStr());
+		character->ScriptName = gcnew String(thisgame.chars[i].scrname.GetCStr());
 		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
 		character->SpeechColor = thisgame.chars[i].talkcolor;
 		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);
@@ -2539,7 +2540,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		cursor->HotspotX = thisgame.mcurs[i].hotx;
 		cursor->HotspotY = thisgame.mcurs[i].hoty;
 		cursor->ID = i;
-		cursor->Name = gcnew String(thisgame.mcurs[i].name);
+		cursor->Name = gcnew String(thisgame.mcurs[i].name.GetCStr());
 		cursor->StandardMode = ((thisgame.mcurs[i].flags & MCF_STANDARD) != 0);
 		cursor->View = thisgame.mcurs[i].view + 1;
 		if (cursor->View < 1) cursor->View = 0;
@@ -2574,7 +2575,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	{
 		InventoryItem^ invItem = gcnew InventoryItem();
     invItem->CursorImage = thisgame.invinfo[i].pic;
-		invItem->Description = gcnew String(thisgame.invinfo[i].name);
+		invItem->Description = gcnew String(thisgame.invinfo[i].name.GetCStr());
 		invItem->Image = thisgame.invinfo[i].pic;
 		invItem->HotspotX = thisgame.invinfo[i].hotx;
 		invItem->HotspotY = thisgame.invinfo[i].hoty;

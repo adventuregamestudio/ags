@@ -296,7 +296,8 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     // TODO: use generic function from the engine instead of having copy&pasted code here
     const int linespacing = get_font_linespacing(font);
 
-    if (break_up_text_into_lines(text, Lines, wid, font) == 0)
+    const char *draw_text = skip_voiceover_token(text);
+    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
     Bitmap *ds = gfxDriver->GetStageBackBuffer(true);
@@ -776,7 +777,7 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
 {
     if (ginfo->Version >= 26)
     {
-        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename);
+        snprintf(ginfo->GameName, sizeof(ginfo->GameName), "%s", game.gamename.GetCStr());
         snprintf(ginfo->Guid, sizeof(ginfo->Guid), "%s", game.guid);
         ginfo->UniqueId = game.uniqueid;
     }
@@ -809,21 +810,15 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 
 ::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, int file_mode, int work_mode)
 {
-    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path,
-        static_cast<FileOpenMode>(file_mode), static_cast<FileWorkMode>(work_mode)));
-    if (!s)
-        return nullptr;
-    int32_t fhandle = add_file_stream(std::move(s), "IAGSEngine::OpenFileStream");
-    if (fhandle <= 0)
-        return nullptr;
-    return reinterpret_cast<::IAGSStream*>(
-        get_file_stream_iface(fhandle, "IAGSEngine::OpenFileStream"));
+    Stream *s = ResolveScriptPathAndOpen(script_path,
+        static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode));
+    return reinterpret_cast<::IAGSStream*>(s);
 }
 
 ::IAGSStream *IAGSEngine::GetFileStreamByHandle(int32 fhandle)
 {
     return reinterpret_cast<::IAGSStream*>(
-        get_file_stream_iface(fhandle, "IAGSEngine::GetFileStreamByHandle"));
+        get_file_stream(fhandle, "IAGSEngine::GetFileStreamByHandle"));
 }
 
 // *********** General plugin implementation **********

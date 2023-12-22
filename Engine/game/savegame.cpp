@@ -496,7 +496,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     // precache current cursor
     spriteset.PrecacheSprite(game.mcurs[r_data.CursorID].pic);
 
-    sys_window_set_title(play.game_name);
+    sys_window_set_title(play.game_name.GetCStr());
 
     if (displayed_room >= 0)
     {

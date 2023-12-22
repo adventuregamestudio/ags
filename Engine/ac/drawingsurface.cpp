@@ -301,7 +301,8 @@ void DrawingSurface_DrawStringWrapped_Old(ScriptDrawingSurface *sds, int xx, int
 void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
     int linespacing = get_font_linespacing(font);
 
-    if (break_up_text_into_lines(msg, Lines, wid, font) == 0)
+    const char *draw_text = skip_voiceover_token(msg);
+    if (break_up_text_into_lines(draw_text, Lines, wid, font) == 0)
         return;
 
     Bitmap *ds = sds->StartDrawing();

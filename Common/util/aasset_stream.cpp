@@ -54,17 +54,13 @@ namespace AGS
             if(_ownHandle) Close();
         }
 
-        bool AAssetStream::HasErrors() const
-        {
-            return !IsValid();
-        }
-
         void AAssetStream::Close()
         {
             if(_aAsset) {
                 AAsset_close(_aAsset);
                 _aAsset = nullptr;
             }
+            _mode = kStream_None;
         }
 
         bool AAssetStream::Flush()
@@ -72,9 +68,9 @@ namespace AGS
             return false;
         }
 
-        bool AAssetStream::IsValid() const
+        StreamMode AAssetStream::GetMode() const
         {
-            return _aAsset != nullptr;
+            return _mode;
         }
 
         bool AAssetStream::EOS() const
@@ -100,24 +96,9 @@ namespace AGS
             return -1;
         }
 
-        bool AAssetStream::CanRead() const
-        {
-            return IsValid();
-        }
-
-        bool AAssetStream::CanWrite() const
-        {
-            return false;
-        }
-
-        bool AAssetStream::CanSeek() const
-        {
-            return IsValid();
-        }
-
         size_t AAssetStream::Read(void *buffer, size_t size)
         {
-            if(!IsValid()) return -1;
+            if(!IsValid()) return 0;
 
             size = std::min<size_t>(size, _end - _cur_offset);
             if(size == 0) return 0;
@@ -138,7 +119,7 @@ namespace AGS
 
         size_t AAssetStream::Write(const void *buffer, size_t size)
         {
-            return -1;
+            return 0;
         }
 
         int32_t AAssetStream::WriteByte(uint8_t val)
@@ -187,6 +168,8 @@ namespace AGS
             _cur_offset = 0;
             _start = 0;
             _end = AAsset_getLength64(_aAsset);
+            _assetMode = asset_mode;
+            _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
         }
 
 

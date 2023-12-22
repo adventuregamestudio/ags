@@ -37,8 +37,9 @@ enum AudioFileType {
 #define AUCL_BUNDLE_EXE 1
 #define AUCL_BUNDLE_VOX 2
 
-#define SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH    30
-#define SCRIPTAUDIOCLIP_FILENAMELENGTH      15
+#define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
+#define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
+
 struct ScriptAudioClip {
     int id = 0;
     Common::String scriptName;

@@ -31,7 +31,7 @@
 #elif defined(_MSC_VER)
    #define ALLEGRO_MSVC
 #elif defined(__APPLE__)
-   #include "TargetConditionals.h"
+   #include <TargetConditionals.h>
    #ifndef TARGET_OS_SIMULATOR
       #define TARGET_OS_SIMULATOR (0)
    #endif

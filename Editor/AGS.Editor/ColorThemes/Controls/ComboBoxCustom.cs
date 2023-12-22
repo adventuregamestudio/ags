@@ -71,7 +71,10 @@ namespace AGS.Editor
 
             DrawItem += (s, a) =>
             {
-                if (a.Index >= 0)
+                // TODO: there's a suspicion that incorrect item index may be received
+                // here because of the multithreading conflict;
+                // a good research is required to determine whether this is true and why.
+                if (a.Index >= 0 && a.Index < this.Items.Count)
                 {
                     a.DrawBackground();
 

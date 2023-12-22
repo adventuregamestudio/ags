@@ -14,11 +14,11 @@
 #include "ac/dynobj/scriptfile.h"
 #include "ac/global_file.h"
 
-// CHECKME: actually NULLs here will be equal to kFile_Open & kFile_Read
+// CHECKME: actually NULLs here will be equal to kFile_Open & kStream_Read
 const Common::FileOpenMode sc_File::fopenModes[] = 
     {Common::kFile_Open/*CHECKME, was undefined*/, Common::kFile_Open, Common::kFile_CreateAlways, Common::kFile_Create};
-const Common::FileWorkMode sc_File::fworkModes[] = 
-    {Common::kFile_Read/*CHECKME, was undefined*/, Common::kFile_Read, Common::kFile_Write, Common::kFile_Write};
+const Common::StreamMode sc_File::fworkModes[] = 
+    {Common::kStream_Read/*CHECKME, was undefined*/, Common::kStream_Read, Common::kStream_Write, Common::kStream_Write};
 
 int sc_File::Dispose(void* /*address*/, bool /*force*/) {
     Close();

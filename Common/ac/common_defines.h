@@ -23,7 +23,7 @@
 #define EXIT_ERROR  93
 
 // Script name length limit for some game objects
-#define MAX_SCRIPT_NAME_LEN 20
+#define LEGACY_MAX_SCRIPT_NAME_LEN 20
 // Number of state-saved rooms
 #define MAX_ROOMS 300
 

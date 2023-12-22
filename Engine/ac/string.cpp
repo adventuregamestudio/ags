@@ -284,15 +284,8 @@ int String_GetLength(const char *thisString) {
 
 //=============================================================================
 
-size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines) {
-    if (fonnt == -1)
-        fonnt = play.normal_font;
-
-    //  char sofar[100];
-    if (todis[0]=='&') {
-        while ((todis[0]!=' ') & (todis[0]!=0)) todis++;
-        if (todis[0]==' ') todis++;
-    }
+size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines)
+{
     lines.Reset();
     longestline=0;
 
@@ -300,10 +293,9 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     if (wii < 3)
         return 0;
 
-    int line_length;
-
     split_lines(todis, lines, wii, fonnt, max_lines);
 
+    int line_length;
     // Right-to-left just means reverse the text then
     // write it as normal
     if (apply_direction && (game.options[OPT_RIGHTLEFTWRITE] != 0))
@@ -324,28 +316,34 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     return lines.Count();
 }
 
-// FIXME!!
-// This is a ugly "safety fix" that tests whether the script tries
+// This is a somewhat ugly safety fix that tests whether the script tries
 // to write inside the Character's struct (e.g. char.name?), and truncates
-// the write limit... except it does not use full length anymore (40 now).
-size_t MAXSTRLEN = MAX_MAXSTRLEN;
-void check_strlen(char*ptt) {
-    MAXSTRLEN = MAX_MAXSTRLEN;
+// the write limit accordingly.
+size_t check_strcapacity(char *ptt)
+{
     uintptr_t charstart = (uintptr_t)&game.chars[0];
     uintptr_t charend = charstart + sizeof(CharacterInfo)*game.numcharacters;
     if (((uintptr_t)&ptt[0] >= charstart) && ((uintptr_t)&ptt[0] <= charend))
-        MAXSTRLEN=30;
+        return sizeof(CharacterInfo::name);
+    return MAX_MAXSTRLEN;
 }
 
-void my_strncpy(char *dest, const char *src, int len) {
-    // the normal strncpy pads out the string with zeros up to the
-    // max length -- we don't want that
-    if (strlen(src) >= (unsigned)len) {
-        strncpy(dest, src, len);
-        dest[len] = 0;
+const char *parse_voiceover_token(const char *text, int *voice_num)
+{
+    if (*text != '&')
+    {
+        if (voice_num)
+            *voice_num = 0;
+        return text; // no token
     }
-    else
-        strcpy(dest, src);
+
+    if (voice_num)
+        *voice_num = atoi(&text[1]);
+    // Skip the token and a single following space char
+    for (; *text && *text != ' '; ++text) {}
+    if (*text == ' ')
+        ++text;
+    return text;
 }
 
 //=============================================================================

@@ -54,6 +54,7 @@ enum GameStateSvgVersion
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_350_9     = 2,
     kGSSvgVersion_350_10    = 3,
+    kGSSvgVersion_361_14    = 4,
     kGSSvgVersion_400       = 4000000,
 };
 
@@ -61,6 +62,7 @@ enum GameStateSvgVersion
 // Runtime game state
 struct GameState {
     // TODO: this is left purely to load older save version, revise later
+    static const int LEGACY_GAMENAMELENGTH = 100;
     static const int LEGACY_MAXGLOBALVARS = 50;
     static const int LEGACY_MAXGSVALUES = 500;
     static const int LEGACY_MAXGLOBALSTRINGS = 51;
@@ -202,7 +204,7 @@ struct GameState {
     short new_music_queue_size = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
     char  lastParserEntry[MAX_MAXSTRLEN]{};
-    char  game_name[100]{};
+    AGS::Common::String game_name;
     int   ground_level_areas_disabled = 0;
     int   next_screen_transition = 0;
     int   gamma_adjustment = 0;

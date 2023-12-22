@@ -350,7 +350,7 @@ static int PrepareTextScript(ccInstance *sci, const char**tsname)
     if (num_scripts >= MAX_SCRIPT_AT_ONCE)
         quit("too many nested text script instances created");
     // in case script_run_another is the function name, take a backup
-    strncpy(scfunctionname, tsname[0], MAX_FUNCTION_NAME_LEN);
+    snprintf(scfunctionname, sizeof(scfunctionname), "%s", tsname[0]);
     tsname[0] = &scfunctionname[0];
     update_script_mouse_coords();
     inside_script++;

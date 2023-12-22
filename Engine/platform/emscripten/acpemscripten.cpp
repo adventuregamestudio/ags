@@ -31,8 +31,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/filestream.h"
 
-using AGS::Common::String;
-using AGS::Common::FileStream;
+using namespace AGS::Common;
 
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
@@ -171,8 +170,11 @@ void AGSEmscripten::MainInit()
     ags_syncfs_running = false;
 
     FileStream::FileCloseNotify = [this](const FileStream::CloseNotifyArgs &args){
-        if(args.WorkMode == Common::FileWorkMode::kFile_Read) return;
-        if(!Common::Path::IsSameOrSubDir(SavedGamesDirectory.FullDir,args.Filepath)) return;
+        // Only sync if file stream was in write mode
+        if ((args.WorkMode & StreamMode::kStream_ReadWrite) == StreamMode::kStream_Read)
+            return;
+        if (!Path::IsSameOrSubDir(SavedGamesDirectory.FullDir,args.Filepath))
+            return;
         ScheduleSyncFS();
     };
 }

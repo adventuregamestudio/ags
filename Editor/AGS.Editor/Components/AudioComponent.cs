@@ -424,7 +424,7 @@ namespace AGS.Editor.Components
         private AudioClip CreateAudioClipForFile(string sourceFileName)
         {
             string newScriptName = EnsureScriptNameIsUnique(
-                Path.GetFileNameWithoutExtension(sourceFileName), AudioClip.MAX_SCRIPTNAME_LENGTH);
+                Path.GetFileNameWithoutExtension(sourceFileName));
             AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
             newClip.ID = _agsEditor.CurrentGame.RootAudioClipFolder.GetAllItemsCount();
 

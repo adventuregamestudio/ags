@@ -268,7 +268,7 @@ void InitAndRegisterRegions()
 void RegisterStaticArrays(GameSetupStruct &game)
 {
     // We need to know sizes of related script structs to convert memory offsets into object indexes.
-    // These sized are calculated by the compiler based on script struct declaration.
+    // These sizes are calculated by the compiler based on script struct declaration.
     // Note, that only regular variables count to the struct size, NOT properties and NOT methods.
     // Currently there is no way to read the type sizes from script, so we have to define them by hand.
     // If the struct size changes in script, we must change the numbers here.

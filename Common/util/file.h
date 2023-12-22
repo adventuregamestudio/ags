@@ -19,6 +19,7 @@
 #define __AGS_CN_UTIL__FILE_H
 
 #include "core/platform.h"
+#include "util/stream.h"
 #include "util/string.h"
 
 namespace AGS
@@ -31,16 +32,10 @@ class Stream;
 
 enum FileOpenMode
 {
+    kFile_None = 0,
     kFile_Open,         // Open existing file
     kFile_Create,       // Create new file, or open existing one
     kFile_CreateAlways  // Always create a new file, replacing any existing one
-};
-
-enum FileWorkMode
-{
-    kFile_Read      = 0x1,
-    kFile_Write     = 0x2,
-    kFile_ReadWrite = kFile_Read | kFile_Write
 };
 
 namespace File
@@ -68,29 +63,29 @@ namespace File
     bool        CopyFile(const String &src_path, const String &dst_path, bool overwrite);
 
     // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
-    bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode);
+    bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode);
     // Gets C-style file mode from FileOpenMode and FileWorkMode
-    String      GetCMode(FileOpenMode open_mode, FileWorkMode work_mode);
+    String      GetCMode(FileOpenMode open_mode, StreamMode work_mode);
 
     // Opens file in the given mode
-    Stream      *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    Stream      *OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode);
     // Opens file for reading restricted to the arbitrary offset range
     Stream      *OpenFile(const String &filename, soff_t start_off, soff_t end_off);
     // Convenience helpers
     // Create a totally new file, overwrite existing one
     inline Stream *CreateFile(const String &filename)
     {
-        return OpenFile(filename, kFile_CreateAlways, kFile_Write);
+        return OpenFile(filename, kFile_CreateAlways, kStream_Write);
     }
     // Open existing file for reading
     inline Stream *OpenFileRead(const String &filename)
     {
-        return OpenFile(filename, kFile_Open, kFile_Read);
+        return OpenFile(filename, kFile_Open, kStream_Read);
     }
     // Open existing file for writing (append) or create if it does not exist
     inline Stream *OpenFileWrite(const String &filename)
     {
-        return OpenFile(filename, kFile_Create, kFile_Write);
+        return OpenFile(filename, kFile_Create, kStream_Write);
     }
     // Opens stdin stream for reading
     Stream      *OpenStdin();
@@ -122,10 +117,10 @@ namespace File
     // Case insensitive file open: looks up for the file using FindFileCI
     Stream *OpenFileCI(const String &base_dir, const String &file_name,
         FileOpenMode open_mode = kFile_Open,
-        FileWorkMode work_mode = kFile_Read);
+        StreamMode work_mode = kStream_Read);
     inline Stream *OpenFileCI(const String &file_name,
         FileOpenMode open_mode = kFile_Open,
-        FileWorkMode work_mode = kFile_Read)
+        StreamMode work_mode = kStream_Read)
     {
         return OpenFileCI("", file_name, open_mode, work_mode);
     }

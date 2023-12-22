@@ -11,15 +11,15 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstructbase.h"
 #include "ac/game_version.h"
 #include "ac/wordsdictionary.h"
 #include "script/cc_script.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 GameSetupStructBase::GameSetupStructBase()
     : numviews(0)
@@ -40,7 +40,6 @@ GameSetupStructBase::GameSetupStructBase()
     , default_lipsync_frame(0)
     , invhotdotsprite(0)
 {
-    memset(gamename, 0, sizeof(gamename));
     memset(options, 0, sizeof(options));
     memset(paluses, 0, sizeof(paluses));
     memset(defpal, 0, sizeof(defpal));
@@ -76,7 +75,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    in->Read(&gamename[0], GAME_NAME_LENGTH);
+    gamename.ReadCount(in, LEGACY_GAME_NAME_LENGTH);
     in->ReadInt16(); // alignment padding to int32 (gamename: 50 -> 52 bytes)
     in->ReadArrayOfInt32(options, MAX_OPTIONS);
     in->Read(&paluses[0], sizeof(paluses));
@@ -109,8 +108,9 @@ void GameSetupStructBase::ReadFromFile(Stream *in, GameDataVersion game_ver, Ser
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
-    in->ReadArrayOfInt32(&info.HasMessages.front(), NUM_LEGACY_GLOBALMES);
+    info.ExtensionOffset = static_cast<uint32_t>(in->ReadInt32());
 
+    in->ReadArrayOfInt32(&info.HasMessages.front(), NUM_LEGACY_GLOBALMES);
     info.HasWordsDict = in->ReadInt32() != 0;
     in->ReadInt32(); // globalscript (dummy 32-bit pointer value)
     in->ReadInt32(); // chars (dummy 32-bit pointer value)
@@ -122,7 +122,7 @@ void GameSetupStructBase::WriteToFile(Stream *out, const SerializeInfo &info) co
     // NOTE: historically the struct was saved by dumping whole memory
     // into the file stream, which added padding from memory alignment;
     // here we mark the padding bytes, as they do not belong to actual data.
-    out->Write(&gamename[0], GAME_NAME_LENGTH);
+    gamename.WriteCount(out, LEGACY_GAME_NAME_LENGTH);
     out->WriteInt16(0); // alignment padding to int32
     out->WriteArrayOfInt32(options, MAX_OPTIONS);
     out->Write(&paluses[0], sizeof(paluses));

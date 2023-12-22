@@ -465,7 +465,7 @@ HSaveError WriteCharacters(Stream *out)
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].WriteToSavegame(out);
-        charextra[i].WriteToSavegame(out);
+        charextra[i].WriteToSavegame(out, game.chars[i]);
         Properties::WriteValues(play.charProps[i], out);
     }
     return HSaveError::None();
@@ -478,8 +478,8 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, const PreservedParams& /*
         return err;
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        game.chars[i].ReadFromSavegame(in, cmp_ver);
-        charextra[i].ReadFromSavegame(in, cmp_ver);
+        game.chars[i].ReadFromSavegame(in);
+        charextra[i].ReadFromSavegame(in, game.chars[i], cmp_ver);
         Properties::ReadValues(play.charProps[i], in);
     }
     return err;

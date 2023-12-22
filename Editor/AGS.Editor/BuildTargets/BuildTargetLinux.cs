@@ -212,5 +212,12 @@ fi
                 return LINUX_DIR;
             }
         }
+
+        public override RuntimeSetup FixInvalidSettings(RuntimeSetup setup)
+        {
+            setup.GraphicsDriver = setup.GraphicsDriver == GraphicsDriver.D3D9 ? GraphicsDriver.OpenGL : setup.GraphicsDriver;
+
+            return setup;
+        }
     }
 }

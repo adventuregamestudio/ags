@@ -175,3 +175,6 @@ libsrc/theora/
 libsrc/vorbis/
 
 libsrc/SDL2-Framework.dmg
+
+# ags game in ios game project
+iOS/Resources

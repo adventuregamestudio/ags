@@ -193,6 +193,9 @@ SDL_Window *sys_window_create(const char *window_title, int w, int h, WindowMode
     // Resizable flag is necessary for fullscreen app rotation
     flags |= SDL_WINDOW_RESIZABLE;
 #endif
+#if (AGS_PLATFORM_OS_IOS)
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+#endif
     window = SDL_CreateWindow(
         window_title,
         SDL_WINDOWPOS_CENTERED_DISPLAY(DEFAULT_DISPLAY_INDEX),

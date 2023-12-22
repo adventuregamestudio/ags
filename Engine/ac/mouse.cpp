@@ -393,9 +393,11 @@ void set_new_cursor_graphic (int spriteslot)
             blank_mouse_cursor.reset(BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth()));
         mouse_cur_bmp = blank_mouse_cursor.get();
     }
+    else
     {
         mouse_cur_bmp = spriteset[spriteslot];
     }
+
     mouse_cur_pic = spriteslot;
     update_cached_mouse_cursor(mouse_cur_bmp);
 }

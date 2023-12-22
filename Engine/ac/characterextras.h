@@ -35,13 +35,15 @@ enum CharacterSvgVersion
     kCharSvgVersion_350     = 1, // new movelist format (along with pathfinder)
     kCharSvgVersion_36025   = 2, // animation volume
     kCharSvgVersion_36109   = 3, // removed movelists, save externally
+    kCharSvgVersion_36114   = 4, // no limit on character name's length
     kCharSvgVersion_400     = 4000000,
 };
 
 // The CharacterInfo struct size is fixed because it's exposed to script
 // and plugin API, therefore new stuff has to go here
 // TODO: now safe to merge with CharacterInfo into one class
-struct CharacterExtras {
+struct CharacterExtras
+{
     short invorder[MAX_INVORDER]{};
     short invorder_count = 0;
     int spr_width = 0; // last used sprite's size
@@ -82,8 +84,14 @@ struct CharacterExtras {
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 
     void UpdateGraphicSpace(const CharacterInfo *chin);
-    void ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+
+    // Read character extra data from saves.
+    // NOTE: we read ext name fields into the CharacterInfo struct,
+    // hence require its reference as an argument. This is ugly, but should
+    // be improved when the structs are refactored into having a distinct
+    // runtime Character class, which would hold all relevant data itself.
+    void ReadFromSavegame(Common::Stream *in, CharacterInfo &chinfo, int32_t cmp_ver);
+    void WriteToSavegame(Common::Stream *out, const CharacterInfo &chinfo) const;
 
 private:
     Common::GraphicSpace _gs;

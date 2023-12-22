@@ -57,21 +57,18 @@ namespace AGS
             { return new AAssetStream(aasset, false, asset_mode, stream_end); }
             ~AAssetStream() override;
 
-            bool    HasErrors() const override;
-            void    Close() override;
-            bool    Flush() override;
-
-            // Is stream valid (underlying data initialized properly)
-            bool    IsValid() const override;
+            // Tells the AASSET_MODE this stream is working in.
+            int     GetAssetMode() const { return _assetMode; }
+            // Tells which mode the stream is working in, which defines
+            // supported io operations, such as reading, writing, seeking, etc.
+            // Invalid streams return kStream_None to indicate that they are not functional.
+            StreamMode GetMode() const override;
             // Is end of stream
             bool    EOS() const override;
             // Total length of stream (if known)
             soff_t  GetLength() const override;
             // Current position (if known)
             soff_t  GetPosition() const override;
-            bool    CanRead() const override;
-            bool    CanWrite() const override;
-            bool    CanSeek() const override;
 
             size_t  Read(void *buffer, size_t size) override;
             int32_t ReadByte() override;
@@ -79,6 +76,9 @@ namespace AGS
             int32_t WriteByte(uint8_t b) override;
 
             bool    Seek(soff_t offset, StreamSeek origin) override;
+
+            bool    Flush() override;
+            void    Close() override;
 
         protected:
             soff_t _start = 0;
@@ -91,8 +91,10 @@ namespace AGS
             void    Open(const String &asset_name, int asset_mode);
             void    OpenSection(const String &asset_name, int asset_mode, soff_t start_pos, soff_t end_pos);
 
-            bool                 _ownHandle;
-            AAsset                *_aAsset = nullptr;
+            bool    _ownHandle = false;
+            AAsset *_aAsset = nullptr;
+            int     _assetMode = AASSET_MODE_UNKNOWN;
+            StreamMode _mode = kStream_None;
         };
 
     } // namespace Common

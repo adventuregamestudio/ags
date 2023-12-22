@@ -167,9 +167,13 @@
 // Only allow searching around for game data on desktop systems;
 // otherwise use explicit argument either from program wrapper, command-line
 // or read from default config.
+//  FIXME: AGS_PLATFORM_OS_IOS normally should not be here;
+//         need to find out how to pass a path to game file
+//         from the ObjectiveC application side.
 #define AGS_SEARCH_FOR_GAME_ON_LAUNCH (AGS_PLATFORM_OS_WINDOWS    || \
                                        AGS_PLATFORM_OS_LINUX      || \
                                        AGS_PLATFORM_OS_MACOS      || \
+                                       AGS_PLATFORM_OS_IOS        || \
                                        AGS_PLATFORM_OS_EMSCRIPTEN || \
                                        AGS_PLATFORM_OS_FREEBSD )
 

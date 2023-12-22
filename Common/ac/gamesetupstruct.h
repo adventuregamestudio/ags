@@ -50,7 +50,7 @@ struct GameSetupStruct : public GameSetupStructBase
     // font parameters are then put and queried in the fonts module
     // TODO: split into installation params (used only when reading) and runtime params
     std::vector<FontInfo> fonts;
-    InventoryItemInfo invinfo[MAX_INV];
+    InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
     // CLNUP old interactions
     //Interaction     **intrChar;
@@ -74,7 +74,7 @@ struct GameSetupStruct : public GameSetupStructBase
     char              guid[MAX_GUID_LENGTH];
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH];
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
-    char              saveGameFolderName[MAX_SG_FOLDER_LEN];
+    Common::String    saveGameFolderName;
     int               roomCount;
     std::vector<int>  roomNumbers;
     std::vector<Common::String> roomNames;

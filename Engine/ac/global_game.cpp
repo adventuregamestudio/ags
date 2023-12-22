@@ -506,7 +506,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
             if (play.get_loc_name_last_time != 1000 + mover)
                 GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = 1000 + mover;
-            snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[mover].name));
+            snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[mover].name.GetCStr()));
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
@@ -537,7 +537,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on character
     if (loctype == LOCTYPE_CHAR) {
         onhs = getloctype_index;
-        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.chars[onhs].name));
+        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.chars[onhs].name.GetCStr()));
         if (play.get_loc_name_last_time != 2000+onhs)
             GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 2000+onhs;
@@ -578,7 +578,7 @@ int SaveScreenShot(const char*namm) {
         filename = Path::ConcatPaths(svg_dir, namm);
     }
 
-    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kFile_Write));
+    std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kStream_Write));
     if (!out)
         return 0;
     std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight()));

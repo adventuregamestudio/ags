@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/mousecursor.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 void MouseCursor::ReadFromFile(Stream *in)
 {
@@ -23,9 +23,11 @@ void MouseCursor::ReadFromFile(Stream *in)
     hotx = in->ReadInt16();
     hoty = in->ReadInt16();
     view = in->ReadInt16();
-    in->Read(name, 10);
+    StrUtil::ReadCStrCount(legacy_name, in, LEGACY_MAX_CURSOR_NAME_LENGTH);
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
+
+    name = legacy_name;
 }
 
 void MouseCursor::WriteToFile(Stream *out)
@@ -34,7 +36,7 @@ void MouseCursor::WriteToFile(Stream *out)
     out->WriteInt16(hotx);
     out->WriteInt16(hoty);
     out->WriteInt16(view);
-    out->Write(name, 10);
+    out->Write(legacy_name, LEGACY_MAX_CURSOR_NAME_LENGTH);
     out->WriteInt8(flags);
     out->WriteByteCount(0, 3); // alignment padding to int32
 }

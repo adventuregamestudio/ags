@@ -23,7 +23,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::StreamMode work_mode);
 // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
 int32_t FileOpenCMode(const char*fnmm, const char* cmode);
 void  FileClose(int32_t handle);

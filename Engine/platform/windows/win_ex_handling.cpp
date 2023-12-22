@@ -18,14 +18,16 @@
 #include <new.h>
 #include <cinttypes>
 #include <stdio.h>
+#include "platform/windows/windows.h"
+#include <Psapi.h>
 #include "ac/common.h" // quit
 #include "ac/common_defines.h"
 #include "debug/out.h"
 #include "util/ini_util.h"
 #include "main/main.h"
 #include "platform/base/sys_main.h"
-#include "platform/windows/windows.h"
 #include "script/cc_common.h"
+#include "ac/spritecache.h"
 
 #if !AGS_PLATFORM_DEBUG
 #define USE_CUSTOM_EXCEPTION_HANDLER
@@ -38,7 +40,7 @@ extern int eip_guinum;
 extern int eip_guiobj;
 extern int proper_exit;
 
-char tempmsg[100];
+char tempmsg[2048] = "";
 #define PRINT_WORKSPACE_SIZE (7000u)
 char *printfworkingspace;
 
@@ -83,11 +85,46 @@ int initialize_engine_with_exception_handling(
 
 int malloc_fail_handler(size_t amountwanted)
 {
+    char *cur = tempmsg;
+    char const* const end = tempmsg + sizeof tempmsg;
+    const int MB = 1024*1024;
+    const int KB = 1024;
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     CreateMiniDump(NULL);
 #endif
     free(printfworkingspace);
-    snprintf(tempmsg, sizeof(tempmsg), "Out of memory: failed to allocate %zu bytes (at PP=%d)", amountwanted, our_eip);
+
+    cur += snprintf(cur, end-cur, "Out of memory: failed to allocate %zu bytes (at PP=%d)\n\n", amountwanted, our_eip);
+
+    const size_t total_normspr = spriteset.GetCacheSize();
+    const size_t total_lockspr = spriteset.GetLockedSize();
+    const size_t total_extspr = spriteset.GetExternalSize();
+    const size_t max_normspr = spriteset.GetMaxCacheSize();
+    const unsigned norm_spr_filled = max_normspr > 0 ?  (uint64_t) (total_normspr * 100 / max_normspr) : 0;
+
+    cur += snprintf(cur, end-cur, "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n\n",
+                    total_normspr/KB, max_normspr/KB, norm_spr_filled, total_lockspr/KB, total_extspr/KB);
+
+
+    PROCESS_MEMORY_COUNTERS pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+    {
+        cur += snprintf(cur, end - cur, "WorkingSetSize: %zu MB\n", (size_t)pmc.WorkingSetSize / MB);
+        cur += snprintf(cur, end - cur, "QuotaPagedPoolUsage: %zu MB (peak %zu MB)\n", (size_t)pmc.QuotaPagedPoolUsage / MB, (size_t)pmc.QuotaPeakPagedPoolUsage / MB);
+        cur += snprintf(cur, end - cur, "QuotaNonPagedPoolUsage: %zu MB (peak %zu MB)\n", (size_t)pmc.QuotaNonPagedPoolUsage / MB, (size_t)pmc.QuotaPeakNonPagedPoolUsage / MB);
+        cur += snprintf(cur, end - cur, "PagefileUsage: %zu MB (peak %zu MB)\n\n", (size_t)pmc.PagefileUsage / MB, (size_t)pmc.PeakPagefileUsage / MB);
+    }
+
+    MEMORYSTATUSEX statex;
+    statex.dwLength = sizeof statex;
+    if (GlobalMemoryStatusEx(&statex)) {
+        cur += snprintf(cur, end-cur, "%lu%% memory in use\n", statex.dwMemoryLoad);
+        cur += snprintf(cur, end-cur, "Physical Memory: %llu MB free / %llu MB total\n", statex.ullAvailPhys/MB, statex.ullTotalPhys/MB);
+        cur += snprintf(cur, end-cur, "Virtual Memory: %llu MB free / %llu MB total\n", statex.ullAvailVirtual/MB, statex.ullTotalVirtual/MB);
+        cur += snprintf(cur, end-cur, "Extended Memory: %llu MB free\n", statex.ullAvailExtendedVirtual/MB);
+    }
+
+
     quit(tempmsg);
     return 0;
 }

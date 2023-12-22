@@ -134,7 +134,7 @@ bool File::CopyFile(const String &src_path, const String &dst_path, bool overwri
     return ags_file_copy(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
 }
 
-bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode)
+bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, StreamMode &work_mode)
 {
     // We do not test for 'b' and 't' here, because text mode reading/writing should be done with
     // the use of ITextReader and ITextWriter implementations.
@@ -142,14 +142,14 @@ bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, F
     bool read_base_mode = false;
     // Default mode is open/read for safety reasons
     open_mode = kFile_Open;
-    work_mode = kFile_Read;
+    work_mode = kStream_Read;
     for (size_t c = 0; c < cmode.GetLength(); ++c)
     {
         if (read_base_mode)
         {
             if (cmode[c] == '+')
             {
-                work_mode = kFile_ReadWrite;
+                work_mode = kStream_ReadWrite;
             }
             break;
         }
@@ -158,19 +158,19 @@ bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, F
             if (cmode[c] == 'r')
             {
                 open_mode = kFile_Open;
-                work_mode = kFile_Read;
+                work_mode = kStream_Read;
                 read_base_mode = true;
             }
             else if (cmode[c] == 'a')
             {
                 open_mode = kFile_Create;
-                work_mode = kFile_Write;
+                work_mode = kStream_Write;
                 read_base_mode = true;
             }
             else if (cmode[c] == 'w')
             {
                 open_mode = kFile_CreateAlways;
-                work_mode = kFile_Write;
+                work_mode = kStream_Write;
                 read_base_mode = true;
             }
         }
@@ -178,35 +178,37 @@ bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, F
     return read_base_mode;
 }
 
-String File::GetCMode(FileOpenMode open_mode, FileWorkMode work_mode)
+String File::GetCMode(FileOpenMode open_mode, StreamMode work_mode)
 {
     String mode;
+    // filter out only read/write flags
+    work_mode = static_cast<StreamMode>(work_mode & kStream_ReadWrite);
     if (open_mode == kFile_Open)
     {
-        if (work_mode == kFile_Read)
+        if (work_mode == kStream_Read)
             mode.AppendChar('r');
-        else if (work_mode == kFile_Write || work_mode == kFile_ReadWrite)
+        else if (work_mode == kStream_Write || work_mode == kStream_ReadWrite)
             mode.Append("r+");
     }
     else if (open_mode == kFile_Create)
     {
-        if (work_mode == kFile_Write)
+        if (work_mode == kStream_Write)
             mode.AppendChar('a');
-        else if (work_mode == kFile_Read || work_mode == kFile_ReadWrite)
+        else if (work_mode == kStream_Read || work_mode == kStream_ReadWrite)
             mode.Append("a+");
     }
     else if (open_mode == kFile_CreateAlways)
     {
-        if (work_mode == kFile_Write)
+        if (work_mode == kStream_Write)
             mode.AppendChar('w');
-        else if (work_mode == kFile_Read || work_mode == kFile_ReadWrite)
+        else if (work_mode == kStream_Read || work_mode == kStream_ReadWrite)
             mode.Append("w+");
     }
     mode.AppendChar('b');
     return mode;
 }
 
-Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
 {
     Stream *fs = nullptr;
     try {
@@ -218,8 +220,9 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
     } catch(std::runtime_error) {
         fs = nullptr;
 #if AGS_PLATFORM_OS_ANDROID
+        // strictly for read-only streams: look into Android Assets too
         try {
-            if (work_mode == kFile_Read) // look into Android Assets too
+            if ((work_mode & kStream_Write) == 0)
                 fs = new AAssetStream(filename, AASSET_MODE_RANDOM);
             if (fs != nullptr && !fs->IsValid()) {
                 delete fs;
@@ -236,17 +239,17 @@ Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkM
 
 Stream *File::OpenStdin()
 {
-    return FileStream::WrapHandle(stdin, kFile_Read, kDefaultSystemEndianess);
+    return FileStream::WrapHandle(stdin, kStream_Read, kDefaultSystemEndianess);
 }
 
 Stream *File::OpenStdout()
 {
-    return FileStream::WrapHandle(stdout, kFile_Write, kDefaultSystemEndianess);
+    return FileStream::WrapHandle(stdout, kStream_Write, kDefaultSystemEndianess);
 }
 
 Stream *File::OpenStderr()
 {
-    return FileStream::WrapHandle(stderr, kFile_Write, kDefaultSystemEndianess);
+    return FileStream::WrapHandle(stderr, kStream_Write, kDefaultSystemEndianess);
 }
 
 String File::FindFileCI(const String &base_dir, const String &file_name,
@@ -365,7 +368,7 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
 #endif
 }
 
-Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
     return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);
@@ -383,7 +386,7 @@ Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOp
 Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
 {
     try {
-        Stream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kFile_Read);
+        Stream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kStream_Read);
         if (fs != nullptr && !fs->IsValid()) {
             delete fs;
             return nullptr;

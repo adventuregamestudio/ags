@@ -89,7 +89,8 @@ int GetTextHeight(const char *text, int fontnum, int width) {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetTextHeight: invalid font number.");
 
-  if (break_up_text_into_lines(text, Lines, width, fontnum) == 0)
+  const char *draw_text = skip_voiceover_token(text);
+  if (break_up_text_into_lines(draw_text, Lines, width, fontnum) == 0)
     return 0;
   return get_text_lines_height(fontnum, Lines.Count());
 }

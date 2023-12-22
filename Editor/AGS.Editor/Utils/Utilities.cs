@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace AGS.Editor
 {
@@ -668,6 +669,21 @@ namespace AGS.Editor
             if (!secmap.TryGetValue(key, out value))
                 return def;
             return value;
+        }
+
+        /// <summary>
+        /// Do a simple shallow copy of properties that are both readableand writeable from one object to the other
+        /// TO-DO: If we do add a Clone or Duplicate to the objects in AGS.Types, move this to Utilities there.
+        /// </summary>
+        public static void NaiveCopyProperties(object source_obj, object clone)
+        {
+            IEnumerable<PropertyInfo> properties = source_obj.GetType().GetProperties()
+                .Where(f => f.CanWrite && f.CanRead);
+
+            foreach (PropertyInfo prop in properties)
+            {
+                prop.SetValue(clone, prop.GetValue(source_obj));
+            }
         }
     }
 }

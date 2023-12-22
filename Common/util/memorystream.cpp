@@ -25,30 +25,33 @@ MemoryStream::MemoryStream(const uint8_t *cbuf, size_t buf_sz, DataEndianess str
     , _cbuf(cbuf)
     , _buf_sz(buf_sz)
     , _len(buf_sz)
-    , _mode(kStream_Read)
     , _pos(0)
     , _buf(nullptr)
 {
+    if (cbuf)
+        _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
 }
 
-MemoryStream::MemoryStream(uint8_t *buf, size_t buf_sz, StreamWorkMode mode, DataEndianess stream_endianess)
+MemoryStream::MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode, DataEndianess stream_endianess)
     : DataStream(stream_endianess)
     , _cbuf(nullptr)
     , _buf_sz(buf_sz)
     , _len(0)
-    , _mode(mode)
     , _pos(0)
     , _buf(nullptr)
 {
-    if (mode == kStream_Read)
+    if ((mode & kStream_Write) != 0)
+    {
+        _buf = buf;
+    }
+    else
     {
         _cbuf = buf;
         _len = buf_sz;
     }
-    else
-    {
-        _buf = buf;
-    }
+
+    if (buf)
+        _mode = static_cast<StreamMode>(mode | kStream_Seek);
 }
 
 void MemoryStream::Close()
@@ -58,16 +61,12 @@ void MemoryStream::Close()
     _buf_sz = 0;
     _len = 0;
     _pos = 0;
+    _mode = kStream_None;
 }
 
 bool MemoryStream::Flush()
 {
     return true;
-}
-
-bool MemoryStream::IsValid() const
-{
-    return _cbuf != nullptr || _buf != nullptr;
 }
 
 bool MemoryStream::EOS() const
@@ -83,21 +82,6 @@ soff_t MemoryStream::GetLength() const
 soff_t MemoryStream::GetPosition() const
 {
     return _pos;
-}
-
-bool MemoryStream::CanRead() const
-{
-    return (_cbuf != nullptr) && (_mode == kStream_Read);
-}
-
-bool MemoryStream::CanWrite() const
-{
-    return (_buf != nullptr) && (_mode == kStream_Write);
-}
-
-bool MemoryStream::CanSeek() const
-{
-    return true;
 }
 
 size_t MemoryStream::Read(void *buffer, size_t size)
@@ -119,7 +103,6 @@ int32_t MemoryStream::ReadByte()
 
 bool MemoryStream::Seek(soff_t offset, StreamSeek origin)
 {
-    if (!CanSeek()) { return false; }
     soff_t pos = 0;
     switch (origin)
     {
@@ -159,29 +142,22 @@ VectorStream::VectorStream(const std::vector<uint8_t> &cbuf, DataEndianess strea
     : MemoryStream(&cbuf.front(), cbuf.size(), stream_endianess)
     , _vec(nullptr)
 {
+    _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
 }
 
-VectorStream::VectorStream(std::vector<uint8_t> &buf, StreamWorkMode mode, DataEndianess stream_endianess)
-    : MemoryStream(((mode == kStream_Read) && (buf.size() > 0)) ? &buf.front() : nullptr,
+VectorStream::VectorStream(std::vector<uint8_t> &buf, StreamMode mode, DataEndianess stream_endianess)
+    : MemoryStream((((mode & kStream_ReadWrite) == kStream_Read) && (buf.size() > 0) ?
+            &buf.front() : nullptr),
         buf.size(), mode, stream_endianess)
     , _vec(&buf)
 {
+    _mode = static_cast<StreamMode>(mode | kStream_Seek);
 }
 
 void VectorStream::Close()
 {
     _vec = nullptr;
     MemoryStream::Close();
-}
-
-bool VectorStream::CanRead() const
-{
-    return _mode == kStream_Read;
-}
-
-bool VectorStream::CanWrite() const
-{
-    return _mode == kStream_Write;
 }
 
 size_t VectorStream::Write(const void *buffer, size_t size)

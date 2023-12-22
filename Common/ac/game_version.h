@@ -116,6 +116,8 @@ Some adjustments to gui text alignment.
 In RTL mode all text is reversed, not only wrappable (labels etc).
 3.6.1.10:
 Disabled automatic SetRestartPoint.
+3.6.1.14:
+Extended game object names, resolving hard length limits.
 
 3.9.9 :
 BlendModes
@@ -129,6 +131,7 @@ enum GameDataVersion
     kGameVersion_360_21         = 3060021,
     kGameVersion_361            = 3060100,
     kGameVersion_361_10         = 3060110,
+    kGameVersion_361_14         = 3060114,
     kGameVersion_399            = 3999999,
     kGameVersion_400            = 4000000,
     kGameVersion_LowSupported   = kGameVersion_360_21,

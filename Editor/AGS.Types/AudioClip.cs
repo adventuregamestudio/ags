@@ -9,7 +9,6 @@ namespace AGS.Types
     public class AudioClip : IToXml, IComparable<AudioClip>
     {
         public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
-        public const int MAX_SCRIPTNAME_LENGTH = 29; // restricted by data format
 
         private int _id;
         private string _sourceFileName;
@@ -81,7 +80,7 @@ namespace AGS.Types
         public string ScriptName
         {
             get { return _scriptName; }
-            set { _scriptName = Utilities.ValidateScriptName(value, MAX_SCRIPTNAME_LENGTH); }
+            set { _scriptName = Utilities.ValidateScriptName(value); }
         }
 
         // This is a "Fixed Index" that is used as a stable reference the clip,

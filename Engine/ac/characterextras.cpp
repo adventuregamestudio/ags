@@ -15,6 +15,7 @@
 #include "ac/characterinfo.h"
 #include "ac/viewframe.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -43,7 +44,7 @@ void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
     ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi));
 }
 
-void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
+void CharacterExtras::ReadFromSavegame(Stream *in, CharacterInfo &chinfo, int32_t cmp_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -66,6 +67,10 @@ void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
         cur_anim_volume = static_cast<uint8_t>(in->ReadInt8());
         in->ReadInt8(); // reserved to fill int32
         in->ReadInt8();
+    }
+    if (cmp_ver >= kCharSvgVersion_36114)
+    {
+        chinfo.name = StrUtil::ReadString(in);
     }
     if (cmp_ver >= kCharSvgVersion_400)
     {
@@ -91,7 +96,7 @@ void CharacterExtras::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     }
 }
 
-void CharacterExtras::WriteToSavegame(Stream *out) const
+void CharacterExtras::WriteToSavegame(Stream *out, const CharacterInfo &chinfo) const
 {
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);
@@ -113,7 +118,9 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt8(static_cast<uint8_t>(cur_anim_volume));
     out->WriteInt8(0); // reserved to fill int32
     out->WriteInt8(0);
-    // since version 10
+    // kCharSvgVersion_36114
+    StrUtil::WriteString(chinfo.name, out);
+    // kCharSvgVersion_400
     out->WriteInt32(blend_mode);
     // Reserved for colour options
     out->WriteInt32(0); // colour flags

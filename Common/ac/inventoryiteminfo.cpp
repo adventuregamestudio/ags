@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/inventoryiteminfo.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -20,7 +19,7 @@ using namespace AGS::Common;
 
 void InventoryItemInfo::ReadFromFile(Stream *in)
 {
-    in->Read(name, 25);
+    name.ReadCount(in, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     in->Seek(3); // alignment padding to int32
     pic = in->ReadInt32();
     cursorPic = in->ReadInt32();
@@ -33,7 +32,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in)
 
 void InventoryItemInfo::WriteToFile(Stream *out)
 {
-    out->Write(name, 25);
+    name.WriteCount(out, LEGACY_MAX_INVENTORY_NAME_LENGTH);
     out->WriteByteCount(0, 3); // alignment padding to int32
     out->WriteInt32(pic);
     out->WriteInt32(cursorPic);
@@ -46,7 +45,7 @@ void InventoryItemInfo::WriteToFile(Stream *out)
 
 void InventoryItemInfo::ReadFromSavegame(Stream *in)
 {
-    StrUtil::ReadString(name, in, 25);
+    name = StrUtil::ReadString(in);
     pic = in->ReadInt32();
     cursorPic = in->ReadInt32();
 }

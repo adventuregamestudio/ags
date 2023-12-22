@@ -32,7 +32,7 @@ int LoadImageFile(const char *filename)
         return 0;
 
     std::unique_ptr<Stream> in(
-        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, FileWorkMode::kFile_Read));
+        ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));
     if (!in)
         return 0;
 

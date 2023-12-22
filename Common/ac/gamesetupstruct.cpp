@@ -16,6 +16,7 @@
 #include "ac/wordsdictionary.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/interactions.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -23,11 +24,9 @@ GameSetupStruct::GameSetupStruct()
     : filever(0)
     , roomCount(0)
 {
-    memset(invinfo, 0, sizeof(invinfo));
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
     memset(guid, 0, sizeof(guid));
     memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
-    memset(saveGameFolderName, 0, sizeof(saveGameFolderName));
 }
 
 GameSetupStruct::~GameSetupStruct()
@@ -69,9 +68,9 @@ void AdjustFontInfoUsingFlags(FontInfo &finfo, const uint32_t flags)
 
 void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
 {
-        in->Read(&guid[0], MAX_GUID_LENGTH);
-        in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
-        in->Read(&saveGameFolderName[0], MAX_SG_FOLDER_LEN);
+        StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
+        StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
+        saveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
 }
 
 void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_ver)

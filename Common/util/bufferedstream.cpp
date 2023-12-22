@@ -30,7 +30,7 @@ namespace Common
 const size_t BufferedStream::BufferSize;
 
 BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode,
-        FileWorkMode work_mode, DataEndianess stream_endianess)
+        StreamMode work_mode, DataEndianess stream_endianess)
     : FileStream(file_name, open_mode, work_mode, stream_endianess)
 {
     if (FileStream::Seek(0, kSeekEnd))
@@ -92,14 +92,14 @@ soff_t BufferedStream::GetPosition() const
 
 void BufferedStream::Close()
 {
-    if (GetWorkMode() == kFile_Write)
+    if (CanWrite())
         FlushBuffer(_position);
     FileStream::Close();
 }
 
 bool BufferedStream::Flush()
 {
-    if (GetWorkMode() == kFile_Write)
+    if (CanWrite())
         FlushBuffer(_position);
     return FileStream::Flush();
 }
@@ -203,7 +203,7 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
 //-----------------------------------------------------------------------------
 
 BufferedSectionStream::BufferedSectionStream(const String &file_name, soff_t start_pos, soff_t end_pos,
-        FileOpenMode open_mode, FileWorkMode work_mode, DataEndianess stream_endianess)
+        FileOpenMode open_mode, StreamMode work_mode, DataEndianess stream_endianess)
     : BufferedStream(file_name, open_mode, work_mode, stream_endianess)
 {
     assert(start_pos <= end_pos);

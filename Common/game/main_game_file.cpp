@@ -386,18 +386,17 @@ void FixupSaveDirectory(GameSetupStruct &game)
 {
     // If the save game folder was not specified by game author, create one of
     // the game name, game GUID, or uniqueid, as a last resort
-    if (!game.saveGameFolderName[0])
+    if (game.saveGameFolderName.IsEmpty())
     {
-        if (game.gamename[0])
-            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", game.gamename);
+        if (!game.gamename.IsEmpty())
+            game.saveGameFolderName = game.gamename;
         else if (game.guid[0])
-            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", game.guid);
+            game.saveGameFolderName = game.guid;
         else
-            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "AGS-Game-%d", game.uniqueid);
+            game.saveGameFolderName.Format("AGS-Game-%d", game.uniqueid);
     }
     // Lastly, fixup folder name by removing any illegal characters
-    String s = Path::FixupSharedFilename(game.saveGameFolderName);
-    snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", s.GetCStr());
+    game.saveGameFolderName = Path::FixupSharedFilename(game.saveGameFolderName);
 }
 
 HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
@@ -442,11 +441,11 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
     // }
     if (ext_id.CompareNoCase("v360_fonts") == 0)
     {
-        for (int i = 0; i < _ents.Game.numfonts; ++i)
+        for (FontInfo &finfo : _ents.Game.fonts)
         {
             // adjustable font outlines
-            _ents.Game.fonts[i].AutoOutlineThickness = _in->ReadInt32();
-            _ents.Game.fonts[i].AutoOutlineStyle =
+            finfo.AutoOutlineThickness = _in->ReadInt32();
+            finfo.AutoOutlineStyle =
                 static_cast<enum FontInfo::AutoOutlineStyle>(_in->ReadInt32());
             // reserved
             _in->ReadInt32();
@@ -454,22 +453,60 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
             _in->ReadInt32();
             _in->ReadInt32();
         }
-        return HError::None();
     }
     else if (ext_id.CompareNoCase("v360_cursors") == 0)
     {
-        for (int i = 0; i < _ents.Game.numcursors; ++i)
+        for (MouseCursor &mcur : _ents.Game.mcurs)
         {
-            _ents.Game.mcurs[i].animdelay = _in->ReadInt32();
+            mcur.animdelay = _in->ReadInt32();
             // reserved
             _in->ReadInt32();
             _in->ReadInt32();
             _in->ReadInt32();
         }
-        return HError::None();
+    }
+    else if (ext_id.CompareNoCase("v361_objnames") == 0)
+    {
+        // Extended object names and script names:
+        // for object types that had hard name length limits
+        _ents.Game.gamename = StrUtil::ReadString(_in);
+        _ents.Game.saveGameFolderName = StrUtil::ReadString(_in);
+        size_t num_chars = _in->ReadInt32();
+        if (num_chars != _ents.Game.chars.size())
+            return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, _ents.Game.chars.size()));
+        for (CharacterInfo &chinfo : _ents.Game.chars)
+        {
+            chinfo.scrname = StrUtil::ReadString(_in);
+            chinfo.name = StrUtil::ReadString(_in);
+            // assign to the legacy fields for compatibility with old plugins
+            snprintf(chinfo.legacy_scrname, LEGACY_MAX_SCRIPT_NAME_LEN, "%s", chinfo.scrname.GetCStr());
+            snprintf(chinfo.legacy_name, LEGACY_MAX_CHAR_NAME_LEN, "%s", chinfo.name.GetCStr());
+        }
+        size_t num_invitems = _in->ReadInt32();
+        if (num_invitems != _ents.Game.numinvitems)
+            return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)_ents.Game.numinvitems));
+        for (int i = 0; i < _ents.Game.numinvitems; ++i)
+        {
+            _ents.Game.invinfo[i].name = StrUtil::ReadString(_in);
+        }
+        size_t num_cursors = _in->ReadInt32();
+        if (num_cursors != _ents.Game.mcurs.size())
+            return new Error(String::FromFormat("Mismatching number of cursors: read %zu expected %zu", num_cursors, _ents.Game.mcurs.size()));
+        for (MouseCursor &mcur : _ents.Game.mcurs)
+        {
+            mcur.name = StrUtil::ReadString(_in);
+        }
+        size_t num_clips = _in->ReadInt32();
+        if (num_clips != _ents.Game.audioClips.size())
+            return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, _ents.Game.audioClips.size()));
+        for (ScriptAudioClip &clip : _ents.Game.audioClips)
+        {
+            clip.scriptName = StrUtil::ReadString(_in);
+            clip.fileName = StrUtil::ReadString(_in);
+        }
     }
     // Early development version of "ags4"
-    if (ext_id.CompareNoCase("ext_ags399") == 0)
+    else if (ext_id.CompareNoCase("ext_ags399") == 0)
     {
         // new character properties
         for (size_t i = 0; i < (size_t)_ents.Game.numcharacters; ++i)
@@ -490,10 +527,39 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
             // Reserved for transform options (see list in savegame format)
             _in->Seek(sizeof(int32_t) * 11);
         }
-
-        return HError::None();
     }
-    return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
+    else
+    {
+        return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));
+    }
+    return HError::None();
+}
+
+
+// Search and read only data belonging to the general game info
+class GameDataExtPreloader : public GameDataExtReader
+{
+public:
+    GameDataExtPreloader(LoadedGameEntities &ents, GameDataVersion data_ver, Stream *in)
+        : GameDataExtReader(ents, data_ver, in) {}
+
+protected:
+    HError ReadBlock(int block_id, const String &ext_id,
+        soff_t block_len, bool &read_next) override;
+};
+
+HError GameDataExtPreloader::ReadBlock(int /*block_id*/, const String &ext_id,
+    soff_t /*block_len*/, bool &read_next)
+{
+    // Try reading only data which belongs to the general game info
+    read_next = true;
+    if (ext_id.CompareNoCase("v361_objnames") == 0)
+    {
+        _ents.Game.gamename = StrUtil::ReadString(_in);
+        _ents.Game.saveGameFolderName = StrUtil::ReadString(_in);
+        read_next = false; // we're done
+    }
+    return HError::None();
 }
 
 
@@ -507,7 +573,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     GameSetupStruct::SerializeInfo sinfo;
     game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
 
-    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename);
+    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
     Debug::Printf(kDbgMsg_Info, "Game guid: '%s'", game.guid);
 
@@ -591,6 +657,16 @@ void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver
     GameSetupStruct::SerializeInfo sinfo;
     game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver);
+
+    // Check for particular expansions that might have data necessary
+    // for "preload" purposes
+    if (sinfo.ExtensionOffset == 0u)
+        return; // either no extensions, or data version is too early
+
+    in->Seek(sinfo.ExtensionOffset, kSeekBegin);
+    LoadedGameEntities ents(game);
+    GameDataExtPreloader reader(ents, data_ver, in);
+    reader.Read();
 }
 
 } // namespace Common

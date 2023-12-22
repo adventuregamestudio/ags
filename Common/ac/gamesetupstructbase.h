@@ -36,13 +36,13 @@ struct ccScript;
 
 struct GameSetupStructBase
 {
-    static const int  GAME_NAME_LENGTH = 50;
+    static const int  LEGACY_GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
-    static const int  NUM_INTS_RESERVED = 17;
+    static const int  NUM_INTS_RESERVED = 16;
     // TODO: this is left purely to load older format version, revise later
     static const int  NUM_LEGACY_GLOBALMES = 500;
 
-    char              gamename[GAME_NAME_LENGTH];
+    Common::String    gamename;
     int               options[MAX_OPTIONS];
     unsigned char     paluses[256];
     RGB               defpal[256];
@@ -81,6 +81,8 @@ struct GameSetupStructBase
         // NOTE: Global messages are cut out, but we still have to check them
         // so long as we keep support of loading an older game data
         std::array<int, NUM_LEGACY_GLOBALMES> HasMessages{};
+        // File offset at which game data extensions begin
+        uint32_t ExtensionOffset = 0u;
     };
 
     void ReadFromFile(Common::Stream *in, GameDataVersion game_ver, SerializeInfo &info);

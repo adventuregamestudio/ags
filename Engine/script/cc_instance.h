@@ -164,7 +164,7 @@ public:
     static ccInstance *GetCurrentInstance(void);
     // create a runnable instance of the supplied script
     static ccInstance *CreateFromScript(PScript script);
-    static ccInstance *CreateEx(PScript scri, ccInstance * joined);
+    static ccInstance *CreateEx(PScript scri, const ccInstance * joined);
     static void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
     static const JointRTTI *GetRTTI() { return _rtti.get(); }
     static const Engine::RTTIHelper *GetRTTIHelper() { return _rttiHelper.get(); }
@@ -209,7 +209,7 @@ public:
     bool    ResolveImportFixups(const ccScript *scri);
 
 private:
-    bool    _Create(PScript scri, ccInstance * joined);
+    bool    _Create(PScript scri, const ccInstance * joined);
     // free the memory associated with the instance
     void    Free();
 

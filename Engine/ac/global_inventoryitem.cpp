@@ -61,10 +61,7 @@ void SetInvItemName(int invi, const char *newName) {
     if ((invi < 1) || (invi > game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
-    // set the new name, making sure it doesn't overflow the buffer
-    strncpy(game.invinfo[invi].name, newName, 25);
-    game.invinfo[invi].name[24] = 0;
-
+    game.invinfo[invi].name = newName;
     // might need to redraw the GUI if it has the inv item name on it
     GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
@@ -87,7 +84,7 @@ int GetInvAt(int atx, int aty) {
 void GetInvName(int indx,char*buff) {
   VALIDATE_STRING(buff);
   if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvName: invalid inventory item specified");
-  snprintf(buff, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[indx].name));
+  snprintf(buff, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[indx].name.GetCStr()));
 }
 
 int GetInvGraphic(int indx) {

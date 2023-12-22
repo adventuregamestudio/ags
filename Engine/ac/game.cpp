@@ -639,9 +639,9 @@ const char *Game_GetName() {
 }
 
 void Game_SetName(const char *newName) {
-    strncpy(play.game_name, newName, 99);
-    play.game_name[99] = 0;
-    sys_window_set_title(play.game_name);
+    play.game_name = newName;
+    sys_window_set_title(play.game_name.GetCStr());
+    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }
 
 int Game_GetSkippingCutscene()

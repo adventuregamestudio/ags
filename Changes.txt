@@ -103,6 +103,9 @@ VERSION 3.6.1 - Beta, November 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.
+ - Removed length limits for: Game name, savegame folder, Character's script name and
+   regular name (description), Inventory item's name (description), Mouse cursor's script name,
+   Audioclip's script name.
 
 Editor:
  - Discontinued Source control integration functionality, removed "Put sound and sprite files
@@ -159,6 +162,8 @@ Editor:
  - When building a game for Android and Linux the Editor will now be more tolerant to missing
    plugins and only issue a warning instead of stopping with error.
  - Config will now be saved in UTF-8, letting to support setup program's title text in unicode.
+ - For non-Windows build targets Editor will fix config containing Direct3D graphics driver
+   option and set OpenGL instead.
  - For Color Themes: implemented character literal, braces match and braces error settings.
  - Made Editor be somewhat more tolerate to missing XML nodes in Game.agf, in many cases it will
    still let open a game.
@@ -173,8 +178,14 @@ Editor:
    a pre-3.* game project.
  - Fixed importing GIFs or 8-bit PNGs may lose transparent pixels if source images used
    other palette index than 0 for transparency.
+ - Fixed sprites may get wrong transparency settings after "Crop sprite edges" operation.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
+ - Fixed deleting collapsed "region" in script would sometimes lead to portion of the script
+   undeleted but staying invisible.
+ - (Possibly) Fixed a "Index out of range" exception in Script editor, related to the
+   "script location" drop-down list, which could occur at random circumstances while
+   working with the script, and any Color Theme is enabled.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
 
@@ -253,16 +264,20 @@ Engine:
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
+ - Print some info about memory usage when reporting a "Out of memory" error.
  - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
    "cachemax" in "misc") and "texture_cache_size".
  - Fixed Characters may be seemingly "walking in place" for some time when arriving at destination.
+ - Fixed Display and Say commands treating the second met "&" sign as a voice-over token too
+   (they must only check the first one in string).
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.
  - Fixed first Sierra-style speechline in a sequence was adjusting its Y position without need
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
+ - Fixed @GAMENAME@ label is not updated if Game.Name changes in script.
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -285,6 +300,13 @@ Compatibility:
  - Fixed inventory window not updated after game.top_inv_item is assigned a new value.
  - Fixed a "New Room" command in old-style dialog scripts was preventing "First time Enter room"
    event to be called.
+
+iOS:
+ - Updated port for 3.6.*.
+
+Windows:
+ - Fixed a rare bug when the Windows engine could fail loading the game for no good reason.
+   This error is related to a bug in Windows SDK 8.1.
 
 Web / Emscripten:
  - Fixed Safari cannot switch the game into fullscreen mode.

@@ -20,6 +20,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "util/file.h"
+#include "util/stream.h"
 
 using namespace AGS; // FIXME later
 
@@ -31,7 +32,7 @@ struct sc_File final : CCBasicObject {
     int32_t             handle;
 
     static const Common::FileOpenMode fopenModes[];
-    static const Common::FileWorkMode fworkModes[];
+    static const Common::StreamMode fworkModes[];
 
     int Dispose(void *address, bool force) override;
 

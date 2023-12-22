@@ -11,17 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_MOUSECURSOR_H
 #define __AC_MOUSECURSOR_H
 
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
+#include "util/stream.h"
+#include "util/string.h"
 
 #define MCF_ANIMMOVE 1
 #define MCF_DISABLED 2
 #define MCF_STANDARD 4
 #define MCF_HOTSPOT  8  // only animate when over hotspot
+
+#define LEGACY_MAX_CURSOR_NAME_LENGTH 10
 
 enum CursorSvgVersion
 {
@@ -29,21 +30,23 @@ enum CursorSvgVersion
     kCursorSvgVersion_36016   = 1, // animation delay
 };
 
-
 struct MouseCursor {
     int   pic = 0;
     short hotx = 0, hoty = 0;
     short view = -1;
-    char  name[10]{};
+    // This is a deprecated name field, but must stay here for compatibility
+    // with the plugin API (unless the plugin interface is reworked)
+    char  legacy_name[LEGACY_MAX_CURSOR_NAME_LENGTH]{};
     char  flags = 0;
+    AGS::Common::String name;
     int   animdelay = 5;
 
     MouseCursor() = default;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
-    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
-    void WriteToSavegame(Common::Stream *out) const;
+    void ReadFromFile(AGS::Common::Stream *in);
+    void WriteToFile(AGS::Common::Stream *out);
+    void ReadFromSavegame(AGS::Common::Stream *in, int cmp_ver);
+    void WriteToSavegame(AGS::Common::Stream *out) const;
 };
 
 #endif // __AC_MOUSECURSOR_H

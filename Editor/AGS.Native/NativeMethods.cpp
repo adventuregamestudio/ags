@@ -578,8 +578,8 @@ namespace AGS
             if (name->Equals("GAME_DATA_VERSION_CURRENT")) return (int)kGameVersion_Current;
             if (name->Equals("MAX_GUID_LENGTH")) return MAX_GUID_LENGTH;
             if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;
-            if (name->Equals("MAX_SG_FOLDER_LEN")) return MAX_SG_FOLDER_LEN;
-            if (name->Equals("MAX_SCRIPT_NAME_LEN")) return MAX_SCRIPT_NAME_LEN;
+            if (name->Equals("MAX_SG_FOLDER_LEN")) return LEGACY_MAX_SG_FOLDER_LEN;
+            if (name->Equals("MAX_SCRIPT_NAME_LEN")) return LEGACY_MAX_SCRIPT_NAME_LEN;
             if (name->Equals("FFLG_SIZEMULTIPLIER")) return FFLG_SIZEMULTIPLIER;
             if (name->Equals("IFLG_STARTWITH")) return IFLG_STARTWITH;
             if (name->Equals("MCF_ANIMMOVE")) return MCF_ANIMMOVE;

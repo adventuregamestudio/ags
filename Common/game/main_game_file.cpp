@@ -478,9 +478,6 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
         {
             chinfo.scrname = StrUtil::ReadString(_in);
             chinfo.name = StrUtil::ReadString(_in);
-            // assign to the legacy fields for compatibility with old plugins
-            snprintf(chinfo.legacy_scrname, LEGACY_MAX_SCRIPT_NAME_LEN, "%s", chinfo.scrname.GetCStr());
-            snprintf(chinfo.legacy_name, LEGACY_MAX_CHAR_NAME_LEN, "%s", chinfo.name.GetCStr());
         }
         size_t num_invitems = _in->ReadInt32();
         if (num_invitems != _ents.Game.numinvitems)

@@ -66,8 +66,9 @@ void CharacterInfo::ReadFromFileImpl(Stream *in, bool is_save)
     in->ReadArrayOfInt16(inv, MAX_INV);
     in->ReadInt16(); // actx__
     in->ReadInt16(); // acty__
-    StrUtil::ReadCStrCount(legacy_name, in, LEGACY_MAX_CHAR_NAME_LEN);
-    StrUtil::ReadCStrCount(legacy_scrname, in, LEGACY_MAX_SCRIPT_NAME_LEN);
+    // Assign names from legacy fixed-sized fields
+    name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
+    scrname.ReadCount(in, LEGACY_MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
     if (do_align_pad)
         in->ReadInt8(); // alignment padding to int32
@@ -119,8 +120,8 @@ void CharacterInfo::WriteToFileImpl(Stream *out, bool is_save) const
     out->WriteArrayOfInt16(inv, MAX_INV);
     out->WriteInt16(0); // actx__
     out->WriteInt16(0); // acty__
-    out->Write(legacy_name, LEGACY_MAX_CHAR_NAME_LEN);
-    out->Write(legacy_scrname, LEGACY_MAX_SCRIPT_NAME_LEN);
+    out->WriteByteCount(0, LEGACY_MAX_CHAR_NAME_LEN); // [DEPRECATED]
+    out->WriteByteCount(0, LEGACY_MAX_SCRIPT_NAME_LEN); // [DEPRECATED]
     out->WriteInt8(on);
     if (do_align_pad)
         out->WriteInt8(0); // alignment padding to int32
@@ -129,10 +130,6 @@ void CharacterInfo::WriteToFileImpl(Stream *out, bool is_save) const
 void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
 {
     ReadFromFileImpl(in, false);
-
-    // Assign names from legacy fields
-    name = legacy_name;
-    scrname = legacy_scrname;
 }
 
 void CharacterInfo::WriteToFile(Stream *out) const

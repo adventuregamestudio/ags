@@ -30,16 +30,15 @@ enum CursorSvgVersion
     kCursorSvgVersion_36016   = 1, // animation delay
 };
 
-struct MouseCursor {
+struct MouseCursor
+{
     int   pic = 0;
     short hotx = 0, hoty = 0;
     short view = -1;
-    // This is a deprecated name field, but must stay here for compatibility
-    // with the plugin API (unless the plugin interface is reworked)
-    char  legacy_name[LEGACY_MAX_CURSOR_NAME_LENGTH]{};
     char  flags = 0;
-    AGS::Common::String name;
     int   animdelay = 5;
+
+    AGS::Common::String name; // script name
 
     MouseCursor() = default;
 

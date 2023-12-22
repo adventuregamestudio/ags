@@ -77,11 +77,11 @@ inline int CharFlagsToObjFlags(int chflags)
 }
 
 
-// CharacterInfoBase contains original set of character fields.
-// It's picked out from CharacterInfo for convenience of adding
-// new design-time fields; easier to maintain backwards compatibility.
-// Prefer to use CharacterInfo and CharacterExtras structs for any extensions.
-struct CharacterInfoBase
+struct CharacterExtras;
+
+// Design-time Character data.
+// TODO: must refactor, some parts of it should be in a runtime Character class.
+struct CharacterInfo
 {
     int   defview;
     int   talkview;
@@ -114,22 +114,10 @@ struct CharacterInfoBase
     short animating; // stores CHANIM_* flags in lower byte and delay in upper byte
     short walkspeed, animspeed;
     short inv[MAX_INV];
-    // These two name fields are deprecated, but must stay here
-    // for compatibility with the plugin API (unless the plugin interface is reworked)
-    char  legacy_name[LEGACY_MAX_CHAR_NAME_LEN];
-    char  legacy_scrname[LEGACY_MAX_SCRIPT_NAME_LEN];
     char  on;
-};
 
-
-struct CharacterExtras;
-
-// Design-time Character data.
-// TODO: must refactor, some parts of it should be in a runtime Character class.
-struct CharacterInfo : public CharacterInfoBase
-{
-    AGS::Common::String scrname;
-    AGS::Common::String name;
+    AGS::Common::String scrname; // script name
+    AGS::Common::String name; // regular name (aka description)
 
     int get_baseline() const;        // return baseline, or Y if not set
     int get_blocking_top() const;    // return Y - BlockingHeight/2
@@ -149,13 +137,12 @@ struct CharacterInfo : public CharacterInfoBase
             ((delay & 0xFF) << 8);
     }
 
-	// [IKM] 2012-06-28: I still have to pass char_index to some of those functions
+	// TODO: these methods should NOT be in CharacterInfo class,
+    // bit in distinct runtime character class! were moved to CharacterInfo by mistake.
+    // NOTE: char_index had still be passed to some of those functions
 	// either because they use it to set some variables with it,
 	// or because they pass it further to other functions, that are called from various places
-	// and it would be too much to change them all simultaneously
-    //
-    // [IKM] 2016-08-26: these methods should NOT be in CharacterInfo class,
-    // bit in distinct runtime character class!
+	// and it would be too much to change them all simultaneously.
 	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep);
 	void UpdateFollowingExactlyCharacter();
 

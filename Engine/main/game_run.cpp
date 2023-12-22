@@ -444,7 +444,7 @@ bool run_service_key_controls(KeyInput &out_key)
             chd = ff;
             sprintf(&bigbuffer[strlen(bigbuffer)],
                 "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
-                game.chars[chd].legacy_scrname, game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
+                game.chars[chd].scrname.GetCStr(), game.chars[chd].view + 1, game.chars[chd].loop, game.chars[chd].frame,
                 game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
                 game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
                 game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,

@@ -336,7 +336,7 @@ void commit_scstr_update(const char *ptr)
     const void *charend = &game.chars[0] + sizeof(CharacterInfo) * game.chars.size();
     if ((ptr >= charstart) && (ptr <= charend))
     {
-        size_t char_index = (ptr - charstart) / sizeof(CharacterInfo);
+        size_t char_index = ((uintptr_t)ptr - (uintptr_t)charstart) / sizeof(CharacterInfo);
         game.chars[char_index].name = game.chars[char_index].legacy_name;
     }
 }

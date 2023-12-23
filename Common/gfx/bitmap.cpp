@@ -320,7 +320,7 @@ static void bmp_read_palette(int bytes, RGB *pal, Stream *in, bool is_os2)
 static void bmp_read_1bit_line(int length, Stream *in, unsigned char* current_line)
 {
     unsigned char b[32];
-    unsigned long n;
+    unsigned int n;
     int i, j, k;
     int pix;
 
@@ -344,7 +344,7 @@ static void bmp_read_1bit_line(int length, Stream *in, unsigned char* current_li
 static void bmp_read_4bit_line(int length, Stream *in, unsigned char* current_line)
 {
     unsigned char b[8];
-    unsigned long n;
+    unsigned int n;
     int i, j, k;
     int temp;
     int pix;
@@ -651,7 +651,7 @@ static void bmp_read_bitfields_image(Stream *in, Bitmap *bmp, BMP_InfoHeader &hd
     int color_depth;
     int bytes_per_pixel;
     int red, grn, blu;
-    unsigned long buffer;
+    unsigned int buffer;
 
     height = hdr.h;
     line   = height < 0 ? 0 : height-1;

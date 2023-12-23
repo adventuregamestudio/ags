@@ -127,11 +127,11 @@ namespace AGS
             return -1;
         }
 
-        bool AAssetStream::Seek(soff_t offset, StreamSeek origin)
+        soff_t AAssetStream::Seek(soff_t offset, StreamSeek origin)
         {
             if (!IsValid())
             {
-                return false;
+                return -1;
             }
 
             soff_t want_pos = -1;
@@ -140,14 +140,13 @@ namespace AGS
                 case kSeekBegin:    want_pos = _start      + offset; break;
                 case kSeekCurrent:  want_pos = _cur_offset + offset; break;
                 case kSeekEnd:      want_pos = _end        + offset; break;
-                default:
-                    // TODO: warning to the log
-                    return false;
+                default: return -1;
             }
 
-            _cur_offset = std::min(std::max(want_pos, (soff_t)_start), _end);
-            off64_t off = AAsset_seek64(_aAsset, (off64_t)_cur_offset, SEEK_SET);
-            return off != (off64_t) -1;
+            // clamp to a valid range
+            _cur_offset = std::min(std::max(want_pos, _start), _end);
+            off64_t new_off = AAsset_seek64(_aAsset, (off64_t)_cur_offset, SEEK_SET);
+            return static_cast<soff_t>(new_off);
         }
 
 

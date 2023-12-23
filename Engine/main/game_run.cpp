@@ -696,7 +696,7 @@ static void update_objects_scale()
         update_object_scale(objid);
     }
 
-    for (uint32_t charid = 0; charid < game.numcharacters; ++charid)
+    for (int charid = 0; charid < game.numcharacters; ++charid)
     {
         update_character_scale(charid);
     }

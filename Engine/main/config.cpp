@@ -287,7 +287,7 @@ static void read_legacy_graphics_config(const ConfigTree &cfg)
     }
 
     usetup.Screen.Params.RefreshRate = CfgReadInt(cfg, "misc", "refresh");
-    usetup.enable_antialiasing = CfgReadInt(cfg, "misc", "antialias");
+    usetup.enable_antialiasing = CfgReadBoolInt(cfg, "misc", "antialias");
 }
 
 static void read_legacy_config(const ConfigTree &cfg)

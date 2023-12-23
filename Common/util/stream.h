@@ -95,8 +95,9 @@ public:
     // - on success, returns the written unsigned char packed in the int32
     // - on failure, returns -1
     virtual int32_t WriteByte(uint8_t b) = 0;
-    // Seeks to offset from the origin
-    virtual bool   Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
+    // Seeks to offset from the origin;
+    // returns the new position in stream, or -1 on error.
+    virtual soff_t Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
     // Flush stream buffer to the underlying device
     virtual bool   Flush() = 0;
     // Closes the stream

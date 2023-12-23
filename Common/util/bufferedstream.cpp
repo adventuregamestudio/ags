@@ -182,7 +182,7 @@ int32_t BufferedStream::WriteByte(uint8_t val)
     return val;
 }
 
-bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
+soff_t BufferedStream::Seek(soff_t offset, StreamSeek origin)
 {
     soff_t want_pos = -1;
     switch(origin)
@@ -190,12 +190,11 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
         case StreamSeek::kSeekCurrent:  want_pos = _position   + offset; break;
         case StreamSeek::kSeekBegin:    want_pos = _start      + offset; break;
         case StreamSeek::kSeekEnd:      want_pos = _end        + offset; break;
-        default: return false;
+        default: return -1;
     }
-
-    // clamp
+    // clamp to the valid range
     _position = std::min(std::max(want_pos, _start), _end);
-    return true;
+    return _position;
 }
 
 //-----------------------------------------------------------------------------

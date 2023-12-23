@@ -354,9 +354,9 @@ static int utf8_validate(int c)
 /* utf8_getx:
  *  Reads a character from a UTF-8 string, advancing the pointer position.
  */
-/*static*/ int utf8_getx(char **s)
+/*static*/ int utf8_getx(AL_CONST char **s)
 {
-   int c = *((unsigned char *)((*s)++));
+   int c = *((const unsigned char *)((*s)++));
    int n, t;
 
    if (c & 0x80) {

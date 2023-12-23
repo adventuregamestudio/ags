@@ -60,7 +60,7 @@ static void blit_from_256(BITMAP *src, BITMAP *dest, int s_x, int s_y, int d_x, 
    #ifdef ALLEGRO_COLOR8
 
    int *dest_palette_color;
-   uintptr_t s, d;
+   uintptr_t d;
    unsigned char *ss;
    int x, y, c, rc;
 

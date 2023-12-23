@@ -111,7 +111,7 @@ AL_PRINTFUNC(int, usprintf, (char *buf, AL_CONST char *format, ...), 2, 3);
 /* UTF-8 support functions
  */
 AL_FUNC(int, utf8_getc, (AL_CONST char *s));
-AL_FUNC(int, utf8_getx, (char **s));
+AL_FUNC(int, utf8_getx, (AL_CONST char **s));
 AL_FUNC(int, utf8_setc, (char *s, int c));
 AL_FUNC(int, utf8_width, (AL_CONST char *s));
 AL_FUNC(int, utf8_cwidth, (int c));

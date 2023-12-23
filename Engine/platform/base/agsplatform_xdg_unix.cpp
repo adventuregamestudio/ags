@@ -96,7 +96,7 @@ FSLocation AGSPlatformXDGUnix::GetAppOutputDirectory()
     return UserDataDirectory;
 }
 
-unsigned long AGSPlatformXDGUnix::GetDiskFreeSpaceMB() {
+uint64_t AGSPlatformXDGUnix::GetDiskFreeSpaceMB() {
     // placeholder
     return 100;
 }

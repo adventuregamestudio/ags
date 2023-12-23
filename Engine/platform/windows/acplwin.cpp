@@ -64,7 +64,7 @@ struct AGSWin32 : AGSPlatformDriver {
   FSLocation GetAppOutputDirectory() override;
   const char *GetIllegalFileChars() override;
   const char *GetGraphicsTroubleshootingText() override;
-  unsigned long GetDiskFreeSpaceMB() override;
+  uint64_t GetDiskFreeSpaceMB() override;
   const char* GetBackendFailUserHint() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
@@ -319,26 +319,21 @@ int AGSWin32::GetLastSystemError()
   return ::GetLastError();
 }
 
-unsigned long AGSWin32::GetDiskFreeSpaceMB() {
-  DWORD returnMb = 0;
-  BOOL fResult;
-
+uint64_t AGSWin32::GetDiskFreeSpaceMB()
+{
   // On Win9x, the last 3 params cannot be null, so need to supply values for all
   __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
 
   // Win95 OSR2 or higher - use GetDiskFreeSpaceEx, since the
   // normal GetDiskFreeSpace returns erroneous values if the
   // free space is > 2 GB
-  fResult = GetDiskFreeSpaceEx(NULL,
+  BOOL fResult = GetDiskFreeSpaceEx(NULL,
              (PULARGE_INTEGER)&i64FreeBytesToCaller,
              (PULARGE_INTEGER)&i64Unused1,
              (PULARGE_INTEGER)&i64Unused2);
 
-  // convert down to MB so we can fit it in a 32-bit long
   i64FreeBytesToCaller /= 1000000;
-  returnMb = i64FreeBytesToCaller;
-
-  return returnMb;
+  return static_cast<uint64_t>(i64FreeBytesToCaller);
 }
 
 const char* AGSWin32::GetBackendFailUserHint()

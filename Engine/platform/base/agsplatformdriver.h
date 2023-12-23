@@ -98,7 +98,7 @@ public:
     virtual const char *GetIllegalFileChars() { return "\\/"; }
     virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
-    virtual unsigned long GetDiskFreeSpaceMB() = 0;
+    virtual uint64_t GetDiskFreeSpaceMB() = 0;
     virtual const char* GetBackendFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);

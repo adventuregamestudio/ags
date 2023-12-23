@@ -50,7 +50,7 @@ struct AGSAndroid : AGSPlatformDriver {
   FSLocation GetUserSavedgamesDirectory() override;
   FSLocation GetUserGlobalConfigDirectory() override;
   FSLocation GetAppOutputDirectory() override;
-  unsigned long GetDiskFreeSpaceMB() override;
+  uint64_t GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
   void ShutdownCDPlayer() override;
@@ -412,7 +412,7 @@ void AGSAndroid::Delay(int millis) {
   usleep(millis * 1000);
 }
 
-unsigned long AGSAndroid::GetDiskFreeSpaceMB() {
+uint64_t AGSAndroid::GetDiskFreeSpaceMB() {
   // placeholder
   return 100;
 }

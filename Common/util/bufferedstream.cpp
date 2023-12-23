@@ -179,7 +179,7 @@ int32_t BufferedStream::WriteByte(uint8_t val)
 {
     auto sz = Write(&val, 1);
     if (sz != 1) { return -1; }
-    return sz;
+    return val;
 }
 
 bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
@@ -194,7 +194,7 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
     }
 
     // clamp
-    _position = std::min(std::max(want_pos, (soff_t)_start), _end);
+    _position = std::min(std::max(want_pos, _start), _end);
     return true;
 }
 

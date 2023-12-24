@@ -144,8 +144,11 @@ namespace AGS
             }
 
             // clamp to a valid range
-            _cur_offset = std::min(std::max(want_pos, _start), _end);
-            off64_t new_off = AAsset_seek64(_aAsset, (off64_t)_cur_offset, SEEK_SET);
+            want_pos = std::min(std::max(want_pos, _start), _end);
+            off64_t new_off = AAsset_seek64(_aAsset, static_cast<off64_t>(want_pos), SEEK_SET);
+            // if seek returns error (< 0), then the position must remain
+            if (new_off >= 0)
+                _cur_offset = new_off;
             return static_cast<soff_t>(new_off);
         }
 

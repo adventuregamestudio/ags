@@ -28,25 +28,24 @@ namespace AGS
     namespace Common
     {
         AAssetStream::AAssetStream(const String &asset_name, int asset_mode, DataEndianess stream_endianess)
-                : DataStream(stream_endianess)
-                , _aAsset(nullptr)
+            : DataStream(stream_endianess)
         {
-            Open(asset_name, asset_mode);
+            AAsset *asset = OpenAAsset(asset_name, asset_mode);
+            Open(asset, true, asset_name, asset_mode);
         }
 
         AAssetStream::AAssetStream(const String &asset_name, int asset_mode,
                                    soff_t start_pos, soff_t end_pos, DataEndianess stream_endianess)
-                : DataStream(stream_endianess)
-                , _aAsset(nullptr)
+            : DataStream(stream_endianess)
         {
-            OpenSection(asset_name, asset_mode, start_pos, end_pos);
+            AAsset *asset = OpenAAsset(asset_name, asset_mode);
+            OpenSection(asset, true, asset_name, asset_mode, start_pos, end_pos);
         }
 
-        AAssetStream::AAssetStream(AAsset * aasset, bool own, int asset_mode, DataEndianess stream_end)
-                : DataStream(stream_end)
-                , _aAsset(nullptr)
-                , _ownHandle(own)
+        AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode, DataEndianess stream_end)
+            : DataStream(stream_end)
         {
+            Open(aasset, own, "" /* none provided */, asset_mode);
         }
 
         AAssetStream::~AAssetStream()
@@ -152,33 +151,35 @@ namespace AGS
             return static_cast<soff_t>(new_off);
         }
 
-
-        void AAssetStream::Open(const String &asset_name, int asset_mode)
+        AAsset *AAssetStream::OpenAAsset(const String &asset_name, int asset_mode)
         {
             AAssetManager* aAssetManager = GetAAssetManager();
             if(aAssetManager == nullptr)
                 throw std::runtime_error("Couldn't get AAssetManager, SDL not initialized yet.");
-            _ownHandle = true;
 
             String a_asset_name = Path::GetPathInForeignAsset(asset_name);
-
-            _aAsset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
-
-            if (_aAsset == nullptr)
+            AAsset *asset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
+            if (asset == nullptr)
                 throw std::runtime_error("Error opening file.");
+            return asset;
+        }
 
+        void AAssetStream::Open(AAsset *asset, bool own, const String &asset_name, int asset_mode)
+        {
+            _aAsset = asset;
+            _ownHandle = own;
             _cur_offset = 0;
             _start = 0;
             _end = AAsset_getLength64(_aAsset);
             _assetMode = asset_mode;
             _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
+            _path = asset_name;
         }
 
-
-        void AAssetStream::OpenSection(const String &asset_name, int asset_mode,
-                                                 soff_t start_pos, soff_t end_pos)
+        void AAssetStream::OpenSection(AAsset *asset, bool own, const String &asset_name, int asset_mode,
+                                       soff_t start_pos, soff_t end_pos)
         {
-            Open(asset_name, asset_mode);
+            Open(asset, own, asset_name, asset_mode);
 
             // clamp requested range to the predetermined full stream range
             assert(start_pos <= end_pos);

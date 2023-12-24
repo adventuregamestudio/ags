@@ -44,9 +44,16 @@ struct PluginObjectReader
 
 void pl_stop_plugins();
 void pl_startup_plugins();
-int  pl_run_plugin_hooks (int event, int data);
+int  pl_run_plugin_hooks(int event, int data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
-int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
+int  pl_run_plugin_debug_hooks(const char *scriptfile, int linenum);
+// Finds a plugin that wants this event, starting with pl_index;
+// returns TRUE on success and fills its index and name;
+// returns FALSE if no more suitable plugins found.
+bool pl_query_next_plugin_for_event(int event, int &pl_index, Common::String &pl_name);
+// Runs event for a plugin identified by an index it was registered under.
+int  pl_run_plugin_hook_by_index(int pl_index, int event, int data);
+
 // Tries to register plugins, either by loading dynamic libraries, or getting any kind of replacement
 Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> &infos);
 bool pl_is_plugin_loaded(const char *pl_name);

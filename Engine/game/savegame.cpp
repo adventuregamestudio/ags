@@ -54,7 +54,9 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
+#include "util/datastream.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
@@ -813,18 +815,31 @@ void SaveGameState(Stream *out)
     SavegameComponents::WriteAllCommon(out);
 }
 
-void ReadPluginSaveData(Stream *in)
+void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
 {
-    int32_t fhandle = add_file_stream(std::unique_ptr<Stream>(in), "RestoreGame");
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, fhandle);
-    release_file_stream(fhandle, "RestoreGame");
+    const soff_t start_pos = in->GetPosition();
+    const soff_t end_pos = start_pos + max_size;
+
+    String pl_name;
+    for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_RESTOREGAME, pl_index, pl_name); ++pl_index)
+    {
+        auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+        int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
+        pl_run_plugin_hook_by_index(pl_index, AGSE_RESTOREGAME, fhandle);
+        close_file_stream(fhandle, "RestoreGame");
+    }
 }
 
 void WritePluginSaveData(Stream *out)
 {
-    int32_t fhandle = add_file_stream(std::unique_ptr<Stream>(out), "SaveGame");
-    pl_run_plugin_hooks(AGSE_SAVEGAME, fhandle);
-    release_file_stream(fhandle, "SaveGame");
+    String pl_name;
+    for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_SAVEGAME, pl_index, pl_name); ++pl_index)
+    {
+        auto guard_stream = std::make_unique<DataStreamSection>(out, out->GetPosition(), INT64_MAX);
+        int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
+        pl_run_plugin_hook_by_index(pl_index, AGSE_SAVEGAME, fhandle);
+        close_file_stream(fhandle, "SaveGame");
+    }
 }
 
 } // namespace Engine

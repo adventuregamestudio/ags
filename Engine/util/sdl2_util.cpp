@@ -45,9 +45,7 @@ static StreamSeek RWopsSeekToAGS(int whence)
 static Sint64 rwops_seek(SDL_RWops *context, Sint64 offset, int whence)
 {
     auto *s = static_cast<Stream*>(context->hidden.unknown.data1);
-    if (s->Seek(offset, RWopsSeekToAGS(whence)))
-        return s->GetPosition();
-    return -1;
+    return s->Seek(offset, RWopsSeekToAGS(whence));
 }
 
 static size_t rwops_read(SDL_RWops *context, void *ptr, size_t size, size_t maxnum)

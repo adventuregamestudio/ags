@@ -179,7 +179,8 @@ namespace AGS
             assert(start_pos <= end_pos);
             start_pos = std::min(start_pos, end_pos);
 
-            if (!Seek(start_pos, kSeekBegin)) {
+            if (Seek(start_pos, kSeekBegin) < 0)
+            {
                 Close();
                 throw std::runtime_error("Error determining stream end.");
             }

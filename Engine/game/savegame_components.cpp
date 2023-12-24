@@ -1307,8 +1307,8 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Plugin Data",
-        0,
-        0,
+        kPluginSvgVersion_36115,
+        kPluginSvgVersion_Initial,
         WritePluginData,
         ReadPluginData
     },

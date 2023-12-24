@@ -904,6 +904,18 @@ int pl_run_plugin_hook_by_index(int pl_index, int event, int data)
     return 0;
 }
 
+int pl_run_plugin_hook_by_name(Common::String &pl_name, int event, int data)
+{
+    for (auto &plugin : plugins)
+    {
+        if ((plugin.wantHook & event) && plugin.filename.CompareNoCase(pl_name) == 0)
+        {
+            return plugin.onEvent(event, data);
+        }
+    }
+    return 0;
+}
+
 void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
     for (auto &plugin : plugins)
     {

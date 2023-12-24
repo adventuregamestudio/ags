@@ -179,17 +179,20 @@ namespace AGS
                                                  soff_t start_pos, soff_t end_pos)
         {
             Open(asset_name, asset_mode);
+
+            // clamp requested range to the predetermined full stream range
             assert(start_pos <= end_pos);
-            start_pos = std::min(start_pos, end_pos);
+            end_pos = std::max(_start, std::min(_end, end_pos));
+            start_pos = std::max(_start, std::min(start_pos, end_pos));
 
             if (Seek(start_pos, kSeekBegin) < 0)
             {
                 Close();
-                throw std::runtime_error("Error determining stream end.");
+                throw std::runtime_error("Error setting stream section.");
             }
 
-            _start = std::min(start_pos, _end);
-            _end = std::min(end_pos, _end);
+            _start = start_pos;
+            _end = end_pos;
         }
 
     } // namespace Common

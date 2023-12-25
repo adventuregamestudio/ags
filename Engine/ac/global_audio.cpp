@@ -363,10 +363,8 @@ void SetMusicRepeat(int loopflag) {
     play.music_repeat=loopflag;
 }
 
-void PlayMP3File (const char *filename) {
-    if (strlen(filename) >= PLAYMP3FILE_MAX_FILENAME_LEN)
-        quit("!PlayMP3File: filename too long");
-
+void PlayMP3File (const char *filename)
+{
     debug_script_log("PlayMP3File %s", filename);
 
     AssetPath asset_name(filename, "audio");
@@ -381,9 +379,7 @@ void PlayMP3File (const char *filename) {
             AudioChans::SetChannel(useChan, std::move(clip));
             current_music_type = clip->soundType;
             play.cur_music_number = 1000;
-            // save the filename (if it's not what we were supplied with)
-            if (filename != &play.playmp3file_name[0])
-                snprintf(play.playmp3file_name, sizeof(play.playmp3file_name), "%s", filename);
+            play.playmp3file_name = filename;
         }
     }
 

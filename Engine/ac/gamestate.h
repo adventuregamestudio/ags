@@ -50,6 +50,9 @@ struct ScriptOverlay;
 #define MAX_GAME_STATE_NAME_LENGTH 100
 #define GAME_STATE_RESERVED_INTS 5
 #define LEGACY_GAMESTATE_GAMENAMELENGTH 100
+// This is a length limit for serialized field,
+// not actual api input argument
+#define PLAYMP3FILE_MAX_FILENAME_LEN 50
 
 // Savegame data format
 enum GameStateSvgVersion
@@ -236,7 +239,8 @@ struct GameState
     short crossfade_final_volume_in = 0;
     QueuedAudioItem new_music_queue[MAX_QUEUED_MUSIC]{};
     char  takeover_from[50]{};
-    char  playmp3file_name[PLAYMP3FILE_MAX_FILENAME_LEN]{};
+    // Currently played external file; this is only for reference
+    AGS::Common::String playmp3file_name;
     char  globalstrings[MAXGLOBALSTRINGS][MAX_MAXSTRLEN]{};
     char  lastParserEntry[MAX_MAXSTRLEN]{};
     AGS::Common::String game_name;

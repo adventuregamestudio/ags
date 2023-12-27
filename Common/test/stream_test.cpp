@@ -192,6 +192,63 @@ TEST(Stream, VectorStream) {
     in.Close();
 }
 
+TEST(Stream, DataStreamSection) {
+    // Storage buffer
+    std::vector<uint8_t> membuf;
+    const size_t fill_len = 10;
+    //-------------------------------------------------------------------------
+    // Write data
+    VectorStream out(membuf, kStream_Write);
+    // We write and read int8s, because it's easier to test single bytes here
+    for (size_t i = 0; i < fill_len; ++i)
+        out.WriteInt8(i);
+    out.Close();
+    //-------------------------------------------------------------------------
+    // Read data back using SectionStreams
+    VectorStream in(membuf, kStream_Read);
+    DataStreamSection sect1(&in, 4, 6);
+    ASSERT_TRUE(sect1.CanRead());
+    ASSERT_TRUE(sect1.CanSeek());
+    ASSERT_EQ(sect1.GetPosition(), 0);
+    ASSERT_EQ(sect1.GetLength(), 6 - 4);
+    // Make sure that the base stream is at the expected spot too
+    ASSERT_EQ(in.GetPosition(), 4);
+    int expect_value = 4;
+    while (!sect1.EOS())
+        ASSERT_EQ(sect1.ReadInt8(), expect_value++);
+    sect1.Close();
+    // Make sure that the base stream is still valid,
+    // and at the expected spot too
+    ASSERT_TRUE(in.IsValid());
+    ASSERT_EQ(in.GetPosition(), 6);
+
+    expect_value = 2;
+    DataStreamSection sect2(&in, 2, 8);
+    while (!sect2.EOS())
+        ASSERT_EQ(sect2.ReadInt8(), expect_value++);
+    sect2.Close();
+    ASSERT_EQ(in.GetPosition(), 8);
+
+    DataStreamSection sect_seek(&in, 2, 8);
+    ASSERT_EQ(sect_seek.GetPosition(), 0);
+    ASSERT_EQ(sect_seek.GetLength(), 8 - 2);
+    ASSERT_EQ(in.GetPosition(), 2);
+    sect_seek.Seek(4, kSeekBegin);
+    ASSERT_EQ(sect_seek.GetPosition(), 4);
+    ASSERT_EQ(in.GetPosition(), 2 + 4);
+    sect_seek.Seek(2, kSeekCurrent);
+    ASSERT_EQ(sect_seek.GetPosition(), 6);
+    ASSERT_EQ(in.GetPosition(), 2 + 6);
+    sect_seek.Seek(-4, kSeekCurrent);
+    ASSERT_EQ(sect_seek.GetPosition(), 2);
+    ASSERT_EQ(in.GetPosition(), 2 + 2);
+    sect_seek.Seek(-3, kSeekEnd);
+    ASSERT_EQ(sect_seek.GetPosition(), 3);
+    ASSERT_EQ(in.GetPosition(), 2 + 3);
+    sect_seek.Close();
+    in.Close();
+}
+
 #if (AGS_PLATFORM_TEST_FILE_IO)
 
 static const char *DummyFile = "dummy.dat";

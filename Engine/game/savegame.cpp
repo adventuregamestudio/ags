@@ -54,7 +54,9 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
+#include "util/datastream.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
 #include "media/audio/audio_system.h"
@@ -813,18 +815,80 @@ void SaveGameState(Stream *out)
     SavegameComponents::WriteAllCommon(out);
 }
 
-void ReadPluginSaveData(Stream *in)
+void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
 {
-    int32_t fhandle = add_file_stream(std::unique_ptr<Stream>(in), "RestoreGame");
-    pl_run_plugin_hooks(AGSE_RESTOREGAME, fhandle);
-    release_file_stream(fhandle, "RestoreGame");
+    const soff_t start_pos = in->GetPosition();
+    const soff_t end_pos = start_pos + max_size;
+
+    if (svg_ver >= kPluginSvgVersion_36115)
+    {
+        int num_plugins_read = in->ReadInt32();
+        soff_t cur_pos = start_pos;
+        while ((num_plugins_read--) > 0 && (cur_pos < end_pos))
+        {
+            String pl_name = StrUtil::ReadString(in);
+            size_t data_size = in->ReadInt32();
+            soff_t data_start = in->GetPosition();
+
+            auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+            int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
+            pl_run_plugin_hook_by_name(pl_name, AGSE_RESTOREGAME, fhandle);
+            close_file_stream(fhandle, "RestoreGame");
+
+            // Seek to the end of plugin data, in case it ended up reading not in the end
+            cur_pos = data_start + data_size;
+            in->Seek(cur_pos, kSeekBegin);
+        }
+    }
+    else
+    {
+        String pl_name;
+        for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_RESTOREGAME, pl_index, pl_name); ++pl_index)
+        {
+            auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+            int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
+            pl_run_plugin_hook_by_index(pl_index, AGSE_RESTOREGAME, fhandle);
+            close_file_stream(fhandle, "RestoreGame");
+        }
+    }
 }
 
 void WritePluginSaveData(Stream *out)
 {
-    int32_t fhandle = add_file_stream(std::unique_ptr<Stream>(out), "SaveGame");
-    pl_run_plugin_hooks(AGSE_SAVEGAME, fhandle);
-    release_file_stream(fhandle, "SaveGame");
+    soff_t pluginnum_pos = out->GetPosition();
+    out->WriteInt32(0); // number of plugins which wrote data
+
+    int num_plugins_wrote = 0;
+    String pl_name;
+    for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_SAVEGAME, pl_index, pl_name); ++pl_index)
+    {
+        // NOTE: we don't care if they really write anything,
+        // but count them so long as they subscribed to AGSE_SAVEGAME
+        num_plugins_wrote++;
+
+        // Write a header for plugin data
+        StrUtil::WriteString(pl_name, out);
+        soff_t data_size_pos = out->GetPosition();
+        out->WriteInt32(0); // data size
+
+        // Create a stream section and write plugin data
+        soff_t data_start_pos = out->GetPosition();
+        auto guard_stream = std::make_unique<DataStreamSection>(out, out->GetPosition(), INT64_MAX);
+        int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
+        pl_run_plugin_hook_by_index(pl_index, AGSE_SAVEGAME, fhandle);
+        close_file_stream(fhandle, "SaveGame");
+
+        // Finalize header
+        soff_t data_end_pos = out->GetPosition();
+        out->Seek(data_size_pos, kSeekBegin);
+        out->WriteInt32(data_end_pos - data_start_pos);
+        out->Seek(0, kSeekEnd);
+    }
+
+    // Write number of plugins
+    out->Seek(pluginnum_pos, kSeekBegin);
+    out->WriteInt32(num_plugins_wrote);
+    out->Seek(0, kSeekEnd);
 }
 
 } // namespace Engine

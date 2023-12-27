@@ -28,25 +28,24 @@ namespace AGS
     namespace Common
     {
         AAssetStream::AAssetStream(const String &asset_name, int asset_mode, DataEndianess stream_endianess)
-                : DataStream(stream_endianess)
-                , _aAsset(nullptr)
+            : DataStream(stream_endianess)
         {
-            Open(asset_name, asset_mode);
+            AAsset *asset = OpenAAsset(asset_name, asset_mode);
+            Open(asset, true, asset_name, asset_mode);
         }
 
         AAssetStream::AAssetStream(const String &asset_name, int asset_mode,
                                    soff_t start_pos, soff_t end_pos, DataEndianess stream_endianess)
-                : DataStream(stream_endianess)
-                , _aAsset(nullptr)
+            : DataStream(stream_endianess)
         {
-            OpenSection(asset_name, asset_mode, start_pos, end_pos);
+            AAsset *asset = OpenAAsset(asset_name, asset_mode);
+            OpenSection(asset, true, asset_name, asset_mode, start_pos, end_pos);
         }
 
-        AAssetStream::AAssetStream(AAsset * aasset, bool own, int asset_mode, DataEndianess stream_end)
-                : DataStream(stream_end)
-                , _aAsset(nullptr)
-                , _ownHandle(own)
+        AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode, DataEndianess stream_end)
+            : DataStream(stream_end)
         {
+            Open(aasset, own, "" /* none provided */, asset_mode);
         }
 
         AAssetStream::~AAssetStream()
@@ -144,49 +143,57 @@ namespace AGS
             }
 
             // clamp to a valid range
-            _cur_offset = std::min(std::max(want_pos, _start), _end);
-            off64_t new_off = AAsset_seek64(_aAsset, (off64_t)_cur_offset, SEEK_SET);
+            want_pos = std::min(std::max(want_pos, _start), _end);
+            off64_t new_off = AAsset_seek64(_aAsset, static_cast<off64_t>(want_pos), SEEK_SET);
+            // if seek returns error (< 0), then the position must remain
+            if (new_off >= 0)
+                _cur_offset = new_off;
             return static_cast<soff_t>(new_off);
         }
 
-
-        void AAssetStream::Open(const String &asset_name, int asset_mode)
+        AAsset *AAssetStream::OpenAAsset(const String &asset_name, int asset_mode)
         {
             AAssetManager* aAssetManager = GetAAssetManager();
             if(aAssetManager == nullptr)
                 throw std::runtime_error("Couldn't get AAssetManager, SDL not initialized yet.");
-            _ownHandle = true;
 
             String a_asset_name = Path::GetPathInForeignAsset(asset_name);
-
-            _aAsset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
-
-            if (_aAsset == nullptr)
+            AAsset *asset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
+            if (asset == nullptr)
                 throw std::runtime_error("Error opening file.");
+            return asset;
+        }
 
+        void AAssetStream::Open(AAsset *asset, bool own, const String &asset_name, int asset_mode)
+        {
+            _aAsset = asset;
+            _ownHandle = own;
             _cur_offset = 0;
             _start = 0;
             _end = AAsset_getLength64(_aAsset);
             _assetMode = asset_mode;
             _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
+            _path = asset_name;
         }
 
-
-        void AAssetStream::OpenSection(const String &asset_name, int asset_mode,
-                                                 soff_t start_pos, soff_t end_pos)
+        void AAssetStream::OpenSection(AAsset *asset, bool own, const String &asset_name, int asset_mode,
+                                       soff_t start_pos, soff_t end_pos)
         {
-            Open(asset_name, asset_mode);
+            Open(asset, own, asset_name, asset_mode);
+
+            // clamp requested range to the predetermined full stream range
             assert(start_pos <= end_pos);
-            start_pos = std::min(start_pos, end_pos);
+            end_pos = std::max(_start, std::min(_end, end_pos));
+            start_pos = std::max(_start, std::min(start_pos, end_pos));
 
             if (Seek(start_pos, kSeekBegin) < 0)
             {
                 Close();
-                throw std::runtime_error("Error determining stream end.");
+                throw std::runtime_error("Error setting stream section.");
             }
 
-            _start = std::min(start_pos, _end);
-            _end = std::min(end_pos, _end);
+            _start = start_pos;
+            _end = end_pos;
         }
 
     } // namespace Common

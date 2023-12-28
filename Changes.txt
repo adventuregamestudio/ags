@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - Beta, November 2023
+VERSION 3.6.1 - Beta, December 2023
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -80,6 +80,7 @@ Editor:
  - Fixed sprites may get wrong transparency settings after "Crop sprite edges" operation.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
+ - Fixed a rare exception when scrolling the room in the editor.
  - Fixed deleting collapsed "region" in script would sometimes lead to portion of the script
    undeleted but staying invisible.
  - (Possibly) Fixed a "Index out of range" exception in Script editor, related to the
@@ -160,6 +161,8 @@ Engine:
    read from Overlay.Graphic. This lets find out their sizes using Game.SpriteWidth/SpriteHeight
    and optionally draw them somewhere using DrawingSurface.DrawImage.
  - Ensure all the script API is now correctly available for the plugins.
+ - Engine will now safeguard plugin's reading and writing of game saves, so that any mistakes
+   done by plugins won't affect other parts of a save.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
@@ -170,6 +173,7 @@ Engine:
  - Fixed Characters may be seemingly "walking in place" for some time when arriving at destination.
  - Fixed Display and Say commands treating the second met "&" sign as a voice-over token too
    (they must only check the first one in string).
+ - Fixed PlayMP3File() function limiting filename argument by an arbitrary number of characters.
  - Fixed speechlines were adjusting their Y position while trying to not overlap GUIs even when
    these GUIs are completely offscreen.
  - Fixed first Sierra-style speechline in a sequence was adjusting its Y position without need

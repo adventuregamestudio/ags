@@ -48,6 +48,9 @@ struct ScriptCamera;
 struct ScriptOverlay;
 
 // GameState struct's runtime save format
+// This is a length limit for serialized field,
+// not actual api input argument
+#define PLAYMP3FILE_MAX_FILENAME_LEN 50
 enum GameStateSvgVersion
 {
     kGSSvgVersion_Initial   = 0,

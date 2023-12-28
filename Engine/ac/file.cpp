@@ -137,8 +137,7 @@ static bool File_ReadRawLineImpl(sc_File *fil, char* buffer, size_t buf_len) {
 }
 
 void File_ReadRawLine(sc_File *fil, char* buffer) {
-  size_t buflen = check_strcapacity(buffer);
-  File_ReadRawLineImpl(fil, buffer, buflen);
+  File_ReadRawLineImpl(fil, buffer, MAX_MAXSTRLEN);
 }
 
 const char* File_ReadRawLineBack(sc_File *fil) {
@@ -192,8 +191,7 @@ int File_ReadRawInt(sc_File *fil) {
 int File_Seek(sc_File *fil, int offset, int origin)
 {
     Stream *in = get_file_stream(fil->handle, "File.Seek");
-    if (!in->Seek(offset, (StreamSeek)origin)) { return -1; }
-    return in->GetPosition();
+    return in->Seek(offset, (StreamSeek)origin);
 }
 
 int File_GetEOF(sc_File *fil) {

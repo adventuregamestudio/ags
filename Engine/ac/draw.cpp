@@ -902,7 +902,7 @@ void reset_drawobj_for_overlay(int objnum)
 
 void notify_sprite_changed(int sprnum, bool deleted)
 {
-    assert(sprnum >= 0 && sprnum < game.SpriteInfos.size());
+    assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < game.SpriteInfos.size());
     // Update texture cache (regen texture or clear from cache)
     if (deleted)
         clear_shared_texture(sprnum);
@@ -915,7 +915,7 @@ void notify_sprite_changed(int sprnum, bool deleted)
     // reference this sprite.
     if (drawstate.SoftwareRender)
     {
-        assert(sprnum < play.spritemodified.size());
+        assert(static_cast<uint32_t>(sprnum) < play.spritemodified.size());
         play.spritemodified[sprnum] = true;
         play.spritemodifiedlist.push_back(sprnum);
     }
@@ -1062,7 +1062,7 @@ void render_to_screen()
     else
     {
         bool new_vsync = gfxDriver->SetVsync(scsystem.vsync > 0);
-        if (new_vsync != scsystem.vsync)
+        if (new_vsync != (scsystem.vsync != 0))
             System_SetVSyncInternal(new_vsync);
     }
 
@@ -2104,7 +2104,7 @@ void prepare_characters_for_drawing()
     const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
-    for (uint32_t charid = 0; charid < game.numcharacters; ++charid)
+    for (int charid = 0; charid < game.numcharacters; ++charid)
     {
         const CharacterInfo &chin = game.chars[charid];
         if (chin.on == 0)

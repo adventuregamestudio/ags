@@ -252,7 +252,7 @@ public:
   //  * AGSSTREAM_SEEK_CUR - seek from the current position;
   //  * AGSSTREAM_SEEK_END - seek from the end (pass negative offset)
   // Returns new position in stream, or -1 on error.
-  virtual bool   Seek(int64_t offset, int origin) = 0;
+  virtual int64_t Seek(int64_t offset, int origin) = 0;
   // Flushes stream, forcing it to write any buffered data to the
   // underlying device. Note that the effect may depend on implementation.
   virtual bool   Flush() = 0;

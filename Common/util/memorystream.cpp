@@ -101,19 +101,20 @@ int32_t MemoryStream::ReadByte()
     return _cbuf[_pos++];
 }
 
-bool MemoryStream::Seek(soff_t offset, StreamSeek origin)
+soff_t MemoryStream::Seek(soff_t offset, StreamSeek origin)
 {
-    soff_t pos = 0;
+    soff_t want_pos = -1;
     switch (origin)
     {
-    case kSeekBegin:    pos = 0 + offset; break;
-    case kSeekCurrent:  pos = _pos + offset; break;
-    case kSeekEnd:      pos = _len + offset; break;
-    default: return false;
+    case kSeekBegin:    want_pos = 0 + offset; break;
+    case kSeekCurrent:  want_pos = _pos + offset; break;
+    case kSeekEnd:      want_pos = _len + offset; break;
+    default: return -1;
     }
-    _pos = static_cast<size_t>(std::max<soff_t>(0, pos));
-    _pos = std::min(_len, _pos); // clamp to EOS
-    return true;
+    // clamp to a valid range
+    _pos = static_cast<size_t>(std::max<soff_t>(0, want_pos));
+    _pos = std::min(_len, _pos);
+    return static_cast<soff_t>(_pos);
 }
 
 size_t MemoryStream::Write(const void *buffer, size_t size)

@@ -75,7 +75,7 @@ namespace AGS
             size_t  Write(const void *buffer, size_t size) override;
             int32_t WriteByte(uint8_t b) override;
 
-            bool    Seek(soff_t offset, StreamSeek origin) override;
+            soff_t  Seek(soff_t offset, StreamSeek origin) override;
 
             bool    Flush() override;
             void    Close() override;
@@ -88,8 +88,10 @@ namespace AGS
 
         private:
             AAssetStream(AAsset *aasset, bool own, int asset_mode, DataEndianess stream_end);
-            void    Open(const String &asset_name, int asset_mode);
-            void    OpenSection(const String &asset_name, int asset_mode, soff_t start_pos, soff_t end_pos);
+
+            static AAsset *OpenAAsset(const String &asset_name, int asset_mode);
+            void    Open(AAsset *asset, bool own, const String &asset_name, int asset_mode);
+            void    OpenSection(AAsset *asset, bool own, const String &asset_name, int asset_mode, soff_t start_pos, soff_t end_pos);
 
             bool    _ownHandle = false;
             AAsset *_aAsset = nullptr;

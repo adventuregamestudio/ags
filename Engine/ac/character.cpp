@@ -1382,6 +1382,7 @@ const char* Character_GetName(CharacterInfo *chaa) {
 
 void Character_SetName(CharacterInfo *chaa, const char *newName) {
     chaa->name = newName;
+    // Fill legacy name fields, for compatibility with old scripts and plugins
     GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 

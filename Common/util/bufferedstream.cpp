@@ -33,11 +33,12 @@ BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode,
         StreamMode work_mode, DataEndianess stream_endianess)
     : FileStream(file_name, open_mode, work_mode, stream_endianess)
 {
-    if (FileStream::Seek(0, kSeekEnd))
+    soff_t end_pos = FileStream::Seek(0, kSeekEnd);
+    if (end_pos >= 0)
     {
         _start = 0;
-        _end = FileStream::GetPosition();
-        if (!FileStream::Seek(0, kSeekBegin))
+        _end = end_pos;
+        if (FileStream::Seek(0, kSeekBegin) < 0)
             _end = -1;
     }
     if (_end == -1)
@@ -179,10 +180,10 @@ int32_t BufferedStream::WriteByte(uint8_t val)
 {
     auto sz = Write(&val, 1);
     if (sz != 1) { return -1; }
-    return sz;
+    return val;
 }
 
-bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
+soff_t BufferedStream::Seek(soff_t offset, StreamSeek origin)
 {
     soff_t want_pos = -1;
     switch(origin)
@@ -190,12 +191,11 @@ bool BufferedStream::Seek(soff_t offset, StreamSeek origin)
         case StreamSeek::kSeekCurrent:  want_pos = _position   + offset; break;
         case StreamSeek::kSeekBegin:    want_pos = _start      + offset; break;
         case StreamSeek::kSeekEnd:      want_pos = _end        + offset; break;
-        default: return false;
+        default: return -1;
     }
-
-    // clamp
-    _position = std::min(std::max(want_pos, (soff_t)_start), _end);
-    return true;
+    // clamp to the valid range
+    _position = std::min(std::max(want_pos, _start), _end);
+    return _position;
 }
 
 //-----------------------------------------------------------------------------

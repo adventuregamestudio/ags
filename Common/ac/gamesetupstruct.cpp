@@ -89,17 +89,17 @@ void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_v
 
 void GameSetupStruct::ReadInvInfo(Stream *in)
 {
-    for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
+    for (int i = 0; i < numinvitems; ++i)
     {
-        invinfo[iteratorCount].ReadFromFile(in);
+        invinfo[i].ReadFromFile(in);
     }
 }
 
 void GameSetupStruct::WriteInvInfo(Stream *out)
 {
-    for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
+    for (int i = 0; i < numinvitems; ++i)
     {
-        invinfo[iteratorCount].WriteToFile(out);
+        invinfo[i].WriteToFile(out);
     }
 }
 
@@ -129,17 +129,17 @@ void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 
 void GameSetupStruct::ReadMouseCursors(Stream *in)
 {
-    for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
+    for (int i = 0; i < numcursors; ++i)
     {
-        mcurs[iteratorCount].ReadFromFile(in);
+        mcurs[i].ReadFromFile(in);
     }
 }
 
 void GameSetupStruct::WriteMouseCursors(Stream *out)
 {
-    for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
+    for (int i = 0; i < numcursors; ++i)
     {
-        mcurs[iteratorCount].WriteToFile(out);
+        mcurs[i].WriteToFile(out);
     }
 }
 
@@ -170,17 +170,17 @@ void GameSetupStruct::skip_messages(Common::Stream *in,
 
 void GameSetupStruct::ReadCharacters(Stream *in)
 {
-    for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
+    for (int i = 0; i < numcharacters; ++i)
     {
-        chars[iteratorCount].ReadFromFile(in, loaded_game_file_version);
+        chars[i].ReadFromFile(in, loaded_game_file_version);
     }
 }
 
 void GameSetupStruct::WriteCharacters(Stream *out)
 {
-    for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
+    for (int i = 0; i < numcharacters; ++i)
     {
-        chars[iteratorCount].WriteToFile(out);
+        chars[i].WriteToFile(out);
     }
 }
 

@@ -12,7 +12,15 @@
 //
 //=============================================================================
 //
+// CharacterExtras is a separate runtime character data. Historically it was
+// separated from the design-time CharacterInfo, because the latter is exposed
+// to script API and plugin API in such way that its memory layout could not
+// be changed at all. Although, today this is less of an issue (see comment
+// to CharacterInfo).
 //
+// TODO: in the long run it will be beneficial to remake this into a more
+// explicit runtime Character class, while perhaps keeping CharacterInfo only
+// to load design-time data.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
@@ -28,16 +36,6 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct CharacterInfo;
-
-enum CharacterSvgVersion
-{
-    kCharSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
-    kCharSvgVersion_350     = 1, // new movelist format (along with pathfinder)
-    kCharSvgVersion_36025   = 2, // animation volume
-    kCharSvgVersion_36109   = 3, // removed movelists, save externally
-    kCharSvgVersion_36114   = 4, // no limit on character name's length
-    kCharSvgVersion_400     = 4000000,
-};
 
 // The CharacterInfo struct size is fixed because it's exposed to script
 // and plugin API, therefore new stuff has to go here
@@ -86,12 +84,8 @@ struct CharacterExtras
     void UpdateGraphicSpace(const CharacterInfo *chin);
 
     // Read character extra data from saves.
-    // NOTE: we read ext name fields into the CharacterInfo struct,
-    // hence require its reference as an argument. This is ugly, but should
-    // be improved when the structs are refactored into having a distinct
-    // runtime Character class, which would hold all relevant data itself.
-    void ReadFromSavegame(Common::Stream *in, CharacterInfo &chinfo, int32_t cmp_ver);
-    void WriteToSavegame(Common::Stream *out, const CharacterInfo &chinfo) const;
+    void ReadFromSavegame(Common::Stream *in, CharacterSvgVersion save_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 
 private:
     Common::GraphicSpace _gs;

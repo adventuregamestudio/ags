@@ -76,6 +76,15 @@ inline int CharFlagsToObjFlags(int chflags)
         FlagToNoFlag(chflags, CHF_NOBLOCKING,       OBJF_SOLID);
 }
 
+enum CharacterSvgVersion
+{
+    kCharSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
+    kCharSvgVersion_350     = 1, // new movelist format (along with pathfinder)
+    kCharSvgVersion_36025   = 2, // animation volume
+    kCharSvgVersion_36109   = 3, // removed movelists, save externally
+    kCharSvgVersion_36115   = 4, // no limit on character name's length
+    kCharSvgVersion_400     = 4000000, // extended graphic effects (blend, rotate,...)
+};
 
 struct CharacterExtras;
 
@@ -155,13 +164,14 @@ struct CharacterInfo
     void ReadFromFile(Common::Stream *in, GameDataVersion data_ver);
     void WriteToFile(Common::Stream *out) const;
     // TODO: move to runtime-only class (?)
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, CharacterSvgVersion save_ver);
     void WriteToSavegame(Common::Stream *out) const;
 
 private:
-    // TODO: this is likely temp here until runtime class is factored out
-    void ReadFromFileImpl(Common::Stream *in, bool is_save);
-    void WriteToFileImpl(Common::Stream *out, bool is_save) const;
+    // Helper functions that read and write first data fields,
+    // common for both game file and save.
+    void ReadBaseFields(Common::Stream *in);
+    void WriteBaseFields(Common::Stream *out) const;
 };
 
 #endif // __AC_CHARACTERINFO_H

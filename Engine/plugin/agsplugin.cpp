@@ -844,10 +844,16 @@ void pl_startup_plugins() {
     }
 }
 
-int pl_run_plugin_hooks (int event, int data) {
-    for (auto &plugin : plugins) {
-        if (plugin.wantHook & event) {
+int pl_run_plugin_hooks(int event, int data)
+{
+    for (auto &plugin : plugins)
+    {
+        if (plugin.wantHook & event)
+        {
             int retval = plugin.onEvent(event, data);
+            // FIXME: this is an inconvenient design: breaking out
+            // should be done only for events that are claimable,
+            // such as key press, but not any random event!
             if (retval)
                 return retval;
         }
@@ -861,6 +867,45 @@ int pl_run_plugin_debug_hooks (const char *scriptfile, int linenum) {
             int retval = plugin.debugHook(scriptfile, linenum, 0);
             if (retval)
                 return retval;
+        }
+    }
+    return 0;
+}
+
+bool pl_query_next_plugin_for_event(int event, int &pl_index, String &pl_name)
+{
+    for (int i = pl_index; i < plugins.size(); ++i)
+    {
+        if (plugins[i].wantHook & event)
+        {
+            pl_index = i;
+            pl_name = plugins[i].filename;
+            return true;
+        }
+    }
+    return false;
+}
+
+int pl_run_plugin_hook_by_index(int pl_index, int event, int data)
+{
+    if (pl_index < 0 || pl_index >= plugins.size())
+        return 0;
+
+    auto &plugin = plugins[pl_index];
+    if (plugin.wantHook & event)
+    {
+        return plugin.onEvent(event, data);
+    }
+    return 0;
+}
+
+int pl_run_plugin_hook_by_name(Common::String &pl_name, int event, int data)
+{
+    for (auto &plugin : plugins)
+    {
+        if ((plugin.wantHook & event) && plugin.filename.CompareNoCase(pl_name) == 0)
+        {
+            return plugin.onEvent(event, data);
         }
     }
     return 0;

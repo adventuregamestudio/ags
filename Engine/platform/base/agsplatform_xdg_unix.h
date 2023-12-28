@@ -32,7 +32,7 @@ struct AGSPlatformXDGUnix : AGSPlatformDriver {
     FSLocation GetUserConfigDirectory() override;
     FSLocation GetUserGlobalConfigDirectory() override;
     FSLocation GetAppOutputDirectory() override;
-    unsigned long GetDiskFreeSpaceMB() override;
+    uint64_t GetDiskFreeSpaceMB() override;
     const char* GetBackendFailUserHint() override;
 };
 

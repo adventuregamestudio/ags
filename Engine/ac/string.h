@@ -65,11 +65,6 @@ inline size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int
 {
     return break_up_text_into_lines(todis, true, lines, wii, fonnt, max_lines);
 }
-// Checks the capacity of an old-style script string buffer.
-// Commonly this should return MAX_MAXSTRLEN, but there are
-// cases when the buffer is a field inside one of the game structs,
-// in which case this returns that field's capacity.
-size_t check_strcapacity(char *ptt);
 // Tries if the input string contains a voice-over token ("&N"),
 // *optionally* fills the voice_num value (if the valid int pointer is passed),
 // and returns the pointer to the text portion after the token.

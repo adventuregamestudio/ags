@@ -316,18 +316,6 @@ size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLi
     return lines.Count();
 }
 
-// This is a somewhat ugly safety fix that tests whether the script tries
-// to write inside the Character's struct (e.g. char.name?), and truncates
-// the write limit accordingly.
-size_t check_strcapacity(char *ptt)
-{
-    uintptr_t charstart = (uintptr_t)&game.chars[0];
-    uintptr_t charend = charstart + sizeof(CharacterInfo)*game.numcharacters;
-    if (((uintptr_t)&ptt[0] >= charstart) && ((uintptr_t)&ptt[0] <= charend))
-        return sizeof(CharacterInfo::name);
-    return MAX_MAXSTRLEN;
-}
-
 const char *parse_voiceover_token(const char *text, int *voice_num)
 {
     if (*text != '&')

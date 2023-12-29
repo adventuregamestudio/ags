@@ -614,7 +614,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     in->Seek(50);// [DEPRECATED]
     in->Seek(LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     in->Read(lastParserEntry, MAX_MAXSTRLEN);
-    if (svg_ver < kGSSvgVersion_361_14)
+    if ((svg_ver < kGSSvgVersion_361_14) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_03))
         game_name.ReadCount(in, LEGACY_GAMENAMELENGTH);
     else
         game_name = StrUtil::ReadString(in);

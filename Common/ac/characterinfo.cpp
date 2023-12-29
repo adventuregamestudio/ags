@@ -135,7 +135,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
 void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
 {
     ReadBaseFields(in);
-    if (save_ver < kCharSvgVersion_36115)
+    if (save_ver < kCharSvgVersion_36115 || (save_ver >= kCharSvgVersion_400 && save_ver < kCharSvgVersion_400_03))
     { // Fixed-size name and scriptname
         name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
         in->Seek(LEGACY_MAX_SCRIPT_NAME_LEN); // skip legacy scriptname

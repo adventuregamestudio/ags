@@ -36,7 +36,7 @@ namespace AGS.Types
                 "Any click on object", 
                 "$$05 object", "$$08 object", "$$09 object"},
                 new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Object *o, CursorMode mode");
+                "Object *theObject, CursorMode mode");
         }
 
 		public RoomObject(IChangeNotification changeNotifier)

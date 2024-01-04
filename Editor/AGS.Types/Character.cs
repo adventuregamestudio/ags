@@ -54,7 +54,7 @@ namespace AGS.Types
                 "Any click on character", "$$05 character","$$08 character", 
                 "$$09 character"}, 
                 new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" },
-                "Character *c, CursorMode mode");
+                "Character *theCharacter, CursorMode mode");
         }
 
         public Character()

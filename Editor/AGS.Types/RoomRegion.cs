@@ -29,7 +29,7 @@ namespace AGS.Types
                 "Walks onto region", 
                 "Walks off region"},
                 new string[] { "Standing", "WalksOnto", "WalksOff" },
-                "Region *r");
+                "Region *theRegion");
         }
 
         [Description("The ID number of the region")]

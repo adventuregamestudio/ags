@@ -29,7 +29,7 @@ namespace AGS.Types
                 "$$02 inventory item", "$$03 inventory item", "Use inventory on this item", 
                 "Other click on inventory item" },
                 new string[] { "Look", "Interact", "Talk", "UseInv", "OtherClick" },
-                "InventoryItem *i, CursorMode mode");
+                "InventoryItem *theItem, CursorMode mode");
         }
 
         public InventoryItem()

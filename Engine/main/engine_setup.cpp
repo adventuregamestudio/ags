@@ -172,7 +172,6 @@ void engine_pre_gfxmode_mouse_cleanup()
 // Fill in scsystem struct with display mode parameters
 void engine_setup_scsystem_screen(const DisplayMode &dm)
 {
-    scsystem.coldepth = dm.ColorDepth;
     scsystem.windowed = dm.IsWindowed();
     scsystem.vsync = dm.Vsync;
 }

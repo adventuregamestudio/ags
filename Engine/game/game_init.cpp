@@ -465,6 +465,7 @@ void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
     // Assign ScriptSystem's resolution variables
     scsystem.width = game.GetGameRes().Width;
     scsystem.height = game.GetGameRes().Height;
+    scsystem.coldepth = game.GetColorDepth();
     scsystem.viewport_width = game_to_data_coord(play.GetMainViewport().GetWidth());
     scsystem.viewport_height = game_to_data_coord(play.GetMainViewport().GetHeight());
 }

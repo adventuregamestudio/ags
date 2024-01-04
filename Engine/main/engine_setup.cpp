@@ -123,6 +123,7 @@ void engine_setup_system_gamesize()
 {
     scsystem.width = game.GetGameRes().Width;
     scsystem.height = game.GetGameRes().Height;
+    scsystem.coldepth = game.GetColorDepth();
     scsystem.viewport_width = game_to_data_coord(play.GetMainViewport().GetWidth());
     scsystem.viewport_height = game_to_data_coord(play.GetMainViewport().GetHeight());
 }
@@ -273,7 +274,6 @@ void engine_pre_gfxmode_mouse_cleanup()
 // Fill in scsystem struct with display mode parameters
 void engine_setup_scsystem_screen(const DisplayMode &dm)
 {
-    scsystem.coldepth = dm.ColorDepth;
     scsystem.windowed = dm.IsWindowed();
     scsystem.vsync = dm.Vsync;
 }

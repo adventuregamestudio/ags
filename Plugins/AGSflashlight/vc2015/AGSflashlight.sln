@@ -1,7 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AGSflashlight", "AGSflashlight.vcproj", "{0FB87A8E-631A-4E84-B822-1A23755E4393}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AGSflashlight", "AGSflashlight.vcxproj", "{0FB87A8E-631A-4E84-B822-1A23755E4393}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,12 +1,12 @@
 Adventure Game Studio (AGS)
-Copyright (c) 1999-2011 Chris Jones and 2011-2023 various contributors.
+Copyright (c) 1999-2011 Chris Jones and 2011-2024 various contributors.
 
 Adventure Game Studio was created by Chris Jones. 
 Original Linux port by berolinux (http://gitorious.org/ags); additional code by Bernhard Rosenkraenzer and Christian Morales Vega.
 PSP Eboot artwork by Paul Wilkinson (subspark).
-AGSBlend plugin by Steven Poulton (see License_AGSBlend.txt).
-PSP, Android, iOS ports created by Jochen Schleu (JJS).
+Original PSP, Android, iOS ports created by Jochen Schleu (JJS).
 OSX port created by Edward Rudd.
+AGSBlend plugin by Steven Poulton (see License_AGSBlend.txt).
 
 
 The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order): 

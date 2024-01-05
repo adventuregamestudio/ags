@@ -1,5 +1,25 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 8, January 2024
+
+Editor:
+ - Fixed command "Crop sprite edges" in the Sprite Manager would copy import settings from the
+   completely unrelated sprite onto the cropped one.
+
+Engine:
+ - Fixed @GAMENAME@ label not updating if Game.Name property is changed at runtime.
+ - Fixed System.ColorDepth was reporting a final display resolution, while it should report game's
+   native resolution for historical reasons.
+
+Compatibility:
+ - Fixed "upscale" mode not working for "default" game resolution in pre-3.1 games (the hidden
+   meaning of "default" is 320x200 also).
+
+Windows:
+ - Fixed a rare bug when the Windows engine could fail loading the game for no good reason.
+   This error is related to a bug in Windows SDK 8.1.
+
+
 VERSION 3.6.0 - Patch 7, December 2023
 
 Editor:

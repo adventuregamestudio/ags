@@ -1315,6 +1315,8 @@ int initialize_engine(const ConfigTree &startup_opts)
 
 bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
 {
+    const DisplayMode old_dm = gfxDriver ? gfxDriver->GetDisplayMode() : DisplayMode();
+
     engine_shutdown_gfxmode();
 
     sys_renderer_set_output(usetup.software_render_driver);
@@ -1324,7 +1326,7 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
         setup, ColorDepthOption(game.GetColorDepth()));
 
     if (res)
-        engine_post_gfxmode_setup(init_desktop);
+        engine_post_gfxmode_setup(init_desktop, old_dm);
     // Make sure that we don't receive window events queued during init
     sys_flush_events();
     return res;
@@ -1383,7 +1385,7 @@ bool engine_try_switch_windowed_gfxmode()
     // active display mode.
     if (!gfxDriver->GetDisplayMode().IsRealFullscreen())
         init_desktop = get_desktop_size();
-    engine_post_gfxmode_setup(init_desktop);
+    engine_post_gfxmode_setup(init_desktop, old_dm);
     // Make sure that we don't receive window events queued during init
     sys_flush_events();
     return res;

@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - Beta, December 2023
+VERSION 3.6.1 - RC, January 2024
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -77,7 +77,6 @@ Editor:
    a pre-3.* game project.
  - Fixed importing GIFs or 8-bit PNGs may lose transparent pixels if source images used
    other palette index than 0 for transparency.
- - Fixed sprites may get wrong transparency settings after "Crop sprite edges" operation.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
  - Fixed a rare exception when scrolling the room in the editor.
@@ -180,7 +179,6 @@ Engine:
    when GUIs are set to be hidden during game pause (this includes blocking speech).
    Normally, the speechlines are adjusting their Y position in order to not overlap GUIs,
    but when GUIs are hiding during speech there should not be any need to do so.
- - Fixed @GAMENAME@ label is not updated if Game.Name changes in script.
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
@@ -207,15 +205,31 @@ Compatibility:
 iOS:
  - Updated port for 3.6.*.
 
-Windows:
- - Fixed a rare bug when the Windows engine could fail loading the game for no good reason.
-   This error is related to a bug in Windows SDK 8.1.
-
 Web / Emscripten:
  - Fixed Safari cannot switch the game into fullscreen mode.
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
+
+
+VERSION 3.6.0 - Patch 8, January 2024
+
+Editor:
+ - Fixed command "Crop sprite edges" in the Sprite Manager would copy import settings from the
+   completely unrelated sprite onto the cropped one.
+
+Engine:
+ - Fixed @GAMENAME@ label not updating if Game.Name property is changed at runtime.
+ - Fixed System.ColorDepth was reporting a final display resolution, while it should report game's
+   native resolution for historical reasons.
+
+Compatibility:
+ - Fixed "upscale" mode not working for "default" game resolution in pre-3.1 games (the hidden
+   meaning of "default" is 320x200 also).
+
+Windows:
+ - Fixed a rare bug when the Windows engine could fail loading the game for no good reason.
+   This error is related to a bug in Windows SDK 8.1.
 
 
 VERSION 3.6.0 - Patch 7, December 2023

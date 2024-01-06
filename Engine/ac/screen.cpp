@@ -87,7 +87,7 @@ void current_fade_out_effect () {
     }
 }
 
-IDriverDependantBitmap* prepare_screen_for_transition_in()
+IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque)
 {
     if (saved_viewport_bitmap == nullptr)
         quit("Crossfade: buffer is null attempting transition");
@@ -107,7 +107,7 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         delete saved_viewport_bitmap;
         saved_viewport_bitmap = clippedBuffer;
     }
-    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, false, true);
+    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, false, opaque);
 }
 
 //=============================================================================

@@ -914,11 +914,11 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripSeparator());
 
 
-                    menu.Items.Add(new ToolStripMenuItem("Copy", null, new EventHandler(CopyControlClick), Keys.Control & Keys.C));
+                menu.Items.Add(new ToolStripMenuItem("Copy", null, new EventHandler(CopyControlClick), Keys.Control | Keys.C));
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(DeleteControlClick), Keys.Delete));
                 }
 
-                if (GUIControl.AvailableOnClipboard()) menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control & Keys.V));
+                if (GUIControl.AvailableOnClipboard()) menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control | Keys.V));
 
                 if (menu.Items.Count > 0) menu.Show(bgPanel, x, y);
             }

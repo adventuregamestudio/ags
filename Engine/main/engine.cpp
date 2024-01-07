@@ -380,7 +380,7 @@ void engine_init_audio()
             try {
                 audio_core_init(); // audio core system
             }
-            catch (std::runtime_error ex) {
+            catch (std::runtime_error& ex) {
                 Debug::Printf(kDbgMsg_Error, "Failed to initialize audio system: %s", ex.what());
                 res = false;
             }

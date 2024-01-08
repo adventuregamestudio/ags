@@ -441,15 +441,13 @@ namespace AGS
 
 		bool NativeMethods::CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric)
 		{	
-			int *spriteSlotList = new int[sprites->Count];
-			int i = 0;
+            std::vector<int> spr_list;
+            spr_list.reserve(sprites->Count);
 			for each (Sprite^ sprite in sprites)
 			{
-				spriteSlotList[i] = sprite->Number;
-				i++;
+				spr_list.push_back(sprite->Number);
 			}
-			bool result = crop_sprite_edges(sprites->Count, spriteSlotList, symmetric) != 0;
-			delete[] spriteSlotList;
+			bool result = crop_sprite_edges(sprites->Count, &spr_list.front(), symmetric) != 0;
 
 			int newWidth = GetSpriteWidth(sprites[0]->Number);
 			int newHeight = GetSpriteHeight(sprites[0]->Number);

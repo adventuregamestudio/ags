@@ -53,7 +53,7 @@ extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
 extern Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber);
 extern int find_free_sprite_slot();
-extern int crop_sprite_edges(int numSprites, int *sprites, bool symmetric);
+extern int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric);
 extern void deleteSprite(int sprslot);
 extern void GetSpriteInfo(int slot, ::SpriteInfo &info);
 extern int GetSpriteWidth(int slot);
@@ -447,7 +447,7 @@ namespace AGS
 			{
 				spr_list.push_back(sprite->Number);
 			}
-			bool result = crop_sprite_edges(sprites->Count, &spr_list.front(), symmetric) != 0;
+			bool result = crop_sprite_edges(spr_list, symmetric) != 0;
 
 			int newWidth = GetSpriteWidth(sprites[0]->Number);
 			int newHeight = GetSpriteHeight(sprites[0]->Number);

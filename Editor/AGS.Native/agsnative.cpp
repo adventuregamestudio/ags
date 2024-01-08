@@ -264,17 +264,17 @@ void change_sprite_number(int oldNumber, int newNumber) {
   spritesModified = true;
 }
 
-int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
+int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric) {
   // this function has passed in a list of sprites, all the
   // same size, to crop to the size of the smallest
-  int aa, xx, yy;
+  int xx, yy;
   int width = spriteset[sprites[0]]->GetWidth();
   int height = spriteset[sprites[0]]->GetHeight();
   int left = width, right = 0;
   int top = height, bottom = 0;
 
-  for (aa = 0; aa < numSprites; aa++) {
-    Common::Bitmap *sprit = get_sprite(sprites[aa]);
+  for (const int sprnum : sprites) {
+    AGSBitmap *sprit = get_sprite(sprnum);
     int maskcol = sprit->GetMaskColor();
 
     // find the left hand side
@@ -349,8 +349,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
 	  return 0;
   }
 
-  for (aa = 0; aa < numSprites; aa++) {
-    int sprnum = sprites[aa];
+  for (const int sprnum : sprites) {
     AGSBitmap *sprit = get_sprite(sprnum);
     // create a new, smaller sprite and copy across
 	std::unique_ptr<AGSBitmap> newsprit(new AGSBitmap(newWidth, newHeight, sprit->GetColorDepth()));

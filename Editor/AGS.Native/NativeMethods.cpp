@@ -449,7 +449,7 @@ namespace AGS
 				i++;
 			}
 			bool result = crop_sprite_edges(sprites->Count, spriteSlotList, symmetric) != 0;
-			delete spriteSlotList;
+			delete[] spriteSlotList;
 
 			int newWidth = GetSpriteWidth(sprites[0]->Number);
 			int newHeight = GetSpriteHeight(sprites[0]->Number);

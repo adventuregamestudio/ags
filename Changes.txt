@@ -1,5 +1,12 @@
 REVISION HISTORY
 ================
+VERSION 3.6.0 - Patch 9, January 2024
+
+Engine:
+ - Fixed engine incorrectly reporting a script loading error, which may occur if the total size of
+   script's global variables is bigger than the size of the compiled bytecode.
+
+
 VERSION 3.6.0 - Patch 8, January 2024
 
 Editor:

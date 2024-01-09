@@ -123,20 +123,24 @@ void RestoreGameSlot(int slnum) {
 }
 
 void DeleteSaveSlot (int slnum) {
-    String nametouse;
-    nametouse = get_save_game_path(slnum);
+    String nametouse = get_save_game_path(slnum);
     File::DeleteFile(nametouse);
+
+    if (loaded_game_file_version >= kGameVersion_361_14)
+        return;
+
+    // Rename the highest save game to fill in the gap
+    // CHECKME: is this safe to remove at all, regardless of game version?!
+    // which kind of script logic could depend on this?
     if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
         String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             thisname = get_save_game_path(i);
             if (Common::File::IsFile(thisname)) {
-                // Rename the highest save game to fill in the gap
                 File::RenameFile(thisname, nametouse);
                 break;
             }
         }
-
     }
 }
 

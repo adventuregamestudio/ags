@@ -104,8 +104,8 @@ int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot) {
 
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, min_slot, max_slot,
-      (loaded_game_file_version < kGameVersion_361_14) ? MAXSAVEGAMES : SIZE_MAX);
+  const size_t item_limit = (loaded_game_file_version < kGameVersion_361_14) ? MAXSAVEGAMES : SIZE_MAX;
+  FillSaveList(saves, min_slot, max_slot, item_limit);
   std::sort(saves.rbegin(), saves.rend()); // sort by modified time in reverse
 
   // fill in the list box
@@ -118,14 +118,14 @@ int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot) {
   }
 
   // update the global savegameindex[] array for backward compatibilty
-  for (size_t n = 0; n < saves.size(); ++n)
+  for (size_t n = 0; (n < MAXSAVEGAMES) && (n < saves.size()); ++n)
   {
     play.filenumbers[n] = saves[n].Slot;
   }
 
   listbox->SetSvgIndex(true);
 
-  if (saves.size() >= MAXSAVEGAMES)
+  if (saves.size() >= item_limit)
     return 1;
   return 0;
 }

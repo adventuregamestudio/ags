@@ -228,7 +228,7 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
 int GetLastSaveSlot()
 {
     std::vector<SaveListItem> saves;
-    FillSaveList(saves, 0, RESTART_POINT_SAVE_GAME_NUMBER - 1);
+    FillSaveList(saves, 0, RESTART_POINT_SAVE_GAME_NUMBER);
     if (saves.size() == 0)
         return -1;
     std::sort(saves.rbegin(), saves.rend());

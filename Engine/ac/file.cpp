@@ -730,11 +730,6 @@ Stream *get_file_stream(int32_t fhandle, const char *operation_name)
     return fh ? fh->GetStream() : nullptr;
 }
 
-IStream *get_file_stream_iface(int32_t fhandle, const char *operation_name)
-{
-    return check_file_stream(fhandle, operation_name)->GetStream();
-}
-
 Stream *release_file_stream(int32_t fhandle, const char *operation_name)
 {
     ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);

@@ -97,11 +97,16 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
   return listbox->SavedGameIndex[index];
 }
 
-int ListBox_FillSaveGameList(GUIListBox *listbox) {
+int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot) {
+  if (max_slot < 0)
+    return 0;
+  min_slot = std::max(0, min_slot);
+
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
-  std::sort(saves.rbegin(), saves.rend());
+  FillSaveList(saves, min_slot, max_slot,
+      (loaded_game_file_version < kGameVersion_361_14) ? MAXSAVEGAMES : SIZE_MAX);
+  std::sort(saves.rbegin(), saves.rend()); // sort by modified time in reverse
 
   // fill in the list box
   listbox->Clear();
@@ -123,6 +128,10 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   if (saves.size() >= MAXSAVEGAMES)
     return 1;
   return 0;
+}
+
+int ListBox_FillSaveGameList(GUIListBox *listbox) {
+  return ListBox_FillSaveGameList2(listbox, 0, TOP_LISTEDSAVESLOT);
 }
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
@@ -369,10 +378,14 @@ RuntimeScriptValue Sc_ListBox_FillDirList(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_POBJ(GUIListBox, ListBox_FillDirList, const char);
 }
 
-// int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_FillSaveGameList(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIListBox, ListBox_FillSaveGameList);
+}
+
+RuntimeScriptValue Sc_ListBox_FillSaveGameList2(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT2(GUIListBox, ListBox_FillSaveGameList2);
 }
 
 // int (GUIListBox *listbox, int x, int y)
@@ -574,6 +587,7 @@ void RegisterListBoxAPI()
         { "ListBox::Clear^0",             API_FN_PAIR(ListBox_Clear) },
         { "ListBox::FillDirList^1",       API_FN_PAIR(ListBox_FillDirList) },
         { "ListBox::FillSaveGameList^0",  API_FN_PAIR(ListBox_FillSaveGameList) },
+        { "ListBox::FillSaveGameList^2",  API_FN_PAIR(ListBox_FillSaveGameList2) },
         { "ListBox::GetItemAtLocation^2", API_FN_PAIR(ListBox_GetItemAtLocation) },
         { "ListBox::GetItemText^2",       API_FN_PAIR(ListBox_GetItemText) },
         { "ListBox::InsertItemAt^2",      API_FN_PAIR(ListBox_InsertItemAt) },

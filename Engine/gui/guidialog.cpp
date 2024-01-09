@@ -300,7 +300,7 @@ void preparesavegamelist(int ctrllist)
 {
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
+  FillSaveList(saves, 0, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box and global savegameindex[] array for backward compatibilty

@@ -102,13 +102,13 @@ TEST(Stream, MemoryStream) {
     MemoryStream in2(&membuf.front(), static_cast<size_t>(eos_pos), kStream_Read);
     ASSERT_TRUE(in2.CanRead());
     ASSERT_EQ(in2.GetLength(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
-    in2.Seek(4 * sizeof(int32_t) + fill_len, kSeekBegin);
+    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + fill_len, kSeekBegin), (4 * sizeof(int32_t) + fill_len));
     ASSERT_EQ(in2.ReadInt32(), 4);
-    in2.Seek(2 * sizeof(int32_t), kSeekBegin);
+    ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekBegin), (2 * sizeof(int32_t)));
     ASSERT_EQ(in2.ReadInt32(), 2);
-    in2.Seek(8 * sizeof(int32_t) + fill_len * 2, kSeekBegin);
+    ASSERT_EQ(in2.Seek(8 * sizeof(int32_t) + fill_len * 2, kSeekBegin), (8 * sizeof(int32_t) + fill_len * 2));
     ASSERT_EQ(in2.ReadInt32(), 8);
-    in2.Seek(2 * sizeof(int32_t), kSeekCurrent);
+    ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekCurrent), (8 * sizeof(int32_t) + fill_len * 2) + sizeof(int32_t) * 3);
     ASSERT_EQ(in2.ReadInt32(), 11);
     ASSERT_EQ(in2.GetPosition(), sizeof(int32_t) * 4 * 3 + fill_len * 2);
     ASSERT_TRUE(in2.EOS());
@@ -201,7 +201,7 @@ TEST(Stream, DataStreamSection) {
     VectorStream out(membuf, kStream_Write);
     // We write and read int8s, because it's easier to test single bytes here
     for (size_t i = 0; i < fill_len; ++i)
-        out.WriteInt8(i);
+        out.WriteInt8(static_cast<uint8_t>(i));
     out.Close();
     //-------------------------------------------------------------------------
     // Read data back using SectionStreams
@@ -229,20 +229,21 @@ TEST(Stream, DataStreamSection) {
     sect2.Close();
     ASSERT_EQ(in.GetPosition(), 8);
 
+    // Test seeks
     DataStreamSection sect_seek(&in, 2, 8);
     ASSERT_EQ(sect_seek.GetPosition(), 0);
     ASSERT_EQ(sect_seek.GetLength(), 8 - 2);
     ASSERT_EQ(in.GetPosition(), 2);
-    sect_seek.Seek(4, kSeekBegin);
+    ASSERT_EQ(sect_seek.Seek(4, kSeekBegin), 4);
     ASSERT_EQ(sect_seek.GetPosition(), 4);
     ASSERT_EQ(in.GetPosition(), 2 + 4);
-    sect_seek.Seek(2, kSeekCurrent);
+    ASSERT_EQ(sect_seek.Seek(2, kSeekCurrent), 6);
     ASSERT_EQ(sect_seek.GetPosition(), 6);
     ASSERT_EQ(in.GetPosition(), 2 + 6);
-    sect_seek.Seek(-4, kSeekCurrent);
+    ASSERT_EQ(sect_seek.Seek(-4, kSeekCurrent), 2);
     ASSERT_EQ(sect_seek.GetPosition(), 2);
     ASSERT_EQ(in.GetPosition(), 2 + 2);
-    sect_seek.Seek(-3, kSeekEnd);
+    ASSERT_EQ(sect_seek.Seek(-3, kSeekEnd), 3);
     ASSERT_EQ(sect_seek.GetPosition(), 3);
     ASSERT_EQ(in.GetPosition(), 2 + 3);
     sect_seek.Close();
@@ -316,13 +317,13 @@ TEST_F(FileBasedTest, BufferedStreamRead) {
     ASSERT_TRUE(in2.CanRead());
     ASSERT_TRUE(in2.CanSeek());
     ASSERT_EQ(in2.GetLength(), file_len);
-    in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin);
+    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin), (4 * sizeof(int32_t) + BufferedStream::BufferSize));
     ASSERT_EQ(in2.ReadInt32(), 4);
-    in2.Seek(2 * sizeof(int32_t), kSeekBegin);
+    ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekBegin), (2 * sizeof(int32_t)));
     ASSERT_EQ(in2.ReadInt32(), 2);
-    in2.Seek(8 * sizeof(int32_t) + BufferedStream::BufferSize * 2, kSeekBegin);
+    ASSERT_EQ(in2.Seek(8 * sizeof(int32_t) + BufferedStream::BufferSize * 2, kSeekBegin), (8 * sizeof(int32_t) + BufferedStream::BufferSize * 2));
     ASSERT_EQ(in2.ReadInt32(), 8);
-    in2.Seek(2 * sizeof(int32_t), kSeekCurrent);
+    ASSERT_EQ(in2.Seek(2 * sizeof(int32_t), kSeekCurrent), (8 * sizeof(int32_t) + BufferedStream::BufferSize * 2) + sizeof(int32_t) * 3);
     ASSERT_EQ(in2.ReadInt32(), 11);
     ASSERT_EQ(in2.GetPosition(), file_len);
     ASSERT_TRUE(in2.EOS());
@@ -626,18 +627,18 @@ TEST_F(FileBasedTest, BufferedSectionStream) {
     ASSERT_TRUE(in2.CanSeek());
     ASSERT_EQ(in2.GetPosition(), 0);
     ASSERT_EQ(in2.GetLength(), section2_end - section1_start);
-    in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin);
+    ASSERT_EQ(in2.Seek(4 * sizeof(int32_t) + BufferedStream::BufferSize, kSeekBegin), (4 * sizeof(int32_t) + BufferedStream::BufferSize));
     ASSERT_EQ(in2.ReadInt32(), 8);
     ASSERT_EQ(in2.ReadInt32(), 9);
     ASSERT_EQ(in2.ReadInt32(), 10);
     ASSERT_EQ(in2.ReadInt32(), 11);
-    in2.Seek(0, kSeekBegin);
+    ASSERT_EQ(in2.Seek(0, kSeekBegin), 0);
     ASSERT_EQ(in2.ReadInt32(), 4);
     ASSERT_EQ(in2.ReadInt32(), 5);
     ASSERT_EQ(in2.ReadInt32(), 6);
     ASSERT_EQ(in2.ReadInt32(), 7);
     ASSERT_EQ(in2.GetPosition(), 4 * sizeof(int32_t));
-    in2.Seek(0, kSeekEnd);
+    ASSERT_EQ(in2.Seek(0, kSeekEnd), section2_end - section1_start);
     ASSERT_EQ(in2.GetPosition(), section2_end - section1_start);
     ASSERT_TRUE(in2.EOS());
     in2.Close();

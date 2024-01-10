@@ -1409,8 +1409,8 @@ builtin managed struct ListBox extends GUIControl {
 	import void Clear();
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask);
-	/// Fills the list box with all the current user's saved games.
-	import int  FillSaveGameList();
+	/// Fills the list box with the current user's saved games in the given range of slots.
+	import int  FillSaveGameList(int min_slot = 0, int max_slot = 50);
 	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
 	import int  GetItemAtLocation(int x, int y);
 	/// Inserts a new item before the specified index.

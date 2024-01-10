@@ -42,13 +42,12 @@ int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 Bitmap *windowBuffer;
 IDriverDependantBitmap *dialogDDB;
 
-#undef MAXSAVEGAMES
-#define MAXSAVEGAMES 20
+#define LEGACY_MAXSAVEGAMES 20
 char *lpTemp, *lpTemp2;
 char bufTemp[260], buffer2[260];
 int numsaves = 0, toomanygames;
-int filenumbers[MAXSAVEGAMES];
-unsigned long filedates[MAXSAVEGAMES];
+int filenumbers[LEGACY_MAXSAVEGAMES];
+unsigned long filedates[LEGACY_MAXSAVEGAMES];
 
 CSCIMessage smes;
 
@@ -317,7 +316,7 @@ void preparesavegamelist(int ctrllist)
 {
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here
   std::vector<SaveListItem> saves;
-  FillSaveList(saves, TOP_LISTEDSAVESLOT, MAXSAVEGAMES);
+  FillSaveList(saves, 0, LEGACY_TOP_LISTEDSAVESLOT, LEGACY_MAXSAVEGAMES);
   std::sort(saves.rbegin(), saves.rend());
 
   // fill in the list box and global savegameindex[] array for backward compatibilty
@@ -327,7 +326,7 @@ void preparesavegamelist(int ctrllist)
       filenumbers[numsaves] = saves[numsaves].Slot;
       filedates[numsaves] = (long int)saves[numsaves].FileTime;
   }
-  toomanygames = (numsaves >= MAXSAVEGAMES) ? 1 : 0;
+  toomanygames = (numsaves >= LEGACY_MAXSAVEGAMES) ? 1 : 0;
   // Select the first item
   CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
 }

@@ -141,6 +141,9 @@ AGSString TextConverter::ConvertTextProperty(System::String^ clr_str)
     if (clr_str == nullptr)
         return AGSString();
     AGSString str = TextHelper::Convert(clr_str, _encoding);
+    // Escape backslashes before brackets: for '\[' support;
+    // this is needed because Unescape will delete '\' in unrecognized sequence.
+    str.Replace("\\[", "\\\\[");
     return AGS::Common::StrUtil::Unescape(str);
 }
 

@@ -292,7 +292,10 @@ namespace AGS.Editor
         /// <param name="text"></param>
         public static string TextProperty(string text)
         {
-            return Regex.Unescape(text);
+            // Escape backslashes before brackets: for '\[' support;
+            // this is needed because Unescape will delete '\' in unrecognized sequence.
+            string escapedText = text.Replace("\\[", "\\\\[");
+            return Regex.Unescape(escapedText);
         }
 
         /// <summary>

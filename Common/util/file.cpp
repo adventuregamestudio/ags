@@ -210,46 +210,50 @@ String File::GetCMode(FileOpenMode open_mode, StreamMode work_mode)
 
 Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
 {
-    Stream *fs = nullptr;
-    try {
-        fs = new BufferedStream(filename, open_mode, work_mode);
-        if (fs != nullptr && !fs->IsValid()) {
-            delete fs;
+    std::unique_ptr<StreamBase> fs;
+    try
+    {
+        fs.reset(new BufferedStream(filename, open_mode, work_mode));
+        if (fs != nullptr && !fs->IsValid())
             fs = nullptr;
-        }
-    } catch(std::runtime_error) {
+    }
+    catch (std::runtime_error)
+    {
         fs = nullptr;
 #if AGS_PLATFORM_OS_ANDROID
         // strictly for read-only streams: look into Android Assets too
-        try {
+        try
+        {
             if ((work_mode & kStream_Write) == 0)
-                fs = new AAssetStream(filename, AASSET_MODE_RANDOM);
-            if (fs != nullptr && !fs->IsValid()) {
-                delete fs;
+                fs.reset(new AAssetStream(filename, AASSET_MODE_RANDOM));
+            if (fs != nullptr && !fs->IsValid())
                 fs = nullptr;
-            }
-        } catch(std::runtime_error) {
+        }
+        catch(std::runtime_error)
+        {
             fs = nullptr;
         }
 #endif
     }
-    return fs;
+    if (!fs)
+        return nullptr;
+    return new Stream(std::move(fs));
 }
 
 
 Stream *File::OpenStdin()
 {
-    return FileStream::WrapHandle(stdin, kStream_Read, kDefaultSystemEndianess);
+    return new Stream(std::unique_ptr<FileStream>(FileStream::WrapHandle(stdin, kStream_Read)));
 }
 
 Stream *File::OpenStdout()
 {
-    return FileStream::WrapHandle(stdout, kStream_Write, kDefaultSystemEndianess);
+    return new Stream(std::unique_ptr<FileStream>(FileStream::WrapHandle(stdout, kStream_Write)));
 }
 
 Stream *File::OpenStderr()
 {
-    return FileStream::WrapHandle(stderr, kStream_Write, kDefaultSystemEndianess);
+    return new Stream(std::unique_ptr<FileStream>(FileStream::WrapHandle(stderr, kStream_Write)));
 }
 
 String File::FindFileCI(const String &base_dir, const String &file_name,
@@ -385,29 +389,32 @@ Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOp
 
 Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
 {
-    try {
-        Stream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kStream_Read);
-        if (fs != nullptr && !fs->IsValid()) {
-            delete fs;
-            return nullptr;
-        }
-        return fs;
+    std::unique_ptr<StreamBase> fs;
+    try
+    {
+        fs.reset(new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kStream_Read));
+        if (fs != nullptr && !fs->IsValid())
+            fs = nullptr;
     }
-    catch (std::runtime_error) {
-        Stream* fs = nullptr;
+    catch (std::runtime_error)
+    {
+        fs = nullptr;
 #if AGS_PLATFORM_OS_ANDROID
-        try {
-            fs = new AAssetStream(filename, AASSET_MODE_RANDOM, start_off, end_off);
-            if (fs != nullptr && !fs->IsValid()) {
-                delete fs;
+        try
+        {
+            fs.reset(new AAssetStream(filename, AASSET_MODE_RANDOM, start_off, end_off));
+            if (fs != nullptr && !fs->IsValid())
                 fs = nullptr;
-            }
-        } catch(std::runtime_error) {
+        }
+        catch(std::runtime_error)
+        {
             fs = nullptr;
         }
 #endif
-        return fs;
     }
+    if (!fs)
+        return nullptr;
+    return new Stream(std::move(fs));
 }
 
 } // namespace Common

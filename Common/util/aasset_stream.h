@@ -23,38 +23,36 @@
 #if AGS_PLATFORM_OS_ANDROID
 #include <android/asset_manager.h>
 
-#include "util/datastream.h"
-#include "util/file.h" // TODO: extract filestream mode constants
+#include "util/stream.h"
 
 namespace AGS
 {
     namespace Common
     {
 
-        class AAssetStream : public DataStream
+        class AAssetStream : public StreamBase
         {
         public:
 
             // Represents an open android asset object from asset manager
             // The constructor may raise std::runtime_error if
             // - there is an issue opening the asset
-            AAssetStream(const String &asset_name, int asset_mode,
-                       DataEndianess stream_endianess = kLittleEndian);
+            AAssetStream(const String &asset_name, int asset_mode);
 
             // section of Android Asset Stream
             // The constructor may raise std::runtime_error if
             // - there is an issue opening or seeking the asset
             AAssetStream(const String &asset_name, int asset_mode,
-                                soff_t start_pos, soff_t end_pos, DataEndianess stream_endianess = kLittleEndian);
+                                soff_t start_pos, soff_t end_pos);
 
             // Constructs an asset stream over an open AAsset handle;
             // Take an ownership over it and will close upon disposal
-            static AAssetStream *OwnHandle(AAsset * aasset, int asset_mode, DataEndianess stream_end = kLittleEndian)
-            { return new AAssetStream(aasset, true, asset_mode, stream_end); }
+            static AAssetStream *OwnHandle(AAsset * aasset, int asset_mode)
+            { return new AAssetStream(aasset, true, asset_mode); }
             // Constructs a asset stream over an open AAsset handle;
             // does NOT take an ownership over it
-            static AAssetStream *WrapHandle(AAsset * aasset, int asset_mode, DataEndianess stream_end = kLittleEndian)
-            { return new AAssetStream(aasset, false, asset_mode, stream_end); }
+            static AAssetStream *WrapHandle(AAsset * aasset, int asset_mode)
+            { return new AAssetStream(aasset, false, asset_mode); }
             ~AAssetStream() override;
 
             // Tells the AASSET_MODE this stream is working in.
@@ -87,7 +85,7 @@ namespace AGS
 
 
         private:
-            AAssetStream(AAsset *aasset, bool own, int asset_mode, DataEndianess stream_end);
+            AAssetStream(AAsset *aasset, bool own, int asset_mode);
 
             static AAsset *OpenAAsset(const String &asset_name, int asset_mode);
             void    Open(AAsset *asset, bool own, const String &asset_name, int asset_mode);

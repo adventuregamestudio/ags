@@ -817,15 +817,16 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 
 ::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, int file_mode, int work_mode)
 {
-    Stream *s = ResolveScriptPathAndOpen(script_path,
-        static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode));
-    return reinterpret_cast<::IAGSStream*>(s);
+    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path,
+        static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode)));
+    // FIXME: this is ugly...
+    return reinterpret_cast<::IAGSStream*>(s->ReleaseStreamBase().release());
 }
 
 ::IAGSStream *IAGSEngine::GetFileStreamByHandle(int32 fhandle)
 {
     return reinterpret_cast<::IAGSStream*>(
-        get_file_stream(fhandle, "IAGSEngine::GetFileStreamByHandle"));
+        get_file_stream_iface(fhandle, "IAGSEngine::GetFileStreamByHandle"));
 }
 
 // *********** General plugin implementation **********

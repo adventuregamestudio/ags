@@ -27,23 +27,23 @@ namespace AGS
 {
     namespace Common
     {
-        AAssetStream::AAssetStream(const String &asset_name, int asset_mode, DataEndianess stream_endianess)
-            : DataStream(stream_endianess)
+        AAssetStream::AAssetStream(const String &asset_name, int asset_mode)
+            : StreamBase()
         {
             AAsset *asset = OpenAAsset(asset_name, asset_mode);
             Open(asset, true, asset_name, asset_mode);
         }
 
         AAssetStream::AAssetStream(const String &asset_name, int asset_mode,
-                                   soff_t start_pos, soff_t end_pos, DataEndianess stream_endianess)
-            : DataStream(stream_endianess)
+                                   soff_t start_pos, soff_t end_pos)
+            : StreamBase()
         {
             AAsset *asset = OpenAAsset(asset_name, asset_mode);
             OpenSection(asset, true, asset_name, asset_mode, start_pos, end_pos);
         }
 
-        AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode, DataEndianess stream_end)
-            : DataStream(stream_end)
+        AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode)
+            : StreamBase()
         {
             Open(aasset, own, "" /* none provided */, asset_mode);
         }

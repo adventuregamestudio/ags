@@ -20,16 +20,15 @@
 
 #include <stdio.h>
 #include <functional>
-
-#include "util/datastream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
+#include "util/stream.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class FileStream : public DataStream
+class FileStream : public StreamBase
 {
 public:
     struct CloseNotifyArgs
@@ -47,16 +46,15 @@ public:
     // The constructor may raise std::runtime_error if 
     // - there is an issue opening the file (does not exist, locked, permissions, etc)
     // - the open mode could not be determined
-    FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode,
-        DataEndianess stream_endianess = kLittleEndian);
+    FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode);
     // Constructs a file stream over an open FILE handle;
     // Take an ownership over it and will close upon disposal
-    static FileStream *OwnHandle(FILE *file, StreamMode work_mode, DataEndianess stream_end = kLittleEndian)
-        { return new FileStream(file, true, work_mode, stream_end); }
+    static FileStream *OwnHandle(FILE *file, StreamMode work_mode)
+        { return new FileStream(file, true, work_mode); }
     // Constructs a file stream over an open FILE handle;
     // does NOT take an ownership over it
-    static FileStream *WrapHandle(FILE *file, StreamMode work_mode, DataEndianess stream_end = kLittleEndian)
-        { return new FileStream(file, false, work_mode, stream_end); }
+    static FileStream *WrapHandle(FILE *file, StreamMode work_mode)
+        { return new FileStream(file, false, work_mode); }
     ~FileStream() override;
 
     // Tells which open mode was used when opening a file.
@@ -87,7 +85,7 @@ public:
     void    Close() override;
 
 private:
-    FileStream(FILE *file, bool own, StreamMode work_mode, DataEndianess stream_end);
+    FileStream(FILE *file, bool own, StreamMode work_mode);
     void    Open(const String &file_name, FileOpenMode open_mode, StreamMode work_mode);
 
     FILE         *_file = nullptr;

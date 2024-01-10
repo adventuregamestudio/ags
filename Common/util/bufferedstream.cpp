@@ -29,9 +29,9 @@ namespace Common
 
 const size_t BufferedStream::BufferSize;
 
-BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode,
-        StreamMode work_mode, DataEndianess stream_endianess)
-    : FileStream(file_name, open_mode, work_mode, stream_endianess)
+BufferedStream::BufferedStream(const String &file_name,
+    FileOpenMode open_mode, StreamMode work_mode)
+    : FileStream(file_name, open_mode, work_mode)
 {
     soff_t end_pos = FileStream::Seek(0, kSeekEnd);
     if (end_pos >= 0)
@@ -207,8 +207,8 @@ soff_t BufferedStream::Seek(soff_t offset, StreamSeek origin)
 //-----------------------------------------------------------------------------
 
 BufferedSectionStream::BufferedSectionStream(const String &file_name, soff_t start_pos, soff_t end_pos,
-        FileOpenMode open_mode, StreamMode work_mode, DataEndianess stream_endianess)
-    : BufferedStream(file_name, open_mode, work_mode, stream_endianess)
+        FileOpenMode open_mode, StreamMode work_mode)
+    : BufferedStream(file_name, open_mode, work_mode)
 {
     assert(start_pos <= end_pos);
     start_pos = std::min(start_pos, end_pos);

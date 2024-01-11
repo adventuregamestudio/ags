@@ -116,6 +116,24 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
         return static_cast<eAGSKeyCode>(sym);
     }
 
+    // NumPad with NumLock on
+    if ((sym >= SDLK_KP_1 && sym <= SDLK_KP_PERIOD) && (mod & KMOD_NUM) != 0)
+    {
+        switch (sym)
+        {
+        case SDLK_KP_1: case SDLK_KP_2: case SDLK_KP_3: case SDLK_KP_4:
+        case SDLK_KP_5: case SDLK_KP_6: case SDLK_KP_7: case SDLK_KP_8:
+        case SDLK_KP_9:
+            return static_cast<eAGSKeyCode>(sym - SDLK_KP_1 + SDLK_1);
+        case SDLK_KP_0:
+            return eAGSKeyCode0;
+        case SDLK_KP_PERIOD:
+            return eAGSKeyCodePeriod;
+        default:
+            return eAGSKeyCodeNone;
+        }
+    }
+
     // Remaining codes may match or not, but we use a big table anyway.
     // TODO: this is code by [sonneveld],
     // double check that we must use scan codes here, maybe can use sdl key (sym) too?
@@ -163,6 +181,12 @@ eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandl
     case SDL_SCANCODE_INSERT: return eAGSKeyCodeInsert;
     case SDL_SCANCODE_KP_PERIOD:
     case SDL_SCANCODE_DELETE: return eAGSKeyCodeDelete;
+
+    // KeyPad (remaining keys, not handled above)
+    case SDL_SCANCODE_KP_DIVIDE: return eAGSKeyCodeForwardSlash;
+    case SDL_SCANCODE_KP_MULTIPLY: return eAGSKeyCodeAsterisk;
+    case SDL_SCANCODE_KP_MINUS: return eAGSKeyCodeHyphen;
+    case SDL_SCANCODE_KP_PLUS: return eAGSKeyCodePlus;
 
     case SDL_SCANCODE_LSHIFT: return eAGSKeyCodeLShift;
     case SDL_SCANCODE_RSHIFT: return eAGSKeyCodeRShift;

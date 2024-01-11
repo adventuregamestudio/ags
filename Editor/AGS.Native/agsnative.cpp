@@ -264,7 +264,7 @@ void change_sprite_number(int oldNumber, int newNumber) {
   spritesModified = true;
 }
 
-int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric) {
+int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *crop_rect) {
   // this function has passed in a list of sprites, all the
   // same size, to crop to the size of the smallest
   int xx, yy;
@@ -337,8 +337,11 @@ int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric) {
   }
   int newWidth = (right - left) + 1;
   int newHeight = (bottom - top) + 1;
+  if (crop_rect)
+    *crop_rect = Rect(left, top, right, bottom);
 
-  if ((newWidth == width) && (newHeight == height)) {
+  if ((newWidth == width) && (newHeight == height))
+  {
     // no change in size
     return 0;
   }

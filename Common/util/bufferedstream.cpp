@@ -50,7 +50,7 @@ BufferedStream::BufferedStream(const String &file_name, FileOpenMode open_mode,
 
 BufferedStream::~BufferedStream()
 {
-    Close();
+    BufferedStream::Close();
 }
 
 void BufferedStream::FillBufferFromPosition(soff_t position)
@@ -210,7 +210,7 @@ BufferedSectionStream::BufferedSectionStream(const String &file_name, soff_t sta
     start_pos = std::min(start_pos, end_pos);
     _start = std::min(start_pos, _end);
     _end = std::min(end_pos, _end);
-    Seek(0, kSeekBegin);
+    BufferedStream::Seek(0, kSeekBegin);
 }
 
 

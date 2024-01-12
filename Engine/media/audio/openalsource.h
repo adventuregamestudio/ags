@@ -53,7 +53,7 @@ public:
 
     // Try putting data into the queue; returns amount of data copied,
     // or 0 if data cannot be accepted at the moment.
-    size_t PutData(const SoundBuffer data);
+    size_t PutData(const SoundBuffer &data);
     // Updates the state, processes the sound queue
     ALuint Poll();
 

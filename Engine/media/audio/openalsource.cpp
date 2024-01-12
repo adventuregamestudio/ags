@@ -152,7 +152,7 @@ float OpenAlSource::GetPositionMs() const
     return _predictTs;
 }
 
-size_t OpenAlSource::PutData(const SoundBuffer data)
+size_t OpenAlSource::PutData(const SoundBuffer &data)
 {
     Unqueue();
     // If queue is full, bail out

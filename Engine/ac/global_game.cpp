@@ -646,7 +646,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on character
     if (loctype == LOCTYPE_CHAR) {
         onhs = getloctype_index;
-        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.chars[onhs].name.GetCStr()));
+        snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.chars2[onhs].name_new.GetCStr()));
         if (play.get_loc_name_last_time != 2000+onhs)
             GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 2000+onhs;

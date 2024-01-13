@@ -3208,8 +3208,8 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		character->MovementSpeedX = thisgame.chars[i].walkspeed;
 		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
 		character->NormalView = thisgame.chars[i].defview + 1;
-		character->RealName = gcnew String(thisgame.chars[i].name.GetCStr());
-		character->ScriptName = gcnew String(thisgame.chars[i].scrname.GetCStr());
+		character->RealName = gcnew String(thisgame.chars2[i].name_new.GetCStr());
+		character->ScriptName = gcnew String(thisgame.chars2[i].scrname_new.GetCStr());
 		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
 		character->SpeechColor = thisgame.chars[i].talkcolor;
 		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);

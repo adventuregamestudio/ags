@@ -161,7 +161,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game)
         ccRegisterManagedObject(&game.chars[i], &ccDynamicCharacter);
 
         // export the character's script object
-        ccAddExternalScriptObject(game.chars[i].scrname, &game.chars[i], &ccDynamicCharacter);
+        ccAddExternalScriptObject(game.chars2[i].scrname_new, &game.chars[i], &ccDynamicCharacter);
     }
 }
 
@@ -263,7 +263,7 @@ void InitAndRegisterRegions()
 // Registers static entity arrays in the script system
 void RegisterStaticArrays(GameSetupStruct &game)
 {
-    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfoBase), sizeof(CharacterInfo));
+    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
     StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
     StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
     StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));

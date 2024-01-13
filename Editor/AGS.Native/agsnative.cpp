@@ -2262,7 +2262,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	theRoom->Height = room->Height;
 	bool resolutionChanged = (theRoom->GetResolutionType() != (AGS::Common::RoomResolutionType)room->Resolution);
 	theRoom->SetResolution((AGS::Common::RoomResolutionType)room->Resolution);
-    theRoom->MaskResolution = theRoom->MaskResolution;
+    theRoom->MaskResolution = room->MaskResolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{

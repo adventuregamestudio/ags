@@ -12,11 +12,19 @@
 //
 //=============================================================================
 //
-// CCStaticArray manages access to an array of script objects,
+// CCStaticArray is a formal manager for static arrays of values.
+//
+// CCStaticObjectArray manages access to an array of script objects,
 // where an element's size counted by script's bytecode may differ from the
 // real element size in the engine's memory.
 // The purpose of this is to remove size restriction from the engine's structs
 // exposed to scripts.
+//   FIXME: this was an intention, but in reality this turned to be
+//          still not 100% compatible, because it breaks pointer comparisons
+//          between a pointer to object and a address of array's element
+//          in script. So likely this class should be simplified,
+//          or removed as useless.
+//
 // NOTE: on the other hand, similar effect could be achieved by separating
 // object data into two or more structs, where "base" structs are stored in
 // the exposed arrays (part of API), while extending structs are stored
@@ -28,10 +36,28 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
+
 struct CCStaticArray : public AGSCCStaticObject
 {
 public:
     ~CCStaticArray() override = default;
+
+    void Create(size_t elem_size, size_t elem_count = SIZE_MAX /*unknown*/)
+    {
+        _elemSize = elem_size;
+        _elemCount = elem_count;
+    }
+
+private:
+    size_t _elemSize = 0u;
+    size_t _elemCount = 0u;
+};
+
+
+struct CCStaticObjectArray : public AGSCCStaticObject
+{
+public:
+    ~CCStaticObjectArray() override = default;
 
     void Create(IScriptObject *mgr, size_t elem_script_size, size_t elem_mem_size, size_t elem_count = SIZE_MAX /*unknown*/);
 
@@ -59,10 +85,10 @@ public:
     void    WriteFloat(void *address, intptr_t offset, float val) override;
 
 private:
-    IScriptObject    *_mgr = nullptr;
-    size_t              _elemScriptSize = 0u;
-    size_t              _elemMemSize = 0u;
-    size_t              _elemCount = 0u;
+    IScriptObject  *_mgr = nullptr;
+    size_t          _elemScriptSize = 0u;
+    size_t          _elemMemSize = 0u;
+    size_t          _elemCount = 0u;
 };
 
 #endif // __AGS_EE_DYNOBJ__CCSTATICARRAY_H

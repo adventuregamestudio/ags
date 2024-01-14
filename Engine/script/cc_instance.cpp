@@ -1187,8 +1187,6 @@ int ccInstance::Run(int32_t curpc)
                 ccReleaseObjectReference(handle);
                 ccAddObjectReference(newHandle);
             }
-          // Assign always, avoid leaving undefined value
-          registers[SREG_MAR].WriteInt32(newHandle);
             // Assign always, avoid leaving undefined value
             registers[SREG_MAR].WriteInt32(newHandle);
             break;

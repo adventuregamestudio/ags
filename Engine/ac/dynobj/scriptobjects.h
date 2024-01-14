@@ -30,6 +30,8 @@ struct ScriptSimpleRef
 };
 
 struct ScriptAudioChannel : public ScriptSimpleRef {};
+// NOTE: ScriptCharacter is a dummy placeholder
+struct ScriptCharacter : public ScriptSimpleRef {};
 struct ScriptDialog : public ScriptSimpleRef {};
 struct ScriptGUI : public ScriptSimpleRef {};
 struct ScriptHotspot : public ScriptSimpleRef {};

@@ -65,6 +65,7 @@ extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern CCAudioChannel ccDynamicAudio;
 extern CCAudioClip ccDynamicAudioClip;
+
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern std::vector<ScriptGUI> scrGui;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
@@ -80,13 +81,15 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 extern AGSCCStaticObject GlobalStaticManager;
-CCStaticArray StaticCharacterArray;
-CCStaticArray StaticObjectArray;
-CCStaticArray StaticGUIArray;
-CCStaticArray StaticHotspotArray;
-CCStaticArray StaticRegionArray;
-CCStaticArray StaticInventoryArray;
-CCStaticArray StaticDialogArray;
+CCStaticArray StaticHandlesArray;
+// Static arrays of managed handles for individual game objects
+std::vector<int> StaticCharacterArray;
+std::vector<int> StaticObjectArray;
+std::vector<int> StaticGUIArray;
+std::vector<int> StaticHotspotArray;
+std::vector<int> StaticRegionArray;
+std::vector<int> StaticInventoryArray;
+std::vector<int> StaticDialogArray;
 
 
 namespace AGS
@@ -139,6 +142,9 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
 // Initializes characters and registers them in the script system
 void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &ents)
 {
+    // ensure at least 1 element, we must register buffer
+    StaticCharacterArray.resize(std::max(1, game.numcharacters));
+
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].walking = 0;
@@ -154,7 +160,9 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         game.chars[i].loop = 0;
         game.chars[i].frame = 0;
         game.chars[i].walkwait = -1;
-        ccRegisterPersistentObject(&game.chars[i], &ccDynamicCharacter); // add internal ref
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&game.chars[i], &ccDynamicCharacter);
+        StaticCharacterArray[i] = handle;
 
         // export the character's script object
         ccAddExternalScriptObject(game.chars[i].scrname, &game.chars[i], &ccDynamicCharacter);
@@ -173,12 +181,16 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
 // Initializes dialog and registers them in the script system
 void InitAndRegisterDialogs(const GameSetupStruct &game)
 {
-    scrDialog.resize(std::max(1, game.numdialog)); // ensure at least 1 element, we must register buffer
+    scrDialog.resize(game.numdialog);
+    // ensure at least 1 element, we must register buffer
+    StaticDialogArray.resize(std::max(1, game.numdialog));
+
     for (int i = 0; i < game.numdialog; ++i)
     {
         scrDialog[i].id = i;
-        scrDialog[i].reserved = 0;
-        ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog); // add internal ref
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog);
+        StaticDialogArray[i] = handle;
 
         if (!game.dialogScriptNames[i].IsEmpty())
             ccAddExternalScriptObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
@@ -198,7 +210,10 @@ void InitAndRegisterDialogOptions()
 // Initializes gui and registers them in the script system
 HError InitAndRegisterGUI(const GameSetupStruct &game)
 {
-    scrGui.resize(std::max(1, game.numgui)); // ensure at least 1 element, we must register buffer
+    scrGui.resize(game.numgui);
+    // ensure at least 1 element, we must register buffer
+    StaticGUIArray.resize(std::max(1, game.numgui));
+
     for (int i = 0; i < game.numgui; ++i)
     {
         scrGui[i].id = -1;
@@ -210,11 +225,16 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         HError err = guis[i].RebuildArray();
         if (!err)
             return err;
+        scrGui[i].id = i;
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&scrGui[i], &ccDynamicGUI);
+        StaticGUIArray[i] = handle;
+
+        // export the gui script object
+        ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
+
         // export all the GUI's controls
         export_gui_controls(i);
-        scrGui[i].id = i;
-        ccAddExternalScriptObject(guis[i].Name, &scrGui[i], &ccDynamicGUI);
-        ccRegisterPersistentObject(&scrGui[i], &ccDynamicGUI); // add internal ref
     }
     return HError::None();
 }
@@ -222,11 +242,14 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
 // Initializes inventory items and registers them in the script system
 void InitAndRegisterInvItems(const GameSetupStruct &game)
 {
+    StaticInventoryArray.resize(MAX_INV);
+
     for (int i = 0; i < MAX_INV; ++i)
     {
         scrInv[i].id = i;
-        scrInv[i].reserved = 0;
-        ccRegisterPersistentObject(&scrInv[i], &ccDynamicInv); // add internal ref
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&scrInv[i], &ccDynamicInv);
+        StaticInventoryArray[i] = handle;
 
         if (!game.invScriptNames[i].IsEmpty())
             ccAddExternalScriptObject(game.invScriptNames[i], &scrInv[i], &ccDynamicInv);
@@ -236,68 +259,58 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
 // Initializes room hotspots and registers them in the script system
 void InitAndRegisterHotspots()
 {
+    StaticHotspotArray.resize(MAX_ROOM_HOTSPOTS);
+
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         scrHotspot[i].id = i;
-        scrHotspot[i].reserved = 0;
-        ccRegisterPersistentObject(&scrHotspot[i], &ccDynamicHotspot); // add internal ref
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&scrHotspot[i], &ccDynamicHotspot);
+        StaticHotspotArray[i] = handle;
     }
 }
 
 // Initializes room objects and registers them in the script system
 void InitAndRegisterRoomObjects()
 {
+    StaticObjectArray.resize(MAX_ROOM_OBJECTS);
+
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
-        ccRegisterPersistentObject(&scrObj[i], &ccDynamicObject); // add internal ref
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&scrObj[i], &ccDynamicObject);
+        StaticObjectArray[i] = handle;
     }
 }
 
 // Initializes room regions and registers them in the script system
 void InitAndRegisterRegions()
 {
+    StaticRegionArray.resize(MAX_ROOM_REGIONS);
+
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         scrRegion[i].id = i;
-        scrRegion[i].reserved = 0;
-        ccRegisterPersistentObject(&scrRegion[i], &ccDynamicRegion); // add internal ref
+        // register and save handle
+        int handle = ccRegisterPersistentObject(&scrRegion[i], &ccDynamicRegion);
+        StaticRegionArray[i] = handle;
     }
 }
 
 // Registers static entity arrays in the script system
 void RegisterStaticArrays(GameSetupStruct &game)
 {
-    // We need to know sizes of related script structs to convert memory offsets into object indexes.
-    // These sizes are calculated by the compiler based on script struct declaration.
-    // Note, that only regular variables count to the struct size, NOT properties and NOT methods.
-    // Currently there is no way to read the type sizes from script, so we have to define them by hand.
-    // If the struct size changes in script, we must change the numbers here.
-    // If we are going to support multiple different versions of same struct, then the "script size"
-    // should be chosen depending on the script api version.
-    const int charScriptSize = sizeof(int32_t) * 28 + sizeof(int16_t) * MAX_INV + sizeof(int32_t) + 61
-        + 1; // + 1 for mem align
-    const int dummyScriptSize = sizeof(int32_t) * 2; // 32-bit id + reserved int32
-
-    // The current implementation of the StaticArray assumes we are dealing with regular C-arrays.
-    // Therefore we need to know real struct size too. If we will change to std containers, then
-    // (templated) telling real size will no longer be necessary.
-    StaticCharacterArray.Create(&ccDynamicCharacter, charScriptSize, sizeof(CharacterInfo));
-    StaticDialogArray.Create(&ccDynamicDialog, dummyScriptSize, sizeof(ScriptDialog));
-    StaticGUIArray.Create(&ccDynamicGUI, dummyScriptSize, sizeof(ScriptGUI));
-    StaticInventoryArray.Create(&ccDynamicInv, dummyScriptSize, sizeof(ScriptInvItem));
-    StaticHotspotArray.Create(&ccDynamicHotspot, dummyScriptSize, sizeof(ScriptHotspot));
-    StaticObjectArray.Create(&ccDynamicObject, dummyScriptSize, sizeof(ScriptObject));
-    StaticRegionArray.Create(&ccDynamicRegion, dummyScriptSize, sizeof(ScriptRegion));
+    StaticHandlesArray.Create(sizeof(int32_t));
 
     // Game element arrays
-    ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
-    ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
-    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
-    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
+    ccAddExternalScriptObject("character", &StaticCharacterArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("dialog", &StaticDialogArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("gui", &StaticGUIArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("inventory", &StaticInventoryArray[0], &StaticHandlesArray);
     // Room element arrays
-    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
-    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
-    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
+    ccAddExternalScriptObject("hotspot", &StaticHotspotArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("object", &StaticObjectArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("region", &StaticRegionArray[0], &StaticHandlesArray);
 }
 
 // Initializes various game entities and registers them in the script system

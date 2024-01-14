@@ -683,7 +683,9 @@ namespace AGS.Editor
         {
             if (items.Count > 0)
             {
-                sb.AppendLine("import InventoryItem inventory[" + (items.Count + 1) + "];");
+                // NOTE: there's always a dummy inv item at index 0
+                sb.AppendLine(string.Format("import readonly InventoryItem *inventory[{0}];", items.Count + 1));
+
                 foreach (InventoryItem item in items)
                 {
                     if (item.Name.Length > 0)
@@ -698,7 +700,8 @@ namespace AGS.Editor
         {
             if (dialogs.Count > 0)
             {
-                sb.AppendLine("import Dialog dialog[" + dialogs.Count + "];");
+                sb.AppendLine(string.Format("import readonly Dialog *dialog[{0}];", dialogs.Count));
+
                 foreach (Dialog item in dialogs)
                 {
                     if (item.Name.Length > 0)
@@ -729,7 +732,7 @@ namespace AGS.Editor
         {
             if (guis.Count > 0)
             {
-                sb.AppendLine("import GUI gui[" + guis.Count + "];");
+                sb.AppendLine(string.Format("import readonly GUI *gui[{0}];", guis.Count));
 
                 foreach (GUI gui in guis)
                 {
@@ -770,7 +773,7 @@ namespace AGS.Editor
             int charactersCount = characters.GetAllItemsCount();
             if (charactersCount > 0)
             {
-                sb.AppendLine(string.Format("import Character character[{0}];", charactersCount));
+                sb.AppendLine(string.Format("import readonly Character *character[{0}];", charactersCount));
 
                 foreach (Character character in characters.AllItemsFlat)
                 {

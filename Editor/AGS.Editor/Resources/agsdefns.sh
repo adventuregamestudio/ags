@@ -2579,14 +2579,15 @@ builtin managed struct Joystick {
 #endif
 
 
-import readonly Character *player;
-import Mouse mouse;
-import GameState  game;
-
-import Object object[AGS_MAX_OBJECTS];
-import Hotspot hotspot[AGS_MAX_HOTSPOTS];
-import Region region[AGS_MAX_REGIONS];
 import ColorType palette[PALETTE_SIZE];
+import Mouse mouse;
+import GameState game;
+import readonly Character *player;
+
+// Room element arrays
+import readonly Object *object[AGS_MAX_OBJECTS];
+import readonly Hotspot *hotspot[AGS_MAX_HOTSPOTS];
+import readonly Region *region[AGS_MAX_REGIONS];
 
 #undef CursorMode
 #undef FontType

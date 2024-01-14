@@ -282,20 +282,22 @@ void RegisterStaticArrays(GameSetupStruct &game)
     // Therefore we need to know real struct size too. If we will change to std containers, then
     // (templated) telling real size will no longer be necessary.
     StaticCharacterArray.Create(&ccDynamicCharacter, charScriptSize, sizeof(CharacterInfo));
-    StaticObjectArray.Create(&ccDynamicObject, dummyScriptSize, sizeof(ScriptObject));
-    StaticGUIArray.Create(&ccDynamicGUI, dummyScriptSize, sizeof(ScriptGUI));
-    StaticHotspotArray.Create(&ccDynamicHotspot, dummyScriptSize, sizeof(ScriptHotspot));
-    StaticRegionArray.Create(&ccDynamicRegion, dummyScriptSize, sizeof(ScriptRegion));
-    StaticInventoryArray.Create(&ccDynamicInv, dummyScriptSize, sizeof(ScriptInvItem));
     StaticDialogArray.Create(&ccDynamicDialog, dummyScriptSize, sizeof(ScriptDialog));
+    StaticGUIArray.Create(&ccDynamicGUI, dummyScriptSize, sizeof(ScriptGUI));
+    StaticInventoryArray.Create(&ccDynamicInv, dummyScriptSize, sizeof(ScriptInvItem));
+    StaticHotspotArray.Create(&ccDynamicHotspot, dummyScriptSize, sizeof(ScriptHotspot));
+    StaticObjectArray.Create(&ccDynamicObject, dummyScriptSize, sizeof(ScriptObject));
+    StaticRegionArray.Create(&ccDynamicRegion, dummyScriptSize, sizeof(ScriptRegion));
 
+    // Game element arrays
     ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
-    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
-    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
-    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
-    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
-    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
     ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
+    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
+    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
+    // Room element arrays
+    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
+    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
+    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
 }
 
 // Initializes various game entities and registers them in the script system

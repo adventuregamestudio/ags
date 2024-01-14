@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_hotspot.h"
-#include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/common_defines.h"
 #include "game/roomstruct.h"

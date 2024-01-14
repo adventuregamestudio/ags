@@ -81,13 +81,11 @@ target_sources(engine
     ac/dynobj/dynobj_manager.h
     ac/dynobj/managedobjectpool.cpp
     ac/dynobj/managedobjectpool.h
-    ac/dynobj/scriptaudiochannel.h
     ac/dynobj/scriptcamera.cpp
     ac/dynobj/scriptcamera.h
     ac/dynobj/scriptcontainers.h
     ac/dynobj/scriptdatetime.cpp
     ac/dynobj/scriptdatetime.h
-    ac/dynobj/scriptdialog.h
     ac/dynobj/scriptdialogoptionsrendering.cpp
     ac/dynobj/scriptdialogoptionsrendering.h
     ac/dynobj/scriptdict.cpp
@@ -100,16 +98,12 @@ target_sources(engine
     ac/dynobj/scriptfile.h
     ac/dynobj/scriptjoystick.cpp
     ac/dynobj/scriptjoystick.h
-    ac/dynobj/scriptgui.h
-    ac/dynobj/scripthotspot.h
-    ac/dynobj/scriptinvitem.h
     ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptmouse.h
     ac/dynobj/scriptmouse.cpp
-    ac/dynobj/scriptobject.h
+    ac/dynobj/scriptobjects.h
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h
-    ac/dynobj/scriptregion.h
     ac/dynobj/scriptset.cpp
     ac/dynobj/scriptset.h
     ac/dynobj/scriptstring.cpp

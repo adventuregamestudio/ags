@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTCAMERA_H
 #define __AC_SCRIPTCAMERA_H
 

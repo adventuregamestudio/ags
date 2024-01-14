@@ -16,7 +16,7 @@
 
 #include <vector>
 #include "ac/dialogtopic.h"
-#include "ac/dynobj/scriptdialog.h"
+#include "ac/dynobj/scriptobjects.h"
 
 int  Dialog_GetID(ScriptDialog *sd);
 int  Dialog_GetOptionCount(ScriptDialog *sd);

@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__GUI_H
 #define __AGS_EE_AC__GUI_H
 
-#include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "gui/guimain.h"
 
 using AGS::Common::GUIMain;

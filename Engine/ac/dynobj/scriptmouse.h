@@ -22,6 +22,7 @@
 
 struct ScriptMouse : public AGSCCStaticObject
 {
+public:
     int x;
     int y;
 

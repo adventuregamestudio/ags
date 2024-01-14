@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__REGION_H
 #define __AGS_EE_AC__REGION_H
 
-#include "ac/dynobj/scriptregion.h"
+#include "ac/dynobj/scriptobjects.h"
 
 ScriptRegion *GetRegionAtRoom(int xx, int yy);
 void    Region_SetLightLevel(ScriptRegion *ssr, int brightness);

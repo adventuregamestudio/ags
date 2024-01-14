@@ -19,7 +19,9 @@
 #include "gfx/bitmap.h"
 #include "util/stream.h"
 
-struct ScriptDrawingSurface final : AGSCCDynamicObject {
+struct ScriptDrawingSurface final : AGSCCDynamicObject
+{
+public:
     // These numbers and types are used to determine the source of this drawing surface;
     // only one of them can be valid for this surface.
     int roomBackgroundNumber;

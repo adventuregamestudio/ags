@@ -19,7 +19,7 @@
 #define __AGS_EE_AC__AUDIOCLIP_H
 
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptaudiochannel.h"
+#include "ac/dynobj/scriptobjects.h"
 
 int     AudioClip_GetFileType(ScriptAudioClip *clip);
 int     AudioClip_GetType(ScriptAudioClip *clip);

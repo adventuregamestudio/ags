@@ -25,7 +25,7 @@
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
-#include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/scriptobjects.h"
 
 using AGS::Common::GUIObject;
 using AGS::Common::GUIButton;

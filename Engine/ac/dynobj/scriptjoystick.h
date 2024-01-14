@@ -11,14 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTJOYSTICK_H
 #define __AC_SCRIPTJOYSTICK_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "SDL_gamecontroller.h"
 
-struct ScriptJoystick final : AGSCCDynamicObject {
+struct ScriptJoystick final : AGSCCDynamicObject
+{
 public:
     ScriptJoystick(int id = -1);
     // Get gamepad index; negative means the gamepad was deleted

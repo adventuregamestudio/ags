@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__DIALOGOPTIONSRENDERING_H
 #define __AGS_EE_AC__DIALOGOPTIONSRENDERING_H
 
-#include "ac/dynobj/scriptdialog.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 
 int  DialogOptionsRendering_GetX(ScriptDialogOptionsRendering *dlgOptRender);

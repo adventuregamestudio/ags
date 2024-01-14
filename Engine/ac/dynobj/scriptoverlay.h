@@ -16,7 +16,9 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptOverlay final : AGSCCDynamicObject {
+struct ScriptOverlay final : AGSCCDynamicObject
+{
+public:
     int overlayId = -1;
 
     int Dispose(void *address, bool force) override;

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_inventory.h"
-#include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/characterinfo.h"
 #include "util/stream.h"

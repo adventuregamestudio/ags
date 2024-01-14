@@ -19,7 +19,7 @@
 #define __AGS_EE_AC__INVWINDOW_H
 
 #include "ac/characterinfo.h"
-#include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "gui/guiinv.h"
 
 using AGS::Common::GUIInvWindow;

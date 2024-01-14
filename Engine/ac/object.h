@@ -21,7 +21,8 @@
 #define __AGS_EE_AC__OBJECT_H
 
 #include "ac/common_defines.h"
-#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptobjects.h"
+#include "ac/roomobject.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later

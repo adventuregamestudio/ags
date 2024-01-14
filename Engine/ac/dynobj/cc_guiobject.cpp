@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_guiobject.h"
-#include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "gui/guimain.h"
 #include "gui/guiobject.h"

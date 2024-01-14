@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_audiochannel.h"
-#include "ac/dynobj/scriptaudiochannel.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "media/audio/audio_system.h"
 #include "util/stream.h"

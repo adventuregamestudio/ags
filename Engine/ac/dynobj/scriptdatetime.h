@@ -20,7 +20,9 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptDateTime final : AGSCCDynamicObject {
+struct ScriptDateTime final : AGSCCDynamicObject
+{
+public:
     int year, month, day;
     int hour, minute, second;
     int rawUnixTime;

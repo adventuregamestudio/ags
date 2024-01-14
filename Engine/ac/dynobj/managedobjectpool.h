@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
@@ -27,7 +26,8 @@
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
-struct ManagedObjectPool final {
+struct ManagedObjectPool final
+{
 private:
     struct GCObject;
     // TODO: find out if we can make handle unsigned

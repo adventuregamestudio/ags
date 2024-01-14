@@ -18,7 +18,7 @@
 #include <memory>
 #include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptaudiochannel.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/timer.h"
 
 class SOUNDCLIP;

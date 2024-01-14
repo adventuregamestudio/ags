@@ -20,8 +20,7 @@
 
 #include "ac/characterinfo.h"
 #include "ac/characterextras.h"
-#include "ac/dynobj/scriptobject.h"
-#include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "game/viewport.h"
 #include "util/geometry.h"

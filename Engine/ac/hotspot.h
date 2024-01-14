@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__HOTSPOT_H
 #define __AGS_EE_AC__HOTSPOT_H
 
-#include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/scriptobjects.h"
 
 void    Hotspot_SetEnabled(ScriptHotspot *hss, int newval);
 int     Hotspot_GetEnabled(ScriptHotspot *hss);

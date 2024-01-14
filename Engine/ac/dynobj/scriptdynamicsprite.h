@@ -11,13 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTDYNAMICSPRITE_H
 #define __AC_SCRIPTDYNAMICSPRITE_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptDynamicSprite final  : AGSCCDynamicObject {
+struct ScriptDynamicSprite final  : AGSCCDynamicObject
+{
+public:
     int slot;
 
     int Dispose(void *address, bool force) override;

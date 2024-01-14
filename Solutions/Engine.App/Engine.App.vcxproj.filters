@@ -1037,13 +1037,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialog.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h">
@@ -1061,15 +1055,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgui.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scripthotspot.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptinvitem.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
@@ -1077,9 +1062,6 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptregion.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h">
@@ -1531,6 +1513,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\agsplugin_evts.h">
       <Filter>Header Files\plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptobjects.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -324,7 +324,7 @@ size_t check_scstrcapacity(const char *ptr)
     const void *charstart = &game.chars[0];
     const void *charend = &game.chars[0] + game.chars.size();
     if ((ptr >= charstart) && (ptr <= charend))
-        return sizeof(CharacterInfo::legacy_name);
+        return sizeof(CharacterInfo::name);
     return MAX_MAXSTRLEN;
 }
 
@@ -337,7 +337,7 @@ void commit_scstr_update(const char *ptr)
     if ((ptr >= charstart) && (ptr <= charend))
     {
         size_t char_index = ((uintptr_t)ptr - (uintptr_t)charstart) / sizeof(CharacterInfo);
-        game.chars[char_index].name = game.chars[char_index].legacy_name;
+        game.chars2[char_index].name_new = game.chars[char_index].name;
     }
 }
 

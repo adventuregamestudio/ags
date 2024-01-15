@@ -66,7 +66,7 @@ namespace AGS.Editor.Panes.Room
         public bool IsVisible 
         { 
             get { return _control == null ? true : _control.IsVisible; }
-            set { if (_control != null) _control.IsVisible = true; }
+            set { if (_control != null) _control.IsVisible = value; }
         }
 
         public bool IsLocked { get { return _control == null ? false : _control.IsLocked; } }

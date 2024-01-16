@@ -291,11 +291,6 @@ private:
     bool _firstTimeInit;
     SDL_Window *_sdlWindow = nullptr;
     SDL_GLContext _sdlGlContext = nullptr;
-    // Position of backbuffer texture in world space
-    GLfloat _backbuffer_vertices[8] {};
-    // Relative position of source image on the backbuffer texture,
-    // in local coordinates
-    GLfloat _backbuffer_texture_coordinates[8];
     OGLCUSTOMVERTEX defaultVertices[4];
     bool _smoothScaling;
     bool _legacyPixelShader;
@@ -320,14 +315,9 @@ private:
     // Backbuffer texture multiplier, used to determine a size of texture
     // relative to the native game size.
     int _super_sampling {};
-    unsigned int _backbuffer {};
-    unsigned int _fbo {};
+    // Texture for rendering in native resolution
+    OGLBitmap *_nativeSurface = nullptr;
     GLint _screenFramebuffer = 0;
-    // Size of the backbuffer drawing area, equals to native size
-    // multiplied by _super_sampling
-    Size _backRenderSize {};
-    // Actual size of the backbuffer texture, created by OpenGL
-    Size _backTextureSize {};
 
     // Sprite batches (parent scene nodes)
     OGLSpriteBatches _spriteBatches;
@@ -366,15 +356,18 @@ private:
     void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
     bool CreateShaders();
-    // Configure backbuffer texture, that is used in render-to-texture mode
-    void SetupBackbufferTexture();
-    void DeleteBackbufferTexture();
+    // Configure native resolution render target, that is used in render-to-texture mode
+    void SetupNativeTarget();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
+    void RenderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color, const Size &surface_size);
+    // Renders given texture onto the current render target
+    void RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y,
+        const glm::mat4 &projection, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates

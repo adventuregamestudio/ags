@@ -282,9 +282,10 @@ private:
     D3DGAMMARAMP defaultgammaramp;
     D3DGAMMARAMP currentgammaramp;
     D3DCAPS9 direct3ddevicecaps;
+    // Default vertex buffer, for textures that don't have one
     IDirect3DVertexBuffer9* vertexbuffer;
-    IDirect3DSurface9 *pNativeSurface;
-    IDirect3DTexture9 *pNativeTexture;
+    // Texture for rendering in native resolution
+    D3DBitmap *_nativeSurface = nullptr;
     RECT viewport_rect;
     CUSTOMVERTEX defaultVertices[4];
     String previousError;
@@ -352,9 +353,11 @@ private:
     void SetRenderTarget(const D3DSpriteBatch *batch, IDirect3DSurface9 *back_buffer, Size &surface_sz, bool clear);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
-    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
+    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
-    void _renderFromTexture();
+    // Renders given texture onto the current render target
+    void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color, const Size &surface_size);
     // Helper method for setting blending parameters
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters

@@ -118,8 +118,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   pixelShader = NULL;
   _legacyPixelShader = false;
   set_up_default_vertices();
-  pNativeSurface = NULL;
-  pNativeTexture = NULL;
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
@@ -269,9 +267,6 @@ bool D3DGraphicsDriver::FirstTimeInit()
     previousError = SDL_GetError();
     return false;
   }
-
-  // This line crashes because my card doesn't support 8-bit textures
-  //direct3ddevice->SetCurrentTexturePalette(0);
 
   CUSTOMVERTEX *vertices;
   vertexbuffer->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD);
@@ -708,35 +703,16 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   if (!IsModeSet() || !IsNativeSizeValid())
     return;
 
-  // set up native surface
-  if (pNativeSurface != NULL)
+  // Set up native surface
+  // TODO: maybe not do this always, but only allocate if necessary
+  // when render option is set, or temporarily for making a screenshot.
+  if (_nativeSurface)
   {
-    pNativeSurface->Release();
-    pNativeSurface = NULL;
+    DestroyDDB(_nativeSurface);
+    _nativeSurface = nullptr;
   }
-  if (pNativeTexture != NULL)
-  {
-      pNativeTexture->Release();
-      pNativeTexture = NULL;
-  }
-  if (direct3ddevice->CreateTexture(
-      _srcRect.GetWidth(),
-      _srcRect.GetHeight(),
-      1,
-      D3DUSAGE_RENDERTARGET,
-      color_depth_to_d3d_format(_mode.ColorDepth, false),
-      D3DPOOL_DEFAULT,
-      &pNativeTexture,
-      NULL) != D3D_OK)
-  {
-      throw Ali3DException("CreateTexture failed");
-  }
-  if (pNativeTexture->GetSurfaceLevel(0, &pNativeSurface) != D3D_OK)
-  {
-      throw Ali3DException("GetSurfaceLevel failed");
-  }
-
-  direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
+  _nativeSurface = (D3DBitmap*)CreateRenderTargetDDB(
+      _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, true);
 
   // Preset initial stage screen for plugin raw drawing
   SetStageScreen(0, _srcRect.GetSize());
@@ -749,15 +725,10 @@ HRESULT D3DGraphicsDriver::ResetD3DDevice()
     // an application should release any explicit render targets, depth stencil
     // surfaces, additional swap chains, state blocks, and D3DPOOL_DEFAULT
     // resources associated with the device.
-    if (pNativeSurface)
+    if (_nativeSurface)
     {
-        pNativeSurface->Release();
-        pNativeSurface = nullptr;
-    }
-    if (pNativeTexture)
-    {
-        pNativeTexture->Release();
-        pNativeTexture = nullptr;
+        DestroyDDB(_nativeSurface);
+        _nativeSurface = nullptr;
     }
     ReleaseRenderTargetData();
     HRESULT hr = direct3ddevice->Reset(&d3dpp);
@@ -844,15 +815,10 @@ void D3DGraphicsDriver::UnInit()
   OnUnInit();
   ReleaseDisplayMode();
 
-  if (pNativeSurface)
+  if (_nativeSurface)
   {
-    pNativeSurface->Release();
-    pNativeSurface = NULL;
-  }
-  if (pNativeTexture)
-  {
-      pNativeTexture->Release();
-      pNativeTexture = NULL;
+    DestroyDDB(_nativeSurface);
+    _nativeSurface = nullptr;
   }
 
   if (vertexbuffer)
@@ -947,11 +913,10 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       {
         throw Ali3DException("CreateOffscreenPlainSurface failed");
       }
-      if (direct3ddevice->GetRenderTargetData(pNativeSurface, surface) != D3D_OK)
+      if (direct3ddevice->GetRenderTargetData(_nativeSurface->_renderSurface, surface) != D3D_OK)
       {
         throw Ali3DException("GetRenderTargetData failed");
       }
-      
     }
     // Get the back buffer surface
     else if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
@@ -1000,11 +965,16 @@ void D3DGraphicsDriver::_reDrawLastFrame()
   RestoreDrawLists();
 }
 
-void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
+void D3DGraphicsDriver::RenderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
     const SpriteColorTransform &color, const Size &surface_size)
 {
+    RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, matGlobal, color, surface_size);
+}
+
+void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw_y,
+    const glm::mat4 &matGlobal, const SpriteColorTransform &color, const Size &surface_size)
+{
   HRESULT hr;
-  D3DBitmap *bmpToDraw = drawListEntry->ddb;
 
   const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
 
@@ -1102,8 +1072,6 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = width / (float)bmpToDraw->_width;
   float yProportion = height / (float)bmpToDraw->_height;
-  float drawAtX = drawListEntry->x;
-  float drawAtY = drawListEntry->y;
 
   for (size_t ti = 0; ti < txdata->_numTiles; ++ti)
   {
@@ -1115,8 +1083,8 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
       xOffs = (bmpToDraw->_width - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
     else
       xOffs = txdata->_tiles[ti].x * xProportion;
-    float thisX = drawAtX + xOffs;
-    float thisY = drawAtY + yOffs;
+    float thisX = draw_x + xOffs;
+    float thisY = draw_y + yOffs;
     thisX = (-(surface_size.Width / 2.0f)) + thisX;
     thisY = (surface_size.Height / 2.0f) - thisY;
 
@@ -1180,36 +1148,6 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   }
 }
 
-void D3DGraphicsDriver::_renderFromTexture()
-{
-    if (direct3ddevice->SetStreamSource(0, vertexbuffer, 0, sizeof(CUSTOMVERTEX)) != D3D_OK)
-    {
-        throw Ali3DException("IDirect3DDevice9::SetStreamSource failed");
-    }
-
-    float width = _srcRect.GetWidth();
-    float height = _srcRect.GetHeight();
-    float drawAtX = -(_srcRect.GetWidth() / 2);
-    float drawAtY = _srcRect.GetHeight() / 2;
-
-    glm::mat4 transform = glmex::make_transform2d(
-        drawAtX - _pixelRenderXOffset, drawAtY + _pixelRenderYOffset, width, height, 0.f);
-
-    direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
-
-    direct3ddevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-    direct3ddevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-
-    _filter->SetSamplerStateForStandardSprite(direct3ddevice);
-
-    direct3ddevice->SetTexture(0, pNativeTexture);
-
-    if (direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2) != D3D_OK)
-    {
-        throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
-    }
-}
-
 void D3DGraphicsDriver::_renderAndPresent(bool clearDrawListAfterwards)
 {
   _render(clearDrawListAfterwards);
@@ -1229,7 +1167,7 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     throw Ali3DException("IDirect3DDevice9::BeginScene failed");
 
   if (!_renderSprAtScreenRes) {
-    if (direct3ddevice->SetRenderTarget(0, pNativeSurface) != D3D_OK)
+    if (direct3ddevice->SetRenderTarget(0, _nativeSurface->_renderSurface) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
@@ -1244,13 +1182,15 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
 
   RenderSpriteBatches();
 
-  if (!_renderSprAtScreenRes) {
+  if (!_renderSprAtScreenRes)
+  {
+    // Draw native texture on a real backbuffer
     if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
     SetD3DViewport(_dstRect);
-    _renderFromTexture();
+    RenderTexture(_nativeSurface, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
   }
 
   direct3ddevice->EndScene();
@@ -1449,11 +1389,11 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
                 static_cast<int32_t>(reinterpret_cast<uintptr_t>(direct3ddevice)), sx, sy))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, sx, sy);
-                _renderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
+                RenderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
             }
             break;
         default:
-            _renderSprite(&e, batch.Matrix, batch.Color, surface_size);
+            RenderSprite(&e, batch.Matrix, batch.Color, surface_size);
             break;
         }
     }

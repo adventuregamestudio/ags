@@ -1354,7 +1354,7 @@ void OGLGraphicsDriver::RenderSpriteBatches(const glm::mat4 &projection)
     // For these we save their IDs in a stack (rt_parents).
     // The top of the stack lets us know which batch's RT we are using.
     std::stack<unsigned> rt_parents;
-    unsigned int back_buffer = _do_render_to_texture ? _fbo : 0u;
+    unsigned int back_buffer = _do_render_to_texture ? _fbo : _screenFramebuffer;
     unsigned cur_rt = back_buffer; // current render target
     Size surface_sz = _srcRect.GetSize(); // current rt surface size
     glm::mat4 use_projection = projection;

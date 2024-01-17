@@ -115,6 +115,10 @@ void InteractionCommand::Write(Stream *out) const
 
 InteractionCommand &InteractionCommand::operator = (const InteractionCommand &ic)
 {
+    if (this == &ic) {
+        return *this;  // prevent self-assignment
+    }
+
     Type = ic.Type;
     memcpy(Data, ic.Data, sizeof(Data));
     Children.reset(ic.Children.get() ? new InteractionCommandList(*ic.Children) : nullptr);

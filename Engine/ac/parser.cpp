@@ -269,7 +269,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
                 // if it's an unknown word, store it for use in messages like
                 // "you can't use the word 'xxx' in this game"
                 if ((word < 0) && (play.bad_parsed_word[0] == 0))
-                    strcpy(play.bad_parsed_word, thisword);
+                    snprintf(play.bad_parsed_word, 100, "%s", thisword);
             }
 
             if (do_word_now) {

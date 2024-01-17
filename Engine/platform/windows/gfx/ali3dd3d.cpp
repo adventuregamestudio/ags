@@ -47,6 +47,24 @@ namespace D3D
 
 using namespace Common;
 
+
+void RectToRECT(const Rect &in_rc, RECT &out_rc)
+{
+    out_rc.left = in_rc.Left;
+    out_rc.top = in_rc.Top;
+    out_rc.right = in_rc.Right + 1;
+    out_rc.bottom = in_rc.Bottom + 1;
+}
+
+void RectToRECT(const Rect &in_rc, D3DRECT &out_rc)
+{
+    out_rc.x1 = in_rc.Left;
+    out_rc.y1 = in_rc.Top;
+    out_rc.x2 = in_rc.Right + 1;
+    out_rc.y2 = in_rc.Bottom + 1;
+}
+
+
 D3DTexture::~D3DTexture()
 {
     if (_tiles)
@@ -109,7 +127,6 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 // The custom FVF, which describes the custom vertex structure.
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
-
 D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
   direct3d = d3d;
@@ -121,13 +138,28 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
-  _renderSprAtScreenRes = false;
+  _renderAtScreenRes = false;
 
   // Shifts comply to D3DFMT_A8R8G8B8
   _vmem_a_shift_32 = 24;
   _vmem_r_shift_32 = 16;
   _vmem_g_shift_32 = 8;
   _vmem_b_shift_32 = 0;
+}
+
+D3DGraphicsDriver::BackbufferState::BackbufferState(IDirect3DSurface9 *surface, const Size &size,
+    const Rect &view, const glm::mat4 &proj, const PlaneScaling &scale, int filter)
+    : Surface(surface), SurfSize(size), Viewport(view), Projection(proj), Scaling(scale), Filter(filter)
+{
+    assert(Surface);
+    if (Surface)
+        Surface->AddRef();
+}
+
+D3DGraphicsDriver::BackbufferState::~BackbufferState()
+{
+    if (Surface)
+        Surface->Release();
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -189,6 +221,8 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 {
   if (!IsModeSet())
     return;
+
+  _screenBackbuffer = BackbufferState();
 
   OnModeReleased();
   ClearDrawLists();
@@ -632,10 +666,10 @@ void D3DGraphicsDriver::SetupViewport()
   // Set Viewport.
   SetD3DViewport(_dstRect);
 
-  viewport_rect.left   = _dstRect.Left;
-  viewport_rect.right  = _dstRect.Right + 1;
-  viewport_rect.top    = _dstRect.Top;
-  viewport_rect.bottom = _dstRect.Bottom + 1;
+  IDirect3DSurface9 *backbuffer;
+  direct3ddevice->GetRenderTarget(0, &backbuffer);
+  _screenBackbuffer = BackbufferState(backbuffer, Size(_mode.Width, _mode.Height),
+      _dstRect, mat_ortho, _scaling, _filter ? _filter->GetSamplerStateForStandardSprite() : D3DTEXF_POINT);
 
   // View and Projection matrixes are currently fixed in Direct3D renderer
   _stageMatrixes.View = identity;
@@ -645,6 +679,7 @@ void D3DGraphicsDriver::SetupViewport()
 void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
 {
   _filter = filter;
+  _screenBackbuffer.Filter = _filter->GetSamplerStateForStandardSprite();
   OnSetFilter();
 }
 
@@ -713,6 +748,9 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   }
   _nativeSurface = (D3DBitmap*)CreateRenderTargetDDB(
       _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, true);
+  glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
+  _nativeBackbuffer = BackbufferState(_nativeSurface->_renderSurface,
+    _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), D3DTEXF_POINT);
 
   // Preset initial stage screen for plugin raw drawing
   SetStageScreen(0, _srcRect.GetSize());
@@ -729,6 +767,7 @@ HRESULT D3DGraphicsDriver::ResetD3DDevice()
     {
         DestroyDDB(_nativeSurface);
         _nativeSurface = nullptr;
+        _nativeBackbuffer = BackbufferState();
     }
     ReleaseRenderTargetData();
     HRESULT hr = direct3ddevice->Reset(&d3dpp);
@@ -820,6 +859,7 @@ void D3DGraphicsDriver::UnInit()
     DestroyDDB(_nativeSurface);
     _nativeSurface = nullptr;
   }
+  _nativeBackbuffer = BackbufferState();
 
   if (vertexbuffer)
   {
@@ -862,10 +902,7 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
 {
   D3DRECT rectToClear;
-  rectToClear.x1 = r.Left;
-  rectToClear.y1 = r.Top;
-  rectToClear.x2 = r.Right + 1;
-  rectToClear.y2 = r.Bottom + 1;
+  RectToRECT(r, rectToClear);
   DWORD colorDword = 0;
   if (colorToUse != NULL)
     colorDword = D3DCOLOR_XRGB(colorToUse->r, colorToUse->g, colorToUse->b);
@@ -875,7 +912,7 @@ void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
 bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
-  if (!_renderSprAtScreenRes)
+  if (!_renderAtScreenRes)
       at_native_res = true;
   Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
   if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
@@ -886,12 +923,12 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   }
   // If we are rendering sprites at the screen resolution, and requested native res,
   // re-render last frame to the native surface
-  if (at_native_res && _renderSprAtScreenRes)
+  if (at_native_res && _renderAtScreenRes)
   {
-    _renderSprAtScreenRes = false;
+    _renderAtScreenRes = false;
     _reDrawLastFrame();
     _render(true);
-    _renderSprAtScreenRes = true;
+    _renderAtScreenRes = true;
   }
   
   IDirect3DSurface9* surface = NULL;
@@ -899,6 +936,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     if (_pollingCallback)
       _pollingCallback();
 
+    Rect viewport;
     if (at_native_res)
     {
       // with render to texture the texture mipmap surface can't be locked directly
@@ -917,18 +955,23 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       {
         throw Ali3DException("GetRenderTargetData failed");
       }
+      viewport = _nativeBackbuffer.Viewport;
     }
     // Get the back buffer surface
-    else if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
+    else
     {
-      throw Ali3DException("IDirect3DDevice9::GetBackBuffer failed");
+      surface = _screenBackbuffer.Surface;
+      surface->AddRef();
+      viewport = _screenBackbuffer.Viewport;
     }
 
     if (_pollingCallback)
       _pollingCallback();
 
+    RECT rect;
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, (at_native_res ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
+    RectToRECT(viewport, rect);
+    if (surface->LockRect(&lockedRect, &rect, D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
@@ -1113,14 +1156,10 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
       direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
     }
-    else if (!_renderSprAtScreenRes)
-    {
-      direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-      direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-    }
     else
     {
-      _filter->SetSamplerStateForStandardSprite(direct3ddevice);
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, _currentBackbuffer->Filter);
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, _currentBackbuffer->Filter);
     }
 
     direct3ddevice->SetTransform(D3DTS_WORLD, (D3DMATRIX*)glm::value_ptr(transform));
@@ -1156,21 +1195,16 @@ void D3DGraphicsDriver::_renderAndPresent(bool clearDrawListAfterwards)
 
 void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
 {
-  IDirect3DSurface9 *pBackBuffer = NULL;
-
-  if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK) {
-    throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
-  }
-  direct3ddevice->ColorFill(pBackBuffer, nullptr, D3DCOLOR_RGBA(0, 0, 0, 255));
-
   if (direct3ddevice->BeginScene() != D3D_OK)
     throw Ali3DException("IDirect3DDevice9::BeginScene failed");
 
-  if (!_renderSprAtScreenRes) {
-    if (direct3ddevice->SetRenderTarget(0, _nativeSurface->_renderSurface) != D3D_OK)
-    {
-      throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
-    }
+  if (_renderAtScreenRes)
+  {
+    SetBackbufferState(&_screenBackbuffer);
+  }
+  else
+  {
+    SetBackbufferState(&_nativeBackbuffer);
   }
 
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
@@ -1182,20 +1216,15 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
 
   RenderSpriteBatches();
 
-  if (!_renderSprAtScreenRes)
+  if (!_renderAtScreenRes)
   {
     // Draw native texture on a real backbuffer
-    if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
-    {
-      throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
-    }
-    SetD3DViewport(_dstRect);
+    SetBackbufferState(&_screenBackbuffer);
+    direct3ddevice->ColorFill(_screenBackbuffer.Surface, nullptr, D3DCOLOR_RGBA(0, 0, 0, 255));
     RenderTexture(_nativeSurface, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
   }
 
   direct3ddevice->EndScene();
-
-  pBackBuffer->Release();
 
   if (clearDrawListAfterwards)
   {
@@ -1203,6 +1232,16 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
     ClearDrawLists();
   }
   ResetFxPool();
+}
+
+void D3DGraphicsDriver::SetBackbufferState(BackbufferState *state)
+{
+    _currentBackbuffer = state;
+    if (direct3ddevice->SetRenderTarget(0, _currentBackbuffer->Surface) != D3D_OK)
+    {
+        throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+    }
+    SetD3DViewport(_currentBackbuffer->Viewport);
 }
 
 void D3DGraphicsDriver::SetD3DViewport(const Rect &rc)
@@ -1223,12 +1262,9 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
     if (!clip.IsEmpty())
     {
         // Adjust a clipping rect to either whole screen, or a target texture
-        Rect scissor = render_on_texture ? clip : _scaling.ScaleRange(clip);
+        Rect scissor = render_on_texture ? clip : _currentBackbuffer->Scaling.ScaleRange(clip);
         RECT d3d_scissor;
-        d3d_scissor.left = scissor.Left;
-        d3d_scissor.top = scissor.Top;
-        d3d_scissor.right = scissor.Right + 1;
-        d3d_scissor.bottom = scissor.Bottom + 1;
+        RectToRECT(scissor, d3d_scissor);
         direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
         direct3ddevice->SetScissorRect(&d3d_scissor);
     }
@@ -1238,18 +1274,13 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
     }
 }
 
-void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch,
-    IDirect3DSurface9 *back_buffer, Size &surface_sz, bool clear)
+void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         HRESULT hr = direct3ddevice->SetRenderTarget(0, batch->RenderSurface);
         assert(hr == D3D_OK);
-        if (clear)
-        {
-            direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
-        }
         surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
         SetD3DViewport(RectWH(surface_sz));
         glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
@@ -1262,19 +1293,23 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch,
     else
     {
         // Assign the default backbuffer
-        HRESULT hr = direct3ddevice->SetRenderTarget(0, back_buffer);
+        HRESULT hr = direct3ddevice->SetRenderTarget(0, _currentBackbuffer->Surface);
         assert(hr == D3D_OK);
-        surface_sz = _srcRect.GetSize();
-        SetD3DViewport(_renderSprAtScreenRes ? _dstRect : _srcRect);
-        glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
-        direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
+        SetD3DViewport(_currentBackbuffer->Viewport);
+        direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(_currentBackbuffer->Projection));
         // Disable alpha merging rules, return back to default settings
         direct3ddevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+    }
+
+    if (clear)
+    {
+        direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
     }
 }
 
 void D3DGraphicsDriver::RenderSpriteBatches()
 {
+    assert(_currentBackbuffer);
     // Close unended batches, and issue a warning
     assert(_actSpriteBatch == UINT32_MAX);
     while (_actSpriteBatch != UINT32_MAX)
@@ -1295,8 +1330,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     // For these we save their IDs in a stack (rt_parents).
     // The top of the stack lets us know which batch's RT we are using.
     std::stack<uint32_t> rt_parents;
-    IDirect3DSurface9 *back_buffer = nullptr;
-    direct3ddevice->GetRenderTarget(0, &back_buffer);
+    IDirect3DSurface9 *back_buffer = _currentBackbuffer->Surface;
     assert(back_buffer);
     IDirect3DSurface9 *cur_rt = back_buffer; // current render target
     Size surface_sz = _srcRect.GetSize(); // current rt surface size
@@ -1326,7 +1360,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
                 !rt_parent.RenderSurface && (cur_rt != back_buffer))
             {
                 cur_rt = rt_parent.RenderSurface ? rt_parent.RenderSurface : back_buffer;
-                SetRenderTarget(&rt_parent, back_buffer, surface_sz, new_batch);
+                SetRenderTarget(&rt_parent, surface_sz, new_batch);
             }
         }
 
@@ -1335,8 +1369,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         if ((cur_spr < _spriteList.size()) && (cur_bat == _spriteList[cur_spr].node))
         {
             // Now set clip (scissor), and render sprites
-            const bool render_to_texture = (!_renderSprAtScreenRes) || (cur_rt != back_buffer);
-            SetScissor(batch.Viewport, render_to_texture);
+            SetScissor(batch.Viewport, (cur_rt != back_buffer));
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;
             cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
@@ -1364,8 +1397,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         }
     }
 
-    SetRenderTarget(nullptr, back_buffer, surface_sz, false);
-    back_buffer->Release();
+    SetRenderTarget(nullptr, surface_sz, false);
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);

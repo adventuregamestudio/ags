@@ -302,22 +302,45 @@ private:
     int device_screen_physical_width;
     int device_screen_physical_height;
 
-    // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
-    Rect _viewportRect {};
-
+    // Final fbo, depends on platform we run on
+    GLint _screenFramebuffer = 0u;
     // Capability flags
     bool _glCapsNonPowerOfTwo = false;
     // These two flags define whether driver can, and should (respectively)
     // render sprites to texture, and then texture to screen, as opposed to
     // rendering to screen directly. This is known as supersampling mode
-    bool _can_render_to_texture {};
-    bool _do_render_to_texture {};
+    bool _canRenderToTexture {};
+    bool _doRenderToTexture {};
     // Backbuffer texture multiplier, used to determine a size of texture
     // relative to the native game size.
-    int _super_sampling {};
+    int _superSampling {};
     // Texture for rendering in native resolution
     OGLBitmap *_nativeSurface = nullptr;
-    GLint _screenFramebuffer = 0;
+
+    // TODO: find a way to merge this with Render Targets from sprite batches,
+    // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
+    struct BackbufferState
+    {
+        GLuint Fbo = 0u;
+        Size SurfSize;
+        // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
+        Rect Viewport;
+        glm::mat4 Projection;
+        PlaneScaling Scaling;
+        int Filter = 0;
+        int TxClamp = 0;
+
+        BackbufferState() = default;
+        BackbufferState(GLuint fbo, const Size &size, const Rect &view, const glm::mat4 &proj,
+            const PlaneScaling &scale, int filter, int txclamp)
+            : Fbo(fbo), SurfSize(size), Viewport(view), Projection(proj)
+            , Scaling(scale), Filter(filter), TxClamp(txclamp) {}
+        ~BackbufferState() = default;
+    };
+
+    BackbufferState _screenBackbuffer;
+    BackbufferState _nativeBackbuffer;
+    BackbufferState *_currentBackbuffer = nullptr;
 
     // Sprite batches (parent scene nodes)
     OGLSpriteBatches _spriteBatches;
@@ -370,8 +393,7 @@ private:
         const glm::mat4 &projection, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
     void SetupViewport();
-    // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
-    Rect ConvertTopDownRect(const Rect &top_down_rect, int surface_height);
+
     // Sets uniform GL blend settings, same for both RGB and alpha component
     void SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor);
     // Sets GL blend settings for RGB only, and keeps saved alpha blend settings
@@ -387,13 +409,16 @@ private:
     // Deletes draw list backups
     void ClearDrawBackups();
     void _render(bool clearDrawListAfterwards);
+    // Set current backbuffer state, which properties are used when refering to backbuffer
+    // TODO: find a good way to merge with SetRenderTarget
+    void SetBackbufferState(BackbufferState *state);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
     // Optionally pass surface_size if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     // Configures rendering mode for the render target, depending on its properties
     void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection, bool clear);
-    void RenderSpriteBatches(const glm::mat4 &projection);
+    void RenderSpriteBatches();
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);
     void _reDrawLastFrame();

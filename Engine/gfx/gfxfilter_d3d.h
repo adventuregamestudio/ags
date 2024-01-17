@@ -32,6 +32,7 @@ class D3DGfxFilter : public ScalingGfxFilter
 public:
     const GfxFilterInfo &GetInfo() const override;
 
+    virtual int  GetSamplerStateForStandardSprite();
     virtual void SetSamplerStateForStandardSprite(void *direct3ddevice9);
     virtual bool NeedToColourEdgeLines();
 

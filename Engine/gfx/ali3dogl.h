@@ -258,17 +258,19 @@ public:
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
+    void SetScreenFade(int red, int green, int blue) override;
+    void SetScreenTint(int red, int green, int blue) override;
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    void Render(IDriverDependantBitmap *target) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
     void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
-    void SetScreenFade(int red, int green, int blue) override;
-    void SetScreenTint(int red, int green, int blue) override;
 
     typedef std::shared_ptr<OGLGfxFilter> POGLFilter;
 
@@ -408,10 +410,12 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _render(bool clearDrawListAfterwards);
+    void RenderAndPresent(bool clearDrawListAfterwards);
+    void RenderImpl(bool clearDrawListAfterwards);
+    void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);
     // Set current backbuffer state, which properties are used when refering to backbuffer
     // TODO: find a good way to merge with SetRenderTarget
-    void SetBackbufferState(BackbufferState *state);
+    void SetBackbufferState(BackbufferState *state, bool clear);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
     // Optionally pass surface_size if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
@@ -421,7 +425,6 @@ private:
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);
-    void _reDrawLastFrame();
 };
 
 

@@ -909,6 +909,35 @@ void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
+void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+{
+    if (_renderAtScreenRes)
+    {
+        // If we normally render in screen res, restore last frame's lists and
+        // render in native res on the given target
+        _renderAtScreenRes = false;
+        RestoreDrawLists();
+        Render(target);
+        _renderAtScreenRes = true;
+    }
+    else
+    {
+        // If we normally render in native res, then simply render backbuffer contents
+        D3DBitmap *bitmap = (D3DBitmap*)target;
+        Size surf_sz(bitmap->_width, bitmap->_height);
+        BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz,
+            RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
+            PlaneScaling(), D3DTEXF_POINT);
+        SetBackbufferState(&backbuffer, true);
+        if (direct3ddevice->BeginScene() != D3D_OK)
+        {
+            throw Ali3DException("IDirect3DDevice9::BeginScene failed");
+        }
+        RenderTexture(_nativeSurface, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
+        direct3ddevice->EndScene();
+    }
+}
+
 bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
@@ -926,8 +955,8 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   if (at_native_res && _renderAtScreenRes)
   {
     _renderAtScreenRes = false;
-    _reDrawLastFrame();
-    _render(true);
+    RestoreDrawLists();
+    RenderImpl(true);
     _renderAtScreenRes = true;
   }
   
@@ -994,18 +1023,24 @@ void D3DGraphicsDriver::RenderToBackBuffer()
 
 void D3DGraphicsDriver::Render()
 {
-  Render(0, 0, kFlip_None);
+    Render(0, 0, kFlip_None);
 }
 
 void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
-  ResetDeviceIfNecessary();
-  _renderAndPresent(true);
+    ResetDeviceIfNecessary();
+    RenderAndPresent(true);
 }
 
-void D3DGraphicsDriver::_reDrawLastFrame()
+void D3DGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
-  RestoreDrawLists();
+    ResetDeviceIfNecessary();
+    D3DBitmap *bitmap = (D3DBitmap*)target;
+    Size surf_sz(bitmap->_width, bitmap->_height);
+    BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz,
+        RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
+        PlaneScaling(), D3DTEXF_POINT);
+    RenderToSurface(&backbuffer, true);
 }
 
 void D3DGraphicsDriver::RenderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
@@ -1187,54 +1222,63 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
   }
 }
 
-void D3DGraphicsDriver::_renderAndPresent(bool clearDrawListAfterwards)
+void D3DGraphicsDriver::RenderAndPresent(bool clearDrawListAfterwards)
 {
-  _render(clearDrawListAfterwards);
-  direct3ddevice->Present(NULL, NULL, NULL, NULL);
+    RenderImpl(clearDrawListAfterwards);
+    direct3ddevice->Present(NULL, NULL, NULL, NULL);
 }
 
-void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
+void D3DGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
 {
-  if (direct3ddevice->BeginScene() != D3D_OK)
-    throw Ali3DException("IDirect3DDevice9::BeginScene failed");
+    if (_renderAtScreenRes)
+    {
+        RenderToSurface(&_screenBackbuffer, clearDrawListAfterwards);
+    }
+    else
+    {
+        RenderToSurface(&_nativeBackbuffer, clearDrawListAfterwards);
+    }
 
-  if (_renderAtScreenRes)
-  {
-    SetBackbufferState(&_screenBackbuffer);
-  }
-  else
-  {
-    SetBackbufferState(&_nativeBackbuffer);
-  }
-
-  direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0.5f, 0);
-
-  // if showing at 2x size, the sprite can get distorted otherwise
-  direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-  direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-  direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
-
-  RenderSpriteBatches();
-
-  if (!_renderAtScreenRes)
-  {
-    // Draw native texture on a real backbuffer
-    SetBackbufferState(&_screenBackbuffer);
-    direct3ddevice->ColorFill(_screenBackbuffer.Surface, nullptr, D3DCOLOR_RGBA(0, 0, 0, 255));
-    RenderTexture(_nativeSurface, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
-  }
-
-  direct3ddevice->EndScene();
-
-  if (clearDrawListAfterwards)
-  {
-    BackupDrawLists();
-    ClearDrawLists();
-  }
-  ResetFxPool();
+    if (!_renderAtScreenRes)
+    {
+        // Draw native texture on a real backbuffer
+        SetBackbufferState(&_screenBackbuffer, true);
+        if (direct3ddevice->BeginScene() != D3D_OK)
+        {
+            throw Ali3DException("IDirect3DDevice9::BeginScene failed");
+        }
+        RenderTexture(_nativeSurface, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
+        direct3ddevice->EndScene();
+    }
 }
 
-void D3DGraphicsDriver::SetBackbufferState(BackbufferState *state)
+void D3DGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards)
+{
+    SetBackbufferState(state, true);
+
+    // if showing at 2x size, the sprite can get distorted otherwise
+    direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+    direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+    direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+
+    if (direct3ddevice->BeginScene() != D3D_OK)
+    {
+        throw Ali3DException("IDirect3DDevice9::BeginScene failed");
+    }
+
+    RenderSpriteBatches();
+
+    direct3ddevice->EndScene();
+
+    if (clearDrawListAfterwards)
+    {
+        BackupDrawLists();
+        ClearDrawLists();
+    }
+    ResetFxPool();
+}
+
+void D3DGraphicsDriver::SetBackbufferState(BackbufferState *state, bool clear)
 {
     _currentBackbuffer = state;
     if (direct3ddevice->SetRenderTarget(0, _currentBackbuffer->Surface) != D3D_OK)
@@ -1242,6 +1286,11 @@ void D3DGraphicsDriver::SetBackbufferState(BackbufferState *state)
         throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
     SetD3DViewport(_currentBackbuffer->Viewport);
+
+    if (clear)
+    {
+        direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 0.5f, 0);
+    }
 }
 
 void D3DGraphicsDriver::SetD3DViewport(const Rect &rc)

@@ -199,6 +199,8 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    void Render(IDriverDependantBitmap *target) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;

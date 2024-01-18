@@ -198,6 +198,12 @@ public:
   // TODO: leftover from old code, solely for software renderer; remove when
   // software mode either discarded or scene node graph properly implemented.
   virtual void Render(int xoff, int yoff, Common::GraphicFlip flip) = 0;
+  // Renders onto the texture;
+  // target DDB must be created using CreateRenderTargetDDB!
+  virtual void Render(IDriverDependantBitmap *target) = 0;
+  // Copies contents of the game screen into the DDB;
+  // target DDB must be created using CreateRenderTargetDDB!
+  virtual void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) = 0;
   // Copies contents of the game screen into bitmap using simple blit or pixel copy.
   // Bitmap must be of supported size and pixel format. If it's not the method will
   // fail and optionally write wanted destination format into 'want_fmt' pointer.

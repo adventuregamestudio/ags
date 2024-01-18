@@ -895,6 +895,31 @@ void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
+void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+{
+    if (!_doRenderToTexture)
+    {
+        // If we normally render in screen res, restore last frame's lists and
+        // render in native res on the given target
+        _doRenderToTexture = false;
+        RestoreDrawLists();
+        Render(target);
+        _doRenderToTexture = true;
+    }
+    else
+    {
+        // If we normally render in native res, then simply render backbuffer contents
+        OGLBitmap *bitmap = (OGLBitmap*)target;
+        Size surf_sz(bitmap->_width, bitmap->_height);
+        BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz,
+            RectWH(0, 0, surf_sz.Width, surf_sz.Height), 
+            glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
+            PlaneScaling(), GL_NEAREST, GL_CLAMP);
+        SetBackbufferState(&backbuffer, true);
+        RenderTexture(_nativeSurface, 0, 0, backbuffer.Projection, glmex::identity(), SpriteColorTransform(), surf_sz);
+    }
+}
+
 bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   (void)at_native_res; // TODO: support this at some point
@@ -962,17 +987,23 @@ void OGLGraphicsDriver::RenderToBackBuffer()
 
 void OGLGraphicsDriver::Render()
 {
-  Render(0, 0, kFlip_None);
+    Render(0, 0, kFlip_None);
 }
 
 void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
-  _render(true);
+    RenderAndPresent(true);
 }
 
-void OGLGraphicsDriver::_reDrawLastFrame()
+void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
-    RestoreDrawLists();
+    OGLBitmap *bitmap = (OGLBitmap*)target;
+    Size surf_sz(bitmap->_width, bitmap->_height);
+    BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz,
+        RectWH(0, 0, surf_sz.Width, surf_sz.Height),
+        glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
+        PlaneScaling(), GL_NEAREST, GL_CLAMP);
+    RenderToSurface(&backbuffer, true);
 }
 
 void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry,
@@ -1164,58 +1195,63 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
   glUseProgram(0);
 }
 
-void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
+void OGLGraphicsDriver::RenderAndPresent(bool clearDrawListAfterwards)
 {
-  if (_doRenderToTexture)
-  {
-    SetBackbufferState(&_nativeBackbuffer);
-  }
-  else
-  {
-    SetBackbufferState(&_screenBackbuffer);
-  }
-
-  glDisable(GL_SCISSOR_TEST);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glEnable(GL_SCISSOR_TEST);
-
-  // Save Projection
-  _stageMatrixes.Projection = _currentBackbuffer->Projection;
-  RenderSpriteBatches();
-
-  if (_doRenderToTexture)
-  {
-    // Draw native texture on a real backbuffer
-    SetBackbufferState(&_screenBackbuffer);
-
-    glDisable(GL_SCISSOR_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_SCISSOR_TEST);
-
-    RenderTexture(_nativeSurface, 0, 0, _screenBackbuffer.Projection, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
-  }
-
-  glFinish();
-
-  SDL_GL_SwapWindow(_sdlWindow);
-
-  if (clearDrawListAfterwards)
-  {
-    BackupDrawLists();
-    ClearDrawLists();
-  }
-  ResetFxPool();
+    RenderImpl(clearDrawListAfterwards);
+    SDL_GL_SwapWindow(_sdlWindow);
 }
 
-void OGLGraphicsDriver::SetBackbufferState(BackbufferState *state)
+void OGLGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
+{
+    if (_doRenderToTexture)
+    {
+        RenderToSurface(&_nativeBackbuffer, clearDrawListAfterwards);
+    }
+    else
+    {
+        RenderToSurface(&_screenBackbuffer, clearDrawListAfterwards);
+    }
+
+    if (_doRenderToTexture)
+    {
+        // Draw native texture on a real backbuffer
+        SetBackbufferState(&_screenBackbuffer, true);
+        RenderTexture(_nativeSurface, 0, 0, _screenBackbuffer.Projection, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
+        glFinish();
+    }
+}
+
+void OGLGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards)
+{
+    SetBackbufferState(state, true);
+    // Save Projection
+    _stageMatrixes.Projection = _currentBackbuffer->Projection;
+    RenderSpriteBatches();
+    glFinish();
+
+    if (clearDrawListAfterwards)
+    {
+        BackupDrawLists();
+        ClearDrawLists();
+    }
+    ResetFxPool();
+}
+
+void OGLGraphicsDriver::SetBackbufferState(BackbufferState *state, bool clear)
 {
     _currentBackbuffer = state;
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, state->Fbo);
     const Rect &viewport = _currentBackbuffer->Viewport;
     glViewport(viewport.Left, viewport.Top, viewport.GetWidth(), viewport.GetHeight());
     glScissor(viewport.Left, viewport.Top, viewport.GetWidth(), viewport.GetHeight());
+
+    if (clear)
+    {
+        glDisable(GL_SCISSOR_TEST);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_SCISSOR_TEST);
+    }
 }
 
 void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size)

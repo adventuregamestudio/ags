@@ -248,6 +248,8 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    void Render(IDriverDependantBitmap *target) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
     void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderAtScreenRes = enabled; };
@@ -361,11 +363,11 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _renderAndPresent(bool clearDrawListAfterwards);
-    void _render(bool clearDrawListAfterwards);
-    void _reDrawLastFrame();
+    void RenderAndPresent(bool clearDrawListAfterwards);
+    void RenderImpl(bool clearDrawListAfterwards);
+    void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);
     // Set current backbuffer state, which properties are used when refering to backbuffer
-    void SetBackbufferState(BackbufferState *state);
+    void SetBackbufferState(BackbufferState *state, bool clear);
     // Sets a Direct3D viewport for the current render target.
     void SetD3DViewport(const Rect &rc);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.

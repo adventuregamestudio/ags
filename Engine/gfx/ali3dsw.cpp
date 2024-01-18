@@ -676,7 +676,14 @@ void SDLRendererGraphicsDriver::Render(int xoff, int yoff, GraphicFlip flip)
 
 void SDLRendererGraphicsDriver::Render()
 {
-  Render(0, 0, kFlip_None);
+    Render(0, 0, kFlip_None);
+}
+
+void SDLRendererGraphicsDriver::Render(IDriverDependantBitmap *target)
+{
+    SetMemoryBackBuffer(((ALSoftwareBitmap*)target)->_bmp);
+    RenderToBackBuffer();
+    SetMemoryBackBuffer(nullptr);
 }
 
 Bitmap *SDLRendererGraphicsDriver::GetMemoryBackBuffer()
@@ -726,6 +733,12 @@ void SDLRendererGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
         _stageVirtualScreen = backBuffer;
     else
         _stageVirtualScreen = cur_stage;
+}
+
+void SDLRendererGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+{
+    Bitmap *dst_bmp = ((ALSoftwareBitmap*)target)->_bmp;
+    dst_bmp->Blit(virtualScreen);
 }
 
 bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)

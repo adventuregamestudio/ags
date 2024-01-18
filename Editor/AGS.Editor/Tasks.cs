@@ -694,6 +694,11 @@ namespace AGS.Editor
                     }
                 }
             }
+            else
+            {
+                // Declare a dummy array of 1 null pointer, prevent "undefined symbol" errors
+                sb.AppendLine(string.Format("import readonly InventoryItem *inventory[1];"));
+            }
         }
 
         private void AppendDialogsToHeader(StringBuilder sb, IList<Dialog> dialogs)
@@ -709,6 +714,11 @@ namespace AGS.Editor
                         sb.AppendLine("import Dialog " + item.Name + ";");
                     }
                 }
+            }
+            else
+            {
+                // Declare a dummy array of 1 null pointer, prevent "undefined symbol" errors
+                sb.AppendLine(string.Format("import readonly Dialog *dialog[1];"));
             }
         }
 
@@ -758,6 +768,11 @@ namespace AGS.Editor
                     }
                 }
             }
+            else
+            {
+                // Declare a dummy array of 1 null pointer, prevent "undefined symbol" errors
+                sb.AppendLine(string.Format("import readonly GUI *gui[1];"));
+            }
         }
 
         private void AppendAudioClipsToHeader(StringBuilder sb, AudioClipFolder clips)
@@ -793,6 +808,11 @@ namespace AGS.Editor
                         sb.AppendLine("import Character " + character.ScriptName + ";");
                     }
                 }
+            }
+            else
+            {
+                // Declare a dummy array of 1 null pointer, prevent "undefined symbol" errors
+                sb.AppendLine(string.Format("import readonly Character *character[1];"));
             }
         }
 

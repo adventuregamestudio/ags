@@ -537,7 +537,7 @@ void ScPl_DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, in
     DrawingSurface_DrawStringWrapped(sds, xx, yy, wid, font, alignment, scsf_buffer);
 }
 
-void RegisterDrawingSurfaceAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
+void RegisterDrawingSurfaceAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister drawsurf_api[] = {
         { "DrawingSurface::Clear^1",              API_FN_PAIR(DrawingSurface_Clear) },

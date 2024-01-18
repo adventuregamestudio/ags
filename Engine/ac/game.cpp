@@ -397,19 +397,22 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     return nullptr;
 }
 
-
 void restore_game_dialog() {
-    can_run_delayed_command();
-    if (inside_script) {
-        curscript->queue_action(ePSARestoreGameDialog, 0, "RestoreGameDialog");
-        return;
-    }
-    do_restore_game_dialog();
+    restore_game_dialog2(0, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
 }
 
-bool do_restore_game_dialog() {
+void restore_game_dialog2(int min_slot, int max_slot) {
+    can_run_delayed_command();
+    if (inside_script) {
+        curscript->queue_action(ePSARestoreGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "RestoreGameDialog");
+        return;
+    }
+    do_restore_game_dialog(min_slot, max_slot);
+}
+
+bool do_restore_game_dialog(int min_slot, int max_slot) {
     setup_for_dialog();
-    int toload = loadgamedialog();
+    int toload = loadgamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (toload >= 0)
         try_restore_save(toload);
@@ -417,16 +420,20 @@ bool do_restore_game_dialog() {
 }
 
 void save_game_dialog() {
-    if (inside_script) {
-        curscript->queue_action(ePSASaveGameDialog, 0, "SaveGameDialog");
-        return;
-    }
-    do_save_game_dialog();
+    save_game_dialog2(0, LEGACY_TOP_BUILTINDIALOGSAVESLOT);
 }
 
-bool do_save_game_dialog() {
+void save_game_dialog2(int min_slot, int max_slot) {
+    if (inside_script) {
+        curscript->queue_action(ePSASaveGameDialog, (min_slot & 0xFFFF) | (max_slot & 0xFFFF) << 16, "SaveGameDialog");
+        return;
+    }
+    do_save_game_dialog(min_slot, max_slot);
+}
+
+bool do_save_game_dialog(int min_slot, int max_slot) {
     setup_for_dialog();
-    int toload = savegamedialog();
+    int toload = savegamedialog(min_slot, max_slot);
     restore_after_dialog();
     if (toload >= 0)
         save_game(toload, get_gui_dialog_buffer());

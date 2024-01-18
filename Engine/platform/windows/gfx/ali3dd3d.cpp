@@ -962,9 +962,6 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   
   IDirect3DSurface9* surface = NULL;
   {
-    if (_pollingCallback)
-      _pollingCallback();
-
     Rect viewport;
     if (at_native_res)
     {
@@ -994,9 +991,6 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       viewport = _screenBackbuffer.Viewport;
     }
 
-    if (_pollingCallback)
-      _pollingCallback();
-
     RECT rect;
     D3DLOCKED_RECT lockedRect;
     RectToRECT(viewport, rect);
@@ -1009,9 +1003,6 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
 
     surface->UnlockRect();
     surface->Release();
-
-    if (_pollingCallback)
-      _pollingCallback();
   }
   return true;
 }

@@ -972,9 +972,6 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       sourcePtr += retr_rect.GetWidth() * bpp;
     }
 
-    if (_pollingCallback)
-      _pollingCallback();
-
     delete [] buffer;
   }
   return true;

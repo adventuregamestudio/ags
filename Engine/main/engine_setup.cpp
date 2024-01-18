@@ -62,14 +62,12 @@ void engine_adjust_for_rotation_settings()
 // Setup gfx driver callbacks and options
 void engine_post_gfxmode_driver_setup()
 {
-    gfxDriver->SetCallbackForPolling(update_polled_stuff);
     gfxDriver->SetCallbackOnSpriteEvt(GfxDriverSpriteEvtCallback);
 }
 
 // Reset gfx driver callbacks
 void engine_pre_gfxmode_driver_cleanup()
 {
-    gfxDriver->SetCallbackForPolling(nullptr);
     gfxDriver->SetCallbackOnSpriteEvt(nullptr);
     gfxDriver->SetMemoryBackBuffer(nullptr);
 

@@ -125,7 +125,6 @@ public:
   virtual PGfxFilter GetGraphicsFilter() const = 0;
   virtual Size GetNativeSize() const = 0;
   virtual Rect GetRenderDestination() const = 0;
-  virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
   // The event callback is called in the main render loop when a
   // event entry is encountered inside a sprite list.

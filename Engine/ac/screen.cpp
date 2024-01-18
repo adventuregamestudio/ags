@@ -423,23 +423,25 @@ void screen_effect_crossfade()
 void screen_effect_dissolve()
 {
     int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
-    int aa,bb,cc;
     RGB interpal[256];
     const Rect &viewport = play.GetMainViewport();
 
     IDriverDependantBitmap *ddb = get_frame_for_transition_in(false /* transparent */);
-    for (aa=0;aa<16;aa++) {
+    for (int step = 0; step < 16; ++step)
+    {
         // merge the palette while dithering
         if (game.color_depth == 1) 
         {
-            fade_interpolate(old_palette,palette,interpal,aa*4,0,255);
+            fade_interpolate(old_palette, palette, interpal, step*4, 0, 255);
             set_palette_range(interpal, 0, 255, 0);
         }
         // do the dissolving
         int maskCol = saved_viewport_bitmap->GetMaskColor();
-        for (bb=0;bb<viewport.GetWidth();bb+=4) {
-            for (cc=0;cc<viewport.GetHeight();cc+=4) {
-                saved_viewport_bitmap->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
+        for (int x = 0; x < viewport.GetWidth(); x += 4)
+        {
+            for (int y = 0; y < viewport.GetHeight(); y += 4)
+            {
+                saved_viewport_bitmap->PutPixel(x + pattern[step] / 4, y + pattern[step] % 4, maskCol);
             }
         }
         gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap.get(), false);

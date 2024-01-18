@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <algorithm>
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
@@ -121,30 +122,82 @@ void fade_out_range(int speed, int from, int to, int fade_red, int fade_green, i
 // End software fade routines
 //-----------------------------------------------------------------------------
 
+// Create a DDB and render game screen on it.
+// NOTE: for fading-out:
+// please keep in mind: redrawing last saved frame here instead of constructing new one
+// is done because of backwards-compatibility issue: originally AGS faded out using frame
+// drawn before the script that triggers blocking fade (e.g. instigated by ChangeRoom).
+// Unfortunately some existing games were changing looks of the screen during same function,
+// but these were not supposed to get on screen until before fade-in.
+//
+// This special fade-out behavior may be deprecated later if wanted.
+IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
+{
+    const auto &view = play.GetMainViewport();
+    auto *shot_ddb = gfxDriver->CreateRenderTargetDDB(view.GetWidth(), view.GetHeight(), gfxDriver->GetDisplayMode().ColorDepth);
+    if (for_fadein)
+    {
+        gfxDriver->ClearDrawLists();
+        construct_game_scene(true);
+        construct_game_screen_overlay(false);
+        gfxDriver->Render(shot_ddb);
+    }
+    else
+    {
+        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb);
+    }
+    return shot_ddb;
+}
+
+// Render game screen and copy to bitmap. This is a variant of game_frame_to_ddb,
+// meant for the case when this is meant for software drawing.
+// Note for "fade-out" from game_frame_to_ddb() applies here too.
+std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
+{
+    // TODO: use screenshot_to_ddb
+    get_palette(old_palette);
+    const auto &view = play.GetMainViewport();
+    if (for_fadein)
+    {
+        gfxDriver->ClearDrawLists();
+        construct_game_scene(true);
+        construct_game_screen_overlay(false);
+        gfxDriver->RenderToBackBuffer();
+    }
+    return std::unique_ptr<Bitmap>(
+        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight()));
+}
+
+IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
+{
+    assert(saved_viewport_bitmap);
+    if (!saved_viewport_bitmap)
+        quit("Crossfade: buffer is null attempting transition");
+
+    // Resize the frame in case main viewport changed;
+    // this is mostly for compatibility with old-style letterboxed games
+    // which could have viewport changed depending on new room size.
+    // TODO: investigate if this is still a case.
+    const Rect &viewport = play.GetMainViewport();
+    if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
+    {
+        Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
+        int y = std::max(0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2);
+        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        saved_viewport_bitmap.reset(fix_frame);
+    }
+    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), false, opaque);
+}
+
 void screen_fade_impl(bool do_fadein, int speed)
 {
     // harmonise speeds with software driver which is faster (???)
     speed *= 2;
-
-    // Construct scene in order: game screen, fade fx, post game overlay
-    // NOTE: for fading-in:
-    // please keep in mind: redrawing last saved frame here instead of constructing new one
-    // is done because of backwards-compatibility issue: originally AGS faded out using frame
-    // drawn before the script that triggers blocking fade (e.g. instigated by ChangeRoom).
-    // Unfortunately some existing games were changing looks of the screen during same function,
-    // but these were not supposed to get on screen until before fade-in.
-
-    // Create a "screenshot" on a texture; TODO: make a shared helper function for this?
+    // Create a "screenshot" on a texture
     play.screen_is_faded_out = 0; // force all game elements to draw
-    const auto &view = play.GetMainViewport();
-    auto *shot_ddb = gfxDriver->CreateRenderTargetDDB(view.GetWidth(), view.GetHeight(), gfxDriver->GetDisplayMode().ColorDepth);
-    gfxDriver->ClearDrawLists();
-    gfxDriver->BeginSpriteBatch(shot_ddb, view, SpriteTransform());
-    construct_game_scene(true);
-    construct_game_screen_overlay(false);
-    gfxDriver->EndSpriteBatch();
-    gfxDriver->Render();
+    auto *shot_ddb = game_frame_to_ddb(do_fadein);
 
+    const auto &view = play.GetMainViewport();
     std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
     black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
     IDriverDependantBitmap *fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), false, true);
@@ -152,6 +205,7 @@ void screen_fade_impl(bool do_fadein, int speed)
 
     for (int alpha = 1; alpha < 255; alpha += speed)
     {
+        // Construct scene in order: game screen, fade fx, post game overlay
         gfxDriver->BeginSpriteBatch(view, SpriteTransform());
         gfxDriver->DrawSprite(0, 0, shot_ddb);
         fade->SetAlpha(do_fadein ? (255 - alpha) : alpha);
@@ -207,25 +261,11 @@ void screen_effect_fade(bool do_fadein, int speed)
 
 void screen_box_impl(bool do_fadein, int speed)
 {
-    // Construct scene in order: game screen, fade fx, post game overlay
-    // NOTE: for fading-in:
-    // please keep in mind: redrawing last saved frame here instead of constructing new one
-    // is done because of backwards-compatibility issue: originally AGS faded out using frame
-    // drawn before the script that triggers blocking fade (e.g. instigated by ChangeRoom).
-    // Unfortunately some existing games were changing looks of the screen during same function,
-    // but these were not supposed to get on screen until before fade-in.
-
-    // Create a "screenshot" on a texture; TODO: make a shared helper function for this?
+    // Create a "screenshot" on a texture
     play.screen_is_faded_out = 0; // force all game elements to draw
-    const auto &view = play.GetMainViewport();
-    auto *shot_ddb = gfxDriver->CreateRenderTargetDDB(view.GetWidth(), view.GetHeight(), gfxDriver->GetDisplayMode().ColorDepth);
-    gfxDriver->ClearDrawLists();
-    gfxDriver->BeginSpriteBatch(shot_ddb, view, SpriteTransform());
-    construct_game_scene(true);
-    construct_game_screen_overlay(false);
-    gfxDriver->EndSpriteBatch();
-    gfxDriver->Render();
+    auto *shot_ddb = game_frame_to_ddb(do_fadein);
 
+    const auto &view = play.GetMainViewport();
     std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
     black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
     // For fade-in we create 4 boxes, one across each side of the screen;
@@ -246,6 +286,7 @@ void screen_box_impl(bool do_fadein, int speed)
         boxWidth += speed;
         boxHeight += yspeed;
 
+        // Construct scene in order: game screen, fade fx, post game overlay
         gfxDriver->BeginSpriteBatch(view, SpriteTransform());
         gfxDriver->DrawSprite(0, 0, shot_ddb);
         if (do_fadein)
@@ -281,19 +322,15 @@ void screen_box_software_impl(bool do_fadein, int speed)
     // First of all we render the game once again and save backbuffer from further editing.
     // We put temporary bitmap as a new backbuffer for the transition period, and
     // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
-    set_palette_range(palette, 0, 255, 0);
-    gfxDriver->ClearDrawLists();
-    construct_game_scene(true);
-    construct_game_screen_overlay(false);
-    gfxDriver->RenderToBackBuffer();
-
-    Bitmap *bmp_orig = gfxDriver->GetMemoryBackBuffer();
-    std::unique_ptr<Bitmap> bmp_buff(new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), bmp_orig->GetColorDepth()));
-    gfxDriver->SetMemoryBackBuffer(bmp_buff.get());
+    // TODO: maybe use screenshot_to_ddb instead?
+    play.screen_is_faded_out = 0; // force all game elements to draw
+    set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
+    std::unique_ptr<Bitmap> bmp_frame = game_frame_to_bmp(do_fadein);
 
     const Rect &view = play.GetMainViewport();
     const int yspeed = view.GetHeight() / (view.GetWidth() / speed);
     int boxwid = speed, boxhit = yspeed;
+    Bitmap *bmp_buff = gfxDriver->GetMemoryBackBuffer();
     
     if (do_fadein)
     {
@@ -306,7 +343,7 @@ void screen_box_software_impl(bool do_fadein, int speed)
             boxhit = Math::Clamp(boxhit, 0, view.GetHeight());
             int lxp = view.GetWidth() / 2 - boxwid / 2;
             int lyp = view.GetHeight() / 2 - boxhit / 2;
-            bmp_buff->Blit(bmp_orig, lxp, lyp, lxp, lyp, boxwid, boxhit);
+            bmp_buff->Blit(bmp_frame.get(), lxp, lyp, lxp, lyp, boxwid, boxhit);
             render_to_screen();
 
             sys_evt_process_pending();
@@ -321,19 +358,17 @@ void screen_box_software_impl(bool do_fadein, int speed)
             boxwid += speed;
             boxhit += yspeed;
             int vcentre = view.GetHeight() / 2;
-            bmp_orig->FillRect(Rect(view.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
+            bmp_frame->FillRect(Rect(view.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
                 view.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2), 0);
             bmp_buff->Fill(0);
-            bmp_buff->Blit(bmp_orig);
+            bmp_buff->Blit(bmp_frame.get());
             render_to_screen();
 
             sys_evt_process_pending();
             update_polled_stuff();
             WaitForNextFrame();
         }
-        
     }
-    gfxDriver->SetMemoryBackBuffer(bmp_orig);
 }
 
 void screen_effect_box(bool do_fadein, int speed)
@@ -349,8 +384,6 @@ void screen_effect_box(bool do_fadein, int speed)
     play.screen_is_faded_out = !do_fadein;
 }
 
-IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque);
-
 void screen_effect_crossfade()
 {
     if (game.color_depth == 1)
@@ -359,7 +392,7 @@ void screen_effect_crossfade()
     // TODO: crossfade does not need a screen with transparency, it should be opaque;
     // but Software renderer cannot alpha-blend non-masked sprite at the moment,
     // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
-    IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
+    IDriverDependantBitmap *ddb = get_frame_for_transition_in(false /* transparent */);
     for (int alpha = 254; alpha > 0; alpha -= 16)
     {
         // do the crossfade
@@ -394,7 +427,7 @@ void screen_effect_dissolve()
     RGB interpal[256];
     const Rect &viewport = play.GetMainViewport();
 
-    IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
+    IDriverDependantBitmap *ddb = get_frame_for_transition_in(false /* transparent */);
     for (aa=0;aa<16;aa++) {
         // merge the palette while dithering
         if (game.color_depth == 1) 
@@ -429,7 +462,7 @@ void screen_effect_dissolve()
     gfxDriver->DestroyDDB(ddb);
 }
 
-void current_fade_out_effect ()
+void current_fade_out_effect()
 {
     debug_script_log("Transition-out in room %d", displayed_room);
     if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
@@ -456,33 +489,8 @@ void current_fade_out_effect ()
     }
     else 
     {
-        get_palette(old_palette);
-        const Rect &viewport = play.GetMainViewport();
-        saved_viewport_bitmap.reset(CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight()));
+        saved_viewport_bitmap = game_frame_to_bmp(false /* fade out */);
     }
-}
-
-IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque)
-{
-    // TODO: review this function, may this be simplified?
-    // also, hardware accelerated renderers could use render target texture for screen snapshots
-    if (saved_viewport_bitmap == nullptr)
-        quit("Crossfade: buffer is null attempting transition");
-
-    const Rect &viewport = play.GetMainViewport();
-    if (saved_viewport_bitmap->GetHeight() < viewport.GetHeight())
-    {
-        Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
-        enlargedBuffer->Blit(saved_viewport_bitmap.get(), 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
-        saved_viewport_bitmap.reset(enlargedBuffer);
-    }
-    else if (saved_viewport_bitmap->GetHeight() > viewport.GetHeight())
-    {
-        Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
-        clippedBuffer->Blit(saved_viewport_bitmap.get(), 0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2, 0, 0, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
-        saved_viewport_bitmap.reset(clippedBuffer);
-    }
-    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), false, opaque);
 }
 
 //=============================================================================

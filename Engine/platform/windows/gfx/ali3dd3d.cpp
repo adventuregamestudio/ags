@@ -1016,11 +1016,6 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   return true;
 }
 
-void D3DGraphicsDriver::RenderToBackBuffer()
-{
-  throw Ali3DException("D3D driver does not have a back buffer");
-}
-
 void D3DGraphicsDriver::Render()
 {
     Render(0, 0, kFlip_None);
@@ -1030,6 +1025,12 @@ void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
     ResetDeviceIfNecessary();
     RenderAndPresent(true);
+}
+
+void D3DGraphicsDriver::RenderToBackBuffer()
+{
+    ResetDeviceIfNecessary();
+    RenderImpl(true);
 }
 
 void D3DGraphicsDriver::Render(IDriverDependantBitmap *target)

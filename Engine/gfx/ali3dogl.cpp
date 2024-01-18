@@ -980,11 +980,6 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   return true;
 }
 
-void OGLGraphicsDriver::RenderToBackBuffer()
-{
-  throw Ali3DException("OGL driver does not have a back buffer");
-}
-
 void OGLGraphicsDriver::Render()
 {
     Render(0, 0, kFlip_None);
@@ -993,6 +988,11 @@ void OGLGraphicsDriver::Render()
 void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
     RenderAndPresent(true);
+}
+
+void OGLGraphicsDriver::RenderToBackBuffer()
+{
+    RenderImpl(true);
 }
 
 void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)

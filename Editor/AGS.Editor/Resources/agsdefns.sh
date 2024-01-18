@@ -786,6 +786,10 @@ import void RestartGame();
 import void SaveGameSlot(int slot, const string description);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
+#ifdef SCRIPT_API_v400
+/// Moves the save game from one slot to another, overwriting a save if one was already present at a new slot.
+import void MoveSaveSlot(int old_slot, int new_slot);
+#endif
 /// Deletes the specified save game.
 import void DeleteSaveSlot(int slot);
 /// Sets this as the point at which the game will be restarted.

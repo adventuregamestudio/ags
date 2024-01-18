@@ -668,6 +668,11 @@ RuntimeScriptValue Sc_MoveObjectDirect(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT4(MoveObjectDirect);
 }
 
+RuntimeScriptValue Sc_MoveSaveSlot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(MoveSaveSlot);
+}
+
 // void (int obn)
 RuntimeScriptValue Sc_ObjectOff(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1292,6 +1297,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "MoveCharacterToHotspot",   API_FN_PAIR(MoveCharacterToHotspot) },
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
+        { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "ObjectOff",                API_FN_PAIR(ObjectOff) },
         { "ObjectOn",                 API_FN_PAIR(ObjectOn) },
         { "PauseGame",                API_FN_PAIR(PauseGame) },

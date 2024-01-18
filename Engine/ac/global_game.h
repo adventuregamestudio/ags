@@ -42,6 +42,7 @@ struct SaveListItem
 void AbortGame();
 void restart_game();
 void RestoreGameSlot(int slnum);
+void MoveSaveSlot (int old_slot, int new_slot);
 void DeleteSaveSlot (int slnum);
 int  GetSaveSlotDescription(int slnum,char*desbuf);// [DEPRECATED] ?
 int  LoadSaveSlotScreenshot(int slnum, int width, int height);

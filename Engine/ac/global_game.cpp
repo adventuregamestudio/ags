@@ -111,6 +111,12 @@ void RestoreGameSlot(int slnum) {
     try_restore_save(slnum);
 }
 
+void MoveSaveSlot(int old_save, int new_save) {
+    String old_filename = get_save_game_path(old_save);
+    String new_filename = get_save_game_path(new_save);
+    File::RenameFile(old_filename, new_filename);
+}
+
 void DeleteSaveSlot (int slnum) {
     String save_filename = get_save_game_path(slnum);
     File::DeleteFile(save_filename);

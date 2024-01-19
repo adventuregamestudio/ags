@@ -55,7 +55,6 @@ struct AGSWin32 : AGSPlatformDriver {
 
   int  CDPlayerCommand(int cmdd, int datt) override;
   void AttachToParentConsole() override;
-  void DisplayAlert(const char*, ...) override;
   int  GetLastSystemError() override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserSavedgamesDirectory() override;
@@ -74,6 +73,7 @@ struct AGSWin32 : AGSPlatformDriver {
   void ShutdownCDPlayer() override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
+  void DisplayMessageBox(const char *text) override;
   void PauseApplication() override;
   void ResumeApplication() override;
   Size ValidateWindowSize(const Size &sz, bool borderless) const override;
@@ -298,22 +298,6 @@ void AGSWin32::AttachToParentConsole() {
     }
 }
 
-void AGSWin32::DisplayAlert(const char *text, ...) {
-  char displbuf[2500];
-  va_list ap;
-  va_start(ap, text);
-  vsnprintf(displbuf, sizeof(displbuf), text, ap);
-  va_end(ap);
-  if (_guiMode)
-    MessageBox((HWND)sys_win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
-
-  // Always write to either stderr or stdout, even if message boxes are enabled.
-  if (_logToStdErr)
-    AGSWin32::WriteStdErr("%s", displbuf);
-  else
-    AGSWin32::WriteStdOut("%s", displbuf);
-}
-
 int AGSWin32::GetLastSystemError()
 {
   return ::GetLastError();
@@ -371,8 +355,8 @@ void AGSWin32::WriteStdOut(const char *fmt, ...) {
   {
     // Add "AGS:" prefix when outputting to debugger, to make it clear that this
     // is a text from the program log
-    char buf[1024] = "AGS: ";
-    vsnprintf(buf + 5, 1024 - 5, fmt, ap);
+    char buf[2048] = "AGS: ";
+    vsnprintf(buf + 5, sizeof(buf) - 5, fmt, ap);
     OutputDebugString(buf);
     OutputDebugString("\n");
   }
@@ -391,8 +375,8 @@ void AGSWin32::WriteStdErr(const char *fmt, ...) {
   {
     // Add "AGS:" prefix when outputting to debugger, to make it clear that this
     // is a text from the program log
-    char buf[1024] = "AGS ERR: ";
-    vsnprintf(buf + 9, 1024 - 9, fmt, ap);
+    char buf[2048] = "AGS ERR: ";
+    vsnprintf(buf + 9, sizeof(buf) - 9, fmt, ap);
     OutputDebugString(buf);
     OutputDebugString("\n");
   }
@@ -402,6 +386,12 @@ void AGSWin32::WriteStdErr(const char *fmt, ...) {
     fprintf(stderr, "\n");
   }
   va_end(ap);
+}
+
+void AGSWin32::DisplayMessageBox(const char *text)
+{
+    if (_guiMode)
+        MessageBox((HWND)sys_win_get_window(), text, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
 }
 
 void AGSWin32::ShutdownCDPlayer() {

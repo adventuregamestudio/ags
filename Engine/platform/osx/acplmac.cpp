@@ -37,7 +37,6 @@ struct AGSMac : AGSPlatformDriver {
   void PreBackendInit() override;
 
   int  CDPlayerCommand(int cmdd, int datt) override;
-  void DisplayAlert(const char*, ...) override;
   uint64_t GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
   int  InitializeCDPlayer() override;
@@ -66,18 +65,6 @@ void AGSMac::PreBackendInit()
 
 int AGSMac::CDPlayerCommand(int cmdd, int datt) {
   return 0;//cd_player_control(cmdd, datt);
-}
-
-void AGSMac::DisplayAlert(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  if (_logToStdErr)
-    fprintf(stderr, "%s\n", displbuf);
-  else
-    fprintf(stdout, "%s\n", displbuf);
 }
 
 uint64_t AGSMac::GetDiskFreeSpaceMB() {

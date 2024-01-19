@@ -66,7 +66,6 @@ struct AGSIOS : AGSPlatformDriver {
   void ReadConfiguration(ConfigTree &cfg) override;
   int  CDPlayerCommand(int cmdd, int datt) override;
   void Delay(int millis) override;
-  void DisplayAlert(const char*, ...) override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserSavedgamesDirectory() override;
   FSLocation GetUserGlobalConfigDirectory() override;
@@ -320,17 +319,6 @@ void AGSIOS::ReadConfiguration(Common::ConfigTree &cfg)
 
 int AGSIOS::CDPlayerCommand(int cmdd, int datt) {
   return 0;//cd_player_control(cmdd, datt);
-}
-
-void AGSIOS::DisplayAlert(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsnprintf(displbuf, 2000, text, ap);
-  va_end(ap);
-  
-  Debug::Printf(kDbgMsg_Warn, "%s", displbuf);
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative", displbuf, nullptr);
 }
 
 void AGSIOS::Delay(int millis) {

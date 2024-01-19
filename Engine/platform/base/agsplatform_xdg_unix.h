@@ -26,7 +26,6 @@
 #include "platform/base/agsplatformdriver.h"
 
 struct AGSPlatformXDGUnix : AGSPlatformDriver {
-    void DisplayAlert(const char*, ...) override;
     FSLocation GetAllUsersDataDirectory() override;
     FSLocation GetUserSavedgamesDirectory() override;
     FSLocation GetUserConfigDirectory() override;

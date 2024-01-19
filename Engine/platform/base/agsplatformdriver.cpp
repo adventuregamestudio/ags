@@ -21,11 +21,12 @@
 #include <SDL.h>
 #include "ac/common.h"
 #include "ac/runtime_defines.h"
+#include "ac/timer.h"
+#include "gfx/bitmap.h"
+#include "media/audio/audio_system.h"
+#include "platform/base/sys_main.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "ac/timer.h"
-#include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -86,6 +87,27 @@ void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt) {
     sdt->year = newtime->tm_year + 1900;
 }
 
+void AGSPlatformDriver::DisplayAlert(const char *text, ...)
+{
+    char displbuf[2048];
+    va_list ap;
+    va_start(ap, text);
+    vsnprintf(displbuf, sizeof(displbuf), text, ap);
+    va_end(ap);
+
+    // FIXME: invent a method to avoid duplicate message in stdout/stderr
+    Debug::Printf(kDbgMsg_Alert, "%s", displbuf);
+
+    // Always write to either stderr or stdout, even if message boxes are enabled.
+    if (_logToStdErr)
+        WriteStdErr("%s", displbuf);
+    else
+        WriteStdOut("%s", displbuf);
+
+    if (_guiMode)
+        DisplayMessageBox(displbuf);
+}
+
 void AGSPlatformDriver::WriteStdOut(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -103,6 +125,12 @@ void AGSPlatformDriver::WriteStdErr(const char *fmt, ...)
     va_end(args);
     fprintf(stderr, "\n");
     fflush(stdout);
+}
+
+void AGSPlatformDriver::DisplayMessageBox(const char *text)
+{
+    if (_guiMode)
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Adventure Game Studio", text, sys_get_window());
 }
 
 void AGSPlatformDriver::YieldCPU() {

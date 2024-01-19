@@ -77,7 +77,7 @@ public:
     virtual void PostBackendExit() { };
 
     virtual void Delay(int millis);
-    virtual void DisplayAlert(const char*, ...) = 0;
+    virtual void DisplayAlert(const char *text, ...);
     virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
     // platform specific data file
@@ -109,6 +109,9 @@ public:
     // Formats message and writes to platform's error output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdErr(const char *fmt, ...);
+    // Display a text in a message box with a "warning" icon.
+    // Platforms which do not support this should do nothing.
+    virtual void DisplayMessageBox(const char *text);
     virtual void YieldCPU();
     // Called when the application is being paused completely (e.g. when player alt+tabbed from it).
     // This function should suspend any platform-specific realtime processing.

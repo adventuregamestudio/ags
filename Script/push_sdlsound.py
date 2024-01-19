@@ -54,13 +54,27 @@ def replace_in_file(file_path, encoding, version):
     if m is not None:
         data = replace_group(m, 1, data, version.revision)
 
-    # must lookup for a double line section here, avoid changing any random MD5 string
-    m = re.search(r'URL https://github.com/icculus/SDL_sound/\S*.tar.gz\s+URL_HASH MD5=(\w*)', data)
+    # must lookup for a double line section here, avoid changing any random SHA1 string
+    m = re.search(r'URL https://github.com/icculus/SDL_sound/\S*.tar.gz\s+URL_HASH SHA1=(\w*)', data)
     if m is not None:
         data = replace_group(m, 1, data, version.url_hash)
 
     write_file(file_path, encoding, data)
     print('\t\t- PROCESSED')
+
+def replace_shasums_in_file(file_path, encoding, version):
+    data = read_file(file_path, encoding)
+    if data is None:
+        print('\t\t- READ FAILED')
+        return
+
+    m = re.search(r'(\w*)  SDL_sound.tar.gz', data)
+    if m is not None:
+        data = replace_group(m, 1, data, version.url_hash)
+
+    write_file(file_path, encoding, data)
+    print('\t\t- PROCESSED')
+
 
 def main():
 
@@ -73,6 +87,8 @@ def main():
     replace_in_file("../debian/README.md", "utf-8", version)
     replace_in_file("../OSX/README.md", "utf-8", version)
     replace_in_file("../Windows/README.md", "utf-8", version)
+
+    replace_shasums_in_file("../libsrc/sha1sums", "utf-8", version)
 
 
 if __name__ == "__main__":

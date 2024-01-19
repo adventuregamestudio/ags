@@ -62,6 +62,18 @@ int File_Delete(const char *fnmm) {
   return File::DeleteFile(rp.FullPath) ? 1 : 0;
 }
 
+int File_Rename(const char *old_name, const char *new_name) {
+  // both paths must be writeable, but should also create dirs for the second
+  const auto old_rp = ResolveScriptPathAndFindFile(old_name, false);
+  if (!old_rp)
+    return 0;
+  const auto new_rp = ResolveWritePathAndCreateDirs(new_name);
+  if (!new_rp)
+    return 0;
+
+  return File::RenameFile(old_rp.FullPath, new_rp.FullPath) ? 1 : 0;
+}
+
 void *sc_OpenFile(const char *fnmm, int mode) {
   if ((mode < scFileRead) || (mode > scFileAppend))
     quit("!OpenFile: invalid file mode");
@@ -771,6 +783,11 @@ RuntimeScriptValue Sc_File_Exists(const RuntimeScriptValue *params, int32_t para
     API_SCALL_INT_POBJ(File_Exists, const char);
 }
 
+RuntimeScriptValue Sc_File_Rename(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ2(File_Rename, const char, const char);
+}
+
 // void *(const char *fnmm, int mode)
 RuntimeScriptValue Sc_sc_OpenFile(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -892,6 +909,7 @@ void RegisterFileAPI()
     ScFnRegister file_api[] = {
         { "File::Delete^1",           API_FN_PAIR(File_Delete) },
         { "File::Exists^1",           API_FN_PAIR(File_Exists) },
+        { "File::Rename^2",           API_FN_PAIR(File_Rename) },
         { "File::Open^2",             API_FN_PAIR(sc_OpenFile) },
         { "File::ResolvePath^1",      API_FN_PAIR(File_ResolvePath) },
 

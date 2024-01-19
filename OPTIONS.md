@@ -168,7 +168,7 @@ Following OPTIONS are supported when running from command line:
     * --log-file=all:warn
     * --log-stdout=+mg:debug
 * --log-file-path=PATH - define custom path for the log file.
-* --no-message-box - disable alerts as modal message boxes (Windows only).
+* --no-message-box - disable alerts as modal message boxes (on platforms that support them in the first place).
 * --no-translation - use default game language on start.
 * --noiface - don't draw game GUI (for test purposes).
 * --noscript - don't run room scripts (for test purposes); *WARNING:* unreliable.

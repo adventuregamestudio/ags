@@ -45,6 +45,11 @@ AGSPlatformDriver *platform = nullptr;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
+AGSPlatformDriver::AGSPlatformDriver()
+{
+    _writeStdOut = &AGSPlatformDriver::WriteStdOut;
+}
+
 void AGSPlatformDriver::AttachToParentConsole() { }
 void AGSPlatformDriver::PauseApplication() { }
 void AGSPlatformDriver::ResumeApplication() { }
@@ -95,14 +100,15 @@ void AGSPlatformDriver::DisplayAlert(const char *text, ...)
     vsnprintf(displbuf, sizeof(displbuf), text, ap);
     va_end(ap);
 
-    // FIXME: invent a method to avoid duplicate message in stdout/stderr
+    // Print alert to the log system, to let other outputs receive it;
+    // but use a dirty method to avoid duplicate message in stdout/stderr
+    auto old_stdout = _writeStdOut;
+    _writeStdOut = nullptr;
     Debug::Printf(kDbgMsg_Alert, "%s", displbuf);
+    _writeStdOut = old_stdout;
 
     // Always write to either stderr or stdout, even if message boxes are enabled.
-    if (_logToStdErr)
-        WriteStdErr("%s", displbuf);
-    else
-        WriteStdOut("%s", displbuf);
+    (this->*_writeStdOut)("%s", displbuf);
 
     if (_guiMode)
         DisplayMessageBox(displbuf);
@@ -151,6 +157,12 @@ void AGSPlatformDriver::SetCommandArgs(const char *const argv[], size_t argc)
     _cmdArgCount = argc;
 }
 
+void AGSPlatformDriver::SetOutputToErr(bool on)
+{
+    _logToStdErr = on;
+    _writeStdOut = _logToStdErr ? &AGSPlatformDriver::WriteStdErr : &AGSPlatformDriver::WriteStdOut;
+}
+
 String AGSPlatformDriver::GetCommandArg(size_t arg_index)
 {
     return arg_index < _cmdArgCount ? _cmdArgs[arg_index] : nullptr;
@@ -161,19 +173,12 @@ String AGSPlatformDriver::GetCommandArg(size_t arg_index)
 //-----------------------------------------------
 void AGSPlatformDriver::PrintMessage(const Common::DebugMessage &msg)
 {
-    if (_logToStdErr)
+    if (_writeStdOut)
     {
         if (msg.GroupName.IsEmpty())
-            WriteStdErr("%s", msg.Text.GetCStr());
+            (this->*_writeStdOut)("%s", msg.Text.GetCStr());
         else
-            WriteStdErr("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
-    }
-    else
-    {
-        if (msg.GroupName.IsEmpty())
-            WriteStdOut("%s", msg.Text.GetCStr());
-        else
-            WriteStdOut("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
+            (this->*_writeStdOut)("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
     }
 }
 

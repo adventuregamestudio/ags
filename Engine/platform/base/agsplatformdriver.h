@@ -63,6 +63,7 @@ class AGSPlatformDriver
     : public AGS::Common::IOutputHandler
 {
 public:
+    AGSPlatformDriver();
     virtual ~AGSPlatformDriver() = default;
 
     // Called at the creation of the platform driver
@@ -140,7 +141,7 @@ public:
     // Store command line arguments for the future use
     void SetCommandArgs(const char *const argv[], size_t argc);
     // Set whether PrintMessage should output to stdout or stderr
-    void SetOutputToErr(bool on) { _logToStdErr = on; }
+    void SetOutputToErr(bool on);
     // Set whether DisplayAlert is allowed to show modal GUIs on some systems;
     // it will print to either stdout or stderr otherwise, depending on above flag
     void SetGUIMode(bool on) { _guiMode = on; }
@@ -158,6 +159,9 @@ protected:
     // with both going through PlatformDriver need to figure a better
     // design first.
     bool _logToStdErr = false;
+    // A function pointer for stdout write;
+    // this is used when printing log, and may be set to null disabling an output
+    void (AGSPlatformDriver::*_writeStdOut)(const char *fmt, ...) = nullptr;
     // Defines whether engine is allowed to display important warnings
     // and errors by showing a message box kind of GUI.
     bool _guiMode = false;

@@ -36,7 +36,7 @@
 #include "ac/sys_events.h"
 #include "ac/dynobj/cc_pluginobject.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"

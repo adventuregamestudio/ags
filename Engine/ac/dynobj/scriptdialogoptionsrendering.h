@@ -17,7 +17,9 @@
 
 #include "ac/dynobj/scriptdrawingsurface.h"
 
-struct ScriptDialogOptionsRendering final : AGSCCDynamicObject {
+struct ScriptDialogOptionsRendering final : AGSCCDynamicObject
+{
+public:
     int x, y, width, height;
     int parserTextboxX, parserTextboxY;
     int parserTextboxWidth;

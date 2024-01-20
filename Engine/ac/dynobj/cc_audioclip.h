@@ -16,9 +16,12 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCAudioClip final : AGSCCDynamicObject {
+struct CCAudioClip final : AGSCCDynamicObject
+{
+public:
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
 protected:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;

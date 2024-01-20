@@ -16,17 +16,18 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCDialog final : AGSCCDynamicObject {
-
+struct CCDialog final : AGSCCDynamicObject
+{
+public:
     // return the type name of the object
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
 protected:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;
     // Write object data into the provided stream
     void Serialize(const void *address, AGS::Common::Stream *out) override;
-
 };
 
 #endif // __AC_CCDIALOG_H

@@ -22,6 +22,7 @@
 
 struct CCScriptGame : public AGSCCStaticObject
 {
+public:
     int32_t ReadInt32(void *address, intptr_t offset) override;
     void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };

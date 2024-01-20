@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/dynobj/cc_object.h"
-#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/common_defines.h"
 #include "game/roomstruct.h"

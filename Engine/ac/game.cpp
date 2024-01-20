@@ -128,12 +128,14 @@ CCObject    ccDynamicObject;
 CCDialog    ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
-ScriptObject scrObj[MAX_ROOM_OBJECTS];
-std::vector<ScriptGUI> scrGui;
-ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
-ScriptRegion scrRegion[MAX_ROOM_REGIONS];
-ScriptInvItem scrInv[MAX_INV];
+
 std::vector<ScriptDialog> scrDialog;
+std::vector<ScriptGUI> scrGui;
+ScriptInvItem scrInv[MAX_INV];
+ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+ScriptObject scrObj[MAX_ROOM_OBJECTS];
+ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+
 
 std::vector<ViewStruct> views;
 std::vector<CharacterExtras> charextra;

@@ -40,7 +40,9 @@ enum AudioFileType {
 #define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
 #define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
 
-struct ScriptAudioClip {
+struct ScriptAudioClip
+{
+public:
     int id = 0;
     Common::String scriptName;
     Common::String fileName;

@@ -47,7 +47,7 @@ bool ccAddExternalPluginFunction(const String &name, void *pfn)
     return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), nullptr) != UINT32_MAX;
 }
 
-bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticArray *array_mgr)
+bool ccAddExternalStaticArray(const String &name, void *ptr, CCStaticObjectArray *array_mgr)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), nullptr) != UINT32_MAX;
 }

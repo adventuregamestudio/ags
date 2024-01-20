@@ -23,7 +23,7 @@
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
-#include "ac/dynobj/scripthotspot.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/cc_hotspot.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"

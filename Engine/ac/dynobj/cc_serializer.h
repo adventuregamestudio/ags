@@ -16,8 +16,9 @@
 
 #include "ac/dynobj/cc_scriptobject.h"
 
-struct AGSDeSerializer : ICCObjectCollectionReader {
-
+struct AGSDeSerializer : ICCObjectCollectionReader
+{
+public:
     void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) override;
 };
 

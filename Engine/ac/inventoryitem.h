@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__INVENTORYITEM_H
 #define __AGS_EE_AC__INVENTORYITEM_H
 
-#include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/scriptobjects.h"
 
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite);
 int  InventoryItem_GetCursorGraphic(ScriptInvItem *iitem);

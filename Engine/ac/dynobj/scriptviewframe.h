@@ -11,13 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTVIEWFRAME_H
 #define __AC_SCRIPTVIEWFRAME_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptViewFrame final : AGSCCDynamicObject {
+struct ScriptViewFrame final : AGSCCDynamicObject
+{
+public:
     int view, loop, frame;
 
     int Dispose(void *address, bool force) override;

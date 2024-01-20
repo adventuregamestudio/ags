@@ -48,7 +48,7 @@
 #include "ac/spritecache.h"
 #include "ac/translation.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "core/assetmanager.h"
 #include "debug/debug_log.h"

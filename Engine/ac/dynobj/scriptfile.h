@@ -28,7 +28,9 @@ using namespace AGS; // FIXME later
 #define scFileWrite  2
 #define scFileAppend 3
 
-struct sc_File final : CCBasicObject {
+struct sc_File final : CCBasicObject
+{
+public:
     int32_t             handle;
 
     static const Common::FileOpenMode fopenModes[];

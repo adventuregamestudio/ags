@@ -11,17 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_CCOBJECT_H
 #define __AC_CCOBJECT_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct CCObject final : AGSCCDynamicObject {
-
+struct CCObject final : AGSCCDynamicObject
+{
+public:
     // return the type name of the object
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
 protected:
     // Calculate and return required space for serialization, in bytes
     size_t CalcSerializeSize(const void *address) override;

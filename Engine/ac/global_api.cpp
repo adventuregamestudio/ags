@@ -24,6 +24,7 @@
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/game.h"
+#include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_debug.h"
@@ -667,6 +668,11 @@ RuntimeScriptValue Sc_MoveObjectDirect(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT4(MoveObjectDirect);
 }
 
+RuntimeScriptValue Sc_MoveSaveSlot(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(MoveSaveSlot);
+}
+
 // void (int obn)
 RuntimeScriptValue Sc_ObjectOff(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -743,6 +749,11 @@ RuntimeScriptValue Sc_restore_game_dialog(const RuntimeScriptValue *params, int3
     API_SCALL_VOID(restore_game_dialog);
 }
 
+RuntimeScriptValue Sc_restore_game_dialog2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(restore_game_dialog2);
+}
+
 // void (int slnum)
 RuntimeScriptValue Sc_RestoreGameSlot(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -799,6 +810,11 @@ extern RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValu
 RuntimeScriptValue Sc_save_game_dialog(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(save_game_dialog);
+}
+
+RuntimeScriptValue Sc_save_game_dialog2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(save_game_dialog2);
 }
 
 // void (int slotn, const char*descript)
@@ -1167,7 +1183,7 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
 }
 
 
-void RegisterGlobalAPI()
+void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister global_api[] = {
         { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
@@ -1281,6 +1297,7 @@ void RegisterGlobalAPI()
         { "MoveCharacterToHotspot",   API_FN_PAIR(MoveCharacterToHotspot) },
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
+        { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
         { "ObjectOff",                API_FN_PAIR(ObjectOff) },
         { "ObjectOn",                 API_FN_PAIR(ObjectOn) },
         { "PauseGame",                API_FN_PAIR(PauseGame) },
@@ -1293,7 +1310,6 @@ void RegisterGlobalAPI()
         { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
         { "ResetRoom",                API_FN_PAIR(ResetRoom) },
         { "RestartGame",              API_FN_PAIR(restart_game) },
-        { "RestoreGameDialog",        API_FN_PAIR(restore_game_dialog) },
         { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
         { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
         { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
@@ -1304,7 +1320,6 @@ void RegisterGlobalAPI()
         { "RunRegionInteraction",     API_FN_PAIR(RunRegionInteraction) },
         { "Said",                     API_FN_PAIR(Said) },
         { "SaveCursorForLocationChange", API_FN_PAIR(SaveCursorForLocationChange) },
-        { "SaveGameDialog",           API_FN_PAIR(save_game_dialog) },
         { "SaveGameSlot",             API_FN_PAIR(save_game) },
         { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot) },
         { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
@@ -1369,4 +1384,23 @@ void RegisterGlobalAPI()
     };
 
     ccAddExternalFunctions(global_api);
+
+    // NOTE: We have to do this because AGS compiler did not produce
+    // "name^argnum" symbol id for non-member functions for some reason....
+    if (base_api < kScriptAPI_v400)
+    {
+        ScFnRegister global_api_dlgs[] = {
+            { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog) },
+            { "SaveGameDialog",         API_FN_PAIR(save_game_dialog) },
+        };
+        ccAddExternalFunctions(global_api_dlgs);
+    }
+    else
+    {
+        ScFnRegister global_api_dlgs[] = {
+            { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog2) },
+            { "SaveGameDialog",         API_FN_PAIR(save_game_dialog2) },
+        };
+        ccAddExternalFunctions(global_api_dlgs);
+    }
 }

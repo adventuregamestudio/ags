@@ -3921,7 +3921,7 @@ void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
     Character_Think(chaa, scsf_buffer);
 }
 
-void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
+void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister character_api[] = {
         { "Character::GetAtRoomXY^2",             API_FN_PAIR(GetCharacterAtRoom) },

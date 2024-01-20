@@ -777,15 +777,19 @@ import const string GetTranslation (const string originalText);
 /// Checks if a translation is currently in use.
 import int  IsTranslationAvailable ();
 /// Displays the default built-in Restore Game dialog.
-import void RestoreGameDialog();
+import void RestoreGameDialog(int min_slot = 0, int max_slot = 50);
 /// Displays the default built-in Save Game dialog.
-import void SaveGameDialog();
+import void SaveGameDialog(int min_slot = 0, int max_slot = 50);
 /// Restarts the game from the restart point.
 import void RestartGame();
 /// Saves the current game position to the specified slot.
 import void SaveGameSlot(int slot, const string description);
 /// Restores the game saved to the specified game slot.
 import void RestoreGameSlot(int slot);
+#ifdef SCRIPT_API_v400
+/// Moves the save game from one slot to another, overwriting a save if one was already present at a new slot.
+import void MoveSaveSlot(int old_slot, int new_slot);
+#endif
 /// Deletes the specified save game.
 import void DeleteSaveSlot(int slot);
 /// Sets this as the point at which the game will be restarted.
@@ -1409,8 +1413,8 @@ builtin managed struct ListBox extends GUIControl {
 	import void Clear();
 	/// Fills the list box with all the filenames that match the specified file mask.
 	import void FillDirList(const string fileMask);
-	/// Fills the list box with all the current user's saved games.
-	import int  FillSaveGameList();
+	/// Fills the list box with the current user's saved games in the given range of slots.
+	import int  FillSaveGameList(int min_slot = 0, int max_slot = 50);
 	/// Gets the item index at the specified screen co-ordinates, if they lie within the list box.
 	import int  GetItemAtLocation(int x, int y);
 	/// Inserts a new item before the specified index.

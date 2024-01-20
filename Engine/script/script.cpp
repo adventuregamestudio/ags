@@ -616,7 +616,7 @@ void post_script_cleanup() {
         try_restore_save(thisData);
         return;
     case ePSARestoreGameDialog:
-        restore_game_dialog();
+        restore_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
         return;
     case ePSARunAGSGame:
         cancel_all_scripts();
@@ -633,7 +633,7 @@ void post_script_cleanup() {
         save_game(thisData, copyof.postScriptSaveSlotDescription[ii]);
         break;
     case ePSASaveGameDialog:
-        save_game_dialog();
+        save_game_dialog2(thisData & 0xFFFF, (thisData >> 16));
         break;
     default:
         quitprintf("undefined post script action found: %d", copyof.postScriptActions[ii]);

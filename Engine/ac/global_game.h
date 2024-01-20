@@ -42,10 +42,11 @@ struct SaveListItem
 void AbortGame();
 void restart_game();
 void RestoreGameSlot(int slnum);
+void MoveSaveSlot (int old_slot, int new_slot);
 void DeleteSaveSlot (int slnum);
 int  GetSaveSlotDescription(int slnum,char*desbuf);// [DEPRECATED] ?
 int  LoadSaveSlotScreenshot(int slnum, int width, int height);
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned top_index, size_t max_count = -1);
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, size_t max_count = -1);
 // Find the latest save slot, returns the slot index or -1 at failure
 int  GetLastSaveSlot();
 void PauseGame();

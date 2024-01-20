@@ -70,6 +70,7 @@ struct GameState {
     static const int LEGACY_MAXGLOBALVARS = 50;
     static const int LEGACY_MAXGSVALUES = 500;
     static const int LEGACY_MAXGLOBALSTRINGS = 51;
+    static const int LEGACY_MAXSAVEGAMES = 50;
 
     int  usedmode = 0;              // set by ProcessClick to last cursor mode used
     int  disabled_user_interface = 0;  // >0 while in cutscene/etc
@@ -181,7 +182,6 @@ struct GameState {
     int   raw_color = 0;
     int   raw_modified[MAX_ROOM_BGFRAMES]{};
     Common::PBitmap raw_drawing_surface;
-    short filenumbers[MAXSAVEGAMES]{}; // [OBSOLETE]
     int   room_changes = 0;
     int   mouse_cursor_hidden = 0;
     unsigned long shakesc_delay = 0;  // unsigned long to match loopcounter

@@ -55,7 +55,6 @@ struct AGSWin32 : AGSPlatformDriver {
 
   int  CDPlayerCommand(int cmdd, int datt) override;
   void AttachToParentConsole() override;
-  void DisplayAlert(const char*, ...) override;
   int  GetLastSystemError() override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserSavedgamesDirectory() override;
@@ -74,6 +73,7 @@ struct AGSWin32 : AGSPlatformDriver {
   void ShutdownCDPlayer() override;
   void WriteStdOut(const char *fmt, ...) override;
   void WriteStdErr(const char *fmt, ...) override;
+  void DisplayMessageBox(const char *text) override;
   void PauseApplication() override;
   void ResumeApplication() override;
   Size ValidateWindowSize(const Size &sz, bool borderless) const override;
@@ -83,6 +83,8 @@ struct AGSWin32 : AGSPlatformDriver {
   String GetCommandArg(size_t arg_index) override;
 
 private:
+  void WriteStdOutImpl(FILE *file, const char *prefix, const char *fmt, va_list args);
+
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
   bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
 };
@@ -298,22 +300,6 @@ void AGSWin32::AttachToParentConsole() {
     }
 }
 
-void AGSWin32::DisplayAlert(const char *text, ...) {
-  char displbuf[2500];
-  va_list ap;
-  va_start(ap, text);
-  vsnprintf(displbuf, sizeof(displbuf), text, ap);
-  va_end(ap);
-  if (_guiMode)
-    MessageBox((HWND)sys_win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
-
-  // Always write to either stderr or stdout, even if message boxes are enabled.
-  if (_logToStdErr)
-    AGSWin32::WriteStdErr("%s", displbuf);
-  else
-    AGSWin32::WriteStdOut("%s", displbuf);
-}
-
 int AGSWin32::GetLastSystemError()
 {
   return ::GetLastError();
@@ -364,44 +350,48 @@ SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_ou
   return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.main_data_dir, version_str);
 }
 
-void AGSWin32::WriteStdOut(const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  if (_isDebuggerPresent)
-  {
-    // Add "AGS:" prefix when outputting to debugger, to make it clear that this
-    // is a text from the program log
-    char buf[1024] = "AGS: ";
-    vsnprintf(buf + 5, 1024 - 5, fmt, ap);
-    OutputDebugString(buf);
-    OutputDebugString("\n");
-  }
-  else
-  {
-    vprintf(fmt, ap);
-    printf("\n");
-  }
-  va_end(ap);
+void AGSWin32::WriteStdOut(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    WriteStdOutImpl(stdout, "AGS: ", fmt, args);
+    va_end(args);
 }
 
-void AGSWin32::WriteStdErr(const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  if (_isDebuggerPresent)
-  {
-    // Add "AGS:" prefix when outputting to debugger, to make it clear that this
-    // is a text from the program log
-    char buf[1024] = "AGS ERR: ";
-    vsnprintf(buf + 9, 1024 - 9, fmt, ap);
-    OutputDebugString(buf);
-    OutputDebugString("\n");
-  }
-  else
-  {
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-  }
-  va_end(ap);
+void AGSWin32::WriteStdErr(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    WriteStdOutImpl(stderr, "AGS ERR:", fmt, args);
+    va_end(args);
+}
+
+void AGSWin32::WriteStdOutImpl(FILE *file, const char *prefix, const char *fmt, va_list args)
+{
+    va_list args_cpy;
+    va_copy(args_cpy, args);
+    if (_isDebuggerPresent)
+    {
+        // Add "AGS:" prefix when outputting to debugger, to make it clear that this
+        // is a text from the program log
+        char buf[2048];
+        char *pbuf = buf + snprintf(buf, sizeof(buf), "%s", prefix);
+        vsnprintf(pbuf, sizeof(buf) - (pbuf - buf), fmt, args_cpy);
+        OutputDebugString(buf);
+        OutputDebugString("\n");
+    }
+    else
+    {
+        vfprintf(file, fmt, args_cpy);
+        fprintf(file, "\n");
+    }
+    va_end(args_cpy);
+}
+
+void AGSWin32::DisplayMessageBox(const char *text)
+{
+    if (_guiMode)
+        MessageBox((HWND)sys_win_get_window(), text, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
 }
 
 void AGSWin32::ShutdownCDPlayer() {

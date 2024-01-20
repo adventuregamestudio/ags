@@ -45,7 +45,6 @@ struct AGSAndroid : AGSPlatformDriver {
   void ReadConfiguration(ConfigTree &cfg) override;
   int  CDPlayerCommand(int cmdd, int datt) override;
   void Delay(int millis) override;
-  void DisplayAlert(const char*, ...) override;
   FSLocation GetAllUsersDataDirectory() override;
   FSLocation GetUserSavedgamesDirectory() override;
   FSLocation GetUserGlobalConfigDirectory() override;
@@ -395,17 +394,6 @@ void AGSAndroid::ReadConfiguration(ConfigTree &cfg)
 
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
   return 1;
-}
-
-void AGSAndroid::DisplayAlert(const char *text, ...) {
-  char displbuf[2000];
-  va_list args;
-  va_start(args, text);
-  vsprintf(displbuf, text, args);
-  va_end(args);
-
-  Debug::Printf(kDbgMsg_Warn, "%s", displbuf);
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "AGSNative", displbuf, nullptr);
 }
 
 void AGSAndroid::Delay(int millis) {

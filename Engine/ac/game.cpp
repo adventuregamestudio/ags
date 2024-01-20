@@ -122,6 +122,8 @@ CCGUIObject ccDynamicGUIObject;
 CCCharacter ccDynamicCharacter;
 CCHotspot   ccDynamicHotspot;
 CCRegion    ccDynamicRegion;
+CCWalkableArea ccDynamicWalkarea;
+CCWalkbehind ccDynamicWalkbehind;
 CCInventory ccDynamicInv;
 CCGUI       ccDynamicGUI;
 CCObject    ccDynamicObject;
@@ -135,6 +137,8 @@ ScriptInvItem scrInv[MAX_INV];
 ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 ScriptObject scrObj[MAX_ROOM_OBJECTS];
 ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
+ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
 
 std::vector<ViewStruct> views;

@@ -29,6 +29,8 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/cc_region.h"
+#include "ac/dynobj/cc_walkablearea.h"
+#include "ac/dynobj/cc_walkbehind.h"
 
 #include "ac/dynobj/cc_serializer.h"
 

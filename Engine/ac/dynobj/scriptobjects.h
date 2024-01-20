@@ -38,5 +38,7 @@ struct ScriptHotspot : public ScriptSimpleRef {};
 struct ScriptInvItem : public ScriptSimpleRef {};
 struct ScriptObject : public ScriptSimpleRef {};
 struct ScriptRegion : public ScriptSimpleRef {};
+struct ScriptWalkableArea : public ScriptSimpleRef {};
+struct ScriptWalkbehind : public ScriptSimpleRef {};
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H

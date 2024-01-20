@@ -59,6 +59,8 @@ extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
 extern CCHotspot   ccDynamicHotspot;
 extern CCRegion    ccDynamicRegion;
+extern CCWalkableArea ccDynamicWalkarea;
+extern CCWalkbehind ccDynamicWalkbehind;
 extern CCInventory ccDynamicInv;
 extern CCGUI       ccDynamicGUI;
 extern CCObject    ccDynamicObject;
@@ -70,6 +72,8 @@ extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern std::vector<ScriptGUI> scrGui;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
+extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
@@ -88,6 +92,8 @@ std::vector<int> StaticObjectArray;
 std::vector<int> StaticGUIArray;
 std::vector<int> StaticHotspotArray;
 std::vector<int> StaticRegionArray;
+std::vector<int> StaticWalkareaArray;
+std::vector<int> StaticWalkbehindArray;
 std::vector<int> StaticInventoryArray;
 std::vector<int> StaticDialogArray;
 
@@ -256,45 +262,28 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
     }
 }
 
-// Initializes room hotspots and registers them in the script system
-void InitAndRegisterHotspots()
+// Register room script entity of a given type
+template <typename TScriptType>
+void RegisterRoomEntities(std::vector<int> &static_arr, TScriptType scr_objs[], size_t count, AGSCCDynamicObject &mgr)
 {
-    StaticHotspotArray.resize(MAX_ROOM_HOTSPOTS);
-
-    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    static_arr.resize(count);
+    for (size_t i = 0; i < count; ++i)
     {
-        scrHotspot[i].id = i;
+        scr_objs[i].id = i;
         // register and save handle
-        int handle = ccRegisterPersistentObject(&scrHotspot[i], &ccDynamicHotspot);
-        StaticHotspotArray[i] = handle;
+        int handle = ccRegisterPersistentObject(&scr_objs[i], &mgr);
+        static_arr[i] = handle;
     }
 }
 
-// Initializes room objects and registers them in the script system
-void InitAndRegisterRoomObjects()
+// Initializes room entities and registers them in the script system
+void InitAndRegisterRoomEntities()
 {
-    StaticObjectArray.resize(MAX_ROOM_OBJECTS);
-
-    for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
-    {
-        // register and save handle
-        int handle = ccRegisterPersistentObject(&scrObj[i], &ccDynamicObject);
-        StaticObjectArray[i] = handle;
-    }
-}
-
-// Initializes room regions and registers them in the script system
-void InitAndRegisterRegions()
-{
-    StaticRegionArray.resize(MAX_ROOM_REGIONS);
-
-    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-    {
-        scrRegion[i].id = i;
-        // register and save handle
-        int handle = ccRegisterPersistentObject(&scrRegion[i], &ccDynamicRegion);
-        StaticRegionArray[i] = handle;
-    }
+    RegisterRoomEntities(StaticHotspotArray, scrHotspot, MAX_ROOM_HOTSPOTS, ccDynamicHotspot);
+    RegisterRoomEntities(StaticObjectArray, scrObj, MAX_ROOM_OBJECTS, ccDynamicObject);
+    RegisterRoomEntities(StaticRegionArray, scrRegion, MAX_ROOM_REGIONS, ccDynamicRegion);
+    RegisterRoomEntities(StaticWalkareaArray, scrWalkarea, MAX_WALK_AREAS, ccDynamicWalkarea);
+    RegisterRoomEntities(StaticWalkbehindArray, scrWalkbehind, MAX_WALK_BEHINDS, ccDynamicWalkbehind);
 }
 
 // Registers static entity arrays in the script system
@@ -311,6 +300,8 @@ void RegisterStaticArrays(GameSetupStruct &game)
     ccAddExternalScriptObject("hotspot", &StaticHotspotArray[0], &StaticHandlesArray);
     ccAddExternalScriptObject("object", &StaticObjectArray[0], &StaticHandlesArray);
     ccAddExternalScriptObject("region", &StaticRegionArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("walkarea", &StaticWalkareaArray[0], &StaticHandlesArray);
+    ccAddExternalScriptObject("walkbehind", &StaticWalkbehindArray[0], &StaticHandlesArray);
 }
 
 // Initializes various game entities and registers them in the script system
@@ -326,9 +317,7 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
         return err;
     InitAndRegisterInvItems(game);
 
-    InitAndRegisterHotspots();
-    InitAndRegisterRegions();
-    InitAndRegisterRoomObjects();
+    InitAndRegisterRoomEntities();
     play.CreatePrimaryViewportAndCamera();
 
     RegisterStaticArrays(game);

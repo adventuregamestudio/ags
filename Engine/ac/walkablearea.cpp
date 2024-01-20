@@ -11,17 +11,18 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "ac/object.h"
 #include "ac/character.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_walkablearea.h"
 #include "ac/object.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
+#include "ac/dynobj/cc_walkablearea.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 
@@ -33,6 +34,8 @@ extern GameSetupStruct game;
 extern int displayed_room;
 extern RoomStatus*croom;
 extern RoomObject*objs;
+extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
+extern CCWalkableArea ccDynamicWalkarea;
 
 Bitmap *walkareabackup=nullptr, *walkable_areas_temp = nullptr;
 
@@ -224,4 +227,109 @@ int get_walkable_area_at_location(int xx, int yy) {
 int get_walkable_area_at_character (int charnum) {
     CharacterInfo *chin = &game.chars[charnum];
     return get_walkable_area_at_location(chin->x, chin->y);
+}
+
+int Walkarea_GetID(ScriptWalkableArea *wa)
+{
+    return wa->id;
+}
+
+int Walkarea_GetEnabled(ScriptWalkableArea *wa)
+{
+    return play.walkable_areas_on[wa->id];
+}
+
+void Walkarea_SetEnabled(ScriptWalkableArea *wa, int enable)
+{
+    if (enable == play.walkable_areas_on[wa->id])
+        return; // no change necessary
+    if (enable)
+        RestoreWalkableArea(wa->id);
+    else
+        RemoveWalkableArea(wa->id);
+}
+
+void Walkarea_SetScaling(ScriptWalkableArea *wa, int min, int max)
+{
+    SetAreaScaling(wa->id, min, max);
+}
+
+int Walkarea_GetScalingMin(ScriptWalkableArea *wa)
+{
+    return thisroom.WalkAreas[wa->id].ScalingFar;
+}
+
+int Walkarea_GetScalingMax(ScriptWalkableArea *wa)
+{
+    return thisroom.WalkAreas[wa->id].ScalingNear;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+
+extern RuntimeScriptValue Sc_GetWalkableAreaAtRoom(const RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_GetWalkableAreaAtScreen(const RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count);
+
+RuntimeScriptValue Sc_Walkarea_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
+}
+
+RuntimeScriptValue Sc_Walkarea_SetScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(ScriptWalkableArea, Walkarea_SetScaling);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptWalkableArea, Walkarea_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Walkarea_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptWalkableArea, Walkarea_SetEnabled);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptWalkableArea, Walkarea_GetID);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetScalingMin(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptWalkableArea, Walkarea_GetScalingMin);
+}
+
+RuntimeScriptValue Sc_Walkarea_GetScalingMax(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptWalkableArea, Walkarea_GetScalingMax);
+}
+
+
+void RegisterWalkareaAPI()
+{
+    ScFnRegister walkarea_api[] = {
+        { "WalkableArea::GetAtRoomXY^2",       API_FN_PAIR(GetWalkableAreaAtRoom) },
+        { "WalkableArea::GetAtScreenXY^2",     API_FN_PAIR(GetWalkableAreaAtScreen) },
+        { "WalkableArea::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
+
+        { "WalkableArea::SetScaling^2",        API_FN_PAIR(Walkarea_SetScaling) },
+        { "WalkableArea::get_Enabled",         API_FN_PAIR(Walkarea_GetEnabled) },
+        { "WalkableArea::set_Enabled",         API_FN_PAIR(Walkarea_SetEnabled) },
+        { "WalkableArea::get_ID",              API_FN_PAIR(Walkarea_GetID) },
+        { "WalkableArea::get_ScalingMin",      API_FN_PAIR(Walkarea_GetScalingMin) },
+        { "WalkableArea::get_ScalingMax",      API_FN_PAIR(Walkarea_GetScalingMax) },
+    };
+
+    ccAddExternalFunctions(walkarea_api);
 }

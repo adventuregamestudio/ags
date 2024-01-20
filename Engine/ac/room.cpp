@@ -504,6 +504,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
 
+    // Register named Objects and Hotspots
     for (uint32_t cc = 0; cc < croom->numobj; cc++) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())

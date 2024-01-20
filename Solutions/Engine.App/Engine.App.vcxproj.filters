@@ -756,6 +756,12 @@
     <ClCompile Include="..\..\Engine\plugin\plugin_stubs.cpp">
       <Filter>Source Files\plugin</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkablearea.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkbehind.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1056,9 +1062,6 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h">
@@ -1515,6 +1518,12 @@
       <Filter>Header Files\plugin</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobjects.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkbehind.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkablearea.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>

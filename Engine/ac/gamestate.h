@@ -218,6 +218,7 @@ struct GameState {
     int   text_min_display_time_ms = 0;
     int   ignore_user_input_after_text_timeout_ms = 0;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES]{};
+    float face_dir_ratio = 1.f; // character face direction ratio, defines y/x relation
 
     // Dynamic custom property values for characters and items
     std::vector<AGS::Common::StringIMap> charProps;

@@ -63,6 +63,7 @@ struct RoomStatus
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
+    float face_dir_ratio = 0.f;
 
     // A version of a save this RoomStatus was restored from.
     // This is used as a hint when merging RoomStatus with the loaded room file (upon room enter).

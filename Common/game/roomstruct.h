@@ -105,6 +105,8 @@ struct RoomOptions
     bool PlayerCharOff;
     // Apply player character's normal view when entering this room
     int  PlayerView;
+    // Optional character facing dir ratio (y / x), 0 = ignore
+    float FaceDirectionRatio;
     // A collection of RoomFlags
     int  Flags;
 
@@ -197,6 +199,8 @@ struct WalkArea
     int32_t     ScalingNear;
     // Optional override for player character view
     int32_t     PlayerView;
+    // Optional character face direction ratio, 0 = ignore
+    float       FaceDirectionRatio;
     // Top and bottom Y of the area
     int32_t     Top;
     int32_t     Bottom;

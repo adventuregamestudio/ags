@@ -741,6 +741,8 @@ builtin struct Room {
   import static readonly attribute WalkableArea *WalkableAreas[];   // $AUTOCOMPLETESTATICONLY$
   /// Accesses the Walk-behinds in the current room.
   import static readonly attribute Walkbehind *Walkbehinds[];   // $AUTOCOMPLETESTATICONLY$
+  /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character in the current room.
+  import static attribute float FaceDirectionRatio;
 #endif
 };
 
@@ -1654,6 +1656,8 @@ builtin managed struct WalkableArea {
   import readonly attribute int ScalingMin;
   /// Gets this walkable area's maximal scaling level.
   import readonly attribute int ScalingMax;
+  /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection for each Character while on this area.
+  import static attribute float FaceDirectionRatio;
 };
 #endif
 
@@ -2290,6 +2294,8 @@ builtin managed struct Character {
   import attribute bool Enabled;
   /// Gets/sets whether the character is currently visible.
   import attribute bool Visible;
+  /// Gets/sets the optional y/x ratio of character's facing directions, determining directional loop selection while Character moves and turns.
+  import attribute float FaceDirectionRatio;
 #endif
 #ifdef SCRIPT_COMPAT_v399
   char  on;
@@ -2404,6 +2410,10 @@ builtin struct Game {
   import static void   PrecacheSprite(int sprnum);
   /// Preloads and caches sprites and linked sounds for a view, within a selected range of loops.
   import static void   PrecacheView(int view, int first_loop, int last_loop);
+#endif
+#ifdef SCRIPT_API_v400
+  /// Gets/sets the default y/x ratio of character's facing directions, determining directional loop selection for all Characters in game.
+  import static attribute float FaceDirectionRatio;
 #endif
 };
 

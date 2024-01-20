@@ -264,6 +264,16 @@ int Walkarea_GetScalingMax(ScriptWalkableArea *wa)
     return thisroom.WalkAreas[wa->id].ScalingNear;
 }
 
+float Walkarea_GetFaceDirectionRatio(ScriptWalkableArea *wa)
+{
+    return thisroom.WalkAreas[wa->id].FaceDirectionRatio;
+}
+
+void Walkarea_SetFaceDirectionRatio(ScriptWalkableArea *wa, float ratio)
+{
+    thisroom.WalkAreas[wa->id].FaceDirectionRatio = ratio;
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -315,6 +325,16 @@ RuntimeScriptValue Sc_Walkarea_GetScalingMax(void *self, const RuntimeScriptValu
     API_OBJCALL_INT(ScriptWalkableArea, Walkarea_GetScalingMax);
 }
 
+RuntimeScriptValue Sc_Walkarea_GetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(ScriptWalkableArea, Walkarea_GetFaceDirectionRatio);
+}
+
+RuntimeScriptValue Sc_Walkarea_SetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(ScriptWalkableArea, Walkarea_SetFaceDirectionRatio);
+}
+
 
 void RegisterWalkareaAPI()
 {
@@ -329,6 +349,8 @@ void RegisterWalkareaAPI()
         { "WalkableArea::get_ID",              API_FN_PAIR(Walkarea_GetID) },
         { "WalkableArea::get_ScalingMin",      API_FN_PAIR(Walkarea_GetScalingMin) },
         { "WalkableArea::get_ScalingMax",      API_FN_PAIR(Walkarea_GetScalingMax) },
+        { "WalkableArea::get_FaceDirectionRatio", API_FN_PAIR(Walkarea_GetFaceDirectionRatio) },
+        { "WalkableArea::set_FaceDirectionRatio", API_FN_PAIR(Walkarea_SetFaceDirectionRatio) },
     };
 
     ccAddExternalFunctions(walkarea_api);

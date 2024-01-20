@@ -180,6 +180,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, (P1CLASS*)params[4].Ptr); \
     return RuntimeScriptValue((int32_t)0)
 
+#define API_SCALL_VOID_PFLOAT(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 1); \
+    FUNCTION(params[0].FValue); \
+    return RuntimeScriptValue((int32_t)0)
+
 #define API_SCALL_VOID_PFLOAT2(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 2); \
     FUNCTION(params[0].FValue, params[1].FValue); \

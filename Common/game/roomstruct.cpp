@@ -25,6 +25,7 @@ namespace Common
 RoomOptions::RoomOptions()
     : PlayerCharOff(false)
     , PlayerView(0)
+    , FaceDirectionRatio(0.f)
     , Flags(0)
 {
 }
@@ -73,6 +74,7 @@ WalkArea::WalkArea()
     , ScalingFar(0)
     , ScalingNear(NOT_VECTOR_SCALED)
     , PlayerView(0)
+    , FaceDirectionRatio(0.f)
     , Top(-1)
     , Bottom(-1)
 {

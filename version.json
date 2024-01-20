@@ -6,5 +6,10 @@
     "versionMonth": "January",
     "versionIsBeta": "true",
     "appID": "6fcbc804-4887-4786-bcf6-b0786e1e983d",
-    "licenseLink": "https://opensource.org/license/artistic-2-0/"
+    "licenseLink": "https://opensource.org/license/artistic-2-0/",
+    
+    "sdlsound": {
+        "revision": "c5639414c1bb24fb4eef5861c13adb42a4aab950",
+        "urlHash": "2e9ab24fd861f61349b9386fd66c9851e9f03a60"
+    }
 }

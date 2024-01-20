@@ -1174,8 +1174,6 @@ import int  WaitInput(InputType inputs, int waitLoops = -1);
 #endif
 /// Checks whether the specified key is currently held down.
 import bool IsKeyPressed(eKeyCode);
-import void SetGlobalInt(int globalInt, int value);
-import int  GetGlobalInt(int globalInt);
 import void FlipScreen(int way);
 /// Fast-forwards the game until the specified character finishes moving.
 import void SkipUntilCharacterStops(CHARID);

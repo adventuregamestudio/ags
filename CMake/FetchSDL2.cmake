@@ -2,7 +2,7 @@ FetchContent_Declare(
     sdl2_content
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     URL https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.28.2.tar.gz
-    URL_HASH MD5=e00fe25102433d40d39ba67007a9fd2c
+    URL_HASH SHA1=16c7c4844d8b5e8027dfb134d2971746bb1382c3
 )
 
 FetchContent_GetProperties(sdl2_content)

@@ -92,14 +92,14 @@ RUN curl -fLsS "https://github.com/xiph/vorbis/releases/download/v${LIBVORBIS_VE
   rm /tmp/libvorbis-${LIBVORBIS_VERSION}.tar.gz 
 
 # Build and install SDL2
-ARG SDL2_VERSION=2.28.2
-RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL2_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
-  cd /tmp/SDL-release-${SDL2_VERSION} && \
+ARG SDL_VERSION=release-2.28.2
+RUN curl -fLsS "https://github.com/libsdl-org/SDL/archive/refs/tags/${SDL_VERSION}.tar.gz" | tar -f - -xvzC /tmp && \
+  cd /tmp/SDL-${SDL_VERSION} && \
   ./configure --enable-shared --enable-loadso --enable-pulseaudio-shared --enable-sndio-shared --enable-x11-shared --enable-oss=no --enable-libsamplerate-shared --enable-video-wayland=no --enable-directfb-shared --enable-rpath=no && \
   make -j$(getconf _NPROCESSORS_ONLN) && make install && \
   ldconfig -n /usr/local/lib && \
-  mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL-release-${SDL2_VERSION}/LICENSE.txt /usr/local/share/doc/libSDL2-2.0/copyright && \
-  rm -r /tmp/SDL-release-${SDL2_VERSION}
+  mkdir -p /usr/local/share/doc/libSDL2-2.0/ && cp /tmp/SDL-${SDL_VERSION}/LICENSE.txt /usr/local/share/doc/libSDL2-2.0/copyright && \
+  rm -r /tmp/SDL-${SDL_VERSION}
   
 # Build newer libtheora - note that encoding support is disabled AND it's directory uses GH repo name instead
 ARG LIBTHEORA_VERSION=1.1.1

@@ -38,11 +38,12 @@ get https://github.com/xiph/theora/archive/${LIBTHEORA_VERSION}.tar.gz theora.ta
 SDLSOUND_VERSION=c5639414c1bb24fb4eef5861c13adb42a4aab950
 get https://github.com/icculus/SDL_sound/archive/${SDLSOUND_VERSION}.tar.gz SDL_sound.tar.gz
 
-SDL_VERSION=2.28.2
+SDL_VERSION=release-2.28.2
+SDL_VERSION_NUMBER=2.28.2
 # Framework for macOS
-get https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL2-${SDL_VERSION}.dmg SDL2-Framework.dmg
+get https://github.com/libsdl-org/SDL/releases/download/${SDL_VERSION}/SDL2-${SDL_VERSION_NUMBER}.dmg SDL2-Framework.dmg
 # Full code for iOS
-get https://github.com/libsdl-org/SDL/archive/refs/tags/release-${SDL_VERSION}.tar.gz SDL.tar.gz
+get https://github.com/libsdl-org/SDL/archive/refs/tags/${SDL_VERSION}.tar.gz SDL.tar.gz
 
 if ! shasum --check sha1sums; then
     echo "Checksum failed, are downloads ok?" >&2

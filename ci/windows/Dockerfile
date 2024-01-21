@@ -64,11 +64,12 @@ RUN mkdir Redist && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe && \
   curl -fLOJ https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x64.exe
 
-ARG SDL_VERSION=2.28.2
+ARG SDL_VERSION=release-2.28.2
+ARG SDL_VERSION_NUMBER=2.28.2
 RUN mkdir Lib\SDL2 && \
-  curl -fLOJ "https://github.com/libsdl-org/SDL/releases/download/release-%SDL_VERSION%/SDL2-devel-%SDL_VERSION%-VC.zip" && \
-  tar -f SDL2-devel-%SDL_VERSION%-VC.zip -xvzC Lib\SDL2\ --strip-components 1  && \
-  del /f SDL2-devel-%SDL_VERSION%-VC.zip  && \
+  curl -fLOJ "https://github.com/libsdl-org/SDL/releases/download/%SDL_VERSION%/SDL2-devel-%SDL_VERSION_NUMBER%-VC.zip" && \
+  tar -f SDL2-devel-%SDL_VERSION_NUMBER%-VC.zip -xvzC Lib\SDL2\ --strip-components 1  && \
+  del /f SDL2-devel-%SDL_VERSION_NUMBER%-VC.zip  && \
   echo set^(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/include"^) > "Lib\SDL2\sdl2-config.cmake" && \
   echo # Support both 32 and 64 bit builds >> "Lib\SDL2\sdl2-config.cmake" && \
   echo if ^(${CMAKE_SIZEOF_VOID_P} MATCHES 8^) >> "Lib\SDL2\sdl2-config.cmake" && \

@@ -50,6 +50,14 @@ def replace_in_file(file_path, encoding, version):
     if m is not None:
         data = replace_group(m, 1, data, version.revision)
 
+    m = re.search(r'SDLSOUND_VERSION=(\w+)', data)
+    if m is not None:
+        data = replace_group(m, 1, data, version.revision)
+
+    m = re.search(r'SDL_SOUND_VERSION=(\w+)', data)
+    if m is not None:
+        data = replace_group(m, 1, data, version.revision)
+
     m = re.search(r'SDL2_SOUND_VERSION=(\w+)', data)
     if m is not None:
         data = replace_group(m, 1, data, version.revision)
@@ -87,6 +95,9 @@ def main():
     replace_in_file("../debian/README.md", "utf-8", version)
     replace_in_file("../OSX/README.md", "utf-8", version)
     replace_in_file("../Windows/README.md", "utf-8", version)
+    replace_in_file("../ci/linux/Dockerfile", "utf-8", version)
+    replace_in_file("../ci/windows/Dockerfile", "utf-8", version)
+    replace_in_file("../libsrc/download.sh", "utf-8", version)
 
     replace_shasums_in_file("../libsrc/sha1sums", "utf-8", version)
 

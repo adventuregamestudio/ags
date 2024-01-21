@@ -730,6 +730,18 @@ builtin struct Room {
   /// Checks if the specified room exists
   import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
 #endif
+#ifdef SCRIPT_API_v400
+  /// Accesses the Hotspots in the current room.
+  import static readonly attribute Hotspot *Hotspots[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Objects in the current room.
+  import static readonly attribute Object *Objects[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Regions in the current room.
+  import static readonly attribute Region *Regions[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Walkable areas in the current room.
+  import static readonly attribute WalkableArea *WalkableAreas[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Walk-behinds in the current room.
+  import static readonly attribute Walkbehind *Walkbehinds[];   // $AUTOCOMPLETESTATICONLY$
+#endif
 };
 
 builtin struct Parser {

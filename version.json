@@ -11,5 +11,10 @@
     "sdlsound": {
         "revision": "c5639414c1bb24fb4eef5861c13adb42a4aab950",
         "urlHash": "2e9ab24fd861f61349b9386fd66c9851e9f03a60"
+    },
+    "sdl": {
+        "revision": "2.28.2",
+        "release_type": "release",
+        "urlHash": "16c7c4844d8b5e8027dfb134d2971746bb1382c3"
     }
 }

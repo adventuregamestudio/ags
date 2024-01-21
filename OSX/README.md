@@ -78,7 +78,7 @@ The Xcode project depends on the prebuilt SDL2 Framework and library sources.
 
 The project also requires sources of library dependencies, either using the `libsrc/download.sh` script or manually downloading them and extracting them as below.
 
-- Download [SDL_sound](https://github.com/icculus/SDL_sound/archive/8d96d4cc0e1df35835a222ee51a7c32f273ec63e.zip) source code and place it in `ags/libsrc/SDL_sound`
+- Download [SDL_sound](https://github.com/icculus/SDL_sound/archive/1f8b5c25fabe1d611e828f112b7c76dac907b524.zip) source code and place it in `ags/libsrc/SDL_sound`
 - Download xiph [theora](https://github.com/xiph/theora/archive/7180717276af1ebc7da15c83162d6c5d6203aabf.tar.gz) source code, and place it in `ags/libsrc/theora`
 - Download xiph [ogg](https://github.com/xiph/ogg/archive/refs/tags/v1.3.5.tar.gz) source code, and place in `ags/libsrc/ogg`
 - Download xiph [vorbis](https://github.com/xiph/vorbis/archive/84c023699cdf023a32fa4ded32019f194afcdad0.tar.gz) source code, and place in `ags/libsrc/vorbis`
@@ -104,7 +104,7 @@ Make sure you have at least SDL 2.24.1 installed, if you have problems updating 
 
 The SDL_sound available in brew is not really well updated and it's a bit different from what's in the repository, using a different timidity and libmodplug. It's best to build it and install it from source. You will need CMake for this.
 
-    SDL2_SOUND_VERSION=8d96d4cc0e1df35835a222ee51a7c32f273ec63e
+    SDL2_SOUND_VERSION=1f8b5c25fabe1d611e828f112b7c76dac907b524
     cd /tmp
     curl -fLsS "https://github.com/icculus/SDL_sound/archive/$SDL2_SOUND_VERSION.tar.gz" --output SDL_sound.tar.gz
     tar -xvzf SDL_sound.tar.gz

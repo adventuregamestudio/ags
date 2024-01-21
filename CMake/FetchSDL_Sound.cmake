@@ -1,7 +1,7 @@
 FetchContent_Declare(
     sdlsound_content
-    URL https://github.com/icculus/SDL_sound/archive/495e948b455af48eb45f75cccc060498f1e0e8a2.tar.gz
-    URL_HASH MD5=d743aee2e550dca3a96b14d41e78b530
+    URL https://github.com/icculus/SDL_sound/archive/1f8b5c25fabe1d611e828f112b7c76dac907b524.tar.gz
+    URL_HASH SHA1=1deb0832f449eebdee313b48d67ce15d54df8241
 )
 
 FetchContent_GetProperties(sdlsound_content)
@@ -22,5 +22,4 @@ if(NOT sdlsound_content)
   add_library(sdl2_sound-interface INTERFACE)
   target_link_libraries(sdl2_sound-interface INTERFACE SDL2_sound-static)
   add_library(SDL2_sound::SDL2_sound ALIAS sdl2_sound-interface)
-  target_link_libraries(SDL2_sound-static  ${SDL2_LIBRARIES})
 endif()

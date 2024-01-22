@@ -115,6 +115,7 @@ Script API:
    DisplayAtY(), Character.SayAt(), Character.SayBackground(), DrawingSurface.DrawStringWrapped().
 
 Engine:
+ - Updated to SDL 2.28.5 and SDL_Sound 2.0.3+.
  - Significant performance improvement to scripts. Script running speed restored to a level
    close to AGS 3.2.1. Testing few "script-heavy" games showed fps raise by up to 30-40%
    compared with 3.6.0 engine.
@@ -171,6 +172,8 @@ Engine:
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
  - Engine will force any in-game debug messages to be displayed in standard message boxes,
    disregarding game's "Display all messages as speech" option.
+ - Display critical alerts as message boxes on all platforms that support that (unless engine
+   is run with "--no-message-box" parameter).
  - Print some info about memory usage when reporting a "Out of memory" error.
  - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated

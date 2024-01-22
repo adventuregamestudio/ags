@@ -599,7 +599,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         }
         generate_light_table();
 
-        for (size_t i = 0; i < MAX_WALK_AREAS + 1; ++i)
+        for (size_t i = 0; i < MAX_WALK_AREAS; ++i)
         {
             thisroom.WalkAreas[i].ScalingFar = r_data.RoomZoomLevels1[i];
             thisroom.WalkAreas[i].ScalingNear = r_data.RoomZoomLevels2[i];

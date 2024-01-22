@@ -546,7 +546,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     in->ReadInt32();
     in->ReadInt32();
     audio_master_volume = in->ReadInt32();
-    in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
+    in->Read(walkable_areas_on, MAX_WALK_AREAS);
     screen_flipped = in->ReadInt16();
     if (svg_ver < kGSSvgVersion_350_10)
     {
@@ -743,7 +743,7 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteInt32( 0);
     out->WriteInt32( 0);
     out->WriteInt32( audio_master_volume);
-    out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
+    out->Write(walkable_areas_on, MAX_WALK_AREAS);
     out->WriteInt16( screen_flipped);
     out->WriteInt32( entered_at_x);
     out->WriteInt32( entered_at_y);

@@ -95,8 +95,8 @@ struct RestoredData
     PBitmap                 RoomBkgScene[MAX_ROOM_BGFRAMES];
     short                   RoomLightLevels[MAX_ROOM_REGIONS];
     int                     RoomTintLevels[MAX_ROOM_REGIONS];
-    short                   RoomZoomLevels1[MAX_WALK_AREAS + 1];
-    short                   RoomZoomLevels2[MAX_WALK_AREAS + 1];
+    short                   RoomZoomLevels1[MAX_WALK_AREAS];
+    short                   RoomZoomLevels2[MAX_WALK_AREAS];
     // Mouse cursor parameters
     int                     CursorID;
     int                     CursorMode;

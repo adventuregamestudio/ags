@@ -951,7 +951,7 @@ HSaveError WriteThisRoom(Stream *out)
         out->WriteInt32(thisroom.Regions[i].Light);
         out->WriteInt32(thisroom.Regions[i].Tint);
     }
-    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
         out->WriteInt32(thisroom.WalkAreas[i].ScalingFar);
         out->WriteInt32(thisroom.WalkAreas[i].ScalingNear);
@@ -993,7 +993,7 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pres
         r_data.RoomLightLevels[i] = in->ReadInt32();
         r_data.RoomTintLevels[i] = in->ReadInt32();
     }
-    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {
         r_data.RoomZoomLevels1[i] = in->ReadInt32();
         r_data.RoomZoomLevels2[i] = in->ReadInt32();

@@ -168,8 +168,8 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     room->MaskResolution = in->ReadInt16();
     room->WalkAreaCount = in->ReadInt32();
-    if (room->WalkAreaCount > MAX_WALK_AREAS + 1)
-        return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", room->WalkAreaCount, MAX_WALK_AREAS + 1));
+    if (room->WalkAreaCount > MAX_WALK_AREAS)
+        return new RoomFileError(kRoomFileErr_IncompatibleEngine, String::FromFormat("Too many walkable areas (in room: %d, max: %d).", room->WalkAreaCount, MAX_WALK_AREAS));
 
     for (size_t i = 0; i < room->WalkAreaCount; ++i)
         room->WalkAreas[i].ScalingFar = in->ReadInt16();
@@ -204,7 +204,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Room animations are no longer supported.");
 
     // NOTE: this WA value was written for the second time here, for some weird reason
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         room->WalkAreas[i].PlayerView = in->ReadInt16();
     for (size_t i = 0; i < room->RegionCount; ++i)
         room->Regions[i].Light = in->ReadInt16();
@@ -516,16 +516,16 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt16(room->MaskResolution);
 
     // write the zoom and light levels
-    out->WriteInt32(MAX_WALK_AREAS + 1);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    out->WriteInt32(MAX_WALK_AREAS);
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingFar);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].PlayerView);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].ScalingNear);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].Top);
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].Bottom);
 
     out->WriteByteCount(0, LEGACY_ROOM_PASSWORD_LENGTH);
@@ -542,7 +542,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt16(0); // legacy room animations
 
     // NOTE: this WA value was written for the second time here, for some weird reason
-    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS + 1; ++i)
+    for (size_t i = 0; i < (size_t)MAX_WALK_AREAS; ++i)
         out->WriteInt16(room->WalkAreas[i].PlayerView);
     for (size_t i = 0; i < (size_t)MAX_ROOM_REGIONS; ++i)
         out->WriteInt16(room->Regions[i].Light);

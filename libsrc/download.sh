@@ -35,7 +35,7 @@ get https://github.com/xiph/vorbis/archive/${LIBVORBIS_VERSION}.tar.gz vorbis.ta
 LIBTHEORA_VERSION=7180717276af1ebc7da15c83162d6c5d6203aabf
 get https://github.com/xiph/theora/archive/${LIBTHEORA_VERSION}.tar.gz theora.tar.gz
 
-SDLSOUND_VERSION=1f8b5c25fabe1d611e828f112b7c76dac907b524
+SDLSOUND_VERSION=253b00caa6105eb8bc90ce65e750d435c6904244
 get https://github.com/icculus/SDL_sound/archive/${SDLSOUND_VERSION}.tar.gz SDL_sound.tar.gz
 
 SDL_VERSION=2.24.1

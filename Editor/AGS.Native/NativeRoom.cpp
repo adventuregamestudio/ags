@@ -114,7 +114,7 @@ void NativeRoom::SetAreaMask(AGS::Types::RoomAreaMaskType maskType, SysBitmap ^b
 
     RGB pal[256]; // dummy, used as a return value from CreateBlockFromBitmap
     AGSBitmap* newMask = CreateOpaqueNativeBitmap(bmp, pal, false, false, nullptr);
-    validate_mask(newMask, "imported", (nativeType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : (MAX_WALK_AREAS + 1));
+    validate_mask(newMask, "imported", (nativeType == kRoomAreaHotspot) ? MAX_ROOM_HOTSPOTS : MAX_WALK_AREAS);
     _rs->SetMask(nativeType, newMask);
 }
 

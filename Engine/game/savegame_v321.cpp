@@ -117,7 +117,7 @@ static void restore_game_spriteset(Stream *in)
     // get serialized dynamic sprites
     int sprnum = in->ReadInt32();
     while (sprnum) {
-        unsigned char spriteflag = in->ReadByte();
+        unsigned char spriteflag = in->ReadInt8();
         std::unique_ptr<Bitmap> image(read_serialized_bitmap(in));
         add_dynamic_sprite(sprnum, std::move(image));
         game.SpriteInfos[sprnum].Flags = spriteflag; // FIXME, don't set directly; are these flags even necessary?
@@ -163,7 +163,7 @@ static void restore_game_room_state(Stream *in, GameDataVersion data_ver)
     // read the room state for all the rooms the player has been in
     for (int vv = 0; vv < MAX_ROOMS; vv++)
     {
-        int beenhere = in->ReadByte();
+        int beenhere = in->ReadInt8();
         if (beenhere)
         {
             RoomStatus *roomstat = getRoomStatus(vv);

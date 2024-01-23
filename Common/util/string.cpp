@@ -87,7 +87,7 @@ bool String::IsNullOrSpace() const
         return true;
     for (const char *ptr = _cstr; *ptr; ++ptr)
     {
-        if (!std::isspace(*ptr))
+        if (!std::isspace(static_cast<uint8_t>(*ptr)))
             return false;
     }
     return true;

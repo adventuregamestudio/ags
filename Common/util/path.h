@@ -44,6 +44,8 @@ namespace Path
     String  GetFileExtension(const String &path);
     // Returns part of the filename without extension
     String  RemoveExtension(const String &filename);
+    // Returns filename with a different extension
+    String  ReplaceExtension(const String &filename, const String &ext);
 
     // Makes a platform-dependant path comparison.
     // This takes into consideration platform's filename case (in)sensivity and

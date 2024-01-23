@@ -62,6 +62,12 @@ String RemoveExtension(const String &filename)
     return filename;
 }
 
+String ReplaceExtension(const String &filename, const String &ext)
+{
+    String noext = RemoveExtension(filename);
+    return String::FromFormat("%s.%s", noext.GetCStr(), ext.GetCStr());
+}
+
 String GetDirectoryPath(const String &path)
 {
     if (File::IsDirectory(path))

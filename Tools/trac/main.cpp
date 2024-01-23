@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "data/tra_utils.h"
 #include "util/file.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -8,12 +9,12 @@ using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
 
-const char *HELP_STRING = "Usage: trac <input.trs> <output.tra>\n\t[--gamename <name>][--uniqueid <idnum>]";
+const char *HELP_STRING = "Usage: trac <input.trs> [<output.tra>]\n\t[--gamename <name>][--uniqueid <idnum>]";
 
 int main(int argc, char *argv[])
 {
-    printf("trac v0.1.0 - AGS translation compiler (TRS -> TRA)\n"\
-        "Copyright (c) 2021 AGS Team and contributors\n");
+    printf("trac v0.9.0 - AGS translation compiler (TRS -> TRA)\n"\
+        "Copyright (c) 2021-2024 AGS Team and contributors\n");
     for (int i = 1; i < argc; ++i)
     {
         const char *arg = argv[i];
@@ -23,28 +24,33 @@ int main(int argc, char *argv[])
             return 0; // display help and bail out
         }
     }
-    if (argc < 3)
+    if (argc < 2)
     {
         printf("Error: not enough arguments\n");
         printf("%s\n", HELP_STRING);
         return -1;
     }
 
+    String src = argv[1];
+    String dst;
     String game_name;
-    int game_uid;
-    for (int i = 3; i < argc; ++i)
+    int game_uid = 0;
+    for (int i = 2; i < argc; ++i)
     {
         const char *arg = argv[i];
-        if (ags_stricmp(arg, "--gamename") == 0 && (i < argc - 1))
+        if (arg[0] != '-' && dst.IsEmpty())
+            dst = arg;
+        else if (ags_stricmp(arg, "--gamename") == 0 && (i < argc - 1))
             game_name = argv[++i];
         else if (ags_stricmp(arg, "--uniqueid") == 0 && (i < argc - 1))
             game_uid = StrUtil::StringToInt(argv[++i]);
     }
 
-    const char *src = argv[1];
-    const char *dst = argv[2];
-    printf("Input translation source: %s\n", src);
-    printf("Output compiled translation: %s\n", dst);
+    if (dst.IsEmpty())
+        dst = Path::ReplaceExtension(src, "tra");
+
+    printf("Input translation source: %s\n", src.GetCStr());
+    printf("Output compiled translation: %s\n", dst.GetCStr());
     printf("Game name: %s\n", game_name.GetCStr());
     printf("Game uniqueid: %d\n", game_uid);
 

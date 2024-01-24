@@ -17,6 +17,9 @@
 #include "util/textstreamreader.h"
 #include "util/textstreamwriter.h"
 
+// TODO: Unicode-aware implementation that potentially deals with
+// unicode spaces, replacing isblank and isspace usage.
+//
 // TODO: replace with C++11 std::isblank library function
 namespace agsstd
 {

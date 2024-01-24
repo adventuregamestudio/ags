@@ -925,7 +925,7 @@ void String::TrimLeft(char c)
         auto t = *trim_ptr;
         if (t == 0) { break; }
         if (c && t != c) { break; }
-        if (!c && !isspace(t)) { break; }
+        if (!c && !isspace(static_cast<uint8_t>(t))) { break; }
         trim_ptr++;
     }
     size_t trimmed = trim_ptr - _cstr;
@@ -950,7 +950,7 @@ void String::TrimRight(char c)
         if (trim_ptr < _cstr) { break; }
         auto t = *trim_ptr;
         if (c && t != c) { break; }
-        if (!c && !isspace(t)) { break; }
+        if (!c && !isspace(static_cast<uint8_t>(t))) { break; }
         trim_ptr--;
     }
     size_t trimmed = (_cstr + _len - 1) - trim_ptr;

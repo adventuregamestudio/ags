@@ -102,7 +102,7 @@ namespace AGS.Types
 				string scriptName = "eFont" + Name;
 				for (int i = 0; i < scriptName.Length; i++)
 				{
-					if (!Char.IsLetterOrDigit(scriptName[i]))
+					if (!scriptName[i].IsScriptWordChar())
 					{
 						scriptName = scriptName.Replace(scriptName[i].ToString(), string.Empty);
 					}

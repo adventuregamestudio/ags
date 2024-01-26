@@ -145,7 +145,7 @@ namespace AGS.Types
 				string cursorName = string.Empty;
 				for (int i = 0; i < _name.Length; i++)
 				{
-					if (Char.IsLetterOrDigit(_name[i]))
+					if (_name[i].IsScriptWordChar())
 					{
 						cursorName += _name[i];
 					}

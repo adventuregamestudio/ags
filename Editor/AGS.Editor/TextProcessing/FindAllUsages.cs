@@ -154,7 +154,7 @@ namespace AGS.Editor.TextProcessing
 
         private bool IsCharAPartOfWord(char c)
         {
-            return char.IsLetterOrDigit(c) || c == '_';
+            return c.IsScriptWordChar();
         }
 
         private bool AddTokenIfAloneInLine(string[] splitLine, IScript script, 

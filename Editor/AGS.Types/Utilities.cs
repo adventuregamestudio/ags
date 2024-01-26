@@ -89,7 +89,7 @@ namespace AGS.Types
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < name.Length; i++)
             {
-                if ((IsEnglishLetterOrDigit(name[i])) || (name[i] == '_'))
+                if (name[i].IsScriptWordChar())
                 {
                     sb.Append(name[i]);
                 }
@@ -101,12 +101,15 @@ namespace AGS.Types
             return sb.ToString();
         }
 
-        private static bool IsEnglishLetterOrDigit(char theChar)
+        /// <summary>
+        /// Tells if the character is a valid symbol for a script keyword or a variable name.
+        /// </summary>
+        public static bool IsScriptWordChar(this Char theChar)
         {
-            if ((theChar >= 'A') && (theChar <= 'Z')) return true;
-            if ((theChar >= 'a') && (theChar <= 'z')) return true;
-            if ((theChar >= '0') && (theChar <= '9')) return true;
-            return false;
+            return ((theChar >= 'A') && (theChar <= 'Z')) ||
+                ((theChar >= 'a') && (theChar <= 'z')) ||
+                ((theChar >= '0') && (theChar <= '9')) ||
+                (theChar == '_');
         }
 
         public static string ValidateScriptName(string name, int truncateToLength)
@@ -117,7 +120,7 @@ namespace AGS.Types
                 {
                     throw new InvalidDataException("Script name cannot start with number: " + name);
                 }
-                if ((!IsEnglishLetterOrDigit(name[i])) && (name[i] != '_'))
+                if (!name[i].IsScriptWordChar())
                 {
                     throw new InvalidDataException("Invalid script name; name must only include letters, numbers and underscores: " + name);
                 }

@@ -35,7 +35,6 @@
 
 using namespace AGS::Common;
 
-extern int our_eip;
 extern int eip_guinum;
 extern int eip_guiobj;
 extern int proper_exit;
@@ -58,7 +57,7 @@ static void DisplayException()
         "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and contact the game author for support "
         "or post these details on the AGS Technical Forum.\n\n%s\n\n"
         "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
-        excinfo.ExceptionCode, (int)sizeof(intptr_t) * 2, (intptr_t)excinfo.ExceptionAddress, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, sc_error.CallStack.GetCStr(),
+        excinfo.ExceptionCode, (int)sizeof(intptr_t) * 2, (intptr_t)excinfo.ExceptionAddress, get_our_eip(), EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, sc_error.CallStack.GetCStr(),
         (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." :
         "Unable to create an error dump file.", miniDumpResultCode);
     MessageBoxA((HWND)sys_win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
@@ -94,7 +93,8 @@ int malloc_fail_handler(size_t amountwanted)
 #endif
     free(printfworkingspace);
 
-    cur += snprintf(cur, end-cur, "Out of memory: failed to allocate %zu bytes (at PP=%d)\n\n", amountwanted, our_eip);
+    cur += snprintf(cur, end-cur, "Out of memory: failed to allocate %zu bytes (at PP=%d)\n\n", amountwanted,
+                    get_our_eip());
 
     const size_t total_normspr = spriteset.GetCacheSize();
     const size_t total_lockspr = spriteset.GetLockedSize();

@@ -55,7 +55,6 @@ extern GameSetupStruct game;
 extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
-extern int our_eip;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern int proper_exit;
 extern char check_dynamic_sprites_at_exit;
@@ -104,7 +103,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
 
 void quit_shutdown_audio()
 {
-    our_eip = 9917;
+    set_our_eip(9917);
     game.options[OPT_CROSSFADEMUSIC] = 0;
     shutdown_sound();
 }
@@ -197,22 +196,22 @@ void quit(const char *quitmsg)
 
     quit_tell_editor_debugger(errmsg, qreason);
 
-    our_eip = 9900;
+    set_our_eip(9900);
 
     quit_shutdown_scripts();
 
-    our_eip = 9016;
+    set_our_eip(9016);
 
     quit_stop_cd();
     if (use_cdplayer)
         platform->ShutdownCDPlayer();
 
-    our_eip = 9019;
+    set_our_eip(9019);
 
     video_shutdown();
     quit_shutdown_audio();
 
-    our_eip = 9908;
+    set_our_eip(9908);
 
     shutdown_pathfinder();
 
@@ -242,7 +241,7 @@ void quit(const char *quitmsg)
 
     platform->PostBackendExit();
 
-    our_eip = 9903;
+    set_our_eip(9903);
 
     proper_exit=1;
 
@@ -251,7 +250,7 @@ void quit(const char *quitmsg)
     shutdown_debug();
     AGSPlatformDriver::Shutdown();
 
-    our_eip = 9904;
+    set_our_eip(9904);
     exit(EXIT_NORMAL);
 }
 

@@ -75,7 +75,6 @@ extern RoomStruct thisroom;
 extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
-extern int our_eip;
 extern int in_new_room;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
@@ -1647,7 +1646,7 @@ static Bitmap *transform_sprite(Bitmap *src, bool src_has_alpha, std::unique_ptr
         return src; // No transform: return source image
 
     recycle_bitmap(dst, src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
-    our_eip = 339;
+    set_our_eip(339);
 
     // If scaled: first scale then optionally mirror
     if (src->GetSize() != dst_sz)
@@ -1961,7 +1960,7 @@ bool construct_object_gfx(int objid, bool force_software)
 
 void prepare_objects_for_drawing()
 {
-    our_eip=32;
+    set_our_eip(32);
 
     const bool hw_accel = !drawstate.SoftwareRender;
 
@@ -2070,7 +2069,7 @@ bool construct_char_gfx(int charid, bool force_software)
 
 void prepare_characters_for_drawing()
 {
-    our_eip=33;
+    set_our_eip(33);
     const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
@@ -2171,7 +2170,7 @@ void prepare_room_sprites()
 
         if ((debug_flags & DBG_NODRAWSPRITES) == 0)
         {
-            our_eip = 34;
+            set_our_eip(34);
 
             if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2193,7 +2192,7 @@ void prepare_room_sprites()
             draw_sprite_list(true);
         }
     }
-    our_eip = 36;
+    set_our_eip(36);
 
     // Debug room overlay
     update_room_debug();
@@ -2223,7 +2222,7 @@ void draw_preroom_background()
 // whatsoever.
 PBitmap draw_room_background(Viewport *view)
 {
-    our_eip = 31;
+    set_our_eip(31);
 
     // For the sake of software renderer, if there is any kind of camera transform required
     // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
@@ -2386,7 +2385,7 @@ void draw_gui_and_overlays()
     }
 
     // Add GUIs
-    our_eip=35;
+    set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
         if (playerchar->activeinv >= MAX_INV) {
             quit("!The player.activeinv variable has been corrupted, probably as a result\n"
@@ -2394,7 +2393,7 @@ void draw_gui_and_overlays()
         }
         if (playerchar->activeinv < 1) gui_inv_pic=-1;
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
-        our_eip = 37;
+        set_our_eip(37);
         // Prepare and update GUI textures
         {
             for (int index = 0; index < game.numgui; ++index)
@@ -2405,7 +2404,7 @@ void draw_gui_and_overlays()
                 if (gui.Transparency == 255) continue; // 100% transparent
 
                 eip_guinum = index;
-                our_eip = 372;
+                set_our_eip(372);
                 const bool draw_with_controls = !draw_controls_as_textures;
                 if (gui.HasChanged() || (draw_with_controls && gui.HasControlsChanged()))
                 {
@@ -2428,19 +2427,19 @@ void draw_gui_and_overlays()
                     sync_object_texture(gbg, is_alpha);
                 }
 
-                our_eip = 373;
+                set_our_eip(373);
                 // Update control textures, if they have changed themselves
                 if (draw_controls_as_textures && gui.HasControlsChanged())
                 {
                     construct_guictrl_tex(gui);
                 }
 
-                our_eip = 374;
+                set_our_eip(374);
 
                 gui.ClearChanged();
             }
         }
-        our_eip = 38;
+        set_our_eip(38);
         // Draw the GUIs
         for (int index = 0; index < game.numgui; ++index)
         {
@@ -2475,7 +2474,7 @@ void draw_gui_and_overlays()
     // Move the resulting sprlist with guis and overlays to render
     draw_sprite_list(false);
     put_sprite_list_on_screen(false);
-    our_eip = 1099;
+    set_our_eip(1099);
 }
 
 // Push the gathered list of sprites into the active graphic renderer
@@ -2500,7 +2499,7 @@ void put_sprite_list_on_screen(bool in_room)
         }
     }
 
-    our_eip = 1100;
+    set_our_eip(1100);
 }
 
 bool GfxDriverSpriteEvtCallback(int evt, int data)
@@ -2685,7 +2684,7 @@ void construct_game_scene(bool full_redraw)
     if (play.fast_forward)
         return;
 
-    our_eip=3;
+    set_our_eip(3);
 
     // React to changes to viewports and cameras (possibly from script) just before the render
     play.UpdateViewports();
@@ -2727,7 +2726,7 @@ void construct_game_scene(bool full_redraw)
         }
     }
 
-    our_eip=4;
+    set_our_eip(4);
 
     // Stage: UI overlay
     if (play.screen_is_faded_out == 0)
@@ -2903,7 +2902,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     update_shakescreen();
 
     construct_game_scene(false);
-    our_eip=5;
+    set_our_eip(5);
     // TODO: extraBitmap is a hack, used to place an additional gui element
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)

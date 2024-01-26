@@ -106,7 +106,7 @@ int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 int new_room_loop = SCR_NO_VALUE;
 bool new_room_placeonwalkable = false;
-int proper_exit=0,our_eip=0;
+int proper_exit=0;
 
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {
     get_new_size_for_sprite,
@@ -1019,8 +1019,8 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     data_overwritten = false;
     gameHasBeenRestored++;
 
-    oldeip = our_eip;
-    our_eip = 2050;
+    oldeip = get_our_eip();
+    set_our_eip(2050);
 
     HSaveError err;
     SavegameSource src;
@@ -1074,7 +1074,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
     if (!err)
         return err;
     src.InputStream.reset();
-    our_eip = oldeip;
+    set_our_eip(oldeip);
 
     // ensure input state is reset
     ags_clear_input_state();

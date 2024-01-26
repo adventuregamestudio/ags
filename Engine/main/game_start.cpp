@@ -41,7 +41,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern int our_eip, displayed_room;
+extern int displayed_room;
 extern GameSetupStruct game;
 extern GameState play;
 extern CharacterInfo*playerchar;
@@ -63,21 +63,21 @@ void start_game() {
     Mouse::SetPosition(Point(160, 100));
     newmusic(0);
 
-    our_eip = -42;
+    set_our_eip(-42);
 
     // skip ticks to account for initialisation or a restored game.
     skipMissedTicks();
 
     RunScriptFunctionInModules("game_start");
 
-    our_eip = -43;
+    set_our_eip(-43);
 
     // Only auto-set first restart point in < 3.6.1 games,
     // since 3.6.1+ users are suggested to set one manually in script.
     if (loaded_game_file_version < kGameVersion_361_10)
         SetRestartPoint();
 
-    our_eip=-3;
+    set_our_eip(-3);
 
     if (displayed_room < 0) {
         current_fade_out_effect();

@@ -37,6 +37,10 @@ void AAOGLGfxFilter::SetFilteringForStandardSprite()
 {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // Prevent sprite pixels mixing with "texture border" pixels sometimes
+    // See: https://stackoverflow.com/questions/56823126/how-is-gl-clamp-in-opengl-different-from-gl-clamp-to-edge
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 const GfxFilterInfo &AAOGLGfxFilter::GetInfo() const

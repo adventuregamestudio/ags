@@ -36,8 +36,6 @@
 
 #if AGS_OPENGL_ES2
 
-#define GL_CLAMP GL_CLAMP_TO_EDGE
-
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
 #define glGenFramebuffersEXT glGenFramebuffers
@@ -1118,18 +1116,20 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     else if (_do_render_to_texture)
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     }
     else
     {
       _filter->SetFilteringForStandardSprite();
     }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
     if (txdata->_vertex != nullptr)
     {
@@ -1624,8 +1624,12 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   else
     BitmapToVideoMem(bitmap, hasAlpha, &fixedTile, memPtr, pitch, usingLinearFiltering);
 
-  // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
-  // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
+  // Mimic the behaviour of GL_CLAMP_TO_EDGE for the tile edges
+  // NOTE: on some platforms GL_CLAMP_TO_EDGE does not work with the version of OpenGL we're using.
+  // TODO: test the GL version to see if this is even necessary?!
+  // Info on CLAMP types:
+  // https://docs.gl/gl2/glTexParameter
+  // https://stackoverflow.com/questions/56823126/how-is-gl-clamp-in-opengl-different-from-gl-clamp-to-edge
   if (tile->width < tileWidth)
   {
     if (tilex > 0)

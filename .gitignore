@@ -178,3 +178,6 @@ libsrc/SDL2-Framework.dmg
 
 # ags game in ios game project
 iOS/Resources
+
+# ignore libraries dependencies manually placed in Editor
+Editor/References/**/*.dll

@@ -131,14 +131,12 @@ namespace AGS.Editor
             int thisAtIndex = -1;
             while ((thisAtIndex = thisLine.IndexOf("this", thisAtIndex + 1)) > 0)
             {
-                if (Char.IsLetterOrDigit(thisLine[thisAtIndex - 1]) ||
-                    (thisLine[thisAtIndex - 1] == '_'))
+                if (thisLine[thisAtIndex - 1].IsScriptWordChar())
                 {
                     continue;
                 }
                 if ((thisAtIndex < thisLine.Length - 4) &&
-                    ((Char.IsLetterOrDigit(thisLine[thisAtIndex + 4]) ||
-                     (thisLine[thisAtIndex + 4] == '_'))))
+                    (thisLine[thisAtIndex + 4].IsScriptWordChar()))
                 {
                     continue;
                 }

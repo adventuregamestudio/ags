@@ -664,7 +664,7 @@ namespace AGS.Editor
                 return string.Empty;
             }
             int index = 0;
-            while (Char.IsLetterOrDigit(script[index]) || (script[index] == '_'))
+            while (script[index].IsScriptWordChar())
             {
                 index++;
                 if (index >= script.Length)

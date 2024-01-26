@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using AGS.Types;
 
 namespace AGS.CScript.Compiler
 {
@@ -117,7 +118,7 @@ namespace AGS.CScript.Compiler
 
 			if (Char.IsLetter(startChar) || (startChar == '_'))
 			{
-				return (Char.IsLetterOrDigit(thisChar) || (thisChar == '_'));
+				return thisChar.IsScriptWordChar();
 			}
 
 			// ==, >=, <=, !=, etc

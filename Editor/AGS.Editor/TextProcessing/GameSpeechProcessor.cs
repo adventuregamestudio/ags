@@ -209,7 +209,7 @@ namespace AGS.Editor
                 else if (thisLine.IndexOf(":") > 0)
                 {
                     int characterNameLength = 0;
-                    while (Char.IsLetterOrDigit(thisLine[characterNameLength]))
+                    while (thisLine[characterNameLength].IsScriptWordChar())
                     {
                         characterNameLength++;
                     }

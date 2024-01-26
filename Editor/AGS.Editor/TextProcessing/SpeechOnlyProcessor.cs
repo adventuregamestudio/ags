@@ -39,7 +39,7 @@ namespace AGS.Editor
 					}
 
 					int endIndex = startParseForNameAt;
-					while ((endIndex < scriptCodeExtract.Length) && (Char.IsLetterOrDigit(scriptCodeExtract[endIndex])))
+					while ((endIndex < scriptCodeExtract.Length) && (scriptCodeExtract[endIndex].IsScriptWordChar()))
 					{
 						endIndex++;
 					}
@@ -82,7 +82,7 @@ namespace AGS.Editor
 				checkIndex++;
 				return checkIndex;
 			}
-			while ((checkIndex >= 0) && (Char.IsLetterOrDigit(scriptCodeExtract[checkIndex])))
+			while ((checkIndex >= 0) && (scriptCodeExtract[checkIndex].IsScriptWordChar()))
 			{
 				checkIndex--;
 			}

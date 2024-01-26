@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using AGS.Types;
+using Version = System.Version;
 
 namespace AGS.CScript.Compiler
 {
@@ -157,7 +159,7 @@ namespace AGS.CScript.Compiler
 		{
 			int i = 0;
 			while ((i < text.Length) && 
-				   ((Char.IsLetterOrDigit(text[i])) || (text[i] == '_') ||
+				   (text[i].IsScriptWordChar() ||
 				    (includeDots && (text[i] == '.')))
 				   )
 			{

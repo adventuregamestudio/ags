@@ -99,8 +99,9 @@
     <Reference Condition="'$(Platform)' == 'x86'" Include="irrKlang.NET4">
       <HintPath>..\References\irrKlang.NET4.dll</HintPath>
     </Reference>
-    <Reference Include="Magick.NET-Q8-x86, Version=7.10.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=x86">
-      <HintPath>..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\lib\net40\Magick.NET-Q8-x86.dll</HintPath>
+    <Reference Include="Magick.NET-Q8-AnyCPU, Version=7.10.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Condition="'$(Platform)' == 'x64'" Include="irrKlang.NET4">
       <HintPath>..\References\x64\irrKlang.NET4.dll</HintPath>
@@ -1234,11 +1235,25 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets" Condition="Exists('..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\Solutions\packages\Magick.NET-Q8-x86.7.10.0\build\net40\Magick.NET-Q8-x86.targets'))" />
-  </Target>
+  <ItemGroup Condition="'$(OS)' != 'Unix' And $(Platform) == 'x86'">
+    <NativeDLL Include="..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\runtimes\win-x86\native\*.Native.dll" />
+    <Content Include="@(NativeDLL)">
+        <Link>%(FileName)%(Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup Condition="'$(OS)' != 'Unix' And $(Platform) == 'x64'">
+    <NativeDLL Include="..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\runtimes\win-x64\native\*.Native.dll" />
+    <Content Include="@(NativeDLL)">
+        <Link>%(FileName)%(Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup Condition="'$(OS)' == 'Unix'">
+      <NativeDLL Include="$(MSBuildThisFileDirectory)\..\..\runtimes\**\*.Native.dll.so" />
+      <Content Include="@(NativeDLL)">
+          <Copy>%(FileName)%(Extension)</Copy>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+  </ItemGroup>
 </Project>

@@ -26,6 +26,8 @@
 #define AGS_MAX_OBJECTS   256
 #define AGS_MAX_HOTSPOTS  50
 #define AGS_MAX_REGIONS   16
+#define AGS_MAX_WALKABLE_AREAS 16
+#define AGS_MAX_WALKBEHINDS 16
 // MAX_ROOM_OBJECTS is a duplicate and was added by an oversight
 #define MAX_ROOM_OBJECTS  40
 #define MAX_LEGACY_GLOBAL_VARS  50
@@ -689,6 +691,12 @@ builtin managed struct Camera;
 builtin managed struct Viewport;
 #endif
 
+builtin managed struct Hotspot;
+builtin managed struct Object;
+builtin managed struct Region;
+builtin managed struct WalkableArea;
+builtin managed struct Walkbehind;
+
 builtin struct Room {
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
@@ -721,6 +729,18 @@ builtin struct Room {
 #ifdef SCRIPT_API_v360
   /// Checks if the specified room exists
   import static bool Exists(int room);   // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v400
+  /// Accesses the Hotspots in the current room.
+  import static readonly attribute Hotspot *Hotspots[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Objects in the current room.
+  import static readonly attribute Object *Objects[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Regions in the current room.
+  import static readonly attribute Region *Regions[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Walkable areas in the current room.
+  import static readonly attribute WalkableArea *WalkableAreas[];   // $AUTOCOMPLETESTATICONLY$
+  /// Accesses the Walk-behinds in the current room.
+  import static readonly attribute Walkbehind *Walkbehinds[];   // $AUTOCOMPLETESTATICONLY$
 #endif
 };
 
@@ -796,6 +816,7 @@ import void DeleteSaveSlot(int slot);
 import void SetRestartPoint();
 /// Gets what type of thing is in the room at the specified co-ordinates.
 import LocationType GetLocationType(int x, int y);
+#ifdef SCRIPT_COMPAT_v399
 #ifdef SCRIPT_API_v3507
 /// Returns which walkable area is at the specified position on screen.
 import int  GetWalkableAreaAtScreen(int screenX, int screenY);
@@ -808,6 +829,7 @@ import DrawingSurface* GetDrawingSurfaceForWalkableArea();
 /// Gets the drawing surface for the 8-bit walk-behind mask
 import DrawingSurface* GetDrawingSurfaceForWalkbehind();
 #endif
+#endif // SCRIPT_COMPAT_v399
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
 /// Returns whether the game is currently paused.
@@ -1126,24 +1148,27 @@ import void SetNextScreenTransition(TransitionStyle);
 import void SetFadeColor(int red, int green, int blue);
 /// Checks whether an event handler is registered to handle clicking at the specified location on the screen.
 import int  IsInteractionAvailable (int x, int y, CursorMode);
-/// Removes the specified walkable area from the room.
-import void RemoveWalkableArea(int area);
-/// Brings back a previously removed walkable area.
-import void RestoreWalkableArea(int area);
-/// Changes the specified walkable area's scaling level.
-import void SetAreaScaling(int area, int min, int max);
 /// Disables all region events, and optionally light levels and tints.
 import void DisableGroundLevelAreas(int disableTints);
 /// Re-enables region events, light levels and tints.
 import void EnableGroundLevelAreas();
-/// Changes the baseline of the specified walk-behind area.
-import void SetWalkBehindBase(int area, int baseline);
 /// Plays a FLI/FLC animation.
 import void PlayFlic(int flcNumber, int options);
 /// Plays an AVI/MPG video.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
 /// Sets an ambient light level that affects all objects and characters in the room.
 import void SetAmbientLightLevel(int light_level);
+
+#ifdef SCRIPT_COMPAT_v399
+/// Removes the specified walkable area from the room.
+import void RemoveWalkableArea(int area);
+/// Brings back a previously removed walkable area.
+import void RestoreWalkableArea(int area);
+/// Changes the specified walkable area's scaling level.
+import void SetAreaScaling(int area, int min, int max);
+/// Changes the baseline of the specified walk-behind area.
+import void SetWalkBehindBase(int area, int baseline);
+#endif // SCRIPT_COMPAT_v399
 
 import int  IsVoxAvailable();
 /// Changes the voice speech volume.
@@ -1610,6 +1635,42 @@ builtin managed struct Region {
 #endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
+
+#ifdef SCRIPT_API_v400
+builtin managed struct WalkableArea {
+  /// Gets the walkable area at the specified position on the screen.
+  import static WalkableArea* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Returns the walkable area at the specified position within this room.
+  import static WalkableArea* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Gets the drawing surface for the 8-bit walkable mask
+  import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
+  /// Changes this walkable area's scaling level.
+  import void SetScaling(int min, int max);
+  /// Gets the ID number for this area.
+  import readonly attribute int ID;
+  /// Gets/sets whether this walkable area is enabled.
+  import attribute bool Enabled;
+  /// Gets this walkable area's minimal scaling level.
+  import readonly attribute int ScalingMin;
+  /// Gets this walkable area's maximal scaling level.
+  import readonly attribute int ScalingMax;
+};
+#endif
+
+#ifdef SCRIPT_API_v400
+builtin managed struct Walkbehind {
+  /// Gets the walk-behind at the specified position on the screen.
+  import static Walkbehind* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Returns the walk-behind at the specified position within this room.
+  import static Walkbehind* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Gets the drawing surface for the 8-bit walk-behind mask
+  import static DrawingSurface* GetDrawingSurface();  // $AUTOCOMPLETESTATICONLY$
+  /// Gets the ID number for this walk-behind.
+  import readonly attribute int ID;
+  /// Gets/sets this walk-behind's baseline.
+  import attribute int Baseline;
+};
+#endif
 
 builtin managed struct Dialog {
 #ifdef SCRIPT_API_v361
@@ -2594,6 +2655,8 @@ import readonly Character *player;
 import readonly Object *object[AGS_MAX_OBJECTS];
 import readonly Hotspot *hotspot[AGS_MAX_HOTSPOTS];
 import readonly Region *region[AGS_MAX_REGIONS];
+import readonly WalkableArea *walkarea[AGS_MAX_WALKABLE_AREAS];
+import readonly Walkbehind *walkbehind[AGS_MAX_WALKBEHINDS];
 
 #undef CursorMode
 #undef FontType

@@ -77,6 +77,10 @@ target_sources(engine
     ac/dynobj/cc_region.h
     ac/dynobj/cc_serializer.cpp
     ac/dynobj/cc_serializer.h
+    ac/dynobj/cc_walkablearea.cpp
+    ac/dynobj/cc_walkablearea.h
+    ac/dynobj/cc_walkbehind.cpp
+    ac/dynobj/cc_walkbehind.h
     ac/dynobj/dynobj_manager.cpp
     ac/dynobj/dynobj_manager.h
     ac/dynobj/managedobjectpool.cpp

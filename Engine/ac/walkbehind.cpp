@@ -15,7 +15,10 @@
 #include <algorithm>
 #include "ac/draw.h"
 #include "ac/gamestate.h"
+#include "ac/room.h"
 #include "ac/roomstatus.h"
+#include "ac/dynobj/scriptobjects.h"
+#include "ac/dynobj/cc_walkbehind.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 
@@ -27,6 +30,8 @@ extern RoomStruct thisroom;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern RoomStatus *croom;
+extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
+extern CCWalkbehind ccDynamicWalkbehind;
 
 // An info on vertical column of walk-behind mask, which may contain WB area
 struct WalkBehindColumn
@@ -183,4 +188,101 @@ void walkbehinds_recalc()
             }
         }
     }
+}
+
+int get_walkbehind_pixel(int x, int y)
+{
+    return thisroom.WalkAreaMask->GetPixel(room_to_mask_coord(x), room_to_mask_coord(y));
+}
+
+ScriptWalkbehind *GetWalkbehindAtRoom(int x, int y)
+{
+    int area = get_walkbehind_pixel(x, y);
+    area = area >= 0 && area < (MAX_WALK_BEHINDS) ? area : 0;
+    return &scrWalkbehind[area];
+}
+
+ScriptWalkbehind *GetWalkbehindAtScreen(int x, int y)
+{
+    VpPoint vpt = play.ScreenToRoom(x, y);
+    if (vpt.second < 0)
+        return nullptr;
+    return GetWalkbehindAtRoom(vpt.first.X, vpt.first.Y);
+}
+
+int Walkbehind_GetID(ScriptWalkbehind *wb)
+{
+    return wb->id;
+}
+
+int Walkbehind_GetBaseline(ScriptWalkbehind *wb)
+{
+    return croom->walkbehind_base[wb->id];
+}
+
+void Walkbehind_SetBaseline(ScriptWalkbehind *wb, int baseline)
+{
+    croom->walkbehind_base[wb->id] = baseline;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+
+extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkbehind(const RuntimeScriptValue *params, int32_t param_count);
+
+RuntimeScriptValue Sc_GetWalkbehindAtRoom(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkbehind, GetWalkbehindAtRoom);
+}
+
+RuntimeScriptValue Sc_GetWalkbehindAtScreen(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptWalkableArea, ccDynamicWalkbehind, GetWalkbehindAtScreen);
+}
+
+extern RuntimeScriptValue Sc_GetDrawingSurfaceForWalkableArea(const RuntimeScriptValue *params, int32_t param_count);
+
+RuntimeScriptValue Sc_Walkbehind_GetDrawingSurface(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptDrawingSurface, GetDrawingSurfaceForWalkableArea);
+}
+
+RuntimeScriptValue Sc_Walkbehind_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptWalkbehind, Walkbehind_GetBaseline);
+}
+
+RuntimeScriptValue Sc_Walkbehind_SetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptWalkbehind, Walkbehind_SetBaseline);
+}
+
+RuntimeScriptValue Sc_Walkbehind_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptWalkbehind, Walkbehind_GetID);
+}
+
+
+void RegisterWalkbehindAPI()
+{
+    ScFnRegister walkbehind_api[] = {
+        { "Walkbehind::GetAtRoomXY^2",       API_FN_PAIR(GetWalkbehindAtRoom) },
+        { "Walkbehind::GetAtScreenXY^2",     API_FN_PAIR(GetWalkbehindAtScreen) },
+        { "Walkbehind::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
+
+        { "Walkbehind::get_Baseline",        API_FN_PAIR(Walkbehind_GetBaseline) },
+        { "Walkbehind::set_Baseline",        API_FN_PAIR(Walkbehind_SetBaseline) },
+        { "Walkbehind::get_ID",              API_FN_PAIR(Walkbehind_GetID) },
+    };
+
+    ccAddExternalFunctions(walkbehind_api);
 }

@@ -470,6 +470,8 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dialog.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_staticarray.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkablearea.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkbehind.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_guiobject.cpp" />
@@ -713,6 +715,8 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_staticarray.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkablearea.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkbehind.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />
@@ -726,7 +730,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptgame.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptjoystick.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />

@@ -85,7 +85,6 @@ extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
-extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
@@ -97,6 +96,14 @@ extern bool logScriptRTTI;
 
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
+extern CCRegion ccDynamicRegion;
+extern CCWalkableArea ccDynamicWalkarea;
+extern CCWalkbehind ccDynamicWalkbehind;
+extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
+extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
+extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
+extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
+extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -209,6 +216,41 @@ ScriptDrawingSurface *Hotspot_GetDrawingSurface()
 ScriptDrawingSurface *Region_GetDrawingSurface()
 {
     return Room_GetDrawingSurfaceForMask(kRoomAreaRegion);
+}
+
+ScriptHotspot* Room_GetiHotspots(int idx)
+{
+    if ((idx < 0) || (idx >= MAX_ROOM_HOTSPOTS))
+        return nullptr;
+    return &scrHotspot[idx];
+}
+
+ScriptObject* Room_GetiObjects(int idx)
+{
+    if ((idx < 0) || (idx >= MAX_ROOM_OBJECTS))
+        return nullptr;
+    return &scrObj[idx];
+}
+
+ScriptRegion* Room_GetiRegions(int idx)
+{
+    if ((idx < 0) || (idx >= MAX_ROOM_REGIONS))
+        return nullptr;
+    return &scrRegion[idx];
+}
+
+ScriptWalkableArea* Room_GetiWalkableAreas(int idx)
+{
+    if ((idx < 0) || (idx >= MAX_WALK_AREAS))
+        return nullptr;
+    return &scrWalkarea[idx];
+}
+
+ScriptWalkbehind* Room_GetiWalkbehinds(int idx)
+{
+    if ((idx < 0) || (idx >= MAX_WALK_BEHINDS))
+        return nullptr;
+    return &scrWalkbehind[idx];
 }
 
 //=============================================================================
@@ -504,6 +546,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     objs = croom->obj.size() > 0 ? &croom->obj[0] : nullptr;
 
+    // Register named Objects and Hotspots
     for (uint32_t cc = 0; cc < croom->numobj; cc++) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName.IsEmpty())
@@ -1005,6 +1048,31 @@ RuntimeScriptValue Sc_Room_Exists(const RuntimeScriptValue *params, int32_t para
     API_SCALL_BOOL_PINT(Room_Exists);
 }
 
+RuntimeScriptValue Sc_Room_GetiHotspots(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(ScriptHotspot, ccDynamicHotspot, Room_GetiHotspots);
+}
+
+RuntimeScriptValue Sc_Room_GetiObjects(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(ScriptObject, ccDynamicObject, Room_GetiObjects);
+}
+
+RuntimeScriptValue Sc_Room_GetiRegions(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(ScriptRegion, ccDynamicRegion, Room_GetiRegions);
+}
+
+RuntimeScriptValue Sc_Room_GetiWalkableAreas(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(ScriptWalkableArea, ccDynamicWalkarea, Room_GetiWalkableAreas);
+}
+
+RuntimeScriptValue Sc_Room_GetiWalkbehinds(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(ScriptWalkbehind, ccDynamicWalkbehind, Room_GetiWalkbehinds);
+}
+
 void RegisterRoomAPI()
 {
     ScFnRegister room_api[] = {
@@ -1024,6 +1092,11 @@ void RegisterRoomAPI()
         { "Room::get_TopEdge",                        API_FN_PAIR(Room_GetTopEdge) },
         { "Room::get_Width",                          API_FN_PAIR(Room_GetWidth) },
         { "Room::Exists",                             API_FN_PAIR(Room_Exists) },
+        { "Room::geti_Hotspots",                      API_FN_PAIR(Room_GetiHotspots) },
+        { "Room::geti_Objects",                       API_FN_PAIR(Room_GetiObjects) },
+        { "Room::geti_Regions",                       API_FN_PAIR(Room_GetiRegions) },
+        { "Room::geti_WalkableAreas",                 API_FN_PAIR(Room_GetiWalkableAreas) },
+        { "Room::geti_Walkbehinds",                   API_FN_PAIR(Room_GetiWalkbehinds) },
     };
 
     ccAddExternalFunctions(room_api);

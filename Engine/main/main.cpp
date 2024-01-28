@@ -55,7 +55,6 @@ String appDirectory; // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
 extern GameState play;
-extern int our_eip;
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
 
@@ -76,7 +75,7 @@ AGS::Common::Version EngineVersion;
 
 void main_init(int argc, char*argv[])
 {
-    our_eip = -999;
+    set_our_eip(-999);
 
     // Init libraries: set text encoding
     set_uformat(U_UTF8);

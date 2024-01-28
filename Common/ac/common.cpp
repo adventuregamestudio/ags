@@ -15,6 +15,7 @@
 #include "util/string.h"
 
 using namespace AGS::Common;
+int our_eip = 0;
 
 void quit(const String &str)
 {
@@ -28,4 +29,14 @@ void quitprintf(const char *fmt, ...)
     String text = String::FromFormatV(fmt, ap);
     va_end(ap);
     quit(text);
+}
+
+void set_our_eip(int eip)
+{
+    our_eip = eip;
+}
+
+int get_our_eip()
+{
+    return our_eip;
 }

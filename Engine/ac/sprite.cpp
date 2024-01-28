@@ -26,7 +26,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int our_eip, eip_guinum, eip_guiobj;
+extern int eip_guinum, eip_guiobj;
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
@@ -96,9 +96,9 @@ Bitmap *remove_alpha_channel(Bitmap *from)
 
 Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
 {
-    int oldeip = our_eip;
-    our_eip = 4300;
-    
+    int oldeip = get_our_eip();
+    set_our_eip(4300);
+
     if (sprite_flags & SPF_HADALPHACHANNEL)
     {
         // we stripped the alpha channel out last time, put
@@ -130,7 +130,7 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
         sprite_flags |= SPF_HADALPHACHANNEL;
     }
 
-    our_eip = oldeip;
+    set_our_eip(oldeip);
     return use_bmp;
 }
 

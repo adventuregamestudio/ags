@@ -19,19 +19,4 @@
 #include <alfont.h>
 #include "ac/gamesetupstruct.h"
 
-extern int our_eip;
 extern GameSetupStruct game;
-
-//=============================================================================
-// Engine-specific implementation split out of acfonts.cpp
-//=============================================================================
-
-void set_our_eip(int eip)
-{
-  our_eip = eip;
-}
-
-int get_our_eip()
-{
-  return our_eip;
-}

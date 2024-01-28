@@ -48,7 +48,6 @@ extern GameState play;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
-extern int our_eip;
 extern CharacterInfo*playerchar;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
@@ -756,10 +755,10 @@ InteractionVariable *FindGraphicalVariable(const char *varName) {
 struct TempEip {
     int oldval;
     TempEip (int newval) {
-        oldval = our_eip;
-        our_eip = newval;
+        oldval = get_our_eip();
+        set_our_eip(newval);
     }
-    ~TempEip () { our_eip = oldval; }
+    ~TempEip () { set_our_eip(oldval); }
 };
 
 // the 'cmdsrun' parameter counts how many commands are run.

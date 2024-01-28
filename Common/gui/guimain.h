@@ -304,7 +304,6 @@ extern int get_fixed_pixel_size(int pixels);
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 
 extern void set_our_eip(int eip);
-#define SET_EIP(x) set_our_eip(x);
 extern void set_eip_guiobj(int eip);
 extern int get_eip_guiobj();
 

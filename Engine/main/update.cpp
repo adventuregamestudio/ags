@@ -52,7 +52,6 @@ extern GameState play;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
-extern int our_eip;
 extern CharacterInfo*playerchar;
 extern CharacterInfo *facetalkchar;
 extern int face_talking,facetalkview,facetalkwait,facetalkframe;
@@ -544,18 +543,18 @@ void update_sierra_speech()
 // update_stuff: moves and animates objects, executes repeat scripts, and
 // the like.
 void update_stuff() {
-  
-  our_eip = 20;
+
+  set_our_eip(20);
 
   update_script_timers();
 
   update_cycling_views();
 
-  our_eip = 21;
+  set_our_eip(21);
 
   update_player_view();
-  
-  our_eip = 22;
+
+  set_our_eip(22);
 
   std::vector<int> followingAsSheep;
 
@@ -563,15 +562,15 @@ void update_stuff() {
 
   update_following_exactly_characters(followingAsSheep);
 
-  our_eip = 23;
+  set_our_eip(23);
 
   update_overlay_timers();
 
   update_speech_and_messages();
 
-  our_eip = 24;
+  set_our_eip(24);
 
   update_sierra_speech();
 
-  our_eip = 25;
+  set_our_eip(25);
 }

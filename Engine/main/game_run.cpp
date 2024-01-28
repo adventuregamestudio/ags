@@ -72,7 +72,7 @@ using namespace AGS::Engine;
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
 extern volatile bool want_exit, abort_engine;
-extern int proper_exit,our_eip;
+extern int proper_exit;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
 extern ScriptSystem scsystem;
 extern GameSetupStruct game;
@@ -589,7 +589,7 @@ static void check_keyboard_controls()
 
 // check_controls: checks mouse & keyboard interface
 static void check_controls() {
-    our_eip = 1007;
+    set_our_eip(1007);
 
     sys_evt_process_pending();
 
@@ -650,7 +650,7 @@ static void check_room_edges(size_t numevents_was)
                     }
             }
     }
-    our_eip = 1008;
+    set_our_eip(1008);
 
 }
 
@@ -882,7 +882,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     }
 
     ccNotifyScriptStillAlive ();
-    our_eip=1;
+    set_our_eip(1);
 
     game_loop_check_problems_at_start();
 
@@ -890,18 +890,18 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == FADE_NORMAL))
         play.screen_is_faded_out = 0;
 
-    our_eip = 1014;
+    set_our_eip(1014);
 
     update_gui_disabled_status();
 
-    our_eip = 1004;
+    set_our_eip(1004);
 
     game_loop_do_early_script_update();
     // run this immediately to make sure it gets done before fade-in
     // (player enters screen)
     check_new_room();
 
-    our_eip = 1005;
+    set_our_eip(1005);
 
     res = game_loop_check_ground_level_interactions();
     if (res != RETURN_CONTINUE) {
@@ -924,7 +924,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     // handle actual input (keys, mouse, and so forth)
     game_loop_check_controls(checkControls);
 
-    our_eip=2;
+    set_our_eip(2);
 
     // do the overall game state update
     game_loop_do_update();
@@ -945,11 +945,11 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if (!play.fast_forward)
         render_graphics(extraBitmap, extraX, extraY);
 
-    our_eip=6;
+    set_our_eip(6);
 
     game_loop_update_events();
 
-    our_eip=7;
+    set_our_eip(7);
 
     update_polled_stuff();
 
@@ -961,7 +961,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     if (play.fast_forward)
         return;
 
-    our_eip=72;
+    set_our_eip(72);
 
     game_loop_update_fps();
 
@@ -1061,7 +1061,7 @@ static int UpdateWaitMode()
 
     if (!ShouldStayInWaitMode())
         restrict_until.type = 0;
-    our_eip = 77;
+    set_our_eip(77);
 
     if (restrict_until.type > 0) { return RETURN_CONTINUE; }
 
@@ -1099,7 +1099,7 @@ static int GameTick()
     UpdateGameOnce(true);
     UpdateMouseOverLocation();
 
-    our_eip=76;
+    set_our_eip(76);
 
     int res = UpdateWaitMode();
     if (res == RETURN_CONTINUE) { return 0; } // continue looping 
@@ -1138,7 +1138,7 @@ static void GameLoopUntilEvent(int untilwhat, const void* data_ptr = nullptr, in
   SetupLoopParameters(untilwhat, data_ptr, data1, data2);
   while (GameTick()==0);
 
-  our_eip = 78;
+  set_our_eip(78);
 
   restrict_until = cached_restrict_until;
 }

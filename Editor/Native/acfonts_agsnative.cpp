@@ -14,15 +14,6 @@
 extern GameSetupStruct thisgame;
 extern int antiAliasFonts;
 
-void set_our_eip(int eip)
-{
-  // do nothing
-}
-
-int get_our_eip()
-{
-  return 0;
-}
 
 bool ShouldAntiAliasText()
 {

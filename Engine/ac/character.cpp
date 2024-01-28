@@ -76,7 +76,6 @@ extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int said_speech_line;
 extern int said_text;
-extern int our_eip;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;
 
@@ -2469,7 +2468,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     // the strings are pre-translated
     //texx = get_translation(texx);
-    our_eip=150;
+    set_our_eip(150);
 
     int isPause = 1;
     // if the message is all .'s, don't display anything
@@ -2501,7 +2500,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if (bwidth < 0)
         bwidth = ui_view.GetWidth()/2 + ui_view.GetWidth()/4;
 
-    our_eip=151;
+    set_our_eip(151);
 
     int useview = speakingChar->talkview;
     if (isThought) {
@@ -2523,7 +2522,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     if (game.options[OPT_SPEECHTYPE] == 3)
         remove_screen_overlay(OVER_COMPLETE);
-    our_eip=1500;
+    set_our_eip(1500);
 
     if (game.options[OPT_SPEECHTYPE] == 0)
         allowShrink = 1;
@@ -2552,7 +2551,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         // If the character is in this room, go for it - otherwise
         // run the "else" clause which  does text in the middle of
         // the screen.
-        our_eip=1501;
+        set_our_eip(1501);
 
         if (speakingChar->walking)
             StopMoving(aschar);
@@ -2575,7 +2574,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             speakingChar->loop = 0;
         }
 
-        our_eip=1504;
+        set_our_eip(1504);
 
         // Calculate speech position based on character's position on screen
         auto view = FindNearestViewport(aschar);
@@ -2597,7 +2596,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (tdyp < 5)
             tdyp = 5;
 
-        our_eip=152;
+        set_our_eip(152);
 
         if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) {
             // Sierra-style close-up portrait
@@ -2687,7 +2686,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             if (widd > 0)
                 bwidth = widd - bigx;
 
-            our_eip=153;
+            set_our_eip(153);
             int ovr_yp = get_fixed_pixel_size(20);
             int view_frame_x = 0;
             int view_frame_y = 0;
@@ -2812,7 +2811,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         }
         else if (useview >= 0) {
             // Lucasarts-style speech
-            our_eip=154;
+            set_our_eip(154);
 
             oldview = speakingChar->view;
             oldloop = speakingChar->loop;
@@ -2871,9 +2870,9 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if (isThought)
         char_thinking = aschar;
 
-    our_eip=155;
+    set_our_eip(155);
     display_main(tdxp, tdyp, bwidth, texx, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, overlayPositionFixed);
-    our_eip=156;
+    set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;
     if (closeupface!=nullptr)
@@ -2881,7 +2880,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     mark_screen_dirty();
     face_talking = -1;
     facetalkchar = nullptr;
-    our_eip=157;
+    set_our_eip(157);
     if (oldview>=0) {
         speakingChar->flags &= ~CHF_FIXVIEW;
         if (viewWasLocked)

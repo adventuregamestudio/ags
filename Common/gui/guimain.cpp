@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "ac/common.h"
 #include "gui/guimain.h"
 #include <algorithm>
 #include "ac/game_version.h"
@@ -244,12 +245,12 @@ bool GUIMain::BringControlToFront(int index)
 
 void GUIMain::DrawSelf(Bitmap *ds)
 {
-    SET_EIP(375);
+    set_our_eip(375);
 
     if ((Width < 1) || (Height < 1))
         return;
 
-    SET_EIP(376);
+    set_our_eip(376);
     // stop border being transparent, if the whole GUI isn't
     if ((FgColor == 0) && (BgColor != 0))
         FgColor = 16;
@@ -257,7 +258,7 @@ void GUIMain::DrawSelf(Bitmap *ds)
     if (BgColor != 0)
         ds->Fill(ds->GetCompatibleColor(BgColor));
 
-    SET_EIP(377);
+    set_our_eip(377);
 
     color_t draw_color;
     if (FgColor != BgColor)
@@ -268,12 +269,12 @@ void GUIMain::DrawSelf(Bitmap *ds)
             ds->DrawRect(Rect(1, 1, ds->GetWidth() - 2, ds->GetHeight() - 2), draw_color);
     }
 
-    SET_EIP(378);
+    set_our_eip(378);
 
     if (BgImage > 0 && spriteset.DoesSpriteExist(BgImage))
         draw_gui_sprite(ds, BgImage, 0, 0, false);
 
-    SET_EIP(379);
+    set_our_eip(379);
 }
 
 void GUIMain::DrawWithControls(Bitmap *ds)
@@ -346,7 +347,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
         }
     }
 
-    SET_EIP(380);
+    set_our_eip(380);
 }
 
 void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)

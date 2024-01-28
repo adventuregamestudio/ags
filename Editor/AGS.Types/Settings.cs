@@ -75,6 +75,7 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private bool _oldKeyHandling = false;
         private bool _scaleCharacterSpriteOffsets = true;
+        private float _faceDirectionRatio = 1.0f;
         private int _dialogOptionsGUI = 0;
         private int _dialogOptionsGap = 0;
         private int _dialogBulletImage = 0;
@@ -529,6 +530,23 @@ namespace AGS.Types
         {
             get { return _scaleCharacterSpriteOffsets; }
             set { _scaleCharacterSpriteOffsets = value; }
+        }
+
+        [DisplayName("Face direction ratio")]
+        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".")]
+        [DefaultValue(1.0f)]
+        [Category("Character behavior")]
+        public float FaceDirectionRatio
+        {
+            get { return _faceDirectionRatio; }
+            set
+            {
+                if (value <= 0.0f || float.IsInfinity(value) || float.IsNaN(value))
+                {
+                    throw new ArgumentException("Face direction ratio must be a valid positive value.");
+                }
+                _faceDirectionRatio = value;
+            }
         }
 
         [DisplayName("Enable Debug Mode")]

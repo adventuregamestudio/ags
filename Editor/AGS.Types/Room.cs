@@ -38,6 +38,7 @@ namespace AGS.Types
         private int _bottomEdgeY;
         private bool _showPlayerCharacter = true;
         private int _playerCharacterView;
+        private float _faceDirectionRatio = 0.0f;
         private int _maskResolution = 1;
         private int _colorDepth;
         private int _width;
@@ -311,6 +312,15 @@ namespace AGS.Types
         {
             get { return _playerCharacterView; }
             set { _playerCharacterView = value; }
+        }
+
+        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".\nThis property is optional, and is disabled by assigning a 0. If non-zero, then it will override character behavior in this room.")]
+        [DefaultValue(0.0f)]
+        [Category("Settings")]
+        public float FaceDirectionRatio
+        {
+            get { return _faceDirectionRatio; }
+            set { _faceDirectionRatio = value; }
         }
 
         [Obsolete]

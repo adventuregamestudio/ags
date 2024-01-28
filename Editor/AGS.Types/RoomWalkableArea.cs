@@ -12,6 +12,7 @@ namespace AGS.Types
     {
         private int _id;
         private int _areaSpecificView;
+        private float _faceDirectionRatio = 0.0f;
         private int _scalingLevel = 100;
         private bool _useContinuousScaling;
         private int _scalingLevelMin = 100;
@@ -44,6 +45,15 @@ namespace AGS.Types
         {
             get { return _areaSpecificView; }
             set { _areaSpecificView = value; }
+        }
+
+        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".\nThis property is optional, and is disabled by assigning a 0. If non-zero, then it will override character behavior on this area.")]
+        [DefaultValue(0.0f)]
+        [Category("Design")]
+        public float FaceDirectionRatio
+        {
+            get { return _faceDirectionRatio; }
+            set { _faceDirectionRatio = value; }
         }
 
         [Description("Enables this area to have a graduated scaling level from the top to bottom, rather than a fixed scaling.")]

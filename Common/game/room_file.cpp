@@ -330,6 +330,31 @@ HError ReadExt399(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     return HError::None();
 }
 
+// Extended walkable areas and related room properties
+HError ReadExt_400_WalkOpts(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+{
+    // New room properties
+    room->Options.FaceDirectionRatio = in->ReadFloat32();
+    // reserve few more 32-bit values (for a total of 4)
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+
+    size_t wa_count = in->ReadInt32();
+    if (wa_count != room->WalkAreaCount)
+        return new Error(String::FromFormat("Mismatching number of walkable areas: read %zu expected %zu", wa_count, room->WalkAreaCount));
+    for (size_t i = 0; i < wa_count; ++i)
+    {
+        auto &wa = room->WalkAreas[i];
+        wa.FaceDirectionRatio = in->ReadFloat32();
+        // reserve few more 32-bit values (for a total of 4)
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
+    return HError::None();
+}
+
 HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const String &ext_id,
     soff_t block_len, RoomFileVersion data_ver)
 {
@@ -370,11 +395,14 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
         StrUtil::ReadStringMap(room->StrOptions, in);
         return HError::None();
     }
-
     // Early development version of "ags4"
-    if (ext_id.CompareNoCase("ext_ags399") == 0)
+    else if (ext_id.CompareNoCase("ext_ags399") == 0)
     {
         return ReadExt399(room, in, data_ver);
+    }
+    else if (ext_id.CompareNoCase("v400_walkopts") == 0)
+    {
+        return ReadExt_400_WalkOpts(room, in, data_ver);
     }
 
     return new RoomFileError(kRoomFileErr_UnknownBlockType,
@@ -618,6 +646,27 @@ void WriteExt399(const RoomStruct *room, Stream *out)
     }
 }
 
+void WriteExt_400_WalkareaOpts(const RoomStruct *room, Stream *out)
+{
+    // New room properties
+    out->WriteFloat32(room->Options.FaceDirectionRatio);
+    // reserve few more 32-bit values (for a total of 4)
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+
+    out->WriteInt32(room->WalkAreaCount);
+    for (size_t i = 0; i < room->WalkAreaCount; ++i)
+    {
+        const auto &wa = room->WalkAreas[i];
+        out->WriteFloat32(wa.FaceDirectionRatio);
+        // reserve few more 32-bit values (for a total of 4)
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+    }
+}
+
 HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersion data_ver)
 {
     if (data_ver < kRoomVersion_Current)
@@ -647,6 +696,7 @@ HRoomFileError WriteRoomData(const RoomStruct *room, Stream *out, RoomFileVersio
 
     // Early development version of "ags4"
     WriteRoomBlock(room, "ext_ags399", WriteExt399, out);
+    WriteRoomBlock(room, "v400_walkopts", WriteExt_400_WalkareaOpts, out);
 
     // Write end of room file
     out->WriteByte(kRoomFile_EOF);

@@ -73,7 +73,7 @@ public:
 
     // Begin the state, initialize and prepare any resources
     virtual void Begin() = 0;
-    // End the state, release all resources
+    // End the state, does final actions, releases all resources
     virtual void End() = 0;
     // Draw the state
     virtual void Draw() = 0;

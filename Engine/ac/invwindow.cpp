@@ -168,8 +168,33 @@ struct DisplayInvItem {
     int sprnum;
 };
 
-struct InventoryScreen
+class InventoryScreen : GameState
 {
+public:
+    InventoryScreen();
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override;
+    // End the state, release all resources
+    void End() override;
+    // Draw the state
+    void Draw() override;
+    // Update the state during a game tick
+    bool Run() override;
+
+    int GetResult() const { return toret; }
+
+private:
+    // Updates an redraws inventory screen; returns if should continue
+    bool UpdateAndDraw();
+    void Draw(Bitmap *ds);
+    void RedrawOverItem(Bitmap *ds, int isonitem);
+    // Process all the buffered input events; returns if handled
+    bool RunControls(int mx, int my, int isonitem);
+    // Process single mouse event; returns if handled
+    bool RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem);
+
+
     static const int ARROWBUTTONWID = 11;
 
     int BUTTONAREAHEIGHT;
@@ -194,27 +219,15 @@ struct InventoryScreen
     int btn_select_sprite;
     int btn_ok_sprite;
 
-    void Prepare();
-    // Redraws inventory screen; returns if should continue
-    bool Redraw();
-    void Draw(Bitmap *ds);
-    void RedrawOverItem(Bitmap *ds, int isonitem);
-    // Updates inventory screen; returns if should continue
-    bool Run();
-    // Process all the buffered input events; returns if handled
-    bool RunControls(int mx, int my, int isonitem);
-    // Process single mouse event; returns if handled
-    bool RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem);
-    void Close();
-
-private:
     bool is_done;
     bool need_redraw;
 };
 
-InventoryScreen InvScr;
+InventoryScreen::InventoryScreen()
+{
+}
 
-void InventoryScreen::Prepare()
+void InventoryScreen::Begin()
 {
     BUTTONAREAHEIGHT = get_fixed_pixel_size(30);
     cmode=CURS_ARROW;
@@ -240,11 +253,9 @@ void InventoryScreen::Prepare()
     is_done = false;
 }
 
-bool InventoryScreen::Redraw()
+// TODO: refactor and move to Run
+bool InventoryScreen::UpdateAndDraw()
 {
-    numitems=0;
-    widest=0;
-    highest=0;
     if (charextra[game.playercharacter].invorder_count < 0)
         update_invorder();
     if (charextra[game.playercharacter].invorder_count == 0) {
@@ -258,6 +269,19 @@ bool InventoryScreen::Redraw()
         NewRoom(inv_screen_newroom);
         return false;
     }
+
+    Draw();
+    return true;
+}
+
+void InventoryScreen::Draw()
+{
+    if (charextra[game.playercharacter].invorder_count <= 0)
+        return; // something is wrong, update needed?
+
+    numitems = 0;
+    widest = 0;
+    highest = 0;
 
     for (int i = 0; i < charextra[game.playercharacter].invorder_count; ++i) {
         if (!game.invinfo[charextra[game.playercharacter].invorder[i]].name.IsEmpty()) {
@@ -295,7 +319,6 @@ bool InventoryScreen::Redraw()
     Draw(ds);
     set_mouse_cursor(cmode);
     wasonitem = -1;
-    return true;
 }
 
 void InventoryScreen::Draw(Bitmap *ds)
@@ -387,7 +410,7 @@ bool InventoryScreen::Run()
     // Handle redraw
     if (need_redraw)
     {
-        is_done = !Redraw();
+        is_done = !UpdateAndDraw();
         return !is_done;
     }
     else if (isonitem!=wasonitem)
@@ -547,28 +570,25 @@ bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mx, int my, int isonite
     return false; // other mouse button, not handled
 }
 
-void InventoryScreen::Close()
+void InventoryScreen::End()
 {
     clear_gui_screen();
     set_default_cursor();
     invalidate_screen();
     in_inv_screen--;
+    ags_clear_input_buffer();
 }
 
 int __actual_invscreen()
 {
-    InvScr.Prepare();
-    if (!InvScr.Redraw())
-    {
-        return InvScr.toret;
-    }
+    InventoryScreen invscr;
 
-    while (InvScr.Run());
+    invscr.Begin();
+    invscr.Draw();
+    while (invscr.Run());
+    invscr.End();
 
-    ags_clear_input_buffer();
-
-    InvScr.Close();
-    return InvScr.toret;
+    return invscr.GetResult();
 }
 
 int invscreen() {

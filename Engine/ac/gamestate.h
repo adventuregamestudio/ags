@@ -65,6 +65,24 @@ enum GameStateSvgVersion
 };
 
 
+// A GameState is a parent class for the game states.
+class GameState
+{
+public:
+    virtual ~GameState() = default;
+
+    // Begin the state, initialize and prepare any resources
+    virtual void Begin() = 0;
+    // End the state, release all resources
+    virtual void End() = 0;
+    // Draw the state
+    virtual void Draw() = 0;
+    // Update the state during a game tick;
+    // returns whether should continue to run state loop, or stop
+    virtual bool Run() = 0;
+};
+
+
 // Runtime game state
 struct GamePlayState
 {

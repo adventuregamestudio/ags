@@ -417,8 +417,38 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
 #define DLG_OPTION_PARSER 99
 
 // Dialog options state
-struct DialogOptions
+class DialogOptions : GameState
 {
+public:
+    DialogOptions(int _dlgnum, bool _runGameLoopsInBackground);
+
+    // Shows and run the loop until it's over
+    void Show();
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override;
+    // End the state, release all resources
+    void End() override;
+    // Draw the state
+    void Draw() override;
+    // Update the state during a game tick
+    bool Run() override;
+
+    DialogTopic *GetDialog() const { return dtop; }
+    int GetChosenOption() const { return chose; }
+
+private:
+    void CalcOptionsHeight();
+    // Process all the buffered input events; returns if handled
+    bool RunControls();
+    // Process single key event; returns if handled
+    bool RunKey(const KeyInput &ki);
+    // Process single mouse event; returns if handled
+    bool RunMouse(eAGSMouseButton mbut);
+    // Process mouse wheel scroll
+    bool RunMouseWheel(int mwheelz);
+
+
     int dlgnum;
     bool runGameLoopsInBackground;
 
@@ -466,25 +496,6 @@ struct DialogOptions
     int mouseison;
 
     int forecol;
-
-    void Prepare(int _dlgnum, bool _runGameLoopsInBackground);
-    void Show();
-    void Redraw();
-    // Runs the dialog options update;
-    // returns whether should continue to run options loop, or stop
-    bool Run();
-    // Process all the buffered input events; returns if handled
-    bool RunControls();
-    // Process single key event; returns if handled
-    bool RunKey(const KeyInput &ki);
-    // Process single mouse event; returns if handled
-    bool RunMouse(eAGSMouseButton mbut);
-    // Process mouse wheel scroll
-    bool RunMouseWheel(int mwheelz);
-    void Close();
-
-private:
-    void CalcOptionsHeight();
 };
 
 void DialogOptions::CalcOptionsHeight()
@@ -502,7 +513,7 @@ void DialogOptions::CalcOptionsHeight()
     }
 }
 
-void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
+DialogOptions::DialogOptions(int _dlgnum, bool _runGameLoopsInBackground)
 {
   dlgnum = _dlgnum;
   runGameLoopsInBackground = _runGameLoopsInBackground;
@@ -563,19 +574,27 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
 void DialogOptions::Show()
 {
-  if (numdisp < 1)
-  {
-      debug_script_warn("Dialog: all options have been turned off, stopping dialog.");
-      return;
-  }
-  // Don't display the options if there is only one and the parser
-  // is not enabled.
-  if (!((numdisp > 1) || (parserInput != nullptr) || (play.show_single_dialog_option)))
-  {
-      chose = disporder[0];  // only one choice, so select it
-      return;
-  }
+    if (numdisp < 1)
+    {
+        debug_script_warn("Dialog: all options have been turned off, stopping dialog.");
+        return;
+    }
+    // Don't display the options if there is only one and the parser
+    // is not enabled.
+    if (!((numdisp > 1) || (parserInput != nullptr) || (play.show_single_dialog_option)))
+    {
+        chose = disporder[0];  // only one choice, so select it
+        return;
+    }
 
+    Begin();
+    Draw();
+    while (Run());
+    End();
+}
+
+void DialogOptions::Begin()
+{
     is_textwindow = 0;
     forecol = play.dialog_options_highlight_color;
 
@@ -586,7 +605,6 @@ void DialogOptions::Show()
     dirtywidth = ui_view.GetWidth();
     dirtyheight = ui_view.GetHeight();
     usingCustomRendering = false;
-
 
     dlgxp = 1;
     if (get_custom_dialog_options_dimensions(dlgnum))
@@ -650,19 +668,9 @@ void DialogOptions::Show()
     needRedraw = false;
     wantRefresh = false;
     mouseison=-10;
-
-    Redraw();
-    while(Run());
-
-    // Close custom dialog options
-    if (usingCustomRendering)
-    {
-        runDialogOptionCloseFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-        run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
-    }
 }
 
-void DialogOptions::Redraw()
+void DialogOptions::Draw()
 {
     wantRefresh = true;
 
@@ -995,7 +1003,7 @@ bool DialogOptions::Run()
 
     // Redraw if needed
     if (needRedraw)
-        Redraw();
+        Draw();
 
     // Go for another options loop round
     update_polled_stuff();
@@ -1149,8 +1157,15 @@ bool DialogOptions::RunMouseWheel(int mwheelz)
     return false; // not handled
 }
 
-void DialogOptions::Close()
+void DialogOptions::End()
 {
+    // Close custom dialog options
+    if (usingCustomRendering)
+    {
+        runDialogOptionCloseFunc.params[0].SetScriptObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&runDialogOptionCloseFunc);
+    }
+
   ags_clear_input_buffer();
   invalidate_screen();
 
@@ -1181,18 +1196,16 @@ void DialogOptions::Close()
 
 int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBackground) 
 {
-  DialogOptions dlgopt;
-  dlgopt.Prepare(_dlgnum, _runGameLoopsInBackground);
+  DialogOptions dlgopt(_dlgnum, _runGameLoopsInBackground);
   dlgopt.Show();
-  dlgopt.Close();
 
-  int dialog_choice = dlgopt.chose;
+  int dialog_choice = dlgopt.GetChosenOption();
   if (dialog_choice >= 0) // NOTE: this condition also excludes CHOSE_TEXTPARSER
   {
     assert(dialog_choice >= 0 && dialog_choice < MAXTOPICOPTIONS);
-    DialogTopic *dialog_topic = dlgopt.dtop;
+    DialogTopic *dialog_topic = dlgopt.GetDialog();
     int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = dlgopt.dtop->optionnames[dialog_choice];
+    const char *option_name = dialog_topic->optionnames[dialog_choice];
 
     option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;

@@ -30,7 +30,6 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern GameState play;
 
 String trans_name;
 String trans_filename;

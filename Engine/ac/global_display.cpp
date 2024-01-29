@@ -36,7 +36,6 @@
 using namespace AGS::Common;
 
 extern TopBarSettings topBar;
-extern GameState play;
 extern RoomStruct thisroom;
 extern int display_message_aschar;
 extern GameSetupStruct game;

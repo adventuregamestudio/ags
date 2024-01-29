@@ -45,7 +45,6 @@ extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
 extern RoomObject*objs;
 extern RoomStruct thisroom;
-extern GameState play;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern CCCharacter ccDynamicCharacter;

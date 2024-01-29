@@ -68,7 +68,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;

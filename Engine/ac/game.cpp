@@ -85,7 +85,7 @@ extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
-GameState play;
+GamePlayState play;
 GameSetup usetup;
 GameSetupStruct game;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
@@ -486,7 +486,7 @@ void unload_game_file()
     resetRoomStatuses();
 
     // Free game state and game struct
-    play = GameState();
+    play = GamePlayState();
     game = GameSetupStruct();
 
     // Reset all resource caches

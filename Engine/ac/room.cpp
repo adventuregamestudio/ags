@@ -73,7 +73,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;

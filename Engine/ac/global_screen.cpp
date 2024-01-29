@@ -31,7 +31,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameState play;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern IGraphicsDriver *gfxDriver;

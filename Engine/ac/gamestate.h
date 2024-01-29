@@ -66,7 +66,7 @@ enum GameStateSvgVersion
 
 
 // Runtime game state
-struct GameState
+struct GamePlayState
 {
     // WARNING: following is a part of the script and plugin API
     // (until further notice)
@@ -302,7 +302,7 @@ struct GameState
     std::vector<int> spritemodifiedlist;
 
 
-    GameState();
+    GamePlayState();
 
     //
     // Viewport and camera control.
@@ -466,7 +466,7 @@ HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align);
 // Alignment constants in the Script API and still support old version.
 HorAlignment ReadScriptAlignment(int32_t align);
 
-extern GameState play;
+extern GamePlayState play;
 extern std::vector<CharacterExtras> charextra;
 extern std::vector<MoveList> mls;
 

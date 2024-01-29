@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/gamestate.h"
 #include "ac/global_invwindow.h"
 #include "ac/global_translation.h"
@@ -23,7 +22,6 @@
 using namespace AGS::Common;
 
 extern ExecutingScript*curscript;
-extern GameState play;
 
 void sc_invscreen() {
     curscript->queue_action(ePSAInvScreen, 0, "InventoryScreen");

@@ -41,7 +41,6 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern SpriteCache spriteset;

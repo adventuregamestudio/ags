@@ -168,7 +168,7 @@ struct DisplayInvItem {
     int sprnum;
 };
 
-class InventoryScreen : GameState
+class InventoryScreen : public GameState
 {
 public:
     InventoryScreen();

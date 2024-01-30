@@ -18,13 +18,18 @@
 #ifndef __AGS_EE_AC__SCREEN_H
 #define __AGS_EE_AC__SCREEN_H
 
+#include "gamestate.h"
+
 namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
 
-void screen_effect_fade(bool do_fadein, int speed);
-void screen_effect_box(bool do_fadein, int speed);
-void screen_effect_crossfade();
-void screen_effect_dissolve();
+// Runs fade-in effect using explicit settings
+void run_fade_in_effect(ScreenTransitionStyle style, int speed);
+// Runs fade-out effect using explicit settings
+void run_fade_out_effect(ScreenTransitionStyle style, int speed);
+// Runs fade-in transition using default settings
+void current_fade_in_effect();
+// Runs fade-out transition using default settings
 void current_fade_out_effect();
 
 #endif // __AGS_EE_AC__SCREEN_H

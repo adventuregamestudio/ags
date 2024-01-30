@@ -417,7 +417,7 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
 #define DLG_OPTION_PARSER 99
 
 // Dialog options state
-class DialogOptions : GameState
+class DialogOptions : public GameState
 {
 public:
     DialogOptions(DialogTopic *dtop, int dlgnum, bool runGameLoopsInBackground);

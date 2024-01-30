@@ -206,65 +206,7 @@ void process_event(const EventHappened *evp) {
     }
     else if (evp->type==EV_FADEIN)
     {
-        // TODO: move most of this code into a separate function,
-        // see current_fade_out_effect() for example
-
-        debug_script_log("Transition-in in room %d", displayed_room);
-
-        // determine the transition style
-        int theTransition = play.fade_effect;
-
-        if (play.next_screen_transition >= 0) {
-            // a one-off transition was selected, so use it
-            theTransition = play.next_screen_transition;
-            play.next_screen_transition = -1;
-        }
-
-        if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
-        {
-            play.screen_is_faded_out = 0; // mark screen as clear
-            return;
-        }
-
-        if (play.fast_forward)
-        {
-            play.screen_is_faded_out = 0; // mark screen as clear
-            return;
-        }
-
-        const bool ignore_transition = (play.screen_tint > 0);
-        if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
-            (saved_viewport_bitmap == nullptr) && !ignore_transition)
-        {
-            // transition type was not crossfade/dissolve when the screen faded out,
-            // but it is now when the screen fades in (Eg. a save game was restored
-            // with a different setting). Therefore just fade normally.
-            screen_effect_fade(false, 5);
-            theTransition = FADE_NORMAL;
-        }
-
-        if ((theTransition == FADE_INSTANT) || ignore_transition)
-        {
-            set_palette_range(palette, 0, 255, 0);
-        }
-        else if (theTransition == FADE_NORMAL)
-        {
-            screen_effect_fade(true, 5);
-        }
-        else if (theTransition == FADE_BOXOUT) 
-        {
-            screen_effect_box(true, get_fixed_pixel_size(16));
-        }
-        else if (theTransition == FADE_CROSSFADE) 
-        {
-            screen_effect_crossfade();
-        }
-        else if (theTransition == FADE_DISSOLVE)
-        {
-            screen_effect_dissolve();
-        }
-
-        play.screen_is_faded_out = 0; // mark screen as clear
+        current_fade_in_effect();
     }
     else if (evp->type == EV_IFACECLICK)
     {

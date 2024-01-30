@@ -142,12 +142,12 @@ void FadeOut(int sppd) {
     // FIXME: we have to sync audio here explicitly, because FadeOut
     // does not call any game update function while it works
     sync_audio_playback();
-    screen_effect_fade(false, sppd);
+    run_fade_out_effect(kScrTran_Fade, sppd);
     sync_audio_playback();
 }
 
 void SetScreenTransition(int newtrans) {
-    if ((newtrans < 0) || (newtrans > FADE_LAST))
+    if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetScreenTransition: invalid transition type");
 
     play.fade_effect = newtrans;
@@ -156,7 +156,7 @@ void SetScreenTransition(int newtrans) {
 }
 
 void SetNextScreenTransition(int newtrans) {
-    if ((newtrans < 0) || (newtrans > FADE_LAST))
+    if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetNextScreenTransition: invalid transition type");
 
     play.next_screen_transition = newtrans;
@@ -183,6 +183,6 @@ void FadeIn(int sppd) {
     // FIXME: we have to sync audio here explicitly, because FadeIn
     // does not call any game update function while it works
     sync_audio_playback();
-    screen_effect_fade(true, sppd);
+    run_fade_in_effect(kScrTran_Fade, sppd);
     sync_audio_playback();
 }

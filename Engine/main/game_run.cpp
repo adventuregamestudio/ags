@@ -884,7 +884,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_check_problems_at_start();
 
     // if we're not fading in, don't count the fadeouts
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == FADE_NORMAL))
+    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
         play.screen_is_faded_out = 0;
 
     set_our_eip(1014);

@@ -180,6 +180,21 @@ int sym_find_or_add(symbolTable &sym, const char *sname) {
     return symdex;
 }
 
+int get_escaped_char(char c)
+{
+    switch (c)
+    {
+    case 'a': return '\a';
+    case 'b': return '\b';
+    case 'f': return '\f';
+    case 'n': return '\n';
+    case 'r': return '\r';
+    case 't': return '\t';
+    case 'v': return '\v';
+    default: return c;
+    }
+}
+
 int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     // *** create the symbol table and parse the text code into symbol code
     int linenum=1,in_struct_declr=-1,bracedepth = 0, last_time=0;
@@ -219,7 +234,9 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
         }
         if ((thissymbol[0] == '\'') && (thissymbol.back() == '\'')) {
             int chr = 0;
-            if (ccGetOption(SCOPT_UTF8)) {
+            if (thissymbol[1] == '\\') {
+                chr = get_escaped_char(thissymbol[2]);
+            } else if (ccGetOption(SCOPT_UTF8)) {
                 Utf8::GetChar(&thissymbol[1], thissymbol.size() - 2, &chr);
             } else {
                 chr = thissymbol[1];

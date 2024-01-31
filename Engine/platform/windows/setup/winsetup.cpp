@@ -484,12 +484,12 @@ private:
 
     // Operations
     void AddScalingString(HWND hlist, int scaling_factor);
+    void FillGfxDriverList();
     void FillAudioDriverList();
     void FillGfxFilterList();
     void FillGfxModeList();
     void FillLanguageList();
     void FillScalingList(HWND hlist, const WindowSetup &ws, const FrameScaleDef frame, bool windowed);
-    void InitGfxModes();
     void InitDriverDescFromFactory(const String &id);
     void SaveSetup();
     void SelectNearestGfxMode(const WindowSetup &ws);
@@ -655,10 +655,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetText(_hVersionText, STR(_winCfg.VersionString));
 
-    InitGfxModes();
-    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
-        AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
-    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
+    FillGfxDriverList();
     SetCheck(_hFullscreenDesktop, _winCfg.FsSetup.Mode == kWnd_FullDesktop);
     EnableWindow(_hGfxModeList, _winCfg.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();
@@ -742,6 +739,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (!File::IsFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
+    if (CfgReadBoolInt(_cfgIn, "disabled", "gfxdrivers"))
+        EnableWindow(_hGfxDriverList, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))
         EnableWindow(_hUseVoicePack, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "filters"))
@@ -1001,6 +1000,25 @@ void WinSetupDialog::AddScalingString(HWND hlist, int scaling_factor)
     AddString(hlist, STR(s), (DWORD_PTR)(scaling_factor >= 0 ? scaling_factor + kNumFrameScaleDef : scaling_factor));
 }
 
+void WinSetupDialog::FillGfxDriverList()
+{
+    std::vector<String> gfx_drv_names;
+    GetGfxDriverFactoryNames(gfx_drv_names);
+    for (const auto &drvname : gfx_drv_names)
+    {
+        String item = CfgFindKey(_cfgIn, "disabled", drvname, true);
+        if (item.IsEmpty() || !CfgReadBoolInt(_cfgIn, "disabled", item))
+            InitDriverDescFromFactory(drvname);
+    }
+
+    if (_drvDescMap.size() == 0)
+        MessageBox(_hwnd, "Unable to detect any supported graphic drivers!", "Initialization error", MB_OK | MB_ICONERROR);
+
+    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
+        AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
+    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
+}
+
 void WinSetupDialog::FillAudioDriverList()
 {
     _drvAudioList.clear();
@@ -1128,16 +1146,6 @@ void WinSetupDialog::FillScalingList(HWND hlist, const WindowSetup &ws, const Fr
         SetCurSelToItemData(hlist, frame, NULL, 0);
 
     EnableWindow(hlist, SendMessage(hlist, CB_GETCOUNT, 0, 0) > 1 ? TRUE : FALSE);
-}
-
-void WinSetupDialog::InitGfxModes()
-{
-    InitDriverDescFromFactory("D3D9");
-    InitDriverDescFromFactory("OGL");
-    InitDriverDescFromFactory("Software");
-
-    if (_drvDescMap.size() == 0)
-        MessageBox(_hwnd, "Unable to detect any supported graphic drivers!", "Initialization error", MB_OK | MB_ICONERROR);
 }
 
 // "Less" predicate that compares two display modes only by their screen metrics

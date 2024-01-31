@@ -329,15 +329,15 @@ enum DirectionalLoop
 float GetFaceDirRatio(CharacterInfo *chinfo)
 {
     CharacterExtras &chex = charextra[chinfo->index_id];
-    if (chex.face_dir_ratio > 0.f)
+    if (chex.face_dir_ratio != 0.f)
         return chex.face_dir_ratio;
     // TODO: cache current area in CharacterExtras somewhere during early char update
     int onarea = get_walkable_area_at_location(chinfo->x, chinfo->y);
-    if (onarea > 0 && thisroom.WalkAreas[onarea].FaceDirectionRatio > 0.f)
+    if (onarea > 0 && thisroom.WalkAreas[onarea].FaceDirectionRatio != 0.f)
         return thisroom.WalkAreas[onarea].FaceDirectionRatio;
-    if (croom->face_dir_ratio > 0.f)
+    if (croom->face_dir_ratio != 0.f)
         return croom->face_dir_ratio;
-    if (play.face_dir_ratio > 0.f)
+    if (play.face_dir_ratio != 0.f)
         return play.face_dir_ratio;
     return 1.f;
 }
@@ -348,7 +348,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_
 
     // TODO: cache this in CharacterExtras for bit more performance
     float dir_ratio = GetFaceDirRatio(chinfo);
-    assert(dir_ratio > 0.f);
+    assert(dir_ratio != 0.f);
     y_diff *= dir_ratio; // dir ratio is a y/x relation
 
     const ViewStruct &chview  = views[chinfo->view];

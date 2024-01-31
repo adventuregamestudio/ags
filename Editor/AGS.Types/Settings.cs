@@ -533,7 +533,9 @@ namespace AGS.Types
         }
 
         [DisplayName("Face direction ratio")]
-        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".")]
+        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. " +
+            "Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".\n" +
+            "Negative values switch up and down loops.")]
         [DefaultValue(1.0f)]
         [Category("Character behavior")]
         public float FaceDirectionRatio

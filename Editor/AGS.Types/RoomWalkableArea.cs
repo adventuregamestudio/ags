@@ -47,7 +47,10 @@ namespace AGS.Types
             set { _areaSpecificView = value; }
         }
 
-        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".\nThis property is optional, and is disabled by assigning a 0. If non-zero, then it will override character behavior on this area.")]
+        [Description("The Y/X relation of diagonal directions at which Character switches from horizontal to vertical walking loops. " +
+            "Default is 1.0. < 1.0 would make diagonal direction more \"vertical\", > 1.0 would make it more \"horizontal\".\n" +
+            "Negative values switch up and down loops.\n" +
+            "This property is optional, and is disabled by assigning a 0. If non-zero, then it will override character behavior on this area.")]
         [DefaultValue(0.0f)]
         [Category("Design")]
         public float FaceDirectionRatio

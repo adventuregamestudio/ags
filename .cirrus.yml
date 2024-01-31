@@ -482,17 +482,31 @@ ags_windows_tests_task:
   env:
     BUILD_CONFIG: Release
   get_submodule_script: git submodule update --init Common/libsrc/googletest
-  build_compiler_test_runner_script: >
+  build_compiler_test_runner_x86_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
     msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
   run_compiler_tests_script: Solutions\.test\Release\Compiler.Lib.Test.exe
-  build_ags_test_runner_script: >
+  build_ags_test_runner_x86_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
     msbuild Tests.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=Win32 /maxcpucount /nologo
-  run_common_tests_script: Solutions\.test\Release\Common.Lib.Test.exe
-  run_engine_tests_script: Solutions\.test\Release\Engine.App.Test.exe
+  run_common_tests_x86_script: Solutions\.test\Release\Common.Lib.Test.exe
+  run_engine_tests_x86_script: Solutions\.test\Release\Engine.App.Test.exe
+  cleanup_script: >
+    cd Solutions/ &&
+    rd /s /q .test 
+  build_compiler_test_runner_x64_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+  run_compiler_tests_x64_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+  build_ags_test_runner_x64_script: >
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
+    cd Solutions &&
+    msbuild Tests.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
+  run_common_tests_x64_script: Solutions\.test\Release\Common.Lib.Test.exe
+  run_engine_tests_x64_script: Solutions\.test\Release\Engine.App.Test.exe
 
 make_release_task:
   depends_on:

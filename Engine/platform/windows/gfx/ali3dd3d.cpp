@@ -2174,6 +2174,17 @@ bool D3DGraphicsFactory::Init()
         SDL_SetError("Direct3DCreate failed!");
         return false;
     }
+
+    D3DADAPTER_IDENTIFIER9 adapterid;
+    _direct3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterid);
+    String adapter_info = String::FromFormat(
+        "\tDriver: %s, v%d.%d.%d.%d\n\tDescription: %s",
+        adapterid.Driver,
+        HIWORD(adapterid.DriverVersion.HighPart), LOWORD(adapterid.DriverVersion.HighPart),
+        HIWORD(adapterid.DriverVersion.LowPart), LOWORD(adapterid.DriverVersion.LowPart),
+        adapterid.Description
+    );
+    Debug::Printf(kDbgMsg_Info, "Direct3D adapter info:\n%s", adapter_info.GetCStr());
     return true;
 }
 

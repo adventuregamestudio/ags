@@ -523,6 +523,9 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
         rdm.Width, rdm.Height, rdm.ColorDepth,
         rdm.IsWindowed() ? "windowed" : (rdm.IsRealFullscreen() ? "fullscreen" : "fullscreen desktop"));
     Debug::Printf(kDbgMsg_Info, "Graphics mode set: refresh rate (optional): %d, vsync: %d", rdm.RefreshRate, rdm.Vsync);
+    size_t tex_mem = gfxDriver->GetAvailableTextureMemory();
+    if (tex_mem > 0u)
+        Debug::Printf("Graphics driver texture memory (approx): %zu bytes", tex_mem);
     return true;
 }
 

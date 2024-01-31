@@ -225,14 +225,6 @@ void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GL
 
 bool OGLGraphicsDriver::FirstTimeInit()
 {
-  String ogl_v_str;
-#ifdef GLAPI
-  ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
-#else
-  ogl_v_str = (const char*)glGetString(GL_VERSION);
-#endif
-  Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
-
   TestRenderToTexture();
 
   if(!CreateShaders()) { // requires glad Load successful
@@ -347,6 +339,15 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   // Instead of using framebuffer 0, we ask OpenGL to get the current framebuffer.
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &_screenFramebuffer);
 #endif
+
+  const char *gl_version = (const char*)glGetString(GL_VERSION);
+  const char *gl_vendor = (const char*)glGetString(GL_VENDOR);
+  const char *gl_renderer = (const char*)glGetString(GL_RENDERER);
+  String adapter_info = String::FromFormat(
+      "\tOpenGL: %s\n\tVendor: %s\n\tRenderer: %s",
+      gl_version, gl_vendor, gl_renderer
+    );
+  Debug::Printf(kDbgMsg_Info, "OpenGL adapter info:\n%s", adapter_info.GetCStr());
   return true;
 }
 
@@ -795,8 +796,8 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   {
     if (!InitGlScreen(mode))
       return false;
-    if (!_firstTimeInit)
-      if(!FirstTimeInit()) return false;
+    if (!_firstTimeInit && !FirstTimeInit())
+      return false;
     InitGlParams(mode);
   }
   catch (Ali3DException exception)

@@ -1727,10 +1727,32 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
-size_t OGLGraphicsDriver::GetAvailableTextureMemory()
+/*
+    ATI extensions, found at:
+    https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt
+    NVIDIA extensions, found at:
+    https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt
+*/
+
+#define VBO_FREE_MEMORY_ATI                             0x87FB
+#define TEXTURE_FREE_MEMORY_ATI                         0x87FC
+#define RENDERBUFFER_FREE_MEMORY_ATI                    0x87FD
+
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX            0x9047
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX      0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX    0x9049
+#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX              0x904A
+#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX              0x904B
+
+uint64_t OGLGraphicsDriver::GetAvailableTextureMemory()
 {
-  // TODO: investigate later if there is any way, but probably not a priority
-  return 0;
+    GLint mem = 0;
+    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    if (strstr(exts, "GL_NVX_gpu_memory_info") != nullptr)
+        glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &mem);
+    else if (strstr(exts, "GL_ATI_meminfo") != nullptr)
+        glGetIntegerv(TEXTURE_FREE_MEMORY_ATI, &mem);
+    return static_cast<uint64_t>(mem) * 1024u; // retrieved mem is in KB
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)

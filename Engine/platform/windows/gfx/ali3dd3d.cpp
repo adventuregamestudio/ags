@@ -1664,7 +1664,7 @@ int D3DGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
-size_t D3DGraphicsDriver::GetAvailableTextureMemory()
+uint64_t D3DGraphicsDriver::GetAvailableTextureMemory()
 {
   return direct3ddevice->GetAvailableTextureMem();
 }

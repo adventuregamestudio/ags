@@ -92,9 +92,9 @@ public:
     // Once those classes are merged, it will no longer be needed.
     union
     {
-        void                *MgrPtr;// generic object manager pointer
-        IScriptObject    *ObjMgr;// script object manager
-        CCStaticArray       *ArrMgr;// static array manager
+        void             *MgrPtr; // generic object manager pointer
+        IScriptObject    *ObjMgr; // script object manager
+        CCStaticArray    *ArrMgr; // static array manager
     };
     // The "real" size of data, either one stored in I/FValue,
     // or the one referenced by Ptr. Used for calculating stack

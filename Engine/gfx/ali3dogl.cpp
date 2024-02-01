@@ -225,14 +225,6 @@ void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GL
 
 bool OGLGraphicsDriver::FirstTimeInit()
 {
-  String ogl_v_str;
-#ifdef GLAPI
-  ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
-#else
-  ogl_v_str = (const char*)glGetString(GL_VERSION);
-#endif
-  Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
-
   TestRenderToTexture();
 
   if(!CreateShaders()) { // requires glad Load successful
@@ -347,6 +339,15 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   // Instead of using framebuffer 0, we ask OpenGL to get the current framebuffer.
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &_screenFramebuffer);
 #endif
+
+  const char *gl_version = (const char*)glGetString(GL_VERSION);
+  const char *gl_vendor = (const char*)glGetString(GL_VENDOR);
+  const char *gl_renderer = (const char*)glGetString(GL_RENDERER);
+  String adapter_info = String::FromFormat(
+      "\tOpenGL: %s\n\tVendor: %s\n\tRenderer: %s",
+      gl_version, gl_vendor, gl_renderer
+    );
+  Debug::Printf(kDbgMsg_Info, "OpenGL adapter info:\n%s", adapter_info.GetCStr());
   return true;
 }
 
@@ -795,8 +796,8 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   {
     if (!InitGlScreen(mode))
       return false;
-    if (!_firstTimeInit)
-      if(!FirstTimeInit()) return false;
+    if (!_firstTimeInit && !FirstTimeInit())
+      return false;
     InitGlParams(mode);
   }
   catch (Ali3DException exception)
@@ -1726,10 +1727,32 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
-size_t OGLGraphicsDriver::GetAvailableTextureMemory()
+/*
+    ATI extensions, found at:
+    https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt
+    NVIDIA extensions, found at:
+    https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt
+*/
+
+#define VBO_FREE_MEMORY_ATI                             0x87FB
+#define TEXTURE_FREE_MEMORY_ATI                         0x87FC
+#define RENDERBUFFER_FREE_MEMORY_ATI                    0x87FD
+
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX            0x9047
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX      0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX    0x9049
+#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX              0x904A
+#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX              0x904B
+
+uint64_t OGLGraphicsDriver::GetAvailableTextureMemory()
 {
-  // TODO: investigate later if there is any way, but probably not a priority
-  return 0;
+    GLint mem = 0;
+    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    if (strstr(exts, "GL_NVX_gpu_memory_info") != nullptr)
+        glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &mem);
+    else if (strstr(exts, "GL_ATI_meminfo") != nullptr)
+        glGetIntegerv(TEXTURE_FREE_MEMORY_ATI, &mem);
+    return static_cast<uint64_t>(mem) * 1024u; // retrieved mem is in KB
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)

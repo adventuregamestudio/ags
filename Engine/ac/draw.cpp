@@ -684,9 +684,9 @@ void init_draw_method()
         size_t tx_cache_size = usetup.TextureCacheSize * 1024;
         // If graphics driver can report available texture memory,
         // then limit the setting by, let's say, 66% of it (we use it for other things)
-        size_t avail_tx_mem = gfxDriver->GetAvailableTextureMemory();
+        uint64_t avail_tx_mem = gfxDriver->GetAvailableTextureMemory();
         if (avail_tx_mem > 0)
-            tx_cache_size = std::min<size_t>(tx_cache_size, avail_tx_mem * 0.66);
+            tx_cache_size = std::min<size_t>(SIZE_MAX, std::min<uint64_t>(tx_cache_size, avail_tx_mem * 0.66));
         texturecache.SetMaxCacheSize(tx_cache_size);
         Debug::Printf("Texture cache set: %zu KB", tx_cache_size / 1024);
     }

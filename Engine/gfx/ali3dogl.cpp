@@ -219,22 +219,28 @@ void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GL
 
 bool OGLGraphicsDriver::FirstTimeInit()
 {
-  String ogl_v_str;
+    String ogl_v_str;
 #ifdef GLAPI
-  ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
+    ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
 #else
-  ogl_v_str = (const char*)glGetString(GL_VERSION);
+    ogl_v_str = (const char*)glGetString(GL_VERSION);
 #endif
-  Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
-  TestRenderToTexture();
+    // Test capabilities
+    TestRenderToTexture();
 
-  if(!CreateShaders()) { // requires glad Load successful
-    SDL_SetError("Failed to create Shaders.");
-    return false;
-  }
-  _firstTimeInit = true;
-  return true;
+    // https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_non_power_of_two.txt
+    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    _glCapsNonPowerOfTwo = strstr(exts, "GL_ARB_texture_non_power_of_two") != nullptr;
+
+    if(!CreateShaders()) { // requires glad Load successful
+        SDL_SetError("Failed to create Shaders.");
+        return false;
+    }
+
+    _firstTimeInit = true;
+    return true;
 }
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
@@ -1713,29 +1719,33 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
 {
-  int allocatedWidth = *width, allocatedHeight = *height;
+    int allocatedWidth = *width, allocatedHeight = *height;
 
-    bool foundWidth = false, foundHeight = false;
-    int tryThis = 2;
-    while ((!foundWidth) || (!foundHeight))
+    // NOTE: we might consider texture atlases in the future, for greater optimization
+    if (!_glCapsNonPowerOfTwo)
     {
-      if ((tryThis >= allocatedWidth) && (!foundWidth))
-      {
-        allocatedWidth = tryThis;
-        foundWidth = true;
-      }
+        bool foundWidth = false, foundHeight = false;
+        int tryThis = 2;
+        while ((!foundWidth) || (!foundHeight))
+        {
+            if ((tryThis >= allocatedWidth) && (!foundWidth))
+            {
+                allocatedWidth = tryThis;
+                foundWidth = true;
+            }
 
-      if ((tryThis >= allocatedHeight) && (!foundHeight))
-      {
-        allocatedHeight = tryThis;
-        foundHeight = true;
-      }
+            if ((tryThis >= allocatedHeight) && (!foundHeight))
+            {
+                allocatedHeight = tryThis;
+                foundHeight = true;
+            }
 
-      tryThis = tryThis << 1;
+            tryThis = tryThis << 1;
+        }
     }
 
-  *width = allocatedWidth;
-  *height = allocatedHeight;
+    *width = allocatedWidth;
+    *height = allocatedHeight;
 }
 
 IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)

@@ -287,6 +287,8 @@ private:
     // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
     Rect _viewportRect {};
 
+    // Capability flags
+    bool _glCapsNonPowerOfTwo = false;
     // These two flags define whether driver can, and should (respectively)
     // render sprites to texture, and then texture to screen, as opposed to
     // rendering to screen directly. This is known as supersampling mode

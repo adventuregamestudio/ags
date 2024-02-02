@@ -1768,24 +1768,11 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
     // NOTE: we might consider texture atlases in the future, for greater optimization
     if (!_glCapsNonPowerOfTwo)
     {
-        bool foundWidth = false, foundHeight = false;
-        int tryThis = 2;
-        while ((!foundWidth) || (!foundHeight))
-        {
-            if ((tryThis >= allocatedWidth) && (!foundWidth))
-            {
-                allocatedWidth = tryThis;
-                foundWidth = true;
-            }
-
-            if ((tryThis >= allocatedHeight) && (!foundHeight))
-            {
-                allocatedHeight = tryThis;
-                foundHeight = true;
-            }
-
-            tryThis = tryThis << 1;
-        }
+        int pow2;
+        for (pow2 = 2; pow2 < allocatedWidth; pow2 <<= 1);
+        allocatedWidth = pow2;
+        for (pow2 = 2; pow2 < allocatedHeight; pow2 <<= 1);
+        allocatedHeight = pow2;
     }
 
     *width = allocatedWidth;

@@ -218,8 +218,11 @@ protected:
 // Generic TextureTile base
 struct TextureTile
 {
+    // x, y, width, height define position of a valid image
     int x = 0, y = 0;
     int width = 0, height = 0;
+    // allocWidth and allocHeight tell the actual allocated texture size
+    int allocWidth = 0, allocHeight = 0;
 };
 
 // Special render hints for textures

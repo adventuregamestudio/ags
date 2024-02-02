@@ -88,7 +88,7 @@ size_t OGLTexture::GetMemSize() const
     // FIXME: a proper size in video memory, check OpenGL docs
     size_t sz = 0u;
     for (size_t i = 0; i < _numTiles; ++i)
-        sz += _tiles[i].width * _tiles[i].height * 4;
+        sz += _tiles[i].allocWidth * _tiles[i].allocHeight * 4;
     return sz;
 }
 
@@ -1608,12 +1608,8 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 
 void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque)
 {
-  int textureHeight = tile->height;
-  int textureWidth = tile->width;
-
-  // TODO: this seem to be tad overcomplicated, these conversions were made
-  // when texture is just created. Check later if this operation here may be removed.
-  AdjustSizeToNearestSupportedByCard(&textureWidth, &textureHeight);
+  const int textureWidth = tile->allocWidth;
+  const int textureHeight = tile->allocHeight;
 
   int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
   if (textureWidth > tile->width)
@@ -1900,6 +1896,8 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
         thisAllocatedHeight = thisTile->height;
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
+      thisTile->allocWidth = thisAllocatedWidth;
+      thisTile->allocHeight = thisAllocatedHeight;
 
       // Render targets has to be inverted compared to the default vertices,
       // in order to make their contents appear correct on screen (double invertion).

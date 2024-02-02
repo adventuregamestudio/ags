@@ -66,7 +66,7 @@ size_t D3DTexture::GetMemSize() const
     // FIXME: a proper size in video memory, check Direct3D docs
     size_t sz = 0u;
     for (size_t i = 0; i < _numTiles; ++i)
-        sz += _tiles[i].width * _tiles[i].height * 4;
+        sz += _tiles[i].allocWidth * _tiles[i].allocHeight * 4;
     return sz;
 }
 
@@ -1842,6 +1842,8 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
         thisAllocatedHeight = thisTile->height;
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
+      thisTile->allocWidth = thisAllocatedWidth;
+      thisTile->allocHeight = thisAllocatedHeight;
 
       if (vertices != NULL)
       {

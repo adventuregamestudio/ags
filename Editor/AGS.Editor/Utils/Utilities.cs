@@ -514,11 +514,11 @@ namespace AGS.Editor
             Rectangle rect = new Rectangle(0, 0, source.Width, source.Height);
             BitmapData sourceData = source.LockBits(rect, ImageLockMode.ReadOnly, source.PixelFormat);
             BitmapData destData = newImage.LockBits(rect, ImageLockMode.WriteOnly, newImage.PixelFormat);
-            int sourceAddress = sourceData.Scan0.ToInt32();
-            int destAddress = destData.Scan0.ToInt32();
+            IntPtr sourceAddress = sourceData.Scan0;
+            IntPtr destAddress = destData.Scan0;
             for (int y = 0; y < newImage.Height; y++)
             {
-                Utilities.CopyMemory(new IntPtr(sourceAddress), new IntPtr(destAddress), destData.Stride);
+                Utilities.CopyMemory(sourceAddress, destAddress, destData.Stride);
 
                 sourceAddress += sourceData.Stride;
                 destAddress += destData.Stride;

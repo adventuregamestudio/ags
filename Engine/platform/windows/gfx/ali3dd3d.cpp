@@ -1639,44 +1639,31 @@ int D3DGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 
 void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
 {
-  int allocatedWidth = *width, allocatedHeight = *height;
+    int allocatedWidth = *width, allocatedHeight = *height;
 
-  if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_POW2)
-  {
-    bool foundWidth = false, foundHeight = false;
-    int tryThis = 2;
-    while ((!foundWidth) || (!foundHeight))
+    if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_POW2)
     {
-      if ((tryThis >= allocatedWidth) && (!foundWidth))
-      {
-        allocatedWidth = tryThis;
-        foundWidth = true;
-      }
-
-      if ((tryThis >= allocatedHeight) && (!foundHeight))
-      {
-        allocatedHeight = tryThis;
-        foundHeight = true;
-      }
-
-      tryThis = tryThis << 1;
+        int pow2;
+        for (pow2 = 2; pow2 < allocatedWidth; pow2 <<= 1);
+        allocatedWidth = pow2;
+        for (pow2 = 2; pow2 < allocatedHeight; pow2 <<= 1);
+        allocatedHeight = pow2;
     }
-  }
 
-  if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
-  {
-    if (allocatedWidth > allocatedHeight) 
+    if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
     {
-     allocatedHeight = allocatedWidth;
+        if (allocatedWidth > allocatedHeight) 
+        {
+            allocatedHeight = allocatedWidth;
+        }
+        else
+        {
+            allocatedWidth = allocatedHeight;
+        }
     }
-    else
-    {
-     allocatedWidth = allocatedHeight;
-    }
-  }
 
-  *width = allocatedWidth;
-  *height = allocatedHeight;
+    *width = allocatedWidth;
+    *height = allocatedHeight;
 }
 
 bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat ) 

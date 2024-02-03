@@ -133,9 +133,9 @@ void ccSetDebugHook(new_line_hook_type jibble)
     new_line_hook = jibble;
 }
 
-int call_function(intptr_t addr, const RuntimeScriptValue *object, int numparm, const RuntimeScriptValue *parms)
+int call_function(void *fn_addr, const RuntimeScriptValue *object, int numparm, const RuntimeScriptValue *parms)
 {
-    if (!addr)
+    if (!fn_addr)
     {
         cc_error("null function pointer in call_function");
         return -1;
@@ -212,61 +212,61 @@ int call_function(intptr_t addr, const RuntimeScriptValue *object, int numparm, 
     case 0:
         {
             int (*fparam) ();
-            fparam = (int (*)())addr;
+            fparam = (int (*)())fn_addr;
             return fparam();
         }
     case 1:
         {
             int (*fparam) (intptr_t);
-            fparam = (int (*)(intptr_t))addr;
+            fparam = (int (*)(intptr_t))fn_addr;
             return fparam(parm_value[0]);
         }
     case 2:
         {
             int (*fparam) (intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1]);
         }
     case 3:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2]);
         }
     case 4:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
         }
     case 5:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
         }
     case 6:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
         }
     case 7:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
         }
     case 8:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
         }
     case 9:
         {
             int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))fn_addr;
             return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
         }
     }

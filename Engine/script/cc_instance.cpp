@@ -1279,13 +1279,13 @@ int ccInstance::Run(int32_t curpc)
             int32_t instId = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
             runningInst = loadedInstances[instId];
-            intptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(&runningInst->code[0]);
-            if (callAddr % sizeof(intptr_t) != 0)
+            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<uint8_t*>(&runningInst->code[0]);
+            if (callAddr % sizeof(uintptr_t) != 0)
             {
                 cc_error("call address not aligned");
                 return -1;
             }
-            callAddr /= sizeof(intptr_t); // size of ccScript::code elements
+            callAddr /= sizeof(uintptr_t); // size of ccScript::code elements
 
             if (Run(static_cast<int32_t>(callAddr)))
                 return -1;
@@ -1331,11 +1331,11 @@ int ccInstance::Run(int32_t curpc)
                 {
                     RuntimeScriptValue obj_rval = registers[SREG_OP];
                     obj_rval.DirectPtrObj();
-                    int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
+                    int_ret_val = call_function(reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
                 }
                 else
                 {
-                    int_ret_val = call_function((intptr_t)reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
+                    int_ret_val = call_function(reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
                 }
 
                 if (GlobalReturnValue.IsValid())
@@ -1870,7 +1870,8 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         {
             // NOTE: unfortunately, there seems to be no way to know if
             // that's an extender function that expects object pointer
-            exports[i].SetCodePtr((static_cast<intptr_t>(eaddr) * sizeof(intptr_t) + reinterpret_cast<uint8_t*>(&code[0])));
+            exports[i].SetCodePtr(reinterpret_cast<uint8_t*>(&code[0]) 
+                + (static_cast<uintptr_t>(eaddr) * sizeof(uintptr_t)));
         }
         else if (etype == EXPORT_DATA)
         {

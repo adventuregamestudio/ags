@@ -1446,7 +1446,7 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
         if (e.skip)
             continue;
 
-        switch (reinterpret_cast<intptr_t>(e.ddb))
+        switch (reinterpret_cast<uintptr_t>(e.ddb))
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support

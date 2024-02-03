@@ -447,7 +447,7 @@ public:
     // tell for certain that we are expecting a pointer to the object and not its (first) field.
     RuntimeScriptValue &DirectPtrObj();
     // Resolve and return direct pointer to the referenced data; non pointer types return IValue
-    intptr_t           GetDirectPtr() const;
+    void *      GetDirectPtr() const;
 };
 
 #endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

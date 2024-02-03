@@ -680,45 +680,37 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetSliderPos(_hMouseSpeed, slider_pos);
     UpdateMouseSpeedText();
 
-    // Init sprite cache list
-#if AGS_PLATFORM_64BIT
+    // Init sprite cache and texture cache lists
+    // 32-bit programs have accessible RAM limit of 2-3 GB (may be less in practice),
+    // and engine will need RAM for other things too, keep that in mind
     const std::array<std::pair<const char*, int>, 11> spr_cache_vals = { {
-        { "16 MB", 16 },  { "32 MB", 32 },  { "64 MB", 64 },   { "128 MB (default)", 128 },
-        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "768 MB", 768 },
-        { "1 GB ", 1024 }, { "1.5 GB ", 1536 }, { "2 GB ", 2048 }
+        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB", 128 },
+        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "640 MB", 640 },
+        { "768 MB", 768 }, { "896 MB", 896 }, { "1 GB", 1024 },
     }};
-#else
-    // 32-bit programs have accessible RAM limit of ~2GB (may be less in practice),
-    // and engine will need RAM for other things than spritecache, keep that in mind
-    const std::array<std::pair<const char*, int>, 7> spr_cache_vals = { {
-        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB (default)", 128 },
-        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }
-    }};
-#endif
     for (const auto &val : spr_cache_vals)
         AddString(_hSpriteCacheList, val.first, val.second);
-    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
-
-    // Init texture cache list
-    const std::array<std::pair<const char*, int>, 10> tx_cache_vals = { {
-        { "Off (not recommended)", 0 },
-        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB (default)", 128 },
-        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "768 MB", 768 },
-        { "1 GB ", 1024 }
-    }};
-    for (const auto &val : tx_cache_vals)
+    for (const auto &val : spr_cache_vals)
         AddString(_hTextureCacheList, val.first, val.second);
+#if AGS_PLATFORM_64BIT
+    const std::array<std::pair<const char*, int>, 4> spr_cache_vals64 = { {
+        { "1.25 GB ", 1280 }, { "1.5 GB ", 1536 }, { "1.75 GB ", 1792 }, { "2 GB ", 2048 }
+    }};
+    for (const auto &val : spr_cache_vals64)
+        AddString(_hSpriteCacheList, val.first, val.second);
+    for (const auto &val : spr_cache_vals64)
+        AddString(_hTextureCacheList, val.first, val.second);
+#endif
+    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
     SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
 
     // Init sound cache list (keep in mind: currently meant only for small sounds)
     const std::array<std::pair<const char*, int>, 5> sound_cache_vals = { {
-        { "Off", 0 }, { "16 MB", 16 }, { "32 MB (default)", 32 }, { "64 MB", 64 },
-        { "128 MB", 128 }
+        { "Off", 0 }, { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB", 128 }
     }};
     for (const auto &val : sound_cache_vals)
         AddString(_hSoundCacheList, val.first, val.second);
     SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
-
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);

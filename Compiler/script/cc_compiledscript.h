@@ -12,7 +12,7 @@ struct ccCompiledScript: public ccScript {
     int32_t codeallocated;
     char*functions[MAX_FUNCTIONS];
     int32_t funccodeoffs[MAX_FUNCTIONS];
-    short funcnumparams[MAX_FUNCTIONS];
+    int16_t funcnumparams[MAX_FUNCTIONS];
     int32_t numfunctions;
     int32_t cur_sp;
     int  next_line;  // line number of next code

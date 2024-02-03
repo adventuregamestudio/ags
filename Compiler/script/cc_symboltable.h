@@ -12,14 +12,14 @@
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
 	std::string sname;
-	short stype;
+	int16_t stype;
 	int32_t flags;
-	short vartype;
+	int16_t vartype;
 	int soffs;
 	int32_t ssize; // or return type size for function
-	short sscope; // or num arguments for function
+	int16_t sscope; // or num arguments for function
 	int32_t arrsize;
-	short extends; // inherits another class (classes) / owning class (member vars)
+	int16_t extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<uint32_t> funcparamtypes;
     std::vector<int32_t> funcParamDefaultValues;

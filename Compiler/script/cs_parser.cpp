@@ -3841,7 +3841,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         sym.entries[vname].extends = stname;  // save which struct it belongs to
                         sym.entries[vname].ssize = sym.entries[cursym].ssize;
                         sym.entries[vname].soffs = size_so_far;
-                        sym.entries[vname].vartype = (short)cursym;
+                        sym.entries[vname].vartype = (int16_t)cursym;
                         if (member_is_readonly)
                             sym.entries[vname].flags |= SFLG_READONLY;
                         if (member_is_const)

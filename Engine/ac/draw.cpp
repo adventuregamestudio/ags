@@ -196,6 +196,9 @@ class TextureCache :
     public ResourceCache<uint32_t, std::shared_ptr<Texture>>
 {
 public:
+    TextureCache(SpriteCache &spriteset)
+        : _spriteset(spriteset) {}
+
     // Gets existing texture from either MRU cache, or short-term cache
     const std::shared_ptr<Texture> Get(const uint32_t &sprite_id)
     {
@@ -239,9 +242,30 @@ public:
 
         // If not in any cache, then try loading the sprite's bitmap,
         // and create a texture data from it
-        Bitmap *bitmap = source ? source : spriteset[sprite_id];
-        if (!bitmap)
-            return nullptr;
+        Bitmap *bitmap = source;
+        std::unique_ptr<Bitmap> tmp_source;
+        if (!source)
+        {
+            // Following is a logic of not keeping raw sprite in the cache,
+            // and thus potentially saving much RAM.
+            // - if texture cache's capacity is > 3/4 of raw sprite cache,
+            //   then there's little to no practical reason to keep a raw image.
+            // This may be adjusted, or added more rules, as seems necessary.
+            bool skip_rawcache =
+                GetMaxCacheSize() > (3 * (_spriteset.GetMaxCacheSize() / 4));
+
+            if (_spriteset.IsSpriteLoaded(sprite_id) || !skip_rawcache)
+            { // if it's already there, or we are not allowed to skip, then cache normally
+                bitmap = _spriteset[sprite_id];
+            }
+            else
+            { // if skipping, ask it to only load, but not keep in raw cache
+                tmp_source = _spriteset.LoadSpriteNoCache(sprite_id);
+                bitmap = tmp_source.get();
+            }
+            if (!bitmap)
+                return nullptr;
+        }
 
         txdata.reset(gfxDriver->CreateTexture(bitmap, has_alpha, opaque));
         if (!txdata)
@@ -293,12 +317,15 @@ private:
         }
     }
 
+    // A reference to the raw sprites cache, which is also used to load
+    // sprites from the asset file.
+    SpriteCache &_spriteset;
     // Texture short-term cache:
     // - caches textures while they are in the immediate use;
     // - this lets to share same texture data among multiple sprites on screen.
     typedef std::weak_ptr<Texture> TexDataRef;
     std::unordered_map<uint32_t, TexDataRef> _txRefs;
-} texturecache;
+} texturecache(spriteset);
 
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);

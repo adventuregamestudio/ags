@@ -16,6 +16,7 @@
 #include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "gfx/bitmap.h"
+#include "util/memory_compat.h"
 
 using namespace AGS::Common;
 
@@ -72,6 +73,11 @@ bool SpriteCache::IsAssetSprite(sprkey_t index) const
         _spriteData[index].IsAssetSprite(); // found in the game resources
 }
 
+bool SpriteCache::IsSpriteLoaded(sprkey_t index) const
+{
+    return ResourceCache::Exists(index);
+}
+
 void SpriteCache::Reset()
 {
     _file.Close();
@@ -118,7 +124,7 @@ void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
     RemapSpriteToPlaceholder(index);
 }
 
-Bitmap *SpriteCache::RemoveSprite(sprkey_t index)
+std::unique_ptr<Bitmap> SpriteCache::RemoveSprite(sprkey_t index)
 {
     assert(index >= 0); // out of positive range indexes are valid to fail
     if (index < 0 || (size_t)index >= _spriteData.size())
@@ -126,7 +132,7 @@ Bitmap *SpriteCache::RemoveSprite(sprkey_t index)
     std::unique_ptr<Bitmap> image = ResourceCache::Remove(index);
     InitNullSprite(index);
     SprCacheLog("RemoveSprite: %d", index);
-    return image.release();
+    return std::move(image);
 }
 
 void SpriteCache::DisposeSprite(sprkey_t index)
@@ -241,6 +247,29 @@ void SpriteCache::PrecacheSprite(sprkey_t index)
     if (!ResourceCache::Exists(index))
         LoadSprite(index);
     SprCacheLog("Precached %d", index);
+}
+
+std::unique_ptr<Bitmap> SpriteCache::LoadSpriteNoCache(sprkey_t index)
+{
+    // invalid sprite slot
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    if (!DoesSpriteExist(index) || _spriteData[index].IsError())
+        return std::unique_ptr<Bitmap>(BitmapHelper::CreateBitmapCopy(_placeholder.get()));
+
+    // Try get image from cache
+    auto &image = ResourceCache::Get(index);
+    if (image)
+        return std::unique_ptr<Bitmap>(BitmapHelper::CreateBitmapCopy(image.get()));
+    // If no ready image, but has an asset, then try loading one
+    if (_spriteData[index].IsAssetSprite())
+    {
+        // TODO: see to optimize this later; the problem is with _callbacks.PostInitSprite
+        // that assumes that the sprite can be accessed from cache by index.
+        auto *bitmap = LoadSprite(index);
+        if (bitmap)
+            return ResourceCache::Remove(index);
+    }
+    return std::unique_ptr<Bitmap>(BitmapHelper::CreateBitmapCopy(_placeholder.get()));
 }
 
 void SpriteCache::LockSprite(sprkey_t index)

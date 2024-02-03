@@ -4,6 +4,7 @@
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -12,16 +13,16 @@
 struct SymbolTableEntry {
 	std::string sname;
 	short stype;
-	long flags;
+	int32_t flags;
 	short vartype;
 	int soffs;
-	long ssize; // or return type size for function
+	int32_t ssize; // or return type size for function
 	short sscope; // or num arguments for function
-	long arrsize;
+	int32_t arrsize;
 	short extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
-    std::vector<unsigned long> funcparamtypes;
-    std::vector<int> funcParamDefaultValues;
+    std::vector<uint32_t> funcparamtypes;
+    std::vector<int32_t> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
 
 	int get_num_args();

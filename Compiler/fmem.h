@@ -19,16 +19,16 @@
 struct FMEM
 {
   char *data;
-  long len;                     // length of data in array
-  long size;                    // size of data array allocated
-  long magic;
-  long pos;                     // current seeked position
+  size_t len;                  // length of data in array
+  size_t size;                 // size of data array allocated
+  int magic;
+  size_t pos;                  // current seeked position
 };
 
 extern FMEM *fmem_create();
 extern FMEM *fmem_open(const char *);
 extern void fmem_close(FMEM *);
-extern void fmem_write(char *, long, FMEM *);
+extern void fmem_write(char *, size_t, FMEM *);
 extern void fmem_putc(char, FMEM *);
 extern void fmem_puts(char *, FMEM *);
 extern int fmem_getc(FMEM *);

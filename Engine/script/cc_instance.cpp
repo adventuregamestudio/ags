@@ -1331,11 +1331,11 @@ int ccInstance::Run(int32_t curpc)
                 {
                     RuntimeScriptValue obj_rval = registers[SREG_OP];
                     obj_rval.DirectPtrObj();
-                    int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
+                    int_ret_val = call_function(reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
                 }
                 else
                 {
-                    int_ret_val = call_function((intptr_t)reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
+                    int_ret_val = call_function(reg1.Ptr, nullptr, num_args_to_func, func_callstack.GetHead() + 1);
                 }
 
                 if (GlobalReturnValue.IsValid())

@@ -198,7 +198,8 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
+      <Command>mkdir "$(SolutionDir)..\Editor\References\x64"
+copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -299,7 +300,8 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
+      <Command>mkdir "$(SolutionDir)..\Editor\References\x64"
+copy "$(TargetPath)" "$(SolutionDir)..\Editor\References\x64"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

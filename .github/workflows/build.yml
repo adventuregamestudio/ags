@@ -9,22 +9,28 @@ jobs:
   build:
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.platform.shell }}
+
     strategy:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows, os: windows-latest }
-        - { name: Ubuntu,  os: ubuntu-latest }
-        - { name: macOS,   os: macos-latest } 
+        - { name: Windows,    os: windows-latest, artifact: 'ags-windows', shell: cmd, runbin: ".\\ags.exe", bindir: "Release" }
+        - { name: Ubuntu,     os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh,  runbin: "./ags",      bindir: ""        }
+        - { name: macOS,      os: macos-latest,   artifact: 'ags-macos',   shell: sh,  runbin: "./ags",      bindir: ""        }
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: |
+        cmake --version
+        cmake -S "${{github.workspace}}" -B "${{github.workspace}}/build" -DAGS_BUILD_TOOLS=1 -DAGS_TESTS=1 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel 2
+      run: cmake --build "${{github.workspace}}/build" --config ${{env.BUILD_TYPE}} --parallel 2
 
     - name: Test
       working-directory: ${{github.workspace}}/build
@@ -33,7 +39,16 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: binaries-${{ matrix.platform.name }}
+        name: ${{ matrix.platform.artifact }}
         path: |
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
+          ${{github.workspace}}/build/ags.exe
+            
+    - name: Run game auto-test  # we are using tap.py so that the pipeline fails if a test fails
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
+        pip install tap.py
+        curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/auto-test.ags
+        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags        
+        tappy agstest.tap

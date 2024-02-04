@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2023 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -18,7 +18,7 @@
 #include "gfx/gfxdefines.h"
 
 // Setup engine after the graphics mode has changed
-void engine_post_gfxmode_setup(const Size &init_desktop);
+void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_dm);
 // Prepare engine for graphics mode release; could be called before switching display mode too
 void engine_pre_gfxmode_release();
 // Prepare engine to the graphics mode shutdown and gfx driver destruction

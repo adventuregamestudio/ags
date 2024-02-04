@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2023 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -223,13 +223,14 @@ void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text
     draw_and_invalidate_text(ds, x, y, font, text_color, text);
 }
 
-void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
-    if (width != nullptr)
-        width[0] = play.GetMainViewport().GetWidth();
-    if (height != nullptr)
-        height[0] = play.GetMainViewport().GetHeight();
-    if (coldepth != nullptr)
-        coldepth[0] = scsystem.coldepth;
+void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth)
+{
+    if (width)
+        *width = play.GetMainViewport().GetWidth();
+    if (height)
+        *height = play.GetMainViewport().GetHeight();
+    if (coldepth)
+        *coldepth = scsystem.coldepth;
 }
 
 unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp)

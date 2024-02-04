@@ -747,6 +747,11 @@ int GetFlashlightMask()
   return 0;
 }
 
+int AGS_PluginV2()
+{
+  return 1;
+}
+
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
   engine = lpEngine;

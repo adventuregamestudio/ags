@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2023 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -411,15 +411,13 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
     return tempbl;
 }
 
-// NOTE: Some of these conversions are required  even when using
+// NOTE: Some of these conversions are required even when using
 // D3D and OpenGL rendering, for two reasons:
 // 1) certain raw drawing operations are still performed by software
 // Allegro methods, hence bitmaps should be kept compatible to any native
 // software operations, such as blitting two bitmaps of different formats.
-// 2) mobile ports feature an OpenGL renderer built in Allegro library,
-// that assumes native bitmaps are in OpenGL-compatible format, so that it
-// could copy them to texture without additional changes.
-// AGS own OpenGL renderer tries to sync its behavior with the former one.
+// 2) OpenGL renderer assumes native bitmaps are in OpenGL-compatible format,
+// so that it could copy them to texture without additional changes.
 //
 // TODO: make gfxDriver->GetCompatibleBitmapFormat describe all necessary
 // conversions, so that we did not have to guess.
@@ -443,7 +441,7 @@ static Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool make_opaqu
     // to match graphics driver expectation about pixel format.
     // TODO: make GetCompatibleBitmapFormat tell this somehow
 #if defined (AGS_INVERTED_COLOR_ORDER)
-    const int sys_col_depth = System_GetColorDepth();
+    const int sys_col_depth = gfxDriver->GetDisplayMode().ColorDepth;
     if (sys_col_depth > 16 && bmp_col_depth == 32)
     {
         // Convert RGB to BGR.

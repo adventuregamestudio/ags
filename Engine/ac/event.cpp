@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2023 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -277,7 +277,10 @@ void process_event(const EventHappened *evp) {
             if (game.color_depth == 1)
                 quit("!Cannot use crossfade screen transition in 256-colour games");
 
-            IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
+            // TODO: crossfade does not need a screen with transparency, it should be opaque;
+            // but Software renderer cannot alpha-blend non-masked sprite at the moment,
+            // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
+            IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
             for (int alpha = 254; alpha > 0; alpha -= 16)
             {
                 // do the crossfade
@@ -307,7 +310,7 @@ void process_event(const EventHappened *evp) {
             int aa,bb,cc;
             RGB interpal[256];
 
-            IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
+            IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
             for (aa=0;aa<16;aa++) {
                 // merge the palette while dithering
                 if (game.color_depth == 1) 

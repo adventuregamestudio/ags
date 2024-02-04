@@ -2,7 +2,7 @@
 //
 // Adventure Game Studio (AGS)
 //
-// Copyright (C) 1999-2011 Chris Jones and 2011-2023 various contributors
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
 // The full list of copyright holders can be found in the Copyright.txt
 // file, which is part of this source code distribution.
 //
@@ -87,7 +87,7 @@ void current_fade_out_effect () {
     }
 }
 
-IDriverDependantBitmap* prepare_screen_for_transition_in()
+IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque)
 {
     if (saved_viewport_bitmap == nullptr)
         quit("Crossfade: buffer is null attempting transition");
@@ -107,7 +107,7 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         delete saved_viewport_bitmap;
         saved_viewport_bitmap = clippedBuffer;
     }
-    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, true);
+    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap, opaque);
 }
 
 //=============================================================================

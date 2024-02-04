@@ -140,6 +140,8 @@ Editor:
    editor, with a few exceptions.
  - In Sprite Manager added command "View" -> "Show filenames" which toggles display of a sprite's
    source filename under the sprites.
+ - Adjust sprites' import settings after "Crop sprite edges" command; this would ensure that these
+   sprites are restored from source file keeping their cropped sizes.
  - During sprite export Editor will display a proper progress dialog.
  - Zoom controls in Character and View panes now allow downscaling too. View editor displays the
    preview sprite stretched to fill the parent panel.
@@ -184,9 +186,11 @@ Editor:
    a pre-3.* game project.
  - Fixed importing GIFs or 8-bit PNGs may lose transparent pixels if source images used
    other palette index than 0 for transparency.
+ - Fixed a warning condition for copying 32-bit bitmaps to a desktop clipboard of less color depth.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
  - Fixed a rare exception when scrolling the room in the editor.
+ - Fixed keyboard shortcuts for GUI Editor's Copy and Paste commands.
  - Fixed deleting collapsed "region" in script would sometimes lead to portion of the script
    undeleted but staying invisible.
  - (Possibly) Fixed a "Index out of range" exception in Script editor, related to the
@@ -242,6 +246,8 @@ Engine:
    which makes them platform-independent.
  - Removed an automatic SetRestartPoint() call at startup. This is done in case user does not want
    to use default "restart" save slot, or has a custom save system.
+ - Fixed NumPad keys not handled properly by the engine (in on_key_press, IsKeyPressed, and TextBox
+   control). This is a regression since 3.6.0.
  - Support handling multiple mouse clicks per game frame, similar to how multiple key presses
    were supported since 3.6.0.
  - When starting up, engine will now precache only first 4 or 8 loops of the starting player

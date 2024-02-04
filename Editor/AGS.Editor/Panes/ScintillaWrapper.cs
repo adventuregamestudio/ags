@@ -674,9 +674,12 @@ namespace AGS.Editor
             var thisKeyList = dialogKeywords ? _dialogKeywords : _keywords;
             foreach (string s in arr)
             {
-                s.Trim();
-                _keywordSets[(int)type].Add(s);
-                thisKeyList.Add(s);
+                string s_trimmed = s.Trim();
+                if (!string.IsNullOrEmpty(s_trimmed))
+                {
+                    _keywordSets[(int)type].Add(s_trimmed);
+                    thisKeyList.Add(s_trimmed);
+                }
             }
         }
 

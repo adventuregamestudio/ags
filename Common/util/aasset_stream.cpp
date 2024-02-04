@@ -148,7 +148,7 @@ namespace AGS
             // if seek returns error (< 0), then the position must remain
             if (new_off >= 0)
                 _cur_offset = new_off;
-            return static_cast<soff_t>(new_off);
+            return _cur_offset - _start; // convert to a stream section pos
         }
 
         AAsset *AAssetStream::OpenAAsset(const String &asset_name, int asset_mode)

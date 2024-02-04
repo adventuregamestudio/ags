@@ -52,7 +52,7 @@ extern int GetSpriteAsHBitmap(int spriteSlot);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
 extern int find_free_sprite_slot();
-extern int crop_sprite_edges(int numSprites, int *sprites, bool symmetric);
+extern int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *crop_rect = nullptr);
 extern void deleteSprite(int sprslot);
 extern void GetSpriteInfo(int slot, ::SpriteInfo &info);
 extern int GetSpriteWidth(int slot);
@@ -119,6 +119,9 @@ AGSString TextConverter::ConvertTextProperty(System::String^ clr_str)
     if (clr_str == nullptr)
         return AGSString();
     AGSString str = TextHelper::Convert(clr_str, _encoding);
+    // Escape backslashes before brackets: for '\[' support;
+    // this is needed because Unescape will delete '\' in unrecognized sequence.
+    str.Replace("\\[", "\\\\[");
     return AGS::Common::StrUtil::Unescape(str);
 }
 
@@ -440,21 +443,33 @@ namespace AGS
 		}
 
 		bool NativeMethods::CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric)
-		{	
-			int *spriteSlotList = new int[sprites->Count];
-			int i = 0;
+        {
+            std::vector<int> spr_list;
+            std::vector<Rect> spr_tile;
+            spr_list.reserve(sprites->Count);
+            spr_tile.reserve(sprites->Count);
 			for each (Sprite^ sprite in sprites)
 			{
-				spriteSlotList[i] = sprite->Number;
-				i++;
+				spr_list.push_back(sprite->Number);
+                spr_tile.push_back(RectWH(sprite->OffsetX, sprite->OffsetY, sprite->ImportWidth, sprite->ImportHeight));
 			}
-			bool result = crop_sprite_edges(sprites->Count, spriteSlotList, symmetric) != 0;
-			delete spriteSlotList;
 
-			int newWidth = GetSpriteWidth(sprites[0]->Number);
+            Rect crop_rect;
+			bool result = crop_sprite_edges(spr_list, symmetric, &crop_rect) != 0;
+
+            int newWidth = GetSpriteWidth(sprites[0]->Number);
 			int newHeight = GetSpriteHeight(sprites[0]->Number);
+            if (newWidth == sprites[0]->Width && newHeight == sprites[0]->Height)
+                return false; // no change
+
 			for each (Sprite^ sprite in sprites)
 			{
+                sprite->ImportAsTile = true;
+                // Remember that this sprite may have been a tile already
+                sprite->OffsetX += crop_rect.Left;
+                sprite->OffsetY += crop_rect.Top;
+                sprite->ImportWidth = crop_rect.GetWidth();
+                sprite->ImportHeight = crop_rect.GetHeight();
 				sprite->Width = newWidth;
 				sprite->Height = newHeight;
 			}

@@ -786,7 +786,7 @@ namespace AGS.Editor
                 Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
 
                 if (GetDesktopColourDepth() < 32 &&
-                    (bmp.PixelFormat != PixelFormat.Format32bppArgb || bmp.PixelFormat == PixelFormat.Format32bppRgb))
+                    (bmp.PixelFormat == PixelFormat.Format32bppArgb || bmp.PixelFormat == PixelFormat.Format32bppRgb))
                 {
                     if (Factory.GUIController.ShowQuestion("Your desktop colour depth is lower than this image. You may lose image detail if you copy this to the clipboard. Do you want to go ahead?") != DialogResult.Yes)
                     {

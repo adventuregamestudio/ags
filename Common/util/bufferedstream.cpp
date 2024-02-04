@@ -195,7 +195,7 @@ soff_t BufferedStream::Seek(soff_t offset, StreamSeek origin)
     }
     // clamp to the valid range
     _position = std::min(std::max(want_pos, _start), _end);
-    return _position;
+    return _position - _start; // convert to a stream section pos
 }
 
 //-----------------------------------------------------------------------------

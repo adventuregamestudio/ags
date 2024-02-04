@@ -413,6 +413,11 @@ void remove_screen_overlay(int type)
         over_free_ids.push(type);
 
     reset_drawobj_for_overlay(type);
+
+    // If all overlays have been removed, reset creation index (helps vs overflows)
+    play.overlay_count--;
+    if (play.overlay_count == 0)
+        play.overlay_creation_id = 0;
 }
 
 void remove_all_overlays()
@@ -448,6 +453,8 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
         screenover.resize(type + 1);
 
     ScreenOverlay over;
+    over.type = type;
+    over.creation_id = play.overlay_creation_id++;
     if (piccy)
     {
         over.SetImage(std::unique_ptr<Bitmap>(piccy), pic_offx, pic_offy);
@@ -461,7 +468,6 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
     // by default draw speech and portraits over GUI, and the rest under GUI
     over.zorder = (roomlayer || type == OVER_TEXTMSG || type == OVER_PICTURE || type == OVER_TEXTSPEECH) ?
         INT_MAX : INT_MIN;
-    over.type=type;
     over.timeout=0;
     over.bgSpeechForChar = -1;
     over.associatedOverlayHandle = 0;
@@ -486,6 +492,7 @@ static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, in
     }
     over.MarkChanged();
     screenover[type] = std::move(over);
+    play.overlay_count++;
     return type;
 }
 

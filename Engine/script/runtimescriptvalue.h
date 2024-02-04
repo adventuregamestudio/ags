@@ -92,8 +92,8 @@ public:
     // Once those classes are merged, it will no longer be needed.
     union
     {
-        void            *MgrPtr;// generic object manager pointer
-        IScriptObject   *ObjMgr;// script object manager
+        void                *MgrPtr;// generic object manager pointer
+        IScriptObject       *ObjMgr;// script object manager
         CCStaticObjectArray *ArrMgr;// static object array manager
     };
     // The "real" size of data, either one stored in I/FValue,
@@ -447,7 +447,7 @@ public:
     // tell for certain that we are expecting a pointer to the object and not its (first) field.
     RuntimeScriptValue &DirectPtrObj();
     // Resolve and return direct pointer to the referenced data; non pointer types return IValue
-    intptr_t           GetDirectPtr() const;
+    void *      GetDirectPtr() const;
 };
 
 #endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

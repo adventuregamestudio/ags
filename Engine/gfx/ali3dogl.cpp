@@ -37,8 +37,6 @@
 #if AGS_OPENGL_ES2
   float get_device_scale();
 
-#define GL_CLAMP GL_CLAMP_TO_EDGE
-
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
 #define glGenFramebuffersEXT glGenFramebuffers
@@ -96,7 +94,7 @@ size_t OGLTexture::GetMemSize() const
     // FIXME: a proper size in video memory, check OpenGL docs
     size_t sz = 0u;
     for (size_t i = 0; i < _numTiles; ++i)
-        sz += _tiles[i].width * _tiles[i].height * 4;
+        sz += _tiles[i].allocWidth * _tiles[i].allocHeight * 4;
     return sz;
 }
 
@@ -233,22 +231,20 @@ void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GL
 
 bool OGLGraphicsDriver::FirstTimeInit()
 {
-  String ogl_v_str;
-#ifdef GLAPI
-  ogl_v_str.Format("%d.%d", GLVersion.major, GLVersion.minor);
-#else
-  ogl_v_str = (const char*)glGetString(GL_VERSION);
-#endif
-  Debug::Printf(kDbgMsg_Info, "Running OpenGL: %s", ogl_v_str.GetCStr());
+    // Test capabilities
+    TestRenderToTexture();
 
-  TestRenderToTexture();
+    // https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_non_power_of_two.txt
+    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    _glCapsNonPowerOfTwo = strstr(exts, "GL_ARB_texture_non_power_of_two") != nullptr;
 
-  if(!CreateShaders()) { // requires glad Load successful
-    SDL_SetError("Failed to create Shaders.");
-    return false;
-  }
-  _firstTimeInit = true;
-  return true;
+    if(!CreateShaders()) { // requires glad Load successful
+        SDL_SetError("Failed to create Shaders.");
+        return false;
+    }
+
+    _firstTimeInit = true;
+    return true;
 }
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
@@ -355,6 +351,15 @@ bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
   // Instead of using framebuffer 0, we ask OpenGL to get the current framebuffer.
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &_screenFramebuffer);
 #endif
+
+  const char *gl_version = (const char*)glGetString(GL_VERSION);
+  const char *gl_vendor = (const char*)glGetString(GL_VENDOR);
+  const char *gl_renderer = (const char*)glGetString(GL_RENDERER);
+  String adapter_info = String::FromFormat(
+      "\tOpenGL: %s\n\tVendor: %s\n\tRenderer: %s",
+      gl_version, gl_vendor, gl_renderer
+    );
+  Debug::Printf(kDbgMsg_Info, "OpenGL adapter info:\n%s", adapter_info.GetCStr());
   return true;
 }
 
@@ -803,8 +808,8 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
   {
     if (!InitGlScreen(mode))
       return false;
-    if (!_firstTimeInit)
-      if(!FirstTimeInit()) return false;
+    if (!_firstTimeInit && !FirstTimeInit())
+      return false;
     InitGlParams(mode);
   }
   catch (Ali3DException exception)
@@ -1143,18 +1148,20 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     else if (_do_render_to_texture)
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     }
     else
     {
       _filter->SetFilteringForStandardSprite();
     }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
     if (txdata->_vertex != nullptr)
     {
@@ -1506,7 +1513,7 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
         if (e.skip)
             continue;
 
-        switch (reinterpret_cast<intptr_t>(e.ddb))
+        switch (reinterpret_cast<uintptr_t>(e.ddb))
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
@@ -1672,12 +1679,8 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 
 void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque)
 {
-  int textureHeight = tile->height;
-  int textureWidth = tile->width;
-
-  // TODO: this seem to be tad overcomplicated, these conversions were made
-  // when texture is just created. Check later if this operation here may be removed.
-  AdjustSizeToNearestSupportedByCard(&textureWidth, &textureHeight);
+  const int textureWidth = tile->allocWidth;
+  const int textureHeight = tile->allocHeight;
 
   int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
   if (textureWidth > tile->width)
@@ -1709,8 +1712,12 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   else
     BitmapToVideoMem(bitmap, &fixedTile, memPtr, pitch, usingLinearFiltering);
 
-  // Mimic the behaviour of GL_CLAMP_EDGE for the tile edges
-  // NOTE: on some platforms GL_CLAMP_EDGE does not work with the version of OpenGL we're using.
+  // Mimic the behaviour of GL_CLAMP_TO_EDGE for the tile edges
+  // NOTE: on some platforms GL_CLAMP_TO_EDGE does not work with the version of OpenGL we're using.
+  // TODO: test the GL version to see if this is even necessary?!
+  // Info on CLAMP types:
+  // https://docs.gl/gl2/glTexParameter
+  // https://stackoverflow.com/questions/56823126/how-is-gl-clamp-in-opengl-different-from-gl-clamp-to-edge
   if (tile->width < tileWidth)
   {
     if (tilex > 0)
@@ -1791,37 +1798,50 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
-size_t OGLGraphicsDriver::GetAvailableTextureMemory()
+/*
+    ATI extensions, found at:
+    https://registry.khronos.org/OpenGL/extensions/ATI/ATI_meminfo.txt
+    NVIDIA extensions, found at:
+    https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt
+*/
+
+#define VBO_FREE_MEMORY_ATI                             0x87FB
+#define TEXTURE_FREE_MEMORY_ATI                         0x87FC
+#define RENDERBUFFER_FREE_MEMORY_ATI                    0x87FD
+
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX            0x9047
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX      0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX    0x9049
+#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX              0x904A
+#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX              0x904B
+
+uint64_t OGLGraphicsDriver::GetAvailableTextureMemory()
 {
-  // TODO: investigate later if there is any way, but probably not a priority
-  return 0;
+    GLint mem = 0;
+    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    if (strstr(exts, "GL_NVX_gpu_memory_info") != nullptr)
+        glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &mem);
+    else if (strstr(exts, "GL_ATI_meminfo") != nullptr)
+        glGetIntegerv(TEXTURE_FREE_MEMORY_ATI, &mem);
+    return static_cast<uint64_t>(mem) * 1024u; // retrieved mem is in KB
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
 {
-  int allocatedWidth = *width, allocatedHeight = *height;
+    int allocatedWidth = *width, allocatedHeight = *height;
 
-    bool foundWidth = false, foundHeight = false;
-    int tryThis = 2;
-    while ((!foundWidth) || (!foundHeight))
+    // NOTE: we might consider texture atlases in the future, for greater optimization
+    if (!_glCapsNonPowerOfTwo)
     {
-      if ((tryThis >= allocatedWidth) && (!foundWidth))
-      {
-        allocatedWidth = tryThis;
-        foundWidth = true;
-      }
-
-      if ((tryThis >= allocatedHeight) && (!foundHeight))
-      {
-        allocatedHeight = tryThis;
-        foundHeight = true;
-      }
-
-      tryThis = tryThis << 1;
+        int pow2;
+        for (pow2 = 2; pow2 < allocatedWidth; pow2 <<= 1);
+        allocatedWidth = pow2;
+        for (pow2 = 2; pow2 < allocatedHeight; pow2 <<= 1);
+        allocatedHeight = pow2;
     }
 
-  *width = allocatedWidth;
-  *height = allocatedHeight;
+    *width = allocatedWidth;
+    *height = allocatedHeight;
 }
 
 IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, bool opaque)
@@ -1945,6 +1965,8 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
         thisAllocatedHeight = thisTile->height;
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
+      thisTile->allocWidth = thisAllocatedWidth;
+      thisTile->allocHeight = thisAllocatedHeight;
 
       // Render targets has to be inverted compared to the default vertices,
       // in order to make their contents appear correct on screen (double invertion).

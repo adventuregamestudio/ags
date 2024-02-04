@@ -65,6 +65,8 @@ struct IScriptObject
     // TODO: pass savegame format version
     virtual int Serialize(void *address, uint8_t *buffer, int bufsize) = 0;
 
+    // WARNING: following section is not a part of plugin API, therefore these methods
+    // should **never** be called for kScValPluginObject script objects!
 
     //
     // Interface of a managed object that contains typeid fields.
@@ -81,10 +83,14 @@ struct IScriptObject
 
 
     // Legacy support for reading and writing object values by their relative offset.
-    // WARNING: following were never a part of plugin API, therefore these methods
-    // should **never** be called for kScValPluginObject script objects!
+    // These methods allow to "remap" script struct field access, by taking the
+    // legacy offset, and using it rather as a field ID than an address, for example.
+    // Consequently these also let trigger side-effects, such as updating an object
+    // after a field value is written to.
     //
-    // RE: GetFieldPtr()
+    // GetFieldPtr is used to access a script struct member which is a raw buffer,
+    // such as a char array.
+    // RE: GetFieldPtr() -
     // According to AGS script specification, when the old-string pointer or char array is passed
     // as an argument, the byte-code does not include any specific command for the member variable
     // retrieval and instructs to pass an address of the object itself with certain offset.

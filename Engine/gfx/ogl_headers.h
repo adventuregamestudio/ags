@@ -38,3 +38,9 @@
 #ifndef GLAPI
 #define GLAD_GL_VERSION_2_0 (0)
 #endif
+
+#if AGS_OPENGL_ES2
+#ifndef GL_CLAMP
+    #define GL_CLAMP GL_CLAMP_TO_EDGE
+#endif
+#endif // AGS_OPENGL_ES2

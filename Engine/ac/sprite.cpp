@@ -26,7 +26,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int our_eip, eip_guinum, eip_guiobj;
+extern int eip_guinum, eip_guiobj;
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;

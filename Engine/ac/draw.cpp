@@ -75,7 +75,6 @@ extern RoomStruct thisroom;
 extern unsigned int loopcounter;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
-extern int our_eip;
 extern int in_new_room;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
@@ -199,6 +198,9 @@ class TextureCache :
     public ResourceCache<uint32_t, std::shared_ptr<Texture>>
 {
 public:
+    TextureCache(SpriteCache &spriteset)
+        : _spriteset(spriteset) {}
+
     // Gets existing texture from either MRU cache, or short-term cache
     const std::shared_ptr<Texture> Get(const uint32_t &sprite_id)
     {
@@ -242,9 +244,30 @@ public:
 
         // If not in any cache, then try loading the sprite's bitmap,
         // and create a texture data from it
-        Bitmap *bitmap = source ? source : spriteset[sprite_id];
-        if (!bitmap)
-            return nullptr;
+        Bitmap *bitmap = source;
+        std::unique_ptr<Bitmap> tmp_source;
+        if (!source)
+        {
+            // Following is a logic of not keeping raw sprite in the cache,
+            // and thus potentially saving much RAM.
+            // - if texture cache's capacity is > 3/4 of raw sprite cache,
+            //   then there's little to no practical reason to keep a raw image.
+            // This may be adjusted, or added more rules, as seems necessary.
+            bool skip_rawcache =
+                GetMaxCacheSize() > (3 * (_spriteset.GetMaxCacheSize() / 4));
+
+            if (_spriteset.IsSpriteLoaded(sprite_id) || !skip_rawcache)
+            { // if it's already there, or we are not allowed to skip, then cache normally
+                bitmap = _spriteset[sprite_id];
+            }
+            else
+            { // if skipping, ask it to only load, but not keep in raw cache
+                tmp_source = _spriteset.LoadSpriteNoCache(sprite_id);
+                bitmap = tmp_source.get();
+            }
+            if (!bitmap)
+                return nullptr;
+        }
 
         txdata.reset(gfxDriver->CreateTexture(bitmap, opaque));
         if (!txdata)
@@ -296,12 +319,15 @@ private:
         }
     }
 
+    // A reference to the raw sprites cache, which is also used to load
+    // sprites from the asset file.
+    SpriteCache &_spriteset;
     // Texture short-term cache:
     // - caches textures while they are in the immediate use;
     // - this lets to share same texture data among multiple sprites on screen.
     typedef std::weak_ptr<Texture> TexDataRef;
     std::unordered_map<uint32_t, TexDataRef> _txRefs;
-} texturecache;
+} texturecache(spriteset);
 
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);
@@ -590,9 +616,9 @@ void init_draw_method()
         size_t tx_cache_size = usetup.TextureCacheSize * 1024;
         // If graphics driver can report available texture memory,
         // then limit the setting by, let's say, 66% of it (we use it for other things)
-        size_t avail_tx_mem = gfxDriver->GetAvailableTextureMemory();
+        uint64_t avail_tx_mem = gfxDriver->GetAvailableTextureMemory();
         if (avail_tx_mem > 0)
-            tx_cache_size = std::min<size_t>(tx_cache_size, avail_tx_mem * 0.66);
+            tx_cache_size = std::min<size_t>(SIZE_MAX, std::min<uint64_t>(tx_cache_size, avail_tx_mem * 0.66));
         texturecache.SetMaxCacheSize(tx_cache_size);
         Debug::Printf("Texture cache set: %zu KB", tx_cache_size / 1024);
     }
@@ -1612,14 +1638,12 @@ bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newhe
 
   if (scaled) {
       // Scaled character
-
-      our_eip = 334;
+      set_our_eip(334);
 
       // Ensure that anti-aliasing routines have a palette to
       // use for mapping while faded out
       if (in_new_room)
           select_palette (palette);
-
 
       if (isMirrored) {
           // TODO: "flip self" function may allow to optimize this
@@ -1642,7 +1666,7 @@ bool scale_and_flip_sprite(ObjTexture &actsp, int sppic, int newwidth, int newhe
   else {
       // Not a scaled character, draw at normal size
 
-      our_eip = 339;
+      set_our_eip(339);
 
       if (isMirrored)
           active_spr->FlipBlt(src_sprite, 0, 0, Common::kFlip_Horizontal);
@@ -1669,7 +1693,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
         return src; // No transform: return source image
 
     recycle_bitmap(dst, src->GetColorDepth(), dst_sz.Width, dst_sz.Height, true);
-    our_eip = 339;
+    set_our_eip(339);
 
     // If scaled: first scale then optionally mirror
     if (src->GetSize() != dst_sz)
@@ -1988,7 +2012,7 @@ bool construct_object_gfx(int objid, bool force_software)
 
 void prepare_objects_for_drawing()
 {
-    our_eip=32;
+    set_our_eip(32);
     const bool hw_accel = !drawstate.SoftwareRender;
 
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
@@ -2098,7 +2122,7 @@ bool construct_char_gfx(int charid, bool force_software)
 
 void prepare_characters_for_drawing()
 {
-    our_eip=33;
+    set_our_eip(33);
     const bool hw_accel = !drawstate.SoftwareRender;
 
     // draw characters
@@ -2166,7 +2190,7 @@ static void add_roomovers_for_drawing()
         if (!over.IsRoomLayer()) continue; // not a room layer
         if (over.transparency == 255) continue; // skip fully transparent
         const Point pos = update_overlay_graphicspace(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, false);
+        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, false, over.creation_id);
     }
 }
 
@@ -2204,7 +2228,7 @@ void prepare_room_sprites()
 
         if ((debug_flags & DBG_NODRAWSPRITES) == 0)
         {
-            our_eip = 34;
+            set_our_eip(34);
 
             if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2226,7 +2250,7 @@ void prepare_room_sprites()
             draw_sprite_list(true);
         }
     }
-    our_eip = 36;
+    set_our_eip(36);
 
     // Debug room overlay
     update_room_debug();
@@ -2256,7 +2280,7 @@ void draw_preroom_background()
 // whatsoever.
 PBitmap draw_room_background(Viewport *view)
 {
-    our_eip = 31;
+    set_our_eip(31);
 
     // For the sake of software renderer, if there is any kind of camera transform required
     // except screen offset, we tell it to draw on separate bitmap first with zero transformation.
@@ -2411,11 +2435,11 @@ void draw_gui_and_overlays()
         if (over.IsRoomLayer()) continue; // not a ui layer
         if (over.transparency == 255) continue; // skip fully transparent
         const Point pos = update_overlay_graphicspace(over);
-        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, false);
+        add_to_sprite_list(overtxs[over.type].Ddb, pos.X, pos.Y, over._gs.AABB(), over.zorder, false, over.creation_id);
     }
 
     // Add GUIs
-    our_eip=35;
+    set_our_eip(35);
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
         if (playerchar->activeinv >= MAX_INV) {
             quit("!The player.activeinv variable has been corrupted, probably as a result\n"
@@ -2423,7 +2447,7 @@ void draw_gui_and_overlays()
         }
         if (playerchar->activeinv < 1) gui_inv_pic=-1;
         else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
-        our_eip = 37;
+        set_our_eip(37);
         // Prepare and update GUI textures
         {
             for (int index = 0; index < game.numgui; ++index)
@@ -2434,7 +2458,7 @@ void draw_gui_and_overlays()
                 if (gui.Transparency == 255) continue; // 100% transparent
 
                 eip_guinum = index;
-                our_eip = 372;
+                set_our_eip(372);
                 Bitmap *guibg_final = guibg[index].Bmp.get();
                 const bool draw_with_controls = !draw_controls_as_textures;
                 if (gui.HasChanged() || (draw_with_controls && gui.HasControlsChanged()))
@@ -2489,19 +2513,18 @@ void draw_gui_and_overlays()
                     }
                 }
                 
-                our_eip = 373;
+                set_our_eip(373);
                 // Update control textures, if they have changed themselves
                 if (draw_controls_as_textures && gui.HasControlsChanged())
                 {
                     construct_guictrl_tex(gui);
                 }
 
-
-                our_eip = 374;
+                set_our_eip(374);
                 gui.ClearChanged();
             }
         }
-        our_eip = 38;
+        set_our_eip(38);
         // Draw the GUIs
         for (int index = 0; index < game.numgui; ++index)
         {
@@ -2540,7 +2563,7 @@ void draw_gui_and_overlays()
     // Move the resulting sprlist with guis and overlays to render
     draw_sprite_list(false);
     put_sprite_list_on_screen(false);
-    our_eip = 1099;
+    set_our_eip(1099);
 }
 
 // Push the gathered list of sprites into the active graphic renderer
@@ -2566,7 +2589,7 @@ void put_sprite_list_on_screen(bool in_room)
         }
     }
 
-    our_eip = 1100;
+    set_our_eip(1100);
 }
 
 bool GfxDriverSpriteEvtCallback(int evt, int data)
@@ -2761,7 +2784,7 @@ void construct_game_scene(bool full_redraw)
     if (play.fast_forward)
         return;
 
-    our_eip=3;
+    set_our_eip(3);
 
     // React to changes to viewports and cameras (possibly from script) just before the render
     play.UpdateViewports();
@@ -2803,7 +2826,7 @@ void construct_game_scene(bool full_redraw)
         }
     }
 
-    our_eip=4;
+    set_our_eip(4);
 
     // Stage: UI overlay
     if (play.screen_is_faded_out == 0)
@@ -2979,7 +3002,7 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     update_shakescreen();
 
     construct_game_scene(false);
-    our_eip=5;
+    set_our_eip(5);
     // TODO: extraBitmap is a hack, used to place an additional gui element
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)

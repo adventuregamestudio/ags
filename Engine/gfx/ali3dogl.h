@@ -249,7 +249,8 @@ public:
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     int  GetCompatibleBitmapFormat(int color_depth) override;
-    size_t GetAvailableTextureMemory() override;
+    // Returns available texture memory in bytes, or 0 if this query is not supported
+    uint64_t GetAvailableTextureMemory() override;
 
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
@@ -321,6 +322,8 @@ private:
     // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
     Rect _viewportRect {};
 
+    // Capability flags
+    bool _glCapsNonPowerOfTwo = false;
     // These two flags define whether driver can, and should (respectively)
     // render sprites to texture, and then texture to screen, as opposed to
     // rendering to screen directly. This is known as supersampling mode

@@ -621,8 +621,8 @@ HAGSError import_sci_font(const AGSString &filename, int fslot)
         if (off < char_data_at)
             return new AGSError("Invalid character offset found in SCI file");
         in->Seek(off, Common::kSeekBegin);
-        int w = in->ReadByte() - 1; // CHECKME: why has +1 in file?
-        int h = in->ReadByte();
+        int w = in->ReadInt8() - 1; // CHECKME: why has +1 in file?
+        int h = in->ReadInt8();
         widths[i] = w;
         heights[i] = h;
         if ((w < 1) || (h < 1))

@@ -477,12 +477,12 @@ private:
 
     // Operations
     void AddScalingString(HWND hlist, int scaling_factor);
+    void FillGfxDriverList();
     void FillAudioDriverList();
     void FillGfxFilterList();
     void FillGfxModeList();
     void FillLanguageList();
     void FillScalingList(HWND hlist, const WindowSetup &ws, const FrameScaleDef frame, bool windowed);
-    void InitGfxModes();
     void InitDriverDescFromFactory(const String &id);
     void SaveSetup();
     void SelectNearestGfxMode(const WindowSetup &ws);
@@ -645,10 +645,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetText(_hVersionText, STR(_winCfg.VersionString));
 
-    InitGfxModes();
-    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
-        AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
-    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
+    FillGfxDriverList();
     SetCheck(_hFullscreenDesktop, _winCfg.FsSetup.Mode == kWnd_FullDesktop);
     EnableWindow(_hGfxModeList, _winCfg.FsSetup.Mode == kWnd_Fullscreen);
     OnGfxDriverUpdate();
@@ -673,45 +670,37 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetSliderPos(_hMouseSpeed, slider_pos);
     UpdateMouseSpeedText();
 
-    // Init sprite cache list
-#if AGS_PLATFORM_64BIT
+    // Init sprite cache and texture cache lists
+    // 32-bit programs have accessible RAM limit of 2-3 GB (may be less in practice),
+    // and engine will need RAM for other things too, keep that in mind
     const std::array<std::pair<const char*, int>, 11> spr_cache_vals = { {
-        { "16 MB", 16 },  { "32 MB", 32 },  { "64 MB", 64 },   { "128 MB (default)", 128 },
-        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "768 MB", 768 },
-        { "1 GB ", 1024 }, { "1.5 GB ", 1536 }, { "2 GB ", 2048 }
+        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB", 128 },
+        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "640 MB", 640 },
+        { "768 MB", 768 }, { "896 MB", 896 }, { "1 GB", 1024 },
     }};
-#else
-    // 32-bit programs have accessible RAM limit of ~2GB (may be less in practice),
-    // and engine will need RAM for other things than spritecache, keep that in mind
-    const std::array<std::pair<const char*, int>, 7> spr_cache_vals = { {
-        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB (default)", 128 },
-        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }
-    }};
-#endif
     for (const auto &val : spr_cache_vals)
         AddString(_hSpriteCacheList, val.first, val.second);
-    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
-
-    // Init texture cache list
-    const std::array<std::pair<const char*, int>, 10> tx_cache_vals = { {
-        { "Off (not recommended)", 0 },
-        { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB (default)", 128 },
-        { "256 MB", 256}, { "384 MB", 384}, { "512 MB", 512 }, { "768 MB", 768 },
-        { "1 GB ", 1024 }
-    }};
-    for (const auto &val : tx_cache_vals)
+    for (const auto &val : spr_cache_vals)
         AddString(_hTextureCacheList, val.first, val.second);
+#if AGS_PLATFORM_64BIT
+    const std::array<std::pair<const char*, int>, 4> spr_cache_vals64 = { {
+        { "1.25 GB ", 1280 }, { "1.5 GB ", 1536 }, { "1.75 GB ", 1792 }, { "2 GB ", 2048 }
+    }};
+    for (const auto &val : spr_cache_vals64)
+        AddString(_hSpriteCacheList, val.first, val.second);
+    for (const auto &val : spr_cache_vals64)
+        AddString(_hTextureCacheList, val.first, val.second);
+#endif
+    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
     SetCurSelToItemData(_hTextureCacheList, _winCfg.TextureCacheSize / 1024, NULL, 4);
 
     // Init sound cache list (keep in mind: currently meant only for small sounds)
     const std::array<std::pair<const char*, int>, 5> sound_cache_vals = { {
-        { "Off", 0 }, { "16 MB", 16 }, { "32 MB (default)", 32 }, { "64 MB", 64 },
-        { "128 MB", 128 }
+        { "Off", 0 }, { "16 MB", 16 }, { "32 MB", 32 }, { "64 MB", 64 }, { "128 MB", 128 }
     }};
     for (const auto &val : sound_cache_vals)
         AddString(_hSoundCacheList, val.first, val.second);
     SetCurSelToItemData(_hSoundCacheList, _winCfg.SoundCacheSize / 1024, NULL, 2);
-
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);
@@ -732,6 +721,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (!File::IsFile("speech.vox"))
         EnableWindow(_hUseVoicePack, FALSE);
 
+    if (CfgReadBoolInt(_cfgIn, "disabled", "gfxdrivers"))
+        EnableWindow(_hGfxDriverList, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "speechvox"))
         EnableWindow(_hUseVoicePack, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "filters"))
@@ -991,6 +982,25 @@ void WinSetupDialog::AddScalingString(HWND hlist, int scaling_factor)
     AddString(hlist, STR(s), (DWORD_PTR)(scaling_factor >= 0 ? scaling_factor + kNumFrameScaleDef : scaling_factor));
 }
 
+void WinSetupDialog::FillGfxDriverList()
+{
+    std::vector<String> gfx_drv_names;
+    GetGfxDriverFactoryNames(gfx_drv_names);
+    for (const auto &drvname : gfx_drv_names)
+    {
+        String item = CfgFindKey(_cfgIn, "disabled", drvname, true);
+        if (item.IsEmpty() || !CfgReadBoolInt(_cfgIn, "disabled", item))
+            InitDriverDescFromFactory(drvname);
+    }
+
+    if (_drvDescMap.size() == 0)
+        MessageBox(_hwnd, "Unable to detect any supported graphic drivers!", "Initialization error", MB_OK | MB_ICONERROR);
+
+    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
+        AddString(_hGfxDriverList, STR(it->second->UserName), (DWORD_PTR)it->second->Id.GetCStr());
+    SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
+}
+
 void WinSetupDialog::FillAudioDriverList()
 {
     _drvAudioList.clear();
@@ -1118,16 +1128,6 @@ void WinSetupDialog::FillScalingList(HWND hlist, const WindowSetup &ws, const Fr
         SetCurSelToItemData(hlist, frame, NULL, 0);
 
     EnableWindow(hlist, SendMessage(hlist, CB_GETCOUNT, 0, 0) > 1 ? TRUE : FALSE);
-}
-
-void WinSetupDialog::InitGfxModes()
-{
-    InitDriverDescFromFactory("D3D9");
-    InitDriverDescFromFactory("OGL");
-    InitDriverDescFromFactory("Software");
-
-    if (_drvDescMap.size() == 0)
-        MessageBox(_hwnd, "Unable to detect any supported graphic drivers!", "Initialization error", MB_OK | MB_ICONERROR);
 }
 
 // "Less" predicate that compares two display modes only by their screen metrics

@@ -82,7 +82,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
-extern int our_eip;
 extern volatile bool want_exit, abort_engine;
 extern bool justRunSetup;
 extern GameSetupStruct game;
@@ -106,7 +105,7 @@ t_engine_pre_init_callback engine_pre_init_callback = nullptr;
 
 bool engine_init_backend()
 {
-    our_eip = -199;
+    set_our_eip(-199);
     platform->PreBackendInit();
     // Initialize SDL
     Debug::Printf(kDbgMsg_Info, "Initializing backend libs");
@@ -143,11 +142,11 @@ void engine_setup_window()
 {
     Debug::Printf(kDbgMsg_Info, "Setting up window");
 
-    our_eip = -198;
+    set_our_eip(-198);
     sys_window_set_title(game.gamename.GetCStr());
     sys_window_set_icon();
     sys_evt_set_quit_callback(winclosehook);
-    our_eip = -197;
+    set_our_eip(-197);
 }
 
 // Fills map with game settings, to e.g. let setup application(s)
@@ -418,7 +417,7 @@ void atexit_handler() {
             "Program pointer: %+03d  (write this number down), engine version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "developers. Otherwise, note down any other information displayed.",
-            our_eip, EngineVersion.LongString.GetCStr());
+                               get_our_eip(), EngineVersion.LongString.GetCStr());
     }
 }
 
@@ -444,7 +443,7 @@ void engine_pre_init_gfx()
 int engine_load_game_data()
 {
     Debug::Printf("Load game data");
-    our_eip=-17;
+    set_our_eip(-17);
     HError err = load_game_file();
     if (!err)
     {
@@ -483,7 +482,7 @@ int check_write_access() {
   if (platform->GetDiskFreeSpaceMB() < 2)
     return 0;
 
-  our_eip = -1895;
+  set_our_eip(-1895);
 
   // The Save Game Dir is the only place that we should write to
   String svg_dir = get_save_game_directory();
@@ -492,12 +491,12 @@ int check_write_access() {
   if (!temp_s)
     return 0;
 
-  our_eip = -1896;
+  set_our_eip(-1896);
 
   temp_s->Write("just to test the drive free space", 30);
   delete temp_s;
 
-  our_eip = -1897;
+  set_our_eip(-1897);
 
   if (!File::DeleteFile(tempPath))
     return 0;
@@ -594,7 +593,7 @@ int engine_init_sprites()
 // move this elsewhere (InitGameState?).
 void engine_init_game_settings()
 {
-    our_eip=-7;
+    set_our_eip(-7);
     Debug::Printf("Initialize game settings");
 
     // Initialize randomizer
@@ -643,7 +642,7 @@ void engine_init_game_settings()
     if (playerchar->view >= 0)
         precache_view(playerchar->view, 0, Character_GetDiagonalWalking(playerchar) ? 8 : 4);
 
-    our_eip=-6;
+    set_our_eip(-6);
 
     for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++) {
         scrObj[ee].id = ee;
@@ -673,7 +672,7 @@ void engine_init_game_settings()
         charextra[ee].animwait = 0;
     }
 
-    our_eip=-5;
+    set_our_eip(-5);
     for (ee=0;ee<game.numinvitems;ee++) {
         if (game.invinfo[ee].flags & IFLG_STARTWITH) playerchar->inv[ee]=1;
         else playerchar->inv[ee]=0;
@@ -830,7 +829,7 @@ void engine_init_game_settings()
     displayed_room = -10;
 
     currentcursor=0;
-    our_eip=-4;
+    set_our_eip(-4);
     mousey=100;  // stop icon bar popping up
 
     // We use same variable to read config and be used at runtime for now,
@@ -1196,50 +1195,50 @@ int initialize_engine(const ConfigTree &startup_opts)
         return EXIT_NORMAL;
     }
 
-    our_eip = -190;
+    set_our_eip(-190);
 
     //-----------------------------------------------------
     // Init auxiliary data files and other directories, initialize asset manager
     engine_init_user_directories();
 
-    our_eip = -191;
+    set_our_eip(-191);
 
     engine_locate_speech_pak();
 
-    our_eip = -192;
+    set_our_eip(-192);
 
     engine_locate_audio_pak();
 
-    our_eip = -193;
+    set_our_eip(-193);
 
     engine_assign_assetpaths();
 
     //-----------------------------------------------------
     // Begin setting up systems
 
-    our_eip = -194;
+    set_our_eip(-194);
 
     engine_init_fonts();
 
-    our_eip = -195;
+    set_our_eip(-195);
 
     init_joystick();
 
     engine_init_keyboard();
 
-    our_eip = -196;
+    set_our_eip(-196);
 
     engine_init_mouse();
 
-    our_eip = -198;
+    set_our_eip(-198);
 
     engine_init_audio();
 
-    our_eip = -199;
+    set_our_eip(-199);
 
     engine_init_debug();
 
-    our_eip = -10;
+    set_our_eip(-10);
 
     engine_init_exit_handler();
 
@@ -1247,14 +1246,14 @@ int initialize_engine(const ConfigTree &startup_opts)
 
     set_game_speed(40);
 
-    our_eip=-20;
-    our_eip=-19;
+    set_our_eip(-20);
+    set_our_eip(-19);
 
     int res = engine_load_game_data();
     if (res != 0)
         return res;
 
-    our_eip = -189;
+    set_our_eip(-189);
 
     res = engine_check_disk_space();
     if (res != 0)
@@ -1267,7 +1266,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     if (res != 0)
         return res;
 
-    our_eip = -179;
+    set_our_eip(-179);
 
     engine_adjust_for_rotation_settings();
 

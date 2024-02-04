@@ -120,9 +120,17 @@ public:
     // Tells if the given slot is reserved for the asset sprite, that is a "static"
     // sprite cached from the game assets
     bool        IsAssetSprite(sprkey_t index) const;
+    // Tells if the sprite is loaded into the memory (either from asset file, or assigned directly)
+    bool        IsSpriteLoaded(sprkey_t index) const;
     // Loads sprite using SpriteFile if such index is known,
     // frees the space if cache size reaches the limit
     void        PrecacheSprite(sprkey_t index);
+    // Loads the sprite if necessary and returns a *copy* of bitmap, passing
+    // ownership to the caller. Skips storing the sprite in the cache
+    // (unless it was already there).
+    // TODO: consider redesigning this function later; maybe there should be
+    // separate sprite loader and sprite cache classes; also maybe use shared_ptrs?
+    std::unique_ptr<Bitmap> LoadSpriteNoCache(sprkey_t index);
     // Locks sprite, preventing it from getting removed by the normal cache limit.
     // If this is a registered sprite from the game assets, then loads it first.
     // If this is a sprite with SPRCACHEFLAG_EXTERNAL flag, then does nothing,
@@ -136,7 +144,7 @@ public:
     // If such sprite was not present in memory, then fails silently.
     void        UnlockSprite(sprkey_t index);
     // Unregisters sprite from the bank and returns the bitmap
-    Bitmap*     RemoveSprite(sprkey_t index);
+    std::unique_ptr<Bitmap> RemoveSprite(sprkey_t index);
     // Deletes particular sprite, marks slot as unused
     void        DisposeSprite(sprkey_t index);
     // Deletes all loaded asset (non-locked, non-external) images from the cache;

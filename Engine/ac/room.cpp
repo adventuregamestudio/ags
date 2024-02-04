@@ -80,7 +80,6 @@ extern int displayed_room;
 extern RoomObject*objs;
 extern AGSPlatformDriver *platform;
 extern int done_es_error;
-extern int our_eip;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
@@ -419,7 +418,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     room_filename.Format("room%d.crm", newnum);
 
     // load the room from disk
-    our_eip=200;
+    set_our_eip(200);
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
     load_room(room_filename, &thisroom, game.SpriteInfos);
 
@@ -439,7 +438,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         Debug::Printf(PrintRTTI(ccInstance::GetRTTI()->AsConstRTTI()));
     }
 
-    our_eip=201;
+    set_our_eip(201);
 
     play.room_width = thisroom.Width;
     play.room_height = thisroom.Height;
@@ -465,10 +464,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         thisroom.BgFrames[i].Graphic = PrepareSpriteForUse(thisroom.BgFrames[i].Graphic, true /* force opaque */);
     }
 
-    our_eip=202;
+    set_our_eip(202);
     SetMouseBounds(0, 0, 0, 0);
 
-    our_eip=203;
+    set_our_eip(203);
     in_new_room=1;
 
     set_color_depth(game.GetColorDepth());
@@ -484,11 +483,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // copy the walls screen
     walkareabackup=BitmapHelper::CreateBitmapCopy(thisroom.WalkAreaMask.get());
 
-    our_eip=204;
+    set_our_eip(204);
     redo_walkable_areas();
     walkbehinds_recalc();
 
-    our_eip=205;
+    set_our_eip(205);
     // setup objects
     if (forchar != nullptr) {
         // if not restoring a game, always reset this room
@@ -561,7 +560,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         ccAddExternalScriptObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
     }
 
-    our_eip = 210;
+    set_our_eip(210);
     if (IS_ANTIALIAS_SPRITES) {
         // sometimes the palette has corrupt entries, which crash
         // the create_rgb_table call
@@ -577,7 +576,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         create_rgb_table (&rgb_table, palette, nullptr);
         rgb_map = &rgb_table;
     }
-    our_eip = 211;
+    set_our_eip(211);
     if (forchar!=nullptr) {
         // if it's not a Restore Game
 
@@ -612,7 +611,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             memcpy(&roominst->globaldata[0],croom->tsdata.data(),croom->tsdatasize);
         }
     }
-    our_eip=207;
+    set_our_eip(207);
     play.entered_edge = -1;
 
     if ((new_room_x != SCR_NO_VALUE) && (forchar != nullptr))
@@ -719,7 +718,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             play.entered_edge = 3;
     }
 
-    our_eip=208;
+    set_our_eip(208);
     if (forchar!=nullptr) {
         if (thisroom.Options.PlayerCharOff==0) { forchar->on=1;
         enable_cursor_mode(0); }
@@ -738,7 +737,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
     color_map = nullptr;
 
-    our_eip = 209;
+    set_our_eip(209);
     generate_light_table();
 
     // If we are not restoring a save, update cameras to accomodate for this
@@ -752,7 +751,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
     init_room_drawdata();
 
-    our_eip = 212;
+    set_our_eip(212);
     invalidate_screen();
     for (uint32_t cc=0;cc<croom->numobj;cc++) {
         if (objs[cc].on == 2)
@@ -768,7 +767,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (game.color_depth > 1)
         setpal();
 
-    our_eip=220;
+    set_our_eip(220);
     update_polled_stuff();
     debug_script_log("Now in room %d", displayed_room);
     GUI::MarkAllGUIForUpdate(true, true);

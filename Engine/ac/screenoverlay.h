@@ -58,7 +58,11 @@ enum OverlaySvgVersion
 // TODO: what if we actually register a real dynamic sprite for overlay?
 struct ScreenOverlay
 {
-    int type = -1, timeout = 0;
+    // Overlay's "type" is a merged special overlay ID and internal container index
+    int type = -1;
+    // Arbitrary creation order index, meant for resolving equal z-sorting
+    int creation_id = 0;
+    int timeout = 0;
     // Note that x,y are overlay's properties, that define its position in script;
     // but real drawn position is x + offsetX, y + offsetY;
     int x = 0, y = 0;

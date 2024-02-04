@@ -105,7 +105,7 @@ Engine:
 
 ===================================================================================================
 
-VERSION 3.6.1 - RC, January 2024
+VERSION 3.6.1 - RC, February 2024
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -198,9 +198,13 @@ Editor:
    working with the script, and any Color Theme is enabled.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
+ - Fixed "Auto-number speech lines" and "Create voice acting script" operations failing
+   if a Character's name contains underscore.
 
 Scripting:
  - Support "#else" preprocessor directive.
+ - Fixed escaped character literals not being parsed correctly. This makes character literals
+   like '\n' and '\t' actually work in script.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -239,6 +243,8 @@ Engine:
    keeps textures generated from raw sprites and lets reusing them, improving performance
    and reducing CPU workload. The actual impact is proportional to the game's resolution and
    amount of simultaneously animated objects on screen.
+ - Improved OpenGL texture management, which should result in less system and video memory
+   spent on sprite textures.
  - WFN font renderer now too supports unicode mode and renders texts in utf-8, so long as the
    font contains glyphs of corresponding indexes.
  - Buttons, ListBoxes and TextBoxes now support Right-to-left text direction.
@@ -263,6 +269,9 @@ Engine:
  - Allow to change Character's move speed while its moving.
  - When Character is ordered a new move command while already moving, the engine will try to make
    a smooth transition between old and new moving without a delay.
+ - Ensure that when Overlays have identical ZOrder they will be sorted in the order of their
+   creation. Besides convenience, this is also meant to restore historical behavior from before
+   Overlay.ZOrder property was introduced.
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
  - Engine will now skip blocking Character.Say commands instantly while skipping a cutscene.
@@ -298,6 +307,8 @@ Engine:
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
+ - Fixed OpenGL renderer causing scaled sprites to have colored outlines sometimes while using
+   Linear filter.
 
 Engine Plugin API:
  - Added IAGSStream interface, IAGSEngine.OpenFileStream() and GetFileStreamByHandle().
@@ -318,6 +329,10 @@ Compatibility:
  - Fixed a "New Room" command in old-style dialog scripts was preventing "First time Enter room"
    event to be called.
 
+Windows:
+ - 32-bit Windows engine is now built as "large address aware" program, which will allow it to use
+   up to 3 GB of RAM on 32-bit systems and 4 GB of RAM on 64-bit systems (was 2 GB previously).
+
 iOS:
  - Updated port for 3.6.*.
 
@@ -326,6 +341,7 @@ Web / Emscripten:
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
+ - Added options to disable particular graphic drivers and graphic driver selection.
 
 
 VERSION 3.6.0 - Patch 8, January 2024

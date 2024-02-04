@@ -131,9 +131,9 @@ public:
 
 protected:
     // Special internal values, applied to DrawListEntry
-    static const intptr_t DRAWENTRY_STAGECALLBACK = 0x0;
-    static const intptr_t DRAWENTRY_FADE = 0x1;
-    static const intptr_t DRAWENTRY_TINT = 0x2;
+    static const uintptr_t DRAWENTRY_STAGECALLBACK = 0x0;
+    static const uintptr_t DRAWENTRY_FADE = 0x1;
+    static const uintptr_t DRAWENTRY_TINT = 0x2;
 
     // Called after graphics driver was initialized for use for the first time
     virtual void OnInit();
@@ -224,8 +224,11 @@ protected:
 // Generic TextureTile base
 struct TextureTile
 {
+    // x, y, width, height define position of a valid image
     int x = 0, y = 0;
     int width = 0, height = 0;
+    // allocWidth and allocHeight tell the actual allocated texture size
+    int allocWidth = 0, allocHeight = 0;
 };
 
 // Special render hints for textures

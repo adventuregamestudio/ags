@@ -70,7 +70,7 @@ size_t D3DTexture::GetMemSize() const
     // FIXME: a proper size in video memory, check Direct3D docs
     size_t sz = 0u;
     for (size_t i = 0; i < _numTiles; ++i)
-        sz += _tiles[i].width * _tiles[i].height * 4;
+        sz += _tiles[i].allocWidth * _tiles[i].allocHeight * 4;
     return sz;
 }
 
@@ -1505,7 +1505,7 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
         if (e.skip)
             continue;
 
-        switch (reinterpret_cast<intptr_t>(e.ddb))
+        switch (reinterpret_cast<uintptr_t>(e.ddb))
         {
         case DRAWENTRY_STAGECALLBACK:
             // raw-draw plugin support
@@ -1732,51 +1732,38 @@ int D3DGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
   return 32;
 }
 
-size_t D3DGraphicsDriver::GetAvailableTextureMemory()
+uint64_t D3DGraphicsDriver::GetAvailableTextureMemory()
 {
   return direct3ddevice->GetAvailableTextureMem();
 }
 
 void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
 {
-  int allocatedWidth = *width, allocatedHeight = *height;
+    int allocatedWidth = *width, allocatedHeight = *height;
 
-  if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_POW2)
-  {
-    bool foundWidth = false, foundHeight = false;
-    int tryThis = 2;
-    while ((!foundWidth) || (!foundHeight))
+    if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_POW2)
     {
-      if ((tryThis >= allocatedWidth) && (!foundWidth))
-      {
-        allocatedWidth = tryThis;
-        foundWidth = true;
-      }
-
-      if ((tryThis >= allocatedHeight) && (!foundHeight))
-      {
-        allocatedHeight = tryThis;
-        foundHeight = true;
-      }
-
-      tryThis = tryThis << 1;
+        int pow2;
+        for (pow2 = 2; pow2 < allocatedWidth; pow2 <<= 1);
+        allocatedWidth = pow2;
+        for (pow2 = 2; pow2 < allocatedHeight; pow2 <<= 1);
+        allocatedHeight = pow2;
     }
-  }
 
-  if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
-  {
-    if (allocatedWidth > allocatedHeight) 
+    if (direct3ddevicecaps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
     {
-     allocatedHeight = allocatedWidth;
+        if (allocatedWidth > allocatedHeight) 
+        {
+            allocatedHeight = allocatedWidth;
+        }
+        else
+        {
+            allocatedWidth = allocatedHeight;
+        }
     }
-    else
-    {
-     allocatedWidth = allocatedHeight;
-    }
-  }
 
-  *width = allocatedWidth;
-  *height = allocatedHeight;
+    *width = allocatedWidth;
+    *height = allocatedHeight;
 }
 
 bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat ) 
@@ -1923,6 +1910,8 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
         thisAllocatedHeight = thisTile->height;
         AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
       }
+      thisTile->allocWidth = thisAllocatedWidth;
+      thisTile->allocHeight = thisAllocatedHeight;
 
       if (vertices != NULL)
       {
@@ -2242,6 +2231,17 @@ bool D3DGraphicsFactory::Init()
         SDL_SetError("Direct3DCreate failed!");
         return false;
     }
+
+    D3DADAPTER_IDENTIFIER9 adapterid;
+    _direct3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterid);
+    String adapter_info = String::FromFormat(
+        "\tDriver: %s, v%d.%d.%d.%d\n\tDescription: %s",
+        adapterid.Driver,
+        HIWORD(adapterid.DriverVersion.HighPart), LOWORD(adapterid.DriverVersion.HighPart),
+        HIWORD(adapterid.DriverVersion.LowPart), LOWORD(adapterid.DriverVersion.LowPart),
+        adapterid.Description
+    );
+    Debug::Printf(kDbgMsg_Info, "Direct3D adapter info:\n%s", adapter_info.GetCStr());
     return true;
 }
 

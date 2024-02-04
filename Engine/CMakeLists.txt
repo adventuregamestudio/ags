@@ -591,6 +591,15 @@ if (WIN32)
     set_target_properties(ags PROPERTIES
         WIN32_EXECUTABLE TRUE
     )
+    if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+        # enable more than 2 GB in a 32-bit application
+        if (MINGW)
+            target_link_options(ags PUBLIC "-Wl,--large-address-aware")
+        endif ()
+        if (MSVC)
+            target_link_options(ags PUBLIC "/LARGEADDRESSAWARE")
+        endif ()
+    endif ()
 endif()
 
 # Test

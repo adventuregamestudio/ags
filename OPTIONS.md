@@ -126,6 +126,8 @@ Locations of two latter files differ between running platforms:
   * upscale = \[0; 1\] - run game in the "upscale mode". The earlier versions of AGS provided support for "upscaling" low-res games to hi-res. The script API has means for detecting if the game is running upscaled, and game developer could use this opportunity to setup game accordingly (e.g. assign hi-res fonts, etc). This options works **only** for games created before AGS 3.1.0 with low-res native resolution, such as 320x200 or 320x240, and it may somewhat improve
   game looks.
 * **\[disabled\]** - special instructions for the setup program hinting to disable particular options or lock some in the certain state. Ignored by the engine.
+  * gfxdrivers = \[0; 1\] - tells to lock "Graphics driver" selection in a default state;
+  * \<gfxdriver id\> = \[0; 1\] - tells to remove particular graphics driver from the selection list;
   * filters = \[0; 1\] - tells to lock "Graphics filter" selection in a default state;
   * \<filter id\> = \[0; 1\] - tells to remove particular graphics filter from the selection list;
   * antialias = \[0; 1\] - tells to lock "Smooth scaled sprites" in a default state;

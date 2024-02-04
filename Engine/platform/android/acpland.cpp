@@ -67,7 +67,7 @@ String android_app_directory = ".";
 String android_save_directory = "";
 
 // NOTE: the JVM can't use JNI outside here due to C++ name mangling
-extern "C" 
+extern "C"
 {
 
 const int CONFIG_IGNORE_ACSETUP = 0;
@@ -386,7 +386,6 @@ const char *AGSAndroid::GetGameDataFile()
 void AGSAndroid::ReadConfiguration(ConfigTree &cfg)
 {
   ApplyEngineConfiguration(_msetup, cfg);
-}
 }
 
 void AGSAndroid::Delay(int millis) {

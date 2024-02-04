@@ -102,8 +102,6 @@ struct AGSEmscripten : AGSPlatformDriver {
   int NeededSyncFS;
 };
 
-}
-
 void AGSEmscripten::SyncEmscriptenFS()
 {
     if (ags_syncfs_running)

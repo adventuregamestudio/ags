@@ -387,7 +387,6 @@ void AGSAndroid::ReadConfiguration(ConfigTree &cfg)
 {
   ApplyEngineConfiguration(_msetup, cfg);
 }
-}
 
 void AGSAndroid::Delay(int millis) {
   usleep(millis * 1000);

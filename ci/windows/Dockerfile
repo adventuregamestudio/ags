@@ -1,5 +1,5 @@
 # base will already have Chocolatey installed
-FROM ericoporto/min-ags-dev-env:1.0.0
+FROM ghcr.io/ericoporto/min-ags-dev-env:1.0.0
 
 # if no temp folder exists by default, create it
 RUN IF exist %TEMP%\nul ( echo %TEMP% ) ELSE ( mkdir %TEMP% )

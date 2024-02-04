@@ -39,17 +39,6 @@
 #include "util/stdio_compat.h"
 #include "util/string_utils.h"
 
-#define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
-
-#define DIGI_DIRECTAMX(n)        AL_ID('A','X','A'+(n),' ')
-// This DirectX hardware mixer is crap, it crashes the program
-// when two sound effects are played at once
-#define DIGI_DIRECTX(n)          AL_ID('D','X','A'+(n),' ')
-#define DIGI_WAVOUTID(n)         AL_ID('W','O','A'+(n),' ')
-#define DIGI_NONE  0
-#define MIDI_AUTODETECT       -1 
-#define MIDI_NONE             0 
-#define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
 
 namespace AGS
 {

@@ -501,11 +501,11 @@ ags_windows_tests_task:
   cleanup_script: >
     cd Solutions/ &&
     rd /s /q .test 
-  build_compiler_test_runner_x64_script: >
+  build_legacy_compiler_test_runner_x64_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&
     msbuild Compiler.Lib.sln /m /property:MultiProcessorCompilation=true /p:PlatformToolset=v140 /p:Configuration=Release /p:Platform=x64 /maxcpucount /nologo
-  run_compiler_tests_x64_script: Solutions\.test\Release\Compiler.Lib.Test.exe
+  run_legacy_compiler_tests_x64_script: Solutions\.test\Release\Compiler.Lib.Test.exe
   build_ags_test_runner_x64_script: >
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86 &&
     cd Solutions &&

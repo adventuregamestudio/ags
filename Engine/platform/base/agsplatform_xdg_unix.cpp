@@ -32,18 +32,6 @@ FSLocation CommonDataDirectory;
 FSLocation UserDataDirectory;
 
 
-void AGSPlatformXDGUnix::DisplayAlert(const char *text, ...) {
-    char displbuf[2000];
-    va_list ap;
-    va_start(ap, text);
-    vsprintf(displbuf, text, ap);
-    va_end(ap);
-    if (_logToStdErr)
-        fprintf(stderr, "%s\n", displbuf);
-    else
-        fprintf(stdout, "%s\n", displbuf);
-}
-
 static FSLocation BuildXDGPath()
 {
     // Check to see if XDG_DATA_HOME is set in the enviroment

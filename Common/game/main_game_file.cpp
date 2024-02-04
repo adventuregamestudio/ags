@@ -474,8 +474,9 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
         size_t num_chars = _in->ReadInt32();
         if (num_chars != _ents.Game.chars.size())
             return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, _ents.Game.chars.size()));
-        for (CharacterInfo &chinfo : _ents.Game.chars)
+        for (int i = 0; i < _ents.Game.numcharacters; ++i)
         {
+            auto &chinfo = _ents.Game.chars[i];
             chinfo.scrname = StrUtil::ReadString(_in);
             chinfo.name = StrUtil::ReadString(_in);
         }

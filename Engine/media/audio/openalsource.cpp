@@ -152,7 +152,7 @@ float OpenAlSource::GetPositionMs() const
     return _predictTs;
 }
 
-size_t OpenAlSource::PutData(const SoundBuffer data)
+size_t OpenAlSource::PutData(const SoundBuffer &data)
 {
     Unqueue();
     // If queue is full, bail out
@@ -160,7 +160,7 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
     // Input buffer is empty?
     if (!data.Data || (data.Size == 0)) { return 0u; }
     // Check for free buffers, generate more if necessary
-    if (g_oalint.freeBuffers.size() == 0)
+    if (g_oalint.freeBuffers.empty())
     {
         ALuint buf_id = 0;
         alGenBuffers(1, &buf_id);

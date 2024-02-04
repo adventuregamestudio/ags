@@ -87,8 +87,8 @@ int malloc_fail_handler(size_t amountwanted)
 {
     char *cur = tempmsg;
     char const* const end = tempmsg + sizeof tempmsg;
-    const int MB = 1024*1024;
-    const int KB = 1024;
+    const size_t MB = 1024*1024;
+    const size_t KB = 1024;
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     CreateMiniDump(NULL);
 #endif
@@ -100,7 +100,7 @@ int malloc_fail_handler(size_t amountwanted)
     const size_t total_lockspr = spriteset.GetLockedSize();
     const size_t total_extspr = spriteset.GetExternalSize();
     const size_t max_normspr = spriteset.GetMaxCacheSize();
-    const unsigned norm_spr_filled = max_normspr > 0 ?  (uint64_t) (total_normspr * 100 / max_normspr) : 0;
+    const unsigned norm_spr_filled = max_normspr > 0 ?  ((uint64_t)total_normspr * 100 / max_normspr) : 0;
 
     cur += snprintf(cur, end-cur, "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n\n",
                     total_normspr/KB, max_normspr/KB, norm_spr_filled, total_lockspr/KB, total_extspr/KB);

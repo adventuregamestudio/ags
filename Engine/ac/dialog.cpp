@@ -1029,6 +1029,7 @@ void DialogOptions::Close()
 
   if (parserActivated) 
   {
+    assert(parserInput);
     snprintf(play.lastParserEntry, MAX_MAXSTRLEN, "%s", parserInput->Text.GetCStr());
     ParseText (parserInput->Text.GetCStr());
     chose = CHOSE_TEXTPARSER;

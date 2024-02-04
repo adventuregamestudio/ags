@@ -63,6 +63,7 @@ class AGSPlatformDriver
     : public AGS::Common::IOutputHandler
 {
 public:
+    AGSPlatformDriver();
     virtual ~AGSPlatformDriver() = default;
 
     // Called at the creation of the platform driver
@@ -77,7 +78,7 @@ public:
     virtual void PostBackendExit() { };
 
     virtual void Delay(int millis);
-    virtual void DisplayAlert(const char*, ...) = 0;
+    virtual void DisplayAlert(const char *text, ...);
     virtual void AttachToParentConsole();
     virtual int  GetLastSystemError() { return errno; }
     // platform specific data file
@@ -109,6 +110,9 @@ public:
     // Formats message and writes to platform's error output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdErr(const char *fmt, ...);
+    // Display a text in a message box with a "warning" icon.
+    // Platforms which do not support this should do nothing.
+    virtual void DisplayMessageBox(const char *text);
     virtual void YieldCPU();
     // Called when the application is being paused completely (e.g. when player alt+tabbed from it).
     // This function should suspend any platform-specific realtime processing.
@@ -133,7 +137,7 @@ public:
     // Store command line arguments for the future use
     void SetCommandArgs(const char *const argv[], size_t argc);
     // Set whether PrintMessage should output to stdout or stderr
-    void SetOutputToErr(bool on) { _logToStdErr = on; }
+    void SetOutputToErr(bool on);
     // Set whether DisplayAlert is allowed to show modal GUIs on some systems;
     // it will print to either stdout or stderr otherwise, depending on above flag
     void SetGUIMode(bool on) { _guiMode = on; }
@@ -151,6 +155,9 @@ protected:
     // with both going through PlatformDriver need to figure a better
     // design first.
     bool _logToStdErr = false;
+    // A function pointer for stdout write;
+    // this is used when printing log, and may be set to null disabling an output
+    void (AGSPlatformDriver::*_writeStdOut)(const char *fmt, ...) = nullptr;
     // Defines whether engine is allowed to display important warnings
     // and errors by showing a message box kind of GUI.
     bool _guiMode = false;

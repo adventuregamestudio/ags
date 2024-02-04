@@ -82,7 +82,6 @@ extern "C"
 
 struct AGSEmscripten : AGSPlatformDriver {
 
-  void DisplayAlert(const char*, ...) override;
   void Delay(int millis) override;
   void YieldCPU() override;
   FSLocation GetAllUsersDataDirectory() override;
@@ -103,23 +102,6 @@ struct AGSEmscripten : AGSPlatformDriver {
   int NeededSyncFS;
 };
 
-void AGSEmscripten::DisplayAlert(const char *text, ...) 
-{
-    char displbuf[2000];
-    va_list ap;
-    va_start(ap, text);
-    vsprintf(displbuf, text, ap);
-    va_end(ap);
-    if (_logToStdErr)
-    {
-        fprintf(stderr, "%s\n", displbuf);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "AGS Error", displbuf, nullptr);
-    }
-    else
-    {
-        fprintf(stdout, "%s\n", displbuf);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "AGS Alert", displbuf, nullptr);
-    }
 }
 
 void AGSEmscripten::SyncEmscriptenFS()

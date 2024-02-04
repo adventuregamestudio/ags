@@ -36,7 +36,6 @@ struct AGSMac : AGSPlatformDriver
   AGSMac();
   void PreBackendInit() override;
 
-  void DisplayAlert(const char*, ...) override;
   uint64_t GetDiskFreeSpaceMB() override;
   eScriptSystemOSID GetSystemOSID() override;
   
@@ -61,16 +60,6 @@ void AGSMac::PreBackendInit()
   SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
 }
 
-void AGSMac::DisplayAlert(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  if (_logToStdErr)
-    fprintf(stderr, "%s\n", displbuf);
-  else
-    fprintf(stdout, "%s\n", displbuf);
 }
 
 uint64_t AGSMac::GetDiskFreeSpaceMB() {

@@ -176,7 +176,8 @@ namespace AGS.Types
 
         public int CompareTo(UnloadedRoom other)
         {
-            return CompareTo(other);
+            IRoom otherRoom = other as IRoom;
+            return CompareTo(otherRoom);
         }
     }
 }

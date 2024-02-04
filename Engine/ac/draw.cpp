@@ -550,7 +550,7 @@ void create_blank_image(int coldepth)
         blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, true /*opaque*/);
         delete blank;
     }
-    catch (Ali3DException gfxException)
+    catch (Ali3DException& gfxException)
     {
         quit(gfxException.Message.GetCStr());
     }
@@ -1089,7 +1089,7 @@ void render_to_screen()
             }
             succeeded = true;
         }
-        catch (Ali3DFullscreenLostException e) 
+        catch (Ali3DFullscreenLostException& e) 
         {
             Debug::Printf("Renderer exception: %s", e.Message.GetCStr());
             do

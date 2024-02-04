@@ -329,9 +329,9 @@ InputType ags_inputevent_ready()
 
 SDL_Event ags_get_next_inputevent()
 {
-    if (g_inputEvtQueue.size() > 0)
+    if (!g_inputEvtQueue.empty())
     {
-        auto evt = g_inputEvtQueue.front();
+        const auto evt = g_inputEvtQueue.front();
         g_inputEvtQueue.pop_front();
         return evt;
     }

@@ -19,11 +19,22 @@
 // real element size in the engine's memory.
 // The purpose of this is to remove size restriction from the engine's structs
 // exposed to scripts.
-//   FIXME: this was an intention, but in reality this turned to be
-//          still not 100% compatible, because it breaks pointer comparisons
-//          between a pointer to object and a address of array's element
-//          in script. So likely this class should be simplified,
-//          or removed as useless.
+//
+// FIXME: [ivan-mogilko] the above was meant to work, but in reality it doesn't
+// and won't, at least not without some extra workarounds.
+// So likely this class should be simplified, or removed as useless.
+// The problem that I missed here is following:
+//   when the script compiler is told to get an Nth element of a global struct
+//   array, such as character[n], it calculates the memory address as
+//   array address + sizeof(Character) * n.
+//   If this address is used for the read/write operations, these ops can be
+//   intercepted by interpreter and remapped into the real fields
+//      (see IScriptObject::ReadN, WriteN interface)
+//   But if this address is used IN POINTER COMPARISON, then we cannot do
+//   anything. And if our real struct in the engine is stored on a different
+//   relative memory offset than one expected by compiler, then this pointer
+//   comparison will fail, e.g. script expression like
+//      if (player == character[n])
 //
 // NOTE: on the other hand, similar effect could be achieved by separating
 // object data into two or more structs, where "base" structs are stored in

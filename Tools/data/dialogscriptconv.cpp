@@ -61,7 +61,7 @@ function _run_dialog_request(int parmtr) {\n\
 
 
 DialogScriptConverter::DialogScriptConverter(const String &dlg_script, const GameRef &game, const DialogRef &dialog)
-    : _dlgScript(dlg_script), _game(game), _dialog(dialog)
+    : _game(game), _dialog(dialog), _dlgScript(dlg_script)
 {
     _scriptName.Format("Dialog %d", _dialog.ID);
     _sayFnName = _game.Settings.SayFunction;
@@ -88,8 +88,7 @@ String DialogScriptConverter::Convert()
     String ags_script =
         String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);
 
-    String thisLine;
-    for (thisLine = sr.ReadLine(); !thisLine.IsEmpty(); thisLine = sr.ReadLine())
+    for (String thisLine = sr.ReadLine(); !thisLine.IsEmpty(); thisLine = sr.ReadLine())
     {
         _lineNumber++;
         String s = ConvertLine(thisLine);
@@ -144,8 +143,8 @@ String DialogScriptConverter::ConvertLine(const String &line)
 String DialogScriptConverter::ConvertRealScript(const String &src_line)
 {
     String line = src_line;
-    size_t at = -1;
-    for (at = line.FindString("this", at + 1); at != -1;
+    
+    for (size_t at = line.FindString("this", 0); at != -1;
         at = line.FindString("this", at + 1))
     {
         if (std::isalnum(line[at - 1]) ||

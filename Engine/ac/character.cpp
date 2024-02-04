@@ -259,7 +259,7 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
         chaa->room = room;
 
 		debug_script_log("%s moved to room %d, location %d,%d, loop %d",
-			chaa->scrname.GetCStr(), room, chaa->x, chaa->y, chaa->loop);
+			chaa->scrname, room, chaa->x, chaa->y, chaa->loop);
 
         return;
     }
@@ -296,7 +296,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
       chap->idleleft = chap->idletime;
     }
 
-    debug_script_log("%s: Change view to %d", chap->scrname.GetCStr(), vii+1);
+    debug_script_log("%s: Change view to %d", chap->scrname, vii+1);
     chap->defview = vii;
     chap->view = vii;
     stop_character_anim(chap);
@@ -412,7 +412,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
 
 void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 {
-    debug_script_log("%s: Face location %d,%d", char1->scrname.GetCStr(), xx, yy);
+    debug_script_log("%s: Face location %d,%d", char1->scrname, xx, yy);
 
     const int diffrx = xx - char1->x;
     const int diffry = yy - char1->y;
@@ -476,10 +476,10 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
         quit("!FollowCharacterEx: you cannot tell the player character to follow a character in another room");
 
     if (tofollow != nullptr) {
-        debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname.GetCStr(), tofollow->scrname.GetCStr(), distaway, eagerness);
+        debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname, tofollow->scrname, distaway, eagerness);
     }
     else {
-        debug_script_log("%s: Stop following other character", chaa->scrname.GetCStr());
+        debug_script_log("%s: Stop following other character", chaa->scrname);
     }
 
     if ((chaa->following >= 0) &&
@@ -599,7 +599,7 @@ void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     vii--; // convert to 0-based
     AssertView("SetCharacterView", vii);
 
-    debug_script_log("%s: View locked to %d", chap->scrname.GetCStr(), vii+1);
+    debug_script_log("%s: View locked to %d", chap->scrname, vii+1);
     if (chap->idleleft < 0) {
         Character_UnlockView(chap);
         chap->idleleft = chap->idletime;
@@ -727,7 +727,7 @@ void Character_PlaceOnWalkableArea(CharacterInfo *chap)
 void Character_RemoveTint(CharacterInfo *chaa) {
 
     if (chaa->flags & (CHF_HASTINT | CHF_HASLIGHT)) {
-        debug_script_log("Un-tint %s", chaa->scrname.GetCStr());
+        debug_script_log("Un-tint %s", chaa->scrname);
         chaa->flags &= ~(CHF_HASTINT | CHF_HASLIGHT);
     }
     else {
@@ -775,7 +775,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
 
     //update_invorder();
 
-    debug_script_log("%s is new player character", playerchar->scrname.GetCStr());
+    debug_script_log("%s is new player character", playerchar->scrname);
 
     // Within game_start, return now
     if (displayed_room < 0)
@@ -821,10 +821,10 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
         chaa->wait = 0;
 
     if (iview >= 1) {
-        debug_script_log("Set %s idle view to %d (time %d)", chaa->scrname.GetCStr(), iview, itime);
+        debug_script_log("Set %s idle view to %d (time %d)", chaa->scrname, iview, itime);
     }
     else {
-        debug_script_log("%s idle view disabled", chaa->scrname.GetCStr());
+        debug_script_log("%s idle view disabled", chaa->scrname);
     }
     if (chaa->flags & CHF_FIXVIEW) {
         debug_script_warn("SetCharacterIdle called while character view locked with SetCharacterView; idle ignored");
@@ -936,7 +936,7 @@ void Character_StopMoving(CharacterInfo *charp) {
         if ((mls[charp->walking].direct == 0) && (charp->room == displayed_room))
             Character_PlaceOnWalkableArea(charp);
 
-        debug_script_log("%s: stop moving", charp->scrname.GetCStr());
+        debug_script_log("%s: stop moving", charp->scrname);
 
         charp->idleleft = charp->idletime;
         // restart the idle animation straight away
@@ -957,7 +957,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
         (luminance < 0) || (luminance > 100))
         quit("!Character.Tint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
 
-    debug_script_log("Set %s tint RGB(%d,%d,%d) %d%%", chaa->scrname.GetCStr(), red, green, blue, opacity);
+    debug_script_log("Set %s tint RGB(%d,%d,%d) %d%%", chaa->scrname, red, green, blue, opacity);
 
     charextra[chaa->index_id].tint_r = red;
     charextra[chaa->index_id].tint_g = green;
@@ -978,7 +978,7 @@ void Character_UnlockView(CharacterInfo *chaa) {
 
 void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     if (chaa->flags & CHF_FIXVIEW) {
-        debug_script_log("%s: Released view back to default", chaa->scrname.GetCStr());
+        debug_script_log("%s: Released view back to default", chaa->scrname);
     }
     chaa->flags &= ~CHF_FIXVIEW;
     chaa->view = chaa->defview;
@@ -1254,7 +1254,7 @@ int Character_GetID(CharacterInfo *chaa) {
 
 const char *Character_GetScriptName(CharacterInfo *chin)
 {
-    return CreateNewScriptString(chin->scrname.GetCStr());
+    return CreateNewScriptString(game.chars[chin->index_id].scrname);
 }
 
 int Character_GetFrame(CharacterInfo *chaa) {
@@ -1377,7 +1377,7 @@ int Character_GetDestinationY(CharacterInfo *chaa) {
 }
 
 const char* Character_GetName(CharacterInfo *chaa) {
-    return CreateNewScriptString(chaa->name.GetCStr());
+    return CreateNewScriptString(game.chars[chaa->index_id].name.GetCStr());
 }
 
 void Character_SetName(CharacterInfo *chaa, const char *newName) {
@@ -1691,7 +1691,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
 
     if ((tox == charX) && (toy == charY)) {
         StopMoving(chac);
-        debug_script_log("%s already at destination, not moving", chin->scrname.GetCStr());
+        debug_script_log("%s already at destination, not moving", chin->scrname);
         return;
     }
 
@@ -1723,14 +1723,14 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     chin->frame = oldframe;
     // use toxPassedIn cached variable so the hi-res co-ordinates
     // are still displayed as such
-    debug_script_log("%s: Start move to %d,%d", chin->scrname.GetCStr(), toxPassedIn, toyPassedIn);
+    debug_script_log("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
 
     const int move_speed_x = chin->walkspeed;
     const int move_speed_y =
         ((chin->walkspeed_y == UNIFORM_WALK_SPEED) ? chin->walkspeed : chin->walkspeed_y);
 
     if ((move_speed_x == 0) && (move_speed_y == 0)) {
-        debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->scrname.GetCStr());
+        debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->scrname);
     }
 
     set_route_move_speed(move_speed_x, move_speed_y);
@@ -1933,7 +1933,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
             chi->y = ywas;
         }
         debug_script_log("%s: Bumped into %s, waiting for them to move",
-            chi->scrname.GetCStr(), game.chars[ntf].scrname.GetCStr());
+            chi->scrname, game.chars[ntf].scrname);
         return 1;
     }
     return 0;
@@ -2158,12 +2158,12 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     {
         quitprintf("!AnimateCharacter: invalid view and/or loop\n"
             "(trying to animate '%s' using view %d (range is 1..%d) and loop %d (view has %d loops)).",
-            chap->scrname.GetCStr(), chap->view + 1, game.numviews, loopn, views[chap->view].numLoops);
+            chap->scrname, chap->view + 1, game.numviews, loopn, views[chap->view].numLoops);
     }
     // NOTE: there's always frame 0 allocated for safety
     sframe = std::max(0, std::min(sframe, views[chap->view].loops[loopn].numFrames - 1));
     debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d, frame: %d",
-        chap->scrname.GetCStr(), chap->view+1, loopn, sppd, rept, sframe);
+        chap->scrname, chap->view+1, loopn, sppd, rept, sframe);
 
     Character_StopMoving(chap);
 
@@ -2232,12 +2232,12 @@ void update_character_scale(int charid)
     if (chin.view < 0)
     {
         quitprintf("!The character '%s' was turned on in the current room (room %d) but has not been assigned a view number.",
-            chin.scrname.GetCStr(), displayed_room);
+            chin.scrname, displayed_room);
     }
     if (chin.loop >= views[chin.view].numLoops)
     {
         quitprintf("!The character '%s' could not be displayed because there was no loop %d of view %d.",
-            chin.scrname.GetCStr(), chin.loop, chin.view + 1);
+            chin.scrname, chin.loop, chin.view + 1);
     }
     // If frame is too high -- fallback to the frame 0;
     // there's always at least 1 dummy frame at index 0
@@ -2544,12 +2544,12 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
         if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
             quitprintf("!Character %s current view %d is invalid, or has no loops.",
-                speakingChar->scrname.GetCStr(), speakingChar->view + 1);
+                speakingChar->scrname, speakingChar->view + 1);
         // If current view is missing a loop - use loop 0
         if (speakingChar->loop >= views[speakingChar->view].numLoops)
         {
             debug_script_warn("WARNING: Character %s current view %d does not have necessary loop %d; switching to loop 0.",
-                speakingChar->scrname.GetCStr(), speakingChar->view + 1, speakingChar->loop);
+                speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
             speakingChar->loop = 0;
         }
 
@@ -2804,12 +2804,12 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             if ((speakingChar->view < 0) || views[speakingChar->view].numLoops == 0)
                 quitprintf("!Character %s speech view %d is invalid, or has no loops.",
-                    speakingChar->scrname.GetCStr(), speakingChar->view + 1);
+                    speakingChar->scrname, speakingChar->view + 1);
             // If speech view is missing a loop - use loop 0
             if (speakingChar->loop >= views[speakingChar->view].numLoops)
             {
                 debug_script_warn("WARNING: Character %s speech view %d does not have necessary loop %d; switching to loop 0.",
-                    speakingChar->scrname.GetCStr(), speakingChar->view + 1, speakingChar->loop);
+                    speakingChar->scrname, speakingChar->view + 1, speakingChar->loop);
                 speakingChar->loop = 0;
             }
 

@@ -125,7 +125,6 @@ struct CharacterInfo
     short walkspeed, animspeed;
     short inv[MAX_INV];
     char  on;
-
     AGS::Common::String scrname; // script name
     AGS::Common::String name; // regular name (aka description)
 

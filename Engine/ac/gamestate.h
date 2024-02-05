@@ -164,7 +164,7 @@ struct GameState {
     int   entered_at_x,entered_at_y, entered_edge;
     bool  voice_avail; // whether voice-over is available
     SpeechMode speech_mode; // speech mode (text, voice, or both)
-    int   cant_skip_speech;
+    int   speech_skip_style;
     int   script_timers[MAX_TIMERS];
     int   sound_volume,speech_volume;
     int   normal_font, speech_font;

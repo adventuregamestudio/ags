@@ -286,7 +286,7 @@ void update_speech_and_messages()
         remove_screen_overlay(play.text_overlay_on);
         play.SetWaitSkipResult(SKIP_AUTOTIMER);
       }
-      else if (play.cant_skip_speech & SKIP_AUTOTIMER)
+      else if (play.speech_skip_style & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(play.text_overlay_on);
         play.SetWaitSkipResult(SKIP_AUTOTIMER);

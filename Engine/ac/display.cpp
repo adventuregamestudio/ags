@@ -305,7 +305,7 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
         if (play.fast_forward) {
             remove_screen_overlay(OVER_TEXTMSG);
             play.SetWaitSkipResult(SKIP_AUTOTIMER);
-            play.messagetime=-1;
+            post_display_cleanup();
             return nullptr;
         }
 
@@ -402,9 +402,7 @@ ScreenOverlay *_display_main(int xx, int yy, int wii, const char *text, int disp
     //
     // Post-message cleanup
     //
-
-    ags_clear_input_buffer();
-    play.messagetime=-1;
+    post_display_cleanup();
     return nullptr;
 }
 
@@ -426,6 +424,13 @@ void _display_at(int xx, int yy, int wii, const char *text, int disp_type, int a
 
     if (need_stop_speech)
         stop_voice_speech();
+}
+
+void post_display_cleanup()
+{
+    ags_clear_input_buffer();
+    play.messagetime = -1;
+    play.speech_in_post_state = false;
 }
 
 bool try_auto_play_speech(const char *text, const char *&replace_text, int charid)

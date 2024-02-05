@@ -269,14 +269,14 @@ void update_speech_and_messages()
         play.messagetime = 0;
     }
 
-    if (play.messagetime < 1 && play.speech_display_post_time_ms > 0 &&
-        play.fast_forward == 0)
+    // Enter speech post-state: optionally increase final waiting time
+    if (!play.speech_in_post_state && (play.fast_forward == 0) && (play.messagetime < 1))
     {
-        if (!play.speech_in_post_state)
+        play.speech_in_post_state = true;
+        if (play.speech_display_post_time_ms > 0)
         {
             play.messagetime = ::lround(play.speech_display_post_time_ms * get_current_fps() / 1000.0f);
         }
-        play.speech_in_post_state = !play.speech_in_post_state;
     }
 
     if (play.messagetime < 1) 

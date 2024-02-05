@@ -284,7 +284,7 @@ static void check_mouse_controls(const int was_mouse_on_iface)
             play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
         }
         else if (play.text_overlay_on > 0) {
-            if (play.cant_skip_speech & SKIP_MOUSECLICK)
+            if (play.speech_skip_style & SKIP_MOUSECLICK)
             {
                 remove_screen_overlay(play.text_overlay_on);
                 play.SetWaitSkipResult(SKIP_MOUSECLICK, mbut);
@@ -496,7 +496,7 @@ static void check_keyboard_controls()
     }
 
     // skip speech if desired by Speech.SkipStyle
-    if ((play.text_overlay_on > 0) && (play.cant_skip_speech & SKIP_KEYPRESS) &&
+    if ((play.text_overlay_on > 0) && (play.speech_skip_style & SKIP_KEYPRESS) &&
             !IsAGSServiceKey(ki.Key)) {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0) {

@@ -188,7 +188,7 @@ struct GameState
     int   entered_edge = 0;
     bool  voice_avail = false; // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
-    int   cant_skip_speech = 0;
+    int   speech_skip_style = 0;
     int   script_timers[MAX_TIMERS]{};
     int   sound_volume = 0;
     int   speech_volume = 0;

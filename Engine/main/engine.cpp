@@ -751,7 +751,7 @@ void engine_init_game_settings()
     play.digital_master_volume = 100;
     play.screen_flipped=0;
     play.speech_mode = kSpeech_VoiceText;
-    play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
+    play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;
     play.normal_font = 0;

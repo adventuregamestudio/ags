@@ -57,6 +57,88 @@ extern int loops_per_character;
 extern SpriteCache spriteset;
 
 
+bool display_check_user_input(int skip);
+
+// Game state of a displayed blocking message
+class DisplayMessageState : public GameState
+{
+public:
+    DisplayMessageState(int over_type, int timer, int skip_style)
+        : _overType(over_type), _timer(timer), _skipStyle(skip_style) {}
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
+    {
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        remove_screen_overlay(_overType);
+        invalidate_screen();
+    }
+    // Draw the state
+    void Draw() override
+    {
+        render_graphics();
+    }
+    // Update the state during a game tick
+    bool Run() override
+    {
+        sys_evt_process_pending();
+
+        update_audio_system_on_game_loop();
+        UpdateCursorAndDrawables();
+
+        Draw();
+
+        // Handle player's input, break the loop if requested
+        bool do_break = display_check_user_input(_skipStyle);
+        ags_clear_input_buffer();
+        if (do_break)
+            return false;
+            
+        update_polled_stuff();
+
+        if (play.fast_forward == 0)
+        {
+            WaitForNextFrame();
+        }
+
+        _timer--;
+
+        // Special behavior when coupled with a voice-over
+        if (play.speech_has_voice) {
+            // extend life of text if the voice hasn't finished yet
+            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
+                if (_timer <= 1)
+                    _timer = 1;
+            }
+            else { // if the voice has finished, remove the speech
+                _timer = 0;
+            }
+        }
+        // Test for the timed auto-skip
+        if ((_timer < 1) && (_skipStyle & SKIP_AUTOTIMER))
+        {
+            play.SetWaitSkipResult(SKIP_AUTOTIMER);
+            play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
+            return false;
+        }
+        // if skipping cutscene, don't get stuck on No Auto Remove text boxes
+        if ((_timer < 1) && (play.fast_forward))
+            return false;
+
+        return true; // continue running
+    }
+
+private:
+    int _overType = 0;
+    int _timer = 0;
+    int _skipStyle = 0;
+};
+
+
+
 // Generates a textual image and returns a disposable bitmap
 Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
@@ -341,52 +423,11 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     if (disp_type == DISPLAYTEXT_MESSAGEBOX) {
         int countdown = GetTextDisplayTime(text);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        // Loop until skipped
-        while (true) {
-            sys_evt_process_pending();
 
-            update_audio_system_on_game_loop();
-            UpdateCursorAndDrawables();
-            render_graphics();
-
-            // Handle player's input, break the loop if requested
-            bool do_break = display_check_user_input(skip_setting);
-            ags_clear_input_buffer();
-            if (do_break)
-                break;
-            
-            update_polled_stuff();
-
-            if (play.fast_forward == 0)
-            {
-                WaitForNextFrame();
-            }
-
-            countdown--;
-
-            // Special behavior when coupled with a voice-over
-            if (play.speech_has_voice) {
-                // extend life of text if the voice hasn't finished yet
-                if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
-                    if (countdown <= 1)
-                        countdown = 1;
-                }
-                else  // if the voice has finished, remove the speech
-                    countdown = 0;
-            }
-            // Test for the timed auto-skip
-            if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
-            {
-                play.SetWaitSkipResult(SKIP_AUTOTIMER);
-                play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
-                break;
-            }
-            // if skipping cutscene, don't get stuck on No Auto Remove text boxes
-            if ((countdown < 1) && (play.fast_forward))
-                break;
-        }
-        remove_screen_overlay(OVER_TEXTMSG);
-        invalidate_screen();
+        DisplayMessageState disp_state(OVER_TEXTMSG, countdown, skip_setting);
+        disp_state.Begin();
+        while (disp_state.Run());
+        disp_state.End();
     }
     else { /* DISPLAYTEXT_SPEECH */
         if (!overlayPositionFixed)

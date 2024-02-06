@@ -387,7 +387,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
             {
                 // Turn to face new direction
                 Character_StopMoving(char1);
-                if (char1->on == 1)
+                if (char1->is_enabled())
                 {
                     // only do the turning if the character is not hidden
                     // (otherwise GameLoopUntilNotMoving will never return)
@@ -1881,7 +1881,7 @@ int has_hit_another_character(int sourceChar) {
         return -1;
 
     for (int ww = 0; ww < game.numcharacters; ww++) {
-        if (game.chars[ww].on != 1) continue;
+        if (!game.chars[ww].is_enabled()) continue;
         if (game.chars[ww].room != displayed_room) continue;
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
@@ -2039,7 +2039,7 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
 {
-    if (chaa->on != 1)
+    if (!chaa->is_enabled())
     {
         debug_script_warn("MoveCharacterBlocking: character is turned off and cannot be moved");
         return;
@@ -2224,7 +2224,7 @@ void update_character_scale(int charid)
 {
     // Test for valid view and loop
     CharacterInfo &chin = game.chars[charid];
-    if (chin.on == 0 || chin.room != displayed_room)
+    if (!chin.is_enabled() || chin.room != displayed_room)
         return; // not enabled, or in a different room
 
     CharacterExtras &chex = charextra[charid];
@@ -2266,7 +2266,7 @@ int is_pos_on_character(int xx,int yy) {
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
-        if (game.chars[cc].on==0) continue;
+        if (!game.chars[cc].is_visible()) continue; // disabled or not visible
         if (game.chars[cc].flags & CHF_NOINTERACT) continue;
         if (game.chars[cc].view < 0) continue;
         CharacterInfo*chin=&game.chars[cc];
@@ -2601,19 +2601,27 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     if (play.swap_portrait_lastchar < 0) {
                         // No previous character been spoken to
                         // therefore, assume it's the player
-                        if(game.playercharacter != aschar && game.chars[game.playercharacter].room == speakingChar->room && game.chars[game.playercharacter].on == 1)
+                        if (game.playercharacter != aschar &&
+                            game.chars[game.playercharacter].room == speakingChar->room &&
+                            game.chars[game.playercharacter].is_enabled())
+                        {
                             play.swap_portrait_lastchar = game.playercharacter;
+                        }
                         else
+                        {
                             // The player's not here. Find another character in this room
                             // that it could be
-                            for (int ce = 0; ce < game.numcharacters; ce++) {
+                            for (int ce = 0; ce < game.numcharacters; ce++)
+                            {
                                 if ((game.chars[ce].room == speakingChar->room) &&
-                                    (game.chars[ce].on == 1) &&
-                                    (ce != aschar)) {
-                                        play.swap_portrait_lastchar = ce;
-                                        break;
+                                    (game.chars[ce].is_enabled()) &&
+                                    (ce != aschar))
+                                {
+                                    play.swap_portrait_lastchar = ce;
+                                    break;
                                 }
                             }
+                        }
                     }
 
                     if (play.swap_portrait_lastchar >= 0) {

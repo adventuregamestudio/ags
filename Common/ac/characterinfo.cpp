@@ -119,7 +119,8 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     ReadBaseFields(in);
     name.ReadCount(in, LEGACY_MAX_CHAR_NAME_LEN);
     scrname.ReadCount(in, LEGACY_MAX_SCRIPT_NAME_LEN);
-    on = in->ReadInt8();
+    uint8_t on = in->ReadInt8(); // old enabled + visible flag
+    flags |= (CHF_ENABLED | CHF_VISIBLE) * on;
     in->ReadInt8(); // alignment padding to int32
 }
 
@@ -128,7 +129,7 @@ void CharacterInfo::WriteToFile(Stream *out) const
     WriteBaseFields(out);
     name.WriteCount(out, LEGACY_MAX_CHAR_NAME_LEN);
     scrname.WriteCount(out, LEGACY_MAX_SCRIPT_NAME_LEN);
-    out->WriteInt8(on);
+    out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
     out->WriteInt8(0); // alignment padding to int32
 }
 
@@ -145,7 +146,8 @@ void CharacterInfo::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         name = StrUtil::ReadString(in);
     }
-    on = in->ReadInt8();
+    uint8_t on = in->ReadInt8(); // old enabled + visible flag
+    flags |= (CHF_ENABLED | CHF_VISIBLE) * on;
 
     //
     // Upgrade restored data
@@ -159,5 +161,5 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
 {
     WriteBaseFields(out);
     StrUtil::WriteString(name, out); // kCharSvgVersion_36115
-    out->WriteInt8(on);
+    out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
 }

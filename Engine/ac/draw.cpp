@@ -2122,8 +2122,8 @@ void prepare_characters_for_drawing()
     for (int charid = 0; charid < game.numcharacters; ++charid)
     {
         const CharacterInfo &chin = game.chars[charid];
-        if (chin.on == 0)
-            continue; // disabled
+        if (!chin.is_visible())
+            continue; // disabled or not visible
         if (chin.room != displayed_room)
             continue; // in another room
 

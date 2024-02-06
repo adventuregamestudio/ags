@@ -54,7 +54,7 @@ uint8_t CCCharacter::ReadInt8(void *address, intptr_t offset)
     const int on_offset = 28 * sizeof(int32_t) /* first var group */
         + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ + 40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
-        return ci->on;
+        return (ci->flags & CHF_ENABLED) != 0;
     cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
     return 0;
 }
@@ -66,7 +66,7 @@ void CCCharacter::WriteInt8(void *address, intptr_t offset, uint8_t val)
     const int on_offset = 28 * sizeof(int32_t) /* first var group */
         + 301 * sizeof(int16_t) /* inventory */ + sizeof(int16_t) * 2 /* two shorts */ + 40 /* name */ + 20 /* scrname */;
     if (offset == on_offset)
-        ci->on = val;
+        ci->flags = (ci->flags & ~CHF_ENABLED) | ((CHF_ENABLED | CHF_VISIBLE) * val);
     else
         cc_error("ScriptCharacter: unsupported 'char' variable offset %d", offset);
 }

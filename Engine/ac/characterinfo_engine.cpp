@@ -61,11 +61,12 @@ int CharacterInfo::get_blocking_bottom() const {
 
 void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep)
 {
-	if (on != 1) return;
+    if (!is_enabled())
+        return;
     
 	// check turning
-	if (update_character_turning(chex))
-		return; // still turning, break
+    if (update_character_turning(chex))
+        return; // still turning, break
     
     // Fixup character's view when possible
     if (view >= 0 &&
@@ -353,7 +354,7 @@ void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followi
     else if ((following >= 0) && (doing_nothing == 1)) {
       short distaway=(followinfo >> 8) & 0x00ff;
       // no character in this room
-      if ((game.chars[following].on == 0) || (on == 0)) ;
+      if (!game.chars[following].is_enabled() || !is_enabled()) ;
       else if (room < 0) {
         room ++;
         if (room == 0) {
@@ -367,7 +368,7 @@ void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followi
       else if (Random(100) < (followinfo & 0x00ff)) ;
       // the followed character has changed room
       else if ((room != game.chars[following].room)
-            && (game.chars[following].on == 0))
+            && (!game.chars[following].is_enabled()))
         ;  // do nothing if the player isn't visible
       else if (room != game.chars[following].room) {
         prevroom = room;

@@ -24,9 +24,10 @@
 
 // Script name length limit for some game objects
 #define LEGACY_MAX_SCRIPT_NAME_LEN 20
+// Max inventory items
+#define MAX_INV   301
 // Number of state-saved rooms
 #define MAX_ROOMS 300
-
 
 // Room object flags (currently limited by a byte)
 #define OBJF_NOINTERACT     0x01  // not clickable

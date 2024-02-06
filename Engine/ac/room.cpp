@@ -338,7 +338,7 @@ void unload_old_room() {
 
     // if Hide Player Character was ticked, restore it to visible
     if (play.temporarily_turned_off_character >= 0) {
-        game.chars[play.temporarily_turned_off_character].on = 1;
+        game.chars[play.temporarily_turned_off_character].set_enabled(true);
         play.temporarily_turned_off_character = -1;
     }
 
@@ -720,10 +720,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     set_our_eip(208);
     if (forchar!=nullptr) {
-        if (thisroom.Options.PlayerCharOff==0) { forchar->on=1;
-        enable_cursor_mode(0); }
+        if (thisroom.Options.PlayerCharOff==0) {
+            forchar->set_enabled(true);
+            enable_cursor_mode(0); }
         else {
-            forchar->on=0;
+            forchar->set_enabled(false);
             disable_cursor_mode(0);
             // remember which character we turned off, in case they
             // use SetPlyaerChracter within this room (so we re-enable

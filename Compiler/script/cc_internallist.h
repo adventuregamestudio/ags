@@ -1,6 +1,8 @@
 #ifndef __CC_INTERNALLIST_H
 #define __CC_INTERNALLIST_H
 
+#include <cstdint>
+
 #define SCODE_META    (-2)   // meta tag follows
 #define SCODE_INVALID (-1)   // this should never get added, so it's a fault
 #define SMETA_LINENUM (1)
@@ -9,14 +11,14 @@
 struct ccInternalList {
     int length;    // size of array, in ints
     int allocated; // memory allocated for array, in bytes
-    long *script;
+    int32_t *script;
     int pos;
     int lineAtEnd;
     int cancelCurrentLine;  // whether to set currentline=-10 if end reached
 
     void startread();
-    long peeknext();
-    long getnext();  // and update global current_line
+    int32_t peeknext();
+    int32_t getnext();  // and update global current_line
     void write(int value);
     // write a meta symbol (ie. non-code thingy)
     void write_meta(int type,int param);

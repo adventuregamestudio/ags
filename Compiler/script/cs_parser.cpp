@@ -21,9 +21,9 @@ char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jo
 static char scriptNameBuffer[256];
 
 int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
-int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
-int  parse_sub_expr(long*,int,ccCompiledScript*);
-long extract_variable_name(int, ccInternalList*,long*, int*);
+int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, int32_t lilen, int32_t *vnlist, bool insideBracketedDeclaration);
+int  parse_sub_expr(int32_t*, int, ccCompiledScript*);
+int32_t extract_variable_name(int, ccInternalList*, int32_t*, int*);
 int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
 int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
 void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset);
@@ -451,7 +451,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
     return totalsub;
 }
 
-int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start,
+int deal_with_end_of_ifelse (char *nested_type, int32_t *nested_info, int32_t *nested_start,
                              ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel, std::vector<ccChunk> *nested_chunk) {
      int nested_level = nestlevel[0];
      int is_else=0;
@@ -504,7 +504,7 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
      return 0;
 }
 
-int deal_with_end_of_do (long *nested_info, long *nested_start, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
+int deal_with_end_of_do (int32_t *nested_info, int32_t *nested_start, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
     int cursym;
     int nested_level;
 
@@ -536,7 +536,7 @@ int deal_with_end_of_do (long *nested_info, long *nested_start, ccCompiledScript
     return 0;
 }
 
-int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel, long *nested_info) {
+int deal_with_end_of_switch (int32_t *nested_assign_addr, int32_t *nested_start, std::vector<ccChunk> *nested_chunk, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel, int32_t *nested_info) {
     int index;
     int limit = nested_chunk->size();
     int nested_level = nestlevel[0];
@@ -569,7 +569,7 @@ int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, st
     return 0;
 }
 
-int find_member_sym(int structSym, long *memSym, int allowProtected) {
+int find_member_sym(int structSym, int32_t *memSym, int allowProtected) {
     int oriname = *memSym;
     const char *possname = get_member_full_name(structSym, oriname);
 
@@ -1120,7 +1120,7 @@ int isPartOfExpression(ccInternalList *targ, int j) {
 // return the index of the lowest priority operator in the list,
 // so that either side of it can be evaluated first.
 // returns -1 if no operator was found
-int find_lowest_bonding_operator(long*slist,int listlen) {
+int find_lowest_bonding_operator(int32_t *slist, int listlen) {
   int k,blevel=0,plevel=0;
   int lowestis = 0,lowestat = -1;
   for (k=0;k<listlen;k++) {
@@ -1375,7 +1375,7 @@ int isVCPUOperatorBoolean(int scmdtype) {
     return 0;
 }
 
-long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAtOffs) {
+int32_t extract_variable_name(int fsym, ccInternalList*targ,int32_t*slist, int *funcAtOffs) {
   *funcAtOffs = -1;
 
   int mustBeStaticMember = 0;
@@ -1390,7 +1390,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
   }
 
   int oriOffs = targ->pos;
-  long sslen=1;
+  int32_t sslen=1;
   slist[0]=fsym;
   if (targ->peeknext() == SCODE_INVALID) return sslen;
   // it works like this:
@@ -1581,7 +1581,7 @@ void set_ax_scope(ccCompiledScript *scrip, int syoffs) {
     scrip->ax_val_scope = sym.entries[syoffs].stype;
 }
 
-int findClosingBracketOffs(int openBracketOffs, long *symlist, int slilen) {
+int findClosingBracketOffs(int openBracketOffs, int32_t *symlist, int slilen) {
   int endof,braclevel=0;
   for (endof = openBracketOffs + 1; endof < slilen; endof++) {
     int symtype = sym.get_type(symlist[endof]);
@@ -1595,7 +1595,7 @@ int findClosingBracketOffs(int openBracketOffs, long *symlist, int slilen) {
   return endof;
 }
 
-int findOpeningBracketOffs(int closeBracketOffs, long *symlist) {
+int findOpeningBracketOffs(int closeBracketOffs, int32_t *symlist) {
   int endof,braclevel=0;
   for (endof = closeBracketOffs - 1; endof >= 0; endof--) {
     int symtype = sym.get_type(symlist[endof]);
@@ -1609,7 +1609,7 @@ int findOpeningBracketOffs(int closeBracketOffs, long *symlist) {
   return endof;
 }
 
-int extractPathIntoParts(VariableSymlist *variablePath, int slilen, long *syml) {
+int extractPathIntoParts(VariableSymlist *variablePath, int slilen, int32_t *syml) {
   int variablePathSize = 0;
   int lastOffs = 0;
   int pp;
@@ -1674,7 +1674,7 @@ int get_readcmd_for_size(int sizz, int writeinstead) {
   }
 
 
-int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
+int get_array_index_into_ax(ccCompiledScript *scrip, int32_t *symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
 
   // "push" the ax val type (because this is just an array index,
   // we're actually interested in the type of the variable being read)
@@ -2044,7 +2044,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 // member variable, then read_variable_into_ax sets this
 int readonly_cannot_cause_error = 0;
 
-int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int mustBeWritable, bool negateLiteral = false) {
+int do_variable_ax(int slilen, int32_t *syml, ccCompiledScript*scrip, int writing, int mustBeWritable, bool negateLiteral = false) {
   // read the various types of values into AX
   int ee;
 
@@ -2400,19 +2400,19 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
 }
 
 
-int read_variable_into_ax(int slilen,long*syml,ccCompiledScript*scrip, int mustBeWritable = 0, bool negateLiteral = false) {
+int read_variable_into_ax(int slilen, int32_t *syml, ccCompiledScript *scrip, int mustBeWritable = 0, bool negateLiteral = false) {
 
   return do_variable_ax(slilen,syml,scrip, 0, mustBeWritable, negateLiteral);
 }
 
-int write_ax_to_variable(int slilen,long*syml,ccCompiledScript*scrip) {
+int write_ax_to_variable(int slilen, int32_t *syml, ccCompiledScript *scrip) {
 
   return do_variable_ax(slilen,syml,scrip, 1, 0);
 }
 
 
 
-int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
+int parse_sub_expr(int32_t *symlist, int listlen, ccCompiledScript*scrip) {
   if (listlen == 0) {
     cc_error("Empty sub-expression?");
     return -1;
@@ -2600,7 +2600,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
   // There is no operator in the expression -- therefore, there will
   // just be a variable name or function call
 
-  long vnlist[TEMP_SYMLIST_LENGTH],lilen;
+  int32_t vnlist[TEMP_SYMLIST_LENGTH],lilen;
   int funcAtOffs = 0;
   ccInternalList tlist;
   tlist.pos=0;
@@ -2663,7 +2663,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     return -1;
     }
   else if ((sym.get_type(symlist[0]) == SYM_FUNCTION) || (funcAtOffs > 0)) {
-    long *usingList;
+    int32_t *usingList;
     int usingListLen;
     int using_op = 0;
 
@@ -2937,8 +2937,8 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
         cc_error("PE01: Parse error at '%s'",sym.get_friendly_name(targ->script[j]).c_str());
         return -1;
         }
-      ours.script = (long*)malloc(ourlen * sizeof(long));
-      memcpy(ours.script,&targ->script[targ->pos],ourlen*sizeof(long));
+      ours.script = (int32_t*)malloc(ourlen * sizeof(int32_t));
+      memcpy(ours.script,&targ->script[targ->pos],ourlen*sizeof(int32_t));
       int k,l;
       for (k=0;k<ourlen;k++) {
         if (ours.script[k] == SCODE_META) {
@@ -2974,7 +2974,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   return retcode;
   }
 
-int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration) {
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, int32_t lilen, int32_t *vnlist, bool insideBracketedDeclaration) {
     if (!sym.entries[cursym].is_loadable_variable()) {
         // allow through static properties
         if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
@@ -3086,12 +3086,12 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
     return 0;
 }
 
-int parse_variable_declaration(long cursym,int *next_type,int isglobal,
+int parse_variable_declaration(int32_t cursym,int *next_type,int isglobal,
     int varsize,ccCompiledScript*scrip,ccInternalList*targ, int vtwas,
     int isPointer) {
-  long lbuffer = 0;
+  int32_t lbuffer = 0;
   std::vector<char> xbuffer;
-  long *getsvalue = &lbuffer;
+  int32_t *getsvalue = &lbuffer;
   int need_fixup = 0;
   int array_size = 1;
   if (sym.get_type(cursym) != 0) {
@@ -3170,11 +3170,11 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
 
     next_type[0] = sym.get_type(targ->peeknext());
     xbuffer.resize(varsize + 1);
-    getsvalue = (long*)&xbuffer.front();
+    getsvalue = (int32_t*)&xbuffer.front();
   }
   else if (varsize > 4) {
     xbuffer.resize(varsize + 1);
-    getsvalue = (long*)&xbuffer.front();
+    getsvalue = (int32_t*)&xbuffer.front();
   }
 
   if (strcmp(sym.get_name(vtwas),"string")==0) {
@@ -3270,7 +3270,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         if (accept_literal_or_constant_value(targ->getnext(), getsvalue_int, is_neg, "Expected integer value after '='") < 0) {
           return -1;
         }
-        getsvalue[0] = (long)getsvalue_int;
+        getsvalue[0] = (int32_t)getsvalue_int;
 
       }
     }
@@ -3362,8 +3362,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     int isMemberFunction = 0;
     int inFuncSym = -1;
     char nested_type[MAX_NESTED_LEVEL];
-    long nested_info[MAX_NESTED_LEVEL];
-    long nested_start[MAX_NESTED_LEVEL];
+    int32_t nested_info[MAX_NESTED_LEVEL];
+    int32_t nested_start[MAX_NESTED_LEVEL];
     std::vector<ccChunk> nested_chunk[MAX_NESTED_LEVEL];
     int32_t nested_assign_addr[MAX_NESTED_LEVEL];
     char next_is_import = 0, next_is_readonly = 0;
@@ -3392,7 +3392,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             return -1;
         }
         else if (cursym == SCODE_META) {
-            long metatype = targ.getnext();
+            int32_t metatype = targ.getnext();
             if (metatype==SMETA_END) break;
             else if (metatype==SMETA_LINENUM) {
                 cc_error("Internal errror: unexpected meta tag");
@@ -3766,7 +3766,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     if (extendsWhat > 0) {
                         // check that we haven't already inherited a member
                         // with the same name
-                        long member = vname;
+                        int32_t member = vname;
                         if (memberExt == NULL) {
                             cc_error("Internal compiler error dbc");
                             return -1;
@@ -3841,7 +3841,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         sym.entries[vname].extends = stname;  // save which struct it belongs to
                         sym.entries[vname].ssize = sym.entries[cursym].ssize;
                         sym.entries[vname].soffs = size_so_far;
-                        sym.entries[vname].vartype = (short)cursym;
+                        sym.entries[vname].vartype = (int16_t)cursym;
                         if (member_is_readonly)
                             sym.entries[vname].flags |= SFLG_READONLY;
                         if (member_is_const)
@@ -4400,7 +4400,7 @@ startvarbit:
             return -1;
         }
         else {
-            long vnlist[TEMP_SYMLIST_LENGTH],lilen;
+            int32_t vnlist[TEMP_SYMLIST_LENGTH],lilen;
             int funcAtOffs;
             int targPosWas = targ.pos;
             lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
@@ -4490,7 +4490,7 @@ startvarbit:
                         cc_error("expected '('");
                         return -1;
                     }
-                    long oriaddr = scrip->codesize;
+                    int32_t oriaddr = scrip->codesize;
 
                     if (evaluate_expression(&targ,scrip,1,false))
                         return -1;
@@ -4627,7 +4627,7 @@ startvarbit:
                         if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
                             return -1;
                 }
-                long oriaddr = scrip->codesize;
+                int32_t oriaddr = scrip->codesize;
                 bool hasLimitCheck;
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
                     if(sym.get_type(targ.peeknext()) == SYM_CLOSEPARENTHESIS) {
@@ -4644,7 +4644,7 @@ startvarbit:
                 }
                 else
                     hasLimitCheck = false; // Allow for loops without limit checks
-                long assignaddr = scrip->codesize;
+                int32_t assignaddr = scrip->codesize;
                 int pre_fixup_count = scrip->numfixups;
                 targ.getnext(); // Skip the ;
                 cursym = targ.getnext();

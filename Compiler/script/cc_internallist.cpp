@@ -12,7 +12,7 @@ bool ccInternalList::isPosValid(int pos) {
 	return pos >= 0 && pos < length;
 }
 
-long ccInternalList::peeknext() {
+int32_t ccInternalList::peeknext() {
     int tpos = pos;
 	// this should work even if 3 bytes aren't remaining
 	while (isPosValid(tpos) && (script[tpos] == SCODE_META)) {
@@ -25,10 +25,10 @@ long ccInternalList::peeknext() {
         return SCODE_INVALID;
 	}
 }
-long ccInternalList::getnext() {
+int32_t ccInternalList::getnext() {
     // process line numbers internally
     while (isPosValid(pos) && script[pos] == SCODE_META) {
-		long bytesRemaining = length - pos;
+		int32_t bytesRemaining = length - pos;
 		if (bytesRemaining >= 3) {
 			if (script[pos+1] == SMETA_LINENUM) {
 				currentline = script[pos+2];
@@ -57,7 +57,7 @@ long ccInternalList::getnext() {
 	}
 }
 void ccInternalList::write(int value) {
-    if ((length+1) * sizeof(long) >= (unsigned long)allocated) {
+    if ((length+1) * sizeof(int32_t) >= (uint32_t)allocated) {
 
 		if (allocated < 1000) {
             allocated += 1000;
@@ -65,7 +65,7 @@ void ccInternalList::write(int value) {
             allocated *= 2;
 		}
 
-        script = (long*)realloc(script, allocated);
+        script = (int32_t*)realloc(script, allocated);
 		// TODO: this doesn't check realloc result
     }
     script[length] = value;

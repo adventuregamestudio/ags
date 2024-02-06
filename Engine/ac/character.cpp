@@ -1256,6 +1256,14 @@ const char *Character_GetScriptName(CharacterInfo *chin)
     return CreateNewScriptString(game.chars[chin->index_id].scrname);
 }
 
+int Character_GetEnabled(CharacterInfo *chaa) {
+    return chaa->is_enabled();
+}
+
+void Character_SetEnabled(CharacterInfo *chaa, int newval) {
+    chaa->set_enabled(newval);
+}
+
 int Character_GetFrame(CharacterInfo *chaa) {
     return chaa->frame;
 }
@@ -1557,6 +1565,14 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
 
     chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
+}
+
+int Character_GetVisible(CharacterInfo *chaa) {
+    return chaa->is_visible();
+}
+
+void Character_SetVisible(CharacterInfo *chaa, int newval) {
+    chaa->set_visible(newval);
 }
 
 int Character_GetBlendMode(CharacterInfo *chaa) {
@@ -3517,6 +3533,16 @@ RuntimeScriptValue Sc_Character_SetDiagonalWalking(void *self, const RuntimeScri
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetDiagonalWalking);
 }
 
+RuntimeScriptValue Sc_Character_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Character_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetEnabled);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3821,6 +3847,16 @@ RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(CharacterInfo, Character_GetView);
 }
 
+RuntimeScriptValue Sc_Character_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetVisible);
+}
+
+RuntimeScriptValue Sc_Character_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetVisible);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetWalkSpeedX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4018,6 +4054,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_DestinationY",          API_FN_PAIR(Character_GetDestinationY) },
         { "Character::get_DiagonalLoops",         API_FN_PAIR(Character_GetDiagonalWalking) },
         { "Character::set_DiagonalLoops",         API_FN_PAIR(Character_SetDiagonalWalking) },
+        { "Character::get_Enabled",               API_FN_PAIR(Character_GetEnabled) },
+        { "Character::set_Enabled",               API_FN_PAIR(Character_SetEnabled) },
         { "Character::get_Frame",                 API_FN_PAIR(Character_GetFrame) },
         { "Character::set_Frame",                 API_FN_PAIR(Character_SetFrame) },
         { "Character::get_ID",                    API_FN_PAIR(Character_GetID) },
@@ -4081,13 +4119,15 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_z",                     API_FN_PAIR(Character_GetZ) },
         { "Character::set_z",                     API_FN_PAIR(Character_SetZ) },
         { "Character::get_HasExplicitLight",      API_FN_PAIR(Character_GetHasExplicitLight) },
-        { "Character::get_HasExplicitTint",      API_FN_PAIR(Character_GetHasExplicitTint) },
+        { "Character::get_HasExplicitTint",       API_FN_PAIR(Character_GetHasExplicitTint) },
         { "Character::get_LightLevel",            API_FN_PAIR(Character_GetLightLevel) },
         { "Character::get_TintBlue",              API_FN_PAIR(Character_GetTintBlue) },
         { "Character::get_TintGreen",             API_FN_PAIR(Character_GetTintGreen) },
         { "Character::get_TintRed",               API_FN_PAIR(Character_GetTintRed) },
         { "Character::get_TintSaturation",        API_FN_PAIR(Character_GetTintSaturation) },
         { "Character::get_TintLuminance",         API_FN_PAIR(Character_GetTintLuminance) },
+        { "Character::get_Visible",               API_FN_PAIR(Character_GetVisible) },
+        { "Character::set_Visible",               API_FN_PAIR(Character_SetVisible) },
 
         { "Character::get_BlendMode",             API_FN_PAIR(Character_GetBlendMode) },
         { "Character::set_BlendMode",             API_FN_PAIR(Character_SetBlendMode) },

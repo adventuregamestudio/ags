@@ -2283,13 +2283,15 @@ builtin managed struct Character {
   /// Gets/sets whether the character uses region tinting.
   import attribute bool UseRegionTint;
 #endif
-  readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
-  readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
-  readonly int   reserved_e;   // $AUTOCOMPLETEIGNORE$
-  readonly char  reserved_g[40];   // $AUTOCOMPLETEIGNORE$
-  readonly char  reserved_h[20];   // $AUTOCOMPLETEIGNORE$
-  // TODO: find out if Visible property may work as a proper analogue, otherwise add new one
-  char  on;  // $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_API_v400
+  /// Gets/sets whether the character will be drawn and updated during the game update.
+  import attribute bool Enabled;
+  /// Gets/sets whether the character is currently visible.
+  import attribute bool Visible;
+#endif
+#ifdef SCRIPT_COMPAT_v399
+  char  on;
+#endif
   };
 
 builtin struct Game {

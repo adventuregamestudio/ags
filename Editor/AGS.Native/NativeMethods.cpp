@@ -617,6 +617,8 @@ namespace AGS
             if (name->Equals("CHF_SCALEMOVESPEED")) return CHF_SCALEMOVESPEED;
             if (name->Equals("CHF_SCALEVOLUME")) return CHF_SCALEVOLUME;
             if (name->Equals("CHF_ANTIGLIDE")) return CHF_ANTIGLIDE;
+            if (name->Equals("CHF_ENABLED")) return CHF_ENABLED;
+            if (name->Equals("CHF_VISIBLE")) return CHF_VISIBLE;
             if (name->Equals("DFLG_ON")) return DFLG_ON;
             if (name->Equals("DFLG_NOREPEAT")) return DFLG_NOREPEAT;
             if (name->Equals("DTFLG_SHOWPARSER")) return DTFLG_SHOWPARSER;

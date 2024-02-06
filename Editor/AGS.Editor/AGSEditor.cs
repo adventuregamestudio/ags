@@ -110,9 +110,10 @@ namespace AGS.Editor
          * 3.99.99.01     - Open rooms
          * 3.99.99.07     - PO translations
          * 4.00.00.00     - Raised for org purposes without project changes
+         * 4.00.00.03     - Distinct Character and Object Enabled and Visible properties.
          *
         */
-        public const int    LATEST_XML_VERSION_INDEX = 4000000;
+        public const int    LATEST_XML_VERSION_INDEX = 4000003;
         /// <summary>
         /// XML version index on the release of AGS 4.0.0, this constant be used to determine
         /// if upgrade of Rooms/Sprites/etc. to new format have been performed.

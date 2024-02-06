@@ -27,6 +27,8 @@ namespace AGS.Editor
         public static readonly int CHF_SCALEMOVESPEED = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEMOVESPEED");
         public static readonly int CHF_SCALEVOLUME = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEVOLUME");
         public static readonly int CHF_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("CHF_ANTIGLIDE");
+        public static readonly int CHF_ENABLED = (int)Factory.NativeProxy.GetNativeConstant("CHF_ENABLED");
+        public static readonly int CHF_VISIBLE = (int)Factory.NativeProxy.GetNativeConstant("CHF_VISIBLE");
         public static readonly int DFLG_ON = (int)Factory.NativeProxy.GetNativeConstant("DFLG_ON");
         public static readonly int DFLG_NOREPEAT = (int)Factory.NativeProxy.GetNativeConstant("DFLG_NOREPEAT");
         public static readonly int DTFLG_SHOWPARSER = (int)Factory.NativeProxy.GetNativeConstant("DTFLG_SHOWPARSER");

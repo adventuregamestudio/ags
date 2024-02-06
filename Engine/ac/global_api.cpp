@@ -608,12 +608,6 @@ RuntimeScriptValue Sc_IsObjectMoving(const RuntimeScriptValue *params, int32_t p
     API_SCALL_INT_PINT(IsObjectMoving);
 }
 
-// int  (int objj)
-RuntimeScriptValue Sc_IsObjectOn(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsObjectOn);
-}
-
 // int (int tnum)
 RuntimeScriptValue Sc_IsTimerExpired(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -666,20 +660,6 @@ RuntimeScriptValue Sc_MoveSaveSlot(const RuntimeScriptValue *params, int32_t par
 {
     API_SCALL_VOID_PINT2(MoveSaveSlot);
 }
-
-// void (int obn)
-RuntimeScriptValue Sc_ObjectOff(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(ObjectOff);
-}
-
-// void (int obn)
-RuntimeScriptValue Sc_ObjectOn(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(ObjectOn);
-}
-
-extern RuntimeScriptValue Sc_Parser_ParseText(const RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_PauseGame(const RuntimeScriptValue *params, int32_t param_count)
@@ -1281,7 +1261,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsMusicVoxAvailable",      API_FN_PAIR(IsMusicVoxAvailable) },
         { "IsObjectAnimating",        API_FN_PAIR(IsObjectAnimating) },
         { "IsObjectMoving",           API_FN_PAIR(IsObjectMoving) },
-        { "IsObjectOn",               API_FN_PAIR(IsObjectOn) },
         { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
         { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
         { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
@@ -1291,8 +1270,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },
         { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
-        { "ObjectOff",                API_FN_PAIR(ObjectOff) },
-        { "ObjectOn",                 API_FN_PAIR(ObjectOn) },
         { "PauseGame",                API_FN_PAIR(PauseGame) },
         { "PlayFlic",                 API_FN_PAIR(PlayFlic) },
         { "PlayVideo",                API_FN_PAIR(PlayVideo) },

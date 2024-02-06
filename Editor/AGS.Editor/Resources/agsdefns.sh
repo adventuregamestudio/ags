@@ -2031,6 +2031,10 @@ builtin managed struct Object {
   /// Gets/sets whether the object uses region tinting.
   import attribute bool UseRegionTint;
 #endif
+#ifdef SCRIPT_API_v400
+  /// Gets/sets whether the object will be drawn and updated during the game update.
+  import attribute bool Enabled;
+#endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 

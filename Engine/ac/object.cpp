@@ -153,13 +153,6 @@ void Object_StopMoving(ScriptObject *objj) {
     StopObjectMoving(objj->id);
 }
 
-void Object_SetVisible(ScriptObject *objj, int onoroff) {
-    if (onoroff)
-        ObjectOn(objj->id);
-    else
-        ObjectOff(objj->id);
-}
-
 int Object_GetView(ScriptObject *objj) {
     if (objs[objj->id].view == RoomObject::NoView)
         return 0;
@@ -178,8 +171,32 @@ int Object_GetFrame(ScriptObject *objj) {
     return objs[objj->id].frame;
 }
 
+int Object_GetEnabled(ScriptObject *objj) {
+    if (!is_valid_object(objj->id)) quit("!Object.GetEnabled: invalid object specified");
+    return objs[objj->id].is_enabled() ? 1 : 0;
+}
+
+void Object_SetEnabled(ScriptObject *objj, int on) {
+    if (!is_valid_object(objj->id)) quit("!Object.SetEnabled: invalid object specified");
+    if (objs[objj->id].is_enabled() != on)
+    {
+        objs[objj->id].set_enabled(on);
+        debug_script_log("Object %d enabled = %d", objj->id, on);
+    }
+}
+
 int Object_GetVisible(ScriptObject *objj) {
-    return IsObjectOn(objj->id);
+    if (!is_valid_object(objj->id)) quit("!Object.GetVisible: invalid object specified");
+    return objs[objj->id].is_visible() ? 1 : 0;
+}
+
+void Object_SetVisible(ScriptObject *objj, int on) {
+    if (!is_valid_object(objj->id)) quit("!Object.SetVisible: invalid object specified");
+    if (objs[objj->id].is_visible() != on)
+    {
+        objs[objj->id].set_visible(on);
+        debug_script_log("Object %d visible = %d", objj->id, on);
+    }
 }
 
 void Object_SetGraphic(ScriptObject *objj, int slott) {
@@ -1025,6 +1042,16 @@ RuntimeScriptValue Sc_Object_SetClickable(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable);
 }
 
+RuntimeScriptValue Sc_Object_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Object_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetEnabled);
+}
+
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1249,6 +1276,8 @@ void RegisterObjectAPI()
         { "Object::set_BlockingWidth",        API_FN_PAIR(Object_SetBlockingWidth) },
         { "Object::get_Clickable",            API_FN_PAIR(Object_GetClickable) },
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
+        { "Object::get_Enabled",              API_FN_PAIR(Object_GetEnabled) },
+        { "Object::set_Enabled",              API_FN_PAIR(Object_SetEnabled) },
         { "Object::get_Frame",                API_FN_PAIR(Object_GetFrame) },
         { "Object::get_Graphic",              API_FN_PAIR(Object_GetGraphic) },
         { "Object::set_Graphic",              API_FN_PAIR(Object_SetGraphic) },

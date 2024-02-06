@@ -266,28 +266,6 @@ void StopObjectMoving(int objj) {
     debug_script_log("Object %d stop moving", objj);
 }
 
-void ObjectOff(int obn) {
-    if (!is_valid_object(obn)) quit("!ObjectOff: invalid object specified");
-    if (objs[obn].is_enabled()) {
-        objs[obn].set_enabled(false);
-        debug_script_log("Object %d turned off", obn);
-        StopObjectMoving(obn);
-    }
-}
-
-void ObjectOn(int obn) {
-    if (!is_valid_object(obn)) quit("!ObjectOn: invalid object specified");
-    if (!objs[obn].is_enabled()) {
-        objs[obn].set_enabled(true);
-        debug_script_log("Object %d turned on", obn);
-    }
-}
-
-int IsObjectOn (int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectOn: invalid object number");
-    return objs[objj].is_enabled() ? 1 : 0;
-}
-
 void SetObjectGraphic(int obn,int slott) {
     if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
 

@@ -165,7 +165,7 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
 
     // check for any blocking objects in the room, and deal with them as well
     for (uint32_t ww = 0; ww < croom->numobj; ww++) {
-        if (objs[ww].on != 1) continue;
+        if (!objs[ww].is_enabled()) continue;
         if ((objs[ww].flags & OBJF_SOLID) == 0)
             continue;
         if (room_to_mask_coord(objs[ww].y) >= walkable_areas_temp->GetHeight()) continue;

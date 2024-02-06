@@ -534,7 +534,7 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     if (chin->room != displayed_room)
         return 0;
-    if (objs[objid->id].on != 1)
+    if (!objs[objid->id].is_enabled())
         return 0;
 
     // TODO: use GraphicSpace and proper transformed coords?

@@ -29,16 +29,19 @@
 // Number of state-saved rooms
 #define MAX_ROOMS 300
 
-// Room object flags (currently limited by a byte)
-#define OBJF_NOINTERACT     0x01  // not clickable
-#define OBJF_NOWALKBEHINDS  0x02  // ignore walk-behinds
-#define OBJF_HASTINT        0x04  // the tint_* members are valid
-#define OBJF_USEREGIONTINTS 0x08  // obey region tints/light areas
-#define OBJF_USEROOMSCALING 0x10  // obey room scaling areas
-#define OBJF_SOLID          0x20  // blocks characters from moving
-#define OBJF_LEGACY_LOCKED  0x40  // object position is locked in the editor (OBSOLETE since 3.5.0)
-#define OBJF_HASLIGHT       0x80  // the tint_light is valid and treated as brightness
+// Room object flags
+// (design-time values are now limited to 16-bit by the game file format)
+#define OBJF_NOINTERACT     0x0001  // not clickable
+#define OBJF_NOWALKBEHINDS  0x0002  // ignore walk-behinds
+#define OBJF_HASTINT        0x0004  // the tint_* members are valid
+#define OBJF_USEREGIONTINTS 0x0008  // obey region tints/light areas
+#define OBJF_USEROOMSCALING 0x0010  // obey room scaling areas
+#define OBJF_SOLID          0x0020  // blocks characters from moving
+#define OBJF_LEGACY_LOCKED  0x0040  // object position is locked in the editor (OBSOLETE since 3.5.0)
+#define OBJF_HASLIGHT       0x0080  // the tint_light is valid and treated as brightness
 #define OBJF_TINTLIGHTMASK  (OBJF_HASTINT | OBJF_HASLIGHT | OBJF_USEREGIONTINTS)
+#define OBJF_ENABLED        0x0100
+#define OBJF_VISIBLE        0x0200
 
 // Animation flow mode
 // NOTE: had to move to common_defines, because used by CharacterInfo

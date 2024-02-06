@@ -515,7 +515,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             crobj.x=trobj.X;
             crobj.y=trobj.Y;
             crobj.num = Math::InRangeOrDef<uint16_t>(trobj.Sprite, 0);
-            crobj.on=trobj.IsOn;
             crobj.flags = trobj.Flags;
             crobj.name = trobj.Name;
             if (trobj.Baseline>=0)

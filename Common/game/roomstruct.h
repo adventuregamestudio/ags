@@ -157,7 +157,6 @@ struct RoomObjectInfo
     int32_t         Y;
     int32_t         Sprite;
     Common::BlendMode BlendMode;
-    bool            IsOn;
     // Object's z-order in the room, or -1 (use Y)
     int32_t         Baseline;
     int32_t         Flags;

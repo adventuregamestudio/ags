@@ -536,7 +536,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height,
 void update_object_scale(int objid)
 {
     RoomObject &obj = objs[objid];
-    if (obj.on == 0)
+    if (!obj.is_enabled())
         return; // not enabled
 
     int zoom, scale_width, scale_height;

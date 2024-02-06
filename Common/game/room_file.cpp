@@ -53,23 +53,26 @@ HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src
     return ReadRoomHeader(src);
 }
 
-void ReadRoomObject(RoomObjectInfo &obj, Stream *in)
+// Read base room object's fields
+void ReadRoomObjectBase(RoomObjectInfo &obj, Stream *in)
 {
     obj.Sprite = (uint16_t)in->ReadInt16();
     obj.X = in->ReadInt16();
     obj.Y = in->ReadInt16();
     obj.Room = in->ReadInt16();
-    obj.IsOn = in->ReadInt16() != 0;
+    uint16_t on = in->ReadInt16();
+    obj.Flags |= (OBJF_ENABLED | OBJF_VISIBLE) * on;
 }
 
-void WriteRoomObject(const RoomObjectInfo &obj, Stream *out)
+// Write base room object's fields
+void WriteRoomObjectBase(const RoomObjectInfo &obj, Stream *out)
 {
     // TODO: expand serialization into 32-bit values at least for the sprite index!!
     out->WriteInt16((uint16_t)obj.Sprite);
     out->WriteInt16((int16_t)obj.X);
     out->WriteInt16((int16_t)obj.Y);
     out->WriteInt16((int16_t)obj.Room);
-    out->WriteInt16(obj.IsOn ? 1 : 0);
+    out->WriteInt16(0); // [OBSOLETE], old enabled + visible flag
 }
 
 // Main room data
@@ -129,7 +132,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
 
     room->Objects.resize(obj_count);
     for (auto &obj : room->Objects)
-        ReadRoomObject(obj, in);
+        ReadRoomObjectBase(obj, in);
 
     // Legacy interaction variables (were cut out)
     size_t localvar_count = in->ReadInt32();
@@ -163,8 +166,9 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
     room->Width = in->ReadInt16();
     room->Height = in->ReadInt16();
 
+    // NOTE: we add the read flags with the value set by ReadRoomObjectBase
     for (auto &obj : room->Objects)
-        obj.Flags = in->ReadInt16();
+        obj.Flags |= in->ReadInt16();
 
     room->MaskResolution = in->ReadInt16();
     room->WalkAreaCount = in->ReadInt32();
@@ -489,7 +493,7 @@ void WriteMainBlock(const RoomStruct *room, Stream *out)
     out->WriteInt16((int16_t)room->Objects.size());
     for (const auto &obj : room->Objects)
     {
-        WriteRoomObject(obj, out);
+        WriteRoomObjectBase(obj, out);
     }
 
     out->WriteInt32(0); // legacy interaction vars

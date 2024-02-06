@@ -44,7 +44,8 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_400
+    kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40003
 };
 
 // RoomStatus contains everything about a room that could change at runtime.

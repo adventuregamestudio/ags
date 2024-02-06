@@ -23,7 +23,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-// Character flags
+// Character flags (32-bit)
 // Flags marked as "runtime" are marking dynamic character state
 #define CHF_MANUALSCALING   0x0001
 #define CHF_FIXVIEW         0x0002  // between SetCharView and ReleaseCharView

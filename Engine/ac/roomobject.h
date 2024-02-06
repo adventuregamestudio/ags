@@ -53,8 +53,7 @@ struct RoomObject {
     short wait,moving;
     char  cycling;        // stores OBJANIM_* flags and values
     char  overall_speed;  // animation delay
-    char  on;
-    char  flags;
+    int   flags;
     // Down to here is a part of the plugin API
     short blocking_width, blocking_height;
     int   anim_volume = 100; // default animation volume (relative factor)
@@ -69,6 +68,9 @@ struct RoomObject {
     int get_height() const;
     int get_baseline() const;
 
+    inline bool is_enabled() const { return (flags & OBJF_ENABLED) != 0; }
+    // Note that character is considered not visible if it is also not enabled
+    inline bool is_visible() const { return is_enabled() && (flags & OBJF_VISIBLE) != 0; }
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
     inline bool is_animating()       const { return (cycling > 0); }
@@ -77,6 +79,8 @@ struct RoomObject {
     inline int  get_anim_repeat()    const { return (cycling % OBJANIM_BACKWARDS) - 1; }
     inline bool get_anim_forwards()  const { return (cycling < OBJANIM_BACKWARDS); }
     inline int  get_anim_delay()     const { return overall_speed; }
+    inline void set_enabled(bool on) { flags = (flags & ~OBJF_ENABLED) | (OBJF_ENABLED * on); }
+    inline void set_visible(bool on) { flags = (flags & ~OBJF_VISIBLE) | (OBJF_VISIBLE * on); }
     // repeat may be ANIM_ONCE, ANIM_REPEAT, ANIM_ONCERESET 
     inline void set_animating(int repeat, bool forwards, int delay)
     {

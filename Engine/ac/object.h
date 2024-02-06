@@ -43,7 +43,6 @@ int     Object_GetBaseline(ScriptObject *objj);
 void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
                        int blocking, int direction, int sframe = 0, int volume = 100);
 void    Object_StopAnimating(ScriptObject *objj);
-void    Object_MergeIntoBackground(ScriptObject *objj);
 void    Object_StopMoving(ScriptObject *objj);
 void    Object_SetVisible(ScriptObject *objj, int onoroff);
 int     Object_GetView(ScriptObject *objj);

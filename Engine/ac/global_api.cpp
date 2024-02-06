@@ -644,12 +644,6 @@ RuntimeScriptValue Sc_LoadSaveSlotScreenshot(const RuntimeScriptValue *params, i
     API_SCALL_INT_PINT3(LoadSaveSlotScreenshot);
 }
 
-// void (int obn)
-RuntimeScriptValue Sc_MergeObject(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(MergeObject);
-}
-
 // void (int chaa,int hotsp)
 RuntimeScriptValue Sc_MoveCharacterToHotspot(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1293,7 +1287,6 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "IsVoxAvailable",           API_FN_PAIR(IsVoxAvailable) },
         { "LoadImageFile",            API_FN_PAIR(LoadImageFile) },
         { "LoadSaveSlotScreenshot",   API_FN_PAIR(LoadSaveSlotScreenshot) },
-        { "MergeObject",              API_FN_PAIR(MergeObject) },
         { "MoveCharacterToHotspot",   API_FN_PAIR(MoveCharacterToHotspot) },
         { "MoveObject",               API_FN_PAIR(MoveObject) },
         { "MoveObjectDirect",         API_FN_PAIR(MoveObjectDirect) },

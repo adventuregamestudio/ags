@@ -1931,8 +1931,6 @@ builtin managed struct Object {
   import String   GetTextProperty(const string property);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
-  /// Merges the object's image into the room background, and disables the object.
-  import function MergeIntoBackground();
   /// Starts the object moving towards the specified co-ordinates.
   import function Move(int x, int y, int speed, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Removes a specific object tint, and returns the object to using the ambient room tint.

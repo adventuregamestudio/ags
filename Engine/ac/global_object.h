@@ -42,7 +42,6 @@ void SetObjectTransparency(int obn,int trans);
 void SetObjectBaseline (int obn, int basel);
 int  GetObjectBaseline(int obn);
 void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, int blocking, int sframe, int volume = 100);
-void MergeObject(int obn);
 void StopObjectMoving(int objj);
 void ObjectOff(int obn);
 void ObjectOn(int obn);

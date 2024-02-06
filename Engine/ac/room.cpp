@@ -754,10 +754,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     set_our_eip(212);
     invalidate_screen();
-    for (uint32_t cc=0;cc<croom->numobj;cc++) {
-        if (objs[cc].on == 2)
-            MergeObject(cc);
-    }
     new_room_flags=0;
     play.gscript_timer=-1;  // avoid screw-ups with changing screens
     play.player_on_region = 0;

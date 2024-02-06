@@ -149,10 +149,6 @@ void Object_StopAnimating(ScriptObject *objj) {
     }
 }
 
-void Object_MergeIntoBackground(ScriptObject *objj) {
-    MergeObject(objj->id);
-}
-
 void Object_StopMoving(ScriptObject *objj) {
     StopObjectMoving(objj->id);
 }
@@ -856,12 +852,6 @@ RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValu
     API_OBJCALL_BOOL_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
-// void (ScriptObject *objj)
-RuntimeScriptValue Sc_Object_MergeIntoBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(ScriptObject, Object_MergeIntoBackground);
-}
-
 RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL_PINT(ScriptObject, Object_IsInteractionAvailable);
@@ -1239,7 +1229,6 @@ void RegisterObjectAPI()
         { "Object::SetProperty^2",            API_FN_PAIR(Object_SetProperty) },
         { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
-        { "Object::MergeIntoBackground^0",    API_FN_PAIR(Object_MergeIntoBackground) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
         { "Object::RemoveTint^0",             API_FN_PAIR(Object_RemoveTint) },
         { "Object::RunInteraction^1",         API_FN_PAIR(Object_RunInteraction) },

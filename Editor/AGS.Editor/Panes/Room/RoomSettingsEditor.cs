@@ -951,9 +951,9 @@ namespace AGS.Editor
 
             _state.Scale = sldZoomLevel.Value * ZOOM_STEP_VALUE * 0.01f;
             UpdateScrollableWindowSize();
-            
-            bufferedPanel1.HorizontalScroll.Value = _state.RoomSizeToWindow(oldPosX);
-            bufferedPanel1.VerticalScroll.Value = _state.RoomSizeToWindow(oldPosY);
+
+            bufferedPanel1.HorizontalScroll.Value = MathExtra.Clamp(_state.RoomSizeToWindow(oldPosX), bufferedPanel1.HorizontalScroll.Minimum, bufferedPanel1.HorizontalScroll.Maximum);
+            bufferedPanel1.VerticalScroll.Value = MathExtra.Clamp(_state.RoomSizeToWindow(oldPosY), bufferedPanel1.VerticalScroll.Minimum, bufferedPanel1.VerticalScroll.Maximum);
             bufferedPanel1.Invalidate();
 		}
 

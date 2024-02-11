@@ -254,13 +254,13 @@ public:
 
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
     
     // Create texture data with the given parameters
     Texture *CreateTexture(int width, int height, int color_depth, bool opaque, bool as_render_target = false) override;
     // Update texture data from the given bitmap
-    void UpdateTexture(Texture *txdata, Bitmap *bitmap, bool opaque) override;
+    void UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool opaque) override;
     // Retrieve shared texture data object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
@@ -399,7 +399,7 @@ private:
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque);
+    void UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *bitmap, bool opaque);
     void CreateVirtualScreen();
     void RenderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &rend_sz);

@@ -1643,7 +1643,7 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
 }
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque)
+void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *bitmap, bool opaque)
 {
   const int textureWidth = tile->allocWidth;
   const int textureHeight = tile->allocHeight;
@@ -1727,14 +1727,14 @@ void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap
   delete []origPtr;
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap)
 {
   // FIXME: what to do if texture is shared??
   OGLBitmap *target = (OGLBitmap*)ddb;
   UpdateTexture(target->_data.get(), bitmap, target->_opaque);
 }
 
-void OGLGraphicsDriver::UpdateTexture(Texture *txdata, Bitmap *bitmap, bool opaque)
+void OGLGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool opaque)
 {
   const int color_depth = bitmap->GetColorDepth();
   if (bitmap->GetColorDepth() != txdata->Res.ColorDepth)

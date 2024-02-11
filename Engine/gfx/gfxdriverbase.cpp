@@ -220,7 +220,7 @@ bool VideoMemoryGraphicsDriver::GetStageMatrixes(RenderMatrixes &rm)
     return true;
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool opaque)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, bool opaque)
 {
     IDriverDependantBitmap *ddb = CreateDDB(bitmap->GetWidth(), bitmap->GetHeight(), bitmap->GetColorDepth(), opaque);
     if (ddb)
@@ -228,7 +228,7 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::CreateDDBFromBitmap(Bitmap *b
     return ddb;
 }
 
-Texture *VideoMemoryGraphicsDriver::CreateTexture(Bitmap *bmp, bool opaque)
+Texture *VideoMemoryGraphicsDriver::CreateTexture(const Bitmap *bmp, bool opaque)
 {
     Texture *txdata = CreateTexture(bmp->GetWidth(), bmp->GetHeight(), bmp->GetColorDepth(), opaque);
     if (txdata)

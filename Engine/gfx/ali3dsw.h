@@ -188,17 +188,17 @@ public:
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque) override
         { return nullptr; /* not supported */ }
-    IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool opaque) override;
+    IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
     Texture *CreateTexture(int, int, int, bool, bool) override { return nullptr; /* not supported */}
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
-    Texture *CreateTexture(Common::Bitmap*, bool) override { return nullptr; /* not supported */ }
+    Texture *CreateTexture(const Common::Bitmap*, bool) override { return nullptr; /* not supported */ }
     // Update texture data from the given bitmap
-    void UpdateTexture(Texture *txdata, Common::Bitmap*, bool) override { /* not supported */}
+    void UpdateTexture(Texture *txdata, const Common::Bitmap*, bool) override { /* not supported */}
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
 

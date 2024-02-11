@@ -147,21 +147,21 @@ public:
   // Create DDB using preexisting texture data
   virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque = false) = 0;
   // Creates DDB, initializes from the given bitmap.
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(const Common::Bitmap *bitmap, bool opaque = false) = 0;
   // Creates DDB intended to be used as a render target (allow render other DDBs on it).
   virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque = false) = 0;
   // Updates DBB using the given bitmap; if bitmap has a different resolution,
   // then creates a new texture data and attaches to DDB
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap) = 0;
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, const Common::Bitmap *bitmap) = 0;
   // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
   // Create texture data with the given parameters
   virtual Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
   // Create texture and initialize its pixels from the given bitmap
-  virtual Texture *CreateTexture(Common::Bitmap *bmp, bool opaque = false) = 0;
+  virtual Texture *CreateTexture(const Common::Bitmap *bmp, bool opaque = false) = 0;
   // Update texture data from the given bitmap
-  virtual void UpdateTexture(Texture *txdata, Common::Bitmap *bmp, bool opaque = false) = 0;
+  virtual void UpdateTexture(Texture *txdata, const Common::Bitmap *bmp, bool opaque = false) = 0;
   // Retrieve shared texture object from the given DDB
   virtual std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) = 0;
 

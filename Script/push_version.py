@@ -32,6 +32,14 @@ def write_file(path, encoding, data):
 def replace_group(match, group, data, replacement):
     return data[:match.start(group)] + replacement + data[match.end(group):]
 
+def replace_parser_copyright(path, encoding, version):
+    data = read_file(path, encoding)
+
+    m = re.search(r'" \(c\) 2000-2007 Chris Jones and \d+-(\d*) others"', data)
+    data = replace_group(m, 1, data, version.version_year)
+
+    write_file(path, encoding, data)    
+
 
 def main():
 
@@ -59,14 +67,8 @@ def main():
     # -----------------------------------------------------------------------------
     # Script compiler's copyright string
 
-    path = "../Compiler/script/cs_parser.cpp"
-    encoding = "utf-8"
-    data = read_file(path, encoding)
-
-    m = re.search(r'" \(c\) 2000-2007 Chris Jones and \d+-(\d*) others"', data)
-    data = replace_group(m, 1, data, version.version_year)
-
-    write_file(path, encoding, data)
+    replace_parser_copyright("../Compiler/script/cs_parser.cpp", "utf-8", version)
+    replace_parser_copyright("../Compiler/script2/cs_parser.cpp", "utf-8", version)
 
     # -----------------------------------------------------------------------------
     # Editor's version declaration

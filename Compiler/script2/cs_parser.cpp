@@ -217,7 +217,7 @@ Pointers are exclusively used for managed memory. If managed structs are manipul
 // Defined in Common/script/cc_common.cpp
 extern int currentline;
 
-char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2020 others";
+char ccCopyright2[] = "ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2024 others";
 
 // Used when generating Bytecode jump statements where the destination of
 // the jump is not yet known. There's nothing special with that number other

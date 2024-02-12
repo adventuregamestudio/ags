@@ -1,18 +1,27 @@
-/*
-** FMEM - FILE-style routines for reading and writing "memory-files".
-** Copyright (C) 2000, Chris Jones
-** All Rights Reserved.
-**
-** This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-** the contents of this file may not be disclosed to third parties,
-** copied or duplicated in any form, in whole or in part, without
-** prior express permission from Chris Jones.
-**
-** Memory files give you a fast alternative to a temporary disk file, as
-** long as the amount you are writing is fairly small.
-**
-*/
-
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// https://opensource.org/license/artistic-2-0/
+//
+//=============================================================================
+//
+// FMEM - FILE-style routines for reading and writing "memory-files".
+// Memory files give you a fast alternative to a temporary disk file, as
+// long as the amount you are writing is fairly small.
+//
+// FMEM provides fopen/fwrite/fclose-type functions for writing "memory files".
+// This enables you to for example send output of a procedure easily to a
+// memory buffer without having to worry about re-allocating if it becomes
+// too large.  Open with fmem_create for writing, or fmem_open for reading.
+//
+//=============================================================================
 #ifndef __FMEM_H
 #define __FMEM_H
 

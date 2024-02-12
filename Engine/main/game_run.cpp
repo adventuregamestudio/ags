@@ -166,7 +166,7 @@ static void game_loop_do_late_script_update()
     }
 }
 
-static int game_loop_check_ground_level_interactions()
+static bool game_loop_check_ground_level_interactions()
 {
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) {
         // check if he's standing on a hotspot
@@ -206,11 +206,11 @@ static int game_loop_check_ground_level_interactions()
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
             events.resize(numEventsAtStartOfFunction);
-            return 0;
+            return false; // interrupt update
         }
     } // end if checking ground level interactions
 
-    return RETURN_CONTINUE;
+    return true; // continue update
 }
 
 static void lock_mouse_on_click()
@@ -949,9 +949,6 @@ void set_loop_counter(unsigned int new_counter) {
 }
 
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
-
-    int res;
-
     sys_evt_process_pending();
 
     numEventsAtStartOfFunction = events.size();
@@ -982,10 +979,8 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     set_our_eip(1005);
 
-    res = game_loop_check_ground_level_interactions();
-    if (res != RETURN_CONTINUE) {
-        return;
-    }
+    if (!game_loop_check_ground_level_interactions())
+        return; // update interrupted
 
     mouse_on_iface=-1;
 
@@ -1134,15 +1129,19 @@ static bool ShouldStayInWaitMode() {
     return true; // should stay in wait
 }
 
-static int UpdateWaitMode()
+static bool UpdateWaitMode()
 {
-    if (restrict_until.type == 0) { return RETURN_CONTINUE; }
+    if (restrict_until.type == 0) {
+        return true;
+    }
 
     if (!ShouldStayInWaitMode())
         restrict_until.type = 0;
     set_our_eip(77);
 
-    if (restrict_until.type > 0) { return RETURN_CONTINUE; }
+    if (restrict_until.type > 0) {
+        return true;
+    }
 
     auto was_disabled_for = restrict_until.disabled_for;
 
@@ -1153,24 +1152,22 @@ static int UpdateWaitMode()
     restrict_until.disabled_for = 0;
 
     switch (was_disabled_for) {
-        // case FOR_ANIMATION:
-        //     run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
-        //     break;
-        case FOR_EXITLOOP:
-            return -1;
-        case FOR_SCRIPT:
-            quit("err: for_script obsolete (v2.1 and earlier only)");
-            break;
-        default:
-            quit("Unknown user_disabled_for in end restrict_until");
+    // case FOR_ANIMATION:
+    //     run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
+    //     break;
+    case FOR_EXITLOOP:
+        return false;
+    case FOR_SCRIPT:
+        quit("err: for_script obsolete (v2.1 and earlier only)");
+        return false;
+    default:
+        quit("Unknown user_disabled_for in end restrict_until");
+        return false;
     }
-
-    // we shouldn't get here.
-    return RETURN_CONTINUE;
 }
 
 // Run single game iteration; calls UpdateGameOnce() internally
-static int GameTick()
+static bool GameTick()
 {
     if (displayed_room < 0)
         quit("!A blocking function was called before the first room has been loaded");
@@ -1180,9 +1177,7 @@ static int GameTick()
 
     set_our_eip(76);
 
-    int res = UpdateWaitMode();
-    if (res == RETURN_CONTINUE) { return 0; } // continue looping 
-    return res;
+    return UpdateWaitMode();
 }
 
 static void SetupLoopParameters(int untilwhat, const void* data_ptr = nullptr, int data1 = 0, int data2 = 0) {
@@ -1215,7 +1210,7 @@ static void GameLoopUntilEvent(int untilwhat, const void* data_ptr = nullptr, in
   auto cached_restrict_until = restrict_until;
 
   SetupLoopParameters(untilwhat, data_ptr, data1, data2);
-  while (GameTick()==0);
+  while (GameTick());
 
   set_our_eip(78);
 

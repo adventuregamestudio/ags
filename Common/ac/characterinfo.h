@@ -155,9 +155,9 @@ struct CharacterInfo
 	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep);
 	void UpdateFollowingExactlyCharacter();
 
-	int  update_character_walking(CharacterExtras *chex);
+    bool update_character_turning(CharacterExtras *chex);
 	void update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing);
-	int  update_character_animating(int &char_index, int &doing_nothing);
+	bool update_character_animating(int &char_index, int &doing_nothing);
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
 	void update_character_follower(int &char_index, std::vector<int> &followingAsSheep, int &doing_nothing);
 

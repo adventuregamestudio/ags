@@ -61,16 +61,11 @@ int CharacterInfo::get_blocking_bottom() const {
 
 void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, std::vector<int> &followingAsSheep)
 {
-	int res;
-
 	if (on != 1) return;
     
-	// walking
-	res = update_character_walking(chex);
-	// [IKM] Yes, it should return! upon getting RETURN_CONTINUE here
-	if (res == RETURN_CONTINUE) { // [IKM] now, this is one of those places...
-		return;				      //  must be careful not to screw things up
-	}
+	// check turning
+	if (update_character_turning(chex))
+		return; // still turning, break
     
     // Fixup character's view when possible
     if (view >= 0 &&
@@ -90,13 +85,9 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, st
 
 	update_character_moving(char_index, chex, doing_nothing);
 
-	// [IKM] 2012-06-28:
-	// Character index value is used to set up some variables in there, so I cannot just cease using it
-	res = update_character_animating(char_index, doing_nothing);
-	// [IKM] Yes, it should return! upon getting RETURN_CONTINUE here
-	if (res == RETURN_CONTINUE) { // [IKM] now, this is one of those places...
-		return;				      //  must be careful not to screw things up
-	}
+	// Update animating
+	if (update_character_animating(char_index, doing_nothing))
+		return; // further update blocked by active animation
 
 	update_character_follower(char_index, followingAsSheep, doing_nothing);
 
@@ -121,7 +112,7 @@ void CharacterInfo::UpdateFollowingExactlyCharacter()
       baseline = usebase + 1;
 }
 
-int CharacterInfo::update_character_walking(CharacterExtras *chex)
+bool CharacterInfo::update_character_turning(CharacterExtras *chex)
 {
     if (walking >= TURNING_AROUND) {
       // Currently rotating to correct direction
@@ -157,11 +148,10 @@ int CharacterInfo::update_character_walking(CharacterExtras *chex)
           walking = walking % TURNING_BACKWARDS;
         chex->animwait = 0;
       }
-	  return RETURN_CONTINUE;
-      //continue;
+	  return true;
     }
 
-	return 0;
+	return false;
 }
 
 void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing)
@@ -272,7 +262,7 @@ void CharacterInfo::update_character_moving(int &char_index, CharacterExtras *ch
     }
 }
 
-int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
+bool CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 {
     auto &chex = charextra[index_id];
 
@@ -302,9 +292,8 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
           frame = fraa;
           chex.CheckViewFrame(this);
         }
-        
-        //continue;
-		return RETURN_CONTINUE;
+
+		return true;
       }
       else {
         // Normal view animation
@@ -351,7 +340,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
       }
     }
 
-	return 0;
+	return false;
 }
 
 void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followingAsSheep, int &doing_nothing)

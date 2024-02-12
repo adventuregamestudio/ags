@@ -15,7 +15,6 @@
 // 'C'-style script compiler
 //
 //=============================================================================
-
 #ifndef __CC_TREEMAP_H
 #define __CC_TREEMAP_H
 

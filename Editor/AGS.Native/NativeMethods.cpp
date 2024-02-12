@@ -1,12 +1,20 @@
-/* AGS Native interface to .NET
-
-Adventure Game Studio Editor Source Code
-Copyright (c) 2006-2010 Chris Jones
-------------------------------------------------------
-
-The AGS Editor Source Code is provided under the Artistic License 2.0,
-see the license.txt for details.
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-2024 various contributors
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// https://opensource.org/license/artistic-2-0/
+//
+//=============================================================================
+//
+// AGS Native interface to .NET
+//
+//=============================================================================
 #include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX

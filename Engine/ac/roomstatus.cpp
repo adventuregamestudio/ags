@@ -72,62 +72,6 @@ void RoomStatus::FreeProperties()
     objProps.clear();
 }
 
-void RoomStatus::ReadFromSavegame_v321(Stream *in, GameDataVersion data_ver)
-{
-    FreeScriptData();
-    FreeProperties();
-
-    contentFormat = kRoomStatSvgVersion_Initial;
-    obj.resize(MAX_ROOM_OBJECTS_v300);
-    objProps.resize(MAX_ROOM_OBJECTS_v300);
-    intrObject.resize(MAX_ROOM_OBJECTS_v300);
-
-    beenhere = in->ReadInt32();
-    numobj = in->ReadInt32();
-    // NOTE: legacy format always contained max object slots
-    for (auto &o : obj)
-    {
-        o.ReadFromSavegame(in, -1 /* legacy save with padding */);
-    }
-
-    in->Seek(MAX_LEGACY_ROOM_FLAGS * sizeof(int16_t)); // flagstates (OBSOLETE)
-    in->ReadInt16(); // alignment padding to int32
-    tsdatasize = static_cast<uint32_t>(in->ReadInt32());
-    in->ReadInt32(); // tsdata
-    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-    {
-        intrHotspot[i].ReadFromSavedgame_v321(in);
-    }
-    for (auto &intr : intrObject)
-    {
-        intr.ReadFromSavedgame_v321(in);
-    }
-    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
-    {
-        intrRegion[i].ReadFromSavedgame_v321(in);
-    }
-    intrRoom.ReadFromSavedgame_v321(in);
-    for (size_t i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-        hotspot[i].Enabled = in->ReadInt8() != 0;
-    in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_ROOM_REGIONS);
-    in->ReadArrayOfInt16(walkbehind_base, MAX_WALK_BEHINDS);
-    in->ReadInt16(); // alignment padding to int32 (66 int8 + 16 int16 = 49 int16 -> 50)
-    in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
-
-    if (data_ver >= kGameVersion_340_4)
-    {
-        Properties::ReadValues(roomProps, in);
-        for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
-        {
-            Properties::ReadValues(hsProps[i], in);
-        }
-        for (auto &props : objProps)
-        {
-            Properties::ReadValues(props, in);
-        }
-    }
-}
-
 void RoomStatus::ReadFromSavegame(Stream *in, GameDataVersion data_ver, RoomStatSvgVersion save_ver)
 {
     FreeScriptData();

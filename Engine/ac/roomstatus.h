@@ -88,7 +88,6 @@ struct RoomStatus
     void FreeScriptData();
     void FreeProperties();
 
-    void ReadFromSavegame_v321(Common::Stream *in, GameDataVersion data_ver);
     void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, RoomStatSvgVersion save_ver);
     void WriteToSavegame(Common::Stream *out, GameDataVersion data_ver) const;
 };

@@ -57,7 +57,6 @@ struct ScriptOverlay;
 // Savegame data format
 enum GameStateSvgVersion
 {
-    kGSSvgVersion_OldFormat = -1, // TODO: remove after old save support is dropped
     kGSSvgVersion_Initial   = 0,
     kGSSvgVersion_350       = 1,
     kGSSvgVersion_350_9     = 2,
@@ -421,8 +420,6 @@ struct GameState
     //
     // Serialization
     //
-    void ReadCustomProperties_v340(Common::Stream *in, GameDataVersion data_ver);
-    void WriteCustomProperties_v340(Common::Stream *out, GameDataVersion data_ver) const;
     void ReadFromSavegame(Common::Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, AGS::Engine::RestoredData &r_data);
     void WriteForSavegame(Common::Stream *out) const;
     // This is required for freeing only particular parts when restoring the game;

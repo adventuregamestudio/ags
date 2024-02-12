@@ -451,10 +451,6 @@ bool GameState::ShouldPlayVoiceSpeech() const
 
 void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
-    const bool old_save = svg_ver < kGSSvgVersion_Initial;
-    const bool extended_old_save = old_save && (data_ver >= kGameVersion_340_4);
-    const bool do_align_pad = old_save;
-
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -541,20 +537,8 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     speech_portrait_y = in->ReadInt32();
     speech_display_post_time_ms = in->ReadInt32();
     dialog_options_highlight_color = in->ReadInt32();
-    if (old_save)
-        in->ReadArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
-    // ** up to here is referenced in the script "game." object
-    if (old_save)
-    {
-        in->ReadInt32(); // recording
-        in->ReadInt32(); // playback
-        in->ReadInt16(); // gamestep
-        in->ReadInt16(); // alignment padding to int32
-    }
     randseed = in->ReadInt32();    // random seed
     player_on_region = in->ReadInt32();    // player's current region
-    if (old_save)
-        in->ReadInt32(); // screen_is_faded_out
     check_interaction_only = in->ReadInt32();
     bg_frame = in->ReadInt32();
     bg_anim_delay = in->ReadInt32();  // for animating backgrounds
@@ -564,8 +548,6 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     mboundx2 = in->ReadInt16();
     mboundy1 = in->ReadInt16();
     mboundy2 = in->ReadInt16();
-    if (do_align_pad)
-        in->ReadInt16(); // alignment padding to int32
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
@@ -592,8 +574,6 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     normal_font = in->ReadInt32();
     speech_font = in->ReadInt32();
     key_skip_wait = in->ReadInt8();
-    if (do_align_pad)
-        in->Seek(3); // alignment padding to int32
     swap_portrait_lastchar = in->ReadInt32();
     separate_music_lib = in->ReadInt32() != 0;
     in_conversation = in->ReadInt32();
@@ -601,14 +581,8 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     num_parsed_words = in->ReadInt32();
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     in->Read( bad_parsed_word, 100);
-    if (do_align_pad)
-        in->ReadInt16(); // alignment padding to int32 (15 int16 + 100 int8 = 65 int16 -> 66)
     raw_color = in->ReadInt32();
-    if (old_save)
-        in->ReadArrayOfInt32(raw_modified, MAX_ROOM_BGFRAMES);
     in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
-    if (old_save)
-        in->ReadInt32(); // room_changes
     mouse_cursor_hidden = in->ReadInt32();
     silent_midi = in->ReadInt32();
     silent_midi_channel = in->ReadInt32();
@@ -621,16 +595,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     rtint_blue = in->ReadInt32();
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
-    if (!old_save || extended_old_save)
-    {
-        rtint_enabled = in->ReadBool();
-        if (do_align_pad)
-            in->Seek(3); // alignment padding to int32
-    }
-    else
-    {
-        rtint_enabled = rtint_level > 0;
-    }
+    rtint_enabled = in->ReadBool();
     end_cutscene_music = in->ReadInt32();
     skip_until_char_stops = in->ReadInt32();
     get_loc_name_last_time = in->ReadInt32();
@@ -640,12 +605,9 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     music_queue_size = in->ReadInt16();
     in->ReadArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
     new_music_queue_size = in->ReadInt16();
-    if (!old_save)
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-        {
-            new_music_queue[i].ReadFromSavegame(in);
-        }
+        new_music_queue[i].ReadFromSavegame(in);
     }
 
     crossfading_out_channel = in->ReadInt16();
@@ -655,15 +617,6 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     crossfading_in_channel = in->ReadInt16();
     crossfade_in_volume_per_step = in->ReadInt16();
     crossfade_final_volume_in = in->ReadInt16();
-
-    if (old_save)
-    {
-        in->ReadInt16(); // alignment padding to int32 (before array of structs)
-        for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-        {
-            new_music_queue[i].ReadFromSavegame_v321(in);
-        }
-    }
 
     in->Read(takeover_from, 50);
     playmp3file_name.ReadCount(in, PLAYMP3FILE_MAX_FILENAME_LEN);
@@ -678,25 +631,15 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
-    if (old_save)
-    {
-        in->ReadInt32(); // gui_draw_order
-        in->ReadInt32(); // do_once_tokens;
-    }
     r_data.DoOnceCount = static_cast<uint32_t>(in->ReadInt32());
-    if (!old_save)
+    for (size_t i = 0; i < r_data.DoOnceCount; ++i)
     {
-        for (size_t i = 0; i < r_data.DoOnceCount; ++i)
-        {
-            do_once_tokens.insert(StrUtil::ReadString(in));
-        }
+        do_once_tokens.insert(StrUtil::ReadString(in));
     }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     if (svg_ver < kGSSvgVersion_350_9)
         in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
-    if (old_save)
-        in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
     if (svg_ver >= kGSSvgVersion_350_9)
     {
         int voice_speech_flags = in->ReadInt32();
@@ -922,35 +865,6 @@ void GameState::FreeViewportsAndCameras()
         }
     }
     _scCameraHandles.clear();
-}
-
-void GameState::ReadCustomProperties_v340(Stream *in, GameDataVersion data_ver)
-{
-    if (data_ver >= kGameVersion_340_4)
-    {
-        // After runtime property values were read we also copy missing default,
-        // because we do not keep defaults in the saved game, and also in case
-        // this save is made by an older game version which had different
-        // properties.
-        for (int i = 0; i < game.numcharacters; ++i)
-            Properties::ReadValues(charProps[i], in);
-        for (int i = 0; i < game.numinvitems; ++i)
-            Properties::ReadValues(invProps[i], in);
-    }
-}
-
-void GameState::WriteCustomProperties_v340(Stream *out, GameDataVersion data_ver) const
-{
-    if (data_ver >= kGameVersion_340_4)
-    {
-        // We temporarily remove properties that kept default values
-        // just for the saving data time to avoid getting lots of 
-        // redundant data into saved games
-        for (int i = 0; i < game.numcharacters; ++i)
-            Properties::WriteValues(charProps[i], out);
-        for (int i = 0; i < game.numinvitems; ++i)
-            Properties::WriteValues(invProps[i], out);
-    }
 }
 
 // Converts legacy alignment type used in script API

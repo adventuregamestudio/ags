@@ -212,7 +212,6 @@
 		1C96488F2B1E4D9E0034D46A /* debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156864290DD94B005E5B22 /* debug.cpp */; };
 		1C9648912B1E4D9E0034D46A /* mousew32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156812290DD94A005E5B22 /* mousew32.cpp */; };
 		1C9648932B1E4D9E0034D46A /* fonts_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20156816290DD94B005E5B22 /* fonts_engine.cpp */; };
-		1C9648952B1E4D9E0034D46A /* savegame_v321.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2015679A290DD949005E5B22 /* savegame_v321.cpp */; };
 		1C9648962B1E4D9E0034D46A /* game_init.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2015679B290DD949005E5B22 /* game_init.cpp */; };
 		1C96489A2B1E4D9E0034D46A /* savegame_components.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2015679F290DD949005E5B22 /* savegame_components.cpp */; };
 		1C96489B2B1E4D9E0034D46A /* viewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 201567A0290DD949005E5B22 /* viewport.cpp */; };
@@ -1709,7 +1708,6 @@
 		20156796290DD949005E5B22 /* plugin_engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugin_engine.h; sourceTree = "<group>"; };
 		20156797290DD949005E5B22 /* agsplugin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsplugin.cpp; sourceTree = "<group>"; };
 		20156799290DD949005E5B22 /* savegame_components.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = savegame_components.h; sourceTree = "<group>"; };
-		2015679A290DD949005E5B22 /* savegame_v321.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = savegame_v321.cpp; sourceTree = "<group>"; };
 		2015679B290DD949005E5B22 /* game_init.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = game_init.cpp; sourceTree = "<group>"; };
 		2015679C290DD949005E5B22 /* viewport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = viewport.h; sourceTree = "<group>"; };
 		2015679D290DD949005E5B22 /* savegame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = savegame.h; sourceTree = "<group>"; };
@@ -3753,7 +3751,6 @@
 			isa = PBXGroup;
 			children = (
 				20156799290DD949005E5B22 /* savegame_components.h */,
-				2015679A290DD949005E5B22 /* savegame_v321.cpp */,
 				2015679B290DD949005E5B22 /* game_init.cpp */,
 				2015679C290DD949005E5B22 /* viewport.h */,
 				2015679D290DD949005E5B22 /* savegame.h */,
@@ -4580,7 +4577,6 @@
 				1C96488F2B1E4D9E0034D46A /* debug.cpp in Sources */,
 				1C9648912B1E4D9E0034D46A /* mousew32.cpp in Sources */,
 				1C9648932B1E4D9E0034D46A /* fonts_engine.cpp in Sources */,
-				1C9648952B1E4D9E0034D46A /* savegame_v321.cpp in Sources */,
 				1C9648962B1E4D9E0034D46A /* game_init.cpp in Sources */,
 				1C96489A2B1E4D9E0034D46A /* savegame_components.cpp in Sources */,
 				1C96489B2B1E4D9E0034D46A /* viewport.cpp in Sources */,

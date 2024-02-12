@@ -18,15 +18,6 @@
 
 using AGS::Common::Stream;
 
-void QueuedAudioItem::ReadFromSavegame_v321(Stream *in)
-{
-    audioClipIndex = in->ReadInt16();
-    priority = in->ReadInt16();
-    repeat = in->ReadBool();
-    in->Seek(3); // alignment padding to int32
-    in->ReadInt32(); // cachedClip 32-bit ptr (legacy format)
-}
-
 void QueuedAudioItem::ReadFromSavegame(Stream *in)
 {
     audioClipIndex = in->ReadInt16();

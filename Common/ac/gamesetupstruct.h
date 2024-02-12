@@ -156,8 +156,6 @@ struct GameSetupStruct : public GameSetupStructBase
     //--------------------------------------------------------------------
 
     // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame_v321(Common::Stream *in, GameDataVersion data_ver);
-
     void ReadFromSavegame(Common::Stream *in);
     void WriteForSavegame(Common::Stream *out);
 };

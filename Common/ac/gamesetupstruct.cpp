@@ -336,10 +336,6 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
     return HGameFileError::None();
 }
 
-// Temporarily copied this from acruntim.h;
-// it is unknown if this should be defined for all solution, or only runtime
-#define STD_BUFFER_SIZE 3000
-
 void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
     if ((data_ver >= kGameVersion_301) && (options[OPT_DEBUGMODE] != 0))
@@ -365,27 +361,6 @@ void GameSetupStruct::ReadAudioClips(Common::Stream *in, size_t count)
     {
         audioClips[i].ReadFromFile(in);
     }
-}
-
-void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, GameDataVersion data_ver)
-{
-    // NOTE: the individual object data is read from legacy saves
-    // same way as if it were from a game file
-    ReadInvInfo(in);
-    ReadMouseCursors(in);
-
-    if (data_ver <= kGameVersion_272)
-    {
-        for (int i = 0; i < numinvitems; ++i)
-            intrInv[i]->ReadTimesRunFromSave_v321(in);
-        for (int i = 0; i < numcharacters; ++i)
-            intrChar[i]->ReadTimesRunFromSave_v321(in);
-    }
-
-    in->ReadArrayOfInt32(&options[0], OPT_HIGHESTOPTION_321 + 1);
-    options[OPT_LIPSYNCTEXT] = in->ReadInt8();
-
-    ReadCharacters(in);
 }
 
 //=============================================================================

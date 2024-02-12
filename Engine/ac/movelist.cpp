@@ -42,28 +42,6 @@ void MoveList::SetPixelUnitFraction(float frac)
     onpart = permove_dist > 0.f ? (1.f / permove_dist) * frac : 0.f;
 }
 
-void MoveList::ReadFromSavegame_Legacy(Stream *in)
-{
-    *this = MoveList(); // reset struct
-    for (int i = 0; i < MAXNEEDSTAGES_LEGACY; ++i)
-    { // X & Y was packed as high/low shorts, and hence reversed in lo-end
-        pos[i].Y = in->ReadInt16();
-        pos[i].X = in->ReadInt16();
-    }
-    numstage = in->ReadInt32();
-    in->ReadArrayOfInt32(xpermove, MAXNEEDSTAGES_LEGACY);
-    in->ReadArrayOfInt32(ypermove, MAXNEEDSTAGES_LEGACY);
-    from.X = in->ReadInt32();
-    from.Y = in->ReadInt32();
-    onstage = in->ReadInt32();
-    onpart = static_cast<float>(in->ReadInt32());
-    in->ReadInt32(); // UNUSED
-    in->ReadInt32(); // UNUSED
-    doneflag = in->ReadInt8();
-    direct = in->ReadInt8();
-    in->ReadInt16(); // alignment padding to int32 (finalize struct)
-}
-
 HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
 {
     if (cmp_ver < kMoveSvgVersion_350)

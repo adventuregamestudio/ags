@@ -142,7 +142,7 @@ const int LegacyRoomVolumeFactor            = 30;
 // if passed ID is eq or gt than this, then a Character is animated instead
 #define LEGACY_ANIMATE_CHARIDBASE 100
 
-#define STD_BUFFER_SIZE 3000
+#define STD_BUFFER_SIZE 2048
 
 // NOTE: these flags are merged with the MoveList index;
 // but this means that the number of MoveList users will be limited by 1000

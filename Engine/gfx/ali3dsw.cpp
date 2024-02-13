@@ -237,6 +237,12 @@ void SDLRendererGraphicsDriver::ReleaseDisplayMode()
   OnModeReleased();
   ClearDrawLists();
 
+  SDL_Window *window = sys_get_window();
+  if (window && _hasGamma)
+  {
+      SDL_SetWindowGammaRamp(window, _defaultGammaRed, _defaultGammaGreen, _defaultGammaBlue);
+  }
+
   sys_window_set_style(kWnd_Windowed);
 }
 

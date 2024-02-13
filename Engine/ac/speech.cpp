@@ -262,7 +262,7 @@ void Speech_SetStyle (int newstyle)
 
 SkipSpeechStyle Speech_GetSkipStyle()
 {
-    return internal_skip_speech_to_user(play.cant_skip_speech);
+    return internal_skip_speech_to_user(play.speech_skip_style);
 }
 
 void Speech_SetSkipStyle(SkipSpeechStyle newval)
@@ -271,7 +271,7 @@ void Speech_SetSkipStyle(SkipSpeechStyle newval)
         quit("!SetSkipSpeech: invalid skip mode specified");
 
     debug_script_log("SkipSpeech style set to %d", newval);
-    play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)newval);
+    play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)newval);
 }
 
 int Speech_GetSkipKey()

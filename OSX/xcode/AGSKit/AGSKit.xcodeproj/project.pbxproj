@@ -124,7 +124,6 @@
 		20522A6A28E8F92100589E91 /* savegame_components.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A6528E8F92000589E91 /* savegame_components.h */; };
 		20522A6B28E8F92100589E91 /* savegame_components.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A6628E8F92000589E91 /* savegame_components.cpp */; };
 		20522A6C28E8F92100589E91 /* viewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A6728E8F92000589E91 /* viewport.cpp */; };
-		20522A6D28E8F92100589E91 /* savegame_v321.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A6828E8F92100589E91 /* savegame_v321.cpp */; };
 		20522A7328E8F94100589E91 /* gfxfilter_aaogl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 20522A6E28E8F94000589E91 /* gfxfilter_aaogl.cpp */; };
 		20522A7428E8F94100589E91 /* gfxfilter_aaogl.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A6F28E8F94000589E91 /* gfxfilter_aaogl.h */; };
 		20522A7528E8F94100589E91 /* gfxfilter_sdl_renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = 20522A7028E8F94000589E91 /* gfxfilter_sdl_renderer.h */; };
@@ -1067,7 +1066,6 @@
 		20522A6528E8F92000589E91 /* savegame_components.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = savegame_components.h; sourceTree = "<group>"; };
 		20522A6628E8F92000589E91 /* savegame_components.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = savegame_components.cpp; sourceTree = "<group>"; };
 		20522A6728E8F92000589E91 /* viewport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = viewport.cpp; sourceTree = "<group>"; };
-		20522A6828E8F92100589E91 /* savegame_v321.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = savegame_v321.cpp; sourceTree = "<group>"; };
 		20522A6E28E8F94000589E91 /* gfxfilter_aaogl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_aaogl.cpp; sourceTree = "<group>"; };
 		20522A6F28E8F94000589E91 /* gfxfilter_aaogl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_aaogl.h; sourceTree = "<group>"; };
 		20522A7028E8F94000589E91 /* gfxfilter_sdl_renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_sdl_renderer.h; sourceTree = "<group>"; };
@@ -3475,7 +3473,6 @@
 			children = (
 				20522A6628E8F92000589E91 /* savegame_components.cpp */,
 				20522A6528E8F92000589E91 /* savegame_components.h */,
-				20522A6828E8F92100589E91 /* savegame_v321.cpp */,
 				20522A6728E8F92000589E91 /* viewport.cpp */,
 				20522A6428E8F92000589E91 /* viewport.h */,
 				52F5D8561DA120F1006F8F4B /* game_init.cpp */,
@@ -4193,7 +4190,6 @@
 				20E684EB28F20E0700B95C00 /* decapiwrapper.c in Sources */,
 				526F285F1D3B5CC300EF4E1F /* engine_setup.cpp in Sources */,
 				205229D228E8EDE100589E91 /* ftinit.c in Sources */,
-				20522A6D28E8F92100589E91 /* savegame_v321.cpp in Sources */,
 				20E67D7228F1BDE000B95C00 /* polygon.c in Sources */,
 				205229F628E8F2CF00589E91 /* sfnt.c in Sources */,
 				205229DA28E8EE3000589E91 /* ftsystem.c in Sources */,

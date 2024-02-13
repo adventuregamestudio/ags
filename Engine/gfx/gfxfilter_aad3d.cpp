@@ -34,6 +34,11 @@ const GfxFilterInfo &AAD3DGfxFilter::GetInfo() const
     return FilterInfo;
 }
 
+int AAD3DGfxFilter::GetSamplerStateForStandardSprite()
+{
+    return D3DTEXF_LINEAR;
+}
+
 void AAD3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
     IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);

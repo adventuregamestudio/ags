@@ -33,6 +33,12 @@ bool OGLGfxFilter::UseLinearFiltering() const
     return false;
 }
 
+void OGLGfxFilter::GetFilteringForStandardSprite(int &filter, int &clamp)
+{
+    filter = GL_NEAREST;
+    clamp = GL_CLAMP;
+}
+
 void OGLGfxFilter::SetFilteringForStandardSprite()
 {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

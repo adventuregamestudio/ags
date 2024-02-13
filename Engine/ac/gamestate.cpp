@@ -558,7 +558,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     entered_at_y = in->ReadInt32();
     entered_edge = in->ReadInt32();
     speech_mode = (SpeechMode)in->ReadInt32();
-    cant_skip_speech = in->ReadInt32();
+    speech_skip_style = in->ReadInt32();
     in->ReadArrayOfInt32(script_timers, MAX_TIMERS);
     in->ReadInt32();// [DEPRECATED]
     speech_volume = in->ReadInt32();
@@ -599,7 +599,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     new_music_queue_size = in->ReadInt16();
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-            new_music_queue[i].ReadFromSavegame(in);
+        new_music_queue[i].ReadFromSavegame(in);
     }
 
     crossfading_out_channel = in->ReadInt16();
@@ -749,7 +749,7 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteInt32( entered_at_y);
     out->WriteInt32( entered_edge);
     out->WriteInt32( speech_mode);
-    out->WriteInt32( cant_skip_speech);
+    out->WriteInt32( speech_skip_style);
     out->WriteArrayOfInt32(script_timers, MAX_TIMERS);
     out->WriteInt32( 0);// [DEPRECATED]
     out->WriteInt32( speech_volume);

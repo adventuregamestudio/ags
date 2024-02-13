@@ -16,11 +16,11 @@
 
 struct VariableSymlist {
     int len;
-    long *syml;
+    int32_t *syml;
 
     void init(int pLen) {
         len = pLen;
-        syml = (long*)malloc(sizeof(long) * len);
+        syml = (int32_t*)malloc(sizeof(int32_t) * len);
     }
     void destroy() {
         free(syml);

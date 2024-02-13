@@ -33,6 +33,7 @@ class AAD3DGfxFilter : public D3DGfxFilter
 public:
     const GfxFilterInfo &GetInfo() const override;
 
+    int  GetSamplerStateForStandardSprite() override;
     void SetSamplerStateForStandardSprite(void *direct3ddevice9) override;
     bool NeedToColourEdgeLines() override;
 

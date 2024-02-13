@@ -143,8 +143,6 @@ void draw_gui_sprite_flipped(Common::Bitmap *ds, int xpos, int ypos,
 
 // Render game on screen
 void render_to_screen();
-// Callbacks for the graphics driver
-void draw_game_screen_callback();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverSpriteEvtCallback(int evt, int data);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);

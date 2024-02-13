@@ -33,6 +33,12 @@ bool AAOGLGfxFilter::UseLinearFiltering() const
     return true;
 }
 
+void AAOGLGfxFilter::GetFilteringForStandardSprite(int &filter, int &clamp)
+{
+    filter = GL_LINEAR;
+    clamp = GL_CLAMP_TO_EDGE;
+}
+
 void AAOGLGfxFilter::SetFilteringForStandardSprite()
 {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

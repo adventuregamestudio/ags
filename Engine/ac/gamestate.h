@@ -92,7 +92,7 @@ struct GameState {
     int  used_inv_on = 0;           // inv item they clicked on
     int  no_textbg_when_voice = 0;  // no textwindow bgrnd when voice speech is used
     int  max_dialogoption_width = 0; // max width of dialog options text window
-    int  no_hicolor_fadein = 0;     // fade out but instant in for hi-color
+    int  no_hicolor_fadein = 0;     // (DEPRECATED, lo-end optimization) fade out but instant in for hi-color
     int  bgspeech_game_speed = 0;   // is background speech relative to game speed
     int  bgspeech_stay_on_display = 0; // whether to remove bg speech when DisplaySpeech is used
     int  unfactor_speech_from_textlength = 0; // remove "&10" when calculating time for text to stay
@@ -165,7 +165,7 @@ struct GameState {
     int   entered_edge = 0;
     bool  voice_avail = false;      // whether voice-over is available
     SpeechMode speech_mode = kSpeech_TextOnly; // speech mode (text, voice, or both)
-    int   cant_skip_speech = 0;
+    int   speech_skip_style = 0;
     int   script_timers[MAX_TIMERS]{};
     int   speech_volume = 0; // in 0-255 !!
     int   normal_font = 0;

@@ -241,7 +241,7 @@ int symbolTable::add_ex(const char*nta,int typo,char sizee) {
 	entry.sscope = 0;
     entry.arrsize = 0;
     entry.extends = 0;
-	entry.funcparamtypes = std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1);
+	entry.funcparamtypes = std::vector<uint32_t>(MAX_FUNCTION_PARAMETERS + 1);
     entry.funcParamDefaultValues = std::vector<int>(MAX_FUNCTION_PARAMETERS + 1);
 	entry.funcParamHasDefaultValues = std::vector<bool>(MAX_FUNCTION_PARAMETERS + 1);
 	entries.push_back(entry);

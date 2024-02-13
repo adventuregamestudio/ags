@@ -129,9 +129,6 @@ public:
   virtual PGfxFilter GetGraphicsFilter() const = 0;
   virtual Size GetNativeSize() const = 0;
   virtual Rect GetRenderDestination() const = 0;
-  virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
-  // TODO: get rid of draw screen callback at some point when all fade functions are more or less grouped in one
-  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
   // The event callback is called in the main render loop when a
   // event entry is encountered inside a sprite list.
@@ -201,12 +198,20 @@ public:
   virtual void SetStageScreen(const Size &sz, int x = 0, int y = 0) = 0;
   // Clears all sprite batches, resets batch counter
   virtual void ClearDrawLists() = 0;
-  virtual void RenderToBackBuffer() = 0;
+  // Renders draw lists and presents to screen.
   virtual void Render() = 0;
-  // Renders with additional final offset and flip
+  // Renders and presents with additional final offset and flip.
   // TODO: leftover from old code, solely for software renderer; remove when
   // software mode either discarded or scene node graph properly implemented.
   virtual void Render(int xoff, int yoff, Common::GraphicFlip flip) = 0;
+  // Renders draw lists to backbuffer, but does not call present.
+  virtual void RenderToBackBuffer() = 0;
+  // Renders draw lists onto the provided texture;
+  // target DDB must be created using CreateRenderTargetDDB!
+  virtual void Render(IDriverDependantBitmap *target) = 0;
+  // Copies contents of the game screen into the DDB;
+  // target DDB must be created using CreateRenderTargetDDB!
+  virtual void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) = 0;
   // Copies contents of the game screen into bitmap using simple blit or pixel copy.
   // Bitmap must be of supported size and pixel format. If it's not the method will
   // fail and optionally write wanted destination format into 'want_fmt' pointer.
@@ -224,15 +229,6 @@ public:
   // the rest of the game. The effect is stronger for the low-res games being
   // rendered in the high-res mode.
   virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling = 1) = 0;
-  // TODO: move fade-in/out/boxout functions out of the graphics driver!! make everything render through
-  // main drawing procedure. Since currently it does not - we need to init our own sprite batch
-  // internally to let it set up correct viewport settings instead of relying on a chance.
-  // Runs fade-out animation in a blocking manner.
-  virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
-  // Runs fade-in animation in a blocking manner.
-  virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
-  // Runs box-out animation in a blocking manner.
-  virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;

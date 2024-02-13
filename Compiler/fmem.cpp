@@ -56,8 +56,8 @@ void fmem_close(FMEM*cloo) {
 // of malloc and freeing
 #define BUFFER_INCREMENT_SIZE 2000
 
-void fmem_write(char* towr,long mei,FMEM*fill) {
-  long curdatlen=fill->len;
+void fmem_write(char* towr ,size_t mei, FMEM*fill) {
+  size_t curdatlen=fill->len;
   if (curdatlen + mei >= fill->size) {
     char*datwas=fill->data;
     fill->size=fill->size + mei + BUFFER_INCREMENT_SIZE;
@@ -79,7 +79,7 @@ void fmem_putc(char toput,FMEM*fill) {
   fmem_write(&templ[0],1,fill);
   }
 
-void fmem_puts(char*strin,FMEM*ooo) {
+void fmem_puts(char*strin, FMEM*ooo) {
   char*ibuffer=(char*)malloc(strlen(strin)+10);
   sprintf(ibuffer,"%s\r\n",strin);
   fmem_write(ibuffer,strlen(ibuffer),ooo);

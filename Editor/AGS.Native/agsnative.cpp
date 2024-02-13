@@ -800,7 +800,7 @@ static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
             bmpbuf.reset(flipped);
             toblt = flipped;
         }
-        todraw->StretchBlt(toblt, RectWH(size*i, 0, neww, newh));
+        todraw->StretchBlt(toblt, RectWH(size*i, 0, neww, newh), Common::kBitmap_Transparency);
         bmpbuf.reset();
         if (i < frames.size() - 1)
         {

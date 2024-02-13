@@ -17,6 +17,7 @@
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -24,18 +25,18 @@
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
 	std::string sname;
-    int section; // section index this symbol was declared in
-	short stype;
-	long flags;
-	short vartype;
+        int section; // section index this symbol was declared in
+	int16_t stype;
+	int32_t flags;
+	int16_t vartype;
 	int soffs;
-	long ssize; // or return type size for function
-	short sscope; // or num arguments for function
-	long arrsize;
-	short extends; // inherits another class (classes) / owning class (member vars)
+	int32_t ssize; // or return type size for function
+	int16_t sscope; // or num arguments for function
+	int32_t arrsize;
+	int16_t extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
-    std::vector<unsigned long> funcparamtypes;
-    std::vector<int> funcParamDefaultValues;
+    std::vector<uint32_t> funcparamtypes;
+    std::vector<int32_t> funcParamDefaultValues;
     std::vector<bool> funcParamHasDefaultValues;
 
 	int get_num_args();

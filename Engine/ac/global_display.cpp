@@ -85,7 +85,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
         topBar.font = play.top_bar_font;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
-    if (play.cant_skip_speech & SKIP_AUTOTIMER)
+    if (play.speech_skip_style & SKIP_AUTOTIMER)
         play.messagetime = GetTextDisplayTime(text);
 
     DisplayAtY(play.top_bar_ypos, text);

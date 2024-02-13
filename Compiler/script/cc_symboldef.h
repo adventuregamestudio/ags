@@ -25,13 +25,13 @@
 #define SYM_TEMPORARYTYPE -99
 
 struct SymbolDef {
-    short stype;
-    long  flags;
-    long  ssize;  // or return type size for function
-    short sscope;  // or num arguments for function
-    long  arrsize;
-    unsigned long funcparamtypes[MAX_FUNCTION_PARAMETERS+1];
-    int funcParamDefaultValues[MAX_FUNCTION_PARAMETERS+1];
+    int16_t stype;
+    int32_t  flags;
+    int32_t  ssize;  // or return type size for function
+    int16_t sscope;  // or num arguments for function
+    int32_t  arrsize;
+    uint32_t funcparamtypes[MAX_FUNCTION_PARAMETERS+1];
+    int32_t funcParamDefaultValues[MAX_FUNCTION_PARAMETERS+1];
     bool funcParamHasDefaultValues[MAX_FUNCTION_PARAMETERS+1];
 };
 

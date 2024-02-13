@@ -230,7 +230,6 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     return HSaveError::None();
 }
 
-    const Version low_compat_version(3, 2, 0, 1123);
 // Tests for the save signature, returns first supported version of found save type
 SavegameVersion CheckSaveSignature(Stream *in)
 {

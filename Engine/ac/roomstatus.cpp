@@ -76,10 +76,6 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
     FreeScriptData();
     FreeProperties();
 
-    contentFormat = kRoomStatSvgVersion_Initial;
-    obj.resize(MAX_ROOM_OBJECTS_v300);
-    objProps.resize(MAX_ROOM_OBJECTS_v300);
-
     beenhere = in->ReadInt8();
     numobj = static_cast<uint32_t>(in->ReadInt32());
     obj.resize(numobj);

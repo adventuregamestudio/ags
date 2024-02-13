@@ -307,7 +307,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
     // If fast-forwarding, then skip any blocking message immediately
     if (play.fast_forward && (disp_type < DISPLAYTEXT_NORMALOVERLAY)) {
         play.SetWaitSkipResult(SKIP_AUTOTIMER);
-        play.messagetime=-1;
+        post_display_cleanup();
         return nullptr;
     }
 
@@ -406,9 +406,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
     //
     // Post-message cleanup
     //
-
-    ags_clear_input_buffer();
-    play.messagetime=-1;
+    post_display_cleanup();
     return nullptr;
 }
 
@@ -423,6 +421,13 @@ void display_at(int xx, int yy, int wii, const char *text)
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())
         stop_voice_speech();
+}
+
+void post_display_cleanup()
+{
+    ags_clear_input_buffer();
+    play.messagetime = -1;
+    play.speech_in_post_state = false;
 }
 
 bool try_auto_play_speech(const char *text, const char *&replace_text, int charid)

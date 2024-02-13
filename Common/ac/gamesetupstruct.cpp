@@ -237,10 +237,6 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
     return HGameFileError::None();
 }
 
-// Temporarily copied this from acruntim.h;
-// it is unknown if this should be defined for all solution, or only runtime
-#define STD_BUFFER_SIZE 3000
-
 void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
     if (options[OPT_DEBUGMODE] != 0)

@@ -2462,7 +2462,10 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     if (isPause) {
         postpone_scheduled_music_update_by(std::chrono::milliseconds(play.messagetime * 1000 / frames_per_second));
+        // Set a post-state right away, as we only need to wait for a messagetime timer
+        play.speech_in_post_state = true;
         GameLoopUntilValueIsNegative(&play.messagetime);
+        post_display_cleanup();
         return;
     }
 

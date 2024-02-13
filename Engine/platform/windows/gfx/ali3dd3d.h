@@ -303,14 +303,17 @@ private:
     {
         // FIXME: implement a C++ (template) wrapper around IUnknown, handle AddRef/Release in RAII way
         IDirect3DSurface9 *Surface = nullptr;
-        Size SurfSize;
+        // FIXME: replace RendSize with explicit render coordinate offset? merge with ortho matrix?
+        Size SurfSize; // actual surface size
+        Size RendSize; // coordinate grid size (for centering sprites)
         Rect Viewport;
         glm::mat4 Projection;
         PlaneScaling Scaling;
         int Filter = 0;
 
         BackbufferState() = default;
-        BackbufferState(IDirect3DSurface9 *surface, const Size &size, const Rect &view, const glm::mat4 &proj,
+        BackbufferState(IDirect3DSurface9 *surface, const Size &surf_size, const Size &rend_size,
+            const Rect &view, const glm::mat4 &proj,
             const PlaneScaling &scale, int filter);
         ~BackbufferState();
     };
@@ -378,12 +381,12 @@ private:
     // TODO: find a good way to merge with SetRenderTarget
     void SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear);
     void RenderSpriteBatches();
-    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
+    size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz);
     void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color, const Size &surface_size);
+        const SpriteColorTransform &color, const Size &rend_sz);
     // Renders given texture onto the current render target
     void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color, const Size &surface_size);
+        const SpriteColorTransform &color, const Size &rend_sz);
     // Helper method for setting blending parameters
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters

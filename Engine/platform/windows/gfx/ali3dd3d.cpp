@@ -147,9 +147,11 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _vmem_b_shift_32 = 0;
 }
 
-D3DGraphicsDriver::BackbufferState::BackbufferState(IDirect3DSurface9 *surface, const Size &size,
+D3DGraphicsDriver::BackbufferState::BackbufferState(IDirect3DSurface9 *surface,
+    const Size &surf_size, const Size &rend_sz,
     const Rect &view, const glm::mat4 &proj, const PlaneScaling &scale, int filter)
-    : Surface(surface), SurfSize(size), Viewport(view), Projection(proj), Scaling(scale), Filter(filter)
+    : Surface(surface), SurfSize(surf_size), RendSize(rend_sz)
+    , Viewport(view), Projection(proj), Scaling(scale), Filter(filter)
 {
     assert(Surface);
     if (Surface)
@@ -668,7 +670,7 @@ void D3DGraphicsDriver::SetupViewport()
 
   IDirect3DSurface9 *backbuffer;
   direct3ddevice->GetRenderTarget(0, &backbuffer);
-  _screenBackbuffer = BackbufferState(backbuffer, Size(_mode.Width, _mode.Height),
+  _screenBackbuffer = BackbufferState(backbuffer, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
       _dstRect, mat_ortho, _scaling, _filter ? _filter->GetSamplerStateForStandardSprite() : D3DTEXF_POINT);
 
   // View and Projection matrixes are currently fixed in Direct3D renderer
@@ -750,7 +752,7 @@ void D3DGraphicsDriver::CreateVirtualScreen()
       _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, true);
   glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
   _nativeBackbuffer = BackbufferState(_nativeSurface->_renderSurface,
-    _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), D3DTEXF_POINT);
+    _srcRect.GetSize(), _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), D3DTEXF_POINT);
 
   // Preset initial stage screen for plugin raw drawing
   SetStageScreen(0, _srcRect.GetSize());
@@ -925,7 +927,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
         // If we normally render in native res, then simply render backbuffer contents
         D3DBitmap *bitmap = (D3DBitmap*)target;
         Size surf_sz(bitmap->_width, bitmap->_height);
-        BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz,
+        BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz, surf_sz,
             RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
             PlaneScaling(), D3DTEXF_POINT);
         SetBackbufferState(&backbuffer, true);
@@ -1029,20 +1031,20 @@ void D3DGraphicsDriver::Render(IDriverDependantBitmap *target)
     ResetDeviceIfNecessary();
     D3DBitmap *bitmap = (D3DBitmap*)target;
     Size surf_sz(bitmap->_width, bitmap->_height);
-    BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz,
+    BackbufferState backbuffer = BackbufferState(bitmap->_renderSurface, surf_sz, surf_sz,
         RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
         PlaneScaling(), D3DTEXF_POINT);
     RenderToSurface(&backbuffer, true);
 }
 
 void D3DGraphicsDriver::RenderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
-    const SpriteColorTransform &color, const Size &surface_size)
+    const SpriteColorTransform &color, const Size &rend_sz)
 {
-    RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, matGlobal, color, surface_size);
+    RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, matGlobal, color, rend_sz);
 }
 
 void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw_y,
-    const glm::mat4 &matGlobal, const SpriteColorTransform &color, const Size &surface_size)
+    const glm::mat4 &matGlobal, const SpriteColorTransform &color, const Size &rend_sz)
 {
   HRESULT hr;
 
@@ -1155,8 +1157,8 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
       xOffs = txdata->_tiles[ti].x * xProportion;
     float thisX = draw_x + xOffs;
     float thisY = draw_y + yOffs;
-    thisX = (-(surface_size.Width / 2.0f)) + thisX;
-    thisY = (surface_size.Height / 2.0f) - thisY;
+    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
+    thisY = (rend_sz.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = width;
@@ -1315,14 +1317,15 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
     }
 }
 
-void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear)
+void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_sz, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         HRESULT hr = direct3ddevice->SetRenderTarget(0, batch->RenderSurface);
         assert(hr == D3D_OK);
-        surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
+        Size surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
+        rend_sz = surface_sz;
         SetD3DViewport(RectWH(surface_sz));
         glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
@@ -1336,6 +1339,7 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &surfa
         // Assign the default backbuffer
         HRESULT hr = direct3ddevice->SetRenderTarget(0, _currentBackbuffer->Surface);
         assert(hr == D3D_OK);
+        rend_sz = _currentBackbuffer->RendSize;
         SetD3DViewport(_currentBackbuffer->Viewport);
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(_currentBackbuffer->Projection));
         // Disable alpha merging rules, return back to default settings
@@ -1374,7 +1378,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
     IDirect3DSurface9 *back_buffer = _currentBackbuffer->Surface;
     assert(back_buffer);
     IDirect3DSurface9 *cur_rt = back_buffer; // current render target
-    Size surface_sz = _srcRect.GetSize(); // current rt surface size
+    Size rend_sz = _currentBackbuffer->RendSize; // current rt surface size
 
     const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
     for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
@@ -1401,7 +1405,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
                 !rt_parent.RenderSurface && (cur_rt != back_buffer))
             {
                 cur_rt = rt_parent.RenderSurface ? rt_parent.RenderSurface : back_buffer;
-                SetRenderTarget(&rt_parent, surface_sz, new_batch);
+                SetRenderTarget(&rt_parent, rend_sz, new_batch);
             }
         }
 
@@ -1413,7 +1417,7 @@ void D3DGraphicsDriver::RenderSpriteBatches()
             SetScissor(batch.Viewport, (cur_rt != back_buffer));
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;
-            cur_spr = RenderSpriteBatch(batch, cur_spr, surface_sz);
+            cur_spr = RenderSpriteBatch(batch, cur_spr, rend_sz);
             // at this point cur_spr iterator is updated past the last sprite in a sequence;
             // this may be the end of batch, but also may be the a begginning of a sub-batch
         }
@@ -1438,13 +1442,13 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         }
     }
 
-    SetRenderTarget(nullptr, surface_sz, false);
+    SetRenderTarget(nullptr, rend_sz, false);
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 
-size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size)
+size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz)
 {
     for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
@@ -1462,11 +1466,11 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
                 static_cast<int32_t>(reinterpret_cast<uintptr_t>(direct3ddevice)), sx, sy))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, sx, sy);
-                RenderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
+                RenderSprite(&stageEntry, batch.Matrix, batch.Color, rend_sz);
             }
             break;
         default:
-            RenderSprite(&e, batch.Matrix, batch.Color, surface_size);
+            RenderSprite(&e, batch.Matrix, batch.Color, rend_sz);
             break;
         }
     }

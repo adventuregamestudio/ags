@@ -731,12 +731,12 @@ void OGLGraphicsDriver::SetupNativeTarget()
   if (!IsNativeSizeValid() || !_canRenderToTexture)
     return;
 
-  const Size render_size = _srcRect.GetSize() * _superSampling;
+  const Size surf_size = _srcRect.GetSize() * _superSampling;
   _nativeSurface = (OGLBitmap*)CreateRenderTargetDDB(
-      render_size.Width, render_size.Height, _mode.ColorDepth, true);
-  auto projection = glm::ortho(0.0f, (float)render_size.Width, 0.0f, (float)render_size.Height, 0.0f, 1.0f);
-  _nativeBackbuffer = BackbufferState(_nativeSurface->_fbo, render_size,
-      RectWH(0, 0, render_size.Width, render_size.Height), projection, PlaneScaling(), GL_NEAREST, GL_CLAMP);
+      surf_size.Width, surf_size.Height, _mode.ColorDepth, true);
+  auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
+  _nativeBackbuffer = BackbufferState(_nativeSurface->_fbo, surf_size, _srcRect.GetSize(),
+      RectWH(0, 0, surf_size.Width, surf_size.Height), projection, PlaneScaling(), GL_NEAREST, GL_CLAMP);
 }
 
 void OGLGraphicsDriver::SetupViewport()
@@ -749,7 +749,7 @@ void OGLGraphicsDriver::SetupViewport()
   int txfilter = GL_NEAREST, txclamp = GL_CLAMP;
   if (_filter)
     _filter->GetFilteringForStandardSprite(txfilter, txclamp);
-  _screenBackbuffer = BackbufferState(_screenFramebuffer, Size(_mode.Width, _mode.Height),
+  _screenBackbuffer = BackbufferState(_screenFramebuffer, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
       viewport, projection, _scaling, txfilter, txclamp);
 }
 
@@ -911,7 +911,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
         // If we normally render in native res, then simply render backbuffer contents
         OGLBitmap *bitmap = (OGLBitmap*)target;
         Size surf_sz(bitmap->_width, bitmap->_height);
-        BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz,
+        BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz, surf_sz,
             RectWH(0, 0, surf_sz.Width, surf_sz.Height), 
             glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
             PlaneScaling(), GL_NEAREST, GL_CLAMP);
@@ -996,7 +996,7 @@ void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
     OGLBitmap *bitmap = (OGLBitmap*)target;
     Size surf_sz(bitmap->_width, bitmap->_height);
-    BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz,
+    BackbufferState backbuffer = BackbufferState(bitmap->_fbo, surf_sz, surf_sz,
         RectWH(0, 0, surf_sz.Width, surf_sz.Height),
         glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
         PlaneScaling(), GL_NEAREST, GL_CLAMP);
@@ -1005,14 +1005,14 @@ void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)
 
 void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry,
     const glm::mat4 &projection, const glm::mat4 &matGlobal,
-    const SpriteColorTransform &color, const Size &surface_size)
+    const SpriteColorTransform &color, const Size &rend_sz)
 {
-    RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, projection, matGlobal, color, surface_size);
+    RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, projection, matGlobal, color, rend_sz);
 }
 
 void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y,
     const glm::mat4 &projection, const glm::mat4 &matGlobal,
-    const SpriteColorTransform &color, const Size &surface_size)
+    const SpriteColorTransform &color, const Size &rend_sz)
 {
   const int alpha = (color.Alpha * bmpToDraw->_alpha) / 255;
 
@@ -1104,8 +1104,8 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
       xOffs = txdata->_tiles[ti].x * xProportion;
     float thisX = draw_x + xOffs;
     float thisY = draw_y + yOffs;
-    thisX = (-(surface_size.Width / 2.0f)) + thisX;
-    thisY = (surface_size.Height / 2.0f) - thisY;
+    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
+    thisY = (rend_sz.Height / 2.0f) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = width;
@@ -1124,7 +1124,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     //
     glm::mat4 transform = projection;
     // Origin is at the middle of the surface
-    transform = glmex::translate(transform, surface_size.Width / 2.0f, surface_size.Height / 2.0f);
+    transform = glmex::translate(transform, rend_sz.Width / 2.0f, rend_sz.Height / 2.0f);
 
     // Global batch transform
     transform = transform * matGlobal;
@@ -1269,13 +1269,14 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, con
 }
 
 void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz,
-    glm::mat4 &projection, bool clear)
+    Size &rend_sz, glm::mat4 &projection, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
         // Assign an arbitrary render target, and setup render params
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, batch->Fbo);
         surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
+        rend_sz = surface_sz;
         projection = glm::ortho(0.0f, (float)surface_sz.Width, 0.0f, (float)surface_sz.Height, 0.0f, 1.0f);
         glViewport(0, 0, surface_sz.Width, surface_sz.Height);
         // Configure rules for merging sprite alpha values onto a
@@ -1286,10 +1287,12 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
     else
     {
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _currentBackbuffer->Fbo);
+        surface_sz = _currentBackbuffer->SurfSize;
+        rend_sz = _currentBackbuffer->RendSize;
+        projection = _currentBackbuffer->Projection;
         const Rect &viewport = _currentBackbuffer->Viewport;
         glViewport(viewport.Left, viewport.Top, viewport.GetWidth(), viewport.GetHeight());
         glScissor(viewport.Left, viewport.Top, viewport.GetWidth(), viewport.GetHeight());
-        projection = _currentBackbuffer->Projection;
         // Disable alpha merging rules, return back to default settings
         SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
@@ -1328,7 +1331,8 @@ void OGLGraphicsDriver::RenderSpriteBatches()
     std::stack<unsigned> rt_parents;
     unsigned int back_buffer = _currentBackbuffer->Fbo;
     unsigned cur_rt = back_buffer; // current render target
-    Size surface_sz = _srcRect.GetSize(); // current rt surface size
+    Size surface_sz = _currentBackbuffer->SurfSize;
+    Size rend_sz = _currentBackbuffer->RendSize;
     glm::mat4 use_projection = _currentBackbuffer->Projection;
 
     const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
@@ -1356,7 +1360,7 @@ void OGLGraphicsDriver::RenderSpriteBatches()
                 (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
             {
                 cur_rt = (rt_parent.Fbo > 0u) ? rt_parent.Fbo : back_buffer;
-                SetRenderTarget(&rt_parent, surface_sz, use_projection, new_batch);
+                SetRenderTarget(&rt_parent, surface_sz, rend_sz, use_projection, new_batch);
             }
         }
 
@@ -1368,7 +1372,7 @@ void OGLGraphicsDriver::RenderSpriteBatches()
             SetScissor(batch.Viewport, (cur_rt != back_buffer), surface_sz);
             _stageMatrixes.World = batch.Matrix;
             _rendSpriteBatch = batch.ID;
-            cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, surface_sz);
+            cur_spr = RenderSpriteBatch(batch, cur_spr, use_projection, rend_sz);
             // at this point cur_spr iterator is updated past the last sprite in a sequence;
             // this may be the end of batch, but also may be the a begginning of a sub-batch
         }
@@ -1393,7 +1397,7 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         }
     }
 
-    SetRenderTarget(nullptr, surface_sz, use_projection, false);
+    SetRenderTarget(nullptr, surface_sz, rend_sz, use_projection, false);
     _rendSpriteBatch = UINT32_MAX;
     _stageMatrixes.World = _spriteBatches[0].Matrix;
     glDisable(GL_SCISSOR_TEST);

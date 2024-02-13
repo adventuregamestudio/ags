@@ -44,6 +44,78 @@ extern RGB palette[256];
 std::unique_ptr<Bitmap> saved_viewport_bitmap;
 RGB old_palette[256];
 
+
+//-----------------------------------------------------------------------------
+// Game screenshot-making functions.
+//-----------------------------------------------------------------------------
+// Create a DDB and render game screen on it.
+// NOTE: for fading-out:
+// please keep in mind: redrawing last saved frame here instead of constructing new one
+// is done because of backwards-compatibility issue: originally AGS faded out using frame
+// drawn before the script that triggers blocking fade (e.g. instigated by ChangeRoom).
+// Unfortunately some existing games were changing looks of the screen during same function,
+// but these were not supposed to get on screen until before fade-in.
+//
+// This special fade-out behavior may be deprecated later if wanted.
+static IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
+{
+    const auto &view = play.GetMainViewport();
+    auto *shot_ddb = gfxDriver->CreateRenderTargetDDB(view.GetWidth(), view.GetHeight(), gfxDriver->GetDisplayMode().ColorDepth);
+    if (for_fadein)
+    {
+        gfxDriver->ClearDrawLists();
+        construct_game_scene(true);
+        construct_game_screen_overlay(false);
+        gfxDriver->Render(shot_ddb);
+    }
+    else
+    {
+        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb);
+    }
+    return shot_ddb;
+}
+
+// Render game screen and copy to bitmap. This is a variant of game_frame_to_ddb,
+// meant for the case when this is meant for software drawing.
+// Note for "fade-out" from game_frame_to_ddb() applies here too.
+static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
+{
+    // TODO: use screenshot_to_ddb
+    get_palette(old_palette);
+    const auto &view = play.GetMainViewport();
+    if (for_fadein)
+    {
+        gfxDriver->ClearDrawLists();
+        construct_game_scene(true);
+        construct_game_screen_overlay(false);
+        gfxDriver->RenderToBackBuffer();
+    }
+    return std::unique_ptr<Bitmap>(
+        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight()));
+}
+
+static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
+{
+    assert(saved_viewport_bitmap);
+    if (!saved_viewport_bitmap)
+        quit("Crossfade: buffer is null attempting transition");
+
+    // Resize the frame in case main viewport changed;
+    // this is mostly for compatibility with old-style letterboxed games
+    // which could have viewport changed depending on new room size.
+    // TODO: investigate if this is still a case.
+    const Rect &viewport = play.GetMainViewport();
+    if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
+    {
+        Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
+        int y = std::max(0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2);
+        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        saved_viewport_bitmap.reset(fix_frame);
+    }
+    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), false, opaque);
+}
+
+
 //-----------------------------------------------------------------------------
 // Software fade routines - for 8-bit and 16/32-bit
 //-----------------------------------------------------------------------------
@@ -51,17 +123,17 @@ RGB old_palette[256];
 static void fade_highcolor(bool do_fadein,
     int speed, int fade_red, int fade_green, int fade_blue)
 {
-    Bitmap *bmp_orig = gfxDriver->GetMemoryBackBuffer();
-    const int col_depth = bmp_orig->GetColorDepth();
+    Bitmap *bmp_buff = gfxDriver->GetMemoryBackBuffer();
+    const int col_depth = bmp_buff->GetColorDepth();
     const int clear_col = makecol_depth(col_depth, fade_red, fade_green, fade_blue);
+    play.screen_is_faded_out = 0; // force all game elements to draw
+    std::unique_ptr<Bitmap> bmp_frame = game_frame_to_bmp(do_fadein);
 
-    std::unique_ptr<Bitmap> bmp_buff(new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth));
-    gfxDriver->SetMemoryBackBuffer(bmp_buff.get());
     for (int a = 0; a < 256; a += speed)
     {
         bmp_buff->Fill(clear_col);
         set_trans_blender(0, 0, 0, do_fadein ? a : 255 - a);
-        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+        bmp_buff->TransBlendBlt(bmp_frame.get(), 0, 0);
         render_to_screen();
 
         sys_evt_process_pending();
@@ -69,7 +141,6 @@ static void fade_highcolor(bool do_fadein,
         WaitForNextFrame();
     }
 
-    gfxDriver->SetMemoryBackBuffer(bmp_orig);
     render_to_screen();
 }
 
@@ -121,73 +192,6 @@ void fade_out_range(int speed, int from, int to, int fade_red, int fade_green, i
 //-----------------------------------------------------------------------------
 // End software fade routines
 //-----------------------------------------------------------------------------
-
-// Create a DDB and render game screen on it.
-// NOTE: for fading-out:
-// please keep in mind: redrawing last saved frame here instead of constructing new one
-// is done because of backwards-compatibility issue: originally AGS faded out using frame
-// drawn before the script that triggers blocking fade (e.g. instigated by ChangeRoom).
-// Unfortunately some existing games were changing looks of the screen during same function,
-// but these were not supposed to get on screen until before fade-in.
-//
-// This special fade-out behavior may be deprecated later if wanted.
-IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
-{
-    const auto &view = play.GetMainViewport();
-    auto *shot_ddb = gfxDriver->CreateRenderTargetDDB(view.GetWidth(), view.GetHeight(), gfxDriver->GetDisplayMode().ColorDepth);
-    if (for_fadein)
-    {
-        gfxDriver->ClearDrawLists();
-        construct_game_scene(true);
-        construct_game_screen_overlay(false);
-        gfxDriver->Render(shot_ddb);
-    }
-    else
-    {
-        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb);
-    }
-    return shot_ddb;
-}
-
-// Render game screen and copy to bitmap. This is a variant of game_frame_to_ddb,
-// meant for the case when this is meant for software drawing.
-// Note for "fade-out" from game_frame_to_ddb() applies here too.
-std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
-{
-    // TODO: use screenshot_to_ddb
-    get_palette(old_palette);
-    const auto &view = play.GetMainViewport();
-    if (for_fadein)
-    {
-        gfxDriver->ClearDrawLists();
-        construct_game_scene(true);
-        construct_game_screen_overlay(false);
-        gfxDriver->RenderToBackBuffer();
-    }
-    return std::unique_ptr<Bitmap>(
-        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight()));
-}
-
-IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
-{
-    assert(saved_viewport_bitmap);
-    if (!saved_viewport_bitmap)
-        quit("Crossfade: buffer is null attempting transition");
-
-    // Resize the frame in case main viewport changed;
-    // this is mostly for compatibility with old-style letterboxed games
-    // which could have viewport changed depending on new room size.
-    // TODO: investigate if this is still a case.
-    const Rect &viewport = play.GetMainViewport();
-    if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
-    {
-        Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
-        int y = std::max(0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2);
-        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
-        saved_viewport_bitmap.reset(fix_frame);
-    }
-    return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), false, opaque);
-}
 
 void screen_fade_impl(bool do_fadein, int speed)
 {
@@ -319,9 +323,8 @@ void screen_box_impl(bool do_fadein, int speed)
 
 void screen_box_software_impl(bool do_fadein, int speed)
 {
-    // First of all we render the game once again and save backbuffer from further editing.
-    // We put temporary bitmap as a new backbuffer for the transition period, and
-    // will be drawing saved image of the game over to that backbuffer, simulating "box-out".
+    // First of all we render the game once again and get the drawn frame as a bitmap.
+    // Then we keep drawing saved image of the game, simulating "box-out".
     // TODO: maybe use screenshot_to_ddb instead?
     play.screen_is_faded_out = 0; // force all game elements to draw
     set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this

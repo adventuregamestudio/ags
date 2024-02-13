@@ -248,12 +248,11 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    void Render(IDriverDependantBitmap *target) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };
-    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void BoxOutEffect(bool blackingOut, int speed, int delay) override;
+    void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderAtScreenRes = enabled; };
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
@@ -285,10 +284,10 @@ private:
     D3DGAMMARAMP defaultgammaramp;
     D3DGAMMARAMP currentgammaramp;
     D3DCAPS9 direct3ddevicecaps;
+    // Default vertex buffer, for textures that don't have one
     IDirect3DVertexBuffer9* vertexbuffer;
-    IDirect3DSurface9 *pNativeSurface;
-    IDirect3DTexture9 *pNativeTexture;
-    RECT viewport_rect;
+    // Texture for rendering in native resolution
+    D3DBitmap *_nativeSurface = nullptr;
     CUSTOMVERTEX defaultVertices[4];
     String previousError;
     IDirect3DPixelShader9* pixelShader;
@@ -296,7 +295,29 @@ private:
     bool _legacyPixelShader;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
-    bool _renderSprAtScreenRes;
+    bool _renderAtScreenRes;
+
+    // TODO: find a way to merge this with Render Targets from sprite batches,
+    // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
+    struct BackbufferState
+    {
+        // FIXME: implement a C++ (template) wrapper around IUnknown, handle AddRef/Release in RAII way
+        IDirect3DSurface9 *Surface = nullptr;
+        Size SurfSize;
+        Rect Viewport;
+        glm::mat4 Projection;
+        PlaneScaling Scaling;
+        int Filter = 0;
+
+        BackbufferState() = default;
+        BackbufferState(IDirect3DSurface9 *surface, const Size &size, const Rect &view, const glm::mat4 &proj,
+            const PlaneScaling &scale, int filter);
+        ~BackbufferState();
+    };
+
+    BackbufferState _screenBackbuffer;
+    BackbufferState _nativeBackbuffer;
+    const BackbufferState *_currentBackbuffer = nullptr;
 
     // Render target DDB references, for keeping track of them,
     // and resetting during device reset.
@@ -335,7 +356,6 @@ private:
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
     // Backup all draw lists in the temp storage
     void BackupDrawLists();
@@ -343,9 +363,11 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _renderAndPresent(bool clearDrawListAfterwards);
-    void _render(bool clearDrawListAfterwards);
-    void _reDrawLastFrame();
+    void RenderAndPresent(bool clearDrawListAfterwards);
+    void RenderImpl(bool clearDrawListAfterwards);
+    void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);
+    // Set current backbuffer state, which properties are used when refering to backbuffer
+    void SetBackbufferState(BackbufferState *state, bool clear);
     // Sets a Direct3D viewport for the current render target.
     void SetD3DViewport(const Rect &rc);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
@@ -353,12 +375,15 @@ private:
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture = false);
     // Configures rendering mode for the render target, depending on its properties
-    void SetRenderTarget(const D3DSpriteBatch *batch, IDirect3DSurface9 *back_buffer, Size &surface_sz, bool clear);
+    // TODO: find a good way to merge with SetRenderTarget
+    void SetRenderTarget(const D3DSpriteBatch *batch, Size &surface_sz, bool clear);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
-    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
+    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
-    void _renderFromTexture();
+    // Renders given texture onto the current render target
+    void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
+        const SpriteColorTransform &color, const Size &surface_size);
     // Helper method for setting blending parameters
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters

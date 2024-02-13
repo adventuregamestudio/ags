@@ -34,6 +34,7 @@ public:
     const GfxFilterInfo &GetInfo() const override;
 
     bool UseLinearFiltering() const override;
+    void GetFilteringForStandardSprite(int &filter, int &clamp) override;
     void SetFilteringForStandardSprite() override;
 
     static const GfxFilterInfo FilterInfo;

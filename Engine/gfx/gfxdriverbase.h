@@ -123,9 +123,6 @@ public:
     void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 
-    void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) override { _pollingCallback = callback; }
-    void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback, GFXDRV_CLIENTCALLBACK post_callback) override
-                { _drawScreenCallback = callback; _drawPostScreenCallback = post_callback; }
     void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
     void        SetCallbackOnSpriteEvt(GFXDRV_CLIENTCALLBACKEVT callback) override { _spriteEvtCallback = callback; }
 
@@ -176,9 +173,6 @@ protected:
     bool                _capsVsync = false; // is vsync available
 
     // Callbacks
-    GFXDRV_CLIENTCALLBACK _pollingCallback;
-    GFXDRV_CLIENTCALLBACK _drawScreenCallback;
-    GFXDRV_CLIENTCALLBACK _drawPostScreenCallback;
     GFXDRV_CLIENTCALLBACKEVT _spriteEvtCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
 

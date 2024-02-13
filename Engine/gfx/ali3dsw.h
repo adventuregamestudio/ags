@@ -199,10 +199,9 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
+    void Render(IDriverDependantBitmap *target) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
-    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void BoxOutEffect(bool blackingOut, int speed, int delay) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }
@@ -267,10 +266,6 @@ private:
     // Renders single sprite batch on the precreated surface
     size_t RenderSpriteBatch(const ALSpriteBatch &batch, size_t from, Common::Bitmap *surface, int surf_offx, int surf_offy);
 
-    void highcolor_fade_in(Bitmap *vs, void(*draw_callback)(), int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void highcolor_fade_out(Bitmap *vs, void(*draw_callback)(), int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void __fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) ;
-    void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
     // Copy raw screen bitmap pixels to the SDL texture
     void BlitToTexture();
     // Render SDL texture on screen

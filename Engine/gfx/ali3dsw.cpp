@@ -32,7 +32,6 @@ namespace ALSW
 using namespace Common;
 
 static uint32_t _trans_alpha_blender32(uint32_t x, uint32_t y, uint32_t n);
-RGB faded_out_palette[256];
 
 
 // ----------------------------------------------------------------------------
@@ -677,7 +676,14 @@ void SDLRendererGraphicsDriver::Render(int xoff, int yoff, GraphicFlip flip)
 
 void SDLRendererGraphicsDriver::Render()
 {
-  Render(0, 0, kFlip_None);
+    Render(0, 0, kFlip_None);
+}
+
+void SDLRendererGraphicsDriver::Render(IDriverDependantBitmap *target)
+{
+    SetMemoryBackBuffer(((ALSoftwareBitmap*)target)->_bmp);
+    RenderToBackBuffer();
+    SetMemoryBackBuffer(nullptr);
 }
 
 Bitmap *SDLRendererGraphicsDriver::GetMemoryBackBuffer()
@@ -729,6 +735,12 @@ void SDLRendererGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
         _stageVirtualScreen = cur_stage;
 }
 
+void SDLRendererGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+{
+    Bitmap *dst_bmp = ((ALSoftwareBitmap*)target)->_bmp;
+    dst_bmp->Blit(virtualScreen);
+}
+
 bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
@@ -752,198 +764,6 @@ bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, b
   }
   return true;
 }
-
-/**
-	fade.c - High Color Fading Routines
-
-	Last Revision: 21 June, 2002
-
-	Author: Matthew Leverton
-**/
-void SDLRendererGraphicsDriver::highcolor_fade_in(Bitmap *vs, void(*draw_callback)(),
-    int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
-{
-   Bitmap *bmp_orig = vs;
-   const int col_depth = bmp_orig->GetColorDepth();
-   const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
-   if (speed <= 0) speed = 16;
-
-   Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-   SetMemoryBackBuffer(bmp_buff);
-   for (int a = 0; a < 256; a+=speed)
-   {
-       bmp_buff->Fill(clearColor);
-       set_trans_blender(0,0,0,a);
-       bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
-       
-       if (draw_callback)
-           draw_callback();
-       RenderToBackBuffer();
-       Present();
-
-       sys_evt_process_pending();
-       if (_pollingCallback)
-          _pollingCallback();
-
-       WaitForNextFrame();
-   }
-   delete bmp_buff;
-
-   SetMemoryBackBuffer(vs);
-   if (draw_callback)
-       draw_callback();
-   RenderToBackBuffer();
-   Present();
-}
-
-void SDLRendererGraphicsDriver::highcolor_fade_out(Bitmap *vs, void(*draw_callback)(),
-    int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
-{
-    Bitmap *bmp_orig = vs;
-    const int col_depth = vs->GetColorDepth();
-    const int clearColor = makecol_depth(col_depth, targetColourRed, targetColourGreen, targetColourBlue);
-    if (speed <= 0) speed = 16;
-
-    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), col_depth);
-    SetMemoryBackBuffer(bmp_buff);
-    for (int a = 255 - speed; a > 0; a -= speed)
-    {
-        bmp_buff->Fill(clearColor);
-        set_trans_blender(0, 0, 0, a);
-        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
-
-        if (draw_callback)
-            draw_callback();
-        RenderToBackBuffer();
-        Present();
-
-        sys_evt_process_pending();
-        if (_pollingCallback)
-            _pollingCallback();
-
-        WaitForNextFrame();
-    }
-    delete bmp_buff;
-
-    SetMemoryBackBuffer(vs);
-    vs->Clear(clearColor);
-    if (draw_callback)
-        draw_callback();
-    RenderToBackBuffer();
-    Present();
-}
-/** END FADE.C **/
-
-// palette fading routiens
-// from allegro, modified for mp3
-void initialize_fade_256(int r, int g, int b) {
-  int a;
-  for (a = 0; a < 256; a++) {
-    faded_out_palette[a].r = r / 4;
-	  faded_out_palette[a].g = g / 4;
-	  faded_out_palette[a].b = b / 4;
-  }
-}
-
-void SDLRendererGraphicsDriver::__fade_from_range(PALETTE source, PALETTE dest, int speed, int from, int to) 
-{
-   PALETTE temp;
-   int c;
-
-   for (c=0; c<PAL_SIZE; c++)
-      temp[c] = source[c];
-
-   for (c=0; c<64; c+=speed) {
-      fade_interpolate(source, dest, temp, c, from, to);
-      set_palette_range(temp, from, to, TRUE);
-
-      RenderToBackBuffer();
-      Present();
-
-      sys_evt_process_pending();
-      if (_pollingCallback)
-          _pollingCallback();
-   }
-
-   set_palette_range(dest, from, to, TRUE);
-}
-
-void SDLRendererGraphicsDriver::__fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) 
-{
-   PALETTE temp;
-
-   initialize_fade_256(targetColourRed, targetColourGreen, targetColourBlue);
-   get_palette(temp);
-   __fade_from_range(temp, faded_out_palette, speed, from, to);
-}
-
-void SDLRendererGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
-  if (_srcColorDepth > 8)
-  {
-    highcolor_fade_out(virtualScreen, _drawPostScreenCallback, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
-  }
-  else
-  {
-    __fade_out_range(speed, 0, 255, targetColourRed, targetColourGreen, targetColourBlue);
-  }
-}
-
-void SDLRendererGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
-  if (_drawScreenCallback)
-  {
-    _drawScreenCallback();
-    RenderToBackBuffer();
-  }
-  if (_srcColorDepth > 8)
-  {
-    highcolor_fade_in(virtualScreen, _drawPostScreenCallback, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
-  }
-  else
-  {
-	initialize_fade_256(targetColourRed, targetColourGreen, targetColourBlue);
-	__fade_from_range(faded_out_palette, p, speed, 0,255);
-  }
-}
-
-void SDLRendererGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
-{
-  if (blackingOut)
-  {
-    int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
-    int boxwid = speed, boxhit = yspeed;
-    Bitmap *bmp_orig = virtualScreen;
-    Bitmap *bmp_buff = new Bitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight(), bmp_orig->GetColorDepth());
-    SetMemoryBackBuffer(bmp_buff);
-
-    while (boxwid < _srcRect.GetWidth()) {
-      boxwid += speed;
-      boxhit += yspeed;
-      int vcentre = _srcRect.GetHeight() / 2;
-      bmp_orig->FillRect(Rect(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
-          _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2), 0);
-      bmp_buff->Fill(0);
-      bmp_buff->Blit(bmp_orig);
-
-      if (_drawPostScreenCallback)
-          _drawPostScreenCallback();
-      RenderToBackBuffer();
-      Present();
-
-      sys_evt_process_pending();
-      if (_pollingCallback)
-          _pollingCallback();
-
-      platform->Delay(delay);
-    }
-    delete bmp_buff;
-    SetMemoryBackBuffer(bmp_orig);
-  }
-  else
-  {
-    throw Ali3DException("BoxOut fade-in not implemented in sw gfx driver");
-  }
-}
-// end fading routines
 
 // add the alpha values together, used for compositing alpha images
 // TODO: why is this here, move to gfx/blender? check if there's already similar function there

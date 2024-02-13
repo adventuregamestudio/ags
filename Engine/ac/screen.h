@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-//
+// Screen effects and script API
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__SCREEN_H
@@ -21,12 +21,10 @@
 namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
 
-void fadein_impl(PALETTE p, int speed);
-void fadeout_impl(int spdd);
-void current_fade_out_effect ();
-AGS::Engine::IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque);
-
-// Screenshot made in the last room, used during some of the transition effects
-extern AGS::Common::Bitmap *saved_viewport_bitmap;
+void screen_effect_fade(bool do_fadein, int speed);
+void screen_effect_box(bool do_fadein, int speed);
+void screen_effect_crossfade();
+void screen_effect_dissolve();
+void current_fade_out_effect();
 
 #endif // __AGS_EE_AC__SCREEN_H

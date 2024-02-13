@@ -33,6 +33,11 @@ const GfxFilterInfo &D3DGfxFilter::GetInfo() const
     return FilterInfo;
 }
 
+int D3DGfxFilter::GetSamplerStateForStandardSprite()
+{
+    return D3DTEXF_POINT;
+}
+
 void D3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
     IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);

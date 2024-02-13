@@ -333,7 +333,9 @@ private:
     struct BackbufferState
     {
         GLuint Fbo = 0u;
-        Size SurfSize;
+        // FIXME: replace RendSize with explicit render coordinate offset? merge with ortho matrix?
+        Size SurfSize; // actual surface size
+        Size RendSize; // coordinate grid size (for centering sprites)
         // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
         Rect Viewport;
         glm::mat4 Projection;
@@ -342,9 +344,11 @@ private:
         int TxClamp = 0;
 
         BackbufferState() = default;
-        BackbufferState(GLuint fbo, const Size &size, const Rect &view, const glm::mat4 &proj,
+        BackbufferState(GLuint fbo, const Size &surf_size, const Size &rend_size,
+            const Rect &view, const glm::mat4 &proj,
             const PlaneScaling &scale, int filter, int txclamp)
-            : Fbo(fbo), SurfSize(size), Viewport(view), Projection(proj)
+            : Fbo(fbo), SurfSize(surf_size), RendSize(rend_size)
+            , Viewport(view), Projection(proj)
             , Scaling(scale), Filter(filter), TxClamp(txclamp) {}
         ~BackbufferState() = default;
     };
@@ -398,11 +402,11 @@ private:
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool opaque);
     void CreateVirtualScreen();
     void RenderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color, const Size &surface_size);
+        const SpriteColorTransform &color, const Size &rend_sz);
     // Renders given texture onto the current render target
     void RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y,
         const glm::mat4 &projection, const glm::mat4 &matGlobal,
-        const SpriteColorTransform &color, const Size &surface_size);
+        const SpriteColorTransform &color, const Size &rend_sz);
     void SetupViewport();
 
     // Sets uniform GL blend settings, same for both RGB and alpha component
@@ -430,10 +434,10 @@ private:
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     // Configures rendering mode for the render target, depending on its properties
-    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, glm::mat4 &projection, bool clear);
+    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, Size &rend_sz, glm::mat4 &projection, bool clear);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
-        const Size &surface_size);
+        const Size &rend_sz);
 };
 
 

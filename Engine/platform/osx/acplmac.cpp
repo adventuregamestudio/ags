@@ -60,8 +60,6 @@ void AGSMac::PreBackendInit()
   SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
 }
 
-}
-
 uint64_t AGSMac::GetDiskFreeSpaceMB() {
   // placeholder
   return 100;

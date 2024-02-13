@@ -1710,13 +1710,13 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 
 uint64_t OGLGraphicsDriver::GetAvailableTextureMemory()
 {
-    GLint mem = 0;
+    GLint mem[4]{}; // ATI requires array of 4 ints
     const char *exts = (const char*)glGetString(GL_EXTENSIONS);
     if (strstr(exts, "GL_NVX_gpu_memory_info") != nullptr)
-        glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &mem);
+        glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &mem[0]);
     else if (strstr(exts, "GL_ATI_meminfo") != nullptr)
-        glGetIntegerv(TEXTURE_FREE_MEMORY_ATI, &mem);
-    return static_cast<uint64_t>(mem) * 1024u; // retrieved mem is in KB
+        glGetIntegerv(TEXTURE_FREE_MEMORY_ATI, &mem[0]);
+    return static_cast<uint64_t>(mem[0]) * 1024u; // retrieved mem is in KB
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)

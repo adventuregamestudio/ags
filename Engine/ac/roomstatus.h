@@ -23,16 +23,6 @@
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using AGS::Common::Stream;
-//using AGS::Common::Interaction;
-
-struct HotspotState
-{
-    bool Enabled = false;
-    Common::String Name;
-
-    void ReadFromSavegame(Common::Stream *in, int save_ver);
-    void WriteToSavegame(Common::Stream *out) const;
-};
 
 // RoomStatus runtime save format
 enum RoomStatSvgVersion
@@ -44,8 +34,25 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
     kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
     kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
-    kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit
+    kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
     kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40003
+};
+
+struct HotspotState
+{
+    bool Enabled = false;
+    Common::String Name;
+
+    void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver);
+    void WriteToSavegame(Common::Stream *out) const;
+};
+
+struct WalkareaState
+{
+    float FaceDirectionRatio = 0.f;
+
+    void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 // RoomStatus contains everything about a room that could change at runtime.
@@ -64,6 +71,7 @@ struct RoomStatus
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
     float face_dir_ratio = 0.f;
+    WalkareaState walkareas[MAX_WALK_AREAS];
 
     // A version of a save this RoomStatus was restored from.
     // This is used as a hint when merging RoomStatus with the loaded room file (upon room enter).
@@ -79,7 +87,7 @@ struct RoomStatus
     void FreeProperties();
 
     void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion cmp_ver);
-    void WriteToSavegame(Common::Stream *out, GameDataVersion data_ver) const;
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 // Replaces all accesses to the roomstats array

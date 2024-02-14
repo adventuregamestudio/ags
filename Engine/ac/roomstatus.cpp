@@ -24,7 +24,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-void HotspotState::ReadFromSavegame(Common::Stream *in, int save_ver)
+void HotspotState::ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver)
 {
     Enabled = in->ReadInt8() != 0;
     if (save_ver >= kRoomStatSvgVersion_36016)
@@ -37,6 +37,26 @@ void HotspotState::WriteToSavegame(Common::Stream *out) const
 {
     out->WriteInt8(Enabled);
     StrUtil::WriteString(Name, out);
+}
+
+void WalkareaState::ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver)
+{
+    // reserve 3 int32 for existing older WA properties:
+    // enabled (or rather flags?), scaling min & max, anything else?
+    in->ReadInt32();
+    in->ReadInt32();
+    in->ReadInt32();
+    FaceDirectionRatio = in->ReadFloat32();
+}
+
+void WalkareaState::WriteToSavegame(Common::Stream *out) const
+{
+    // reserve 3 int32 for existing older WA properties:
+    // enabled (or rather flags?), scaling min & max, anything else?
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteFloat32(FaceDirectionRatio);
 }
 
 
@@ -78,6 +98,19 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
 
     beenhere = in->ReadInt8();
     numobj = static_cast<uint32_t>(in->ReadInt32());
+
+    int num_hotspots = MAX_ROOM_HOTSPOTS;
+    int num_regions = MAX_ROOM_REGIONS;
+    int num_walkbehinds = MAX_WALK_BEHINDS;
+    int num_walkareas = MAX_WALK_AREAS;
+    if (cmp_ver >= kRoomStatSvgVersion_40003)
+    {
+        num_hotspots = in->ReadInt32();
+        num_regions = in->ReadInt32();
+        num_walkbehinds = in->ReadInt32();
+        num_walkareas = in->ReadInt32();
+    }
+
     obj.resize(numobj);
     objProps.resize(numobj);
     for (uint32_t i = 0; i < numobj; ++i)
@@ -85,18 +118,25 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
         obj[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(objProps[i], in);
     }
-    for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
+    for (int i = 0; i < num_hotspots; ++i)
     {
         hotspot[i].ReadFromSavegame(in, cmp_ver);
         Properties::ReadValues(hsProps[i], in);
     }
-    for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
+    for (int i = 0; i < num_regions; ++i)
     {
         region_enabled[i] = in->ReadInt8();
     }
-    for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
+    for (int i = 0; i < num_walkbehinds; ++i)
     {
         walkbehind_base[i] = in->ReadInt32();
+    }
+    if (cmp_ver >= kRoomStatSvgVersion_40003)
+    {
+        for (int i = 0; i < num_walkareas; ++i)
+        {
+            walkareas[i].ReadFromSavegame(in, cmp_ver);
+        }
     }
 
     Properties::ReadValues(roomProps, in);
@@ -116,12 +156,26 @@ void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion cmp_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+    if (cmp_ver >= kRoomStatSvgVersion_40003)
+    {
+        face_dir_ratio = in->ReadFloat32();
+        // reserve few more 32-bit values (for a total of 4)
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
-void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
+void RoomStatus::WriteToSavegame(Stream *out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);
+    // -- kRoomStatSvgVersion_40003
+    out->WriteInt32(MAX_ROOM_HOTSPOTS);
+    out->WriteInt32(MAX_ROOM_REGIONS);
+    out->WriteInt32(MAX_WALK_AREAS);
+    out->WriteInt32(MAX_WALK_BEHINDS);
+    // --
     for (uint32_t i = 0; i < numobj; ++i)
     {
         obj[i].WriteToSavegame(out);
@@ -140,6 +194,12 @@ void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
     {
         out->WriteInt32(walkbehind_base[i]);
     }
+    // -- kRoomStatSvgVersion_40003
+    for (int i = 0; i < MAX_WALK_AREAS; ++i)
+    {
+        walkareas[i].WriteToSavegame(out);
+    }
+    // --
 
     Properties::WriteValues(roomProps, out);
 
@@ -150,6 +210,13 @@ void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
     // kRoomStatSvgVersion_36041
     out->WriteInt32(contentFormat);
     out->WriteInt32(0); // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+
+    // -- kRoomStatSvgVersion_40003
+    out->WriteFloat32(face_dir_ratio);
+    // reserve few more 32-bit values (for a total of 4)
+    out->WriteInt32(0);
     out->WriteInt32(0);
     out->WriteInt32(0);
 }

@@ -547,6 +547,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (int cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;
         }
+        for (int i = 0; i < MAX_WALK_AREAS; ++i)
+        {
+            croom->walkareas[i].FaceDirectionRatio = thisroom.WalkAreas[i].FaceDirectionRatio;
+        }
 
         croom->beenhere=1;
         in_new_room=2;

@@ -631,12 +631,20 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     if (svg_ver < kGSSvgVersion_350_9)
+    {
         in->ReadInt32(); // ignore_user_input_until_time -- do not apply from savegame
-    if (svg_ver >= kGSSvgVersion_350_9)
+    }
+    else // (svg_ver >= kGSSvgVersion_350_9)
     {
         int voice_speech_flags = in->ReadInt32();
         speech_has_voice = voice_speech_flags != 0;
         speech_voice_blocking = (voice_speech_flags & 0x02) != 0;
+    }
+    if (svg_ver >= kGSSvgVersion_400_03)
+    {
+        face_dir_ratio = in->ReadFloat32();
+        // reserve few more 32-bit values (for a total of 10)
+        in->Seek(sizeof(int32_t) * 9);
     }
 }
 
@@ -822,6 +830,11 @@ void GameState::WriteForSavegame(Stream *out) const
     if (speech_voice_blocking)
         voice_speech_flags |= 0x02;
     out->WriteInt32(voice_speech_flags);
+
+    // --- kGSSvgVersion_400_03
+    out->WriteFloat32(face_dir_ratio);
+    // reserve few more 32-bit values (for a total of 10)
+    out->WriteByteCount(0, sizeof(int32_t) * 9);
 }
 
 void GameState::FreeProperties()

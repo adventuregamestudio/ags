@@ -19,6 +19,7 @@ namespace AGS.Types
         private int _x;
         private int _y;
         private bool _clickable = true;
+        private bool _enabled = true;
         private bool _visible = true;
         private int _baseline;
         private int _effectiveBaseline;
@@ -80,7 +81,15 @@ namespace AGS.Types
             set;
         }
 
-        [Description("Is the object initially visible?")]
+        [Description("If true, this object will be initially visible and updated during game update.")]
+        [Category("Design")]
+        public bool Enabled
+        {
+            get { return _enabled; }
+            set { _enabled = value; }
+        }
+
+        [Description("If true, this object will be initially visible.")]
         [Category("Design")]
         public bool Visible
         {

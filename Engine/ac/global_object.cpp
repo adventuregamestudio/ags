@@ -74,7 +74,7 @@ int GetObjectIDAtRoom(int roomx, int roomy)
     int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (uint32_t aa=0;aa<croom->numobj;aa++) {
-        if (objs[aa].on != 1) continue;
+        if (!objs[aa].is_displayed()) continue; // disabled or invisible
         if (objs[aa].flags & OBJF_NOINTERACT)
             continue;
         int xxx=objs[aa].x,yyy=objs[aa].y;
@@ -258,64 +258,12 @@ void AnimateObjectImpl(int obn, int loopn, int spdd, int rept, int direction, in
         GameLoopUntilValueIsZero(&obj.cycling);
 }
 
-void MergeObject(int obn) {
-    if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");
-
-    update_object_scale(obn); // make sure sprite transform is up to date
-    construct_object_gfx(obn, true);
-    Bitmap *actsp = get_cached_object_image(obn);
-
-    PBitmap bg_frame = thisroom.BgFrames[play.bg_frame].Graphic;
-    if (bg_frame->GetColorDepth() != actsp->GetColorDepth())
-        quit("!MergeObject: unable to merge object due to color depth differences");
-
-    // FIXME: use GraphicSpace instead!? -- assume rotation etc, but this has to be relative to Room (not whole screen)
-    int xpos = objs[obn].x;
-    int ypos = (objs[obn].y - objs[obn].last_height);
-
-    draw_sprite_support_alpha(bg_frame.get(), xpos, ypos, actsp);
-    invalidate_screen();
-    mark_current_background_dirty();
-
-    // mark the sprite as merged
-    objs[obn].on = 2;
-    debug_script_log("Object %d merged into background", obn);
-}
-
 void StopObjectMoving(int objj) {
     if (!is_valid_object(objj))
         quit("!StopObjectMoving: invalid object number");
     objs[objj].moving = 0;
 
     debug_script_log("Object %d stop moving", objj);
-}
-
-void ObjectOff(int obn) {
-    if (!is_valid_object(obn)) quit("!ObjectOff: invalid object specified");
-    // don't change it if on == 2 (merged)
-    if (objs[obn].on == 1) {
-        objs[obn].on = 0;
-        debug_script_log("Object %d turned off", obn);
-        StopObjectMoving(obn);
-    }
-}
-
-void ObjectOn(int obn) {
-    if (!is_valid_object(obn)) quit("!ObjectOn: invalid object specified");
-    if (objs[obn].on == 0) {
-        objs[obn].on = 1;
-        debug_script_log("Object %d turned on", obn);
-    }
-}
-
-int IsObjectOn (int objj) {
-    if (!is_valid_object(objj)) quit("!IsObjectOn: invalid object number");
-
-    // ==1 is on, ==2 is merged into background
-    if (objs[objj].on == 1)
-        return 1;
-
-    return 0;
 }
 
 void SetObjectGraphic(int obn,int slott) {
@@ -444,6 +392,7 @@ int AreObjectsColliding(int obj1,int obj2) {
 
 int GetThingRect(int thing, _Rect *rect) {
     if (is_valid_character(thing)) {
+        // FIXME: do we check visible or enabled here?
         if (game.chars[thing].room != displayed_room)
             return 0;
 
@@ -455,7 +404,8 @@ int GetThingRect(int thing, _Rect *rect) {
     }
     else if (is_valid_object(thing - OVERLAPPING_OBJECT)) {
         int objid = thing - OVERLAPPING_OBJECT;
-        if (objs[objid].on != 1)
+        // FIXME: do we check visible or enabled here?
+        if (!objs[objid].is_enabled())
             return 0;
         rect->x1 = objs[objid].x;
         rect->x2 = objs[objid].x + objs[objid].get_width();

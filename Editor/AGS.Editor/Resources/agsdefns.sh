@@ -1931,8 +1931,6 @@ builtin managed struct Object {
   import String   GetTextProperty(const string property);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
-  /// Merges the object's image into the room background, and disables the object.
-  import function MergeIntoBackground();
   /// Starts the object moving towards the specified co-ordinates.
   import function Move(int x, int y, int speed, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Removes a specific object tint, and returns the object to using the ambient room tint.
@@ -2032,6 +2030,10 @@ builtin managed struct Object {
   import attribute float GraphicRotation;
   /// Gets/sets whether the object uses region tinting.
   import attribute bool UseRegionTint;
+#endif
+#ifdef SCRIPT_API_v400
+  /// Gets/sets whether the object will be drawn and updated during the game update.
+  import attribute bool Enabled;
 #endif
   readonly int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2283,13 +2285,15 @@ builtin managed struct Character {
   /// Gets/sets whether the character uses region tinting.
   import attribute bool UseRegionTint;
 #endif
-  readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
-  readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
-  readonly int   reserved_e;   // $AUTOCOMPLETEIGNORE$
-  readonly char  reserved_g[40];   // $AUTOCOMPLETEIGNORE$
-  readonly char  reserved_h[20];   // $AUTOCOMPLETEIGNORE$
-  // TODO: find out if Visible property may work as a proper analogue, otherwise add new one
-  char  on;  // $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_API_v400
+  /// Gets/sets whether the character will be drawn and updated during the game update.
+  import attribute bool Enabled;
+  /// Gets/sets whether the character is currently visible.
+  import attribute bool Visible;
+#endif
+#ifdef SCRIPT_COMPAT_v399
+  char  on;
+#endif
   };
 
 builtin struct Game {

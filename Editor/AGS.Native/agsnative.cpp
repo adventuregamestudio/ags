@@ -2823,7 +2823,8 @@ void convert_room_from_native(const RoomStruct &rs, Room ^room, System::Text::En
         obj->BlendMode = (BlendMode)rs.Objects[i].BlendMode;
 		obj->StartX = rs.Objects[i].X;
 		obj->StartY = rs.Objects[i].Y;
-		obj->Visible = (rs.Objects[i].IsOn != 0);
+        obj->Enabled = (rs.Objects[i].Flags & OBJF_ENABLED) != 0;
+		obj->Visible = (rs.Objects[i].Flags & OBJF_VISIBLE) != 0;
 		obj->Clickable = ((rs.Objects[i].Flags & OBJF_NOINTERACT) == 0);
 		obj->Baseline = rs.Objects[i].Baseline;
 		obj->Name = TextHelper::ConvertASCII(rs.Objects[i].ScriptName);
@@ -2938,10 +2939,11 @@ void convert_room_to_native(Room ^room, RoomStruct &rs)
         rs.Objects[i].BlendMode = (AGS::Common::BlendMode)obj->BlendMode;
 		rs.Objects[i].X = obj->StartX;
 		rs.Objects[i].Y = obj->StartY;
-		rs.Objects[i].IsOn = obj->Visible;
 		rs.Objects[i].Baseline = obj->Baseline;
 		rs.Objects[i].Name = tcv->ConvertTextProperty(obj->Description);
-		rs.Objects[i].Flags = 0;
+        rs.Objects[i].Flags =
+            (OBJF_ENABLED * obj->Enabled) |
+            (OBJF_VISIBLE * obj->Visible);
 		if (obj->UseRoomAreaScaling) rs.Objects[i].Flags |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) rs.Objects[i].Flags |= OBJF_USEREGIONTINTS;
 		if (!obj->Clickable) rs.Objects[i].Flags |= OBJF_NOINTERACT;

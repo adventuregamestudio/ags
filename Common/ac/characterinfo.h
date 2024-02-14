@@ -23,32 +23,34 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define MAX_INV             301
-// Character flags
-#define CHF_MANUALSCALING   1
-#define CHF_FIXVIEW         2     // between SetCharView and ReleaseCharView
-#define CHF_NOINTERACT      4
-#define CHF_NODIAGONAL      8
-#define CHF_ALWAYSIDLE      0x10
-#define CHF_NOLIGHTING      0x20  // TODO: rename this CHF_USEREGIONTINTS with opposite meaning
-#define CHF_NOTURNING       0x40
-#define CHF_NOWALKBEHINDS   0x80   // deprecated, forbidden
-#define CHF_FLIPSPRITE      0x100  // ?? Is this used??
-#define CHF_NOBLOCKING      0x200
-#define CHF_SCALEMOVESPEED  0x400
-#define CHF_NOBLINKANDTHINK 0x800
+// Character flags (32-bit)
+// Flags marked as "runtime" are marking dynamic character state
+#define CHF_MANUALSCALING   0x0001
+#define CHF_FIXVIEW         0x0002  // between SetCharView and ReleaseCharView
+#define CHF_NOINTERACT      0x0004
+#define CHF_NODIAGONAL      0x0008
+#define CHF_ALWAYSIDLE      0x0010
+#define CHF_NOLIGHTING      0x0020  // TODO: rename this CHF_USEREGIONTINTS with opposite meaning
+#define CHF_NOTURNING       0x0040
+#define CHF_NOWALKBEHINDS   0x0080  // [DEPRECATED], forbidden as breaks draw order
+#define CHF_FLIPSPRITE      0x0100  // [DEPRECATED], ancient
+#define CHF_NOBLOCKING      0x0200
+#define CHF_SCALEMOVESPEED  0x0400
+#define CHF_NOBLINKANDTHINK 0x0800
 #define CHF_SCALEVOLUME     0x1000
-#define CHF_HASTINT         0x2000   // engine only
-#define CHF_BEHINDSHEPHERD  0x4000   // engine only
-#define CHF_AWAITINGMOVE    0x8000   // engine only
-#define CHF_MOVENOTWALK     0x10000   // engine only - do not do walk anim
-#define CHF_ANTIGLIDE       0x20000
-#define CHF_HASLIGHT        0x40000
+#define CHF_HASTINT         0x2000  // has applied individual tint
+#define CHF_BEHINDSHEPHERD  0x4000  // draw character behind followed (CHECKME: logic unclear)
+#define CHF_AWAITINGMOVE    0x8000  // runtime
+#define CHF_MOVENOTWALK     0x00010000  // runtime - do not do walk anim
+#define CHF_ANTIGLIDE       0x00020000
+#define CHF_HASLIGHT        0x00040000
 #define CHF_TINTLIGHTMASK   (CHF_NOLIGHTING | CHF_HASTINT | CHF_HASLIGHT)
-// Speechcol is no longer part of the flags as of v2.5
-#define OCHF_SPEECHCOL      0xff000000
-#define OCHF_SPEECHCOLSHIFT 24
+#define CHF_ENABLED         0x00080000
+#define CHF_VISIBLE         0x00100000
+
+// Value of walk speed indicating that X and Y speed is the same
 #define UNIFORM_WALK_SPEED  0
+// Value of "followinfo" field that tells to draw follower char above followed
 #define FOLLOW_ALWAYSONTOP  0x7ffe
 
 // Length of deprecated character name field, in bytes
@@ -124,7 +126,6 @@ struct CharacterInfo
     short animating; // stores CHANIM_* flags in lower byte and delay in upper byte
     short walkspeed, animspeed;
     short inv[MAX_INV];
-    char  on;
     AGS::Common::String scrname; // script name
     AGS::Common::String name; // regular name (aka description)
 
@@ -132,12 +133,21 @@ struct CharacterInfo
     int get_blocking_top() const;    // return Y - BlockingHeight/2
     int get_blocking_bottom() const; // return Y + BlockingHeight/2
 
+    // Tells if the "enabled" flag is set
+    inline bool is_enabled() const { return (flags & CHF_ENABLED) != 0; }
+    // Tells if the "visible" flag is set
+    inline bool is_visible() const { return (flags & CHF_VISIBLE) != 0; }
+    // Tells if the character is actually meant to be displayed on screen;
+    // this combines both "enabled" and "visible" factors.
+    inline bool is_displayed() const { return is_enabled() && is_visible(); }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }
     inline int  get_anim_repeat()    const { return (animating & CHANIM_REPEAT) ? ANIM_REPEAT : ANIM_ONCE; }
     inline bool get_anim_forwards()  const { return (animating & CHANIM_BACKWARDS) == 0; }
     inline int  get_anim_delay()     const { return (animating >> 8) & 0xFF; }
+    inline void set_enabled(bool on) { flags = (flags & ~CHF_ENABLED) | (CHF_ENABLED * on); }
+    inline void set_visible(bool on) { flags = (flags & ~CHF_VISIBLE) | (CHF_VISIBLE * on); }
     inline void set_animating(bool repeat, bool forwards, int delay)
     {
         animating = CHANIM_ON |

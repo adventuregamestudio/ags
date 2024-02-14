@@ -2011,8 +2011,8 @@ void prepare_objects_for_drawing()
     for (uint32_t objid = 0; objid < croom->numobj; ++objid)
     {
         const RoomObject &obj = objs[objid];
-        if (obj.on != 1) // WARNING: 'on' may have other values than 0 and 1 !!
-            continue; // disabled
+        if (!obj.is_displayed())
+            continue; // disabled or invisible
         if ((obj.x >= thisroom.Width) || (obj.y < 1))
             continue; // offscreen
 
@@ -2122,8 +2122,8 @@ void prepare_characters_for_drawing()
     for (int charid = 0; charid < game.numcharacters; ++charid)
     {
         const CharacterInfo &chin = game.chars[charid];
-        if (chin.on == 0)
-            continue; // disabled
+        if (!chin.is_displayed())
+            continue; // disabled or not visible
         if (chin.room != displayed_room)
             continue; // in another room
 

@@ -387,7 +387,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
             {
                 // Turn to face new direction
                 Character_StopMoving(char1);
-                if (char1->on == 1)
+                if (char1->is_enabled())
                 {
                     // only do the turning if the character is not hidden
                     // (otherwise GameLoopUntilNotMoving will never return)
@@ -534,7 +534,7 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     if (chin->room != displayed_room)
         return 0;
-    if (objs[objid->id].on != 1)
+    if (!objs[objid->id].is_enabled())
         return 0;
 
     // TODO: use GraphicSpace and proper transformed coords?
@@ -1256,6 +1256,14 @@ const char *Character_GetScriptName(CharacterInfo *chin)
     return CreateNewScriptString(game.chars[chin->index_id].scrname);
 }
 
+bool Character_GetEnabled(CharacterInfo *chaa) {
+    return chaa->is_enabled();
+}
+
+void Character_SetEnabled(CharacterInfo *chaa, bool newval) {
+    chaa->set_enabled(newval);
+}
+
 int Character_GetFrame(CharacterInfo *chaa) {
     return chaa->frame;
 }
@@ -1557,6 +1565,14 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
 
     chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
+}
+
+bool Character_GetVisible(CharacterInfo *chaa) {
+    return chaa->is_visible();
+}
+
+void Character_SetVisible(CharacterInfo *chaa, bool newval) {
+    chaa->set_visible(newval);
 }
 
 int Character_GetBlendMode(CharacterInfo *chaa) {
@@ -1881,7 +1897,7 @@ int has_hit_another_character(int sourceChar) {
         return -1;
 
     for (int ww = 0; ww < game.numcharacters; ww++) {
-        if (game.chars[ww].on != 1) continue;
+        if (!game.chars[ww].is_enabled()) continue;
         if (game.chars[ww].room != displayed_room) continue;
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
@@ -2039,7 +2055,7 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
 {
-    if (chaa->on != 1)
+    if (!chaa->is_enabled())
     {
         debug_script_warn("MoveCharacterBlocking: character is turned off and cannot be moved");
         return;
@@ -2224,7 +2240,7 @@ void update_character_scale(int charid)
 {
     // Test for valid view and loop
     CharacterInfo &chin = game.chars[charid];
-    if (chin.on == 0 || chin.room != displayed_room)
+    if (!chin.is_enabled() || chin.room != displayed_room)
         return; // not enabled, or in a different room
 
     CharacterExtras &chex = charextra[charid];
@@ -2266,7 +2282,7 @@ int is_pos_on_character(int xx,int yy) {
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
-        if (game.chars[cc].on==0) continue;
+        if (!game.chars[cc].is_displayed()) continue; // disabled or not visible
         if (game.chars[cc].flags & CHF_NOINTERACT) continue;
         if (game.chars[cc].view < 0) continue;
         CharacterInfo*chin=&game.chars[cc];
@@ -2601,19 +2617,27 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                     if (play.swap_portrait_lastchar < 0) {
                         // No previous character been spoken to
                         // therefore, assume it's the player
-                        if(game.playercharacter != aschar && game.chars[game.playercharacter].room == speakingChar->room && game.chars[game.playercharacter].on == 1)
+                        if (game.playercharacter != aschar &&
+                            game.chars[game.playercharacter].room == speakingChar->room &&
+                            game.chars[game.playercharacter].is_enabled())
+                        {
                             play.swap_portrait_lastchar = game.playercharacter;
+                        }
                         else
+                        {
                             // The player's not here. Find another character in this room
                             // that it could be
-                            for (int ce = 0; ce < game.numcharacters; ce++) {
+                            for (int ce = 0; ce < game.numcharacters; ce++)
+                            {
                                 if ((game.chars[ce].room == speakingChar->room) &&
-                                    (game.chars[ce].on == 1) &&
-                                    (ce != aschar)) {
-                                        play.swap_portrait_lastchar = ce;
-                                        break;
+                                    (game.chars[ce].is_enabled()) &&
+                                    (ce != aschar))
+                                {
+                                    play.swap_portrait_lastchar = ce;
+                                    break;
                                 }
                             }
+                        }
                     }
 
                     if (play.swap_portrait_lastchar >= 0) {
@@ -3509,6 +3533,16 @@ RuntimeScriptValue Sc_Character_SetDiagonalWalking(void *self, const RuntimeScri
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetDiagonalWalking);
 }
 
+RuntimeScriptValue Sc_Character_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Character_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(CharacterInfo, Character_SetEnabled);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3813,6 +3847,16 @@ RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *pa
     API_OBJCALL_INT(CharacterInfo, Character_GetView);
 }
 
+RuntimeScriptValue Sc_Character_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetVisible);
+}
+
+RuntimeScriptValue Sc_Character_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(CharacterInfo, Character_SetVisible);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetWalkSpeedX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -4010,6 +4054,8 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_DestinationY",          API_FN_PAIR(Character_GetDestinationY) },
         { "Character::get_DiagonalLoops",         API_FN_PAIR(Character_GetDiagonalWalking) },
         { "Character::set_DiagonalLoops",         API_FN_PAIR(Character_SetDiagonalWalking) },
+        { "Character::get_Enabled",               API_FN_PAIR(Character_GetEnabled) },
+        { "Character::set_Enabled",               API_FN_PAIR(Character_SetEnabled) },
         { "Character::get_Frame",                 API_FN_PAIR(Character_GetFrame) },
         { "Character::set_Frame",                 API_FN_PAIR(Character_SetFrame) },
         { "Character::get_ID",                    API_FN_PAIR(Character_GetID) },
@@ -4073,13 +4119,15 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::get_z",                     API_FN_PAIR(Character_GetZ) },
         { "Character::set_z",                     API_FN_PAIR(Character_SetZ) },
         { "Character::get_HasExplicitLight",      API_FN_PAIR(Character_GetHasExplicitLight) },
-        { "Character::get_HasExplicitTint",      API_FN_PAIR(Character_GetHasExplicitTint) },
+        { "Character::get_HasExplicitTint",       API_FN_PAIR(Character_GetHasExplicitTint) },
         { "Character::get_LightLevel",            API_FN_PAIR(Character_GetLightLevel) },
         { "Character::get_TintBlue",              API_FN_PAIR(Character_GetTintBlue) },
         { "Character::get_TintGreen",             API_FN_PAIR(Character_GetTintGreen) },
         { "Character::get_TintRed",               API_FN_PAIR(Character_GetTintRed) },
         { "Character::get_TintSaturation",        API_FN_PAIR(Character_GetTintSaturation) },
         { "Character::get_TintLuminance",         API_FN_PAIR(Character_GetTintLuminance) },
+        { "Character::get_Visible",               API_FN_PAIR(Character_GetVisible) },
+        { "Character::set_Visible",               API_FN_PAIR(Character_SetVisible) },
 
         { "Character::get_BlendMode",             API_FN_PAIR(Character_GetBlendMode) },
         { "Character::set_BlendMode",             API_FN_PAIR(Character_SetBlendMode) },

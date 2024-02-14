@@ -43,13 +43,12 @@ int     Object_GetBaseline(ScriptObject *objj);
 void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
                        int blocking, int direction, int sframe = 0, int volume = 100);
 void    Object_StopAnimating(ScriptObject *objj);
-void    Object_MergeIntoBackground(ScriptObject *objj);
 void    Object_StopMoving(ScriptObject *objj);
-void    Object_SetVisible(ScriptObject *objj, int onoroff);
+void    Object_SetVisible(ScriptObject *objj, bool onoroff);
 int     Object_GetView(ScriptObject *objj);
 int     Object_GetLoop(ScriptObject *objj);
 int     Object_GetFrame(ScriptObject *objj);
-int     Object_GetVisible(ScriptObject *objj);
+bool    Object_GetVisible(ScriptObject *objj);
 void    Object_SetGraphic(ScriptObject *objj, int slott);
 int     Object_GetGraphic(ScriptObject *objj);
 int     Object_GetX(ScriptObject *objj);

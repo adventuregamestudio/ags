@@ -1509,6 +1509,8 @@ namespace AGS.Editor
                 int flags = 0;
                 if (character.AdjustSpeedWithScaling) flags |= NativeConstants.CHF_SCALEMOVESPEED;
                 if (character.AdjustVolumeWithScaling) flags |= NativeConstants.CHF_SCALEVOLUME;
+                if (character.Enabled) flags |= NativeConstants.CHF_ENABLED;
+                if (character.Visible) flags |= NativeConstants.CHF_VISIBLE;
                 if (!character.Clickable) flags |= NativeConstants.CHF_NOINTERACT;
                 if (!character.DiagonalLoops) flags |= NativeConstants.CHF_NODIAGONAL;
                 if (character.MovementLinkedToAnimation) flags |= NativeConstants.CHF_ANTIGLIDE;

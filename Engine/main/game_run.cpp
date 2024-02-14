@@ -426,7 +426,7 @@ bool run_service_key_controls(KeyInput &out_key)
                 ff, objs[ff].x, objs[ff].y,
                 (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Width : 0),
                 (spriteset.DoesSpriteExist(objs[ff].num) ? game.SpriteInfos[objs[ff].num].Height : 0),
-                objs[ff].on,
+                objs[ff].is_enabled(),
                 (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
                 objs[ff].num, objs[ff].transparent,
                 ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1);

@@ -1243,15 +1243,15 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Room States",
-        kRoomStatSvgVersion_400,
-        kRoomStatSvgVersion_400,
+        kRoomStatSvgVersion_40003,
+        kRoomStatSvgVersion_40003,
         WriteRoomStates,
         ReadRoomStates
     },
     {
         "Loaded Room State",
-        kRoomStatSvgVersion_400, // must correspond to "Room States"
-        kRoomStatSvgVersion_400,
+        kRoomStatSvgVersion_40003, // must correspond to "Room States"
+        kRoomStatSvgVersion_40003,
         WriteThisRoom,
         ReadThisRoom
     },

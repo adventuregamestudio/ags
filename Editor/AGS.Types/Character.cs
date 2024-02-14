@@ -35,6 +35,8 @@ namespace AGS.Types
         private int _animationDelay = 4;
         private int _speechAnimationDelay = 5;
         private int _speechColor = 12;
+        private bool _enabled = true;
+        private bool _visible = true;
         private bool _solid = true;
         private bool _clickable = true;
         private bool _useRoomAreaScaling = true;
@@ -284,6 +286,22 @@ namespace AGS.Types
         {
             get { return _solid; }
             set { _solid = value; }
+        }
+
+        [Description("If true, this character will be initially visible and updated during game update.")]
+        [Category("Design")]
+        public bool Enabled
+        {
+            get { return _enabled; }
+            set { _enabled = value; }
+        }
+
+        [Description("If true, this character will be initially visible.")]
+        [Category("Design")]
+        public bool Visible
+        {
+            get { return _visible; }
+            set { _visible = value; }
         }
 
         [Description("If true, this character can be clicked on; otherwise mouse clicks will pass through it")]

@@ -144,7 +144,7 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
 
     // for each character in the current room, make the area under them unwalkable
     for (int ww = 0; ww < game.numcharacters; ww++) {
-        if (game.chars[ww].on != 1) continue;
+        if (!game.chars[ww].is_enabled()) continue;
         if (game.chars[ww].room != displayed_room) continue;
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
@@ -165,7 +165,7 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
 
     // check for any blocking objects in the room, and deal with them as well
     for (uint32_t ww = 0; ww < croom->numobj; ww++) {
-        if (objs[ww].on != 1) continue;
+        if (!objs[ww].is_enabled()) continue;
         if ((objs[ww].flags & OBJF_SOLID) == 0)
             continue;
         if (room_to_mask_coord(objs[ww].y) >= walkable_areas_temp->GetHeight()) continue;

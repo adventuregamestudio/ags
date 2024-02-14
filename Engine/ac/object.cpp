@@ -149,19 +149,8 @@ void Object_StopAnimating(ScriptObject *objj) {
     }
 }
 
-void Object_MergeIntoBackground(ScriptObject *objj) {
-    MergeObject(objj->id);
-}
-
 void Object_StopMoving(ScriptObject *objj) {
     StopObjectMoving(objj->id);
-}
-
-void Object_SetVisible(ScriptObject *objj, int onoroff) {
-    if (onoroff)
-        ObjectOn(objj->id);
-    else
-        ObjectOff(objj->id);
 }
 
 int Object_GetView(ScriptObject *objj) {
@@ -182,8 +171,32 @@ int Object_GetFrame(ScriptObject *objj) {
     return objs[objj->id].frame;
 }
 
-int Object_GetVisible(ScriptObject *objj) {
-    return IsObjectOn(objj->id);
+bool Object_GetEnabled(ScriptObject *objj) {
+    if (!is_valid_object(objj->id)) quit("!Object.GetEnabled: invalid object specified");
+    return objs[objj->id].is_enabled();
+}
+
+void Object_SetEnabled(ScriptObject *objj, bool on) {
+    if (!is_valid_object(objj->id)) quit("!Object.SetEnabled: invalid object specified");
+    if (objs[objj->id].is_enabled() != on)
+    {
+        objs[objj->id].set_enabled(on);
+        debug_script_log("Object %d enabled = %d", objj->id, on);
+    }
+}
+
+bool Object_GetVisible(ScriptObject *objj) {
+    if (!is_valid_object(objj->id)) quit("!Object.GetVisible: invalid object specified");
+    return objs[objj->id].is_visible();
+}
+
+void Object_SetVisible(ScriptObject *objj, bool on) {
+    if (!is_valid_object(objj->id)) quit("!Object.SetVisible: invalid object specified");
+    if (objs[objj->id].is_visible() != on)
+    {
+        objs[objj->id].set_visible(on);
+        debug_script_log("Object %d visible = %d", objj->id, on);
+    }
 }
 
 void Object_SetGraphic(ScriptObject *objj, int slott) {
@@ -540,7 +553,7 @@ void update_object_scale(int &res_zoom, int &res_width, int &res_height,
 void update_object_scale(int objid)
 {
     RoomObject &obj = objs[objid];
-    if (obj.on == 0)
+    if (!obj.is_enabled())
         return; // not enabled
 
     int zoom, scale_width, scale_height;
@@ -856,12 +869,6 @@ RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValu
     API_OBJCALL_BOOL_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
-// void (ScriptObject *objj)
-RuntimeScriptValue Sc_Object_MergeIntoBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID(ScriptObject, Object_MergeIntoBackground);
-}
-
 RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_BOOL_PINT(ScriptObject, Object_IsInteractionAvailable);
@@ -1035,6 +1042,16 @@ RuntimeScriptValue Sc_Object_SetClickable(void *self, const RuntimeScriptValue *
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable);
 }
 
+RuntimeScriptValue Sc_Object_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptObject, Object_GetEnabled);
+}
+
+RuntimeScriptValue Sc_Object_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetEnabled);
+}
+
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1153,13 +1170,13 @@ RuntimeScriptValue Sc_Object_GetView(void *self, const RuntimeScriptValue *param
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetVisible);
+    API_OBJCALL_BOOL(ScriptObject, Object_GetVisible);
 }
 
 // void (ScriptObject *objj, int onoroff)
 RuntimeScriptValue Sc_Object_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetVisible);
+    API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetVisible);
 }
 
 // int (ScriptObject *objj)
@@ -1239,7 +1256,6 @@ void RegisterObjectAPI()
         { "Object::SetProperty^2",            API_FN_PAIR(Object_SetProperty) },
         { "Object::SetTextProperty^2",        API_FN_PAIR(Object_SetTextProperty) },
         { "Object::IsInteractionAvailable^1", API_FN_PAIR(Object_IsInteractionAvailable) },
-        { "Object::MergeIntoBackground^0",    API_FN_PAIR(Object_MergeIntoBackground) },
         { "Object::Move^5",                   API_FN_PAIR(Object_Move) },
         { "Object::RemoveTint^0",             API_FN_PAIR(Object_RemoveTint) },
         { "Object::RunInteraction^1",         API_FN_PAIR(Object_RunInteraction) },
@@ -1260,6 +1276,8 @@ void RegisterObjectAPI()
         { "Object::set_BlockingWidth",        API_FN_PAIR(Object_SetBlockingWidth) },
         { "Object::get_Clickable",            API_FN_PAIR(Object_GetClickable) },
         { "Object::set_Clickable",            API_FN_PAIR(Object_SetClickable) },
+        { "Object::get_Enabled",              API_FN_PAIR(Object_GetEnabled) },
+        { "Object::set_Enabled",              API_FN_PAIR(Object_SetEnabled) },
         { "Object::get_Frame",                API_FN_PAIR(Object_GetFrame) },
         { "Object::get_Graphic",              API_FN_PAIR(Object_GetGraphic) },
         { "Object::set_Graphic",              API_FN_PAIR(Object_SetGraphic) },

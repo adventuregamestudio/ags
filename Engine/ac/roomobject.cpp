@@ -49,7 +49,6 @@ RoomObject::RoomObject()
     moving = -1;
     cycling = 0;
     overall_speed = 0;
-    on = 0;
     flags = 0;
     blocking_width = blocking_height = 0;
     blend_mode = kBlend_Normal;
@@ -78,7 +77,7 @@ int RoomObject::get_baseline() const {
 
 void RoomObject::UpdateCyclingView(int ref_id)
 {
-	if (on != 1) return;
+	if (!is_enabled()) return;
     if (moving>0) {
       do_movelist_move(moving, x, y);
     }
@@ -136,8 +135,17 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     moving = in->ReadInt16();
     cycling = in->ReadInt8();
     overall_speed = in->ReadInt8();
-    on = in->ReadInt8();
-    flags = in->ReadInt8();
+    if (cmp_ver >= kRoomStatSvgVersion_40003)
+    {
+        flags = in->ReadInt32();
+    }
+    else
+    {
+        uint8_t on = in->ReadInt8(); // old enabled + visible flag
+        flags = in->ReadInt8();
+        flags |= (OBJF_ENABLED | OBJF_VISIBLE) * on;
+    }
+
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();
     if (cmp_ver >= kRoomStatSvgVersion_36016)
@@ -201,8 +209,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
     out->WriteInt16(moving);
     out->WriteInt8(cycling);
     out->WriteInt8(overall_speed);
-    out->WriteInt8(on);
-    out->WriteInt8(flags);
+    out->WriteInt32(flags);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);
     // since version 1

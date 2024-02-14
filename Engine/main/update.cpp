@@ -169,7 +169,7 @@ void update_character_move_and_anim(std::vector<int> &followingAsSheep)
 {
 	// move & animate characters
   for (int aa=0;aa<game.numcharacters;aa++) {
-    if (game.chars[aa].on != 1) continue;
+    if (!game.chars[aa].is_enabled()) continue;
 
     CharacterInfo*chi    = &game.chars[aa];
 	CharacterExtras*chex = &charextra[aa];

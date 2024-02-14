@@ -1256,11 +1256,11 @@ const char *Character_GetScriptName(CharacterInfo *chin)
     return CreateNewScriptString(game.chars[chin->index_id].scrname);
 }
 
-int Character_GetEnabled(CharacterInfo *chaa) {
+bool Character_GetEnabled(CharacterInfo *chaa) {
     return chaa->is_enabled();
 }
 
-void Character_SetEnabled(CharacterInfo *chaa, int newval) {
+void Character_SetEnabled(CharacterInfo *chaa, bool newval) {
     chaa->set_enabled(newval);
 }
 
@@ -1567,11 +1567,11 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
     chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
-int Character_GetVisible(CharacterInfo *chaa) {
+bool Character_GetVisible(CharacterInfo *chaa) {
     return chaa->is_visible();
 }
 
-void Character_SetVisible(CharacterInfo *chaa, int newval) {
+void Character_SetVisible(CharacterInfo *chaa, bool newval) {
     chaa->set_visible(newval);
 }
 
@@ -2282,7 +2282,7 @@ int is_pos_on_character(int xx,int yy) {
     int cc,sppic,lowestyp=0,lowestwas=-1;
     for (cc=0;cc<game.numcharacters;cc++) {
         if (game.chars[cc].room!=displayed_room) continue;
-        if (!game.chars[cc].is_visible()) continue; // disabled or not visible
+        if (!game.chars[cc].is_displayed()) continue; // disabled or not visible
         if (game.chars[cc].flags & CHF_NOINTERACT) continue;
         if (game.chars[cc].view < 0) continue;
         CharacterInfo*chin=&game.chars[cc];
@@ -3535,12 +3535,12 @@ RuntimeScriptValue Sc_Character_SetDiagonalWalking(void *self, const RuntimeScri
 
 RuntimeScriptValue Sc_Character_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetEnabled);
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetEnabled);
 }
 
 RuntimeScriptValue Sc_Character_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetEnabled);
+    API_OBJCALL_VOID_PBOOL(CharacterInfo, Character_SetEnabled);
 }
 
 // int (CharacterInfo *chaa)
@@ -3849,12 +3849,12 @@ RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *pa
 
 RuntimeScriptValue Sc_Character_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetVisible);
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetVisible);
 }
 
 RuntimeScriptValue Sc_Character_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetVisible);
+    API_OBJCALL_VOID_PBOOL(CharacterInfo, Character_SetVisible);
 }
 
 // int (CharacterInfo *chaa)

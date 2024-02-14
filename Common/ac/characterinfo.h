@@ -133,9 +133,13 @@ struct CharacterInfo
     int get_blocking_top() const;    // return Y - BlockingHeight/2
     int get_blocking_bottom() const; // return Y + BlockingHeight/2
 
+    // Tells if the "enabled" flag is set
     inline bool is_enabled() const { return (flags & CHF_ENABLED) != 0; }
-    // Note that character is considered not visible if it is also not enabled
-    inline bool is_visible() const { return is_enabled() && (flags & CHF_VISIBLE) != 0; }
+    // Tells if the "visible" flag is set
+    inline bool is_visible() const { return (flags & CHF_VISIBLE) != 0; }
+    // Tells if the character is actually meant to be displayed on screen;
+    // this combines both "enabled" and "visible" factors.
+    inline bool is_displayed() const { return is_enabled() && is_visible(); }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }

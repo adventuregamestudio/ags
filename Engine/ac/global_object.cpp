@@ -74,7 +74,7 @@ int GetObjectIDAtRoom(int roomx, int roomy)
     int bestshotyp=-1,bestshotwas=-1;
     // Iterate through all objects in the room
     for (uint32_t aa=0;aa<croom->numobj;aa++) {
-        if (!objs[aa].is_visible()) continue; // disabled or invisible
+        if (!objs[aa].is_displayed()) continue; // disabled or invisible
         if (objs[aa].flags & OBJF_NOINTERACT)
             continue;
         int xxx=objs[aa].x,yyy=objs[aa].y;

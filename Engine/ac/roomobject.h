@@ -68,9 +68,13 @@ struct RoomObject {
     int get_height() const;
     int get_baseline() const;
 
+    // Tells if the "enabled" flag is set
     inline bool is_enabled() const { return (flags & OBJF_ENABLED) != 0; }
-    // Note that character is considered not visible if it is also not enabled
-    inline bool is_visible() const { return is_enabled() && (flags & OBJF_VISIBLE) != 0; }
+    // Tells if the "visible" flag is set
+    inline bool is_visible() const { return (flags & OBJF_VISIBLE) != 0; }
+    // Tells if the object is actually meant to be displayed on screen;
+    // this combines both "enabled" and "visible" factors.
+    inline bool is_displayed() const { return is_enabled() && is_visible(); }
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
     inline bool is_animating()       const { return (cycling > 0); }

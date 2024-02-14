@@ -171,12 +171,12 @@ int Object_GetFrame(ScriptObject *objj) {
     return objs[objj->id].frame;
 }
 
-int Object_GetEnabled(ScriptObject *objj) {
+bool Object_GetEnabled(ScriptObject *objj) {
     if (!is_valid_object(objj->id)) quit("!Object.GetEnabled: invalid object specified");
-    return objs[objj->id].is_enabled() ? 1 : 0;
+    return objs[objj->id].is_enabled();
 }
 
-void Object_SetEnabled(ScriptObject *objj, int on) {
+void Object_SetEnabled(ScriptObject *objj, bool on) {
     if (!is_valid_object(objj->id)) quit("!Object.SetEnabled: invalid object specified");
     if (objs[objj->id].is_enabled() != on)
     {
@@ -185,12 +185,12 @@ void Object_SetEnabled(ScriptObject *objj, int on) {
     }
 }
 
-int Object_GetVisible(ScriptObject *objj) {
+bool Object_GetVisible(ScriptObject *objj) {
     if (!is_valid_object(objj->id)) quit("!Object.GetVisible: invalid object specified");
-    return objs[objj->id].is_visible() ? 1 : 0;
+    return objs[objj->id].is_visible();
 }
 
-void Object_SetVisible(ScriptObject *objj, int on) {
+void Object_SetVisible(ScriptObject *objj, bool on) {
     if (!is_valid_object(objj->id)) quit("!Object.SetVisible: invalid object specified");
     if (objs[objj->id].is_visible() != on)
     {
@@ -1044,12 +1044,12 @@ RuntimeScriptValue Sc_Object_SetClickable(void *self, const RuntimeScriptValue *
 
 RuntimeScriptValue Sc_Object_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetEnabled);
+    API_OBJCALL_BOOL(ScriptObject, Object_GetEnabled);
 }
 
 RuntimeScriptValue Sc_Object_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetEnabled);
+    API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetEnabled);
 }
 
 // int (ScriptObject *objj)
@@ -1170,13 +1170,13 @@ RuntimeScriptValue Sc_Object_GetView(void *self, const RuntimeScriptValue *param
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetVisible);
+    API_OBJCALL_BOOL(ScriptObject, Object_GetVisible);
 }
 
 // void (ScriptObject *objj, int onoroff)
 RuntimeScriptValue Sc_Object_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetVisible);
+    API_OBJCALL_VOID_PBOOL(ScriptObject, Object_SetVisible);
 }
 
 // int (ScriptObject *objj)

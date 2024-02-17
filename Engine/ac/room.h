@@ -74,7 +74,7 @@ int mask_to_room_coord(int coord);
 
 struct MoveList;
 // Convert move path from room's mask resolution to room resolution
-void convert_move_path_to_room_resolution(MoveList *ml);
+void convert_move_path_to_room_resolution(MoveList *ml, int from_step = 0, int to_step = -1);
 
 extern AGS::Common::RoomStruct thisroom;
 

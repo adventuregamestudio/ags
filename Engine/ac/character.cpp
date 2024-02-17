@@ -183,9 +183,9 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    cmls->pos[cmls->numstage] = { x, y };
     // They're already walking there anyway
-    if (cmls->pos[cmls->numstage] == cmls->pos[cmls->numstage - 1])
+    const Point &last_pos = cmls->GetLastPos();
+    if (last_pos == Point(x, y))
         return;
 
     int move_speed_x, move_speed_y;
@@ -195,9 +195,18 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname);
     }
 
-    calculate_move_stage(cmls, cmls->numstage-1, move_speed_x, move_speed_y);
-    cmls->numstage ++;
-
+    // There's an issue: the existing movelist is converted to room resolution,
+    // so we do this trick: convert last step to mask resolution, before calling
+    // a pathfinder api, and then we'll convert old and new last step back.
+    // TODO: figure out a better way of processing this!
+    const int last_stage = cmls->numstage - 1;
+    cmls->pos[last_stage] = { room_to_mask_coord(last_pos.X), room_to_mask_coord(last_pos.Y) };
+    const int dst_x = room_to_mask_coord(x);
+    const int dst_y = room_to_mask_coord(y);
+    if (add_waypoint_direct(cmls, dst_x, dst_y, move_speed_x, move_speed_y))
+    {
+        convert_move_path_to_room_resolution(cmls, last_stage, last_stage + 1);
+    }
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
@@ -1701,14 +1710,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
 
     chin->flags &= ~CHF_MOVENOTWALK;
 
-    // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
-    const int toxPassedIn = tox, toyPassedIn = toy;
-    const int charX = room_to_mask_coord(chin->x);
-    const int charY = room_to_mask_coord(chin->y);
-    tox = room_to_mask_coord(tox);
-    toy = room_to_mask_coord(toy);
-
-    if ((tox == charX) && (toy == charY)) {
+    if ((tox == chin->x) && (toy == chin->y)) {
         StopMoving(chac);
         debug_script_log("%s already at destination, not moving", chin->scrname);
         return;
@@ -1742,7 +1744,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     chin->frame = oldframe;
     // use toxPassedIn cached variable so the hi-res co-ordinates
     // are still displayed as such
-    debug_script_log("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
+    debug_script_log("%s: Start move to %d,%d", chin->scrname, tox, toy);
 
     int move_speed_x, move_speed_y;
     chin->get_effective_walkspeeds(move_speed_x, move_speed_y);
@@ -1751,7 +1753,13 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", chin->scrname);
     }
 
-    int mslot = find_route(charX, charY, tox, toy, move_speed_x, move_speed_y,
+    // Convert src and dest coords to the mask resolution, for pathfinder
+    const int src_x = room_to_mask_coord(chin->x);
+    const int src_y = room_to_mask_coord(chin->y);
+    const int dst_x = room_to_mask_coord(tox);
+    const int dst_y = room_to_mask_coord(toy);
+
+    int mslot = find_route(src_x, src_y, dst_x, dst_y, move_speed_x, move_speed_y,
         prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
     if (mslot>0) {
         chin->walking = mslot;

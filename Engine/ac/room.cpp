@@ -1062,30 +1062,41 @@ int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
-void convert_move_path_to_room_resolution(MoveList *ml)
+void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_step)
 {
+    if (to_step < 0)
+        to_step = ml->numstage;
+    to_step = Math::Clamp(to_step, 0, ml->numstage - 1);
+    from_step = Math::Clamp(from_step, 0, to_step);
+
+    // If speed is independent from MaskResolution...
     if ((game.options[OPT_WALKSPEEDABSOLUTE] != 0) && game.GetDataUpscaleMult() > 1)
-    { // Speeds are independent from MaskResolution
-        for (int i = 0; i < ml->numstage; i++)
+    {
+        for (int i = from_step; i <= to_step; i++)
         { // ...we still need to convert from game to data coords
             ml->xpermove[i] = game_to_data_coord(ml->xpermove[i]);
             ml->ypermove[i] = game_to_data_coord(ml->ypermove[i]);
         }
     }
 
+    // Skip the conversion if these are equal, as they are multiplier and divisor
     if (thisroom.MaskResolution == game.GetDataUpscaleMult())
         return;
 
-    ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+    if (from_step == 0)
+    {
+        ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+    }
 
-    for (int i = 0; i < ml->numstage; i++)
+    for (int i = from_step; i <= to_step; i++)
     {
         ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
     }
 
+    // If speed is scaling with MaskResolution...
     if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)
-    { // Speeds are scaling with MaskResolution
-        for (int i = 0; i < ml->numstage; i++)
+    {
+        for (int i = from_step; i <= to_step; i++)
         {
             ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
             ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);

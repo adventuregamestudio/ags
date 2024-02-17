@@ -48,8 +48,6 @@ static int *pathbacky = nullptr;
 static int waspossible = 1;
 static int suggestx;
 static int suggesty;
-static fixed move_speed_x;
-static fixed move_speed_y;
 
 void init_pathfinder()
 {
@@ -641,15 +639,8 @@ inline fixed input_speed_to_fixed(int speed_val)
   }
 }
 
-void set_route_move_speed(int speed_x, int speed_y)
-{
-  move_speed_x = input_speed_to_fixed(speed_x);
-  move_speed_y = input_speed_to_fixed(speed_y);
-}
-
-// Calculates the X and Y per game loop, for this stage of the
-// movelist
-void calculate_move_stage(MoveList * mlsp, int aaa)
+// Calculates the X and Y per game loop, for this stage of the movelist
+void calculate_move_stage_intern(MoveList *mlsp, int aaa, fixed move_speed_x, fixed move_speed_y)
 {
   assert(mlsp != nullptr);
   
@@ -732,8 +723,14 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 #endif
 }
 
+void calculate_move_stage(MoveList *mlsp, int aaa, int move_speed_x, int move_speed_y)
+{
+    calculate_move_stage_intern(mlsp, aaa,
+        input_speed_to_fixed(move_speed_x), input_speed_to_fixed(move_speed_y));
+}
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+    Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
 {
   assert(onscreen != nullptr);
   assert((move_id >= 0) && (mls.size() > static_cast<size_t>(move_id)));
@@ -858,8 +855,10 @@ stage_again:
     AGS::Common::Debug::Printf("stages: %d\n",numstages);
 #endif
 
+    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
+    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
     for (aaa = 0; aaa < numstages - 1; aaa++) {
-      calculate_move_stage(&mlist, aaa);
+      calculate_move_stage_intern(&mlist, aaa, fix_speed_x, fix_speed_y);
     }
 
     mlist.from = { orisrcx, orisrcy };

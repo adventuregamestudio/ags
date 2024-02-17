@@ -44,7 +44,6 @@ namespace RouteFinder {
 static const int MAXNAVPOINTS = MAXNEEDSTAGES;
 static int navpoints[MAXNAVPOINTS];
 static int num_navpoints;
-static fixed move_speed_x, move_speed_y;
 static Navigation nav;
 static Bitmap *wallscreen;
 static int lastcx, lastcy;
@@ -118,27 +117,19 @@ static int find_route_jps(int fromx, int fromy, int destx, int desty)
   return 1;
 }
 
-void set_route_move_speed(int speed_x, int speed_y)
+inline fixed input_speed_to_fixed(int speed_val)
 {
   // negative move speeds like -2 get converted to 1/2
-  if (speed_x < 0) {
-    move_speed_x = itofix(1) / (-speed_x);
+  if (speed_val < 0) {
+    return itofix(1) / (-speed_val);
   }
   else {
-    move_speed_x = itofix(speed_x);
-  }
-
-  if (speed_y < 0) {
-    move_speed_y = itofix(1) / (-speed_y);
-  }
-  else {
-    move_speed_y = itofix(speed_y);
+    return itofix(speed_val);
   }
 }
 
-// Calculates the X and Y per game loop, for this stage of the
-// movelist
-void calculate_move_stage(MoveList * mlsp, int aaa)
+// Calculates the X and Y per game loop, for this stage of the movelist
+void calculate_move_stage_intern(MoveList *mlsp, int aaa, fixed move_speed_x, fixed move_speed_y)
 {
   // work out the x & y per move. First, opp/adj=tan, so work out the angle
   if (mlsp->pos[aaa] == mlsp->pos[aaa + 1]) {
@@ -213,11 +204,15 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
   mlsp->ypermove[aaa] = newymove;
 }
 
-
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+void calculate_move_stage(MoveList *mlsp, int aaa, int move_speed_x, int move_speed_y)
 {
-  int i;
+    calculate_move_stage_intern(mlsp, aaa,
+        input_speed_to_fixed(move_speed_x), input_speed_to_fixed(move_speed_y));
+}
 
+int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+    Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+{
   wallscreen = onscreen;
 
   num_navpoints = 0;
@@ -254,8 +249,11 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
 #endif
 
-  for (i=0; i<num_navpoints-1; i++)
-    calculate_move_stage(&mls[mlist], i);
+  const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
+  const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
+  for (int i=0; i<num_navpoints-1; i++) {
+    calculate_move_stage_intern(&mls[mlist], i, fix_speed_x, fix_speed_y);
+  }
 
   mls[mlist].fromx = srcx;
   mls[mlist].fromy = srcy;

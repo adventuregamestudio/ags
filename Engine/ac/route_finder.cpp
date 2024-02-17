@@ -29,9 +29,9 @@ public:
     virtual void set_wallscreen(Bitmap *wallscreen) = 0;
     virtual int can_see_from(int x1, int y1, int x2, int y2) = 0;
     virtual void get_lastcpos(int &lastcx, int &lastcy) = 0;
-    virtual void set_route_move_speed(int speed_x, int speed_y) = 0;
-    virtual int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) = 0;
-    virtual void calculate_move_stage(MoveList * mlsp, int aaa) = 0;
+    virtual int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+        Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) = 0;
+    virtual void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y) = 0;
 };
 
 class AGSRouteFinder : public IRouteFinder 
@@ -57,17 +57,15 @@ public:
     { 
         AGS::Engine::RouteFinder::get_lastcpos(lastcx, lastcy); 
     }
-    void set_route_move_speed(int speed_x, int speed_y) override
+    int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+        Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) override
     { 
-        AGS::Engine::RouteFinder::set_route_move_speed(speed_x, speed_y); 
+        return AGS::Engine::RouteFinder::find_route(srcx, srcy, xx, yy,
+            move_speed_x, move_speed_y, onscreen, movlst, nocross, ignore_walls); 
     }
-    int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) override
+    void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y) override
     { 
-        return AGS::Engine::RouteFinder::find_route(srcx, srcy, xx, yy, onscreen, movlst, nocross, ignore_walls); 
-    }
-    void calculate_move_stage(MoveList * mlsp, int aaa) override
-    { 
-        AGS::Engine::RouteFinder::calculate_move_stage(mlsp, aaa); 
+        AGS::Engine::RouteFinder::calculate_move_stage(mlsp, aaa, move_speed_x, move_speed_y); 
     }
 };
 
@@ -94,17 +92,15 @@ public:
     { 
         AGS::Engine::RouteFinderLegacy::get_lastcpos(lastcx, lastcy); 
     }
-    void set_route_move_speed(int speed_x, int speed_y) override
+    int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+        Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) override
     { 
-        AGS::Engine::RouteFinderLegacy::set_route_move_speed(speed_x, speed_y); 
+        return AGS::Engine::RouteFinderLegacy::find_route(srcx, srcy, xx, yy,
+            move_speed_x, move_speed_y, onscreen, movlst, nocross, ignore_walls); 
     }
-    int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) override
+    void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y) override
     { 
-        return AGS::Engine::RouteFinderLegacy::find_route(srcx, srcy, xx, yy, onscreen, movlst, nocross, ignore_walls); 
-    }
-    void calculate_move_stage(MoveList * mlsp, int aaa) override
-    { 
-        AGS::Engine::RouteFinderLegacy::calculate_move_stage(mlsp, aaa); 
+        AGS::Engine::RouteFinderLegacy::calculate_move_stage(mlsp, aaa, move_speed_x, move_speed_y); 
     }
 };
 
@@ -147,17 +143,14 @@ void get_lastcpos(int &lastcx, int &lastcy)
     route_finder_impl->get_lastcpos(lastcx, lastcy);
 }
 
-void set_route_move_speed(int speed_x, int speed_y)
+int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+    Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
-    route_finder_impl->set_route_move_speed(speed_x, speed_y);
+    return route_finder_impl->find_route(srcx, srcy, xx, yy, move_speed_x, move_speed_y,
+        onscreen, movlst, nocross, ignore_walls);
 }
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y)
 {
-    return route_finder_impl->find_route(srcx, srcy, xx, yy, onscreen, movlst, nocross, ignore_walls);
-}
-
-void calculate_move_stage(MoveList * mlsp, int aaa)
-{
-    route_finder_impl->calculate_move_stage(mlsp, aaa);
+    route_finder_impl->calculate_move_stage(mlsp, aaa, move_speed_x, move_speed_y);
 }

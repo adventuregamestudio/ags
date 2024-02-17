@@ -52,8 +52,6 @@ static int *pathbacky = nullptr;
 static int waspossible = 1;
 static int suggestx;
 static int suggesty;
-static fixed move_speed_x;
-static fixed move_speed_y;
 
 void init_pathfinder()
 {
@@ -638,27 +636,19 @@ findroutebk:
   return 1;
 }
 
-void set_route_move_speed(int speed_x, int speed_y)
+inline fixed input_speed_to_fixed(int speed_val)
 {
   // negative move speeds like -2 get converted to 1/2
-  if (speed_x < 0) {
-    move_speed_x = itofix(1) / (-speed_x);
+  if (speed_val < 0) {
+    return itofix(1) / (-speed_val);
   }
   else {
-    move_speed_x = itofix(speed_x);
-  }
-
-  if (speed_y < 0) {
-    move_speed_y = itofix(1) / (-speed_y);
-  }
-  else {
-    move_speed_y = itofix(speed_y);
+    return itofix(speed_val);
   }
 }
 
-// Calculates the X and Y per game loop, for this stage of the
-// movelist
-void calculate_move_stage(MoveList * mlsp, int aaa)
+// Calculates the X and Y per game loop, for this stage of the movelist
+void calculate_move_stage_intern(MoveList *mlsp, int aaa, fixed move_speed_x, fixed move_speed_y)
 {
   assert(mlsp != nullptr);
   
@@ -741,10 +731,16 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 #endif
 }
 
+void calculate_move_stage(MoveList *mlsp, int aaa, int move_speed_x, int move_speed_y)
+{
+    calculate_move_stage_intern(mlsp, aaa,
+        input_speed_to_fixed(move_speed_x), input_speed_to_fixed(move_speed_y));
+}
 
 #define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+    Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
   assert(onscreen != nullptr);
   assert((movlst >= 0) && (mls.size() > static_cast<size_t>(movlst)));
@@ -867,8 +863,10 @@ stage_again:
     AGS::Common::Debug::Printf("stages: %d\n",numstages);
 #endif
 
+    const fixed fix_speed_x = input_speed_to_fixed(move_speed_x);
+    const fixed fix_speed_y = input_speed_to_fixed(move_speed_y);
     for (aaa = 0; aaa < numstages - 1; aaa++) {
-      calculate_move_stage(&mls[mlist], aaa);
+      calculate_move_stage_intern(&mls[mlist], aaa, fix_speed_x, fix_speed_y);
     }
 
     mls[mlist].fromx = orisrcx;

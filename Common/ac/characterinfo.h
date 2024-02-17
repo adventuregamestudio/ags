@@ -147,6 +147,13 @@ struct CharacterInfo
     int get_blocking_top() const;    // return Y - BlockingHeight/2
     int get_blocking_bottom() const; // return Y + BlockingHeight/2
 
+    // Returns effective x/y walkspeeds for this character
+    void get_effective_walkspeeds(int &walk_speed_x, int &walk_speed_y) const
+    {
+        walk_speed_x = walkspeed;
+        walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
+    }
+
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }

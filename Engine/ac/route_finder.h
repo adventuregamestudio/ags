@@ -31,6 +31,7 @@ void get_lastcpos(int &lastcx, int &lastcy);
 
 int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
     AGS::Common::Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0);
-void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y);
+// Append a waypoint to the move list, skip pathfinding
+bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y);
 
 #endif // __AC_ROUTEFND_H

@@ -1057,35 +1057,49 @@ AGS_INLINE int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution / game.GetDataUpscaleMult();
 }
 
-void convert_move_path_to_room_resolution(MoveList *ml)
+void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_step)
 {
+    if (to_step < 0)
+        to_step = ml->numstage;
+    to_step = Math::Clamp(to_step, 0, ml->numstage - 1);
+    from_step = Math::Clamp(from_step, 0, to_step);
+
+    // If speed is independent from MaskResolution...
     if ((game.options[OPT_WALKSPEEDABSOLUTE] != 0) && game.GetDataUpscaleMult() > 1)
-    { // Speeds are independent from MaskResolution
-        for (int i = 0; i < ml->numstage; i++)
+    {
+        for (int i = from_step; i <= to_step; i++)
         { // ...so they are not multiplied by MaskResolution factor when converted to room coords
             ml->xpermove[i] = ml->xpermove[i] / game.GetDataUpscaleMult();
             ml->ypermove[i] = ml->ypermove[i] / game.GetDataUpscaleMult();
         }
     }
 
+    // Skip the conversion if these are equal, as they are multiplier and divisor
     if (thisroom.MaskResolution == game.GetDataUpscaleMult())
         return;
 
-    ml->fromx = mask_to_room_coord(ml->fromx);
-    ml->fromy = mask_to_room_coord(ml->fromy);
-    ml->lastx = mask_to_room_coord(ml->lastx);
-    ml->lasty = mask_to_room_coord(ml->lasty);
+    if (from_step == 0)
+    {
+        ml->fromx = mask_to_room_coord(ml->fromx);
+        ml->fromy = mask_to_room_coord(ml->fromy);
+    }
+    if (to_step == ml->numstage - 1)
+    {
+        ml->lastx = mask_to_room_coord(ml->lastx);
+        ml->lasty = mask_to_room_coord(ml->lasty);
+    }
 
-    for (int i = 0; i < ml->numstage; i++)
+    for (int i = from_step; i <= to_step; i++)
     {
         uint16_t lowPart = mask_to_room_coord(ml->pos[i] & 0x0000ffff);
         uint16_t highPart = mask_to_room_coord((ml->pos[i] >> 16) & 0x0000ffff);
         ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
     }
 
+    // If speed is scaling with MaskResolution...
     if (game.options[OPT_WALKSPEEDABSOLUTE] == 0)
-    { // Speeds are scaling with MaskResolution
-        for (int i = 0; i < ml->numstage; i++)
+    {
+        for (int i = from_step; i <= to_step; i++)
         {
             ml->xpermove[i] = mask_to_room_coord(ml->xpermove[i]);
             ml->ypermove[i] = mask_to_room_coord(ml->ypermove[i]);

@@ -49,6 +49,6 @@ jobs:
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
         pip install tap.py
-        curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/auto-test.ags
+        curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags4-auto-test.ags
         ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags        
         tappy agstest.tap

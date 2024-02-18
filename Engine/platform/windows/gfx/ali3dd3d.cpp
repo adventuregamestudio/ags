@@ -675,6 +675,7 @@ void D3DGraphicsDriver::SetupViewport()
   direct3ddevice->GetRenderTarget(0, &backbuffer);
   _screenBackbuffer = BackbufferState(backbuffer, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
       _dstRect, mat_ortho, _scaling, _filter ? _filter->GetSamplerStateForStandardSprite() : D3DTEXF_POINT);
+  backbuffer->Release();
 
   // View and Projection matrixes are currently fixed in Direct3D renderer
   _stageMatrixes.View = identity;
@@ -772,8 +773,8 @@ HRESULT D3DGraphicsDriver::ResetD3DDevice()
     {
         DestroyDDB(_nativeSurface);
         _nativeSurface = nullptr;
-        _nativeBackbuffer = BackbufferState();
     }
+    _nativeBackbuffer = BackbufferState();
     ReleaseRenderTargetData();
     HRESULT hr = direct3ddevice->Reset(&d3dpp);
     if (hr != D3D_OK)

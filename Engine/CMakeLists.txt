@@ -375,6 +375,8 @@ target_sources(engine
     media/video/theora_player.h
     media/video/video.cpp
     media/video/video.h
+    media/video/video_core.cpp
+    media/video/video_core.h
     media/video/videoplayer.cpp
     media/video/videoplayer.h
     platform/base/agsplatformdriver.cpp
@@ -415,6 +417,7 @@ target_sources(engine
     util/library_posix.h
     util/sdl2_util.h
     util/sdl2_util.cpp
+    util/threading.h
 
     platform/windows/acplwin.cpp
     platform/windows/debug/namedpipesagsdebugger.cpp

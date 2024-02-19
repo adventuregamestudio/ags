@@ -48,6 +48,7 @@ namespace Engine
 
 enum VideoFlags
 {
+    kVideo_None           = 0,
     kVideo_EnableVideo    = 0x0001,
     kVideo_EnableAudio    = 0x0002,
     kVideo_Loop           = 0x0004,

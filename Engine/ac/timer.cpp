@@ -18,6 +18,7 @@
 #include "platform/base/agsplatformdriver.h"
 #if defined(AGS_DISABLE_THREADS)
 #include "media/audio/audio_core.h"
+#include "media/video/video_core.h"
 #endif
 #if AGS_PLATFORM_OS_EMSCRIPTEN
 #include "SDL.h"
@@ -71,6 +72,7 @@ void WaitForNextFrame()
     // Do the last polls on this frame, if necessary
 #if defined(AGS_DISABLE_THREADS)
     audio_core_entry_poll();
+    video_core_entry_poll();
 #endif
 
     const auto now = AGS_Clock::now();

@@ -78,7 +78,7 @@ void PlayFlic(int numb, int scr_flags)
 
     HError err = play_flc_video(numb, flags, skip);
     if (!err)
-        debug_script_warn("Failed to play FLIC %n: %s", numb, err->FullMessage().GetCStr());
+        debug_script_warn("Failed to play FLIC %d: %s", numb, err->FullMessage().GetCStr());
 }
 
 void PlayVideo(const char* name, int skip, int scr_flags) {

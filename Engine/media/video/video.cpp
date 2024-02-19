@@ -297,6 +297,7 @@ HError FlicPlayer::OpenImpl(const AGS::Common::String &name, int& /*flags*/)
 
 void FlicPlayer::CloseImpl()
 {
+    close_fli();
     if (_pf)
         pack_fclose(_pf);
     _pf = nullptr;

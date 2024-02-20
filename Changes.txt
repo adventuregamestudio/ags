@@ -79,11 +79,8 @@ Editor:
    a pre-3.* game project.
  - Fixed importing GIFs or 8-bit PNGs may lose transparent pixels if source images used
    other palette index than 0 for transparency.
- - Fixed a warning condition for copying 32-bit bitmaps to a desktop clipboard of less color depth.
  - Fixed Project Explorer's folders collapsing after certain user actions, such as dragging
    items or renaming things.
- - Fixed a rare exception when scrolling the room in the editor.
- - Fixed keyboard shortcuts for GUI Editor's Copy and Paste commands.
  - Fixed deleting collapsed "region" in script would sometimes lead to portion of the script
    undeleted but staying invisible.
  - (Possibly) Fixed a "Index out of range" exception in Script editor, related to the
@@ -91,13 +88,9 @@ Editor:
    working with the script, and any Color Theme is enabled.
  - Fixed Editor could miss some of the files when cleaning up old compiled files after the
    Game's Filename property is changed.
- - Fixed "Auto-number speech lines" and "Create voice acting script" operations failing
-   if a Character's name contains underscore.
 
 Scripting:
  - Support "#else" preprocessor directive.
- - Fixed escaped character literals not being parsed correctly. This makes character literals
-   like '\n' and '\t' actually work in script.
 
 Script API:
  - Implemented Room's "After fade-out" event.
@@ -136,8 +129,6 @@ Engine:
    keeps textures generated from raw sprites and lets reusing them, improving performance
    and reducing CPU workload. The actual impact is proportional to the game's resolution and
    amount of simultaneously animated objects on screen.
- - Improved OpenGL texture management, which should result in less system and video memory
-   spent on sprite textures.
  - WFN font renderer now too supports unicode mode and renders texts in utf-8, so long as the
    font contains glyphs of corresponding indexes.
  - Buttons, ListBoxes and TextBoxes now support Right-to-left text direction.
@@ -146,8 +137,6 @@ Engine:
    which makes them platform-independent.
  - Removed an automatic SetRestartPoint() call at startup. This is done in case user does not want
    to use default "restart" save slot, or has a custom save system.
- - Fixed NumPad keys not handled properly by the engine (in on_key_press, IsKeyPressed, and TextBox
-   control). This is a regression since 3.6.0.
  - Support handling multiple mouse clicks per game frame, similar to how multiple key presses
    were supported since 3.6.0.
  - When starting up, engine will now precache only first 4 or 8 loops of the starting player
@@ -200,8 +189,6 @@ Engine:
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
- - Fixed OpenGL renderer causing scaled sprites to have colored outlines sometimes while using
-   Linear filter.
 
 Engine Plugin API:
  - Added IAGSStream interface, IAGSEngine.OpenFileStream() and GetFileStreamByHandle().
@@ -235,6 +222,44 @@ Web / Emscripten:
 WinSetup:
  - Added options for setting texture cache and sound cache size.
  - Added options to disable particular graphic drivers and graphic driver selection.
+
+
+VERSION 3.6.0 - Patch 10, February 2024
+
+Editor:
+ - Fixed a warning condition for copying 32-bit bitmaps to a desktop clipboard of less color depth.
+ - Fixed keyboard shortcuts for GUI Editor's Copy and Paste commands.
+ - Fixed a rare exception when scrolling the room in the editor.
+ - Fixed "Auto-number speech lines" and "Create voice acting script" operations failing
+   if a Character's name contains underscore.
+
+Compiler:
+ - Fixed escaped character literals not being parsed correctly. This makes character literals
+   like '\n' and '\t' actually work in script.
+
+Engine:
+ - Updated SDL_Sound library to 2.0.3.
+ - Improved OpenGL texture management, which should result in less system and video memory
+   spent on sprite textures.
+ - Fixed Character.AddWaypoint() potentially using wrong walkspeed, if multiple characters or
+   objects are ordered to start a non-blocking move in a mixed order.
+ - Fixed Character.AddWaypoint() is using incorrect speed if this room has a non 1:1 mask
+   resolution, and "Scale speed with mask resolution" setting is enabled.
+ - Fixed Overlay.Create() crashing the engine if a non-existing sprite is passed as an argument.
+ - Fixed Say("...") command get stuck in endless loop if Speech.DisplayPostTimeMs is non-zero.
+ - Fixed PlayFlic() not working if called second time in game.
+   This is likely a regression since 3.6.0.
+ - Fixed NumPad keys not handled properly by the engine (in on_key_press, IsKeyPressed, and TextBox
+   control). This is a regression since 3.6.0.
+ - Fixed OpenGL renderer causing scaled sprites to have colored outlines sometimes while using
+   Linear filter.
+
+
+VERSION 3.6.0 - Patch 9, January 2024
+
+Engine:
+ - Fixed engine incorrectly reporting a script loading error, which may occur if the total size of
+   script's global variables is bigger than the size of the compiled bytecode.
 
 
 VERSION 3.6.0 - Patch 8, January 2024

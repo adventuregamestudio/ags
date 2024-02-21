@@ -457,13 +457,14 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
+    // Convert src and dest coords to the mask resolution, for pathfinder
     // NOTE: for old games we assume the input coordinates are in the "data" coordinate system
-    const int objX = room_to_mask_coord(objs[objj].x);
-    const int objY = room_to_mask_coord(objs[objj].y);
-    tox = room_to_mask_coord(tox);
-    toy = room_to_mask_coord(toy);
+    const int src_x = room_to_mask_coord(objs[objj].x);
+    const int src_y = room_to_mask_coord(objs[objj].y);
+    const int dst_x = room_to_mask_coord(tox);
+    const int dst_y = room_to_mask_coord(toy);
 
-    int mslot = find_route(objX, objY, tox, toy, spee, spee, prepare_walkable_areas(-1), objj+1, 1, ignwal);
+    int mslot = find_route(src_x, src_y, dst_x, dst_y, spee, spee, prepare_walkable_areas(-1), objj+1, 1, ignwal);
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;

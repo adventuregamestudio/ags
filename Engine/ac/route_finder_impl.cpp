@@ -165,7 +165,7 @@ inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist,
 }
 
 // Calculates the X and Y per game loop, for this stage of the movelist
-void calculate_move_stage_intern(MoveList *mlsp, int index, float move_speed_x, float move_speed_y)
+void calculate_move_stage(MoveList *mlsp, int index, float move_speed_x, float move_speed_y)
 {
   // work out the x & y per move. First, opp/adj=tan, so work out the angle
   if (mlsp->pos[index] == mlsp->pos[index + 1]) {
@@ -220,12 +220,6 @@ void calculate_move_stage_intern(MoveList *mlsp, int index, float move_speed_x, 
 
   mlsp->xpermove[index] = newxmove;
   mlsp->ypermove[index] = newymove;
-}
-
-void calculate_move_stage(MoveList *mlsp, int aaa, int move_speed_x, int move_speed_y)
-{
-    calculate_move_stage_intern(mlsp, aaa,
-        input_speed_to_move(move_speed_x), input_speed_to_move(move_speed_y));
 }
 
 void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
@@ -320,11 +314,24 @@ int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int
   const float fspeed_x = input_speed_to_move(move_speed_x);
   const float fspeed_y = input_speed_to_move(move_speed_y);
   for (int i=0; i<num_navpoints-1; i++)
-    calculate_move_stage_intern(&mlist, i, fspeed_x, fspeed_y);
+    calculate_move_stage(&mlist, i, fspeed_x, fspeed_y);
 
   mlist.from = { srcx, srcy };
   mls[move_id] = mlist;
   return move_id;
+}
+
+bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y)
+{
+  if (mlsp->numstage >= MAXNEEDSTAGES)
+    return false;
+
+  const float fspeed_x = input_speed_to_move(move_speed_x);
+  const float fspeed_y = input_speed_to_move(move_speed_y);
+  mlsp->pos[mlsp->numstage] = { x, y };
+  calculate_move_stage(mlsp, mlsp->numstage - 1, fspeed_x, fspeed_y);
+  mlsp->numstage++;
+  return true;
 }
 
 

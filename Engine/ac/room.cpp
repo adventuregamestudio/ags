@@ -947,14 +947,22 @@ int mask_to_room_coord(int coord)
     return coord * thisroom.MaskResolution;
 }
 
-void convert_move_path_to_room_resolution(MoveList *ml)
+void convert_move_path_to_room_resolution(MoveList *ml, int from_step, int to_step)
 {
     if (thisroom.MaskResolution <= 1)
-        return;
+        return; // it's 1:1 ratio, no need to convert
 
-    ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+    if (to_step < 0)
+        to_step = ml->numstage;
+    to_step = Math::Clamp(to_step, 0, ml->numstage - 1);
+    from_step = Math::Clamp(from_step, 0, to_step);
 
-    for (int i = 0; i < ml->numstage; i++)
+    if (from_step == 0)
+    {
+        ml->from = { mask_to_room_coord(ml->from.X), mask_to_room_coord(ml->from.Y) };
+    }
+
+    for (int i = from_step; i <= to_step; i++)
     {
         ml->pos[i] = { mask_to_room_coord(ml->pos[i].X), mask_to_room_coord(ml->pos[i].Y) };
     }

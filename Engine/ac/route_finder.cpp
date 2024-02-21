@@ -30,7 +30,8 @@ public:
     virtual void get_lastcpos(int &lastcx, int &lastcy) = 0;
     virtual int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
         Bitmap *onscreen, int movlst, int nocross = 0, int ignore_walls = 0) = 0;
-    virtual void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y) = 0;
+    // Append a waypoint to the move list, skip pathfinding
+    virtual bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y) = 0;
     virtual void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) = 0;
 };
 
@@ -63,9 +64,9 @@ public:
         return AGS::Engine::RouteFinder::find_route(srcx, srcy, xx, yy,
             move_speed_x, move_speed_y, onscreen, movlst, nocross, ignore_walls); 
     }
-    void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y) override
-    { 
-        AGS::Engine::RouteFinder::calculate_move_stage(mlsp, aaa, move_speed_x, move_speed_y); 
+    bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y) override
+    {
+        return AGS::Engine::RouteFinder::add_waypoint_direct(mlsp, x, y, move_speed_x, move_speed_y); 
     }
     void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y) override
     {
@@ -111,9 +112,9 @@ int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int
         onscreen, movlst, nocross, ignore_walls);
 }
 
-void calculate_move_stage(MoveList * mlsp, int aaa, int move_speed_x, int move_speed_y)
+bool add_waypoint_direct(MoveList * mlsp, short x, short y, int move_speed_x, int move_speed_y)
 {
-    route_finder_impl->calculate_move_stage(mlsp, aaa, move_speed_x, move_speed_y);
+    return route_finder_impl->add_waypoint_direct(mlsp, x, y, move_speed_x, move_speed_y);
 }
 
 void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)

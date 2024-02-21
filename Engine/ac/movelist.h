@@ -48,6 +48,8 @@ struct MoveList
     uint8_t doneflag = 0u; // currently unused, but reserved
     uint8_t direct = 0;  // MoveCharDirect was used or not
 
+    const Point &GetLastPos() const { return numstage > 0 ? pos[numstage - 1] : pos[0]; }
+
     // Gets a movelist's step length, in coordinate units
     // (normally the coord unit is a game pixel)
     float GetStepLength() const;

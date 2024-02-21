@@ -90,6 +90,14 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
     {
         blend_mode = kBlend_Normal;
     }
+    if (save_ver >= kCharSvgVersion_400_03)
+    {
+        face_dir_ratio = in->ReadFloat32();
+        // Reserve for 4 total int32
+        in->ReadInt32();
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void CharacterExtras::WriteToSavegame(Stream *out) const
@@ -130,4 +138,10 @@ void CharacterExtras::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // sprite pivot y
     out->WriteInt32(0); // sprite anchor x
     out->WriteInt32(0); // sprite anchor y
+    // -- kCharSvgVersion_400_03
+    out->WriteFloat32(face_dir_ratio);
+    // Reserve for 4 total int32
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }

@@ -812,6 +812,7 @@ void engine_init_game_settings()
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
     play.shake_screen_yoff = 0;
+    play.face_dir_ratio = game.faceDirectionRatio;
 
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
     GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;

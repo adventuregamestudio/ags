@@ -24,6 +24,7 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/game.h"
+#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
@@ -38,18 +39,18 @@
 #include "ac/overlay.h"
 #include "ac/properties.h"
 #include "ac/room.h"
+#include "ac/roomstatus.h"
+#include "ac/route_finder.h"
 #include "ac/screenoverlay.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
-#include "gui/guimain.h"
-#include "ac/route_finder.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "gui/guimain.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "ac/spritecache.h"
 #include "util/string_compat.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
@@ -68,6 +69,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;
 extern RoomStruct thisroom;
+extern RoomStatus *croom;
 extern std::vector<ViewStruct> views;
 extern RoomObject*objs;
 extern ScriptInvItem scrInv[MAX_INV];
@@ -324,9 +326,30 @@ enum DirectionalLoop
 
 // Internal direction-facing functions
 
+float GetFaceDirRatio(CharacterInfo *chinfo)
+{
+    CharacterExtras &chex = charextra[chinfo->index_id];
+    if (chex.face_dir_ratio != 0.f)
+        return chex.face_dir_ratio;
+    // TODO: cache current area in CharacterExtras somewhere during early char update
+    int onarea = get_walkable_area_at_location(chinfo->x, chinfo->y);
+    if (onarea > 0 && thisroom.WalkAreas[onarea].FaceDirectionRatio != 0.f)
+        return thisroom.WalkAreas[onarea].FaceDirectionRatio;
+    if (croom->face_dir_ratio != 0.f)
+        return croom->face_dir_ratio;
+    if (play.face_dir_ratio != 0.f)
+        return play.face_dir_ratio;
+    return 1.f;
+}
+
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
+
+    // TODO: cache this in CharacterExtras for bit more performance
+    float dir_ratio = GetFaceDirRatio(chinfo);
+    assert(dir_ratio != 0.f);
+    y_diff *= dir_ratio; // dir ratio is a y/x relation
 
     const ViewStruct &chview  = views[chinfo->view];
     const bool has_down_loop  = ((chview.numLoops > kDirLoop_Down)  && (chview.loops[kDirLoop_Down].numFrames > 0));
@@ -1592,6 +1615,14 @@ float Character_GetRotation(CharacterInfo *chaa) {
 void Character_SetRotation(CharacterInfo *chaa, float degrees) {
     charextra[chaa->index_id].rotation = Math::ClampAngle360(degrees);
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
+}
+
+float Character_GetFaceDirectionRatio(CharacterInfo *chaa) {
+    return charextra[chaa->index_id].face_dir_ratio;
+}
+
+void Character_SetFaceDirectionRatio(CharacterInfo *chaa, float ratio) {
+    charextra[chaa->index_id].face_dir_ratio = ratio;
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
@@ -3937,6 +3968,16 @@ RuntimeScriptValue Sc_Character_SetRotation(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetRotation);
 }
 
+RuntimeScriptValue Sc_Character_GetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_FLOAT(CharacterInfo, Character_GetFaceDirectionRatio);
+}
+
+RuntimeScriptValue Sc_Character_SetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetFaceDirectionRatio);
+}
+
 //=============================================================================
 //
 // Exclusive variadic API implementation for Plugins
@@ -4135,6 +4176,9 @@ void RegisterCharacterAPI(ScriptAPIVersion /*base_api*/, ScriptAPIVersion /*comp
         { "Character::set_UseRegionTint",         API_FN_PAIR(Character_SetUseRegionTint) },
         { "Character::get_GraphicRotation",       API_FN_PAIR(Character_GetRotation) },
         { "Character::set_GraphicRotation",       API_FN_PAIR(Character_SetRotation) },
+
+        { "Character::get_FaceDirectionRatio",    API_FN_PAIR(Character_GetFaceDirectionRatio) },
+        { "Character::set_FaceDirectionRatio",    API_FN_PAIR(Character_SetFaceDirectionRatio) },
     };
 
     ccAddExternalFunctions(character_api);

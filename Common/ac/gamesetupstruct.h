@@ -52,9 +52,6 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
-    // CLNUP old interactions
-    //Interaction     **intrChar;
-    //Interaction      *intrInv[MAX_INV];
     std::vector<PInteractionScripts> charScripts;
     std::vector<PInteractionScripts> invScripts;
     // TODO: why we do not use this in the engine instead of
@@ -84,6 +81,10 @@ struct GameSetupStruct : public GameSetupStructBase
     int               numGameChannels = 0;
     // backward-compatible channel limit that may be exported to script and reserved by audiotypes
     int               numCompatGameChannels = 0;
+
+    // Extended global game properties
+    // Character face direction ratio (y/x)
+    float             faceDirectionRatio = 1.f;
     
     // TODO: I converted original array of sprite infos to vector here, because
     // statistically in most games sprites go in long continious sequences with minimal

@@ -1723,6 +1723,7 @@ namespace AGS.Editor
             WriteExtension("v360_cursors", WriteExt_360Cursors, writer, game, errors);
             WriteExtension("v361_objnames", WriteExt_361ObjNames, writer, game, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, game, errors);
+            WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, game, errors);
 
             // End of extensions list
             writer.Write((byte)0xff);
@@ -1819,6 +1820,14 @@ namespace AGS.Editor
                 // Reserved for transform options (see brief list in the engine)
                 writer.Write(new byte[11 * 4]);
             }
+        }
+
+        private static void WriteExt_400GameOpts(BinaryWriter writer, Game game, CompileMessages errors)
+        {
+            writer.Write((float)game.Settings.FaceDirectionRatio);
+            // reserve more 32-bit values for a total of 10
+            for (int i = 0; i < 9; ++i)
+                writer.Write((int)0);
         }
 
         private delegate void WriteExtensionProc(BinaryWriter writer, Game game, CompileMessages errors);

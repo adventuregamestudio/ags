@@ -809,6 +809,16 @@ void Game_PrecacheView(int view, int first_loop, int last_loop)
     precache_view(view - 1 /* to 0-based view index */, first_loop, last_loop, true);
 }
 
+float Game_GetFaceDirectionRatio()
+{
+    return play.face_dir_ratio;
+}
+
+void Game_SetFaceDirectionRatio(float ratio)
+{
+    play.face_dir_ratio = ratio;
+}
+
 //=============================================================================
 
 // save game functions
@@ -1717,6 +1727,16 @@ RuntimeScriptValue Sc_Game_PrecacheView(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PINT3(Game_PrecacheView);
 }
 
+RuntimeScriptValue Sc_Game_GetFaceDirectionRatio(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_FLOAT(Game_GetFaceDirectionRatio);
+}
+
+RuntimeScriptValue Sc_Game_SetFaceDirectionRatio(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PFLOAT(Game_SetFaceDirectionRatio);
+}
+
 void RegisterGameAPI()
 {
     ScFnRegister game_api[] = {
@@ -1774,6 +1794,8 @@ void RegisterGameAPI()
         { "Game::get_Camera",                             API_FN_PAIR(Game_GetCamera) },
         { "Game::get_CameraCount",                        API_FN_PAIR(Game_GetCameraCount) },
         { "Game::geti_Cameras",                           API_FN_PAIR(Game_GetAnyCamera) },
+        { "Game::get_FaceDirectionRatio",                 API_FN_PAIR(Game_GetFaceDirectionRatio) },
+        { "Game::set_FaceDirectionRatio",                 API_FN_PAIR(Game_SetFaceDirectionRatio) },
     };
 
     ccAddExternalFunctions(game_api);

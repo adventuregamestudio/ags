@@ -190,6 +190,16 @@ bool Room_SetTextProperty(const char *property, const char *value)
     return set_text_property(croom->roomProps, property, value);
 }
 
+float Room_GetFaceDirectionRatio()
+{
+    return croom->face_dir_ratio;
+}
+
+void Room_SetFaceDirectionRatio(float ratio)
+{
+    croom->face_dir_ratio = ratio;
+}
+
 bool Room_Exists(int room)
 {
     String room_filename;
@@ -508,6 +518,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->tsdatasize=0;
         croom->obj.resize(croom->numobj);
         croom->objProps.resize(croom->numobj);
+        croom->face_dir_ratio = thisroom.Options.FaceDirectionRatio;
+
         for (uint32_t cc=0;cc<croom->numobj;cc++) {
             const auto &trobj = thisroom.Objects[cc];
             auto &crobj = croom->obj[cc];
@@ -534,6 +546,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         for (int cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;
+        }
+        for (int i = 0; i < MAX_WALK_AREAS; ++i)
+        {
+            croom->walkareas[i].FaceDirectionRatio = thisroom.WalkAreas[i].FaceDirectionRatio;
         }
 
         croom->beenhere=1;
@@ -1032,6 +1048,16 @@ RuntimeScriptValue Sc_Room_GetWidth(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_INT(Room_GetWidth);
 }
 
+RuntimeScriptValue Sc_Room_GetFaceDirectionRatio(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_FLOAT(Room_GetFaceDirectionRatio);
+}
+
+RuntimeScriptValue Sc_Room_SetFaceDirectionRatio(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PFLOAT(Room_SetFaceDirectionRatio);
+}
+
 // void (int xx,int yy,int mood)
 RuntimeScriptValue Sc_RoomProcessClick(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1071,6 +1097,7 @@ RuntimeScriptValue Sc_Room_GetiWalkbehinds(void *self, const RuntimeScriptValue 
 void RegisterRoomAPI()
 {
     ScFnRegister room_api[] = {
+        { "Room::Exists",                             API_FN_PAIR(Room_Exists) },
         { "Room::GetDrawingSurfaceForBackground^1",   API_FN_PAIR(Room_GetDrawingSurfaceForBackground) },
         { "Room::GetProperty^1",                      API_FN_PAIR(Room_GetProperty) },
         { "Room::GetTextProperty^1",                  API_FN_PAIR(Room_GetTextProperty) },
@@ -1086,7 +1113,8 @@ void RegisterRoomAPI()
         { "Room::get_RightEdge",                      API_FN_PAIR(Room_GetRightEdge) },
         { "Room::get_TopEdge",                        API_FN_PAIR(Room_GetTopEdge) },
         { "Room::get_Width",                          API_FN_PAIR(Room_GetWidth) },
-        { "Room::Exists",                             API_FN_PAIR(Room_Exists) },
+        { "Room::get_FaceDirectionRatio",             API_FN_PAIR(Room_GetFaceDirectionRatio) },
+        { "Room::set_FaceDirectionRatio",             API_FN_PAIR(Room_SetFaceDirectionRatio) },
         { "Room::geti_Hotspots",                      API_FN_PAIR(Room_GetiHotspots) },
         { "Room::geti_Objects",                       API_FN_PAIR(Room_GetiObjects) },
         { "Room::geti_Regions",                       API_FN_PAIR(Room_GetiRegions) },

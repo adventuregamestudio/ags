@@ -893,7 +893,7 @@ HSaveError WriteRoomStates(Stream *out)
             {
                 out->WriteInt32(i);
                 WriteFormatTag(out, "RoomState", true);
-                roomstat->WriteToSavegame(out, loaded_game_file_version);
+                roomstat->WriteToSavegame(out);
                 WriteFormatTag(out, "RoomState", false);
             }
             else
@@ -964,7 +964,7 @@ HSaveError WriteThisRoom(Stream *out)
     out->WriteBool(persist);
     // write the current troom state, in case they save in temporary room
     if (!persist)
-        troom.WriteToSavegame(out, loaded_game_file_version);
+        troom.WriteToSavegame(out);
     return HSaveError::None();
 }
 

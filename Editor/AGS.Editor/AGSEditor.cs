@@ -110,7 +110,8 @@ namespace AGS.Editor
          * 3.99.99.01     - Open rooms
          * 3.99.99.07     - PO translations
          * 4.00.00.00     - Raised for org purposes without project changes
-         * 4.00.00.03     - Distinct Character and Object Enabled and Visible properties.
+         * 4.00.00.03     - Distinct Character and Object Enabled and Visible properties;
+         *                - FaceDirectionRatio
          *
         */
         public const int    LATEST_XML_VERSION_INDEX = 4000003;

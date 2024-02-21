@@ -526,6 +526,12 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
             _in->Seek(sizeof(int32_t) * 11);
         }
     }
+    else if (ext_id.CompareNoCase("v400_gameopts") == 0)
+    {
+        _ents.Game.faceDirectionRatio = _in->ReadFloat32();
+        // reserve few more 32-bit values (for a total of 10)
+        _in->Seek(sizeof(int32_t) * 9);
+    }
     else
     {
         return new MainGameFileError(kMGFErr_ExtUnknown, String::FromFormat("Type: %s", ext_id.GetCStr()));

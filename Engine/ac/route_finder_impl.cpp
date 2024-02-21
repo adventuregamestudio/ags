@@ -42,7 +42,6 @@ namespace RouteFinder {
 static const int MAXNAVPOINTS = MAXNEEDSTAGES;
 static Point navpoints[MAXNAVPOINTS];
 static int num_navpoints;
-static float move_speed_x, move_speed_y;
 static Navigation nav;
 static Bitmap *walkablearea;
 static int lastcx, lastcy;
@@ -126,12 +125,6 @@ inline float input_speed_to_move(int speed_val)
     return speed_val;
 }
 
-void set_route_move_speed(int speed_x, int speed_y)
-{
-  move_speed_x = input_speed_to_move(speed_x);
-  move_speed_y = input_speed_to_move(speed_y);
-}
-
 inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist, float ydist)
 {
   float useMoveSpeed;
@@ -171,9 +164,8 @@ inline float calc_move_speed_at_angle(float speed_x, float speed_y, float xdist,
   return useMoveSpeed;
 }
 
-// Calculates the X and Y per game loop, for this stage of the
-// movelist
-void calculate_move_stage(MoveList * mlsp, int index)
+// Calculates the X and Y per game loop, for this stage of the movelist
+void calculate_move_stage_intern(MoveList *mlsp, int index, float move_speed_x, float move_speed_y)
 {
   // work out the x & y per move. First, opp/adj=tan, so work out the angle
   if (mlsp->pos[index] == mlsp->pos[index + 1]) {
@@ -213,11 +205,9 @@ void calculate_move_stage(MoveList * mlsp, int index)
   float angl = atan(ydist / xdist);
 
   // now, since new opp=hyp*sin, work out the Y step size
-  //fixed newymove = useMoveSpeed * fsin(angl);
   float newymove = useMoveSpeed * sin(angl);
 
   // since adj=hyp*cos, work out X step size
-  //fixed newxmove = useMoveSpeed * fcos(angl);
   float newxmove = useMoveSpeed * cos(angl);
 
   // validate that the computed movement isn't larger than the set maxima
@@ -230,6 +220,12 @@ void calculate_move_stage(MoveList * mlsp, int index)
 
   mlsp->xpermove[index] = newxmove;
   mlsp->ypermove[index] = newymove;
+}
+
+void calculate_move_stage(MoveList *mlsp, int aaa, int move_speed_x, int move_speed_y)
+{
+    calculate_move_stage_intern(mlsp, aaa,
+        input_speed_to_move(move_speed_x), input_speed_to_move(move_speed_y));
 }
 
 void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y)
@@ -282,7 +278,8 @@ void recalculate_move_speeds(MoveList *mlsp, int old_speed_x, int old_speed_y, i
 }
 
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, int move_speed_x, int move_speed_y,
+    Bitmap *onscreen, int move_id, int nocross, int ignore_walls)
 {
   walkablearea = onscreen;
 
@@ -320,8 +317,10 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   AGS::Common::Debug::Printf("stages: %d\n",num_navpoints);
 #endif
 
+  const float fspeed_x = input_speed_to_move(move_speed_x);
+  const float fspeed_y = input_speed_to_move(move_speed_y);
   for (int i=0; i<num_navpoints-1; i++)
-    calculate_move_stage(&mlist, i);
+    calculate_move_stage_intern(&mlist, i, fspeed_x, fspeed_y);
 
   mlist.from = { srcx, srcy };
   mls[move_id] = mlist;

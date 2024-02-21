@@ -181,7 +181,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
     if (cmls->numstage >= MAXNEEDSTAGES)
     {
-        debug_script_warn("Character_AddWaypoint: move is too complex, cannot add any further paths");
+        debug_script_warn("Character::AddWaypoint: move is too complex, cannot add any further paths");
         return;
     }
 
@@ -190,7 +190,14 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     if (cmls->pos[cmls->numstage] == cmls->pos[cmls->numstage - 1])
         return;
 
-    calculate_move_stage (cmls, cmls->numstage-1);
+    int move_speed_x, move_speed_y;
+    chaa->get_effective_walkspeeds(move_speed_x, move_speed_y);
+    if ((move_speed_x == 0) && (move_speed_y == 0))
+    {
+        debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname);
+    }
+
+    calculate_move_stage(cmls, cmls->numstage-1, move_speed_x, move_speed_y);
     cmls->numstage ++;
 
 }
@@ -1771,18 +1778,15 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     // are still displayed as such
     debug_script_log("%s: Start move to %d,%d", chin->scrname.GetCStr(), toxPassedIn, toyPassedIn);
 
-    const int move_speed_x = chin->walkspeed;
-    const int move_speed_y =
-        ((chin->walkspeed_y == UNIFORM_WALK_SPEED) ? chin->walkspeed : chin->walkspeed_y);
-
-    if ((move_speed_x == 0) && (move_speed_y == 0)) {
-        debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->scrname.GetCStr());
+    int move_speed_x, move_speed_y;
+    chin->get_effective_walkspeeds(move_speed_x, move_speed_y);
+    if ((move_speed_x == 0) && (move_speed_y == 0))
+    {
+        debug_script_warn("MoveCharacter: called for '%s' with walk speed 0", chin->scrname.GetCStr());
     }
 
-    set_route_move_speed(move_speed_x, move_speed_y);
-    set_color_depth(8);
-    int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
-    set_color_depth(game.GetColorDepth());
+    int mslot = find_route(charX, charY, tox, toy, move_speed_x, move_speed_y,
+        prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
     if (mslot>0) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;

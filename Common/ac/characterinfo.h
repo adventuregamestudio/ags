@@ -140,6 +140,12 @@ struct CharacterInfo
     // Tells if the character is actually meant to be displayed on screen;
     // this combines both "enabled" and "visible" factors.
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
+    // Returns effective x/y walkspeeds for this character
+    void get_effective_walkspeeds(int &walk_speed_x, int &walk_speed_y) const
+    {
+        walk_speed_x = walkspeed;
+        walk_speed_y = ((walkspeed_y == UNIFORM_WALK_SPEED) ? walkspeed : walkspeed_y);
+    }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
     inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
     inline bool is_animating()       const { return (animating & CHANIM_ON) != 0; }

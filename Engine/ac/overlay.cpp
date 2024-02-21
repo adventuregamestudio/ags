@@ -199,6 +199,12 @@ int Overlay_GetValid(ScriptOverlay *scover) {
 
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone)
 {
+    if (!spriteset.DoesSpriteExist(slot))
+    {
+        debug_script_warn("Overlay.CreateGraphical: sprite %d is invalid", slot);
+        return nullptr;
+    }
+
     size_t overid;
     // We clone only dynamic sprites, because it makes no sense to clone normal ones
     if (clone && ((game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) != 0))

@@ -25,7 +25,9 @@ Editor:
  - Script editor supports "word wrap" mode.
  - In General Settings added "Use extended compiler" option that lets to choose a new script
    compiler for your game (see list of changes in related section below).
+ - Added Enabled and Visible properties to Characters, Enabled property to Room Objects.
  - Added BlendMode property to Characters, GUI and Room Objects.
+ - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property to AudioClips, for the reference.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
 
@@ -76,27 +78,39 @@ Script API:
  - Added SCRIPT_EXT_NESTEDPOINTERS macro which tells whether nested managed structs are
    supported by the compiler.
  - Added Joystick struct, meant to work with joystics and gamepads in script.
- - Added ScriptName property to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
-   InventoryItem, Object.
- - Added static GetByName() function to AudioClip, Character, Dialog, GUI, GUIObject, Hotspot,
-   InventoryItem, Object.
+ - Added WalkableArea and Walkbehind structs which let work with these region types in OO-style.
  - Added BlendMode enum.
+ - Added Character.Enabled and Visible properties, added Object.Enabled property,
+   Character.on is deprecated.
  - Added Character.BlendMode, GUI.BlendMode, Object.BlendMode, Overlay.BlendMode.
  - Added Character.UseRegionTint and Object.UseRegionTint, deprecated Character.IgnoreLighting.
  - Added Camera.Rotation, Character.GraphicRotation, GUI.Rotation, Object.GraphicRotation,
    Overlay.Rotation.
+ - Added Game.FaceDirectionRatio, Room.FaceDirectionRatio, WalkableArea.FaceDirectionRatio
+   and Character.FaceDirectionRatio.
  - Added DrawingSurface.BlendImage() and DrawingSurface.BlendSurface() functions.
- - AudioChannel.Position and PositionMs no longer return a very large value while skipping
-   cutscene.
+ - Added File.Rename().
+ - ListBox.FillSaveGameList(), RestoreGameDialog() and SaveGameDialog() now let define a range
+   of save slots for display.
+ - Added MoveSaveSlot() which renames a savegame.
+ - Added "walkarea[]" and "walkbehind[]" global arrays.
+ - Global arrays of game objects (Characters, GUIs, etc) are now declared as arrays of object
+   *pointers*. From the user's perspective this is a mere formality, as working with these arrays
+   will be syntactically same, but this makes it easier for the engine to handle these arrays
+   and objects internally.
  - Removed "hasAlphaChannel" param from DynamicSprite.Create() and CreateFromExistingSprite().
  - Removed HasAlphaChannel property from DialogOptionsRenderingInfo.
  - Removed "transparent" param from Overlay.CreateGraphical() and CreateRoomGraphical().
+ - Removed Object.MergeIntoBackground() function as redundant, and complicating Object's logic.
 
 Engine:
  - Support joystick and gamepad input.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
  - Animated buttons now display flipped frames correctly.
+ - AudioChannel.Position and PositionMs no longer return a very large value while skipping
+   cutscene.
+ - DeleteSaveSlot() no longer causes highest save to be renamed to fill a gap in saves.
  - Added FLAC support for music, speech and sound effects.
  - Added "--print-rtti" command line option which prints script RTTI table to the log.
    (RTTI stands for "runtime type information", and is used for handling of certain advanced

@@ -566,10 +566,10 @@ static void check_keyboard_controls()
 
     // Built-in key-presses
     if ((usetup.key_save_game > 0) && (agskey == usetup.key_save_game)) {
-        do_save_game_dialog(0, TOP_SAVESLOT - 1);
+        do_save_game_dialog(0, TOP_SAVESLOT - 1); // ignore special slot 999
         return;
     } else if ((usetup.key_restore_game > 0) && (agskey == usetup.key_restore_game)) {
-        do_restore_game_dialog(0, TOP_SAVESLOT - 1);
+        do_restore_game_dialog(0, TOP_SAVESLOT - 1); // ignore special slot 999
         return;
     }
 

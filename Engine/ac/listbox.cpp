@@ -100,7 +100,7 @@ int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
 int ListBox_FillSaveGameList2(GUIListBox *listbox, int min_slot, int max_slot) {
   if (max_slot < 0)
     return 0;
-  max_slot = std::max(max_slot, TOP_SAVESLOT);
+  max_slot = std::min(max_slot, TOP_SAVESLOT - 1); // ignore special slot 999
   min_slot = std::min(max_slot, std::max(0, min_slot));
 
   // TODO: find out if limiting to MAXSAVEGAMES is still necessary here

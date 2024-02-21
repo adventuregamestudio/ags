@@ -194,7 +194,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     chaa->get_effective_walkspeeds(move_speed_x, move_speed_y);
     if ((move_speed_x == 0) && (move_speed_y == 0))
     {
-        debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname);
+        debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname.GetCStr());
     }
 
     // There's an issue: the existing movelist is converted to room resolution,

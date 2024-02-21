@@ -36,6 +36,8 @@ extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
 extern CCHotspot   ccDynamicHotspot;
 extern CCRegion    ccDynamicRegion;
+extern CCWalkableArea ccDynamicWalkarea;
+extern CCWalkbehind ccDynamicWalkbehind;
 extern CCInventory ccDynamicInv;
 extern CCGUI       ccDynamicGUI;
 extern CCObject    ccDynamicObject;
@@ -85,6 +87,12 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     }
     else if (strcmp(objectType, "Region") == 0) {
         ccDynamicRegion.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "WalkableArea") == 0) {
+        ccDynamicWalkarea.Unserialize(index, &mems, data_sz);
+    }
+    else if (strcmp(objectType, "Walkbehind") == 0) {
+        ccDynamicWalkbehind.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "Inventory") == 0) {
         ccDynamicInv.Unserialize(index, &mems, data_sz);

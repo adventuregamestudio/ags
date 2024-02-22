@@ -83,24 +83,24 @@ int SOUNDCLIP::posms_to_pos(int pos_ms)
     }
 }
 
-int SOUNDCLIP::pos_to_posms(int pos)
+int SOUNDCLIP::pos_to_posms(int pos_)
 {
     switch (soundType)
     {
     case MUS_WAVE: // Pos is in samples
-        return static_cast<int>((static_cast<int64_t>(pos) * 1000) / freq);
+        return static_cast<int>((static_cast<int64_t>(pos_) * 1000) / freq);
     case MUS_MIDI: /* TODO: reimplement */
     case MUS_MOD:  /* TODO: reimplement */
         return 0;  /* better say that it does not work than return wrong value */
     default:
-        return pos;
+        return pos_;
     }
 }
 
-void SOUNDCLIP::seek(int pos)
+void SOUNDCLIP::seek(int pos_)
 {
     // TODO: we probably would need a separate implementation eventually
-    seek_ms(pos_to_posms(pos));
+    seek_ms(pos_to_posms(pos_));
 }
 
 void SOUNDCLIP::seek_ms(int pos_ms)

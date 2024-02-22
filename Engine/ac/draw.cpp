@@ -922,7 +922,7 @@ void init_room_drawdata()
 
 void on_roomviewport_created(int index)
 {
-    if (!gfxDriver || drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if ((size_t)index < CameraDrawData.size())
         return;
@@ -931,7 +931,7 @@ void on_roomviewport_created(int index)
 
 void on_roomviewport_deleted(int index)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     CameraDrawData.erase(CameraDrawData.begin() + index);
     delete_invalid_regions(index);
@@ -939,7 +939,7 @@ void on_roomviewport_deleted(int index)
 
 void on_roomviewport_changed(Viewport *view)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
@@ -958,7 +958,7 @@ void on_roomviewport_changed(Viewport *view)
 
 void detect_roomviewport_overlaps(size_t z_index)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     // Find out if we overlap or are overlapped by anything;
     const auto &viewports = play.GetRoomViewportsZOrdered();
@@ -987,7 +987,7 @@ void detect_roomviewport_overlaps(size_t z_index)
 
 void on_roomcamera_changed(Camera *cam)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (cam->HasChangedSize())
     {

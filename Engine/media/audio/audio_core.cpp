@@ -64,7 +64,7 @@ private:
     // Opens decoder and sets up playback state
     void Init();
 
-    int handle_ = -1;
+    const int handle_ = -1; // for diagnostic purposes only
     std::unique_ptr<SDLDecoder> _decoder;
     std::unique_ptr<OpenAlSource> _source;
     PlaybackState _playState = PlayStateInitial;

@@ -1465,7 +1465,6 @@ void precache_view(int view, int first_loop, int last_loop, bool with_sounds)
     const size_t txcache_before = texturecache_get_size();
     int total_frames = 0, total_sounds = 0;
 
-    const auto tp_start = AGS_FastClock::now();
     int64_t dur_sp_load = 0, dur_tx_make = 0, dur_sound_load = 0;
     for (int i = first_loop; i <= last_loop; ++i)
     {

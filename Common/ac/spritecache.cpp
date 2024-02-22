@@ -132,7 +132,7 @@ std::unique_ptr<Bitmap> SpriteCache::RemoveSprite(sprkey_t index)
     std::unique_ptr<Bitmap> image = ResourceCache::Remove(index);
     InitNullSprite(index);
     SprCacheLog("RemoveSprite: %d", index);
-    return std::move(image);
+    return image;
 }
 
 void SpriteCache::DisposeSprite(sprkey_t index)

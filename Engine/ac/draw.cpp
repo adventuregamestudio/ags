@@ -131,7 +131,6 @@ struct ObjTexture
     ObjTexture() = default;
     ObjTexture(uint32_t sprite_id, Bitmap *bmp, IDriverDependantBitmap *ddb, int x, int y, int xoff = 0, int yoff = 0)
         : SpriteID(sprite_id), Bmp(bmp), Ddb(ddb), Pos(x, y), Off(xoff, yoff) {}
-    ObjTexture(const ObjTexture&) = default;
     ObjTexture(ObjTexture &&o) { *this = std::move(o); }
     ~ObjTexture()
     {

@@ -141,7 +141,7 @@ public:
 private:
     String GetOldBlockName(int block_id) const override
     { return GetTraBlockName((TraFileBlock)block_id); }
-    soff_t GetOverLeeway(int block_id) const
+    soff_t GetOverLeeway(int block_id) const override
     {
         // TRA files made by pre-3.0 editors have a block length miscount by 1 byte
         if (block_id == kTraFblk_GameID) return 1;

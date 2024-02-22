@@ -278,11 +278,11 @@ public:
     bool GetStageMatrixes(RenderMatrixes &rm) override;
 
     // Creates new DDB and copy bitmap contents over
-    IDriverDependantBitmap *CreateDDBFromBitmap(Bitmap *bitmap, bool has_alpha, bool opaque = false) override;
+    IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, bool has_alpha, bool opaque = false) override;
 
     Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
-    Texture *CreateTexture(Bitmap *bmp, bool has_alpha, bool opaque = false) override;
+    Texture *CreateTexture(const Bitmap *bmp, bool has_alpha, bool opaque = false) override;
 
     // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;

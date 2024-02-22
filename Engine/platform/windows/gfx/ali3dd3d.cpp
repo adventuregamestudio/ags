@@ -1621,7 +1621,7 @@ void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
     delete (D3DBitmap*)ddb;
 }
 
-void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque)
+void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   IDirect3DTexture9* newTexture = tile->texture;
 
@@ -1644,7 +1644,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap
   newTexture->UnlockRect(0);
 }
 
-void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, Bitmap *bitmap, bool has_alpha)
+void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap, bool has_alpha)
 {
   // FIXME: what to do if texture is shared??
   D3DBitmap *target = (D3DBitmap*)ddb;
@@ -1652,7 +1652,7 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, Bitmap 
   target->_hasAlpha = has_alpha;
 }
 
-void D3DGraphicsDriver::UpdateTexture(Texture *txdata, Bitmap *bitmap, bool has_alpha, bool opaque)
+void D3DGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool has_alpha, bool opaque)
 {
   const int color_depth = bitmap->GetColorDepth();
   if (bitmap->GetColorDepth() != txdata->Res.ColorDepth)

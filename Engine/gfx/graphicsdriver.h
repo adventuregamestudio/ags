@@ -32,7 +32,7 @@ namespace AGS
 namespace Common
 {
     class Bitmap;
-    typedef std::shared_ptr<Common::Bitmap> PBitmap;
+    typedef std::shared_ptr<Bitmap> PBitmap;
 }
 
 namespace Engine
@@ -41,6 +41,7 @@ namespace Engine
 // Forward declaration
 class IGfxFilter;
 typedef std::shared_ptr<IGfxFilter> PGfxFilter;
+using Common::Bitmap;
 using Common::PBitmap;
 
 enum TintMethod
@@ -143,21 +144,21 @@ public:
   // Create DDB using preexisting texture data
   virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, bool opaque = false) = 0;
   // Creates DDB, initializes from the given bitmap.
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool has_alpha, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, bool has_alpha, bool opaque = false) = 0;
   // Creates DDB intended to be used as a render target (allow render other DDBs on it).
   virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque = false) = 0;
   // Updates DBB using the given bitmap; if bitmap has a different resolution,
   // then creates a new texture data and attaches to DDB
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool has_alpha) = 0;
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, const Bitmap *bitmap, bool has_alpha) = 0;
   // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
 
   // Create texture data with the given parameters
   virtual Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
   // Create texture and initialize its pixels from the given bitmap
-  virtual Texture *CreateTexture(Common::Bitmap *bmp, bool has_alpha = true, bool opaque = false) = 0;
+  virtual Texture *CreateTexture(const Bitmap *bmp, bool has_alpha = true, bool opaque = false) = 0;
   // Update texture data from the given bitmap
-  virtual void UpdateTexture(Texture *txdata, Common::Bitmap *bmp, bool has_alpha, bool opaque = false) = 0;
+  virtual void UpdateTexture(Texture *txdata, const Bitmap *bmp, bool has_alpha, bool opaque = false) = 0;
   // Retrieve shared texture object from the given DDB
   virtual std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) = 0;
 
@@ -208,7 +209,7 @@ public:
   // Copies contents of the game screen into bitmap using simple blit or pixel copy.
   // Bitmap must be of supported size and pixel format. If it's not the method will
   // fail and optionally write wanted destination format into 'want_fmt' pointer.
-  virtual bool GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt = nullptr) = 0;
+  virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt = nullptr) = 0;
   // Tells if the renderer supports toggling vsync after initializing the mode.
   virtual bool DoesSupportVsyncToggle() = 0;
   // Toggles vertical sync mode, if renderer supports one; returns the *new state*.
@@ -227,18 +228,18 @@ public:
   virtual void SetGamma(int newGamma) = 0;
   // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
   // In normal case you should use GetStageBackBuffer() instead.
-  virtual Common::Bitmap* GetMemoryBackBuffer() = 0;
+  virtual Bitmap* GetMemoryBackBuffer() = 0;
   // Sets custom backbuffer bitmap to render to.
   // Passing NULL pointer will tell renderer to switch back to its original virtual screen.
   // Note that only software renderer supports this.
-  virtual void SetMemoryBackBuffer(Common::Bitmap *backBuffer) = 0;
+  virtual void SetMemoryBackBuffer(Bitmap *backBuffer) = 0;
   // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
   // All renderers should support this.
-  virtual Common::Bitmap* GetStageBackBuffer(bool mark_dirty = false) = 0;
+  virtual Bitmap* GetStageBackBuffer(bool mark_dirty = false) = 0;
   // Sets custom backbuffer bitmap to render current render stage to.
   // Passing NULL pointer will tell renderer to switch back to its original stage buffer. 
   // Note that only software renderer supports this.
-  virtual void SetStageBackBuffer(Common::Bitmap *backBuffer) = 0;
+  virtual void SetStageBackBuffer(Bitmap *backBuffer) = 0;
   // Retrieves 3 transform matrixes for the current rendering stage: world (model), view and projection.
   // These matrixes will be filled in accordance to the renderer's compatible format;
   // returns false if renderer does not use matrixes (not a 3D renderer).

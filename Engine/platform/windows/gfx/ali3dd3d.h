@@ -232,13 +232,13 @@ public:
 
     IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, bool opaque) override;
     IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, bool opaque) override;
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, Bitmap *bitmap, bool has_alpha) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap, bool has_alpha) override;
     void DestroyDDB(IDriverDependantBitmap* ddb) override;
 
     // Create texture data with the given parameters
     Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) override;
     // Update texture data from the given bitmap
-    void UpdateTexture(Texture *txdata, Bitmap *bitmap, bool has_alpha, bool opaque) override;
+    void UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool has_alpha, bool opaque) override;
     // Retrieve shared texture data object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override;
 
@@ -357,7 +357,7 @@ private:
     void ReleaseDisplayMode();
     void set_up_default_vertices();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-    void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
+    void UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
     // Backup all draw lists in the temp storage

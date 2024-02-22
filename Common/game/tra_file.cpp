@@ -171,7 +171,7 @@ HError TestTraGameID(int game_uid, const String &game_name, Stream *in)
         return err;
     // Test the identifiers, if they are not present then skip the test
     if ((tra.GameUid != 0 && (game_uid != tra.GameUid)) ||
-        !tra.GameName.IsEmpty() && (game_name != tra.GameName))
+        (!tra.GameName.IsEmpty() && (game_name != tra.GameName)))
         return new TraFileError(kTraFileErr_GameIDMismatch,
             String::FromFormat("The translation is designed for '%s'", tra.GameName.GetCStr()));
     return HError::None();

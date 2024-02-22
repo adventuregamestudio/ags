@@ -315,7 +315,7 @@ try_again:
     return 0;
   }
 
-  if (((nextx < 0) | (nextx >= wallscreen->GetWidth()) | (nexty < 0) | (nexty >= wallscreen->GetHeight())) ||
+  if (((nextx < 0) || (nextx >= wallscreen->GetWidth()) || (nexty < 0) || (nexty >= wallscreen->GetHeight())) ||
       (wallscreen->GetPixel(nextx, nexty) == 0) || ((beenhere[srcy][srcx] & (1 << trydir)) != 0)) {
 
     if (leftorright == 0) {

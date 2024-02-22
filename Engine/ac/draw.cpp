@@ -1272,12 +1272,14 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool has_alpha, bool opaque)
 {
     assert(source);
-    if (ddb && (drawstate.SoftwareRender || (ddb->GetColorDepth() == source->GetColorDepth()) &&
-            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight())))
+    if (ddb && // already has an allocated DDB,
+        (drawstate.SoftwareRender || // is software renderer, or...
+        ((ddb->GetColorDepth() == source->GetColorDepth()) && // existing DDB format matches
+            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))))
         gfxDriver->UpdateDDBFromBitmap(ddb, source, has_alpha);
-    else if (ddb)
+    else if (ddb) // if existing texture format does not match, then create a new texture
         ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, has_alpha, opaque)), opaque);
-    else
+    else // ...else allocated new DDB
         ddb = gfxDriver->CreateDDBFromBitmap(source, has_alpha, opaque);
     return ddb;
 }
@@ -1383,7 +1385,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y, int zo
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
     return (e1.zorder < e2.zorder) ||
-        (e1.zorder == e2.zorder) && (e1.id < e2.id);
+        ((e1.zorder == e2.zorder) && (e1.id < e2.id));
 }
 
 // Room-specialized function to sort the sprites into baseline order;

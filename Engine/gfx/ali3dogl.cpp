@@ -1356,8 +1356,8 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         {
             // If render target is different in this batch, then set it up
             const auto &rt_parent = _spriteBatches[rt_parents.top()];
-            if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
-                (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
+            if (((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo)) ||
+                ((rt_parent.Fbo == 0u) && (cur_rt != back_buffer)))
             {
                 cur_rt = (rt_parent.Fbo > 0u) ? rt_parent.Fbo : back_buffer;
                 SetRenderTarget(&rt_parent, surface_sz, rend_sz, use_projection, new_batch);

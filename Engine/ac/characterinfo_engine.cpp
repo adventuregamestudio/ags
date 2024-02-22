@@ -408,8 +408,8 @@ void CharacterInfo::update_character_follower(int &aa, std::vector<int> &followi
         // if the characetr is following another character and
         // neither is in the current room, don't try to move
       }
-      else if ((abs(game.chars[following].x - x) > distaway+30) |
-        (abs(game.chars[following].y - y) > distaway+30) |
+      else if ((abs(game.chars[following].x - x) > distaway+30) ||
+        (abs(game.chars[following].y - y) > distaway+30) ||
         ((followinfo & 0x00ff) == 0)) {
         // in same room
         int goxoffs=(Random(50)-25);

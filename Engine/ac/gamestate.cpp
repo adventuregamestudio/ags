@@ -180,7 +180,7 @@ void GameState::UpdateRoomCamera(int index)
     if ((real_room_sz.Width > rc.GetWidth()) || (real_room_sz.Height > rc.GetHeight()))
     {
         // TODO: split out into Camera Behavior
-        if (!cam->IsLocked())
+        if (!cam->IsLocked() && playerchar->is_enabled())
         {
             int x = playerchar->x - rc.GetWidth() / 2;
             int y = playerchar->y - rc.GetHeight() / 2;

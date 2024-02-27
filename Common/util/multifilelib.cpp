@@ -147,7 +147,8 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
         soff_t abs_offset_32 = in->ReadInt32();
 
         // test for header signature again, with 64-bit and 32-bit offsets if necessary
-        if (abs_offset > 0 && abs_offset < (tail_abs_offset - HeadSig.GetLength())) 
+        if (abs_offset > 0 &&
+            static_cast<uint64_t>(abs_offset) < static_cast<uint64_t>(tail_abs_offset - HeadSig.GetLength()))
         {
             in->Seek(abs_offset, kSeekBegin);
             sig.ReadCount(in, HeadSig.GetLength());
@@ -157,7 +158,8 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
         if (HeadSig.Compare(sig) != 0) 
         {
             abs_offset = abs_offset_32;
-            if (abs_offset > 0 && abs_offset < (tail_abs_offset - HeadSig.GetLength())) 
+            if (abs_offset > 0 &&
+                static_cast<uint64_t>(abs_offset) < static_cast<uint64_t>(tail_abs_offset - HeadSig.GetLength()))
             {
                 in->Seek(abs_offset, kSeekBegin);
                 sig.ReadCount(in, HeadSig.GetLength());

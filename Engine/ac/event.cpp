@@ -244,9 +244,6 @@ void process_event(const EventHappened *evp) {
             theTransition = FADE_NORMAL;
         }
 
-		// TODO: use normal coordinates instead of "native_size" and multiply_up_*?
-        const Rect &viewport = play.GetMainViewport();
-
         if ((theTransition == FADE_INSTANT) || ignore_transition)
         {
             set_palette_range(palette, 0, 255, 0);

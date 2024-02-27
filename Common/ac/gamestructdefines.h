@@ -280,10 +280,10 @@ struct FontInfo
     int           YOffset;
     // Custom line spacing between two lines of text (0 = use font height)
     int           LineSpacing;
-    // When automatic outlining, thickness of the outline (0 = no auto outline)
-    int           AutoOutlineThickness;
     // When automatic outlining, style of the outline
     AutoOutlineStyle AutoOutlineStyle;
+    // When automatic outlining, thickness of the outline (0 = no auto outline)
+    int           AutoOutlineThickness;
 
     FontInfo();
 };

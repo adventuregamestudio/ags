@@ -108,8 +108,9 @@ static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
     if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
     {
         Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
-        int y = std::max(0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2);
-        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        fix_frame->Blit(saved_viewport_bitmap.get(),
+            0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2,
+            saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
         saved_viewport_bitmap.reset(fix_frame);
     }
     return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), false, opaque);

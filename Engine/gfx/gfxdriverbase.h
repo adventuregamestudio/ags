@@ -280,8 +280,9 @@ public:
     // Creates new DDB and copy bitmap contents over
     IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, bool has_alpha, bool opaque = false) override;
 
-    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
-    // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
+    // Create texture data with the given parameters
+    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) override = 0;
+    // Create texture and initialize its pixels from the given bitmap
     Texture *CreateTexture(const Bitmap *bmp, bool has_alpha, bool opaque = false) override;
 
     // Sets stage screen parameters for the current batch.

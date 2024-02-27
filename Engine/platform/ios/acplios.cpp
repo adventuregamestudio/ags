@@ -23,7 +23,6 @@
 #include "ac/gamesetup.h"
 #include "ac/runtime_defines.h"
 #include "main/config.h"
-#include "plugin/agsplugin.h"
 #include "util/directory.h"
 #include "util/file.h"
 #include "util/path.h"

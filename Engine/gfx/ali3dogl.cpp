@@ -42,13 +42,7 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glDeleteFramebuffersEXT glDeleteFramebuffers
 #define glBindFramebufferEXT glBindFramebuffer
 #define glCheckFramebufferStatusEXT glCheckFramebufferStatus
-#define glGetFramebufferAttachmentParameterivEXT glGetFramebufferAttachmentParameteriv
-#define glGenerateMipmapEXT glGenerateMipmap
 #define glFramebufferTexture2DEXT glFramebufferTexture2D
-#define glFramebufferRenderbufferEXT glFramebufferRenderbuffer
-// TODO: probably should use EGL and function eglSwapInterval on mobile to support setting swap interval
-// For now this is a dummy function pointer which is only used to test that function is not supported
-const void (*glSwapIntervalEXT)(int) = NULL;
 
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER
 #define GL_FRAMEBUFFER_COMPLETE_EXT GL_FRAMEBUFFER_COMPLETE
@@ -1356,8 +1350,8 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         {
             // If render target is different in this batch, then set it up
             const auto &rt_parent = _spriteBatches[rt_parents.top()];
-            if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
-                (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
+            if (((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo)) ||
+                ((rt_parent.Fbo == 0u) && (cur_rt != back_buffer)))
             {
                 cur_rt = (rt_parent.Fbo > 0u) ? rt_parent.Fbo : back_buffer;
                 SetRenderTarget(&rt_parent, surface_sz, rend_sz, use_projection, new_batch);

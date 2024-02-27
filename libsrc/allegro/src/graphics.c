@@ -106,19 +106,6 @@ int _rgb_scale_6[64] =
 };
 
 
-#define BMP_MAX_SIZE  46340   /* sqrt(INT_MAX) */
-
-/* the product of these must fit in an int */
-static int failed_bitmap_w = BMP_MAX_SIZE;
-static int failed_bitmap_h = BMP_MAX_SIZE;
-
-
-
-static int _set_gfx_mode(int card, int w, int h, int v_w, int v_h, int allow_config);
-static int _set_gfx_mode_safe(int card, int w, int h, int v_w, int v_h);
-
-
-
 /* lock_bitmap:
  *  Locks all the memory used by a bitmap structure.
  */

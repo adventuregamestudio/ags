@@ -55,10 +55,10 @@ RoomEdges::RoomEdges(int l, int r, int t, int b)
 }
 
 RoomObjectInfo::RoomObjectInfo()
-    : Sprite(0)
+    : Room(-1)
     , X(0)
     , Y(0)
-    , Room(-1)
+    , Sprite(0)
     , IsOn(false)
     , Baseline(0xFF)
     , Flags(0)

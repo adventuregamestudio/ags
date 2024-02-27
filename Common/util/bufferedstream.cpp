@@ -57,7 +57,8 @@ void BufferedStream::FillBufferFromPosition(soff_t position)
 {
     FileStream::Seek(position, kSeekBegin);
     // remember to restrict to the end position!
-    size_t fill_size = std::min(BufferSize, static_cast<size_t>(_end - position));
+    size_t fill_size = static_cast<size_t>(
+        std::min<uint64_t>(BufferSize, static_cast<uint64_t>(_end - position)));
     _buffer.resize(fill_size);
     auto sz = FileStream::Read(_buffer.data(), fill_size);
     _buffer.resize(sz);
@@ -113,7 +114,8 @@ size_t BufferedStream::Read(void *buffer, size_t size)
     {
         FileStream::Seek(_position, kSeekBegin);
         // remember to restrict to the end position!
-        size_t fill_size = std::min(size, static_cast<size_t>(_end - _position));
+        size_t fill_size = static_cast<size_t>(
+            std::min<uint64_t>(size, static_cast<uint64_t>(_end - _position)));
         size_t sz = FileStream::Read(buffer, fill_size);
         _position += sz;
         return sz;
@@ -122,12 +124,14 @@ size_t BufferedStream::Read(void *buffer, size_t size)
     auto *to = static_cast<uint8_t*>(buffer);
     while(size > 0)
     {
-        if (_position < _bufferPosition || _position >= _bufferPosition + _buffer.size())
+        if (_position < _bufferPosition ||
+            static_cast<uint64_t>(_position) >= static_cast<uint64_t>(_bufferPosition + _buffer.size()))
         {
             FillBufferFromPosition(_position);
         }
         if (_buffer.empty()) { break; } // reached EOS
-        assert(_position >= _bufferPosition && _position < _bufferPosition + _buffer.size());
+        assert(_position >= _bufferPosition &&
+            static_cast<uint64_t>(_position) < static_cast<uint64_t>(_bufferPosition + _buffer.size()));
 
         soff_t bufferOffset = _position - _bufferPosition;
         assert(bufferOffset >= 0);
@@ -157,8 +161,8 @@ size_t BufferedStream::Write(const void *buffer, size_t size)
     while (size > 0)
     {
         if (_position < _bufferPosition || // seeked before buffer pos
-            _position > _bufferPosition + _buffer.size() || // seeked beyond buffer pos
-            _position >= _bufferPosition + BufferSize) // seeked, or exceeded buffer limit
+            _position > _bufferPosition + static_cast<soff_t>(_buffer.size()) || // seeked beyond buffer pos
+            _position >= _bufferPosition + static_cast<soff_t>(BufferSize)) // seeked, or exceeded buffer limit
         {
             FlushBuffer(_position);
         }

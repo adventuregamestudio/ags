@@ -141,7 +141,7 @@ public:
 private:
     String GetOldBlockName(int block_id) const override
     { return GetTraBlockName((TraFileBlock)block_id); }
-    soff_t GetOverLeeway(int block_id) const
+    soff_t GetOverLeeway(int block_id) const override
     {
         // TRA files made by pre-3.0 editors have a block length miscount by 1 byte
         if (block_id == kTraFblk_GameID) return 1;
@@ -171,7 +171,7 @@ HError TestTraGameID(int game_uid, const String &game_name, Stream *in)
         return err;
     // Test the identifiers, if they are not present then skip the test
     if ((tra.GameUid != 0 && (game_uid != tra.GameUid)) ||
-        !tra.GameName.IsEmpty() && (game_name != tra.GameName))
+        (!tra.GameName.IsEmpty() && (game_name != tra.GameName)))
         return new TraFileError(kTraFileErr_GameIDMismatch,
             String::FromFormat("The translation is designed for '%s'", tra.GameName.GetCStr()));
     return HError::None();

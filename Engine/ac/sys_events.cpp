@@ -857,10 +857,6 @@ static void on_sdl_touch_up(const SDL_TouchFingerEvent &event)
     touch.fingers_down &= ~(1 << finger_index);
     detect_double_tap(event, false);
 
-    // TODO: better way to get SDL's logical size? we cannot access sdl renderer here
-    int w = gfxDriver->GetDisplayMode().Width;
-    int h = gfxDriver->GetDisplayMode().Height;
-
     switch (t2m.mode)
     {
     case kTouchMouse_OneFingerDrag:

@@ -447,7 +447,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
 bool sort_gui_less(const int g1, const int g2)
 {
     return (guis[g1].ZOrder < guis[g2].ZOrder) ||
-        (guis[g1].ZOrder == guis[g2].ZOrder) && (g1 < g2);
+        ((guis[g1].ZOrder == guis[g2].ZOrder) && (g1 < g2));
 }
 
 void update_gui_zorder()

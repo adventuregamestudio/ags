@@ -17,7 +17,7 @@ namespace AGS.Editor
 
             splashPage.ConstructSimple();
             StringBuilder sb = new StringBuilder();
-            sb.Append($"AGS Editor .NET (Build {Types.Version.AGS_EDITOR_VERSION})");
+            sb.Append($"AGS Editor .NET {Types.Version.AGS_EDITOR_TARGETNAME} (Build {Types.Version.AGS_EDITOR_VERSION})");
 
             if (Types.Version.IS_BETA_VERSION)
             {

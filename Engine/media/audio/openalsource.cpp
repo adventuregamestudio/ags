@@ -95,12 +95,13 @@ static struct
 // OpenAlSource
 //-----------------------------------------------------------------------------
 
-OpenAlSource::OpenAlSource(SDL_AudioFormat format, int channels, int freq)
+OpenAlSource::OpenAlSource(SDL_AudioFormat format, int channels, int freq, uint32_t max_queue)
 {
     _inputFmt.format = format;
     _inputFmt.channels = static_cast<Uint8>(channels);
     _inputFmt.rate = freq;
-    _alFormat = OpenAlFormatFromSDLFormat(_inputFmt, _recvFmt);;
+    _alFormat = OpenAlFormatFromSDLFormat(_inputFmt, _recvFmt);
+    _maxQueue = max_queue;
     alGenSources(1, &_source);
     dump_al_errors();
     _resampler.Setup(_inputFmt, _recvFmt);
@@ -156,7 +157,7 @@ size_t OpenAlSource::PutData(const SoundBuffer &data)
 {
     Unqueue();
     // If queue is full, bail out
-    if (_queued >= MaxQueue) { return 0u; }
+    if (_queued >= _maxQueue) { return 0u; }
     // Input buffer is empty?
     if (!data.Data || (data.Size == 0)) { return 0u; }
     // Check for free buffers, generate more if necessary

@@ -195,19 +195,22 @@ struct InventoryScreen
     int btn_select_sprite;
     int btn_ok_sprite;
 
-    int break_code;
-    int need_redraw;
-
     void Prepare();
-    int  Redraw();
+    // Redraws inventory screen; returns if should continue
+    bool Redraw();
     void Draw(Bitmap *ds);
     void RedrawOverItem(Bitmap *ds, int isonitem);
+    // Updates inventory screen; returns if should continue
     bool Run();
     // Process all the buffered input events; returns if handled
     bool RunControls(int mx, int my, int isonitem);
     // Process single mouse event; returns if handled
     bool RunMouse(eAGSMouseButton mbut, int mx, int my, int isonitem);
     void Close();
+
+private:
+    bool is_done;
+    bool need_redraw;
 };
 
 InventoryScreen InvScr;
@@ -235,10 +238,10 @@ void InventoryScreen::Prepare()
     btn_select_sprite = spriteset.DoesSpriteExist(2042) ? 2042 : (spriteset.DoesSpriteExist(1) ? 1 : 0);
     btn_ok_sprite = spriteset.DoesSpriteExist(2043) ? 2043 : (spriteset.DoesSpriteExist(2) ? 2 : 0);
 
-    break_code = 0;
+    is_done = false;
 }
 
-int InventoryScreen::Redraw()
+bool InventoryScreen::Redraw()
 {
     numitems=0;
     widest=0;
@@ -248,13 +251,13 @@ int InventoryScreen::Redraw()
     if (charextra[game.playercharacter].invorder_count == 0) {
         DisplayMessage(996);
         in_inv_screen--;
-        return -1;
+        return false;
     }
 
     if (inv_screen_newroom >= 0) {
         in_inv_screen--;
         NewRoom(inv_screen_newroom);
-        return -1;
+        return false;
     }
 
     for (int i = 0; i < charextra[game.playercharacter].invorder_count; ++i) {
@@ -293,7 +296,7 @@ int InventoryScreen::Redraw()
     Draw(ds);
     set_mouse_cursor(cmode);
     wasonitem = -1;
-    return 0;
+    return true;
 }
 
 void InventoryScreen::Draw(Bitmap *ds)
@@ -372,21 +375,21 @@ bool InventoryScreen::Run()
     if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
         isonitem=-1;
 
-    break_code = 0;
+    is_done = false;
     // Handle player's input
     RunControls(mx, my, isonitem);
     ags_clear_input_buffer();
 
     // Test if need to break the loop
-    if (break_code != 0)
+    if (is_done)
     {
         return false;
     }
     // Handle redraw
     if (need_redraw)
     {
-        break_code = Redraw();
-        return break_code == 0;
+        is_done = !Redraw();
+        return !is_done;
     }
     else if (isonitem!=wasonitem)
     {
@@ -410,7 +413,7 @@ bool InventoryScreen::RunControls(int mx, int my, int isonitem)
             if (run_service_key_controls(ki) && !play.IsIgnoringInput() &&
                 !IsAGSServiceKey(ki.Key))
             {
-                break_code = 1;
+                is_done = true;
                 return true; // always handle for any key
             }
         }
@@ -526,7 +529,7 @@ bool InventoryScreen::RunMouse(eAGSMouseButton mbut, int mx, int my, int isonite
             }
             else
             { // Close inventory screen
-                break_code = 1;
+                is_done = true;
             }
             return true; // handled
         }
@@ -556,18 +559,12 @@ void InventoryScreen::Close()
 int __actual_invscreen()
 {
     InvScr.Prepare();
-    InvScr.break_code = InvScr.Redraw();
-    if (InvScr.break_code != 0)
+    if (!InvScr.Redraw())
     {
-        return InvScr.break_code;
+        return InvScr.toret;
     }
 
     while (InvScr.Run());
-
-    if (InvScr.break_code != 0)
-    {
-        return InvScr.break_code;
-    }
 
     ags_clear_input_buffer();
 

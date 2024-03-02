@@ -131,6 +131,19 @@ void audio_core_shutdown()
 
 
 // -------------------------------------------------------------------------------------------------
+// AUDIO CORE CONFIG
+// -------------------------------------------------------------------------------------------------
+
+void audio_core_set_master_volume(float newvol) 
+{
+    // TODO: review this later; how do we apply master volume
+    // if we use alternate audio output (e.g. from plugin)?
+    alListenerf(AL_GAIN, newvol);
+    dump_al_errors();
+}
+
+
+// -------------------------------------------------------------------------------------------------
 // SLOTS
 // -------------------------------------------------------------------------------------------------
 
@@ -164,110 +177,14 @@ int audio_core_slot_init(std::unique_ptr<Stream> in, const String &extension_hin
     return audio_core_slot_init(std::move(decoder));
 }
 
-// -------------------------------------------------------------------------------------------------
-// SLOT CONTROL
-// -------------------------------------------------------------------------------------------------
-
-PlaybackState audio_core_slot_play(int slot_handle)
+AudioPlayerLock audio_core_get_player(int slot_handle)
 {
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Play();
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    g_acore.mixer_cv.notify_all();
-    return state;
+    std::unique_lock<std::mutex> ulk(g_acore.mixer_mutex_m);
+    auto it = g_acore.slots_.find(slot_handle);
+    if (it == g_acore.slots_.end())
+        return AudioPlayerLock(nullptr, std::move(ulk), &g_acore.mixer_cv);
+    return AudioPlayerLock(it->second.get(), std::move(ulk), &g_acore.mixer_cv);
 }
-
-PlaybackState audio_core_slot_pause(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Pause();
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    g_acore.mixer_cv.notify_all();
-    return state;
-}
-
-void audio_core_slot_stop(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Stop();
-    g_acore.slots_.erase(slot_handle);
-    g_acore.mixer_cv.notify_all();
-}
-
-void audio_core_slot_seek_ms(int slot_handle, float pos_ms)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Seek(pos_ms);
-    g_acore.mixer_cv.notify_all();
-}
-
-
-// -------------------------------------------------------------------------------------------------
-// SLOT CONFIG
-// -------------------------------------------------------------------------------------------------
-
-void audio_core_set_master_volume(float newvol) 
-{
-    // TODO: review this later; how do we apply master volume
-    // if we use alternate audio output (e.g. from plugin)?
-    alListenerf(AL_GAIN, newvol);
-    dump_al_errors();
-}
-
-void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto *player = g_acore.slots_[slot_handle].get();
-    player->SetVolume(volume);
-    player->SetSpeed(speed);
-    player->SetPanning(panning);
-}
-
-// -------------------------------------------------------------------------------------------------
-// SLOT STATUS
-// -------------------------------------------------------------------------------------------------
-
-float audio_core_slot_get_pos_ms(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto pos = g_acore.slots_[slot_handle]->GetPositionMs();
-    g_acore.mixer_cv.notify_all();
-    return pos;
-}
-
-float audio_core_slot_get_duration(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto dur = g_acore.slots_[slot_handle]->GetDurationMs();
-    g_acore.mixer_cv.notify_all();
-    return dur;
-}
-
-int audio_core_slot_get_freq(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto dur = g_acore.slots_[slot_handle]->GetFrequency();
-    g_acore.mixer_cv.notify_all();
-    return dur;
-}
-
-PlaybackState audio_core_slot_get_play_state(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    g_acore.mixer_cv.notify_all();
-    return state;
-}
-
-PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos_ms)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    pos_ms = g_acore.slots_[slot_handle]->GetPositionMs();
-    g_acore.mixer_cv.notify_all();
-    return state;
-}
-
 
 // -------------------------------------------------------------------------------------------------
 // AUDIO PROCESSING

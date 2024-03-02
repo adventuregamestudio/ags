@@ -11,16 +11,17 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <cmath>
 #include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
-SOUNDCLIP::SOUNDCLIP(int slot)
+SOUNDCLIP::SOUNDCLIP(int slot, int snd_type, bool loop)
     : slot_(slot)
+    , soundType(snd_type)
+    , repeat(loop)
 {
     sourceClipID = -1;
     sourceClipType = 0;
-    soundType = 0;
-    repeat = false;
     priority = 50;
     vol255 = 0;
     vol100 = 0;
@@ -33,18 +34,19 @@ SOUNDCLIP::SOUNDCLIP(int slot)
     panning = 0;
     speed = 1000;
 
-    lengthMs = 0;
     state = PlaybackState::PlayStateInitial;
     pos = posMs = -1;
     paramsChanged = true;
 
-    freq = audio_core_slot_get_freq(slot_);
+    const auto player = audio_core_get_player(slot);
+    lengthMs = (int)std::round(player->GetDurationMs());
+    freq = player->GetFrequency();
 }
 
 SOUNDCLIP::~SOUNDCLIP()
 {
     if (slot_ >= 0)
-        audio_core_slot_stop(slot_);
+        audio_core_get_player(slot_)->Stop();
 }
 
 int SOUNDCLIP::play()
@@ -59,7 +61,9 @@ void SOUNDCLIP::pause()
 {
     if (!is_ready())
         return;
-    state = audio_core_slot_pause(slot_);
+    auto player = audio_core_get_player(slot_);
+    player->Pause();
+    state = player->GetPlayState();
 }
 
 void SOUNDCLIP::resume()
@@ -106,13 +110,13 @@ void SOUNDCLIP::seek(int pos_)
 void SOUNDCLIP::seek_ms(int pos_ms)
 {
     if (slot_ < 0) { return; }
-    audio_core_slot_pause(slot_);
+    auto player = audio_core_get_player(slot_);
+    player->Pause();
     // TODO: for backward compatibility and MOD/XM music support
     // need to reimplement seeking to a position which units
     // are defined according to the sound type
-    audio_core_slot_seek_ms(slot_, (float)pos_ms);
-    float posms_f;
-    audio_core_slot_get_play_state(slot_, posms_f);
+    player->Seek((float)pos_ms);
+    float posms_f = player->GetPositionMs();
     posMs = static_cast<int>(posms_f);
     pos = posms_to_pos(posMs);
 }
@@ -121,6 +125,7 @@ bool SOUNDCLIP::update()
 {
     if (!is_ready()) return false;
 
+    auto player = audio_core_get_player(slot_);
     if (paramsChanged)
     {
         auto vol_f = static_cast<float>(get_final_volume()) / 255.0f;
@@ -135,12 +140,14 @@ bool SOUNDCLIP::update()
         if (panning_f < -1.0f) { panning_f = -1.0f; }
         if (panning_f > 1.0f) { panning_f = 1.0f; }
 
-        audio_core_slot_configure(slot_, vol_f, speed_f, panning_f);
+        player->SetVolume(vol_f);
+        player->SetSpeed(speed_f);
+        player->SetPanning(panning_f);
         paramsChanged = false;
     }
 
-    float posms_f;
-    PlaybackState core_state = audio_core_slot_get_play_state(slot_, posms_f);
+    PlaybackState core_state = player->GetPlayState();
+    float posms_f = player->GetPositionMs();
     posMs = static_cast<int>(posms_f);
     pos = posms_to_pos(posMs);
     if (state == core_state || IsPlaybackDone(core_state))
@@ -152,7 +159,8 @@ bool SOUNDCLIP::update()
     switch (state)
     {
     case PlaybackState::PlayStatePlaying:
-        state = audio_core_slot_play(slot_);
+        player->Play();
+        state = player->GetPlayState();
         break;
     default: /* do nothing */
         break;

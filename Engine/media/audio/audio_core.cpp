@@ -27,12 +27,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-// A volume scale factor between AGS->OpenAL
-// TODO: find out why 0.7f is here?
-// TODO: should move this to OpenAL output?
-// but one problem is that this is also used for the "master volume".
-const auto GlobalGainScaling = 0.7f;
-
 // Global audio core state and resources
 static struct 
 {
@@ -214,7 +208,9 @@ void audio_core_slot_seek_ms(int slot_handle, float pos_ms)
 
 void audio_core_set_master_volume(float newvol) 
 {
-    alListenerf(AL_GAIN, newvol*GlobalGainScaling);
+    // TODO: review this later; how do we apply master volume
+    // if we use alternate audio output (e.g. from plugin)?
+    alListenerf(AL_GAIN, newvol);
     dump_al_errors();
 }
 
@@ -222,7 +218,7 @@ void audio_core_slot_configure(int slot_handle, float volume, float speed, float
 {
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
     auto *player = g_acore.slots_[slot_handle].get();
-    player->SetVolume(volume * GlobalGainScaling);
+    player->SetVolume(volume);
     player->SetSpeed(speed);
     player->SetPanning(panning);
 }

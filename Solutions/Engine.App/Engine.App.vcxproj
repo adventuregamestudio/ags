@@ -640,6 +640,7 @@
     <ClCompile Include="..\..\Engine\main\update.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\audioplayer.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\openalsource.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp" />
@@ -905,6 +906,7 @@
     <ClInclude Include="..\..\Engine\media\audio\ambientsound.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio.h" />
     <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audioplayer.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_core.h" />
     <ClInclude Include="..\..\Engine\media\audio\audio_system.h" />
     <ClInclude Include="..\..\Engine\media\audio\sdldecoder.h" />

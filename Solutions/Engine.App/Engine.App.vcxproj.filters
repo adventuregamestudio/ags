@@ -804,6 +804,9 @@
     <ClCompile Include="..\..\Engine\plugin\plugin_stubs.cpp">
       <Filter>Source Files\plugin</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\audioplayer.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1618,6 +1621,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\plugin\agsplugin_evts.h">
       <Filter>Header Files\plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audioplayer.h">
+      <Filter>Header Files\media\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

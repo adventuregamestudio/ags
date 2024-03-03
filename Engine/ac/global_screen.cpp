@@ -149,7 +149,7 @@ void FadeOut(int sppd) {
 void fadeout_impl(int spdd) {
     if (play.screen_is_faded_out == 0)
     {
-        gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue, RENDER_BATCH_POST_GAME_SCENE);
     }
 
     if (game.color_depth > 1)

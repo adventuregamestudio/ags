@@ -1164,11 +1164,12 @@ extern volatile bool want_exit, abort_engine;
 
 void render_to_screen()
 {
-    // Stage: final plugin callback (still drawn on game screen
+    // Stage: final plugin callback (still drawn on game screen)
     if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
+            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped,
+            nullptr, RENDER_BATCH_POST_GAME_SCENE);
         gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, nullptr);
         gfxDriver->EndSpriteBatch();
     }
@@ -2772,7 +2773,8 @@ void construct_game_scene(bool full_redraw)
 void construct_game_screen_overlay(bool draw_mouse)
 {
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
+            play.GetGlobalTransform(drawstate.FullFrameRedraw),
+            (GraphicFlip)play.screen_flipped, nullptr, RENDER_BATCH_POST_GAME_SCENE);
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
     {
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
@@ -2796,7 +2798,8 @@ void construct_game_screen_overlay(bool draw_mouse)
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
     if (drawstate.FullFrameRedraw)
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform(),
+            kFlip_None, nullptr, RENDER_BATCH_POST_GAME_SCENE);
         // Stage: legacy letterbox mode borders
         if (play.screen_is_faded_out == 0)
             render_black_borders();
@@ -2810,7 +2813,7 @@ void construct_game_screen_overlay(bool draw_mouse)
 void construct_engine_overlay()
 {
     const Rect &viewport = RectWH(game.GetGameRes());
-    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
+    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_POST_GAME_SCENE);
 
     if (display_fps != kFPS_Hide)
         draw_fps(viewport);

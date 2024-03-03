@@ -412,9 +412,9 @@ private:
     void RenderSpriteBatches(const glm::mat4 &projection);
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);
-    void RedrawLastFrame();
+    void RedrawLastFrame(uint32_t skip_filter);
     // Mark certain sprite batches to be skipped at the next render
-    void FilterSpriteBatches(uint32_t batch_filter);
+    void FilterSpriteBatches(uint32_t skip_filter);
 };
 
 

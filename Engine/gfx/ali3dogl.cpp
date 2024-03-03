@@ -946,8 +946,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
     bool old_render_res = _do_render_to_texture;
     _do_render_to_texture = at_native_res;
-    RedrawLastFrame();
-    FilterSpriteBatches(batch_skip_filter);
+    RedrawLastFrame(batch_skip_filter);
     RenderImpl(true);
     _do_render_to_texture = old_render_res;
   }
@@ -1005,9 +1004,10 @@ void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
   RenderImpl(true);
 }
 
-void OGLGraphicsDriver::RedrawLastFrame()
+void OGLGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
 {
     RestoreDrawLists();
+    FilterSpriteBatches(skip_filter);
 }
 
 void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry,
@@ -1995,10 +1995,13 @@ void OGLGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, i
   // Unfortunately some existing games were changing looks of the screen during same function,
   // but these were not supposed to get on screen until before fade-in.
   if (fadingOut)
-     this->RedrawLastFrame();
+  {
+    RedrawLastFrame(batch_skip_filter);
+  }
   else if (_drawScreenCallback != nullptr)
+  {
     _drawScreenCallback();
-  FilterSpriteBatches(batch_skip_filter);
+  }
 
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
@@ -2051,10 +2054,13 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay, uin
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   if (blackingOut)
-    this->RedrawLastFrame();
+  {
+    RedrawLastFrame(batch_skip_filter);
+  }
   else if (_drawScreenCallback != nullptr)
+  {
     _drawScreenCallback();
-  FilterSpriteBatches(batch_skip_filter);
+  }
 
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();

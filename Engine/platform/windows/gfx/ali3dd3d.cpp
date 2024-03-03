@@ -927,8 +927,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   {
     bool old_render_res = _renderSprAtScreenRes;
     _renderSprAtScreenRes = !at_native_res;
-    RedrawLastFrame();
-    FilterSpriteBatches(batch_skip_filter);
+    RedrawLastFrame(batch_skip_filter);
     RenderImpl(true);
     _renderSprAtScreenRes = old_render_res;
   }
@@ -1000,9 +999,10 @@ void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
   RenderAndPresent(true);
 }
 
-void D3DGraphicsDriver::RedrawLastFrame()
+void D3DGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
 {
   RestoreDrawLists();
+  FilterSpriteBatches(skip_filter);
 }
 
 void D3DGraphicsDriver::RenderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
@@ -1917,10 +1917,13 @@ void D3DGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, i
   // Unfortunately some existing games were changing looks of the screen during same function,
   // but these were not supposed to get on screen until before fade-in.
   if (fadingOut)
-    this->RedrawLastFrame();
+  {
+    RedrawLastFrame(batch_skip_filter);
+  }
   else if (_drawScreenCallback != NULL)
+  {
     _drawScreenCallback();
-  FilterSpriteBatches(batch_skip_filter);
+  }
 
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
@@ -1973,10 +1976,13 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay, uin
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   if (blackingOut)
-     this->RedrawLastFrame();
+  {
+    RedrawLastFrame(batch_skip_filter);
+  }
   else if (_drawScreenCallback != NULL)
+  {
     _drawScreenCallback();
-  FilterSpriteBatches(batch_skip_filter);
+  }
 
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();

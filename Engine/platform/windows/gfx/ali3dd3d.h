@@ -350,7 +350,7 @@ private:
     void ClearDrawBackups();
     void RenderAndPresent(bool clearDrawListAfterwards);
     void RenderImpl(bool clearDrawListAfterwards);
-    void RedrawLastFrame();
+    void RedrawLastFrame(uint32_t skip_filter);
     // Sets a Direct3D viewport for the current render target.
     void SetD3DViewport(const Rect &rc);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
@@ -369,7 +369,7 @@ private:
     // Helper method for setting exclusive alpha blending parameters
     void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Mark certain sprite batches to be skipped at the next render
-    void FilterSpriteBatches(uint32_t batch_filter);
+    void FilterSpriteBatches(uint32_t skip_filter);
 };
 
 

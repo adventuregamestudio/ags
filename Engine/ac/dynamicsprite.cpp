@@ -309,6 +309,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
     std::unique_ptr<Bitmap> new_pic(CopyScreenIntoBitmap(width, height));
     int new_slot = add_dynamic_sprite(std::move(new_pic));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
     return new ScriptDynamicSprite(new_slot);
 }
 
@@ -327,6 +329,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
 
     bool has_alpha = (preserveAlphaChannel) && ((game.SpriteInfos[slot].Flags & SPF_ALPHACHANNEL) != 0);
     int new_slot = add_dynamic_sprite(std::move(new_pic), has_alpha);
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
     return new ScriptDynamicSprite(new_slot);
 }
 
@@ -352,6 +356,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     sds->FinishedDrawingReadOnly();
 
     int new_slot = add_dynamic_sprite(std::move(new_pic), (sds->hasAlphaChannel != 0));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
     return new ScriptDynamicSprite(new_slot);
 }
 
@@ -378,6 +384,8 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
         alphaChannel = false;
 
     int new_slot = add_dynamic_sprite(std::move(new_pic), alphaChannel != 0);
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
     return new ScriptDynamicSprite(new_slot);
 }
 
@@ -418,6 +426,8 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     new_pic->Blit(thisroom.BgFrames[frame].Graphic.get(), x1, y1, 0, 0, width, height);
 
     int new_slot = add_dynamic_sprite(std::move(new_pic));
+    if (new_slot <= 0)
+        return nullptr; // something went wrong
     return new ScriptDynamicSprite(new_slot);
 }
 
@@ -436,7 +446,9 @@ int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, bool has_alpha) 
     if (slot <= 0 || spriteset.IsAssetSprite(slot))
         return 0; // invalid slot, or reserved for the static sprite
 
-    spriteset.SetSprite(slot, std::move(image), SPF_DYNAMICALLOC | (SPF_ALPHACHANNEL * has_alpha));
+    if (!spriteset.SetSprite(slot, std::move(image), SPF_DYNAMICALLOC | (SPF_ALPHACHANNEL * has_alpha)))
+        return 0; // failed to add the sprite, bad image or realloc failed
+
     if (play.spritemodified.size() < game.SpriteInfos.size())
         play.spritemodified.resize(game.SpriteInfos.size());
     return slot;

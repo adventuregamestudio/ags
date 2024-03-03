@@ -94,9 +94,11 @@ bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int f
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: unable to use index %d", index);
         return false;
     }
-    if (!image)
+
+    if (!image || image->GetSize().IsNull() || image->GetColorDepth() <= 0)
     {
-        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: attempt to assign nullptr to index %d", index);
+        DisposeSprite(index); // free previous item in this slot anyway
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetSprite: attempt to assign an invalid bitmap to index %d", index);
         return false;
     }
 

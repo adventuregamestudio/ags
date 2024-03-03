@@ -31,7 +31,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameState play;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern IGraphicsDriver *gfxDriver;
@@ -44,6 +43,86 @@ void FlipScreen(int amount) {
     play.screen_flipped=amount;
 }
 
+class ShakeScreenState : public GameState
+{
+public:
+    ShakeScreenState(int severe)
+        : _severe(severe) {}
+
+    // Begin the state, initialize and prepare any resources;
+    // returns if the state should continue, or ends instantly
+    void Begin() override
+    {
+        // TODO: support shaking room viewport separately
+        // TODO: rely on game speed setting? and/or provide frequency and duration args
+        // TODO: unify blocking and non-blocking shake update
+
+        // FIXME: keeping hardcoded 40 shakes with ~50 ms delay between shakes for now,
+        // only use this is a factor, and calculate delay and duration params from this.
+        int compat_shake_delay = static_cast<int>(50.f / (1000.f / GetGameSpeed()));
+        int compat_duration = static_cast<int>(40 * (50.f / (1000.f / GetGameSpeed())));
+
+        play.shakesc_length = compat_duration;
+        play.shakesc_delay = 2 * compat_shake_delay;
+        play.shakesc_amount = _severe;
+        play.mouse_cursor_hidden++;
+
+        // Optimized variant for software render: create game scene once and shake it
+        // TODO: split implementations into two state classes?
+        if (!gfxDriver->RequiresFullRedrawEachFrame())
+        {
+            gfxDriver->ClearDrawLists();
+            construct_game_scene();
+            gfxDriver->RenderToBackBuffer();
+        }
+    }
+    // End the state, does final actions, releases all resources;
+    // should NOT be called if Begin returned FALSE.
+    void End() override
+    {
+        if (!gfxDriver->RequiresFullRedrawEachFrame())
+        {
+            clear_letterbox_borders();
+            render_to_screen();
+        }
+
+        play.mouse_cursor_hidden--;
+        play.shakesc_length = 0;
+        play.shakesc_delay = 0;
+        play.shakesc_amount = 0;
+    }
+    // Draw the state
+    void Draw() override
+    {
+    }
+    // Update the state during a game tick;
+    // returns whether should continue to run state loop, or stop
+    bool Run() override
+    {
+        // TODO: split implementations into two state classes?
+        if (gfxDriver->RequiresFullRedrawEachFrame())
+        {
+            loopcounter++;
+            render_graphics();
+            update_polled_stuff();
+            WaitForNextFrame();
+        }
+        else
+        {
+            loopcounter++;
+            update_shakescreen();
+            render_to_screen();
+            update_polled_stuff();
+            WaitForNextFrame();
+        }
+        return ++_step < play.shakesc_length;
+    }
+
+private:
+    int _severe = 0;
+    int _step = 0;
+};
+
 void ShakeScreen(int severe) {
     EndSkippingUntilCharStops();
 
@@ -51,54 +130,16 @@ void ShakeScreen(int severe) {
         return;
 
     severe = data_to_game_coord(severe);
-
-    // TODO: support shaking room viewport separately
-    // TODO: rely on game speed setting? and/or provide frequency and duration args
-    // TODO: unify blocking and non-blocking shake update
-
-    play.shakesc_length = 10;
-    play.shakesc_delay = 2;
-    play.shakesc_amount = severe;
-    play.mouse_cursor_hidden++;
-
     // FIXME: we have to sync audio here explicitly, because ShakeScreen
     // does not call any game update function while it works
     sync_audio_playback();
-    if (gfxDriver->RequiresFullRedrawEachFrame())
-    {
-        for (int hh = 0; hh < 40; hh++)
-        {
-            loopcounter++;
-            platform->Delay(50);
 
-            render_graphics();
+    ShakeScreenState shake(severe);
+    shake.Begin();
+    while (shake.Run());
+    shake.End();
 
-            update_polled_stuff();
-        }
-    }
-    else
-    {
-        // Optimized variant for software render: create game scene once and shake it
-        gfxDriver->ClearDrawLists();
-        construct_game_scene();
-        gfxDriver->RenderToBackBuffer();
-        for (int hh = 0; hh < 40; hh++)
-        {
-            platform->Delay(50);
-            const int yoff = hh % 2 == 0 ? 0 : severe;
-            play.shake_screen_yoff = yoff;
-            render_to_screen();
-            update_polled_stuff();
-        }
-        clear_letterbox_borders();
-        render_to_screen();
-    }
     sync_audio_playback();
-
-    play.mouse_cursor_hidden--;
-    play.shakesc_length = 0;
-    play.shakesc_delay = 0;
-    play.shakesc_amount = 0;
 }
 
 void ShakeScreenBackground (int delay, int amount, int length) {
@@ -143,12 +184,12 @@ void FadeOut(int sppd) {
     // FIXME: we have to sync audio here explicitly, because FadeOut
     // does not call any game update function while it works
     sync_audio_playback();
-    screen_effect_fade(false, sppd);
+    run_fade_out_effect(kScrTran_Fade, sppd);
     sync_audio_playback();
 }
 
 void SetScreenTransition(int newtrans) {
-    if ((newtrans < 0) || (newtrans > FADE_LAST))
+    if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetScreenTransition: invalid transition type");
 
     play.fade_effect = newtrans;
@@ -157,7 +198,7 @@ void SetScreenTransition(int newtrans) {
 }
 
 void SetNextScreenTransition(int newtrans) {
-    if ((newtrans < 0) || (newtrans > FADE_LAST))
+    if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetNextScreenTransition: invalid transition type");
 
     play.next_screen_transition = newtrans;
@@ -184,6 +225,6 @@ void FadeIn(int sppd) {
     // FIXME: we have to sync audio here explicitly, because FadeIn
     // does not call any game update function while it works
     sync_audio_playback();
-    screen_effect_fade(true, sppd);
+    run_fade_in_effect(kScrTran_Fade, sppd);
     sync_audio_playback();
 }

@@ -99,12 +99,15 @@
 #define PORTRAIT_XPOSITION  3
 
 // Room transition style
-#define FADE_NORMAL         0
-#define FADE_INSTANT        1
-#define FADE_DISSOLVE       2
-#define FADE_BOXOUT         3
-#define FADE_CROSSFADE      4
-#define FADE_LAST           4   // this should equal the last one
+enum ScreenTransitionStyle
+{
+    kScrTran_Fade = 0,
+    kScrTran_Instant = 1,
+    kScrTran_Dissolve = 2,
+    kScrTran_Boxout = 3,
+    kScrTran_Crossfade = 4,
+    kNumScrTransitions
+};
 
 // Legacy font flags
 //#define FFLG_LEGACY_NOSCALE 0x01 // TODO: is this from legacy format, ever used?

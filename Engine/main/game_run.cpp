@@ -99,6 +99,7 @@ float fps = std::numeric_limits<float>::quiet_NaN();
 static auto t1 = AGS_Clock::now();  // timer for FPS // ... 't1'... how very appropriate.. :)
 unsigned int loopcounter=0;
 static unsigned int lastcounter=0;
+static size_t numEventsAtStartOfFunction; // CHECKME: research and document this
 
 #define UNTIL_ANIMEND   1
 #define UNTIL_MOVEEND   2
@@ -110,20 +111,94 @@ static unsigned int lastcounter=0;
 #define UNTIL_INTISNEG  8
 #define UNTIL_ANIMBTNEND 9
 
-// Following struct instructs the engine to run game loops until
-// certain condition is not fullfilled.
-struct RestrictUntil
-{
-    int type = 0; // type of condition, UNTIL_* constant
-    int disabled_for = 0; // FOR_* constant
-    // pointer to the test variable
-    const void *data_ptr = nullptr;
-    // other values used for a test, depend on type
-    int data1 = 0;
-    int data2 = 0;
-} restrict_until;
+static void GameTick();
 
-static size_t numEventsAtStartOfFunction;
+// Game state instructs the engine to run game loops until
+// certain condition is not fullfilled.
+class GameLoopUntilState : public GameState
+{
+public:
+    GameLoopUntilState(int untilwhat, const void* data_ptr = nullptr, int data1 = 0, int data2 = 0)
+        : _untilType(untilwhat)
+        , _disabledFor(FOR_EXITLOOP)
+        , _dataPtr(data_ptr)
+        , _data1(data1)
+        , _data2(data2)
+    {
+    }
+
+    int GetUntilType() const { return _untilType; }
+    int GetDisabledFor() const { return _disabledFor; }
+    const void *GetDataPtr() const { return _dataPtr; }
+    int GetData1() const { return _data1; }
+    int GetData2() const { return _data2; }
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
+    {
+        assert(_disabledFor == FOR_EXITLOOP);
+        play.disabled_user_interface++;
+        // If GUI looks change when disabled, then mark all of them for redraw
+        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+
+        // Only change the mouse cursor if it hasn't been specifically changed first
+        // (or if it's speech, always change it)
+        if (((cur_cursor == cur_mode) || (_untilType == UNTIL_NOOVERLAY)) &&
+            (cur_mode != CURS_WAIT))
+        {
+            set_mouse_cursor(CURS_WAIT);
+        }
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        set_our_eip(77);
+        set_default_cursor();
+        // If GUI looks change when disabled, then mark all of them for redraw
+        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        play.disabled_user_interface--;
+
+        switch (_disabledFor)
+        {
+        case FOR_EXITLOOP:
+            break;
+        // These other types are obsolete since at least v2.5
+        // FOR_SCRIPT is for v2.1 and earlier.
+        // case FOR_ANIMATION:
+        //     run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
+        //     break;
+        // case FOR_SCRIPT:
+        //     break;
+        default:
+            quit("Unknown reason to disable user input in the Wait state.");
+            break;
+        }
+    }
+    // Draw the state
+    void Draw() override
+    {
+    }
+    // Update the state during a game tick
+    bool Run() override
+    {
+        GameTick();
+        return ShouldStayInWaitMode();
+    }
+
+private:
+    int _untilType = 0; // type of condition, UNTIL_* constant
+    int _disabledFor = 0; // FOR_* constant
+    // pointer to the test variable
+    const void *_dataPtr = nullptr;
+    // other values used for a test, depend on type
+    int _data1 = 0;
+    int _data2 = 0;
+};
+
+// TODO: this is a global variable, because this state is checked during update;
+// find a way to refactor this and not have it here.
+std::unique_ptr<GameLoopUntilState> restrict_until;
+
 
 static void ProperExit()
 {
@@ -201,7 +276,7 @@ static bool game_loop_check_ground_level_interactions()
         // if in a Wait loop which is no longer valid (probably
         // because the Region interaction did a NewRoom), abort
         // the rest of the loop
-        if ((restrict_until.type > 0) && (!ShouldStayInWaitMode())) {
+        if ((restrict_until) && (!ShouldStayInWaitMode())) {
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
             events.resize(numEventsAtStartOfFunction);
@@ -454,7 +529,7 @@ bool run_service_key_controls(KeyInput &out_key)
     }
 
     if (((agskey == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0)
-        && (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until.type == 0)) {
+        && (play.wait_counter < 1) && (play.text_overlay_on == 0) && (!restrict_until)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
@@ -884,7 +959,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_check_problems_at_start();
 
     // if we're not fading in, don't count the fadeouts
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == FADE_NORMAL))
+    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == kScrTran_Fade))
         play.screen_is_faded_out = 0;
 
     set_our_eip(1014);
@@ -999,30 +1074,33 @@ static void UpdateMouseOverLocation()
 }
 
 // Checks if user interface should remain disabled for now
+// FIXME: should be a private method of GameLoopUntilState,
+// but is called elsewhere for some strange reason;
+// investigate and move to GameLoopUntilState.
 static bool ShouldStayInWaitMode() {
-    if (restrict_until.type == 0)
+    if (!restrict_until)
         quit("end_wait_loop called but game not in loop_until state");
 
-    switch (restrict_until.type)
+    switch (restrict_until->GetUntilType())
     {
     case UNTIL_MOVEEND:
     {
-        short*wkptr = (short*)restrict_until.data_ptr;
+        short*wkptr = (short*)restrict_until->GetDataPtr();
         return !(wkptr[0] < 1);
     }
     case UNTIL_CHARIS0:
     {
-        char*chptr = (char*)restrict_until.data_ptr;
+        char*chptr = (char*)restrict_until->GetDataPtr();
         return !(chptr[0] == 0);
     }
     case UNTIL_NEGATIVE:
     {
-        short*wkptr = (short*)restrict_until.data_ptr;
+        short*wkptr = (short*)restrict_until->GetDataPtr();
         return !(wkptr[0] < 0);
     }
     case UNTIL_INTISNEG:
     {
-        int*wkptr = (int*)restrict_until.data_ptr;
+        int*wkptr = (int*)restrict_until->GetDataPtr();
         return !(wkptr[0] < 0);
     }
     case UNTIL_NOOVERLAY:
@@ -1031,17 +1109,17 @@ static bool ShouldStayInWaitMode() {
     }
     case UNTIL_INTIS0:
     {
-        int*wkptr = (int*)restrict_until.data_ptr;
+        int*wkptr = (int*)restrict_until->GetDataPtr();
         return !(wkptr[0] == 0);
     }
     case UNTIL_SHORTIS0:
     {
-        short*wkptr = (short*)restrict_until.data_ptr;
+        short*wkptr = (short*)restrict_until->GetDataPtr();
         return !(wkptr[0] == 0);
     }
     case UNTIL_ANIMBTNEND:
     {  // still animating?
-        return FindButtonAnimation(restrict_until.data1, restrict_until.data2) >= 0;
+        return FindButtonAnimation(restrict_until->GetData1(), restrict_until->GetData2()) >= 0;
     }
     default:
         quit("loop_until: unknown until event");
@@ -1050,92 +1128,35 @@ static bool ShouldStayInWaitMode() {
     return true; // should stay in wait
 }
 
-static bool UpdateWaitMode()
-{
-    if (restrict_until.type == 0) {
-        return true;
-    }
-
-    if (!ShouldStayInWaitMode())
-        restrict_until.type = 0;
-    set_our_eip(77);
-
-    if (restrict_until.type > 0) {
-        return true;
-    }
-
-    auto was_disabled_for = restrict_until.disabled_for;
-
-    set_default_cursor();
-    // If GUI looks change when disabled, then mark all of them for redraw
-    GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-    play.disabled_user_interface--;
-    restrict_until.disabled_for = 0;
-
-    switch (was_disabled_for) {
-    // case FOR_ANIMATION:
-    //     run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
-    //     break;
-    case FOR_EXITLOOP:
-        return false;
-    case FOR_SCRIPT:
-        quit("err: for_script obsolete (v2.1 and earlier only)");
-        return false;
-    default:
-        quit("Unknown user_disabled_for in end restrict_until");
-        return false;
-    }
-}
-
 // Run single game iteration; calls UpdateGameOnce() internally
-static bool GameTick()
+static void GameTick()
 {
     if (displayed_room < 0)
         quit("!A blocking function was called before the first room has been loaded");
 
     UpdateGameOnce(true);
     UpdateMouseOverLocation();
-
-    set_our_eip(76);
-
-    return UpdateWaitMode();
-}
-
-static void SetupLoopParameters(int untilwhat, const void* data_ptr = nullptr, int data1 = 0, int data2 = 0) {
-    play.disabled_user_interface++;
-    // If GUI looks change when disabled, then mark all of them for redraw
-    GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-
-    // Only change the mouse cursor if it hasn't been specifically changed first
-    // (or if it's speech, always change it)
-    if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&
-        (cur_mode != CURS_WAIT))
-        set_mouse_cursor(CURS_WAIT);
-
-    restrict_until.type = untilwhat;
-    restrict_until.data_ptr = data_ptr;
-    restrict_until.data1 = data1;
-    restrict_until.data2 = data2;
-    restrict_until.disabled_for = FOR_EXITLOOP;
 }
 
 // This function is called from lot of various functions
 // in the game core, character, room object etc
 static void GameLoopUntilEvent(int untilwhat, const void* data_ptr = nullptr, int data1 = 0, int data2 = 0) {
-  // blocking cutscene - end skipping
-  EndSkippingUntilCharStops();
+    // blocking cutscene - end skipping
+    EndSkippingUntilCharStops();
 
-  // this function can get called in a nested context, so
-  // remember the state of these vars in case a higher level
-  // call needs them
-  auto cached_restrict_until = restrict_until;
+    // this function can get called in a nested context, so
+    // remember the state of these vars in case a higher level
+    // call needs them
+    std::unique_ptr<GameLoopUntilState> cached_restrict_until = std::move(restrict_until);
 
-  SetupLoopParameters(untilwhat, data_ptr, data1, data2);
-  while (GameTick());
+    restrict_until.reset(new GameLoopUntilState(untilwhat, data_ptr, data1, data2));
+    restrict_until->Begin();
+    while (restrict_until->Run());
+    restrict_until->End();
 
-  set_our_eip(78);
+    set_our_eip(78);
 
-  restrict_until = cached_restrict_until;
+    restrict_until = std::move(cached_restrict_until);
 }
 
 void GameLoopUntilValueIsZero(const char *value) 

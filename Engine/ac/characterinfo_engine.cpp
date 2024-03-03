@@ -32,7 +32,6 @@ using namespace AGS::Common;
 extern std::vector<ViewStruct> views;
 extern GameSetupStruct game;
 extern int displayed_room;
-extern GameState play;
 extern int char_speaking;
 extern RoomStruct thisroom;
 extern unsigned int loopcounter;

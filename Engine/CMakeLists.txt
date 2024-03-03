@@ -275,7 +275,6 @@ target_sources(engine
     ac/textbox.h
     ac/timer.cpp
     ac/timer.h
-    ac/topbarsettings.h
     ac/translation.cpp
     ac/translation.h
     ac/viewframe.cpp

@@ -68,7 +68,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
@@ -2806,7 +2805,7 @@ void construct_engine_overlay()
     gfxDriver->EndSpriteBatch();
 }
 
-static void update_shakescreen()
+void update_shakescreen()
 {
     // TODO: unify blocking and non-blocking shake update
     play.shake_screen_yoff = 0;

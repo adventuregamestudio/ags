@@ -33,7 +33,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern RoomStruct thisroom;
-extern GameState play;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 

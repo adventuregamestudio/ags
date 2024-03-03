@@ -80,7 +80,6 @@ void AudioChans::DeleteClipOnChannel(int index)
 }
 
 extern GameSetupStruct game;
-extern GameState play;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern CCAudioChannel ccDynamicAudio;

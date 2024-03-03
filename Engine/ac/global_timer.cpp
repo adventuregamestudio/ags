@@ -11,13 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/global_timer.h"
 #include "ac/runtime_defines.h"
 #include "ac/common.h"
 #include "ac/gamestate.h"
-
-extern GameState play;
 
 
 void script_SetTimer(int tnum,int timeout) {

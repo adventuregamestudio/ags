@@ -27,7 +27,6 @@
 #include "ac/runtime_defines.h"
 #include "ac/speech.h"
 #include "ac/string.h"
-#include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "game/roomstruct.h"
@@ -35,13 +34,10 @@
 
 using namespace AGS::Common;
 
-extern TopBarSettings topBar;
-extern GameState play;
 extern RoomStruct thisroom;
-extern int display_message_aschar;
 extern GameSetupStruct game;
 
-void DisplayAtYImpl(int ypos, const char *texx, bool as_speech);
+void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech);
 
 void Display(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
@@ -59,14 +55,13 @@ void DisplaySimple(const char *text)
 
 void DisplayMB(const char *text)
 {
-    DisplayAtYImpl(-1, text, false);
+    DisplayAtYImpl(-1, text, nullptr, false);
 }
 
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text)
 {
     // FIXME: refactor source_text_length and get rid of this ugly hack!
     const int real_text_sourcelen = source_text_length;
-    snprintf(topBar.text, sizeof(topBar.text), "%s", get_translation(title));
     source_text_length = real_text_sourcelen;
 
     if (ypos > 0)
@@ -76,20 +71,22 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     if (backcol > 0)
         play.top_bar_backcolor = backcol;
 
-    topBar.wantIt = 1;
-    topBar.font = FONT_NORMAL;
-    topBar.height = get_font_height_outlined(topBar.font);
-    topBar.height += data_to_game_coord(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
-
+    int font;
     // they want to customize the font
     if (play.top_bar_font >= 0)
-        topBar.font = play.top_bar_font;
+        font = play.top_bar_font;
+    else
+        font = FONT_NORMAL;
+    int height = get_font_height_outlined(font)
+        + data_to_game_coord(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
+
+    const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
     if (play.speech_skip_style & SKIP_AUTOTIMER)
         play.messagetime = GetTextDisplayTime(text);
 
-    DisplayAtY(play.top_bar_ypos, text);
+    DisplayAtYImpl(play.top_bar_ypos, text, &topbar, game.options[OPT_ALWAYSSPCH] != 0);
 }
 
 // Display a room/global message in the bar
@@ -99,20 +96,18 @@ void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, in
     DisplayTopBar(ypos, ttexcol, backcol, title, msgbufr);
 }
 
-void DisplayMessageAtY(int msnum, int ypos) {
+void DisplayMessageImpl(int msnum, int aschar, int ypos) {
     char msgbufr[3001];
     if (msnum>=500) {
         get_message_text (msnum, msgbufr);
-        if (display_message_aschar > 0)
-            DisplaySpeech(msgbufr, display_message_aschar);
+        if (aschar > 0)
+            DisplaySpeech(msgbufr, aschar);
         else
             DisplayAtY(ypos, msgbufr);
-        display_message_aschar=0;
         return;
     }
 
-    if (display_message_aschar > 0) {
-        display_message_aschar=0;
+    if (aschar > 0) {
         quit("!DisplayMessage: data column specified a character for local\n"
             "message; use the message editor to select the character for room\n"
             "messages.\n");
@@ -142,11 +137,14 @@ void DisplayMessageAtY(int msnum, int ypos) {
         else
             repeatloop=0;
     }
+}
 
+void DisplayMessageAtY(int msnum, int ypos) {
+    DisplayMessageImpl(msnum, -1, ypos);
 }
 
 void DisplayMessage(int msnum) {
-    DisplayMessageAtY (msnum, -1);
+    DisplayMessageAtY(msnum, -1);
 }
 
 void DisplayAt(int xxp,int yyp,int widd, const char* text) {
@@ -158,10 +156,10 @@ void DisplayAt(int xxp,int yyp,int widd, const char* text) {
 
     if (widd<1) widd=play.GetUIViewport().GetWidth()/2;
     if (xxp<0) xxp=play.GetUIViewport().GetWidth()/2-widd/2;
-    display_at(xxp, yyp, widd, text);
+    display_at(xxp, yyp, widd, text, nullptr);
 }
 
-void DisplayAtYImpl(int ypos, const char *texx, bool as_speech) {
+void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech) {
     const Rect &ui_view = play.GetUIViewport();
     if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
@@ -187,12 +185,12 @@ void DisplayAtYImpl(int ypos, const char *texx, bool as_speech) {
             play.disabled_user_interface --;
         }
 
-        display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4, get_translation(texx));
+        display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4, get_translation(texx), topbar);
     }
 }
 
 void DisplayAtY(int ypos, const char *texx) {
-    DisplayAtYImpl(ypos, texx, game.options[OPT_ALWAYSSPCH] != 0);
+    DisplayAtYImpl(ypos, texx, nullptr, game.options[OPT_ALWAYSSPCH] != 0);
 }
 
 void SetSpeechStyle (int newstyle) {

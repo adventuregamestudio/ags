@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/global_debug.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"
@@ -43,7 +42,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 

@@ -27,7 +27,6 @@ using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern SpriteCache spriteset;
-extern GameState play;
 extern GameSetupStruct game;
 
 Bitmap* ScriptDrawingSurface::GetBitmapSurface()

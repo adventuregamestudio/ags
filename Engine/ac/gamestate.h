@@ -65,8 +65,26 @@ enum GameStateSvgVersion
 };
 
 
+// A GameState is a parent class for the game states.
+class GameState
+{
+public:
+    virtual ~GameState() = default;
+
+    // Begin the state, initialize and prepare any resources
+    virtual void Begin() = 0;
+    // End the state, does final actions, releases all resources
+    virtual void End() = 0;
+    // Draw the state
+    virtual void Draw() = 0;
+    // Update the state during a game tick;
+    // returns whether should continue to run state loop, or stop
+    virtual bool Run() = 0;
+};
+
+
 // Runtime game state
-struct GameState
+struct GamePlayState
 {
     // WARNING: following is a part of the script and plugin API
     // (until further notice)
@@ -302,7 +320,7 @@ struct GameState
     std::vector<int> spritemodifiedlist;
 
 
-    GameState();
+    GamePlayState();
 
     //
     // Viewport and camera control.
@@ -466,7 +484,7 @@ HorAlignment ConvertLegacyScriptAlignment(LegacyScriptAlignment align);
 // Alignment constants in the Script API and still support old version.
 HorAlignment ReadScriptAlignment(int32_t align);
 
-extern GameState play;
+extern GamePlayState play;
 extern std::vector<CharacterExtras> charextra;
 extern std::vector<MoveList> mls;
 

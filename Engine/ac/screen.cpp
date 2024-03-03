@@ -76,7 +76,7 @@ void current_fade_out_effect () {
     }
     else if (theTransition == FADE_BOXOUT) 
     {
-        gfxDriver->BoxOutEffect(true, get_fixed_pixel_size(16), 1000 / GetGameSpeed(), RENDER_BATCH_POST_GAME_SCENE);
+        gfxDriver->BoxOutEffect(true, get_fixed_pixel_size(16), 1000 / GetGameSpeed(), RENDER_SHOT_SKIP_ON_FADE);
         play.screen_is_faded_out = 1;
     }
     else 
@@ -84,7 +84,7 @@ void current_fade_out_effect () {
         get_palette(old_palette);
         const Rect &viewport = play.GetMainViewport();
         saved_viewport_bitmap = CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight(),
-            false /* use current resolution */, RENDER_BATCH_POST_GAME_SCENE);
+            false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE);
     }
 }
 

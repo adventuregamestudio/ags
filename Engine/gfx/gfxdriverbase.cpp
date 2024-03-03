@@ -92,16 +92,16 @@ bool GraphicsDriverBase::GetVsync() const
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-    GraphicFlip flip, PBitmap surface)
+    GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
 {
-    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface));
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, flip, surface, filter_flags));
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(IDriverDependantBitmap *render_target,
     const Rect &viewport, const SpriteTransform &transform,
-    GraphicFlip flip)
+    GraphicFlip flip, uint32_t filter_flags)
 {
-    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, render_target, viewport, transform, flip));
+    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, render_target, viewport, transform, flip, filter_flags));
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(const SpriteBatchDesc &desc)

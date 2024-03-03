@@ -906,7 +906,8 @@ void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (!_renderSprAtScreenRes)
@@ -920,13 +921,16 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     return false;
   }
   // If we are rendering sprites at the screen resolution, and requested native res,
-  // re-render last frame to the native surface
-  if (at_native_res && _renderSprAtScreenRes)
+  // re-render last frame to the native surface;
+  // Also forcere-render last frame if we require batch filtering
+  if ((at_native_res && _renderSprAtScreenRes) || (batch_skip_filter != 0))
   {
-    _renderSprAtScreenRes = false;
+    bool old_render_res = _renderSprAtScreenRes;
+    _renderSprAtScreenRes = !at_native_res;
     RedrawLastFrame();
+    FilterSpriteBatches(batch_skip_filter);
     RenderImpl(true);
-    _renderSprAtScreenRes = true;
+    _renderSprAtScreenRes = old_render_res;
   }
   
   IDirect3DSurface9* surface = NULL;
@@ -1570,6 +1574,21 @@ void D3DGraphicsDriver::RestoreDrawLists()
     _actSpriteBatch = UINT32_MAX;
 }
 
+void D3DGraphicsDriver::FilterSpriteBatches(uint32_t skip_filter)
+{
+    if (skip_filter == 0)
+        return;
+    for (size_t i = 0; i < _spriteBatchDesc.size(); ++i)
+    {
+        if (_spriteBatchDesc[i].FilterFlags & skip_filter)
+        {
+            const auto range = _spriteBatchRange[i];
+            for (size_t spr = range.first; spr < range.second; ++spr)
+                _spriteList[spr].skip = true;
+        }
+    }
+}
+
 void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)
 {
     assert(_actSpriteBatch != UINT32_MAX);
@@ -1888,7 +1907,8 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
-void D3DGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void D3DGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+    uint32_t batch_skip_filter)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   // NOTE: please keep in mind: redrawing last saved frame here instead of constructing new one
@@ -1900,6 +1920,8 @@ void D3DGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, i
     this->RedrawLastFrame();
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
+  FilterSpriteBatches(batch_skip_filter);
+
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);
@@ -1935,23 +1957,27 @@ void D3DGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, i
   ResetFxPool();
 }
 
-void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+    uint32_t batch_skip_filter)
 {
-  DoFade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
+  DoFade(true, speed, targetColourRed, targetColourGreen, targetColourBlue, batch_skip_filter);
 }
 
-void D3DGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue) 
+void D3DGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue,
+    uint32_t batch_skip_filter)
 {
-  DoFade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
+  DoFade(false, speed, targetColourRed, targetColourGreen, targetColourBlue, batch_skip_filter);
 }
 
-void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
+void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay, uint32_t batch_skip_filter)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   if (blackingOut)
      this->RedrawLastFrame();
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
+  FilterSpriteBatches(batch_skip_filter);
+
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, true);

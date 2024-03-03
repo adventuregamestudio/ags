@@ -261,12 +261,16 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt,
+        uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
     void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override;
-    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void BoxOutEffect(bool blackingOut, int speed, int delay) override;
+    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+        uint32_t batch_skip_filter = 0u) override;
+    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue,
+        uint32_t batch_skip_filter = 0u) override;
+    void BoxOutEffect(bool blackingOut, int speed, int delay,
+        uint32_t batch_skip_filter = 0u) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
@@ -377,7 +381,8 @@ private:
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    void DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+        uint32_t batch_skip_filter);
     void RenderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
     void SetupViewport();
@@ -408,6 +413,8 @@ private:
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);
     void RedrawLastFrame();
+    // Mark certain sprite batches to be skipped at the next render
+    void FilterSpriteBatches(uint32_t batch_filter);
 };
 
 

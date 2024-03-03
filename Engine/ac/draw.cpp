@@ -530,12 +530,13 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool has_alpha)
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
-Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
+Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res,
+    uint32_t batch_skip_filter)
 {
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
     // If the size and color depth are supported we may copy right into our bitmap
-    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt))
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt, batch_skip_filter))
         return dst;
     // Otherwise we might need to copy between few bitmaps...
     Bitmap *buf_screenfmt = new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth);

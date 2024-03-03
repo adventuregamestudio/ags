@@ -248,12 +248,16 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt,
+        uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
     void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };
-    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) override;
-    void BoxOutEffect(bool blackingOut, int speed, int delay) override;
+    void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+        uint32_t batch_skip_filter = 0u) override;
+    void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue,
+        uint32_t batch_skip_filter = 0u) override;
+    void BoxOutEffect(bool blackingOut, int speed, int delay,
+        uint32_t batch_skip_filter = 0u) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
@@ -335,7 +339,8 @@ private:
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    void DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+        uint32_t batch_skip_filter);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
     // Backup all draw lists in the temp storage
     void BackupDrawLists();
@@ -363,6 +368,8 @@ private:
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters
     void SetBlendOpAlpha(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
+    // Mark certain sprite batches to be skipped at the next render
+    void FilterSpriteBatches(uint32_t batch_filter);
 };
 
 

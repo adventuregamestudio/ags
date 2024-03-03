@@ -729,7 +729,8 @@ void SDLRendererGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
         _stageVirtualScreen = cur_stage;
 }
 
-bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    GraphicResolution *want_fmt, uint32_t /*batch_skip_filter*/)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
   // software filter is taught to copy to any size
@@ -877,7 +878,9 @@ void SDLRendererGraphicsDriver::__fade_out_range(int speed, int from, int to, in
    __fade_from_range(temp, faded_out_palette, speed, from, to);
 }
 
-void SDLRendererGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+void SDLRendererGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
+    uint32_t /*batch_skip_filter*/)
+{
   if (_srcColorDepth > 8)
   {
     highcolor_fade_out(virtualScreen, _drawPostScreenCallback, speed * 4, targetColourRed, targetColourGreen, targetColourBlue);
@@ -888,7 +891,9 @@ void SDLRendererGraphicsDriver::FadeOut(int speed, int targetColourRed, int targ
   }
 }
 
-void SDLRendererGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) {
+void SDLRendererGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue,
+    uint32_t /*batch_skip_filter*/)
+{
   if (_drawScreenCallback)
   {
     _drawScreenCallback();
@@ -905,7 +910,7 @@ void SDLRendererGraphicsDriver::FadeIn(int speed, PALETTE p, int targetColourRed
   }
 }
 
-void SDLRendererGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
+void SDLRendererGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay, uint32_t /*batch_skip_filter*/)
 {
   if (blackingOut)
   {

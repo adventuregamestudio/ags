@@ -911,6 +911,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   // Currently don't support copying in screen resolution when we are rendering in native
   if (!_renderSprAtScreenRes)
       at_native_res = true;
+
   Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
   if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
   {

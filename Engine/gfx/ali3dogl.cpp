@@ -921,7 +921,9 @@ void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /
 
 bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
 {
-  (void)at_native_res; // TODO: support this at some point
+  // Currently don't support copying in screen resolution when we are rendering in native
+  if (_do_render_to_texture)
+      at_native_res = true;
 
   // TODO: following implementation currently only reads GL pixels in 32-bit RGBA.
   // this **should** work regardless of actual display mode because OpenGL is
@@ -929,53 +931,58 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   // If you like to support writing directly into 16-bit bitmap, please take
   // care of ammending the pixel reading code below.
   const int read_in_colordepth = 32;
-  Size need_size = _do_render_to_texture ? _backRenderSize : _dstRect.GetSize();
+  Size need_size = at_native_res ? _backRenderSize : _dstRect.GetSize();
   if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != need_size)
   {
     if (want_fmt)
       *want_fmt = GraphicResolution(need_size.Width, need_size.Height, read_in_colordepth);
     return false;
   }
+  // If we are rendering sprites at the screen resolution, and requested native res,
+  // re-render last frame to the native surface
+  if (at_native_res && !_do_render_to_texture)
+  {
+    _do_render_to_texture = true;
+    _reDrawLastFrame();
+    _render(true);
+    _do_render_to_texture = false;
+  }
 
   Rect retr_rect;
-  if (_do_render_to_texture)
+  if (at_native_res)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
     retr_rect = RectWH(0, 0, _backRenderSize.Width, _backRenderSize.Height);
   }
   else
   {
+    // CHECKME: is this condition still relevant?
 #if !AGS_OPENGL_ES2
     glReadBuffer(GL_FRONT);
 #endif
-
     retr_rect = _dstRect;
   }
 
-  int bpp = read_in_colordepth / 8;
-  int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
+  // Retrieve the backbuffer pixels
+  const int bpp = read_in_colordepth / 8;
+  const int buf_sz = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
+  std::vector<uint8_t> buffer(buf_sz);
+  glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, &buffer.front());
 
-  unsigned char* buffer = new unsigned char[bufferSize];
-  if (buffer)
+  // Now convert from OGL RGBA to Allegro RGBA pixel format
+  uint8_t* sourcePtr = &buffer.front();
+  for (int y = destination->GetHeight() - 1; y >= 0; y--)
   {
-    glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
-    unsigned char* sourcePtr = buffer;
-    for (int y = destination->GetHeight() - 1; y >= 0; y--)
+    unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
+    for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
     {
-      unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
-      for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
-      {
-        destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
-      }
-      sourcePtr += retr_rect.GetWidth() * bpp;
+      destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
     }
-
-    if (_pollingCallback)
-      _pollingCallback();
-
-    delete [] buffer;
+    sourcePtr += retr_rect.GetWidth() * bpp;
   }
+
+  if (_pollingCallback)
+    _pollingCallback();
   return true;
 }
 

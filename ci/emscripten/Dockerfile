@@ -3,7 +3,7 @@
 FROM ubuntu:jammy
 
 # The current used version of emsdk
-ARG EMSCRIPTEN_VERSION=3.1.28
+ARG EMSCRIPTEN_VERSION=3.1.55
 ENV EMSDK=/emsdk
 
 #fix TZ docker hang
@@ -86,10 +86,12 @@ RUN echo "## Aggressive optimization: Remove debug symbols" \
     && find ${EMSDK}/upstream/bin -type f -exec strip -s {} + || true \
     && echo "## Done"
 
-# Fallback in case Emscripten isn't activated.
-# This will let use tools offered by this image inside other Docker images
-# (sub-stages) or with custom / no entrypoint
-ENV PATH="/emsdk:/emsdk/upstream/emscripten:/emsdk/upstream/bin:/emsdk/node/15.14.0_64bit/bin:${PATH}"
+# These fallback environment variables are intended for situations where the
+# entrypoint is not utilized (as in a derived image) or overridden (e.g. when
+# using `--entrypoint /bin/bash` in CLI).
+# This corresponds to the env variables set during: `source ./emsdk_env.sh`
+ENV EMSDK=/emsdk \
+    PATH="/emsdk:/emsdk/upstream/emscripten:/emsdk/node/16.20.0_64bit/bin:${PATH}"
 
 # ------------------------------------------------------------------------------
 # Create a 'standard` 1000:1000 user
@@ -108,7 +110,7 @@ RUN echo "## Create emscripten user (1000:1000)" \
 
 # ------------------------------------------------------------------------------
 
-RUN embuilder.py build --lto libstubs libc libc++ libc++abi sdl2 ogg vorbis
+RUN embuilder.py --lto build libstubs libc libc++ libc++abi sdl2 ogg vorbis
 RUN embuilder.py build libstubs libc libc++ libc++abi sdl2 ogg vorbis
 
 # ------------------------------------------------------------------------------

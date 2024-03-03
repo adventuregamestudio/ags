@@ -889,16 +889,18 @@ void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter)
 {
-    if (!_doRenderToTexture)
+    // If we normally render in screen res, restore last frame's lists and
+    // render in native res on the given target
+    // Also force re-render last frame if we require batch filtering
+    if (!_doRenderToTexture || (batch_skip_filter != 0))
     {
-        // If we normally render in screen res, restore last frame's lists and
-        // render in native res on the given target
-        _doRenderToTexture = false;
-        RestoreDrawLists();
-        Render(target);
+        bool old_render_res = _doRenderToTexture;
         _doRenderToTexture = true;
+        RedrawLastFrame(batch_skip_filter);
+        Render(target);
+        _doRenderToTexture = old_render_res;
     }
     else
     {
@@ -914,7 +916,8 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
     }
 }
 
-bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (_doRenderToTexture)
@@ -933,14 +936,17 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       *want_fmt = GraphicResolution(need_size.Width, need_size.Height, read_in_colordepth);
     return false;
   }
+
   // If we are rendering sprites at the screen resolution, and requested native res,
   // re-render last frame to the native surface
-  if (at_native_res && !_doRenderToTexture)
+  // Also force re-render last frame if we require batch filtering
+  if ((at_native_res && !_doRenderToTexture) || (batch_skip_filter != 0))
   {
-    _doRenderToTexture = true;
-    RestoreDrawLists();
+    bool old_render_res = _doRenderToTexture;
+    _doRenderToTexture = at_native_res;
+    RedrawLastFrame(batch_skip_filter);
     RenderImpl(true);
-    _doRenderToTexture = false;
+    _doRenderToTexture = old_render_res;
   }
 
   Rect retr_rect;
@@ -1540,6 +1546,27 @@ void OGLGraphicsDriver::RestoreDrawLists()
     _spriteBatches = _backupBatches;
     _spriteList = _backupSpriteList;
     _actSpriteBatch = UINT32_MAX;
+}
+
+void OGLGraphicsDriver::FilterSpriteBatches(uint32_t skip_filter)
+{
+    if (skip_filter == 0)
+        return;
+    for (size_t i = 0; i < _spriteBatchDesc.size(); ++i)
+    {
+        if (_spriteBatchDesc[i].FilterFlags & skip_filter)
+        {
+            const auto range = _spriteBatchRange[i];
+            for (size_t spr = range.first; spr < range.second; ++spr)
+                _spriteList[spr].skip = true;
+        }
+    }
+}
+
+void OGLGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
+{
+    RestoreDrawLists();
+    FilterSpriteBatches(skip_filter);
 }
 
 void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* ddb)

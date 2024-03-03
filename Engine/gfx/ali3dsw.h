@@ -200,8 +200,9 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     void Render(IDriverDependantBitmap *target) override;
-    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }

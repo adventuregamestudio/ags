@@ -69,7 +69,7 @@ static IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
     }
     else
     {
-        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb);
+        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb, RENDER_SHOT_SKIP_ON_FADE);
     }
     return shot_ddb;
 }
@@ -90,7 +90,8 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
         gfxDriver->RenderToBackBuffer();
     }
     return std::unique_ptr<Bitmap>(
-        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight()));
+        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(),
+        false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE));
 }
 
 static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)

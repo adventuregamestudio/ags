@@ -943,8 +943,8 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   if (at_native_res && !_do_render_to_texture)
   {
     _do_render_to_texture = true;
-    _reDrawLastFrame();
-    _render(true);
+    RedrawLastFrame();
+    RenderImpl(true);
     _do_render_to_texture = false;
   }
 
@@ -998,15 +998,15 @@ void OGLGraphicsDriver::Render()
 
 void OGLGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
-  _render(true);
+  RenderImpl(true);
 }
 
-void OGLGraphicsDriver::_reDrawLastFrame()
+void OGLGraphicsDriver::RedrawLastFrame()
 {
     RestoreDrawLists();
 }
 
-void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
+void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry,
     const glm::mat4 &projection, const glm::mat4 &matGlobal,
     const SpriteColorTransform &color, const Size &surface_size)
 {
@@ -1196,7 +1196,7 @@ void OGLGraphicsDriver::_renderSprite(const OGLDrawListEntry *drawListEntry,
   glUseProgram(0);
 }
 
-void OGLGraphicsDriver::_render(bool clearDrawListAfterwards)
+void OGLGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
 {
   glm::mat4 projection;
 
@@ -1461,11 +1461,11 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
             if (auto *ddb = DoSpriteEvtCallback(e.x, 0, sx, sy))
             {
                 auto stageEntry = OGLDrawListEntry((OGLBitmap*)ddb, batch.ID, sx, sy);
-                _renderSprite(&stageEntry, projection, batch.Matrix, batch.Color, surface_size);
+                RenderSprite(&stageEntry, projection, batch.Matrix, batch.Color, surface_size);
             }
             break;
         default:
-            _renderSprite(&e, projection, batch.Matrix, batch.Color, surface_size);
+            RenderSprite(&e, projection, batch.Matrix, batch.Color, surface_size);
             break;
         }
     }
@@ -1966,7 +1966,7 @@ Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
-void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void OGLGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   // NOTE: please keep in mind: redrawing last saved frame here instead of constructing new one
@@ -1975,7 +1975,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   // Unfortunately some existing games were changing looks of the screen during same function,
   // but these were not supposed to get on screen until before fade-in.
   if (fadingOut)
-     this->_reDrawLastFrame();
+     this->RedrawLastFrame();
   else if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -1994,7 +1994,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   for (int a = 1; a < 255; a += speed)
   {
     d3db->SetAlpha(fadingOut ? a : (255 - a));
-    this->_render(false);
+    this->RenderImpl(false);
 
     sys_evt_process_pending();
     if (_pollingCallback)
@@ -2005,7 +2005,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   if (fadingOut)
   {
     d3db->SetAlpha(255);
-    this->_render(false);
+    this->RenderImpl(false);
   }
 
   this->DestroyDDB(d3db);
@@ -2015,19 +2015,19 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
 void OGLGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-  do_fade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
+  DoFade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
 void OGLGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-  do_fade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
+  DoFade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
 void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   if (blackingOut)
-    this->_reDrawLastFrame();
+    this->RedrawLastFrame();
   else if (_drawScreenCallback != nullptr)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -2075,7 +2075,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     }
 
-    this->_render(false);
+    this->RenderImpl(false);
 
     sys_evt_process_pending();
     if (_pollingCallback)

@@ -117,7 +117,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   vertexbuffer = NULL;
   pixelShader = NULL;
   _legacyPixelShader = false;
-  set_up_default_vertices();
+  SetupDefaultVertices();
   pNativeSurface = NULL;
   pNativeTexture = NULL;
   _smoothScaling = false;
@@ -132,7 +132,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _vmem_b_shift_32 = 0;
 }
 
-void D3DGraphicsDriver::set_up_default_vertices()
+void D3DGraphicsDriver::SetupDefaultVertices()
 {
   defaultVertices[0].position.x = 0.0f;
   defaultVertices[0].position.y = 0.0f;
@@ -924,8 +924,8 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   if (at_native_res && _renderSprAtScreenRes)
   {
     _renderSprAtScreenRes = false;
-    _reDrawLastFrame();
-    _render(true);
+    RedrawLastFrame();
+    RenderImpl(true);
     _renderSprAtScreenRes = true;
   }
   
@@ -993,15 +993,15 @@ void D3DGraphicsDriver::Render()
 void D3DGraphicsDriver::Render(int /*xoff*/, int /*yoff*/, GraphicFlip /*flip*/)
 {
   ResetDeviceIfNecessary();
-  _renderAndPresent(true);
+  RenderAndPresent(true);
 }
 
-void D3DGraphicsDriver::_reDrawLastFrame()
+void D3DGraphicsDriver::RedrawLastFrame()
 {
   RestoreDrawLists();
 }
 
-void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
+void D3DGraphicsDriver::RenderSprite(const D3DDrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
     const SpriteColorTransform &color, const Size &surface_size)
 {
   HRESULT hr;
@@ -1181,7 +1181,7 @@ void D3DGraphicsDriver::_renderSprite(const D3DDrawListEntry *drawListEntry, con
   }
 }
 
-void D3DGraphicsDriver::_renderFromTexture()
+void D3DGraphicsDriver::RenderFromTexture()
 {
     if (direct3ddevice->SetStreamSource(0, vertexbuffer, 0, sizeof(CUSTOMVERTEX)) != D3D_OK)
     {
@@ -1211,13 +1211,13 @@ void D3DGraphicsDriver::_renderFromTexture()
     }
 }
 
-void D3DGraphicsDriver::_renderAndPresent(bool clearDrawListAfterwards)
+void D3DGraphicsDriver::RenderAndPresent(bool clearDrawListAfterwards)
 {
-  _render(clearDrawListAfterwards);
+  RenderImpl(clearDrawListAfterwards);
   direct3ddevice->Present(NULL, NULL, NULL, NULL);
 }
 
-void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
+void D3DGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
 {
   IDirect3DSurface9 *pBackBuffer = NULL;
 
@@ -1251,7 +1251,7 @@ void D3DGraphicsDriver::_render(bool clearDrawListAfterwards)
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
     SetD3DViewport(_dstRect);
-    _renderFromTexture();
+    RenderFromTexture();
   }
 
   direct3ddevice->EndScene();
@@ -1450,11 +1450,11 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
                 static_cast<int32_t>(reinterpret_cast<uintptr_t>(direct3ddevice)), sx, sy))
             {
                 auto stageEntry = D3DDrawListEntry((D3DBitmap*)ddb, batch.ID, sx, sy);
-                _renderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
+                RenderSprite(&stageEntry, batch.Matrix, batch.Color, surface_size);
             }
             break;
         default:
-            _renderSprite(&e, batch.Matrix, batch.Color, surface_size);
+            RenderSprite(&e, batch.Matrix, batch.Color, surface_size);
             break;
         }
     }
@@ -1888,7 +1888,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
   return txdata;
 }
 
-void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void D3DGraphicsDriver::DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   // NOTE: please keep in mind: redrawing last saved frame here instead of constructing new one
@@ -1897,7 +1897,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   // Unfortunately some existing games were changing looks of the screen during same function,
   // but these were not supposed to get on screen until before fade-in.
   if (fadingOut)
-    this->_reDrawLastFrame();
+    this->RedrawLastFrame();
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -1916,7 +1916,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   for (int a = 1; a < 255; a += speed)
   {
     d3db->SetAlpha(fadingOut ? a : (255 - a));
-    this->_renderAndPresent(false);
+    this->RenderAndPresent(false);
 
     sys_evt_process_pending();
     if (_pollingCallback)
@@ -1927,7 +1927,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   if (fadingOut)
   {
     d3db->SetAlpha(255);
-    this->_renderAndPresent(false);
+    this->RenderAndPresent(false);
   }
 
   this->DestroyDDB(d3db);
@@ -1937,19 +1937,19 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
 
 void D3DGraphicsDriver::FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) 
 {
-  do_fade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
+  DoFade(true, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
 void D3DGraphicsDriver::FadeIn(int speed, PALETTE /*p*/, int targetColourRed, int targetColourGreen, int targetColourBlue) 
 {
-  do_fade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
+  DoFade(false, speed, targetColourRed, targetColourGreen, targetColourBlue);
 }
 
 void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 {
   // Construct scene in order: game screen, fade fx, post game overlay
   if (blackingOut)
-     this->_reDrawLastFrame();
+     this->RedrawLastFrame();
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
@@ -1999,7 +1999,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight(), false);
     }
     
-    this->_renderAndPresent(false);
+    this->RenderAndPresent(false);
 
     sys_evt_process_pending();
     if (_pollingCallback)

@@ -331,11 +331,11 @@ private:
     void RecreateRenderTargets();
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
-    void set_up_default_vertices();
+    void SetupDefaultVertices();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(D3DTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
     // Backup all draw lists in the temp storage
     void BackupDrawLists();
@@ -343,9 +343,9 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _renderAndPresent(bool clearDrawListAfterwards);
-    void _render(bool clearDrawListAfterwards);
-    void _reDrawLastFrame();
+    void RenderAndPresent(bool clearDrawListAfterwards);
+    void RenderImpl(bool clearDrawListAfterwards);
+    void RedrawLastFrame();
     // Sets a Direct3D viewport for the current render target.
     void SetD3DViewport(const Rect &rc);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
@@ -356,9 +356,9 @@ private:
     void SetRenderTarget(const D3DSpriteBatch *batch, IDirect3DSurface9 *back_buffer, Size &surface_sz, bool clear);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &surface_size);
-    void _renderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
+    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
-    void _renderFromTexture();
+    void RenderFromTexture();
     // Helper method for setting blending parameters
     void SetBlendOp(D3DBLENDOP blend_op, D3DBLEND src_factor, D3DBLEND dst_factor);
     // Helper method for setting exclusive alpha blending parameters

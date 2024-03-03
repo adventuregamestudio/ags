@@ -377,8 +377,8 @@ private:
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(OGLTextureTile *tile, Bitmap *bitmap, bool has_alpha, bool opaque);
     void CreateVirtualScreen();
-    void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    void _renderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
+    void DoFade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+    void RenderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
         const SpriteColorTransform &color, const Size &surface_size);
     void SetupViewport();
     // Converts rectangle in top->down coordinates into OpenGL's native bottom->up coordinates
@@ -397,7 +397,7 @@ private:
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
-    void _render(bool clearDrawListAfterwards);
+    void RenderImpl(bool clearDrawListAfterwards);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
     // Optionally pass surface_size if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
@@ -407,7 +407,7 @@ private:
     void RenderSpriteBatches(const glm::mat4 &projection);
     size_t RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
         const Size &surface_size);
-    void _reDrawLastFrame();
+    void RedrawLastFrame();
 };
 
 

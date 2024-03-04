@@ -311,16 +311,14 @@ ccInstance *ccInstance::Fork()
 
 void ccInstance::Abort()
 {
-    if ((this != nullptr) && (pc != 0))
+    if (pc != 0)
         flags |= INSTF_ABORTED;
 }
 
 void ccInstance::AbortAndDestroy()
 {
-    if (this != nullptr) {
-        Abort();
-        flags |= INSTF_FREE;
-    }
+    Abort();
+    flags |= INSTF_FREE;
 }
 
 // ASSERT_CC_OP tests for the internal function call return value and

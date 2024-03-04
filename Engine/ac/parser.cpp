@@ -27,7 +27,6 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern GameState play;
 
 int Parser_FindWordID(const char *wordToFind)
 {

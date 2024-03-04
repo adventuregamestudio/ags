@@ -270,6 +270,7 @@ private:
     {
         // Request item's size, and test if it's a valid item
         TSize size = CalcSize(value);
+        assert(size > 0u);
         if (size == 0u)
             return; // invalid item
         

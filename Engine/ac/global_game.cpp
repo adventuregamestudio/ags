@@ -68,7 +68,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameState play;
 extern ExecutingScript*curscript;
 extern int displayed_room;
 extern int game_paused;

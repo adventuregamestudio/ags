@@ -260,8 +260,9 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     void Render(IDriverDependantBitmap *target) override;
-    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
     void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderAtScreenRes = enabled; };
     bool SupportsGammaControl() override;
@@ -371,12 +372,18 @@ private:
     void UpdateTextureRegion(D3DTextureTile *tile, const Bitmap *bitmap, bool opaque);
     void CreateVirtualScreen();
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
+
     // Backup all draw lists in the temp storage
     void BackupDrawLists();
     // Restore draw lists from the temp storage
     void RestoreDrawLists();
     // Deletes draw list backups
     void ClearDrawBackups();
+    // Mark certain sprite batches to be skipped at the next render
+    void FilterSpriteBatches(uint32_t skip_filter);
+    // Redraw saved draw lists, optionally filtering specific batches
+    void RedrawLastFrame(uint32_t skip_filter);
+
     void RenderAndPresent(bool clearDrawListAfterwards);
     void RenderImpl(bool clearDrawListAfterwards);
     void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);

@@ -44,7 +44,6 @@
 #include "media/audio/audio_system.h"
 
 extern GameSetupStruct game;
-extern GameState play;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;

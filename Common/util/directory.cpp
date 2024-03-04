@@ -466,7 +466,7 @@ bool FindFile::Test()
     if (!std::regex_match(_di.Current().GetCStr(), mr, _regex))
         return false;
     const auto &e = _di.GetEntry();
-    return _doFiles && e.IsFile || _doDirs && e.IsDir;
+    return (_doFiles && e.IsFile) || (_doDirs && e.IsDir);
 }
 
 bool FindFile::Next()

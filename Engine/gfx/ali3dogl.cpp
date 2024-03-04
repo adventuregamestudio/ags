@@ -43,13 +43,7 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glDeleteFramebuffersEXT glDeleteFramebuffers
 #define glBindFramebufferEXT glBindFramebuffer
 #define glCheckFramebufferStatusEXT glCheckFramebufferStatus
-#define glGetFramebufferAttachmentParameterivEXT glGetFramebufferAttachmentParameteriv
-#define glGenerateMipmapEXT glGenerateMipmap
 #define glFramebufferTexture2DEXT glFramebufferTexture2D
-#define glFramebufferRenderbufferEXT glFramebufferRenderbuffer
-// TODO: probably should use EGL and function eglSwapInterval on mobile to support setting swap interval
-// For now this is a dummy function pointer which is only used to test that function is not supported
-const void (*glSwapIntervalEXT)(int) = NULL;
 
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER
 #define GL_FRAMEBUFFER_COMPLETE_EXT GL_FRAMEBUFFER_COMPLETE
@@ -901,16 +895,18 @@ void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /
   // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter)
 {
-    if (!_doRenderToTexture)
+    // If we normally render in screen res, restore last frame's lists and
+    // render in native res on the given target
+    // Also force re-render last frame if we require batch filtering
+    if (!_doRenderToTexture || (batch_skip_filter != 0))
     {
-        // If we normally render in screen res, restore last frame's lists and
-        // render in native res on the given target
-        _doRenderToTexture = false;
-        RestoreDrawLists();
-        Render(target);
+        bool old_render_res = _doRenderToTexture;
         _doRenderToTexture = true;
+        RedrawLastFrame(batch_skip_filter);
+        Render(target);
+        _doRenderToTexture = old_render_res;
     }
     else
     {
@@ -926,9 +922,12 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
     }
 }
 
-bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
-  (void)at_native_res; // TODO: support this at some point
+  // Currently don't support copying in screen resolution when we are rendering in native
+  if (_doRenderToTexture)
+      at_native_res = true;
 
   // TODO: following implementation currently only reads GL pixels in 32-bit RGBA.
   // this **should** work regardless of actual display mode because OpenGL is
@@ -936,7 +935,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   // If you like to support writing directly into 16-bit bitmap, please take
   // care of ammending the pixel reading code below.
   const int read_in_colordepth = 32;
-  Size need_size = _doRenderToTexture ? Size(_nativeSurface->_width, _nativeSurface->_height) : _dstRect.GetSize();
+  Size need_size = at_native_res ? Size(_nativeSurface->_width, _nativeSurface->_height) : _dstRect.GetSize();
   if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != need_size)
   {
     if (want_fmt)
@@ -944,42 +943,51 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     return false;
   }
 
+  // If we are rendering sprites at the screen resolution, and requested native res,
+  // re-render last frame to the native surface
+  // Also force re-render last frame if we require batch filtering
+  if ((at_native_res && !_doRenderToTexture) || (batch_skip_filter != 0))
+  {
+    bool old_render_res = _doRenderToTexture;
+    _doRenderToTexture = at_native_res;
+    RedrawLastFrame(batch_skip_filter);
+    RenderImpl(true);
+    _doRenderToTexture = old_render_res;
+  }
+
   Rect retr_rect;
-  if (_doRenderToTexture)
+  if (at_native_res)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _nativeSurface->_fbo);
     retr_rect = RectWH(0, 0, need_size.Width, need_size.Height);
   }
   else
   {
+    // CHECKME: is this condition still relevant?
 #if !AGS_OPENGL_ES2
     glReadBuffer(GL_FRONT);
 #endif
-
     retr_rect = _dstRect;
   }
 
-  int bpp = read_in_colordepth / 8;
-  int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
+  // Retrieve the backbuffer pixels
+  const int bpp = read_in_colordepth / 8;
+  const int buf_sz = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
+  std::vector<uint8_t> buffer(buf_sz);
+  glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, &buffer.front());
 
-  unsigned char* buffer = new unsigned char[bufferSize];
-  if (buffer)
+  // Now convert from OGL RGBA to Allegro RGBA pixel format
+  uint8_t* sourcePtr = &buffer.front();
+  for (int y = destination->GetHeight() - 1; y >= 0; y--)
   {
-    glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
-    unsigned char* sourcePtr = buffer;
-    for (int y = destination->GetHeight() - 1; y >= 0; y--)
+    unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
+    for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
     {
-      unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
-      for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
-      {
-        destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
-      }
-      sourcePtr += retr_rect.GetWidth() * bpp;
+      destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
     }
-
-    delete [] buffer;
+    sourcePtr += retr_rect.GetWidth() * bpp;
   }
+
   return true;
 }
 
@@ -1423,8 +1431,8 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         {
             // If render target is different in this batch, then set it up
             const auto &rt_parent = _spriteBatches[rt_parents.top()];
-            if ((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo) ||
-                (rt_parent.Fbo == 0u) && (cur_rt != back_buffer))
+            if (((rt_parent.Fbo > 0u) && (cur_rt != rt_parent.Fbo)) ||
+                ((rt_parent.Fbo == 0u) && (cur_rt != back_buffer)))
             {
                 cur_rt = (rt_parent.Fbo > 0u) ? rt_parent.Fbo : back_buffer;
                 SetRenderTarget(&rt_parent, surface_sz, rend_sz, use_projection, new_batch);
@@ -1611,6 +1619,27 @@ void OGLGraphicsDriver::RestoreDrawLists()
     _actSpriteBatch = UINT32_MAX;
 }
 
+void OGLGraphicsDriver::FilterSpriteBatches(uint32_t skip_filter)
+{
+    if (skip_filter == 0)
+        return;
+    for (size_t i = 0; i < _spriteBatchDesc.size(); ++i)
+    {
+        if (_spriteBatchDesc[i].FilterFlags & skip_filter)
+        {
+            const auto range = _spriteBatchRange[i];
+            for (size_t spr = range.first; spr < range.second; ++spr)
+                _spriteList[spr].skip = true;
+        }
+    }
+}
+
+void OGLGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
+{
+    RestoreDrawLists();
+    FilterSpriteBatches(skip_filter);
+}
+
 void OGLGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap* ddb)
 {
     assert(_actSpriteBatch != UINT32_MAX);
@@ -1641,7 +1670,6 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
     }
     delete (OGLBitmap*)ddb;
 }
-
 
 void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *bitmap, bool opaque)
 {

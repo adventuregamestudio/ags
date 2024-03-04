@@ -171,7 +171,6 @@ String get_voice_assetpath()
 #include "script/script_runtime.h"
 
 extern GameSetupStruct game;
-extern GameState play;
 
 ScriptOverlay* Speech_GetTextOverlay()
 {

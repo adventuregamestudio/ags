@@ -34,7 +34,6 @@
 #include "ac/speech.h"
 #include "ac/string.h"
 #include "ac/system.h"
-#include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
 #include "gfx/blender.h"
 #include "gui/guibutton.h"
@@ -52,24 +51,98 @@
 using namespace AGS::Common;
 using namespace AGS::Common::BitmapHelper;
 
-extern GameState play;
 extern GameSetupStruct game;
 extern int longestline;
 extern AGSPlatformDriver *platform;
 extern int loops_per_character;
 extern SpriteCache spriteset;
 
-TopBarSettings topBar;
-struct DisplayVars
+bool display_check_user_input(int skip);
+
+// Game state of a displayed blocking message
+class DisplayMessageState : public GameState
 {
-    int linespacing = 0;   // font's line spacing
-    int fulltxtheight = 0; // total height of all the text
-} disp;
+public:
+    DisplayMessageState(int over_type, int timer, int skip_style)
+        : _overType(over_type), _timer(timer), _skipStyle(skip_style) {}
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
+    {
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        remove_screen_overlay(_overType);
+        invalidate_screen();
+    }
+    // Draw the state
+    void Draw() override
+    {
+        render_graphics();
+    }
+    // Update the state during a game tick
+    bool Run() override
+    {
+        sys_evt_process_pending();
+
+        update_audio_system_on_game_loop();
+        UpdateCursorAndDrawables();
+
+        Draw();
+
+        // Handle player's input, break the loop if requested
+        bool do_break = display_check_user_input(_skipStyle);
+        ags_clear_input_buffer();
+        if (do_break)
+            return false;
+            
+        update_polled_stuff();
+
+        if (play.fast_forward == 0)
+        {
+            WaitForNextFrame();
+        }
+
+        _timer--;
+
+        // Special behavior when coupled with a voice-over
+        if (play.speech_has_voice) {
+            // extend life of text if the voice hasn't finished yet
+            if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
+                if (_timer <= 1)
+                    _timer = 1;
+            }
+            else { // if the voice has finished, remove the speech
+                _timer = 0;
+            }
+        }
+        // Test for the timed auto-skip
+        if ((_timer < 1) && (_skipStyle & SKIP_AUTOTIMER))
+        {
+            play.SetWaitSkipResult(SKIP_AUTOTIMER);
+            play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
+            return false;
+        }
+        // if skipping cutscene, don't get stuck on No Auto Remove text boxes
+        if ((_timer < 1) && (play.fast_forward))
+            return false;
+
+        return true; // continue running
+    }
+
+private:
+    int _overType = 0;
+    int _timer = 0;
+    int _skipStyle = 0;
+};
+
 
 
 // Generates a textual image and returns a disposable bitmap
 Bitmap *create_textual_image(const char *text, int asspch, int isThought,
-    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink)
+    int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
+    const TopBarSettings *topbar)
 {
     //
     // Configure the textual image
@@ -95,12 +168,13 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     snprintf(todis, STD_BUFFER_SIZE - 1, "%s", text);
     ensure_text_valid_for_font(todis, usingfont);
     break_up_text_into_lines(todis, Lines, wii - 2 * padding, usingfont);
-    disp.linespacing = get_font_linespacing(usingfont);
-    disp.fulltxtheight = get_text_lines_surf_height(usingfont, Lines.Count());
+    DisplayVars disp(
+        get_font_linespacing(usingfont),
+        get_text_lines_surf_height(usingfont, Lines.Count()));
 
-    if (topBar.wantIt) {
+    if (topbar) {
         // ensure that the window is wide enough to display any top bar text
-        int topBarWid = get_text_width_outlined(topBar.text, topBar.font);
+        int topBarWid = get_text_width_outlined(topbar->Text.GetCStr(), topbar->Font);
         topBarWid += (play.top_bar_borderwidth + 2) * 2;
         if (longestline < topBarWid)
             longestline = topBarWid;
@@ -109,10 +183,10 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     const Rect &ui_view = play.GetUIViewport();
     if (xx == OVR_AUTOPLACE);
     // centre text in middle of screen
-    else if (yy<0) yy = ui_view.GetHeight() / 2 - disp.fulltxtheight / 2 - padding;
+    else if (yy<0) yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
     // speech, so it wants to be above the character's head
     else if (asspch > 0) {
-        yy -= disp.fulltxtheight;
+        yy -= disp.FullTextHeight;
         if (yy < 5) yy = 5;
         yy = adjust_y_for_guis(yy);
     }
@@ -145,7 +219,7 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     const int extraHeight = paddingDoubledScaled;
     color_t text_color = MakeColor(15);
     const int bmp_width = std::max(2, wii);
-    const int bmp_height = std::max(2, disp.fulltxtheight + extraHeight);
+    const int bmp_height = std::max(2, disp.FullTextHeight + extraHeight);
     Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game.GetColorDepth());
 
     // inform draw_text_window to free the old bitmap
@@ -177,12 +251,13 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
 
         if (drawBackground)
         {
-            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
+            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
+                &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
         }
 
         for (size_t ee = 0; ee<Lines.Count(); ee++) {
             //int ttxp=wii/2 - get_text_width_outlined(lines[ee], usingfont)/2;
-            int ttyp = ttxtop + ee*disp.linespacing;
+            int ttyp = ttxtop + ee * disp.Linespacing;
             // asspch < 0 means that it's inside a text box so don't
             // centre the text
             if (asspch < 0) {
@@ -202,12 +277,12 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     }
     else {
         int xoffs, yoffs, oriwid = wii - padding * 2;
-        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
+        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (size_t ee = 0; ee<Lines.Count(); ee++)
-            wouttext_aligned(text_window_ds, xoffs, yoffs + ee * disp.linespacing, oriwid, usingfont, text_color, Lines[ee].GetCStr(), play.text_align);
+            wouttext_aligned(text_window_ds, xoffs, yoffs + ee * disp.Linespacing, oriwid, usingfont, text_color, Lines[ee].GetCStr(), play.text_align);
     }
 
     return text_window_ds;
@@ -267,7 +342,8 @@ bool display_check_user_input(int skip)
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
 // pass blocking=2 to create permanent overlay
-ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_type, int usingfont,
+ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
+    const TopBarSettings *topbar, int disp_type, int usingfont,
     int asspch, int isThought, int allowShrink, bool overlayPositionFixed, bool roomlayer)
 {
     //
@@ -285,9 +361,9 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
     // _display_main may be called even for custom textual overlays
     EndSkippingUntilCharStops();
 
-    if (topBar.wantIt)
+    if (topbar)
     {
-        // the top bar should behave like DisplaySpeech wrt blocking
+        // the top bar should behave like DisplaySpeech wrt blocking (???)
         disp_type = DISPLAYTEXT_SPEECH;
     }
 
@@ -326,7 +402,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
 
     int adjustedXX, adjustedYY;
     Bitmap *text_window_ds = create_textual_image(text, asspch, isThought,
-        xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink);
+        xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink, topbar);
 
     size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy);
     auto *over = get_overlay(nse); // FIXME: optimize return value
@@ -344,52 +420,11 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
     if (disp_type == DISPLAYTEXT_MESSAGEBOX) {
         int countdown = GetTextDisplayTime(text);
         int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
-        // Loop until skipped
-        while (true) {
-            sys_evt_process_pending();
 
-            update_audio_system_on_game_loop();
-            UpdateCursorAndDrawables();
-            render_graphics();
-
-            // Handle player's input, break the loop if requested
-            bool do_break = display_check_user_input(skip_setting);
-            ags_clear_input_buffer();
-            if (do_break)
-                break;
-            
-            update_polled_stuff();
-
-            if (play.fast_forward == 0)
-            {
-                WaitForNextFrame();
-            }
-
-            countdown--;
-
-            // Special behavior when coupled with a voice-over
-            if (play.speech_has_voice) {
-                // extend life of text if the voice hasn't finished yet
-                if (AudioChans::ChannelIsPlaying(SCHAN_SPEECH) && (play.fast_forward == 0)) {
-                    if (countdown <= 1)
-                        countdown = 1;
-                }
-                else  // if the voice has finished, remove the speech
-                    countdown = 0;
-            }
-            // Test for the timed auto-skip
-            if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
-            {
-                play.SetWaitSkipResult(SKIP_AUTOTIMER);
-                play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
-                break;
-            }
-            // if skipping cutscene, don't get stuck on No Auto Remove text boxes
-            if ((countdown < 1) && (play.fast_forward))
-                break;
-        }
-        remove_screen_overlay(OVER_TEXTMSG);
-        invalidate_screen();
+        DisplayMessageState disp_state(OVER_TEXTMSG, countdown, skip_setting);
+        disp_state.Begin();
+        while (disp_state.Run());
+        disp_state.End();
     }
     else { /* DISPLAYTEXT_SPEECH */
         if (!overlayPositionFixed)
@@ -410,13 +445,13 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text, int disp_
     return nullptr;
 }
 
-void display_at(int xx, int yy, int wii, const char *text)
+void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar)
 {
     EndSkippingUntilCharStops();
     // Start voice-over, if requested by the tokens in speech text
     try_auto_play_speech(text, text, play.narrator_speech);
 
-    display_main(xx, yy, wii, text, DISPLAYTEXT_MESSAGEBOX, FONT_NORMAL, 0, 0, 0, false);
+    display_main(xx, yy, wii, text, topbar, DISPLAYTEXT_MESSAGEBOX, FONT_NORMAL, 0, 0, 0, false);
 
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())
@@ -764,7 +799,8 @@ int get_textwindow_padding(int ifnum) {
 }
 
 void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
-                      int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color, int ovrheight, int ifnum) {
+                      int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color,
+                      int ovrheight, int ifnum, const DisplayVars &disp) {
     assert(text_window_ds);
     Bitmap *ds = *text_window_ds;
     if (ifnum < 0)
@@ -791,7 +827,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         xx[0]-=game.SpriteInfos[tbnum].Width;
         yy[0]-=game.SpriteInfos[tbnum].Height;
         if (ovrheight == 0)
-            ovrheight = disp.fulltxtheight;
+            ovrheight = disp.FullTextHeight;
 
         if (should_free_ds)
             delete *text_window_ds;
@@ -808,41 +844,38 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
 }
 
 void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
+                              const TopBarSettings *topbar, const DisplayVars &disp,
                               int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
 
     assert(text_window_ds);
-    draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
+    draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum, disp);
 
-    if ((topBar.wantIt) && (text_window_ds && *text_window_ds)) {
+    if ((topbar) && (text_window_ds && *text_window_ds)) {
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
         Bitmap *ds = *text_window_ds;
-        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, game.GetColorDepth());
-        newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
+        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topbar->Height, game.GetColorDepth());
+        newScreenop->Blit(ds, 0, 0, 0, topbar->Height, ds->GetWidth(), ds->GetHeight());
         delete *text_window_ds;
         *text_window_ds = newScreenop;
         ds = *text_window_ds;
 
         // draw the top bar
         color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
-        ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topBar.height - 1), draw_color);
+        ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topbar->Height - 1), draw_color);
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
             for (int j = 0; j < play.top_bar_borderwidth; j++)
-                ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
+                ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topbar->Height - (j + 1)), draw_color);
         }
 
         // draw the text
-        int textx = (ds->GetWidth() / 2) - get_text_width_outlined(topBar.text, topBar.font) / 2;
+        int textx = (ds->GetWidth() / 2) - get_text_width_outlined(topbar->Text.GetCStr(), topbar->Font) / 2;
         color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
-        wouttext_outline(ds, textx, play.top_bar_borderwidth + 1, topBar.font, text_color, topBar.text);
+        wouttext_outline(ds, textx, play.top_bar_borderwidth + 1, topbar->Font, text_color, topbar->Text.GetCStr());
 
-        // don't draw it next time
-        topBar.wantIt = 0;
         // adjust the text Y position
-        yins[0] += topBar.height;
+        yins[0] += topbar->Height;
     }
-    else if (topBar.wantIt)
-        topBar.wantIt = 0;
 }

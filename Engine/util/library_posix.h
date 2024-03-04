@@ -124,10 +124,10 @@ private:
             return lib;
 
         // Try lookup paths last
-        for (const auto p : lookup)
+        for (const auto &p : lookup)
         {
             path = AGS::Common::Path::ConcatPaths(p, libfile);
-            void *lib = TryLoad(path);
+            lib = TryLoad(path);
             if (lib)
                 return lib;
         }

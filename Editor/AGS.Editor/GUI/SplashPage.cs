@@ -124,7 +124,7 @@ namespace AGS.Editor
         {
             lblBottomTagLine.Visible = true;
             lblBottomTagLine.Font = new Font(Design.FontName, Design.BuildFontPt, FontStyle.Bold);
-            lblBottomTagLine.Text = "Build " + AGS.Types.Version.AGS_EDITOR_VERSION + ", " + AGS.Types.Version.AGS_EDITOR_DATE;
+            lblBottomTagLine.Text = $"Build {AGS.Types.Version.AGS_EDITOR_VERSION} {AGS.Types.Version.AGS_EDITOR_TARGETNAME}, {AGS.Types.Version.AGS_EDITOR_DATE}";
             lblBottomTagLine.TextAlign = ContentAlignment.MiddleLeft;
         }
 

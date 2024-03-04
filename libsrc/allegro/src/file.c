@@ -658,7 +658,7 @@ PACKFILE *pack_fopen_vtable(AL_CONST PACKFILE_VTABLE *vtable, void *userdata)
    ASSERT(vtable->pf_feof);
    ASSERT(vtable->pf_ferror);
 
-   if ((f = create_packfile(FALSE)) == NULL)
+   if ((f = create_packfile()) == NULL)
       return NULL;
 
    f->vtable = vtable;

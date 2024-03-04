@@ -35,7 +35,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern int displayed_room;
@@ -70,7 +69,7 @@ static IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
     }
     else
     {
-        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb);
+        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb, RENDER_SHOT_SKIP_ON_FADE);
     }
     return shot_ddb;
 }
@@ -91,7 +90,8 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
         gfxDriver->RenderToBackBuffer();
     }
     return std::unique_ptr<Bitmap>(
-        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight()));
+        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(),
+        false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE));
 }
 
 static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
@@ -108,8 +108,9 @@ static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
     if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
     {
         Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
-        int y = std::max(0, (saved_viewport_bitmap->GetHeight() - viewport.GetHeight()) / 2);
-        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2, saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        fix_frame->Blit(saved_viewport_bitmap.get(),
+            0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2,
+            saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
         saved_viewport_bitmap.reset(fix_frame);
     }
     return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), opaque);
@@ -120,322 +121,475 @@ static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
 // Software fade routines - for 8-bit and 16/32-bit
 //-----------------------------------------------------------------------------
 
-static void fade_highcolor(bool do_fadein,
-    int speed, int fade_red, int fade_green, int fade_blue)
-{
-    Bitmap *bmp_buff = gfxDriver->GetMemoryBackBuffer();
-    const int col_depth = bmp_buff->GetColorDepth();
-    const int clear_col = makecol_depth(col_depth, fade_red, fade_green, fade_blue);
-    play.screen_is_faded_out = 0; // force all game elements to draw
-    std::unique_ptr<Bitmap> bmp_frame = game_frame_to_bmp(do_fadein);
-
-    for (int a = 0; a < 256; a += speed)
-    {
-        bmp_buff->Fill(clear_col);
-        set_trans_blender(0, 0, 0, do_fadein ? a : 255 - a);
-        bmp_buff->TransBlendBlt(bmp_frame.get(), 0, 0);
-        render_to_screen();
-
-        sys_evt_process_pending();
-        update_polled_stuff();
-        WaitForNextFrame();
-    }
-
-    render_to_screen();
-}
-
-static RGB faded_out_palette[256];
-static void fade_256_init(int r, int g, int b)
-{
-    for (int a = 0; a < 256; a++)
-    {
-        faded_out_palette[a].r = r / 4;
-	    faded_out_palette[a].g = g / 4;
-	    faded_out_palette[a].b = b / 4;
-    }
-}
-
-static void fade_256_in_range(PALETTE source, PALETTE dest, int speed, int from, int to) 
-{
-    PALETTE temp;
-    for (int c = 0; c < PAL_SIZE; c++)
-        temp[c] = source[c];
-
-    for (int c=0; c<64; c+=speed)
-    {
-        fade_interpolate(source, dest, temp, c, from, to);
-        set_palette_range(temp, from, to, TRUE);
-        render_to_screen();
-
-        sys_evt_process_pending();
-        update_polled_stuff();
-        WaitForNextFrame();
-    }
-
-    set_palette_range(dest, from, to, TRUE);
-}
-
-void fade_in_range(PALETTE *p, int speed, int from, int to, int fade_red, int fade_green, int fade_blue) 
-{
-    fade_256_init(fade_red, fade_green, fade_blue);
-	fade_256_in_range(faded_out_palette, *p, speed, from, to);
-}
-
-void fade_out_range(int speed, int from, int to, int fade_red, int fade_green, int fade_blue) 
-{
-    PALETTE temp;
-    fade_256_init(fade_red, fade_green, fade_blue);
-    get_palette(temp);
-    fade_256_in_range(temp, faded_out_palette, speed, from, to);
-}
-
 //-----------------------------------------------------------------------------
 // End software fade routines
 //-----------------------------------------------------------------------------
 
-void screen_fade_impl(bool do_fadein, int speed)
+class ScreenTransition : public GameState
 {
-    // harmonise speeds with software driver which is faster (???)
-    speed *= 2;
-    // Create a "screenshot" on a texture
-    play.screen_is_faded_out = 0; // force all game elements to draw
-    auto *shot_ddb = game_frame_to_ddb(do_fadein);
-
-    const auto &view = play.GetMainViewport();
-    std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
-    black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
-    IDriverDependantBitmap *fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
-    fade->SetStretch(view.GetWidth(), view.GetHeight(), false);
-
-    for (int alpha = 1; alpha < 255; alpha += speed)
+public:
+    ScreenTransition(ScreenTransitionStyle style, bool fade_in, int speed)
+        : _style(style), _fadein(fade_in), _speed(speed)
     {
-        // Construct scene in order: game screen, fade fx, post game overlay
-        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
-        gfxDriver->DrawSprite(0, 0, shot_ddb);
-        fade->SetAlpha(do_fadein ? (255 - alpha) : alpha);
-        gfxDriver->DrawSprite(0, 0, fade);
-        gfxDriver->EndSpriteBatch();
-        render_to_screen();
+    }
+
+    // Update the state during a game tick
+    bool Run() override
+    {
+        if (!RunImpl())
+            return false;
+
+        Draw();
 
         sys_evt_process_pending();
         update_polled_stuff();
         WaitForNextFrame();
+        return true;
     }
 
-    gfxDriver->DestroyDDB(fade);
-    gfxDriver->DestroyDDB(shot_ddb);
-}
+protected:
+    virtual bool RunImpl() = 0;
 
-void screen_fade_software_impl(bool do_fadein, PALETTE *p, int speed)
+    ScreenTransitionStyle _style;
+    bool _fadein;
+    int _speed;
+};
+
+class ScreenFade : public ScreenTransition
 {
-    // TODO: scan these functions and double check the palette manipulations
-    if (game.color_depth > 1)
+public:
+    ScreenFade(bool fade_in, int speed)
+        : ScreenTransition(kScrTran_Fade, fade_in, speed) {}
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
     {
-        set_palette(*p);
+        if (_speed <= 0)
+            _speed = 16;
+
+        // harmonise speeds with software driver which is faster (???)
+        _speed *= 2;
+        // Create a "screenshot" on a texture
+        play.screen_is_faded_out = 0; // force all game elements to draw
+        _shot_ddb = game_frame_to_ddb(_fadein);
+
+        const auto &view = play.GetMainViewport();
+        std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
+        black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+        _fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
+        _fade->SetStretch(view.GetWidth(), view.GetHeight(), false);
+
+        _alpha = 1;
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        gfxDriver->DestroyDDB(_fade);
+        gfxDriver->DestroyDDB(_shot_ddb);
+    }
+    // Draw the state
+    void Draw() override
+    {
+        // Construct scene in order: game screen, fade fx, post game overlay
+        const auto &view = play.GetMainViewport();
+        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
+        gfxDriver->DrawSprite(0, 0, _shot_ddb);
+        _fade->SetAlpha(_fadein ? (255 - _alpha) : _alpha);
+        gfxDriver->DrawSprite(0, 0, _fade);
+        gfxDriver->EndSpriteBatch();
+        render_to_screen();
+    }
+    // Update the state during a game tick
+    bool RunImpl() override
+    {
+        _alpha += _speed;
+        return _alpha < 255;
     }
 
-    if (game.color_depth > 1)
+private:
+    IDriverDependantBitmap *_shot_ddb = nullptr;
+    IDriverDependantBitmap *_fade = nullptr;
+    int _alpha = 0;
+};
+
+// TODO: split further onto 256- and highcolor- software fade
+class ScreenFadeSoftware : public ScreenTransition
+{
+public:
+    ScreenFadeSoftware(PALETTE *fadein_pal, bool fade_in, int speed, int fader, int fadeg, int fadeb)
+        : ScreenTransition(kScrTran_Fade, fade_in, speed)
+        , _fadeInPal(fadein_pal)
     {
-        fade_highcolor(do_fadein, speed * 4, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        _fadeCol.r = fader;
+        _fadeCol.g = fadeg;
+        _fadeCol.b = fadeb;
     }
-    else
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
     {
-        if (do_fadein)
-            fade_in_range(p, speed, 0, 255, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        // TODO: scan these functions and double check the palette manipulations
+        if (game.color_depth > 1)
+        {
+            set_palette(*_fadeInPal);
+        }
+
+        _alpha = 0;
+
+        if (game.color_depth > 1)
+        {
+            _speed *= 4; // speed things up for high-color games
+
+            // First of all we render the game once again and get the drawn frame as a bitmap.
+            // Then we keep drawing saved image of the game with different alpha,
+            // simulating fade-in or out.
+            play.screen_is_faded_out = 0; // force all game elements to draw
+            _bmpFrame = game_frame_to_bmp(_fadein);
+
+            _bmpBuff = gfxDriver->GetMemoryBackBuffer();
+            const int col_depth = _bmpBuff->GetColorDepth();
+            _clearCol = makecol_depth(col_depth, _fadeCol.r, _fadeCol.g, _fadeCol.b);
+        }
         else
-            fade_out_range(speed, 0, 255, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+        {
+            Fade256Init(_fadeCol.r, _fadeCol.g, _fadeCol.b);
+            if (_fadein)
+            {
+                _srcPal = &_fadePal;
+                _destPal = _fadeInPal;
+            }
+            else
+            {
+                get_palette(_lastPal);
+                _srcPal = &_lastPal;
+                _destPal = &_fadePal;
+            }
+
+            for (int c = 0; c < PAL_SIZE; c++)
+                _dynamicPal[c] = (*_srcPal)[c];
+        }
     }
-}
+    // End the state, release all resources
+    void End() override
+    {
+        if (game.color_depth > 1)
+        {
+            render_to_screen(); // CHECKME: is this necessary here?
+        }
+        else
+        {
+            set_palette_range(*_destPal, _rangeFrom, _rangeTo, TRUE);
+        }
+    }
+    // Draw the state
+    void Draw() override
+    {
+        if (game.color_depth > 1)
+        {
+            _bmpBuff->Fill(_clearCol);
+            set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
+            _bmpBuff->TransBlendBlt(_bmpFrame.get(), 0, 0);
+            render_to_screen();
+        }
+        else
+        {
+            render_to_screen();
+        }
+    }
+    // Update the state during a game tick
+    bool RunImpl() override
+    {
+        if (game.color_depth > 1)
+        {
+            _alpha += _speed;
+            return _alpha < 256;
+        }
+        else
+        {
+            _alpha += _speed;
+            fade_interpolate(*_srcPal, *_destPal, _dynamicPal, _alpha, _rangeFrom, _rangeTo);
+            set_palette_range(_dynamicPal, _rangeFrom, _rangeTo, TRUE);
+            return _alpha < 64;
+        }
+    }
 
-void screen_effect_fade(bool do_fadein, int speed)
+private:
+    void Fade256Init(int r, int g, int b)
+    {
+        for (int a = 0; a < 256; a++)
+        {
+            _fadePal[a].r = r / 4;
+	        _fadePal[a].g = g / 4;
+	        _fadePal[a].b = b / 4;
+        }
+    }
+
+    PALETTE *_fadeInPal = nullptr;
+    RGB _fadeCol{};
+    int _alpha = 0;
+    int _rangeFrom = 0;
+    int _rangeTo = 255;
+
+    // High-color state
+    Bitmap *_bmpBuff = nullptr;
+    std::unique_ptr<Bitmap> _bmpFrame;
+    int _clearCol = 0;
+
+    // 256-color state
+    PALETTE _fadePal{};
+    PALETTE _lastPal{};
+    PALETTE *_srcPal = nullptr;
+    PALETTE *_destPal = nullptr;
+    PALETTE _dynamicPal{};
+};
+
+class ScreenBoxOut : public ScreenTransition
 {
-    if (play.screen_is_faded_out == !do_fadein)
-        return; // already in the wanted state
+public:
+    ScreenBoxOut(bool fade_in, int speed)
+        : ScreenTransition(kScrTran_Boxout, fade_in, speed) {}
 
-    if (speed <= 0)
-        speed = 16;
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
+    {
+        // Create a "screenshot" on a texture
+        play.screen_is_faded_out = 0; // force all game elements to draw
+        _shot_ddb = game_frame_to_ddb(_fadein);
 
-    if (gfxDriver->UsesMemoryBackBuffer())
-        screen_fade_software_impl(do_fadein, &palette, speed);
-    else
-        screen_fade_impl(do_fadein, speed);
-    
-    play.screen_is_faded_out = !do_fadein;
-}
+        const auto &view = play.GetMainViewport();
+        std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
+        black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+        for (int i = 0; i < (_fadein ? 4 : 1); i++)
+        {
+            _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
+            _fade[i]->SetStretch(view.GetWidth(), view.GetHeight(), false);
+        }
 
-void screen_box_impl(bool do_fadein, int speed)
-{
-    // Create a "screenshot" on a texture
-    play.screen_is_faded_out = 0; // force all game elements to draw
-    auto *shot_ddb = game_frame_to_ddb(do_fadein);
+        _yspeed = view.GetHeight() / (view.GetWidth() / _speed);
+        _boxWidth = _speed;
+        _boxHeight = _yspeed;
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (_fade[i])
+                gfxDriver->DestroyDDB(_fade[i]);
+        }
+        gfxDriver->DestroyDDB(_shot_ddb);
+    }
+    // Draw the state
+    void Draw() override
+    {
+        // Construct scene in order: game screen, fade fx, post game overlay
+        const auto &view = play.GetMainViewport();
+        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
+        gfxDriver->DrawSprite(0, 0, _shot_ddb);
+        if (_fadein)
+        {
+            gfxDriver->DrawSprite(view.GetWidth() / 2 - _boxWidth / 2 - view.GetWidth(), 0, _fade[0]);
+            gfxDriver->DrawSprite(0, view.GetHeight() / 2 - _boxHeight / 2 - view.GetHeight(), _fade[1]);
+            gfxDriver->DrawSprite(view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
+            gfxDriver->DrawSprite(0, view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
+        }
+        else
+        {
+            _fade[0]->SetStretch(_boxWidth, _boxHeight, false);
+            gfxDriver->DrawSprite(view.GetWidth() / 2 - _boxWidth / 2, view.GetHeight() / 2 - _boxHeight / 2, _fade[0]);
+        }
+        gfxDriver->EndSpriteBatch();
+        render_to_screen();
+    }
+    // Update the state during a game tick
+    bool RunImpl() override
+    {
+        const auto &view = play.GetMainViewport();
+        _boxWidth += _speed;
+        _boxHeight += _yspeed;
+        return _boxWidth < view.GetWidth();
+    }
 
-    const auto &view = play.GetMainViewport();
-    std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
-    black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+private:
+    IDriverDependantBitmap *_shot_ddb = nullptr;
     // For fade-in we create 4 boxes, one across each side of the screen;
     // for fade-out we need 1 box that will stretch from center until covers whole screen
-    IDriverDependantBitmap *fade[4]{};
-    for (int i = 0; i < (do_fadein ? 4 : 1); i++)
+    IDriverDependantBitmap *_fade[4]{};
+    int _yspeed = 0;
+    int _boxWidth = 0;
+    int _boxHeight = 0;
+};
+
+class ScreenBoxOutSoftware : public ScreenTransition
+{
+public:
+    ScreenBoxOutSoftware(bool fade_in, int speed)
+        : ScreenTransition(kScrTran_Boxout, fade_in, speed) {}
+
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
     {
-        fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
-        fade[i]->SetStretch(view.GetWidth(), view.GetHeight(), false);
-    }
+        // First of all we render the game once again and get the drawn frame as a bitmap.
+        // Then we keep drawing saved image of the game, simulating "box-out".
+        // TODO: maybe use screenshot_to_ddb instead?
+        play.screen_is_faded_out = 0; // force all game elements to draw
+        set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
+        _bmpFrame = game_frame_to_bmp(_fadein);
 
-    const int yspeed = view.GetHeight() / (view.GetWidth() / speed);
-    int boxWidth = speed;
-    int boxHeight = yspeed;
+        const Rect &view = play.GetMainViewport();
+        _yspeed = view.GetHeight() / (view.GetWidth() / _speed);
+        _boxWidth = _speed;
+        _boxHeight = _yspeed;
+        _bmpBuff = gfxDriver->GetMemoryBackBuffer();
 
-    while (boxWidth < view.GetWidth())
-    {
-        boxWidth += speed;
-        boxHeight += yspeed;
-
-        // Construct scene in order: game screen, fade fx, post game overlay
-        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
-        gfxDriver->DrawSprite(0, 0, shot_ddb);
-        if (do_fadein)
+        if (_fadein)
         {
-            gfxDriver->DrawSprite(view.GetWidth() / 2 - boxWidth / 2 - view.GetWidth(), 0, fade[0]);
-            gfxDriver->DrawSprite(0, view.GetHeight() / 2 - boxHeight / 2 - view.GetHeight(), fade[1]);
-            gfxDriver->DrawSprite(view.GetWidth() / 2 + boxWidth / 2, 0, fade[2]);
-            gfxDriver->DrawSprite(0, view.GetHeight() / 2 + boxHeight / 2, fade[3]);
+            _bmpBuff->Clear();
+        }
+    }
+    // End the state, release all resources
+    void End() override
+    {
+    }
+    // Draw the state
+    void Draw() override
+    {
+        const auto &view = play.GetMainViewport();
+        if (_fadein)
+        {
+            _boxWidth = Math::Clamp(_boxWidth, 0, view.GetWidth());
+            _boxHeight = Math::Clamp(_boxHeight, 0, view.GetHeight());
+            int lxp = view.GetWidth() / 2 - _boxWidth / 2;
+            int lyp = view.GetHeight() / 2 - _boxHeight / 2;
+            _bmpBuff->Blit(_bmpFrame.get(), lxp, lyp, lxp, lyp, _boxWidth, _boxHeight);
+            render_to_screen();
         }
         else
         {
-            fade[0]->SetStretch(boxWidth, boxHeight, false);
-            gfxDriver->DrawSprite(view.GetWidth() / 2 - boxWidth / 2, view.GetHeight() / 2 - boxHeight / 2, fade[0]);
-        }
-        gfxDriver->EndSpriteBatch();
-        render_to_screen();
-
-        sys_evt_process_pending();
-        update_polled_stuff();
-        WaitForNextFrame();
-    }
-
-    for (int i = 0; i < 4; i++)
-    {
-        if (fade[i])
-            gfxDriver->DestroyDDB(fade[i]);
-    }
-    gfxDriver->DestroyDDB(shot_ddb);
-}
-
-void screen_box_software_impl(bool do_fadein, int speed)
-{
-    // First of all we render the game once again and get the drawn frame as a bitmap.
-    // Then we keep drawing saved image of the game, simulating "box-out".
-    // TODO: maybe use screenshot_to_ddb instead?
-    play.screen_is_faded_out = 0; // force all game elements to draw
-    set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
-    std::unique_ptr<Bitmap> bmp_frame = game_frame_to_bmp(do_fadein);
-
-    const Rect &view = play.GetMainViewport();
-    const int yspeed = view.GetHeight() / (view.GetWidth() / speed);
-    int boxwid = speed, boxhit = yspeed;
-    Bitmap *bmp_buff = gfxDriver->GetMemoryBackBuffer();
-    
-    if (do_fadein)
-    {
-        bmp_buff->Clear();
-        while (boxwid < bmp_buff->GetWidth())
-        {
-            boxwid += speed;
-            boxhit += yspeed;
-            boxwid = Math::Clamp(boxwid, 0, view.GetWidth());
-            boxhit = Math::Clamp(boxhit, 0, view.GetHeight());
-            int lxp = view.GetWidth() / 2 - boxwid / 2;
-            int lyp = view.GetHeight() / 2 - boxhit / 2;
-            bmp_buff->Blit(bmp_frame.get(), lxp, lyp, lxp, lyp, boxwid, boxhit);
-            render_to_screen();
-
-            sys_evt_process_pending();
-            update_polled_stuff();
-            WaitForNextFrame();
-        }
-    }
-    else
-    {
-        while (boxwid < view.GetWidth())
-        {
-            boxwid += speed;
-            boxhit += yspeed;
             int vcentre = view.GetHeight() / 2;
-            bmp_frame->FillRect(Rect(view.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
-                view.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2), 0);
-            bmp_buff->Fill(0);
-            bmp_buff->Blit(bmp_frame.get());
+            _bmpFrame->FillRect(Rect(view.GetWidth() / 2 - _boxWidth / 2, vcentre - _boxHeight / 2,
+                view.GetWidth() / 2 + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
+            _bmpBuff->Fill(0);
+            _bmpBuff->Blit(_bmpFrame.get());
             render_to_screen();
-
-            sys_evt_process_pending();
-            update_polled_stuff();
-            WaitForNextFrame();
         }
     }
-}
+    // Update the state during a game tick
+    bool RunImpl() override
+    {
+        const auto &view = play.GetMainViewport();
+        _boxWidth += _speed;
+        _boxHeight += _yspeed;
+        return _fadein ?
+            _boxWidth < _bmpBuff->GetWidth() :
+            _boxWidth < view.GetWidth();
+    }
 
-void screen_effect_box(bool do_fadein, int speed)
+private:
+    Bitmap *_bmpBuff = nullptr;
+    std::unique_ptr<Bitmap> _bmpFrame;
+    int _yspeed = 0;
+    int _boxWidth = 0;
+    int _boxHeight = 0;
+};
+
+class ScreenCrossfade : public ScreenTransition
 {
-    if (play.screen_is_faded_out == !do_fadein)
-        return; // already in the wanted state
+public:
+    ScreenCrossfade(bool fade_in, int speed)
+        : ScreenTransition(kScrTran_Crossfade, fade_in, speed) {}
 
-    if (gfxDriver->UsesMemoryBackBuffer())
-        screen_box_software_impl(do_fadein, speed);
-    else
-        screen_box_impl(do_fadein, speed);
-    
-    play.screen_is_faded_out = !do_fadein;
-}
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
+    {
+        if (game.color_depth == 1)
+            quit("!Cannot use crossfade screen transition in 256-colour games");
 
-void screen_effect_crossfade()
-{
-    if (game.color_depth == 1)
-        quit("!Cannot use crossfade screen transition in 256-colour games");
+        // TODO: crossfade does not need a screen with transparency, it should be opaque;
+        // but Software renderer cannot alpha-blend non-masked sprite at the moment,
+        // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
+        _shot_ddb = get_frame_for_transition_in(false /* transparent */);
 
-    // TODO: crossfade does not need a screen with transparency, it should be opaque;
-    // but Software renderer cannot alpha-blend non-masked sprite at the moment,
-    // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
-    IDriverDependantBitmap *ddb = get_frame_for_transition_in(false /* transparent */);
-    for (int alpha = 254; alpha > 0; alpha -= 16)
+        _alpha = 254;
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        saved_viewport_bitmap.reset();
+        set_palette_range(palette, 0, 255, 0);
+        gfxDriver->DestroyDDB(_shot_ddb);
+    }
+    // Draw the state
+    void Draw() override
     {
         // do the crossfade
-        ddb->SetAlpha(alpha);
+        _shot_ddb->SetAlpha(_alpha);
         invalidate_screen();
         gfxDriver->ClearDrawLists();
         construct_game_scene(true);
         construct_game_screen_overlay(false);
         // draw old screen on top while alpha > 16
-        if (alpha > 16)
+        if (_alpha > 16)
         {
             gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
-            gfxDriver->DrawSprite(0, 0, ddb);
+            gfxDriver->DrawSprite(0, 0, _shot_ddb);
             gfxDriver->EndSpriteBatch();
         }
         render_to_screen();
-
-        sys_evt_process_pending();
-        update_polled_stuff();
-        WaitForNextFrame();
+    }
+    // Update the state during a game tick
+    bool RunImpl() override
+    {
+        _alpha -= 16;
+        return _alpha > 0;
     }
 
-    saved_viewport_bitmap.reset();
-    set_palette_range(palette, 0, 255, 0);
-    gfxDriver->DestroyDDB(ddb);
-}
+private:
+    IDriverDependantBitmap *_shot_ddb = nullptr;
+    int _alpha = 0;
+};
 
-void screen_effect_dissolve()
+class ScreenDissolve : public ScreenTransition
 {
-    int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
-    RGB interpal[256];
-    const Rect &viewport = play.GetMainViewport();
+public:
+    ScreenDissolve(bool fade_in, int speed)
+        : ScreenTransition(kScrTran_Dissolve, fade_in, speed) {}
 
-    IDriverDependantBitmap *ddb = get_frame_for_transition_in(false /* transparent */);
-    for (int step = 0; step < 16; ++step)
+    // Begin the state, initialize and prepare any resources
+    void Begin() override
     {
+        _shot_ddb = get_frame_for_transition_in(false /* transparent */);
+        _step = 0;
+    }
+    // End the state, release all resources
+    void End() override
+    {
+        saved_viewport_bitmap.reset();
+        set_palette_range(palette, 0, 255, 0);
+        gfxDriver->DestroyDDB(_shot_ddb);
+    }
+    // Draw the state
+    void Draw() override
+    {
+        gfxDriver->ClearDrawLists();
+        construct_game_scene(true);
+        construct_game_screen_overlay(false);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        gfxDriver->DrawSprite(0, 0, _shot_ddb);
+        gfxDriver->EndSpriteBatch();
+        render_to_screen();
+    }
+    // Update the state during a game tick
+    bool RunImpl() override
+    {
+        int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
+        RGB interpal[256];
+        const Rect &viewport = play.GetMainViewport();
+
         // merge the palette while dithering
         if (game.color_depth == 1) 
         {
-            fade_interpolate(old_palette, palette, interpal, step*4, 0, 255);
+            fade_interpolate(old_palette, palette, interpal, _step * 4, 0, 255);
             set_palette_range(interpal, 0, 255, 0);
         }
         // do the dissolving
@@ -444,27 +598,135 @@ void screen_effect_dissolve()
         {
             for (int y = 0; y < viewport.GetHeight(); y += 4)
             {
-                saved_viewport_bitmap->PutPixel(x + pattern[step] / 4, y + pattern[step] % 4, maskCol);
+                saved_viewport_bitmap->PutPixel(x + pattern[_step] / 4, y + pattern[_step] % 4, maskCol);
             }
         }
-        gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap.get());
+        gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
 
-        gfxDriver->ClearDrawLists();
-        construct_game_scene(true);
-        construct_game_screen_overlay(false);
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
-        gfxDriver->DrawSprite(0, 0, ddb);
-        gfxDriver->EndSpriteBatch();
-        render_to_screen();
-
-        sys_evt_process_pending();
-        update_polled_stuff();
-        WaitForNextFrame();
+        return ++_step < 16;
     }
 
-    saved_viewport_bitmap.reset();
-    set_palette_range(palette, 0, 255, 0);
-    gfxDriver->DestroyDDB(ddb);
+private:
+    IDriverDependantBitmap *_shot_ddb = nullptr;
+    int _step = 0;
+};
+
+void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
+{
+    if (play.screen_is_faded_out == !fade_in)
+        return; // already in the wanted state
+
+    bool software_mode = gfxDriver->UsesMemoryBackBuffer();
+    std::unique_ptr<ScreenTransition> scrtr;
+    switch (style)
+    {
+    case kScrTran_Fade:
+        scrtr.reset(software_mode ?
+            (ScreenTransition*)new ScreenFadeSoftware(&palette, fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue) :
+            (ScreenTransition*)new ScreenFade(fade_in, speed));
+        break;
+    case kScrTran_Boxout:
+        scrtr.reset(software_mode ?
+            (ScreenTransition*)new ScreenBoxOutSoftware(fade_in, speed) :
+            (ScreenTransition*)new ScreenBoxOut(fade_in, speed));
+        break;
+    case kScrTran_Crossfade:
+        scrtr.reset(new ScreenCrossfade(fade_in, speed));
+        break;
+    case kScrTran_Dissolve:
+        scrtr.reset(new ScreenDissolve(fade_in, speed));
+        break;
+    default:
+        return;
+    }
+
+    scrtr->Begin();
+    while (scrtr->Run());
+    scrtr->End();
+
+    play.screen_is_faded_out = !fade_in;
+}
+
+void run_fade_in_effect(ScreenTransitionStyle style, int speed)
+{
+    const bool ignore_transition = (play.screen_tint > 0);
+    if ((style == kScrTran_Instant) || ignore_transition)
+    {
+        set_palette_range(palette, 0, 255, 0);
+    }
+    else
+    {
+        run_screen_transition(style, true, speed);
+    }
+}
+
+void run_fade_out_effect(ScreenTransitionStyle style, int speed)
+{
+    const bool ignore_transition = play.screen_tint > 0;
+    if ((style == kScrTran_Instant) || ignore_transition) {
+        if (!play.keep_screen_during_instant_transition)
+            set_palette_range(black_palette, 0, 255, 0);
+    }
+    else if (style == kScrTran_Crossfade || style == kScrTran_Dissolve)
+    {
+        saved_viewport_bitmap = game_frame_to_bmp(false /* fade out */);
+    }
+    else
+    {
+        run_screen_transition(style, false, speed);
+    }
+}
+
+void current_fade_in_effect()
+{
+    debug_script_log("Transition-in in room %d", displayed_room);
+
+    // determine the transition style
+    int trans_style = play.fade_effect;
+
+    if (play.next_screen_transition >= 0)
+    {
+        // a one-off transition was selected, so use it
+        trans_style = play.next_screen_transition;
+        play.next_screen_transition = -1;
+    }
+
+    if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
+    {
+        play.screen_is_faded_out = 0; // mark screen as clear
+        return;
+    }
+
+    if (play.fast_forward)
+    {
+        play.screen_is_faded_out = 0; // mark screen as clear
+        return;
+    }
+
+    const bool ignore_transition = (play.screen_tint > 0);
+    if (((trans_style == kScrTran_Crossfade) || (trans_style == kScrTran_Dissolve)) &&
+        (saved_viewport_bitmap == nullptr) && !ignore_transition)
+    {
+        // transition type was not crossfade/dissolve when the screen faded out,
+        // but it is now when the screen fades in (Eg. a save game was restored
+        // with a different setting). Therefore just fade normally.
+        run_fade_out_effect(kScrTran_Fade, 5);
+        trans_style = kScrTran_Fade;
+    }
+
+    int def_speed = 0;
+    if (trans_style == kScrTran_Fade)
+    {
+        def_speed = 5;
+    }
+    else if (trans_style == kScrTran_Boxout) 
+    {
+        def_speed = 16;
+    }
+
+    run_fade_in_effect(static_cast<ScreenTransitionStyle>(trans_style), def_speed);
+
+    play.screen_is_faded_out = 0; // mark screen as clear
 }
 
 void current_fade_out_effect()
@@ -474,28 +736,24 @@ void current_fade_out_effect()
         return;
 
     // get the screen transition type
-    int theTransition = play.fade_effect;
+    int trans_style = play.fade_effect;
     // was a temporary transition selected? if so, use it
     if (play.next_screen_transition >= 0)
-        theTransition = play.next_screen_transition;
-    const bool ignore_transition = play.screen_tint > 0;
+        trans_style = play.next_screen_transition;
 
-    if ((theTransition == FADE_INSTANT) || ignore_transition) {
-        if (!play.keep_screen_during_instant_transition)
-            set_palette_range(black_palette, 0, 255, 0);
-    }
-    else if (theTransition == FADE_NORMAL)
+    int def_speed = 0;
+    if (trans_style == kScrTran_Fade)
     {
-        screen_effect_fade(false, 5);
+        def_speed = 5;
     }
-    else if (theTransition == FADE_BOXOUT) 
+    else if (trans_style == kScrTran_Boxout) 
     {
-        screen_effect_box(false, 16);
+        def_speed = 16;
     }
-    else 
-    {
-        saved_viewport_bitmap = game_frame_to_bmp(false /* fade out */);
-    }
+
+    run_fade_out_effect(static_cast<ScreenTransitionStyle>(trans_style), def_speed);
+
+    play.screen_is_faded_out = 1; // mark screen as faded
 }
 
 //=============================================================================

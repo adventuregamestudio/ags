@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 
     if (command == 'l')
     {
-        HError err = print_room_blockids(datasrc);
+        err = print_room_blockids(datasrc);
         if (!err)
         {
             printf("Error: failed to parse the input room:\n");
@@ -213,7 +213,6 @@ int main(int argc, char *argv[])
     }
     // need these later
     const int dataext_flags = parser.GetFlags();
-    const RoomFileVersion dataver = datasrc.DataVersion;
         
     if (!err)
     {

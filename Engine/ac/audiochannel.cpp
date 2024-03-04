@@ -25,7 +25,6 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern RoomStruct thisroom;
 extern CCAudioClip ccDynamicAudioClip;
 

@@ -196,9 +196,9 @@ public:
     // Create texture data with the given parameters
     Texture *CreateTexture(int, int, int, bool, bool) override { return nullptr; /* not supported */}
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
-    Texture *CreateTexture(const Common::Bitmap*, bool) override { return nullptr; /* not supported */ }
+    Texture *CreateTexture(const Bitmap*, bool) override { return nullptr; /* not supported */ }
     // Update texture data from the given bitmap
-    void UpdateTexture(Texture *txdata, const Common::Bitmap*, bool) override { /* not supported */}
+    void UpdateTexture(Texture *txdata, const Bitmap*, bool) override { /* not supported */}
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
 
@@ -213,8 +213,9 @@ public:
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     void Render(IDriverDependantBitmap *target) override;
-    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt) override;
+    void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }

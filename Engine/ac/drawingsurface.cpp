@@ -36,7 +36,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 extern SpriteCache spriteset;
@@ -156,9 +155,9 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
 
     if (src->GetColorDepth() != ds->GetColorDepth()) {
         if (sprite_id >= 0)
-            debug_script_warn("DrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", sprite_id, src->GetColorDepth(), ds->GetColorDepth());
+            debug_script_warn("DrawImage: Sprite %d colour depth %d-bit not same as destination depth %d-bit", sprite_id, src->GetColorDepth(), ds->GetColorDepth());
         else
-            debug_script_warn("DrawImage: Source image colour depth %d-bit not same as background depth %d-bit", src->GetColorDepth(), ds->GetColorDepth());
+            debug_script_warn("DrawImage: Source image colour depth %d-bit not same as destination depth %d-bit", src->GetColorDepth(), ds->GetColorDepth());
     }
 
     draw_sprite_support_alpha(ds, dst_x, dst_y, src, mode, GfxDef::Trans100ToAlpha255(trans));

@@ -32,7 +32,6 @@
 
 using namespace AGS::Common;
 
-extern GameState play;
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
 extern std::vector<SpeechLipSyncLine> splipsync;

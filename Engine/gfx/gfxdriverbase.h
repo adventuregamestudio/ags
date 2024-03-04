@@ -52,26 +52,32 @@ struct SpriteBatchDesc
     PBitmap                  Surface;
     // Optional texture to render sprites to. Used by hardware-accelerated renderers.
     IDriverDependantBitmap*  RenderTarget = nullptr;
+    // Optional filter flags; this lets to filter certain batches out during some operations,
+    // such as fading effects or making screenshots.
+    uint32_t                 FilterFlags = 0u;
 
     SpriteBatchDesc() = default;
     SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform,
-        Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr)
+        Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr,
+        uint32_t filter_flags = 0)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
         , Flip(flip)
         , Surface(surface)
+        , FilterFlags(filter_flags)
     {
     }
     // TODO: this does not need a parent?
     SpriteBatchDesc(uint32_t parent, IDriverDependantBitmap *render_target,
         const Rect viewport, const SpriteTransform &transform,
-        Common::GraphicFlip flip = Common::kFlip_None)
+        Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
         , Flip(flip)
         , RenderTarget(render_target)
+        , FilterFlags(filter_flags)
     {
     }
 };
@@ -117,9 +123,9 @@ public:
     bool        GetVsync() const override;
 
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr) override;
+                    Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr, uint32_t filter_flags = 0) override;
     void        BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip = Common::kFlip_None) override;
+                    Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0) override;
     void        EndSpriteBatch() override;
     void        ClearDrawLists() override;
 
@@ -179,7 +185,7 @@ protected:
     // Sprite batch parameters
     SpriteBatchDescs _spriteBatchDesc;
     // The range of sprites in this sprite batch (counting nested sprites):
-    // the last of the previous batch, and the last of the current.
+    // the index of a first of the current batch, and the next index past the last one.
     std::vector<std::pair<size_t, size_t>> _spriteBatchRange;
     // The index of a currently filled sprite batch
     size_t _actSpriteBatch;
@@ -286,8 +292,9 @@ public:
     // Creates new DDB and copy bitmap contents over
     IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, bool opaque = false) override;
 
-    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) = 0;
-    // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
+    // Create texture data with the given parameters
+    Texture *CreateTexture(int width, int height, int color_depth, bool opaque = false, bool as_render_target = false) override = 0;
+    // Create texture and initialize its pixels from the given bitmap
     Texture *CreateTexture(const Bitmap *bmp, bool opaque = false) override;
 
     // Sets stage screen parameters for the current batch.

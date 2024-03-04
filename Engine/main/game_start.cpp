@@ -43,7 +43,6 @@ using namespace AGS::Engine;
 
 extern int displayed_room;
 extern GameSetupStruct game;
-extern GameState play;
 extern CharacterInfo*playerchar;
 
 void start_game_load_savegame_on_startup(const String &load_save)

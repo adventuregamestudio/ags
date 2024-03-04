@@ -90,7 +90,6 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
     Rect rc = RectWH(0, 0, _width, _height);
     UpdateMetrics();
     const int width = _width - 1;
-    const int height = _height - 1;
     const int pixel_size = 1;
     int right_hand_edge = width - pixel_size - 1;
     // calculate the scroll bar's width if necessary

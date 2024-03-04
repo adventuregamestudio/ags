@@ -915,16 +915,18 @@ void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter)
 {
-    if (_renderAtScreenRes)
+    // If we normally render in screen res, restore last frame's lists and
+    // render in native res on the given target;
+    // Also force re-render last frame if we require batch filtering
+    if (_renderAtScreenRes || (batch_skip_filter != 0))
     {
-        // If we normally render in screen res, restore last frame's lists and
-        // render in native res on the given target
+        bool old_render_res = _renderAtScreenRes;
         _renderAtScreenRes = false;
-        RestoreDrawLists();
+        RedrawLastFrame(batch_skip_filter);
         Render(target);
-        _renderAtScreenRes = true;
+        _renderAtScreenRes = old_render_res;
     }
     else
     {
@@ -944,11 +946,13 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
     }
 }
 
-bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (!_renderAtScreenRes)
       at_native_res = true;
+
   Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
   if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
   {
@@ -956,14 +960,17 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
       *want_fmt = GraphicResolution(need_size.Width, need_size.Height, _mode.ColorDepth);
     return false;
   }
+
   // If we are rendering sprites at the screen resolution, and requested native res,
-  // re-render last frame to the native surface
-  if (at_native_res && _renderAtScreenRes)
+  // re-render last frame to the native surface;
+  // Also force re-render last frame if we require batch filtering
+  if ((at_native_res && _renderAtScreenRes) || (batch_skip_filter != 0))
   {
-    _renderAtScreenRes = false;
-    RestoreDrawLists();
+    bool old_render_res = _renderAtScreenRes;
+    _renderAtScreenRes = !at_native_res;
+    RedrawLastFrame(batch_skip_filter);
     RenderImpl(true);
-    _renderAtScreenRes = true;
+    _renderAtScreenRes = old_render_res;
   }
   
   IDirect3DSurface9* surface = NULL;
@@ -1655,6 +1662,27 @@ void D3DGraphicsDriver::RestoreDrawLists()
     _spriteBatches = _backupBatches;
     _spriteList = _backupSpriteList;
     _actSpriteBatch = UINT32_MAX;
+}
+
+void D3DGraphicsDriver::FilterSpriteBatches(uint32_t skip_filter)
+{
+    if (skip_filter == 0)
+        return;
+    for (size_t i = 0; i < _spriteBatchDesc.size(); ++i)
+    {
+        if (_spriteBatchDesc[i].FilterFlags & skip_filter)
+        {
+            const auto range = _spriteBatchRange[i];
+            for (size_t spr = range.first; spr < range.second; ++spr)
+                _spriteList[spr].skip = true;
+        }
+    }
+}
+
+void D3DGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
+{
+    RestoreDrawLists();
+    FilterSpriteBatches(skip_filter);
 }
 
 void D3DGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap* ddb)

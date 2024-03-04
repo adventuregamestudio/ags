@@ -98,6 +98,10 @@ enum LegacyScriptAlignment
 // Overlay parameters
 #define OVR_AUTOPLACE 30000
 
+// These are possibly actions scheduled to run after "wait";
+// but only FOR_EXITLOOP is used currently;
+// other FOR_* types are deprecated since at least v2.5.
+// Judging by the old comment in code, FOR_SCRIPT is for v2.1 and earlier.
 #define FOR_ANIMATION 1
 #define FOR_SCRIPT    2
 #define FOR_EXITLOOP  3

@@ -78,7 +78,7 @@ void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_colo
     // NOTE: we pass text_color negated to let optionally use textwindow (if applicable)
     // this is a generic ugliness of _display_main args, need to refactor later.
     Bitmap *image = create_textual_image(draw_text, -text_color, 0, dummy_x, dummy_y, adj_x, adj_y,
-        width, fontid, allow_shrink);
+        width, fontid, allow_shrink, nullptr);
 
     // Update overlay properties
     over->SetImage(std::unique_ptr<Bitmap>(image), adj_x - dummy_x, adj_y - dummy_y);
@@ -228,7 +228,7 @@ ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, 
     if (text_color == 0) text_color = 16;
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
-    return display_main(x, y, width, draw_text, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
+    return display_main(x, y, width, draw_text, nullptr, disp_type, font, -text_color, 0, allow_shrink, false, room_layer);
 }
 
 ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool clone)

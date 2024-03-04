@@ -88,9 +88,9 @@ SavegameSource::SavegameSource()
 }
 
 SavegameDescription::SavegameDescription()
-    : MainDataVersion(kGameVersion_Undefined)
+    : LegacyID(0)
+    , MainDataVersion(kGameVersion_Undefined)
     , ColorDepth(0)
-    , LegacyID(0)
 {
 }
 

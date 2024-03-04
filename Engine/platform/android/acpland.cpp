@@ -26,7 +26,6 @@
 #include "platform/base/mobile_base.h"
 #include "ac/runtime_defines.h"
 #include "game/main_game_file.h"
-#include "plugin/agsplugin.h"
 #include "util/android_file.h"
 #include "util/directory.h"
 #include "util/file.h"

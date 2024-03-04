@@ -68,7 +68,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern GameState play;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
@@ -132,7 +131,6 @@ struct ObjTexture
     ObjTexture() = default;
     ObjTexture(uint32_t sprite_id, Bitmap *bmp, IDriverDependantBitmap *ddb, int x, int y, int xoff = 0, int yoff = 0)
         : SpriteID(sprite_id), Bmp(bmp), Ddb(ddb), Pos(x, y), Off(xoff, yoff) {}
-    ObjTexture(const ObjTexture&) = default;
     ObjTexture(ObjTexture &&o) { *this = std::move(o); }
     ~ObjTexture()
     {
@@ -537,12 +535,13 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool make_opaque)
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
-Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res)
+Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res,
+    uint32_t batch_skip_filter)
 {
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
     // If the size and color depth are supported we may copy right into our bitmap
-    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt))
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt, batch_skip_filter))
         return dst;
     // Otherwise we might need to copy between few bitmaps...
     Bitmap *buf_screenfmt = new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth);
@@ -827,7 +826,7 @@ void init_room_drawdata()
 
 void on_roomviewport_created(int index)
 {
-    if (!gfxDriver || drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if ((size_t)index < CameraDrawData.size())
         return;
@@ -836,7 +835,7 @@ void on_roomviewport_created(int index)
 
 void on_roomviewport_deleted(int index)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     CameraDrawData.erase(CameraDrawData.begin() + index);
     delete_invalid_regions(index);
@@ -844,7 +843,7 @@ void on_roomviewport_deleted(int index)
 
 void on_roomviewport_changed(Viewport *view)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (!view->IsVisible() || view->GetCamera() == nullptr)
         return;
@@ -863,7 +862,7 @@ void on_roomviewport_changed(Viewport *view)
 
 void detect_roomviewport_overlaps(size_t z_index)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     // Find out if we overlap or are overlapped by anything;
     const auto &viewports = play.GetRoomViewportsZOrdered();
@@ -892,7 +891,7 @@ void detect_roomviewport_overlaps(size_t z_index)
 
 void on_roomcamera_changed(Camera *cam)
 {
-    if (drawstate.FullFrameRedraw)
+    if (drawstate.FullFrameRedraw || (displayed_room < 0))
         return;
     if (cam->HasChangedSize())
     {
@@ -1066,7 +1065,7 @@ extern volatile bool want_exit, abort_engine;
 
 void render_to_screen()
 {
-    // Stage: final plugin callback (still drawn on game screen
+    // Stage: final plugin callback (still drawn on game screen)
     if (pl_any_want_hook(AGSE_FINALSCREENDRAW))
     {
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
@@ -1162,12 +1161,14 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     Common::Bitmap *source, bool opaque)
 {
     assert(source);
-    if (ddb && (drawstate.SoftwareRender || (ddb->GetColorDepth() == source->GetColorDepth()) &&
-            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight())))
+    if (ddb && // already has an allocated DDB,
+        (drawstate.SoftwareRender || // is software renderer, or...
+        ((ddb->GetColorDepth() == source->GetColorDepth()) && // existing DDB format matches
+            (ddb->GetWidth() == source->GetWidth()) && (ddb->GetHeight() == source->GetHeight()))))
         gfxDriver->UpdateDDBFromBitmap(ddb, source);
-    else if (ddb)
+    else if (ddb) // if existing texture format does not match, then create a new texture
         ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, opaque)), opaque);
-    else
+    else // ...else allocated new DDB
         ddb = gfxDriver->CreateDDBFromBitmap(source, opaque);
     return ddb;
 }
@@ -1281,7 +1282,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
     return (e1.zorder < e2.zorder) ||
-        (e1.zorder == e2.zorder) && (e1.id < e2.id);
+        ((e1.zorder == e2.zorder) && (e1.id < e2.id));
 }
 
 // Room-specialized function to sort the sprites into baseline order;
@@ -2832,25 +2833,29 @@ void construct_game_scene(bool full_redraw)
 void construct_game_screen_overlay(bool draw_mouse)
 {
     gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
+            play.GetGlobalTransform(drawstate.FullFrameRedraw),
+            (GraphicFlip)play.screen_flipped);
     if (pl_any_want_hook(AGSE_POSTSCREENDRAW))
     {
         gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, nullptr);
     }
 
-    // Add mouse cursor pic, and global screen tint effect
+    // Mouse cursor
     if (play.screen_is_faded_out == 0)
     {
-        // Stage: mouse cursor
         if (draw_mouse && !play.mouse_cursor_hidden)
         {
+            // Exclusive sub-batch for mouse cursor, to let filter it out (CHECKME later?)
+            gfxDriver->BeginSpriteBatch(Rect(), SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_MOUSE_CURSOR);
             gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouse_cur_ddb);
             invalidate_sprite(mousex - hotx, mousey - hoty, mouse_cur_ddb, false);
+            gfxDriver->EndSpriteBatch();
         }
-        // Stage: screen fx
-        if (play.screen_tint >= 1)
-            gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
     }
+
+    // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
+    if ((play.screen_tint >= 1) && (play.screen_is_faded_out == 0))
+        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
     gfxDriver->EndSpriteBatch();
 
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
@@ -2870,7 +2875,7 @@ void construct_game_screen_overlay(bool draw_mouse)
 void construct_engine_overlay()
 {
     const Rect &viewport = RectWH(game.GetGameRes());
-    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform());
+    gfxDriver->BeginSpriteBatch(viewport, SpriteTransform(), kFlip_None, nullptr, RENDER_BATCH_ENGINE_OVERLAY);
 
     if (display_fps != kFPS_Hide)
         draw_fps(viewport);
@@ -2878,7 +2883,7 @@ void construct_engine_overlay()
     gfxDriver->EndSpriteBatch();
 }
 
-static void update_shakescreen()
+void update_shakescreen()
 {
     // TODO: unify blocking and non-blocking shake update
     play.shake_screen_yoff = 0;

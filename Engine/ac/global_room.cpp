@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/global_room.h"
 #include "ac/common.h"
 #include "ac/character.h"
@@ -32,7 +31,6 @@
 
 using namespace Common;
 
-extern GameState play;
 extern GameSetupStruct game;
 extern RoomStatus *croom;
 extern CharacterInfo*playerchar;

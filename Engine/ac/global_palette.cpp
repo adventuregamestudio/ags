@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
@@ -20,7 +19,6 @@
 #include "util/wgt2allg.h"
 
 extern GameSetupStruct game;
-extern GameState play;
 extern RGB palette[256];
 
 // CLNUP remove everything and all references to palettes ?

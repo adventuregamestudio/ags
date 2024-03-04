@@ -322,6 +322,8 @@ IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDB(int width, int heig
 
 IDriverDependantBitmap* SDLRendererGraphicsDriver::CreateDDBFromBitmap(const Bitmap *bitmap, bool opaque)
 {
+  // FIXME: find a way to avoid const_cast here;
+  // note we cannot have const Bitmap in ALSoftwareBitmap, because it may be used as a render target...
   return new ALSoftwareBitmap(const_cast<Bitmap*>(bitmap), opaque);
 }
 
@@ -760,13 +762,14 @@ void SDLRendererGraphicsDriver::SetStageBackBuffer(Bitmap *backBuffer)
         _stageVirtualScreen = cur_stage;
 }
 
-void SDLRendererGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target)
+void SDLRendererGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t /*batch_skip_filter*/)
 {
     Bitmap *dst_bmp = ((ALSoftwareBitmap*)target)->_bmp;
     dst_bmp->Blit(virtualScreen);
 }
 
-bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt)
+bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
+    bool at_native_res, GraphicResolution *want_fmt, uint32_t /*batch_skip_filter*/)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
   // software filter is taught to copy to any size

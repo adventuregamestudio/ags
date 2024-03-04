@@ -38,21 +38,21 @@ extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
 
-GameState::GameState()
+GamePlayState::GamePlayState()
 {
 }
 
-bool GameState::IsAutoRoomViewport() const
+bool GamePlayState::IsAutoRoomViewport() const
 {
     return _isAutoRoomViewport;
 }
 
-void GameState::SetAutoRoomViewport(bool on)
+void GamePlayState::SetAutoRoomViewport(bool on)
 {
     _isAutoRoomViewport = on;
 }
 
-void GameState::SetMainViewport(const Rect &viewport)
+void GamePlayState::SetMainViewport(const Rect &viewport)
 {
     _mainViewport = viewport;
     Mouse::UpdateGraphicArea();
@@ -61,17 +61,17 @@ void GameState::SetMainViewport(const Rect &viewport)
     _mainViewportHasChanged = true;
 }
 
-const Rect &GameState::GetMainViewport() const
+const Rect &GamePlayState::GetMainViewport() const
 {
     return _mainViewport;
 }
 
-const Rect &GameState::GetUIViewport() const
+const Rect &GamePlayState::GetUIViewport() const
 {
     return _uiViewport;
 }
 
-SpriteTransform GameState::GetGlobalTransform(bool full_frame_rend) const
+SpriteTransform GamePlayState::GetGlobalTransform(bool full_frame_rend) const
 {
     // NOTE: shake_screen is not applied to the sprite batches,
     // but only as a final render factor (optimization)
@@ -80,17 +80,17 @@ SpriteTransform GameState::GetGlobalTransform(bool full_frame_rend) const
         shake_screen_yoff * static_cast<int>(full_frame_rend));
 }
 
-PViewport GameState::GetRoomViewport(int index) const
+PViewport GamePlayState::GetRoomViewport(int index) const
 {
     return _roomViewports[index];
 }
 
-const std::vector<PViewport> &GameState::GetRoomViewportsZOrdered() const
+const std::vector<PViewport> &GamePlayState::GetRoomViewportsZOrdered() const
 {
     return _roomViewportsSorted;
 }
 
-PViewport GameState::GetRoomViewportAt(int x, int y) const
+PViewport GamePlayState::GetRoomViewportAt(int x, int y) const
 {
     // We iterate backwards, because in AGS low z-order means bottom
     for (auto it = _roomViewportsSorted.rbegin(); it != _roomViewportsSorted.rend(); ++it)
@@ -99,12 +99,12 @@ PViewport GameState::GetRoomViewportAt(int x, int y) const
     return nullptr;
 }
 
-Rect GameState::GetRoomViewportAbs(int index) const
+Rect GamePlayState::GetRoomViewportAbs(int index) const
 {
     return Rect::MoveBy(_roomViewports[index]->GetRect(), _mainViewport.Left, _mainViewport.Top);
 }
 
-void GameState::SetUIViewport(const Rect &viewport)
+void GamePlayState::SetUIViewport(const Rect &viewport)
 {
     _uiViewport = viewport;
 }
@@ -114,7 +114,7 @@ static bool ViewportZOrder(const PViewport e1, const PViewport e2)
     return e1->GetZOrder() < e2->GetZOrder();
 }
 
-void GameState::UpdateViewports()
+void GamePlayState::UpdateViewports()
 {
     if (_mainViewportHasChanged)
     {
@@ -156,23 +156,23 @@ void GameState::UpdateViewports()
     }
 }
 
-void GameState::InvalidateViewportZOrder()
+void GamePlayState::InvalidateViewportZOrder()
 {
     _roomViewportZOrderChanged = true;
 }
 
-PCamera GameState::GetRoomCamera(int index) const
+PCamera GamePlayState::GetRoomCamera(int index) const
 {
     return _roomCameras[index];
 }
 
-void GameState::UpdateRoomCameras()
+void GamePlayState::UpdateRoomCameras()
 {
     for (size_t i = 0; i < _roomCameras.size(); ++i)
         UpdateRoomCamera(i);
 }
 
-void GameState::UpdateRoomCamera(int index)
+void GamePlayState::UpdateRoomCamera(int index)
 {
     auto cam = _roomCameras[index];
     const Rect &rc = cam->GetRect();
@@ -189,22 +189,22 @@ void GameState::UpdateRoomCamera(int index)
     }
 }
 
-Point GameState::RoomToScreen(int roomx, int roomy)
+Point GamePlayState::RoomToScreen(int roomx, int roomy)
 {
     return _roomViewports[0]->RoomToScreen(roomx, roomy, false).first;
 }
 
-int GameState::RoomToScreenX(int roomx)
+int GamePlayState::RoomToScreenX(int roomx)
 {
     return _roomViewports[0]->RoomToScreen(roomx, 0, false).first.X;
 }
 
-int GameState::RoomToScreenY(int roomy)
+int GamePlayState::RoomToScreenY(int roomy)
 {
     return _roomViewports[0]->RoomToScreen(0, roomy, false).first.Y;
 }
 
-VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport)
+VpPoint GamePlayState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool clip_viewport)
 {
     PViewport view;
     if (view_index < 0)
@@ -224,14 +224,14 @@ VpPoint GameState::ScreenToRoomImpl(int scrx, int scry, int view_index, bool cli
     return view->ScreenToRoom(scrx, scry, clip_viewport);
 }
 
-VpPoint GameState::ScreenToRoom(int scrx, int scry, bool restrict)
+VpPoint GamePlayState::ScreenToRoom(int scrx, int scry, bool restrict)
 {
     if (game.options[OPT_BASESCRIPTAPI] >= kScriptAPI_v3507)
         return ScreenToRoomImpl(scrx, scry, -1, restrict);
     return ScreenToRoomImpl(scrx, scry, 0, false);
 }
 
-void GameState::CreatePrimaryViewportAndCamera()
+void GamePlayState::CreatePrimaryViewportAndCamera()
 {
     if (_roomViewports.size() == 0)
     {
@@ -247,7 +247,7 @@ void GameState::CreatePrimaryViewportAndCamera()
     _roomCameras[0]->LinkToViewport(_roomViewports[0]);
 }
 
-PViewport GameState::CreateRoomViewport()
+PViewport GamePlayState::CreateRoomViewport()
 {
     int index = (int)_roomViewports.size();
     PViewport viewport(new Viewport());
@@ -261,14 +261,14 @@ PViewport GameState::CreateRoomViewport()
     return viewport;
 }
 
-ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
+ScriptViewport *GamePlayState::RegisterRoomViewport(int index, int32_t handle)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return nullptr;
     auto scview = new ScriptViewport(index);
     if (handle == 0)
     {
-        handle = ccRegisterManagedObjectAndRef(scview, scview); // one ref for GameState
+        handle = ccRegisterManagedObjectAndRef(scview, scview); // one ref for GamePlayState
     }
     else
     {
@@ -278,7 +278,7 @@ ScriptViewport *GameState::RegisterRoomViewport(int index, int32_t handle)
     return scview;
 }
 
-void GameState::DeleteRoomViewport(int index)
+void GamePlayState::DeleteRoomViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return;
@@ -313,12 +313,12 @@ void GameState::DeleteRoomViewport(int index)
     on_roomviewport_deleted(index);
 }
 
-int GameState::GetRoomViewportCount() const
+int GamePlayState::GetRoomViewportCount() const
 {
     return (int)_roomViewports.size();
 }
 
-PCamera GameState::CreateRoomCamera()
+PCamera GamePlayState::CreateRoomCamera()
 {
     int index = (int)_roomCameras.size();
     PCamera camera(new Camera());
@@ -330,14 +330,14 @@ PCamera GameState::CreateRoomCamera()
     return camera;
 }
 
-ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
+ScriptCamera *GamePlayState::RegisterRoomCamera(int index, int32_t handle)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return nullptr;
     auto sccamera = new ScriptCamera(index);
     if (handle == 0)
     {
-        handle = ccRegisterManagedObjectAndRef(sccamera, sccamera); // one ref for GameState
+        handle = ccRegisterManagedObjectAndRef(sccamera, sccamera); // one ref for GamePlayState
     }
     else
     {
@@ -347,7 +347,7 @@ ScriptCamera *GameState::RegisterRoomCamera(int index, int32_t handle)
     return sccamera;
 }
 
-void GameState::DeleteRoomCamera(int index)
+void GamePlayState::DeleteRoomCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return;
@@ -376,71 +376,71 @@ void GameState::DeleteRoomCamera(int index)
     }
 }
 
-int GameState::GetRoomCameraCount() const
+int GamePlayState::GetRoomCameraCount() const
 {
     return (int)_roomCameras.size();
 }
 
-ScriptViewport *GameState::GetScriptViewport(int index)
+ScriptViewport *GamePlayState::GetScriptViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return nullptr;
     return (ScriptViewport*)ccGetObjectAddressFromHandle(_scViewportHandles[index]);
 }
 
-ScriptCamera *GameState::GetScriptCamera(int index)
+ScriptCamera *GamePlayState::GetScriptCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return nullptr;
     return (ScriptCamera*)ccGetObjectAddressFromHandle(_scCameraHandles[index]);
 }
 
-bool GameState::IsIgnoringInput() const
+bool GamePlayState::IsIgnoringInput() const
 {
     return AGS_Clock::now() < _ignoreUserInputUntilTime;
 }
 
-void GameState::SetIgnoreInput(int timeout_ms)
+void GamePlayState::SetIgnoreInput(int timeout_ms)
 {
     if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
         _ignoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
 }
 
-void GameState::ClearIgnoreInput()
+void GamePlayState::ClearIgnoreInput()
 {
     _ignoreUserInputUntilTime = AGS_Clock::now();
 }
 
-void GameState::SetWaitSkipResult(int how, int data)
+void GamePlayState::SetWaitSkipResult(int how, int data)
 {
     wait_counter = 0;
     wait_skipped_by = how;
     wait_skipped_by_data = data;
 }
 
-int GameState::GetWaitSkipResult() const
+int GamePlayState::GetWaitSkipResult() const
 { // NOTE: we remove timer flag to make timeout reason = 0
     return ((wait_skipped_by & ~SKIP_AUTOTIMER) << SKIP_RESULT_TYPE_SHIFT)
         | (wait_skipped_by_data & SKIP_RESULT_DATA_MASK);
 }
 
-bool GameState::IsBlockingVoiceSpeech() const
+bool GamePlayState::IsBlockingVoiceSpeech() const
 {
     return speech_has_voice && speech_voice_blocking;
 }
 
-bool GameState::IsNonBlockingVoiceSpeech() const
+bool GamePlayState::IsNonBlockingVoiceSpeech() const
 {
     return speech_has_voice && !speech_voice_blocking;
 }
 
-bool GameState::ShouldPlayVoiceSpeech() const
+bool GamePlayState::ShouldPlayVoiceSpeech() const
 {
     return !play.fast_forward &&
         (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
-void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
+void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
 {
     in->ReadInt32(); // [DEPRECATED]
     usedmode = in->ReadInt32();
@@ -648,7 +648,7 @@ void GameState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameState
     }
 }
 
-void GameState::WriteForSavegame(Stream *out) const
+void GamePlayState::WriteForSavegame(Stream *out) const
 {
     // NOTE: following parameters are never saved:
     // recording, playback, gamestep, screen_is_faded_out, room_changes
@@ -837,7 +837,7 @@ void GameState::WriteForSavegame(Stream *out) const
     out->WriteByteCount(0, sizeof(int32_t) * 9);
 }
 
-void GameState::FreeProperties()
+void GamePlayState::FreeProperties()
 {
     for (auto &p : charProps)
         p.clear();
@@ -845,7 +845,7 @@ void GameState::FreeProperties()
         p.clear();
 }
 
-void GameState::FreeViewportsAndCameras()
+void GamePlayState::FreeViewportsAndCameras()
 {
     _roomViewports.clear();
     _roomViewportsSorted.clear();

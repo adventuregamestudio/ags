@@ -28,7 +28,7 @@ CCScriptGame GameStaticManager;
 int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
 {
     const int index = offset / sizeof(int32_t);
-    if (index >= 5 && index < 5 + GameState::LEGACY_MAXGLOBALVARS)
+    if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
         return 0; // [DEPRECATED]
 
     switch (index)
@@ -122,7 +122,7 @@ int32_t CCScriptGame::ReadInt32(void *address, intptr_t offset)
 void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
 {
     const int index = offset / sizeof(int32_t);
-    if (index >= 5 && index < 5 + GameState::LEGACY_MAXGLOBALVARS)
+    if (index >= 5 && index < 5 + GamePlayState::LEGACY_MAXGLOBALVARS)
         return; // [DEPRECATED]
 
     switch (index)

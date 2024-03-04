@@ -914,7 +914,7 @@ Bitmap* LoadBMP(Stream *in, RGB *pal) {
 
     if(hdr.compression == kBI_BitFields) {
         int rMask = in->ReadInt32();
-        int gMask = in->ReadInt32();
+        /*int gMask =*/ in->ReadInt32();
         int bMask = in->ReadInt32();
 
         if ((bMask == 0x001f) && (rMask == 0x7C00)) {

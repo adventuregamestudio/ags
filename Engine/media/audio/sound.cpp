@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include "media/audio/sound.h"
-#include <cmath>
 #include <list>
 #include <unordered_map>
 #include "core/assetmanager.h"
@@ -25,6 +24,7 @@
 #include "util/string_types.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 static int GuessSoundTypeFromExt(const String &extension)
 {
@@ -157,11 +157,5 @@ SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, b
     if (slot < 0) { return nullptr; }
 
     const auto sound_type = GuessSoundTypeFromExt(ext_hint);
-    const auto lengthMs = (int)std::round(audio_core_slot_get_duration(slot));
-
-    auto clip = new SOUNDCLIP(slot);
-    clip->repeat = loop;
-    clip->soundType = sound_type;
-    clip->lengthMs = lengthMs;
-    return clip;
+    return new SOUNDCLIP(slot, sound_type, loop);
 }

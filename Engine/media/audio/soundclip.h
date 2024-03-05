@@ -41,7 +41,7 @@
 class SOUNDCLIP final
 {
 public:
-    SOUNDCLIP(int slot);
+    SOUNDCLIP(int slot, int snd_type, bool loop);
     ~SOUNDCLIP();
 
     // TODO: move these to private

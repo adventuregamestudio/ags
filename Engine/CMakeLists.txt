@@ -387,6 +387,8 @@ target_sources(engine
     media/audio/audio.h
     media/audio/audio_system.h
     media/audio/audiodefines.h
+    media/audio/audioplayer.cpp
+    media/audio/audioplayer.h
     media/audio/sdldecoder.cpp
     media/audio/sdldecoder.h
     media/audio/openalsource.cpp

@@ -91,13 +91,18 @@ void quit_shutdown_scripts()
 void quit_check_dynamic_sprites(QuitReason qreason)
 {
     if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && 
-        (game.options[OPT_DEBUGMODE] != 0)) {
-            // game exiting normally -- make sure the dynamic sprites
-            // have been deleted
-            for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); i++) {
-                if (game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC)
-                    debug_script_warn("Dynamic sprite %d was never deleted", i);
+        (game.options[OPT_DEBUGMODE] != 0))
+    {
+        // Check that the dynamic sprites have been deleted;
+        // ignore those that are owned by the game objects.
+        for (size_t i = 1; i < spriteset.GetSpriteSlotCount(); i++)
+        {
+            if ((game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC) &&
+                ((game.SpriteInfos[i].Flags & SPF_OBJECTOWNED) == 0))
+            {
+                debug_script_warn("Dynamic sprite %d was never deleted", i);
             }
+        }
     }
 }
 

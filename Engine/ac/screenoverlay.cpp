@@ -71,7 +71,7 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, bool has_alpha
         offsetY = offy;
         scaleWidth = pic->GetWidth();
         scaleHeight = pic->GetHeight();
-        _sprnum = add_dynamic_sprite(std::move(pic), has_alpha);
+        _sprnum = add_dynamic_sprite(std::move(pic), has_alpha, SPF_OBJECTOWNED);
     }
     MarkChanged();
 }

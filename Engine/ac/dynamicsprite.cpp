@@ -449,20 +449,23 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
 //=============================================================================
 
-int add_dynamic_sprite(std::unique_ptr<Bitmap> image, bool has_alpha) {
+int add_dynamic_sprite(std::unique_ptr<Bitmap> image, bool has_alpha, uint32_t extra_flags)
+{
     int slot = spriteset.GetFreeIndex();
     if (slot <= 0)
         return 0;
 
-    return add_dynamic_sprite(slot, std::move(image), has_alpha);
+    return add_dynamic_sprite(slot, std::move(image), has_alpha, extra_flags);
 }
 
-int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, bool has_alpha) {
+int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, bool has_alpha, uint32_t extra_flags)
+{
     assert(slot > 0 && !spriteset.IsAssetSprite(slot));
     if (slot <= 0 || spriteset.IsAssetSprite(slot))
         return 0; // invalid slot, or reserved for the static sprite
 
-    if (!spriteset.SetSprite(slot, std::move(image), SPF_DYNAMICALLOC | (SPF_ALPHACHANNEL * has_alpha)))
+    uint32_t flags = SPF_DYNAMICALLOC | (SPF_ALPHACHANNEL * has_alpha) | extra_flags;
+    if (!spriteset.SetSprite(slot, std::move(image), flags))
         return 0; // failed to add the sprite, bad image or realloc failed
 
     if (play.spritemodified.size() < game.SpriteInfos.size())

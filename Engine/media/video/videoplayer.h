@@ -18,6 +18,14 @@
 // Renders audio frames using OpenAlSource output.
 //
 // TODO: separate Video Decoder class, would be useful e.g. for plugins.
+// TODO:
+//     - allow skip frames if late (add to settings);
+//     - a video-audio sync mechanism; perhaps rely on audio,
+//       because it's more time-sensitive in human perception;
+//       drop video frames if video is lagging, but this also has to
+//       be done in decoder to avoid converting vframe to a bitmap.
+//     - other options: slow down playback speed until video-audio
+//       relation stabilizes.
 //
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEOPLAYER_H
@@ -73,8 +81,12 @@ public:
     void Pause();
     // Stops the playback, releasing any resources
     void Stop();
-    // Seek to the given time position
-    void Seek(float pos_ms);
+    // Seek to the given time position; returns new pos or -1 on error
+    float Seek(float pos_ms);
+    // Seek to the given frame; returns new pos or -1 (UINT32_MAX) on error
+    uint32_t SeekFrame(uint32_t frame);
+    // Steps one frame forward, returns whether was successful
+    bool NextFrame();
 
     const String &GetName() const { return _name; }
     int GetFrameDepth() const { return _frameDepth; }
@@ -83,6 +95,7 @@ public:
     const Size &GetTargetSize() const { return _targetSize; }
     // Get suggested video framerate (frames per second)
     float GetFramerate() const { return _frameRate; }
+    uint32_t GetFrameIndex() const { return _framesPlayed; /* CHECKME! */ }
     // Tells if video playback is looping
     bool IsLooping() const { return (_flags & kVideo_Loop) != 0; }
     // Get current playback state
@@ -94,6 +107,7 @@ public:
 
     void  SetSpeed(float speed);
     void  SetVolume(float volume);
+    void  SetLooping(bool loop) { _flags = (_flags & ~kVideo_Loop) | (kVideo_Loop * loop); }
 
     // Retrieve the currently prepared video frame
     std::unique_ptr<Common::Bitmap> GetReadyFrame();
@@ -111,6 +125,8 @@ protected:
         { return new Common::Error("Internal error: operation not implemented"); };
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
+    // Rewind to the start
+    virtual bool RewindImpl() { return false; }
     // Retrieves next video frame, implementation-specific
     virtual bool NextVideoFrame(Common::Bitmap *dst) { return false; };
     // Retrieves next audio frame, implementation-specific
@@ -138,7 +154,7 @@ private:
     void BufferAudio();
     // Process buffered video frame(s);
     // returns if should continue working
-    bool ProcessVideo();
+    bool ProcessVideo(bool force_next);
     // Process buffered audio frame(s);
     // returns if should continue working
     bool ProcessAudio();
@@ -154,6 +170,7 @@ private:
     uint32_t _audioQueueMax = 0u; // we don't have a real queue atm
     // Playback state
     PlaybackState _playState = PlayStateInitial;
+    // Frames counter, increments with playback, resets on rewind or seek
     uint32_t _framesPlayed = 0u;
     // Stage timestamps, used to calculate the next frame timing;
     // note that these are "virtual time", and are adjusted whenever playback

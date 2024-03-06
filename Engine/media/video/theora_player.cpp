@@ -51,9 +51,31 @@ void apeg_stream_skip(int bytes, void *ptr)
 }
 //
 
-HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
+HError TheoraPlayer::OpenImpl(std::unique_ptr<Stream> data_stream,
     const String &name, int &flags, int target_depth)
 {
+    // Init APEG
+    HError err = OpenAPEGStream(data_stream.get(), name, flags, target_depth);
+    if (!err)
+        return err;
+
+    _name = name;
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        flags &= ~kVideo_EnableVideo;
+    if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
+        flags &= ~kVideo_EnableAudio;
+    _dataStream = std::move(data_stream);
+    return HError::None();
+}
+
+HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &name, int flags, int target_depth)
+{
+    if (_apegStream)
+    {
+        apeg_close_stream(_apegStream);
+        _apegStream = nullptr;
+    }
+
     // NOTE: following settings affect only next apeg_open_stream* or
     // apeg_reset_stream.
     apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
@@ -63,7 +85,7 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     apeg_disable_length_detection(TRUE);
     apeg_ignore_audio((flags & kVideo_EnableAudio) == 0);
 
-    APEG_STREAM* apeg_stream = apeg_open_stream_ex(data_stream.get());
+    APEG_STREAM* apeg_stream = apeg_open_stream_ex(data_stream);
     if (!apeg_stream)
     {
         return new Error(String::FromFormat("Failed to open theora video '%s'; could be an invalid or unsupported format", name.GetCStr()));
@@ -75,13 +97,9 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     }
 
     _apegStream = apeg_stream;
-    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
-        flags &= ~kVideo_EnableVideo;
-    if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
-        flags &= ~kVideo_EnableAudio;
+    _usedFlags = flags;
+    _usedDepth = target_depth;
 
-    // Init APEG
-    _dataStream = std::move(data_stream);
     _frameDepth = target_depth;
     _frameRate = _apegStream->frame_rate;
     _frameSize = Size(video_w, video_h);
@@ -112,6 +130,15 @@ void TheoraPlayer::CloseImpl()
 {
     apeg_close_stream(_apegStream);
     _apegStream = nullptr;
+}
+
+bool TheoraPlayer::RewindImpl()
+{
+    if (apeg_reset_stream(_apegStream) != APEG_OK)
+    {
+        OpenAPEGStream(_dataStream.get(), _name, _usedFlags, _usedDepth);
+    }
+    return _apegStream != nullptr;
 }
 
 bool TheoraPlayer::NextVideoFrame(Bitmap *dst)

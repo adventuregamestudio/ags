@@ -38,12 +38,18 @@ private:
     Common::HError OpenImpl(std::unique_ptr<Common::Stream> data_stream,
         const String &name, int &flags, int target_depth) override;
     void CloseImpl() override;
+    bool RewindImpl() override;
     // Retrieves next video frame, implementation-specific
     bool NextVideoFrame(Common::Bitmap *dst) override;
     // Retrieves next audio frame, implementation-specific
     SoundBuffer NextAudioFrame() override;
 
+    Common::HError OpenAPEGStream(Stream *data_stream, const String &name, int flags, int target_depth);
+
+    String _name;
     std::unique_ptr<Stream> _dataStream;
+    int _usedFlags = 0;
+    int _usedDepth = 0;
     APEG_STREAM *_apegStream = nullptr;
     // Optional wrapper around original buffer frame (in case we want to extract a portion of it)
     std::unique_ptr<Common::Bitmap> _theoraFullFrame;

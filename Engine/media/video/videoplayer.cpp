@@ -15,9 +15,6 @@
 
 #ifndef AGS_NO_VIDEO_PLAYER
 
-//-----------------------------------------------------------------------------
-// VideoPlayer
-//-----------------------------------------------------------------------------
 namespace AGS
 {
 namespace Engine
@@ -148,7 +145,8 @@ void VideoPlayer::Play()
 
 void VideoPlayer::Pause()
 {
-    if (_playState != PlayStatePlaying) return;
+    if (_playState != PlayStatePlaying)
+        return;
 
     if (_audioOut)
         _audioOut->Pause();
@@ -156,9 +154,47 @@ void VideoPlayer::Pause()
     _pauseTime = AGS_Clock::now();
 }
 
-void VideoPlayer::Seek(float pos_ms)
+float VideoPlayer::Seek(float pos_ms)
 {
-    // TODO
+    if ((pos_ms == 0.f) && RewindImpl())
+    {
+        return 0.f;
+    }
+    return -1.f; // TODO
+}
+
+uint32_t VideoPlayer::SeekFrame(uint32_t frame)
+{
+    if ((frame == 0) && RewindImpl())
+    {
+        return 0u;
+    }
+    return UINT32_MAX; // TODO
+}
+
+bool VideoPlayer::NextFrame()
+{
+    if (!IsPlaybackReady(_playState) || !HasVideo())
+        return false;
+    if (_playState != PlaybackState::PlayStatePaused)
+        Pause();
+
+    BufferVideo();
+
+    if (!ProcessVideo(true))
+    {
+        if (IsLooping() && RewindImpl())
+        {
+            _framesPlayed = 0;
+            return ProcessVideo(true);
+        }
+        else
+        {
+            _playState = PlayStateFinished;
+            return false;
+        }
+    }
+    return true;
 }
 
 void VideoPlayer::SetSpeed(float speed)
@@ -226,7 +262,7 @@ bool VideoPlayer::Poll()
     if (_playState != PlayStatePlaying)
         return false;
 
-    bool res_video = HasVideo() && ProcessVideo();
+    bool res_video = HasVideo() && ProcessVideo(false);
     bool res_audio = HasAudio() && ProcessAudio();
 
     // Stop if nothing is left to process, or if there was error
@@ -234,8 +270,16 @@ bool VideoPlayer::Poll()
         return false;
     if (!res_video && !res_audio)
     {
-        _playState = PlayStateFinished;
-        return false;
+        if (IsLooping() && RewindImpl())
+        {
+            _framesPlayed = 0;
+            return true;
+        }
+        else
+        {
+            _playState = PlayStateFinished;
+            return false;
+        }
     }
     return true;
 }
@@ -245,6 +289,9 @@ void VideoPlayer::ResumeImpl()
     // Update our virtual "start time" to keep the proper frame timing
     auto pause_dur = AGS_Clock::now() - _pauseTime;
     _firstFrameTime += pause_dur;
+
+    // TODO: Separate case of resuming after NextFrame,
+    // must Seek to frame, or audio will fall behind
 }
 
 void VideoPlayer::BufferVideo()
@@ -301,16 +348,19 @@ void VideoPlayer::BufferAudio()
     _audioFrame = NextAudioFrame();
 }
 
-bool VideoPlayer::ProcessVideo()
+bool VideoPlayer::ProcessVideo(bool force_next)
 {
     const auto now = AGS_Clock::now();
     const auto duration =
         std::chrono::duration_cast<std::chrono::milliseconds>(now - _firstFrameTime).count();
-    // If has got a ready video frame, then test whether it's time to drop it
+    // If has got a ready video frame, then test whether it's time to drop it;
+    // note that we drop only if there's something in the queue, otherwise keep "late" ready frame.
     if (_videoReadyFrame)
     {
         // TODO: get frame's timestamp if available from decoder?
-        if (duration >= _framesPlayed * _frameTime)
+        if (force_next ||
+            ((_videoFrameQueue.size() > 0) &&
+            duration >= _framesPlayed * _frameTime))
         {
             _videoFramePool.push(std::move(_videoReadyFrame));
         }
@@ -321,7 +371,7 @@ bool VideoPlayer::ProcessVideo()
     if (!_videoReadyFrame && _videoFrameQueue.size() > 0)
     {
         // TODO: get frame's timestamp if available from decoder?
-        if (_framesPlayed == 0u ||
+        if (force_next || _framesPlayed == 0u ||
             duration >= _framesPlayed * _frameTime)
         {
             _videoReadyFrame = std::move(_videoFrameQueue.front());

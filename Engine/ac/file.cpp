@@ -628,14 +628,12 @@ static PACKFILE_VTABLE ags_packfile_vtable = {
 };
 //
 
-PACKFILE *PackfileFromAsset(const AssetPath &path)
+PACKFILE *PackfileFromStream(std::unique_ptr<Stream> stream)
 {
-    Stream *asset_stream = AssetMgr->OpenAsset(path);
-    if (!asset_stream) return nullptr;
-    const size_t asset_size = asset_stream->GetLength();
+    const size_t asset_size = stream->GetLength();
     if (asset_size == 0) return nullptr;
     AGS_PACKFILE_OBJ* obj = new AGS_PACKFILE_OBJ;
-    obj->stream.reset(asset_stream);
+    obj->stream = std::move(stream);
     obj->asset_size = asset_size;
     obj->remains = asset_size;
     return pack_fopen_vtable(&ags_packfile_vtable, obj);

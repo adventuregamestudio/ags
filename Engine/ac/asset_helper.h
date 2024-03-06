@@ -47,9 +47,9 @@ struct AGS_PACKFILE_OBJ
     size_t asset_size = 0u;
     size_t remains = 0u;
 };
-// Creates PACKFILE stream from AGS asset.
+// Creates PACKFILE stream from AGS stream.
 // This function is supposed to be used only when you have to create Allegro
 // object, passing PACKFILE stream to constructor.
-PACKFILE *PackfileFromAsset(const AssetPath &path);
+PACKFILE *PackfileFromStream(std::unique_ptr<Stream> stream);
 
 #endif // __AGS_EE_AC__ASSETHELPER_H

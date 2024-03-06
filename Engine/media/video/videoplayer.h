@@ -25,6 +25,7 @@
 
 #include <memory>
 #include "gfx/bitmap.h"
+#include "media/audio/audiodefines.h"
 #include "media/audio/openalsource.h"
 #include "util/error.h"
 #include "util/stream.h"
@@ -34,12 +35,12 @@ namespace AGS
 namespace Engine
 {
 
-enum VideoPlayerFlags
+enum VideoFlags
 {
-    kVideoPlayer_EnableVideo    = 0x0001,
-    kVideoPlayer_EnableAudio    = 0x0002,
-    kVideoPlayer_Loop           = 0x0004,
-    kVideoPlayer_LegacyFrameSize= 0x0008
+    kVideo_EnableVideo    = 0x0001,
+    kVideo_EnableAudio    = 0x0002,
+    kVideo_Loop           = 0x0004,
+    kVideo_LegacyFrameSize= 0x0008
 };
 
 // Parent video player class, provides basic playback logic,
@@ -76,7 +77,7 @@ public:
     // Get suggested video framerate (frames per second)
     uint32_t GetFramerate() const { return _frameRate; }
     // Tells if video playback is looping
-    bool IsLooping() const { return (_flags & kVideoPlayer_Loop) != 0; }
+    bool IsLooping() const { return (_flags & kVideo_Loop) != 0; }
     // Get current playback state
     PlaybackState GetPlayState() const { return _playState; }
     // Gets duration, in ms

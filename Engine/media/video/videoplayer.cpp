@@ -49,7 +49,7 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
     _name = name;
     _flags = flags;
     // Start the audio stream
-    if ((flags & kVideoPlayer_EnableAudio) != 0)
+    if ((flags & kVideo_EnableAudio) != 0)
     {
         if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
         {
@@ -59,7 +59,7 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
         }
     }
     // Setup video
-    if ((flags & kVideoPlayer_EnableVideo) != 0)
+    if ((flags & kVideo_EnableVideo) != 0)
     {
         _targetDepth = target_depth > 0 ? target_depth : _frameDepth;
         SetTargetFrame(target_sz);

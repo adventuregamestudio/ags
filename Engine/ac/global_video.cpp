@@ -31,7 +31,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 
-void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip);
+void play_video_with_audio(const char *name, int video_flags, int state_flags, VideoSkipType skip);
 
 void PlayFlic(int numb, int scr_flags)
 {
@@ -54,7 +54,8 @@ void PlayFlic(int numb, int scr_flags)
     10: play the video at original size
     100: do not clear the screen before starting playback
     */
-    int flags = kVideo_EnableVideo;
+    int video_flags = kVideo_EnableVideo;
+    int state_flags = 0;
     VideoSkipType skip = VideoSkipNone;
     // skip type
     switch (scr_flags % 10)
@@ -67,16 +68,16 @@ void PlayFlic(int numb, int scr_flags)
     switch ((scr_flags % 100) / 10)
     {
     case 1: /* play original size, no flag */ break;
-    default: flags |= kVideo_Stretch;
+    default: state_flags |= kVideoState_Stretch;
     }
     // clear screen
     switch ((scr_flags % 1000) / 100)
     {
     case 1: /* don't clear screen, no flag */ break;
-    default: flags |= kVideo_ClearScreen;
+    default: state_flags |= kVideoState_ClearScreen;
     }
 
-    HError err = play_flc_video(numb, flags, skip);
+    HError err = play_flc_video(numb, video_flags, state_flags, skip);
     if (!err)
         debug_script_warn("Failed to play FLIC %d: %s", numb, err->FullMessage().GetCStr());
 }
@@ -97,35 +98,40 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     -- since 3.6.0:
     20: play both game audio and video's own audio
     */
-    int flags = kVideo_EnableVideo;
+    int video_flags = kVideo_EnableVideo;
+    int state_flags = 0;
     // video size
     switch (scr_flags % 10)
     {
-    case 1: flags |= kVideo_Stretch; break;
+    case 1: state_flags |= kVideoState_Stretch; break;
     default: break;
     }
     // audio option
     switch ((scr_flags % 100) / 10)
     {
-    case 1: flags |= kVideo_KeepGameAudio; break;
-    case 2: flags |= kVideo_EnableAudio | kVideo_KeepGameAudio; break;
-    default: flags |= kVideo_EnableAudio; break;
+    case 1: state_flags |= kVideoState_KeepGameAudio; break;
+    case 2:
+        video_flags |= kVideo_EnableAudio;
+        state_flags |= kVideoState_KeepGameAudio;
+        break;
+    default: video_flags |= kVideo_EnableAudio; break;
     }
 
     // if game audio is disabled, then don't play any sound on the video either
     if (!usetup.audio_enabled)
-        flags &= ~kVideo_EnableAudio;
+        video_flags &= ~kVideo_EnableAudio;
 
+    // for old versions: allow slightly offset video frames
     if (loaded_game_file_version < kGameVersion_360_16)
-        flags |= kVideo_LegacyFrameSize;
+        video_flags |= kVideo_LegacyFrameSize;
 
-    pause_sound_if_necessary_and_play_video(name, flags, static_cast<VideoSkipType>(skip));
+    play_video_with_audio(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));
 }
 
 
 #ifndef AGS_NO_VIDEO_PLAYER
 
-void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip)
+void play_video_with_audio(const char *name, int video_flags, int state_flags, VideoSkipType skip)
 {
     // Save the game audio parameters, in case we stop these
     int musplaying = play.cur_music_number, i;
@@ -134,18 +140,18 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
         ambientWas[i] = ambient[i].channel;
 
     // Optionally stop the game audio
-    if ((flags & kVideo_KeepGameAudio) == 0)
+    if ((state_flags & kVideoState_KeepGameAudio) == 0)
     {
         stop_all_sound_and_music();
     }
 
     // TODO: use extension as a format hint
-    HError err = play_theora_video(name, flags, skip);
+    HError err = play_theora_video(name, video_flags, state_flags, skip);
     if (!err)
         debug_script_warn("Failed to play video '%s': %s", name, err->FullMessage().GetCStr());
 
     // Restore the game audio if we stopped them before the video playback
-    if ((flags & kVideo_KeepGameAudio) == 0)
+    if ((state_flags & kVideoState_KeepGameAudio) == 0)
     {
         update_music_volume();
         if (musplaying >= 0)
@@ -159,6 +165,6 @@ void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoS
 
 #else
 
-void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip) {}
+void play_video_with_audio(const char *name, int flags, VideoSkipType skip) {}
 
 #endif

@@ -48,7 +48,8 @@ namespace Engine
 class BlockingVideoPlayer
 {
 public:
-    HError Open(std::unique_ptr<VideoPlayer> player, const String &asset_name, int flags);
+    HError Open(std::unique_ptr<VideoPlayer> player, const String &asset_name,
+        int video_flags, int state_flags);
     void Close();
 
     const VideoPlayer *GetVideoPlayer() const { return _player.get(); }
@@ -60,13 +61,15 @@ public:
     bool Poll();
 
 private:
-    int _flags = 0;
+    int _videoFlags = 0;
+    int _stateFlags = 0;
     std::unique_ptr<VideoPlayer> _player;
     IDriverDependantBitmap *_videoDDB = nullptr;
     Rect _dstRect;
 };
 
-HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player, const String &asset_name, int flags)
+HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player,
+    const String &asset_name, int video_flags, int state_flags)
 {
     std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(asset_name));
     if (!video_stream)
@@ -75,26 +78,27 @@ HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player, const Stri
     }
 
     const int dst_depth = game.GetColorDepth();
-    HError err = player->Open(std::move(video_stream), asset_name, flags, Size(), dst_depth);
+    HError err = player->Open(std::move(video_stream), asset_name, video_flags, Size(), dst_depth);
     if (!err)
     {
         return err;
     }
 
     _player = std::move(player);
-    _flags = flags;
+    _videoFlags = video_flags;
+    _stateFlags = state_flags;
     // Setup video
-    if ((flags & kVideo_EnableVideo) != 0)
+    if ((video_flags & kVideo_EnableVideo) != 0)
     {
         const bool software_draw = gfxDriver->HasAcceleratedTransform();
         Size frame_sz = _player->GetFrameSize();
         Rect dest = PlaceInRect(play.GetMainViewport(), RectWH(frame_sz),
-            ((_flags & kVideo_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
+            ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
         // override the stretch option if necessary
         if (frame_sz == dest.GetSize())
-            _flags &= ~kVideo_Stretch;
+            _stateFlags &= ~kVideoState_Stretch;
         else
-            _flags |= kVideo_Stretch;
+            _stateFlags |= kVideoState_Stretch;
 
         // We only need to resize target bitmap for software renderer,
         // because texture-based ones can scale the texture themselves.
@@ -103,7 +107,7 @@ HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player, const Stri
             _player->SetTargetFrame(dest.GetSize());
         }
 
-        if (!software_draw || ((_flags & kVideo_Stretch) == 0))
+        if (!software_draw || ((_stateFlags & kVideoState_Stretch) == 0))
         {
             _videoDDB = gfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, true);
         }
@@ -144,7 +148,7 @@ bool BlockingVideoPlayer::Poll()
     if (!_player->Poll())
         return false;
 
-    if ((_flags & kVideo_EnableVideo) == 0)
+    if ((_videoFlags & kVideo_EnableVideo) == 0)
         return true;
 
     const Bitmap *frame = _player->GetVideoFrame();
@@ -195,14 +199,15 @@ static bool video_check_user_input(VideoSkipType skip)
     return false;
 }
 
-static void video_run(std::unique_ptr<VideoPlayer> video, const String &asset_name, int flags, VideoSkipType skip)
+static void video_run(std::unique_ptr<VideoPlayer> video, const String &asset_name,
+    int video_flags, int state_flags, VideoSkipType skip)
 {
     assert(video);
     if (!video)
         return;
 
     gl_Video.reset(new BlockingVideoPlayer());
-    HError err = gl_Video->Open(std::move(video), asset_name, flags);
+    HError err = gl_Video->Open(std::move(video), asset_name, video_flags, state_flags);
     if (!err)
     {
         debug_script_warn("Failed to run video %s: %s", asset_name.GetCStr(), err->FullMessage().GetCStr());
@@ -210,7 +215,7 @@ static void video_run(std::unique_ptr<VideoPlayer> video, const String &asset_na
 
     // Clear the screen before starting playback
     // TODO: needed for FLIC, but perhaps may be done differently
-    if ((flags & kVideo_ClearScreen) != 0)
+    if ((state_flags & kVideoState_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
@@ -238,7 +243,7 @@ static void video_run(std::unique_ptr<VideoPlayer> video, const String &asset_na
 
     // Clear the screen after stopping playback
     // TODO: needed for FLIC, but perhaps may be done differently
-    if ((flags & kVideo_ClearScreen) != 0)
+    if ((state_flags & kVideoState_ClearScreen) != 0)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
         {
@@ -251,7 +256,7 @@ static void video_run(std::unique_ptr<VideoPlayer> video, const String &asset_na
     ags_clear_input_state();
 }
 
-HError play_flc_video(int numb, int flags, VideoSkipType skip)
+HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType skip)
 {
     // Try couple of various filename formats
     String flicname = String::FromFormat("flic%d.flc", numb);
@@ -262,13 +267,13 @@ HError play_flc_video(int numb, int flags, VideoSkipType skip)
             return new Error(String::FromFormat("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb));
     }
 
-    video_run(std::make_unique<FlicPlayer>(), flicname, flags, skip);
+    video_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);
     return HError::None();
 }
 
-HError play_theora_video(const char *name, int flags, VideoSkipType skip)
+HError play_theora_video(const char *name, int video_flags, int state_flags, VideoSkipType skip)
 {
-    video_run(std::make_unique<TheoraPlayer>(), name, flags, skip);
+    video_run(std::make_unique<TheoraPlayer>(), name, video_flags, state_flags, skip);
     return HError::None();
 }
 
@@ -291,8 +296,8 @@ void video_shutdown()
 
 #else
 
-void play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip) {}
-void play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip) {}
+void play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) {}
+void play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) {}
 void video_pause() {}
 void video_resume() {}
 void video_shutdown() {}

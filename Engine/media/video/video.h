@@ -17,29 +17,29 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEO_H
 #define __AGS_EE_MEDIA__VIDEO_H
-#include "media/audio/openalsource.h"
+
+#include "media/video/videoplayer.h"
 #include "util/geometry.h"
 #include "util/string.h"
 #include "util/error.h"
 
 namespace AGS
 {
-
-namespace Common { class Bitmap; }
-
 namespace Engine
 {
 
-enum VideoFlags
+// Flags which define behavior of a blocking video "game state"
+enum VideoStateFlags
 {
-    kVideo_EnableVideo    = 0x0001,
-    kVideo_Stretch        = 0x0002,
-    kVideo_ClearScreen    = 0x0004,
-    kVideo_LegacyFrameSize= 0x0008,
-    kVideo_EnableAudio    = 0x0010,
-    kVideo_KeepGameAudio  = 0x0020
+    // Force-clear screen on begin and end (meant for software render)
+    kVideoState_ClearScreen    = 0x0001,
+    // Stretch video to the game screen
+    kVideoState_Stretch        = 0x0002,
+    // Keep game audio running while video is playing
+    kVideoState_KeepGameAudio  = 0x0004
 };
 
+// Flags which define a skipping method for the blocking video playback
 enum VideoSkipType
 {
     VideoSkipNone         = 0,
@@ -52,8 +52,8 @@ enum VideoSkipType
 } // namespace AGS
 
 
-AGS::Common::HError play_theora_video(const char *name, int flags, AGS::Engine::VideoSkipType skip);
-AGS::Common::HError play_flc_video(int numb, int flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
 
 // Pause the active video
 void video_pause();

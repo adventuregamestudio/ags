@@ -61,7 +61,7 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
-    apeg_ignore_audio((flags & kVideoPlayer_EnableAudio) == 0);
+    apeg_ignore_audio((flags & kVideo_EnableAudio) == 0);
 
     APEG_STREAM* apeg_stream = apeg_open_stream_ex(data_stream.get());
     if (!apeg_stream)
@@ -75,6 +75,10 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     }
 
     _apegStream = apeg_stream;
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        flags &= ~kVideo_EnableVideo;
+    if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
+        flags &= ~kVideo_EnableAudio;
 
     // Init APEG
     _dataStream = std::move(data_stream);
@@ -86,7 +90,7 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     // Which means that the original content may end up positioned on a larger frame.
     // In such case we store this surface in a separate wrapper for the reference,
     // while the actual video frame is assigned a sub-bitmap (a portion of the full frame).
-    if (((flags & kVideoPlayer_LegacyFrameSize) == 0) &&
+    if (((flags & kVideo_LegacyFrameSize) == 0) &&
         Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != video_size)
     {
         _theoraFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));

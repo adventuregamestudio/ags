@@ -26,6 +26,7 @@
 #include <deque>
 #include <memory>
 #include <stack>
+#include "ac/timer.h"
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/openalsource.h"
@@ -59,7 +60,7 @@ public:
         const String &name, int flags);
     Common::HError Open(std::unique_ptr<Common::Stream> data_stream,
         const String &name, int flags,
-        const Size &target_sz, int target_depth);
+        const Size &target_sz, int target_depth = 0, float target_fps = 0.f);
     // Tells if the videoplayer object is valid and ready to render
     virtual bool IsValid() { return false; }
     bool HasVideo() const { return (_flags & kVideo_EnableVideo) != 0; }
@@ -81,7 +82,7 @@ public:
     int GetTargetDepth() const { return _targetDepth; }
     const Size &GetTargetSize() const { return _targetSize; }
     // Get suggested video framerate (frames per second)
-    uint32_t GetFramerate() const { return _frameRate; }
+    float GetFramerate() const { return _frameRate; }
     // Tells if video playback is looping
     bool IsLooping() const { return (_flags & kVideo_Loop) != 0; }
     // Get current playback state
@@ -90,6 +91,9 @@ public:
     float GetDurationMs() const { return 0 /* TODO */; }
     // Gets playback position, in ms
     float GetPositionMs() const { return 0 /* TODO */; }
+
+    void  SetSpeed(float speed);
+    void  SetVolume(float volume);
 
     // Retrieve the currently prepared video frame
     std::unique_ptr<Common::Bitmap> GetReadyFrame();
@@ -123,12 +127,11 @@ protected:
     // Native video frame's format
     int _frameDepth = 0; // bits per pixel
     Size _frameSize{};
-    uint32_t _frameRate = 0u;
+    float _frameRate = 0.f;
 
 private:
-    // Resumes after pausing
-    void Resume();
-
+    // Resume after pause
+    void ResumeImpl();
     // Read and queue video frames
     void BufferVideo();
     // Read and queue audio frames
@@ -146,17 +149,24 @@ private:
     // Output video frame's color depth and size
     Size _targetSize;
     int _targetDepth = 0;
-    size_t _videoQueueMax = 5u;
-    size_t _audioQueueMax = 0u; // we don't have a real queue atm
+    float _targetFPS = 0.f;
+    uint32_t _videoQueueMax = 5u;
+    uint32_t _audioQueueMax = 0u; // we don't have a real queue atm
     // Playback state
-    uint32_t _frameTime = 0u; // frame duration in ms
     PlaybackState _playState = PlayStateInitial;
+    uint32_t _framesPlayed = 0u;
+    // Stage timestamps, used to calculate the next frame timing;
+    // note that these are "virtual time", and are adjusted whenever playback
+    // is paused and resumed, or playback speed changes.
+    AGS_Clock::time_point _firstFrameTime; // time when the first frame was ready
+    AGS_Clock::time_point _pauseTime; // time when the playback was paused
     // Audio
     // Audio queue (single frame for now, because output buffers too)
     SoundBuffer _audioFrame{};
     // Audio output object
     std::unique_ptr<OpenAlSource> _audioOut;
     // Video
+    float _frameTime = 0.f; // frame duration in ms
     // Helper buffer for retrieving video frames of different size/depth;
     // should match "native" video frame size and color depth
     std::unique_ptr<Common::Bitmap> _vframeBuf;

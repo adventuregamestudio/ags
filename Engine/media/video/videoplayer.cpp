@@ -38,7 +38,7 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
 
 HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
     const String &name, int flags,
-    const Size &target_sz, int target_depth)
+    const Size &target_sz, int target_depth, float target_fps)
 {
     // We request a target depth from decoder, but it may ignore our request,
     // so we have to check actual "native" frame's depth after
@@ -48,6 +48,7 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
 
     _name = name;
     _flags = flags;
+    _targetFPS = target_fps > 0.f ? target_fps : _frameRate;
     // Start the audio stream
     if (HasAudio())
     {
@@ -63,7 +64,8 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
         SetTargetFrame(target_sz);
     }
 
-    _frameTime = 1000 / _frameRate;
+    // TODO: actually support dynamic FPS, need to adjust audio speed
+    _frameTime = 1000.f / _targetFPS;
     return HError::None();
 }
 
@@ -131,13 +133,17 @@ void VideoPlayer::Play()
 
     switch (_playState)
     {
-    case PlayStatePaused: Resume(); /* fall-through */
-    case PlayStateInitial: _playState = PlayStatePlaying; break;
-    default: break; // TODO: support rewind/replay from stop/finished state?
+    case PlayStatePaused:
+        ResumeImpl();
+        /* fallthrough */
+    case PlayStateInitial:
+        if (_audioOut)
+            _audioOut->Play();
+        _playState = PlayStatePlaying;
+        break;
+    default:
+        break; // TODO: support rewind/replay from stop/finished state?
     }
-
-    if (_audioOut)
-        _audioOut->Play();
 }
 
 void VideoPlayer::Pause()
@@ -147,20 +153,53 @@ void VideoPlayer::Pause()
     if (_audioOut)
         _audioOut->Pause();
     _playState = PlayStatePaused;
-}
-
-void VideoPlayer::Resume()
-{
-    if (_playState != PlayStatePaused) return;
-
-    if (_audioOut)
-        _audioOut->Resume();
-    _playState = PlayStatePlaying;
+    _pauseTime = AGS_Clock::now();
 }
 
 void VideoPlayer::Seek(float pos_ms)
 {
     // TODO
+}
+
+void VideoPlayer::SetSpeed(float speed)
+{
+    // Update our virtual "start time" to keep the proper frame timing
+    AGS_Clock::time_point now{};
+    AGS_Clock::duration play_dur{};
+    switch (_playState)
+    {
+    case PlaybackState::PlayStatePlaying:
+        now = AGS_Clock::now();
+        play_dur = now - _firstFrameTime;
+        break;
+    case PlaybackState::PlayStatePaused:
+        now = _pauseTime;
+        play_dur = now - _firstFrameTime;
+        break;
+    default:
+        break;
+    }
+
+    auto old_frametime = _frameTime;
+    _targetFPS = _frameRate * speed;
+    _frameTime = 1000.f / _targetFPS;
+
+    // Adjust our virtual timestamps by the difference between
+    // previous play duration, and new duration calculated from the new speed.
+    float ft_rel = _frameTime / old_frametime;
+    AGS_Clock::duration virtual_play_dur =
+        AGS_Clock::duration((int64_t)(play_dur.count() * ft_rel));
+    _firstFrameTime = now - virtual_play_dur;
+
+    // Adjust the audio speed separately
+    if (_audioOut)
+        _audioOut->SetSpeed(speed);
+}
+
+void VideoPlayer::SetVolume(float volume)
+{
+    if (_audioOut)
+        _audioOut->SetVolume(volume);
 }
 
 std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
@@ -199,6 +238,13 @@ bool VideoPlayer::Poll()
         return false;
     }
     return true;
+}
+
+void VideoPlayer::ResumeImpl()
+{
+    // Update our virtual "start time" to keep the proper frame timing
+    auto pause_dur = AGS_Clock::now() - _pauseTime;
+    _firstFrameTime += pause_dur;
 }
 
 void VideoPlayer::BufferVideo()
@@ -257,10 +303,14 @@ void VideoPlayer::BufferAudio()
 
 bool VideoPlayer::ProcessVideo()
 {
+    const auto now = AGS_Clock::now();
+    const auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - _firstFrameTime).count();
     // If has got a ready video frame, then test whether it's time to drop it
     if (_videoReadyFrame)
     {
-        if (true /* test timestamp! */)
+        // TODO: get frame's timestamp if available from decoder?
+        if (duration >= _framesPlayed * _frameTime)
         {
             _videoFramePool.push(std::move(_videoReadyFrame));
         }
@@ -270,10 +320,20 @@ bool VideoPlayer::ProcessVideo()
     // a new one from queue
     if (!_videoReadyFrame && _videoFrameQueue.size() > 0)
     {
-        if (true /* test timestamp! */)
+        // TODO: get frame's timestamp if available from decoder?
+        if (_framesPlayed == 0u ||
+            duration >= _framesPlayed * _frameTime)
         {
             _videoReadyFrame = std::move(_videoFrameQueue.front());
             _videoFrameQueue.pop_front();
+
+            // First frame: save timestamp
+            if (_framesPlayed == 0u)
+            {
+                _firstFrameTime = now;
+            }
+
+            _framesPlayed++;
         }
     }
 

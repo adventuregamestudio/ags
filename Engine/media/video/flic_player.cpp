@@ -48,7 +48,7 @@ HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
 
     _frameDepth = 8;
     _frameSize = Size(fliwidth, fliheight);
-    _frameRate = 1000 / fli_speed;
+    _frameRate = 1000.f / fli_speed;
     return HError::None();
 }
 

@@ -62,7 +62,7 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
     }
 
     // TODO: actually support dynamic FPS, need to adjust audio speed
-    _frameTime = 1000.f / _targetFPS;
+    _targetFrameTime = 1000.f / _targetFPS;
     return HError::None();
 }
 
@@ -216,13 +216,13 @@ void VideoPlayer::SetSpeed(float speed)
         break;
     }
 
-    auto old_frametime = _frameTime;
+    auto old_frametime = _targetFrameTime;
     _targetFPS = _frameRate * speed;
-    _frameTime = 1000.f / _targetFPS;
+    _targetFrameTime = 1000.f / _targetFPS;
 
     // Adjust our virtual timestamps by the difference between
     // previous play duration, and new duration calculated from the new speed.
-    float ft_rel = _frameTime / old_frametime;
+    float ft_rel = _targetFrameTime / old_frametime;
     AGS_Clock::duration virtual_play_dur =
         AGS_Clock::duration((int64_t)(play_dur.count() * ft_rel));
     _firstFrameTime = now - virtual_play_dur;
@@ -360,7 +360,7 @@ bool VideoPlayer::ProcessVideo(bool force_next)
         // TODO: get frame's timestamp if available from decoder?
         if (force_next ||
             ((_videoFrameQueue.size() > 0) &&
-            duration >= _framesPlayed * _frameTime))
+            duration >= _framesPlayed * _targetFrameTime))
         {
             _videoFramePool.push(std::move(_videoReadyFrame));
         }
@@ -372,7 +372,7 @@ bool VideoPlayer::ProcessVideo(bool force_next)
     {
         // TODO: get frame's timestamp if available from decoder?
         if (force_next || _framesPlayed == 0u ||
-            duration >= _framesPlayed * _frameTime)
+            duration >= _framesPlayed * _targetFrameTime)
         {
             _videoReadyFrame = std::move(_videoFrameQueue.front());
             _videoFrameQueue.pop_front();
@@ -386,6 +386,9 @@ bool VideoPlayer::ProcessVideo(bool force_next)
             _framesPlayed++;
         }
     }
+
+    // TODO: get frame's timestamp if available from decoder?
+    _posMs = _framesPlayed * _frameTime;
 
     // We are good so long as there's either a ready frame, or frames left in queue
     return _videoReadyFrame || !_videoFrameQueue.empty();

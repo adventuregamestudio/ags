@@ -101,9 +101,9 @@ public:
     // Get current playback state
     PlaybackState GetPlayState() const { return _playState; }
     // Gets duration, in ms
-    float GetDurationMs() const { return 0 /* TODO */; }
+    float GetDurationMs() const { return _durationMs; }
     // Gets playback position, in ms
-    float GetPositionMs() const { return 0 /* TODO */; }
+    float GetPositionMs() const { return _posMs; }
 
     void  SetSpeed(float speed);
     void  SetVolume(float volume);
@@ -144,6 +144,9 @@ protected:
     int _frameDepth = 0; // bits per pixel
     Size _frameSize{};
     float _frameRate = 0.f;
+    float _frameTime = 0.f;
+    uint32_t _frameCount = 0;
+    float _durationMs = 0.f;
 
 private:
     // Resume after pause
@@ -166,10 +169,12 @@ private:
     Size _targetSize;
     int _targetDepth = 0;
     float _targetFPS = 0.f;
+    float _targetFrameTime = 0.f; // frame duration in ms for "target fps"
     uint32_t _videoQueueMax = 5u;
     uint32_t _audioQueueMax = 0u; // we don't have a real queue atm
     // Playback state
     PlaybackState _playState = PlayStateInitial;
+    float _posMs = 0.f;
     // Frames counter, increments with playback, resets on rewind or seek
     uint32_t _framesPlayed = 0u;
     // Stage timestamps, used to calculate the next frame timing;
@@ -183,7 +188,6 @@ private:
     // Audio output object
     std::unique_ptr<OpenAlSource> _audioOut;
     // Video
-    float _frameTime = 0.f; // frame duration in ms
     // Helper buffer for retrieving video frames of different size/depth;
     // should match "native" video frame size and color depth
     std::unique_ptr<Common::Bitmap> _vframeBuf;

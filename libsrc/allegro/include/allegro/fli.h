@@ -49,6 +49,7 @@ AL_VAR(int, fli_pal_dirty_from);       /* what part of fli_palette is dirty */
 AL_VAR(int, fli_pal_dirty_to);
 
 AL_VAR(int, fli_frame);                /* current frame number */
+AL_VAR(int, fli_frame_count);          /* total number of frames */
 
 AL_VAR(int, fli_speed);                /* FLI playback speed factor, in milliseconds */
 

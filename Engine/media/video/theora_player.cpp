@@ -101,8 +101,11 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _usedDepth = target_depth;
 
     _frameDepth = target_depth;
-    _frameRate = _apegStream->frame_rate;
     _frameSize = Size(video_w, video_h);
+    _frameRate = _apegStream->frame_rate;
+    _frameTime = 1000.f / _apegStream->frame_rate;
+    _frameCount = _apegStream->length / _frameTime;
+    _durationMs = _apegStream->length;
     // According to the documentation:
     // encoded theora frames must be a multiple of 16 in width and height.
     // Which means that the original content may end up positioned on a larger frame.

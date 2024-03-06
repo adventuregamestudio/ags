@@ -196,11 +196,12 @@ bool BlockingVideoPlayer::Run()
     // update/render next frame
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
-        const Bitmap *frame = _player->GetVideoFrame();
+        auto frame = _player->GetReadyFrame();
         if (frame)
         {
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame, false);
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get(), false);
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
+            _player->ReleaseFrame(std::move(frame));
         }
     }
 

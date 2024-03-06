@@ -84,23 +84,22 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     _dataStream = std::move(data_stream);
     _frameDepth = target_depth;
     _frameRate = _apegStream->frame_rate;
-    const Size video_size = Size(video_w, video_h);
+    _frameSize = Size(video_w, video_h);
     // According to the documentation:
     // encoded theora frames must be a multiple of 16 in width and height.
     // Which means that the original content may end up positioned on a larger frame.
     // In such case we store this surface in a separate wrapper for the reference,
     // while the actual video frame is assigned a sub-bitmap (a portion of the full frame).
     if (((flags & kVideo_LegacyFrameSize) == 0) &&
-        Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != video_size)
+        Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != _frameSize)
     {
-        _theoraFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
-        _videoFrame.reset(BitmapHelper::CreateSubBitmap(_theoraFrame.get(), RectWH(video_size)));
+        _theoraFullFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
+        _theoraSrcFrame.reset(BitmapHelper::CreateSubBitmap(_theoraFullFrame.get(), RectWH(_frameSize)));
     }
     else
     {
-        _videoFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
+        _theoraSrcFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
     }
-    _frameSize = _videoFrame->GetSize();
 
     _audioChannels = _apegStream->audio.channels;
     _audioFreq = _apegStream->audio.freq;
@@ -115,41 +114,51 @@ void TheoraPlayer::CloseImpl()
     _apegStream = nullptr;
 }
 
-bool TheoraPlayer::NextFrame()
+bool TheoraPlayer::NextVideoFrame(Bitmap *dst)
 {
     assert(_apegStream);
+    assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
+    if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
+        return false;
+
     // reset some data
-    bool has_audio = false, has_video = false;
     _apegStream->frame_updated = -1;
+
+    // Read video frame (encoded)
+    int ret = apeg_get_video_frame(_apegStream);
+    if (ret == APEG_ERROR)
+        return false;
+
+    // Update frame count
+    ++(_apegStream->frame);
+
+    // Update the display frame (decode to RGB)
+    _apegStream->frame_updated = 0;
+    ret = apeg_display_video_frame(_apegStream);
+    if (ret == APEG_ERROR || ret == APEG_EOF)
+        return false;
+
+    // TODO: find a way to optimize Theora decoder by providing our own src bitmap directly
+    dst->Blit(_theoraSrcFrame.get());
+    return true;
+}
+
+SoundBuffer TheoraPlayer::NextAudioFrame()
+{
+    assert(_apegStream);
+    assert((_apegStream->flags & APEG_HAS_AUDIO) != 0);
+    if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
+        return SoundBuffer();
+
+    // reset some data
     _apegStream->audio.flushed = FALSE;
 
-    if ((_apegStream->flags & APEG_HAS_AUDIO) && _wantAudio)
-    {
-        unsigned char *buf = nullptr;
-        int count = 0;
-        int ret = apeg_get_audio_frame(_apegStream, &buf, &count);
-        if (ret == APEG_ERROR)
-            return false;
-        _audioFrame = SoundBuffer(buf, count);
-        has_audio = ret != APEG_EOF;
-    }
-
-    if ((_apegStream->flags & APEG_HAS_VIDEO))
-    {
-        int ret = apeg_get_video_frame(_apegStream);
-        if (ret == APEG_ERROR)
-            return false;
-
-        // Update frame count
-        ++(_apegStream->frame);
-
-        // Update the display frame
-        _apegStream->frame_updated = 0;
-        ret = apeg_display_video_frame(_apegStream);
-        has_video = ret != APEG_EOF;
-    }
-
-    return has_audio || has_video;
+    unsigned char *buf = nullptr;
+    int count = 0;
+    int ret = apeg_get_audio_frame(_apegStream, &buf, &count);
+    if (ret == APEG_ERROR || ret == APEG_EOF)
+        return SoundBuffer();
+    return SoundBuffer(buf, count);
 }
 
 } // namespace Engine

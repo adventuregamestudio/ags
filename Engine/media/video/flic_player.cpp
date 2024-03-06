@@ -46,7 +46,6 @@ HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
 
     get_palette_range(_oldpal, 0, 255);
 
-    _videoFrame.reset(BitmapHelper::CreateClearBitmap(fliwidth, fliheight, 8));
     _frameDepth = 8;
     _frameSize = Size(fliwidth, fliheight);
     _frameRate = 1000 / fli_speed;
@@ -63,7 +62,7 @@ void FlicPlayer::CloseImpl()
     set_palette_range(_oldpal, 0, 255, 0);
 }
 
-bool FlicPlayer::NextFrame()
+bool FlicPlayer::NextVideoFrame(Bitmap *dst)
 {
     // actual FLI playback state, base on original Allegro 4's do_play_fli
 
@@ -75,9 +74,9 @@ bool FlicPlayer::NextFrame()
     if (fli_pal_dirty_from <= fli_pal_dirty_to)
         set_palette_range(fli_palette, fli_pal_dirty_from, fli_pal_dirty_to, TRUE);
 
-    /* update the screen */
+    /* blit the changed portion of the frame */
     if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
-        blit(fli_bitmap, _videoFrame->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
+        blit(fli_bitmap, dst->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
             fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 

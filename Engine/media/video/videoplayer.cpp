@@ -49,17 +49,15 @@ HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
     _name = name;
     _flags = flags;
     // Start the audio stream
-    if ((flags & kVideo_EnableAudio) != 0)
+    if (HasAudio())
     {
         if ((_audioFormat > 0) && (_audioChannels > 0) && (_audioFreq > 0))
         {
             _audioOut.reset(new OpenAlSource(_audioFormat, _audioChannels, _audioFreq));
-            _audioOut->Play();
-            _wantAudio = true;
         }
     }
     // Setup video
-    if ((flags & kVideo_EnableVideo) != 0)
+    if (HasVideo())
     {
         _targetDepth = target_depth > 0 ? target_depth : _frameDepth;
         SetTargetFrame(target_sz);
@@ -76,13 +74,11 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
     // Create helper bitmaps in case of stretching or color depth conversion
     if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth))
     {
-        _targetBitmap.reset(BitmapHelper::CreateBitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
-        _readyBitmap = _targetBitmap.get();
+        _vframeBuf.reset(new Bitmap(_frameSize.Width, _frameSize.Height, _frameDepth));
     }
     else
     {
-        _targetBitmap.reset();
-        _readyBitmap = _videoFrame.get();
+        _vframeBuf.reset();
     }
 
     // If we are decoding a 8-bit frame in a hi-color game, and stretching,
@@ -94,6 +90,20 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
     else
     {
         _hicolBuf.reset();
+    }
+
+    // TODO: reset the buffered queue, and seek back?
+
+    if (_videoReadyFrame)
+    {
+        auto old_frame = std::move(_videoReadyFrame);
+        _videoReadyFrame.reset(new Bitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
+        _videoReadyFrame->StretchBlt(_videoReadyFrame.get(), RectWH(_targetSize));
+    }
+    else
+    {
+        _videoReadyFrame.reset(new Bitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
+        _videoReadyFrame->ClearTransparent();
     }
 }
 
@@ -107,10 +117,11 @@ void VideoPlayer::Stop()
     // Close video decoder and free resources
     CloseImpl();
 
-    _videoFrame.reset();
-    _hicolBuf.reset();
-    _targetBitmap.reset();
-    _readyBitmap = nullptr;
+    _vframeBuf = nullptr;
+    _hicolBuf = nullptr;
+    _videoFramePool = std::stack<std::unique_ptr<Bitmap>>();
+    _videoFrameQueue = std::deque<std::unique_ptr<Bitmap>>();
+    _videoReadyFrame = nullptr;
 }
 
 void VideoPlayer::Play()
@@ -124,6 +135,9 @@ void VideoPlayer::Play()
     case PlayStateInitial: _playState = PlayStatePlaying; break;
     default: break; // TODO: support rewind/replay from stop/finished state?
     }
+
+    if (_audioOut)
+        _audioOut->Play();
 }
 
 void VideoPlayer::Pause()
@@ -149,61 +163,135 @@ void VideoPlayer::Seek(float pos_ms)
     // TODO
 }
 
+std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
+{
+    return std::move(_videoReadyFrame);
+}
+
+void VideoPlayer::ReleaseFrame(std::unique_ptr<Common::Bitmap> frame)
+{
+    _videoFramePool.push(std::move(frame));
+}
+
 bool VideoPlayer::Poll()
 {
+    if (!IsPlaybackReady(_playState))
+        return false;
+
+    // Buffer always when ready, even if we are paused
+    if (HasVideo())
+        BufferVideo();
+    if (HasAudio())
+        BufferAudio();
+
     if (_playState != PlayStatePlaying)
         return false;
-    // Acquire next video frame
-    if (!NextFrame() && !_audioFrame)
-    { // stop is no new frames, and no buffered frames left
+
+    bool res_video = HasVideo() && ProcessVideo();
+    bool res_audio = HasAudio() && ProcessAudio();
+
+    // Stop if nothing is left to process, or if there was error
+    if (_playState == PlayStateError)
+        return false;
+    if (!res_video && !res_audio)
+    {
         _playState = PlayStateFinished;
         return false;
     }
-    // Render current frame
-    if (_audioFrame && !RenderAudio())
-    {
-        _playState = PlayStateError;
-        return false;
-    }
-    if (_videoFrame && !RenderVideo())
-    {
-        _playState = PlayStateError;
-        return false;
-    }
     return true;
 }
 
-bool VideoPlayer::RenderAudio()
+void VideoPlayer::BufferVideo()
 {
-    assert(_audioFrame);
-    assert(_audioOut != nullptr);
-    _wantAudio = _audioOut->PutData(_audioFrame) > 0u;
-    _audioOut->Poll();
-    if (_wantAudio)
-        _audioFrame = SoundBuffer(); // clear received buffer
-    return true;
-}
+    if (_videoFrameQueue.size() >= _videoQueueMax)
+        return;
 
-bool VideoPlayer::RenderVideo()
-{
-    assert(_videoFrame);
-    Bitmap *usebuf = _videoFrame.get();
-
-    // Use intermediate hi-color buffer if necessary
-    if (_hicolBuf)
+    // Get one frame from the pool, if present, otherwise allocate a new one
+    std::unique_ptr<Bitmap> target_frame;
+    if (_videoFramePool.empty())
     {
-        _hicolBuf->Blit(usebuf);
-        usebuf = _hicolBuf.get();
+        target_frame.reset(new Bitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
+    }
+    else
+    {
+        target_frame = std::move(_videoFramePool.top());
+        _videoFramePool.pop();
     }
 
-    if (_targetBitmap)
+    // Try to retrieve one video frame from decoder
+    const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth);
+    Bitmap *usebuf = must_conv ? _vframeBuf.get() : target_frame.get();
+    if (!NextVideoFrame(usebuf))
+    { // failed to get frame, so move prepared target frame into the pool for now
+        _videoFramePool.push(std::move(target_frame));
+        return;
+    }
+
+    // Convert frame if necessary
+    if (must_conv)
     {
+        // Use intermediate hi-color buffer if necessary
+        if (_hicolBuf)
+        {
+            _hicolBuf->Blit(usebuf);
+            usebuf = _hicolBuf.get();
+        }
+        
         if (_targetSize == _frameSize)
-            _targetBitmap->Blit(usebuf);
+            target_frame->Blit(usebuf);
         else
-            _targetBitmap->StretchBlt(usebuf, RectWH(_targetSize));
+            target_frame->StretchBlt(usebuf, RectWH(_targetSize));
     }
 
+    // Push final frame to the queue
+    _videoFrameQueue.push_back(std::move(target_frame));
+}
+
+void VideoPlayer::BufferAudio()
+{
+    if (_audioFrame)
+        return; // still got one queued
+
+    _audioFrame = NextAudioFrame();
+}
+
+bool VideoPlayer::ProcessVideo()
+{
+    // If has got a ready video frame, then test whether it's time to drop it
+    if (_videoReadyFrame)
+    {
+        if (true /* test timestamp! */)
+        {
+            _videoFramePool.push(std::move(_videoReadyFrame));
+        }
+    }
+
+    // If has not ready video frame, then test whether it's time to get
+    // a new one from queue
+    if (!_videoReadyFrame && _videoFrameQueue.size() > 0)
+    {
+        if (true /* test timestamp! */)
+        {
+            _videoReadyFrame = std::move(_videoFrameQueue.front());
+            _videoFrameQueue.pop_front();
+        }
+    }
+
+    // We are good so long as there's either a ready frame, or frames left in queue
+    return _videoReadyFrame || !_videoFrameQueue.empty();
+}
+
+bool VideoPlayer::ProcessAudio()
+{
+    if (!_audioFrame)
+        return false;
+
+    assert(_audioOut);
+    if (_audioOut->PutData(_audioFrame) > 0u)
+    {
+        _audioFrame = SoundBuffer(); // clear received buffer
+    }
+    _audioOut->Poll();
     return true;
 }
 

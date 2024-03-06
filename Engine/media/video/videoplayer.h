@@ -23,7 +23,9 @@
 #ifndef __AGS_EE_MEDIA__VIDEOPLAYER_H
 #define __AGS_EE_MEDIA__VIDEOPLAYER_H
 
+#include <deque>
 #include <memory>
+#include <stack>
 #include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/openalsource.h"
@@ -60,6 +62,8 @@ public:
         const Size &target_sz, int target_depth);
     // Tells if the videoplayer object is valid and ready to render
     virtual bool IsValid() { return false; }
+    bool HasVideo() const { return (_flags & kVideo_EnableVideo) != 0; }
+    bool HasAudio() const { return (_flags & kVideo_EnableAudio) != 0; }
     // Assigns a wanted target bitmap size
     void SetTargetFrame(const Size &target_sz);
     // Begins or resumes playback
@@ -87,8 +91,11 @@ public:
     // Gets playback position, in ms
     float GetPositionMs() const { return 0 /* TODO */; }
 
-    // Get current video frame
-    const Common::Bitmap *GetVideoFrame() const { return _readyBitmap; }
+    // Retrieve the currently prepared video frame
+    std::unique_ptr<Common::Bitmap> GetReadyFrame();
+    // Tell VideoPlayer that this frame is not used anymore, and may be recycled
+    // TODO: redo this part later, by introducing some kind of a RAII lock wrapper.
+    void ReleaseFrame(std::unique_ptr<Common::Bitmap> frame);
 
     // Updates the video playback, renders next frame
     bool Poll();
@@ -101,43 +108,65 @@ protected:
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
     // Retrieves next video frame, implementation-specific
-    virtual bool NextFrame() { return false; };
+    virtual bool NextVideoFrame(Common::Bitmap *dst) { return false; };
+    // Retrieves next audio frame, implementation-specific
+    // TODO: change return type to a proper allocated buffer
+    // when we support a proper audio queue here.
+    virtual SoundBuffer NextAudioFrame() { return SoundBuffer(); };
 
     // Audio internals
     int _audioChannels = 0;
     int _audioFreq = 0;
     SDL_AudioFormat _audioFormat = 0;
-    SoundBuffer _audioFrame{};
-    bool _wantAudio = false;
 
     // Video internals
-    std::unique_ptr<Common::Bitmap> _videoFrame;
+    // Native video frame's format
     int _frameDepth = 0; // bits per pixel
     Size _frameSize{};
     uint32_t _frameRate = 0u;
 
 private:
-    // Renders the current audio data
-    bool RenderAudio();
-    // Renders the current video frame
-    bool RenderVideo();
     // Resumes after pausing
     void Resume();
+
+    // Read and queue video frames
+    void BufferVideo();
+    // Read and queue audio frames
+    void BufferAudio();
+    // Process buffered video frame(s);
+    // returns if should continue working
+    bool ProcessVideo();
+    // Process buffered audio frame(s);
+    // returns if should continue working
+    bool ProcessAudio();
 
     // Parameters
     String _name;
     int _flags = 0;
+    // Output video frame's color depth and size
     Size _targetSize;
     int _targetDepth = 0;
+    size_t _videoQueueMax = 5u;
+    size_t _audioQueueMax = 0u; // we don't have a real queue atm
     // Playback state
     uint32_t _frameTime = 0u; // frame duration in ms
     PlaybackState _playState = PlayStateInitial;
     // Audio
+    // Audio queue (single frame for now, because output buffers too)
+    SoundBuffer _audioFrame{};
+    // Audio output object
     std::unique_ptr<OpenAlSource> _audioOut;
     // Video
+    // Helper buffer for retrieving video frames of different size/depth;
+    // should match "native" video frame size and color depth
+    std::unique_ptr<Common::Bitmap> _vframeBuf;
+    // Helper buffer for copying 8-bit frames to the final frame
     std::unique_ptr<Common::Bitmap> _hicolBuf;
-    std::unique_ptr<Common::Bitmap> _targetBitmap;
-    Common::Bitmap *_readyBitmap = nullptr;
+    // Buffered frame queue
+    std::stack<std::unique_ptr<Common::Bitmap>> _videoFramePool;
+    std::deque<std::unique_ptr<Common::Bitmap>> _videoFrameQueue;
+    // Video frame prepared for the user
+    std::unique_ptr<Common::Bitmap> _videoReadyFrame;
 };
 
 } // namespace Engine

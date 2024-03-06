@@ -52,14 +52,20 @@ enum VideoSkipType
 } // namespace AGS
 
 
+// Blocking video API
+//
+// Start a blocking OGV playback
 AGS::Common::HError play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
+// Start a blocking FLIC playback
 AGS::Common::HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
+// Pause the active blocking video
+void video_single_pause();
+// Resume the active blocking video
+void video_single_resume();
+// Stop current blocking video playback and dispose all video resource
+void video_single_stop();
 
-// Pause the active video
-void video_pause();
-// Resume the active video
-void video_resume();
-// Stop current playback and dispose all video resource
+// Stop all videos and video thread
 void video_shutdown();
 
 #endif // __AGS_EE_MEDIA__VIDEO_H

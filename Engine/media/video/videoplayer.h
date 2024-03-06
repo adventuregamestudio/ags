@@ -72,8 +72,10 @@ public:
     void Seek(float pos_ms);
 
     const String &GetName() const { return _name; }
+    int GetFrameDepth() const { return _frameDepth; }
     const Size &GetFrameSize() const { return _frameSize; }
-    const int GetFrameDepth() const { return _frameDepth; }
+    int GetTargetDepth() const { return _targetDepth; }
+    const Size &GetTargetSize() const { return _targetSize; }
     // Get suggested video framerate (frames per second)
     uint32_t GetFramerate() const { return _frameRate; }
     // Tells if video playback is looping

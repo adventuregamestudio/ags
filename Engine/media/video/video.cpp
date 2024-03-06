@@ -35,9 +35,10 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
 
+static bool video_check_user_input(VideoSkipType skip);
 
 //-----------------------------------------------------------------------------
-// VideoPlayer
+// BlockingVideoPlayer game state
 //-----------------------------------------------------------------------------
 namespace AGS
 {
@@ -45,50 +46,56 @@ namespace Engine
 {
 
 // Blocking video playback state
-class BlockingVideoPlayer
+class BlockingVideoPlayer : public GameState
 {
 public:
-    HError Open(std::unique_ptr<VideoPlayer> player, const String &asset_name,
-        int video_flags, int state_flags);
-    void Close();
+    BlockingVideoPlayer(std::unique_ptr<VideoPlayer> player,
+        int video_flags, int state_flags, VideoSkipType skip);
+    ~BlockingVideoPlayer();
 
     const VideoPlayer *GetVideoPlayer() const { return _player.get(); }
     PlaybackState GetPlayState() const { return _player->GetPlayState(); }
 
-    void Play();
-    void Pause();
-    // Updates the video playback, renders next frame
-    bool Poll();
+    void Begin() override;
+    void End() override;
+    void Draw() override;
+    bool Run() override;
+
+    void Pause() override;
+    void Resume() override;
 
 private:
+    void StopVideo();
+
+    std::unique_ptr<VideoPlayer> _player;
+    const String _assetName; // for diagnostics
     int _videoFlags = 0;
     int _stateFlags = 0;
-    std::unique_ptr<VideoPlayer> _player;
     IDriverDependantBitmap *_videoDDB = nullptr;
     Rect _dstRect;
+    float _oldFps = 0.f;
+    VideoSkipType _skip = VideoSkipNone;
 };
 
-HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player,
-    const String &asset_name, int video_flags, int state_flags)
+BlockingVideoPlayer::BlockingVideoPlayer(std::unique_ptr<VideoPlayer> player,
+    int video_flags, int state_flags, VideoSkipType skip)
+    : _player(std::move(player))
+    , _videoFlags(video_flags)
+    , _stateFlags(state_flags)
+    , _skip(skip)
 {
-    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(asset_name));
-    if (!video_stream)
-    {
-        return new Error(String::FromFormat("Failed to open file: %s", asset_name.GetCStr()));
-    }
+}
 
-    const int dst_depth = game.GetColorDepth();
-    HError err = player->Open(std::move(video_stream), asset_name, video_flags, Size(), dst_depth);
-    if (!err)
-    {
-        return err;
-    }
+BlockingVideoPlayer::~BlockingVideoPlayer()
+{
+    StopVideo();
+}
 
-    _player = std::move(player);
-    _videoFlags = video_flags;
-    _stateFlags = state_flags;
+void BlockingVideoPlayer::Begin()
+{
+    assert(_player);
     // Setup video
-    if ((video_flags & kVideo_EnableVideo) != 0)
+    if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
         const bool software_draw = gfxDriver->HasAcceleratedTransform();
         Size frame_sz = _player->GetFrameSize();
@@ -107,6 +114,7 @@ HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player,
             _player->SetTargetFrame(dest.GetSize());
         }
 
+        const int dst_depth = _player->GetTargetDepth();
         if (!software_draw || ((_stateFlags & kVideoState_Stretch) == 0))
         {
             _videoDDB = gfxDriver->CreateDDB(frame_sz.Width, frame_sz.Height, dst_depth, true);
@@ -117,10 +125,104 @@ HError BlockingVideoPlayer::Open(std::unique_ptr<VideoPlayer> player,
         }
         _dstRect = dest;
     }
-    return HError::None();
+
+    // Clear the screen before starting playback
+    // TODO: needed for FLIC, but perhaps may be done differently
+    if ((_stateFlags & kVideoState_ClearScreen) != 0)
+    {
+        if (gfxDriver->UsesMemoryBackBuffer())
+        {
+            gfxDriver->GetMemoryBackBuffer()->Clear();
+        }
+        render_to_screen();
+    }
+
+    _oldFps = get_game_fps();
+    set_game_speed(_player->GetFramerate());
+
+    _player->Play();
 }
 
-void BlockingVideoPlayer::Close()
+void BlockingVideoPlayer::End()
+{
+    StopVideo();
+
+    set_game_speed(_oldFps);
+
+    // Clear the screen after stopping playback
+    // TODO: needed for FLIC, but perhaps may be done differently
+    if ((_stateFlags & kVideoState_ClearScreen) != 0)
+    {
+        if (gfxDriver->UsesMemoryBackBuffer())
+        {
+            gfxDriver->GetMemoryBackBuffer()->Clear();
+        }
+        render_to_screen();
+    }
+
+    invalidate_screen();
+    ags_clear_input_state();
+}
+
+void BlockingVideoPlayer::Pause()
+{
+    assert(_player);
+    _player->Pause();
+}
+
+void BlockingVideoPlayer::Resume()
+{
+    assert(_player);
+    _player->Play();
+}
+
+bool BlockingVideoPlayer::Run()
+{
+    assert(_player);
+    if (!_player)
+        return false;
+    // Loop until finished or skipped by player
+    if (IsPlaybackDone(GetPlayState()))
+        return false;
+
+    sys_evt_process_pending();
+    // Check user input skipping the video
+    if (video_check_user_input(_skip))
+        return false;
+    
+    if (!_player->Poll())
+        return false;
+
+    // update/render next frame
+    if ((_videoFlags & kVideo_EnableVideo) != 0)
+    {
+        const Bitmap *frame = _player->GetVideoFrame();
+        if (frame)
+        {
+            gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame, false);
+            _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
+        }
+    }
+
+    Draw();
+
+    // update the game and wait for next frame
+    UpdateGameAudioOnly();
+    return true;
+}
+
+void BlockingVideoPlayer::Draw()
+{
+    if (_videoDDB)
+    {
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
+        gfxDriver->EndSpriteBatch();
+    }
+    render_to_screen();
+}
+
+void BlockingVideoPlayer::StopVideo()
 {
     if (_player)
         _player->Stop();
@@ -130,38 +232,6 @@ void BlockingVideoPlayer::Close()
     _videoDDB = nullptr;
 }
 
-void BlockingVideoPlayer::Play()
-{
-    assert(_player);
-    _player->Play();
-}
-
-void BlockingVideoPlayer::Pause()
-{
-    assert(_player);
-    _player->Pause();
-}
-
-bool BlockingVideoPlayer::Poll()
-{
-    assert(_player);
-    if (!_player->Poll())
-        return false;
-
-    if ((_videoFlags & kVideo_EnableVideo) == 0)
-        return true;
-
-    const Bitmap *frame = _player->GetVideoFrame();
-    gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame, false);
-    _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
-
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
-    gfxDriver->DrawSprite(_dstRect.Left, _dstRect.Top, _videoDDB);
-    gfxDriver->EndSpriteBatch();
-    render_to_screen();
-    return true;
-}
-
 std::unique_ptr<BlockingVideoPlayer> gl_Video;
 
 } // namespace Engine
@@ -169,9 +239,8 @@ std::unique_ptr<BlockingVideoPlayer> gl_Video;
 
 
 //-----------------------------------------------------------------------------
+// Blocking video API
 // Running the single video playback
-//
-// TODO: Single video playback as a "game state" class?
 //-----------------------------------------------------------------------------
 // Checks input events, tells if the video should be skipped
 static bool video_check_user_input(VideoSkipType skip)
@@ -199,61 +268,33 @@ static bool video_check_user_input(VideoSkipType skip)
     return false;
 }
 
-static void video_run(std::unique_ptr<VideoPlayer> video, const String &asset_name,
+static HError video_run(std::unique_ptr<VideoPlayer> video, const String &asset_name,
     int video_flags, int state_flags, VideoSkipType skip)
 {
     assert(video);
     if (!video)
-        return;
+        return HError::None();
 
-    gl_Video.reset(new BlockingVideoPlayer());
-    HError err = gl_Video->Open(std::move(video), asset_name, video_flags, state_flags);
+    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(asset_name));
+    if (!video_stream)
+    {
+        return new Error(String::FromFormat("Failed to open file: %s", asset_name.GetCStr()));
+    }
+
+    const int dst_depth = game.GetColorDepth();
+    HError err = video->Open(std::move(video_stream), asset_name, video_flags, Size(), dst_depth);
     if (!err)
     {
-        debug_script_warn("Failed to run video %s: %s", asset_name.GetCStr(), err->FullMessage().GetCStr());
+        return new Error(String::FromFormat("Failed to run video %s", asset_name.GetCStr()), err);
     }
 
-    // Clear the screen before starting playback
-    // TODO: needed for FLIC, but perhaps may be done differently
-    if ((state_flags & kVideoState_ClearScreen) != 0)
-    {
-        if (gfxDriver->UsesMemoryBackBuffer())
-        {
-            gfxDriver->GetMemoryBackBuffer()->Clear();
-        }
-        render_to_screen();
-    }
-    
-    gl_Video->Play();
-    const int old_fps = get_game_fps();
-    set_game_speed(gl_Video->GetVideoPlayer()->GetFramerate());
-    // Loop until finished or skipped by player
-    while (gl_Video->GetPlayState() == PlayStatePlaying ||
-           gl_Video->GetPlayState() == PlayStatePaused)
-    {
-        sys_evt_process_pending();
-        // Check user input skipping the video
-        if (video_check_user_input(skip))
-            break;
-        gl_Video->Poll(); // update/render next frame
-        UpdateGameAudioOnly(); // update the game and wait for next frame
-    }
-    set_game_speed(old_fps);
+    gl_Video.reset(new BlockingVideoPlayer(std::move(video), video_flags, state_flags, skip));
+    gl_Video->Begin();
+    while (gl_Video->Run());
+    gl_Video->End();
     gl_Video.reset();
-
-    // Clear the screen after stopping playback
-    // TODO: needed for FLIC, but perhaps may be done differently
-    if ((state_flags & kVideoState_ClearScreen) != 0)
-    {
-        if (gfxDriver->UsesMemoryBackBuffer())
-        {
-            gfxDriver->GetMemoryBackBuffer()->Clear();
-        }
-        render_to_screen();
-    }
-
-    invalidate_screen();
-    ags_clear_input_state();
+    
+    return HError::None();
 }
 
 HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType skip)
@@ -267,31 +308,34 @@ HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType 
             return new Error(String::FromFormat("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb));
     }
 
-    video_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);
-    return HError::None();
+    return video_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);
 }
 
 HError play_theora_video(const char *name, int video_flags, int state_flags, VideoSkipType skip)
 {
-    video_run(std::make_unique<TheoraPlayer>(), name, video_flags, state_flags, skip);
-    return HError::None();
+    return video_run(std::make_unique<TheoraPlayer>(), name, video_flags, state_flags, skip);
 }
 
-void video_pause()
+void video_single_pause()
 {
     if (gl_Video)
         gl_Video->Pause();
 }
 
-void video_resume()
+void video_single_resume()
 {
     if (gl_Video)
-        gl_Video->Play();
+        gl_Video->Resume();
+}
+
+void video_single_stop()
+{
+    gl_Video.reset();
 }
 
 void video_shutdown()
 {
-    gl_Video.reset();
+    video_single_stop();
 }
 
 #else

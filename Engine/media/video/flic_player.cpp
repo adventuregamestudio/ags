@@ -29,7 +29,7 @@ FlicPlayer::~FlicPlayer()
 }
 
 HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
-    const String &/*name*/, int& /*flags*/, int /*target_depth*/)
+    const String &/*name*/, int& flags, int /*target_depth*/)
 {
     data_stream->Seek(8);
     const int fliwidth = data_stream->ReadInt16();
@@ -52,6 +52,8 @@ HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     _frameTime = fli_speed;
     _frameCount = fli_frame_count;
     _durationMs = fli_frame_count * fli_speed;
+    // FLIC must accumulate frame image because its frames contain diff since the last frame
+    flags |= kVideo_AccumFrame;
     return HError::None();
 }
 

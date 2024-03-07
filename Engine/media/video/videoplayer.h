@@ -54,6 +54,9 @@ enum VideoFlags
     kVideo_LegacyFrameSize= 0x0008,
     // Allow to drop late video frames in autoplay mode
     kVideo_DropFrames     = 0x0010,
+    // Must accumulate decoded frames, when format's frames
+    // do not have a full image, but diff from the previous frame
+    kVideo_AccumFrame     = 0x0020,
 };
 
 // Parent video player class, provides basic playback logic,

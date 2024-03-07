@@ -72,7 +72,8 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
     _targetSize = target_sz.IsNull() ? _frameSize : target_sz;
 
     // Create helper bitmaps in case of stretching or color depth conversion
-    if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth))
+    if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth)
+        || ((_flags & kVideo_AccumFrame) != 0))
     {
         _vframeBuf.reset(new Bitmap(_frameSize.Width, _frameSize.Height, _frameDepth));
     }
@@ -334,7 +335,8 @@ void VideoPlayer::BufferVideo()
     }
 
     // Try to retrieve one video frame from decoder
-    const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth);
+    const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth
+        || ((_flags & kVideo_AccumFrame) != 0));
     Bitmap *usebuf = must_conv ? _vframeBuf.get() : target_frame.get();
     if (!NextVideoFrame(usebuf))
     { // failed to get frame, so move prepared target frame into the pool for now

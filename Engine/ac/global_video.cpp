@@ -54,7 +54,9 @@ void PlayFlic(int numb, int scr_flags)
     10: play the video at original size
     100: do not clear the screen before starting playback
     */
-    int video_flags = kVideo_EnableVideo | kVideo_DropFrames;
+    // NOTE: don't enable frame drop with FLIC, or it will play too fast
+    // (also see a note about kVideoState_SetGameFps below)
+    int video_flags = kVideo_EnableVideo;
     int state_flags = 0;
     VideoSkipType skip = VideoSkipNone;
     // skip type

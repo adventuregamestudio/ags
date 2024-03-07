@@ -77,6 +77,10 @@ void PlayFlic(int numb, int scr_flags)
     default: state_flags |= kVideoState_ClearScreen;
     }
 
+    // NOTE: do not set kVideoState_SetGameFps for FLIC,
+    // it seems like existing games featured FLICs with over-top FPS,
+    // but limited it to ~60 FPS using vsync.
+
     HError err = play_flc_video(numb, video_flags, state_flags, skip);
     if (!err)
         debug_script_warn("Failed to play FLIC %d: %s", numb, err->FullMessage().GetCStr());
@@ -124,6 +128,10 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     // for old versions: allow slightly offset video frames
     if (loaded_game_file_version < kGameVersion_360_16)
         video_flags |= kVideo_LegacyFrameSize;
+
+    // original engine's behavior was to adjust FPS to match video's,
+    // but we may rethink this later
+    state_flags |= kVideoState_SetGameFps;
 
     play_video_with_audio(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));
 }

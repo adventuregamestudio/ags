@@ -145,8 +145,14 @@ void BlockingVideoPlayer::Begin()
         render_to_screen();
     }
 
-    _oldFps = get_game_fps();
-    set_game_speed(_player->GetFramerate());
+    auto video_fps = _player->GetFramerate();
+    auto game_fps = get_game_speed();
+    _oldFps = game_fps;
+    if (((_stateFlags & kVideoState_SetGameFps) != 0) &&
+        (game_fps < video_fps))
+    {
+        set_game_speed(video_fps);
+    }
 
     _player->Play();
     _playbackState = _player->GetPlayState();

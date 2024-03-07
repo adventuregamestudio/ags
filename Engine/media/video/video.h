@@ -36,7 +36,9 @@ enum VideoStateFlags
     // Stretch video to the game screen
     kVideoState_Stretch        = 0x0002,
     // Keep game audio running while video is playing
-    kVideoState_KeepGameAudio  = 0x0004
+    kVideoState_KeepGameAudio  = 0x0004,
+    // Increase game FPS to match video's
+    kVideoState_SetGameFps     = 0x0008
 };
 
 // Flags which define a skipping method for the blocking video playback

@@ -14,6 +14,9 @@
 #include "media/video/video.h"
 
 #ifndef AGS_NO_VIDEO_PLAYER
+#include <chrono>
+#include <mutex>
+#include <thread>
 #include "core/assetmanager.h"
 #include "ac/draw.h"
 #include "ac/game.h"
@@ -53,8 +56,7 @@ public:
         int video_flags, int state_flags, VideoSkipType skip);
     ~BlockingVideoPlayer();
 
-    const VideoPlayer *GetVideoPlayer() const { return _player.get(); }
-    PlaybackState GetPlayState() const { return _player->GetPlayState(); }
+    PlaybackState GetPlayState() const { return _playbackState; }
 
     void Begin() override;
     void End() override;
@@ -65,6 +67,9 @@ public:
     void Resume() override;
 
 private:
+#if !defined(AGS_DISABLE_THREADS)
+    static void PollVideo(BlockingVideoPlayer *self);
+#endif
     void StopVideo();
 
     std::unique_ptr<VideoPlayer> _player;
@@ -75,6 +80,9 @@ private:
     Rect _dstRect;
     float _oldFps = 0.f;
     VideoSkipType _skip = VideoSkipNone;
+    std::thread _videoThread;
+    std::mutex _videoMutex;
+    PlaybackState _playbackState = PlayStateInvalid;
 };
 
 BlockingVideoPlayer::BlockingVideoPlayer(std::unique_ptr<VideoPlayer> player,
@@ -141,6 +149,11 @@ void BlockingVideoPlayer::Begin()
     set_game_speed(_player->GetFramerate());
 
     _player->Play();
+    _playbackState = _player->GetPlayState();
+
+#if !defined(AGS_DISABLE_THREADS)
+    _videoThread = std::thread(BlockingVideoPlayer::PollVideo, this);
+#endif
 }
 
 void BlockingVideoPlayer::End()
@@ -167,12 +180,14 @@ void BlockingVideoPlayer::End()
 void BlockingVideoPlayer::Pause()
 {
     assert(_player);
+    std::lock_guard<std::mutex> lk(_videoMutex);
     _player->Pause();
 }
 
 void BlockingVideoPlayer::Resume()
 {
     assert(_player);
+    std::lock_guard<std::mutex> lk(_videoMutex);
     _player->Play();
 }
 
@@ -189,19 +204,31 @@ bool BlockingVideoPlayer::Run()
     // Check user input skipping the video
     if (video_check_user_input(_skip))
         return false;
-    
+
+#if defined(AGS_DISABLE_THREADS)
     if (!_player->Poll())
         return false;
+#endif
 
     // update/render next frame
+    std::unique_ptr<Bitmap> frame;
+    {
+        std::lock_guard<std::mutex> lk(_videoMutex);
+        _playbackState = _player->GetPlayState();
+        frame = _player->GetReadyFrame();
+    }
+
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
-        auto frame = _player->GetReadyFrame();
         if (frame)
         {
             gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get(), false);
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
-            _player->ReleaseFrame(std::move(frame));
+
+            {
+                std::lock_guard<std::mutex> lk(_videoMutex);
+                _player->ReleaseFrame(std::move(frame));
+            }
         }
     }
 
@@ -209,7 +236,7 @@ bool BlockingVideoPlayer::Run()
 
     // update the game and wait for next frame
     UpdateGameAudioOnly();
-    return true;
+    return IsPlaybackReady(GetPlayState());
 }
 
 void BlockingVideoPlayer::Draw()
@@ -225,13 +252,41 @@ void BlockingVideoPlayer::Draw()
 
 void BlockingVideoPlayer::StopVideo()
 {
+    // Stop player and wait for the thread to stop
     if (_player)
+    {
+        std::lock_guard<std::mutex> lk(_videoMutex);
         _player->Stop();
+    }
+#if !defined(AGS_DISABLE_THREADS)
+    if (_videoThread.joinable())
+        _videoThread.join();
+#endif
 
     if (_videoDDB)
         gfxDriver->DestroyDDB(_videoDDB);
     _videoDDB = nullptr;
 }
+
+#if !defined(AGS_DISABLE_THREADS)
+/* static */ void BlockingVideoPlayer::PollVideo(BlockingVideoPlayer *self)
+{
+    assert(self && self->_player.get());
+    if (!self || !self->_player.get())
+        return;
+
+    bool do_run = true;
+    while (do_run)
+    {
+        {
+            std::lock_guard<std::mutex> lk(self->_videoMutex);
+            self->_player->Poll();
+            do_run = IsPlaybackReady(self->_player->GetPlayState());
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+    }
+}
+#endif
 
 std::unique_ptr<BlockingVideoPlayer> gl_Video;
 
@@ -269,7 +324,7 @@ static bool video_check_user_input(VideoSkipType skip)
     return false;
 }
 
-static HError video_run(std::unique_ptr<VideoPlayer> video, const String &asset_name,
+static HError video_single_run(std::unique_ptr<VideoPlayer> video, const String &asset_name,
     int video_flags, int state_flags, VideoSkipType skip)
 {
     assert(video);
@@ -309,12 +364,12 @@ HError play_flc_video(int numb, int video_flags, int state_flags, VideoSkipType 
             return new Error(String::FromFormat("FLIC animation flic%d.flc nor flic%d.fli were found", numb, numb));
     }
 
-    return video_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);
+    return video_single_run(std::make_unique<FlicPlayer>(), flicname, video_flags, state_flags, skip);
 }
 
 HError play_theora_video(const char *name, int video_flags, int state_flags, VideoSkipType skip)
 {
-    return video_run(std::make_unique<TheoraPlayer>(), name, video_flags, state_flags, skip);
+    return video_single_run(std::make_unique<TheoraPlayer>(), name, video_flags, state_flags, skip);
 }
 
 void video_single_pause()

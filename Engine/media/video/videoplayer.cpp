@@ -411,8 +411,4 @@ bool VideoPlayer::ProcessAudio()
 } // namespace Engine
 } // namespace AGS
 
-#else // AGS_NO_VIDEO_PLAYER
-
-
-
-#endif // !AGS_NO_VIDEO_PLAYER
+#endif // AGS_NO_VIDEO_PLAYER

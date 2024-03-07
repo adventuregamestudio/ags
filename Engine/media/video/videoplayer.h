@@ -51,7 +51,9 @@ enum VideoFlags
     kVideo_EnableVideo    = 0x0001,
     kVideo_EnableAudio    = 0x0002,
     kVideo_Loop           = 0x0004,
-    kVideo_LegacyFrameSize= 0x0008
+    kVideo_LegacyFrameSize= 0x0008,
+    // Allow to drop late video frames in autoplay mode
+    kVideo_DropFrames     = 0x0010,
 };
 
 // Parent video player class, provides basic playback logic,
@@ -85,8 +87,8 @@ public:
     float Seek(float pos_ms);
     // Seek to the given frame; returns new pos or -1 (UINT32_MAX) on error
     uint32_t SeekFrame(uint32_t frame);
-    // Steps one frame forward, returns whether was successful
-    bool NextFrame();
+    // Steps one frame forward, returns a prepared video frame on success
+    std::unique_ptr<Common::Bitmap> NextFrame();
 
     const String &GetName() const { return _name; }
     int GetFrameDepth() const { return _frameDepth; }
@@ -149,15 +151,22 @@ protected:
     float _durationMs = 0.f;
 
 private:
+    // Rewind the stream to start and reset playback pos
+    bool Rewind();
     // Resume after pause
     void ResumeImpl();
     // Read and queue video frames
     void BufferVideo();
     // Read and queue audio frames
     void BufferAudio();
+    // Update playback timing
+    void UpdateTime();
+    // Retrieve first available frame from queue,
+    // advance output frame counter
+    std::unique_ptr<Common::Bitmap> NextFrameFromQueue();
     // Process buffered video frame(s);
     // returns if should continue working
-    bool ProcessVideo(bool force_next);
+    bool ProcessVideo();
     // Process buffered audio frame(s);
     // returns if should continue working
     bool ProcessAudio();
@@ -174,14 +183,19 @@ private:
     uint32_t _audioQueueMax = 0u; // we don't have a real queue atm
     // Playback state
     PlaybackState _playState = PlayStateInitial;
+    // Playback position, depends on how much data did we played
     float _posMs = 0.f;
     // Frames counter, increments with playback, resets on rewind or seek
     uint32_t _framesPlayed = 0u;
     // Stage timestamps, used to calculate the next frame timing;
     // note that these are "virtual time", and are adjusted whenever playback
     // is paused and resumed, or playback speed changes.
-    AGS_Clock::time_point _firstFrameTime; // time when the first frame was ready
-    AGS_Clock::time_point _pauseTime; // time when the playback was paused
+    bool _resetStartTime = false;
+    AGS_Clock::time_point _startTs; // time when the data was first prepared for the output
+    AGS_Clock::time_point _pollTs; // timestamp of the last Poll in autoplay mode
+    AGS_Clock::duration _playbackDuration; // full playback time
+    AGS_Clock::time_point _pauseTs; // time when the playback was paused
+    uint32_t _wantFrameIndex = 0u; // expected video frame at this time
     // Audio
     // Audio queue (single frame for now, because output buffers too)
     SoundBuffer _audioFrame{};
@@ -196,8 +210,6 @@ private:
     // Buffered frame queue
     std::stack<std::unique_ptr<Common::Bitmap>> _videoFramePool;
     std::deque<std::unique_ptr<Common::Bitmap>> _videoFrameQueue;
-    // Video frame prepared for the user
-    std::unique_ptr<Common::Bitmap> _videoReadyFrame;
 };
 
 } // namespace Engine

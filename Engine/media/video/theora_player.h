@@ -46,7 +46,6 @@ private:
 
     Common::HError OpenAPEGStream(Stream *data_stream, const String &name, int flags, int target_depth);
 
-    String _name;
     std::unique_ptr<Stream> _dataStream;
     int _usedFlags = 0;
     int _usedDepth = 0;

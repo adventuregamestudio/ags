@@ -54,7 +54,7 @@ void PlayFlic(int numb, int scr_flags)
     10: play the video at original size
     100: do not clear the screen before starting playback
     */
-    int video_flags = kVideo_EnableVideo;
+    int video_flags = kVideo_EnableVideo | kVideo_DropFrames;
     int state_flags = 0;
     VideoSkipType skip = VideoSkipNone;
     // skip type
@@ -102,7 +102,7 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     -- since 3.6.0:
     20: play both game audio and video's own audio
     */
-    int video_flags = kVideo_EnableVideo;
+    int video_flags = kVideo_EnableVideo | kVideo_DropFrames;
     int state_flags = 0;
     // video size
     switch (scr_flags % 10)
@@ -130,7 +130,7 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
         video_flags |= kVideo_LegacyFrameSize;
 
     // original engine's behavior was to adjust FPS to match video's,
-    // but we may rethink this later
+    // but we may rethink this later (or add an explicit setting)
     state_flags |= kVideoState_SetGameFps;
 
     play_video_with_audio(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));

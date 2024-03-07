@@ -59,7 +59,6 @@ HError TheoraPlayer::OpenImpl(std::unique_ptr<Stream> data_stream,
     if (!err)
         return err;
 
-    _name = name;
     if ((_apegStream->flags & APEG_HAS_VIDEO) == 0)
         flags &= ~kVideo_EnableVideo;
     if ((_apegStream->flags & APEG_HAS_AUDIO) == 0)
@@ -139,7 +138,7 @@ bool TheoraPlayer::RewindImpl()
 {
     if (apeg_reset_stream(_apegStream) != APEG_OK)
     {
-        OpenAPEGStream(_dataStream.get(), _name, _usedFlags, _usedDepth);
+        OpenAPEGStream(_dataStream.get(), GetName(), _usedFlags, _usedDepth);
     }
     return _apegStream != nullptr;
 }

@@ -42,7 +42,7 @@
 class SOUNDCLIP final
 {
 public:
-    SOUNDCLIP(int slot);
+    SOUNDCLIP(int slot, AudioFileType snd_type, bool loop);
     ~SOUNDCLIP();
 
     // TODO: move these to private

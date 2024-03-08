@@ -17,10 +17,57 @@
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__AUDIOCORE_H
 #define __AGS_EE_MEDIA__AUDIOCORE_H
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "media/audio/audiodefines.h"
+#include "media/audio/audioplayer.h"
 #include "util/string.h"
+
+
+namespace AGS
+{
+namespace Engine
+{
+
+// AudioPlayerLock wraps a AudioPlayer pointer guarded by a mutex lock.
+// Unlocks the mutex on destruction (e.g. when going out of scope).
+class AudioPlayerLock
+{
+public:
+    AudioPlayerLock(AudioPlayer *player, std::unique_lock<std::mutex> &&ulk, std::condition_variable *cv)
+        : _player(player)
+        , _ulock(std::move(ulk))
+        , _cv(cv)
+    {
+    }
+
+    AudioPlayerLock(AudioPlayerLock &&lock)
+        : _player(lock._player)
+        , _ulock(std::move(lock._ulock))
+        , _cv(lock._cv)
+    {
+        lock._cv = nullptr;
+    }
+
+    ~AudioPlayerLock()
+    {
+        if (_cv)
+            _cv->notify_all();
+    }
+
+    const AudioPlayer *operator ->() const { return _player; }
+    AudioPlayer *operator ->() { return _player; }
+
+private:
+    AudioPlayer *_player = nullptr;
+    std::unique_lock<std::mutex> _ulock;
+    std::condition_variable *_cv = nullptr;
+};
+
+} // namespace Engine
+} // namespace AGS
 
 // Initializes audio core system;
 // starts polling on a background thread.
@@ -29,6 +76,10 @@ void audio_core_init(/*config, soundlib*/);
 // stops any associated threads.
 void audio_core_shutdown();
 
+// Audio core config
+// Set new master volume, affects all slots
+void audio_core_set_master_volume(float newvol);
+
 // Audio slot controls: slots are abstract holders for a playback.
 //
 // Initializes playback on a free playback slot (reuses spare one or allocates new if there's none).
@@ -36,31 +87,12 @@ void audio_core_shutdown();
 int audio_core_slot_init(std::shared_ptr<std::vector<uint8_t>> &data, const AGS::Common::String &extension_hint, bool repeat);
 // Initializes playback streaming
 int audio_core_slot_init(std::unique_ptr<AGS::Common::Stream> in, const AGS::Common::String &extension_hint, bool repeat);
-// Start playback on a slot
-PlaybackState audio_core_slot_play(int slot_handle);
-// Pause playback on a slot, resume with 'audio_core_slot_play'
-PlaybackState audio_core_slot_pause(int slot_handle);
-// Stop playback on a slot, disposes sound data, frees a slot
-void audio_core_slot_stop(int slot_handle);
-// Seek on a slot, new position in milliseconds
-void audio_core_slot_seek_ms(int slot_handle, float pos_ms);
+// Returns a AudioPlayer from the given slot, wrapped in a auto-locking struct.
+AGS::Engine::AudioPlayerLock audio_core_get_player(int slot_handle);
 
 #if defined(AGS_DISABLE_THREADS)
 // polls the audio core if we have no threads, polled in Engine/ac/timer.cpp
 void audio_core_entry_poll();
 #endif
-
-// Audio core config
-// Set new master volume, affects all slots
-void audio_core_set_master_volume(float newvol);
-// Sets up single playback parameters
-void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning);
-
-PlaybackState audio_core_slot_get_play_state(int slot_handle);
-PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos_ms);
-float audio_core_slot_get_pos_ms(int slot_handle);
-// Returns sound duration in milliseconds
-float audio_core_slot_get_duration(int slot_handle);
-int audio_core_slot_get_freq(int slot_handle);
 
 #endif // __AGS_EE_MEDIA__AUDIOCORE_H

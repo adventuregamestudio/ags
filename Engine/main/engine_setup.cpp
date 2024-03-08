@@ -191,7 +191,6 @@ void engine_post_gfxmode_setup(const Size &init_desktop, const DisplayMode &old_
     // reset multitasking (may be overridden by the current display mode)
     SetMultitasking(usetup.multitasking);
 
-    video_on_gfxmode_changed();
     invalidate_screen();
 }
 

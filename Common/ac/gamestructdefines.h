@@ -203,11 +203,14 @@ enum GameGuiAlphaRenderingStyle
 };
 
 
-// Sprite flags (serialized as 8-bit)
+// Sprite flags
+// SERIALIZATION NOTE: serialized as 8-bit in game data and legacy saves
+//                     serialized as 32-bit in new saves (for dynamic sprites only).
 // WARNING: whole lower byte was taken by now deprecated flags;
 // should not reuse these bits unless explicitly set a new spritefile format version!
 #define SPF_OBSOLETEMASK    0xFB
 #define SPF_DYNAMICALLOC    0x04  // created by runtime script
+#define SPF_OBJECTOWNED     0x0100 // owned by a game object (not created in user script)
 
 // General information about sprite (properties, size)
 struct SpriteInfo

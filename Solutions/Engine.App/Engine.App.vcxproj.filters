@@ -762,6 +762,18 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkbehind.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\audioplayer.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\media\video\videoplayer.cpp">
+      <Filter>Source Files\media\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\media\video\flic_player.cpp">
+      <Filter>Source Files\media\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\media\video\theora_player.cpp">
+      <Filter>Source Files\media\video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1525,6 +1537,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkablearea.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audioplayer.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\video\videoplayer.h">
+      <Filter>Header Files\media\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\video\flic_player.h">
+      <Filter>Header Files\media\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\video\theora_player.h">
+      <Filter>Header Files\media\video</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

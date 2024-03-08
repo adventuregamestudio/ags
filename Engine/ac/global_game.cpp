@@ -318,6 +318,8 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
+    // TODO: consider return strictly logical game fps;
+    // need to investigate what would be consequence of this in "infinite FPS" mode
     return ::lround(get_game_fps()) - play.game_speed_modifier;
 }
 

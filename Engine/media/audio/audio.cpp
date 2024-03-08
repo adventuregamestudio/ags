@@ -575,7 +575,6 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 void stop_all_sound_and_music() 
 {
     stop_voice_nonblocking();
-    // any ambient sound will be aborted
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
         stop_and_destroy_channel(i);
 }

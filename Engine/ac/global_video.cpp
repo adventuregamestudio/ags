@@ -12,26 +12,15 @@
 //
 //=============================================================================
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
 #include "ac/global_game.h"
 #include "ac/global_video.h"
-#include "ac/path_helper.h"
-#include "core/assetmanager.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "media/video/video.h"
-#include "media/audio/audio_system.h"
-#include "platform/base/agsplatformdriver.h"
-#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-
-void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip);
 
 void PlayFlic(int numb, int scr_flags)
 {
@@ -50,7 +39,10 @@ void PlayFlic(int numb, int scr_flags)
     10: play the video at original size
     100: do not clear the screen before starting playback
     */
-    int flags = kVideo_EnableVideo;
+    // NOTE: don't enable frame drop with FLIC, or it will play too fast
+    // (also see a note about kVideoState_SetGameFps below)
+    int video_flags = kVideo_EnableVideo;
+    int state_flags = 0;
     VideoSkipType skip = VideoSkipNone;
     // skip type
     switch (scr_flags % 10)
@@ -63,21 +55,26 @@ void PlayFlic(int numb, int scr_flags)
     switch ((scr_flags % 100) / 10)
     {
     case 1: /* play original size, no flag */ break;
-    default: flags |= kVideo_Stretch;
+    default: state_flags |= kVideoState_Stretch;
     }
     // clear screen
     switch ((scr_flags % 1000) / 100)
     {
     case 1: /* don't clear screen, no flag */ break;
-    default: flags |= kVideo_ClearScreen;
+    default: state_flags |= kVideoState_ClearScreen;
     }
 
-    HError err = play_flc_video(numb, flags, skip);
+    // NOTE: do not set kVideoState_SetGameFps for FLIC,
+    // it seems like existing games featured FLICs with over-top FPS,
+    // but limited it to ~60 FPS using vsync.
+
+    HError err = play_flc_video(numb, video_flags, state_flags, skip);
     if (!err)
         debug_script_warn("Failed to play FLIC %d: %s", numb, err->FullMessage().GetCStr());
 }
 
-void PlayVideo(const char* name, int skip, int scr_flags) {
+void PlayVideo(const char* name, int skip, int scr_flags)
+{
     EndSkippingUntilCharStops();
     if (play.fast_forward)
         return;
@@ -93,54 +90,36 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     -- since 3.6.0:
     20: play both game audio and video's own audio
     */
-    int flags = kVideo_EnableVideo;
+    int video_flags = kVideo_EnableVideo | kVideo_DropFrames;
+    int state_flags = 0;
     // video size
     switch (scr_flags % 10)
     {
-    case 1: flags |= kVideo_Stretch; break;
+    case 1: state_flags |= kVideoState_Stretch; break;
     default: break;
     }
     // audio option
     switch ((scr_flags % 100) / 10)
     {
-    case 1: flags |= kVideo_KeepGameAudio; break;
-    case 2: flags |= kVideo_EnableAudio | kVideo_KeepGameAudio; break;
-    default: flags |= kVideo_EnableAudio; break;
+    case 1: break; // keep game audio, and no video audio
+    case 2: video_flags |= kVideo_EnableAudio; break; // have both game and video audio
+    default: // play video audio but stop game audio
+        video_flags |= kVideo_EnableAudio;
+        state_flags |= kVideoState_StopGameAudio;
+        break;
     }
 
-    // if game audio is disabled, then don't play any sound on the video either
+    // if audio is disabled, then don't play any sound on the video either
     if (!usetup.audio_enabled)
-        flags &= ~kVideo_EnableAudio;
+        video_flags &= ~kVideo_EnableAudio;
 
-    pause_sound_if_necessary_and_play_video(name, flags, static_cast<VideoSkipType>(skip));
-}
-
-
-#ifndef AGS_NO_VIDEO_PLAYER
-
-void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip)
-{
-    // Optionally stop the game audio
-    if ((flags & kVideo_KeepGameAudio) == 0)
-    {
-        stop_all_sound_and_music();
-    }
+    // for old versions: allow slightly offset video frames
+    // original engine's behavior was to adjust FPS to match video's,
+    // but we may rethink this later (or add an explicit setting)
+    state_flags |= kVideoState_SetGameFps;
 
     // TODO: use extension as a format hint
-    HError err = play_theora_video(name, flags, skip);
+    HError err = play_theora_video(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));
     if (!err)
         debug_script_warn("Failed to play video '%s': %s", name, err->FullMessage().GetCStr());
-
-    // Restore the game audio if we stopped them before the video playback
-    if ((flags & kVideo_KeepGameAudio) == 0)
-    {
-        // TODO: the sound restoration here was based on legacy AmbientSound system
-        // need to reimplement using modern one? need to investigate how it worked before
-    }
 }
-
-#else
-
-void pause_sound_if_necessary_and_play_video(const char *name, int flags, VideoSkipType skip) {}
-
-#endif

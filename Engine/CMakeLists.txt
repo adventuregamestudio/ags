@@ -356,6 +356,8 @@ target_sources(engine
     media/audio/audio.h
     media/audio/audio_system.h
     media/audio/audiodefines.h
+    media/audio/audioplayer.cpp
+    media/audio/audioplayer.h
     media/audio/sdldecoder.cpp
     media/audio/sdldecoder.h
     media/audio/openalsource.cpp
@@ -367,8 +369,14 @@ target_sources(engine
     media/audio/sound.h
     media/audio/soundclip.cpp
     media/audio/soundclip.h
+    media/video/flic_player.cpp
+    media/video/flic_player.h
+    media/video/theora_player.cpp
+    media/video/theora_player.h
     media/video/video.cpp
     media/video/video.h
+    media/video/videoplayer.cpp
+    media/video/videoplayer.h
     platform/base/agsplatformdriver.cpp
     platform/base/agsplatformdriver.h
     platform/base/agsplatform_xdg_unix.cpp

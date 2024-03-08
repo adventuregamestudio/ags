@@ -19,180 +19,13 @@
 #include <thread>
 #include <unordered_map>
 #include "debug/out.h"
+#include "media/audio/audioplayer.h"
 #include "media/audio/sdldecoder.h"
 #include "media/audio/openalsource.h"
 #include "util/memory_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-const auto GlobalGainScaling = 0.7f; // TODO: find out why 0.7f is here?
-
-static void audio_core_entry();
-
-// AudioCoreSlot is a single playback manager, that handles two components:
-// decoder and "player"; controls the current playback state, passes data
-// from the decoder into the player.
-class AudioCoreSlot
-{
-public:
-    AudioCoreSlot(int handle, std::unique_ptr<SDLDecoder> decoder);
-
-    // Gets current playback state
-    PlaybackState GetPlayState() const { return _playState; }
-    // Gets duration, in ms
-    float GetDurationMs() const { return _decoder->GetDurationMs(); }
-    // Gets playback position, in ms
-    float GetPositionMs() const { return _source->GetPositionMs(); }
-    // Gives access to decoder object
-    SDLDecoder &GetDecoder() const { return *_decoder; }
-    // Gives access to the "player" object
-    OpenAlSource &GetAlSource() const { return *_source; }
-
-    // Update state, transfer data from decoder to player if possible
-    void Poll();
-    // Begin playback
-    void Play();
-    // Pause playback
-    void Pause();
-    // Stop playback completely
-    void Stop();
-    // Seek to the given time position
-    void Seek(float pos_ms);
-
-private:
-    // Opens decoder and sets up playback state
-    void Init();
-
-    const int handle_ = -1; // for diagnostic purposes only
-    std::unique_ptr<SDLDecoder> _decoder;
-    std::unique_ptr<OpenAlSource> _source;
-    PlaybackState _playState = PlayStateInitial;
-    PlaybackState _onLoadPlayState = PlayStatePaused;
-    float _onLoadPositionMs = 0.0f;
-    SoundBuffer _bufferPending{};
-};
-
-AudioCoreSlot::AudioCoreSlot(int handle, std::unique_ptr<SDLDecoder> decoder)
-    : handle_(handle), _decoder(std::move(decoder))
-{
-    _source = std::make_unique<OpenAlSource>(
-        _decoder->GetFormat(), _decoder->GetChannels(), _decoder->GetFreq());
-}
-
-void AudioCoreSlot::Init()
-{
-    bool success;
-    if (_decoder->IsValid()) // if already opened, then just seek to start
-        success = _decoder->Seek(_onLoadPositionMs) == _onLoadPositionMs;
-    else
-        success = _decoder->Open(_onLoadPositionMs);
-    _playState = success ? _onLoadPlayState : PlayStateError;
-    if (_playState == PlayStatePlaying)
-        _source->Play();
-}
-
-void AudioCoreSlot::Poll()
-{
-    if (_playState == PlaybackState::PlayStateInitial)
-        Init();
-    if (_playState != PlayStatePlaying)
-        return;
-
-    // Read data from Decoder and pass into the Al Source
-    if (!_bufferPending.Data && !_decoder->EOS())
-    { // if no buffer saved, and still something to decode, then read a buffer
-        _bufferPending = _decoder->GetData();
-        assert(_bufferPending.Data || (_bufferPending.Size == 0));
-    }
-    if (_bufferPending.Data && (_bufferPending.Size > 0))
-    { // if having a buffer already, then try to put into source
-        if (_source->PutData(_bufferPending) > 0)
-            _bufferPending = SoundBuffer(); // clear buffer on success
-    }
-    _source->Poll();
-    // If both finished decoding and playing, we done here.
-    if (_decoder->EOS() && _source->IsEmpty())
-    {
-        _playState = PlayStateFinished;
-    }
-}
-
-void AudioCoreSlot::Play()
-{
-    switch (_playState)
-    {
-    case PlayStateInitial:
-        _onLoadPlayState = PlayStatePlaying;
-        break;
-    case PlayStateStopped:
-        _decoder->Seek(0.0f);
-        /* fall-through */
-    case PlayStatePaused:
-        _playState = PlayStatePlaying;
-        _source->Play();
-        break;
-    default:
-        break;
-    }
-}
-
-void AudioCoreSlot::Pause()
-{
-    switch (_playState)
-    {
-    case PlayStateInitial:
-        _onLoadPlayState = PlayStatePaused;
-        break;
-    case PlayStatePlaying:
-        _playState = PlayStatePaused;
-        _source->Pause();
-        break;
-    default:
-        break;
-    }
-}
-
-void AudioCoreSlot::Stop()
-{
-    switch (_playState)
-    {
-    case PlayStateInitial:
-        _onLoadPlayState = PlayStateStopped;
-        break;
-    case PlayStatePlaying:
-    case PlayStatePaused:
-        _playState = PlayStateStopped;
-        _source->Stop();
-        _bufferPending = SoundBuffer(); // clear
-        break;
-    default:
-        break;
-    }
-}
-
-void AudioCoreSlot::Seek(float pos_ms)
-{
-    switch (_playState)
-    {
-    case PlayStateInitial:
-        _onLoadPositionMs = pos_ms;
-        break;
-    case PlayStatePlaying:
-    case PlayStatePaused:
-    case PlayStateStopped:
-        {
-            _source->Stop();
-            _bufferPending = SoundBuffer(); // clear
-            float new_pos = _decoder->Seek(pos_ms);
-            _source->SetPlaybackPosMs(new_pos);
-        }
-        break;
-    default:
-        break;
-    }
-}
-
 
 // Global audio core state and resources
 static struct 
@@ -214,7 +47,7 @@ static struct
     // polled one by one, any action like pause/resume is also synced.
     std::mutex mixer_mutex_m;
     std::condition_variable mixer_cv;
-    std::unordered_map<int, std::unique_ptr<AudioCoreSlot>> slots_;
+    std::unordered_map<int, std::unique_ptr<AudioPlayer>> slots_;
 } g_acore;
 
 // Prints any OpenAL errors to the log
@@ -229,6 +62,8 @@ void dump_al_errors()
 // -------------------------------------------------------------------------------------------------
 // INIT / SHUTDOWN
 // -------------------------------------------------------------------------------------------------
+
+static void audio_core_entry();
 
 void audio_core_init() 
 {
@@ -296,6 +131,19 @@ void audio_core_shutdown()
 
 
 // -------------------------------------------------------------------------------------------------
+// AUDIO CORE CONFIG
+// -------------------------------------------------------------------------------------------------
+
+void audio_core_set_master_volume(float newvol) 
+{
+    // TODO: review this later; how do we apply master volume
+    // if we use alternate audio output (e.g. from plugin)?
+    alListenerf(AL_GAIN, newvol);
+    dump_al_errors();
+}
+
+
+// -------------------------------------------------------------------------------------------------
 // SLOTS
 // -------------------------------------------------------------------------------------------------
 
@@ -308,7 +156,7 @@ static int audio_core_slot_init(std::unique_ptr<SDLDecoder> decoder)
 {
     auto handle = avail_slot_id();
     std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[handle] = std::make_unique<AudioCoreSlot>(handle, std::move(decoder));
+    g_acore.slots_[handle] = std::make_unique<AudioPlayer>(handle, std::move(decoder));
     g_acore.mixer_cv.notify_all();
     return handle;
 }
@@ -329,108 +177,14 @@ int audio_core_slot_init(std::unique_ptr<Stream> in, const String &extension_hin
     return audio_core_slot_init(std::move(decoder));
 }
 
-// -------------------------------------------------------------------------------------------------
-// SLOT CONTROL
-// -------------------------------------------------------------------------------------------------
-
-PlaybackState audio_core_slot_play(int slot_handle)
+AudioPlayerLock audio_core_get_player(int slot_handle)
 {
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Play();
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    g_acore.mixer_cv.notify_all();
-    return state;
+    std::unique_lock<std::mutex> ulk(g_acore.mixer_mutex_m);
+    auto it = g_acore.slots_.find(slot_handle);
+    if (it == g_acore.slots_.end())
+        return AudioPlayerLock(nullptr, std::move(ulk), &g_acore.mixer_cv);
+    return AudioPlayerLock(it->second.get(), std::move(ulk), &g_acore.mixer_cv);
 }
-
-PlaybackState audio_core_slot_pause(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Pause();
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    g_acore.mixer_cv.notify_all();
-    return state;
-}
-
-void audio_core_slot_stop(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Stop();
-    g_acore.slots_.erase(slot_handle);
-    g_acore.mixer_cv.notify_all();
-}
-
-void audio_core_slot_seek_ms(int slot_handle, float pos_ms)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    g_acore.slots_[slot_handle]->Seek(pos_ms);
-    g_acore.mixer_cv.notify_all();
-}
-
-
-// -------------------------------------------------------------------------------------------------
-// SLOT CONFIG
-// -------------------------------------------------------------------------------------------------
-
-void audio_core_set_master_volume(float newvol) 
-{
-    alListenerf(AL_GAIN, newvol*GlobalGainScaling);
-    dump_al_errors();
-}
-
-void audio_core_slot_configure(int slot_handle, float volume, float speed, float panning)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto &player = g_acore.slots_[slot_handle]->GetAlSource();
-    player.SetVolume(volume * GlobalGainScaling);
-    player.SetSpeed(speed);
-    player.SetPanning(panning);
-}
-
-// -------------------------------------------------------------------------------------------------
-// SLOT STATUS
-// -------------------------------------------------------------------------------------------------
-
-float audio_core_slot_get_pos_ms(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto pos = g_acore.slots_[slot_handle]->GetAlSource().GetPositionMs();
-    g_acore.mixer_cv.notify_all();
-    return pos;
-}
-
-float audio_core_slot_get_duration(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto dur = g_acore.slots_[slot_handle]->GetDecoder().GetDurationMs();
-    g_acore.mixer_cv.notify_all();
-    return dur;
-}
-
-int audio_core_slot_get_freq(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto dur = g_acore.slots_[slot_handle]->GetDecoder().GetFreq();
-    g_acore.mixer_cv.notify_all();
-    return dur;
-}
-
-PlaybackState audio_core_slot_get_play_state(int slot_handle)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    g_acore.mixer_cv.notify_all();
-    return state;
-}
-
-PlaybackState audio_core_slot_get_play_state(int slot_handle, float &pos_ms)
-{
-    std::lock_guard<std::mutex> lk(g_acore.mixer_mutex_m);
-    auto state = g_acore.slots_[slot_handle]->GetPlayState();
-    pos_ms = g_acore.slots_[slot_handle]->GetAlSource().GetPositionMs();
-    g_acore.mixer_cv.notify_all();
-    return state;
-}
-
 
 // -------------------------------------------------------------------------------------------------
 // AUDIO PROCESSING

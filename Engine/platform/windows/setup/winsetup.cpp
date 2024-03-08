@@ -734,6 +734,11 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         EnableWindow(_hRenderAtScreenRes, FALSE);
     if (CfgReadBoolInt(_cfgIn, "disabled", "translation"))
         EnableWindow(_hLanguageList, FALSE);
+    if (CfgReadBoolInt(_cfgIn, "disabled", "fullscreen")) {
+        EnableWindow(_hFullscreenDesktop, FALSE);
+        EnableWindow(_hGfxModeList, FALSE);
+    }
+
 
     RECT win_rect, gfx_rect, adv_rect, border;
     GetWindowRect(_hwnd, &win_rect);

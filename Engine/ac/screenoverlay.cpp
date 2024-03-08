@@ -70,7 +70,7 @@ void ScreenOverlay::SetImage(std::unique_ptr<Common::Bitmap> pic, int offx, int 
         offsetY = offy;
         scaleWidth = pic->GetWidth();
         scaleHeight = pic->GetHeight();
-        _sprnum = add_dynamic_sprite(std::move(pic));
+        _sprnum = add_dynamic_sprite(std::move(pic), SPF_OBJECTOWNED);
     }
     MarkChanged();
 }

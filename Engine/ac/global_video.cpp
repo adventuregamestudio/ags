@@ -18,6 +18,7 @@
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "media/video/video.h"
+#include "media/video/videoplayer.h" // for flags
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

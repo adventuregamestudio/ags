@@ -16,15 +16,21 @@
 #ifndef AGS_NO_VIDEO_PLAYER
 #include "core/assetmanager.h"
 #include "ac/draw.h"
+#include "ac/dynamicsprite.h"
+#include "ac/game.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/joystick.h"
+#include "ac/spritecache.h"
 #include "ac/sys_events.h"
+#include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptvideoplayer.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "media/video/video_core.h"
 #include "media/audio/audio.h"
 #include "media/video/video_core.h"
 #include "util/memory_compat.h"
@@ -279,7 +285,8 @@ std::unique_ptr<BlockingVideoPlayer> gl_Video;
 
 
 //-----------------------------------------------------------------------------
-// Blocking video API
+// Legacy Blocking video API
+//-----------------------------------------------------------------------------
 // Running the single video playback
 //-----------------------------------------------------------------------------
 // Checks input events, tells if the video should be skipped
@@ -380,10 +387,277 @@ void video_single_stop()
     gl_Video.reset();
 }
 
+//-----------------------------------------------------------------------------
+// Non-blocking video API
+//-----------------------------------------------------------------------------
+
+VideoControl::VideoControl(int video_id, int sprite_id)
+    : _videoID(video_id)
+    , _spriteID(sprite_id)
+{
+    auto player = video_core_get_player(video_id);
+    _frameRate = player->GetFramerate();
+    _durMs = player->GetDurationMs();
+    _frameCount = _durMs * 1000.0 / _frameRate;
+}
+
+VideoControl::~VideoControl()
+{
+    if (_scriptHandle >= 0)
+    {
+        ScriptVideoPlayer *sc_video = (ScriptVideoPlayer*)ccGetObjectAddressFromHandle(_scriptHandle);
+        if (sc_video)
+        {
+            sc_video->Invalidate();
+            // FIXME: need to fix ManagedPool to avoid recursive Dispose of disposing object!!
+            //ccAttemptDisposeObject(_scriptHandle);
+        }
+    }
+}
+
+void VideoControl::SetScriptHandle(int sc_handle)
+{
+    _scriptHandle = sc_handle;
+    // TODO: do we need to check & invalidate previous handle, if there was any?
+}
+
+bool VideoControl::Play()
+{
+    if (!IsReady())
+        return false;
+    _state = PlaybackState::PlayStatePlaying;
+    return true;
+}
+
+void VideoControl::Pause()
+{
+    if (!IsReady())
+        return;
+    auto player = video_core_get_player(_videoID);
+    player->Pause();
+    _state = player->GetPlayState();
+}
+
+bool VideoControl::NextFrame()
+{
+    if (!IsReady())
+        return false;
+
+    std::unique_ptr<Bitmap> new_frame;
+    // Lock video player, sync play state and retrieve a new frame
+    {
+        auto player = video_core_get_player(_videoID);
+        player->Pause();
+        _state = player->GetPlayState();
+        _posMs = player->GetPositionMs();
+        _frameIndex = player->GetFrameIndex();
+        new_frame = player->NextFrame();
+    }
+
+    if (!new_frame)
+        return false;
+
+    // Apply a new frame, return old frame to the player
+    auto old_frame = SetNewFrame(std::move(new_frame));
+    if (old_frame)
+    {
+        auto player = video_core_get_player(_videoID);
+        player->ReleaseFrame(std::move(old_frame));
+    }
+    return true;
+}
+
+uint32_t VideoControl::SeekFrame(uint32_t frame)
+{
+    if (!IsReady())
+        return -1;
+    auto player = video_core_get_player(_videoID);
+    player->Pause();
+    uint32_t new_pos = player->SeekFrame(frame);
+    _state = player->GetPlayState();
+    _posMs = player->GetPositionMs();
+    _frameIndex = player->GetFrameIndex();
+    return new_pos;
+}
+
+float VideoControl::SeekMs(float pos_ms)
+{
+    if (!IsReady())
+        return -1.f;
+    auto player = video_core_get_player(_videoID);
+    player->Pause();
+    float new_pos = player->Seek(pos_ms);
+    _state = player->GetPlayState();
+    _posMs = player->GetPositionMs();
+    _frameIndex = player->GetFrameIndex();
+    return new_pos;
+}
+
+std::unique_ptr<Bitmap> VideoControl::SetNewFrame(std::unique_ptr<Bitmap> new_frame)
+{
+    // FIXME: this is ugly to use different levels of sprite interface here,
+    // expand dynamic_sprite group of functions instead!
+    auto old_sprite = spriteset.RemoveSprite(_spriteID);
+    spriteset.SetSprite(_spriteID, std::move(new_frame), SPF_DYNAMICALLOC | SPF_OBJECTOWNED);
+    game_sprite_updated(_spriteID, false);
+    return old_sprite;
+}
+
+bool VideoControl::Update()
+{
+    if (!IsReady())
+        return false;
+
+    std::unique_ptr<Bitmap> new_frame;
+    // Lock video player, sync play state and retrieve a new frame
+    {
+        auto player = video_core_get_player(_videoID);
+        // Get current video state
+        PlaybackState core_state = player->GetPlayState();
+        _posMs = player->GetPositionMs();
+        _frameIndex = player->GetFrameIndex();
+
+        // If video playback already stopped on its own, then exit update early
+        if (IsPlaybackDone(core_state))
+        {
+            _state = core_state;
+            return false;
+        }
+
+        // Apply new parameters, do this early in case we start playback
+        if (_paramsChanged)
+        {
+            auto vol_f = static_cast<float>(_volume) / 255.0f;
+            if (vol_f < 0.0f) { vol_f = 0.0f; }
+            if (vol_f > 1.0f) { vol_f = 1.0f; }
+
+            auto speed_f = _speed;
+            if (speed_f <= 0.0) { speed_f = 1.0f; }
+
+            player->SetVolume(vol_f);
+            player->SetSpeed(speed_f);
+            _paramsChanged = false;
+        }
+
+        // Apply new playback state
+        if (_state != core_state)
+        {
+            switch (_state)
+            {
+            case PlaybackState::PlayStatePlaying:
+                player->Play();
+                _state = player->GetPlayState();
+                break;
+            default: /* do nothing */
+                break;
+            }
+        }
+
+        if (_state != PlaybackState::PlayStatePlaying)
+            return false;
+
+        // Try get new video frame
+        new_frame = player->GetReadyFrame();
+    }
+
+    // Apply a new frame, return old frame to the player
+    if (new_frame)
+    {
+        auto old_frame = SetNewFrame(std::move(new_frame));
+        if (old_frame)
+        {
+            auto player = video_core_get_player(_videoID);
+            player->ReleaseFrame(std::move(old_frame));
+        }
+    }
+    return true;
+}
+
+
+// map video ID (matching video core handle) to VideoControl object
+std::unordered_map<int, std::unique_ptr<VideoControl>> gl_VideoObjects;
+
+HError open_video(const char *name, int video_flags, int &video_id)
+{
+    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(name));
+    if (!video_stream)
+        return new Error(String::FromFormat("Failed to open file: %s", name));
+
+    if (gl_VideoObjects.empty())
+        video_core_init(); // start the thread
+
+    VideoInitParams params;
+    params.Flags = static_cast<VideoFlags>(video_flags);
+    params.TargetColorDepth = game.GetColorDepth();
+    int video_slot = video_core_slot_init(std::move(video_stream), name, Path::GetFileExtension(name), params);
+    if (video_slot < 0) // FIXME: return errors from slot_init?
+        return new Error(String::FromFormat("Failed to initialize video player for %s", name));
+
+    // Allocate a sprite slot for this video player's frames;
+    // note that the very first frame could be a dummy frame created as a placeholder
+    std::unique_ptr<Bitmap> first_frame;
+    {
+        auto player = video_core_get_player(video_slot);
+        first_frame = player->GetEmptyFrame();
+    }
+    int sprite_slot = add_dynamic_sprite(std::move(first_frame));
+    if (sprite_slot <= 0)
+        return new Error("No free sprite slot to render video to");
+
+    auto video_ctrl = std::make_unique<VideoControl>(video_slot, sprite_slot);
+    gl_VideoObjects[video_slot] = std::move(video_ctrl);
+
+    // NOTE: we do not start playback right away,
+    // but do so during the synchronization step (see sync_video_playback).
+
+    video_id = video_slot;
+    return HError::None();
+}
+
+VideoControl *get_video_control(int video_id)
+{
+    auto it = gl_VideoObjects.find(video_id);
+    if (it == gl_VideoObjects.end())
+        return nullptr;
+    return it->second.get();
+}
+
+void video_stop(int video_id)
+{
+    auto it = gl_VideoObjects.find(video_id);
+    if (it == gl_VideoObjects.end())
+        return; // wrong index
+
+    int video_slot = it->first;
+    video_core_slot_stop(video_slot);
+    free_dynamic_sprite(it->second->GetSpriteID());
+    gl_VideoObjects.erase(video_slot);
+
+    if (gl_VideoObjects.empty())
+        video_core_shutdown(); // stop the thread to avoid redundant processing
+}
+
+void sync_video_playback()
+{
+    for (auto &obj : gl_VideoObjects)
+    {
+        VideoControl *video_ctrl = obj.second.get();
+        video_ctrl->Update();
+    }
+}
+
+void update_video_system_on_game_loop()
+{
+    sync_video_playback();
+}
+
+//-----------------------------------------------------------------------------
+
 void video_shutdown()
 {
     video_single_stop();
     video_core_shutdown();
+    gl_VideoObjects.clear();
 }
 
 #else

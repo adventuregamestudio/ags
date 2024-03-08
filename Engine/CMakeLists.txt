@@ -117,6 +117,8 @@ target_sources(engine
     ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
+    ac/dynobj/scriptvideoplayer.cpp
+    ac/dynobj/scriptvideoplayer.h
     ac/dynobj/scriptviewframe.cpp
     ac/dynobj/scriptviewframe.h
     ac/dynobj/scriptviewport.cpp
@@ -248,6 +250,7 @@ target_sources(engine
     ac/timer.h
     ac/translation.cpp
     ac/translation.h
+    ac/video_script.cpp
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp

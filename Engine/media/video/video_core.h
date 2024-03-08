@@ -39,7 +39,7 @@ struct VideoInitParams
     AGS::Engine::VideoFlags Flags = AGS::Engine::kVideo_None;
     Size TargetSize;
     int TargetColorDepth = 0;
-    int FPS = 0;
+    float FPS = 0.f;
 };
 
 // Video slot controls: slots are abstract holders for a playback.

@@ -14,6 +14,7 @@
 #ifndef AGS_NO_VIDEO_PLAYER
 #include "media/video/videoplayer.h"
 #include "debug/out.h"
+#include "util/memory_compat.h"
 
 namespace AGS
 {
@@ -233,11 +234,16 @@ void VideoPlayer::SetVolume(float volume)
         _audioOut->SetVolume(volume);
 }
 
-std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
+std::unique_ptr<Bitmap> VideoPlayer::GetReadyFrame()
 {
     if (_framesPlayed > _wantFrameIndex)
         return nullptr;
     return NextFrameFromQueue();
+}
+
+std::unique_ptr<Bitmap> VideoPlayer::GetEmptyFrame()
+{
+    return GetPooledFrame();
 }
 
 void VideoPlayer::ReleaseFrame(std::unique_ptr<Common::Bitmap> frame)
@@ -323,16 +329,7 @@ void VideoPlayer::BufferVideo()
         return;
 
     // Get one frame from the pool, if present, otherwise allocate a new one
-    std::unique_ptr<Bitmap> target_frame;
-    if (_videoFramePool.empty())
-    {
-        target_frame.reset(new Bitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
-    }
-    else
-    {
-        target_frame = std::move(_videoFramePool.top());
-        _videoFramePool.pop();
-    }
+    std::unique_ptr<Bitmap> target_frame = GetPooledFrame();
 
     // Try to retrieve one video frame from decoder
     const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth
@@ -389,6 +386,20 @@ void VideoPlayer::UpdateTime()
         _targetFrameTime,
         _wantFrameIndex,
         _framesPlayed);/**/
+}
+
+std::unique_ptr<Bitmap> VideoPlayer::GetPooledFrame()
+{
+    if (_videoFramePool.empty())
+    {
+        return std::make_unique<Bitmap>(_targetSize.Width, _targetSize.Height, _targetDepth);
+    }
+    else
+    {
+        auto frame = std::move(_videoFramePool.top());
+        _videoFramePool.pop();
+        return frame;
+    }
 }
 
 std::unique_ptr<Bitmap> VideoPlayer::NextFrameFromQueue()

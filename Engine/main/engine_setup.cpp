@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <SDL.h>
 #include "core/platform.h"
 #include "ac/common.h"
 #include "ac/display.h"

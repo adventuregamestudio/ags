@@ -416,7 +416,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
             soundfx->set_volume100(0);
     }
 
-    if (soundfx->play_from(fromOffset) == 0)
+    if (!soundfx->play_from(fromOffset))
     {
         delete soundfx;
         debug_script_log("AudioClip.Play: failed to play sound file");
@@ -564,7 +564,7 @@ SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
     SOUNDCLIP *soundfx = load_sound_clip(aclip, repeat);
     if (!soundfx) { return nullptr; }
 
-    if (soundfx->play() == 0) {
+    if (!soundfx->play()) {
         delete soundfx;
         return nullptr;
     }

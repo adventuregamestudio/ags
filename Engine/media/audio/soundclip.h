@@ -57,7 +57,7 @@ public:
     int xSource, ySource;
     int maximumPossibleDistanceAway;
 
-    int  play();
+    bool play();
     void pause();
     void resume();
     // Seeks to the position, where pos units depend on the audio type
@@ -71,7 +71,7 @@ public:
     // Returns if the clip is still playing, otherwise it's finished
     bool update();
 
-    inline int play_from(int position)
+    inline bool play_from(int position)
     {
         seek(position);
         return play();

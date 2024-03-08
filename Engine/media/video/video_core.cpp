@@ -118,7 +118,8 @@ int video_core_slot_init(std::unique_ptr<AGS::Common::Stream> in,
     auto player = create_video_player(ext_hint);
     if (!player)
         return -1;
-    if (!player->Open(std::move(in), name, params.Flags, params.TargetSize, params.TargetColorDepth))
+    if (!player->Open(std::move(in), name,
+            params.Flags, params.TargetSize, params.TargetColorDepth, params.FPS))
         return -1;
     return video_core_slot_init(std::move(player));
 }

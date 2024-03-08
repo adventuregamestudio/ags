@@ -117,6 +117,8 @@ public:
 
     // Retrieve the currently prepared video frame
     std::unique_ptr<Common::Bitmap> GetReadyFrame();
+    // Retrieve a dummy clear frame, may be used as a temp placeholder
+    std::unique_ptr<Common::Bitmap> GetEmptyFrame();
     // Tell VideoPlayer that this frame is not used anymore, and may be recycled
     // TODO: redo this part later, by introducing some kind of a RAII lock wrapper.
     void ReleaseFrame(std::unique_ptr<Common::Bitmap> frame);
@@ -165,6 +167,8 @@ private:
     void BufferAudio();
     // Update playback timing
     void UpdateTime();
+    // Retrieve a frame from the pool, or create a new one
+    std::unique_ptr<Common::Bitmap> GetPooledFrame();
     // Retrieve first available frame from queue,
     // advance output frame counter
     std::unique_ptr<Common::Bitmap> NextFrameFromQueue();

@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include "debug/out.h"
 #include "media/video/videoplayer.h"
+#include "media/video/flic_player.h"
 #include "media/video/theora_player.h"
 
 using namespace AGS::Common;
@@ -101,7 +102,10 @@ static std::unique_ptr<VideoPlayer> create_video_player(const AGS::Common::Strin
 {
     std::unique_ptr<VideoPlayer> player;
     // Table of video format detection
-    if (ext_hint.CompareNoCase("ogv") == 0)
+    if (ext_hint.CompareNoCase("flc") == 0 ||
+        ext_hint.CompareNoCase("fli") == 0)
+        player.reset(new FlicPlayer());
+    else if (ext_hint.CompareNoCase("ogv") == 0)
         player.reset(new TheoraPlayer());
     else
         return nullptr; // not supported
@@ -126,6 +130,14 @@ VideoPlayerLock video_core_get_player(int slot_handle)
     if (it == g_vcore.slots_.end())
         return VideoPlayerLock(nullptr, std::move(ulk), &g_vcore.poll_cv);
     return VideoPlayerLock(it->second.get(), std::move(ulk), &g_vcore.poll_cv);
+}
+
+void video_core_slot_stop(int slot_handle)
+{
+    std::lock_guard<std::mutex> lk(g_vcore.poll_mutex_m);
+    g_vcore.slots_[slot_handle]->Stop();
+    g_vcore.slots_.erase(slot_handle);
+    g_vcore.poll_cv.notify_all();
 }
 
 // -------------------------------------------------------------------------------------------------

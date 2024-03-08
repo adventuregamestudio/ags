@@ -51,6 +51,8 @@ int video_core_slot_init(std::unique_ptr<AGS::Common::Stream> in,
     const AGS::Common::String &name, const AGS::Common::String &ext_hint, const VideoInitParams &params);
 // Returns a VideoPlayer from the given slot, wrapped in a auto-locking struct.
 VideoPlayerLock video_core_get_player(int slot_handle);
+// Stop and release the video player at the given slot
+void video_core_slot_stop(int slot_handle);
 
 #if defined(AGS_DISABLE_THREADS)
 // Polls the video core if we have no threads, polled in WaitForNextFrame()

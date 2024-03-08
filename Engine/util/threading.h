@@ -53,6 +53,7 @@ public:
             _cv->notify_all();
     }
 
+    operator bool() const { return _object != nullptr; }
     const T *operator ->() const { return _object; }
     T *operator ->() { return _object; }
     const T &operator *() const { return *_object; }

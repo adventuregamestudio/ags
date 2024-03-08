@@ -12,26 +12,15 @@
 //
 //=============================================================================
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
 #include "ac/global_game.h"
 #include "ac/global_video.h"
-#include "ac/path_helper.h"
-#include "core/assetmanager.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "media/video/video.h"
-#include "media/audio/audio_system.h"
-#include "platform/base/agsplatformdriver.h"
-#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-
-extern GameSetupStruct game;
-
-void play_video_with_audio(const char *name, int video_flags, int state_flags, VideoSkipType skip);
 
 void PlayFlic(int numb, int scr_flags)
 {
@@ -88,7 +77,8 @@ void PlayFlic(int numb, int scr_flags)
         debug_script_warn("Failed to play FLIC %d: %s", numb, err->FullMessage().GetCStr());
 }
 
-void PlayVideo(const char* name, int skip, int scr_flags) {
+void PlayVideo(const char* name, int skip, int scr_flags)
+{
     EndSkippingUntilCharStops();
     if (play.fast_forward)
         return;
@@ -115,15 +105,15 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     // audio option
     switch ((scr_flags % 100) / 10)
     {
-    case 1: state_flags |= kVideoState_KeepGameAudio; break;
-    case 2:
+    case 1: break; // keep game audio, and no video audio
+    case 2: video_flags |= kVideo_EnableAudio; break; // have both game and video audio
+    default: // play video audio but stop game audio
         video_flags |= kVideo_EnableAudio;
-        state_flags |= kVideoState_KeepGameAudio;
+        state_flags |= kVideoState_StopGameAudio;
         break;
-    default: video_flags |= kVideo_EnableAudio; break;
     }
 
-    // if game audio is disabled, then don't play any sound on the video either
+    // if audio is disabled, then don't play any sound on the video either
     if (!usetup.audio_enabled)
         video_flags &= ~kVideo_EnableAudio;
 
@@ -135,46 +125,8 @@ void PlayVideo(const char* name, int skip, int scr_flags) {
     // but we may rethink this later (or add an explicit setting)
     state_flags |= kVideoState_SetGameFps;
 
-    play_video_with_audio(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));
-}
-
-
-#ifndef AGS_NO_VIDEO_PLAYER
-
-void play_video_with_audio(const char *name, int video_flags, int state_flags, VideoSkipType skip)
-{
-    // Save the game audio parameters, in case we stop these
-    int musplaying = play.cur_music_number, i;
-    int ambientWas[MAX_GAME_CHANNELS]{0};
-    for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
-        ambientWas[i] = ambient[i].channel;
-
-    // Optionally stop the game audio
-    if ((state_flags & kVideoState_KeepGameAudio) == 0)
-    {
-        stop_all_sound_and_music();
-    }
-
     // TODO: use extension as a format hint
-    HError err = play_theora_video(name, video_flags, state_flags, skip);
+    HError err = play_theora_video(name, video_flags, state_flags, static_cast<VideoSkipType>(skip));
     if (!err)
         debug_script_warn("Failed to play video '%s': %s", name, err->FullMessage().GetCStr());
-
-    // Restore the game audio if we stopped them before the video playback
-    if ((state_flags & kVideoState_KeepGameAudio) == 0)
-    {
-        update_music_volume();
-        if (musplaying >= 0)
-            newmusic(musplaying);
-        for (i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++) {
-            if (ambientWas[i] > 0)
-                PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);
-        }
-    }
 }
-
-#else
-
-void play_video_with_audio(const char *name, int flags, VideoSkipType skip) {}
-
-#endif

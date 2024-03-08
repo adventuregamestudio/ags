@@ -35,8 +35,8 @@ enum VideoStateFlags
     kVideoState_ClearScreen    = 0x0001,
     // Stretch video to the game screen
     kVideoState_Stretch        = 0x0002,
-    // Keep game audio running while video is playing
-    kVideoState_KeepGameAudio  = 0x0004,
+    // Stop game audio and restore after video finishes playing
+    kVideoState_StopGameAudio  = 0x0004,
     // Increase game FPS to match video's
     kVideoState_SetGameFps     = 0x0008
 };

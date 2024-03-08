@@ -22,10 +22,12 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_audio.h"
 #include "ac/sys_events.h"
 #include "debug/debug_log.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
+#include "media/audio/audio.h"
 #include "media/video/videoplayer.h"
 #include "media/video/flic_player.h"
 #include "media/video/theora_player.h"
@@ -83,6 +85,10 @@ private:
     std::thread _videoThread;
     std::mutex _videoMutex;
     PlaybackState _playbackState = PlayStateInvalid;
+
+    // For saving and restoring game sounds
+    int _wasMusPlaying = -1;
+    int _wasAmbient[MAX_GAME_CHANNELS]{0};
 };
 
 BlockingVideoPlayer::BlockingVideoPlayer(std::unique_ptr<VideoPlayer> player,
@@ -102,6 +108,18 @@ BlockingVideoPlayer::~BlockingVideoPlayer()
 void BlockingVideoPlayer::Begin()
 {
     assert(_player);
+
+    // Optionally stop the game audio
+    if ((_stateFlags & kVideoState_StopGameAudio) != 0)
+    {
+        // Save the game audio parameters, in case we stop these
+        // TODO: implement a global function that does this?
+        _wasMusPlaying = play.cur_music_number;
+        for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+            _wasAmbient[i] = ambient[i].channel;
+        stop_all_sound_and_music();
+    }
+
     // Setup video
     if ((_videoFlags & kVideo_EnableVideo) != 0)
     {
@@ -181,6 +199,20 @@ void BlockingVideoPlayer::End()
 
     invalidate_screen();
     ags_clear_input_state();
+
+    // Restore the game audio if we stopped them before the video playback
+    if ((_stateFlags & kVideoState_StopGameAudio) != 0)
+    {
+        // TODO: implement a global function that does this?
+        update_music_volume();
+        if (_wasMusPlaying >= 0)
+            newmusic(_wasMusPlaying);
+        for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; ++i)
+        {
+            if (_wasAmbient[i] > 0)
+                PlayAmbientSound(_wasAmbient[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);
+        }
+    }
 }
 
 void BlockingVideoPlayer::Pause()
@@ -402,8 +434,8 @@ void video_shutdown()
 
 #else
 
-void play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) {}
-void play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) {}
+HError play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
+HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
 void video_pause() {}
 void video_resume() {}
 void video_shutdown() {}

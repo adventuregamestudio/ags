@@ -489,6 +489,26 @@
 		1CF88CF12B265CFF002FA802 /* getpic.c in Sources */ = {isa = PBXBuildFile; fileRef = 201567DA290DD94A005E5B22 /* getpic.c */; };
 		1CF88CF22B265CFF002FA802 /* mpeg1dec.c in Sources */ = {isa = PBXBuildFile; fileRef = 201567DD290DD94A005E5B22 /* mpeg1dec.c */; };
 		1CF88CF32B265CFF002FA802 /* glad.c in Sources */ = {isa = PBXBuildFile; fileRef = 201567FB290DD94A005E5B22 /* glad.c */; };
+		2092B5882B9B4D3A00B1AC1B /* theora_player.h in Headers */ = {isa = PBXBuildFile; fileRef = 2092B5802B9B4BCC00B1AC1B /* theora_player.h */; };
+		2092B5892B9B4D5700B1AC1B /* flic_player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2092B57F2B9B4BCB00B1AC1B /* flic_player.cpp */; };
+		2092B58A2B9B4D5A00B1AC1B /* flic_player.h in Headers */ = {isa = PBXBuildFile; fileRef = 2092B5812B9B4BCC00B1AC1B /* flic_player.h */; };
+		2092B58B2B9B4D5F00B1AC1B /* theora_player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2092B57D2B9B4BCB00B1AC1B /* theora_player.cpp */; };
+		2092B58C2B9B4D6500B1AC1B /* videoplayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2092B57E2B9B4BCB00B1AC1B /* videoplayer.cpp */; };
+		2092B58D2B9B4D6800B1AC1B /* videoplayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2092B5822B9B4BCC00B1AC1B /* videoplayer.h */; };
+		2092B58E2B9B4D6D00B1AC1B /* video.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156869290DD94B005E5B22 /* video.h */; };
+		2092B58F2B9B4D7100B1AC1B /* audioplayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2092B57A2B9B4BC200B1AC1B /* audioplayer.cpp */; };
+		2092B5902B9B4D7600B1AC1B /* audioplayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2092B57B2B9B4BC200B1AC1B /* audioplayer.h */; };
+		2092B5912B9B4D7A00B1AC1B /* audiodefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 2015686B290DD94C005E5B22 /* audiodefines.h */; };
+		2092B5922B9B4D7E00B1AC1B /* sound.h in Headers */ = {isa = PBXBuildFile; fileRef = 2015686C290DD94C005E5B22 /* sound.h */; };
+		2092B5932B9B4D8800B1AC1B /* soundclip.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156870290DD94C005E5B22 /* soundclip.h */; };
+		2092B5942B9B4D8C00B1AC1B /* ambientsound.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156871290DD94C005E5B22 /* ambientsound.h */; };
+		2092B5952B9B4D9100B1AC1B /* sdldecoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156873290DD94C005E5B22 /* sdldecoder.h */; };
+		2092B5962B9B4D9400B1AC1B /* audio.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156874290DD94C005E5B22 /* audio.h */; };
+		2092B5972B9B4D9B00B1AC1B /* audio_core.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156875290DD94C005E5B22 /* audio_core.h */; };
+		2092B5982B9B4DA300B1AC1B /* openalsource.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156877290DD94C005E5B22 /* openalsource.h */; };
+		2092B5992B9B4DA900B1AC1B /* audio_system.h in Headers */ = {isa = PBXBuildFile; fileRef = 20156879290DD94C005E5B22 /* audio_system.h */; };
+		2092B59A2B9B4DAE00B1AC1B /* openal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2015687D290DD94C005E5B22 /* openal.h */; };
+		2092B59B2B9B4DB300B1AC1B /* queuedaudioitem.h in Headers */ = {isa = PBXBuildFile; fileRef = 2015687A290DD94C005E5B22 /* queuedaudioitem.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1494,7 +1514,6 @@
 		20156689290DD946005E5B22 /* overlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overlay.h; sourceTree = "<group>"; };
 		2015668A290DD946005E5B22 /* global_dialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = global_dialog.h; sourceTree = "<group>"; };
 		2015668B290DD946005E5B22 /* screenoverlay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = screenoverlay.cpp; sourceTree = "<group>"; };
-		2015668C290DD946005E5B22 /* topbarsettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = topbarsettings.h; sourceTree = "<group>"; };
 		2015668E290DD946005E5B22 /* audiochannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audiochannel.h; sourceTree = "<group>"; };
 		2015668F290DD946005E5B22 /* path_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = path_helper.h; sourceTree = "<group>"; };
 		20156690290DD946005E5B22 /* hotspot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hotspot.h; sourceTree = "<group>"; };
@@ -1918,6 +1937,14 @@
 		205CAAAD2A86E1C900523BE2 /* ios.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ios.cfg; path = ../misc/ios.cfg; sourceTree = "<group>"; };
 		205F24E62AC08C470048F634 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
 		205F24E72AC08C470048F634 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
+		2092B57A2B9B4BC200B1AC1B /* audioplayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audioplayer.cpp; sourceTree = "<group>"; };
+		2092B57B2B9B4BC200B1AC1B /* audioplayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audioplayer.h; sourceTree = "<group>"; };
+		2092B57D2B9B4BCB00B1AC1B /* theora_player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = theora_player.cpp; sourceTree = "<group>"; };
+		2092B57E2B9B4BCB00B1AC1B /* videoplayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = videoplayer.cpp; sourceTree = "<group>"; };
+		2092B57F2B9B4BCB00B1AC1B /* flic_player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flic_player.cpp; sourceTree = "<group>"; };
+		2092B5802B9B4BCC00B1AC1B /* theora_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = theora_player.h; sourceTree = "<group>"; };
+		2092B5812B9B4BCC00B1AC1B /* flic_player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flic_player.h; sourceTree = "<group>"; };
+		2092B5822B9B4BCC00B1AC1B /* videoplayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = videoplayer.h; sourceTree = "<group>"; };
 		20F3EDC62A6DC96A00C7BD28 /* scriptmouse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scriptmouse.cpp; sourceTree = "<group>"; };
 		20F3EDC72A6DC96A00C7BD28 /* cc_staticarray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_staticarray.cpp; sourceTree = "<group>"; };
 		20F3EDC82A6DC96A00C7BD28 /* scriptgame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scriptgame.h; sourceTree = "<group>"; };
@@ -3583,7 +3610,6 @@
 				20156658290DD945005E5B22 /* textbox.h */,
 				20156687290DD946005E5B22 /* timer.cpp */,
 				201566EC290DD947005E5B22 /* timer.h */,
-				2015668C290DD946005E5B22 /* topbarsettings.h */,
 				20156733290DD948005E5B22 /* translation.cpp */,
 				201566DA290DD947005E5B22 /* translation.h */,
 				20156754290DD948005E5B22 /* viewframe.cpp */,
@@ -4032,6 +4058,12 @@
 		20156867290DD94B005E5B22 /* video */ = {
 			isa = PBXGroup;
 			children = (
+				2092B57F2B9B4BCB00B1AC1B /* flic_player.cpp */,
+				2092B5812B9B4BCC00B1AC1B /* flic_player.h */,
+				2092B57D2B9B4BCB00B1AC1B /* theora_player.cpp */,
+				2092B5802B9B4BCC00B1AC1B /* theora_player.h */,
+				2092B57E2B9B4BCB00B1AC1B /* videoplayer.cpp */,
+				2092B5822B9B4BCC00B1AC1B /* videoplayer.h */,
 				20156868290DD94B005E5B22 /* video.cpp */,
 				20156869290DD94B005E5B22 /* video.h */,
 			);
@@ -4041,6 +4073,8 @@
 		2015686A290DD94B005E5B22 /* audio */ = {
 			isa = PBXGroup;
 			children = (
+				2092B57A2B9B4BC200B1AC1B /* audioplayer.cpp */,
+				2092B57B2B9B4BC200B1AC1B /* audioplayer.h */,
 				2015686B290DD94C005E5B22 /* audiodefines.h */,
 				2015686C290DD94C005E5B22 /* sound.h */,
 				2015686D290DD94C005E5B22 /* soundclip.cpp */,
@@ -4223,6 +4257,22 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2092B5972B9B4D9B00B1AC1B /* audio_core.h in Headers */,
+				2092B59B2B9B4DB300B1AC1B /* queuedaudioitem.h in Headers */,
+				2092B59A2B9B4DAE00B1AC1B /* openal.h in Headers */,
+				2092B5962B9B4D9400B1AC1B /* audio.h in Headers */,
+				2092B58E2B9B4D6D00B1AC1B /* video.h in Headers */,
+				2092B58D2B9B4D6800B1AC1B /* videoplayer.h in Headers */,
+				2092B5932B9B4D8800B1AC1B /* soundclip.h in Headers */,
+				2092B5912B9B4D7A00B1AC1B /* audiodefines.h in Headers */,
+				2092B5992B9B4DA900B1AC1B /* audio_system.h in Headers */,
+				2092B5942B9B4D8C00B1AC1B /* ambientsound.h in Headers */,
+				2092B5952B9B4D9100B1AC1B /* sdldecoder.h in Headers */,
+				2092B5902B9B4D7600B1AC1B /* audioplayer.h in Headers */,
+				2092B5982B9B4DA300B1AC1B /* openalsource.h in Headers */,
+				2092B5882B9B4D3A00B1AC1B /* theora_player.h in Headers */,
+				2092B5922B9B4D7E00B1AC1B /* sound.h in Headers */,
+				2092B58A2B9B4D5A00B1AC1B /* flic_player.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4463,6 +4513,7 @@
 				1C9647A12B1E4D9D0034D46A /* scriptmouse.cpp in Sources */,
 				1C9647A22B1E4D9D0034D46A /* scriptsystem.cpp in Sources */,
 				1C9647A62B1E4D9D0034D46A /* cc_serializer.cpp in Sources */,
+				2092B5892B9B4D5700B1AC1B /* flic_player.cpp in Sources */,
 				1C9647A72B1E4D9D0034D46A /* scriptviewframe.cpp in Sources */,
 				1C9647AB2B1E4D9D0034D46A /* scriptdatetime.cpp in Sources */,
 				1C9647AC2B1E4D9D0034D46A /* cc_inventory.cpp in Sources */,
@@ -4580,6 +4631,7 @@
 				1C9648962B1E4D9E0034D46A /* game_init.cpp in Sources */,
 				1C96489A2B1E4D9E0034D46A /* savegame_components.cpp in Sources */,
 				1C96489B2B1E4D9E0034D46A /* viewport.cpp in Sources */,
+				2092B58F2B9B4D7100B1AC1B /* audioplayer.cpp in Sources */,
 				1C96489D2B1E4D9E0034D46A /* savegame.cpp in Sources */,
 				1C96489E2B1E4D9E0034D46A /* blender.cpp in Sources */,
 				1C9648A12B1E4D9E0034D46A /* gfxdriverfactory.cpp in Sources */,
@@ -4630,6 +4682,7 @@
 				1C96491F2B1E4D9E0034D46A /* agsplatformdriver.cpp in Sources */,
 				1C9649202B1E4D9E0034D46A /* agsplatform_xdg_unix.cpp in Sources */,
 				1C9649222B1E4D9E0034D46A /* plugin_stubs.cpp in Sources */,
+				2092B58C2B9B4D6500B1AC1B /* videoplayer.cpp in Sources */,
 				1C9649262B1E4D9E0034D46A /* agsplugin.cpp in Sources */,
 				1C96492E2B1E4D9E0034D46A /* executingscript.cpp in Sources */,
 				1C9649312B1E4D9E0034D46A /* script_api.cpp in Sources */,
@@ -4690,6 +4743,7 @@
 				1C96470B2B1E4D8E0034D46A /* datastream.cpp in Sources */,
 				1C96470D2B1E4D8E0034D46A /* textstreamreader.cpp in Sources */,
 				1C96470F2B1E4D8E0034D46A /* wgt2allg.cpp in Sources */,
+				2092B58B2B9B4D5F00B1AC1B /* theora_player.cpp in Sources */,
 				1C9647102B1E4D8E0034D46A /* path.cpp in Sources */,
 				1C9647152B1E4D8E0034D46A /* android_file.cpp in Sources */,
 				1C9647192B1E4D8E0034D46A /* stdio_compat.c in Sources */,
@@ -5298,6 +5352,7 @@
 					"\"${SOURCE_ROOT}/../../../Plugins\"",
 					"\"${SOURCE_ROOT}/../../../Engine\"",
 					"\"${SOURCE_ROOT}/../../../libsrc/SDL/include\"",
+					"\"${SOURCE_ROOT}/../../../Engine/libsrc/apeg-1.2.1\"",
 				);
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -5335,6 +5390,7 @@
 					"\"${SOURCE_ROOT}/../../../Plugins\"",
 					"\"${SOURCE_ROOT}/../../../Engine\"",
 					"\"${SOURCE_ROOT}/../../../libsrc/SDL/include\"",
+					"\"${SOURCE_ROOT}/../../../Engine/libsrc/apeg-1.2.1\"",
 				);
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;

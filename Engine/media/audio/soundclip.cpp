@@ -46,7 +46,7 @@ SOUNDCLIP::SOUNDCLIP(int slot, AudioFileType snd_type, bool loop)
 SOUNDCLIP::~SOUNDCLIP()
 {
     if (slot_ >= 0)
-        audio_core_get_player(slot_)->Stop();
+        audio_core_slot_stop(slot_);
 }
 
 int SOUNDCLIP::play()

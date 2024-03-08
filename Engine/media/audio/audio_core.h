@@ -89,6 +89,8 @@ int audio_core_slot_init(std::shared_ptr<std::vector<uint8_t>> &data, const AGS:
 int audio_core_slot_init(std::unique_ptr<AGS::Common::Stream> in, const AGS::Common::String &extension_hint, bool repeat);
 // Returns a AudioPlayer from the given slot, wrapped in a auto-locking struct.
 AGS::Engine::AudioPlayerLock audio_core_get_player(int slot_handle);
+// Stop and release the audio player at the given slot
+void audio_core_slot_stop(int slot_handle);
 
 #if defined(AGS_DISABLE_THREADS)
 // polls the audio core if we have no threads, polled in Engine/ac/timer.cpp

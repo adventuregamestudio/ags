@@ -84,6 +84,7 @@ int fli_pal_dirty_from = INT_MAX;      /* what part of fli_palette is dirty */
 int fli_pal_dirty_to = INT_MIN;
 
 int fli_frame = 0;                     /* current frame number in the FLI */
+int fli_frame_count = 0;               /* total number of frames in the FLI */
 
 int fli_speed = 0;                     /* speed of the fli playback */
 
@@ -857,6 +858,7 @@ static int do_open_fli(void)
    }
 
    reset_fli_variables();
+   fli_frame_count = fli_header.frame_count;
    fli_frame = 0;
    fli_status = FLI_OK;
 
@@ -921,6 +923,7 @@ int open_memory_fli(void *fli_data)
  */
 void close_fli(void)
 {
+   fli_frame_count = 0;
    fli_speed = 0;
 
    if (fli_file) {

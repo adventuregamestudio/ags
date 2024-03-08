@@ -80,6 +80,12 @@ public:
     // Update the state during a game tick;
     // returns whether should continue to run state loop, or stop
     virtual bool Run() = 0;
+
+    // Pause the state, makes sure that all related timers, threads etc
+    // are also paused, avoiding any unexpected updates
+    virtual void Pause() { /* do nothing */ };
+    // Resume the state after pausing
+    virtual void Resume() { /* do nothing */ };
 };
 
 

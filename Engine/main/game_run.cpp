@@ -937,6 +937,10 @@ float get_real_fps() {
     return fps;
 }
 
+float get_game_speed() {
+    return frames_per_second;
+}
+
 void set_loop_counter(unsigned int new_counter) {
     loopcounter = new_counter;
     t1 = AGS_Clock::now();

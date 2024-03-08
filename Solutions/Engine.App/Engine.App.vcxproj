@@ -647,7 +647,10 @@
     <ClCompile Include="..\..\Engine\media\audio\sdldecoder.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\sound.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\soundclip.cpp" />
+    <ClCompile Include="..\..\Engine\media\video\flic_player.cpp" />
+    <ClCompile Include="..\..\Engine\media\video\theora_player.cpp" />
     <ClCompile Include="..\..\Engine\media\video\video.cpp" />
+    <ClCompile Include="..\..\Engine\media\video\videoplayer.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\sys_main.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
@@ -915,7 +918,10 @@
     <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h" />
     <ClInclude Include="..\..\Engine\media\audio\sound.h" />
     <ClInclude Include="..\..\Engine\media\audio\soundclip.h" />
+    <ClInclude Include="..\..\Engine\media\video\flic_player.h" />
+    <ClInclude Include="..\..\Engine\media\video\theora_player.h" />
     <ClInclude Include="..\..\Engine\media\video\video.h" />
+    <ClInclude Include="..\..\Engine\media\video\videoplayer.h" />
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />

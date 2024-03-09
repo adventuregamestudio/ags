@@ -290,9 +290,9 @@ int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b)
 {
    int i, coldiff, lowest, bestfit;
 
-   ASSERT(r >= 0 && r <= 63);
-   ASSERT(g >= 0 && g <= 63);
-   ASSERT(b >= 0 && b <= 63);
+   ASSERT(r >= 0 && r <= 255);
+   ASSERT(g >= 0 && g <= 255);
+   ASSERT(b >= 0 && b <= 255);
 
    if (col_diff[1] == 0)
       bestfit_init();
@@ -301,7 +301,7 @@ int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b)
    lowest = INT_MAX;
 
    /* only the transparent (pink) color can be mapped to index 0 */
-   if ((r == 63) && (g == 0) && (b == 63))
+   if ((r == 255) && (g == 0) && (b == 255))
       i = 0;
    else
       i = 1;
@@ -679,9 +679,9 @@ void create_light_table(COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, in
    unsigned int t1, t2;
 
    ASSERT(table);
-   ASSERT(r >= 0 && r <= 63);
-   ASSERT(g >= 0 && g <= 63);
-   ASSERT(b >= 0 && b <= 63);
+   ASSERT(r >= 0 && r <= 255);
+   ASSERT(g >= 0 && g <= 255);
+   ASSERT(b >= 0 && b <= 255);
 
    if (rgb_map) {
       for (x=0; x<PAL_SIZE-1; x++) {

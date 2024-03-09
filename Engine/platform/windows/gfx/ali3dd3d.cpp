@@ -131,6 +131,15 @@ D3DGraphicsDriver::BackbufferState::BackbufferState(const D3DSurfacePtr &surface
     assert(Surface != nullptr);
 }
 
+D3DGraphicsDriver::BackbufferState::BackbufferState(D3DSurfacePtr &&surface,
+    const Size &surf_size, const Size &rend_sz,
+    const Rect &view, const glm::mat4 &proj, const PlaneScaling &scale, int filter)
+    : Surface(std::move(surface)), SurfSize(surf_size), RendSize(rend_sz)
+    , Viewport(view), Projection(proj), Scaling(scale), Filter(filter)
+{
+    assert(Surface != nullptr);
+}
+
 void D3DGraphicsDriver::set_up_default_vertices()
 {
   defaultVertices[0].position.x = 0.0f;
@@ -634,7 +643,7 @@ void D3DGraphicsDriver::SetupViewport()
   D3DSurfacePtr backbuffer;
   HRESULT hr = direct3ddevice->GetRenderTarget(0, backbuffer.Acquire());
   assert(hr == D3D_OK);
-  _screenBackbuffer = BackbufferState(backbuffer, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
+  _screenBackbuffer = BackbufferState(std::move(backbuffer), Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
       _dstRect, mat_ortho, _scaling, _filter ? _filter->GetSamplerStateForStandardSprite() : D3DTEXF_POINT);
 
   // View and Projection matrixes are currently fixed in Direct3D renderer

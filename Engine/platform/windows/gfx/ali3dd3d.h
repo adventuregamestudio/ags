@@ -323,7 +323,15 @@ private:
         BackbufferState(const D3DSurfacePtr &surface, const Size &surf_size, const Size &rend_size,
             const Rect &view, const glm::mat4 &proj,
             const PlaneScaling &scale, int filter);
+        BackbufferState(D3DSurfacePtr &&surface, const Size &surf_size, const Size &rend_size,
+            const Rect &view, const glm::mat4 &proj,
+            const PlaneScaling &scale, int filter);
+        BackbufferState(const BackbufferState &state) = default;
+        BackbufferState(BackbufferState &&state) = default;
         ~BackbufferState() = default;
+
+        BackbufferState &operator = (const BackbufferState &state) = default;
+        BackbufferState &operator = (BackbufferState &&state) = default;
     };
 
     BackbufferState _screenBackbuffer;

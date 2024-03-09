@@ -79,6 +79,9 @@ SysBitmap ^NativeRoom::GetBackground(int bgnum)
         throw gcnew AGSEditorException(System::String::Format(
             "Invalid background number {0}", bgnum));
     }
+    if (_rs->BackgroundBPP == 1)
+      return ConvertBlockToBitmap(_rs->BgFrames[bgnum].Graphic.get());
+
     return ConvertBlockToBitmap32(_rs->BgFrames[bgnum].Graphic.get(), _rs->Width, _rs->Height, true /* opaque */);
 }
 

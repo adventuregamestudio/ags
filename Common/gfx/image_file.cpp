@@ -61,9 +61,9 @@ static void bmp_read_palette(int bytes, RGB *pal, Stream *in, bool is_os2)
     int i, j;
 
     for (i=j=0; (i+3 <= bytes && j < PAL_SIZE); j++) {
-        pal[j].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[j].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[j].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
+        pal[j].b = static_cast<uint8_t>(in->ReadInt8());
+        pal[j].g = static_cast<uint8_t>(in->ReadInt8());
+        pal[j].r = static_cast<uint8_t>(in->ReadInt8());
 
         i += 3;
 
@@ -526,9 +526,9 @@ bool SaveBMP(const BitmapData &bmp, const RGB *pal, Stream *out) {
 
     /* palette */
     for (i=0; i<hdr.colorsCount; i++) {
-        out->WriteInt8(_rgb_scale_6[pal[i].b]);
-        out->WriteInt8(_rgb_scale_6[pal[i].g]);
-        out->WriteInt8(_rgb_scale_6[pal[i].r]);
+        out->WriteInt8(pal[i].b);
+        out->WriteInt8(pal[i].g);
+        out->WriteInt8(pal[i].r);
         out->WriteInt8(0);
     }
 
@@ -699,9 +699,9 @@ bool SavePCX(const BitmapData &bmp, const RGB *pal, Stream *out)
     out->WriteInt16(200);                 /* VDpi */
 
     for (c=0; c<16; c++) {
-        out->WriteInt8(_rgb_scale_6[pal[c].r]);
-        out->WriteInt8(_rgb_scale_6[pal[c].g]);
-        out->WriteInt8(_rgb_scale_6[pal[c].b]);
+        out->WriteInt8(pal[c].r);
+        out->WriteInt8(pal[c].g);
+        out->WriteInt8(pal[c].b);
     }
 
     out->WriteInt8(0);                     /* reserved */
@@ -760,9 +760,9 @@ bool SavePCX(const BitmapData &bmp, const RGB *pal, Stream *out)
         out->WriteInt8(12);
 
         for (c=0; c<256; c++) {
-            out->WriteInt8(_rgb_scale_6[pal[c].r]);
-            out->WriteInt8(_rgb_scale_6[pal[c].g]);
-            out->WriteInt8(_rgb_scale_6[pal[c].b]);
+            out->WriteInt8(pal[c].r);
+            out->WriteInt8(pal[c].g);
+            out->WriteInt8(pal[c].b);
         }
     }
     return true;
@@ -788,9 +788,9 @@ PixelBuffer LoadPCX(Stream *in, RGB *pal) {
     in->ReadInt32();                   /* skip DPI values */
 
     for (int i=0; i<16; i++) {           /* read the 16 color palette */
-        pal[i].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[i].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
-        pal[i].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
+        pal[i].r = static_cast<uint8_t>(in->ReadInt8());
+        pal[i].g = static_cast<uint8_t>(in->ReadInt8());
+        pal[i].b = static_cast<uint8_t>(in->ReadInt8());
     }
 
     in->ReadInt8();
@@ -869,9 +869,9 @@ PixelBuffer LoadPCX(Stream *in, RGB *pal) {
         for (int8_t j=0; !in->EOS(); j = in->ReadInt8()) {
             if (j == 12) {
                 for (int i=0; i<256; i++) {
-                    pal[i].r = static_cast<uint8_t>(in->ReadInt8()) / 4;
-                    pal[i].g = static_cast<uint8_t>(in->ReadInt8()) / 4;
-                    pal[i].b = static_cast<uint8_t>(in->ReadInt8()) / 4;
+                    pal[i].r = static_cast<uint8_t>(in->ReadInt8());
+                    pal[i].g = static_cast<uint8_t>(in->ReadInt8());
+                    pal[i].b = static_cast<uint8_t>(in->ReadInt8());
                     pal[i].filler = 0;
                 }
                 break;

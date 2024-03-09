@@ -121,7 +121,7 @@ namespace AGS.Editor
 
                 for (int i = 0; i < newPalette.Length; i++)
                 {
-                    newPalette[i] = new PaletteEntry(i, Color.FromArgb(rawPalette[i * 3] * 4, rawPalette[i * 3 + 1] * 4, rawPalette[i * 3 + 2] * 4));
+                    newPalette[i] = new PaletteEntry(i, Color.FromArgb(rawPalette[i * 3], rawPalette[i * 3 + 1], rawPalette[i * 3 + 2]));
                 }
             }
             else if (filename.ToLower().EndsWith(".bmp"))

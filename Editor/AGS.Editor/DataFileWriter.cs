@@ -556,9 +556,9 @@ namespace AGS.Editor
             }
             for (int i = 0; i < 256; ++i)
             {
-                writer.Write((byte)(game.Palette[i].Colour.R / 4));
-                writer.Write((byte)(game.Palette[i].Colour.G / 4));
-                writer.Write((byte)(game.Palette[i].Colour.B / 4));
+                writer.Write((byte)(game.Palette[i].Colour.R));
+                writer.Write((byte)(game.Palette[i].Colour.G));
+                writer.Write((byte)(game.Palette[i].Colour.B));
                 writer.Write((byte)0); // filler
             }
             writer.Write(game.ViewCount);

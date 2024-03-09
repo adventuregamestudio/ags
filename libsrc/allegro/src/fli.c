@@ -340,9 +340,9 @@ static void do_fli_256_color(unsigned char *p, int sz)
       fli_pal_dirty_to = MAX(fli_pal_dirty_to, end-1);
 
       for(; offset < end; offset++) {
-	 fli_palette[offset].r = READ_BYTE_NC(p) / 4;
-	 fli_palette[offset].g = READ_BYTE_NC(p) / 4;
-	 fli_palette[offset].b = READ_BYTE_NC(p) / 4;
+	 fli_palette[offset].r = READ_BYTE_NC(p);
+	 fli_palette[offset].g = READ_BYTE_NC(p);
+	 fli_palette[offset].b = READ_BYTE_NC(p);
       }
    }
 }

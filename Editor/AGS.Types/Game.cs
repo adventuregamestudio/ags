@@ -1060,9 +1060,9 @@ namespace AGS.Types
             byte[] rawPalette = new byte[768];
             for (int i = 0; i < _palette.Length; i++)
             {
-                rawPalette[i * 3] = (byte)(_palette[i].Colour.R / 4);
-                rawPalette[i * 3 + 1] = (byte)(_palette[i].Colour.G / 4);
-                rawPalette[i * 3 + 2] = (byte)(_palette[i].Colour.B / 4);
+                rawPalette[i * 3] = (byte)(_palette[i].Colour.R);
+                rawPalette[i * 3 + 1] = (byte)(_palette[i].Colour.G);
+                rawPalette[i * 3 + 2] = (byte)(_palette[i].Colour.B);
             }
             return rawPalette;
         }
@@ -1071,7 +1071,7 @@ namespace AGS.Types
         {
             for (int i = 0; i < _palette.Length; i++)
             {
-                _palette[i] = new PaletteEntry(i, Color.FromArgb(rawPalette[i * 3] * 4, rawPalette[i * 3 + 1] * 4, rawPalette[i * 3 + 2] * 4));
+                _palette[i] = new PaletteEntry(i, Color.FromArgb(rawPalette[i * 3], rawPalette[i * 3 + 1], rawPalette[i * 3 + 2]));
                 if (resetColourTypes)
                 {
                     if (i <= 41)

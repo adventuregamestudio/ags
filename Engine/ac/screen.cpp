@@ -311,9 +311,9 @@ private:
     {
         for (int a = 0; a < 256; a++)
         {
-            _fadePal[a].r = r / 4;
-	        _fadePal[a].g = g / 4;
-	        _fadePal[a].b = b / 4;
+            _fadePal[a].r = r;
+            _fadePal[a].g = g;
+            _fadePal[a].b = b;
         }
     }
 

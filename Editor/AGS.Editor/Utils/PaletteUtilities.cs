@@ -97,11 +97,10 @@ namespace AGS.Editor
                     usedSlotCount++;
             }
 
-            // Nativize RGB, clamp to 64-unit format to match historical engine's palette restriction
             Color[] srcColors = new Color[256];
             for (int i = 0; i < palette.Entries.Length; ++i)
             {
-                srcColors[i] = Color.FromArgb(0xFF, palette.Entries[i].R / 4, palette.Entries[i].G / 4, palette.Entries[i].B / 4);
+                srcColors[i] = Color.FromArgb(0xFF, palette.Entries[i].R, palette.Entries[i].G, palette.Entries[i].B);
             }
             // Fill any remaining slots with black color
             for (int i = palette.Entries.Length; i < 256; ++i)
@@ -186,7 +185,7 @@ namespace AGS.Editor
             ColorPalette finalPalette = BitmapExtensions.CreateColorPalette();
             for (int i = 0; i < 256; ++i)
             {
-                finalPalette.Entries[i] = Color.FromArgb(0xFF, finalColors[i].R * 4, finalColors[i].G * 4, finalColors[i].B * 4);
+                finalPalette.Entries[i] = Color.FromArgb(0xFF, finalColors[i].R, finalColors[i].G, finalColors[i].B);
             }
             scene.SetRawData(pixels);
             scene.Palette = finalPalette;
@@ -233,7 +232,7 @@ namespace AGS.Editor
         }
 
         // 1.5k lookup table for color matching
-        private static uint[] ColDiffTable = new uint[3 * 128];
+        private static uint[] ColDiffTable = new uint[3 * 512];
 
         /// <summary>
         /// Color matching is done with weighted squares, which are much faster
@@ -241,12 +240,12 @@ namespace AGS.Editor
         /// </summary>
         private static void BestFitInit()
         {
-            for (uint i = 1; i < 64; i++)
+            for (uint i = 1; i < 256; i++)
             {
                 uint k = i * i;
-                ColDiffTable[0 + i] = ColDiffTable[0 + 128 - i] = k * (59 * 59);
-                ColDiffTable[128 + i] = ColDiffTable[128 + 128 - i] = k * (30 * 30);
-                ColDiffTable[256 + i] = ColDiffTable[256 + 128 - i] = k * (11 * 11);
+                ColDiffTable[0 + i] = ColDiffTable[0 + 512 - i] = k * (14 * 14);
+                ColDiffTable[512 + i] = ColDiffTable[512 + 512 - i] = k * (8 * 8);
+                ColDiffTable[1024 + i] = ColDiffTable[1024 + 512 - i] = k * (3 * 3);
             }
         }
 
@@ -261,7 +260,7 @@ namespace AGS.Editor
 
             // only the transparent (pink) color can be mapped to index 0
             uint slot;
-            if ((r == 63) && (g == 0) && (b == 63))
+            if ((r == 255) && (g == 0) && (b == 255))
                 slot = 0;
             else
                 slot = 1;
@@ -272,13 +271,13 @@ namespace AGS.Editor
             for (; slot < 256; ++slot)
             {
                 Color col = pal[slot];
-                uint coldiff = ColDiffTable[0 + ((col.G - g) & 0x7F)];
+                uint coldiff = ColDiffTable[0 + ((col.G - g) & 0x1FF)];
                 if (coldiff < lowest)
                 {
-                    coldiff += ColDiffTable[128 + ((col.R - r) & 0x7F)];
+                    coldiff += ColDiffTable[512 + ((col.R - r) & 0x1FF)];
                     if (coldiff < lowest)
                     {
-                        coldiff += ColDiffTable[256 + ((col.B - b) & 0x7F)];
+                        coldiff += ColDiffTable[1024 + ((col.B - b) & 0x1FF)];
                         if (coldiff < lowest)
                         {
                             bestfit = slot;

@@ -152,6 +152,7 @@ target_sources(common
     util/path.h
     util/resourcecache.h
     util/scaling.h
+    util/smart_ptr.h
     util/stdio_compat.c
     util/stdio_compat.h
     util/stream.cpp

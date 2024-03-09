@@ -820,5 +820,8 @@
     <ClInclude Include="..\..\Common\util\resourcecache.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\smart_ptr.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

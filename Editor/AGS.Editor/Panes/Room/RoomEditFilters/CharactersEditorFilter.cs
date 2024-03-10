@@ -280,12 +280,7 @@ namespace AGS.Editor
                 int xPos = state.RoomXToWindow(character.StartX) - spriteSize.Width / 2;
                 int yPos = state.RoomYToWindow(character.StartY) - spriteSize.Height;
 
-                using (Bitmap sprite = Factory.NativeProxy.GetBitmapForSprite(spriteNum))
-                using (Bitmap sprite32bppAlpha = new Bitmap(sprite.Width, sprite.Height, PixelFormat.Format32bppArgb))
-                {
-                    sprite32bppAlpha.SetRawData(sprite.GetRawData());
-                    graphics.DrawImage(sprite32bppAlpha, xPos, yPos, spriteSize.Width, spriteSize.Height);
-                }
+                Utilities.DrawSpriteOnGraphics(graphics, spriteNum, xPos, yPos, spriteSize.Width, spriteSize.Height);
             }
         }
 

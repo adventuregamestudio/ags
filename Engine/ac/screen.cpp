@@ -84,7 +84,7 @@ void current_fade_out_effect () {
         get_palette(old_palette);
         const Rect &viewport = play.GetMainViewport();
         saved_viewport_bitmap = CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight(),
-            false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE);
+            &viewport, false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE);
     }
 }
 

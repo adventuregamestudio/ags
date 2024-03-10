@@ -47,6 +47,15 @@ namespace D3D
 
 using namespace Common;
 
+void RectToRECT(const Rect &in_rc, RECT &out_rc)
+{
+    out_rc.left = in_rc.Left;
+    out_rc.top = in_rc.Top;
+    out_rc.right = in_rc.Right + 1;
+    out_rc.bottom = in_rc.Bottom + 1;
+}
+
+
 D3DTexture::~D3DTexture()
 {
     if (_tiles)
@@ -906,18 +915,21 @@ void D3DGraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
+    const Rect *src_rect, bool at_native_res,
     GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (!_renderSprAtScreenRes)
       at_native_res = true;
 
-  Size need_size = at_native_res ? _srcRect.GetSize() : _dstRect.GetSize();
-  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != need_size)
+  Rect copy_from = src_rect ? *src_rect : _srcRect;
+  if (!at_native_res)
+    copy_from = _scaling.ScaleRange(copy_from);
+  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != copy_from.GetSize())
   {
     if (want_fmt)
-      *want_fmt = GraphicResolution(need_size.Width, need_size.Height, _mode.ColorDepth);
+      *want_fmt = GraphicResolution(copy_from.GetWidth(), copy_from.GetHeight(), _mode.ColorDepth);
     return false;
   }
   // If we are rendering sprites at the screen resolution, and requested native res,
@@ -966,8 +978,11 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     if (_pollingCallback)
       _pollingCallback();
 
+
+    RECT copy_from_rc;
+    RectToRECT(copy_from, copy_from_rc);
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, (at_native_res ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
+    if (surface->LockRect(&lockedRect, &copy_from_rc, D3DLOCK_READONLY) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
@@ -1290,10 +1305,7 @@ void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
         // Adjust a clipping rect to either whole screen, or a target texture
         Rect scissor = render_on_texture ? clip : _scaling.ScaleRange(clip);
         RECT d3d_scissor;
-        d3d_scissor.left = scissor.Left;
-        d3d_scissor.top = scissor.Top;
-        d3d_scissor.right = scissor.Right + 1;
-        d3d_scissor.bottom = scissor.Bottom + 1;
+        RectToRECT(scissor, d3d_scissor);
         direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
         direct3ddevice->SetScissorRect(&d3d_scissor);
     }

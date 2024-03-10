@@ -248,7 +248,8 @@ public:
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res, GraphicResolution *want_fmt,
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect,
+        bool at_native_res, GraphicResolution *want_fmt,
         uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
     void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };

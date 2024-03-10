@@ -291,6 +291,8 @@ void process_event(const EventHappened *evp) {
             if (game.color_depth == 1)
                 quit("!Cannot use crossfade screen transition in 256-colour games");
 
+            const bool fullredraw = gfxDriver->RequiresFullRedrawEachFrame();
+            const SpriteTransform spr_trans = play.GetGlobalTransform(fullredraw);
             // TODO: crossfade does not need a screen with transparency, it should be opaque;
             // but Software renderer cannot alpha-blend non-masked sprite at the moment,
             // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
@@ -305,7 +307,7 @@ void process_event(const EventHappened *evp) {
                 // draw old screen on top while alpha > 16
                 if (alpha > 16)
                 {
-                    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+                    gfxDriver->BeginSpriteBatch(viewport, spr_trans);
                     gfxDriver->DrawSprite(0, 0, ddb);
                     gfxDriver->EndSpriteBatch();
                 }
@@ -324,6 +326,8 @@ void process_event(const EventHappened *evp) {
             int aa,bb,cc;
             RGB interpal[256];
 
+            const bool fullredraw = gfxDriver->RequiresFullRedrawEachFrame();
+            const SpriteTransform spr_trans = play.GetGlobalTransform(fullredraw);
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in(false /* transparent */);
             for (aa=0;aa<16;aa++) {
                 // merge the palette while dithering
@@ -342,7 +346,7 @@ void process_event(const EventHappened *evp) {
                 gfxDriver->UpdateDDBFromBitmap(ddb, saved_viewport_bitmap, false);
                 construct_game_scene(true);
                 construct_game_screen_overlay(false);
-                gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+                gfxDriver->BeginSpriteBatch(viewport, spr_trans);
                 gfxDriver->DrawSprite(0, 0, ddb);
                 gfxDriver->EndSpriteBatch();
                 render_to_screen();

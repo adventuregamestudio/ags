@@ -39,11 +39,11 @@ extern AGSPlatformDriver *platform;
 extern int displayed_room;
 
 void fadein_impl(PALETTE p, int speed) {
+    // reset this early to force whole game draw during fading in
+    play.screen_is_faded_out = 0;
+
     if (game.color_depth > 1) {
         set_palette (p);
-
-        play.screen_is_faded_out = 0;
-
         if (play.no_hicolor_fadein) {
             return;
         }
@@ -77,7 +77,6 @@ void current_fade_out_effect () {
     else if (theTransition == FADE_BOXOUT) 
     {
         gfxDriver->BoxOutEffect(true, get_fixed_pixel_size(16), 1000 / GetGameSpeed(), RENDER_SHOT_SKIP_ON_FADE);
-        play.screen_is_faded_out = 1;
     }
     else 
     {
@@ -86,6 +85,8 @@ void current_fade_out_effect () {
         saved_viewport_bitmap = CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight(),
             &viewport, false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE);
     }
+
+    play.screen_is_faded_out = 1;
 }
 
 IDriverDependantBitmap* prepare_screen_for_transition_in(bool opaque)

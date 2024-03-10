@@ -284,7 +284,6 @@ void process_event(const EventHappened *evp) {
                 }
                 gfxDriver->SetMemoryBackBuffer(saved_backbuf);
             }
-            play.screen_is_faded_out = 0;
         }
         else if (theTransition == FADE_CROSSFADE) 
         {
@@ -359,7 +358,6 @@ void process_event(const EventHappened *evp) {
             set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }
-
     }
     else if (evp->type==EV_IFACECLICK)
         process_interface_click(evp->data1, evp->data2, evp->data3);

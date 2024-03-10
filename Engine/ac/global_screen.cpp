@@ -150,10 +150,8 @@ void fadeout_impl(int spdd) {
     if (play.screen_is_faded_out == 0)
     {
         gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue, RENDER_SHOT_SKIP_ON_FADE);
-    }
-
-    if (game.color_depth > 1)
         play.screen_is_faded_out = 1;
+    }
 }
 
 void SetScreenTransition(int newtrans) {

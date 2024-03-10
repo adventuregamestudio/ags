@@ -1644,7 +1644,7 @@ namespace AGS.Editor.Components
                 throw new ArgumentNullException(nameof(bmp));
             }
 
-            Bitmap newBmp = new Bitmap(bmp);
+            Bitmap newBmp = bmp.Clone() as Bitmap;
             bool hasResolutionChanged = _loadedRoom.Width != newBmp.Width || _loadedRoom.Height != newBmp.Height;
             _loadedRoom.Width = newBmp.Width;
             _loadedRoom.Height = newBmp.Height;

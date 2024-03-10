@@ -1778,28 +1778,15 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
       {
         // BMP files can have an arbitrary palette size, fill any
         // missing colours with black
-			  imgpal[i].r = 1;
-			  imgpal[i].g = 1;
-			  imgpal[i].b = 1;
+			  imgpal[i].r = 0;
+			  imgpal[i].g = 0;
+			  imgpal[i].b = 0;
       }
       else
       {
-			  imgpal[i].r = bmpPalette[i].R / 4;
-			  imgpal[i].g = bmpPalette[i].G / 4;
-			  imgpal[i].b = bmpPalette[i].B / 4;
-
-        if ((needToFixColourDepth) && (i > 0) && 
-            (imgpal[i].r == imgpal[0].r) &&
-            (imgpal[i].g == imgpal[0].g) && 
-            (imgpal[i].b == imgpal[0].b))
-        {
-          // convert any (0,0,0) colours to (1,1,1) since the image
-          // is about to be converted to hi-colour; this will preserve
-          // any transparency
-          imgpal[i].r = (imgpal[0].r < 32) ? (imgpal[0].r + 1) : (imgpal[0].r - 1);
-			    imgpal[i].g = (imgpal[0].g < 32) ? (imgpal[0].g + 1) : (imgpal[0].g - 1);
-			    imgpal[i].b = (imgpal[0].b < 32) ? (imgpal[0].b + 1) : (imgpal[0].b - 1);
-        }
+			  imgpal[i].r = bmpPalette[i].R;
+			  imgpal[i].g = bmpPalette[i].G;
+			  imgpal[i].b = bmpPalette[i].B;
       }
 		}
 	}
@@ -1828,8 +1815,33 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 			set_color_conversion(oldColorConv & ~COLORCONV_KEEP_TRANS);
 		}
 
-		spriteAtRightDepth->Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
+    if (colDepth == 8 && thisgame.color_depth > 1)
+    {
+      // manually compose to use the full palette instead of allegro 0-63 restricted one
+      const int maskcolor = spriteAtRightDepth->GetMaskColor();
+      // define a safe magenta color to use to preserve opacity in colors that match maskcolor
+      const int safe_magenta = (thisgame.color_depth == 2)
+        ? makecol_depth(thisgame.color_depth * 8, 255, 4, 255) // 16bit
+        : makecol_depth(thisgame.color_depth * 8, 255, 1, 255); // 24-32 bit
 
+      for (int ww = 0; ww<tempsprite->GetWidth(); ww++) {
+        for (int vv = 0; vv<tempsprite->GetHeight(); vv++) {
+          int px = tempsprite->GetPixel(ww, vv);
+          RGB pal_color = imgpal[px];
+          int color = makecol_depth(thisgame.color_depth * 8, pal_color.r, pal_color.g, pal_color.b);
+          if (keepTransparency && px == 0)
+            spriteAtRightDepth->PutPixel(ww, vv, spriteAtRightDepth->GetMaskColor() );
+          else if (keepTransparency && color == maskcolor) // replace magenta with close match
+            spriteAtRightDepth->PutPixel(ww, vv, safe_magenta);
+          else
+            spriteAtRightDepth->PutPixel(ww, vv, color);
+        }
+      }
+    }
+    else // let allegro do its own conversions
+    {
+      spriteAtRightDepth->Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
+    }
 		set_color_conversion(oldColorConv);
 
 		if (colDepth == 8) 

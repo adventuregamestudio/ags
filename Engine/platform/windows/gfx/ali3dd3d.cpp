@@ -1978,7 +1978,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
       // NOTE: pay attention that the texture format depends on the **display mode**'s color format,
       // rather than source bitmap's color depth!
-      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth);
+      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth, !opaque);
       HRESULT hr = direct3ddevice->CreateTexture(thisAllocatedWidth, thisAllocatedHeight, 1,
                                       texture_use, texture_fmt,
                                       texture_pool, &thisTile->texture, NULL);

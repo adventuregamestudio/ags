@@ -2571,7 +2571,7 @@ void put_sprite_list_on_screen(bool in_room)
             if (t.ddb->GetAlpha() == 0)
                 continue; // skip completely invisible things
             // mark the image's region as dirty
-            invalidate_sprite(t.x, t.y, t.ddb, in_room);
+            invalidate_sprite(t.aabb.Left, t.aabb.Top, t.ddb, in_room);
             // push to the graphics driver
             gfxDriver->DrawSprite(t.x, t.y,
                 t.aabb.Left, t.aabb.Top, t.ddb);

@@ -732,8 +732,6 @@ void init_draw_method()
     init_room_drawdata();
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
-
-    play.spritemodified.resize(game.SpriteInfos.size());
 }
 
 void dispose_draw_method()
@@ -764,6 +762,8 @@ void init_game_drawdata()
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
+
+    play.spritemodified.resize(game.SpriteInfos.size());
 }
 
 void dispose_game_drawdata()
@@ -779,6 +779,9 @@ void dispose_game_drawdata()
     gui_render_tex.clear();
     guiobjbg.clear();
     guiobjddbref.clear();
+
+    play.spritemodified.clear();
+    play.spritemodifiedlist.clear();
 }
 
 static void dispose_debug_room_drawdata()

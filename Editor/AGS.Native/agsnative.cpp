@@ -1782,6 +1782,13 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, RGB *imgpal,
 			  imgpal[i].g = 0;
 			  imgpal[i].b = 0;
       }
+      else if (thisgame.color_depth == 1)
+      {
+        // allegro palette is 0-63
+        imgpal[i].r = bmpPalette[i].R / 4;
+        imgpal[i].g = bmpPalette[i].G / 4;
+        imgpal[i].b = bmpPalette[i].B / 4;
+      }
       else
       {
 			  imgpal[i].r = bmpPalette[i].R;

@@ -261,7 +261,7 @@ int geta(int c)
 
 
 /* 1.5k lookup table for color matching */
-static unsigned int col_diff[3*128]; 
+static unsigned int col_diff[3*128*4]; 
 
 
 
@@ -273,11 +273,11 @@ static void bestfit_init(void)
 {
    int i;
 
-   for (i=1; i<64; i++) {
+   for (i=1; i<64*4; i++) {
       int k = i * i;
-      col_diff[0  +i] = col_diff[0  +128-i] = k * (59 * 59);
-      col_diff[128+i] = col_diff[128+128-i] = k * (30 * 30);
-      col_diff[256+i] = col_diff[256+128-i] = k * (11 * 11);
+      col_diff[0  +i] = col_diff[0  +128*4-i] = k * (59 * 59);
+      col_diff[4*128+i] = col_diff[128 * 4 +128 * 4 -i] = k * (30 * 30);
+      col_diff[4*256+i] = col_diff[256 * 4 +128 * 4 -i] = k * (11 * 11);
    }
 }
 
@@ -308,11 +308,11 @@ int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b)
 
    while (i<PAL_SIZE) {
       AL_CONST RGB *rgb = &pal[i];
-      coldiff = (col_diff + 0) [ (rgb->g - g) & 0x7F ];
+      coldiff = (col_diff + 0) [ (rgb->g - g) & 0x1FF];
       if (coldiff < lowest) {
-	 coldiff += (col_diff + 128) [ (rgb->r - r) & 0x7F ];
+	 coldiff += (col_diff + 128 * 4) [ (rgb->r - r) & 0x1FF];
 	 if (coldiff < lowest) {
-	    coldiff += (col_diff + 256) [ (rgb->b - b) & 0x7F ];
+	    coldiff += (col_diff + 256 * 4) [ (rgb->b - b) & 0x1FF];
 	    if (coldiff < lowest) {
 	       bestfit = rgb - pal;    /* faster than `bestfit = i;' */
 	       if (coldiff == 0)
@@ -512,7 +512,7 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal, void (*callback)(int
 
    /* converts r,g,b to position in array and back */
    #define pos(r, g, b) \
-		     (((r) / 2) * 32 * 32 + ((g) / 2) * 32 + ((b) / 2))
+		     (((r) / 2) * 32 * 32 * 4 + ((g) / 2) * 32 * 4 + ((b) / 2))
 
    #define depos(pal, r, g, b) \
 		     ((b) = ((pal) & 31) * 2, \

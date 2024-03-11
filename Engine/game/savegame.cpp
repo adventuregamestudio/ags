@@ -378,6 +378,10 @@ void DoBeforeRestore(PreservedParams &pp)
 
 void RestoreViewportsAndCameras(const RestoredData &r_data)
 {
+    // If restored from older saves, we have to adjust
+    // cam and view sizes to a main viewport, which is init later
+    const auto &main_view = play.GetMainViewport();
+
     for (size_t i = 0; i < r_data.Cameras.size(); ++i)
     {
         const auto &cam_dat = r_data.Cameras[i];
@@ -388,7 +392,10 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
         else
             cam->Release();
         cam->SetAt(cam_dat.Left, cam_dat.Top);
-        cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
+        if (r_data.LegacyViewCamera)
+            cam->SetSize(main_view.GetSize());
+        else
+            cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
     }
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {
@@ -396,7 +403,10 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
         auto view = play.GetRoomViewport(i);
         view->SetID(view_dat.ID);
         view->SetVisible((view_dat.Flags & kSvgViewportVisible) != 0);
-        view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
+        if (r_data.LegacyViewCamera)
+            view->SetRect(RectWH(view_dat.Left, view_dat.Top, main_view.GetWidth(), main_view.GetHeight()));
+        else
+            view->SetRect(RectWH(view_dat.Left, view_dat.Top, view_dat.Width, view_dat.Height));
         view->SetZOrder(view_dat.ZOrder);
         // Restore camera link
         int cam_index = view_dat.CamID;

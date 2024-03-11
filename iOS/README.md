@@ -50,7 +50,6 @@ framedrop = 0         ; Video framedrop, default 0
 renderer = 1          ; Renderer type (0 = Software, 1 = Render to screen, 2 = Render to texture), default 0
 smoothing = 0         ; Scale smoothing (0 = nearest-neighbor, linear) enabled, default 0,
 scaling = 1           ; Scaling style (0 = none, 1 = stretch and preserve aspect ratio, 2 stretch to whole screen), default 0
-super_sampling = 0    ; Super sampling (only if renderer = 1 or 2) (0 = x1, 1 = x2), default 0,
 smooth_sprites = 0    ; Sprite anti-aliasing, default 0
 [debug]
 show_fps = 0          ; Show FPS overlay while running the game, default 0

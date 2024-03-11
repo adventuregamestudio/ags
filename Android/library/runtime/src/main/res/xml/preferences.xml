@@ -120,14 +120,6 @@
 
         <androidx.preference.CheckBoxPreference
             android:dependency="@string/CONFIG_ENABLED"
-            android:key="@string/CONFIG_GFX_SS"
-            android:persistent="false"
-            android:shouldDisableView="true"
-            android:summary="Use a higher resolution for scaling objects"
-            android:title="Supersampling" />
-
-        <androidx.preference.CheckBoxPreference
-            android:dependency="@string/CONFIG_ENABLED"
             android:key="@string/CONFIG_GFX_SMOOTH_SPRITES"
             android:persistent="false"
             android:shouldDisableView="true"

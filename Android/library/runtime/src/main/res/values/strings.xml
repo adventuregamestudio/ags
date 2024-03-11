@@ -7,7 +7,7 @@
     <string name="CONFIG_GFX_RENDERER">9</string>
     <string name="CONFIG_GFX_SMOOTHING">10</string>
     <string name="CONFIG_GFX_SCALING">11</string>
-    <string name="CONFIG_GFX_SS">12</string>
+    <!--<string name="CONFIG_GFX_SS">12</string>-->
     <string name="CONFIG_ROTATION">13</string>
     <string name="CONFIG_ENABLED">14</string>
     <string name="CONFIG_DEBUG_FPS">15</string>

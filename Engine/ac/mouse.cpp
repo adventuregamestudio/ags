@@ -109,12 +109,14 @@ void update_cached_mouse_cursor(Bitmap *use_bmp)
 }
 
 // set_mouse_cursor: changes visual appearance to specified cursor
-void set_mouse_cursor(int newcurs) {
+void set_mouse_cursor(int newcurs, bool force_update)
+{
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
     Mouse::SetHotspot(hotspotx, hotspoty);
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
-    if (newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 &&
+    if (!force_update &&
+        newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 &&
         (mouse_frame > 0 || mouse_delay > 0))
     {
         return;

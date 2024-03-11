@@ -767,6 +767,11 @@ void dispose_game_drawdata()
 {
     clear_drawobj_cache();
 
+    // mouse cursor texture
+    if (mouse_cur_ddb)
+        gfxDriver->DestroyDDB(mouse_cur_ddb);
+    mouse_cur_ddb = nullptr;
+
     charcache.clear();
     actsps.clear();
     walkbehindobj.clear();

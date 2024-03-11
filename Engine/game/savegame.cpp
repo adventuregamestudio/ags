@@ -513,7 +513,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
 
     set_cursor_mode(r_data.CursorMode);
-    set_mouse_cursor(r_data.CursorID);
+    set_mouse_cursor(r_data.CursorID, true);
     if (r_data.CursorMode == MODE_USE)
         SetActiveInventory(playerchar->activeinv);
     // precache current cursor

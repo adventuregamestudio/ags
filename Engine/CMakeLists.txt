@@ -207,6 +207,8 @@ target_sources(engine
     ac/parser.cpp
     ac/parser.h
     ac/path_helper.h
+    ac/touch.cpp
+    ac/touch.h
     ac/properties.cpp
     ac/properties.h
     ac/region.cpp

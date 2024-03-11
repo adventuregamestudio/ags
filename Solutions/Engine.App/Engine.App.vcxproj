@@ -545,6 +545,7 @@
     <ClCompile Include="..\..\Engine\ac\object.cpp" />
     <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\parser.cpp" />
+    <ClCompile Include="..\..\Engine\ac\touch.cpp" />
     <ClCompile Include="..\..\Engine\ac\properties.cpp" />
     <ClCompile Include="..\..\Engine\ac\route_finder_impl.cpp" />
     <ClCompile Include="..\..\Engine\ac\scriptcontainers.cpp" />
@@ -791,6 +792,7 @@
     <ClInclude Include="..\..\Engine\ac\overlay.h" />
     <ClInclude Include="..\..\Engine\ac\parser.h" />
     <ClInclude Include="..\..\Engine\ac\path_helper.h" />
+    <ClInclude Include="..\..\Engine\ac\touch.h" />
     <ClInclude Include="..\..\Engine\ac\properties.h" />
     <ClInclude Include="..\..\Engine\ac\route_finder_impl.h" />
     <ClInclude Include="..\..\Engine\ac\sys_events.h" />

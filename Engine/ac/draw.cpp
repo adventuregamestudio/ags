@@ -824,6 +824,10 @@ void clear_drawobj_cache()
     }
     for (auto &o : guiobjbg) o = ObjTexture();
     overtxs.clear();
+    // mouse cursor texture
+    if (mouse_cur_ddb)
+        gfxDriver->DestroyDDB(mouse_cur_ddb);
+    mouse_cur_ddb = nullptr;
 
     // Clear "modified sprite" flags
     play.spritemodifiedlist.clear();

@@ -144,14 +144,12 @@ The preferences modifies the `android.cfg` file, either the local or global one.
 
 #### Graphics `[graphics]`
 
-- **Renderer** : Software (SDL2) or Hardware (OpenGL ES2)  
-  `renderer = 0, 1`  
+- **Renderer** : Software (SDL2), Hardware (OpenGL ES2) with rendering to screen, Hardware with rendering to texture.
+  `renderer = 0, 1, 2`  
 - **Screen Scaling** : No scaling, Fullscreen Preserving Aspect Ration, Fullscreen Stretch.  
   `scaling = 0, 1`  
 - **Linear Filtering** :  yes or no  
   `smoothing = 0, 1`  
-- **Super Sampling** : yes or no
-  `super_sampling = 0, 1`
 - **Smooth Scaled Sprites** : yes or no  
   `smooth_sprites = 0, 1`
   

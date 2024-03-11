@@ -81,7 +81,7 @@ const int CONFIG_VIDEO_FRAMEDROP = 8;
 const int CONFIG_GFX_RENDERER = 9;
 const int CONFIG_GFX_SMOOTHING = 10;
 const int CONFIG_GFX_SCALING = 11;
-const int CONFIG_GFX_SS = 12;
+const int CONFIG_GFX_SS = 12; // unused, maybe temporarily
 const int CONFIG_ROTATION = 13;
 const int CONFIG_ENABLED = 14;
 const int CONFIG_DEBUG_FPS = 15;
@@ -147,8 +147,6 @@ JNIEXPORT jint JNICALL
       return setup.gfx_smoothing;
     case CONFIG_GFX_SCALING:
       return setup.gfx_scaling;
-    case CONFIG_GFX_SS:
-      return setup.gfx_super_sampling;
     case CONFIG_GFX_SMOOTH_SPRITES:
       return setup.gfx_smooth_sprites;
     case CONFIG_ROTATION:
@@ -215,9 +213,6 @@ JNIEXPORT void JNICALL
       break;
     case CONFIG_GFX_SCALING:
       setup.gfx_scaling = value;
-      break;
-    case CONFIG_GFX_SS:
-      setup.gfx_super_sampling = value;
       break;
     case CONFIG_GFX_SMOOTH_SPRITES:
       setup.gfx_smooth_sprites = value;

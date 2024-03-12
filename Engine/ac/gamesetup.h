@@ -97,7 +97,6 @@ struct GameSetup
     bool  touch_motion_relative;
     //
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
-    int   Supersampling;
     size_t SpriteCacheSize = DefSpriteCacheSize; // in KB
     size_t TextureCacheSize = DefTexCacheSize; // in KB
     size_t SoundLoadAtOnceSize = DefSoundLoadAtOnce; // threshold for loading sounds immediately, in KB

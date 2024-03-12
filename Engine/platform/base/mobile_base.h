@@ -38,15 +38,11 @@ struct MobileSetup
     int gfx_renderer = 0;
     int gfx_scaling = 0;
     int gfx_smoothing = 0;
-    int gfx_super_sampling = 0;
     int gfx_smooth_sprites = 0;
 
     // Audio options
     int audio_enabled = 0;
     int audio_cachesize = 0;
-
-    // Video playback options
-    int video_framedrop = 0;
 
     // Debug options
     int debug_write_to_logcat = 0;

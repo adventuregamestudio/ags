@@ -48,7 +48,6 @@ Locations of two latter files differ between running platforms:
     * linear - anti-aliased scaling; not usable with software renderer.
   * refresh = \[integer\] - refresh rate for the display mode.
   * render_at_screenres = \[0; 1\] - whether the sprites are transformed and rendered in native game's or current display resolution;
-  * supersampling = \[integer\] - supersampling multiplier, default is 1, used with render_at_screenres = 0 (currently supported only by OpenGL renderer);
   * vsync = \[0; 1\] - enable or disable vertical sync.
   * rotation = \[string | integer\] - screen rotation. Possible values are:
     * unlocked (0) - device can be freely rotated if possible.

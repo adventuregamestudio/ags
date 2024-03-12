@@ -252,7 +252,7 @@ public:
         bool at_native_res, GraphicResolution *want_fmt,
         uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderSprAtScreenRes = enabled; };
+    void RenderSpritesAtScreenResolution(bool enabled) override { _renderSprAtScreenRes = enabled; };
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
         uint32_t batch_skip_filter = 0u) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue,

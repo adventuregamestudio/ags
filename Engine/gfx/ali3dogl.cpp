@@ -110,7 +110,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _legacyPixelShader = false;
   _can_render_to_texture = false;
   _do_render_to_texture = false;
-  _super_sampling = 1;
   SetupDefaultVertices();
 
   // Shifts comply to GL_RGBA
@@ -155,13 +154,11 @@ void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
     _mode.Height = device_screen_physical_height;
 }
 
-void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
 {
   if (_can_render_to_texture)
   {
     _do_render_to_texture = !enabled;
-    _super_sampling = supersampling;
-    TestSupersampling();
   }
 
   if (_do_render_to_texture)
@@ -392,7 +389,6 @@ void OGLGraphicsDriver::TestRenderToTexture()
 {
   if (CanDoFrameBuffer()) {
     _can_render_to_texture = true;
-    TestSupersampling();
   } else {
     _can_render_to_texture = false;
     Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension 'GL_EXT_framebuffer_object' not supported, rendering to texture mode will be disabled.");
@@ -401,21 +397,6 @@ void OGLGraphicsDriver::TestRenderToTexture()
   if (!_can_render_to_texture)
     _do_render_to_texture = false;
 }
-
-void OGLGraphicsDriver::TestSupersampling()
-{
-    if (!_can_render_to_texture)
-        return;
-    // Disable super-sampling if it would cause a too large texture size
-    if (_super_sampling > 1)
-    {
-      int max = 1024;
-      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-      if ((max < _srcRect.GetWidth() * _super_sampling) || (max < _srcRect.GetHeight() * _super_sampling))
-        _super_sampling = 1;
-    }
-}
-
 
 
 bool CreateTransparencyShader(ShaderProgram &prg);
@@ -724,7 +705,7 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
   DeleteBackbufferTexture();
 
   // _backbuffer_texture_coordinates defines translation from wanted texture size to actual supported texture size
-  _backRenderSize = _srcRect.GetSize() * _super_sampling;
+  _backRenderSize = _srcRect.GetSize();
   _backTextureSize = _backRenderSize;
   AdjustSizeToNearestSupportedByCard(&_backTextureSize.Width, &_backTextureSize.Height);
   const float back_ratio_w = (float)_backRenderSize.Width / (float)_backTextureSize.Width;
@@ -843,7 +824,6 @@ bool OGLGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
   SetupBackbufferTexture();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
-  TestSupersampling();
   return !_srcRect.IsEmpty();
 }
 

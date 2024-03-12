@@ -256,7 +256,7 @@ public:
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
         GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderAtScreenRes = enabled; };
+    void RenderSpritesAtScreenResolution(bool enabled) override { _renderAtScreenRes = enabled; };
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }

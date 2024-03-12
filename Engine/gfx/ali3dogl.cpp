@@ -111,7 +111,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _legacyPixelShader = false;
   _canRenderToTexture = false;
   _doRenderToTexture = false;
-  _superSampling = 1;
   SetupDefaultVertices();
 
   // Shifts comply to GL_RGBA
@@ -152,13 +151,11 @@ void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
     _mode.Height = device_screen_physical_height;
 }
 
-void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
 {
   if (_canRenderToTexture)
   {
     _doRenderToTexture = !enabled;
-    _superSampling = supersampling;
-    TestSupersampling();
   }
 
   if (_doRenderToTexture)
@@ -389,7 +386,6 @@ void OGLGraphicsDriver::TestRenderToTexture()
 {
   if (CanDoFrameBuffer()) {
     _canRenderToTexture = true;
-    TestSupersampling();
   } else {
     _canRenderToTexture = false;
     Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension 'GL_EXT_framebuffer_object' not supported, rendering to texture mode will be disabled.");
@@ -398,21 +394,6 @@ void OGLGraphicsDriver::TestRenderToTexture()
   if (!_canRenderToTexture)
     _doRenderToTexture = false;
 }
-
-void OGLGraphicsDriver::TestSupersampling()
-{
-    if (!_canRenderToTexture)
-        return;
-    // Disable super-sampling if it would cause a too large texture size
-    if (_superSampling > 1)
-    {
-      int max = 1024;
-      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-      if ((max < _srcRect.GetWidth() * _superSampling) || (max < _srcRect.GetHeight() * _superSampling))
-        _superSampling = 1;
-    }
-}
-
 
 
 bool CreateTransparencyShader(ShaderProgram &prg);
@@ -725,7 +706,7 @@ void OGLGraphicsDriver::SetupNativeTarget()
   if (!IsNativeSizeValid() || !_canRenderToTexture)
     return;
 
-  const Size surf_size = _srcRect.GetSize() * _superSampling;
+  const Size surf_size = _srcRect.GetSize();
   _nativeSurface = (OGLBitmap*)CreateRenderTargetDDB(
       surf_size.Width, surf_size.Height, _mode.ColorDepth, true);
   auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
@@ -805,7 +786,6 @@ bool OGLGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
   SetupNativeTarget();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
-  TestSupersampling();
   return !_srcRect.IsEmpty();
 }
 

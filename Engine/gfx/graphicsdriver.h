@@ -230,7 +230,7 @@ public:
   // drawn with additional fractional scaling will appear more detailed than
   // the rest of the game. The effect is stronger for the low-res games being
   // rendered in the high-res mode.
-  virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling = 1) = 0;
+  virtual void RenderSpritesAtScreenResolution(bool enabled) = 0;
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;

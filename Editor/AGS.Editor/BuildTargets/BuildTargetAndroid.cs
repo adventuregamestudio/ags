@@ -57,8 +57,6 @@ namespace AGS.Editor
             string clear_cache = Utilities.GetConfigString(cfg, "compatibility", "clear_cache_on_room_change", "0");
             string sound_enabled = Utilities.GetConfigString(cfg, "sound", "enabled", "1");
             string sound_cache_size = Utilities.GetConfigString(cfg, "sound", "cache_size", "32768");
-            string frame_drop = Utilities.GetConfigString(cfg, "video", "framedrop", "0");
-            string super_sampling = Utilities.GetConfigString(cfg, "graphics", "super_sampling", "0");
             string logging = Utilities.GetConfigString(cfg, "debug", "logging", "0");
 
             cfg = new Dictionary<string, Dictionary<string, string>>();
@@ -90,9 +88,6 @@ namespace AGS.Editor
             cfg["sound"]["enabled"] = sound_enabled;
             cfg["sound"]["cache_size"] = sound_cache_size;
 
-            // Video options
-            cfg["video"]["framedrop"] = frame_drop;
-
             // Graphic options
             if (setup.GraphicsDriver == GraphicsDriver.Software) {
                 cfg["graphics"]["renderer"] = "0";
@@ -114,7 +109,6 @@ namespace AGS.Editor
                 cfg["graphics"]["scaling"] = "0";
             }
 
-            cfg["graphics"]["super_sampling"] = super_sampling;
             cfg["graphics"]["smooth_sprites"] = setup.AAScaledSprites ? "1" : "0";
 
             // Debug options

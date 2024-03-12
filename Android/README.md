@@ -135,12 +135,7 @@ The preferences modifies the `android.cfg` file, either the local or global one.
 #### Sound `[sound]`
 
 - **Enabled** : yes or no  
-  `enabled = 0, 1`  
-
-#### Video `[video]`
-
-- **Drop frames if necessary** : disabled, to be removed  
-  `framedrop = 0, 1`
+  `enabled = 0, 1`
 
 #### Graphics `[graphics]`
 

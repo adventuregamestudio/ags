@@ -44,8 +44,6 @@ clear_cache_on_room_change = 0  ; For low-end devices, clear the cache when chan
 [sound]
 enabled = 1           ; Enable sound, default 0,
 cache_size = 64       ; Sound cache size in bytes, default 32 * 1024
-[video]
-framedrop = 0         ; Video framedrop, default 0
 [graphics]
 renderer = 1          ; Renderer type (0 = Software, 1 = Render to screen, 2 = Render to texture), default 0
 smoothing = 0         ; Scale smoothing (0 = nearest-neighbor, linear) enabled, default 0,

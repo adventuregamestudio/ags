@@ -35,8 +35,6 @@ bool WriteConfiguration(const MobileSetup &setup, const char *filename)
     CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
     CfgWriteInt(cfg, "sound", "cache_size", setup.audio_cachesize);
 
-    CfgWriteInt(cfg, "video", "framedrop", setup.video_framedrop);
-
     CfgWriteInt(cfg, "graphics", "renderer", setup.gfx_renderer);
     CfgWriteInt(cfg, "graphics", "smoothing", setup.gfx_smoothing);
     CfgWriteInt(cfg, "graphics", "scaling", setup.gfx_scaling);
@@ -76,8 +74,6 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
 
     setup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", true);
     setup.audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 32 * 1024);
-
-    setup.video_framedrop = CfgReadBoolInt(cfg, "video", "framedrop", true);
 
     setup.gfx_renderer = CfgReadInt(cfg, "graphics", "renderer", 0, 2, 0);
     setup.gfx_smoothing = CfgReadBoolInt(cfg, "graphics", "smoothing", true);

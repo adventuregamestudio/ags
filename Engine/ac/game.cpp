@@ -914,18 +914,18 @@ void skip_serialized_bitmap(Stream *in)
 
 Bitmap *create_savegame_screenshot()
 {
-    int usewid = data_to_game_coord(play.screenshot_width);
-    int usehit = data_to_game_coord(play.screenshot_height);
-    const Rect &viewport = play.GetMainViewport();
-    if (usewid > viewport.GetWidth())
-        usewid = viewport.GetWidth();
-    if (usehit > viewport.GetHeight())
-        usehit = viewport.GetHeight();
-
     if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
         quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
-    return CopyScreenIntoBitmap(usewid, usehit);
+    int usewid = data_to_game_coord(play.screenshot_width);
+    int usehit = data_to_game_coord(play.screenshot_height);
+    // NOTE: be aware that by the historical logic AGS makes a screenshot
+    // of a "main viewport", that may be smaller in legacy "letterbox" mode.
+    const Rect &viewport = play.GetMainViewport();
+    usewid = std::min(usewid, viewport.GetWidth());
+    usehit = std::min(usehit, viewport.GetHeight());
+
+    return CopyScreenIntoBitmap(usewid, usehit, &viewport);
 }
 
 void save_game(int slotn, const char*descript) {

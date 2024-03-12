@@ -916,12 +916,17 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
     }
 }
 
-bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
+    const Rect *src_rect, bool at_native_res,
     GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
   // Currently don't support copying in screen resolution when we are rendering in native
   if (_doRenderToTexture)
       at_native_res = true;
+
+  Rect copy_from = src_rect ? *src_rect : _srcRect;
+  if (!at_native_res)
+    copy_from = _scaling.ScaleRange(copy_from);
 
   // TODO: following implementation currently only reads GL pixels in 32-bit RGBA.
   // this **should** work regardless of actual display mode because OpenGL is
@@ -929,11 +934,10 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
   // If you like to support writing directly into 16-bit bitmap, please take
   // care of ammending the pixel reading code below.
   const int read_in_colordepth = 32;
-  Size need_size = at_native_res ? Size(_nativeSurface->_width, _nativeSurface->_height) : _dstRect.GetSize();
-  if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != need_size)
+  if (destination->GetColorDepth() != read_in_colordepth || destination->GetSize() != copy_from.GetSize())
   {
     if (want_fmt)
-      *want_fmt = GraphicResolution(need_size.Width, need_size.Height, read_in_colordepth);
+      *want_fmt = GraphicResolution(copy_from.GetWidth(), copy_from.GetHeight(), read_in_colordepth);
     return false;
   }
 
@@ -949,11 +953,9 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     _doRenderToTexture = old_render_res;
   }
 
-  Rect retr_rect;
   if (at_native_res)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _nativeSurface->_fbo);
-    retr_rect = RectWH(0, 0, need_size.Width, need_size.Height);
   }
   else
   {
@@ -961,14 +963,13 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
 #if !AGS_OPENGL_ES2
     glReadBuffer(GL_FRONT);
 #endif
-    retr_rect = _dstRect;
   }
 
   // Retrieve the backbuffer pixels
   const int bpp = read_in_colordepth / 8;
-  const int buf_sz = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
+  const int buf_sz = copy_from.GetWidth() * copy_from.GetHeight() * bpp;
   std::vector<uint8_t> buffer(buf_sz);
-  glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, &buffer.front());
+  glReadPixels(copy_from.Left, copy_from.Top, copy_from.GetWidth(), copy_from.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, &buffer.front());
 
   // Now convert from OGL RGBA to Allegro RGBA pixel format
   uint8_t* sourcePtr = &buffer.front();
@@ -979,7 +980,7 @@ bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_n
     {
       destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
     }
-    sourcePtr += retr_rect.GetWidth() * bpp;
+    sourcePtr += copy_from.GetWidth() * bpp;
   }
 
   return true;

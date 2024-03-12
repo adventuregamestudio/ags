@@ -697,7 +697,11 @@ int SaveScreenShot(const char*namm) {
     std::unique_ptr<Stream> out(File::OpenFileCI(filename, kFile_CreateAlways, kStream_Write));
     if (!out)
         return 0;
-    std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(play.GetMainViewport().GetWidth(), play.GetMainViewport().GetHeight()));
+
+    // NOTE: be aware that by the historical logic AGS makes a screenshot
+    // of a "main viewport", that may be smaller in legacy "letterbox" mode.
+    const Rect &viewport = play.GetMainViewport();
+    std::unique_ptr<Bitmap> bmp(CopyScreenIntoBitmap(viewport.GetWidth(), viewport.GetHeight(), &viewport));
     BitmapHelper::SaveBitmap(ext, out.get(), bmp.get());
     return 1;  // successful
 }

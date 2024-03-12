@@ -90,7 +90,7 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
     }
     return std::unique_ptr<Bitmap>(
         CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(),
-        false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE));
+        nullptr, false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE));
 }
 
 static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)

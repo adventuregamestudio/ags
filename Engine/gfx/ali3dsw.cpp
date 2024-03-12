@@ -743,11 +743,11 @@ void SDLRendererGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *t
     dst_bmp->Blit(virtualScreen);
 }
 
-bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
+bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect,
     bool at_native_res, GraphicResolution *want_fmt, uint32_t /*batch_skip_filter*/)
 {
   (void)at_native_res; // software driver always renders at native resolution at the moment
-  // software filter is taught to copy to any size
+  // software filter is taught to copy to any size, so only check color depth
   if (destination->GetColorDepth() != _srcColorDepth)
   {
     if (want_fmt)
@@ -755,15 +755,14 @@ bool SDLRendererGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
     return false;
   }
 
-  if (destination->GetSize() == virtualScreen->GetSize())
+  Rect copy_from = src_rect ? *src_rect : _srcRect;
+  if (destination->GetSize() == copy_from.GetSize())
   {
-    destination->Blit(virtualScreen, 0, 0, 0, 0, virtualScreen->GetWidth(), virtualScreen->GetHeight());
+    destination->Blit(virtualScreen, copy_from.Left, copy_from.Top, 0, 0, copy_from.GetWidth(), copy_from.GetHeight());
   }
   else
   {
-    destination->StretchBlt(virtualScreen,
-          RectWH(0, 0, virtualScreen->GetWidth(), virtualScreen->GetHeight()),
-          RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
+    destination->StretchBlt(virtualScreen, copy_from, RectWH(destination->GetSize()));
   }
   return true;
 }

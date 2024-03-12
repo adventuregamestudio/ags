@@ -19,8 +19,8 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _logPanel = new LogPanel();
+            _logPanel.HideOnClose = true; // IMPORTANT: don't destroy form on user closing the panel
             _logConfig = new DebugLog();
-
             _logPanel.LogConfig = _logConfig;
 
             _guiController.AddDockPane(_logPanel, new DockData(DockingState.DockBottom, Rectangle.Empty));

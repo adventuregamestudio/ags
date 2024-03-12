@@ -770,6 +770,11 @@ void dispose_game_drawdata()
 {
     clear_drawobj_cache();
 
+    // mouse cursor texture
+    if (mouse_cur_ddb)
+        gfxDriver->DestroyDDB(mouse_cur_ddb);
+    mouse_cur_ddb = nullptr;
+
     charcache.clear();
     actsps.clear();
     walkbehindobj.clear();
@@ -824,10 +829,6 @@ void clear_drawobj_cache()
     }
     for (auto &o : guiobjbg) o = ObjTexture();
     overtxs.clear();
-    // mouse cursor texture
-    if (mouse_cur_ddb)
-        gfxDriver->DestroyDDB(mouse_cur_ddb);
-    mouse_cur_ddb = nullptr;
 
     // Clear "modified sprite" flags
     play.spritemodifiedlist.clear();

@@ -44,11 +44,9 @@ const int CONFIG_IGNORE_ACSETUP = 0;
 const int CONFIG_CLEAR_CACHE = 1;
 const int CONFIG_AUDIO_ENABLED = 3;
 const int CONFIG_AUDIO_CACHESIZE = 5;
-const int CONFIG_VIDEO_FRAMEDROP = 8;
 const int CONFIG_GFX_RENDERER = 9;
 const int CONFIG_GFX_SMOOTHING = 10;
 const int CONFIG_GFX_SCALING = 11;
-const int CONFIG_GFX_SS = 12; // unused, maybe temporarily
 const int CONFIG_ROTATION = 13;
 const int CONFIG_ENABLED = 14;
 const int CONFIG_DEBUG_FPS = 15;
@@ -113,8 +111,6 @@ int readIntConfigValue(int id)
         return setup.audio_enabled;
       case CONFIG_AUDIO_CACHESIZE:
         return setup.audio_cachesize;
-      case CONFIG_VIDEO_FRAMEDROP:
-        return setup.video_framedrop;
       case CONFIG_GFX_RENDERER:
         return setup.gfx_renderer;
       case CONFIG_GFX_SMOOTHING:
@@ -173,9 +169,6 @@ void setIntConfigValue(int id, int value)
         break;
       case CONFIG_AUDIO_CACHESIZE:
         setup.audio_cachesize = value;
-        break;
-      case CONFIG_VIDEO_FRAMEDROP:
-        setup.video_framedrop = value;
         break;
       case CONFIG_GFX_RENDERER:
         setup.gfx_renderer = value;

@@ -76,18 +76,6 @@
     </androidx.preference.PreferenceCategory>
 
     <androidx.preference.PreferenceCategory
-        android:key="preference_key_video"
-        android:title="Video">
-        <androidx.preference.CheckBoxPreference
-            android:dependency="@string/CONFIG_ENABLED"
-            android:key="@string/CONFIG_VIDEO_FRAMEDROP"
-            android:persistent="false"
-            android:shouldDisableView="true"
-            android:summary="On slow devices this can lead to all frames being skipped"
-            android:title="Drop frames if necessary" />
-    </androidx.preference.PreferenceCategory>
-
-    <androidx.preference.PreferenceCategory
         android:key="preference_key_graphics"
         android:title="Graphics">
         <androidx.preference.ListPreference

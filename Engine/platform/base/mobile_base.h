@@ -44,9 +44,6 @@ struct MobileSetup
     int audio_enabled = 0;
     int audio_cachesize = 0;
 
-    // Video playback options
-    int video_framedrop = 0;
-
     // Debug options
     int debug_write_to_logcat = 0;
     int show_fps = 0;

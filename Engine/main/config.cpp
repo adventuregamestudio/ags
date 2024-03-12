@@ -333,7 +333,6 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.Params.VSync = CfgReadBoolInt(cfg, "graphics", "vsync");
         usetup.RenderAtScreenRes = CfgReadBoolInt(cfg, "graphics", "render_at_screenres");
         usetup.enable_antialiasing = CfgReadBoolInt(cfg, "graphics", "antialias", usetup.enable_antialiasing);
-        usetup.Supersampling = CfgReadInt(cfg, "graphics", "supersampling", 1);
         usetup.software_render_driver = CfgReadString(cfg, "graphics", "software_driver");
 
         usetup.rotation = (ScreenRotation)CfgReadInt(cfg, "graphics", "rotation", usetup.rotation);

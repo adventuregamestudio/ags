@@ -265,7 +265,7 @@ public:
         bool at_native_res, GraphicResolution *want_fmt,
         uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override;
+    void RenderSpritesAtScreenResolution(bool enabled) override;
     void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue,
         uint32_t batch_skip_filter = 0u) override;
     void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue,
@@ -325,14 +325,10 @@ private:
     // rendering to screen directly. This is known as supersampling mode
     bool _can_render_to_texture {};
     bool _do_render_to_texture {};
-    // Backbuffer texture multiplier, used to determine a size of texture
-    // relative to the native game size.
-    int _super_sampling {};
     unsigned int _backbuffer {};
     unsigned int _fbo {};
     GLint _screenFramebuffer = 0;
     // Size of the backbuffer drawing area, equals to native size
-    // multiplied by _super_sampling
     Size _backRenderSize {};
     // Actual size of the backbuffer texture, created by OpenGL
     Size _backTextureSize {};
@@ -370,8 +366,6 @@ private:
     void SetupDefaultVertices();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
-    // Test if supersampling should be allowed with the current setup
-    void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
     bool CreateShaders();
     // Configure backbuffer texture, that is used in render-to-texture mode

@@ -69,7 +69,7 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
     }
     return std::unique_ptr<Bitmap>(
         CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(),
-        nullptr, true /* always in native res */, RENDER_SHOT_SKIP_ON_FADE));
+        &view, true /* always in native res */, RENDER_SHOT_SKIP_ON_FADE));
 }
 
 static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
@@ -518,7 +518,8 @@ public:
         // draw old screen on top while alpha > 16
         if (_alpha > 16)
         {
-            gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+            gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
+                play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()));
             gfxDriver->DrawSprite(0, 0, _shot_ddb);
             gfxDriver->EndSpriteBatch();
         }
@@ -562,7 +563,8 @@ public:
     {
         construct_game_scene(true);
         construct_game_screen_overlay(false);
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
+            play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()));
         gfxDriver->DrawSprite(0, 0, _shot_ddb);
         gfxDriver->EndSpriteBatch();
         render_to_screen();

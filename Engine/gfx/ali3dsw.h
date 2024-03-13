@@ -195,6 +195,12 @@ public:
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
+    // Redraw last draw lists, optionally filtering specific batches
+    void RedrawLastFrame(uint32_t /*batch_skip_filter*/) override
+    {
+        // we already have a last frame on a virtual screen,
+        // but batch skipping is currently not supported
+    }
 
     void RenderToBackBuffer() override;
     void Render() override;

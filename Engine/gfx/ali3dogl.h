@@ -260,6 +260,9 @@ public:
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override;
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
+    // Redraw last draw lists, optionally filtering specific batches
+    void RedrawLastFrame(uint32_t batch_skip_filter) override;
+
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
@@ -417,8 +420,6 @@ private:
     void ClearDrawBackups();
     // Mark certain sprite batches to be skipped at the next render
     void FilterSpriteBatches(uint32_t skip_filter);
-    // Redraw saved draw lists, optionally filtering specific batches
-    void RedrawLastFrame(uint32_t skip_filter);
 
     void RenderAndPresent(bool clearDrawListAfterwards);
     void RenderImpl(bool clearDrawListAfterwards);

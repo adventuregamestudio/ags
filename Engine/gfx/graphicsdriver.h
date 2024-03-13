@@ -192,8 +192,11 @@ public:
   // Stage screens are used to let plugins do raw drawing during render callbacks.
   // TODO: find a better term? note, it's used in several places around renderers.
   virtual void SetStageScreen(const Size &sz, int x = 0, int y = 0) = 0;
+  // Redraw last draw lists, optionally filtering specific batches
+  virtual void RedrawLastFrame(uint32_t batch_skip_filter = 0u) = 0;
   // Clears all sprite batches, resets batch counter
   virtual void ClearDrawLists() = 0;
+
   // Renders draw lists and presents to screen.
   virtual void Render() = 0;
   // Renders and presents with additional final offset and flip.

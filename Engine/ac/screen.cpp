@@ -79,7 +79,6 @@ static IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
 // Note for "fade-out" from game_frame_to_ddb() applies here too.
 static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
 {
-    // TODO: use screenshot_to_ddb
     get_palette(old_palette);
     const auto &view = play.GetMainViewport();
     if (for_fadein)
@@ -131,6 +130,11 @@ public:
     ScreenTransition(ScreenTransitionStyle style, bool fade_in, int speed)
         : _style(style), _fadein(fade_in), _speed(speed)
     {
+    }
+
+    ~ScreenTransition() override
+    {
+        saved_viewport_bitmap.reset();
     }
 
     // Update the state during a game tick
@@ -274,7 +278,7 @@ public:
     {
         if (game.color_depth > 1)
         {
-            render_to_screen(); // CHECKME: is this necessary here?
+            render_to_screen(); // CHECKME: is this necessary here? maybe just do invalidate_screen()?
         }
         else
         {
@@ -450,6 +454,7 @@ public:
     // End the state, release all resources
     void End() override
     {
+        invalidate_screen();
     }
     // Draw the state
     void Draw() override
@@ -505,6 +510,8 @@ public:
         if (game.color_depth == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
+        play.screen_is_faded_out = 0; // force all game elements to draw
+
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
         // but Software renderer cannot alpha-blend non-masked sprite at the moment,
         // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
@@ -516,6 +523,7 @@ public:
     void End() override
     {
         saved_viewport_bitmap.reset();
+        invalidate_screen();
         set_palette_range(palette, 0, 255, 0);
         gfxDriver->DestroyDDB(_shot_ddb);
     }
@@ -524,8 +532,6 @@ public:
     {
         // do the crossfade
         _shot_ddb->SetAlpha(_alpha);
-        invalidate_screen();
-        gfxDriver->ClearDrawLists();
         construct_game_scene(true);
         construct_game_screen_overlay(false);
         // draw old screen on top while alpha > 16
@@ -558,6 +564,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        play.screen_is_faded_out = 0; // force all game elements to draw
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;
     }
@@ -565,13 +572,13 @@ public:
     void End() override
     {
         saved_viewport_bitmap.reset();
+        invalidate_screen();
         set_palette_range(palette, 0, 255, 0);
         gfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
     void Draw() override
     {
-        gfxDriver->ClearDrawLists();
         construct_game_scene(true);
         construct_game_screen_overlay(false);
         gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
@@ -582,15 +589,13 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
-        RGB interpal[256];
         const Rect &viewport = play.GetMainViewport();
 
         // merge the palette while dithering
         if (game.color_depth == 1) 
         {
-            fade_interpolate(old_palette, palette, interpal, _step * 4, 0, 255);
-            set_palette_range(interpal, 0, 255, 0);
+            fade_interpolate(old_palette, palette, _interpal, _step * 4, 0, 255);
+            set_palette_range(_interpal, 0, 255, 0);
         }
         // do the dissolving
         int maskCol = saved_viewport_bitmap->GetMaskColor();
@@ -598,7 +603,7 @@ public:
         {
             for (int y = 0; y < viewport.GetHeight(); y += 4)
             {
-                saved_viewport_bitmap->PutPixel(x + pattern[_step] / 4, y + pattern[_step] % 4, maskCol);
+                saved_viewport_bitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
             }
         }
         gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get(), false);
@@ -609,6 +614,9 @@ public:
 private:
     IDriverDependantBitmap *_shot_ddb = nullptr;
     int _step = 0;
+    const int _pattern[16] = {0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
+    // For 8-bit palette mode, will interpolate between old and new room palettes
+    RGB _interpal[256]{};
 };
 
 void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)

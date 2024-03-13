@@ -217,6 +217,7 @@ public:
             set_palette(*_fadeInPal);
         }
 
+        play.screen_is_faded_out = 0; // force all game elements to draw
         _alpha = 0;
 
         if (game.color_depth > 1)
@@ -226,7 +227,6 @@ public:
             // First of all we render the game once again and get the drawn frame as a bitmap.
             // Then we keep drawing saved image of the game with different alpha,
             // simulating fade-in or out.
-            play.screen_is_faded_out = 0; // force all game elements to draw
             _bmpFrame = game_frame_to_bmp(_fadein);
 
             _bmpBuff = gfxDriver->GetMemoryBackBuffer();
@@ -235,6 +235,12 @@ public:
         }
         else
         {
+            // Prepare game frame to the backbuffer once, but don't present yet
+            gfxDriver->ClearDrawLists();
+            construct_game_scene(true);
+            construct_game_screen_overlay(false);
+            gfxDriver->RenderToBackBuffer();
+
             Fade256Init(_fadeCol.r, _fadeCol.g, _fadeCol.b);
             if (_fadein)
             {
@@ -257,7 +263,7 @@ public:
     {
         if (game.color_depth > 1)
         {
-            render_to_screen(); // CHECKME: is this necessary here? maybe just do invalidate_screen()?
+            invalidate_screen();
         }
         else
         {
@@ -269,9 +275,10 @@ public:
     {
         if (game.color_depth > 1)
         {
+            const auto &view = play.GetMainViewport();
             _bmpBuff->Fill(_clearCol);
             set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
-            _bmpBuff->TransBlendBlt(_bmpFrame.get(), 0, 0);
+            _bmpBuff->TransBlendBlt(_bmpFrame.get(), view.Left, view.Top);
             render_to_screen();
         }
         else
@@ -445,18 +452,19 @@ public:
         {
             _boxWidth = Math::Clamp(_boxWidth, 0, view.GetWidth());
             _boxHeight = Math::Clamp(_boxHeight, 0, view.GetHeight());
-            int lxp = view.GetWidth() / 2 - _boxWidth / 2;
-            int lyp = view.GetHeight() / 2 - _boxHeight / 2;
-            _bmpBuff->Blit(_bmpFrame.get(), lxp, lyp, lxp, lyp, _boxWidth, _boxHeight);
+            int srcx = view.GetWidth() / 2 - _boxWidth / 2;
+            int srcy = view.GetHeight() / 2 - _boxHeight / 2;
+            _bmpBuff->Blit(_bmpFrame.get(), srcx, srcy, view.Left + srcx, view.Top + srcy, _boxWidth, _boxHeight);
             render_to_screen();
         }
         else
         {
+            int hcentre = view.GetWidth() / 2;
             int vcentre = view.GetHeight() / 2;
-            _bmpFrame->FillRect(Rect(view.GetWidth() / 2 - _boxWidth / 2, vcentre - _boxHeight / 2,
-                view.GetWidth() / 2 + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
+            _bmpFrame->FillRect(Rect(hcentre - _boxWidth / 2, vcentre - _boxHeight / 2,
+                hcentre + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
             _bmpBuff->Fill(0);
-            _bmpBuff->Blit(_bmpFrame.get());
+            _bmpBuff->Blit(_bmpFrame.get(), view.Left, view.Top);
             render_to_screen();
         }
     }

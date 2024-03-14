@@ -195,8 +195,8 @@ Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool make_opaque = f
 Common::PBitmap PrepareSpriteForUse(Common::PBitmap bitmap, bool make_opaque = false);
 // Makes a screenshot corresponding to the last screen render and returns it as a bitmap
 // of the requested width and height and game's native color depth.
-Common::Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res = false,
-    uint32_t batch_skip_filter = 0u);
+Common::Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect = nullptr,
+    bool at_native_res = false, uint32_t batch_skip_filter = 0u);
 
 
 // TODO: hide these behind some kind of an interface

@@ -36,6 +36,7 @@
 #include "gfx/gfxdriverbase.h"
 #include "util/library.h"
 #include "util/math.h"
+#include "util/smart_ptr.h"
 #include "util/string.h"
 
 namespace AGS
@@ -49,23 +50,31 @@ using AGS::Common::Bitmap;
 using AGS::Common::String;
 class D3DGfxFilter;
 
+// Declare smart ptr for common IDirect3D interfaces
+typedef ComPtr<IDirect3D9> D3DPtr;
+typedef ComPtr<IDirect3DDevice9> D3DDevicePtr;
+typedef ComPtr<IDirect3DSurface9> D3DSurfacePtr;
+typedef ComPtr<IDirect3DTexture9> D3DTexturePtr;
+typedef ComPtr<IDirect3DVertexBuffer9> D3DVertexBufferPtr;
+typedef ComPtr<IDirect3DPixelShader9> D3DPixelShaderPtr;
+
+
 struct D3DTextureTile : public TextureTile
 {
-    IDirect3DTexture9 *texture = nullptr;
+    D3DTexturePtr texture;
 };
 
 // Full Direct3D texture data
 struct D3DTexture : Texture
 {
-    IDirect3DVertexBuffer9 *_vertex = nullptr;
-    D3DTextureTile *_tiles = nullptr;
-    size_t _numTiles = 0;
+    D3DVertexBufferPtr _vertex;
+    std::vector<D3DTextureTile> _tiles;
 
     D3DTexture(const GraphicResolution &res, bool rt)
         : Texture(res, rt) {}
     D3DTexture(uint32_t id, const GraphicResolution &res, bool rt)
         : Texture(id, res, rt) {}
-    ~D3DTexture();
+    ~D3DTexture() = default;
     size_t GetMemSize() const override;
 };
 
@@ -117,7 +126,7 @@ public:
     // Direct3D texture data
     std::shared_ptr<D3DTexture> _data;
     // Optional surface for rendering onto a texture
-    IDirect3DSurface9 *_renderSurface {};
+    D3DSurfacePtr _renderSurface;
     TextureHint _renderHint = kTxHint_Normal;
 
     // Drawing parameters
@@ -153,25 +162,19 @@ public:
     // Releases internal texture data only, keeping the base struct
     void ReleaseTextureData();
 
-    ~D3DBitmap() override;
+    ~D3DBitmap() override = default;
 };
 
 class D3DGfxModeList : public IGfxModeList
 {
 public:
-    D3DGfxModeList(IDirect3D9 *direct3d, D3DFORMAT d3dformat)
+    D3DGfxModeList(const D3DPtr &direct3d, D3DFORMAT d3dformat)
         : _direct3d(direct3d)
         , _pixelFormat(d3dformat)
     {
-        _direct3d->AddRef();
         _modeCount = _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat);
     }
-
-    ~D3DGfxModeList() override
-    {
-        if (_direct3d)
-            _direct3d->Release();
-    }
+    ~D3DGfxModeList() = default;
 
     int GetModeCount() const override
     {
@@ -181,7 +184,7 @@ public:
     bool GetMode(int index, DisplayMode &mode) const override;
 
 private:
-    IDirect3D9 *_direct3d = nullptr;
+    D3DPtr      _direct3d;
     D3DFORMAT   _pixelFormat;
     int         _modeCount = 0;
 };
@@ -198,8 +201,7 @@ struct D3DSpriteBatch : VMSpriteBatch
 {
     // Add anything D3D specific here
     // Optional render target's surface
-    // FIXME: implement a C++ (template) wrapper around IUnknown, handle AddRef/Release auto!!
-    IDirect3DSurface9 *RenderSurface = nullptr;
+    D3DSurfacePtr RenderSurface;
 
     D3DSpriteBatch() = default;
     D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
@@ -209,7 +211,10 @@ struct D3DSpriteBatch : VMSpriteBatch
         const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
         const SpriteColorTransform &color)
         : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
-        , RenderSurface(render_target ? render_target->_renderSurface : nullptr) {}
+    {
+        if (render_target)
+            RenderSurface = render_target->_renderSurface;
+    }
 };
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
@@ -256,15 +261,18 @@ public:
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
+    // Redraw saved draw lists, optionally filtering specific batches
+    void RedrawLastFrame(uint32_t batch_skip_filter) override;
+
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     void Render(IDriverDependantBitmap *target) override;
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
         GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled, int /*supersampling*/) override { _renderAtScreenRes = enabled; };
+    void RenderSpritesAtScreenResolution(bool enabled) override { _renderAtScreenRes = enabled; };
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
@@ -276,7 +284,7 @@ public:
     void UnInit();
     void SetGraphicsFilter(PD3DFilter filter);
 
-    D3DGraphicsDriver(IDirect3D9 *d3d);
+    D3DGraphicsDriver(const D3DPtr &d3d);
     ~D3DGraphicsDriver() override;
 
 protected:
@@ -290,19 +298,19 @@ protected:
 private:
     PD3DFilter _filter;
 
-    IDirect3D9 *direct3d;
+    D3DPtr direct3d;
     D3DPRESENT_PARAMETERS d3dpp;
-    IDirect3DDevice9* direct3ddevice;
+    D3DDevicePtr direct3ddevice;
     D3DGAMMARAMP defaultgammaramp;
     D3DGAMMARAMP currentgammaramp;
     D3DCAPS9 direct3ddevicecaps;
     // Default vertex buffer, for textures that don't have one
-    IDirect3DVertexBuffer9* vertexbuffer;
+    D3DVertexBufferPtr vertexbuffer;
     // Texture for rendering in native resolution
     D3DBitmap *_nativeSurface = nullptr;
     CUSTOMVERTEX defaultVertices[4];
     String previousError;
-    IDirect3DPixelShader9* pixelShader;
+    D3DPixelShaderPtr pixelShader;
     bool _smoothScaling;
     bool _legacyPixelShader;
     float _pixelRenderXOffset;
@@ -313,8 +321,7 @@ private:
     // have a SINGLE STACK of "render target states", where backbuffer is at the bottom
     struct BackbufferState
     {
-        // FIXME: implement a C++ (template) wrapper around IUnknown, handle AddRef/Release in RAII way
-        IDirect3DSurface9 *Surface = nullptr;
+        D3DSurfacePtr Surface;
         // FIXME: replace RendSize with explicit render coordinate offset? merge with ortho matrix?
         Size SurfSize; // actual surface size
         Size RendSize; // coordinate grid size (for centering sprites)
@@ -324,10 +331,18 @@ private:
         int Filter = 0;
 
         BackbufferState() = default;
-        BackbufferState(IDirect3DSurface9 *surface, const Size &surf_size, const Size &rend_size,
+        BackbufferState(const D3DSurfacePtr &surface, const Size &surf_size, const Size &rend_size,
             const Rect &view, const glm::mat4 &proj,
             const PlaneScaling &scale, int filter);
-        ~BackbufferState();
+        BackbufferState(D3DSurfacePtr &&surface, const Size &surf_size, const Size &rend_size,
+            const Rect &view, const glm::mat4 &proj,
+            const PlaneScaling &scale, int filter);
+        BackbufferState(const BackbufferState &state) = default;
+        BackbufferState(BackbufferState &&state) = default;
+        ~BackbufferState() = default;
+
+        BackbufferState &operator = (const BackbufferState &state) = default;
+        BackbufferState &operator = (BackbufferState &&state) = default;
     };
 
     BackbufferState _screenBackbuffer;
@@ -381,8 +396,6 @@ private:
     void ClearDrawBackups();
     // Mark certain sprite batches to be skipped at the next render
     void FilterSpriteBatches(uint32_t skip_filter);
-    // Redraw saved draw lists, optionally filtering specific batches
-    void RedrawLastFrame(uint32_t skip_filter);
 
     void RenderAndPresent(bool clearDrawListAfterwards);
     void RenderImpl(bool clearDrawListAfterwards);
@@ -425,7 +438,7 @@ public:
     static D3DGraphicsDriver    *GetD3DDriver();
 
 private:
-    D3DGraphicsFactory();
+    D3DGraphicsFactory() = default;
 
     D3DGraphicsDriver   *EnsureDriverCreated() override;
     D3DGfxFilter        *CreateFilter(const String &id) override;
@@ -450,8 +463,8 @@ private:
     //
     // TODO: find out if there is better solution.
     // 
-    static Library      _library;
-    IDirect3D9         *_direct3d;
+    static Library _library;
+    D3DPtr         _direct3d;
 };
 
 } // namespace D3D

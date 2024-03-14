@@ -47,7 +47,7 @@ RGB old_palette[256];
 //-----------------------------------------------------------------------------
 // Game screenshot-making functions.
 //-----------------------------------------------------------------------------
-// Create a DDB and render game screen on it.
+// Render game screen and copy to bitmap.
 // NOTE: for fading-out:
 // please keep in mind: redrawing last saved frame here instead of constructing new one
 // is done because of backwards-compatibility issue: originally AGS faded out using frame
@@ -56,30 +56,8 @@ RGB old_palette[256];
 // but these were not supposed to get on screen until before fade-in.
 //
 // This special fade-out behavior may be deprecated later if wanted.
-static IDriverDependantBitmap *game_frame_to_ddb(bool for_fadein)
-{
-    const auto &view = play.GetMainViewport();
-    auto *shot_ddb = gfxDriver->CreateRenderTargetDDB(view.GetWidth(), view.GetHeight(), gfxDriver->GetDisplayMode().ColorDepth);
-    if (for_fadein)
-    {
-        gfxDriver->ClearDrawLists();
-        construct_game_scene(true);
-        construct_game_screen_overlay(false);
-        gfxDriver->Render(shot_ddb);
-    }
-    else
-    {
-        gfxDriver->GetCopyOfScreenIntoDDB(shot_ddb, RENDER_SHOT_SKIP_ON_FADE);
-    }
-    return shot_ddb;
-}
-
-// Render game screen and copy to bitmap. This is a variant of game_frame_to_ddb,
-// meant for the case when this is meant for software drawing.
-// Note for "fade-out" from game_frame_to_ddb() applies here too.
 static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
 {
-    // TODO: use screenshot_to_ddb
     get_palette(old_palette);
     const auto &view = play.GetMainViewport();
     if (for_fadein)
@@ -91,7 +69,7 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
     }
     return std::unique_ptr<Bitmap>(
         CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(),
-        false /* use current resolution */, RENDER_SHOT_SKIP_ON_FADE));
+        &view, true /* always in native res */, RENDER_SHOT_SKIP_ON_FADE));
 }
 
 static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
@@ -118,11 +96,7 @@ static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
 
 
 //-----------------------------------------------------------------------------
-// Software fade routines - for 8-bit and 16/32-bit
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// End software fade routines
+// Transition game states
 //-----------------------------------------------------------------------------
 
 class ScreenTransition : public GameState
@@ -131,6 +105,11 @@ public:
     ScreenTransition(ScreenTransitionStyle style, bool fade_in, int speed)
         : _style(style), _fadein(fade_in), _speed(speed)
     {
+    }
+
+    ~ScreenTransition() override
+    {
+        saved_viewport_bitmap.reset();
     }
 
     // Update the state during a game tick
@@ -150,9 +129,9 @@ public:
 protected:
     virtual bool RunImpl() = 0;
 
-    ScreenTransitionStyle _style;
-    bool _fadein;
-    int _speed;
+    ScreenTransitionStyle _style = kScrTran_Instant;
+    bool _fadein = false;
+    int _speed = 0;
 };
 
 class ScreenFade : public ScreenTransition
@@ -171,7 +150,6 @@ public:
         _speed *= 2;
         // Create a "screenshot" on a texture
         play.screen_is_faded_out = 0; // force all game elements to draw
-        _shot_ddb = game_frame_to_ddb(_fadein);
 
         const auto &view = play.GetMainViewport();
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
@@ -185,15 +163,20 @@ public:
     void End() override
     {
         gfxDriver->DestroyDDB(_fade);
-        gfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
     void Draw() override
     {
-        // Construct scene in order: game screen, fade fx, post game overlay
+        // Construct scene in order: game screen, fade fx, post game overlay.
+        // NOTE: for backwards compatibility we have to redraw last frame
+        // when fading out. Please see the note to game_frame_to_bmp() for details.
+        if (_fadein)
+            construct_game_scene();
+        else
+            gfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
+
         const auto &view = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
-        gfxDriver->DrawSprite(0, 0, _shot_ddb);
+        gfxDriver->BeginSpriteBatch(view, SpriteTransform(), kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         _fade->SetAlpha(_fadein ? (255 - _alpha) : _alpha);
         gfxDriver->DrawSprite(0, 0, _fade);
         gfxDriver->EndSpriteBatch();
@@ -207,7 +190,7 @@ public:
     }
 
 private:
-    IDriverDependantBitmap *_shot_ddb = nullptr;
+    bool _fadeIn = false;
     IDriverDependantBitmap *_fade = nullptr;
     int _alpha = 0;
 };
@@ -234,6 +217,7 @@ public:
             set_palette(*_fadeInPal);
         }
 
+        play.screen_is_faded_out = 0; // force all game elements to draw
         _alpha = 0;
 
         if (game.color_depth > 1)
@@ -243,7 +227,6 @@ public:
             // First of all we render the game once again and get the drawn frame as a bitmap.
             // Then we keep drawing saved image of the game with different alpha,
             // simulating fade-in or out.
-            play.screen_is_faded_out = 0; // force all game elements to draw
             _bmpFrame = game_frame_to_bmp(_fadein);
 
             _bmpBuff = gfxDriver->GetMemoryBackBuffer();
@@ -252,6 +235,12 @@ public:
         }
         else
         {
+            // Prepare game frame to the backbuffer once, but don't present yet
+            gfxDriver->ClearDrawLists();
+            construct_game_scene(true);
+            construct_game_screen_overlay(false);
+            gfxDriver->RenderToBackBuffer();
+
             Fade256Init(_fadeCol.r, _fadeCol.g, _fadeCol.b);
             if (_fadein)
             {
@@ -274,7 +263,7 @@ public:
     {
         if (game.color_depth > 1)
         {
-            render_to_screen(); // CHECKME: is this necessary here?
+            invalidate_screen();
         }
         else
         {
@@ -286,9 +275,10 @@ public:
     {
         if (game.color_depth > 1)
         {
+            const auto &view = play.GetMainViewport();
             _bmpBuff->Fill(_clearCol);
             set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
-            _bmpBuff->TransBlendBlt(_bmpFrame.get(), 0, 0);
+            _bmpBuff->TransBlendBlt(_bmpFrame.get(), view.Left, view.Top);
             render_to_screen();
         }
         else
@@ -354,7 +344,6 @@ public:
     {
         // Create a "screenshot" on a texture
         play.screen_is_faded_out = 0; // force all game elements to draw
-        _shot_ddb = game_frame_to_ddb(_fadein);
 
         const auto &view = play.GetMainViewport();
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
@@ -377,15 +366,19 @@ public:
             if (_fade[i])
                 gfxDriver->DestroyDDB(_fade[i]);
         }
-        gfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
     void Draw() override
     {
-        // Construct scene in order: game screen, fade fx, post game overlay
+        // NOTE: for backwards compatibility we have to redraw last frame
+        // when fading out. Please see the note to game_frame_to_bmp() for details.
+        if (_fadein)
+            construct_game_scene();
+        else
+            gfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
+
         const auto &view = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(view, SpriteTransform());
-        gfxDriver->DrawSprite(0, 0, _shot_ddb);
+        gfxDriver->BeginSpriteBatch(view, SpriteTransform(), kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         if (_fadein)
         {
             gfxDriver->DrawSprite(view.GetWidth() / 2 - _boxWidth / 2 - view.GetWidth(), 0, _fade[0]);
@@ -411,7 +404,6 @@ public:
     }
 
 private:
-    IDriverDependantBitmap *_shot_ddb = nullptr;
     // For fade-in we create 4 boxes, one across each side of the screen;
     // for fade-out we need 1 box that will stretch from center until covers whole screen
     IDriverDependantBitmap *_fade[4]{};
@@ -450,6 +442,7 @@ public:
     // End the state, release all resources
     void End() override
     {
+        invalidate_screen();
     }
     // Draw the state
     void Draw() override
@@ -459,18 +452,19 @@ public:
         {
             _boxWidth = Math::Clamp(_boxWidth, 0, view.GetWidth());
             _boxHeight = Math::Clamp(_boxHeight, 0, view.GetHeight());
-            int lxp = view.GetWidth() / 2 - _boxWidth / 2;
-            int lyp = view.GetHeight() / 2 - _boxHeight / 2;
-            _bmpBuff->Blit(_bmpFrame.get(), lxp, lyp, lxp, lyp, _boxWidth, _boxHeight);
+            int srcx = view.GetWidth() / 2 - _boxWidth / 2;
+            int srcy = view.GetHeight() / 2 - _boxHeight / 2;
+            _bmpBuff->Blit(_bmpFrame.get(), srcx, srcy, view.Left + srcx, view.Top + srcy, _boxWidth, _boxHeight);
             render_to_screen();
         }
         else
         {
+            int hcentre = view.GetWidth() / 2;
             int vcentre = view.GetHeight() / 2;
-            _bmpFrame->FillRect(Rect(view.GetWidth() / 2 - _boxWidth / 2, vcentre - _boxHeight / 2,
-                view.GetWidth() / 2 + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
+            _bmpFrame->FillRect(Rect(hcentre - _boxWidth / 2, vcentre - _boxHeight / 2,
+                hcentre + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
             _bmpBuff->Fill(0);
-            _bmpBuff->Blit(_bmpFrame.get());
+            _bmpBuff->Blit(_bmpFrame.get(), view.Left, view.Top);
             render_to_screen();
         }
     }
@@ -505,6 +499,8 @@ public:
         if (game.color_depth == 1)
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
+        play.screen_is_faded_out = 0; // force all game elements to draw
+
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
         // but Software renderer cannot alpha-blend non-masked sprite at the moment,
         // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
@@ -516,6 +512,7 @@ public:
     void End() override
     {
         saved_viewport_bitmap.reset();
+        invalidate_screen();
         set_palette_range(palette, 0, 255, 0);
         gfxDriver->DestroyDDB(_shot_ddb);
     }
@@ -524,14 +521,13 @@ public:
     {
         // do the crossfade
         _shot_ddb->SetAlpha(_alpha);
-        invalidate_screen();
-        gfxDriver->ClearDrawLists();
         construct_game_scene(true);
         construct_game_screen_overlay(false);
         // draw old screen on top while alpha > 16
         if (_alpha > 16)
         {
-            gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+            gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
+                play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()));
             gfxDriver->DrawSprite(0, 0, _shot_ddb);
             gfxDriver->EndSpriteBatch();
         }
@@ -558,6 +554,7 @@ public:
     // Begin the state, initialize and prepare any resources
     void Begin() override
     {
+        play.screen_is_faded_out = 0; // force all game elements to draw
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;
     }
@@ -565,16 +562,17 @@ public:
     void End() override
     {
         saved_viewport_bitmap.reset();
+        invalidate_screen();
         set_palette_range(palette, 0, 255, 0);
         gfxDriver->DestroyDDB(_shot_ddb);
     }
     // Draw the state
     void Draw() override
     {
-        gfxDriver->ClearDrawLists();
         construct_game_scene(true);
         construct_game_screen_overlay(false);
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), SpriteTransform());
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
+            play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()));
         gfxDriver->DrawSprite(0, 0, _shot_ddb);
         gfxDriver->EndSpriteBatch();
         render_to_screen();
@@ -582,15 +580,13 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        int pattern[16]={0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
-        RGB interpal[256];
         const Rect &viewport = play.GetMainViewport();
 
         // merge the palette while dithering
         if (game.color_depth == 1) 
         {
-            fade_interpolate(old_palette, palette, interpal, _step * 4, 0, 255);
-            set_palette_range(interpal, 0, 255, 0);
+            fade_interpolate(old_palette, palette, _interpal, _step * 4, 0, 255);
+            set_palette_range(_interpal, 0, 255, 0);
         }
         // do the dissolving
         int maskCol = saved_viewport_bitmap->GetMaskColor();
@@ -598,7 +594,7 @@ public:
         {
             for (int y = 0; y < viewport.GetHeight(); y += 4)
             {
-                saved_viewport_bitmap->PutPixel(x + pattern[_step] / 4, y + pattern[_step] % 4, maskCol);
+                saved_viewport_bitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
             }
         }
         gfxDriver->UpdateDDBFromBitmap(_shot_ddb, saved_viewport_bitmap.get());
@@ -609,6 +605,9 @@ public:
 private:
     IDriverDependantBitmap *_shot_ddb = nullptr;
     int _step = 0;
+    const int _pattern[16] = {0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
+    // For 8-bit palette mode, will interpolate between old and new room palettes
+    RGB _interpal[256]{};
 };
 
 void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)

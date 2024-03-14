@@ -275,6 +275,8 @@ Engine:
  - Ensure that when Overlays have identical ZOrder they will be sorted in the order of their
    creation. Besides convenience, this is also meant to restore historical behavior from before
    Overlay.ZOrder property was introduced.
+ - Allow game to call DynamicSprite.CreateFromDrawingSurface() and CreateFromBackground()
+   with zero or negative size, clamping it to 1x1, in consistency with Create().
  - Engine will now log a warning for the most incorrect parameters to Animate function instead
    of quitting the game.
  - Engine will now skip blocking Character.Say commands instantly while skipping a cutscene.
@@ -310,6 +312,7 @@ Engine:
  - Fixed script behavior in case a local variable was assigned a value without being initialized
    with a zero memory by compiler's intruction beforehand. This is not a problem with the standard
    compiler, but technically could be an issue with any custom implementation.
+ - Fixed old-style letterbox viewport getting broken after loading an old pre-3.5.0 save.
 
 Engine Plugin API:
  - Added IAGSStream interface, IAGSEngine.OpenFileStream() and GetFileStreamByHandle().
@@ -342,7 +345,8 @@ Web / Emscripten:
 
 WinSetup:
  - Added options for setting texture cache and sound cache size.
- - Added options to disable particular graphic drivers and graphic driver selection.
+ - Added options to disable particular graphic drivers and graphic driver selection,
+   and fullscreen mode selection.
 
 
 VERSION 3.6.0 - Patch 10, February 2024

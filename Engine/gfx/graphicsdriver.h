@@ -199,8 +199,11 @@ public:
   // Stage screens are used to let plugins do raw drawing during render callbacks.
   // TODO: find a better term? note, it's used in several places around renderers.
   virtual void SetStageScreen(const Size &sz, int x = 0, int y = 0) = 0;
+  // Redraw last draw lists, optionally filtering specific batches
+  virtual void RedrawLastFrame(uint32_t batch_skip_filter = 0u) = 0;
   // Clears all sprite batches, resets batch counter
   virtual void ClearDrawLists() = 0;
+
   // Renders draw lists and presents to screen.
   virtual void Render() = 0;
   // Renders and presents with additional final offset and flip.
@@ -218,7 +221,9 @@ public:
   // Copies contents of the game screen into bitmap using simple blit or pixel copy.
   // Bitmap must be of supported size and pixel format. If it's not the method will
   // fail and optionally write wanted destination format into 'want_fmt' pointer.
-  virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+  // Optionally a "src_rect" may be provided for a partial copy; this rectangle
+  // must be given in *native* coordinates.
+  virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
       GraphicResolution *want_fmt = nullptr, uint32_t batch_skip_filter = 0u) = 0;
   // Tells if the renderer supports toggling vsync after initializing the mode.
   virtual bool DoesSupportVsyncToggle() = 0;
@@ -232,7 +237,7 @@ public:
   // drawn with additional fractional scaling will appear more detailed than
   // the rest of the game. The effect is stronger for the low-res games being
   // rendered in the high-res mode.
-  virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling = 1) = 0;
+  virtual void RenderSpritesAtScreenResolution(bool enabled) = 0;
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;

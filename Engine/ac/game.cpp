@@ -892,18 +892,13 @@ void skip_serialized_bitmap(Stream *in)
 
 Bitmap *create_savegame_screenshot()
 {
-    int usewid = play.screenshot_width;
-    int usehit = play.screenshot_height;
-    const Rect &viewport = play.GetMainViewport();
-    if (usewid > viewport.GetWidth())
-        usewid = viewport.GetWidth();
-    if (usehit > viewport.GetHeight())
-        usehit = viewport.GetHeight();
-
     if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
         quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
-    return CopyScreenIntoBitmap(usewid, usehit);
+    const Rect &viewport = play.GetMainViewport();
+    int usewid = std::min(play.screenshot_width, viewport.GetWidth());
+    int usehit = std::min(play.screenshot_height, viewport.GetHeight());
+    return CopyScreenIntoBitmap(usewid, usehit, &viewport);
 }
 
 void save_game(int slotn, const char*descript) {

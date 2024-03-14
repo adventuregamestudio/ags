@@ -96,11 +96,6 @@ namespace AGS.Editor
             }
         }
 
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            this.Visible = false;
-        }
-
         private void lvwResults_ItemActivate(object sender, EventArgs e)
         {
 			if (lvwResults.SelectedItems.Count > 0)

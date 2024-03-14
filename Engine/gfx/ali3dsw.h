@@ -208,19 +208,25 @@ public:
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
+    // Redraw last draw lists, optionally filtering specific batches
+    void RedrawLastFrame(uint32_t /*batch_skip_filter*/) override
+    {
+        // we already have a last frame on a virtual screen,
+        // but batch skipping is currently not supported
+    }
 
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     void Render(IDriverDependantBitmap *target) override;
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
         GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool SupportsGammaControl() override ;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool /*enabled*/) override { }
     bool DoesSupportVsyncToggle() override { return (SDL_VERSION_ATLEAST(2, 0, 18)) && _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool /*enabled*/, int /*supersampling*/) override { }
+    void RenderSpritesAtScreenResolution(bool /*enabled*/) override { }
     Bitmap *GetMemoryBackBuffer() override;
     void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;

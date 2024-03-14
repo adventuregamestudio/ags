@@ -35,12 +35,9 @@ bool WriteConfiguration(const MobileSetup &setup, const char *filename)
     CfgWriteInt(cfg, "sound", "enabled", setup.audio_enabled);
     CfgWriteInt(cfg, "sound", "cache_size", setup.audio_cachesize);
 
-    CfgWriteInt(cfg, "video", "framedrop", setup.video_framedrop);
-
     CfgWriteInt(cfg, "graphics", "renderer", setup.gfx_renderer);
     CfgWriteInt(cfg, "graphics", "smoothing", setup.gfx_smoothing);
     CfgWriteInt(cfg, "graphics", "scaling", setup.gfx_scaling);
-    CfgWriteInt(cfg, "graphics", "super_sampling", setup.gfx_super_sampling);
     CfgWriteInt(cfg, "graphics", "smooth_sprites", setup.gfx_smooth_sprites);
 
     CfgWriteInt(cfg, "debug", "show_fps", setup.show_fps);
@@ -78,12 +75,9 @@ bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_every
     setup.audio_enabled = CfgReadBoolInt(cfg, "sound", "enabled", true);
     setup.audio_cachesize = CfgReadInt(cfg, "sound", "cache_size", 32 * 1024);
 
-    setup.video_framedrop = CfgReadBoolInt(cfg, "video", "framedrop", true);
-
     setup.gfx_renderer = CfgReadInt(cfg, "graphics", "renderer", 0, 2, 0);
     setup.gfx_smoothing = CfgReadBoolInt(cfg, "graphics", "smoothing", true);
     setup.gfx_scaling = CfgReadInt(cfg, "graphics", "scaling", 0, 2, 1);
-    setup.gfx_super_sampling = CfgReadBoolInt(cfg, "graphics", "super_sampling", true);
     setup.gfx_smooth_sprites = CfgReadBoolInt(cfg, "graphics", "smooth_sprites", true);
 
     setup.mouse_emulation = CfgReadInt(cfg, "controls", "mouse_emulation", 0, 2, 1);
@@ -131,15 +125,6 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
         CfgWriteString(cfg, "graphics", "filter", "StdScale");
     else
         CfgWriteString(cfg, "graphics", "filter", "Linear");
-
-    // gfx_super_sampling - enable super sampling,
-    //  - only for hardware renderer and when rendering to texture:
-    //    * 0 - x1
-    //    * 1 - x2
-    if (setup.gfx_renderer == 2)
-        CfgWriteInt(cfg, "graphics", "supersampling", setup.gfx_super_sampling + 1);
-    else
-        CfgWriteInt(cfg, "graphics", "supersampling", 0);
 
     // gfx_rotation - scaling style:
     //    * 0 - unlocked, let the user rotate as wished.

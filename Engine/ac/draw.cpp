@@ -535,31 +535,40 @@ PBitmap PrepareSpriteForUse(PBitmap bitmap, bool make_opaque)
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
-Bitmap *CopyScreenIntoBitmap(int width, int height, bool at_native_res,
-    uint32_t batch_skip_filter)
+Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect,
+    bool at_native_res, uint32_t batch_skip_filter)
 {
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
-    // If the size and color depth are supported we may copy right into our bitmap
-    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, at_native_res, &want_fmt, batch_skip_filter))
+    // If the size and color depth are supported, then we may copy right into our final bitmap
+    if (gfxDriver->GetCopyOfScreenIntoBitmap(dst, src_rect, at_native_res, &want_fmt, batch_skip_filter))
         return dst;
+
     // Otherwise we might need to copy between few bitmaps...
-    Bitmap *buf_screenfmt = new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth);
-    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt, at_native_res);
-    // If at least size matches then we may blit
-    if (dst->GetSize() == buf_screenfmt->GetSize())
+    // Get screenshot in the suitable format
+    std::unique_ptr<Bitmap> buf_screenfmt(new Bitmap(want_fmt.Width, want_fmt.Height, want_fmt.ColorDepth));
+    gfxDriver->GetCopyOfScreenIntoBitmap(buf_screenfmt.get(), src_rect, at_native_res);
+    // If color depth does not match, and we must stretch-blit, then we need another helper bmp,
+    // because Allegro does not support stretching with mismatching color depths
+    std::unique_ptr<Bitmap> buf_fixdepth;
+    Bitmap *blit_from = buf_screenfmt.get();
+    if ((dst->GetSize() != blit_from->GetSize())
+        && (want_fmt.ColorDepth != game.GetColorDepth()))
     {
-        dst->Blit(buf_screenfmt);
+        buf_fixdepth.reset(new Bitmap(want_fmt.Width, want_fmt.Height, game.GetColorDepth()));
+        buf_fixdepth->Blit(buf_screenfmt.get());
+        blit_from = buf_fixdepth.get();
     }
-    // Otherwise we need to go through another bitmap of the matching format
+
+    // Now either blit or stretch-blit
+    if (dst->GetSize() == blit_from->GetSize())
+    {
+        dst->Blit(blit_from);
+    }
     else
     {
-        Bitmap *buf_dstfmt = new Bitmap(buf_screenfmt->GetWidth(), buf_screenfmt->GetHeight(), dst->GetColorDepth());
-        buf_dstfmt->Blit(buf_screenfmt);
-        dst->StretchBlt(buf_dstfmt, RectWH(dst->GetSize()));
-        delete buf_dstfmt;
+        dst->StretchBlt(blit_from, RectWH(dst->GetSize()));
     }
-    delete buf_screenfmt;
     return dst;
 }
 
@@ -625,8 +634,6 @@ void init_draw_method()
     init_room_drawdata();
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
-
-    play.spritemodified.resize(game.SpriteInfos.size());
 }
 
 void dispose_draw_method()
@@ -657,11 +664,18 @@ void init_game_drawdata()
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
+
+    play.spritemodified.resize(game.SpriteInfos.size());
 }
 
 void dispose_game_drawdata()
 {
     clear_drawobj_cache();
+
+    // mouse cursor texture
+    if (mouse_cur_ddb)
+        gfxDriver->DestroyDDB(mouse_cur_ddb);
+    mouse_cur_ddb = nullptr;
 
     charcache.clear();
     actsps.clear();
@@ -672,6 +686,9 @@ void dispose_game_drawdata()
     gui_render_tex.clear();
     guiobjbg.clear();
     guiobjddbref.clear();
+
+    play.spritemodified.clear();
+    play.spritemodifiedlist.clear();
 }
 
 static void dispose_debug_room_drawdata()
@@ -2779,7 +2796,7 @@ void construct_game_scene(bool full_redraw)
     play.UpdateViewports();
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
-    gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes, usetup.Supersampling);
+    gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 

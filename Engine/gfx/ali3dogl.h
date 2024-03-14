@@ -269,15 +269,18 @@ public:
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
     void SetScreenFade(int red, int green, int blue) override;
     void SetScreenTint(int red, int green, int blue) override;
+    // Redraw last draw lists, optionally filtering specific batches
+    void RedrawLastFrame(uint32_t batch_skip_filter) override;
+
     void RenderToBackBuffer() override;
     void Render() override;
     void Render(int xoff, int yoff, Common::GraphicFlip flip) override;
     void Render(IDriverDependantBitmap *target) override;
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
-    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res,
+    bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
         GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled, int supersampling) override;
+    void RenderSpritesAtScreenResolution(bool enabled) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
     void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
@@ -323,9 +326,6 @@ private:
     // rendering to screen directly. This is known as supersampling mode
     bool _canRenderToTexture {};
     bool _doRenderToTexture {};
-    // Backbuffer texture multiplier, used to determine a size of texture
-    // relative to the native game size.
-    int _superSampling {};
     // Texture for rendering in native resolution
     OGLBitmap *_nativeSurface = nullptr;
 
@@ -391,8 +391,6 @@ private:
     void SetupDefaultVertices();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
-    // Test if supersampling should be allowed with the current setup
-    void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
     bool CreateShaders();
     // Configure native resolution render target, that is used in render-to-texture mode
@@ -426,8 +424,6 @@ private:
     void ClearDrawBackups();
     // Mark certain sprite batches to be skipped at the next render
     void FilterSpriteBatches(uint32_t skip_filter);
-    // Redraw saved draw lists, optionally filtering specific batches
-    void RedrawLastFrame(uint32_t skip_filter);
 
     void RenderAndPresent(bool clearDrawListAfterwards);
     void RenderImpl(bool clearDrawListAfterwards);

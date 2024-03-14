@@ -203,6 +203,8 @@ build_macos_task:
       echo "Downloading CCache from $url"
       curl -fLSs "$url" | bsdtar -f - -xvzC bin --strip-components 1
   install_dependencies_script: |
+    sudo chown $USER /usr/local
+    mkdir -p /usr/local/bin
     sudo chown $USER /usr/local/bin
     cd dep_cache
     pushd app && cp -R CMake.app /Applications/CMake.app && popd

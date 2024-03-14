@@ -170,10 +170,28 @@ static void video_core_entry()
         g_vcore.poll_cv.wait_for(lk, std::chrono::milliseconds(8));
     }
 }
-#endif
+#endif // !AGS_DISABLE_THREADS
 
 #else // AGS_NO_VIDEO_PLAYER
 
-// TODO
+void video_core_init(/*config*/)
+{
+    Debug::Printf(kDbgMsg_Warn, "VideoCore: video playback is not supported in this engine build.");
+}
+void video_core_shutdown() { }
+int video_core_slot_init(std::unique_ptr<AGS::Common::Stream>,
+    const AGS::Common::String &, const AGS::Common::String &, const VideoInitParams &)
+{
+    return -1;
+}
+VideoPlayerLock video_core_get_player(int)
+{
+    throw std::runtime_error("Video playback is not supported in this engine build.");
+}
+void video_core_slot_stop(int) {}
+
+#if defined(AGS_DISABLE_THREADS)
+void video_core_entry_poll() {}
+#endif
 
 #endif // !AGS_NO_VIDEO_PLAYER

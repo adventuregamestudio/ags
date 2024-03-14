@@ -662,10 +662,39 @@ void video_shutdown()
 
 #else
 
-HError play_theora_video(const char *name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
-HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip) { return HError::None(); }
-void video_pause() {}
-void video_resume() {}
-void video_shutdown() {}
+//-----------------------------------------------------------------------------
+// Stubs for the video support
+//-----------------------------------------------------------------------------
+
+using namespace AGS::Common;
+
+HError play_theora_video(const char *, int, int, AGS::Engine::VideoSkipType)
+{
+    return new Error("Video playback is not supported in this engine build.");
+}
+HError play_flc_video(int, int, int, AGS::Engine::VideoSkipType)
+{
+    return new Error("Video playback is not supported in this engine build.");
+}
+void video_single_pause() {}
+void video_single_resume() {}
+void video_single_stop() {}
+
+HError open_video(const char *, int, int &)
+{
+    return new Error("Video playback is not supported in this engine build.");
+}
+VideoControl *get_video_control(int) { return nullptr; }
+void video_stop(int) { }
+void sync_video_playback() { }
+void update_video_system_on_game_loop() { }
+void video_shutdown() { }
+
+void VideoControl::SetScriptHandle(int) {}
+bool VideoControl::Play() { return false; }
+void VideoControl::Pause() {}
+bool VideoControl::NextFrame() { return false; }
+uint32_t VideoControl::SeekFrame(uint32_t) { return -1; }
+float VideoControl::SeekMs(float) { return -1.f; }
 
 #endif

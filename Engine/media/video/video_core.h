@@ -14,6 +14,11 @@
 //
 // Video Core: an video backend interface.
 //
+// TODO:
+//     - multiple working threads.
+//     - separate thread(s) for buffering, so that it continues even while
+//       the videoplayer is being synchronized with the game logic.
+//
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEOCORE_H
 #define __AGS_EE_MEDIA__VIDEOCORE_H

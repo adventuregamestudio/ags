@@ -22,10 +22,20 @@
 //     - allow skip frames if late (add to settings);
 //     - a video-audio sync mechanism; perhaps rely on audio,
 //       because it's more time-sensitive in human perception;
-//       drop video frames if video is lagging, but this also has to
-//       be done in decoder to avoid converting vframe to a bitmap.
+//       drop video frames if video is lagging. But this also may have to
+//       be done in decoder to avoid converting vframe to a bitmap (yuv->rgb).
 //     - other options: slow down playback speed until video-audio
 //       relation stabilizes.
+//
+// TODO: POTENTIAL OPTIMIZATIONS
+//     - create and buffer textures along the bitmaps.
+//     - perhaps skip bitmap and decode onto texture right away,
+//       that would require modifying the video decoding lib (or using other).
+//       but then there also has to be a reverse conversion made in case
+//       someone would like to use the frame for raw drawing.
+//     - expose buffering in video player's interface, and guard buffer queues
+//       with mutexes. This would allow to keep buffering constantly even
+//       during next ready frame retrieval by the engine.
 //
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEOPLAYER_H

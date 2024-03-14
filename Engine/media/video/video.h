@@ -12,7 +12,44 @@
 //
 //=============================================================================
 //
-// Game-blocking video interface.
+// Video playback logical frontend. Serves as a control layer between game
+// script and working video thread(s). Synchronizes logical and real playback
+// states once during each game update: this is done to guarantee that the
+// video state is fixed within a script callback.
+//
+// Videos play in their own FPS rate by default, which typically may be
+// different from the game's, but the frame that the game is displaying
+// on screen is updated in game's FPS rate. This also means that if a video
+// has higher FPS than the game's, then there will be visible frame skips.
+// If video's FPS is lower, then the same video frame will simply be displayed
+// for more than 1 game's frame (not a bad thing).
+//
+// There are two kinds of playback controls below: blocking and non-blocking.
+//
+// Blocking video is a legacy interface left for backwards compatibility.
+// It completely stops game updates for the duration of video (optionally with
+// exception of game's audio track). No game elements are drawn while it plays
+// (neither GUI, nor even a mouse cursor).
+//
+// Non-blocking video interface is a new default, which supports full playback
+// control, and lets assign a video frame to any game object on screen.
+// Game script is responsible for anything that happens during playback.
+//
+//-----------------------------------------------------------------------------
+//
+// TODO:
+//     - in the engine support tagging sprites as "opaque" so that the renderer
+//       would know to use simpler texture update method (video frames do not
+//       have transparency in them... or can they?.. this may depend on info
+//       retrieved from the video file too).
+//
+// TODO: POTENTIAL ALTERNATIVES (for consideration)
+//     - current implementation of a non-blocking video provides a sprite
+//       as a raw bitmap that may be updated to a texture. This lets to assign
+//       video frame on any object. But a downside is the increased complexity,
+//       which may make optimizing for performance somewhat more difficult.
+//       An alternate implementation could instead render video frames on a
+//       specialized game object, e.g. VideoOverlay, a subclass of Overlay.
 //
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEO_H

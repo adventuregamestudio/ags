@@ -445,6 +445,38 @@ namespace AGS.Editor
             return Factory.NativeProxy.GetMaxViewFrameSize(view);
         }
 
+        /// <summary>
+        /// Draws a Sprite on System.Drawing.Graphics (for the room editor)
+        /// </summary>
+        public static void DrawSpriteOnGraphics(Graphics graphics, int spriteSlot, int x, int y, int width, int height)
+        {
+            using (Bitmap sprite = Factory.NativeProxy.GetBitmapForSprite(spriteSlot))
+            {
+                // 8bit sprites can be drawn directly
+                if (sprite.PixelFormat == PixelFormat.Format8bppIndexed)
+                {
+                    graphics.DrawImage(sprite, x, y, width, height);
+                    return;
+                }
+
+                // convert to 32bit and draw
+                using (Bitmap sprite32bppAlpha = new Bitmap(sprite.Width, sprite.Height, PixelFormat.Format32bppArgb))
+                {
+                    sprite32bppAlpha.SetRawData(sprite.GetRawData(), sprite.PixelFormat);
+                    
+                    // handle 16bit sprite transparency
+                    if (sprite.PixelFormat == PixelFormat.Format16bppRgb565)
+                    {
+                        Sprite gameSprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(spriteSlot, true);
+                        if (gameSprite.TransparentColour != SpriteImportTransparency.NoTransparency)
+                            sprite32bppAlpha.MakeTransparent();
+                    }
+
+                    graphics.DrawImage(sprite32bppAlpha, x, y, width, height);
+                }
+            }
+        }
+
         public static void CheckLabelWidthsOnForm(Control parentControl)
         {
             foreach (Control child in parentControl.Controls)

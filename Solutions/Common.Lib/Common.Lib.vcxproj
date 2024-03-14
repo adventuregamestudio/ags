@@ -768,6 +768,7 @@
     <ClInclude Include="..\..\Common\util\path.h" />
     <ClInclude Include="..\..\Common\util\resourcecache.h" />
     <ClInclude Include="..\..\Common\util\scaling.h" />
+    <ClInclude Include="..\..\Common\util\smart_ptr.h" />
     <ClInclude Include="..\..\Common\util\stdio_compat.h" />
     <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\string.h" />

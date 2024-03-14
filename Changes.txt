@@ -29,6 +29,8 @@ Editor:
  - Added BlendMode property to Characters, GUI and Room Objects.
  - Added FaceDirectionRatio property to General Settings, Room and Walkable Areas.
  - Added readonly Length property to AudioClips, for the reference.
+ - Fixed 8-bit images imported and converted for a 32-bit game to not get their colors clamped
+   to a low-precision palette.
  - Fixed faulty double-click on project items in case user dragged the cursor away.
 
 Compiler:
@@ -78,6 +80,8 @@ Script API:
  - Added SCRIPT_EXT_NESTEDPOINTERS macro which tells whether nested managed structs are
    supported by the compiler.
  - Added Joystick struct, meant to work with joystics and gamepads in script.
+ - Added VideoPlayer struct, which provides means of playing non-blocking videos rendered onto
+   a sprite that may be displayed on any game object.
  - Added WalkableArea and Walkbehind structs which let work with these region types in OO-style.
  - Added BlendMode enum.
  - Added Character.Enabled and Visible properties, added Object.Enabled property,
@@ -107,6 +111,7 @@ Engine:
  - Support joystick and gamepad input.
  - Implemented more accurate Character movement. The movement direction is now more precise
    and diagonal movement speed no longer may exceed MovementSpeed setting.
+ - Camera will not follow a disabled player character.
  - Animated buttons now display flipped frames correctly.
  - AudioChannel.Position and PositionMs no longer return a very large value while skipping
    cutscene.

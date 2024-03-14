@@ -450,16 +450,23 @@ namespace AGS.Editor
         /// </summary>
         public static void DrawSpriteOnGraphics(Graphics graphics, int spriteSlot, int x, int y, int width, int height)
         {
+            // TODO: optimize this by caching sprite bitmaps?
             using (Bitmap sprite = Factory.NativeProxy.GetBitmapForSprite(spriteSlot))
             {
-                // 8bit sprites can be drawn directly
-                if (sprite.PixelFormat == PixelFormat.Format8bppIndexed)
+                // 32-bit and 8-bit sprites can be drawn directly
+                switch (sprite.PixelFormat)
                 {
-                    graphics.DrawImage(sprite, x, y, width, height);
-                    return;
+                    case PixelFormat.Format32bppArgb:
+                    case PixelFormat.Format32bppRgb:
+                    case PixelFormat.Format8bppIndexed:
+                        graphics.DrawImage(sprite, x, y, width, height);
+                        return;
+                    default:
+                        break;
                 }
 
                 // convert to 32bit and draw
+                // TODO: optimize this by caching converted images?
                 using (Bitmap sprite32bppAlpha = new Bitmap(sprite.Width, sprite.Height, PixelFormat.Format32bppArgb))
                 {
                     sprite32bppAlpha.SetRawData(sprite.GetRawData(), sprite.PixelFormat);

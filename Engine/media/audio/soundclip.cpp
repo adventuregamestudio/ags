@@ -49,7 +49,7 @@ SOUNDCLIP::~SOUNDCLIP()
         audio_core_slot_stop(slot_);
 }
 
-int SOUNDCLIP::play()
+bool SOUNDCLIP::play()
 {
     if (!is_ready())
         return false;

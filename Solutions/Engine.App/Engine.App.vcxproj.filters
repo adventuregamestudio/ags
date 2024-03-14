@@ -774,6 +774,15 @@
     <ClCompile Include="..\..\Engine\media\video\theora_player.cpp">
       <Filter>Source Files\media\video</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\media\video\video_core.cpp">
+      <Filter>Source Files\media\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\video_script.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptvideoplayer.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1549,6 +1558,15 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\video\theora_player.h">
       <Filter>Header Files\media\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\video\video_core.h">
+      <Filter>Header Files\media\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\util\threading.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptvideoplayer.h">
+      <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -60,6 +60,7 @@
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
+#include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin_evts.h"
 #include "plugin/plugin_engine.h"
@@ -1092,6 +1093,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     update_cursor_over_location(mwasatx, mwasaty);
     update_cursor_view();
 
+    update_video_system_on_game_loop();
     update_audio_system_on_game_loop();
 
     // Only render if we are not skipping a cutscene

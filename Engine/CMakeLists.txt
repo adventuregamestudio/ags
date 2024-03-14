@@ -117,6 +117,8 @@ target_sources(engine
     ac/dynobj/scriptsystem.cpp
     ac/dynobj/scriptuserobject.cpp
     ac/dynobj/scriptuserobject.h
+    ac/dynobj/scriptvideoplayer.cpp
+    ac/dynobj/scriptvideoplayer.h
     ac/dynobj/scriptviewframe.cpp
     ac/dynobj/scriptviewframe.h
     ac/dynobj/scriptviewport.cpp
@@ -248,6 +250,7 @@ target_sources(engine
     ac/timer.h
     ac/translation.cpp
     ac/translation.h
+    ac/video_script.cpp
     ac/viewframe.cpp
     ac/viewframe.h
     ac/viewport_script.cpp
@@ -375,6 +378,8 @@ target_sources(engine
     media/video/theora_player.h
     media/video/video.cpp
     media/video/video.h
+    media/video/video_core.cpp
+    media/video/video_core.h
     media/video/videoplayer.cpp
     media/video/videoplayer.h
     platform/base/agsplatformdriver.cpp
@@ -415,6 +420,7 @@ target_sources(engine
     util/library_posix.h
     util/sdl2_util.h
     util/sdl2_util.cpp
+    util/threading.h
 
     platform/windows/acplwin.cpp
     platform/windows/debug/namedpipesagsdebugger.cpp

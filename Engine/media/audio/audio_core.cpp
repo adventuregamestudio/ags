@@ -67,6 +67,9 @@ static void audio_core_entry();
 
 void audio_core_init() 
 {
+    if (g_acore.audio_core_thread_running)
+        return; // already running
+
     /* InitAL opens a device and sets up a context using default attributes, making
      * the program ready to call OpenAL functions. */
 
@@ -105,6 +108,10 @@ void audio_core_init()
 
 void audio_core_shutdown()
 {
+    if (!g_acore.audio_core_thread_running)
+        return; // not running
+
+    Debug::Printf(kDbgMsg_Info, "AudioCore: shutting down...");
     g_acore.audio_core_thread_running = false;
 #if !defined(AGS_DISABLE_THREADS)
     if (g_acore.audio_core_thread.joinable())
@@ -127,6 +134,8 @@ void audio_core_shutdown()
         alcCloseDevice(g_acore.alcDevice);
         g_acore.alcDevice = nullptr;
     }
+
+    Debug::Printf(kDbgMsg_Info, "AudioCore: shutdown");
 }
 
 

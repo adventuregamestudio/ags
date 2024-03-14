@@ -2659,6 +2659,51 @@ builtin managed struct Joystick {
 };
 #endif
 
+#ifdef SCRIPT_API_v400
+enum PlaybackState {
+  ePlaybackOn = 2,
+  ePlaybackPaused = 3,
+  ePlaybackStopped = 4
+};
+
+builtin managed struct VideoPlayer {
+  import static VideoPlayer* Open(const string filename, bool autoPlay=true, RepeatStyle=eOnce);
+  /// Starts or resumes the playback.
+  import void Play();
+  /// Pauses the playback.
+  import void Pause();
+  /// Advances video by 1 frame, may be called when the video is paused.
+  import void NextFrame();
+  /// Changes playback to continue from the specified frame; returns new position or -1 on error.
+  import int  SeekFrame(int frame);
+  /// Changes playback to continue from the specified position in milliseconds; returns new position or -1 on error.
+  import int  SeekMs(int position);
+  /// Stops the video completely.
+  import void Stop();
+
+  /// Gets current frame index.
+  import readonly attribute int Frame;
+  /// Gets total number of frames in this video.
+  import readonly attribute int FrameCount;
+  /// Gets this video's framerate (number of frames per second).
+  import readonly attribute float FrameRate;
+  /// Gets the number of sprite this video renders to.
+  import readonly attribute int Graphic;
+  /// The length of the currently playing video, in milliseconds.
+  import readonly attribute int LengthMs;
+  /// Gets/sets whether the video should loop.
+  import attribute bool Looping;
+  /// The current playback position, in milliseconds.
+  import readonly attribute int PositionMs;
+  /// The speed of playing (1.0 is default).
+  import attribute float Speed;
+  /// Gets the current playback state (playing, paused, etc).
+  import readonly attribute PlaybackState State;
+  /// The volume of this video's sound, from 0 to 100.
+  import attribute int Volume;
+};
+#endif
+
 
 import ColorType palette[PALETTE_SIZE];
 import Mouse mouse;

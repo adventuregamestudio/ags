@@ -502,6 +502,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptvideoplayer.cpp" />
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
@@ -563,6 +564,7 @@
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
+    <ClCompile Include="..\..\Engine\ac\video_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\viewport_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
@@ -635,6 +637,7 @@
     <ClCompile Include="..\..\Engine\media\video\theora_player.cpp" />
     <ClCompile Include="..\..\Engine\media\video\video.cpp" />
     <ClCompile Include="..\..\Engine\media\video\videoplayer.cpp" />
+    <ClCompile Include="..\..\Engine\media\video\video_core.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
     <ClCompile Include="..\..\Engine\platform\base\sys_main.cpp" />
     <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
@@ -746,6 +749,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewport.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobjects.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptvideoplayer.h" />
     <ClInclude Include="..\..\Engine\ac\event.h" />
     <ClInclude Include="..\..\Engine\ac\file.h" />
     <ClInclude Include="..\..\Engine\ac\game.h" />
@@ -888,6 +892,7 @@
     <ClInclude Include="..\..\Engine\media\video\theora_player.h" />
     <ClInclude Include="..\..\Engine\media\video\video.h" />
     <ClInclude Include="..\..\Engine\media\video\videoplayer.h" />
+    <ClInclude Include="..\..\Engine\media\video\video_core.h" />
     <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
     <ClInclude Include="..\..\Engine\platform\base\sys_main.h" />
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
@@ -914,6 +919,7 @@
     <ClInclude Include="..\..\Engine\util\library.h" />
     <ClInclude Include="..\..\Engine\util\library_windows.h" />
     <ClInclude Include="..\..\Engine\util\sdl2_util.h" />
+    <ClInclude Include="..\..\Engine\util\threading.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />
   </ItemGroup>

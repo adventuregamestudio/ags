@@ -14,6 +14,11 @@
 //
 // Theora (OGV) video player implementation.
 //
+// TODO:
+//     - support random Seek (APEG only provides reset/rewind atm).
+//     - for the long term - consider replacing APEG with a contemporary and
+//       feature-complete library.
+//
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__THEORAPLAYER_H
 #define __AGS_EE_MEDIA__THEORAPLAYER_H

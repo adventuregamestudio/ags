@@ -429,17 +429,24 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     set_our_eip(200);
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.SpriteInfos);
-
-    if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
-        (thisroom.GameID != game.uniqueid)) {
-            quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
+    HError err = LoadRoom(room_filename, &thisroom, game.SpriteInfos);
+    if (!err)
+    {
+        quitprintf("Unable to load the room file '%s'. Error: %s", room_filename.GetCStr(), err->FullMessage().GetCStr());
     }
 
-    HError err = LoadRoomScript(&thisroom, newnum);
+    if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
+        (thisroom.GameID != game.uniqueid))
+    {
+        quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
+    }
+
+    err = LoadRoomScript(&thisroom, newnum);
     if (!err)
-        quitprintf("!Unable to load '%s'. Error: %s", room_filename.GetCStr(),
+    {
+        quitprintf("!Unable to load script from '%s'. Error: %s", room_filename.GetCStr(),
             err->FullMessage().GetCStr());
+    }
 
     // Optionally dump joint RTTI into the log
     if (logScriptRTTI && ccInstance::GetRTTI())

@@ -41,6 +41,7 @@
 #include "ac/common_defines.h"
 #include "game/interactions.h"
 #include "gfx/gfx_def.h"
+#include "util/error.h"
 #include "util/geometry.h"
 #include "util/string_types.h"
 
@@ -321,7 +322,7 @@ public:
 
 
 // Loads new room data into the given RoomStruct object
-void load_room(const String &filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
+HError LoadRoom(const String &filename, RoomStruct *room, const std::vector<SpriteInfo> &sprinfos);
 // Ensures that all existing room masks match room background size and
 // MaskResolution property, resizes mask bitmaps if necessary.
 void FixRoomMasks(RoomStruct *room);

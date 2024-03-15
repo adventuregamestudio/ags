@@ -40,6 +40,7 @@
 #include <allegro.h> // RGB
 #include "ac/common_defines.h"
 #include "game/interactions.h"
+#include "util/error.h"
 #include "util/geometry.h"
 
 struct ccScript;
@@ -379,7 +380,7 @@ private:
 
 
 // Loads new room data into the given RoomStruct object
-void load_room(const String &filename, RoomStruct *room, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
+HError LoadRoom(const String &filename, RoomStruct *room, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos);
 // Checks if it's necessary and upscales low-res room backgrounds and masks for the high resolution game
 // NOTE: it does not upscale object coordinates, because that is usually done when the room is loaded
 void UpscaleRoomBackground(RoomStruct *room, bool game_is_hires);

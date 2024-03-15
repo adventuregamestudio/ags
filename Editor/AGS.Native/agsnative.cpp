@@ -1620,9 +1620,9 @@ const char *get_mask_name(RoomAreaMask mask)
 }
 
 AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
-
-  load_room(filename, &rs, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
-
+  HAGSError err = LoadRoom(filename, &rs, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
+  if (!err)
+      return err->FullMessage();
   // Allocate enough memory to add extra variables
   rs.LocalVariables.resize(MAX_GLOBAL_VARIABLES);
 
@@ -1645,9 +1645,11 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
 
   set_palette_range(palette, 0, 255, 0);
   
-  if ((rs.BgFrames[0].Graphic->GetColorDepth () > 8) &&
+  if ((rs.BgFrames[0].Graphic->GetColorDepth() > 8) &&
       (thisgame.color_depth == 1))
-    MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
+  {
+      MessageBox(NULL, "WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
+  }
 
   RoomTools->roomModified = false;
 

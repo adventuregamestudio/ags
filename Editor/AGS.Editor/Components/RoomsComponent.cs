@@ -1429,7 +1429,9 @@ namespace AGS.Editor.Components
 				return false;
 			}
 
-			foreach (UnloadedRoom unloadedRoom in roomsToRebuild)
+            string rebuildReason = rebuildAll ? "because the full rebuild was ordered" : "because a script has changed";
+
+            foreach (UnloadedRoom unloadedRoom in roomsToRebuild)
 			{
 				Room room;
 				if ((_loadedRoom == null) || (_loadedRoom.Number != unloadedRoom.Number))
@@ -1443,7 +1445,7 @@ namespace AGS.Editor.Components
 				}
 
 				CompileMessages roomErrors = new CompileMessages();
-				SaveRoomButDoNotShowAnyErrors(room, roomErrors, "Rebuilding room " + room.Number + " because a script has changed...");
+				SaveRoomButDoNotShowAnyErrors(room, roomErrors, $"Rebuilding room {room.Number} {rebuildReason}...");
 
 				if (roomErrors.Count > 0)
 				{

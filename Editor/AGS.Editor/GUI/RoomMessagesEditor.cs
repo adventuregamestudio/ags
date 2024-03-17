@@ -52,7 +52,9 @@ namespace AGS.Editor
                 txtMessage.Text = message.Text;
                 chkAutoRemove.Checked = message.AutoRemoveAfterTime;
                 chkShowNextMessage.Checked = message.DisplayNextMessageAfter;
-                cmbDisplayAs.SelectedIndex = (message.ShowAsSpeech) ? message.CharacterID + 1 : 0;
+                cmbDisplayAs.SelectedIndex =
+                    (message.ShowAsSpeech && message.CharacterID < Factory.AGSEditor.CurrentGame.Characters.Count) ?
+                    message.CharacterID + 1 : 0;
                 grpMessageDetails.Enabled = true;
             }
             else

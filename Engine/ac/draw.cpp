@@ -1050,7 +1050,7 @@ void notify_sprite_changed(int sprnum, bool deleted)
     // update all the related drawn objects on screen.
     // For software renderer we should notify drawables that currently
     // reference this sprite.
-    if (drawstate.SoftwareRender)
+    if (drawstate.SoftwareRender && !play.spritemodified.empty())
     {
         assert(static_cast<uint32_t>(sprnum) < play.spritemodified.size());
         play.spritemodified[sprnum] = true;

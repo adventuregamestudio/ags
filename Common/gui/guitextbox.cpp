@@ -101,24 +101,24 @@ static void Backspace(String &text)
     }
 }
 
-void GUITextBox::OnKeyPress(const KeyInput &ki)
+bool GUITextBox::OnKeyPress(const KeyInput &ki)
 {
     switch (ki.Key)
     {
     case eAGSKeyCodeReturn:
         IsActivated = true;
-        return;
+        return true;
     case eAGSKeyCodeBackspace:
         Backspace(Text);
         MarkChanged();
-        return;
+        return true;
     default: break;
     }
 
     if (ki.UChar == 0)
-        return; // not a textual event
+        return false; // not a textual event, don't handle
     if ((ki.UChar >= 128) && (!font_supports_extended_characters(Font)))
-        return; // unsupported letter
+        return true; // unsupported letter, but still return as handled
 
     (get_uformat() == U_UTF8) ?
         Text.Append(ki.Text) :
@@ -127,6 +127,7 @@ void GUITextBox::OnKeyPress(const KeyInput &ki)
     if (get_text_width(Text.GetCStr(), Font) > (_width - (6 + get_fixed_pixel_size(5))))
         Backspace(Text);
     MarkChanged();
+    return true;
 }
 
 void GUITextBox::SetShowBorder(bool on)

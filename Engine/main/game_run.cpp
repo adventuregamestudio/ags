@@ -623,9 +623,10 @@ static void check_keyboard_controls()
                 if (!guitex->IsEnabled()) { continue; }
                 if (!guitex->IsVisible()) { continue; }
 
-                keywasprocessed = true;
-
                 guitex->OnKeyPress(ki);
+                // Note that the TextBox always steals the key event here, regardless
+                // of whether it had any meaning for control
+                keywasprocessed = true;
 
                 if (guitex->IsActivated) {
                     guitex->IsActivated = false;

@@ -950,7 +950,7 @@ bool DialogOptions::Run()
     // Handle default rendering changing an active option
     if (!usingCustomRendering)
     {
-        needRedraw = (mousewason != mouseison);
+        needRedraw |= (mousewason != mouseison);
     }
     // Handle new parser's state
     if (parserInput && parserInput->IsActivated)
@@ -983,7 +983,7 @@ bool DialogOptions::Run()
             chose = ccDialogOptionsRendering.chosenOptionID;
             ccDialogOptionsRendering.chosenOptionID = -1;
         }
-        needRedraw = ccDialogOptionsRendering.needRepaint;
+        needRedraw |= ccDialogOptionsRendering.needRepaint;
     }
 
     // Finally, if the option has been chosen, then break the options loop
@@ -1057,11 +1057,11 @@ bool DialogOptions::RunKey(const KeyInput &ki)
             needRedraw = true;
             return true; // handled
         }
-        else if ((agskey >= eAGSKeyCodeSpace) || (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
+        else if ((ki.UChar > 0) || (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
         {
-            parserInput->OnKeyPress(ki);
-            needRedraw = true;
-            return true; // handled
+            bool handled = parserInput->OnKeyPress(ki);
+            needRedraw = handled;
+            return handled;
         }
     }
     else if (newCustomRender)

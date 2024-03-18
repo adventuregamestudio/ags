@@ -77,8 +77,8 @@ public:
     void            SetTransparency(int trans);
 
     // Events
-    // Key pressed for control
-    virtual void    OnKeyPress(const KeyInput&) { }
+    // Key pressed for control; returns if handled
+    virtual bool    OnKeyPress(const KeyInput&) { return false; }
     // Mouse button down - return 'True' to lock focus
     virtual bool    OnMouseDown() { return false; }
     // Mouse moves onto control

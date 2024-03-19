@@ -17,11 +17,29 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows,    os: windows-latest, artifact: 'ags-windows', shell: cmd, runbin: ".\\ags.exe", bindir: "Release" }
-        - { name: Ubuntu,     os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh,  runbin: "./ags",      bindir: ""        }
-        - { name: macOS,      os: macos-latest,   artifact: 'ags-macos',   shell: sh,  runbin: "./ags",      bindir: ""        }
+        - { name: Windows-mingw64, os: windows-latest, artifact: 'ags-mingw64', shell: 'msys2 {0}', runbin: "./ags",      bindir: "",       msystem: mingw64, msys-env: mingw-w64-x86_64 }
+        - { name: Windows,         os: windows-latest, artifact: 'ags-windows', shell: cmd,         runbin: ".\\ags.exe", bindir: "Release" }
+        - { name: Ubuntu,          os: ubuntu-latest,  artifact: 'ags-linux',   shell: sh,          runbin: "./ags",      bindir: ""        }
+        - { name: macOS,           os: macos-latest,   artifact: 'ags-macos',   shell: sh,          runbin: "./ags",      bindir: ""        }
 
     steps:
+    - name: Set up MSYS2
+      if: matrix.platform.shell == 'msys2 {0}'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.platform.msystem }}
+        install: >-
+          ${{ matrix.platform.msys-env }}-cc
+          ${{ matrix.platform.msys-env }}-cmake
+          ${{ matrix.platform.msys-env }}-ninja
+          ${{ matrix.platform.msys-env }}-perl
+          ${{ matrix.platform.msys-env }}-python-pip
+          ${{ matrix.platform.msys-env }}-pkg-config
+          ${{ matrix.platform.msys-env }}-clang-tools-extra
+
+    - name: Set up Tappy
+      run: pip install tap.py
+
     - uses: actions/checkout@v4
 
     - name: Configure CMake
@@ -44,11 +62,14 @@ jobs:
           ${{github.workspace}}/build/${{env.BUILD_TYPE}}/ags.exe
           ${{github.workspace}}/build/ags
           ${{github.workspace}}/build/ags.exe
-            
-    - name: Run game auto-test  # we are using tap.py so that the pipeline fails if a test fails
+
+    - name: Run game auto-test
       working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
       run: |
-        pip install tap.py
         curl -sLo auto-test.ags https://github.com/adventuregamestudio/ags-test-games/releases/latest/download/ags3-auto-test.ags
-        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags        
+        ${{matrix.platform.runbin}} --no-message-box --log-stdout=script:info,main:info --user-data-dir . auto-test.ags
+
+    - name: Check auto-test  # we are using tap.py so that the pipeline fails if a test fails
+      working-directory: ${{github.workspace}}/build/${{matrix.platform.bindir}}
+      run: |
         tappy agstest.tap

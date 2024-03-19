@@ -453,8 +453,9 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
             cam->Lock();
         else
             cam->Release();
-        cam->SetAt(cam_dat.Left, cam_dat.Top);
+        // Set size first, or offset position may clamp to the room
         cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
+        cam->SetAt(cam_dat.Left, cam_dat.Top);
     }
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {
@@ -493,9 +494,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
     // Preserve whether the music vox is available
     play.voice_avail = pp.SpeechVOX;
     play.separate_music_lib = pp.MusicVOX;
-
-    // Restore particular game options that must not change at runtime
-    CopyPreservedGameOptions(game, pp);
 
     // Restore particular game options that must not change at runtime
     CopyPreservedGameOptions(game, pp);

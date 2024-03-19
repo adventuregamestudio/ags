@@ -182,7 +182,7 @@ target_sources(common
 )
 
 target_link_libraries(common PUBLIC
-        ${SDL2_LIBRARY} ${SDL2_LIBRARIES}
+        ${SDL2_LIBRARY}
         Allegro::Allegro
         AlFont::AlFont
         AAStr::AAStr

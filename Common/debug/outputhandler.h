@@ -30,12 +30,12 @@ namespace Common
 struct DebugMessage
 {
     String       Text;
-    uint32_t     GroupID;
+    MessageGroupHandle GroupID = InvalidMessageGroup;
     String       GroupName;
-    MessageType  MT;
+    MessageType  MT = kDbgMsg_None;
 
-    DebugMessage() : GroupID(kDbgGroup_None), MT(kDbgMsg_None) {}
-    DebugMessage(const String &text, uint32_t group_id, const String &group_name, MessageType mt)
+    DebugMessage() = default;
+    DebugMessage(const String &text, MessageGroupHandle group_id, const String &group_name, MessageType mt)
         : Text(text)
         , GroupID(group_id)
         , GroupName(group_name)

@@ -161,12 +161,13 @@ void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, 
 // Log configuration
 // ----------------------------------------------------------------------------
 
-PDebugOutput create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
+// TODO: return a std::unique_ptr<IOutputHandler>
+static IOutputHandler *create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
     // Else create new one, if we know this ID
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
-        return DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
+        return AGSPlatformDriver::GetDriver();
     }
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
@@ -181,14 +182,13 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
         if (!DebugLogFile->OpenFile(logfile_path, open_mode))
             return nullptr;
         Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
-        auto dbgout = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
-        return dbgout;
+        return DebugLogFile.get();
     }
     else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&
         editor_debugger != nullptr)
     {
         DebuggerLog.reset(new DebuggerLogOutputTarget(editor_debugger));
-        return DbgMgr.RegisterOutput(OutputDebuggerLogID, DebuggerLog.get(), kDbgMsg_All);
+        return DebuggerLog.get();
     }
     return nullptr;
 }
@@ -222,30 +222,21 @@ MessageType get_messagetype_from_string(const String &option)
 
 typedef std::pair<CommonDebugGroup, MessageType> DbgGroupOption;
 
-void apply_log_config(const ConfigTree &cfg, const String &log_id,
+static void apply_log_config(const ConfigTree &cfg, const String &log_id,
                       bool def_enabled,
                       std::initializer_list<DbgGroupOption> def_opts)
 {
-    String value = CfgReadString(cfg, "log", log_id);
+    const String value = CfgReadString(cfg, "log", log_id);
     if (value.IsEmpty() && !def_enabled)
         return;
 
-    // First test if already registered, if not then try create it
-    auto dbgout = DbgMgr.GetOutput(log_id);
-    const bool was_created_earlier = dbgout != nullptr;
-    if (!dbgout)
-    {
-        String path = CfgReadString(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
-        dbgout = create_log_output(log_id, path);
-        if (!dbgout)
-            return; // unknown output type
-    }
-    dbgout->ClearGroupFilters();
-
+    // Setup message group filters
+    MessageType def_verbosity = kDbgMsg_None;
+    std::vector<std::pair<DebugGroupID, MessageType>> group_filters;
     if (value.IsEmpty() || value.CompareNoCase("default") == 0)
     {
         for (const auto &opt : def_opts)
-            dbgout->SetGroupFilter(opt.first, opt.second);
+            group_filters.push_back(std::make_pair(opt.first, opt.second));
     }
     else
     {
@@ -264,24 +255,39 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
             groupname.Trim();
             if (groupname.CompareNoCase("all") == 0 || groupname.IsEmpty())
             {
-                dbgout->SetAllGroupFilters(msgtype);
+                def_verbosity = msgtype;
             }
             else if (groupname[0u] != '+')
             {
-                dbgout->SetGroupFilter(groupname, msgtype);
+                group_filters.push_back(std::make_pair(groupname, msgtype));
             }
             else
             {
                 const auto groups = parse_log_multigroup(groupname);
                 for (const auto &g : groups)
-                    dbgout->SetGroupFilter(g, msgtype);
+                    group_filters.push_back(std::make_pair(g, msgtype));
             }
         }
     }
 
-    // Delegate buffered messages to this new output
-    if (DebugMsgBuff && !was_created_earlier)
-        DebugMsgBuff->Send(log_id);
+    // Test if already registered, if not then try create it,
+    // if it exists, then reset the filter settings
+    if (DbgMgr.HasOutput(log_id))
+    {
+        DbgMgr.SetOutputFilters(log_id, def_verbosity, &group_filters);
+    }
+    else
+    {
+        String path = CfgReadString(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
+        auto dbgout = create_log_output(log_id, path);
+        if (!dbgout)
+            return;
+        DbgMgr.RegisterOutput(log_id, dbgout, def_verbosity, &group_filters);
+        // Delegate buffered messages to this new output
+        // TODO: this should happen inside DebugManager
+        if (DebugMsgBuff)
+            DebugMsgBuff->Send(log_id);
+    }
 }
 
 void init_debug(const ConfigTree &cfg, bool stderr_only)
@@ -302,7 +308,7 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
 
     // Message buffer to save all messages in case we read different log settings from config file
     DebugMsgBuff.reset(new MessageBuffer());
-    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All);
+    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All, nullptr);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -339,8 +345,10 @@ void apply_debug_config(const ConfigTree &cfg)
         auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
         {
-            dbgout->SetGroupFilter(kDbgGroup_Game, kDbgMsg_Warn);
-            dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
+            std::vector<std::pair<DebugGroupID, MessageType>> group_filters;
+            group_filters.push_back(std::make_pair(kDbgGroup_Game, kDbgMsg_Warn));
+            group_filters.push_back(std::make_pair(kDbgGroup_Script, kDbgMsg_Warn));
+            DbgMgr.RegisterOutput(OutputFileID, dbgout, kDbgMsg_None, &group_filters);
         }
     }
 

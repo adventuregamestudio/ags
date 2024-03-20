@@ -695,7 +695,7 @@ namespace AGS.Editor.Components
                 scriptEditor.Room = _loadedRoom;
             }
             _roomScriptEditors[selectedRoom.Number] = new ContentDocument(scriptEditor,
-                selectedRoom.Script.FileName, this, SCRIPT_ICON);
+                scriptEditor.GetScriptTabName(), this, SCRIPT_ICON);
             _roomScriptEditors[selectedRoom.Number].ToolbarCommands = scriptEditor.ToolbarIcons;
             _roomScriptEditors[selectedRoom.Number].MainMenu = scriptEditor.ExtraMenu; 
         }
@@ -1101,6 +1101,12 @@ namespace AGS.Editor.Components
                 room.Description = _loadedRoom.Description;
                 RePopulateTreeView(GetItemNodeID(room));
                 RoomListTypeConverter.RefreshRoomList();
+                ContentDocument doc;
+                if (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out doc) && doc != null)
+                {
+                    ScriptEditor scriptEditor = ((ScriptEditor)doc.Control);
+                    UpdateScriptWindowTitle(scriptEditor);
+                }
             }
 
 			if ((propertyName == UnloadedRoom.PROPERTY_NAME_NUMBER) && (_loadedRoom != null))

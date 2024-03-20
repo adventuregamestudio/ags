@@ -584,7 +584,6 @@
     <ClCompile Include="..\..\Engine\debug\debug.cpp" />
     <ClCompile Include="..\..\Engine\debug\filebasedagsdebugger.cpp" />
     <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
-    <ClCompile Include="..\..\Engine\debug\messagebuffer.cpp" />
     <ClCompile Include="..\..\Engine\device\mousew32.cpp" />
     <ClCompile Include="..\..\Engine\font\fonts_engine.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
@@ -850,7 +849,6 @@
     <ClInclude Include="..\..\Engine\debug\dummyagsdebugger.h" />
     <ClInclude Include="..\..\Engine\debug\filebasedagsdebugger.h" />
     <ClInclude Include="..\..\Engine\debug\logfile.h" />
-    <ClInclude Include="..\..\Engine\debug\messagebuffer.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
     <ClInclude Include="..\..\Engine\game\savegame.h" />

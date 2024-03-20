@@ -90,12 +90,14 @@ struct DebugGroup
 };
 
 
+class MessageBuffer;
+
 // DebugManager manages log outputs and message groups.
 // All the logging goes through this Manager's Print method.
 class DebugManager
 {
 public:
-    DebugManager();
+    DebugManager(bool buffer_messages);
 
     // Registers message group with the given string ID; numeric ID will be
     // assigned internally. "Out_name" is an optional name to use when printing
@@ -130,12 +132,15 @@ public:
     // Unregisters output delegate with the given string ID
     void UnregisterOutput(const String &id);
 
+    // Begins to record messages in the internal buffer.
+    // Whenever a new output is registered, any buffered messages will be
+    // resent into this new output, so that it had fuller log.
+    void StartMessageBuffering();
+    // Stops message buffering and erases buffer.
+    void StopMessageBuffering();
+
     // Output message of given group and message type
     void Print(MessageGroupHandle group_id, MessageType mt, const String &text);
-    // Send message directly to the output with given id; the message
-    // must pass the output's message filter though
-    // TODO: get rid of this method!
-    void SendMessage(const String &out_id, const DebugMessage &msg);
 
 private:
     // OutputSlot struct wraps over output target and adds a flag which indicates
@@ -146,6 +151,8 @@ private:
         DebugOutput() = default;
         DebugOutput(const String &id, IOutputHandler *handler,
             MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+
+        const String &GetID() const { return _id; }
         void SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
         void ResolveGroupID(const DebugGroupID &id);
         void SendMessage(const DebugMessage &msg);
@@ -175,6 +182,10 @@ private:
     MessageGroupHandle FindFreeGroupID();
     DebugGroup         GetGroupImpl(const DebugGroupID &id);
     MessageGroupHandle RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name);
+    DebugOutput &      RegisterOutputImpl(const String &id,
+        IOutputHandler *handler, MessageType def_verbosity,
+        const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+    void               SendBufferedMessages(DebugOutput &out);
 
     std::mutex          _mutex;
     uint32_t            _freeGroupID = 0u; // first free group numeric id
@@ -183,6 +194,10 @@ private:
                         _groupByStrLookup;
     std::unordered_map<String, DebugOutput, HashStrNoCase, StrEqNoCase>
                         _outputs;
+
+    // An optional message buffer
+    const String OutputMsgBufID = "internal.buffer";
+    std::unique_ptr<MessageBuffer> _messageBuf;
 };
 
 // TODO: move this to the dynamically allocated engine object whenever it is implemented

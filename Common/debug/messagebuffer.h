@@ -17,41 +17,55 @@
 // while specifying how to actually print it.
 //
 //=============================================================================
-#ifndef __AGS_EE_DEBUG__MESSAGEBUFFER_H
-#define __AGS_EE_DEBUG__MESSAGEBUFFER_H
+#ifndef __AGS_CN_DEBUG__MESSAGEBUFFER_H
+#define __AGS_CN_DEBUG__MESSAGEBUFFER_H
 
 #include <vector>
 #include "debug/outputhandler.h"
 
 namespace AGS
 {
-namespace Engine
+namespace Common
 {
 
-using Common::String;
-using Common::DebugMessage;
-
-class MessageBuffer : public AGS::Common::IOutputHandler
+class MessageBuffer : public IOutputHandler
 {
 public:
-    MessageBuffer(size_t buffer_limit = 1024);
+    MessageBuffer(size_t buffer_limit = 1024u)
+        : _bufferLimit(buffer_limit)
+    {}
 
-    void PrintMessage(const DebugMessage &msg) override;
+    void PrintMessage(const DebugMessage &msg) override
+    {
+        if (_buffer.size() < _bufferLimit)
+            _buffer.push_back(msg);
+        else
+            _msgLost++;
+    }
 
     // Clears buffer
-    void         Clear();
-    // Sends buffered messages into given output target
-    void         Send(const String &out_id);
-    // Sends buffered messages into given output target and clears buffer
-    void         Flush(const String &out_id);
+    void Clear()
+    {
+        _buffer.clear();
+    }
+    // Grants read access to the buffered messages
+    const std::vector<DebugMessage> GetBuffer() const
+    {
+        return _buffer;
+    }
+    // Tells how many messages were lost, exceeding the buffer limit
+    size_t GetMessagesLost() const
+    {
+        return _msgLost;
+    }
 
 private:
     const size_t    _bufferLimit;
     std::vector<DebugMessage> _buffer;
-    size_t          _msgLost;
+    size_t          _msgLost = 0u;
 };
 
-}   // namespace Engine
-}   // namespace AGS
+} // namespace Common
+} // namespace AGS
 
-#endif // __AGS_EE_DEBUG__MESSAGEBUFFER_H
+#endif // __AGS_CN_DEBUG__MESSAGEBUFFER_H

@@ -125,11 +125,9 @@ private:
     IAGSEditorDebugger *_ideDebugger = nullptr;
 };
 
-std::unique_ptr<MessageBuffer> DebugMsgBuff;
 std::unique_ptr<LogFile> DebugLogFile;
 std::unique_ptr<DebuggerLogOutputTarget> DebuggerLog;
 
-const String OutputMsgBufID = "buffer";
 const String OutputFileID = "file";
 const String OutputSystemID = "stdout";
 const String OutputDebuggerLogID = "debugger";
@@ -283,10 +281,6 @@ static void apply_log_config(const ConfigTree &cfg, const String &log_id,
         if (!dbgout)
             return;
         DbgMgr.RegisterOutput(log_id, dbgout, def_verbosity, &group_filters);
-        // Delegate buffered messages to this new output
-        // TODO: this should happen inside DebugManager
-        if (DebugMsgBuff)
-            DebugMsgBuff->Send(log_id);
     }
 }
 
@@ -302,13 +296,6 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
     // Register outputs
     apply_debug_config(cfg);
     platform->SetOutputToErr(stderr_only);
-
-    if (stderr_only)
-        return;
-
-    // Message buffer to save all messages in case we read different log settings from config file
-    DebugMsgBuff.reset(new MessageBuffer());
-    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All, nullptr);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -359,8 +346,7 @@ void apply_debug_config(const ConfigTree &cfg)
     }
 
     // We don't need message buffer beyond this point
-    DbgMgr.UnregisterOutput(OutputMsgBufID);
-    DebugMsgBuff.reset();
+    DbgMgr.StopMessageBuffering();
 }
 
 void shutdown_debug()
@@ -368,7 +354,6 @@ void shutdown_debug()
     // Shutdown output subsystem
     DbgMgr.UnregisterAll();
 
-    DebugMsgBuff.reset();
     DebugLogFile.reset();
     DebuggerLog.reset();
 }

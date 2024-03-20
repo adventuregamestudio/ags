@@ -13,6 +13,7 @@
 //=============================================================================
 #include <stdarg.h>
 #include "debug/debugmanager.h"
+#include "debug/messagebuffer.h"
 #include "util/string_types.h"
 
 namespace AGS
@@ -84,7 +85,7 @@ void DebugManager::DebugOutput::SendMessage(const DebugMessage &msg)
 }
 
 
-DebugManager::DebugManager()
+DebugManager::DebugManager(bool buffer_messages)
 {
     // Add hardcoded groups
     // TODO: move this out of DebugManager, into the engine!
@@ -94,6 +95,11 @@ DebugManager::DebugManager()
     RegisterGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache");
     RegisterGroup(DebugGroupID(kDbgGroup_ManObj, "manobj"), "Managed obj");
     RegisterGroup(DebugGroupID(kDbgGroup_SDL, "sdl"), "SDL");
+
+    if (buffer_messages)
+    {
+        StartMessageBuffering();
+    }
 }
 
 MessageGroupHandle DebugManager::FindFreeGroupID()
@@ -154,10 +160,42 @@ void DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, Mes
         return;
 
     std::lock_guard<std::mutex> lk(_mutex);
+    auto &out = RegisterOutputImpl(id, handler, def_verbosity, group_filters);
+    // Delegate buffered messages to this new output
+    // CHECKME: strictly speaking, this is not a good idea to perform this
+    // under a lock, but we assume for now that outputs are registered once early on.
+    if (_messageBuf)
+        SendBufferedMessages(out);
+}
+
+DebugManager::DebugOutput &DebugManager::RegisterOutputImpl(const String &id,
+    IOutputHandler *handler, MessageType def_verbosity,
+    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+{
     _outputs[id] = DebugOutput(id, handler, def_verbosity, group_filters);
+    auto &out = _outputs[id];
     // Make sure that output allocates filters for all known groups
     for (const auto &group : _groups)
-        _outputs[id].ResolveGroupID(group.UID);
+        out.ResolveGroupID(group.UID);
+    return out;
+}
+
+void DebugManager::SendBufferedMessages(DebugOutput &out)
+{
+    if (!_messageBuf)
+        return;
+
+    size_t msg_lost = _messageBuf->GetMessagesLost();
+    if (msg_lost > 0u)
+    {
+        DebugGroup gr = DbgMgr.GetGroup(kDbgGroup_Main);
+        out.SendMessage(DebugMessage(String::FromFormat("WARNING: output %s lost exceeding buffer: %zu debug messages\n", out.GetID().GetCStr(), msg_lost),
+            gr.UID.ID, gr.OutputName, kDbgMsg_All));
+    }
+    for (const auto &msg : _messageBuf->GetBuffer())
+    {
+        out.SendMessage(msg);
+    }
 }
 
 DebugGroup DebugManager::GetGroup(const DebugGroupID &id)
@@ -229,6 +267,20 @@ void DebugManager::UnregisterOutput(const String &id)
     _outputs.erase(id);
 }
 
+void DebugManager::StartMessageBuffering()
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    _messageBuf.reset(new MessageBuffer());
+    RegisterOutputImpl(OutputMsgBufID, _messageBuf.get(), kDbgMsg_All, nullptr);
+}
+
+void DebugManager::StopMessageBuffering()
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    _outputs.erase(OutputMsgBufID);
+    _messageBuf.reset();
+}
+
 void DebugManager::Print(MessageGroupHandle group_id, MessageType mt, const String &text)
 {
     std::lock_guard<std::mutex> lk(_mutex);
@@ -242,16 +294,8 @@ void DebugManager::Print(MessageGroupHandle group_id, MessageType mt, const Stri
         out.second.SendMessage(msg);
 }
 
-void DebugManager::SendMessage(const String &out_id, const DebugMessage &msg)
-{
-    std::lock_guard<std::mutex> lk(_mutex);
-    auto it = _outputs.find(out_id);
-    if (it != _outputs.end())
-        it->second.SendMessage(msg);
-}
-
 // TODO: move this to the dynamically allocated engine object whenever it is implemented
-DebugManager DbgMgr;
+DebugManager DbgMgr(true /* start buffering messages */);
 
 
 namespace Debug

@@ -58,6 +58,7 @@ target_sources(common
     debug/assert.h
     debug/debugmanager.cpp
     debug/debugmanager.h
+    debug/messagebuffer.h
     debug/out.h
     debug/outputhandler.h
     font/agsfontrenderer.h

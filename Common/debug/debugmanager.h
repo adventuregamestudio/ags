@@ -32,11 +32,24 @@
 // each of the registered output targets, which do checks to find out whether
 // the message is permitted to be sent further to the printing handler, or not.
 //
+//-----------------------------------------------------------------------------
+//
+// Thread-safety: currently each public method of DebugManager is protected
+// by locking a mutex. One noteable case is sending a message to all outputs
+// using DebugManager::Print: all the outputs will be processed between a
+// single pair of lock/unlock. On one hand this makes the order of messages
+// strict and reduces potential number of lock/unlock pairs. On another hand,
+// this in theory may slow things down more in case of overly verbose logging
+// from multiple threads. If that becomes an issue, we might redesign
+// the locking strategy, e.g. letting separate outputs to process messages in
+// parallel.
+//
 //=============================================================================
 #ifndef __AGS_CN_DEBUG__DEBUGMANAGER_H
 #define __AGS_CN_DEBUG__DEBUGMANAGER_H
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include "debug/out.h"
 #include "debug/outputhandler.h"
@@ -160,7 +173,10 @@ private:
     };
 
     MessageGroupHandle FindFreeGroupID();
+    DebugGroup         GetGroupImpl(const DebugGroupID &id);
+    MessageGroupHandle RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name);
 
+    std::mutex          _mutex;
     uint32_t            _freeGroupID = 0u; // first free group numeric id
     std::vector<DebugGroup> _groups;
     std::unordered_map<String, DebugGroupID, HashStrNoCase, StrEqNoCase>

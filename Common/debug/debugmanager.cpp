@@ -111,6 +111,7 @@ MessageGroupHandle DebugManager::FindFreeGroupID()
 
 MessageGroupHandle DebugManager::RegisterGroup(const String &id, const String &out_name)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     auto it = _groupByStrLookup.find(id);
     if (it != _groupByStrLookup.end())
     {
@@ -118,10 +119,16 @@ MessageGroupHandle DebugManager::RegisterGroup(const String &id, const String &o
         return it->second.ID;
     }
 
-    return RegisterGroup(DebugGroupID(FindFreeGroupID(), id), out_name);
+    return RegisterGroupImpl(DebugGroupID(FindFreeGroupID(), id), out_name);
 }
 
 MessageGroupHandle DebugManager::RegisterGroup(const DebugGroupID &group_id, const String &out_name)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    return RegisterGroupImpl(group_id, out_name);
+}
+
+MessageGroupHandle DebugManager::RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name)
 {
     if (_groups.size() <= group_id.ID)
         _groups.resize(group_id.ID + 1);
@@ -146,6 +153,7 @@ void DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, Mes
     if (!handler)
         return;
 
+    std::lock_guard<std::mutex> lk(_mutex);
     _outputs[id] = DebugOutput(id, handler, def_verbosity, group_filters);
     // Make sure that output allocates filters for all known groups
     for (const auto &group : _groups)
@@ -153,6 +161,12 @@ void DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, Mes
 }
 
 DebugGroup DebugManager::GetGroup(const DebugGroupID &id)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    return GetGroupImpl(id);
+}
+
+DebugGroup DebugManager::GetGroupImpl(const DebugGroupID &id)
 {
     if (id.ID != InvalidMessageGroup)
     {
@@ -168,12 +182,14 @@ DebugGroup DebugManager::GetGroup(const DebugGroupID &id)
 
 bool DebugManager::HasOutput(const String &id)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     return _outputs.count(id) > 0;
 }
 
 void DebugManager::SetOutputFilters(const String &id, MessageType def_verbosity,
     const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     auto it = _outputs.find(id);
     if (it == _outputs.end())
         return;
@@ -187,6 +203,7 @@ void DebugManager::SetOutputFilters(const String &id, MessageType def_verbosity,
 
 void DebugManager::UnregisterAll()
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     _groups.clear();
     _groupByStrLookup.clear();
     _outputs.clear();
@@ -195,7 +212,8 @@ void DebugManager::UnregisterAll()
 
 void DebugManager::UnregisterGroup(const DebugGroupID &id)
 {
-    DebugGroup group = GetGroup(id);
+    std::lock_guard<std::mutex> lk(_mutex);
+    DebugGroup group = GetGroupImpl(id);
     if (!group.UID.IsValid())
         return;
 
@@ -207,11 +225,13 @@ void DebugManager::UnregisterGroup(const DebugGroupID &id)
 
 void DebugManager::UnregisterOutput(const String &id)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     _outputs.erase(id);
 }
 
 void DebugManager::Print(MessageGroupHandle group_id, MessageType mt, const String &text)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     assert(group_id < _groups.size());
     if (group_id >= _groups.size())
         return;
@@ -224,6 +244,7 @@ void DebugManager::Print(MessageGroupHandle group_id, MessageType mt, const Stri
 
 void DebugManager::SendMessage(const String &out_id, const DebugMessage &msg)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     auto it = _outputs.find(out_id);
     if (it != _outputs.end())
         it->second.SendMessage(msg);

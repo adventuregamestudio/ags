@@ -37,7 +37,7 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}}
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.platform.artifact }}
         path: |

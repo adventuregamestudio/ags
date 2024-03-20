@@ -541,7 +541,6 @@ target_link_libraries(engine PUBLIC
     Cda::Cda
     External::OpenAL
     ${SDL2_LIBRARY}
-    ${SDL2_LIBRARIES}
     SDL2_sound::SDL2_sound
 )
 

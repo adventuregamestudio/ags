@@ -1039,9 +1039,19 @@ namespace AGS.Editor.Components
 			}
         }
 
+        private string GetRoomSettingsTabName()
+        {
+            if(!string.IsNullOrEmpty(_loadedRoom.Description))
+            {
+                return "Room " + _loadedRoom.Number.ToString() + (_loadedRoom.Modified ? " *" : "") + ": " + _loadedRoom.Description;
+            }
+
+            return "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
+        }
+
         private void CreateRoomSettings(DockData previousDockData)
         {
-            string paneTitle = "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
+            string paneTitle = GetRoomSettingsTabName();
 
             RoomSettingsEditor editor = new RoomSettingsEditor(_loadedRoom);
             _roomSettings = new ContentDocument(editor,
@@ -1079,7 +1089,7 @@ namespace AGS.Editor.Components
                 // Prompt it to check out if necessary
                 _agsEditor.AttemptToGetWriteAccess(_loadedRoom.FileName);
             }
-            _roomSettings.Name = "Room " + _loadedRoom.Number + (isModified ? " *" : "");
+            _roomSettings.Name = GetRoomSettingsTabName();
             _guiController.DocumentTitlesChanged();
         }
 

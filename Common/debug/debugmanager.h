@@ -114,7 +114,8 @@ public:
     MessageGroupHandle RegisterGroup(const DebugGroupID &group_id, const String &out_name);
     // Registers output delegate for passing debug messages to;
     // if the output with such id already exists, replaces the old one.
-    void RegisterOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity,
+    void RegisterOutput(const String &id, std::unique_ptr<IOutputHandler> &&handler,
+        MessageType def_verbosity,
         const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
 
     // Gets a group description; returns an unfilled struct if such group does not exist.
@@ -149,10 +150,11 @@ private:
     {
     public:
         DebugOutput() = default;
-        DebugOutput(const String &id, IOutputHandler *handler,
+        DebugOutput(const String &id, std::unique_ptr<IOutputHandler> &&handler,
             MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
 
         const String &GetID() const { return _id; }
+        IOutputHandler *GetHandler() const { return _handler.get(); }
         void SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
         void ResolveGroupID(const DebugGroupID &id);
         void SendMessage(const DebugMessage &msg);
@@ -165,7 +167,7 @@ private:
         }
 
         String          _id;
-        IOutputHandler *_handler = nullptr;
+        std::unique_ptr<IOutputHandler> _handler;
         bool            _suppressed = false;
         MessageType     _defaultVerbosity = kDbgMsg_None;
         // Maximal message type per group (based on numeric index)
@@ -183,7 +185,7 @@ private:
     DebugGroup         GetGroupImpl(const DebugGroupID &id);
     MessageGroupHandle RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name);
     DebugOutput &      RegisterOutputImpl(const String &id,
-        IOutputHandler *handler, MessageType def_verbosity,
+        std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
         const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
     void               SendBufferedMessages(DebugOutput &out);
 
@@ -195,9 +197,9 @@ private:
     std::unordered_map<String, DebugOutput, HashStrNoCase, StrEqNoCase>
                         _outputs;
 
-    // An optional message buffer
+    // The ID for the optional message buffer
     const String OutputMsgBufID = "internal.buffer";
-    std::unique_ptr<MessageBuffer> _messageBuf;
+    MessageBuffer      *_messageBuf = nullptr; // non-owning quick ref
 };
 
 // TODO: move this to the dynamically allocated engine object whenever it is implemented

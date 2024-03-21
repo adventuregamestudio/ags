@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include "debug/debugmanager.h"
 #include "debug/messagebuffer.h"
+#include "util/memory_compat.h"
 #include "util/string_types.h"
 
 namespace AGS
@@ -21,10 +22,11 @@ namespace AGS
 namespace Common
 {
 
-DebugManager::DebugOutput::DebugOutput(const String &id, IOutputHandler *handler,
+DebugManager::DebugOutput::DebugOutput(const String &id,
+    std::unique_ptr<IOutputHandler> &&handler,
     MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
     : _id(id)
-    , _handler(handler)
+    , _handler(std::move(handler))
 {
     SetFilters(def_verbosity, group_filters);
 }
@@ -152,7 +154,8 @@ MessageGroupHandle DebugManager::RegisterGroupImpl(const DebugGroupID &group_id,
     return group_id.ID;
 }
 
-void DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity,
+void DebugManager::RegisterOutput(const String &id,
+    std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
     const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     assert(handler);
@@ -160,7 +163,7 @@ void DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, Mes
         return;
 
     std::lock_guard<std::mutex> lk(_mutex);
-    auto &out = RegisterOutputImpl(id, handler, def_verbosity, group_filters);
+    auto &out = RegisterOutputImpl(id, std::move(handler), def_verbosity, group_filters);
     // Delegate buffered messages to this new output
     // CHECKME: strictly speaking, this is not a good idea to perform this
     // under a lock, but we assume for now that outputs are registered once early on.
@@ -169,10 +172,10 @@ void DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, Mes
 }
 
 DebugManager::DebugOutput &DebugManager::RegisterOutputImpl(const String &id,
-    IOutputHandler *handler, MessageType def_verbosity,
+    std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
     const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
-    _outputs[id] = DebugOutput(id, handler, def_verbosity, group_filters);
+    _outputs[id] = DebugOutput(id, std::move(handler), def_verbosity, group_filters);
     auto &out = _outputs[id];
     // Make sure that output allocates filters for all known groups
     for (const auto &group : _groups)
@@ -182,6 +185,7 @@ DebugManager::DebugOutput &DebugManager::RegisterOutputImpl(const String &id,
 
 void DebugManager::SendBufferedMessages(DebugOutput &out)
 {
+    assert(_messageBuf);
     if (!_messageBuf)
         return;
 
@@ -270,15 +274,16 @@ void DebugManager::UnregisterOutput(const String &id)
 void DebugManager::StartMessageBuffering()
 {
     std::lock_guard<std::mutex> lk(_mutex);
-    _messageBuf.reset(new MessageBuffer());
-    RegisterOutputImpl(OutputMsgBufID, _messageBuf.get(), kDbgMsg_All, nullptr);
+    auto msg_buf = std::make_unique<MessageBuffer>();
+    _messageBuf = msg_buf.get();
+    RegisterOutputImpl(OutputMsgBufID, std::move(msg_buf), kDbgMsg_All, nullptr);
 }
 
 void DebugManager::StopMessageBuffering()
 {
     std::lock_guard<std::mutex> lk(_mutex);
+    _messageBuf = nullptr;
     _outputs.erase(OutputMsgBufID);
-    _messageBuf.reset();
 }
 
 void DebugManager::Print(MessageGroupHandle group_id, MessageType mt, const String &text)

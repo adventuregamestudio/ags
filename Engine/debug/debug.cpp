@@ -39,6 +39,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
+#include "util/memory_compat.h"
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
@@ -125,9 +126,6 @@ private:
     IAGSEditorDebugger *_ideDebugger = nullptr;
 };
 
-std::unique_ptr<LogFile> DebugLogFile;
-std::unique_ptr<DebuggerLogOutputTarget> DebuggerLog;
-
 const String OutputFileID = "file";
 const String OutputSystemID = "stdout";
 const String OutputDebuggerLogID = "debugger";
@@ -160,16 +158,17 @@ void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, 
 // ----------------------------------------------------------------------------
 
 // TODO: return a std::unique_ptr<IOutputHandler>
-static IOutputHandler *create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
+static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
+    const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
     // Else create new one, if we know this ID
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
-        return AGSPlatformDriver::GetDriver();
+        return platform->GetStdOut();
     }
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
-        DebugLogFile.reset(new LogFile());
+        auto log_file = std::make_unique<LogFile>();
         String logfile_path = path;
         if (logfile_path.IsEmpty())
         {
@@ -177,16 +176,15 @@ static IOutputHandler *create_log_output(const String &name, const String &path 
             CreateFSDirs(fs);
             logfile_path = Path::ConcatPaths(fs.FullDir, "ags.log");
         }
-        if (!DebugLogFile->OpenFile(logfile_path, open_mode))
+        if (!log_file->OpenFile(logfile_path, open_mode))
             return nullptr;
         Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
-        return DebugLogFile.get();
+        return std::move(log_file);
     }
     else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&
         editor_debugger != nullptr)
     {
-        DebuggerLog.reset(new DebuggerLogOutputTarget(editor_debugger));
-        return DebuggerLog.get();
+        return std::make_unique<DebuggerLogOutputTarget>(editor_debugger);
     }
     return nullptr;
 }
@@ -280,7 +278,7 @@ static void apply_log_config(const ConfigTree &cfg, const String &log_id,
         auto dbgout = create_log_output(log_id, path);
         if (!dbgout)
             return;
-        DbgMgr.RegisterOutput(log_id, dbgout, def_verbosity, &group_filters);
+        DbgMgr.RegisterOutput(log_id, std::move(dbgout), def_verbosity, &group_filters);
     }
 }
 
@@ -293,9 +291,11 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
         CstrArr<SDL_NUM_LOG_PRIORITIES>{"", "verbose", "debug", "info", "warn", "error", "critical"}, SDL_LOG_PRIORITY_INFO);
     SDL_LogSetAllPriority(priority);
 
+    // Init platform's stdout setting
+    platform->SetOutputToErr(stderr_only);
+
     // Register outputs
     apply_debug_config(cfg);
-    platform->SetOutputToErr(stderr_only);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -327,7 +327,7 @@ void apply_debug_config(const ConfigTree &cfg)
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
     // then open "warnings.log" for printing script warnings.
-    if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
+    if (game.options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
     {
         auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
@@ -335,7 +335,7 @@ void apply_debug_config(const ConfigTree &cfg)
             std::vector<std::pair<DebugGroupID, MessageType>> group_filters;
             group_filters.push_back(std::make_pair(kDbgGroup_Game, kDbgMsg_Warn));
             group_filters.push_back(std::make_pair(kDbgGroup_Script, kDbgMsg_Warn));
-            DbgMgr.RegisterOutput(OutputFileID, dbgout, kDbgMsg_None, &group_filters);
+            DbgMgr.RegisterOutput(OutputFileID, std::move(dbgout), kDbgMsg_None, &group_filters);
         }
     }
 
@@ -353,9 +353,6 @@ void shutdown_debug()
 {
     // Shutdown output subsystem
     DbgMgr.UnregisterAll();
-
-    DebugLogFile.reset();
-    DebuggerLog.reset();
 }
 
 // Prepends message text with current room number and running script info, then logs result

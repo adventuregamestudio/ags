@@ -25,6 +25,7 @@ namespace AGS.Editor
         private Color? _treeNodesBackgroundColor;
         private TreeNode _dropHoveredNode;
         private DateTime _timeOfDragDropHoverStart;
+        private LineInBetween _lineInBetween;
 
 
         public ProjectTree(TreeView projectTree)
@@ -34,6 +35,10 @@ namespace AGS.Editor
             projectTree.SelectedImageKey = DEFAULT_ICON_KEY;
 
             _projectTree = projectTree;
+            _lineInBetween = new LineInBetween();
+            _projectTree.Parent.Controls.Add(_lineInBetween);
+            _lineInBetween.BringToFront();
+            _lineInBetween.CleanHide();
             _treeNodes = new Dictionary<string, IEditorComponent>();
 
             _projectTree.MouseClick += new System.Windows.Forms.MouseEventHandler(this.projectTree_MouseClick);
@@ -50,7 +55,8 @@ namespace AGS.Editor
 			_projectTree.DragDrop += new DragEventHandler(projectTree_DragDrop);
 		}
 
-		private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
+
+        private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
             _expandedAtTime = DateTime.Now;
 		}
@@ -501,7 +507,18 @@ namespace AGS.Editor
             }
         }
 
-		private void projectTree_DragOver(object sender, DragEventArgs e)
+        private void ShowMiddleLineProjectTree(int x, int y, int w, int h)
+        {
+            // it auto-hides so we don't have to handle the drop being cancelled which has to be done in projectItem!
+            _lineInBetween.ShowAndHideAt(x, y, w, h);
+        }
+
+        private void HideMiddleLineProjectTree()
+        {
+            _lineInBetween.CleanHide();
+        }
+
+        private void projectTree_DragOver(object sender, DragEventArgs e)
 		{
 			e.Effect = DragDropEffects.None;
 
@@ -519,6 +536,22 @@ namespace AGS.Editor
 					}
                     if (source.CanDropHere(source, target))
                     {
+                        int h = target.TreeNode.Bounds.Height;
+                        int node_y = target.TreeNode.Bounds.Y;
+                        int cur_y = locationInControl.Y;
+                        if (cur_y > node_y && cur_y < node_y + h / 4)
+                        {
+                            System.Console.WriteLine("top of node");
+                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y-h/8, target.TreeNode.Bounds.Width, h / 4);
+                        } else if (cur_y > node_y + 3 * h / 4 && cur_y < node_y + h)
+                        {
+                            System.Console.WriteLine("bottom of node");
+                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y + 7*h/8, target.TreeNode.Bounds.Width, h / 4);
+                        } else
+                        {
+                            HideMiddleLineProjectTree();
+                        }
+
                         HighlightNodeAndExpandIfNeeded(target);
                         e.Effect = DragDropEffects.Move;
                     }
@@ -544,7 +577,8 @@ namespace AGS.Editor
 		}
 
 		private void projectTree_DragDrop(object sender, DragEventArgs e)
-		{
+        {
+            HideMiddleLineProjectTree();
             ClearHighlightNode();
 			ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
 			Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));

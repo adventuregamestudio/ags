@@ -20,8 +20,6 @@
 
 #define GUITEXTBOX_LEGACY_TEXTLEN 200
 
-std::vector<AGS::Common::GUITextBox> guitext;
-
 namespace AGS
 {
 namespace Common

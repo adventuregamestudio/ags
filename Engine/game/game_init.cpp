@@ -203,7 +203,7 @@ HError InitAndRegisterGUI(GameSetupStruct &game)
     for (int i = 0; i < game.numgui; ++i)
     {
         // link controls to their parent guis
-        HError err = guis[i].RebuildArray();
+        HError err = guis[i].RebuildArray(GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
         if (!err)
             return err;
         // export all the GUI's controls
@@ -502,7 +502,14 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     charextra.resize(game.numcharacters);
     mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
-    init_game_drawdata();
+    guis = std::move(ents.Guis);
+    guibuts = std::move(ents.GuiControls.Buttons);
+    guiinv = std::move(ents.GuiControls.InvWindows);
+    guilabels = std::move(ents.GuiControls.Labels);
+    guilist = std::move(ents.GuiControls.ListBoxes);
+    guislider = std::move(ents.GuiControls.Sliders);
+    guitext = std::move(ents.GuiControls.TextBoxes);
+    GUI::RebuildGUI(guis, GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
     dialog = std::move(ents.Dialogs);
@@ -524,6 +531,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(game, data_ver);
     LoadLipsyncData();
+    init_game_drawdata();
 
     //
     // 4. Initialize certain runtime variables

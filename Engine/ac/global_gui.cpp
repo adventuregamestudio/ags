@@ -25,11 +25,11 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
-#include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern std::vector<ScriptGUI> scrGui;
@@ -197,7 +197,7 @@ void DisableInterface() {
   // If GUI looks change when disabled, then mark all of them for redraw
   bool redraw_gui = (play.disabled_user_interface == 0) && // only if was enabled before
       (GUI::Options.DisabledStyle != kGuiDis_Unchanged);
-  GUI::MarkAllGUIForUpdate(redraw_gui, true);
+  GUIE::MarkAllGUIForUpdate(redraw_gui, true);
   play.disabled_user_interface++;
   set_mouse_cursor(CURS_WAIT);
 }
@@ -208,7 +208,7 @@ void EnableInterface() {
     play.disabled_user_interface=0;
     set_default_cursor();
     // If GUI looks change when disabled, then mark all of them for redraw
-    GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+    GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
   }
 }
 // Returns 1 if user interface is enabled, 0 if disabled

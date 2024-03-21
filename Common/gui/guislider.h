@@ -74,6 +74,4 @@ private:
 } // namespace Common
 } // namespace AGS
 
-extern std::vector<AGS::Common::GUISlider> guislider;
-
 #endif // __AC_GUISLIDER_H

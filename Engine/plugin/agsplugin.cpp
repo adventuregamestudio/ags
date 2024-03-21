@@ -27,6 +27,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_walkablearea.h"
+#include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
@@ -45,7 +46,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-#include "gui/guimain.h"
 #include "main/main.h"
 #include "main/engine.h"
 #include "main/game_run.h"
@@ -767,7 +767,7 @@ void IAGSEngine::BreakIntoDebugger()
 IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRenderer *newRenderer)
 {
     auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUI::MarkForFontUpdate(fontNumber);
+    GUIE::MarkForFontUpdate(fontNumber);
     return old_render;
 }
 
@@ -792,14 +792,14 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
 IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
 {
     auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUI::MarkForFontUpdate(fontNumber);
+    GUIE::MarkForFontUpdate(fontNumber);
     return old_render;
 }
 
 void IAGSEngine::NotifyFontUpdated(int fontNumber)
 {
     font_recalc_metrics(fontNumber);
-    GUI::MarkForFontUpdate(fontNumber);
+    GUIE::MarkForFontUpdate(fontNumber);
 }
 
 size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t buf_len)

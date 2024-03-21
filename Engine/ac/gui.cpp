@@ -74,6 +74,104 @@ int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 int eip_guinum, eip_guiobj;
 
 
+namespace AGS
+{
+namespace Engine
+{
+namespace GUIE
+{
+
+void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl)
+{
+    for (auto &gui : guis)
+    {
+        if (redraw)
+        {
+            gui.MarkChanged();
+            for (int i = 0; i < gui.GetControlCount(); ++i)
+                gui.GetControl(i)->MarkChanged();
+        }
+        if (reset_over_ctrl)
+            gui.ResetOverControl();
+    }
+}
+
+void MarkForTranslationUpdate()
+{
+    for (auto &btn : guibuts)
+    {
+        if (btn.IsTranslated())
+            btn.MarkChanged();
+    }
+    for (auto &lbl : guilabels)
+    {
+        if (lbl.IsTranslated())
+            lbl.MarkChanged();
+    }
+    for (auto &list : guilist)
+    {
+        if (list.IsTranslated())
+            list.MarkChanged();
+    }
+}
+
+void MarkForFontUpdate(int font)
+{
+    const bool update_all = (font < 0);
+    for (auto &btn : guibuts)
+    {
+        if (update_all || btn.Font == font)
+            btn.OnResized();
+    }
+    for (auto &lbl : guilabels)
+    {
+        if (update_all || lbl.Font == font)
+            lbl.OnResized();
+    }
+    for (auto &list : guilist)
+    {
+        if (update_all || list.Font == font)
+            list.OnResized();
+    }
+    for (auto &tb : guitext)
+    {
+        if (update_all || tb.Font == font)
+            tb.OnResized();
+    }
+}
+
+void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
+{
+    for (auto &lbl : guilabels)
+    {
+        if ((lbl.GetTextMacros() & macro) != 0)
+        {
+            lbl.MarkChanged();
+        }
+    }
+}
+
+void MarkInventoryForUpdate(int char_id, bool is_player)
+{
+    for (auto &btn : guibuts)
+    {
+        if (btn.GetPlaceholder() != kButtonPlace_None)
+            btn.MarkChanged();
+    }
+    for (auto &inv : guiinv)
+    {
+        if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))
+        {
+            inv.MarkChanged();
+        }
+    }
+}
+
+} // namespace GUI
+} // namespace Engine
+} // namespace AGS
+
+
 ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
 { // Internally both GUI and TextWindow are implemented by same class
     return guis[tehgui->id].IsTextWindow() ? &scrGui[tehgui->id] : nullptr;
@@ -486,7 +584,7 @@ void update_gui_disabled_status() {
 
     if (all_buttons_was != all_buttons_disabled) {
         // Mark guis for redraw and reset control-under-mouse detection
-        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
         if (GUI::Options.DisabledStyle != kGuiDis_Unchanged) {
             invalidate_screen();
         }

@@ -17,16 +17,17 @@
 #include "ac/gamestate.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
-#include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
@@ -83,7 +84,7 @@ void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
     croom->hotspot[hss->id].Name = newName;
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {

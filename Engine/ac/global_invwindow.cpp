@@ -14,9 +14,8 @@
 #include "ac/gamestate.h"
 #include "ac/global_invwindow.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/properties.h"
-#include "gui/guimain.h"
-#include "gui/guiinv.h"
 #include "script/executingscript.h"
 
 using namespace AGS::Common;

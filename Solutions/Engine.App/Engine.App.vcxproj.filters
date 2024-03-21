@@ -1364,9 +1364,6 @@
     <ClInclude Include="..\..\Engine\gui\cscidialog.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\gui\gui.h">
-      <Filter>Header Files\gui</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\gui\guidialog.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>

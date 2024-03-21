@@ -90,7 +90,7 @@ void AbortGame()
 
 void GiveScore(int amnt) 
 {
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_AllScore);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_AllScore);
     play.score += amnt;
 
     if ((amnt > 0) && (play.score_sound >= 0))
@@ -467,7 +467,7 @@ int SetGameOption (int opt, int newval) {
     case OPT_DISABLEOFF:
         GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
         // If GUI was disabled at this time then also update it, as visual style could've changed
-        if (play.disabled_user_interface > 0) { GUI::MarkAllGUIForUpdate(true, false); }
+        if (play.disabled_user_interface > 0) { GUIE::MarkAllGUIForUpdate(true, false); }
         break;
     case OPT_CROSSFADEMUSIC:
         if (game.audioClipTypes.size() > AUDIOTYPE_LEGACY_MUSIC)
@@ -481,7 +481,7 @@ int SetGameOption (int opt, int newval) {
         adjust_fonts_for_render_mode(newval != 0);
         break;
     case OPT_RIGHTLEFTWRITE:
-        GUI::MarkForTranslationUpdate();
+        GUIE::MarkForTranslationUpdate();
         break;
     case OPT_DUPLICATEINV:
         update_invorder();
@@ -614,13 +614,13 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
             if (play.get_loc_name_last_time != 1000 + mover)
-                GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+                GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = 1000 + mover;
             snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.invinfo[mover].name.GetCStr()));
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
-            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
             play.get_loc_name_last_time = -1;
         }
         return;
@@ -639,7 +639,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (loctype == 0) {
         if (play.get_loc_name_last_time != 0) {
             play.get_loc_name_last_time = 0;
-            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         }
         return;
     }
@@ -649,7 +649,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         onhs = getloctype_index;
         snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(game.chars2[onhs].name_new.GetCStr()));
         if (play.get_loc_name_last_time != 2000+onhs)
-            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 2000+onhs;
         return;
     }
@@ -664,7 +664,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
             tempo[1] = 0;
         }
         if (play.get_loc_name_last_time != 3000+aa)
-            GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+            GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
         play.get_loc_name_last_time = 3000+aa;
         return;
     }
@@ -672,7 +672,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (onhs>0)
         snprintf(tempo, MAX_MAXSTRLEN, "%s", get_translation(croom->hotspot[onhs].Name.GetCStr()));
     if (play.get_loc_name_last_time != onhs)
-        GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+        GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
     play.get_loc_name_last_time = onhs;
 }
 

@@ -23,6 +23,7 @@
 #include "ac/global_display.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/global_room.h"
+#include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
@@ -39,6 +40,7 @@
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern ScriptInvItem scrInv[MAX_INV];
@@ -595,7 +597,7 @@ int invscreen() {
     int selt=__actual_invscreen();
     if (selt<0) return -1;
     playerchar->activeinv=selt;
-    GUI::MarkInventoryForUpdate(playerchar->index_id, true);
+    GUIE::MarkInventoryForUpdate(playerchar->index_id, true);
     set_cursor_mode(MODE_USE);
     return selt;
 }

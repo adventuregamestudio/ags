@@ -29,6 +29,7 @@
 #include "ac/global_gui.h"
 #include "ac/global_room.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/keycode.h"
 #include "ac/overlay.h"
 #include "ac/mouse.h"
@@ -41,8 +42,6 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "script/cc_instance.h"
-#include "gui/guimain.h"
-#include "gui/guitextbox.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
@@ -50,7 +49,6 @@
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-#include "ac/mouse.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;

@@ -633,14 +633,14 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeGUI(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     // Previously, Buttons and Labels had a fixed Translated behavior
     if (data_ver < kGameVersion_361)
     {
-        for (auto &btn : guibuts)
+        for (auto &btn : ents.GuiControls.Buttons)
             btn.SetTranslated(true); // always translated
-        for (auto &lbl : guilabels)
+        for (auto &lbl : ents.GuiControls.Labels)
             lbl.SetTranslated(true); // always translated
     }
 }
@@ -939,10 +939,10 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
-    HError err2 = GUI::ReadGUI(in);
+    HError err2 = GUI::ReadGUI(ents.Guis, GUIRefCollection(ents.GuiControls), in);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
-    game.numgui = guis.size();
+    game.numgui = ents.Guis.size();
 
     if (data_ver >= kGameVersion_260)
     {
@@ -977,7 +977,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
-    UpgradeGUI(game, data_ver);
+    UpgradeGUI(game, ents, data_ver);
     UpgradeMouseCursors(game, data_ver);
     SetDefaultGlobalMessages(game);
     // Global talking animation speed

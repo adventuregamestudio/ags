@@ -24,8 +24,8 @@ namespace Common
 
 GUIObject::GUIObject()
 {
-    Id          = 0;
-    ParentId    = 0;
+    Id          = -1;
+    ParentId    = -1;
     Flags       = kGUICtrl_DefFlags;
     X           = 0;
     Y           = 0;

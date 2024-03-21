@@ -879,7 +879,6 @@
     <ClInclude Include="..\..\Engine\gfx\ogl_headers.h" />
     <ClInclude Include="..\..\Engine\gui\animatingguibutton.h" />
     <ClInclude Include="..\..\Engine\gui\cscidialog.h" />
-    <ClInclude Include="..\..\Engine\gui\gui.h" />
     <ClInclude Include="..\..\Engine\gui\guidialog.h" />
     <ClInclude Include="..\..\Engine\gui\guidialogdefines.h" />
     <ClInclude Include="..\..\Engine\gui\mycontrols.h" />

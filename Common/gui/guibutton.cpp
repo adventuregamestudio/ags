@@ -19,8 +19,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-std::vector<AGS::Common::GUIButton> guibuts;
-
 namespace AGS
 {
 namespace Common

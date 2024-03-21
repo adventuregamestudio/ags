@@ -30,6 +30,7 @@
 #include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/movelist.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
@@ -47,6 +48,7 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/all_dynamicclasses.h"
 #include "gui/guimain.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -63,7 +65,6 @@
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
-#include "ac/dynobj/all_dynamicclasses.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "media/audio/audio_system.h"
@@ -903,7 +904,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     set_our_eip(220);
     update_polled_stuff();
     debug_script_log("Now in room %d", displayed_room);
-    GUI::MarkAllGUIForUpdate(true, true);
+    GUIE::MarkAllGUIForUpdate(true, true);
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
 }
 

@@ -28,8 +28,6 @@
 #include "util/string_utils.h"
 #include "util/string_compat.h"
 
-using namespace AGS::Common;
-
 #define MOVER_MOUSEDOWNLOCKED -4000
 
 GuiDisableStyle all_buttons_disabled = kGuiDis_Undefined;
@@ -397,7 +395,7 @@ void GUIMain::Poll(int mx, int my)
     _polling = false;
 }
 
-HError GUIMain::RebuildArray()
+HError GUIMain::RebuildArray(GUIRefCollection &guiobjs)
 {
     GUIControlType thistype;
     int32_t thisnum;
@@ -412,17 +410,17 @@ HError GUIMain::RebuildArray()
             return new Error(String::FromFormat("GUIMain (%d): invalid control ID %d in ref #%d", ID, thisnum, i));
 
         if (thistype == kGUIButton)
-            _controls[i] = &guibuts[thisnum];
+            _controls[i] = &guiobjs.Buttons[thisnum];
         else if (thistype == kGUILabel)
-            _controls[i] = &guilabels[thisnum];
+            _controls[i] = &guiobjs.Labels[thisnum];
         else if (thistype == kGUIInvWindow)
-            _controls[i] = &guiinv[thisnum];
+            _controls[i] = &guiobjs.InvWindows[thisnum];
         else if (thistype == kGUISlider)
-            _controls[i] = &guislider[thisnum];
+            _controls[i] = &guiobjs.Sliders[thisnum];
         else if (thistype == kGUITextBox)
-            _controls[i] = &guitext[thisnum];
+            _controls[i] = &guiobjs.TextBoxes[thisnum];
         else if (thistype == kGUIListBox)
-            _controls[i] = &guilist[thisnum];
+            _controls[i] = &guiobjs.ListBoxes[thisnum];
         else
             return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", ID, thistype, i));
 
@@ -795,92 +793,6 @@ void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_col
     wouttext_outline(ds, line.X1, y, font, text_color, text);
 }
 
-void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl)
-{
-    for (auto &gui : guis)
-    {
-        if (redraw)
-        {
-            gui.MarkChanged();
-            for (int i = 0; i < gui.GetControlCount(); ++i)
-                gui.GetControl(i)->MarkChanged();
-        }
-        if (reset_over_ctrl)
-            gui.ResetOverControl();
-    }
-}
-
-void MarkForTranslationUpdate()
-{
-    for (auto &btn : guibuts)
-    {
-        if (btn.IsTranslated())
-            btn.MarkChanged();
-    }
-    for (auto &lbl : guilabels)
-    {
-        if (lbl.IsTranslated())
-            lbl.MarkChanged();
-    }
-    for (auto &list : guilist)
-    {
-        if (list.IsTranslated())
-            list.MarkChanged();
-    }
-}
-
-void MarkForFontUpdate(int font)
-{
-    const bool update_all = (font < 0);
-    for (auto &btn : guibuts)
-    {
-        if (update_all || btn.Font == font)
-            btn.OnResized();
-    }
-    for (auto &lbl : guilabels)
-    {
-        if (update_all || lbl.Font == font)
-            lbl.OnResized();
-    }
-    for (auto &list : guilist)
-    {
-        if (update_all || list.Font == font)
-            list.OnResized();
-    }
-    for (auto &tb : guitext)
-    {
-        if (update_all || tb.Font == font)
-            tb.OnResized();
-    }
-}
-
-void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
-{
-    for (auto &lbl : guilabels)
-    {
-        if ((lbl.GetTextMacros() & macro) != 0)
-        {
-            lbl.MarkChanged();
-        }
-    }
-}
-
-void MarkInventoryForUpdate(int char_id, bool is_player)
-{
-    for (auto &btn : guibuts)
-    {
-        if (btn.GetPlaceholder() != kButtonPlace_None)
-            btn.MarkChanged();
-    }
-    for (auto &inv : guiinv)
-    {
-        if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))
-        {
-            inv.MarkChanged();
-        }
-    }
-}
-
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
@@ -919,13 +831,13 @@ GUILabelMacro FindLabelMacros(const String &text)
     return (GUILabelMacro)macro_flags;
 }
 
-HError RebuildGUI()
+HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
 {
     const bool bwcompat_ctrl_zorder = GameGuiVersion < kGuiVersion_272e;
     // set up the reverse-lookup array
     for (auto &gui : guis)
     {
-        HError err = gui.RebuildArray();
+        HError err = gui.RebuildArray(guiobjs);
         if (!err)
             return err;
         for (int ctrl_index = 0; ctrl_index < gui.GetControlCount(); ++ctrl_index)
@@ -938,11 +850,10 @@ HError RebuildGUI()
         }
         gui.ResortZOrder();
     }
-    MarkAllGUIForUpdate(true, true);
     return HError::None();
 }
 
-HError ReadGUI(Stream *in)
+HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -1009,6 +920,7 @@ HError ReadGUI(Stream *in)
 
     // buttons
     size_t numguibuts = static_cast<uint32_t>(in->ReadInt32());
+    auto &guibuts = guiobjs.Buttons;
     guibuts.resize(numguibuts);
     for (size_t i = 0; i < numguibuts; ++i)
     {
@@ -1016,6 +928,7 @@ HError ReadGUI(Stream *in)
     }
     // labels
     size_t numguilabels = static_cast<uint32_t>(in->ReadInt32());
+    auto &guilabels = guiobjs.Labels;
     guilabels.resize(numguilabels);
     for (size_t i = 0; i < numguilabels; ++i)
     {
@@ -1023,6 +936,7 @@ HError ReadGUI(Stream *in)
     }
     // inv controls
     size_t numguiinv = static_cast<uint32_t>(in->ReadInt32());
+    auto &guiinv = guiobjs.InvWindows;
     guiinv.resize(numguiinv);
     for (size_t i = 0; i < numguiinv; ++i)
     {
@@ -1033,6 +947,7 @@ HError ReadGUI(Stream *in)
     {
         // sliders
         size_t numguislider = static_cast<uint32_t>(in->ReadInt32());
+        auto &guislider = guiobjs.Sliders;
         guislider.resize(numguislider);
         for (size_t i = 0; i < numguislider; ++i)
         {
@@ -1043,6 +958,7 @@ HError ReadGUI(Stream *in)
     {
         // text boxes
         size_t numguitext = static_cast<uint32_t>(in->ReadInt32());
+        auto &guitext = guiobjs.TextBoxes;
         guitext.resize(numguitext);
         for (size_t i = 0; i < numguitext; ++i)
         {
@@ -1053,16 +969,17 @@ HError ReadGUI(Stream *in)
     {
         // list boxes
         size_t numguilist = static_cast<uint32_t>(in->ReadInt32());
+        auto &guilist = guiobjs.ListBoxes;
         guilist.resize(numguilist);
         for (size_t i = 0; i < numguilist; ++i)
         {
             guilist[i].ReadFromFile(in, GameGuiVersion);
         }
     }
-    return RebuildGUI();
+    return HError::None();
 }
 
-void WriteGUI(Stream *out)
+void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out)
 {
     out->WriteInt32(GUIMAGIC);
     out->WriteInt32(kGuiVersion_Current);
@@ -1072,31 +989,37 @@ void WriteGUI(Stream *out)
     {
         gui.WriteToFile(out);
     }
+    const auto &guibuts = guiobjs.Buttons;
     out->WriteInt32(static_cast<int32_t>(guibuts.size()));
     for (const auto &but : guibuts)
     {
         but.WriteToFile(out);
     }
+    const auto &guilabels = guiobjs.Labels;
     out->WriteInt32(static_cast<int32_t>(guilabels.size()));
     for (const auto &label : guilabels)
     {
         label.WriteToFile(out);
     }
+    const auto &guiinv = guiobjs.InvWindows;
     out->WriteInt32(static_cast<int32_t>(guiinv.size()));
     for (const auto &inv : guiinv)
     {
         inv.WriteToFile(out);
     }
+    const auto &guislider = guiobjs.Sliders;
     out->WriteInt32(static_cast<int32_t>(guislider.size()));
     for (const auto &slider : guislider)
     {
         slider.WriteToFile(out);
     }
+    const auto &guitext = guiobjs.TextBoxes;
     out->WriteInt32(static_cast<int32_t>(guitext.size()));
     for (const auto &tb : guitext)
     {
         tb.WriteToFile(out);
     }
+    const auto &guilist = guiobjs.ListBoxes;
     out->WriteInt32(static_cast<int32_t>(guilist.size()));
     for (const auto &list : guilist)
     {

@@ -15,9 +15,8 @@
 #include "ac/global_slider.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gui.h"
 #include "ac/slider.h"
-#include "gui/guimain.h"
-#include "gui/guislider.h"
 
 using namespace AGS::Common;
 

@@ -15,11 +15,11 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
+#include "ac/gui.h"
 #include "debug/debug_log.h"
-#include "gui/guimain.h"
 #include "script/cc_common.h" // cc_error
 
-using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 CCScriptGame GameStaticManager;
@@ -140,7 +140,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 56:  play.usedinv = val; break;
     case 57:
         play.inv_top = val;
-        GUI::MarkInventoryForUpdate(game.playercharacter, true);
+        GUIE::MarkInventoryForUpdate(game.playercharacter, true);
         break;
     case 58:  // play.inv_numdisp
     case 59:  // play.inv_numorder

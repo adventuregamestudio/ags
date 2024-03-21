@@ -19,8 +19,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-std::vector<AGS::Common::GUILabel> guilabels;
-
 #define GUILABEL_TEXTLENGTH_PRE272 200
 
 namespace AGS

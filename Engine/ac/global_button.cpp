@@ -16,9 +16,8 @@
 #include "ac/common.h"
 #include "ac/button.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gui.h"
 #include "ac/string.h"
-#include "gui/guimain.h"
-#include "gui/guibutton.h"
 
 using namespace AGS::Common;
 

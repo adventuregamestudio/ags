@@ -139,7 +139,7 @@ public:
         assert(_disabledFor == FOR_EXITLOOP);
         play.disabled_user_interface++;
         // If GUI looks change when disabled, then mark all of them for redraw
-        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
 
         // Only change the mouse cursor if it hasn't been specifically changed first
         // (or if it's speech, always change it)
@@ -155,7 +155,7 @@ public:
         set_our_eip(77);
         set_default_cursor();
         // If GUI looks change when disabled, then mark all of them for redraw
-        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
         play.disabled_user_interface--;
 
         switch (_disabledFor)

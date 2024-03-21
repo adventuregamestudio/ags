@@ -15,9 +15,9 @@
 #include "ac/global_label.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gui.h"
 #include "ac/label.h"
 #include "ac/string.h"
-#include "gui/guimain.h"
 
 using namespace AGS::Common;
 

@@ -18,6 +18,12 @@
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
 #include "gui/guidefines.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -48,8 +54,41 @@ enum LegacyGUIVisState
     kGUIVisibility_On        =  1  // shown
 };
 
+// GUICollection is a helper struct for grouping gui object arrays
+// together when passing them to a processing function.
+struct GUICollection
+{
+    std::vector<GUIButton>  Buttons;
+    std::vector<GUIInvWindow> InvWindows;
+    std::vector<GUILabel>   Labels;
+    std::vector<GUIListBox> ListBoxes;
+    std::vector<GUISlider>  Sliders;
+    std::vector<GUITextBox> TextBoxes;
+};
+
+// GUIRefCollection is a helper struct for grouping *references* to
+// gui object arrays together when passing them to a processing function.
+struct GUIRefCollection
+{
+    std::vector<GUIButton>  &Buttons;
+    std::vector<GUIInvWindow> &InvWindows;
+    std::vector<GUILabel>   &Labels;
+    std::vector<GUIListBox> &ListBoxes;
+    std::vector<GUISlider>  &Sliders;
+    std::vector<GUITextBox> &TextBoxes;
+
+    GUIRefCollection(std::vector<GUIButton> &guibuts,
+        std::vector<GUIInvWindow> &guiinv, std::vector<GUILabel> &guilabels,
+        std::vector<GUIListBox> &guilist, std::vector<GUISlider> &guislider,
+        std::vector<GUITextBox> &guitext)
+        : Buttons(guibuts), InvWindows(guiinv), Labels(guilabels)
+        , ListBoxes(guilist), Sliders(guislider), TextBoxes(guitext) {}
+    GUIRefCollection(GUICollection &guiobjs)
+        : Buttons(guiobjs.Buttons), InvWindows(guiobjs.InvWindows), Labels(guiobjs.Labels)
+        , ListBoxes(guiobjs.ListBoxes), Sliders(guiobjs.Sliders), TextBoxes(guiobjs.TextBoxes) {}
+};
+
 class Bitmap;
-class GUIObject;
 
 
 class GUIMain
@@ -129,7 +168,8 @@ public:
     void    DrawWithControls(Bitmap *ds);
     // Polls GUI state, providing current cursor (mouse) coordinates
     void    Poll(int mx, int my);
-    HError  RebuildArray();
+    // Reconnects this GUIMain with the child controls from the global guiobject collection
+    HError  RebuildArray(GUIRefCollection &guiobjs);
     void    ResortZOrder();
     bool    SendControlToBack(int index);
     // Sets whether GUI should react to player clicking on it
@@ -246,37 +286,20 @@ namespace GUI
     // apply_direction param tells whether text direction setting should be applied
     size_t SplitLinesForDrawing(const char *text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
 
-    // Mark all existing GUI for redraw
-    void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl);
-    // Mark all translatable GUI controls for redraw
-    void MarkForTranslationUpdate();
-    // Mark all GUI which use the given font for recalculate/redraw;
-    // pass -1 to update all the textual controls together
-    void MarkForFontUpdate(int font);
-    // Mark labels that acts as special text placeholders for redraw
-    void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
-    // Mark inventory windows for redraw, optionally only ones linked to given character;
-    // also marks buttons with inventory icon mode
-    void MarkInventoryForUpdate(int char_id, bool is_player);
-
     // Reads all GUIs and their controls.
-    // WARNING: the data is read into the global arrays (guis, guibuts, and so on)
-    HError ReadGUI(Stream *in);
+    HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in);
     // Writes all GUIs and their controls.
-    // WARNING: the data is written from the global arrays (guis, guibuts, and so on)
-    void WriteGUI(Stream *out);
+    void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);
 
     // Rebuilds GUIs, connecting them to the child controls in memory.
-    // WARNING: the data is processed in the global arrays (guis, guibuts, and so on)
-    HError RebuildGUI();
+    HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
 }
 
 } // namespace Common
 } // namespace AGS
 
-extern std::vector<Common::GUIMain> guis;
 // Tells if all controls are disabled
 // TODO: investigate how this variable works, and if this is at all needed
 extern AGS::Common::GuiDisableStyle all_buttons_disabled;

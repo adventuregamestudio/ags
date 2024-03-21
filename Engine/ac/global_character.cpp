@@ -27,6 +27,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_overlay.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
@@ -39,6 +40,7 @@
 #include "script/script.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;
@@ -484,7 +486,7 @@ void update_invorder() {
     }
     // backwards compatibility
     play.inv_numorder = charextra[game.playercharacter].invorder_count;
-    GUI::MarkInventoryForUpdate(game.playercharacter, true);
+    GUIE::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
 void add_inventory(int inum) {

@@ -26,6 +26,7 @@
 #include <vector>
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
+#include "gui/guimain.h"
 #include "script/cc_script.h"
 #include "util/error.h"
 #include "util/stream.h"
@@ -102,7 +103,9 @@ struct MainGameSource
 // code refactoring.
 struct LoadedGameEntities
 {
-    GameSetupStruct        &Game;
+    GameSetupStruct        &Game; // FIXME: have an object, not ref, and std::move
+    std::vector<GUIMain>    Guis;
+    GUICollection           GuiControls;
     std::vector<DialogTopic> Dialogs;
     std::vector<ViewStruct> Views;
     PScript                 GlobalScript;

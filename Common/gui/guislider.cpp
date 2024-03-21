@@ -17,8 +17,6 @@
 #include "gui/guimain.h"
 #include "util/stream.h"
 
-std::vector<AGS::Common::GUISlider> guislider;
-
 namespace AGS
 {
 namespace Common

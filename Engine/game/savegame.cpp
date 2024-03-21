@@ -637,7 +637,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     restore_overlays();
     restore_movelists();
 
-    GUI::MarkAllGUIForUpdate(true, true);
+    GUIE::MarkAllGUIForUpdate(true, true);
 
     RestoreViewportsAndCameras(r_data);
 

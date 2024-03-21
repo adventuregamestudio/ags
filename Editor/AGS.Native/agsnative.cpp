@@ -1623,8 +1623,6 @@ AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
   HAGSError err = LoadRoom(filename, &rs, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
   if (!err)
       return err->FullMessage();
-  // Allocate enough memory to add extra variables
-  rs.LocalVariables.resize(MAX_GLOBAL_VARIABLES);
 
   // Update room palette with gamewide colours
   copy_global_palette_to_room_palette(rs);
@@ -3189,10 +3187,10 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->Plugins->Add(plugin);
 	}
 
-	for (int i = 0; i < numGlobalVars; i++)
+	for (int i = 0; i < thisgame.numIntrVars; i++)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(TextHelper::ConvertASCII(globalvars[i].Name), globalvars[i].Value);
+		intVar = gcnew OldInteractionVariable(TextHelper::ConvertASCII(thisgame.intrVars[i].Name), thisgame.intrVars[i].Value);
 		game->OldInteractionVariables->Add(intVar);
 	}
 	

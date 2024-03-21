@@ -723,20 +723,19 @@ int get_nivalue (InteractionCommandList *nic, int idx, int parm) {
 
 InteractionVariable *get_interaction_variable (int varindx) {
 
-    if ((varindx >= LOCAL_VARIABLE_OFFSET) && ((size_t)varindx < LOCAL_VARIABLE_OFFSET + thisroom.LocalVariables.size()))
-        return &thisroom.LocalVariables[varindx - LOCAL_VARIABLE_OFFSET];
+    if ((varindx >= LOCAL_INTER_VAR_OFFSET) && ((size_t)(varindx - LOCAL_INTER_VAR_OFFSET) < thisroom.LocalVariables.size()))
+        return &thisroom.LocalVariables[varindx - LOCAL_INTER_VAR_OFFSET];
 
-    if ((varindx < 0) || (varindx >= numGlobalVars))
+    if ((varindx < 0) || (varindx >= game.numIntrVars))
         quit("!invalid interaction variable specified");
 
-    return &globalvars[varindx];
+    return &game.intrVars[varindx];
 }
 
 InteractionVariable *FindGraphicalVariable(const char *varName) {
-    int ii;
-    for (ii = 0; ii < numGlobalVars; ii++) {
-        if (globalvars[ii].Name.CompareNoCase(varName) == 0)
-            return &globalvars[ii];
+    for (int i = 0; i < game.numIntrVars; ++i) {
+        if (game.intrVars[i].Name.CompareNoCase(varName) == 0)
+            return &game.intrVars[i];
     }
     for (size_t i = 0; i < thisroom.LocalVariables.size(); ++i) {
         if (thisroom.LocalVariables[i].Name.CompareNoCase(varName) == 0)

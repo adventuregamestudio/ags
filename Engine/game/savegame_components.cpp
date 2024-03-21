@@ -219,9 +219,9 @@ HSaveError WriteGameState(Stream *out)
     if (loaded_game_file_version <= kGameVersion_272)
     {
         // Global variables
-        out->WriteInt32(numGlobalVars);
-        for (int i = 0; i < numGlobalVars; ++i)
-            globalvars[i].Write(out);
+        out->WriteInt32(game.numIntrVars);
+        for (int i = 0; i < game.numIntrVars; ++i)
+            game.intrVars[i].Write(out);
     }
 
     // Game state
@@ -309,10 +309,10 @@ HSaveError ReadGameState(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
     if (loaded_game_file_version <= kGameVersion_272)
     {
         // Legacy interaction global variables
-        if (!AssertGameContent(err, in->ReadInt32(), numGlobalVars, "Global Variables"))
+        if (!AssertGameContent(err, in->ReadInt32(), game.numIntrVars, "Global Variables"))
             return err;
-        for (int i = 0; i < numGlobalVars; ++i)
-            globalvars[i].Read(in);
+        for (int i = 0; i < game.numIntrVars; ++i)
+            game.intrVars[i].Read(in);
     }
 
     // Game state

@@ -304,7 +304,7 @@ void unload_old_room() {
     raw_saved_screen = nullptr;
     for (int ff = 0; ff < MAX_ROOM_BGFRAMES; ff++)
         play.raw_modified[ff] = 0;
-    for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_GLOBAL_VARIABLES; ++i)
+    for (size_t i = 0; i < thisroom.LocalVariables.size() && i < MAX_INTERACTION_VARIABLES; ++i)
         croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
@@ -587,7 +587,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             for (int cc=0;cc < MAX_ROOM_REGIONS;cc++)
                 thisroom.Regions[cc].Interaction->CopyTimesRun(croom->intrRegion[cc]);
         }
-        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
+        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_INTERACTION_VARIABLES; ++i)
             thisroom.LocalVariables[i].Value = croom->interactionVariableValues[i];
 
         // Always copy object and hotspot names for < 3.6.0 games, because they were not settable

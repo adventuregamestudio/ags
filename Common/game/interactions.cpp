@@ -17,11 +17,6 @@
 #include "ac/common.h" // quit
 #include "util/stream.h"
 
-using namespace AGS::Common;
-
-InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {InteractionVariable("Global 1", 0, 0)};
-int numGlobalVars = 1;
-
 namespace AGS
 {
 namespace Common

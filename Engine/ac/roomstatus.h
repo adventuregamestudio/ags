@@ -65,7 +65,7 @@ struct RoomStatus
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
     char  region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
-    int   interactionVariableValues[MAX_GLOBAL_VARIABLES];
+    int   interactionVariableValues[MAX_INTERACTION_VARIABLES];
 
     // Likely pre-2.5 data
 #if defined (OBSOLETE)

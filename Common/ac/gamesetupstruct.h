@@ -26,6 +26,7 @@
 #include "ac/mousecursor.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "game/customproperties.h"
+#include "game/interactions.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
 
 namespace AGS
@@ -33,8 +34,6 @@ namespace AGS
     namespace Common
     {
         struct AssetLibInfo;
-        struct Interaction;
-        struct InteractionScripts;
         typedef std::shared_ptr<Interaction> PInteraction;
         typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
     }
@@ -54,6 +53,9 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<FontInfo> fonts;
     InventoryItemInfo invinfo[MAX_INV]{};
     std::vector<MouseCursor> mcurs;
+    // These are old-style interaction variables created by the Interaction editor
+    AGS::Common::InteractionVariable intrVars[MAX_INTERACTION_VARIABLES];
+    int numIntrVars = 0;
     std::vector<PInteraction> intrChar;
     PInteraction intrInv[MAX_INV];
     std::vector<PInteractionScripts> charScripts;

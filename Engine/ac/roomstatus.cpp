@@ -111,7 +111,7 @@ void RoomStatus::ReadFromSavegame(Stream *in, GameDataVersion data_ver, RoomStat
     if (data_ver <= kGameVersion_272)
     {
         SavegameComponents::ReadInteraction272(intrRoom, in);
-        in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
+        in->ReadArrayOfInt32(interactionVariableValues, MAX_INTERACTION_VARIABLES);
     }
 
     tsdatasize = static_cast<uint32_t>(in->ReadInt32());
@@ -164,7 +164,7 @@ void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
     if (data_ver <= kGameVersion_272)
     {
         SavegameComponents::WriteInteraction272(intrRoom, out);
-        out->WriteArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
+        out->WriteArrayOfInt32(interactionVariableValues, MAX_INTERACTION_VARIABLES);
     }
 
     out->WriteInt32(static_cast<int32_t>(tsdatasize));

@@ -41,8 +41,6 @@
 #include <memory>
 #include "util/string_types.h"
 
-#define LOCAL_VARIABLE_OFFSET       10000
-#define MAX_GLOBAL_VARIABLES        100
 #define MAX_ACTION_ARGS             5
 #define MAX_NEWINTERACTION_EVENTS   30
 #define MAX_COMMANDS_PER_LIST       40
@@ -181,8 +179,6 @@ struct InteractionVariable
     void Write(Stream *out) const;
 };
 
-typedef std::vector<InteractionVariable> InterVarVector;
-
 
 // A list of script function names for all supported events
 struct InteractionScripts
@@ -196,9 +192,5 @@ typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
 
 } // namespace Common
 } // namespace AGS
-
-// Legacy global variables
-extern AGS::Common::InteractionVariable globalvars[MAX_GLOBAL_VARIABLES];
-extern int numGlobalVars;
 
 #endif // __AGS_CN_GAME__INTEREACTIONS_H

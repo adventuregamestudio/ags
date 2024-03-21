@@ -93,6 +93,11 @@
 #define LEGACY_MAX_SPRITES_V25  6000
 #define LEGACY_MAX_SPRITES      30000
 
+// Max number of old-style global interaction variables
+#define MAX_INTERACTION_VARIABLES 100
+// An offset for local room's interaction variable IDs
+#define LOCAL_INTER_VAR_OFFSET 10000
+
 // The game to screen coordinate conversion multiplier, was used in older high-res games
 #define HIRES_COORD_MULTIPLIER 2
 

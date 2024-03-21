@@ -750,7 +750,7 @@ void DoBeforeSave()
             save_room_data_segment();
 
         // Update the saved interaction variable values
-        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_GLOBAL_VARIABLES; ++i)
+        for (size_t i = 0; i < thisroom.LocalVariables.size() && i < (size_t)MAX_INTERACTION_VARIABLES; ++i)
             croom->interactionVariableValues[i] = thisroom.LocalVariables[i].Value;
     }
 }

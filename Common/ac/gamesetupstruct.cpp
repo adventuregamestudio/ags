@@ -29,6 +29,10 @@ GameSetupStruct::GameSetupStruct()
     memset(lipSyncFrameLetters, 0, sizeof(lipSyncFrameLetters));
     memset(guid, 0, sizeof(guid));
     memset(saveGameFileExtension, 0, sizeof(saveGameFileExtension));
+
+    // CHECKME: not sure if this is needed, as likely will be rewritten by loading game data
+    intrVars[0] = InteractionVariable("Global 1", 0, 0);
+    numIntrVars = 1;
 }
 
 GameSetupStruct::~GameSetupStruct()
@@ -163,7 +167,7 @@ HGameFileError GameSetupStruct::read_cursors(Common::Stream *in)
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
-    numGlobalVars = 0;
+    numIntrVars = 0;
 
     if (data_ver > kGameVersion_272) // 3.x
     {
@@ -183,9 +187,9 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
         for (size_t i = 0; i < (size_t)numinvitems; ++i)
             intrInv[i].reset(Interaction::CreateFromStream(in));
 
-        numGlobalVars = in->ReadInt32();
-        for (size_t i = 0; i < (size_t)numGlobalVars; ++i)
-            globalvars[i].Read(in);
+        numIntrVars = in->ReadInt32();
+        for (size_t i = 0; i < (size_t)numIntrVars; ++i)
+            intrVars[i].Read(in);
     }
 }
 

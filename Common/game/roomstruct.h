@@ -363,7 +363,7 @@ public:
     // Custom properties
     StringIMap              Properties;
     // Old-style interactions
-    InterVarVector          LocalVariables;
+    std::vector<InteractionVariable> LocalVariables;
     PInteraction            Interaction;
     // Event script links
     PInteractionScripts     EventHandlers;

@@ -505,6 +505,24 @@ namespace AGS.Editor.Preferences
         }
 
         [Browsable(true)]
+        [DisplayName("Show icons in panel tabs")]
+        [Description("Wheter icons from the project explorer also appears in tabs.")]
+        [Category("Editor Appearance")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool ShowIconInTab
+        {
+            get
+            {
+                return (bool)(this["ShowIconInTab"]);
+            }
+            set
+            {
+                this["ShowIconInTab"] = value;
+            }
+        }
+
+        [Browsable(true)]
         [DisplayName("Default image editor")]
         [Description("When you double-click a sprite, what program do you want to use to edit it? This program must support PNG and BMP files.")]
         [Category("Sprite Editor")]

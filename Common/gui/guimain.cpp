@@ -941,7 +941,7 @@ HError RebuildGUI()
     return HError::None();
 }
 
-HError ReadGUI(Stream *in, bool is_savegame)
+HError ReadGUI(Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -984,7 +984,7 @@ HError ReadGUI(Stream *in, bool is_savegame)
             gui.Name = GUIMain::FixupGUIName(gui.Name);
 
         // GUI popup style and visibility
-        if (GameGuiVersion < kGuiVersion_350 && !is_savegame)
+        if (GameGuiVersion < kGuiVersion_350)
         {
             // Convert legacy normal-off style into normal one
             if (gui.PopupStyle == kGUIPopupLegacyNormalOff)

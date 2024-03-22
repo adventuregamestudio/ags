@@ -322,7 +322,19 @@ namespace AGS.Editor.Components
                     _guiController.ShowMessage("You cannot move a folder to be before a file.", MessageBoxIconType.Warning);
                     return;
                 }
-                if (!DropFolderToFolder(sourceFolder, targetFolder)) return;                
+
+                if(dropZone == TargetDropZone.Bottom)
+                {
+                    if(!DragFolderToBeAfterFolder(sourceFolder, targetFolder)) return;
+                }
+                else if (dropZone == TargetDropZone.Top)
+                {
+                    if(!DragFolderToBeBeforeFolder(sourceFolder, targetFolder)) return;
+                }
+                else
+                {
+                    if(!DropFolderToFolder(sourceFolder, targetFolder)) return;
+                }                
             }
             else
             {
@@ -331,11 +343,9 @@ namespace AGS.Editor.Components
                     if (dropZone == TargetDropZone.Bottom || dropZone == TargetDropZone.MiddleBottom)
                     {
                         DragItemToBeAfterItem(sourceItem, targetItem);
-                        //Console.WriteLine("drop after");
                     }
                     else
                     {
-                      //  Console.WriteLine("drop before");
                         DragItemToBeBeforeItem(sourceItem, targetItem);
                     }
                 }
@@ -361,6 +371,58 @@ namespace AGS.Editor.Components
             folder.ShouldSkipChangeNotifications = true;
             action(folder);
             folder.ShouldSkipChangeNotifications = skipNotification;
+        }
+
+        private bool DragFolderRelativeToFolderImpl(FolderType folderToMove, FolderType targetFolder, bool after)
+        {
+            if (!IsValidFolderMove(folderToMove, targetFolder))
+            {
+                _guiController.ShowMessage("You cannot move a folder up itself or one of its children.", MessageBoxIconType.Warning);
+                return false;
+            }
+
+            FolderType parentOfSource = FindParentFolder(GetRootFolder(), folderToMove);
+            if (parentOfSource == null)
+            {
+                throw new AGSEditorException("Folder being moved has no parent");
+            }
+            if (parentOfSource == targetFolder)
+            {
+                throw new AGSEditorException("Source folder and target folder are the same");
+            }
+
+            FolderType parentOfTarget = FindParentFolder(GetRootFolder(), targetFolder);
+            if (parentOfTarget == null)
+            {
+                throw new AGSEditorException("Target folder has no parent");
+            }
+
+            int targetIndex = parentOfTarget.SubFolders.IndexOf(targetFolder);
+            if (targetIndex == -1)
+            {
+                throw new AGSEditorException("Target folder not found in parent folder");
+            }
+            if (parentOfTarget == folderToMove)
+            {
+                throw new AGSEditorException("Folder to move and target parent folder are the same");
+            }
+
+            PerformActionWithoutNotification(parentOfSource, folder => folder.SubFolders.Remove(folderToMove));
+
+            targetIndex = parentOfTarget.SubFolders.IndexOf(targetFolder);  // removal may have changed index
+            if (after) targetIndex++;                                       // inserts before if 'after' is false
+
+            PerformActionWithoutNotification(parentOfTarget, folder => folder.SubFolders.Insert(targetIndex, folderToMove));
+            return true;
+        }
+
+        private bool DragFolderToBeBeforeFolder(FolderType folderToMove, FolderType targetFolder)
+        {
+            return DragFolderRelativeToFolderImpl(folderToMove, targetFolder, false);
+        }
+        private bool DragFolderToBeAfterFolder(FolderType folderToMove, FolderType targetFolder)
+        {
+            return DragFolderRelativeToFolderImpl(folderToMove, targetFolder, true);
         }
 
         private void DragItemRelativeToItemImpl(ItemType itemToMove, ItemType targetItem, bool after)

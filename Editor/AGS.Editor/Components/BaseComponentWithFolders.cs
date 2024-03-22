@@ -354,7 +354,7 @@ namespace AGS.Editor.Components
             folder.ShouldSkipChangeNotifications = skipNotification;
         }
 
-        private void DragItemToBeBeforeItem(ItemType itemToMove, ItemType targetItem)
+        private void DragItemRelativeToItemImpl(ItemType itemToMove, ItemType targetItem, bool after)
         {
             FolderType sourceFolder = FindFolderThatContainsItem(this.GetRootFolder(), itemToMove);
             if (sourceFolder == null)
@@ -374,33 +374,20 @@ namespace AGS.Editor.Components
 
             PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
 
-            targetIndex = targetFolder.Items.IndexOf(targetItem);
-            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));            
+            targetIndex = targetFolder.Items.IndexOf(targetItem);  // removal may have changed index
+            if(after) targetIndex++;                               // inserts before if 'after' is false
+
+            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));
+        }
+
+        private void DragItemToBeBeforeItem(ItemType itemToMove, ItemType targetItem)
+        {
+            DragItemRelativeToItemImpl(itemToMove, targetItem, false);
         }
 
         private void DragItemToBeAfterItem(ItemType itemToMove, ItemType targetItem)
         {
-            FolderType sourceFolder = FindFolderThatContainsItem(this.GetRootFolder(), itemToMove);
-            if (sourceFolder == null)
-            {
-                throw new AGSEditorException("Source item was not in a folder");
-            }
-            FolderType targetFolder = FindFolderThatContainsItem(this.GetRootFolder(), targetItem);
-            if (targetFolder == null)
-            {
-                throw new AGSEditorException("Target item was not in a folder");
-            }
-            int targetIndex = targetFolder.Items.IndexOf(targetItem);
-            if (targetIndex == -1)
-            {
-                throw new AGSEditorException("Target item was not found in folder");
-            }
-
-            PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
-
-            targetIndex = targetFolder.Items.IndexOf(targetItem);
-            targetIndex++;
-            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));
+            DragItemRelativeToItemImpl(itemToMove, targetItem, true);
         }
 
         private void DragItemToFolder(ItemType itemToMove, FolderType targetFolder)

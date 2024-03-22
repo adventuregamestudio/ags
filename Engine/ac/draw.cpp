@@ -1496,12 +1496,15 @@ void draw_gui_sprite_v330(Bitmap *ds, int pic, int x, int y, bool use_alpha, Ble
 
 
 // Avoid freeing and reallocating the memory if possible
-Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent) {
-    if (bimp != nullptr) {
+Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent)
+{
+    if (bimp != nullptr)
+    {
         // same colour depth, width and height -> reuse
         if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
                 && (bimp->GetHeight() == hit))
         {
+            bimp->ResetClip();
             if (make_transparent)
             {
                 bimp->ClearTransparent();

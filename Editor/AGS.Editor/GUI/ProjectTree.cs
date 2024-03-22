@@ -477,7 +477,7 @@ namespace AGS.Editor
 			}
 		}
 
-        private void HighlightNodeAndExpandIfNeeded(ProjectTreeItem item)
+        private void HighlightNodeAndExpandIfNeeded(ProjectTreeItem item, TargetDropZone dropZone)
         {
             TreeNode treeNode = item.TreeNode;
             if (_treeNodesBackgroundColor == null)
@@ -492,7 +492,7 @@ namespace AGS.Editor
                 _dropHoveredNode = treeNode;
                 _timeOfDragDropHoverStart = DateTime.Now;
             }
-            else if (item.ExpandOnDragHover && HasANodeBeenHoveredEnoughForExpanding())
+            else if (item.ExpandOnDragHover && HasANodeBeenHoveredEnoughForExpanding() && dropZone == TargetDropZone.Middle)
             {
                 treeNode.Expand();
             }
@@ -587,7 +587,7 @@ namespace AGS.Editor
                             HideMiddleLineProjectTree();
                         }
 
-                        HighlightNodeAndExpandIfNeeded(target);
+                        HighlightNodeAndExpandIfNeeded(target, dropZone);
                         e.Effect = DragDropEffects.Move;
                     }
                     else ClearHighlightNode();

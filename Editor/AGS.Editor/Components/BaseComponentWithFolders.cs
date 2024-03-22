@@ -373,7 +373,34 @@ namespace AGS.Editor.Components
             }
 
             PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
+
+            targetIndex = targetFolder.Items.IndexOf(targetItem);
             PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));            
+        }
+
+        private void DragItemToBeAfterItem(ItemType itemToMove, ItemType targetItem)
+        {
+            FolderType sourceFolder = FindFolderThatContainsItem(this.GetRootFolder(), itemToMove);
+            if (sourceFolder == null)
+            {
+                throw new AGSEditorException("Source item was not in a folder");
+            }
+            FolderType targetFolder = FindFolderThatContainsItem(this.GetRootFolder(), targetItem);
+            if (targetFolder == null)
+            {
+                throw new AGSEditorException("Target item was not in a folder");
+            }
+            int targetIndex = targetFolder.Items.IndexOf(targetItem);
+            if (targetIndex == -1)
+            {
+                throw new AGSEditorException("Target item was not found in folder");
+            }
+
+            PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
+
+            targetIndex = targetFolder.Items.IndexOf(targetItem);
+            targetIndex++;
+            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));
         }
 
         private void DragItemToFolder(ItemType itemToMove, FolderType targetFolder)

@@ -939,7 +939,8 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
-    HError err2 = GUI::ReadGUI(ents.Guis, GUIRefCollection(ents.GuiControls), in);
+    GUIRefCollection guictrl_refs(ents.GuiControls);
+    HError err2 = GUI::ReadGUI(ents.Guis, guictrl_refs, in);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
     game.numgui = ents.Guis.size();

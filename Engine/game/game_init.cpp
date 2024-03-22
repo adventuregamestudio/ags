@@ -200,10 +200,11 @@ HError InitAndRegisterGUI(GameSetupStruct &game)
         scrGui[i].id = -1;
     }
 
+    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     for (int i = 0; i < game.numgui; ++i)
     {
         // link controls to their parent guis
-        HError err = guis[i].RebuildArray(GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
+        HError err = guis[i].RebuildArray(guictrl_refs);
         if (!err)
             return err;
         // export all the GUI's controls
@@ -509,7 +510,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     guilist = std::move(ents.GuiControls.ListBoxes);
     guislider = std::move(ents.GuiControls.Sliders);
     guitext = std::move(ents.GuiControls.TextBoxes);
-    GUI::RebuildGUI(guis, GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
+    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    GUI::RebuildGUI(guis, guictrl_refs);
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
     dialog = std::move(ents.Dialogs);

@@ -1416,9 +1416,10 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
             thisgamePlugins[i].Name.ClipRight(1);
     }
 
+    AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     for (int i = 0; i < thisgame.numgui; ++i)
     {
-        HAGSError err = guis[i].RebuildArray(AGS::Common::GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
+        HAGSError err = guis[i].RebuildArray(guictrl_refs);
         if (!err)
             return err;
     }
@@ -2753,7 +2754,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
       newObj->Name = TextHelper::ConvertASCII(control->Name);
   }
 
-  gui->RebuildArray(AGS::Common::GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
+  AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+  gui->RebuildArray(guictrl_refs);
 }
 
 void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
@@ -3408,9 +3410,10 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
 	}
 
+    AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
 	for (int i = 0; i < thisgame.numgui; i++)
 	{
-		guis[i].RebuildArray(AGS::Common::GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
+		guis[i].RebuildArray(guictrl_refs);
 
 		GUI^ newGui;
 		if (guis[i].IsTextWindow()) 

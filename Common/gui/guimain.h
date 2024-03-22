@@ -28,10 +28,6 @@
 #include "util/geometry.h"
 #include "util/string.h"
 
-// Forward declaration
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
-
 class SplitLines;
 
 #define LEGACY_MAX_OBJS_ON_GUI             30
@@ -312,11 +308,11 @@ extern int get_adjusted_spriteheight(int spr);
 extern bool is_sprite_alpha(int spr);
 
 // This function has distinct implementations in Engine and Editor
-extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
-                            Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
-extern void draw_gui_sprite(Common::Bitmap *ds, bool use_alpha, int x, int y,
-                            Common::Bitmap *image, bool src_has_alpha,
-                            Common::BlendMode blend_mode, int alpha);
+extern void draw_gui_sprite(AGS::Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
+                            AGS::Common::BlendMode blend_mode = AGS::Common::kBlendMode_Alpha);
+extern void draw_gui_sprite(AGS::Common::Bitmap *ds, bool use_alpha, int x, int y,
+                            AGS::Common::Bitmap *image, bool src_has_alpha,
+                            AGS::Common::BlendMode blend_mode, int alpha);
 
 extern int game_to_data_coord(int coord);
 extern int data_to_game_coord(int coord);
@@ -324,7 +320,7 @@ extern void data_to_game_coords(int *x, int *y);
 extern int get_fixed_pixel_size(int pixels);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);

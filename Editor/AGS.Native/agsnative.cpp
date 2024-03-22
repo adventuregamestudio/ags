@@ -23,10 +23,13 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #undef CreateFile
 #undef DeleteFile
 #include "util/wgt2allg.h"
-#include "ac/spritecache.h"
 #include "ac/actiontype.h"
-#include "ac/scriptmodule.h"
+#include "ac/common.h"
+#include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/scriptmodule.h"
+#include "ac/spritecache.h"
+#include "ac/view.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
@@ -58,6 +61,12 @@ using AGS::Common::AssetMgr;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::GUIMain;
+using AGS::Common::GUIButton;
+using AGS::Common::GUIInvWindow;
+using AGS::Common::GUILabel;
+using AGS::Common::GUIListBox;
+using AGS::Common::GUISlider;
+using AGS::Common::GUITextBox;
 using AGS::Common::RoomStruct;
 using AGS::Common::PInteractionScripts;
 using AGS::Common::Interaction;
@@ -112,8 +121,14 @@ AGS::Common::Version game_compiled_version;
 int numScriptModules = 0;
 std::vector<ScriptModule> scModules;
 std::vector<DialogTopic> dialog;
-std::vector<Common::String> dlgscript;
+std::vector<AGSString> dlgscript;
 std::vector<GUIMain> guis;
+std::vector<GUIButton> guibuts;
+std::vector<GUIInvWindow> guiinv;
+std::vector<GUILabel> guilabels;
+std::vector<GUIListBox> guilist;
+std::vector<GUISlider> guislider;
+std::vector<GUITextBox> guitext;
 std::vector<ViewStruct> newViews;
 
 // A reference color depth, for correct color selection;
@@ -976,8 +991,8 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   int char_height = thisgame.fonts[fontnum].Size * thisgame.fonts[fontnum].SizeMultiplier;
-  int grid_size   = max(10, char_height);
-  int grid_margin = max(4, grid_size / 4);
+  int grid_size   = std::max(10, char_height);
+  int grid_margin = std::max(4, grid_size / 4);
   grid_size += grid_margin * 2;
   grid_size *= blockSize;
   int first_char = 0;
@@ -986,7 +1001,7 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
 
   if (doubleSize > 1)
       width /= 2;
-  int chars_per_row = max(1, (width - (padding * 2)) / grid_size);
+  int chars_per_row = std::max(1, (width - (padding * 2)) / grid_size);
   int height = (num_chars / chars_per_row + 1) * grid_size + padding * 2;
 
   if (!hdc)
@@ -1100,7 +1115,7 @@ static void doDrawViewLoop(int hdc, const std::vector<::ViewFrame> &frames,
 int ctx_data_to_game_size(int val, bool hires_ctx)
 {
     if (hires_ctx && !thisgame.IsLegacyHiRes())
-        return max(1, (val / HIRES_COORD_MULTIPLIER));
+        return std::max(1, (val / HIRES_COORD_MULTIPLIER));
     if (!hires_ctx && thisgame.IsLegacyHiRes())
         return val * HIRES_COORD_MULTIPLIER;
     return val;
@@ -1403,7 +1418,7 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
 
     for (int i = 0; i < thisgame.numgui; ++i)
     {
-        HAGSError err = guis[i].RebuildArray();
+        HAGSError err = guis[i].RebuildArray(AGS::Common::GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
         if (!err)
             return err;
     }
@@ -2738,8 +2753,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
       newObj->Name = TextHelper::ConvertASCII(control->Name);
   }
 
-  gui->RebuildArray();
-  gui->ResortZOrder();
+  gui->RebuildArray(AGS::Common::GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
 }
 
 void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
@@ -3046,7 +3060,7 @@ void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, InteractionC
 
 void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::InteractionScripts *source)
 {
-    size_t evt_count = min(source->ScriptFuncNames.size(), (size_t)destination->ScriptFunctionNames->Length);
+    size_t evt_count = std::min(source->ScriptFuncNames.size(), (size_t)destination->ScriptFunctionNames->Length);
     // TODO: add a warning? if warning list would be passed in here
 
 	for (size_t i = 0; i < evt_count; i++) 
@@ -3057,7 +3071,7 @@ void CopyInteractions(AGS::Types::Interactions ^destination, AGS::Common::Intera
 
 void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *intr, String^ scriptFuncPrefix, AGS::Types::Game ^game, int targetTypeForUnhandledEvent)
 {
-    size_t evt_count = min(intr->Events.size(), (size_t)interactions->ScriptFunctionNames->Length);
+    size_t evt_count = std::min(intr->Events.size(), (size_t)interactions->ScriptFunctionNames->Length);
     // TODO: add a warning? if warning list would be passed in here
 
 	for (size_t i = 0; i < evt_count; i++) 
@@ -3396,8 +3410,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 
 	for (int i = 0; i < thisgame.numgui; i++)
 	{
-		guis[i].RebuildArray();
-	    guis[i].ResortZOrder();
+		guis[i].RebuildArray(AGS::Common::GUIRefCollection(guibuts, guiinv, guilabels, guilist, guislider, guitext));
 
 		GUI^ newGui;
 		if (guis[i].IsTextWindow()) 

@@ -21,6 +21,7 @@
 #ifndef __AGS_CN_GAME__MAINGAMEFILE_H
 #define __AGS_CN_GAME__MAINGAMEFILE_H
 
+#include <functional>
 #include <memory>
 #include <set>
 #include <vector>

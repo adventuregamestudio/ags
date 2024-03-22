@@ -15,24 +15,33 @@
 // AGS Native interface to .NET
 //
 //=============================================================================
-#include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP
 #include <stdlib.h>
-#include "NativeMethods.h"
-#include "NativeUtils.h"
+#include "ac/characterinfo.h"
+#include "ac/dialogtopic.h"
 #include "ac/game_version.h"
+#include "ac/inventoryiteminfo.h"
+#include "ac/mousecursor.h"
+#include "ac/view.h"
+#include "ac/wordsdictionary.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
+#include "game/customproperties.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/ini_util.h"
 #include "util/multifilelib.h"
 #include "util/string_utils.h"
+// IMPORTANT: NativeMethods.h must be included AFTER native headers,
+// otherwise there will be naming conflicts with System:: and AGS::Types
+#include "NativeMethods.h"
+#include "NativeUtils.h"
+#include "agsnative.h"
 
 using namespace System::Runtime::InteropServices;
 typedef AGS::Common::HError HAGSError;

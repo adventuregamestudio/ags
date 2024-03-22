@@ -518,8 +518,41 @@ namespace AGS.Editor
             _lineInBetween.CleanHide();
         }
 
+        private TargetDropZone GetDropZoneImpl(int y, int h)
+        {
+            TargetDropZone dropZone = TargetDropZone.Middle;
+     
+            if (y <= h/4)
+            {
+                dropZone = TargetDropZone.Top;
+            }
+            else if (y > h/4 && y < 2*h/5)
+            {
+                dropZone = TargetDropZone.MiddleTop;
+            }
+            else if (y > 3*h/5 && y < 3*h/4)
+            {
+                dropZone = TargetDropZone.MiddleBottom;
+            }
+            else if (y >= 3*h/4)
+            {
+                dropZone = TargetDropZone.Bottom;
+            }
+
+            return dropZone;
+        }
+
+
+        private TargetDropZone GetDropZone(ProjectTreeItem target, Point locationInControl)
+        {
+            int node_h = target.TreeNode.Bounds.Height;
+            int node_y = target.TreeNode.Bounds.Y;
+            int cur_y = locationInControl.Y;
+            return GetDropZoneImpl(cur_y - node_y, node_h);
+        }
+
         private void projectTree_DragOver(object sender, DragEventArgs e)
-		{
+        {
 			e.Effect = DragDropEffects.None;
 
 			if (e.Data.GetDataPresent(typeof(ProjectTreeItem)))
@@ -530,24 +563,26 @@ namespace AGS.Editor
 				if (dragTarget != null)
 				{
 					ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
-					if (source.CanDropHere == null)
+                    TargetDropZone dropZone = GetDropZone(target, locationInControl);
+
+                    if (source.CanDropHere == null)
 					{
 						throw new AGSEditorException("Node has not populated CanDropHere handler for draggable node");
 					}
-                    if (source.CanDropHere(source, target))
+                    if (source.CanDropHere(source, target, dropZone))
                     {
-                        int h = target.TreeNode.Bounds.Height;
+                        int node_h = target.TreeNode.Bounds.Height;
                         int node_y = target.TreeNode.Bounds.Y;
-                        int cur_y = locationInControl.Y;
-                        if (cur_y > node_y && cur_y < node_y + h / 4)
+                        int line_h = node_h / 5;
+                        if (dropZone == TargetDropZone.Top)
                         {
-                            System.Console.WriteLine("top of node");
-                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y-h/8, target.TreeNode.Bounds.Width, h / 4);
-                        } else if (cur_y > node_y + 3 * h / 4 && cur_y < node_y + h)
+                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y- line_h / 2, target.TreeNode.Bounds.Width, line_h);
+                        }
+                        else if (dropZone == TargetDropZone.Bottom)
                         {
-                            System.Console.WriteLine("bottom of node");
-                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y + 7*h/8, target.TreeNode.Bounds.Width, h / 4);
-                        } else
+                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y + node_h - line_h/2, target.TreeNode.Bounds.Width, line_h);
+                        } 
+                        else
                         {
                             HideMiddleLineProjectTree();
                         }
@@ -588,9 +623,10 @@ namespace AGS.Editor
 			if (source.DropHere == null)
 			{
 				throw new AGSEditorException("Node has not populated DropHere handler for draggable node");
-			}
+            }
+            TargetDropZone dropZone = GetDropZone(target, locationInControl);
 
-			source.DropHere(source, target);
+            source.DropHere(source, target, dropZone);
 		}
 
 	}

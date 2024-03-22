@@ -256,7 +256,7 @@ namespace AGS.Editor.Components
                     (commandId == TOP_LEVEL_COMMAND_ID));
         }
 
-        private bool ProjectTreeItem_CanDropHere(ProjectTreeItem source, ProjectTreeItem target)
+        private bool ProjectTreeItem_CanDropHere(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone)
         {
             FolderType targetFolder;
             ItemType targetItem;
@@ -305,7 +305,7 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void ProjectTreeItem_DropHere(ProjectTreeItem source, ProjectTreeItem target)
+        private void ProjectTreeItem_DropHere(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone)
         {            
             FolderType targetFolder;
             ItemType targetItem;
@@ -328,7 +328,16 @@ namespace AGS.Editor.Components
             {
                 if (targetFolder == null)
                 {
-                    DragItemToBeBeforeItem(sourceItem, targetItem);
+                    if (dropZone == TargetDropZone.Bottom || dropZone == TargetDropZone.MiddleBottom)
+                    {
+                        DragItemToBeAfterItem(sourceItem, targetItem);
+                        //Console.WriteLine("drop after");
+                    }
+                    else
+                    {
+                      //  Console.WriteLine("drop before");
+                        DragItemToBeBeforeItem(sourceItem, targetItem);
+                    }
                 }
                 else
                 {

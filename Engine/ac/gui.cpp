@@ -472,14 +472,10 @@ void unexport_gui_controls(int ee)
 }
 
 void update_gui_disabled_status() {
-    // update GUI display status (perhaps we've gone into
-    // an interface disabled state)
-    int all_buttons_was = all_buttons_disabled;
-    all_buttons_disabled = -1;
-
-    if (!IsInterfaceEnabled()) {
-        all_buttons_disabled = GUI::Options.DisabledStyle;
-    }
+    // update GUI display status (perhaps we've gone into an interface disabled state)
+    const GuiDisableStyle all_buttons_was = all_buttons_disabled;
+    all_buttons_disabled = IsInterfaceEnabled() ?
+        kGuiDis_Undefined : GUI::Options.DisabledStyle;
 
     if (all_buttons_was != all_buttons_disabled) {
         // Mark guis for redraw and reset control-under-mouse detection

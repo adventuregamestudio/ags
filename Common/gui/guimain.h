@@ -268,7 +268,7 @@ namespace GUI
 extern std::vector<Common::GUIMain> guis;
 // Tells if all controls are disabled
 // TODO: investigate how this variable works, and if this is at all needed
-extern int all_buttons_disabled;
+extern AGS::Common::GuiDisableStyle all_buttons_disabled;
 extern int gui_inv_pic;
 
 extern int get_adjusted_spritewidth(int spr);

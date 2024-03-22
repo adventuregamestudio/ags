@@ -2347,7 +2347,7 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(GUIMain &gui)
 {
-    if (all_buttons_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if ((all_buttons_disabled >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
     int draw_index = guiobjddbref[gui.ID];
@@ -2384,6 +2384,14 @@ static void draw_gui_controls_batch(int gui_id)
         SpriteTransform(), kFlip_None);
     // Add GUI itself
     gfxDriver->DrawSprite(0, 0, gui_bg);
+
+    // Don't draw child controls at all if disabled with kGuiDis_Blackout style
+    if ((all_buttons_disabled >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    {
+        gfxDriver->EndSpriteBatch();
+        return;
+    }
+
     // Add all the GUI controls
     const int draw_index = guiobjddbref[gui_id];
     for (const auto &obj_id : gui.GetControlsDrawOrder())

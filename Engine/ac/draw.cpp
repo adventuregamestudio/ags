@@ -2343,7 +2343,7 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(GUIMain &gui)
 {
-    if ((all_buttons_disabled >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
     int draw_index = guiobjddbref[gui.ID];
@@ -2382,7 +2382,7 @@ static void draw_gui_controls_batch(int gui_id)
     gfxDriver->DrawSprite(0, 0, gui_bg);
 
     // Don't draw child controls at all if disabled with kGuiDis_Blackout style
-    if ((all_buttons_disabled >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
     {
         gfxDriver->EndSpriteBatch();
         return;
@@ -2440,8 +2440,10 @@ void draw_gui_and_overlays()
             quit("!The player.activeinv variable has been corrupted, probably as a result\n"
                 "of an incorrect assignment in the game script.");
         }
-        if (playerchar->activeinv < 1) gui_inv_pic=-1;
-        else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
+        if (playerchar->activeinv < 1)
+            GUI::Context.InventoryPic = -1;
+        else
+            GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;
         set_our_eip(37);
         // Prepare and update GUI textures
         {
@@ -2498,7 +2500,7 @@ void draw_gui_and_overlays()
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-                (all_buttons_disabled >= 0) &&
+                (GUI::Context.DisabledState >= 0) &&
                 (gui.PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 

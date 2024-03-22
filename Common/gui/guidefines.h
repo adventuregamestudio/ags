@@ -214,6 +214,15 @@ struct GuiOptions
     bool OutlineControls = false;
 };
 
+// Global GUI context, affects controls behavior (drawing, updating)
+struct GuiContext
+{
+    // Current disabled state
+    GuiDisableStyle DisabledState = kGuiDis_Undefined;
+    // Last selected inventory item's pic
+    int InventoryPic = -1;
+};
+
 } // namespace Common
 } // namespace AGS
 

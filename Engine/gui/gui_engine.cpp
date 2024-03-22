@@ -169,7 +169,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
         reverse ? kAlignTopRight : kAlignTopLeft);
     wouttext_outline(ds, tpos.X1, tpos.Y1, Font, text_color, _textToDraw.GetCStr());
 
-    if (IsGUIEnabled(this))
+    if (GUI::IsGUIEnabled(this))
     {
         // draw a cursor
         const int cursor_width = get_fixed_pixel_size(5);

@@ -576,16 +576,19 @@ void unexport_gui_controls(int ee)
     }
 }
 
-void update_gui_disabled_status() {
+void update_gui_disabled_status()
+{
     // update GUI display status (perhaps we've gone into an interface disabled state)
-    const GuiDisableStyle all_buttons_was = all_buttons_disabled;
-    all_buttons_disabled = IsInterfaceEnabled() ?
+    const GuiDisableStyle disabled_state_was = GUI::Context.DisabledState;
+    GUI::Context.DisabledState = IsInterfaceEnabled() ?
         kGuiDis_Undefined : GUI::Options.DisabledStyle;
 
-    if (all_buttons_was != all_buttons_disabled) {
+    if (disabled_state_was != GUI::Context.DisabledState)
+    {
         // Mark guis for redraw and reset control-under-mouse detection
         GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-        if (GUI::Options.DisabledStyle != kGuiDis_Unchanged) {
+        if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
+        {
             invalidate_screen();
         }
     }
@@ -604,7 +607,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking) {
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-        ((all_buttons_disabled >= 0) || assume_blocking))
+        ((GUI::Context.DisabledState != kGuiDis_Undefined) || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
     for (const auto &gui : guis) {
@@ -626,7 +629,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking) {
 
 int adjust_y_for_guis(int y, bool assume_blocking) {
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-        ((all_buttons_disabled >= 0) || assume_blocking))
+        ((GUI::Context.DisabledState >= 0) || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
     for (const auto &gui : guis) {
@@ -648,7 +651,7 @@ int adjust_y_for_guis(int y, bool assume_blocking) {
 
 int gui_get_interactable(int x,int y)
 {
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0))
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
         return -1;
     return GetGUIAt(x, y);
 }
@@ -657,7 +660,7 @@ int gui_on_mouse_move()
 {
     int mouse_over_gui = -1;
     // If all GUIs are off, skip the loop
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0)) ;
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0)) ;
     else {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it

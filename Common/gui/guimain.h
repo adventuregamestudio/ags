@@ -251,6 +251,13 @@ namespace GUI
 {
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
+    extern GuiContext Context;
+
+    // Tells if the given control is considered enabled, taking global flag into account
+    inline bool IsGUIEnabled(GUIObject *g)
+    {
+        return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
+    }
 
     // Applies current text direction setting (may depend on multiple factors)
     String ApplyTextDirection(const String &text);
@@ -299,11 +306,6 @@ namespace GUI
 
 } // namespace Common
 } // namespace AGS
-
-// Tells if all controls are disabled
-// TODO: investigate how this variable works, and if this is at all needed
-extern AGS::Common::GuiDisableStyle all_buttons_disabled;
-extern int gui_inv_pic;
 
 extern int get_adjusted_spritewidth(int spr);
 extern int get_adjusted_spriteheight(int spr);

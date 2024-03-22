@@ -604,7 +604,7 @@ static void check_keyboard_controls()
     // it should be either a printable character or one of the textbox control keys
     // TODO: instead of making a preliminary check, just let each gui control
     // test the key and OnKeyPress return if it was handled?
-    if ((all_buttons_disabled < 0) &&
+    if ((GUI::Context.DisabledState == kGuiDis_Undefined) &&
         ((ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
          (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
@@ -793,7 +793,7 @@ static void update_cursor_over_gui()
         if (!gui.IsClickable()) continue; // don't update non-clickable
         // Don't touch GUI if "GUIs Turn Off When Disabled"
         if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-            (all_buttons_disabled >= 0) &&
+            (GUI::Context.DisabledState >= 0) &&
             (gui.PopupStyle != kGUIPopupNoAutoRemove))
             continue;
         gui.Poll(mousex, mousey);

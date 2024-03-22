@@ -136,6 +136,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
         if (_currentImage >= 0 && spriteset.DoesSpriteExist(_currentImage))
             rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(_currentImage), get_adjusted_spriteheight(_currentImage)));
         // Optionally merge with the inventory pic
+        const int gui_inv_pic = GUI::Context.InventoryPic;
         if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
         {
             Size inv_sz = Size(get_adjusted_spritewidth(gui_inv_pic), get_adjusted_spriteheight(gui_inv_pic));
@@ -171,7 +172,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
 
 void GUIButton::Draw(Bitmap *ds, int x, int y)
 {
-    bool draw_disabled = !IsGUIEnabled(this);
+    bool draw_disabled = !GUI::IsGUIEnabled(this);
 
     // if it's "Unchanged when disabled" or "GUI Off", don't grey out
     if ((GUI::Options.DisabledStyle == kGuiDis_Unchanged) ||
@@ -300,7 +301,7 @@ void GUIButton::OnMouseUp()
 {
     if (IsMouseOver)
     {
-        if (IsGUIEnabled(this) && IsClickable())
+        if (GUI::IsGUIEnabled(this) && IsClickable())
             IsActivated = true;
     }
 
@@ -439,6 +440,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         draw_gui_sprite(ds, _currentImage, x, y, true);
 
     // Draw active inventory item
+    const int gui_inv_pic = GUI::Context.InventoryPic;
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
     {
         Size inv_sz = Size(get_adjusted_spritewidth(gui_inv_pic), get_adjusted_spriteheight(gui_inv_pic));

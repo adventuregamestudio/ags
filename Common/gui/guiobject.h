@@ -145,9 +145,4 @@ LegacyGUIAlignment GetLegacyGUIAlignment(HorAlignment align);
 } // namespace Common
 } // namespace AGS
 
-// Tells if all controls are disabled
-extern AGS::Common::GuiDisableStyle all_buttons_disabled;
-// Tells if the given control is considered enabled, taking global flag into account
-inline bool IsGUIEnabled(AGS::Common::GUIObject *g) { return (all_buttons_disabled < 0) && g->IsEnabled(); }
-
 #endif // __AC_GUIOBJECT_H

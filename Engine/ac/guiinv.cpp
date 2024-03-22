@@ -46,7 +46,7 @@ int GUIInvWindow::GetCharacterId() const
 
 void GUIInvWindow::Draw(Bitmap *ds, int x, int y)
 {
-    const bool enabled = IsGUIEnabled(this);
+    const bool enabled = GUI::IsGUIEnabled(this);
     if (!enabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return;
 

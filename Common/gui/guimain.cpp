@@ -30,15 +30,13 @@
 
 #define MOVER_MOUSEDOWNLOCKED -4000
 
-GuiDisableStyle all_buttons_disabled = kGuiDis_Undefined;
-int gui_inv_pic = -1;
-
 namespace AGS
 {
 namespace Common
 {
 
 GuiOptions GUI::Options;
+GuiContext GUI::Context;
 
 
 /* static */ String GUIMain::FixupGUIName(const String &name)
@@ -281,7 +279,7 @@ void GUIMain::DrawWithControls(Bitmap *ds)
     ds->ResetClip();
     DrawSelf(ds);
 
-    if ((all_buttons_disabled >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
     Bitmap tempbmp; // in case we need transforms
@@ -369,7 +367,7 @@ void GUIMain::Poll(int mx, int my)
             if (MouseOverCtrl >= 0)
                 _controls[MouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && !IsGUIEnabled(_controls[ctrl_index]))
+            if (ctrl_index >= 0 && !GUI::IsGUIEnabled(_controls[ctrl_index]))
                 // the control is disabled - ignore it
                 MouseOverCtrl = -1;
             else if (ctrl_index >= 0 && !_controls[ctrl_index]->IsClickable())
@@ -527,7 +525,7 @@ void GUIMain::OnMouseButtonDown(int mx, int my)
         return;
 
     // don't activate disabled buttons
-    if (!IsGUIEnabled(_controls[MouseOverCtrl]) || !_controls[MouseOverCtrl]->IsVisible() ||
+    if (!GUI::IsGUIEnabled(_controls[MouseOverCtrl]) || !_controls[MouseOverCtrl]->IsVisible() ||
         !_controls[MouseOverCtrl]->IsClickable())
         return;
 

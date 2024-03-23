@@ -29,6 +29,7 @@
 #include "script/cc_common.h"
 #include "util/data_ext.h"
 #include "util/directory.h"
+#include "util/file.h"
 #include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -155,8 +156,9 @@ String FindGameData(const String &path)
 }
 
 // Begins reading main game file from a generic stream
-static HGameFileError OpenMainGameFileBase(Stream *in, MainGameSource &src)
+static HGameFileError OpenMainGameFileBase(MainGameSource &src)
 {
+    Stream *in = src.InputStream.get();
     // Check data signature
     String data_sig = String::FromStreamCount(in, MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
@@ -191,12 +193,12 @@ HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
     // Cleanup source struct
     src = MainGameSource();
     // Try to open given file
-    Stream *in = File::OpenFileRead(filename);
+    auto in = File::OpenFileRead(filename);
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Tried filename: %s.", filename.GetCStr()));
     src.Filename = filename;
-    src.InputStream.reset(in);
-    return OpenMainGameFileBase(in, src);
+    src.InputStream = std::move(in);
+    return OpenMainGameFileBase(src);
 }
 
 HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManager *mgr)
@@ -205,7 +207,7 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
     src = MainGameSource();
     // Try to find and open main game file
     String filename = MainGameSource::DefaultFilename_v3;
-    Stream *in = mgr->OpenAsset(filename);
+    auto in = mgr->OpenAsset(filename);
     if (!in)
     {
         filename = MainGameSource::DefaultFilename_v2;
@@ -215,8 +217,8 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
         return new MainGameFileError(kMGFErr_FileOpenFailed, String::FromFormat("Tried filenames: %s, %s.",
             MainGameSource::DefaultFilename_v3.GetCStr(), MainGameSource::DefaultFilename_v2.GetCStr()));
     src.Filename = filename;
-    src.InputStream.reset(in);
-    return OpenMainGameFileBase(in, src);
+    src.InputStream = std::move(in);
+    return OpenMainGameFileBase(src);
 }
 
 HGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVersion data_ver)

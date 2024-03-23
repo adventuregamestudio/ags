@@ -23,6 +23,7 @@
 #include "debug/debug_log.h"
 #include "main/engine.h"
 #include "util/directory.h"
+#include "util/file.h"
 #include "util/path.h"
 
 using namespace AGS::Common;

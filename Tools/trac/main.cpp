@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Read TRS
     //-----------------------------------------------------------------------//
-    Stream *in = File::OpenFileRead(src);
+    auto in = File::OpenFileRead(src);
     if (!in)
     {
         printf("Error: failed to open source TRS for reading.\n");
@@ -65,8 +65,7 @@ int main(int argc, char *argv[])
     }
     
     Translation tra;
-    HError err = ReadTRS(tra, in);
-    delete in;
+    HError err = ReadTRS(tra, in.get());
     if (!err)
     {
         printf("Error: failed to read source TRS:\n");
@@ -77,7 +76,7 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Write TRA
     //-----------------------------------------------------------------------//
-    Stream *out = File::CreateFile(dst);
+    auto out = File::CreateFile(dst);
     if (!out)
     {
         printf("Error: failed to open output TRA for writing.\n");
@@ -85,8 +84,7 @@ int main(int argc, char *argv[])
     }
     tra.GameName = game_name;
     tra.GameUid = game_uid;
-    err = WriteTRA(tra, out);
-    delete out;
+    err = WriteTRA(tra, out.get());
     if (!err)
     {
         printf("Error: failed to compile TRA:\n");

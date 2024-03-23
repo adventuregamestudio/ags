@@ -56,7 +56,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     trans_name = lang;
     trans_filename = String::FromFormat("%s.tra", lang.GetCStr());
 
-    std::unique_ptr<Stream> in(AssetMgr->OpenAsset(trans_filename));
+    auto in = AssetMgr->OpenAsset(trans_filename);
     if (in == nullptr)
     {
         Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", trans_filename.GetCStr());
@@ -70,7 +70,7 @@ bool init_translation(const String &lang, const String &fallback_lang)
     if (err)
     {
         // If successful, then read translation data fully
-        in.reset(AssetMgr->OpenAsset(trans_filename));
+        in = AssetMgr->OpenAsset(trans_filename);
         err = ReadTraData(trans, in.get());
     }
 

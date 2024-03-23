@@ -422,7 +422,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    Stream *readin = templateMgr->OpenAsset(thisFile);
+    auto readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -430,10 +430,9 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     char outputName[MAX_PATH];
     AGSString extension = AGSPath::GetFileExtension(thisFile);
     sprintf(outputName, "room%d.%s", newRoomNumber, extension.GetCStr());
-    Stream *wrout = AGSFile::CreateFile(outputName);
+    auto wrout = AGSFile::CreateFile(outputName);
     if (!wrout) 
     {
-      delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
     
@@ -441,8 +440,6 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
-    delete readin;
-    delete wrout;
     delete[] membuff;
   }
 
@@ -473,7 +470,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    Stream *readin = templateMgr->OpenAsset(thisFile);
+    auto readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -481,18 +478,15 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     // Make sure to create necessary subfolders,
     // e.g. if it's an old template with Music & Sound folders
     AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(thisFile));
-    Stream *wrout = AGSFile::CreateFile(thisFile);
+    auto wrout = AGSFile::CreateFile(thisFile);
     if (!wrout)
     {
-      delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
     const size_t size = readin->GetLength();
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
-    delete readin;
-    delete wrout;
     delete[] membuff;
   }
 
@@ -503,13 +497,12 @@ void extract_icon_from_template(AssetManager *templateMgr, char *iconName, char 
 {
   // make sure we get the icon from the file
   templateMgr->SetSearchPriority(Common::kAssetPriorityLib);
-  Stream* inpu = templateMgr->OpenAsset (iconName);
+  auto inpu = templateMgr->OpenAsset (iconName);
   const size_t sizey = inpu->GetLength();
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);
     inpu->Read (iconbuffer, sizey);
-    delete inpu;
     *iconDataBuffer = iconbuffer;
     *bufferSize = sizey;
   }
@@ -530,14 +523,12 @@ int load_template_file(const AGSString &fileName, char **iconDataBuffer, size_t 
     {
       if (templateMgr->DoesAssetExist(ROOM_TEMPLATE_ID_FILE))
       {
-        Stream *inpu = templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE);
+        auto inpu = templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE);
         if (inpu->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
         {
-          delete inpu;
           return 0;
         }
         int roomNumber = inpu->ReadInt32();
-        delete inpu;
         char iconName[MAX_PATH];
         sprintf(iconName, "room%d.ico", roomNumber);
         if (templateMgr->DoesAssetExist(iconName))
@@ -559,12 +550,11 @@ int load_template_file(const AGSString &fileName, char **iconDataBuffer, size_t 
 	      return 0;
       }
 
-	    Stream *inpu = templateMgr->OpenAsset(old_editor_main_game_file);
+	    auto inpu = templateMgr->OpenAsset(old_editor_main_game_file);
 	    if (inpu != NULL) 
 	    {
 		    inpu->Seek(30);
 		    int gameVersion = inpu->ReadInt32();
-		    delete inpu;
             // TODO: check this out, in theory we still support pre-2.72 game import
 		    if (gameVersion != 32)
 		    {
@@ -1405,11 +1395,11 @@ HAGSError reset_sprite_file()
 
 HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile)
 {
-    std::unique_ptr<Stream> sprite_file(AssetMgr->OpenAsset(spritefile));
+    auto sprite_file = AssetMgr->OpenAsset(spritefile);
     if (!sprite_file)
         return new AGSError(AGSString::FromFormat("Failed to open spriteset file '%s'.",
             spritefile.GetCStr()));
-    std::unique_ptr<Stream> index_file(AssetMgr->OpenAsset(indexfile));
+    auto index_file = AssetMgr->OpenAsset(indexfile);
 	HAGSError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err)
         return err;

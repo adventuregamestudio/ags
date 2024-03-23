@@ -369,7 +369,7 @@ static HError video_single_run(std::unique_ptr<VideoPlayer> video, const String 
     if (!video)
         return HError::None();
 
-    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(asset_name));
+    auto video_stream = AssetMgr->OpenAsset(asset_name);
     if (!video_stream)
     {
         return new Error(String::FromFormat("Failed to open file: %s", asset_name.GetCStr()));

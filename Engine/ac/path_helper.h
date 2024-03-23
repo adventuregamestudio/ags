@@ -25,6 +25,7 @@
 #ifndef __AGS_EE_AC__PATHHELPER_H
 #define __AGS_EE_AC__PATHHELPER_H
 
+#include <memory>
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stream.h"
@@ -125,7 +126,7 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path);
 // for write access precreates subdirs.
 // Fills a full resolved path, if possible.
 // Returns open stream on success, and null on failure.
-AGS::Common::Stream *ResolveScriptPathAndOpen(const String &sc_path,
+std::unique_ptr<AGS::Common::Stream> ResolveScriptPathAndOpen(const String &sc_path,
     AGS::Common::FileOpenMode open_mode, AGS::Common::StreamMode work_mode);
 
 #endif // __AGS_EE_AC__PATHHELPER_H

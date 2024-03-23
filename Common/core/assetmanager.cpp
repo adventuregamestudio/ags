@@ -15,9 +15,9 @@
 #include <algorithm>
 #include <regex>
 #include "util/directory.h"
+#include "util/file.h"
 #include "util/multifilelib.h"
 #include "util/path.h"
-#include "util/string_utils.h" // cbuf_to_string_and_free
 
 
 namespace AGS
@@ -51,11 +51,10 @@ bool SortLibsPriorityLib(const AssetLibInfo *lib1, const AssetLibInfo *lib2)
 
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
-    Stream *in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);
+    std::unique_ptr<Stream> in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);
     if (in)
     {
-        MFLUtil::MFLError err = MFLUtil::TestIsMFL(in, true);
-        delete in;
+        MFLUtil::MFLError err = MFLUtil::TestIsMFL(in.get(), true);
         return err == MFLUtil::kMFLNoError;
     }
     return false;
@@ -63,11 +62,10 @@ bool SortLibsPriorityLib(const AssetLibInfo *lib1, const AssetLibInfo *lib2)
 
 /* static */ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &lib)
 {
-    Stream *in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);
+    std::unique_ptr<Stream> in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);
     if (in)
     {
-        MFLUtil::MFLError err = MFLUtil::ReadHeader(lib, in);
-        delete in;
+        MFLUtil::MFLError err = MFLUtil::ReadHeader(lib, in.get());
         return (err != MFLUtil::kMFLNoError) ? kAssetErrLibParse : kAssetNoError;
     }
     return kAssetErrNoLibFile;
@@ -224,13 +222,12 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_l
     // ...else try open a data library
     else
     {
-        Stream *in = File::OpenFileCI(path, kFile_Open, kStream_Read);
+        std::unique_ptr<Stream> in = File::OpenFileCI(path, kFile_Open, kStream_Read);
         if (!in)
             return kAssetErrNoLibFile; // can't be opened, return error code
 
         lib.reset(new AssetLibEx());
-        MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(*lib, in);
-        delete in;
+        MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(*lib, in.get());
 
         if (mfl_err != MFLUtil::kMFLNoError)
             return kAssetErrLibParse;
@@ -252,13 +249,13 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_l
     return kAssetNoError;
 }
 
-Stream *AssetManager::OpenAsset(const String &asset_name, const String &filter) const
+std::unique_ptr<Stream> AssetManager::OpenAsset(const String &asset_name, const String &filter) const
 {
     for (const auto *lib : _activeLibs)
     {
         if (!lib->TestFilter(filter)) continue; // filter does not match
 
-        Stream *s = nullptr;
+        std::unique_ptr<Stream> s;
         if (IsAssetLibDir(lib))
             s = OpenAssetFromDir(lib, asset_name);
         else
@@ -269,7 +266,7 @@ Stream *AssetManager::OpenAsset(const String &asset_name, const String &filter) 
     return nullptr;
 }
 
-Stream *AssetManager::OpenAssetFromLib(const AssetLibEx *lib, const String &asset_name) const
+std::unique_ptr<Stream> AssetManager::OpenAssetFromLib(const AssetLibEx *lib, const String &asset_name) const
 {
     for (const auto &a : lib->AssetInfos)
     {
@@ -284,7 +281,7 @@ Stream *AssetManager::OpenAssetFromLib(const AssetLibEx *lib, const String &asse
     return nullptr;
 }
 
-Stream *AssetManager::OpenAssetFromDir(const AssetLibEx *lib, const String &file_name) const
+std::unique_ptr<Stream> AssetManager::OpenAssetFromDir(const AssetLibEx *lib, const String &file_name) const
 {
     String found_file = File::FindFileCI(lib->BaseDir, file_name);
     if (found_file.IsEmpty())
@@ -292,7 +289,7 @@ Stream *AssetManager::OpenAssetFromDir(const AssetLibEx *lib, const String &file
     return File::OpenFileRead(found_file);
 }
 
-Stream *AssetManager::OpenAsset(const String &asset_name) const
+std::unique_ptr<Stream> AssetManager::OpenAsset(const String &asset_name) const
 {
     return OpenAsset(asset_name, "");
 }

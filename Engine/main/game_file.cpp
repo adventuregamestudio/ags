@@ -133,7 +133,7 @@ static inline HError MakeScriptLoadError(const char *name)
 HError LoadGameScripts(LoadedGameEntities &ents)
 {
     // Global script
-    std::unique_ptr<Stream> in(AssetMgr->OpenAsset("GlobalScript.o"));
+    auto in = AssetMgr->OpenAsset("GlobalScript.o");
     if (in)
     {
         PScript script(ccScript::CreateFromStream(in.get()));
@@ -142,7 +142,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
         ents.GlobalScript = script;
     }
     // Dialog script
-    in.reset(AssetMgr->OpenAsset("DialogScript.o"));
+    in = AssetMgr->OpenAsset("DialogScript.o");
     if (in)
     {
         PScript script(ccScript::CreateFromStream(in.get()));
@@ -153,7 +153,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
     // Script modules
     // First load a modules list
     std::vector<String> modules;
-    in.reset(AssetMgr->OpenAsset("ScriptModules.lst"));
+    in = AssetMgr->OpenAsset("ScriptModules.lst");
     if (in)
     {
         TextStreamReader reader(in.get());
@@ -166,7 +166,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
     // Now run by the list and try loading everything
     for (size_t i = 0; i < modules.size(); ++i)
     {
-        in.reset(AssetMgr->OpenAsset(modules[i]));
+        in = AssetMgr->OpenAsset(modules[i]);
         if (in)
         {
             PScript script(ccScript::CreateFromStream(in.get()));

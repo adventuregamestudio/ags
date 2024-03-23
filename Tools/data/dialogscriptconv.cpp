@@ -14,6 +14,7 @@
 #include "data/dialogscriptconv.h"
 #include <cctype>
 #include <regex>
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
@@ -82,8 +83,9 @@ String DialogScriptConverter::Convert()
     _lineNumber = 0;
 
     // TODO: TextStreamReader now deletes stream in dtor, which is a design mistake
-    MemoryStream *mems = new MemoryStream((uint8_t*)_dlgScript.GetCStr(), _dlgScript.GetLength());
-    TextStreamReader sr(mems);
+    auto mems = std::make_unique<Stream>(
+        std::make_unique<MemoryStream>((uint8_t*)_dlgScript.GetCStr(), _dlgScript.GetLength()));
+    TextStreamReader sr(mems.release());
 
     String ags_script =
         String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);

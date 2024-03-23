@@ -28,7 +28,6 @@ COMMON_OBJS = \
 	../../Common/game/tra_file.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/data_ext.cpp \
-	../../Common/util/datastream.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \
 	../../Common/util/path.cpp \

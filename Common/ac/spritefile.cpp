@@ -608,7 +608,7 @@ int SaveSpriteFile(const String &save_to_file,
 int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
-    Stream *out = File::CreateFile(filename);
+    auto out = File::CreateFile(filename);
     if (!out)
         return -1;
     // write "SPRINDEX" id
@@ -626,7 +626,6 @@ int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
         out->WriteArrayOfInt16(&index.Heights[0], index.Heights.size());
         out->WriteArrayOfInt64(&index.Offsets[0], index.Offsets.size());
     }
-    delete out;
     return 0;
 }
 

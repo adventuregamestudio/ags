@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
     std::unique_ptr<Stream> block_in;
     if (command == 'i')
     {
-        block_in.reset(File::OpenFileRead(arg_blockfile));
+        block_in = File::OpenFileRead(arg_blockfile);
         if (!block_in)
         {
             printf("Error: failed to open block file for reading.\n");
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     std::vector<uint8_t> temp_data;
     if (out_roomfile)
     {
-        room_out.reset(File::CreateFile(out_roomfile));
+        room_out = File::CreateFile(out_roomfile);
         if (!room_out)
         {
             printf("Error: failed to open room file for writing.\n");
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
     if (!out_roomfile)
     {
         auto temp_room = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data));
-        room_out.reset(File::CreateFile(in_roomfile));
+        room_out = File::CreateFile(in_roomfile);
         if (!room_out)
         {
             printf("Error: failed to open room file for writing.\n");

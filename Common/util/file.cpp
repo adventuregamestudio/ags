@@ -27,6 +27,7 @@
 #include "util/aasset_stream.h"
 #include "util/android_file.h"
 #endif
+#include "util/memory_compat.h"
 
 namespace AGS
 {
@@ -238,37 +239,37 @@ std::unique_ptr<IStreamBase> OpenFileStream(const String &filename, FileOpenMode
     return std::move(fs);
 }
 
-Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
+std::unique_ptr<Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
 {
     auto fs = OpenFileStream(filename, open_mode, work_mode);
     if (!fs)
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
-    return new Stream(std::make_unique<BufferedStream>(std::move(fs)));
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs)));
 }
 
-Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
+std::unique_ptr<Stream> File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
 {
     auto fs = OpenFileStream(filename, kFile_Open, kStream_Read);
     if (!fs)
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
-    return new Stream(std::make_unique<BufferedStream>(std::move(fs), start_off, end_off));
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs), start_off, end_off));
 }
 
-Stream *File::OpenStdin()
+std::unique_ptr<Stream> File::OpenStdin()
 {
-    return new Stream(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdin, kStream_Read)));
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdin, kStream_Read)));
 }
 
-Stream *File::OpenStdout()
+std::unique_ptr<Stream> File::OpenStdout()
 {
-    return new Stream(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdout, kStream_Write)));
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdout, kStream_Write)));
 }
 
-Stream *File::OpenStderr()
+std::unique_ptr<Stream> File::OpenStderr()
 {
-    return new Stream(std::make_unique<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write)));
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write)));
 }
 
 String File::FindFileCI(const String &base_dir, const String &file_name,
@@ -387,7 +388,7 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
 #endif
 }
 
-Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
+std::unique_ptr<Stream> File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
     return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);

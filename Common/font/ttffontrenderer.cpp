@@ -112,7 +112,7 @@ static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
 
 ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font_size, int alfont_flags)
 {
-    std::unique_ptr<Stream> reader(_amgr->OpenAsset(filename));
+    auto reader = _amgr->OpenAsset(filename);
     if (!reader)
         return nullptr;
 

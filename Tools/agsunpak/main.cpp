@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Read the library TOC
     //-----------------------------------------------------------------------//
-    Stream *in = File::OpenFileRead(src);
+    auto in = File::OpenFileRead(src);
     if (!in)
     {
         printf("Error: failed to open pack file for reading.\n");
@@ -55,8 +55,7 @@ int main(int argc, char *argv[])
 
     // TODO: pick this out into a utility function that inits the lib fully
     AssetLibInfo lib;
-    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in);
-    delete in;
+    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
     if (mfl_err != MFLUtil::kMFLNoError)
     {
         printf("Error: failed to parse pack file:\n");

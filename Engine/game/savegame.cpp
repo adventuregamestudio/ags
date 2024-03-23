@@ -48,6 +48,7 @@
 #include "main/engine.h"
 #include "main/main.h"
 #include "main/update.h"
+#include "media/audio/audio_system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
 #include "plugin/agsplugin_evts.h"
@@ -58,7 +59,6 @@
 #include "util/memory_compat.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
-#include "media/audio/audio_system.h"
 
 using namespace Common;
 using namespace Engine;
@@ -714,9 +714,9 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     WriteSaveImage(out, user_image);
 }
 
-Stream *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
+std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
 {
-    Stream *out = Common::File::CreateFile(filename);
+    auto out = File::CreateFile(filename);
     if (!out)
         return nullptr;
 
@@ -727,7 +727,7 @@ Stream *StartSavegame(const String &filename, const String &user_text, const Bit
     pl_run_plugin_hooks(AGSE_PRESAVEGAME, 0);
 
     // Write descrition block
-    WriteDescription(out, user_text, user_image);
+    WriteDescription(out.get(), user_text, user_image);
     return out;
 }
 

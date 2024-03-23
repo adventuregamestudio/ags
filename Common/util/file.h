@@ -14,6 +14,18 @@
 //
 // Platform-independent File functions
 //
+//-----------------------------------------------------------------------------
+//
+// TODO: because Stream is now just a wrapper over IStreamBase,
+// there are two *alternate* changes that we might consider for the future:
+// 1. Variant 1 - return not a unique_ptr<Stream>, but a plain moveable
+//    Stream object instead. This would require altering alot  of code
+//    throughout the engine though, where Stream is accessed as a ptr.
+// 2. Variant 2 - return unique_ptr<IStreamBase>. This means getting a more
+//    primitive object, which may be wrapped into Stream only where necessary.
+//    This would require minor code adjustments, but may be less convenient
+//    in general use (?).
+//
 //=============================================================================
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
@@ -26,9 +38,6 @@ namespace AGS
 {
 namespace Common
 {
-
-// Forward declarations
-class Stream;
 
 enum FileOpenMode
 {
@@ -68,31 +77,31 @@ namespace File
     String      GetCMode(FileOpenMode open_mode, StreamMode work_mode);
 
     // Opens file in the given mode
-    Stream      *OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode);
+    std::unique_ptr<Stream> OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode);
     // Opens file for reading restricted to the arbitrary offset range
-    Stream      *OpenFile(const String &filename, soff_t start_off, soff_t end_off);
+    std::unique_ptr<Stream> OpenFile(const String &filename, soff_t start_off, soff_t end_off);
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline Stream *CreateFile(const String &filename)
+    inline std::unique_ptr<Stream> CreateFile(const String &filename)
     {
         return OpenFile(filename, kFile_CreateAlways, kStream_Write);
     }
     // Open existing file for reading
-    inline Stream *OpenFileRead(const String &filename)
+    inline std::unique_ptr<Stream> OpenFileRead(const String &filename)
     {
         return OpenFile(filename, kFile_Open, kStream_Read);
     }
     // Open existing file for writing (append) or create if it does not exist
-    inline Stream *OpenFileWrite(const String &filename)
+    inline std::unique_ptr<Stream> OpenFileWrite(const String &filename)
     {
         return OpenFile(filename, kFile_Create, kStream_Write);
     }
     // Opens stdin stream for reading
-    Stream      *OpenStdin();
+    std::unique_ptr<Stream> OpenStdin();
     // Opens stdout stream for writing
-    Stream      *OpenStdout();
+    std::unique_ptr<Stream> OpenStdout();
     // Opens stderr stream for writing
-    Stream      *OpenStderr();
+    std::unique_ptr<Stream> OpenStderr();
 
     // TODO: FindFileCI is used a lot when opening game assets;
     // this may result in lots and lots of repeating same work.
@@ -115,10 +124,10 @@ namespace File
     String FindFileCI(const String &base_dir, const String &file_name,
         bool is_dir = false, String *most_found = nullptr, String *not_found = nullptr);
     // Case insensitive file open: looks up for the file using FindFileCI
-    Stream *OpenFileCI(const String &base_dir, const String &file_name,
+    std::unique_ptr<Stream> OpenFileCI(const String &base_dir, const String &file_name,
         FileOpenMode open_mode = kFile_Open,
         StreamMode work_mode = kStream_Read);
-    inline Stream *OpenFileCI(const String &file_name,
+    inline std::unique_ptr<Stream> OpenFileCI(const String &file_name,
         FileOpenMode open_mode = kFile_Open,
         StreamMode work_mode = kStream_Read)
     {

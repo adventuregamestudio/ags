@@ -187,6 +187,11 @@ namespace AGS.Editor
             return uri1.Equals(uri2);
         }
 
+        public static bool AnyPathsAreEqual(string path1, string path2)
+        {
+            return PathsAreEqual(ResolveSourcePath(path1), ResolveSourcePath(path2));
+        }
+
         /// <summary>
         /// Tells if the given path equals to or subdirectory of a basepath.
         /// </summary>

@@ -439,28 +439,36 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
 
 void D3DGraphicsDriver::ResetDeviceIfNecessary()
 {
-  HRESULT hr = direct3ddevice->TestCooperativeLevel();
-  if (hr == D3DERR_DEVICELOST)
-  {
-    throw Ali3DFullscreenLostException();
-  }
-
-  if (hr == D3DERR_DEVICENOTRESET)
-  {
-    hr = ResetD3DDevice();
-    if (hr != D3D_OK)
+    HRESULT hr = direct3ddevice->TestCooperativeLevel();
+    if (hr == D3DERR_DEVICELOST)
     {
-      throw Ali3DException(String::FromFormat("IDirect3DDevice9::Reset: failed: error code: 0x%08X", hr));
+        throw Ali3DFullscreenLostException();
     }
 
+    if (hr == D3DERR_DEVICENOTRESET)
+    {
+        hr = ResetDeviceAndRestore();
+        if (hr != D3D_OK)
+        {
+            throw Ali3DException(String::FromFormat("IDirect3DDevice9::Reset: failed: error code: 0x%08X", hr));
+        }
+    }
+    else if (hr != D3D_OK)
+    {
+        throw Ali3DException(String::FromFormat("IDirect3DDevice9::TestCooperativeLevel: failed: error code: 0x%08X", hr));
+    }
+}
+
+HRESULT D3DGraphicsDriver::ResetDeviceAndRestore()
+{
+    HRESULT hr = ResetD3DDevice();
+    if (hr != D3D_OK)
+        return hr;
+
+    // Reinitialize D3D settings, backbuffer surface, etc
     InitializeD3DState();
     CreateVirtualScreen();
-    direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
-  }
-  else if (hr != D3D_OK)
-  {
-    throw Ali3DException(String::FromFormat("IDirect3DDevice9::TestCooperativeLevel: failed: error code: 0x%08X", hr));
-  }
+    return D3D_OK;
 }
 
 bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
@@ -613,6 +621,9 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->SetLight(0, &d3dLight);
   direct3ddevice->LightEnable(0, TRUE);
 
+  // Set gamma
+  direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
+
   // If we already have a render frame configured, then setup viewport immediately
   SetupViewport();
 }
@@ -700,15 +711,13 @@ void D3DGraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
   // draw using same device parameters, but adjusting viewport accordingly.
   d3dpp.BackBufferWidth = _mode.Width;
   d3dpp.BackBufferHeight = _mode.Height;
-  HRESULT hr = ResetD3DDevice();
+  HRESULT hr = ResetDeviceAndRestore();
   if (hr != D3D_OK)
   {
       Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
       return;
   }
-  InitializeD3DState();
-  CreateVirtualScreen();
-  direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
+  // Display mode could've changed, so re-setup viewport, matrixes, etc
   SetupViewport();
 }
 
@@ -2090,17 +2099,12 @@ bool D3DGraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
     d3dpp.PresentationInterval = enabled ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
     // D3D requires a Reset() in order to apply a new D3DPRESENT_INTERVAL value
-    HRESULT hr = ResetD3DDevice();
+    HRESULT hr = ResetDeviceAndRestore();
     if (hr != D3D_OK)
     {
         Debug::Printf(kDbgMsg_Error, "D3D: SetVsync (%d): failed to reset D3D device", enabled);
         return false;
     }
-    // TODO: refactor, to not duplicate these 3-4 calls everytime ResetDevice is called
-    InitializeD3DState();
-    CreateVirtualScreen();
-    direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
-    SetupViewport();
     // CHECKME: is there a need to test that vsync was actually set (ask d3d api)?
     vsync_res = d3dpp.PresentationInterval != D3DPRESENT_INTERVAL_IMMEDIATE;
     return true;

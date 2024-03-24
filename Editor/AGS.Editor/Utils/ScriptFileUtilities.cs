@@ -60,6 +60,16 @@ namespace AGS.Editor.Utils
             return false;
         }
 
+        public static bool IsKeyUnique(int uniqueKey, ScriptsAndHeaders gameScripts)
+        {
+            for (int i = 0; i < gameScripts.Count; i++)
+            {
+                ScriptAndHeader scriptAndHeader = gameScripts[i];
+                if (scriptAndHeader.Script.UniqueKey == uniqueKey) return false;
+            }
+            return true;
+        }
+
         public static List<Tuple<string, string>> FilterAlreadyInGameScripts(List<Tuple<string, string>> scriptHeaderPairs, ScriptsAndHeaders gameScripts)
         {
             List<Tuple<string, string>> filteredScriptHeaderPairs = new List<Tuple<string, string>>();

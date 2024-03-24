@@ -974,15 +974,38 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
       viewport = _screenBackbuffer.Viewport;
     }
 
+    // TODO: pick this out as a method that converts texture (any texture) to bitmap
     RECT copy_from_rc;
     RectToRECT(copy_from, copy_from_rc);
     D3DLOCKED_RECT lockedRect;
+    D3DSURFACE_DESC surf_desc;
+    surface->GetDesc(&surf_desc);
     if (surface->LockRect(&lockedRect, &copy_from_rc, D3DLOCK_READONLY) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
 
-    BitmapHelper::ReadPixelsFromMemory(destination, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
+    // If surface format does not have a valid alpha channel,
+    // then fill it with opaqueness while copying pixels, otherwise plain copy data
+    if (D3DFormatHasAlpha(surf_desc.Format))
+    {
+      BitmapHelper::ReadPixelsFromMemory(destination, static_cast<uint8_t*>(lockedRect.pBits), lockedRect.Pitch);
+    }
+    else
+    {
+      // TODO: pick this out as a separate utility function
+      const int bpp = destination->GetBPP();
+      uint8_t* src_ptr = static_cast<uint8_t*>(lockedRect.pBits);
+      for (int y = 0; y < destination->GetHeight(); ++y)
+      {
+        uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(destination->GetScanLineForWriting(y));
+        for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
+        {
+          dst_ptr[dx] = makeacol32(src_ptr[sx + 2], src_ptr[sx + 1], src_ptr[sx + 0], 0xFF /* opaque */);
+        }
+        src_ptr += lockedRect.Pitch;
+      }
+    }
 
     surface->UnlockRect();
   }

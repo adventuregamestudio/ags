@@ -51,8 +51,10 @@ namespace D3D
 
 using namespace Common;
 
-
-void RectToRECT(const Rect &in_rc, RECT &out_rc)
+//
+// Direct3D helpers
+//
+static void RectToRECT(const Rect &in_rc, RECT &out_rc)
 {
     out_rc.left = in_rc.Left;
     out_rc.top = in_rc.Top;
@@ -60,12 +62,90 @@ void RectToRECT(const Rect &in_rc, RECT &out_rc)
     out_rc.bottom = in_rc.Bottom + 1;
 }
 
-void RectToRECT(const Rect &in_rc, D3DRECT &out_rc)
+static void RectToRECT(const Rect &in_rc, D3DRECT &out_rc)
 {
     out_rc.x1 = in_rc.Left;
     out_rc.y1 = in_rc.Top;
     out_rc.x2 = in_rc.Right + 1;
     out_rc.y2 = in_rc.Bottom + 1;
+}
+
+// Convert a colour depth into the corresponding D3D pixel format
+static D3DFORMAT ColorDepthToD3DFormat(int color_depth, bool want_alpha)
+{
+    if (want_alpha)
+    {
+        switch (color_depth)
+        {
+        case 8:
+            return D3DFMT_P8;
+        case 15:
+        case 16:
+            return D3DFMT_A1R5G5B5;
+        case 24:
+        case 32:
+            return D3DFMT_A8R8G8B8;
+        default:
+            return D3DFMT_UNKNOWN;
+        }
+    }
+    else
+    {
+        switch (color_depth)
+        {
+        case 8:
+            return D3DFMT_P8;
+        case 15:
+            return D3DFMT_X1R5G5B5;
+        case 16:
+            return D3DFMT_R5G6B5;
+        case 24:
+            return D3DFMT_R8G8B8;
+        case 32:
+            return D3DFMT_X8R8G8B8;
+        default:
+            return D3DFMT_UNKNOWN;
+        }
+    }
+}
+
+// Convert a D3D pixel format to colour depth (bits per pixel).
+// TODO: this is currently an inversion of ColorDepthToD3DFormat;
+// check later if more formats should be handled.
+static int D3DFormatToColorDepth(D3DFORMAT format)
+{
+    switch (format)
+    {
+    case D3DFMT_P8:
+        return 8;
+    case D3DFMT_A1R5G5B5:
+        return 16;
+    case D3DFMT_X1R5G5B5:
+        return 16;
+    case D3DFMT_R5G6B5:
+        return 16;
+    case D3DFMT_R8G8B8:
+        return 32;
+    case D3DFMT_A8R8G8B8:
+    case D3DFMT_X8R8G8B8:
+        return 32;
+    default:
+        return 0; // unknown
+    }
+}
+
+// Tells if the pixel format contains valid alpha channel.
+// TODO: this is a very formal implementation, might review this later.
+static bool D3DFormatHasAlpha(D3DFORMAT format)
+{
+    switch (format)
+    {
+    case D3DFMT_A1R5G5B5:
+    case D3DFMT_A8R8G8B8:
+        return true;
+    default:
+        return false;
+    }
 }
 
 
@@ -84,9 +164,6 @@ void D3DBitmap::ReleaseTextureData()
     _data.reset();
 }
 
-
-static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
-
 bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 {
     if (_direct3d && index >= 0 && index < _modeCount)
@@ -96,7 +173,7 @@ bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
         {
             mode.Width = d3d_mode.Width;
             mode.Height = d3d_mode.Height;
-            mode.ColorDepth = d3d_format_to_color_depth(d3d_mode.Format, false);
+            mode.ColorDepth = D3DFormatToColorDepth(d3d_mode.Format);
             mode.RefreshRate = d3d_mode.RefreshRate;
             return true;
         }
@@ -307,71 +384,6 @@ bool D3DGraphicsDriver::FirstTimeInit()
   return true;
 }
 
-/* color_depth_to_d3d_format:
- *  Convert a colour depth into the appropriate D3D tag
- */
-static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool want_alpha = true)
-{
-    if (want_alpha)
-    {
-        switch (color_depth)
-        {
-        case 8:
-            return D3DFMT_P8;
-        case 15:
-        case 16:
-            return D3DFMT_A1R5G5B5;
-        case 24:
-        case 32:
-            return D3DFMT_A8R8G8B8;
-        }
-    }
-    else
-    {
-        switch (color_depth)
-        {
-        case 8:
-            return D3DFMT_P8;
-        case 15:
-            return D3DFMT_X1R5G5B5;
-        case 16:
-            return D3DFMT_R5G6B5;
-        case 24:
-            return D3DFMT_R8G8B8;
-        case 32:
-            return D3DFMT_X8R8G8B8;
-        }
-    }
-    return D3DFMT_UNKNOWN;
-}
-
-/* d3d_format_to_color_depth:
- *  Convert a D3D tag to colour depth
- *
- * TODO: this is currently an inversion of color_depth_to_d3d_format;
- * check later if more formats should be handled
- */
-static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary)
-{
-  switch (format)
-  {
-  case D3DFMT_P8:
-    return 8;
-  case D3DFMT_A1R5G5B5:
-    return secondary ? 15 : 16;
-  case D3DFMT_X1R5G5B5:
-    return secondary ? 15 : 16;
-  case D3DFMT_R5G6B5:
-    return 16;
-  case D3DFMT_R8G8B8:
-    return secondary ? 24 : 32;
-  case D3DFMT_A8R8G8B8:
-  case D3DFMT_X8R8G8B8:
-    return 32;
-  }
-  return 0;
-}
-
 bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
@@ -385,7 +397,7 @@ bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     return true;
   }
 
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(mode.ColorDepth, false /* opaque */);
+  D3DFORMAT pixelFormat = ColorDepthToD3DFormat(mode.ColorDepth, false /* opaque */);
   D3DDISPLAYMODE d3d_mode;
 
   int mode_count = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
@@ -475,7 +487,7 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   memset( &d3dpp, 0, sizeof(d3dpp) );
   d3dpp.BackBufferWidth = mode.Width;
   d3dpp.BackBufferHeight = mode.Height;
-  d3dpp.BackBufferFormat = color_depth_to_d3d_format(mode.ColorDepth, false /* opaque */);
+  d3dpp.BackBufferFormat = ColorDepthToD3DFormat(mode.ColorDepth, false /* opaque */);
   d3dpp.BackBufferCount = 1;
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
@@ -820,7 +832,7 @@ int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false /* opaque */));
+  return new D3DGfxModeList(direct3d, ColorDepthToD3DFormat(color_depth, false /* opaque */));
 }
 
 PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
@@ -942,7 +954,7 @@ bool D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
       if (direct3ddevice->CreateOffscreenPlainSurface(
         _srcRect.GetWidth(),
         _srcRect.GetHeight(),
-        color_depth_to_d3d_format(_mode.ColorDepth, false /* opaque */),
+        ColorDepthToD3DFormat(_mode.ColorDepth, false /* opaque */),
         D3DPOOL_SYSTEMMEM,
         surface.Acquire(),
         NULL) != D3D_OK)
@@ -1933,7 +1945,7 @@ Texture *D3DGraphicsDriver::CreateTexture(int width, int height, int color_depth
 
       // NOTE: pay attention that the texture format depends on the **display mode**'s color format,
       // rather than source bitmap's color depth!
-      D3DFORMAT texture_fmt = color_depth_to_d3d_format(_mode.ColorDepth, !opaque);
+      D3DFORMAT texture_fmt = ColorDepthToD3DFormat(_mode.ColorDepth, !opaque);
       HRESULT hr = direct3ddevice->CreateTexture(thisAllocatedWidth, thisAllocatedHeight, 1,
                                       texture_use, texture_fmt,
                                       texture_pool, thisTile->texture.Acquire(), NULL);

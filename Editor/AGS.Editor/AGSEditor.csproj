@@ -151,6 +151,8 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
+    <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
     <Compile Include="Entities\ScriptModuleDef.cs" />

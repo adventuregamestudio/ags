@@ -1273,7 +1273,7 @@ bool SaveToFile(Bitmap* bmp, const char *filename, const RGB *pal)
 
     String ext = Path::GetFileExtension(filename);
     SaveBitmap(ext, out.get(), bmp, pal);
-    return out->GetError(); // FIXME: should return a result from SaveBitmap --> SaveFmt
+    return !out->GetError(); // FIXME: should return a result from SaveBitmap --> SaveFmt
 }
 
 } // namespace BitmapHelper

@@ -374,8 +374,9 @@ private:
     void InitializeD3DState();
     // Resets
     void ResetDeviceIfNecessary();
-    void SetupViewport();
+    HRESULT ResetDeviceAndRestore();
     HRESULT ResetD3DDevice();
+    void SetupViewport();
     // For tracked render targets, disposes only the internal texture data
     void ReleaseRenderTargetData();
     // For tracked render targets, recreates the internal texture data

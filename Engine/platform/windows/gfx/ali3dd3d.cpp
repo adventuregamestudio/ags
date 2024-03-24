@@ -767,10 +767,11 @@ void D3DGraphicsDriver::ReleaseRenderTargetData()
     // Remove RT surface ref from all the existing batches
     for (auto &batch : _spriteBatches)
     {
-        if (batch.RenderSurface)
-        {
-            batch.RenderSurface = nullptr;
-        }
+        batch.RenderSurface = nullptr;
+    }
+    for (auto &batch : _backupBatches)
+    {
+        batch.RenderSurface = nullptr;
     }
     // Release the RTs internal data
     for (auto &ddb : _renderTargets)
@@ -792,6 +793,14 @@ void D3DGraphicsDriver::RecreateRenderTargets()
     }
     // Reappoint RT surfaces in existing batches
     for (auto &batch : _spriteBatches)
+    {
+        if (batch.RenderTarget)
+        {
+            assert(!batch.RenderSurface);
+            batch.RenderSurface = ((D3DBitmap*)batch.RenderTarget)->_renderSurface;
+        }
+    }
+    for (auto &batch : _backupBatches)
     {
         if (batch.RenderTarget)
         {

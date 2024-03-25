@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_WFNFONTRENDERER_H
 #define __AC_WFNFONTRENDERER_H
 
 #include <map>
+#include "core/assetmanager.h"
 #include "font/agsfontrenderer.h"
 
 class WFNFont;
@@ -46,6 +46,9 @@ public:
   void GetFontMetrics(int fontNumber, FontMetrics *metrics) override { *metrics = FontMetrics(); }
   void AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) override { /* do nothing */}
 
+  WFNFontRenderer(AGS::Common::AssetManager *mgr)
+      : _amgr(mgr) {}
+
 private:
   struct FontData
   {
@@ -53,6 +56,7 @@ private:
     FontRenderParams Params;
   };
   std::map<int, FontData> _fontData;
+  AGS::Common::AssetManager *_amgr = nullptr;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

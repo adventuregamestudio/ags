@@ -295,7 +295,7 @@ void engine_init_fonts()
 {
     Debug::Printf(kDbgMsg_Info, "Initializing TTF renderer");
 
-    init_font_renderer();
+    init_font_renderer(AssetMgr.get());
 }
 
 void engine_init_mouse()

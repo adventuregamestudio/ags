@@ -21,7 +21,18 @@
 
 using namespace AGS::Common;
 
-// ***** TTF RENDERER *****
+TTFFontRenderer::TTFFontRenderer(AssetManager *amgr)
+    : _amgr(amgr)
+{
+    alfont_init();
+    alfont_text_mode(-1);
+}
+
+TTFFontRenderer::~TTFFontRenderer()
+{
+    alfont_exit();
+}
+
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {
   // TTF fonts already have space at the top, so try to remove the gap
@@ -82,21 +93,12 @@ static int GetAlfontFlags(int load_mode)
 }
 
 // Loads a TTF font of a certain size
-static ALFONT_FONT *LoadTTF(const String &filename, int fontSize, int alfont_flags)
+static ALFONT_FONT *LoadTTFFromMem(const uint8_t *data, size_t data_len, int font_size, int alfont_flags)
 {
-    std::unique_ptr<Stream> reader(AssetMgr->OpenAsset(filename));
-    if (!reader)
-        return nullptr;
-
-    const size_t lenof = reader->GetLength();
-    std::vector<char> buf; buf.resize(lenof);
-    reader->Read(&buf.front(), lenof);
-    reader.reset();
-
-    ALFONT_FONT *alfptr = alfont_load_font_from_mem(&buf.front(), lenof);
+    ALFONT_FONT *alfptr = alfont_load_font_from_mem(reinterpret_cast<const char*>(data), data_len);
     if (!alfptr)
         return nullptr;
-    alfont_set_font_size_ex(alfptr, fontSize, alfont_flags);
+    alfont_set_font_size_ex(alfptr, font_size, alfont_flags);
     return alfptr;
 }
 
@@ -106,6 +108,20 @@ static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
     metrics->Height = alfont_get_font_height(alfptr);
     metrics->RealHeight = alfont_get_font_real_height(alfptr);
     metrics->CompatHeight = metrics->Height; // just set to default here
+}
+
+ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font_size, int alfont_flags)
+{
+    std::unique_ptr<Stream> reader(AssetMgr->OpenAsset(filename));
+    if (!reader)
+        return nullptr;
+
+    const size_t lenof = reader->GetLength();
+    std::vector<uint8_t> buf; buf.resize(lenof);
+    reader->Read(&buf.front(), lenof);
+    reader.reset();
+
+    return LoadTTFFromMem(&buf.front(), lenof, font_size, alfont_flags);
 }
 
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,

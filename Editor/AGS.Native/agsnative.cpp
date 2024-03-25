@@ -2766,6 +2766,9 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scal
   guislider.clear();
   guiinv.clear();
 
+  // Setup GuiContext
+  AGS::Common::GUI::Context.Spriteset = &spriteset;
+
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
   // Add dummy items to all listboxes, let user preview the fonts
   for (auto &lb : guilist)

@@ -147,6 +147,8 @@ struct NativeRoomTools
 std::unique_ptr<NativeRoomTools> RoomTools;
 
 
+HAGSError reset_sprite_file();
+HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile);
 bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
@@ -1173,10 +1175,9 @@ bool initialize_native()
 	thisgame.numfonts = 0;
 	new_font();
 
-	HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
+    HAGSError err = reset_sprite_file();
 	if (!err)
 	  return false;
-	spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set this up in preferences?
 
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
@@ -1385,12 +1386,25 @@ bool reload_font(int curFont)
   return load_font_size(curFont, thisgame.fonts[curFont]);
 }
 
-HAGSError reset_sprite_file() {
-  HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
-  if (!err)
-    return err;
-  spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set in preferences?
-  return HAGSError::None();
+HAGSError reset_sprite_file()
+{
+    return reset_sprite_file(AGS::Common::SpriteFile::DefaultSpriteFileName,
+        AGS::Common::SpriteFile::DefaultSpriteIndexName);
+}
+
+HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile)
+{
+    std::unique_ptr<Stream> sprite_file(AssetMgr->OpenAsset(spritefile));
+    if (!sprite_file)
+        return new AGSError(AGSString::FromFormat("Failed to open spriteset file '%s'.",
+            spritefile.GetCStr()));
+    std::unique_ptr<Stream> index_file(AssetMgr->OpenAsset(indexfile));
+	HAGSError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
+    if (!err)
+        return err;
+    // 100 mb cache // TODO: set this up in preferences?
+	spriteset.SetMaxCacheSize(100 * 1024 * 1024);
+    return HAGSError::None();
 }
 
 std::vector<Common::PluginInfo> thisgamePlugins;
@@ -1951,7 +1965,7 @@ void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_ind
     finally
     {
         // Reset the sprite cache to whichever file was successfully saved
-        HAGSError err = spriteset.InitFile(use_spritefile, use_indexfile);
+        HAGSError err = reset_sprite_file(use_spritefile, use_indexfile);
         if (!err)
         {
             throw gcnew AGSEditorException(

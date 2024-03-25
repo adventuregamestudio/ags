@@ -323,8 +323,7 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     if (!err)
         quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
 
-    spriteset.Reset();
-    err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);
+    err = engine_init_sprites();
     if (!err)
         quitprintf("!RunAGSGame: error loading new sprites:\n%s", err->FullMessage().GetCStr());
 

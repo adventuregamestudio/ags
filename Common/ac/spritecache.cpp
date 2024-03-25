@@ -396,12 +396,13 @@ int SpriteCache::SaveToFile(const String &filename, int store_flags, SpriteCompr
     return SaveSpriteFile(filename, sprites, &_file, store_flags, compress, index);
 }
 
-HError SpriteCache::InitFile(const String &filename, const String &sprindex_filename)
+HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
+                             std::unique_ptr<Stream> &&index_file)
 {
     Reset();
 
     std::vector<Size> metrics;
-    HError err = _file.OpenFile(filename, sprindex_filename, metrics);
+    HError err = _file.OpenFile(std::move(sprite_file), std::move(index_file), metrics);
     if (!err)
         return err;
 

@@ -164,23 +164,21 @@ SpriteFile::SpriteFile()
     _curPos = -2;
 }
 
-HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filename,
-    std::vector<Size> &metrics)
+HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
+    std::unique_ptr<Stream> &&index_file, std::vector<Size> &metrics)
 {
     Close();
 
-    char buff[20];
-    soff_t spr_initial_offs = 0;
-    int spriteFileID = 0;
+    assert(sprite_file);
+    if (!sprite_file)
+        return new Error("Invalid spritefile stream.");
 
-    _stream.reset(AssetMgr->OpenAsset(filename));
-    if (_stream == nullptr)
-        return new Error(String::FromFormat("Failed to open spriteset file '%s'.", filename.GetCStr()));
+    _stream = std::move(sprite_file);
 
-    spr_initial_offs = _stream->GetPosition();
-
+    soff_t spr_initial_offs = _stream->GetPosition();
     _version = (SpriteFileVersion)_stream->ReadInt16();
     // read the "Sprite File" signature
+    char buff[20];
     _stream->ReadArray(&buff[0], 13, 1);
 
     if (_version < kSprfVersion_Uncompressed || _version > kSprfVersion_Current)
@@ -198,6 +196,7 @@ HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filen
         return new Error("Uknown spriteset format.");
     }
 
+    int spriteFileID = 0;
     _storeFlags = 0;
     if (_version < kSprfVersion_Compressed)
     {
@@ -236,7 +235,7 @@ HError SpriteFile::OpenFile(const String &filename, const String &sprindex_filen
     }
 
     // if there is a sprite index file, use it
-    if (LoadSpriteIndexFile(sprindex_filename, spriteFileID,
+    if (LoadSpriteIndexFile(std::move(index_file), spriteFileID,
         spr_initial_offs, topmost, metrics))
     {
         // Succeeded
@@ -272,11 +271,10 @@ sprkey_t SpriteFile::GetTopmostSprite() const
     return (sprkey_t)_spriteData.size() - 1;
 }
 
-bool SpriteFile::LoadSpriteIndexFile(const String &filename, int expectedFileID,
-    soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics)
+bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
+    int expectedFileID, soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics)
 {
-    Stream *fidx = AssetMgr->OpenAsset(filename);
-    if (fidx == nullptr)
+    if (!fidx)
     {
         return false;
     }
@@ -287,21 +285,18 @@ bool SpriteFile::LoadSpriteIndexFile(const String &filename, int expectedFileID,
     buffer[8] = 0;
     if (strcmp(buffer, spindexid))
     {
-        delete fidx;
         return false;
     }
     // check version
     SpriteIndexFileVersion vers = (SpriteIndexFileVersion)fidx->ReadInt32();
     if (vers < kSpridxfVersion_Initial || vers > kSpridxfVersion_Current)
     {
-        delete fidx;
         return false;
     }
     if (vers >= kSpridxfVersion_Last32bit)
     {
         if (fidx->ReadInt32() != expectedFileID)
         {
-            delete fidx;
             return false;
         }
     }
@@ -310,13 +305,11 @@ bool SpriteFile::LoadSpriteIndexFile(const String &filename, int expectedFileID,
     // end index+1 should be the same as num sprites
     if (fidx->ReadInt32() != topmost_index + 1)
     {
-        delete fidx;
         return false;
     }
 
     if (topmost_index != topmost)
     {
-        delete fidx;
         return false;
     }
 
@@ -336,7 +329,6 @@ bool SpriteFile::LoadSpriteIndexFile(const String &filename, int expectedFileID,
     {
         fidx->ReadArrayOfInt64(&spriteoffs[0], numsprits);
     }
-    delete fidx;
 
     for (sprkey_t i = 0; i <= topmost_index; ++i)
     {

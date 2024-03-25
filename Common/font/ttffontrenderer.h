@@ -48,7 +48,7 @@ public:
   void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
 
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
-  ~TTFFontRenderer();
+  virtual ~TTFFontRenderer();
 
   //
   // Utility functions

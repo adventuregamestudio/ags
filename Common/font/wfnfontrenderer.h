@@ -48,6 +48,7 @@ public:
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
+  virtual ~WFNFontRenderer() = default;
 
 private:
   struct FontData

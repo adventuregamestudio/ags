@@ -29,7 +29,6 @@
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
 #include "font/fonts.h"
-#include "font/ttffontrenderer.h"
 #include "game/customproperties.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
@@ -55,6 +54,7 @@ extern void save_crm_file(Room ^roomToSave);
 extern void save_default_crm_file(Room ^roomToSave);
 extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
+extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
 extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
@@ -344,12 +344,12 @@ namespace AGS
     int NativeMethods::FindTTFSizeForHeight(String ^fileName, int pixelHeight)
     {
         AGSString filename = TextHelper::ConvertUTF8(fileName);
-        FontMetrics metrics;
-        if (!TTFFontRenderer::MeasureFontOfPixelHeight(filename, pixelHeight, &metrics))
+        int height;
+        if (!measure_font_height(filename, pixelHeight, height))
         {
             throw gcnew AGSEditorException(String::Format("Unable to load font {0}. Not a TTF font, or there an error occured while loading it.", fileName));
         }
-        return metrics.Height;
+        return height;
     }
 
     void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate)

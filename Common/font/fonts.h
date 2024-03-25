@@ -28,6 +28,7 @@ class IAGSFontRenderer2;
 class IAGSFontRendererInternal;
 struct FontInfo;
 struct FontRenderParams;
+struct FontMetrics;
 
 void init_font_renderer(AGS::Common::AssetManager *amgr);
 void shutdown_font_renderer();
@@ -91,6 +92,8 @@ void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
 FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk
 bool load_font_size(size_t fontNumber, const FontInfo &font_info);
+// Loads a font from disk, reads metrics, and disposes a font
+bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
 void wgtprintf(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.

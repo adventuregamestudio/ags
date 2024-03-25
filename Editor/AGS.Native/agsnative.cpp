@@ -30,6 +30,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "ac/scriptmodule.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
+#include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
@@ -1173,7 +1174,6 @@ bool initialize_native()
 	thisgame.color_depth = 2;
     BaseColorDepth = 32;
 	thisgame.numfonts = 0;
-	new_font();
 
     HAGSError err = reset_sprite_file();
 	if (!err)
@@ -1182,7 +1182,8 @@ bool initialize_native()
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
 
-	init_font_renderer();
+	init_font_renderer(AssetMgr.get());
+    new_font();
 
 	RoomTools.reset(new NativeRoomTools());
 	return true;
@@ -1383,7 +1384,16 @@ void update_abuf_coldepth() {
 
 bool reload_font(int curFont)
 {
-  return load_font_size(curFont, thisgame.fonts[curFont]);
+    return load_font_size(curFont, thisgame.fonts[curFont]);
+}
+
+bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height)
+{
+    FontMetrics metrics;
+    if (!load_font_metrics(filename, pixel_height, metrics))
+        return false;
+    formal_height = metrics.Height;
+    return true;
 }
 
 HAGSError reset_sprite_file()

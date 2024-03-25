@@ -22,6 +22,7 @@
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h" // MAXLINE
+#include "util/path.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"
 
@@ -562,6 +563,21 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
   fonts[fontNumber].Metrics = metrics;
   font_post_init(fontNumber);
   return true;
+}
+
+bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics)
+{
+    const String ext = Path::GetFileExtension(filename);
+    if (ext.CompareNoCase("ttf") == 0)
+    {
+        return ttfRenderer->MeasureFontOfPixelHeight(filename, pixel_size, &metrics);
+    }
+    else if (ext.CompareNoCase("wfn") == 0)
+    {
+        metrics = FontMetrics(); // FIXME: not supported?
+        return false;
+    }
+    return false;
 }
 
 void wgtprintf(Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...)

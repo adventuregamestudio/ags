@@ -65,6 +65,7 @@ using namespace Common;
 using namespace Engine;
 
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern RoomStatus troom;
 extern RoomStatus *croom;
@@ -476,8 +477,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     for (int i = 0; i < game.numgui; ++i)
         export_gui_controls(i);
 
-    update_gui_zorder();
-
     AllocScriptModules();
     if (create_global_script())
     {
@@ -564,8 +563,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         on_background_frame_change();
     }
 
-    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
-
     // restore the queue now that the music is playing
     play.music_queue_size = queuedMusicSize;
 
@@ -637,7 +634,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     restore_overlays();
     restore_movelists();
 
-    GUIE::MarkAllGUIForUpdate(true, true);
+    prepare_gui_runtime(false /* not startup */);
 
     RestoreViewportsAndCameras(r_data);
 

@@ -247,6 +247,9 @@ void GUIMain::DrawSelf(Bitmap *ds)
     if ((Width < 1) || (Height < 1))
         return;
 
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
+
     set_our_eip(376);
     // stop border being transparent, if the whole GUI isn't
     if ((FgColor == 0) && (BgColor != 0))

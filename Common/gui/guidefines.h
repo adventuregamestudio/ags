@@ -203,26 +203,6 @@ enum GuiDisableStyle
     kGuiDis_Off       = 3  // fully invisible guis
 };
 
-// Global GUI options
-struct GuiOptions
-{
-    // Clip GUI control's contents to the control's rectangle
-    bool ClipControls = true;
-    // How the GUI controls are drawn when the interface is disabled
-    GuiDisableStyle DisabledStyle = kGuiDis_Unchanged;
-    // Whether to graphically outline GUI controls
-    bool OutlineControls = false;
-};
-
-// Global GUI context, affects controls behavior (drawing, updating)
-struct GuiContext
-{
-    // Current disabled state
-    GuiDisableStyle DisabledState = kGuiDis_Undefined;
-    // Last selected inventory item's pic
-    int InventoryPic = -1;
-};
-
 } // namespace Common
 } // namespace AGS
 

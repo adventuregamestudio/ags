@@ -477,7 +477,7 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
         return;
 
     // Apply sprite flags read from original format (sequential array)
-    spriteset.EnlargeTo(ents.SpriteCount - 1);
+    game.SpriteInfos.resize(ents.SpriteCount);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
     {
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];

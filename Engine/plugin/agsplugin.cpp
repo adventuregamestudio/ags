@@ -86,6 +86,7 @@ extern IGraphicsDriver *gfxDriver;
 extern ScriptSystem scsystem;
 extern int mousex, mousey;
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern RGB palette[256];
 extern int displayed_room;

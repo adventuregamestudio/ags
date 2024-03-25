@@ -126,6 +126,9 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (clipped)
         return RectWH(0, 0, _width, _height);
 
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
+
     // TODO: need to find a way to cache image and text position, or there'll be some repetition
     Rect rc = RectWH(0, 0, _width, _height);
     if (IsImageButton())
@@ -433,6 +436,9 @@ void GUIButton::WriteToSavegame(Stream *out) const
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
 {
     assert(_currentImage >= 0);
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
+
     // NOTE: the CLIP flag only clips the image, not the text
     if (IsClippingImage() && !GUI::Options.ClipControls)
         ds->SetClip(RectWH(x, y, _width, _height));

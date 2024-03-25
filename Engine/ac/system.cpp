@@ -43,6 +43,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;

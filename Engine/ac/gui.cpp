@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cstdio>
+#include <numeric>
 #include <vector>
 #include "ac/gui.h"
 #include "ac/common.h"
@@ -551,6 +552,38 @@ bool sort_gui_less(const int g1, const int g2)
 void update_gui_zorder()
 {
     std::sort(play.gui_draw_order.begin(), play.gui_draw_order.end(), sort_gui_less);
+}
+
+void prepare_gui_runtime(bool startup)
+{
+    // Trigger all guis and controls to recalculate their dynamic state;
+    // here we achieve this by sending "On Resize" event, although there could
+    // be a better way for this.
+    for (auto &gui : guis)
+    {
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+        {
+            GUIObject *guio = gui.GetControl(i);
+            guio->IsActivated = false;
+            guio->OnResized();
+        }
+    }
+    // Reset particular states after loading game data
+    if (startup)
+    {
+        // labels are not clickable by default
+        // CHECKME: why are we doing this at all?
+        for (auto &label : guilabels)
+        {
+            label.SetClickable(false);
+        }
+    }
+    play.gui_draw_order.resize(guis.size());
+    std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
+    update_gui_zorder();
+
+    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
+    GUIE::MarkAllGUIForUpdate(true, true);
 }
 
 void export_gui_controls(int ee)

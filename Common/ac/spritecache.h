@@ -220,7 +220,4 @@ private:
 } // namespace Common
 } // namespace AGS
 
-// Main global spritecache object
-extern AGS::Common::SpriteCache spriteset;
-
 #endif // __AGS_CN_AC__SPRCACHE_H

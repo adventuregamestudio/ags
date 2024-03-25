@@ -243,8 +243,35 @@ private:
 };
 
 
+// Global GUI options
+struct GuiOptions
+{
+    // Clip GUI control's contents to the control's rectangle
+    bool ClipControls = true;
+    // How the GUI controls are drawn when the interface is disabled
+    GuiDisableStyle DisabledStyle = kGuiDis_Unchanged;
+    // Whether to graphically outline GUI controls
+    bool OutlineControls = false;
+};
+
+class SpriteCache;
+
+// Global GUI context, affects controls behavior (drawing, updating)
+struct GuiContext
+{
+    // Sprite cache, for GUI drawing in software mode
+    SpriteCache *Spriteset = nullptr;
+    // Current disabled state
+    GuiDisableStyle DisabledState = kGuiDis_Undefined;
+    // Last selected inventory item's pic
+    int InventoryPic = -1;
+};
+
 namespace GUI
 {
+    // These are still global objects for now, but in the future it will be
+    // optimal to have these as an object allocated on heap, and passed to
+    // GUI functions as a pointer.
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
     extern GuiContext Context;

@@ -42,6 +42,7 @@ public:
     bool OnMouseDown() override;
     void OnMouseMove(int xp, int yp) override;
     void OnMouseUp() override;
+    void OnResized() override;
 
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;

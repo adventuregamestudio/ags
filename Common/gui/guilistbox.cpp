@@ -429,7 +429,10 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (TextColor == 0)
         TextColor = 16;
 
-    UpdateMetrics();
+    // Reset dynamic values
+    RowHeight = 0;
+    VisibleItemCount = 0;
+    TopItem = 0;
 }
 
 void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
@@ -467,7 +470,10 @@ void GUIListBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     TopItem = in->ReadInt32();
     SelectedItem = in->ReadInt32();
 
-    UpdateMetrics();
+    // Reset dynamic values
+    RowHeight = 0;
+    VisibleItemCount = 0;
+    TopItem = 0;
 }
 
 void GUIListBox::WriteToSavegame(Stream *out) const

@@ -46,8 +46,9 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern RoomStatus*croom;
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
+extern RoomStatus*croom;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;

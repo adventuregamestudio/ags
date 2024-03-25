@@ -64,6 +64,9 @@ void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
 void	replace_macro_tokens(const char *text, AGS::Common::String &fixed_text);
 void	update_gui_zorder();
+// Initializes all GUI and controls for runtime state;
+// this must be done after creating or loading GUIs.
+void    prepare_gui_runtime(bool startup);
 void	export_gui_controls(int ee);
 void	unexport_gui_controls(int ee);
 void	update_gui_disabled_status();

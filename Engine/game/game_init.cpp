@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <numeric>
 #include <vector>
 #include "ac/character.h"
 #include "ac/dialog.h"
@@ -25,6 +24,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
+#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
@@ -54,6 +54,7 @@ using namespace Engine;
 
 extern ScriptSystem scsystem;
 extern std::vector<ViewStruct> views;
+extern SpriteCache spriteset;
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -417,7 +418,6 @@ static void ConvertGuiToGameRes(GameSetupStruct &game, GameDataVersion data_ver)
             guio->Y *= mul;
             Size sz = guio->GetSize() * mul;
             guio->SetSize(sz.Width, sz.Height);
-            guio->IsActivated = false;
             guio->OnResized();
         }
     }
@@ -501,6 +501,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 3. Allocate and init game objects
     //
+    spriteset.EnlargeTo(ents.SpriteCount - 1);
     charextra.resize(game.numcharacters);
     mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
     guis = std::move(ents.Guis);
@@ -510,6 +511,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     guilist = std::move(ents.GuiControls.ListBoxes);
     guislider = std::move(ents.GuiControls.Sliders);
     guitext = std::move(ents.GuiControls.TextBoxes);
+    GUI::Context.Spriteset = &spriteset;
     GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     GUI::RebuildGUI(guis, guictrl_refs);
     views = std::move(ents.Views);
@@ -553,14 +555,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 5. Initialize runtime state of certain game objects
     //
     InitGameResolution(game, data_ver);
-    for (auto &label : guilabels)
-    {
-        // labels are not clickable by default
-        label.SetClickable(false);
-    }
-    play.gui_draw_order.resize(game.numgui);
-    std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
-    update_gui_zorder();
+    prepare_gui_runtime(true /* startup */);
     calculate_reserved_channel_count();
 
     //

@@ -21,6 +21,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "gui/guimain.h"
@@ -32,6 +33,14 @@ extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
+
+bool AssertHotspot(const char *apiname, int hot_id)
+{
+    if ((hot_id >= 0) && (static_cast<uint32_t>(hot_id) < thisroom.HotspotCount))
+        return true;
+    debug_script_warn("%s: invalid hotspot id %d (range is 0..%d)", apiname, hot_id, thisroom.HotspotCount - 1);
+    return false;
+}
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
     if (newval)

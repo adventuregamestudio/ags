@@ -95,11 +95,8 @@ bool String::IsNullOrSpace() const
 
 void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
 {
+    assert(in);
     Empty();
-    if (!in)
-    {
-        return;
-    }
     if (max_chars == 0 && stop_at_limit)
     {
         return;
@@ -134,7 +131,8 @@ void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
 
 void String::ReadCount(Stream *in, size_t count)
 {
-    if (in && count > 0)
+    assert(in);
+    if (count > 0)
     {
         ReserveAndShift(false, count);
         count = in->Read(_cstr, count);
@@ -149,23 +147,19 @@ void String::ReadCount(Stream *in, size_t count)
 
 void String::Write(Stream *out) const
 {
-    if (out)
-    {
-        out->Write(_cstr, _len + 1);
-    }
+    assert(out);
+    out->Write(_cstr, _len + 1);
 }
 
 void String::WriteCount(Stream *out, size_t count) const
 {
-    if (out)
-    {
-        size_t str_out_len = std::min(count - 1, _len);
-        if (str_out_len > 0)
-            out->Write(_cstr, str_out_len);
-        size_t null_out_len = count - str_out_len;
-        if (null_out_len > 0)
-            out->WriteByteCount(0, null_out_len);
-    }
+    assert(out);
+    size_t str_out_len = std::min(count - 1, _len);
+    if (str_out_len > 0)
+        out->Write(_cstr, str_out_len);
+    size_t null_out_len = count - str_out_len;
+    if (null_out_len > 0)
+        out->WriteByteCount(0, null_out_len);
 }
 
 int String::Compare(const char *cstr) const

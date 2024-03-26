@@ -13,11 +13,16 @@
 //=============================================================================
 #include "util/stream.h"
 #include <algorithm>
+#include <stdexcept>
 
 namespace AGS
 {
 namespace Common
 {
+
+//-----------------------------------------------------------------------------
+// Stream
+//-----------------------------------------------------------------------------
 
 size_t Stream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 {
@@ -107,18 +112,55 @@ size_t Stream::WriteByteCount(uint8_t b, size_t count)
     return size;
 }
 
+//-----------------------------------------------------------------------------
+// StreamSection
+//-----------------------------------------------------------------------------
+
+StreamSection::StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, soff_t end)
+{
+    OpenSection(base.get(), start, end);
+    _ownBase = std::move(base);
+    _base = _ownBase.get();
+}
 
 StreamSection::StreamSection(IStreamBase *base, soff_t start, soff_t end)
-    : _base(base)
 {
-    _start = std::max((soff_t)0, std::min(start, end));
-    _end = std::min(std::max((soff_t)0, end), base->GetLength());
+    OpenSection(base, start, end);
+    _base = base;
+}
+
+void StreamSection::Open(IStreamBase *base)
+{
+    if (!base)
+        throw std::runtime_error("Base stream invalid.");
+    soff_t end_pos = base->Seek(0, kSeekEnd);
+    if (end_pos < 0)
+        throw std::runtime_error("Error determining stream end.");
+
+    _start = 0;
+    _end = end_pos;
+}
+
+void StreamSection::OpenSection(IStreamBase *base, soff_t start_pos, soff_t end_pos)
+{
+    assert(start_pos <= end_pos);
+    Open(base);
+    start_pos = std::min(start_pos, end_pos);
+    _start = std::min(start_pos, _end);
+    _end = std::min(end_pos, _end);
 
     soff_t pos = base->Seek(_start, kSeekBegin);
     if (pos >= 0)
         _position = pos;
     else
         _position = base->GetPosition();
+}
+
+void StreamSection::Close()
+{
+    // Only close the base stream if owning one
+    if (_ownBase)
+        _ownBase->Close();
 }
 
 size_t StreamSection::Read(void *buffer, size_t len)
@@ -177,12 +219,9 @@ soff_t StreamSection::Seek(soff_t offset, StreamSeek origin)
     return _position - _start; // convert to a stream section pos
 }
 
-void StreamSection::Close()
-{
-    // We do not close nor delete the base stream, but release it from use
-    _base = nullptr;
-}
-
+//-----------------------------------------------------------------------------
+// Stream helpers
+//-----------------------------------------------------------------------------
 
 soff_t CopyStream(Stream *in, Stream *out, soff_t length)
 {

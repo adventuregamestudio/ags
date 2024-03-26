@@ -397,18 +397,24 @@ private:
 };
 
 
-// StreamSection wraps another streambase and restricts its access
-// to a particular range of offsets of the base stream.
-// StreamSection does NOT own the base stream, and closing
-// a "stream section" does NOT close the base stream.
-// Base stream must stay in memory for as long as there are
-// "stream sections" refering it. 
+// StreamSection wraps another streambase and restricts its access to
+// a particular range of offsets of the base stream.
+// StreamSection may own or not own the base stream, depending on
+// constructor you used to create one.
+// For a non-owning StreamSection, the base stream must stay in memory
+// for as long as there's at least one "section" refering it.
+//
+// TODO: consider making this a parent of BufferedStream;
+// but be aware of impl differences in Read/Write/Seek.
+// right now StreamSection looks like a lighter version of BufferedStream.
 class StreamSection : public StreamBase
 {
 public:
-    // Constructs a StreamSection over a base stream,
+    // Constructs a owning StreamSection over a base stream,
     // restricting working range to [start, end), i.e. end offset is
     // +1 past allowed position.
+    StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, soff_t end);
+    // Constructs a non-owning StreamSection over a base stream.
     StreamSection(IStreamBase *base, soff_t start, soff_t end);
 
     StreamMode  GetMode() const override { return _base->GetMode(); }
@@ -428,6 +434,11 @@ public:
     void   Close() override;
 
 private:
+    void Open(IStreamBase *base);
+    void OpenSection(IStreamBase *base, soff_t start_pos, soff_t end_pos);
+
+    // Stores IStreamBase object in case of a given ownership
+    std::unique_ptr<IStreamBase> _ownBase;
     // TODO: use smart pointer without deletion? e.g. unique_ptr with no-op deleter
     IStreamBase *_base = nullptr;
     soff_t _start = 0;

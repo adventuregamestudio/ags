@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     }
     
     Translation tra;
-    HError err = ReadTRS(tra, in.get());
+    HError err = ReadTRS(tra, std::move(in));
     if (!err)
     {
         printf("Error: failed to read source TRS:\n");

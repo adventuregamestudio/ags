@@ -80,9 +80,9 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     }
 }
 
-HError ReadTRS(Translation &tra, Stream *in)
+HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
 {
-    TextStreamReader sr(in);
+    TextStreamReader sr(std::move(in));
 
     String line;
     for (line = sr.ReadLine(); !sr.EOS(); line = sr.ReadLine())
@@ -101,7 +101,6 @@ HError ReadTRS(Translation &tra, Stream *in)
         }
     }
 
-    sr.ReleaseStream(); // we do not want to delete it
     return HError::None();
 }
 

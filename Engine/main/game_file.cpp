@@ -156,8 +156,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
     in = AssetMgr->OpenAsset("ScriptModules.lst");
     if (in)
     {
-        TextStreamReader reader(in.get());
-        in.release(); // TextStreamReader got it
+        TextStreamReader reader(std::move(in));
         while (!reader.EOS())
             modules.push_back(reader.ReadLine());
     }

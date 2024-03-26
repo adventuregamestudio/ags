@@ -156,9 +156,9 @@ typedef IniFile::ConstItemIterator    CItemIterator;
 static bool ReadIni(const String &file, IniFile &ini)
 {
     UStream fs(File::OpenFileRead(file));
-    if (fs.get())
+    if (fs)
     {
-        ini.Read(fs.get());
+        ini.Read(std::move(fs));
         return true;
     }
     return false;
@@ -192,16 +192,16 @@ bool IniUtil::Read(const String &file, ConfigTree &tree)
     return true;
 }
 
-void IniUtil::Read(Stream *in, ConfigTree &tree)
+void IniUtil::Read(std::unique_ptr<Stream> &&in, ConfigTree &tree)
 {
     IniFile ini;
-    ini.Read(in);
+    ini.Read(std::move(in));
     CopyIniToTree(ini, tree);
 }
 
-void IniUtil::Write(Stream *out, const ConfigTree &tree)
+void IniUtil::Write(std::unique_ptr<Stream> &&out, const ConfigTree &tree)
 {
-    TextStreamWriter writer(out);
+    TextStreamWriter writer(std::move(out));
 
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
     {
@@ -226,8 +226,6 @@ void IniUtil::Write(Stream *out, const ConfigTree &tree)
             writer.WriteLineBreak();
         }
     }
-
-    writer.ReleaseStream();
 }
 
 void IniUtil::Write(const String &file, const ConfigTree &tree)
@@ -235,7 +233,7 @@ void IniUtil::Write(const String &file, const ConfigTree &tree)
     UStream fs(File::CreateFile(file));
     if (!fs)
         return;
-    IniUtil::Write(fs.get(), tree);
+    IniUtil::Write(std::move(fs), tree);
 }
 
 void IniUtil::WriteToString(String &s, const ConfigTree &tree)
@@ -333,7 +331,7 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
     UStream fs(File::CreateFile(file));
     if (!fs.get())
         return false;
-    ini.Write(fs.get());
+    ini.Write(std::move(fs));
     return true;
 }
 

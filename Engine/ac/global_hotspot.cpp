@@ -139,10 +139,14 @@ void RunHotspotInteraction (int hotspothere, int mood) {
 
 int GetHotspotProperty (int hss, const char *property)
 {
+    if (!AssertHotspot("GetHotspotProperty", hss))
+        return 0;
     return get_int_property(thisroom.Hotspots[hss].Properties, croom->hsProps[hss], property);
 }
 
 void GetHotspotPropertyText (int item, const char *property, char *bufer)
 {
+    if (!AssertHotspot("GetHotspotPropertyText", item))
+        return;
     get_text_property(thisroom.Hotspots[item].Properties, croom->hsProps[item], property, bufer);
 }

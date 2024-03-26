@@ -207,9 +207,8 @@ int Compile(const CompilerOptions& comp_opts)
         String headername = Path::GetFilename(header.c_str());
         headername = Path::RemoveExtension(headername);
 
-        TextStreamReader sr(in.get());
+        TextStreamReader sr(std::move(in));
         heads.emplace_back(sr.ReadAll(), headername);
-        sr.ReleaseStream();
     }
 
     String script_input;
@@ -228,9 +227,8 @@ int Compile(const CompilerOptions& comp_opts)
         std::cerr << "Error: failed to open script for reading: " << src << std::endl;
         return -1;
     }
-    TextStreamReader sr(in.get());
+    TextStreamReader sr(std::move(in));
     script_input = sr.ReadAll();
-    sr.ReleaseStream();
 
     //-----------------------------------------------------------------------//
     // Preprocess headers and set them for use when compiling

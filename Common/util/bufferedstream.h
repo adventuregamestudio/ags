@@ -12,39 +12,42 @@
 //
 //=============================================================================
 //
-// BufferedStream represents a buffered file stream; uses memory buffer
-// during read and write operations to limit number reads and writes on disk
-// and thus improve i/o performance.
+// BufferedStream is a proxy implementation of IStreamBase which works
+// as a buffering mechanism over another IStreamBase. BufferedStream uses the
+// memory buffer during read and write operations, which reduces number of
+// reads and writes on actual device, thus possibly improving i/o performance.
 //
-// BufferedSectionStream is a subclass stream that limits reading by an
-// arbitrary offset range.
+// BufferedStream optionally supports limiting the stream operations
+// to an arbitrary offset range.
 //
 //=============================================================================
 #ifndef __AGS_CN_UTIL__BUFFEREDSTREAM_H
 #define __AGS_CN_UTIL__BUFFEREDSTREAM_H
 
 #include <vector>
-#include "util/filestream.h"
-#include "util/file.h" // TODO: extract filestream mode constants
+#include "util/stream.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class BufferedStream : public FileStream
+class BufferedStream : public StreamBase
 {
 public:
     // Needs tuning depending on the platform.
     static const size_t BufferSize = 1024u * 8;
-    // The constructor may raise std::runtime_error if 
-    // - there is an issue opening the file (does not exist, locked, permissions, etc)
-    // - the open mode could not be determined
-    // - could not determine the length of the stream
-    // It is recommended to use File::OpenFile to safely construct this object.
-    BufferedStream(const String &file_name,
-        FileOpenMode open_mode, StreamMode work_mode);
+    BufferedStream(std::unique_ptr<IStreamBase> &&base_stream)
+        { Open(std::move(base_stream)); }
+    // Constructs a BufferedStream limited by an arbitrary offset range
+    BufferedStream(std::unique_ptr<IStreamBase> &&base_stream, soff_t start_pos, soff_t end_pos)
+        { OpenSection(std::move(base_stream), start_pos, end_pos); }
+
     ~BufferedStream();
+
+    const char *GetPath() const override { return _base->GetPath(); }
+    StreamMode GetMode() const override { return _base->GetMode(); }
+    bool    GetError() const override { return _base->GetError(); }
 
     // Is end of stream
     bool    EOS() const override;
@@ -63,28 +66,20 @@ public:
 
     soff_t  Seek(soff_t offset, StreamSeek origin) override;
 
-protected:
-    soff_t _start = 0; // valid section starting offset
-    soff_t _end = -1; // valid section ending offset
-
 private:
+    void Open(std::unique_ptr<IStreamBase> &&base_stream);
+    void OpenSection(std::unique_ptr<IStreamBase> &&base_stream, soff_t start_pos, soff_t end_pos);
     // Reads a chunk of file into the buffer, starting from the given offset
     void FillBufferFromPosition(soff_t position);
     // Writes a buffer into the file, and reposition to the new offset
     void FlushBuffer(soff_t position);
 
+    std::unique_ptr<IStreamBase> _base;
+    soff_t _start = 0; // valid section starting offset
+    soff_t _end = 0; // valid section ending offset
     soff_t _position = 0; // absolute read/write offset
     soff_t _bufferPosition = 0; // buffer's location relative to file
     std::vector<uint8_t> _buffer;
-};
-
-
-// Creates a BufferedStream limited by an arbitrary offset range
-class BufferedSectionStream : public BufferedStream
-{
-public:
-    BufferedSectionStream(const String &file_name, soff_t start_pos, soff_t end_pos,
-        FileOpenMode open_mode, StreamMode work_mode);
 };
 
 } // namespace Common

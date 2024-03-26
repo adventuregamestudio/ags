@@ -29,50 +29,57 @@ namespace Common
 
 const size_t BufferedStream::BufferSize;
 
-BufferedStream::BufferedStream(const String &file_name,
-    FileOpenMode open_mode, StreamMode work_mode)
-    : FileStream(file_name, open_mode, work_mode)
+void BufferedStream::Open(std::unique_ptr<IStreamBase> &&base_stream)
 {
-    soff_t end_pos = FileStream::Seek(0, kSeekEnd);
-    if (end_pos >= 0)
-    {
-        _start = 0;
-        _end = end_pos;
-        if (FileStream::Seek(0, kSeekBegin) < 0)
-            _end = -1;
-    }
-    if (_end == -1)
-    {
-        FileStream::Close();
+    if (!base_stream)
+        throw std::runtime_error("Base stream invalid.");
+    soff_t end_pos = base_stream->Seek(0, kSeekEnd);
+    if  (end_pos < 0)
         throw std::runtime_error("Error determining stream end.");
-    }
+    if (base_stream->Seek(0, kSeekBegin) < 0)
+        throw std::runtime_error("Error determining stream end.");
+
+    _base = std::move(base_stream);
+    _start = 0;
+    _end = end_pos;
+}
+
+void BufferedStream::OpenSection(std::unique_ptr<IStreamBase> &&base_stream,
+    soff_t start_pos, soff_t end_pos)
+{
+    assert(start_pos <= end_pos);
+    Open(std::move(base_stream));
+    start_pos = std::min(start_pos, end_pos);
+    _start = std::min(start_pos, _end);
+    _end = std::min(end_pos, _end);
+    Seek(0, kSeekBegin);
 }
 
 BufferedStream::~BufferedStream()
 {
-    BufferedStream::Close();
+    Close();
 }
 
 void BufferedStream::FillBufferFromPosition(soff_t position)
 {
-    FileStream::Seek(position, kSeekBegin);
+    _base->Seek(position, kSeekBegin);
     // remember to restrict to the end position!
     size_t fill_size = static_cast<size_t>(
         std::min<uint64_t>(BufferSize, static_cast<uint64_t>(_end - position)));
     _buffer.resize(fill_size);
-    auto sz = FileStream::Read(_buffer.data(), fill_size);
+    auto sz = _base->Read(_buffer.data(), fill_size);
     _buffer.resize(sz);
     _bufferPosition = position;
 }
 
 void BufferedStream::FlushBuffer(soff_t position)
 {
-    size_t sz = _buffer.size() > 0 ? FileStream::Write(_buffer.data(), _buffer.size()) : 0u;
+    size_t sz = _buffer.size() > 0 ? _base->Write(_buffer.data(), _buffer.size()) : 0u;
     _buffer.clear(); // will start from the clean buffer next time
     _bufferPosition += sz;
     if (position != _bufferPosition)
     {
-        FileStream::Seek(position, kSeekBegin);
+        _base->Seek(position, kSeekBegin);
         _bufferPosition = position;
     }
 }
@@ -96,14 +103,14 @@ void BufferedStream::Close()
 {
     if (CanWrite())
         FlushBuffer(_position);
-    FileStream::Close();
+    _base->Close();
 }
 
 bool BufferedStream::Flush()
 {
     if (CanWrite())
         FlushBuffer(_position);
-    return FileStream::Flush();
+    return _base->Flush();
 }
 
 size_t BufferedStream::Read(void *buffer, size_t size)
@@ -112,11 +119,11 @@ size_t BufferedStream::Read(void *buffer, size_t size)
     // then read directly into the user buffer and bail out.
     if (size >= BufferSize)
     {
-        FileStream::Seek(_position, kSeekBegin);
+        _base->Seek(_position, kSeekBegin);
         // remember to restrict to the end position!
         size_t fill_size = static_cast<size_t>(
             std::min<uint64_t>(size, static_cast<uint64_t>(_end - _position)));
-        size_t sz = FileStream::Read(buffer, fill_size);
+        size_t sz = _base->Read(buffer, fill_size);
         _position += sz;
         return sz;
     }
@@ -201,22 +208,6 @@ soff_t BufferedStream::Seek(soff_t offset, StreamSeek origin)
     _position = std::min(std::max(want_pos, _start), _end);
     return _position - _start; // convert to a stream section pos
 }
-
-//-----------------------------------------------------------------------------
-// BufferedSectionStream
-//-----------------------------------------------------------------------------
-
-BufferedSectionStream::BufferedSectionStream(const String &file_name, soff_t start_pos, soff_t end_pos,
-        FileOpenMode open_mode, StreamMode work_mode)
-    : BufferedStream(file_name, open_mode, work_mode)
-{
-    assert(start_pos <= end_pos);
-    start_pos = std::min(start_pos, end_pos);
-    _start = std::min(start_pos, _end);
-    _end = std::min(end_pos, _end);
-    BufferedStream::Seek(0, kSeekBegin);
-}
-
 
 } // namespace Common
 } // namespace AGS

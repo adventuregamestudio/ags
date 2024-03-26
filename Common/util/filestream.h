@@ -12,7 +12,9 @@
 //
 //=============================================================================
 //
-//
+// FileStream class is a IStreamBase implementation for std files.
+// Can wrap an arbitrary FILE* pointer with or without ownership, including
+// standard streams like stdin and stdout.
 //
 //=============================================================================
 #ifndef __AGS_CN_UTIL__FILESTREAM_H
@@ -20,8 +22,9 @@
 
 #include <stdio.h>
 #include <functional>
+#include "util/bufferedstream.h"
 #include "util/file.h" // TODO: extract filestream mode constants
-#include "util/stream.h"
+#include "util/memory_compat.h"
 
 namespace AGS
 {
@@ -49,12 +52,12 @@ public:
     FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode);
     // Constructs a file stream over an open FILE handle;
     // Take an ownership over it and will close upon disposal
-    static FileStream *OwnHandle(FILE *file, StreamMode work_mode)
-        { return new FileStream(file, true, work_mode); }
+    static std::unique_ptr<FileStream> OwnHandle(FILE *file, StreamMode work_mode)
+        { return std::unique_ptr<FileStream>(new FileStream(file, true, work_mode)); }
     // Constructs a file stream over an open FILE handle;
     // does NOT take an ownership over it
-    static FileStream *WrapHandle(FILE *file, StreamMode work_mode)
-        { return new FileStream(file, false, work_mode); }
+    static std::unique_ptr<FileStream> WrapHandle(FILE *file, StreamMode work_mode)
+        { return std::unique_ptr<FileStream>(new FileStream(file, false, work_mode)); }
     ~FileStream() override;
 
     // Tells which open mode was used when opening a file.
@@ -92,6 +95,18 @@ private:
     bool          _ownHandle = false;
     FileOpenMode  _openMode = kFile_None;
     StreamMode    _workMode = kStream_None;
+};
+
+
+// A helper class that creates a buffered stream over a FileStream object
+class BufferedFileStream : public BufferedStream
+{
+public:
+    BufferedFileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
+        : BufferedStream(std::make_unique<FileStream>(file_name, open_mode, work_mode)) {}
+    BufferedFileStream(const String &file_name, soff_t start_pos, soff_t end_pos,
+                       FileOpenMode open_mode, StreamMode work_mode)
+        : BufferedStream(std::make_unique<FileStream>(file_name, open_mode, work_mode), start_pos, end_pos) {}
 };
 
 } // namespace Common

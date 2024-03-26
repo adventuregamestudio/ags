@@ -34,14 +34,6 @@ namespace AGS
             Open(asset, true, asset_name, asset_mode);
         }
 
-        AAssetStream::AAssetStream(const String &asset_name, int asset_mode,
-                                   soff_t start_pos, soff_t end_pos)
-            : StreamBase()
-        {
-            AAsset *asset = OpenAAsset(asset_name, asset_mode);
-            OpenSection(asset, true, asset_name, asset_mode, start_pos, end_pos);
-        }
-
         AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode)
             : StreamBase()
         {
@@ -50,12 +42,14 @@ namespace AGS
 
         AAssetStream::~AAssetStream()
         {
-            if(_ownHandle) Close();
+            if (_ownHandle)
+                Close();
         }
 
         void AAssetStream::Close()
         {
-            if(_aAsset) {
+            if (_aAsset)
+            {
                 AAsset_close(_aAsset);
                 _aAsset = nullptr;
             }
@@ -74,46 +68,37 @@ namespace AGS
 
         bool AAssetStream::EOS() const
         {
-            return !IsValid() || _end - _cur_offset <= 0;
+            return (_end - _cur_offset) <= 0;
         }
 
         soff_t AAssetStream::GetLength() const
         {
-            if(IsValid())
-            {
-                return _end - _start;
-            }
-            return 0;
+            return _end - _start;
         }
 
         soff_t AAssetStream::GetPosition() const
         {
-            if(IsValid())
-            {
-                return _cur_offset - _start;
-            }
-            return -1;
+            return _cur_offset - _start; // convert to formal offset range
         }
 
         size_t AAssetStream::Read(void *buffer, size_t size)
         {
-            if(!IsValid()) return 0;
-
+            assert(_aAsset);
             size = std::min<size_t>(size, _end - _cur_offset);
-            if(size == 0) return 0;
-            auto read_size = AAsset_read(_aAsset,buffer,size);
-            if(read_size > 0) {
-                _cur_offset += read_size;
-            }
+            if (size == 0)
+                return 0;
+            auto read_size = AAsset_read(_aAsset, buffer, size);
+            if (read_size < 0)
+                return 0; // error
+            _cur_offset += read_size;
             return read_size;
         }
 
         int32_t AAssetStream::ReadByte()
         {
             uint8_t ch;
-            auto bytesRead = Read(&ch, 1);
-            if (bytesRead != 1) { return EOF; }
-            return ch;
+            auto read_size = Read(&ch, 1);
+            return (read_size == 1) ? ch : EOF;
         }
 
         size_t AAssetStream::Write(const void *buffer, size_t size)
@@ -128,27 +113,22 @@ namespace AGS
 
         soff_t AAssetStream::Seek(soff_t offset, StreamSeek origin)
         {
-            if (!IsValid())
-            {
-                return -1;
-            }
-
-            soff_t want_pos = -1;
+            assert(_aAsset);
+            int aa_origin;
             switch (origin)
             {
-                case kSeekBegin:    want_pos = _start      + offset; break;
-                case kSeekCurrent:  want_pos = _cur_offset + offset; break;
-                case kSeekEnd:      want_pos = _end        + offset; break;
+                case kSeekBegin:    aa_origin = SEEK_SET; break;
+                case kSeekCurrent:  aa_origin = SEEK_CUR; break;
+                case kSeekEnd:      aa_origin = SEEK_END; break;
                 default: return -1;
             }
 
-            // clamp to a valid range
-            want_pos = std::min(std::max(want_pos, _start), _end);
-            off64_t new_off = AAsset_seek64(_aAsset, static_cast<off64_t>(want_pos), SEEK_SET);
+            off64_t new_off = AAsset_seek64(_aAsset, static_cast<off64_t>(offset), aa_origin);
             // if seek returns error (< 0), then the position must remain
-            if (new_off >= 0)
-                _cur_offset = new_off;
-            return _cur_offset - _start; // convert to a stream section pos
+            if (new_off < 0)
+                return -1;
+            _cur_offset = new_off;
+            return _cur_offset - _start; // convert to formal offset range
         }
 
         AAsset *AAssetStream::OpenAAsset(const String &asset_name, int asset_mode)
@@ -174,26 +154,6 @@ namespace AGS
             _assetMode = asset_mode;
             _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
             _path = asset_name;
-        }
-
-        void AAssetStream::OpenSection(AAsset *asset, bool own, const String &asset_name, int asset_mode,
-                                       soff_t start_pos, soff_t end_pos)
-        {
-            Open(asset, own, asset_name, asset_mode);
-
-            // clamp requested range to the predetermined full stream range
-            assert(start_pos <= end_pos);
-            end_pos = std::max(_start, std::min(_end, end_pos));
-            start_pos = std::max(_start, std::min(start_pos, end_pos));
-
-            if (Seek(start_pos, kSeekBegin) < 0)
-            {
-                Close();
-                throw std::runtime_error("Error setting stream section.");
-            }
-
-            _start = start_pos;
-            _end = end_pos;
         }
 
     } // namespace Common

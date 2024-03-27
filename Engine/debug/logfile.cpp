@@ -30,6 +30,12 @@ LogFile::LogFile()
 {
 }
 
+void LogFile::OnRegister()
+{
+    if (!_filePath.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Logging to %s", _filePath.GetCStr());
+}
+
 void LogFile::PrintMessage(const DebugMessage &msg)
 {
     if (!_file.get())

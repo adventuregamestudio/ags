@@ -162,25 +162,25 @@ void DebugManager::RegisterOutput(const String &id,
     if (!handler)
         return;
 
+    auto out = CreateOutputImpl(id, std::move(handler), def_verbosity, group_filters);
+    // Only lock when inserting new output into the list (minimal time)
     std::lock_guard<std::mutex> lk(_mutex);
-    auto &out = RegisterOutputImpl(id, std::move(handler), def_verbosity, group_filters);
-    // Delegate buffered messages to this new output
-    // CHECKME: strictly speaking, this is not a good idea to perform this
-    // under a lock, but we assume for now that outputs are registered once early on.
-    if (_messageBuf)
-        SendBufferedMessages(out);
+    _outputs[id] = std::move(out);
 }
 
-DebugManager::DebugOutput &DebugManager::RegisterOutputImpl(const String &id,
+DebugManager::DebugOutput DebugManager::CreateOutputImpl(const String &id,
     std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
     const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
-    _outputs[id] = DebugOutput(id, std::move(handler), def_verbosity, group_filters);
-    auto &out = _outputs[id];
+    auto out = DebugOutput(id, std::move(handler), def_verbosity, group_filters);
     // Make sure that output allocates filters for all known groups
     for (const auto &group : _groups)
         out.ResolveGroupID(group.UID);
-    return out;
+    out.GetHandler()->OnRegister();
+    // Delegate buffered messages to this new output
+    if (_messageBuf)
+        SendBufferedMessages(out);
+    return std::move(out);
 }
 
 void DebugManager::SendBufferedMessages(DebugOutput &out)
@@ -273,10 +273,13 @@ void DebugManager::UnregisterOutput(const String &id)
 
 void DebugManager::StartMessageBuffering()
 {
-    std::lock_guard<std::mutex> lk(_mutex);
     auto msg_buf = std::make_unique<MessageBuffer>();
-    _messageBuf = msg_buf.get();
-    RegisterOutputImpl(OutputMsgBufID, std::move(msg_buf), kDbgMsg_All, nullptr);
+    auto *msg_buf_ptr = msg_buf.get();
+    auto out = CreateOutputImpl(OutputMsgBufID, std::move(msg_buf), kDbgMsg_All, nullptr);
+
+    std::lock_guard<std::mutex> lk(_mutex);
+    _outputs[OutputMsgBufID] = std::move(out);
+    _messageBuf = msg_buf_ptr;
 }
 
 void DebugManager::StopMessageBuffering()

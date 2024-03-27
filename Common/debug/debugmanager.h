@@ -184,7 +184,7 @@ private:
     MessageGroupHandle FindFreeGroupID();
     DebugGroup         GetGroupImpl(const DebugGroupID &id);
     MessageGroupHandle RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name);
-    DebugOutput &      RegisterOutputImpl(const String &id,
+    DebugOutput        CreateOutputImpl(const String &id,
         std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
         const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
     void               SendBufferedMessages(DebugOutput &out);

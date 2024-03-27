@@ -184,6 +184,11 @@ public:
         , _writeStdOut(write_stdout)
     {}
 
+    void OnRegister() override
+    {
+        // do nothing
+    }
+
     void PrintMessage(const Common::DebugMessage &msg) override
     {
         if (_writeStdOut)

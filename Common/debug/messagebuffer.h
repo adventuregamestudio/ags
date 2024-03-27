@@ -35,6 +35,11 @@ public:
         : _bufferLimit(buffer_limit)
     {}
 
+    void OnRegister() override
+    {
+        // do nothing
+    }
+
     void PrintMessage(const DebugMessage &msg) override
     {
         if (_buffer.size() < _bufferLimit)

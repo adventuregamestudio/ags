@@ -48,6 +48,11 @@ class IOutputHandler
 public:
     virtual ~IOutputHandler() = default;
     
+    // Called when this output handler is registered by the DebugManager,
+    // but prior it is inserted into the outputs list. This lets the output
+    // class to do any extra initialization, or print something to the log
+    // about itself.
+    virtual void OnRegister() = 0;
     // Print the given text sent from the debug group.
     // Implementations are free to decide which message components are to be printed, and how.
     virtual void PrintMessage(const DebugMessage &msg) = 0;

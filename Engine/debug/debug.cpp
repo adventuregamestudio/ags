@@ -111,6 +111,11 @@ public:
         : _ideDebugger(ide_debugger) {};
     virtual ~DebuggerLogOutputTarget() {};
 
+    void OnRegister() override
+    {
+        // do nothing
+    }
+
     void PrintMessage(const DebugMessage &msg) override
     {
         assert(_ideDebugger);
@@ -178,7 +183,6 @@ static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
         }
         if (!log_file->OpenFile(logfile_path, open_mode))
             return nullptr;
-        Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
         return std::move(log_file);
     }
     else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&

@@ -52,6 +52,7 @@ public:
 public:
         LogFile();
 
+    void OnRegister() override;
     void PrintMessage(const Common::DebugMessage &msg) override;
 
     // Open file using given file path, optionally appending if one exists

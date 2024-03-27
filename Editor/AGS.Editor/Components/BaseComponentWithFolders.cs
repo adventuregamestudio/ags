@@ -266,6 +266,12 @@ namespace AGS.Editor.Components
             ItemType sourceItem;
             GetDropItemOrFolder(source, out sourceFolder, out sourceItem);
 
+
+            if ((sourceFolder == null && sourceItem == null) || (targetItem == null && targetFolder == null))
+            {
+                return false;
+            }
+
             if (sourceFolder != null && targetFolder == null) return false;
             if (sourceFolder != null && !IsValidFolderMove(sourceFolder, targetFolder)) return false;
             if (sourceItem != null && targetItem != null && sourceItem.Equals(targetItem)) return false;
@@ -293,7 +299,10 @@ namespace AGS.Editor.Components
 
             if (!IsFolderNode(treeItem.ID))
             {
-                item = _items[treeItem.ID];
+                if (_items.ContainsKey(treeItem.ID))
+                {
+                    item = _items[treeItem.ID];
+                }
             }
             else if (treeItem.ID == TOP_LEVEL_COMMAND_ID)
             {
@@ -314,6 +323,11 @@ namespace AGS.Editor.Components
             FolderType sourceFolder;
             ItemType sourceItem;
             GetDropItemOrFolder(source, out sourceFolder, out sourceItem);
+
+            if((sourceFolder == null && sourceItem == null) || (targetItem == null && targetFolder == null))
+            {
+                return;
+            }
 
             if (sourceFolder != null)
             {
@@ -386,7 +400,7 @@ namespace AGS.Editor.Components
             {
                 throw new AGSEditorException("Folder being moved has no parent");
             }
-            if (parentOfSource == targetFolder)
+            if (folderToMove == targetFolder)
             {
                 throw new AGSEditorException("Source folder and target folder are the same");
             }

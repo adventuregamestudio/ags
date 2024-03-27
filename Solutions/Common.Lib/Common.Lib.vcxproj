@@ -714,6 +714,7 @@
     <ClInclude Include="..\..\Common\core\types.h" />
     <ClInclude Include="..\..\Common\debug\assert.h" />
     <ClInclude Include="..\..\Common\debug\debugmanager.h" />
+    <ClInclude Include="..\..\Common\debug\messagebuffer.h" />
     <ClInclude Include="..\..\Common\debug\out.h" />
     <ClInclude Include="..\..\Common\debug\outputhandler.h" />
     <ClInclude Include="..\..\Common\font\agsfontrenderer.h" />

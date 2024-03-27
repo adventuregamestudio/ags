@@ -30,16 +30,25 @@ LogFile::LogFile()
 {
 }
 
+void LogFile::OnRegister()
+{
+    if (!_filePath.IsEmpty())
+        Debug::Printf(kDbgMsg_Info, "Logging to %s", _filePath.GetCStr());
+}
+
 void LogFile::PrintMessage(const DebugMessage &msg)
 {
     if (!_file.get())
     {
         if (_filePath.IsEmpty())
-            return;
+            return; // was disabled
+
         _file.reset(File::OpenFile(_filePath, _openMode == kLogFile_Append ? Common::kFile_Create : Common::kFile_CreateAlways,
             Common::kStream_Write));
         if (!_file)
         {
+            // TODO: find a method to disable an output in DebugManager
+            // if output fails, use return value or a callback for this
             Debug::Printf("Unable to write log to '%s'.", _filePath.GetCStr());
             _filePath = "";
             return;

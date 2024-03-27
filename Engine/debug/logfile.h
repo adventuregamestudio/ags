@@ -39,19 +39,23 @@ using Common::DebugMessage;
 using Common::Stream;
 using Common::String;
 
-class LogFile : public AGS::Common::IOutputHandler
+class LogFile : public Common::IOutputHandler
 {
 public:
     enum OpenMode
     {
+        // Start new file
         kLogFile_Overwrite,
+        // Start new file, but only as soon as something is logged
         kLogFile_OverwriteAtFirstMessage,
+        // Append to existing (or make new if none exists)
         kLogFile_Append
     };
 
 public:
-        LogFile();
+    LogFile();
 
+    void OnRegister() override;
     void PrintMessage(const Common::DebugMessage &msg) override;
 
     // Open file using given file path, optionally appending if one exists
@@ -62,14 +66,14 @@ public:
     // useful information. Whether this is to be determined here or on
     // high-level side remains a question.
     //
-    bool         OpenFile(const String &file_path, OpenMode open_mode = kLogFile_Overwrite);
-        // Close file
-    void         CloseFile();
+    bool OpenFile(const String &file_path, OpenMode open_mode = kLogFile_Overwrite);
+    // Close file
+    void CloseFile();
 
 private:
-        std::unique_ptr<Stream> _file;
-        String                _filePath;
-        OpenMode              _openMode;
+    std::unique_ptr<Stream> _file;
+    String   _filePath;
+    OpenMode _openMode;
 };
 
 }   // namespace Engine

@@ -105,6 +105,8 @@ Engine/ags
 **/.test
 
 # Force git to NOT ignore this source folder
+# this is necessary because some of the above patterns have "*Debug" in them
+!Common/debug
 !Engine/debug
 
 

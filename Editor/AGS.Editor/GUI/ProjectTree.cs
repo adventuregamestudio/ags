@@ -53,8 +53,8 @@ namespace AGS.Editor
 			_projectTree.ItemDrag += new ItemDragEventHandler(projectTree_ItemDrag);
 			_projectTree.DragOver += new DragEventHandler(projectTree_DragOver);
 			_projectTree.DragDrop += new DragEventHandler(projectTree_DragDrop);
-		}
-
+            _projectTree.QueryContinueDrag += new QueryContinueDragEventHandler(projectTree_QueryContinueDrag);
+        }
 
         private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
@@ -550,6 +550,20 @@ namespace AGS.Editor
             int cur_y = locationInControl.Y;
             return GetDropZoneImpl(cur_y - node_y, node_h);
         }
+
+        private void projectTree_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
+        {
+            if(e.EscapePressed)
+            {
+                e.Action = DragAction.Cancel;
+            }
+
+            if(e.Action != DragAction.Continue)
+            {                
+                HideMiddleLineProjectTree();
+            }
+        }
+
 
         private void projectTree_DragOver(object sender, DragEventArgs e)
         {

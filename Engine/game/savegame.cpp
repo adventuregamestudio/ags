@@ -54,7 +54,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
-#include "util/datastream.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/stream.h"
@@ -773,7 +772,8 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
             size_t data_size = in->ReadInt32();
             soff_t data_start = in->GetPosition();
 
-            auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+            auto guard_stream = std::make_unique<Stream>(
+                std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
             pl_run_plugin_hook_by_name(pl_name, AGSE_RESTOREGAME, fhandle);
             close_file_stream(fhandle, "RestoreGame");
@@ -788,7 +788,8 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
         String pl_name;
         for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_RESTOREGAME, pl_index, pl_name); ++pl_index)
         {
-            auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+            auto guard_stream = std::make_unique<Stream>(
+                std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
             pl_run_plugin_hook_by_index(pl_index, AGSE_RESTOREGAME, fhandle);
             close_file_stream(fhandle, "RestoreGame");
@@ -816,7 +817,8 @@ void WritePluginSaveData(Stream *out)
 
         // Create a stream section and write plugin data
         soff_t data_start_pos = out->GetPosition();
-        auto guard_stream = std::make_unique<DataStreamSection>(out, out->GetPosition(), INT64_MAX);
+        auto guard_stream = std::make_unique<Stream>(
+            std::make_unique<StreamSection>(out->GetStreamBase(), out->GetPosition(), INT64_MAX));
         int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
         pl_run_plugin_hook_by_index(pl_index, AGSE_SAVEGAME, fhandle);
         close_file_stream(fhandle, "SaveGame");

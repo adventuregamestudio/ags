@@ -27,7 +27,6 @@ COMMON_OBJS = \
 	../Common/script/cc_script.cpp \
 	../Common/util/bufferedstream.cpp \
 	../Common/util/cmdlineopts.cpp \
-	../Common/util/datastream.cpp \
 	../Common/util/directory.cpp \
 	../Common/util/file.cpp \
 	../Common/util/path.cpp \

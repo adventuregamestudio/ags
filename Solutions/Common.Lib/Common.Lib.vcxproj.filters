@@ -176,9 +176,6 @@
     <ClCompile Include="..\..\Common\util\compress.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\datastream.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\directory.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -614,9 +611,6 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\compress.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\datastream.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\directory.h">

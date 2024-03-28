@@ -7,9 +7,6 @@
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\datastream.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\file.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -43,6 +40,7 @@
     <ClCompile Include="..\..\Tools\data\mfl_utils.cpp">
       <Filter>data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\directory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Common">

@@ -5,6 +5,7 @@
 #include "game/room_file.h"
 #include "util/data_ext.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 #include "util/string_compat.h"
 
@@ -289,7 +290,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        room_out.reset(new VectorStream(temp_data, kStream_Write));
+        room_out = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data, kStream_Write));
     }
 
     // Write whole room, except for the block piece (if found)
@@ -319,7 +320,7 @@ int main(int argc, char *argv[])
     // the original room with the accumulated data
     if (!out_roomfile)
     {
-        std::unique_ptr<Stream> temp_room(new VectorStream(temp_data));
+        auto temp_room = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data));
         room_out.reset(File::CreateFile(in_roomfile));
         if (!room_out)
         {

@@ -19,6 +19,7 @@
 #include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 
 namespace AGS
@@ -696,7 +697,7 @@ void SpriteFileWriter::WriteBitmap(Bitmap *image)
         // TODO: rewrite this to only make a choice once the SpriteFile is initialized
         // and use either function ptr or a decompressing stream class object
         compress = _compress;
-        VectorStream mems(_membuf, kStream_Write);
+        Stream mems(std::make_unique<VectorStream>(_membuf, kStream_Write));
         bool result;
         switch (compress)
         {

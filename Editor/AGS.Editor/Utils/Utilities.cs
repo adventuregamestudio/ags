@@ -157,6 +157,16 @@ namespace AGS.Editor
             return Uri.UnescapeDataString(currentProjectUri.MakeRelativeUri(currentPathUri).OriginalString);
         }
 
+        public static string[] GetRelativeToProjectPath(string[] absolutePaths)
+        {
+            string[] normalizedPaths = new string[absolutePaths.Length];
+            for (int i = 0; i < absolutePaths.Length; i++)
+            {
+                normalizedPaths[i] = GetRelativeToProjectPath(absolutePaths[i]);
+            }
+            return normalizedPaths;
+        }
+
         public static string ResolveSourcePath(string sourcePath)
         {
             Uri baseUri = new Uri(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar);
@@ -175,6 +185,11 @@ namespace AGS.Editor
             Uri uri1 = new Uri(path1);
             Uri uri2 = new Uri(path2);
             return uri1.Equals(uri2);
+        }
+
+        public static bool AnyPathsAreEqual(string path1, string path2)
+        {
+            return PathsAreEqual(ResolveSourcePath(path1), ResolveSourcePath(path2));
         }
 
         /// <summary>

@@ -732,14 +732,19 @@ namespace AGS.Editor
 
         public string[] ShowOpenFileDialogMultipleFiles(string title, string fileFilter)
         {
-			EnsureLastImportDirectoryIsSet(true);
+            EnsureLastImportDirectoryIsSet(true);
 
+            return ShowOpenFileDialogMultipleFiles(title, fileFilter, _lastImportDirectory);
+        }
+
+        public string[] ShowOpenFileDialogMultipleFiles(string title, string fileFilter, string initialDirectory)
+        {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Title = title;
             dialog.RestoreDirectory = true;
             dialog.CheckFileExists = true;
             dialog.CheckPathExists = true;
-            dialog.InitialDirectory = _lastImportDirectory;
+            dialog.InitialDirectory = initialDirectory;
             dialog.ValidateNames = true;
             dialog.Filter = fileFilter;
             dialog.Multiselect = true;

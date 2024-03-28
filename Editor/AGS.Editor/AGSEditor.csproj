@@ -151,8 +151,11 @@
     <Compile Include="Components\SpriteManagerComponent.cs" />
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
+    <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
+    <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -405,6 +408,7 @@
     <Compile Include="Utils\CommandLineOptions.cs" />
     <Compile Include="Utils\ConcurrentCircularBuffer.cs" />
     <Compile Include="Utils\MathExtra.cs" />
+    <Compile Include="Utils\ScriptFileUtilities.cs" />
     <Compile Include="Utils\ScriptGeneration.cs" />
     <Compile Include="Utils\StdConsoleWriter.cs" />
     <Compile Include="Utils\Validation.cs" />

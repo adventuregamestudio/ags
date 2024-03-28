@@ -1466,7 +1466,7 @@ HAGSError load_dta_file_into_thisgame(const AGSString &filename)
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
-        load_err = AGS::Common::ReadGameData(ents, src.InputStream.get(), src.DataVersion);
+        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
         if (load_err)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }
@@ -3592,7 +3592,7 @@ System::String ^load_room_script(System::String ^fileName)
     AGS::Common::HRoomFileError err = OpenRoomFile(roomFileName, src);
     if (err)
     {
-        err = AGS::Common::ExtractScriptText(scriptText, src.InputStream.get(), src.DataVersion);
+        err = AGS::Common::ExtractScriptText(scriptText, std::move(src.InputStream), src.DataVersion);
         if (err.HasError() && err->Code() == AGS::Common::kRoomFileErr_BlockNotFound)
             return nullptr; // simply did not find the script text
     }

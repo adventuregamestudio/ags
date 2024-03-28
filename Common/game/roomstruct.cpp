@@ -246,23 +246,6 @@ int RoomStruct::GetRegionTintLuminance(int id) const
     return 0;
 }
 
-HError LoadRoom(const String &filename, RoomStruct *room, bool game_is_hires, const std::vector<SpriteInfo> &sprinfos)
-{
-    room->Free();
-    room->InitDefaults();
-
-    RoomDataSource src;
-    HRoomFileError err = OpenRoomFileFromAsset(filename, src);
-    if (err)
-    {
-        err = ReadRoomData(room, src.InputStream.get(), src.DataVersion);
-        if (err)
-            err = UpdateRoomData(room, src.DataVersion, game_is_hires, sprinfos);
-    }
-    if (!err)
-        return new Error(String::FromFormat("Failed loading a room from file '%s'.", filename.GetCStr()), err);
-    return HError::None();
-}
 
 PBitmap FixBitmap(PBitmap bmp, int width, int height)
 {

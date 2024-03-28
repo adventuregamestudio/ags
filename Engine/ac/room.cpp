@@ -54,6 +54,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/room_file.h"
 #include "game/room_version.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin_evts.h"
@@ -486,7 +487,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     set_our_eip(200);
     thisroom.GameID = NO_GAME_ID_IN_ROOM_FILE;
-    HError err = LoadRoom(room_filename, &thisroom, game.IsLegacyHiRes(), game.SpriteInfos);
+    HError err = LoadRoom(room_filename, &thisroom, AssetMgr.get(), game.IsLegacyHiRes(), game.SpriteInfos);
     if (!err)
     {
         quitprintf("Unable to load the room file '%s'. Error: %s", room_filename.GetCStr(), err->FullMessage().GetCStr());

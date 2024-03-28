@@ -1660,7 +1660,7 @@ const char *get_mask_name(RoomAreaMask mask)
 }
 
 AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
-  HAGSError err = LoadRoom(filename, &rs, thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
+  HAGSError err = LoadRoom(filename, &rs, AssetMgr.get(), thisgame.IsLegacyHiRes(), thisgame.SpriteInfos);
   if (!err)
       return err->FullMessage();
 

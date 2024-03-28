@@ -125,8 +125,8 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
 class TRABlockReader : public DataExtReader
 {
 public:
-    TRABlockReader(Translation &tra, Stream *in)
-        : DataExtReader(in, kDataExt_NumID32 | kDataExt_File32)
+    TRABlockReader(Translation &tra, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in), kDataExt_NumID32 | kDataExt_File32)
         , _tra(tra) {}
 
     // Reads only the Game ID block and stops
@@ -135,7 +135,7 @@ public:
         HError err = FindOne(kTraFblk_GameID);
         if (!err)
             return err;
-        return ReadTraBlock(_tra, _in, kTraFblk_GameID, "", _blockLen);
+        return ReadTraBlock(_tra, _in.get(), kTraFblk_GameID, "", _blockLen);
     }
 
 private:
@@ -147,25 +147,25 @@ private:
         if (block_id == kTraFblk_GameID) return 1;
         return 0;
     }
-    HError ReadBlock(int block_id, const String &ext_id,
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
-        return ReadTraBlock(_tra, _in, (TraFileBlock)block_id, ext_id, block_len);
+        return ReadTraBlock(_tra, _in.get(), (TraFileBlock)block_id, ext_id, block_len);
     }
 
     Translation &_tra;
 };
 
 
-HError TestTraGameID(int game_uid, const String &game_name, Stream *in)
+HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stream> &&in)
 {
-    HError err = OpenTraFile(in);
+    HError err = OpenTraFile(in.get());
     if (!err)
         return err;
 
     Translation tra;
-    TRABlockReader reader(tra, in);
+    TRABlockReader reader(tra, std::move(in));
     err = reader.ReadGameID();
     if (!err)
         return err;
@@ -177,13 +177,13 @@ HError TestTraGameID(int game_uid, const String &game_name, Stream *in)
     return HError::None();
 }
 
-HError ReadTraData(Translation &tra, Stream *in)
+HError ReadTraData(Translation &tra, std::unique_ptr<Stream> &&in)
 {
-    HError err = OpenTraFile(in);
+    HError err = OpenTraFile(in.get());
     if (!err)
         return err;
 
-    TRABlockReader reader(tra, in);
+    TRABlockReader reader(tra, std::move(in));
     return reader.Read();
 }
 

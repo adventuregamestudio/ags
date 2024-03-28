@@ -86,7 +86,8 @@ typedef TypedCodeError<DataExtErrorType, GetDataExtErrorText> DataExtError;
 class DataExtParser
 {
 public:
-    DataExtParser(Stream *in, int flags) : _in(in), _flags(flags) {}
+    DataExtParser(std::unique_ptr<Stream> &&in, int flags)
+        : _in(std::move(in)), _flags(flags) {}
     virtual ~DataExtParser() = default;
 
     // Returns the conventional string ID for an old-style block with numeric ID
@@ -96,8 +97,9 @@ public:
     // the parser will not error if the mistake is in this range of bytes
     virtual soff_t GetOverLeeway(int /*block_id*/) const { return 0; }
 
-    // Gets a stream
-    inline Stream *GetStream() { return _in; }
+    // Returns stream's ownership back to the caller
+    inline std::unique_ptr<Stream> ReleaseStream() { return std::move(_in); }
+
     // Tells if the end of the block list was reached
     inline bool AtEnd() const { return _blockID < 0; }
     // Gets parser flags
@@ -121,7 +123,7 @@ public:
     HError FindOne(int id);
 
 protected:
-    Stream *_in {};
+    std::unique_ptr<Stream> _in;
     int _flags {};
 
     int _blockID {-1};
@@ -143,10 +145,11 @@ public:
     HError Read();
 
 protected:
-    DataExtReader(Stream *in, int flags) : DataExtParser(in, flags) {}
+    DataExtReader(std::unique_ptr<Stream> &&in, int flags)
+        : DataExtParser(std::move(in), flags) {}
     // Reads a single data block and tell whether to continue reading;
     // default implementation skips the block
-    virtual HError ReadBlock(int block_id, const String &ext_id,
+    virtual HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) = 0;
 };
 

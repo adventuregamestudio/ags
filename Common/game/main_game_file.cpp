@@ -757,21 +757,21 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
 class GameDataExtReader : public DataExtReader
 {
 public:
-    GameDataExtReader(LoadedGameEntities &ents, GameDataVersion data_ver, Stream *in)
-        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
+    GameDataExtReader(LoadedGameEntities &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
         , _ents(ents)
         , _dataVer(data_ver)
     {}
 
 protected:
-    HError ReadBlock(int block_id, const String &ext_id,
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override;
 
     LoadedGameEntities &_ents;
     GameDataVersion _dataVer {};
 };
 
-HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
+HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
     soff_t /*block_len*/, bool &read_next)
 {
     read_next = true;
@@ -785,67 +785,67 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
         for (FontInfo &finfo : _ents.Game.fonts)
         {
             // adjustable font outlines
-            finfo.AutoOutlineThickness = _in->ReadInt32();
+            finfo.AutoOutlineThickness = in->ReadInt32();
             finfo.AutoOutlineStyle =
-                static_cast<enum FontInfo::AutoOutlineStyle>(_in->ReadInt32());
+                static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
             // reserved
-            _in->ReadInt32();
-            _in->ReadInt32();
-            _in->ReadInt32();
-            _in->ReadInt32();
+            in->ReadInt32();
+            in->ReadInt32();
+            in->ReadInt32();
+            in->ReadInt32();
         }
     }
     else if (ext_id.CompareNoCase("v360_cursors") == 0)
     {
         for (MouseCursor &mcur : _ents.Game.mcurs)
         {
-            mcur.animdelay = _in->ReadInt32();
+            mcur.animdelay = in->ReadInt32();
             // reserved
-            _in->ReadInt32();
-            _in->ReadInt32();
-            _in->ReadInt32();
+            in->ReadInt32();
+            in->ReadInt32();
+            in->ReadInt32();
         }
     }
     else if (ext_id.CompareNoCase("v361_objnames") == 0)
     {
         // Extended object names and script names:
         // for object types that had hard name length limits
-        _ents.Game.gamename = StrUtil::ReadString(_in);
-        _ents.Game.saveGameFolderName = StrUtil::ReadString(_in);
-        size_t num_chars = _in->ReadInt32();
+        _ents.Game.gamename = StrUtil::ReadString(in);
+        _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
+        size_t num_chars = in->ReadInt32();
         if (num_chars != _ents.Game.chars.size())
             return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, _ents.Game.chars.size()));
         for (int i = 0; i < _ents.Game.numcharacters; ++i)
         {
             auto &chinfo = _ents.Game.chars[i];
             auto &chinfo2 = _ents.Game.chars2[i];
-            chinfo2.scrname_new = StrUtil::ReadString(_in);
-            chinfo2.name_new = StrUtil::ReadString(_in);
+            chinfo2.scrname_new = StrUtil::ReadString(in);
+            chinfo2.name_new = StrUtil::ReadString(in);
             // assign to the legacy fields for compatibility with old plugins
             snprintf(chinfo.scrname, LEGACY_MAX_SCRIPT_NAME_LEN, "%s", chinfo2.scrname_new.GetCStr());
             snprintf(chinfo.name, LEGACY_MAX_CHAR_NAME_LEN, "%s", chinfo2.name_new.GetCStr());
         }
-        size_t num_invitems = _in->ReadInt32();
+        size_t num_invitems = in->ReadInt32();
         if (num_invitems != _ents.Game.numinvitems)
             return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)_ents.Game.numinvitems));
         for (int i = 0; i < _ents.Game.numinvitems; ++i)
         {
-            _ents.Game.invinfo[i].name = StrUtil::ReadString(_in);
+            _ents.Game.invinfo[i].name = StrUtil::ReadString(in);
         }
-        size_t num_cursors = _in->ReadInt32();
+        size_t num_cursors = in->ReadInt32();
         if (num_cursors != _ents.Game.mcurs.size())
             return new Error(String::FromFormat("Mismatching number of cursors: read %zu expected %zu", num_cursors, _ents.Game.mcurs.size()));
         for (MouseCursor &mcur : _ents.Game.mcurs)
         {
-            mcur.name = StrUtil::ReadString(_in);
+            mcur.name = StrUtil::ReadString(in);
         }
-        size_t num_clips = _in->ReadInt32();
+        size_t num_clips = in->ReadInt32();
         if (num_clips != _ents.Game.audioClips.size())
             return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, _ents.Game.audioClips.size()));
         for (ScriptAudioClip &clip : _ents.Game.audioClips)
         {
-            clip.scriptName = StrUtil::ReadString(_in);
-            clip.fileName = StrUtil::ReadString(_in);
+            clip.scriptName = StrUtil::ReadString(in);
+            clip.fileName = StrUtil::ReadString(in);
         }
     }
     else
@@ -859,23 +859,23 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
 class GameDataExtPreloader : public GameDataExtReader
 {
 public:
-    GameDataExtPreloader(LoadedGameEntities &ents, GameDataVersion data_ver, Stream *in)
-        : GameDataExtReader(ents, data_ver, in) {}
+    GameDataExtPreloader(LoadedGameEntities &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
+        : GameDataExtReader(ents, data_ver, std::move(in)) {}
 
 protected:
-    HError ReadBlock(int block_id, const String &ext_id,
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override;
 };
 
-HError GameDataExtPreloader::ReadBlock(int /*block_id*/, const String &ext_id,
+HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
     soff_t /*block_len*/, bool &read_next)
 {
     // Try reading only data which belongs to the general game info
     read_next = true;
     if (ext_id.CompareNoCase("v361_objnames") == 0)
     {
-        _ents.Game.gamename = StrUtil::ReadString(_in);
-        _ents.Game.saveGameFolderName = StrUtil::ReadString(_in);
+        _ents.Game.gamename = StrUtil::ReadString(in);
+        _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
         read_next = false; // we're done
     }
     SkipBlock(); // prevent assertion trigger
@@ -883,9 +883,10 @@ HError GameDataExtPreloader::ReadBlock(int /*block_id*/, const String &ext_id,
 }
 
 
-HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
+HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
+    Stream *in = s_in.get(); // for convenience
 
     //-------------------------------------------------------------------------
     // The classic data section.
@@ -968,7 +969,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     //-------------------------------------------------------------------------
     // All the extended data, for AGS > 3.5.0.
     //-------------------------------------------------------------------------
-    GameDataExtReader reader(ents, data_ver, in);
+    GameDataExtReader reader(ents, data_ver, std::move(s_in));
     HError ext_err = reader.Read();
     return ext_err ? HGameFileError::None() : new MainGameFileError(kMGFErr_ExtListFailed, ext_err);
 }
@@ -1008,8 +1009,9 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     return HGameFileError::None();
 }
 
-void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver)
+void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
 {
+    Stream *in = s_in.get(); // for convenience
     GameSetupStruct::SerializeInfo sinfo;
     game.ReadFromFile(in, data_ver, sinfo);
     game.read_savegame_info(in, data_ver);
@@ -1021,7 +1023,7 @@ void PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver
 
     in->Seek(sinfo.ExtensionOffset, kSeekBegin);
     LoadedGameEntities ents(game);
-    GameDataExtPreloader reader(ents, data_ver, in);
+    GameDataExtPreloader reader(ents, data_ver, std::move(s_in));
     reader.Read();
 }
 

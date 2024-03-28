@@ -66,12 +66,12 @@ bool init_translation(const String &lang, const String &fallback_lang)
     trans = Translation();
 
     // First test if the translation is meant for this game
-    HError err = TestTraGameID(game.uniqueid, game.gamename, in.get());
+    HError err = TestTraGameID(game.uniqueid, game.gamename, std::move(in));
     if (err)
     {
         // If successful, then read translation data fully
         in = AssetMgr->OpenAsset(trans_filename);
-        err = ReadTraData(trans, in.get());
+        err = ReadTraData(trans, std::move(in));
     }
 
     // Process errors

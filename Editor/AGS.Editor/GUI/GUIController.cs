@@ -1630,6 +1630,11 @@ namespace AGS.Editor
         {
             RePopulateTreeView(component, null);
         }
+        public bool ShowTabIcons
+        {
+            get { return _mainForm.ShowTabIcons; }
+            set { _mainForm.ShowTabIcons = value; }
+        }
 
 
         void IGUIController.SetStatusBarText(string text)

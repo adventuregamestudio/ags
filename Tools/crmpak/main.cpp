@@ -5,6 +5,7 @@
 #include "game/room_file.h"
 #include "util/data_ext.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 #include "util/string_compat.h"
 
@@ -266,7 +267,7 @@ int main(int argc, char *argv[])
     std::unique_ptr<Stream> block_in;
     if (command == 'i')
     {
-        block_in.reset(File::OpenFileRead(arg_blockfile));
+        block_in = File::OpenFileRead(arg_blockfile);
         if (!block_in)
         {
             printf("Error: failed to open block file for reading.\n");
@@ -280,7 +281,7 @@ int main(int argc, char *argv[])
     std::vector<uint8_t> temp_data;
     if (out_roomfile)
     {
-        room_out.reset(File::CreateFile(out_roomfile));
+        room_out = File::CreateFile(out_roomfile);
         if (!room_out)
         {
             printf("Error: failed to open room file for writing.\n");
@@ -289,7 +290,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        room_out.reset(new VectorStream(temp_data, kStream_Write));
+        room_out = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data, kStream_Write));
     }
 
     // Write whole room, except for the block piece (if found)
@@ -319,8 +320,8 @@ int main(int argc, char *argv[])
     // the original room with the accumulated data
     if (!out_roomfile)
     {
-        std::unique_ptr<Stream> temp_room(new VectorStream(temp_data));
-        room_out.reset(File::CreateFile(in_roomfile));
+        auto temp_room = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data));
+        room_out = File::CreateFile(in_roomfile);
         if (!room_out)
         {
             printf("Error: failed to open room file for writing.\n");

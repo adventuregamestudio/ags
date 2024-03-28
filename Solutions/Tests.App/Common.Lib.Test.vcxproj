@@ -32,7 +32,6 @@
     <ClCompile Include="..\..\Common\test\version_test.cpp" />
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
-    <ClCompile Include="..\..\Common\util\datastream.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\filestream.cpp" />
     <ClCompile Include="..\..\Common\util\inifile.cpp" />
@@ -58,7 +57,6 @@
     <ClInclude Include="..\..\Common\gfx\gfx_def.h" />
     <ClInclude Include="..\..\Common\util\bufferedstream.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />
-    <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />
     <ClInclude Include="..\..\Common\util\inifile.h" />

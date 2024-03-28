@@ -19,6 +19,7 @@
 #include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 
 namespace AGS
@@ -607,7 +608,7 @@ int SaveSpriteFile(const String &save_to_file,
 int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
 {
     // write the sprite index file
-    Stream *out = File::CreateFile(filename);
+    auto out = File::CreateFile(filename);
     if (!out)
         return -1;
     // write "SPRINDEX" id
@@ -625,7 +626,6 @@ int SaveSpriteIndex(const String &filename, const SpriteFileIndex &index)
         out->WriteArrayOfInt16(&index.Heights[0], index.Heights.size());
         out->WriteArrayOfInt64(&index.Offsets[0], index.Offsets.size());
     }
-    delete out;
     return 0;
 }
 
@@ -696,7 +696,7 @@ void SpriteFileWriter::WriteBitmap(Bitmap *image)
         // TODO: rewrite this to only make a choice once the SpriteFile is initialized
         // and use either function ptr or a decompressing stream class object
         compress = _compress;
-        VectorStream mems(_membuf, kStream_Write);
+        Stream mems(std::make_unique<VectorStream>(_membuf, kStream_Write));
         bool result;
         switch (compress)
         {

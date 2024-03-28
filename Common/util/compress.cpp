@@ -19,6 +19,7 @@
 #include "ac/common.h"	// quit, update_polled_stuff
 #include "gfx/bitmap.h"
 #include "util/lzw.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 #if AGS_PLATFORM_ENDIAN_BIG
 #include "util/bbop.h"
@@ -344,7 +345,7 @@ bool lzw_compress(const uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream
         out->Write(data, data_sz);
         return true;
     }
-    MemoryStream mem_in(data, data_sz);
+    Stream mem_in(std::make_unique<MemoryStream>(data, data_sz));
     return lzwcompress(&mem_in, out);
 }
 
@@ -368,7 +369,7 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const RGB (*pal)[256])
   // because they also included bmp width and height into compressed data!
   std::vector<uint8_t> membuf;
   {
-    VectorStream memws(membuf, kStream_Write);
+    Stream memws(std::make_unique<VectorStream>(membuf, kStream_Write));
     int w = bmpp->GetWidth(), h = bmpp->GetHeight(), bpp = bmpp->GetBPP();
     memws.WriteInt32(w * bpp); // stride
     memws.WriteInt32(h);
@@ -382,7 +383,7 @@ void save_lzw(Stream *out, const Bitmap *bmpp, const RGB (*pal)[256])
   }
 
   // Open same buffer for reading, and begin writing compressed data into the output
-  VectorStream mem_in(membuf);
+  Stream mem_in(std::make_unique<VectorStream>(membuf));
   // NOTE: old format saves full RGB struct here (4 bytes, including the filler)
   if (pal)
     out->WriteArray(*pal, sizeof(RGB), 256);
@@ -420,7 +421,7 @@ std::unique_ptr<Bitmap> load_lzw(Stream *in, int dst_bpp, RGB (*pal)[256])
   lzwexpand(inbuf.data(), comp_sz, membuf.data(), uncomp_sz);
 
   // Open same buffer for reading and get params and pixels
-  VectorStream mem_in(membuf);
+  Stream mem_in(std::make_unique<VectorStream>(membuf));
   int stride = mem_in.ReadInt32(); // width * bpp
   int height = mem_in.ReadInt32();
   std::unique_ptr<Bitmap> bmm(BitmapHelper::CreateBitmap((stride / dst_bpp), height, dst_bpp * 8));
@@ -514,7 +515,7 @@ bool z_inflate(const uint8_t* src, size_t src_sz, uint8_t* dst, size_t dst_sz) {
 
 bool deflate_compress(const uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* out)
 {
-    MemoryStream mem_in(data, data_sz);
+    Stream mem_in(std::make_unique<MemoryStream>(data, data_sz));
     return z_deflate(&mem_in, out);
 }
 

@@ -23,6 +23,8 @@
 #define __AGS_CN_UTIL__INIFILE_H
 
 #include <list>
+#include <memory>
+#include "util/stream.h"
 #include "util/string.h"
 
 namespace AGS
@@ -116,8 +118,8 @@ public:
     ConstSectionIterator CBegin() const { return _sections.begin(); }
     ConstSectionIterator CEnd()   const { return _sections.end(); }
 
-    void Read(Stream *in);
-    void Write(Stream *out) const;
+    void Read(std::unique_ptr<Stream> &&in);
+    void Write(std::unique_ptr<Stream> &&out) const;
 
     // Return number of sections
     size_t GetSectionCount() const { return _sections.size(); }

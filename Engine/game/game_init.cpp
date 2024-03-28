@@ -348,7 +348,7 @@ void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 
 void LoadLipsyncData()
 {
-    std::unique_ptr<Stream> speechsync( AssetMgr->OpenAsset("syncdata.dat", "voice") );
+    auto speechsync = AssetMgr->OpenAsset("syncdata.dat", "voice");
     if (!speechsync)
         return;
     // this game has voice lip sync

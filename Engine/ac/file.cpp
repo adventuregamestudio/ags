@@ -531,7 +531,7 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
     return ResolvedPath(res_path);
 }
 
-Stream *ResolveScriptPathAndOpen(const String &sc_path,
+std::unique_ptr<Stream> ResolveScriptPathAndOpen(const String &sc_path,
     FileOpenMode open_mode, StreamMode work_mode)
 {
     ResolvedPath rp;
@@ -542,7 +542,7 @@ Stream *ResolveScriptPathAndOpen(const String &sc_path,
 
     if (!rp)
         return nullptr;
-    Stream *s = rp.AssetMgr ?
+    auto s = rp.AssetMgr ?
         AssetMgr->OpenAsset(rp.FullPath, "*") :
         File::OpenFile(rp.FullPath, open_mode, work_mode);
     if (!s)
@@ -728,14 +728,10 @@ Stream *get_file_stream(int32_t fhandle, const char *operation_name)
     return fh ? fh->GetStream() : nullptr;
 }
 
-Stream *release_file_stream(int32_t fhandle, const char *operation_name)
+IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name)
 {
     ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
-    if (!fh)
-        return nullptr;
-    Stream *s = fh->ReleaseStream();
-    close_file_stream(fhandle, operation_name);
-    return s;
+    return fh ? fh->GetStream()->GetStreamBase() : nullptr;
 }
 
 void close_all_file_streams()

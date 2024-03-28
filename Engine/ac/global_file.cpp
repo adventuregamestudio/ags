@@ -29,8 +29,8 @@ using namespace AGS::Common;
 
 int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 {
-  Common::FileOpenMode open_mode;
-  Common::StreamMode work_mode;
+  FileOpenMode open_mode;
+  StreamMode work_mode;
   // NOTE: here we ignore the text-mode flag. AGS 2.62 did not let
   // game devs to open files in text mode. The file reading and
   // writing logic in AGS makes extra control characters added for
@@ -43,7 +43,7 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
   return FileOpen(fnmm, open_mode, work_mode);
 }
 
-int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::StreamMode work_mode)
+int32_t FileOpen(const char *fnmm, FileOpenMode open_mode, StreamMode work_mode)
 {
   
   debug_script_print(kDbgMsg_Debug, "FileOpen: request: %s, mode: %s",

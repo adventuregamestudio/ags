@@ -124,8 +124,6 @@ target_sources(common
     util/compress.h
     util/data_ext.cpp
     util/data_ext.h
-    util/datastream.cpp
-    util/datastream.h
     util/directory.cpp
     util/directory.h
     util/error.h

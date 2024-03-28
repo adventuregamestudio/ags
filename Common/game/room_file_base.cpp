@@ -63,11 +63,11 @@ HRoomFileError OpenRoomFile(const String &filename, RoomDataSource &src)
     // Cleanup source struct
     src = RoomDataSource();
     // Try to open room file
-    Stream *in = File::OpenFileRead(filename);
+    auto in = File::OpenFileRead(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
-    src.InputStream.reset(in);
+    src.InputStream = std::move(in);
     return ReadRoomHeader(src);
 }
 

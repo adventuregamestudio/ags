@@ -203,9 +203,9 @@ IniFile::IniFile()
     _sections.push_back(SectionDef(""));
 }
 
-void IniFile::Read(Stream *in)
+void IniFile::Read(std::unique_ptr<Stream> &&in)
 {
-    TextStreamReader reader(in);
+    TextStreamReader reader(std::move(in));
     
     _sections.clear();
     // Create a global section;
@@ -282,13 +282,11 @@ void IniFile::Read(Stream *in)
         }
     }
     while (!reader.EOS());
-
-    reader.ReleaseStream();
 }
 
-void IniFile::Write(Stream *out) const
+void IniFile::Write(std::unique_ptr<Stream> &&out) const
 {
-    TextStreamWriter writer(out);
+    TextStreamWriter writer(std::move(out));
     for (ConstSectionIterator sec = _sections.begin(); sec != _sections.end(); ++sec)
     {
         if (sec != _sections.begin()) // do not write global section's name
@@ -296,7 +294,6 @@ void IniFile::Write(Stream *out) const
         for (ConstItemIterator item = sec->CBegin(); item != sec->CEnd(); ++item)
             writer.WriteLine(item->GetLine());
     }
-    writer.ReleaseStream();
 }
 
 } // namespace Common

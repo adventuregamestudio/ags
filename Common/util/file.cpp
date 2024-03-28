@@ -27,6 +27,7 @@
 #include "util/aasset_stream.h"
 #include "util/android_file.h"
 #endif
+#include "util/memory_compat.h"
 
 namespace AGS
 {
@@ -208,48 +209,67 @@ String File::GetCMode(FileOpenMode open_mode, StreamMode work_mode)
     return mode;
 }
 
-Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
+std::unique_ptr<IStreamBase> OpenFileStream(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
 {
-    Stream *fs = nullptr;
-    try {
-        fs = new BufferedStream(filename, open_mode, work_mode);
-        if (fs != nullptr && !fs->IsValid()) {
-            delete fs;
+    std::unique_ptr<StreamBase> fs;
+    try
+    {
+        fs.reset(new FileStream(filename, open_mode, work_mode));
+        if (fs != nullptr && !fs->IsValid())
             fs = nullptr;
-        }
-    } catch(std::runtime_error) {
+    }
+    catch (std::runtime_error)
+    {
         fs = nullptr;
 #if AGS_PLATFORM_OS_ANDROID
         // strictly for read-only streams: look into Android Assets too
-        try {
+        try
+        {
             if ((work_mode & kStream_Write) == 0)
-                fs = new AAssetStream(filename, AASSET_MODE_RANDOM);
-            if (fs != nullptr && !fs->IsValid()) {
-                delete fs;
+                fs.reset(new AAssetStream(filename, AASSET_MODE_RANDOM));
+            if (fs != nullptr && !fs->IsValid())
                 fs = nullptr;
-            }
-        } catch(std::runtime_error) {
+        }
+        catch(std::runtime_error)
+        {
             fs = nullptr;
         }
 #endif
     }
-    return fs;
+    return std::move(fs);
 }
 
-
-Stream *File::OpenStdin()
+std::unique_ptr<Stream> File::OpenFile(const String &filename, FileOpenMode open_mode, StreamMode work_mode)
 {
-    return FileStream::WrapHandle(stdin, kStream_Read, kDefaultSystemEndianess);
+    auto fs = OpenFileStream(filename, open_mode, work_mode);
+    if (!fs)
+        return nullptr;
+    // Create a BufferedStream instance, wrapping the selected device impl
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs)));
 }
 
-Stream *File::OpenStdout()
+std::unique_ptr<Stream> File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
 {
-    return FileStream::WrapHandle(stdout, kStream_Write, kDefaultSystemEndianess);
+    auto fs = OpenFileStream(filename, kFile_Open, kStream_Read);
+    if (!fs)
+        return nullptr;
+    // Create a BufferedStream instance, wrapping the selected device impl
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs), start_off, end_off));
 }
 
-Stream *File::OpenStderr()
+std::unique_ptr<Stream> File::OpenStdin()
 {
-    return FileStream::WrapHandle(stderr, kStream_Write, kDefaultSystemEndianess);
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdin, kStream_Read)));
+}
+
+std::unique_ptr<Stream> File::OpenStdout()
+{
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdout, kStream_Write)));
+}
+
+std::unique_ptr<Stream> File::OpenStderr()
+{
+    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write)));
 }
 
 String File::FindFileCI(const String &base_dir, const String &file_name,
@@ -368,7 +388,7 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
 #endif
 }
 
-Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
+std::unique_ptr<Stream> File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
     return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);
@@ -381,33 +401,6 @@ Stream *File::OpenFileCI(const String &base_dir, const String &file_name, FileOp
         return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);
     return nullptr;
 #endif
-}
-
-Stream *File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
-{
-    try {
-        Stream *fs = new BufferedSectionStream(filename, start_off, end_off, kFile_Open, kStream_Read);
-        if (fs != nullptr && !fs->IsValid()) {
-            delete fs;
-            return nullptr;
-        }
-        return fs;
-    }
-    catch (std::runtime_error) {
-        Stream* fs = nullptr;
-#if AGS_PLATFORM_OS_ANDROID
-        try {
-            fs = new AAssetStream(filename, AASSET_MODE_RANDOM, start_off, end_off);
-            if (fs != nullptr && !fs->IsValid()) {
-                delete fs;
-                fs = nullptr;
-            }
-        } catch(std::runtime_error) {
-            fs = nullptr;
-        }
-#endif
-        return fs;
-    }
 }
 
 } // namespace Common

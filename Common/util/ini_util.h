@@ -20,6 +20,8 @@
 #define __AGS_CN_UTIL__INIUTIL_H
 
 #include <map>
+#include <memory>
+#include "util/stream.h"
 #include "util/string.h"
 
 namespace AGS
@@ -71,14 +73,14 @@ namespace IniUtil
     // Returns FALSE if the file could not be opened.
     bool Read(const String &file, ConfigTree &tree);
     // Same as above, but reads from the provided stream.
-    void Read(Stream *in, ConfigTree &tree);
+    void Read(std::unique_ptr<Stream> &&in, ConfigTree &tree);
     // Serialize given tree to the given file in INI text format.
     // The INI format suggests only one nested level (group - items).
     // The first level values are treated as a global section items.
     // The sub-nodes beyond 2nd level are ignored completely.
     void Write(const String &file, const ConfigTree &tree);
     // Same as above, but writes to the provided stream
-    void Write(Stream *out, const ConfigTree &tree);
+    void Write(std::unique_ptr<Stream> &&out, const ConfigTree &tree);
     // Serialize given tree to the string in INI text format.
     // TODO: implement proper memory/string stream compatible with base Stream
     // class and merge this with Write function.

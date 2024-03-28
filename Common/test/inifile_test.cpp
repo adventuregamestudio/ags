@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "util/inifile.h"
 #include "util/ini_util.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
@@ -71,8 +72,8 @@ TEST(IniFile, ReadAndQuery) {
 
     //-------------------------------------------------------------------------
     // Write data
-    std::unique_ptr<Stream> out(
-        new VectorStream(membuf, kStream_Write));
+    auto out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
 
     out->Write(IniFileText, strlen(IniFileText));
     out.reset();
@@ -80,11 +81,10 @@ TEST(IniFile, ReadAndQuery) {
     //-------------------------------------------------------------------------
     // Read data back
     IniFile ini;
-    std::unique_ptr<Stream> in(
-        new VectorStream(membuf));
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
 
-    ini.Read(in.get());
-    in.reset();
+    ini.Read(std::move(in));
 
     //-----------------------------------------------------
     // Assertions
@@ -153,8 +153,8 @@ TEST(IniFile, ReadAndModify) {
 
     //-------------------------------------------------------------------------
     // Write data
-    std::unique_ptr<Stream> out(
-        new VectorStream(membuf, kStream_Write));
+    auto out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
 
     out->Write(IniFileText, strlen(IniFileText));
     out.reset();
@@ -162,11 +162,10 @@ TEST(IniFile, ReadAndModify) {
     //-------------------------------------------------------------------------
     // Read data back
     IniFile ini;
-    std::unique_ptr<Stream> in(
-        new VectorStream(membuf));
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
 
-    ini.Read(in.get());
-    in.reset();
+    ini.Read(std::move(in));
 
     //-----------------------------------------------------
     // Assertions
@@ -213,13 +212,14 @@ TEST(IniFile, ReadAndModify) {
     //-------------------------------------------------------------------------
     // Write modified data
     membuf.resize(0);
-    out.reset(new VectorStream(membuf, kStream_Write));
-    ini.Write(out.get());
-    out.reset();
+    out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
+    ini.Write(std::move(out));
 
     //-------------------------------------------------------------------------
     // Read modified data back and ASSERT_TRUE
-    in.reset(new VectorStream(membuf));
+    in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
     String ini_content;
     ini_content.ReadCount(in.get(), static_cast<size_t>(in->GetLength()));
     in.reset();
@@ -233,20 +233,19 @@ TEST(IniFile, ReadKeyValueTree) {
 
     //-------------------------------------------------------------------------
     // Write data
-    std::unique_ptr<Stream> out(
-        new VectorStream(membuf, kStream_Write));
+    auto out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
 
     out->Write(IniFileText2, strlen(IniFileText2));
     out.reset();
 
     //-------------------------------------------------------------------------
     // Read data back
-    std::unique_ptr<Stream> in(
-        new VectorStream(membuf));
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
 
     ConfigTree tree;
-    IniUtil::Read(in.get(), tree);
-    in.reset();
+    IniUtil::Read(std::move(in), tree);
 
     //-----------------------------------------------------
     // Assertions
@@ -312,12 +311,12 @@ TEST(IniFile, WriteKeyValueTree) {
     }
 
     // write and read back
-    std::unique_ptr<Stream> out(
-        new VectorStream(membuf, kStream_Write));
-    IniUtil::Write(out.get(), tree1);
-    std::unique_ptr<Stream> in(
-        new VectorStream(membuf));
-    IniUtil::Read(in.get(), tree2);
+    auto out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
+    IniUtil::Write(std::move(out), tree1);
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
+    IniUtil::Read(std::move(in), tree2);
 
     // Assert, that tree2 has exactly same items as tree1
     ASSERT_TRUE(tree1 == tree2);
@@ -329,8 +328,8 @@ TEST(IniFile, MergeTreeWithFile) {
 
     //-------------------------------------------------------------------------
     // Write data
-    std::unique_ptr<Stream> out(
-        new VectorStream(membuf, kStream_Write));
+    auto out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
 
     out->Write(IniFileText, strlen(IniFileText));
     out.reset();
@@ -338,11 +337,10 @@ TEST(IniFile, MergeTreeWithFile) {
     //-------------------------------------------------------------------------
     // Read data back
     IniFile ini;
-    std::unique_ptr<Stream> in(
-        new VectorStream(membuf));
+    auto in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
 
-    ini.Read(in.get());
-    in.reset();
+    ini.Read(std::move(in));
 
     //-------------------------------------------------------------------------
     // Modify the tree
@@ -368,13 +366,15 @@ TEST(IniFile, MergeTreeWithFile) {
     // Merge with the previously written data and write
     IniUtil::Merge(ini, tree1);
     membuf.resize(0);
-    out.reset(new VectorStream(membuf, kStream_Write));
-    ini.Write(out.get());
+    out = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf, kStream_Write));
+    ini.Write(std::move(out));
 
     // Read merge result back into the second tree
     ConfigTree tree2;
-    in.reset(new VectorStream(membuf));
-    IniUtil::Read(in.get(), tree2);
+    in = std::make_unique<Stream>(
+        std::make_unique<VectorStream>(membuf));
+    IniUtil::Read(std::move(in), tree2);
 
     // Assert, that tree2 has all the items from tree1
     ASSERT_TRUE(tree1 == tree2);

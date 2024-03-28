@@ -65,14 +65,13 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Write script header & body
     //-----------------------------------------------------------------------//
-    Stream *out = File::CreateFile(dst_header);
+    auto out = File::CreateFile(dst_header);
     if (!out)
     {
         printf("Error: failed to open script header for writing.\n");
         return -1;
     }
     out->Write(header.GetCStr(), header.GetLength());
-    delete out;
     printf("Script header written successfully.\n");
     out = File::CreateFile(dst_body);
     if (!out)
@@ -81,7 +80,6 @@ int main(int argc, char *argv[])
         return -1;
     }
     out->Write(body.GetCStr(), body.GetLength());
-    delete out;
     printf("Script body written successfully.\nDone.\n");
     return 0;
 }

@@ -488,14 +488,14 @@ int check_write_access() {
   // The Save Game Dir is the only place that we should write to
   String svg_dir = get_save_game_directory();
   String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
-  Stream *temp_s = Common::File::CreateFile(tempPath);
+  auto temp_s = File::CreateFile(tempPath);
   if (!temp_s)
     return 0;
 
   set_our_eip(-1896);
 
   temp_s->Write("just to test the drive free space", 30);
-  delete temp_s;
+  temp_s.reset();
 
   set_our_eip(-1897);
 
@@ -533,11 +533,11 @@ int engine_check_font_was_loaded()
 // Do the preload graphic if available
 void show_preload()
 {
+    auto stream = AssetMgr->OpenAsset("preload.pcx");
+    if (!stream)
+        return;
+
     RGB temppal[256];
-
-    std::unique_ptr<Stream> stream (AssetMgr->OpenAsset("preload.pcx"));
-    if(stream == nullptr) return;
-
     Bitmap *splashsc = BitmapHelper::LoadBitmap("pcx",stream.get(),temppal);
     if (splashsc != nullptr)
     {
@@ -574,13 +574,13 @@ HError engine_init_sprites()
 {
     spriteset.Reset();
     Debug::Printf(kDbgMsg_Info, "Initialize sprites");
-    std::unique_ptr<Stream> sprite_file(AssetMgr->OpenAsset(SpriteFile::DefaultSpriteFileName));
+    auto sprite_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteFileName);
     if (!sprite_file)
     {
         return new Error(String::FromFormat("Failed to open spriteset file '%s'.",
             SpriteFile::DefaultSpriteFileName.GetCStr()));
     }
-    std::unique_ptr<Stream> index_file(AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName));
+    auto index_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName);
     HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err) 
     {

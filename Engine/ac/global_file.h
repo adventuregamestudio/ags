@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__GLOBALFILE_H
 
 #include "util/file.h"
+#include "util/stream.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

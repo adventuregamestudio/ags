@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include "util/math.h"
-#include "util/stream.h"
 #include "util/textstreamreader.h"
 
 namespace AGS
@@ -20,30 +19,9 @@ namespace AGS
 namespace Common
 {
 
-TextStreamReader::TextStreamReader(Stream *stream)
-    : _stream(stream)
-{
-}
-
-TextStreamReader::~TextStreamReader()
-{
-    // TODO: use shared ptr
-    delete _stream;
-}
-
 bool TextStreamReader::IsValid() const
 {
     return _stream && _stream->CanRead();
-}
-
-const Stream *TextStreamReader::GetStream() const
-{
-    return _stream;
-}
-
-void TextStreamReader::ReleaseStream()
-{
-    _stream = nullptr;
 }
 
 bool TextStreamReader::EOS() const
@@ -59,7 +37,7 @@ char TextStreamReader::ReadChar()
 String TextStreamReader::ReadString(size_t length)
 {
     // TODO: remove carriage-return characters
-    return String::FromStreamCount(_stream, length);
+    return String::FromStreamCount(_stream.get(), length);
 }
 
 String TextStreamReader::ReadLine()

@@ -542,7 +542,6 @@ namespace AGS.Editor
             return dropZone;
         }
 
-
         private TargetDropZone GetDropZone(ProjectTreeItem target, Point locationInControl)
         {
             int node_h = target.TreeNode.Bounds.Height;
@@ -591,23 +590,24 @@ namespace AGS.Editor
 				{
 					ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
                     TargetDropZone dropZone = GetDropZone(target, locationInControl);
+                    bool showLine;
 
                     if (source.CanDropHere == null)
 					{
 						throw new AGSEditorException("Node has not populated CanDropHere handler for draggable node");
 					}
-                    if (source.CanDropHere(source, target, dropZone))
+                    if (source.CanDropHere(source, target, dropZone, out showLine))
                     {
                         int node_h = target.TreeNode.Bounds.Height;
                         int node_y = target.TreeNode.Bounds.Y;
                         int line_h = node_h / 5;
                         int width = GetLineInBetweenWidth(target);
 
-                        if (dropZone == TargetDropZone.Top)
+                        if (dropZone == TargetDropZone.Top && showLine)
                         {
                             ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y - line_h / 2, width, line_h);
                         }
-                        else if (dropZone == TargetDropZone.Bottom)
+                        else if (dropZone == TargetDropZone.Bottom && showLine)
                         {
                             ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y + node_h - line_h / 2, width, line_h);
                         }

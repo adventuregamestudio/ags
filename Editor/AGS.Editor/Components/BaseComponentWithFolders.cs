@@ -256,7 +256,7 @@ namespace AGS.Editor.Components
                     (commandId == TOP_LEVEL_COMMAND_ID));
         }
 
-        private bool ProjectTreeItem_CanDropHere(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone)
+        private bool ProjectTreeItem_CanDropHere(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone, out bool showLine)
         {
             FolderType targetFolder;
             ItemType targetItem;
@@ -265,17 +265,51 @@ namespace AGS.Editor.Components
             FolderType sourceFolder;
             ItemType sourceItem;
             GetDropItemOrFolder(source, out sourceFolder, out sourceItem);
-
+            showLine = !((dropZone == TargetDropZone.Top || dropZone == TargetDropZone.Bottom) && 
+                ((sourceFolder != null && targetItem != null) || (sourceItem != null && targetFolder != null)));
 
             if ((sourceFolder == null && sourceItem == null) || (targetItem == null && targetFolder == null))
             {
+                showLine = false;
                 return false;
             }
 
-            if (sourceFolder != null && targetFolder == null) return false;
-            if (sourceFolder != null && !IsValidFolderMove(sourceFolder, targetFolder)) return false;
-            if (sourceItem != null && targetItem != null && sourceItem.Equals(targetItem)) return false;
-                        
+            if (sourceFolder != null && targetFolder == null)
+            {
+                showLine = false;
+                return false;
+            }
+            if (sourceFolder != null && !IsValidFolderMove(sourceFolder, targetFolder))
+            {
+                showLine = false;
+                return false;
+            }
+            if (sourceItem != null && targetItem != null && sourceItem.Equals(targetItem))
+            {
+                showLine = false;
+                return false;
+            }
+            if(sourceFolder != null && targetFolder != null)
+            {
+                // the GetRootFolder will be the same, so if a target has null parent, it's probably from a different "type"
+                FolderType parentOfSource = FindParentFolder(GetRootFolder(), sourceFolder);
+                FolderType parentOfTarget = FindParentFolder(GetRootFolder(), targetFolder);
+                if(parentOfSource == null || parentOfTarget == null)
+                {
+                    showLine = false;
+                    return false;
+                }
+            }
+            if (sourceItem != null && targetFolder != null)
+            {
+                FolderType parentOfSource = FindFolderThatContainsItem(GetRootFolder(), sourceItem);
+                if(parentOfSource == targetFolder)
+                {
+                    showLine = false;
+                    return false;
+                }
+            }
+
             return true;
         }
         

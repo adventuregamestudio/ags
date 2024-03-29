@@ -66,7 +66,7 @@ def replace_in_dir_rec(dir_path, encoding, version):
             _, file_ext = os.path.splitext(filename)
             file_path = os.path.join(dir, filename)
             # print('\t- file %s (ext: %s) (full path: %s)' % (filename, file_ext, file_path))
-            if file_ext != '.h' and file_ext != '.c' and file_ext != '.cpp':
+            if file_ext != '.h' and file_ext != '.c' and file_ext != '.cpp' and file_ext != '.inl':
                 continue
             replace_in_file(file_path, encoding, version)
 

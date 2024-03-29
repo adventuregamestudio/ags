@@ -129,6 +129,18 @@ def main():
     write_file(path, encoding, data)
 
     # -----------------------------------------------------------------------------
+    # CMakeLists: Engine
+
+    path = "../Engine/CMakeLists.txt"
+    encoding = "utf-8"
+    data = read_file(path, encoding)
+
+    m = re.search(r'"Copyright \(C\) 1999-2011 Chris Jones and \d+-(\d*) others"', data)
+    data = replace_group(m, 1, data, version.version_year)
+
+    write_file(path, encoding, data)
+
+    # -----------------------------------------------------------------------------
     # Copyright.txt: a list of credits
 
     path = "../Copyright.txt"

@@ -1100,7 +1100,9 @@ void clear_shared_texture(uint32_t sprite_id)
 
 void texturecache_precache(uint32_t sprite_id)
 {
-    texturecache.GetOrLoad(sprite_id, nullptr, (game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0, false);
+    bool has_alpha = (sprite_id < game.SpriteInfos.size()) ?
+        ((game.SpriteInfos[sprite_id].Flags & SPF_ALPHACHANNEL) != 0) : false;
+    texturecache.GetOrLoad(sprite_id, nullptr, has_alpha, false);
 }
 
 void mark_screen_dirty()

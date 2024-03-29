@@ -25,10 +25,6 @@ namespace AGS
 namespace Common
 {
 
-// TODO: move elsewhere later
-std::unique_ptr<AssetManager> AssetMgr;
-
-
 inline static bool IsAssetLibDir(const AssetLibInfo *lib) { return lib->BaseFileName.IsEmpty(); }
 inline static bool IsAssetLibFile(const AssetLibInfo *lib) { return !lib->BaseFileName.IsEmpty(); }
 

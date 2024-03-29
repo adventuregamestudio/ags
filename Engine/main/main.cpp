@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "core/def_version.h"

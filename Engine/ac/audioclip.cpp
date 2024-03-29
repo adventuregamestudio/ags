@@ -15,6 +15,7 @@
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
 #include "ac/common.h" // quitprintf
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"

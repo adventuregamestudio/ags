@@ -15,16 +15,16 @@
 // AGS Runtime header
 //
 //=============================================================================
-
 #ifndef __AGS_EE_AC__GAME_H
 #define __AGS_EE_AC__GAME_H
 
+#include <memory>
 #include "ac/dynobj/scriptviewframe.h"
 #include "main/game_file.h"
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Bitmap; class Stream; } }
+namespace AGS { namespace Common { class AssetManager; class Bitmap; class Stream; } }
 using namespace AGS; // FIXME later
 
 #define RAGMODE_PRESERVEGLOBALINT 1
@@ -200,6 +200,9 @@ void get_message_text (int msnum, char *buffer, char giveErr = 1);
 void game_sprite_updated(int sprnum, bool deleted = false);
 // Precaches sprites for a view, within a selected range of loops.
 void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool with_sounds = false);
+
+// Global AssetManager instance.
+extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 
 extern int in_new_room;
 extern int new_room_pos;

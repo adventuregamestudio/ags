@@ -89,6 +89,7 @@ extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
+std::unique_ptr<AssetManager> AssetMgr;
 GamePlayState play;
 GameSetup usetup;
 GameSetupStruct game;

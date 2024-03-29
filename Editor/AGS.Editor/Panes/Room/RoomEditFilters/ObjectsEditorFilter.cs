@@ -8,19 +8,13 @@ using System.Windows.Forms;
 namespace AGS.Editor
 {
     /// <summary>
-    /// TODO: it must be possible to pick out a base class from ObjectsEditorFilter and
-    /// CharactersEditorFilter, there much common functionality here.
+    /// ObjectsEditorFilter manages RoomObjects.
     /// </summary>
-    public class ObjectsEditorFilter : IRoomEditorFilter
+    public class ObjectsEditorFilter : BaseThingEditorFilter<RoomObject>
     {
         private const string MENU_ITEM_DELETE = "DeleteObject";
         private const string MENU_ITEM_NEW = "NewObject";
         private const string MENU_ITEM_OBJECT_COORDS = "ObjectCoordinates";
-        protected Room _room;
-        protected Panel _panel;
-        protected RoomSettingsEditor _editor;
-        private bool _isOn;
-        private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
         private bool _movingObjectWithMouse;
@@ -34,12 +28,9 @@ namespace AGS.Editor
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
 
         public ObjectsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
+            : base(displayPanel, editor, room)
         {
-            _room = room;
-            _panel = displayPanel;
-            _editor = editor;
             _selectedObject = null;
-            _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             RoomItemRefs = new SortedDictionary<string, RoomObject>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
             InitGameEntities();
@@ -48,51 +39,28 @@ namespace AGS.Editor
             _movingHintTimer.Tick += MovingHintTimer_Tick;
         }
 
-        public string Name { get { return "Objects"; } }
-        public string DisplayName { get { return "Objects"; } }
-
-        public RoomAreaMaskType MaskToDraw
-        {
-            get { return RoomAreaMaskType.None; }
-        }
-
-        public bool SupportVisibleItems { get { return true; } }
-        public bool Modified { get; set; }
-        public bool Visible { get; set; }
-        public bool Locked { get; set; }
-        public bool Enabled { get { return _isOn; } }
-
-        public SortedDictionary<string, DesignTimeProperties> DesignItems { get; private set; }
+        public override string Name { get { return "Objects"; } }
+        public override string DisplayName { get { return "Objects"; } }
         /// <summary>
         /// A lookup table for getting game object reference by they key.
         /// </summary>
         private SortedDictionary<string, RoomObject> RoomItemRefs { get; set; }
 
-        public event EventHandler OnItemsChanged;
-        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
-        public event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
+        public override event EventHandler OnItemsChanged;
+        public override event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+        public override event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
 
-        public int ItemCount
+        public override int ItemCount
         {
             get { return _objectBaselines.Count; }
         }
 
-        public int SelectedArea
-		{
-			get { return 0; }
-		}
-
-		public bool ShowTransparencySlider
-		{
-			get { return false; }
-		}
-
-		public string HelpKeyword
+		public override string HelpKeyword
 		{
 			get { return string.Empty; }
 		}
 
-        public bool KeyPressed(Keys key)
+        public override bool KeyPressed(Keys key)
         {
             if (_selectedObject == null)
                 return false;
@@ -118,7 +86,7 @@ namespace AGS.Editor
             return false;
         }
 
-        public bool KeyReleased(Keys key)
+        public override bool KeyReleased(Keys key)
         {
             int moveKeys = _movingKeysDown;
             switch (key)
@@ -140,9 +108,7 @@ namespace AGS.Editor
             return false;
         }
 
-        public void Invalidate() { _panel.Invalidate(); }
-
-        public virtual void PaintToHDC(IntPtr hDC, RoomEditorState state)
+        public override void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
             _objectBaselines.Clear();
             foreach (RoomObject obj in _room.Objects)
@@ -170,7 +136,7 @@ namespace AGS.Editor
             
         }
 
-        public virtual void Paint(Graphics graphics, RoomEditorState state)
+        public override void Paint(Graphics graphics, RoomEditorState state)
         {
             if (!Enabled || _selectedObject == null)
                 return;
@@ -220,7 +186,7 @@ namespace AGS.Editor
             }
         }
 
-        public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
+        public override bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             if (e.Button == MouseButtons.Middle) return false;
 
@@ -360,14 +326,14 @@ namespace AGS.Editor
             menu.Show(_panel, e.X, e.Y);
         }
 
-        public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
+        public override bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingObjectWithMouse = false;
             _lastSelectedObject = _selectedObject;
             return false;
         }
 
-		public bool DoubleClick(RoomEditorState state)
+		public override bool DoubleClick(RoomEditorState state)
 		{
 			if (_lastSelectedObject != null)
 			{
@@ -382,7 +348,7 @@ namespace AGS.Editor
             return false;
 		}
 
-        public virtual bool MouseMove(int x, int y, RoomEditorState state)
+        public override bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (!_movingObjectWithMouse) return false;
 
@@ -441,26 +407,17 @@ namespace AGS.Editor
             return newCoord;
         }
 
-        public void FilterOn()
+        protected override void FilterActivated()
         {
-            SetPropertyGridList();
-            Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
-            _isOn = true;
             ClearMovingState();
         }
 
-        public void FilterOff()
+        protected override void FilterDeactivated()
         {
-            Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
-            _isOn = false;
             ClearMovingState();
         }
 
-        public void Dispose()
-        {
-        }
-
-        public void CommandClick(string command)
+        public override void CommandClick(string command)
         {
         }
 
@@ -478,7 +435,7 @@ namespace AGS.Editor
             return items;
         }
 
-        public string GetItemName(string id)
+        public override string GetItemName(string id)
         {
             RoomObject obj;
             if (id != null && RoomItemRefs.TryGetValue(id, out obj))
@@ -486,7 +443,7 @@ namespace AGS.Editor
             return null;
         }
 
-        public void SelectItem(string id)
+        public override void SelectItem(string id)
         {
             if (id != null)
             {
@@ -503,7 +460,7 @@ namespace AGS.Editor
             SetPropertyGridObject(_room);            
         }
 
-        public Cursor GetCursor(int x, int y, RoomEditorState state)
+        public override Cursor GetCursor(int x, int y, RoomEditorState state)
         {
             if (_movingObjectWithMouse) return Cursors.Hand;
             x = state.WindowXToRoom(x);
@@ -512,7 +469,7 @@ namespace AGS.Editor
             return null;
         }
 
-        public bool AllowClicksInterception()
+        public override bool AllowClicksInterception()
         {
             return true;
         }
@@ -527,7 +484,7 @@ namespace AGS.Editor
             ClearMovingState();
         }
 
-        private void SetPropertyGridList()
+        protected override void SetPropertyGridList()
         {
             Dictionary<string, object> list = new Dictionary<string, object>();
             list.Add(_room.PropertyGridTitle, _room);
@@ -543,7 +500,7 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(obj, _editor.ContentDocument);
         }
 
-        private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
+        protected override void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
             if (newPropertyObject is RoomObject)
             {

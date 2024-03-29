@@ -60,7 +60,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <LangVersion>6</LangVersion>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>    
+    <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -252,6 +252,7 @@
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Entities\LogBuffer.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\BaseThingEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\DesignTimeProperties.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\RoomFilterContextMenuArgs.cs" />
@@ -1242,22 +1243,22 @@
   <ItemGroup Condition="'$(OS)' != 'Unix' And $(Platform) == 'x86'">
     <NativeDLL Include="..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\runtimes\win-x86\native\*.Native.dll" />
     <Content Include="@(NativeDLL)">
-        <Link>%(FileName)%(Extension)</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup Condition="'$(OS)' != 'Unix' And $(Platform) == 'x64'">
     <NativeDLL Include="..\..\Solutions\packages\Magick.NET-Q8-AnyCPU.7.10.0\runtimes\win-x64\native\*.Native.dll" />
     <Content Include="@(NativeDLL)">
-        <Link>%(FileName)%(Extension)</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup Condition="'$(OS)' == 'Unix'">
-      <NativeDLL Include="$(MSBuildThisFileDirectory)\..\..\runtimes\**\*.Native.dll.so" />
-      <Content Include="@(NativeDLL)">
-          <Copy>%(FileName)%(Extension)</Copy>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+    <NativeDLL Include="$(MSBuildThisFileDirectory)\..\..\runtimes\**\*.Native.dll.so" />
+    <Content Include="@(NativeDLL)">
+      <Copy>%(FileName)%(Extension)</Copy>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

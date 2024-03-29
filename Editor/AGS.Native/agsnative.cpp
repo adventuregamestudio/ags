@@ -58,7 +58,6 @@ using AGS::Types::AGSEditorException;
 using AGS::Common::Stream;
 using AGS::Common::AssetLibInfo;
 using AGS::Common::AssetManager;
-using AGS::Common::AssetMgr;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::GUIMain;
@@ -90,6 +89,8 @@ void save_room_file(RoomStruct &rs, const AGSString &path);
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite_flags);
 void pre_save_sprite(AGSBitmap*);
 
+
+std::unique_ptr<AssetManager> AssetMgr;
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 int dsc_want_hires = 0;

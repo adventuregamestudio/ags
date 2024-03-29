@@ -15,7 +15,6 @@ namespace AGS.Editor
         private const string MENU_ITEM_DELETE = "DeleteObject";
         private const string MENU_ITEM_NEW = "NewObject";
         private const string MENU_ITEM_OBJECT_COORDS = "ObjectCoordinates";
-        private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
         private bool _movingObjectWithMouse;
         // mouse offset in ROOM's coordinates
@@ -30,10 +29,8 @@ namespace AGS.Editor
         public ObjectsEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
             : base(displayPanel, editor, room)
         {
-            _selectedObject = null;
-            RoomItemRefs = new SortedDictionary<string, RoomObject>();
-            DesignItems = new SortedDictionary<string, DesignTimeProperties>();
-            InitGameEntities();
+            // Init a starting list of item references for navigation UI
+            InitRoomItemRefs(CollectItemRefs());
 
             _movingHintTimer.Interval = 2000;
             _movingHintTimer.Tick += MovingHintTimer_Tick;
@@ -41,19 +38,10 @@ namespace AGS.Editor
 
         public override string Name { get { return "Objects"; } }
         public override string DisplayName { get { return "Objects"; } }
-        /// <summary>
-        /// A lookup table for getting game object reference by they key.
-        /// </summary>
-        private SortedDictionary<string, RoomObject> RoomItemRefs { get; set; }
 
         public override event EventHandler OnItemsChanged;
         public override event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
         public override event EventHandler<RoomFilterContextMenuArgs> OnContextMenu;
-
-        public override int ItemCount
-        {
-            get { return _objectBaselines.Count; }
-        }
 
 		public override string HelpKeyword
 		{
@@ -424,8 +412,7 @@ namespace AGS.Editor
         /// <summary>
         /// Initialize dictionary of current item references.
         /// </summary>
-        /// <returns></returns>
-        private SortedDictionary<string, RoomObject> InitItemRefs()
+        protected SortedDictionary<string, RoomObject> CollectItemRefs()
         {
             SortedDictionary<string, RoomObject> items = new SortedDictionary<string, RoomObject>();
             foreach (RoomObject obj in _room.Objects)
@@ -435,29 +422,20 @@ namespace AGS.Editor
             return items;
         }
 
-        public override string GetItemName(string id)
+        /// <summary>
+        /// Gets this object's script name.
+        /// </summary>
+        protected override string GetItemScriptName(RoomObject obj)
         {
-            RoomObject obj;
-            if (id != null && RoomItemRefs.TryGetValue(id, out obj))
-                return obj.PropertyGridTitle;
-            return null;
+            return obj.Name;
         }
 
-        public override void SelectItem(string id)
+        /// <summary>
+        /// Forms a PropertyGrid's entry title for this object.
+        /// </summary>
+        protected override string GetPropertyGridItemTitle(RoomObject obj)
         {
-            if (id != null)
-            {
-                RoomObject obj;
-                if (RoomItemRefs.TryGetValue(id, out obj))
-                {
-                    _selectedObject = obj;
-                    SetPropertyGridObject(obj);                    
-                    return;
-                }
-            }
-
-            _selectedObject = null;
-            SetPropertyGridObject(_room);            
+            return obj.PropertyGridTitle;
         }
 
         public override Cursor GetCursor(int x, int y, RoomEditorState state)
@@ -484,22 +462,6 @@ namespace AGS.Editor
             ClearMovingState();
         }
 
-        protected override void SetPropertyGridList()
-        {
-            Dictionary<string, object> list = new Dictionary<string, object>();
-            list.Add(_room.PropertyGridTitle, _room);
-            foreach (RoomObject obj in _room.Objects)
-            {
-                list.Add(obj.PropertyGridTitle, obj);
-            }
-            Factory.GUIController.SetPropertyGridObjectList(list, _editor.ContentDocument, _room);
-        }
-
-        protected void SetPropertyGridObject(object obj)
-        {
-            Factory.GUIController.SetPropertyGridObject(obj, _editor.ContentDocument);
-        }
-
         protected override void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
             if (newPropertyObject is RoomObject)
@@ -514,49 +476,10 @@ namespace AGS.Editor
             }
         }
 
-        private string GetItemID(RoomObject obj)
+        protected override string GetItemID(RoomObject obj)
         {
             // Use numeric object's ID as a "unique identifier", for now (script name is optional!)
             return obj.ID.ToString("D4");
-        }
-
-        private void InitGameEntities()
-        {
-            // Initialize item reference
-            RoomItemRefs = InitItemRefs();
-            // Initialize design-time properties
-            // TODO: load last design settings
-            DesignItems.Clear();
-            foreach (var item in RoomItemRefs)
-                DesignItems.Add(item.Key, new DesignTimeProperties());
-        }
-
-        private void AddObjectRef(RoomObject obj)
-        {
-            string id = GetItemID(obj);
-            if (RoomItemRefs.ContainsKey(id))
-                return;
-            RoomItemRefs.Add(id, obj);
-            DesignItems.Add(id, new DesignTimeProperties());
-        }
-
-        private void RemoveObjectRef(RoomObject obj)
-        {
-            string id = GetItemID(obj);
-            RoomItemRefs.Remove(id);
-            DesignItems.Remove(id);
-        }
-
-        private void UpdateObjectRef(RoomObject obj, string oldID)
-        {
-            if (!RoomItemRefs.ContainsKey(oldID))
-                return;
-            string newID = GetItemID(obj);
-            RoomItemRefs.Remove(oldID);
-            RoomItemRefs.Add(newID, obj);
-            // We must keep DesignTimeProperties!
-            DesignItems.Add(newID, DesignItems[oldID]);
-            DesignItems.Remove(oldID);
         }
     }
 }

@@ -19,13 +19,6 @@ namespace AGS.Editor
         private const string MENU_ITEM_COPY_CHAR_COORDS = "CopyCharacterCoordinatesToClipboard";
 
         private Game _game = null;
-        private bool _movingCharacterWithMouse = false;
-        private int _menuClickX = 0;
-        private int _menuClickY = 0;
-        private int _mouseOffsetX, _mouseOffsetY;
-        private bool _movingCharacterWithKeyboard = false;
-        private int _movingKeysDown = 0;
-        private Timer _movingHintTimer = new Timer();
 
         public Character SelectedCharacter { get { return _selectedObject; } }
 
@@ -46,46 +39,6 @@ namespace AGS.Editor
             {
                 cmp.OnCharacterIDChanged += OnCharacterIDChanged;
                 cmp.OnCharacterRoomChanged += OnCharacterRoomChanged;
-            }
-
-            _movingHintTimer.Interval = 2000;
-            _movingHintTimer.Tick += MovingHintTimer_Tick;
-        }
-
-        public override bool MouseDown(MouseEventArgs e, RoomEditorState state)
-        {
-            if (e.Button == MouseButtons.Middle) return false;
-
-            int xClick = state.WindowXToRoom(e.X);
-            int yClick = state.WindowYToRoom(e.Y);
-            Character character = GetCharacter(xClick, yClick, state);
-            if (character != null) SelectCharacter(character, xClick, yClick, state);
-            else _selectedObject = null;
-
-            if (_selectedObject != null)
-            {
-                Factory.GUIController.SetPropertyGridObject(_selectedObject);
-                return true;
-            }
-            return false;
-        }
-
-        private void SelectCharacter(Character character, int xClick, int yClick, RoomEditorState state)
-        {
-            SetSelectedCharacter(character);
-            if (!DesignItems[GetItemID(character)].Locked)
-            {
-                if (!state.DragFromCenter)
-                {
-                    _mouseOffsetX = xClick - character.StartX;
-                    _mouseOffsetY = yClick - character.StartY;
-                }
-                else
-                {
-                    _mouseOffsetX = 0;
-                    _mouseOffsetY = 0;
-                }
-                _movingCharacterWithMouse = true;
             }
         }
 
@@ -125,49 +78,6 @@ namespace AGS.Editor
                 (y >= character.StartY - height) && (y < character.StartY));          
         }
 
-        public override bool MouseMove(int x, int y, RoomEditorState state)
-        {
-            if (!_movingCharacterWithMouse) return false;
-
-            int newX = state.WindowXToRoom(x) - _mouseOffsetX;
-            int newY = state.WindowYToRoom(y) - _mouseOffsetY;
-            return MoveCharacter(newX, newY);
-        }
-
-        private bool MoveCharacter(int newX, int newY)
-        {
-            if (_selectedObject == null)
-            {
-                ClearMovingState();
-            }
-            else
-            {
-                if ((newX != _selectedObject.StartX) ||
-                    (newY != _selectedObject.StartY))
-                {
-                    _selectedObject.StartX = newX;
-                    _selectedObject.StartY = newY;
-                    // NOTE: do not mark room as modified, as characters are not part of room data
-                }
-                _movingHintTimer.Stop();
-            }
-            return true;
-        }
-
-        private void ClearMovingState()
-        {
-            _movingCharacterWithMouse = false;
-            _movingCharacterWithKeyboard = false;
-            _movingKeysDown = 0;
-            _movingHintTimer.Stop();
-        }
-
-        private void MovingHintTimer_Tick(object sender, EventArgs e)
-        {
-            ClearMovingState();
-            Invalidate();
-        }
-
         private void CharCoordMenuEventHandler(object sender, EventArgs e)
         {
             int tempx = _selectedObject.StartX;
@@ -177,7 +87,7 @@ namespace AGS.Editor
             Utilities.CopyTextToClipboard(textToCopy);
         }
 
-        private void ShowCharCoordMenu(MouseEventArgs e, RoomEditorState state)
+        protected override void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
         {
             if (_selectedObject != null)
             {
@@ -185,25 +95,8 @@ namespace AGS.Editor
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.Add(new ToolStripMenuItem("Copy Character coordinates to clipboard", null, onClick, MENU_ITEM_COPY_CHAR_COORDS));
                 OnContextMenu?.Invoke(this, new RoomFilterContextMenuArgs(menu, e.X, e.Y));
-
-                _menuClickX = state.WindowXToRoom(e.X);
-                _menuClickY = state.WindowYToRoom(e.Y);
-
                 menu.Show(_panel, e.X, e.Y);
             }
-        }
-
-        public override bool MouseUp(MouseEventArgs e, RoomEditorState state)
-        {
-            _movingCharacterWithMouse = false;
-            if (e.Button == MouseButtons.Middle) return false;
-
-            if (e.Button == MouseButtons.Right)
-            {
-                ShowCharCoordMenu(e, state);
-                return true;
-            }
-            return false;
         }
 
         public override void PaintToHDC(IntPtr hdc, RoomEditorState state)
@@ -230,7 +123,7 @@ namespace AGS.Editor
                 Rectangle rect = GetCharacterRect(_selectedObject, state);
                 graphics.DrawRectangle(pen, rect);
 
-                if (_movingCharacterWithMouse || _movingCharacterWithKeyboard)
+                if (IsMovingObject)
                 {
                     Brush shadeBrush = new SolidBrush(Color.FromArgb(200, Color.Black));
                     System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
@@ -301,12 +194,10 @@ namespace AGS.Editor
 
         protected override void FilterActivated()
         {
-            ClearMovingState();
         }
 
         protected override void FilterDeactivated()
         {
-            ClearMovingState();
         }
 
         public void UpdateCharactersRoom(Character character, int oldRoom)
@@ -362,53 +253,6 @@ namespace AGS.Editor
         {
         }
 
-        public override bool KeyPressed(Keys key)
-        {
-            if (_selectedObject == null)
-                return false;
-            if (DesignItems[GetItemID(_selectedObject)].Locked)
-                return false;
-
-            switch (key)
-            {
-                case Keys.Left:
-                    _movingKeysDown |= 1; _movingCharacterWithKeyboard = true;
-                    return MoveCharacter(_selectedObject.StartX - 1, _selectedObject.StartY);
-                case Keys.Right:
-                    _movingKeysDown |= 2; _movingCharacterWithKeyboard = true;
-                    return MoveCharacter(_selectedObject.StartX + 1, _selectedObject.StartY);
-                case Keys.Up:
-                    _movingKeysDown |= 4; _movingCharacterWithKeyboard = true;
-                    return MoveCharacter(_selectedObject.StartX, _selectedObject.StartY - 1);
-                case Keys.Down:
-                    _movingKeysDown |= 8; _movingCharacterWithKeyboard = true;
-                    return MoveCharacter(_selectedObject.StartX, _selectedObject.StartY + 1);
-            }
-            return false;
-        }
-
-        public override bool KeyReleased(Keys key)
-        {
-            int moveKeys = _movingKeysDown;
-            switch (key)
-            {
-                case Keys.Left: moveKeys &= ~1; break;
-                case Keys.Right: moveKeys &= ~2; break;
-                case Keys.Up: moveKeys &= ~4; break;
-                case Keys.Down: moveKeys &= ~8; break;
-            }
-            if (moveKeys != _movingKeysDown)
-            {
-                _movingKeysDown = moveKeys;
-                if (_movingKeysDown == 0)
-                {
-                    _movingHintTimer.Start();
-                    return true;
-                }
-            }
-            return false;
-        }
-
         protected override string GetItemID(Character c)
         {
             // Use numeric character's ID as a "unique identifier", for now (script name is optional!)
@@ -450,13 +294,42 @@ namespace AGS.Editor
             return obj.PropertyGridTitle;
         }
 
-        public override Cursor GetCursor(int x, int y, RoomEditorState state)
+        /// <summary>
+        /// Tries to get an object under given coordinates.
+        /// Returns null if no object was found.
+        /// </summary>
+        protected override Character GetObjectAtCoords(int x, int y, RoomEditorState state)
         {
-            if (_movingCharacterWithMouse) return Cursors.Hand;
-            x = state.WindowXToRoom(x);
-            y = state.WindowYToRoom(y);
-            if (GetCharacter(x, y, state) != null) return Cursors.Default;
-            return null;
+            return GetCharacter(x, y, state);
+        }
+
+        /// <summary>
+        /// Gets current object's position.
+        /// </summary>
+        protected override void GetObjectPosition(Character obj, out int curX, out int curY)
+        {
+            curX = obj.StartX;
+            curY = obj.StartY;
+        }
+
+        /// <summary>
+        /// Tries to assign new position in room for the given object.
+        /// Returns if anything has changed as a result.
+        /// </summary>
+        protected override bool SetObjectPosition(Character obj, int newX, int newY)
+        {
+            _selectedObject.StartX = newX;
+            _selectedObject.StartY = newY;
+            // NOTE: do not mark room as modified, as characters are not part of room data
+            return false;
+        }
+
+        /// <summary>
+        /// Change object current selection.
+        /// </summary>
+        protected override void SetSelectedObject(Character obj)
+        {
+            SetSelectedCharacter(obj);
         }
 
         public override bool AllowClicksInterception()

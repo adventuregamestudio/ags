@@ -21,6 +21,16 @@ namespace AGS.Editor
         protected RoomSettingsEditor _editor;
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         protected TThing _selectedObject = null;
+        protected TThing _lastSelectedObject = null;
+        // Object moving handling
+        private bool _movingObjectWithMouse;
+        // mouse offset in ROOM's coordinates
+        private int _mouseOffsetX, _mouseOffsetY;
+        // mouse click location in ROOM's coordinates
+        private Point _menuClickPos = new Point();
+        private bool _movingObjectWithKeyboard = false;
+        private int _movingKeysDown = 0;
+        private Timer _movingHintTimer = new Timer();
 
         public BaseThingEditorFilter(Panel displayPanel, RoomSettingsEditor editor, Room room)
         {
@@ -31,6 +41,9 @@ namespace AGS.Editor
 
             RoomItemRefs = new SortedDictionary<string, TThing>();
             DesignItems = new SortedDictionary<string, DesignTimeProperties>();
+
+            _movingHintTimer.Interval = 2000;
+            _movingHintTimer.Tick += MovingHintTimer_Tick;
         }
 
         /// <summary>
@@ -38,6 +51,20 @@ namespace AGS.Editor
         /// This is used in connection with the room navigation UI.
         /// </summary>
         private SortedDictionary<string, TThing> RoomItemRefs { get; set; }
+
+        /// <summary>
+        /// Tells whether the selected object is being moved, either with
+        /// the mouse or keyboard (or else).
+        /// </summary>
+        protected bool IsMovingObject
+        {
+            get { return _movingObjectWithMouse || _movingObjectWithKeyboard; }
+        }
+
+        protected Point MenuClickPos
+        {
+            get { return _menuClickPos; }
+        }
 
         #region IDisposable implementation
 
@@ -96,14 +123,16 @@ namespace AGS.Editor
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
             _isOn = true;
+            ClearMovingState();
             FilterActivated();
         }
 
         public void FilterOff()
         {
-            FilterDeactivated();
             Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
             _isOn = false;
+            ClearMovingState();
+            FilterDeactivated();
         }
 
         public string GetItemName(string id)
@@ -131,17 +160,96 @@ namespace AGS.Editor
             SetPropertyGridObject(_room);
         }
 
+        public bool KeyPressed(Keys key)
+        {
+            if (_selectedObject == null)
+                return false;
+            if (DesignItems[GetItemID(_selectedObject)].Locked)
+                return false;
+
+            if (HandleKeyPress(key))
+                return true;
+            return HandleMoveKeysPress(key);
+        }
+
+        public bool KeyReleased(Keys key)
+        {
+            if (HandleKeyRelease(key))
+                return true;
+            return HandleMoveKeysRelease(key);
+        }
+
+        public bool MouseDown(MouseEventArgs e, RoomEditorState state)
+        {
+            if (e.Button == MouseButtons.Middle)
+                return false;
+
+            int roomX = state.WindowXToRoom(e.X);
+            int roomY = state.WindowYToRoom(e.Y);
+
+            TThing thing = GetObjectAtCoords(roomX, roomY, state);
+            if (thing != null)
+            {
+                SelectObject(thing, roomX, roomY, state);
+            }
+            else
+            {
+                _selectedObject = null;
+            }
+
+            if (_selectedObject != null)
+            {
+                Factory.GUIController.SetPropertyGridObject(_selectedObject);
+                return true;
+            }
+            return false;
+        }
+
+        public bool MouseUp(MouseEventArgs e, RoomEditorState state)
+        {
+            if (e.Button == MouseButtons.Middle)
+                return false;
+
+            _movingObjectWithMouse = false;
+            _lastSelectedObject = _selectedObject;
+
+            // Upon releasing RMB - display a context menu
+            if (e.Button == MouseButtons.Right)
+            {
+                _menuClickPos.X = state.WindowXToRoom(e.X);
+                _menuClickPos.Y = state.WindowYToRoom(e.Y);
+                ShowContextMenu(e, state);
+                return true;
+            }
+            return false;
+        }
+
+        public bool MouseMove(int x, int y, RoomEditorState state)
+        {
+            if (!_movingObjectWithMouse)
+                return false;
+
+            int newX = state.WindowXToRoom(x) - _mouseOffsetX;
+            int newY = state.WindowYToRoom(y) - _mouseOffsetY;
+            return MoveObject(newX, newY);
+        }
+
+        public Cursor GetCursor(int x, int y, RoomEditorState state)
+        {
+            if (_movingObjectWithMouse)
+                return Cursors.Hand;
+            x = state.WindowXToRoom(x);
+            y = state.WindowYToRoom(y);
+            if (GetObjectAtCoords(x, y, state) != null)
+                return Cursors.Default;
+            return null;
+        }
+
         // Following IRoomEditorFilter members are left for descendants to implement
         public abstract void PaintToHDC(IntPtr hdc, RoomEditorState state);
         public abstract void Paint(Graphics graphics, RoomEditorState state);
-        public abstract bool MouseDown(MouseEventArgs e, RoomEditorState state);
-        public abstract bool MouseUp(MouseEventArgs e, RoomEditorState state);
         public abstract bool DoubleClick(RoomEditorState state);
-        public abstract bool MouseMove(int x, int y, RoomEditorState state);
         public abstract void CommandClick(string command);
-        public abstract bool KeyPressed(Keys keyData);
-        public abstract bool KeyReleased(Keys keyData);
-        public abstract Cursor GetCursor(int x, int y, RoomEditorState state);
         public abstract bool AllowClicksInterception();
 
         public abstract event EventHandler OnItemsChanged;
@@ -242,6 +350,128 @@ namespace AGS.Editor
             }
         }
 
+        private void SelectObject(TThing obj, int roomX, int roomY, RoomEditorState state)
+        {
+            SetSelectedObject(obj);
+            if (!DesignItems[GetItemID(obj)].Locked)
+            {
+                if (!state.DragFromCenter)
+                {
+                    int objX, objY;
+                    GetObjectPosition(obj, out objX, out objY);
+                    _mouseOffsetX = roomX - objX;
+                    _mouseOffsetY = roomY - objY;
+                }
+                else
+                {
+                    _mouseOffsetX = 0;
+                    _mouseOffsetY = 0;
+                }
+                _movingObjectWithMouse = true;
+            }
+        }
+
+        private bool HandleMoveKeysPress(Keys key)
+        {
+            int curX, curY;
+            GetObjectPosition(_selectedObject, out curX, out curY);
+            int step = GetArrowMoveStepSize();
+            switch (key)
+            {
+                case Keys.Left:
+                    _movingKeysDown |= 1; _movingObjectWithKeyboard = true;
+                    return MoveObject(curX - step, curY);
+                case Keys.Right:
+                    _movingKeysDown |= 2; _movingObjectWithKeyboard = true;
+                    return MoveObject(curX + step, curY);
+                case Keys.Up:
+                    _movingKeysDown |= 4; _movingObjectWithKeyboard = true;
+                    return MoveObject(curX, curY - step);
+                case Keys.Down:
+                    _movingKeysDown |= 8; _movingObjectWithKeyboard = true;
+                    return MoveObject(curX, curY + step);
+            }
+            return false;
+        }
+
+        private bool HandleMoveKeysRelease(Keys key)
+        {
+            int moveKeys = _movingKeysDown;
+            switch (key)
+            {
+                case Keys.Left: moveKeys &= ~1; break;
+                case Keys.Right: moveKeys &= ~2; break;
+                case Keys.Up: moveKeys &= ~4; break;
+                case Keys.Down: moveKeys &= ~8; break;
+            }
+            if (moveKeys != _movingKeysDown)
+            {
+                _movingKeysDown = moveKeys;
+                if (_movingKeysDown == 0)
+                {
+                    _movingHintTimer.Start();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Moves currently selected object to the new coordinates
+        /// </summary>
+        private bool MoveObject(int newX, int newY)
+        {
+            if (_selectedObject == null)
+            {
+                ClearMovingState();
+            }
+            else
+            {
+                if (SetObjectPosition(_selectedObject, newX, newY))
+                {
+                    _room.Modified = true;
+                }
+                _movingHintTimer.Stop();
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Legacy feature support: changes step of moving object with a keyboard,
+        /// depending on room's resolution.
+        /// </summary>
+        private int GetArrowMoveStepSize()
+        {
+            return RoomEditorState.IsHighResRoomWithLowResScript(_room) ? 2 : 1;
+        }
+
+        /// <summary>
+        /// Legacy feature support: rounds coordinates to match the room's
+        /// resolution grid.
+        /// </summary>
+        protected int ConvertObjectCoordinate(int newCoord)
+        {
+            if (RoomEditorState.IsHighResRoomWithLowResScript(_room))
+            {
+                newCoord = (newCoord / 2) * 2;
+            }
+            return newCoord;
+        }
+
+        protected void ClearMovingState()
+        {
+            _movingObjectWithMouse = false;
+            _movingObjectWithKeyboard = false;
+            _movingKeysDown = 0;
+            _movingHintTimer.Stop();
+        }
+
+        private void MovingHintTimer_Tick(object sender, EventArgs e)
+        {
+            ClearMovingState();
+            Invalidate();
+        }
+
         #region Derived classes interface
 
         /// <summary>
@@ -260,17 +490,76 @@ namespace AGS.Editor
         /// </summary>
         protected abstract string GetPropertyGridItemTitle(TThing obj);
 
+        /// <summary>
+        /// React to the new object selected in the properties grid list.
+        /// Override in the child class if necessary.
+        /// </summary>
         protected virtual void GUIController_OnPropertyObjectChanged(object newPropertyObject)
         {
         }
 
+        /// <summary>
+        /// React to this filter getting activated.
+        /// Override in the child class if necessary.
+        /// </summary>
         protected virtual void FilterActivated()
         {
         }
 
+        /// <summary>
+        /// React to this filter getting deactivated.
+        /// Override in the child class if necessary.
+        /// </summary>
         protected virtual void FilterDeactivated()
         {
         }
+
+        /// <summary>
+        /// Lets child classes to handle key press.
+        /// This is called before the base class does any of its own handling.
+        /// Returns if handled by the child class.
+        /// </summary>
+        protected virtual bool HandleKeyPress(Keys key)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Lets child classes to handle key release.
+        /// This is called before the base class does any of its own handling.
+        /// Returns if handled by the child class.
+        /// </summary>
+        protected virtual bool HandleKeyRelease(Keys key)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Prepares and shows context menu.
+        /// Override in the child classes for the actual menu, or leave unimplemented for no menu.
+        /// </summary>
+        protected virtual void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+        {
+        }
+
+        /// <summary>
+        /// Tries to get an object under given coordinates.
+        /// Returns null if no object was found.
+        /// </summary>
+        protected abstract TThing GetObjectAtCoords(int x, int y, RoomEditorState state);
+        /// <summary>
+        /// Gets current object's position.
+        /// </summary>
+        protected abstract void GetObjectPosition(TThing obj, out int curX, out int curY);
+        /// <summary>
+        /// Tries to assign new position in room for the given object.
+        /// Returns if anything has changed as a result.
+        /// </summary>
+        protected abstract bool SetObjectPosition(TThing obj, int newX, int newY);
+        /// <summary>
+        /// Change object current selection.
+        /// </summary>
+        protected abstract void SetSelectedObject(TThing obj);
 
         #endregion
     }

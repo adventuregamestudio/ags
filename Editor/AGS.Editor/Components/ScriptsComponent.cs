@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Preferences;
 using AGS.Editor.Utils;
 using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
@@ -19,12 +21,14 @@ namespace AGS.Editor.Components
         private const string MENU_COMMAND_NEW = "NewScript";
         private const string MENU_COMMAND_IMPORT = "ImportScript";
         private const string MENU_COMMAND_EXPORT = "ExportScript";
+        private const string MENU_COMMAND_ADD_EXISTING = "AddExistingScript";
         private const string ICON_KEY = "ScriptIcon";
         
 		private const string COMMAND_OPEN_GLOBAL_SCRIPT = "GoToGlobalScript";
 		private const string COMMAND_OPEN_GLOBAL_HEADER = "GoToGlobalScriptHeader";
 
         private const string SCRIPT_MODULE_FILE_FILTER = "AGS script modules (*.scm)|*.scm";
+        private const string SCRIPT_FILES_FILE_FILTER = "AGS script or header (*.asc;*.ash)|*.asc;*.ash";
 
         private delegate void CloseScriptEditor();
 
@@ -125,6 +129,16 @@ namespace AGS.Editor.Components
                     Script script = scripts.Script;
                     Script header = scripts.Header;
                     ExportScriptModule(header, script, fileName);
+                }
+            }
+            else if (controlID == MENU_COMMAND_ADD_EXISTING)
+            {
+                string currentGameDir = Factory.AGSEditor.CurrentGame.DirectoryPath;
+                string[] fileNames = _guiController.ShowOpenFileDialogMultipleFiles("Select script/header pair to add...", SCRIPT_FILES_FILE_FILTER, currentGameDir);
+                
+                if (fileNames.Length > 0)
+                {
+                    AddScriptModules(fileNames);
                 }
             }
             else if (controlID == MENU_COMMAND_NEW)
@@ -245,23 +259,286 @@ namespace AGS.Editor.Components
             }
         }
 
+        private List<ExistingScriptHeaderToAdd> GetNormalizedScriptHeaderPairs(string[] fileNames, CompileMessages errors)
+        {
+            string[] uniqueFilenames = fileNames.Distinct().ToArray();
+            string[] deleted;
+
+            string[] validFilenames = ScriptFileUtilities.FilterNonScriptFileNames(uniqueFilenames, out deleted);
+            foreach(var d in deleted)
+                errors.Add(new CompileWarning("Not .asc or .ash extension in file " + d + "."));
+            if (validFilenames.Length == 0)
+            {
+                return new List<ExistingScriptHeaderToAdd>();
+            }
+
+            string[] regularScriptFilenames = ScriptFileUtilities.FilterOutRoomScriptFileNames(validFilenames, out deleted);
+            foreach (var d in deleted)
+                errors.Add(new CompileWarning("Only script modules supported, cannot add room script file " + d + "."));
+            if (regularScriptFilenames.Length == 0)
+            {
+                return new List<ExistingScriptHeaderToAdd>();
+            }
+
+            ScriptsAndHeaders gameScripts = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders;
+            string[] relativeFilenames = Utilities.GetRelativeToProjectPath(regularScriptFilenames);
+            string[] notInProjectFilenames = ScriptFileUtilities.FilterAlreadyInGameScripts(relativeFilenames, gameScripts, out deleted);
+            foreach (var d in deleted)
+                errors.Add(new CompileWarning("Cannot add already in game project script file " + d + "."));
+            if (notInProjectFilenames.Length == 0)
+            {
+                return new List<ExistingScriptHeaderToAdd>();
+            }
+
+            List<Tuple<string, string>> toBeAddedPairs = ScriptFileUtilities.PairHeadersAndScriptFiles(notInProjectFilenames);
+
+            List<ExistingScriptHeaderToAdd> scriptsToAdd = new List<ExistingScriptHeaderToAdd>();
+            foreach(var pair in toBeAddedPairs)
+            {
+                ExistingScriptHeaderToAdd scriptToAdd;
+                scriptToAdd.Header.SrcFileName = pair.Item1;
+                scriptToAdd.Script.SrcFileName = pair.Item2;
+
+                // NOTE: AGS Editor currently has all non-room script files at the project root
+                // we will guess that the destination file is simply the basename, but we will
+                // need to check later if these already match an existing file in the project root.
+                scriptToAdd.Header.DstFileName = Path.GetFileName(scriptToAdd.Header.SrcFileName);
+                scriptToAdd.Script.DstFileName = Path.GetFileName(scriptToAdd.Script.SrcFileName);
+
+                scriptsToAdd.Add(scriptToAdd);
+            }
+
+            return scriptsToAdd;
+        }
+
+        private int NewUniqueKey()
+        {
+            ScriptsAndHeaders gameScripts = Factory.AGSEditor.CurrentGame.ScriptsAndHeaders;
+            int uniqueKey;
+            do
+            {
+                uniqueKey = new Random().Next(Int32.MaxValue);
+            } while (!ScriptFileUtilities.IsKeyUnique(uniqueKey, gameScripts));
+            return uniqueKey;
+        }
+
+        /// <summary>
+        /// Ensures uniqueness of file names in the game project, by fixing destination file names for script-header list.
+        /// </summary>
+        /// <param name="scriptsToAdd">List of script-header pairs to fix destination file names for.</param>
+        /// <returns>A list of fixed existing script-header pairs where destination file names are updated if necessary.</returns>
+        private List<ExistingScriptHeaderToAdd> FixDestinationFileNames(List<ExistingScriptHeaderToAdd> scriptsToAdd)
+        {
+            List<ExistingScriptHeaderToAdd> fixedScripts = new List<ExistingScriptHeaderToAdd>();
+            foreach (var pair in scriptsToAdd)
+            {
+                string headerSrc = pair.Header.SrcFileName;
+                string scriptSrc = pair.Script.SrcFileName;
+                string headerDst = pair.Header.DstFileName;
+                string scriptDst = pair.Script.DstFileName;
+
+                string fileName = string.IsNullOrEmpty(headerDst) ? scriptDst : headerDst;
+                string destFileName = Path.GetFileNameWithoutExtension(fileName);
+                headerDst = destFileName + ".ash";
+                scriptDst = destFileName + ".asc";
+
+                bool headerRequireNewName = !string.IsNullOrEmpty(headerSrc) && (headerSrc != headerDst);
+                bool scriptRequireNewName = !string.IsNullOrEmpty(scriptSrc) && (scriptSrc != scriptDst);
+
+                if (headerRequireNewName || scriptRequireNewName)
+                {
+                    destFileName = FindFirstAvailableFileName(destFileName);
+                }
+
+                ExistingScriptHeaderToAdd scriptToAdd;
+                scriptToAdd.Header.SrcFileName = pair.Header.SrcFileName;
+                scriptToAdd.Script.SrcFileName = pair.Script.SrcFileName;
+                scriptToAdd.Header.DstFileName = destFileName + ".ash";
+                scriptToAdd.Script.DstFileName = destFileName + ".asc";
+                fixedScripts.Add(scriptToAdd);
+            }
+
+            return fixedScripts;
+        }
+
+        /// <summary>
+        /// Ensure files are not overwritten unnecessarily. 
+        /// If a pair (script or header) is missing from file list but is present in the game directory, use it instead of overwriting with empty file.
+        /// </summary>
+        /// <param name="scriptsToAdd">List of existing script-header pairs to check and possibly fix.</param>
+        /// <returns>A new list script-header pairs, where if files were missing and one if they exist at the destination, they are safely added.</returns>
+        private List<ExistingScriptHeaderToAdd> SafelyAddMissingPairIfExists(List<ExistingScriptHeaderToAdd> scriptsToAdd)
+        {
+            List<ExistingScriptHeaderToAdd> fixedScripts = new List<ExistingScriptHeaderToAdd>();
+            foreach (var pair in scriptsToAdd)
+            {
+                string headerSrc = pair.Header.SrcFileName;
+                string scriptSrc = pair.Script.SrcFileName;
+                string headerDst = pair.Header.DstFileName;
+                string scriptDst = pair.Script.DstFileName;
+
+                if(!string.IsNullOrEmpty(headerSrc) && !string.IsNullOrEmpty(scriptSrc))
+                {
+                    // both scripts are present at source, proceed as all is good
+                    fixedScripts.Add(pair);
+                    continue;
+                }
+
+                // if header is empty at source we would create a new empty header at destination
+                // but if that file already exists, it's better we do not erase it!
+                if (string.IsNullOrEmpty(headerSrc) && File.Exists(headerDst))
+                {
+                    headerSrc = headerDst;
+                }
+
+                // do the same for the script file
+                if (string.IsNullOrEmpty(scriptSrc) && File.Exists(scriptDst))
+                {
+                    scriptSrc = scriptDst;
+                }
+
+                ExistingScriptHeaderToAdd fixedPair;
+                fixedPair.Header.SrcFileName = headerSrc;
+                fixedPair.Script.SrcFileName = scriptSrc;
+                fixedPair.Header.DstFileName = headerDst;
+                fixedPair.Script.DstFileName = scriptDst;
+                fixedScripts.Add(fixedPair);
+            }
+
+            return fixedScripts;
+        }
+
+        private static string ReadScriptFile(Encoding enc, string fileName, string placeHolderText)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return placeHolderText;
+            }
+
+            int fileLength = new Func<int>(() =>
+            {
+                var fInfo = new FileInfo(fileName);
+                return (int)fInfo.Length;
+            })();
+
+            BinaryReader reader = new BinaryReader(new FileStream(fileName, FileMode.Open, FileAccess.Read));
+            byte[] textBytes = reader.ReadBytes(fileLength);
+            reader.Close();            
+
+            return enc.GetString(textBytes);
+        }
+
+        // returns added script NodeID
+        private string AddExistingScriptFile(ExistingScriptHeaderToAdd scriptToAdd, CompileMessages errors)
+        {
+            try
+            {
+                Encoding enc = _agsEditor.CurrentGame.TextEncoding;
+                string name = Path.GetFileNameWithoutExtension(scriptToAdd.Header.DstFileName);
+                string headerSrcFileName = scriptToAdd.Header.SrcFileName;
+                string scriptSrcFileName = scriptToAdd.Script.SrcFileName;
+                int uniqueKey = NewUniqueKey();
+
+                ScriptModuleDef module;
+                module.Author = string.Empty;
+                module.Description = string.Empty;
+                module.Name = name;
+                module.Version = string.Empty;
+                module.Header = ReadScriptFile(enc, headerSrcFileName, "// " + name + " module header\r\n");
+                module.Script = ReadScriptFile(enc, scriptSrcFileName, "// " + name + " module script\r\n");
+                module.UniqueKey = uniqueKey;
+
+                List<Script> newScripts = ImportExport.AddImportedScriptModule(module);
+
+                AddScriptFromImportOrFiles(name, newScripts);
+                return GetNodeID(module);
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new CompileError("An error occurred adding scripts. " +  ex.ToString()));
+            }
+            return string.Empty;
+        }
+
+        // Helper to show error message boxes, using MessageBoxOnCompile config for now
+        private void ShowMessageAsNeeded(CompileMessages errors, string message)
+        {
+            MessageBoxOnCompile msgBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
+            bool isMsgBoxShownOnError = msgBoxSetting != MessageBoxOnCompile.Never;
+            bool isMsgBoxShownOnWarning = isMsgBoxShownOnError && msgBoxSetting != MessageBoxOnCompile.OnlyErrors;
+
+            Factory.GUIController.ShowOutputPanel(errors);
+            if (errors.HasErrors && isMsgBoxShownOnError)
+            {
+                _guiController.ShowMessage(message, MessageBoxIcon.Error);
+            }
+            else if (isMsgBoxShownOnWarning)
+            {
+                _guiController.ShowMessage(message, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void AddScriptModules(string[] fileNames)
+        {
+            CompileMessages errors = new CompileMessages();
+
+            List<ExistingScriptHeaderToAdd> unfixedcriptHeaderPairs = GetNormalizedScriptHeaderPairs(fileNames, errors);
+
+            if (unfixedcriptHeaderPairs.Count == 0 && errors.Count > 0)
+            {
+                Factory.GUIController.ShowOutputPanel(errors);
+                ShowMessageAsNeeded(errors, "Selected files could not be added, see output panel for more details");
+                return;
+            }
+
+            List<ExistingScriptHeaderToAdd> uncheckedScriptHeaderPairs = FixDestinationFileNames(unfixedcriptHeaderPairs);
+            List<ExistingScriptHeaderToAdd> scriptHeaderPairs = SafelyAddMissingPairIfExists(uncheckedScriptHeaderPairs);
+
+            string lastAddedScriptNodeID = string.Empty;
+            foreach (ExistingScriptHeaderToAdd pair in scriptHeaderPairs)
+            {
+                lastAddedScriptNodeID = AddExistingScriptFile(pair, errors);
+            }
+
+            Factory.GUIController.ClearOutputPanel();
+
+            // if at least one script module is successfully added, this does two things
+            // - it selects the last added module to make it easier to find it
+            // - it refreshes the treeview, if we don't do this it appears the script was added at bottom, but any later refresh will move it.
+            if (!string.IsNullOrEmpty(lastAddedScriptNodeID))
+            {
+                RePopulateTreeView(lastAddedScriptNodeID);
+            }
+
+            if (errors.Count > 0)
+            {
+                Factory.GUIController.ShowOutputPanel(errors);
+                ShowMessageAsNeeded(errors, "Some of the selected files could not be added, see output panel for more details");
+            }
+        }
+
+        private void AddScriptFromImportOrFiles(string destFileName, List<Script> newScripts)
+        {
+            newScripts[0].FileName = destFileName + ".ash";
+            newScripts[1].FileName = destFileName + ".asc";
+            newScripts[0].Modified = true;
+            newScripts[1].Modified = true;
+            newScripts[0].SaveToDisk();
+            newScripts[1].SaveToDisk();
+            ScriptAndHeader scripts = new ScriptAndHeader(newScripts[0], newScripts[1]);
+            AddSingleItem(scripts);
+            _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+            foreach (Script script in newScripts)
+                AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
+        }
+
         private void ImportScriptModule(string fileName)
         {
             try
             {
                 string destFileName = FindFirstAvailableFileName(Path.GetFileNameWithoutExtension(fileName));
                 List<Script> newScripts = ImportExport.ImportScriptModule(fileName, _agsEditor.CurrentGame.TextEncoding);
-                newScripts[0].FileName = destFileName + ".ash";
-                newScripts[1].FileName = destFileName + ".asc";
-                newScripts[0].Modified = true;
-                newScripts[1].Modified = true;
-                newScripts[0].SaveToDisk();
-                newScripts[1].SaveToDisk();
-                ScriptAndHeader scripts = new ScriptAndHeader(newScripts[0], newScripts[1]);
-                AddSingleItem(scripts);
-                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-                foreach (Script script in newScripts)
-                    AutoComplete.ConstructCache(script, _agsEditor.GetImportedScriptHeaders(script));
+                AddScriptFromImportOrFiles(destFileName, newScripts);
             }
             catch (Exception ex)
             {
@@ -415,7 +692,8 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(MENU_COMMAND_NEW, "New script", null));
-            menu.Add(new MenuCommand(MENU_COMMAND_IMPORT, "Import script...", null));
+            menu.Add(new MenuCommand(MENU_COMMAND_IMPORT, "Import script module...", null));
+            menu.Add(new MenuCommand(MENU_COMMAND_ADD_EXISTING, "Add existing script...", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -632,6 +910,11 @@ namespace AGS.Editor.Components
         private string GetNodeID(ScriptAndHeader scripts)
         {
             return ITEM_COMMAND_PREFIX + scripts.Name;
+        }
+
+        private string GetNodeID(ScriptModuleDef scriptDef)
+        {
+            return ITEM_COMMAND_PREFIX + scriptDef.Name;
         }
 
         protected override bool CanFolderBeDeleted(ScriptFolder folder)

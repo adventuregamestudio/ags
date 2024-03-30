@@ -34,9 +34,6 @@
     <ClCompile Include="..\..\Common\util\string.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\datastream.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\stdio_compat.c">
       <Filter>Common</Filter>
     </ClCompile>
@@ -79,9 +76,6 @@
       <Filter>tinyxml2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\bufferedstream.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\util\datastream.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\util\file.h">

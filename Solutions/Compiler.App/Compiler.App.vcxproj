@@ -360,7 +360,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\datastream.cpp" />
     <ClCompile Include="..\..\Common\util\directory.cpp" />
     <ClCompile Include="..\..\Common\util\file.cpp" />
     <ClCompile Include="..\..\Common\util\path.cpp" />
@@ -374,9 +373,9 @@
     <ClCompile Include="..\..\Common\util\cmdlineopts.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\util\stream.h" />
     <ClInclude Include="..\..\Common\util\textstreamreader.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />
-    <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\path.h" />
     <ClInclude Include="..\..\Common\util\cmdlineopts.h" />

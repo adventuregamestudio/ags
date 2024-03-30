@@ -22,9 +22,8 @@ namespace Common
 
 FileStream::FFileCloseNotify FileStream::FileCloseNotify = nullptr;
 
-FileStream::FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode,
-            DataEndianess stream_endianess)
-    : DataStream(stream_endianess)
+FileStream::FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
+    : StreamBase()
     , _file(nullptr)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -32,8 +31,8 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, StreamMo
     Open(file_name, open_mode, work_mode);
 }
 
-FileStream::FileStream(FILE *file, bool own, StreamMode work_mode, DataEndianess stream_end)
-    : DataStream(stream_end)
+FileStream::FileStream(FILE *file, bool own, StreamMode work_mode)
+    : StreamBase()
     , _file(file)
     , _ownHandle(own)
 {

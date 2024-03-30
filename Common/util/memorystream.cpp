@@ -20,8 +20,8 @@ namespace AGS
 namespace Common
 {
 
-MemoryStream::MemoryStream(const uint8_t *cbuf, size_t buf_sz, DataEndianess stream_endianess)
-    : DataStream(stream_endianess)
+MemoryStream::MemoryStream(const uint8_t *cbuf, size_t buf_sz)
+    : StreamBase()
     , _cbuf(cbuf)
     , _buf_sz(buf_sz)
     , _len(buf_sz)
@@ -32,8 +32,8 @@ MemoryStream::MemoryStream(const uint8_t *cbuf, size_t buf_sz, DataEndianess str
         _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
 }
 
-MemoryStream::MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode, DataEndianess stream_endianess)
-    : DataStream(stream_endianess)
+MemoryStream::MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode)
+    : StreamBase()
     , _cbuf(nullptr)
     , _buf_sz(buf_sz)
     , _len(0)
@@ -139,17 +139,17 @@ int32_t MemoryStream::WriteByte(uint8_t val)
 }
 
 
-VectorStream::VectorStream(const std::vector<uint8_t> &cbuf, DataEndianess stream_endianess)
-    : MemoryStream(&cbuf.front(), cbuf.size(), stream_endianess)
+VectorStream::VectorStream(const std::vector<uint8_t> &cbuf)
+    : MemoryStream(&cbuf.front(), cbuf.size())
     , _vec(nullptr)
 {
     _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
 }
 
-VectorStream::VectorStream(std::vector<uint8_t> &buf, StreamMode mode, DataEndianess stream_endianess)
+VectorStream::VectorStream(std::vector<uint8_t> &buf, StreamMode mode)
     : MemoryStream((((mode & kStream_ReadWrite) == kStream_Read) && (buf.size() > 0) ?
             &buf.front() : nullptr),
-        buf.size(), mode, stream_endianess)
+        buf.size(), mode)
     , _vec(&buf)
 {
     _mode = static_cast<StreamMode>(mode | kStream_Seek);

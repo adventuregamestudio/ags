@@ -25,7 +25,6 @@ CFLAGS   += -Werror=implicit-function-declaration
 COMMON_OBJS = \
 	../../Common/core/asset.cpp \
 	../../Common/util/bufferedstream.cpp \
-	../../Common/util/datastream.cpp \
 	../../Common/util/directory.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/filestream.cpp \

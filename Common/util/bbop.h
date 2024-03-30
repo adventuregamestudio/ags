@@ -35,9 +35,9 @@ enum DataEndianess
     kBigEndian,
     kLittleEndian,
 #if defined (BITBYTE_BIG_ENDIAN)
-    kDefaultSystemEndianess = kBigEndian
+    kSystemEndianess = kBigEndian
 #else
-    kDefaultSystemEndianess = kLittleEndian
+    kSystemEndianess = kLittleEndian
 #endif
 };
 

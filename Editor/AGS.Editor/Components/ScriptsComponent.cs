@@ -266,7 +266,7 @@ namespace AGS.Editor.Components
 
             string[] validFilenames = ScriptFileUtilities.FilterNonScriptFileNames(uniqueFilenames, out deleted);
             foreach(var d in deleted)
-                errors.Add(new CompileWarning("Not .asc or .ash extension in file " + d + "."));
+                errors.Add(new CompileWarning($"Not .asc or .ash extension in file \"{d}\"."));
             if (validFilenames.Length == 0)
             {
                 return new List<ExistingScriptHeaderToAdd>();
@@ -274,7 +274,7 @@ namespace AGS.Editor.Components
 
             string[] regularScriptFilenames = ScriptFileUtilities.FilterOutRoomScriptFileNames(validFilenames, out deleted);
             foreach (var d in deleted)
-                errors.Add(new CompileWarning("Only script modules supported, cannot add room script file " + d + "."));
+                errors.Add(new CompileWarning($"Cannot import room script \"{d}\" by itself, only script modules can be imported."));
             if (regularScriptFilenames.Length == 0)
             {
                 return new List<ExistingScriptHeaderToAdd>();
@@ -284,7 +284,7 @@ namespace AGS.Editor.Components
             string[] relativeFilenames = Utilities.GetRelativeToProjectPath(regularScriptFilenames);
             string[] notInProjectFilenames = ScriptFileUtilities.FilterAlreadyInGameScripts(relativeFilenames, gameScripts, out deleted);
             foreach (var d in deleted)
-                errors.Add(new CompileWarning("Cannot add already in game project script file " + d + "."));
+                errors.Add(new CompileWarning($"Script file \"{d}\" is already in the game project."));
             if (notInProjectFilenames.Length == 0)
             {
                 return new List<ExistingScriptHeaderToAdd>();

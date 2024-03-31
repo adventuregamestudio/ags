@@ -474,6 +474,7 @@ void unload_game_file()
     pl_stop_plugins();
 
     // Free all script instances and script modules
+    ccInstance::FreeInstanceStack();
     delete gameinstFork;
     delete gameinst;
     gameinstFork = nullptr;

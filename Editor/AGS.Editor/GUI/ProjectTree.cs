@@ -25,6 +25,7 @@ namespace AGS.Editor
         private Color? _treeNodesBackgroundColor;
         private TreeNode _dropHoveredNode;
         private DateTime _timeOfDragDropHoverStart;
+        private LineInBetween _lineInBetween;
 
 
         public ProjectTree(TreeView projectTree)
@@ -34,6 +35,10 @@ namespace AGS.Editor
             projectTree.SelectedImageKey = DEFAULT_ICON_KEY;
 
             _projectTree = projectTree;
+            _lineInBetween = new LineInBetween();
+            _projectTree.Parent.Controls.Add(_lineInBetween);
+            _lineInBetween.BringToFront();
+            _lineInBetween.Hide();
             _treeNodes = new Dictionary<string, IEditorComponent>();
 
             _projectTree.MouseClick += new System.Windows.Forms.MouseEventHandler(this.projectTree_MouseClick);
@@ -48,9 +53,10 @@ namespace AGS.Editor
 			_projectTree.ItemDrag += new ItemDragEventHandler(projectTree_ItemDrag);
 			_projectTree.DragOver += new DragEventHandler(projectTree_DragOver);
 			_projectTree.DragDrop += new DragEventHandler(projectTree_DragDrop);
-		}
+            _projectTree.QueryContinueDrag += new QueryContinueDragEventHandler(projectTree_QueryContinueDrag);
+        }
 
-		private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
+        private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
             _expandedAtTime = DateTime.Now;
 		}
@@ -471,7 +477,7 @@ namespace AGS.Editor
 			}
 		}
 
-        private void HighlightNodeAndExpandIfNeeded(ProjectTreeItem item)
+        private void HighlightNodeAndExpandIfNeeded(ProjectTreeItem item, TargetDropZone dropZone)
         {
             TreeNode treeNode = item.TreeNode;
             if (_treeNodesBackgroundColor == null)
@@ -486,7 +492,7 @@ namespace AGS.Editor
                 _dropHoveredNode = treeNode;
                 _timeOfDragDropHoverStart = DateTime.Now;
             }
-            else if (item.ExpandOnDragHover && HasANodeBeenHoveredEnoughForExpanding())
+            else if (item.ExpandOnDragHover && HasANodeBeenHoveredEnoughForExpanding() && dropZone == TargetDropZone.Middle)
             {
                 treeNode.Expand();
             }
@@ -501,8 +507,78 @@ namespace AGS.Editor
             }
         }
 
-		private void projectTree_DragOver(object sender, DragEventArgs e)
-		{
+        private void ShowMiddleLineProjectTree(int x, int y, int w, int h)
+        {
+            // it auto-hides so we don't have to handle the drop being cancelled which has to be done in projectItem!
+            _lineInBetween.ShowAndHideAt(x, y, w, h);
+        }
+
+        private void HideMiddleLineProjectTree()
+        {
+            _lineInBetween.Hide();
+        }
+
+        private TargetDropZone GetDropZoneImpl(int y, int h)
+        {
+            TargetDropZone dropZone = TargetDropZone.Middle;
+     
+            if (y <= h/4)
+            {
+                dropZone = TargetDropZone.Top;
+            }
+            else if (y > h/4 && y < 2*h/5)
+            {
+                dropZone = TargetDropZone.MiddleTop;
+            }
+            else if (y > 3*h/5 && y < 3*h/4)
+            {
+                dropZone = TargetDropZone.MiddleBottom;
+            }
+            else if (y >= 3*h/4)
+            {
+                dropZone = TargetDropZone.Bottom;
+            }
+
+            return dropZone;
+        }
+
+        private TargetDropZone GetDropZone(ProjectTreeItem target, Point locationInControl)
+        {
+            int node_h = target.TreeNode.Bounds.Height;
+            int node_y = target.TreeNode.Bounds.Y;
+            int cur_y = locationInControl.Y;
+            return GetDropZoneImpl(cur_y - node_y, node_h);
+        }
+
+        private void projectTree_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
+        {
+            if(e.EscapePressed)
+            {
+                e.Action = DragAction.Cancel;
+            }
+
+            if(e.Action != DragAction.Continue)
+            {                
+                HideMiddleLineProjectTree();
+            }
+        }
+
+        private int GetLineInBetweenWidth(ProjectTreeItem target)
+        {
+            int maxWdith = target.TreeNode.Bounds.Width;
+            if (target.TreeNode.PrevNode != null)
+            {
+                maxWdith = Math.Max(maxWdith, target.TreeNode.PrevNode.Bounds.Width);
+            }
+            if (target.TreeNode.NextNode != null)
+            {
+                maxWdith = Math.Max(maxWdith, target.TreeNode.NextNode.Bounds.Width);
+            }
+            return Math.Max(maxWdith, _projectTree.Width / 3);
+        }
+
+        private void projectTree_DragOver(object sender, DragEventArgs e)
+        {
 			e.Effect = DragDropEffects.None;
 
 			if (e.Data.GetDataPresent(typeof(ProjectTreeItem)))
@@ -513,16 +589,41 @@ namespace AGS.Editor
 				if (dragTarget != null)
 				{
 					ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
-					if (source.CanDropHere == null)
+                    TargetDropZone dropZone = GetDropZone(target, locationInControl);
+                    bool showLine;
+
+                    if (source.CanDropHere == null)
 					{
 						throw new AGSEditorException("Node has not populated CanDropHere handler for draggable node");
 					}
-                    if (source.CanDropHere(source, target))
+                    if (source.CanDropHere(source, target, dropZone, out showLine))
                     {
-                        HighlightNodeAndExpandIfNeeded(target);
+                        int node_h = target.TreeNode.Bounds.Height;
+                        int node_y = target.TreeNode.Bounds.Y;
+                        int line_h = node_h / 5;
+                        int width = GetLineInBetweenWidth(target);
+
+                        if (dropZone == TargetDropZone.Top && showLine)
+                        {
+                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y - line_h / 2, width, line_h);
+                        }
+                        else if (dropZone == TargetDropZone.Bottom && showLine)
+                        {
+                            ShowMiddleLineProjectTree(target.TreeNode.Bounds.X, node_y + node_h - line_h / 2, width, line_h);
+                        }
+                        else
+                        {
+                            HideMiddleLineProjectTree();
+                        }
+
+                        HighlightNodeAndExpandIfNeeded(target, dropZone);
                         e.Effect = DragDropEffects.Move;
                     }
-                    else ClearHighlightNode();
+                    else
+                    {
+                        HideMiddleLineProjectTree();
+                        ClearHighlightNode();
+                    }
                     
 					// auto-scroll the tree when move the mouse to top/bottom
 					if (locationInControl.Y < 30)
@@ -543,8 +644,9 @@ namespace AGS.Editor
 			}
 		}
 
-		private void projectTree_DragDrop(object sender, DragEventArgs e)
-		{
+        private void projectTree_DragDrop(object sender, DragEventArgs e)
+        {
+            HideMiddleLineProjectTree();
             ClearHighlightNode();
 			ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
 			Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));
@@ -554,9 +656,10 @@ namespace AGS.Editor
 			if (source.DropHere == null)
 			{
 				throw new AGSEditorException("Node has not populated DropHere handler for draggable node");
-			}
+            }
+            TargetDropZone dropZone = GetDropZone(target, locationInControl);
 
-			source.DropHere(source, target);
+            source.DropHere(source, target, dropZone);
 		}
 
 	}

@@ -51,7 +51,10 @@ void remove_all_overlays();
 ScriptOverlay* create_scriptoverlay(ScreenOverlay &over, bool internal_ref = false);
 // Restores overlays, e.g. after restoring a game save
 void restore_overlays();
-
+// Returns a ref to overlays list, useful for iterating over them
+// FIXME: this should be a CONST ref (if any at all), strictly for reading,
+// but unfortunately some batch operations on overlays are currently performed
+// by external code...
 std::vector<ScreenOverlay> &get_overlays();
 
 

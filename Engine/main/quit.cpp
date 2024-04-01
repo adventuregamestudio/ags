@@ -83,11 +83,6 @@ void quit_stop_cd()
         cd_manager(3,0);
 }
 
-void quit_shutdown_scripts()
-{
-    ccUnregisterAllObjects();
-}
-
 void quit_check_dynamic_sprites(QuitReason qreason)
 {
     if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && 
@@ -203,8 +198,6 @@ void quit(const char *quitmsg)
 
     set_our_eip(9900);
 
-    quit_shutdown_scripts();
-
     set_our_eip(9016);
 
     quit_stop_cd();
@@ -222,7 +215,7 @@ void quit(const char *quitmsg)
 
     // Release game data and unregister assets
     quit_check_dynamic_sprites(qreason);
-    unload_game_file();
+    unload_game();
     AssetMgr.reset();
 
     // Be sure to unlock mouse on exit, or users will hate us

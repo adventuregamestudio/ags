@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - RC, February 2024
+VERSION 3.6.1, April 2024
 
 Common features:
  - Implemented Deflate compression option for sprites.

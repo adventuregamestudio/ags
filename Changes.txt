@@ -228,6 +228,27 @@ WinSetup:
    and fullscreen mode selection.
 
 
+VERSION 3.6.0 - Patch 11, April 2024
+
+Editor:
+ - Fixed exception in Room Messages editor occuring if a certain game's Character is missing.
+
+Engine:
+ - Fixed disabled GUIs not hiding their controls if "Hide all their controls" disabled style
+   is set in General Settings, and game is run with Direct3D or OpenGL renderers.
+ - Fixed "greyed out" GUI controls leaving traces on parent GUIs when running with Software
+   renderer.
+ - Fixed text parser in Dialog Options not working correctly if "new key handling" mode is on.
+ - Fixed DynamicSprite.SaveToFile() return value was inverse (regression in 3.6.0).
+ - Fixed engine crash in GetHotspotProperty() if the function is called with invalid ID.
+ - Fixed room Camera may fail to restore its position in the room after loading a save.
+ - Fixed fonts may not be assigned correct parameters when a new game is launched
+   by calling RunAGSGame() in script (regression since 3.6.0 or 3.5.*).
+
+Compatibility:
+ - Fixed engine refusing to load saves made by 3.2.0 engine, although being capable to do so.
+
+
 VERSION 3.6.0 - Patch 10, February 2024
 
 Editor:

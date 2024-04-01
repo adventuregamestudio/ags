@@ -83,11 +83,6 @@ void quit_stop_cd()
         cd_manager(3,0);
 }
 
-void quit_shutdown_scripts()
-{
-    ccUnregisterAllObjects();
-}
-
 void quit_check_dynamic_sprites(QuitReason qreason)
 {
     if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && 
@@ -171,12 +166,6 @@ QuitReason quit_check_for_error_state(const char *qmsg, String &errmsg, String &
     }
 }
 
-void quit_release_data()
-{
-    unload_game_file();
-    AssetMgr.reset();
-}
-
 // TODO: move to test unit
 extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
@@ -220,8 +209,6 @@ void quit(const char *quitmsg)
 
     our_eip = 9020;
 
-    quit_shutdown_scripts();
-
     // Be sure to unlock mouse on exit, or users will hate us
     sys_window_lock_mouse(false);
 
@@ -245,7 +232,8 @@ void quit(const char *quitmsg)
 
     shutdown_pathfinder();
 
-    quit_release_data();
+    unload_game();
+    AssetMgr.reset();
 
     engine_shutdown_gfxmode();
 

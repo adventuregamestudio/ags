@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.1 - RC, February 2024
+VERSION 3.6.1, April 2024
 
 Common features:
  - Implemented Deflate compression option for sprites.
@@ -170,10 +170,10 @@ Engine:
  - Engine will now safeguard plugin's reading and writing of game saves, so that any mistakes
    done by plugins won't affect other parts of a save.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
- - Engine will force any in-game debug messages to be displayed in standard message boxes,
+ - Engine will force any in-game debug messages to be displayed as blocking message boxes,
    disregarding game's "Display all messages as speech" option.
- - Display critical alerts as message boxes on all platforms that support that (unless engine
-   is run with "--no-message-box" parameter).
+ - Display critical alerts as system modal message dialogs on all platforms that support that
+   (unless engine is run with "--no-message-box" parameter).
  - Print some info about memory usage when reporting a "Out of memory" error.
  - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated
@@ -226,6 +226,27 @@ WinSetup:
  - Added options for setting texture cache and sound cache size.
  - Added options to disable particular graphic drivers and graphic driver selection,
    and fullscreen mode selection.
+
+
+VERSION 3.6.0 - Patch 11, April 2024
+
+Editor:
+ - Fixed exception in Room Messages editor occuring if a certain game's Character is missing.
+
+Engine:
+ - Fixed disabled GUIs not hiding their controls if "Hide all their controls" disabled style
+   is set in General Settings, and game is run with Direct3D or OpenGL renderers.
+ - Fixed "greyed out" GUI controls leaving traces on parent GUIs when running with Software
+   renderer.
+ - Fixed text parser in Dialog Options not working correctly if "new key handling" mode is on.
+ - Fixed DynamicSprite.SaveToFile() return value was inverse (regression in 3.6.0).
+ - Fixed engine crash in GetHotspotProperty() if the function is called with invalid ID.
+ - Fixed room Camera may fail to restore its position in the room after loading a save.
+ - Fixed fonts may not be assigned correct parameters when a new game is launched
+   by calling RunAGSGame() in script (regression since 3.6.0 or 3.5.*).
+
+Compatibility:
+ - Fixed engine refusing to load saves made by 3.2.0 engine, although being capable to do so.
 
 
 VERSION 3.6.0 - Patch 10, February 2024

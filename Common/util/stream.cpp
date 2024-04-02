@@ -54,6 +54,16 @@ size_t Stream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
     return count;
 }
 
+size_t Stream::ReadAndConvertArrayOfFloat32(float *buffer, size_t count)
+{
+    count = ReadArray(buffer, sizeof(float), count);
+    for (size_t i = 0; i < count; ++i, ++buffer)
+    {
+        *buffer = BBOp::SwapBytesFloat32(*buffer);
+    }
+    return count;
+}
+
 size_t Stream::WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count)
 {
     size_t elem;
@@ -92,6 +102,21 @@ size_t Stream::WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count)
         int64_t val = *buffer;
         val = BBOp::SwapBytesInt64(val);
         if (Write(&val, sizeof(int64_t)) < sizeof(int64_t))
+        {
+            break;
+        }
+    }
+    return elem;
+}
+
+size_t Stream::WriteAndConvertArrayOfFloat32(const float *buffer, size_t count)
+{
+    size_t elem;
+    for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
+    {
+        float val = *buffer;
+        val = BBOp::SwapBytesFloat32(val);
+        if (Write(&val, sizeof(float)) < sizeof(float))
         {
             break;
         }

@@ -67,10 +67,10 @@ namespace AGS.Editor
                 UnloadedRoom room = Factory.AGSEditor.CurrentGame.FindRoomByID(_roomNumber);
                 if(room != null && room.Number == _roomNumber && !string.IsNullOrEmpty(room.Description))
                 {
-                    return Script.FileName + (IsModified ? " *" : "") + ": " + room.Description;
+                    return Script.FileNameWithoutPath + (IsModified ? " *" : "") + ": " + room.Description;
                 }
             }
-            return Script.FileName + (IsModified ? " *" : "");
+            return Script.FileNameWithoutPath + (IsModified ? " *" : "");
         }
 
         private void Init(Script scriptToEdit)

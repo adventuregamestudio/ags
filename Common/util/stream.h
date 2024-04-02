@@ -280,6 +280,12 @@ public:
         Read(&val, sizeof(int64_t));
         return BBOp::Int64FromLE(val);
     }
+    float ReadFloat32()
+    {
+        float val = 0.f;
+        Read(&val, sizeof(float));
+        return BBOp::Float32FromLE(val);
+    }
     bool ReadBool()
     {
         return ReadInt8() != 0;
@@ -303,6 +309,11 @@ public:
     {
         val = BBOp::Int64FromLE(val);
         return Write(&val, sizeof(int64_t));
+    }
+    size_t WriteFloat32(float val)
+    {
+        val = BBOp::Float32FromLE(val);
+        return Write(&val, sizeof(float));
     }
     size_t WriteBool(bool val)
     {
@@ -346,6 +357,14 @@ public:
         return ReadArray(buffer, sizeof(int64_t), count);
     #endif
     }
+    size_t ReadArrayOfFloat32(float *buffer, size_t count)
+    {
+    #if defined (BITBYTE_BIG_ENDIAN)
+        return ReadAndConvertArrayOfFloat32(buffer, count);
+    #else
+        return ReadArray(buffer, sizeof(float), count);
+    #endif
+    }
     
     size_t WriteArray(const void *buffer, size_t elem_size, size_t count)
     {
@@ -379,6 +398,14 @@ public:
         return WriteArray(buffer, sizeof(int64_t), count);
     #endif
     }
+    size_t WriteArrayOfFloat32(const float *buffer, size_t count)
+    {
+    #if defined (BITBYTE_BIG_ENDIAN)
+        WriteAndConvertArrayOfFloat32(buffer, count);
+    #else
+        return WriteArray(buffer, sizeof(float), count);
+    #endif
+    }
 
     // Fill the requested number of bytes with particular value
     size_t WriteByteCount(uint8_t b, size_t count);
@@ -391,9 +418,11 @@ private:
     size_t  ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count);
     size_t  ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count);
+    size_t  ReadAndConvertArrayOfFloat32(float *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count);
     size_t  WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count);
+    size_t  WriteAndConvertArrayOfFloat32(const float *buffer, size_t count);
 };
 
 

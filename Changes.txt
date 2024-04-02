@@ -170,10 +170,10 @@ Engine:
  - Engine will now safeguard plugin's reading and writing of game saves, so that any mistakes
    done by plugins won't affect other parts of a save.
  - Engine will disable vsync in a "infinite fps" mode, because vsync prevents getting more fps.
- - Engine will force any in-game debug messages to be displayed in standard message boxes,
+ - Engine will force any in-game debug messages to be displayed as blocking message boxes,
    disregarding game's "Display all messages as speech" option.
- - Display critical alerts as message boxes on all platforms that support that (unless engine
-   is run with "--no-message-box" parameter).
+ - Display critical alerts as system modal message dialogs on all platforms that support that
+   (unless engine is run with "--no-message-box" parameter).
  - Print some info about memory usage when reporting a "Out of memory" error.
  - Deprecated in-game "console", as practically useless.
  - Added new config settings in "graphics" section: "sprite_cache_size" (which replaces deprecated

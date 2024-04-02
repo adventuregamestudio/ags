@@ -377,7 +377,7 @@ public:
     size_t WriteArrayOfInt16(const int16_t *buffer, size_t count)
     {
     #if defined (BITBYTE_BIG_ENDIAN)
-        WriteAndConvertArrayOfInt16(buffer, count);
+        return WriteAndConvertArrayOfInt16(buffer, count);
     #else
         return WriteArray(buffer, sizeof(int16_t), count);
     #endif
@@ -385,7 +385,7 @@ public:
     size_t WriteArrayOfInt32(const int32_t *buffer, size_t count)
     {
     #if defined (BITBYTE_BIG_ENDIAN)
-        WriteAndConvertArrayOfInt32(buffer, count);
+        return WriteAndConvertArrayOfInt32(buffer, count);
     #else
         return WriteArray(buffer, sizeof(int32_t), count);
     #endif
@@ -393,7 +393,7 @@ public:
     size_t WriteArrayOfInt64(const int64_t *buffer, size_t count)
     {
     #if defined (BITBYTE_BIG_ENDIAN)
-        WriteAndConvertArrayOfInt64(buffer, count);
+        return WriteAndConvertArrayOfInt64(buffer, count);
     #else
         return WriteArray(buffer, sizeof(int64_t), count);
     #endif
@@ -401,7 +401,7 @@ public:
     size_t WriteArrayOfFloat32(const float *buffer, size_t count)
     {
     #if defined (BITBYTE_BIG_ENDIAN)
-        WriteAndConvertArrayOfFloat32(buffer, count);
+        return WriteAndConvertArrayOfFloat32(buffer, count);
     #else
         return WriteArray(buffer, sizeof(float), count);
     #endif

@@ -19,10 +19,8 @@
 #define __AGS_EE_AC__GUI_H
 
 #include "ac/dynobj/scriptobjects.h"
+#include "gui/guidefines.h"
 #include "gui/guimain.h"
-
-using AGS::Common::GUIMain;
-using AGS::Common::GUIObject;
 
 ScriptGUI *GUI_AsTextWindow(ScriptGUI *tehgui);
 int     GUI_GetPopupStyle(ScriptGUI *tehgui);
@@ -43,7 +41,7 @@ int		GUI_GetZOrder(ScriptGUI *tehgui);
 void	GUI_SetClickable(ScriptGUI *tehgui, int clickable);
 int		GUI_GetClickable(ScriptGUI *tehgui);
 int		GUI_GetID(ScriptGUI *tehgui);
-GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx);
+AGS::Common::GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx);
 int		GUI_GetControlCount(ScriptGUI *tehgui);
 void    GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos);
 int     GUI_GetPopupYPos(ScriptGUI *tehgui);
@@ -66,6 +64,9 @@ void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
 void	replace_macro_tokens(const char *text, AGS::Common::String &fixed_text);
 void	update_gui_zorder();
+// Initializes all GUI and controls for runtime state;
+// this must be done after creating or loading GUIs.
+void    prepare_gui_runtime(bool startup);
 void	export_gui_controls(int ee);
 void	unexport_gui_controls(int ee);
 void	update_gui_disabled_status();
@@ -81,5 +82,34 @@ void    gui_on_mouse_down(const int guin, const int mbut);
 
 extern int ifacepopped;
 extern int mouse_on_iface;
+extern std::vector<AGS::Common::GUIMain> guis;
+extern std::vector<AGS::Common::GUIButton> guibuts;
+extern std::vector<AGS::Common::GUIInvWindow> guiinv;
+extern std::vector<AGS::Common::GUILabel> guilabels;
+extern std::vector<AGS::Common::GUIListBox> guilist;
+extern std::vector<AGS::Common::GUISlider> guislider;
+extern std::vector<AGS::Common::GUITextBox> guitext;
+
+namespace AGS
+{
+namespace Engine
+{
+namespace GUIE
+{
+    // Mark all existing GUI for redraw
+    void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl);
+    // Mark all translatable GUI controls for redraw
+    void MarkForTranslationUpdate();
+    // Mark all GUI which use the given font for recalculate/redraw;
+    // pass -1 to update all the textual controls together
+    void MarkForFontUpdate(int font);
+    // Mark labels that acts as special text placeholders for redraw
+    void MarkSpecialLabelsForUpdate(AGS::Common::GUILabelMacro macro);
+    // Mark inventory windows for redraw, optionally only ones linked to given character;
+    // also marks buttons with inventory icon mode
+    void MarkInventoryForUpdate(int char_id, bool is_player);
+} // namespace GUIE
+} // namespace Engine
+} // namespace AGS
 
 #endif // __AGS_EE_AC__GUI_H

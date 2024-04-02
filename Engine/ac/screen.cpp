@@ -151,11 +151,13 @@ public:
         // Create a "screenshot" on a texture
         play.screen_is_faded_out = 0; // force all game elements to draw
 
-        const auto &view = play.GetMainViewport();
+        _view = play.GetMainViewport();
+        _sprTrans = play.GetGlobalTransform(true);
+
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
         black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
         _fade = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
-        _fade->SetStretch(view.GetWidth(), view.GetHeight(), false);
+        _fade->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
 
         _alpha = 1;
     }
@@ -175,8 +177,7 @@ public:
         else
             gfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
 
-        const auto &view = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(view, SpriteTransform(), kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
+        gfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         _fade->SetAlpha(_fadein ? (255 - _alpha) : _alpha);
         gfxDriver->DrawSprite(0, 0, _fade);
         gfxDriver->EndSpriteBatch();
@@ -193,6 +194,8 @@ private:
     bool _fadeIn = false;
     IDriverDependantBitmap *_fade = nullptr;
     int _alpha = 0;
+    Rect _view;
+    SpriteTransform _sprTrans;
 };
 
 // TODO: split further onto 256- and highcolor- software fade
@@ -223,6 +226,7 @@ public:
         if (game.color_depth > 1)
         {
             _speed *= 4; // speed things up for high-color games
+            _view = play.GetMainViewport();
 
             // First of all we render the game once again and get the drawn frame as a bitmap.
             // Then we keep drawing saved image of the game with different alpha,
@@ -275,10 +279,9 @@ public:
     {
         if (game.color_depth > 1)
         {
-            const auto &view = play.GetMainViewport();
             _bmpBuff->Fill(_clearCol);
             set_trans_blender(0, 0, 0, _fadein ? _alpha : 255 - _alpha);
-            _bmpBuff->TransBlendBlt(_bmpFrame.get(), view.Left, view.Top);
+            _bmpBuff->TransBlendBlt(_bmpFrame.get(), _view.Left, _view.Top);
             render_to_screen();
         }
         else
@@ -319,6 +322,7 @@ private:
     int _alpha = 0;
     int _rangeFrom = 0;
     int _rangeTo = 255;
+    Rect _view;
 
     // High-color state
     Bitmap *_bmpBuff = nullptr;
@@ -345,16 +349,18 @@ public:
         // Create a "screenshot" on a texture
         play.screen_is_faded_out = 0; // force all game elements to draw
 
-        const auto &view = play.GetMainViewport();
+        _view = play.GetMainViewport();
+        _sprTrans = play.GetGlobalTransform(true);
+
         std::unique_ptr<Bitmap> black_bmp(BitmapHelper::CreateBitmap(16, 16, game.GetColorDepth()));
         black_bmp->Clear(makecol(play.fade_to_red, play.fade_to_green, play.fade_to_blue));
         for (int i = 0; i < (_fadein ? 4 : 1); i++)
         {
             _fade[i] = gfxDriver->CreateDDBFromBitmap(black_bmp.get(), true /* opaque */);
-            _fade[i]->SetStretch(view.GetWidth(), view.GetHeight(), false);
+            _fade[i]->SetStretch(_view.GetWidth(), _view.GetHeight(), false);
         }
 
-        _yspeed = view.GetHeight() / (view.GetWidth() / _speed);
+        _yspeed = _view.GetHeight() / (_view.GetWidth() / _speed);
         _boxWidth = _speed;
         _boxHeight = _yspeed;
     }
@@ -377,19 +383,18 @@ public:
         else
             gfxDriver->RedrawLastFrame(RENDER_SHOT_SKIP_ON_FADE);
 
-        const auto &view = play.GetMainViewport();
-        gfxDriver->BeginSpriteBatch(view, SpriteTransform(), kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
+        gfxDriver->BeginSpriteBatch(_view, _sprTrans, kFlip_None, nullptr, RENDER_SHOT_SKIP_ON_FADE);
         if (_fadein)
         {
-            gfxDriver->DrawSprite(view.GetWidth() / 2 - _boxWidth / 2 - view.GetWidth(), 0, _fade[0]);
-            gfxDriver->DrawSprite(0, view.GetHeight() / 2 - _boxHeight / 2 - view.GetHeight(), _fade[1]);
-            gfxDriver->DrawSprite(view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
-            gfxDriver->DrawSprite(0, view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
+            gfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2 - _view.GetWidth(), 0, _fade[0]);
+            gfxDriver->DrawSprite(0, _view.GetHeight() / 2 - _boxHeight / 2 - _view.GetHeight(), _fade[1]);
+            gfxDriver->DrawSprite(_view.GetWidth() / 2 + _boxWidth / 2, 0, _fade[2]);
+            gfxDriver->DrawSprite(0, _view.GetHeight() / 2 + _boxHeight / 2, _fade[3]);
         }
         else
         {
             _fade[0]->SetStretch(_boxWidth, _boxHeight, false);
-            gfxDriver->DrawSprite(view.GetWidth() / 2 - _boxWidth / 2, view.GetHeight() / 2 - _boxHeight / 2, _fade[0]);
+            gfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2, _view.GetHeight() / 2 - _boxHeight / 2, _fade[0]);
         }
         gfxDriver->EndSpriteBatch();
         render_to_screen();
@@ -397,10 +402,9 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        const auto &view = play.GetMainViewport();
         _boxWidth += _speed;
         _boxHeight += _yspeed;
-        return _boxWidth < view.GetWidth();
+        return _boxWidth <= _view.GetWidth();
     }
 
 private:
@@ -410,6 +414,8 @@ private:
     int _yspeed = 0;
     int _boxWidth = 0;
     int _boxHeight = 0;
+    Rect _view;
+    SpriteTransform _sprTrans;
 };
 
 class ScreenBoxOutSoftware : public ScreenTransition
@@ -428,8 +434,8 @@ public:
         set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
-        const Rect &view = play.GetMainViewport();
-        _yspeed = view.GetHeight() / (view.GetWidth() / _speed);
+        _view = play.GetMainViewport();
+        _yspeed = _view.GetHeight() / (_view.GetWidth() / _speed);
         _boxWidth = _speed;
         _boxHeight = _yspeed;
         _bmpBuff = gfxDriver->GetMemoryBackBuffer();
@@ -447,36 +453,34 @@ public:
     // Draw the state
     void Draw() override
     {
-        const auto &view = play.GetMainViewport();
         if (_fadein)
         {
-            _boxWidth = Math::Clamp(_boxWidth, 0, view.GetWidth());
-            _boxHeight = Math::Clamp(_boxHeight, 0, view.GetHeight());
-            int srcx = view.GetWidth() / 2 - _boxWidth / 2;
-            int srcy = view.GetHeight() / 2 - _boxHeight / 2;
-            _bmpBuff->Blit(_bmpFrame.get(), srcx, srcy, view.Left + srcx, view.Top + srcy, _boxWidth, _boxHeight);
+            _boxWidth = Math::Clamp(_boxWidth, 0, _view.GetWidth());
+            _boxHeight = Math::Clamp(_boxHeight, 0, _view.GetHeight());
+            int srcx = _view.GetWidth() / 2 - _boxWidth / 2;
+            int srcy = _view.GetHeight() / 2 - _boxHeight / 2;
+            _bmpBuff->Blit(_bmpFrame.get(), srcx, srcy, _view.Left + srcx, _view.Top + srcy, _boxWidth, _boxHeight);
             render_to_screen();
         }
         else
         {
-            int hcentre = view.GetWidth() / 2;
-            int vcentre = view.GetHeight() / 2;
+            int hcentre = _view.GetWidth() / 2;
+            int vcentre = _view.GetHeight() / 2;
             _bmpFrame->FillRect(Rect(hcentre - _boxWidth / 2, vcentre - _boxHeight / 2,
                 hcentre + _boxWidth / 2, vcentre + _boxHeight / 2), 0);
             _bmpBuff->Fill(0);
-            _bmpBuff->Blit(_bmpFrame.get(), view.Left, view.Top);
+            _bmpBuff->Blit(_bmpFrame.get(), _view.Left, _view.Top);
             render_to_screen();
         }
     }
     // Update the state during a game tick
     bool RunImpl() override
     {
-        const auto &view = play.GetMainViewport();
         _boxWidth += _speed;
         _boxHeight += _yspeed;
         return _fadein ?
-            _boxWidth < _bmpBuff->GetWidth() :
-            _boxWidth < view.GetWidth();
+            _boxWidth <= _bmpBuff->GetWidth() :
+            _boxWidth <= _view.GetWidth();
     }
 
 private:
@@ -485,6 +489,7 @@ private:
     int _yspeed = 0;
     int _boxWidth = 0;
     int _boxHeight = 0;
+    Rect _view;
 };
 
 class ScreenCrossfade : public ScreenTransition
@@ -500,7 +505,8 @@ public:
             quit("!Cannot use crossfade screen transition in 256-colour games");
 
         play.screen_is_faded_out = 0; // force all game elements to draw
-
+        _view = play.GetMainViewport();
+        _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
         // TODO: crossfade does not need a screen with transparency, it should be opaque;
         // but Software renderer cannot alpha-blend non-masked sprite at the moment,
         // see comment to drawing opaque sprite in SDLRendererGraphicsDriver!
@@ -526,8 +532,7 @@ public:
         // draw old screen on top while alpha > 16
         if (_alpha > 16)
         {
-            gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-                play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()));
+            gfxDriver->BeginSpriteBatch(_view, _sprTrans);
             gfxDriver->DrawSprite(0, 0, _shot_ddb);
             gfxDriver->EndSpriteBatch();
         }
@@ -543,6 +548,8 @@ public:
 private:
     IDriverDependantBitmap *_shot_ddb = nullptr;
     int _alpha = 0;
+    Rect _view;
+    SpriteTransform _sprTrans;
 };
 
 class ScreenDissolve : public ScreenTransition
@@ -555,6 +562,8 @@ public:
     void Begin() override
     {
         play.screen_is_faded_out = 0; // force all game elements to draw
+        _view = play.GetMainViewport();
+        _sprTrans = play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame());
         _shot_ddb = get_frame_for_transition_in(false /* transparent */);
         _step = 0;
     }
@@ -571,8 +580,7 @@ public:
     {
         construct_game_scene(true);
         construct_game_screen_overlay(false);
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(gfxDriver->RequiresFullRedrawEachFrame()));
+        gfxDriver->BeginSpriteBatch(_view, _sprTrans);
         gfxDriver->DrawSprite(0, 0, _shot_ddb);
         gfxDriver->EndSpriteBatch();
         render_to_screen();
@@ -580,8 +588,6 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        const Rect &viewport = play.GetMainViewport();
-
         // merge the palette while dithering
         if (game.color_depth == 1) 
         {
@@ -590,9 +596,9 @@ public:
         }
         // do the dissolving
         int maskCol = saved_viewport_bitmap->GetMaskColor();
-        for (int x = 0; x < viewport.GetWidth(); x += 4)
+        for (int x = 0; x < _view.GetWidth(); x += 4)
         {
-            for (int y = 0; y < viewport.GetHeight(); y += 4)
+            for (int y = 0; y < _view.GetHeight(); y += 4)
             {
                 saved_viewport_bitmap->PutPixel(x + _pattern[_step] / 4, y + _pattern[_step] % 4, maskCol);
             }
@@ -606,6 +612,8 @@ private:
     IDriverDependantBitmap *_shot_ddb = nullptr;
     int _step = 0;
     const int _pattern[16] = {0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
+    Rect _view;
+    SpriteTransform _sprTrans;
     // For 8-bit palette mode, will interpolate between old and new room palettes
     RGB _interpal[256]{};
 };

@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include <numeric>
 #include <vector>
 #include "ac/character.h"
 #include "ac/dialog.h"
@@ -25,6 +24,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
+#include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
@@ -54,6 +54,7 @@ using namespace Engine;
 
 extern ScriptSystem scsystem;
 extern std::vector<ViewStruct> views;
+extern SpriteCache spriteset;
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -225,10 +226,11 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         scrGui[i].id = -1;
     }
 
+    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     for (int i = 0; i < game.numgui; ++i)
     {
         // link controls to their parent guis
-        HError err = guis[i].RebuildArray();
+        HError err = guis[i].RebuildArray(guictrl_refs);
         if (!err)
             return err;
         scrGui[i].id = i;
@@ -429,10 +431,20 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 3. Allocate and init game objects
     //
+    spriteset.EnlargeTo(ents.SpriteCount - 1);
     charextra.resize(game.numcharacters);
     // NOTE: movelists have 1 extra slot 0 which assumes a role of "undefined" list
     mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
-    init_game_drawdata();
+    guis = std::move(ents.Guis);
+    guibuts = std::move(ents.GuiControls.Buttons);
+    guiinv = std::move(ents.GuiControls.InvWindows);
+    guilabels = std::move(ents.GuiControls.Labels);
+    guilist = std::move(ents.GuiControls.ListBoxes);
+    guislider = std::move(ents.GuiControls.Sliders);
+    guitext = std::move(ents.GuiControls.TextBoxes);
+    GUI::Context.Spriteset = &spriteset;
+    GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+    GUI::RebuildGUI(guis, guictrl_refs);
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
     dialog = std::move(ents.Dialogs);
@@ -444,6 +456,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(game, data_ver);
     LoadLipsyncData();
+    init_game_drawdata();
 
     //
     // 4. Initialize certain runtime variables
@@ -462,14 +475,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // 5. Initialize runtime state of certain game objects
     //
     InitGameResolution(game, data_ver);
-    for (auto &label : guilabels)
-    {
-        // labels are not clickable by default
-        label.SetClickable(false);
-    }
-    play.gui_draw_order.resize(game.numgui);
-    std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
-    update_gui_zorder();
+    prepare_gui_runtime(true /* startup */);
     calculate_reserved_channel_count();
 
     //

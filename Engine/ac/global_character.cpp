@@ -26,6 +26,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
@@ -38,6 +39,7 @@
 #include "script/script.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;
@@ -205,7 +207,7 @@ void update_invorder() {
             }
         }
     }
-    GUI::MarkInventoryForUpdate(game.playercharacter, true);
+    GUIE::MarkInventoryForUpdate(game.playercharacter, true);
 }
 
 // CLNUP still used by run_dialog_script and run_interaction_commandlist, investigate if we could just use Character_AddInventory

@@ -13,6 +13,8 @@
 //=============================================================================
 #include <stdarg.h>
 #include "debug/debugmanager.h"
+#include "debug/messagebuffer.h"
+#include "util/memory_compat.h"
 #include "util/string_types.h"
 
 namespace AGS
@@ -20,208 +22,288 @@ namespace AGS
 namespace Common
 {
 
-DebugOutput::DebugOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity, bool enabled)
+DebugManager::DebugOutput::DebugOutput(const String &id,
+    std::unique_ptr<IOutputHandler> &&handler,
+    MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
     : _id(id)
-    , _handler(handler)
-    , _enabled(enabled)
-    , _defaultVerbosity(def_verbosity)
+    , _handler(std::move(handler))
 {
-    _groupFilter.resize(DbgMgr._lastGroupID + 1, _defaultVerbosity);
+    SetFilters(def_verbosity, group_filters);
 }
 
-String DebugOutput::GetID() const
+void DebugManager::DebugOutput::SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
-    return _id;
-}
-
-IOutputHandler *DebugOutput::GetHandler() const
-{
-    return _handler;
-}
-
-bool DebugOutput::IsEnabled() const
-{
-    return _enabled;
-}
-
-void DebugOutput::SetEnabled(bool enable)
-{
-    _enabled = enable;
-}
-
-void DebugOutput::SetGroupFilter(DebugGroupID id, MessageType verbosity)
-{
-    uint32_t key = DbgMgr.GetGroup(id).UID.ID;
-    if (key != kDbgGroup_None)
-        _groupFilter[key] = verbosity;
-    else
-        _unresolvedGroups.insert(std::make_pair(id.SID, verbosity));
-}
-
-void DebugOutput::SetAllGroupFilters(MessageType verbosity)
-{
-    for (auto &group : _groupFilter)
-        group = verbosity;
-    for (auto &group : _unresolvedGroups)
-        group.second = verbosity;
-}
-
-void DebugOutput::ClearGroupFilters()
-{
-    for (auto &gf : _groupFilter)
-        gf = kDbgMsg_None;
+    _groupFilter.clear();
     _unresolvedGroups.clear();
-}
 
-void DebugOutput::ResolveGroupID(DebugGroupID id)
-{
-    if (!id.IsValid())
-        return;
-
-    DebugGroupID real_id = DbgMgr.GetGroup(id).UID;
-    if (real_id.IsValid())
+    _defaultVerbosity = def_verbosity;
+    if (group_filters)
     {
-        if (_groupFilter.size() <= id.ID)
-            _groupFilter.resize(id.ID + 1, _defaultVerbosity);
-        GroupNameToMTMap::const_iterator it = _unresolvedGroups.find(real_id.SID);
-        if (it != _unresolvedGroups.end())
+        for (const auto &gf : *group_filters)
         {
-            _groupFilter[real_id.ID] = it->second;
-            _unresolvedGroups.erase(it);
+            if (gf.first.ID != InvalidMessageGroup)
+            {
+                if (_groupFilter.size() <= gf.first.ID)
+                    _groupFilter.resize(gf.first.ID + 1, _defaultVerbosity);
+                _groupFilter[gf.first.ID] = gf.second;
+            }
+            else
+            {
+                _unresolvedGroups.insert(std::make_pair(gf.first.SID, gf.second));
+            }
         }
     }
 }
 
-bool DebugOutput::TestGroup(DebugGroupID id,  MessageType mt) const
+void DebugManager::DebugOutput::ResolveGroupID(const DebugGroupID &id)
 {
-    DebugGroupID real_id = DbgMgr.GetGroup(id).UID;
-    if (real_id.ID == kDbgGroup_None || real_id.ID >= _groupFilter.size())
-        return false;
-    return (_groupFilter[real_id.ID] >= mt) != 0;
+    assert(id.IsComplete());
+    if (!id.IsComplete())
+        return; // not a complete group id, unable to resolve
+
+    if (_groupFilter.size() <= id.ID)
+        _groupFilter.resize(id.ID + 1, _defaultVerbosity);
+    auto it = _unresolvedGroups.find(id.SID);
+    if (it != _unresolvedGroups.end())
+    {
+        _groupFilter[id.ID] = it->second;
+        _unresolvedGroups.erase(it);
+    }
 }
 
-DebugManager::DebugManager()
+void DebugManager::DebugOutput::SendMessage(const DebugMessage &msg)
+{
+    assert(_handler);
+    if (_suppressed)
+        return;
+    if (!TestGroup(msg.GroupID, msg.MT))
+        return;
+    // We suppress current target before the call so that if it makes
+    // a call to output system itself, message would not print to the
+    // same target
+    _suppressed = true;
+    _handler->PrintMessage(msg);
+    _suppressed = false;
+}
+
+
+DebugManager::DebugManager(bool buffer_messages)
 {
     // Add hardcoded groups
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Main, "main"), ""));
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Game, "game"), "Game"));
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Script, "script"), "Script"));
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache"));
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_ManObj, "manobj"), "Managed obj"));
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_SDL, "sdl"), "SDL"));
-    _firstFreeGroupID = _groups.size();
-    _lastGroupID = _firstFreeGroupID;
+    // TODO: move this out of DebugManager, into the engine!
+    RegisterGroup(DebugGroupID(kDbgGroup_Main, "main"), "");
+    RegisterGroup(DebugGroupID(kDbgGroup_Game, "game"), "Game");
+    RegisterGroup(DebugGroupID(kDbgGroup_Script, "script"), "Script");
+    RegisterGroup(DebugGroupID(kDbgGroup_SprCache, "sprcache"), "Sprite cache");
+    RegisterGroup(DebugGroupID(kDbgGroup_ManObj, "manobj"), "Managed obj");
+    RegisterGroup(DebugGroupID(kDbgGroup_SDL, "sdl"), "SDL");
+
+    if (buffer_messages)
+    {
+        StartMessageBuffering();
+    }
 }
 
-DebugGroup DebugManager::GetGroup(DebugGroupID id)
+MessageGroupHandle DebugManager::FindFreeGroupID()
 {
-    if (id.ID != kDbgGroup_None)
+    if (_freeGroupID >= _groups.size())
+    {
+        _freeGroupID = _groups.size();
+    }
+    else
+    {
+        for (; _freeGroupID < _groups.size() && !_groups[_freeGroupID].UID.IsValid(); ++_freeGroupID) {}
+    }
+    return _freeGroupID;
+}
+
+MessageGroupHandle DebugManager::RegisterGroup(const String &id, const String &out_name)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    auto it = _groupByStrLookup.find(id);
+    if (it != _groupByStrLookup.end())
+    {
+        _groups[it->second.ID].OutputName = out_name;
+        return it->second.ID;
+    }
+
+    return RegisterGroupImpl(DebugGroupID(FindFreeGroupID(), id), out_name);
+}
+
+MessageGroupHandle DebugManager::RegisterGroup(const DebugGroupID &group_id, const String &out_name)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    return RegisterGroupImpl(group_id, out_name);
+}
+
+MessageGroupHandle DebugManager::RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name)
+{
+    if (_groups.size() <= group_id.ID)
+        _groups.resize(group_id.ID + 1);
+
+    auto group = DebugGroup(group_id, out_name);
+    _groups[group_id.ID] = group;
+    _groupByStrLookup[group_id.SID] = group.UID;
+
+    // Resolve group reference on every output target
+    for (auto &out : _outputs)
+    {
+        out.second.ResolveGroupID(group.UID);
+    }
+
+    return group_id.ID;
+}
+
+void DebugManager::RegisterOutput(const String &id,
+    std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
+    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+{
+    assert(handler);
+    if (!handler)
+        return;
+
+    auto out = CreateOutputImpl(id, std::move(handler), def_verbosity, group_filters);
+    // Only lock when inserting new output into the list (minimal time)
+    std::lock_guard<std::mutex> lk(_mutex);
+    _outputs[id] = std::move(out);
+}
+
+DebugManager::DebugOutput DebugManager::CreateOutputImpl(const String &id,
+    std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
+    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+{
+    auto out = DebugOutput(id, std::move(handler), def_verbosity, group_filters);
+    // Make sure that output allocates filters for all known groups
+    for (const auto &group : _groups)
+        out.ResolveGroupID(group.UID);
+    out.GetHandler()->OnRegister();
+    // Delegate buffered messages to this new output
+    if (_messageBuf)
+        SendBufferedMessages(out);
+    return std::move(out);
+}
+
+void DebugManager::SendBufferedMessages(DebugOutput &out)
+{
+    assert(_messageBuf);
+    if (!_messageBuf)
+        return;
+
+    size_t msg_lost = _messageBuf->GetMessagesLost();
+    if (msg_lost > 0u)
+    {
+        DebugGroup gr = DbgMgr.GetGroup(kDbgGroup_Main);
+        out.SendMessage(DebugMessage(String::FromFormat("WARNING: output %s lost exceeding buffer: %zu debug messages\n", out.GetID().GetCStr(), msg_lost),
+            gr.UID.ID, gr.OutputName, kDbgMsg_All));
+    }
+    for (const auto &msg : _messageBuf->GetBuffer())
+    {
+        out.SendMessage(msg);
+    }
+}
+
+DebugGroup DebugManager::GetGroup(const DebugGroupID &id)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    return GetGroupImpl(id);
+}
+
+DebugGroup DebugManager::GetGroupImpl(const DebugGroupID &id)
+{
+    if (id.ID != InvalidMessageGroup)
     {
         return id.ID < _groups.size() ? _groups[id.ID] : DebugGroup();
     }
     else if (!id.SID.IsEmpty())
     {
-        GroupByStringMap::const_iterator it = _groupByStrLookup.find(id.SID);
+        auto it = _groupByStrLookup.find(id.SID);
         return it != _groupByStrLookup.end() ? _groups[it->second.ID] : DebugGroup();
     }
     return DebugGroup();
 }
 
-PDebugOutput DebugManager::GetOutput(const String &id)
+bool DebugManager::HasOutput(const String &id)
 {
-    OutMap::const_iterator it = _outputs.find(id);
-    return it != _outputs.end() ? it->second.Target : PDebugOutput();
+    std::lock_guard<std::mutex> lk(_mutex);
+    return _outputs.count(id) > 0;
 }
 
-DebugGroup DebugManager::RegisterGroup(const String &id, const String &out_name)
+void DebugManager::SetOutputFilters(const String &id, MessageType def_verbosity,
+    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
-    DebugGroup group = GetGroup(id);
-    if (group.UID.IsValid())
-        return group;
-    group = DebugGroup(DebugGroupID(++DbgMgr._lastGroupID, id), out_name);
-    _groups.push_back(group);
-    _groupByStrLookup[group.UID.SID] = group.UID;
+    std::lock_guard<std::mutex> lk(_mutex);
+    auto it = _outputs.find(id);
+    if (it == _outputs.end())
+        return;
 
-    // Resolve group reference on every output target
-    for (OutMap::const_iterator it = _outputs.begin(); it != _outputs.end(); ++it)
-    {
-        it->second.Target->ResolveGroupID(group.UID);
-    }
-    return group;
-}
-
-void DebugManager::RegisterGroup(const DebugGroup &group)
-{
-    if (_groups.size() <= group.UID.ID)
-        _groups.resize(group.UID.ID + 1);
-    _groups[group.UID.ID] = group;
-    _groupByStrLookup[group.UID.SID] = group.UID;
-}
-
-PDebugOutput DebugManager::RegisterOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity, bool enabled)
-{
-    _outputs[id].Target = PDebugOutput(new DebugOutput(id, handler, def_verbosity, enabled));
-    _outputs[id].Suppressed = false;
-    return _outputs[id].Target;
+    auto &out = it->second;
+    out.SetFilters(def_verbosity, group_filters);
+    // Make sure that output allocates filters for all known groups
+    for (const auto &group : _groups)
+        _outputs[id].ResolveGroupID(group.UID);
 }
 
 void DebugManager::UnregisterAll()
 {
-    _lastGroupID = _firstFreeGroupID;
+    std::lock_guard<std::mutex> lk(_mutex);
     _groups.clear();
     _groupByStrLookup.clear();
     _outputs.clear();
+    _freeGroupID = 0u;
 }
 
-void DebugManager::UnregisterGroup(DebugGroupID id)
+void DebugManager::UnregisterGroup(const DebugGroupID &id)
 {
-    DebugGroup group = GetGroup(id);
+    std::lock_guard<std::mutex> lk(_mutex);
+    DebugGroup group = GetGroupImpl(id);
     if (!group.UID.IsValid())
         return;
+
+    if (group.UID.ID < _freeGroupID)
+        _freeGroupID = group.UID.ID;
     _groups[group.UID.ID] = DebugGroup();
     _groupByStrLookup.erase(group.UID.SID);
 }
 
 void DebugManager::UnregisterOutput(const String &id)
 {
+    std::lock_guard<std::mutex> lk(_mutex);
     _outputs.erase(id);
 }
 
-void DebugManager::Print(DebugGroupID group_id, MessageType mt, const String &text)
+void DebugManager::StartMessageBuffering()
 {
-    const DebugGroup &group = GetGroup(group_id);
+    auto msg_buf = std::make_unique<MessageBuffer>();
+    auto *msg_buf_ptr = msg_buf.get();
+    auto out = CreateOutputImpl(OutputMsgBufID, std::move(msg_buf), kDbgMsg_All, nullptr);
+
+    std::lock_guard<std::mutex> lk(_mutex);
+    _outputs[OutputMsgBufID] = std::move(out);
+    _messageBuf = msg_buf_ptr;
+}
+
+void DebugManager::StopMessageBuffering()
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    _messageBuf = nullptr;
+    _outputs.erase(OutputMsgBufID);
+}
+
+void DebugManager::Print(MessageGroupHandle group_id, MessageType mt, const String &text)
+{
+    std::lock_guard<std::mutex> lk(_mutex);
+    assert(group_id < _groups.size());
+    if (group_id >= _groups.size())
+        return;
+
+    const DebugGroup &group = _groups[group_id];
     DebugMessage msg(text, group.UID.ID, group.OutputName, mt);
-
-    for (OutMap::iterator it = _outputs.begin(); it != _outputs.end(); ++it)
-    {
-        SendMessage(it->second, msg);
-    }
-}
-
-void DebugManager::SendMessage(const String &out_id, const DebugMessage &msg)
-{
-    OutMap::iterator it = _outputs.find(out_id);
-    if (it != _outputs.end())
-        SendMessage(it->second, msg);
-}
-
-void DebugManager::SendMessage(OutputSlot &out, const DebugMessage &msg)
-{
-    IOutputHandler *handler = out.Target->GetHandler();
-    if (!handler || !out.Target->IsEnabled() || out.Suppressed)
-        return;
-    if (!out.Target->TestGroup(msg.GroupID, msg.MT))
-        return;
-    // We suppress current target before the call so that if it makes
-    // a call to output system itself, message would not print to the
-    // same target
-    out.Suppressed = true;
-    handler->PrintMessage(msg);
-    out.Suppressed = false;
+    for (auto &out : _outputs)
+        out.second.SendMessage(msg);
 }
 
 // TODO: move this to the dynamically allocated engine object whenever it is implemented
-DebugManager DbgMgr;
+DebugManager DbgMgr(true /* start buffering messages */);
 
 
 namespace Debug
@@ -237,7 +319,7 @@ void Printf(MessageType mt, const String &text)
     DbgMgr.Print(kDbgGroup_Main, mt, text);
 }
 
-void Printf(DebugGroupID group, MessageType mt, const String &text)
+void Printf(MessageGroupHandle group, MessageType mt, const String &text)
 {
     DbgMgr.Print(group, mt, text);
 }
@@ -258,7 +340,7 @@ void Printf(MessageType mt, const char *fmt, ...)
     va_end(argptr);
 }
 
-void Printf(DebugGroupID group, MessageType mt, const char *fmt, ...)
+void Printf(MessageGroupHandle group, MessageType mt, const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);

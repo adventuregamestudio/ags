@@ -57,7 +57,11 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
 #include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "media/audio/audio_system.h"
@@ -85,6 +89,7 @@ extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
+std::unique_ptr<AssetManager> AssetMgr;
 GamePlayState play;
 GameSetup usetup;
 GameSetupStruct game;
@@ -117,6 +122,12 @@ AGS::Common::SpriteCache::Callbacks spritecallbacks = {
 SpriteCache spriteset(game.SpriteInfos, spritecallbacks);
 
 std::vector<GUIMain> guis;
+std::vector<GUIButton> guibuts;
+std::vector<GUIInvWindow> guiinv;
+std::vector<GUILabel> guilabels;
+std::vector<GUIListBox> guilist;
+std::vector<GUISlider> guislider;
+std::vector<GUITextBox> guitext;
 
 CCGUIObject ccDynamicGUIObject;
 CCCharacter ccDynamicCharacter;
@@ -451,7 +462,7 @@ void free_do_once_tokens()
 
 
 // Free all the memory associated with the game
-void unload_game_file()
+void unload_game()
 {
     dispose_game_drawdata();
     // NOTE: fonts should be freed prior to stopping plugins,
@@ -459,6 +470,8 @@ void unload_game_file()
     free_all_fonts();
     close_translation();
 
+    // NOTE: script objects must be freed prior to stopping plugins,
+    // in case there are managed objects provided by plugins.
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
     pl_stop_plugins();
@@ -654,7 +667,7 @@ const char *Game_GetName() {
 void Game_SetName(const char *newName) {
     play.game_name = newName;
     sys_window_set_title(play.game_name.GetCStr());
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Gamename);
 }
 
 int Game_GetSkippingCutscene()
@@ -722,7 +735,7 @@ int Game_ChangeTranslation(const char *newFilename)
     { // switch back to default translation
         close_translation();
         usetup.translation = "";
-        GUI::MarkForTranslationUpdate();
+        GUIE::MarkForTranslationUpdate();
         return 1;
     }
 
@@ -731,7 +744,7 @@ int Game_ChangeTranslation(const char *newFilename)
         return 0; // failed, kept previous translation
 
     usetup.translation = newFilename;
-    GUI::MarkForTranslationUpdate();
+    GUIE::MarkForTranslationUpdate();
     return 1;
 }
 

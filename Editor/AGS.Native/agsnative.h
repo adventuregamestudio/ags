@@ -16,16 +16,6 @@
 //
 //=============================================================================
 #pragma once
-#include "Common/ac/common.h"
-#include "Common/ac/characterinfo.h"
-#include "Common/ac/dialogtopic.h"
-#include "Common/ac/gamestructdefines.h"
-#include "Common/ac/inventoryiteminfo.h"
-#include "Common/ac/mousecursor.h"
-#include "Common/ac/view.h"
-#include "Common/ac/wordsdictionary.h"
-#include "Common/gui/guidefines.h"
-#include "Common/game/customproperties.h"
 
 // TODO: maybe remove this limit completely when engine's sprite cache
 // implements optimized container; see comments for SpriteCache class.

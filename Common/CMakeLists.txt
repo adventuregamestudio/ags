@@ -55,6 +55,7 @@ target_sources(common
     debug/assert.h
     debug/debugmanager.cpp
     debug/debugmanager.h
+    debug/messagebuffer.h
     debug/out.h
     debug/outputhandler.h
     font/agsfontrenderer.h
@@ -121,8 +122,6 @@ target_sources(common
     util/compress.h
     util/data_ext.cpp
     util/data_ext.h
-    util/datastream.cpp
-    util/datastream.h
     util/directory.cpp
     util/directory.h
     util/error.h
@@ -181,7 +180,7 @@ target_sources(common
 )
 
 target_link_libraries(common PUBLIC
-        ${SDL2_LIBRARY} ${SDL2_LIBRARIES}
+        ${SDL2_LIBRARY}
         Allegro::Allegro
         AlFont::AlFont
         AAStr::AAStr

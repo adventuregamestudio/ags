@@ -176,9 +176,6 @@
     <ClCompile Include="..\..\Common\util\compress.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\util\datastream.cpp">
-      <Filter>Source Files\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\util\directory.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -610,9 +607,6 @@
     <ClInclude Include="..\..\Common\util\compress.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\util\datastream.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\util\directory.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
@@ -822,6 +816,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\smart_ptr.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\debug\messagebuffer.h">
+      <Filter>Header Files\debug</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

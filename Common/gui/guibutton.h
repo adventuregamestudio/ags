@@ -130,6 +130,4 @@ private:
 } // namespace Common
 } // namespace AGS
 
-extern std::vector<AGS::Common::GUIButton> guibuts;
-
 #endif // __AC_GUIBUTTON_H

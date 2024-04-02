@@ -25,8 +25,12 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #undef DeleteFile
 #include <algorithm>
 #include "util/wgt2allg.h"
-#include "ac/spritecache.h"
+#include "ac/common.h" // quit
+#include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/spritecache.h"
+#include "ac/view.h"
+#include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
@@ -54,10 +58,15 @@ using AGS::Types::AGSEditorException;
 using AGS::Common::Stream;
 using AGS::Common::AssetLibInfo;
 using AGS::Common::AssetManager;
-using AGS::Common::AssetMgr;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::GUIMain;
+using AGS::Common::GUIButton;
+using AGS::Common::GUIInvWindow;
+using AGS::Common::GUILabel;
+using AGS::Common::GUIListBox;
+using AGS::Common::GUISlider;
+using AGS::Common::GUITextBox;
 using AGS::Common::RoomStruct;
 using AGS::Common::PInteractionScripts;
 typedef AGS::Common::String AGSString;
@@ -77,6 +86,8 @@ void save_room_file(RoomStruct &rs, const AGSString &path);
 AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite_flags);
 void pre_save_sprite(AGSBitmap*);
 
+
+std::unique_ptr<AssetManager> AssetMgr;
 int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 RGB*palette = NULL;
@@ -108,6 +119,12 @@ AGS::Common::Version game_compiled_version;
 // stuff for importing old games
 std::vector<DialogTopic> dialog;
 std::vector<GUIMain> guis;
+std::vector<GUIButton> guibuts;
+std::vector<GUIInvWindow> guiinv;
+std::vector<GUILabel> guilabels;
+std::vector<GUIListBox> guilist;
+std::vector<GUISlider> guislider;
+std::vector<GUITextBox> guitext;
 std::vector<ViewStruct> newViews;
 
 // A reference color depth, for correct color selection;
@@ -115,6 +132,8 @@ std::vector<ViewStruct> newViews;
 int BaseColorDepth = 0;
 
 
+HAGSError reset_sprite_file();
+HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile);
 bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, float scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
@@ -870,17 +889,16 @@ bool initialize_native()
 	thisgame.color_depth = 2;
     BaseColorDepth = 32;
 	thisgame.numfonts = 0;
-	new_font();
 
-	HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
+    HAGSError err = reset_sprite_file();
 	if (!err)
 	  return false;
-	spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set this up in preferences?
 
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
 
-	init_font_renderer();
+	init_font_renderer(AssetMgr.get());
+    new_font();
 	return true;
 }
 
@@ -1072,15 +1090,37 @@ void update_abuf_coldepth() {
 
 bool reload_font(int curFont)
 {
-  return load_font_size(curFont, thisgame.fonts[curFont]);
+    return load_font_size(curFont, thisgame.fonts[curFont]);
 }
 
-HAGSError reset_sprite_file() {
-  HAGSError err = spriteset.InitFile(sprsetname, sprindexname);
-  if (!err)
-    return err;
-  spriteset.SetMaxCacheSize(100 * 1024 * 1024);  // 100 mb cache // TODO: set in preferences?
-  return HAGSError::None();
+bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height)
+{
+    FontMetrics metrics;
+    if (!load_font_metrics(filename, pixel_height, metrics))
+        return false;
+    formal_height = metrics.Height;
+    return true;
+}
+
+HAGSError reset_sprite_file()
+{
+    return reset_sprite_file(AGS::Common::SpriteFile::DefaultSpriteFileName,
+        AGS::Common::SpriteFile::DefaultSpriteIndexName);
+}
+
+HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile)
+{
+    std::unique_ptr<Stream> sprite_file(AssetMgr->OpenAsset(spritefile));
+    if (!sprite_file)
+        return new AGSError(AGSString::FromFormat("Failed to open spriteset file '%s'.",
+            spritefile.GetCStr()));
+    std::unique_ptr<Stream> index_file(AssetMgr->OpenAsset(indexfile));
+	HAGSError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
+    if (!err)
+        return err;
+    // 100 mb cache // TODO: set this up in preferences?
+	spriteset.SetMaxCacheSize(100 * 1024 * 1024);
+    return HAGSError::None();
 }
 
 std::vector<Common::PluginInfo> thisgamePlugins;
@@ -1098,9 +1138,10 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
             thisgamePlugins[i].Name.ClipRight(1);
     }
 
+    AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
     for (int i = 0; i < thisgame.numgui; ++i)
     {
-        HAGSError err = guis[i].RebuildArray();
+        HAGSError err = guis[i].RebuildArray(guictrl_refs);
         if (!err)
             return err;
     }
@@ -1298,7 +1339,7 @@ const char *get_mask_name(RoomAreaMask mask)
 }
 
 AGSString load_room_file(RoomStruct &rs, const AGSString &filename) {
-  HAGSError err = LoadRoom(filename, &rs, thisgame.SpriteInfos);
+  HAGSError err = LoadRoom(filename, &rs, AssetMgr.get(), thisgame.SpriteInfos);
   if (!err)
       return err->FullMessage();
 
@@ -1541,7 +1582,7 @@ void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_ind
     finally
     {
         // Reset the sprite cache to whichever file was successfully saved
-        HAGSError err = spriteset.InitFile(use_spritefile, use_indexfile);
+        HAGSError err = reset_sprite_file(use_spritefile, use_indexfile);
         if (!err)
         {
             throw gcnew AGSEditorException(
@@ -2271,8 +2312,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
       newObj->Name = TextHelper::ConvertASCII(control->Name);
   }
 
-  gui->RebuildArray();
-  gui->ResortZOrder();
+  AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
+  gui->RebuildArray(guictrl_refs);
 }
 
 void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
@@ -2282,6 +2323,9 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scal
   guilist.clear();
   guislider.clear();
   guiinv.clear();
+
+  // Setup GuiContext
+  AGS::Common::GUI::Context.Spriteset = &spriteset;
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
   // Add dummy items to all listboxes, let user preview the fonts
@@ -2638,10 +2682,10 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
 	}
 
+    AGS::Common::GUIRefCollection guictrl_refs(guibuts, guiinv, guilabels, guilist, guislider, guitext);
 	for (int i = 0; i < thisgame.numgui; i++)
 	{
-		guis[i].RebuildArray();
-	    guis[i].ResortZOrder();
+		guis[i].RebuildArray(guictrl_refs);
 
 		GUI^ newGui;
 		if (guis[i].IsTextWindow()) 

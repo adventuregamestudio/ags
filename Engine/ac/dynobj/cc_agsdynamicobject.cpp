@@ -13,6 +13,7 @@
 //=============================================================================
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include <string.h> // memcpy
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 
 using namespace AGS::Common;
@@ -102,7 +103,7 @@ int AGSCCDynamicObject::Serialize(void *address, uint8_t *buffer, int bufsize) {
     if (bufsize < 0 || req_size > static_cast<size_t>(bufsize))
         return -(static_cast<int32_t>(req_size));
 
-    MemoryStream mems(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write);
+    Stream mems(std::make_unique<MemoryStream>(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write));
     Serialize(address, &mems);
     return static_cast<int32_t>(mems.GetPosition());
 }

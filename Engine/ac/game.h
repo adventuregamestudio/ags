@@ -15,16 +15,16 @@
 // AGS Runtime header
 //
 //=============================================================================
-
 #ifndef __AGS_EE_AC__GAME_H
 #define __AGS_EE_AC__GAME_H
 
+#include <memory>
 #include "ac/dynobj/scriptviewframe.h"
 #include "main/game_file.h"
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Bitmap; class Stream; } }
+namespace AGS { namespace Common { class AssetManager; class Bitmap; class Stream; } }
 using namespace AGS; // FIXME later
 
 #define RAGMODE_LOADNOW 0x8000000  // just to make sure it's non-zero
@@ -139,7 +139,7 @@ void save_game_dialog2(int min_slot, int max_slot);
 bool do_save_game_dialog(int min_slot, int max_slot);
 void free_do_once_tokens();
 // Free all the memory associated with the game
-void unload_game_file();
+void unload_game();
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 std::unique_ptr<Common::Bitmap> read_savedgame_screenshot(const Common::String &savedgame);
@@ -176,6 +176,9 @@ void display_switch_in_resume();
 void game_sprite_updated(int sprnum, bool deleted = false);
 // Precaches sprites for a view, within a selected range of loops.
 void precache_view(int view, int first_loop = 0, int last_loop = INT32_MAX, bool with_sounds = false);
+
+// Global AssetManager instance.
+extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 
 extern int in_new_room;
 extern int new_room_pos;

@@ -63,8 +63,10 @@
 
 /* include platform-specific stuff */
 #ifndef SCAN_EXPORT
-   #if defined ALLEGRO_MSVC || defined(ALLEGRO_MINGW)
+   #if defined ALLEGRO_MSVC
       #include "allegro/platform/almsvc.h"
+   #elif defined ALLEGRO_MINGW
+      #include "allegro/platform/alucfg.h"
    #elif defined ALLEGRO_MACOSX
       #include "allegro/platform/alosxcfg.h"
    #elif defined ALLEGRO_UNIX

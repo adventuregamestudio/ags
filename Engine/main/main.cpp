@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <allegro.h> // allegro_exit
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "core/def_version.h"
@@ -387,8 +388,8 @@ int ags_entry_point(int argc, char *argv[]) {
     if (!justTellInfo && !hideMessageBoxes)
         platform->SetGUIMode(true);
 
-    init_debug(startup_opts, justTellInfo);
     Debug::Printf(kDbgMsg_Alert, get_engine_string());
+    init_debug(startup_opts, justTellInfo);
 
     appPath = Path::MakeAbsolutePath(platform->GetCommandArg(0));
     appDirectory = Path::GetDirectoryPath(appPath);

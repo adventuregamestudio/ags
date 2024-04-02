@@ -161,8 +161,11 @@
     <Compile Include="Components\TextParserComponent.cs" />
     <Compile Include="Components\ViewsComponent.cs" />
     <Compile Include="Entities\IAppSettings.cs" />
+    <Compile Include="Entities\ExistingScriptHeaderToAdd.cs" />
+    <Compile Include="Entities\ExistingFileToAdd.cs" />
     <Compile Include="Entities\LogBufferEventArgs.cs" />
     <Compile Include="Entities\MultiSelectAction.cs" />
+    <Compile Include="Entities\ScriptModuleDef.cs" />
     <Compile Include="GUI\AssignToView.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -200,6 +203,9 @@
     </Compile>
     <Compile Include="GUI\ImportTTFDialog.Designer.cs">
       <DependentUpon>ImportTTFDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\LineInBetween.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="GUI\LogPanel.cs">
       <SubType>Form</SubType>
@@ -418,6 +424,7 @@
     <Compile Include="Utils\DirectoryInfoExtensions.cs" />
     <Compile Include="Utils\FileWatcher.cs" />
     <Compile Include="Utils\MathExtra.cs" />
+    <Compile Include="Utils\ScriptFileUtilities.cs" />
     <Compile Include="Utils\ScriptGeneration.cs" />
     <Compile Include="Utils\StdConsoleWriter.cs" />
     <Compile Include="Utils\Validation.cs" />

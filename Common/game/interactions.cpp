@@ -12,7 +12,6 @@
 //
 //=============================================================================
 #include "game/interactions.h"
-
 namespace AGS
 {
 namespace Common

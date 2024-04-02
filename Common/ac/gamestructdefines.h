@@ -171,6 +171,7 @@ enum ScriptAPIVersion
     kScriptAPI_v360 = 3060000,
     kScriptAPI_v36026 = 3060026,
     kScriptAPI_v361 = 3060100,
+    kScriptAPI_v362 = 3060200,
     kScriptAPI_v399 = 3990000,
     kScriptAPI_v400 = 4000003,
     kScriptAPI_Current = kScriptAPI_v400

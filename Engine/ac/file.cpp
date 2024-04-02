@@ -737,14 +737,10 @@ Stream *get_file_stream(int32_t fhandle, const char *operation_name)
     return fh ? fh->GetStream() : nullptr;
 }
 
-Stream *release_file_stream(int32_t fhandle, const char *operation_name)
+IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name)
 {
     ScriptFileHandle *fh = check_file_stream(fhandle, operation_name);
-    if (!fh)
-        return nullptr;
-    Stream *s = fh->ReleaseStream();
-    close_file_stream(fhandle, operation_name);
-    return s;
+    return fh ? fh->GetStream()->GetStreamBase() : nullptr;
 }
 
 void close_all_file_streams()

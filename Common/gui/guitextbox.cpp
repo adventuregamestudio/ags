@@ -18,8 +18,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-std::vector<AGS::Common::GUITextBox> guitext;
-
 namespace AGS
 {
 namespace Common
@@ -50,7 +48,7 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
     Rect rc = RectWH(0, 0, _width, _height);
     Point text_at(1 + 1, 1 + 1);
     Rect text_rc = GUI::CalcTextGraphicalRect(Text.GetCStr(), Font, text_at);
-    if (IsGUIEnabled(this))
+    if (GUI::IsGUIEnabled(this))
     {
         // add a cursor
         Rect cur_rc = RectWH(
@@ -88,24 +86,24 @@ static void Backspace(String &text)
     }
 }
 
-void GUITextBox::OnKeyPress(const KeyInput &ki)
+bool GUITextBox::OnKeyPress(const KeyInput &ki)
 {
     switch (ki.Key)
     {
     case eAGSKeyCodeReturn:
         IsActivated = true;
-        return;
+        return true;
     case eAGSKeyCodeBackspace:
         Backspace(Text);
         MarkChanged();
-        return;
+        return true;
     default: break;
     }
 
     if (ki.UChar == 0)
-        return; // not a textual event
+        return false; // not a textual event, don't handle
     if ((ki.UChar >= 128) && (!font_supports_extended_characters(Font)))
-        return; // unsupported letter
+        return true; // unsupported letter, but still return as handled
 
     (get_uformat() == U_UTF8) ?
         Text.Append(ki.Text) :
@@ -114,6 +112,7 @@ void GUITextBox::OnKeyPress(const KeyInput &ki)
     if (get_text_width(Text.GetCStr(), Font) > (_width - (6 + 5)))
         Backspace(Text);
     MarkChanged();
+    return true;
 }
 
 void GUITextBox::SetShowBorder(bool on)

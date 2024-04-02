@@ -19,8 +19,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-std::vector<AGS::Common::GUILabel> guilabels;
-
 namespace AGS
 {
 namespace Common

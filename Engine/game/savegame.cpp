@@ -56,7 +56,6 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
-#include "util/datastream.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/stream.h"
@@ -67,6 +66,7 @@ using namespace Common;
 using namespace Engine;
 
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern RoomStatus troom;
 extern RoomStatus *croom;
@@ -374,8 +374,9 @@ void RestoreViewportsAndCameras(const RestoredData &r_data)
             cam->Lock();
         else
             cam->Release();
-        cam->SetAt(cam_dat.Left, cam_dat.Top);
+        // Set size first, or offset position may clamp to the room
         cam->SetSize(Size(cam_dat.Width, cam_dat.Height));
+        cam->SetAt(cam_dat.Left, cam_dat.Top);
     }
     for (size_t i = 0; i < r_data.Viewports.size(); ++i)
     {
@@ -443,8 +444,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     // CHECKME: find out why are we doing this here? why only to gui controls?
     for (int i = 0; i < game.numgui; ++i)
         export_gui_controls(i);
-
-    update_gui_zorder();
 
     AllocScriptModules();
     if (create_global_script())
@@ -531,8 +530,6 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
         on_background_frame_change();
     }
 
-    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
-
     if (play.audio_master_volume >= 0)
     {
         int temp_vol = play.audio_master_volume;
@@ -595,7 +592,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data)
     restore_characters();
     restore_overlays();
 
-    GUI::MarkAllGUIForUpdate(true, true);
+    prepare_gui_runtime(false /* not startup */);
 
     RestoreViewportsAndCameras(r_data);
 
@@ -709,7 +706,8 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
             size_t data_size = in->ReadInt32();
             soff_t data_start = in->GetPosition();
 
-            auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+            auto guard_stream = std::make_unique<Stream>(
+                std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
             pl_run_plugin_hook_by_name(pl_name, AGSE_RESTOREGAME, fhandle);
             close_file_stream(fhandle, "RestoreGame");
@@ -724,7 +722,8 @@ void ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_size)
         String pl_name;
         for (int pl_index = 0; pl_query_next_plugin_for_event(AGSE_RESTOREGAME, pl_index, pl_name); ++pl_index)
         {
-            auto guard_stream = std::make_unique<DataStreamSection>(in, in->GetPosition(), end_pos);
+            auto guard_stream = std::make_unique<Stream>(
+                std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
             int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
             pl_run_plugin_hook_by_index(pl_index, AGSE_RESTOREGAME, fhandle);
             close_file_stream(fhandle, "RestoreGame");
@@ -752,7 +751,8 @@ void WritePluginSaveData(Stream *out)
 
         // Create a stream section and write plugin data
         soff_t data_start_pos = out->GetPosition();
-        auto guard_stream = std::make_unique<DataStreamSection>(out, out->GetPosition(), INT64_MAX);
+        auto guard_stream = std::make_unique<Stream>(
+            std::make_unique<StreamSection>(out->GetStreamBase(), out->GetPosition(), INT64_MAX));
         int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
         pl_run_plugin_hook_by_index(pl_index, AGSE_SAVEGAME, fhandle);
         close_file_stream(fhandle, "SaveGame");

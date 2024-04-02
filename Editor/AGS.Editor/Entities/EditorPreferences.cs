@@ -501,7 +501,7 @@ namespace AGS.Editor.Preferences
 
         [Browsable(true)]
         [DisplayName("Show view preview by default in view editors")]
-        [Description("Wheter view preview is always showing when a view editor is loaded.")]
+        [Description("Whether view preview is always showing when a view editor is loaded.")]
         [Category("Editor Appearance")]
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("False")]
@@ -514,6 +514,24 @@ namespace AGS.Editor.Preferences
             set
             {
                 this["ShowViewPreviewByDefault"] = value;
+            }
+        }
+
+        [Browsable(true)]
+        [DisplayName("Show icons in panel tabs")]
+        [Description("Whether icons from the project explorer also appear in tabs.")]
+        [Category("Editor Appearance")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool ShowIconInTab
+        {
+            get
+            {
+                return (bool)(this["ShowIconInTab"]);
+            }
+            set
+            {
+                this["ShowIconInTab"] = value;
             }
         }
 

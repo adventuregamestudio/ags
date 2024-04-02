@@ -345,7 +345,7 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
         return;
 
     // Apply sprite flags read from original format (sequential array)
-    spriteset.EnlargeTo(ents.SpriteCount - 1);
+    game.SpriteInfos.resize(ents.SpriteCount);
     for (size_t i = 0; i < ents.SpriteCount; ++i)
     {
         game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
@@ -366,14 +366,14 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
 {
 }
 
-void UpgradeGUI(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     // Previously, Buttons and Labels had a fixed Translated behavior
     if (data_ver < kGameVersion_361)
     {
-        for (auto &btn : guibuts)
+        for (auto &btn : ents.GuiControls.Buttons)
             btn.SetTranslated(true); // always translated
-        for (auto &lbl : guilabels)
+        for (auto &lbl : ents.GuiControls.Labels)
             lbl.SetTranslated(true); // always translated
     }
 }
@@ -517,9 +517,9 @@ HError GameDataExtReader::ReadBlock(int /*block_id*/, const String &ext_id,
         }
 
         // new gui properties
-        for (size_t i = 0; i < guis.size(); ++i)
+        for (size_t i = 0; i < _ents.Guis.size(); ++i)
         {
-            guis[i].BlendMode = (BlendMode)_in->ReadInt32();
+            _ents.Guis[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
             _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see list in savegame format)
@@ -618,10 +618,11 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     game.skip_messages(in, sinfo.HasMessages, data_ver);
 
     ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
-    HError err2 = GUI::ReadGUI(in);
+    GUIRefCollection guictrl_refs(ents.GuiControls);
+    HError err2 = GUI::ReadGUI(ents.Guis, guictrl_refs, in);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
-    game.numgui = guis.size();
+    game.numgui = ents.Guis.size();
 
     err = ReadPlugins(ents.PluginInfos, in);
     if (!err)
@@ -651,7 +652,7 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     UpgradeFonts(game, data_ver);
     UpgradeAudio(game, ents, data_ver);
     UpgradeCharacters(game, data_ver);
-    UpgradeGUI(game, data_ver);
+    UpgradeGUI(game, ents, data_ver);
     UpgradeMouseCursors(game, data_ver);
     FixupSaveDirectory(game);
     return HGameFileError::None();

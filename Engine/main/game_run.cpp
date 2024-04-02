@@ -141,7 +141,7 @@ public:
         assert(_disabledFor == FOR_EXITLOOP);
         play.disabled_user_interface++;
         // If GUI looks change when disabled, then mark all of them for redraw
-        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
 
         // Only change the mouse cursor if it hasn't been specifically changed first
         // (or if it's speech, always change it)
@@ -157,7 +157,7 @@ public:
         set_our_eip(77);
         set_default_cursor();
         // If GUI looks change when disabled, then mark all of them for redraw
-        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
         play.disabled_user_interface--;
 
         switch (_disabledFor)
@@ -606,7 +606,7 @@ static void check_keyboard_controls()
     // it should be either a printable character or one of the textbox control keys
     // TODO: instead of making a preliminary check, just let each gui control
     // test the key and OnKeyPress return if it was handled?
-    if ((all_buttons_disabled < 0) &&
+    if ((GUI::Context.DisabledState == kGuiDis_Undefined) &&
         ((ki.UChar > 0) || ((agskey >= 32) && (agskey <= 255)) ||
          (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))) {
         for (int guiIndex = 0; guiIndex < game.numgui; guiIndex++) {
@@ -625,9 +625,10 @@ static void check_keyboard_controls()
                 if (!guitex->IsEnabled()) { continue; }
                 if (!guitex->IsVisible()) { continue; }
 
-                keywasprocessed = true;
-
                 guitex->OnKeyPress(ki);
+                // Note that the TextBox always steals the key event here, regardless
+                // of whether it had any meaning for control
+                keywasprocessed = true;
 
                 if (guitex->IsActivated) {
                     guitex->IsActivated = false;
@@ -872,7 +873,7 @@ static void update_cursor_over_gui()
         if (!gui.IsClickable()) continue; // don't update non-clickable
         // Don't touch GUI if "GUIs Turn Off When Disabled"
         if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-            (all_buttons_disabled >= 0) &&
+            (GUI::Context.DisabledState >= 0) &&
             (gui.PopupStyle != kGUIPopupNoAutoRemove))
             continue;
         gui.Poll(mousex, mousey);

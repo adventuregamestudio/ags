@@ -256,7 +256,7 @@ namespace AGS.Editor.Components
                     (commandId == TOP_LEVEL_COMMAND_ID));
         }
 
-        private bool ProjectTreeItem_CanDropHere(ProjectTreeItem source, ProjectTreeItem target)
+        private bool ProjectTreeItem_CanDropHere(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone, out bool showLine)
         {
             FolderType targetFolder;
             ItemType targetItem;
@@ -265,11 +265,51 @@ namespace AGS.Editor.Components
             FolderType sourceFolder;
             ItemType sourceItem;
             GetDropItemOrFolder(source, out sourceFolder, out sourceItem);
+            showLine = !((dropZone == TargetDropZone.Top || dropZone == TargetDropZone.Bottom) && 
+                ((sourceFolder != null && targetItem != null) || (sourceItem != null && targetFolder != null)));
 
-            if (sourceFolder != null && targetFolder == null) return false;
-            if (sourceFolder != null && !IsValidFolderMove(sourceFolder, targetFolder)) return false;
-            if (sourceItem != null && targetItem != null && sourceItem.Equals(targetItem)) return false;
-                        
+            if ((sourceFolder == null && sourceItem == null) || (targetItem == null && targetFolder == null))
+            {
+                showLine = false;
+                return false;
+            }
+
+            if (sourceFolder != null && targetFolder == null)
+            {
+                showLine = false;
+                return false;
+            }
+            if (sourceFolder != null && !IsValidFolderMove(sourceFolder, targetFolder))
+            {
+                showLine = false;
+                return false;
+            }
+            if (sourceItem != null && targetItem != null && sourceItem.Equals(targetItem))
+            {
+                showLine = false;
+                return false;
+            }
+            if(sourceFolder != null && targetFolder != null)
+            {
+                // the GetRootFolder will be the same, so if a target has null parent, it's probably from a different "type"
+                FolderType parentOfSource = FindParentFolder(GetRootFolder(), sourceFolder);
+                FolderType parentOfTarget = FindParentFolder(GetRootFolder(), targetFolder);
+                if(parentOfSource == null || parentOfTarget == null)
+                {
+                    showLine = false;
+                    return false;
+                }
+            }
+            if (sourceItem != null && targetFolder != null)
+            {
+                FolderType parentOfSource = FindFolderThatContainsItem(GetRootFolder(), sourceItem);
+                if(parentOfSource == targetFolder)
+                {
+                    showLine = false;
+                    return false;
+                }
+            }
+
             return true;
         }
         
@@ -293,7 +333,10 @@ namespace AGS.Editor.Components
 
             if (!IsFolderNode(treeItem.ID))
             {
-                item = _items[treeItem.ID];
+                if (_items.ContainsKey(treeItem.ID))
+                {
+                    item = _items[treeItem.ID];
+                }
             }
             else if (treeItem.ID == TOP_LEVEL_COMMAND_ID)
             {
@@ -305,7 +348,7 @@ namespace AGS.Editor.Components
             }
         }
 
-        private void ProjectTreeItem_DropHere(ProjectTreeItem source, ProjectTreeItem target)
+        private void ProjectTreeItem_DropHere(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone)
         {            
             FolderType targetFolder;
             ItemType targetItem;
@@ -315,6 +358,11 @@ namespace AGS.Editor.Components
             ItemType sourceItem;
             GetDropItemOrFolder(source, out sourceFolder, out sourceItem);
 
+            if((sourceFolder == null && sourceItem == null) || (targetItem == null && targetFolder == null))
+            {
+                return;
+            }
+
             if (sourceFolder != null)
             {
                 if (targetFolder == null)
@@ -322,13 +370,32 @@ namespace AGS.Editor.Components
                     _guiController.ShowMessage("You cannot move a folder to be before a file.", MessageBoxIconType.Warning);
                     return;
                 }
-                if (!DropFolderToFolder(sourceFolder, targetFolder)) return;                
+
+                if(dropZone == TargetDropZone.Bottom)
+                {
+                    if(!DragFolderToBeAfterFolder(sourceFolder, targetFolder)) return;
+                }
+                else if (dropZone == TargetDropZone.Top)
+                {
+                    if(!DragFolderToBeBeforeFolder(sourceFolder, targetFolder)) return;
+                }
+                else
+                {
+                    if(!DropFolderToFolder(sourceFolder, targetFolder)) return;
+                }                
             }
             else
             {
                 if (targetFolder == null)
                 {
-                    DragItemToBeBeforeItem(sourceItem, targetItem);
+                    if (dropZone == TargetDropZone.Bottom || dropZone == TargetDropZone.MiddleBottom)
+                    {
+                        DragItemToBeAfterItem(sourceItem, targetItem);
+                    }
+                    else
+                    {
+                        DragItemToBeBeforeItem(sourceItem, targetItem);
+                    }
                 }
                 else
                 {
@@ -354,7 +421,59 @@ namespace AGS.Editor.Components
             folder.ShouldSkipChangeNotifications = skipNotification;
         }
 
-        private void DragItemToBeBeforeItem(ItemType itemToMove, ItemType targetItem)
+        private bool DragFolderRelativeToFolderImpl(FolderType folderToMove, FolderType targetFolder, bool after)
+        {
+            if (!IsValidFolderMove(folderToMove, targetFolder))
+            {
+                _guiController.ShowMessage("You cannot move a folder up itself or one of its children.", MessageBoxIconType.Warning);
+                return false;
+            }
+
+            FolderType parentOfSource = FindParentFolder(GetRootFolder(), folderToMove);
+            if (parentOfSource == null)
+            {
+                throw new AGSEditorException("Folder being moved has no parent");
+            }
+            if (folderToMove == targetFolder)
+            {
+                throw new AGSEditorException("Source folder and target folder are the same");
+            }
+
+            FolderType parentOfTarget = FindParentFolder(GetRootFolder(), targetFolder);
+            if (parentOfTarget == null)
+            {
+                throw new AGSEditorException("Target folder has no parent");
+            }
+
+            int targetIndex = parentOfTarget.SubFolders.IndexOf(targetFolder);
+            if (targetIndex == -1)
+            {
+                throw new AGSEditorException("Target folder not found in parent folder");
+            }
+            if (parentOfTarget == folderToMove)
+            {
+                throw new AGSEditorException("Folder to move and target parent folder are the same");
+            }
+
+            PerformActionWithoutNotification(parentOfSource, folder => folder.SubFolders.Remove(folderToMove));
+
+            targetIndex = parentOfTarget.SubFolders.IndexOf(targetFolder);  // removal may have changed index
+            if (after) targetIndex++;                                       // inserts before if 'after' is false
+
+            PerformActionWithoutNotification(parentOfTarget, folder => folder.SubFolders.Insert(targetIndex, folderToMove));
+            return true;
+        }
+
+        private bool DragFolderToBeBeforeFolder(FolderType folderToMove, FolderType targetFolder)
+        {
+            return DragFolderRelativeToFolderImpl(folderToMove, targetFolder, false);
+        }
+        private bool DragFolderToBeAfterFolder(FolderType folderToMove, FolderType targetFolder)
+        {
+            return DragFolderRelativeToFolderImpl(folderToMove, targetFolder, true);
+        }
+
+        private void DragItemRelativeToItemImpl(ItemType itemToMove, ItemType targetItem, bool after)
         {
             FolderType sourceFolder = FindFolderThatContainsItem(this.GetRootFolder(), itemToMove);
             if (sourceFolder == null)
@@ -373,7 +492,21 @@ namespace AGS.Editor.Components
             }
 
             PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
-            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));            
+
+            targetIndex = targetFolder.Items.IndexOf(targetItem);  // removal may have changed index
+            if(after) targetIndex++;                               // inserts before if 'after' is false
+
+            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));
+        }
+
+        private void DragItemToBeBeforeItem(ItemType itemToMove, ItemType targetItem)
+        {
+            DragItemRelativeToItemImpl(itemToMove, targetItem, false);
+        }
+
+        private void DragItemToBeAfterItem(ItemType itemToMove, ItemType targetItem)
+        {
+            DragItemRelativeToItemImpl(itemToMove, targetItem, true);
         }
 
         private void DragItemToFolder(ItemType itemToMove, FolderType targetFolder)

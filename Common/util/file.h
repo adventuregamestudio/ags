@@ -32,7 +32,7 @@ class Stream;
 
 enum FileOpenMode
 {
-    kFile_None = 0,
+    kFile_None = 0,     // For error indication
     kFile_Open,         // Open existing file
     kFile_Create,       // Create new file, or open existing one
     kFile_CreateAlways  // Always create a new file, replacing any existing one

@@ -22,6 +22,7 @@
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h" // MAXLINE
+#include "util/path.h"
 #include "util/string_utils.h"
 #include "util/utf8.h"
 
@@ -60,8 +61,8 @@ struct Font
 } // AGS
 
 static std::vector<Font> fonts;
-static TTFFontRenderer ttfRenderer;
-static WFNFontRenderer wfnRenderer;
+static std::unique_ptr<TTFFontRenderer> ttfRenderer;
+static std::unique_ptr<WFNFontRenderer> wfnRenderer;
 
 
 FontInfo::FontInfo()
@@ -76,16 +77,18 @@ FontInfo::FontInfo()
 {}
 
 
-void init_font_renderer()
+void init_font_renderer(AssetManager *amgr)
 {
-  alfont_init();
-  alfont_text_mode(-1);
+  ttfRenderer.reset(new TTFFontRenderer(amgr));
+  wfnRenderer.reset(new WFNFontRenderer(amgr));
 }
 
 void shutdown_font_renderer()
 {
   set_our_eip(9919);
-  alfont_exit();
+  free_all_fonts();
+  ttfRenderer.reset();
+  wfnRenderer.reset();
 }
 
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum)
@@ -167,7 +170,7 @@ static void font_replace_renderer(size_t fontNumber,
     fonts[fontNumber].Renderer2 = renderer2;
     // If this is one of our built-in font renderers, then correctly
     // reinitialize interfaces and font metrics
-    if ((renderer == &ttfRenderer) || (renderer == &wfnRenderer))
+    if ((renderer == ttfRenderer.get()) || (renderer == wfnRenderer.get()))
     {
         fonts[fontNumber].RendererInt = static_cast<IAGSFontRendererInternal*>(renderer);
         fonts[fontNumber].RendererInt->GetFontMetrics(fontNumber, &fonts[fontNumber].Metrics);
@@ -459,7 +462,7 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     return lines.Count();
 }
 
-void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx)
+void wouttextxy(Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx)
 {
   if (fontNumber >= fonts.size())
     return;
@@ -501,17 +504,17 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
   params.LoadMode = (font_info.Flags & FFLG_LOADMODEMASK);
   FontMetrics metrics;
 
-  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
+  if (ttfRenderer->LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
   {
-    fonts[fontNumber].Renderer    = &ttfRenderer;
-    fonts[fontNumber].Renderer2   = &ttfRenderer;
-    fonts[fontNumber].RendererInt = &ttfRenderer;
+    fonts[fontNumber].Renderer    = ttfRenderer.get();
+    fonts[fontNumber].Renderer2   = ttfRenderer.get();
+    fonts[fontNumber].RendererInt = ttfRenderer.get();
   }
-  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
+  else if (wfnRenderer->LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
   {
-    fonts[fontNumber].Renderer    = &wfnRenderer;
-    fonts[fontNumber].Renderer2   = &wfnRenderer;
-    fonts[fontNumber].RendererInt = &wfnRenderer;
+    fonts[fontNumber].Renderer    = wfnRenderer.get();
+    fonts[fontNumber].Renderer2   = wfnRenderer.get();
+    fonts[fontNumber].RendererInt = wfnRenderer.get();
   }
 
   if (!fonts[fontNumber].Renderer)
@@ -523,7 +526,22 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
   return true;
 }
 
-void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...)
+bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics)
+{
+    const String ext = Path::GetFileExtension(filename);
+    if (ext.CompareNoCase("ttf") == 0)
+    {
+        return ttfRenderer->MeasureFontOfPixelHeight(filename, pixel_size, &metrics);
+    }
+    else if (ext.CompareNoCase("wfn") == 0)
+    {
+        metrics = FontMetrics(); // FIXME: not supported?
+        return false;
+    }
+    return false;
+}
+
+void wgtprintf(Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...)
 {
   if (fontNumber >= fonts.size())
     return;

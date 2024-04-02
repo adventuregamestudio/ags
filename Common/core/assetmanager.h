@@ -136,11 +136,6 @@ private:
 
 String GetAssetErrorText(AssetError err);
 
-//
-// Global AssetManager instance.
-// TODO: Move elsewhere, e.g. make a member of global object list or Engine instance at some point
-extern std::unique_ptr<AssetManager> AssetMgr;
-
 } // namespace Common
 } // namespace AGS
 

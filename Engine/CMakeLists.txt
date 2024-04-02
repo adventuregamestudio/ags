@@ -267,8 +267,6 @@ target_sources(engine
     debug/filebasedagsdebugger.h
     debug/logfile.cpp
     debug/logfile.h
-    debug/messagebuffer.cpp
-    debug/messagebuffer.h
     device/mousew32.cpp
     device/mousew32.h
     font/fonts_engine.cpp
@@ -517,7 +515,6 @@ target_link_libraries(engine PUBLIC
     Allegro::Allegro
     External::OpenAL
     ${SDL2_LIBRARY}
-    ${SDL2_LIBRARIES}
     SDL2_sound::SDL2_sound
 )
 
@@ -691,7 +688,7 @@ if (MACOS)
         MACOSX_BUNDLE_SHORT_VERSION_STRING  # CFBundleShortVersionString
             1.0.0
         MACOSX_BUNDLE_COPYRIGHT             # NSHumanReadableCopyright
-            "Copyright (C) 1999-2011 Chris Jones and 2011-20xx others"
+            "Copyright (C) 1999-2011 Chris Jones and 2011-2024 others"
         MACOSX_BUNDLE_INFO_STRING           # CFBundleGetInfoString
             "Created by Adventure Game Studio"
     )

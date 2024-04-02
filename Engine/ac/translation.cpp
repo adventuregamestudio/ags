@@ -14,6 +14,7 @@
 #include <cstdio>
 #include "ac/asset_helper.h"
 #include "ac/common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

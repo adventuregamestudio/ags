@@ -104,11 +104,16 @@ enum MessageType
     kDbgMsg_All                 = kDbgMsg_Debug
 };
 
+// A log message group numeric ID;
+// is received by registering a group in DebugManager
+typedef uint32_t MessageGroupHandle;
+const MessageGroupHandle InvalidMessageGroup = UINT32_MAX;
+
 // This enumeration is a list of common hard-coded groups, but more could
 // be added via debugging configuration interface (see 'debug/debug.h').
-enum CommonDebugGroup : uint32_t
+// TODO: move this elsewhere, because this is not a part of logging interface!
+enum CommonDebugGroup : MessageGroupHandle
 {
-    kDbgGroup_None = UINT32_MAX,
     // Main debug group is for reporting general engine status and issues
     kDbgGroup_Main = 0,
     // Game group is for logging game logic state and issues
@@ -123,21 +128,6 @@ enum CommonDebugGroup : uint32_t
     kDbgGroup_SDL
 };
 
-// Debug group identifier defining either numeric or string id, or both
-struct DebugGroupID
-{
-    uint32_t    ID;
-    String      SID;
-
-    DebugGroupID() : ID(kDbgGroup_None) {}
-    DebugGroupID(uint32_t id, const String &sid = "") : ID(id), SID(sid) {}
-    DebugGroupID(const String &sid) : ID(kDbgGroup_None), SID(sid) {}
-    // Tells if any of the id components is valid
-    bool IsValid() const { return ID != kDbgGroup_None || !SID.IsEmpty(); }
-    // Tells if both id components are properly set
-    bool IsComplete() const { return ID != kDbgGroup_None && !SID.IsEmpty(); }
-};
-
 namespace Debug
 {
     //
@@ -148,13 +138,13 @@ namespace Debug
     // Output a plain message of default group and given type
     void Printf(MessageType mt, const String &text);
     // Output a plain message of given group and type
-    void Printf(DebugGroupID group_id, MessageType mt, const String &text);
+    void Printf(MessageGroupHandle group_id, MessageType mt, const String &text);
     // Output formatted message of default group and default type
     void Printf(const char *fmt, ...);
     // Output formatted message of default group and given type
     void Printf(MessageType mt, const char *fmt, ...);
     // Output formatted message of given group and type
-    void Printf(DebugGroupID group_id, MessageType mt, const char *fmt, ...);
+    void Printf(MessageGroupHandle group_id, MessageType mt, const char *fmt, ...);
 
 }   // namespace Debug
 

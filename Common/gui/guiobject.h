@@ -68,8 +68,8 @@ public:
     void            SetTransparency(int trans);
 
     // Events
-    // Key pressed for control
-    virtual void    OnKeyPress(const KeyInput&) { }
+    // Key pressed for control; returns if handled
+    virtual bool    OnKeyPress(const KeyInput&) { return false; }
     // Mouse button down - return 'True' to lock focus
     virtual bool    OnMouseDown() { return false; }
     // Mouse moves onto control
@@ -131,10 +131,5 @@ protected:
 
 } // namespace Common
 } // namespace AGS
-
-// Tells if all controls are disabled
-extern int all_buttons_disabled;
-// Tells if the given control is considered enabled, taking global flag into account
-inline bool IsGUIEnabled(AGS::Common::GUIObject *g) { return (all_buttons_disabled < 0) && g->IsEnabled(); }
 
 #endif // __AC_GUIOBJECT_H

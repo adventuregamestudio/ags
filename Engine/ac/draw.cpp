@@ -952,7 +952,7 @@ void notify_sprite_changed(int sprnum, bool deleted)
     // update all the related drawn objects on screen.
     // For software renderer we should notify drawables that currently
     // reference this sprite.
-    if (drawstate.SoftwareRender)
+    if (drawstate.SoftwareRender && !play.spritemodified.empty())
     {
         assert(static_cast<uint32_t>(sprnum) < play.spritemodified.size());
         play.spritemodified[sprnum] = true;
@@ -1400,12 +1400,15 @@ void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
 }
 
 // Avoid freeing and reallocating the memory if possible
-Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent) {
-    if (bimp != nullptr) {
+Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent)
+{
+    if (bimp != nullptr)
+    {
         // same colour depth, width and height -> reuse
         if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
                 && (bimp->GetHeight() == hit))
         {
+            bimp->ResetClip();
             if (make_transparent)
             {
                 bimp->ClearTransparent();
@@ -2371,7 +2374,7 @@ void draw_fps(const Rect &viewport)
 // Draw GUI controls as separate sprites, each on their own texture
 static void construct_guictrl_tex(GUIMain &gui)
 {
-    if (all_buttons_disabled && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 
     int draw_index = guiobjddbref[gui.ID];
@@ -2408,6 +2411,14 @@ static void draw_gui_controls_batch(int gui_id)
         SpriteTransform(), kFlip_None);
     // Add GUI itself
     gfxDriver->DrawSprite(0, 0, gui_bg);
+
+    // Don't draw child controls at all if disabled with kGuiDis_Blackout style
+    if ((GUI::Context.DisabledState >= 0) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
+    {
+        gfxDriver->EndSpriteBatch();
+        return;
+    }
+
     // Add all the GUI controls
     const int draw_index = guiobjddbref[gui_id];
     for (const auto &obj_id : gui.GetControlsDrawOrder())
@@ -2456,8 +2467,10 @@ void draw_gui_and_overlays()
             quit("!The player.activeinv variable has been corrupted, probably as a result\n"
                 "of an incorrect assignment in the game script.");
         }
-        if (playerchar->activeinv < 1) gui_inv_pic=-1;
-        else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
+        if (playerchar->activeinv < 1)
+            GUI::Context.InventoryPic = -1;
+        else
+            GUI::Context.InventoryPic = game.invinfo[playerchar->activeinv].pic;
         set_our_eip(37);
         // Prepare and update GUI textures
         {
@@ -2545,7 +2558,7 @@ void draw_gui_and_overlays()
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-                (all_buttons_disabled >= 0) &&
+                (GUI::Context.DisabledState >= 0) &&
                 (gui.PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 

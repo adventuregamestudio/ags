@@ -55,6 +55,7 @@
 using namespace Common;
 
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern RGB palette[256];
 extern std::vector<ViewStruct> views;
 extern std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];

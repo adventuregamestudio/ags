@@ -92,6 +92,4 @@ private:
 } // namespace Common
 } // namespace AGS
 
-extern std::vector<AGS::Common::GUIListBox> guilist;
-
 #endif // __AC_GUILISTBOX_H

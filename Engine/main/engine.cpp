@@ -294,7 +294,7 @@ void engine_init_fonts()
 {
     Debug::Printf(kDbgMsg_Info, "Initializing TTF renderer");
 
-    init_font_renderer();
+    init_font_renderer(AssetMgr.get());
 }
 
 void engine_init_mouse()
@@ -569,24 +569,26 @@ void show_preload()
     }
 }
 
-int engine_init_sprites()
+HError engine_init_sprites()
 {
+    spriteset.Reset();
     Debug::Printf(kDbgMsg_Info, "Initialize sprites");
-    HError err = spriteset.InitFile(SpriteFile::DefaultSpriteFileName, SpriteFile::DefaultSpriteIndexName);
+    std::unique_ptr<Stream> sprite_file(AssetMgr->OpenAsset(SpriteFile::DefaultSpriteFileName));
+    if (!sprite_file)
+    {
+        return new Error(String::FromFormat("Failed to open spriteset file '%s'.",
+            SpriteFile::DefaultSpriteFileName.GetCStr()));
+    }
+    std::unique_ptr<Stream> index_file(AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName));
+    HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err) 
     {
-        sys_main_shutdown();
-        allegro_exit();
-        proper_exit=1;
-        platform->DisplayAlert("Could not load sprite set file %s\n%s",
-            SpriteFile::DefaultSpriteFileName.GetCStr(),
-            err->FullMessage().GetCStr());
-        return EXIT_ERROR;
+        return err;
     }
     if (usetup.SpriteCacheSize > 0)
         spriteset.SetMaxCacheSize(usetup.SpriteCacheSize * 1024);
     Debug::Printf("Sprite cache set: %zu KB", spriteset.GetMaxCacheSize() / 1024);
-    return 0;
+    return HError::None();
 }
 
 // TODO: this should not be a part of "engine_" function group,
@@ -817,7 +819,7 @@ void engine_init_game_settings()
     GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
     GUI::Options.ClipControls = game.options[OPT_CLIPGUICONTROLS] != 0;
     // Force GUI metrics recalculation, accomodating for loaded fonts
-    GUI::MarkForFontUpdate(-1);
+    GUIE::MarkForFontUpdate(-1);
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
@@ -1283,9 +1285,12 @@ int initialize_engine(const ConfigTree &startup_opts)
     sys_window_show_cursor(false); // hide the system cursor
 
     show_preload();
-    res = engine_init_sprites();
-    if (res != 0)
-        return res;
+    HError err = engine_init_sprites();
+    if (!err)
+    {
+        platform->DisplayAlert("Could not load sprite set file:\n%s", err->FullMessage().GetCStr());
+        return EXIT_ERROR;
+    }
 
     // TODO: move *init_game_settings to game init code unit
     engine_init_game_settings();

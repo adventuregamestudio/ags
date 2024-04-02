@@ -36,5 +36,4 @@ typedef std::shared_ptr<InteractionScripts> PInteractionScripts;
 } // namespace Common
 } // namespace AGS
 
-
 #endif // __AGS_CN_GAME__INTEREACTIONS_H

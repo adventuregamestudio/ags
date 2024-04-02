@@ -227,6 +227,11 @@ ccInstance *ccInstance::GetCurrentInstance()
     return InstThreads.size() > 0 ? InstThreads.back() : nullptr;
 }
 
+void ccInstance::FreeInstanceStack()
+{
+    InstThreads.clear();
+}
+
 ccInstance *ccInstance::CreateFromScript(PScript scri)
 {
     return CreateEx(scri, nullptr);

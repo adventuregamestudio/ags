@@ -567,9 +567,6 @@
     <ClCompile Include="..\..\Engine\debug\logfile.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\debug\messagebuffer.cpp">
-      <Filter>Source Files\debug</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp">
       <Filter>Source Files\debug</Filter>
     </ClCompile>
@@ -1226,9 +1223,6 @@
     <ClInclude Include="..\..\Engine\debug\logfile.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\debug\messagebuffer.h">
-      <Filter>Header Files\debug</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h">
       <Filter>Header Files\debug</Filter>
     </ClInclude>
@@ -1266,9 +1260,6 @@
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gui\cscidialog.h">
-      <Filter>Header Files\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\gui\gui.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\gui\guidialog.h">

@@ -130,8 +130,9 @@ public:
 
     SpriteFile();
     // Loads sprite reference information and inits sprite stream
-    HError      OpenFile(const String &filename, const String &sprindex_filename,
-        std::vector<Size> &metrics);
+    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
+                         std::unique_ptr<Stream> &&index_file,
+                         std::vector<Size> &metrics);
     // Closes stream; no reading will be possible unless opened again
     void        Close();
 
@@ -142,10 +143,9 @@ public:
     sprkey_t    GetTopmostSprite() const;
 
     // Loads sprite index file
-    bool        LoadSpriteIndexFile(const String &filename, int expectedFileID,
-        soff_t spr_initial_offs, sprkey_t topmost, std::vector<Size> &metrics);
-    // Rebuilds sprite index from the main sprite file
-    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics);
+    bool        LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file,
+                                    int expectedFileID, soff_t spr_initial_offs,
+                                    sprkey_t topmost, std::vector<Size> &metrics);
 
     // Loads an image data and creates a ready bitmap
     HError      LoadSprite(sprkey_t index, Bitmap *&sprite);
@@ -153,6 +153,8 @@ public:
     HError      LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
 
 private:
+    // Rebuilds sprite index from the main sprite file
+    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<Size> &metrics);
     // Seek stream to sprite
     void        SeekToSprite(sprkey_t index);
 

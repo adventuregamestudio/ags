@@ -39,6 +39,7 @@
 #include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/cc_common.h"
+#include "util/memory_compat.h"
 #include "util/path.h"
 #include "util/string_utils.h"
 #include "util/textstreamwriter.h"
@@ -110,6 +111,11 @@ public:
         : _ideDebugger(ide_debugger) {};
     virtual ~DebuggerLogOutputTarget() {};
 
+    void OnRegister() override
+    {
+        // do nothing
+    }
+
     void PrintMessage(const DebugMessage &msg) override
     {
         assert(_ideDebugger);
@@ -125,11 +131,6 @@ private:
     IAGSEditorDebugger *_ideDebugger = nullptr;
 };
 
-std::unique_ptr<MessageBuffer> DebugMsgBuff;
-std::unique_ptr<LogFile> DebugLogFile;
-std::unique_ptr<DebuggerLogOutputTarget> DebuggerLog;
-
-const String OutputMsgBufID = "buffer";
 const String OutputFileID = "file";
 const String OutputSystemID = "stdout";
 const String OutputDebuggerLogID = "debugger";
@@ -161,16 +162,18 @@ void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, 
 // Log configuration
 // ----------------------------------------------------------------------------
 
-PDebugOutput create_log_output(const String &name, const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
+// TODO: return a std::unique_ptr<IOutputHandler>
+static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
+    const String &path = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
     // Else create new one, if we know this ID
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
-        return DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
+        return platform->GetStdOut();
     }
     else if (name.CompareNoCase(OutputFileID) == 0)
     {
-        DebugLogFile.reset(new LogFile());
+        auto log_file = std::make_unique<LogFile>();
         String logfile_path = path;
         if (logfile_path.IsEmpty())
         {
@@ -178,17 +181,14 @@ PDebugOutput create_log_output(const String &name, const String &path = "", LogF
             CreateFSDirs(fs);
             logfile_path = Path::ConcatPaths(fs.FullDir, "ags.log");
         }
-        if (!DebugLogFile->OpenFile(logfile_path, open_mode))
+        if (!log_file->OpenFile(logfile_path, open_mode))
             return nullptr;
-        Debug::Printf(kDbgMsg_Info, "Logging to %s", logfile_path.GetCStr());
-        auto dbgout = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsg_None);
-        return dbgout;
+        return std::move(log_file);
     }
     else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&
         editor_debugger != nullptr)
     {
-        DebuggerLog.reset(new DebuggerLogOutputTarget(editor_debugger));
-        return DbgMgr.RegisterOutput(OutputDebuggerLogID, DebuggerLog.get(), kDbgMsg_All);
+        return std::make_unique<DebuggerLogOutputTarget>(editor_debugger);
     }
     return nullptr;
 }
@@ -222,30 +222,21 @@ MessageType get_messagetype_from_string(const String &option)
 
 typedef std::pair<CommonDebugGroup, MessageType> DbgGroupOption;
 
-void apply_log_config(const ConfigTree &cfg, const String &log_id,
+static void apply_log_config(const ConfigTree &cfg, const String &log_id,
                       bool def_enabled,
                       std::initializer_list<DbgGroupOption> def_opts)
 {
-    String value = CfgReadString(cfg, "log", log_id);
+    const String value = CfgReadString(cfg, "log", log_id);
     if (value.IsEmpty() && !def_enabled)
         return;
 
-    // First test if already registered, if not then try create it
-    auto dbgout = DbgMgr.GetOutput(log_id);
-    const bool was_created_earlier = dbgout != nullptr;
-    if (!dbgout)
-    {
-        String path = CfgReadString(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
-        dbgout = create_log_output(log_id, path);
-        if (!dbgout)
-            return; // unknown output type
-    }
-    dbgout->ClearGroupFilters();
-
+    // Setup message group filters
+    MessageType def_verbosity = kDbgMsg_None;
+    std::vector<std::pair<DebugGroupID, MessageType>> group_filters;
     if (value.IsEmpty() || value.CompareNoCase("default") == 0)
     {
         for (const auto &opt : def_opts)
-            dbgout->SetGroupFilter(opt.first, opt.second);
+            group_filters.push_back(std::make_pair(opt.first, opt.second));
     }
     else
     {
@@ -264,24 +255,35 @@ void apply_log_config(const ConfigTree &cfg, const String &log_id,
             groupname.Trim();
             if (groupname.CompareNoCase("all") == 0 || groupname.IsEmpty())
             {
-                dbgout->SetAllGroupFilters(msgtype);
+                def_verbosity = msgtype;
             }
             else if (groupname[0u] != '+')
             {
-                dbgout->SetGroupFilter(groupname, msgtype);
+                group_filters.push_back(std::make_pair(groupname, msgtype));
             }
             else
             {
                 const auto groups = parse_log_multigroup(groupname);
                 for (const auto &g : groups)
-                    dbgout->SetGroupFilter(g, msgtype);
+                    group_filters.push_back(std::make_pair(g, msgtype));
             }
         }
     }
 
-    // Delegate buffered messages to this new output
-    if (DebugMsgBuff && !was_created_earlier)
-        DebugMsgBuff->Send(log_id);
+    // Test if already registered, if not then try create it,
+    // if it exists, then reset the filter settings
+    if (DbgMgr.HasOutput(log_id))
+    {
+        DbgMgr.SetOutputFilters(log_id, def_verbosity, &group_filters);
+    }
+    else
+    {
+        String path = CfgReadString(cfg, "log", String::FromFormat("%s-path", log_id.GetCStr()));
+        auto dbgout = create_log_output(log_id, path);
+        if (!dbgout)
+            return;
+        DbgMgr.RegisterOutput(log_id, std::move(dbgout), def_verbosity, &group_filters);
+    }
 }
 
 void init_debug(const ConfigTree &cfg, bool stderr_only)
@@ -293,16 +295,11 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
         CstrArr<SDL_NUM_LOG_PRIORITIES>{"", "verbose", "debug", "info", "warn", "error", "critical"}, SDL_LOG_PRIORITY_INFO);
     SDL_LogSetAllPriority(priority);
 
-    // Register outputs
-    apply_debug_config(cfg);
+    // Init platform's stdout setting
     platform->SetOutputToErr(stderr_only);
 
-    if (stderr_only)
-        return;
-
-    // Message buffer to save all messages in case we read different log settings from config file
-    DebugMsgBuff.reset(new MessageBuffer());
-    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsg_All);
+    // Register outputs
+    apply_debug_config(cfg);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -334,13 +331,15 @@ void apply_debug_config(const ConfigTree &cfg)
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
     // then open "warnings.log" for printing script warnings.
-    if (game.options[OPT_DEBUGMODE] != 0 && !DebugLogFile)
+    if (game.options[OPT_DEBUGMODE] != 0 && !DbgMgr.HasOutput(OutputFileID))
     {
         auto dbgout = create_log_output(OutputFileID, "warnings.log", LogFile::kLogFile_OverwriteAtFirstMessage);
         if (dbgout)
         {
-            dbgout->SetGroupFilter(kDbgGroup_Game, kDbgMsg_Warn);
-            dbgout->SetGroupFilter(kDbgGroup_Script, kDbgMsg_Warn);
+            std::vector<std::pair<DebugGroupID, MessageType>> group_filters;
+            group_filters.push_back(std::make_pair(kDbgGroup_Game, kDbgMsg_Warn));
+            group_filters.push_back(std::make_pair(kDbgGroup_Script, kDbgMsg_Warn));
+            DbgMgr.RegisterOutput(OutputFileID, std::move(dbgout), kDbgMsg_None, &group_filters);
         }
     }
 
@@ -351,18 +350,13 @@ void apply_debug_config(const ConfigTree &cfg)
     }
 
     // We don't need message buffer beyond this point
-    DbgMgr.UnregisterOutput(OutputMsgBufID);
-    DebugMsgBuff.reset();
+    DbgMgr.StopMessageBuffering();
 }
 
 void shutdown_debug()
 {
     // Shutdown output subsystem
     DbgMgr.UnregisterAll();
-
-    DebugMsgBuff.reset();
-    DebugLogFile.reset();
-    DebuggerLog.reset();
 }
 
 // Prepends message text with current room number and running script info, then logs result

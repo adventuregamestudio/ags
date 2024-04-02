@@ -30,12 +30,12 @@ namespace Common
 struct DebugMessage
 {
     String       Text;
-    uint32_t     GroupID;
+    MessageGroupHandle GroupID = InvalidMessageGroup;
     String       GroupName;
-    MessageType  MT;
+    MessageType  MT = kDbgMsg_None;
 
-    DebugMessage() : GroupID(kDbgGroup_None), MT(kDbgMsg_None) {}
-    DebugMessage(const String &text, uint32_t group_id, const String &group_name, MessageType mt)
+    DebugMessage() = default;
+    DebugMessage(const String &text, MessageGroupHandle group_id, const String &group_name, MessageType mt)
         : Text(text)
         , GroupID(group_id)
         , GroupName(group_name)
@@ -48,6 +48,11 @@ class IOutputHandler
 public:
     virtual ~IOutputHandler() = default;
     
+    // Called when this output handler is registered by the DebugManager,
+    // but prior it is inserted into the outputs list. This lets the output
+    // class to do any extra initialization, or print something to the log
+    // about itself.
+    virtual void OnRegister() = 0;
     // Print the given text sent from the debug group.
     // Implementations are free to decide which message components are to be printed, and how.
     virtual void PrintMessage(const DebugMessage &msg) = 0;

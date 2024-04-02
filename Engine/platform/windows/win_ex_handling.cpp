@@ -38,6 +38,7 @@ using namespace AGS::Common;
 extern int eip_guinum;
 extern int eip_guiobj;
 extern int proper_exit;
+extern SpriteCache spriteset;
 
 char tempmsg[2048] = "";
 #define PRINT_WORKSPACE_SIZE (7000u)

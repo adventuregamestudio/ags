@@ -66,6 +66,4 @@ private:
 } // namespace Common
 } // namespace AGS
 
-extern std::vector<AGS::Common::GUILabel> guilabels;
-
 #endif // __AC_GUILABEL_H

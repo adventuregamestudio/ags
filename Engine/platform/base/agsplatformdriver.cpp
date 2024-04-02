@@ -25,6 +25,7 @@
 #include "gfx/bitmap.h"
 #include "media/audio/audio_system.h"
 #include "platform/base/sys_main.h"
+#include "util/memory_compat.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 
@@ -165,18 +166,45 @@ String AGSPlatformDriver::GetCommandArg(size_t arg_index)
     return arg_index < _cmdArgCount ? _cmdArgs[arg_index] : nullptr;
 }
 
-//-----------------------------------------------
+//-----------------------------------------------------------------------------
 // IOutputHandler implementation
-//-----------------------------------------------
-void AGSPlatformDriver::PrintMessage(const Common::DebugMessage &msg)
+// Writes to the standard platform's output using provided method(s).
+//-----------------------------------------------------------------------------
+class StdOutLogger : public IOutputHandler
 {
-    if (_writeStdOut)
+public:
+    typedef void (AGSPlatformDriver::*PfnWriteStdOut)(const char *fmt, ...);
+
+    StdOutLogger(AGSPlatformDriver *platform, PfnWriteStdOut write_stdout)
+        : _platform(platform)
+        , _writeStdOut(write_stdout)
+    {}
+
+    void OnRegister() override
     {
-        if (msg.GroupName.IsEmpty())
-            (this->*_writeStdOut)("%s", msg.Text.GetCStr());
-        else
-            (this->*_writeStdOut)("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
+        // do nothing
     }
+
+    void PrintMessage(const Common::DebugMessage &msg) override
+    {
+        if (_writeStdOut)
+        {
+            if (msg.GroupName.IsEmpty())
+                (_platform->*_writeStdOut)("%s", msg.Text.GetCStr());
+            else
+                (_platform->*_writeStdOut)("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
+        }
+    }
+
+private:
+    AGSPlatformDriver * const _platform = nullptr;
+    PfnWriteStdOut const _writeStdOut = nullptr;
+};
+
+std::unique_ptr<IOutputHandler> AGSPlatformDriver::GetStdOut()
+{
+    std::unique_ptr<IOutputHandler> out(new StdOutLogger(this, _writeStdOut));
+    return out;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver()

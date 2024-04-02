@@ -26,7 +26,7 @@
 #define __AGS_CN_UTIL__MEMORYSTREAM_H
 
 #include <vector>
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/string.h"
 
 namespace AGS
@@ -34,17 +34,17 @@ namespace AGS
 namespace Common
 {
 
-class MemoryStream : public DataStream
+class MemoryStream : public StreamBase
 {
 public:
     // Construct memory stream in the read-only mode over a const C-buffer;
     // reading will never exceed buf_sz bytes;
     // buffer must persist in memory until the stream is closed.
-    MemoryStream(const uint8_t *cbuf, size_t buf_sz, DataEndianess stream_endianess = kLittleEndian);
+    MemoryStream(const uint8_t *cbuf, size_t buf_sz);
     // Construct memory stream in the chosen mode over a given C-buffer;
     // neither reading nor writing will ever exceed buf_sz bytes;
     // buffer must persist in memory until the stream is closed.
-    MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode, DataEndianess stream_endianess = kLittleEndian);
+    MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode);
     ~MemoryStream() override = default;
 
     void    Close() override;
@@ -83,10 +83,10 @@ class VectorStream : public MemoryStream
 public:
     // Construct memory stream in the read-only mode over a const std::vector;
     // vector must persist in memory until the stream is closed.
-    VectorStream(const std::vector<uint8_t> &cbuf, DataEndianess stream_endianess = kLittleEndian);
+    VectorStream(const std::vector<uint8_t> &cbuf);
     // Construct memory stream in the chosen mode over a given std::vector;
     // vector must persist in memory until the stream is closed.
-    VectorStream(std::vector<uint8_t> &buf, StreamMode mode, DataEndianess stream_endianess = kLittleEndian);
+    VectorStream(std::vector<uint8_t> &buf, StreamMode mode);
     ~VectorStream() override = default;
 
     void    Close() override;

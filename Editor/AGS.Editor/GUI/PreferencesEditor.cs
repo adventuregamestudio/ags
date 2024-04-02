@@ -159,6 +159,7 @@ namespace AGS.Editor
 
             Factory.AGSEditor.Settings.Apply(_settings);
             UpdateFontSettings();
+            Factory.GUIController.ShowTabIcons = Factory.AGSEditor.Settings.ShowIconInTab;
         }
 
         private void btnApply_Click(object sender, EventArgs e)

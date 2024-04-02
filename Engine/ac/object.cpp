@@ -20,6 +20,8 @@
 #include "ac/gamestate.h"
 #include "ac/global_object.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
+#include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
@@ -29,16 +31,14 @@
 #include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
+#include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
-#include "gui/guimain.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_object.h"
-#include "ac/movelist.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -306,7 +306,7 @@ void Object_SetName(ScriptObject *objj, const char *newName) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
     croom->obj[objj->id].name = newName;
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {

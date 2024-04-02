@@ -17,8 +17,6 @@
 #include "gui/guimain.h"
 #include "util/stream.h"
 
-std::vector<AGS::Common::GUISlider> guislider;
-
 namespace AGS
 {
 namespace Common
@@ -72,6 +70,9 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
 
 void GUISlider::UpdateMetrics()
 {
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
+
     // Clamp Value
     // TODO: this is necessary here because some Slider fields are still public
     if (MinValue >= MaxValue)
@@ -136,6 +137,9 @@ void GUISlider::UpdateMetrics()
 
 void GUISlider::Draw(Bitmap *ds, int x, int y)
 {
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
+
     UpdateMetrics();
 
     Rect bar = Rect::MoveBy(_cachedBar, x, y);
@@ -237,6 +241,12 @@ void GUISlider::OnMouseUp()
     IsMousePressed = false;
 }
 
+void GUISlider::OnResized()
+{
+    UpdateMetrics();
+    MarkPositionChanged(true);
+}
+
 void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GUIObject::ReadFromFile(in, gui_version);
@@ -247,7 +257,10 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
     HandleOffset = in->ReadInt32();
     BgImage = in->ReadInt32();
 
-    UpdateMetrics();
+    // Reset dynamic values
+    _cachedBar = Rect();
+    _cachedHandle = Rect();
+    _handleRange = 0;
 }
 
 void GUISlider::WriteToFile(Stream *out) const
@@ -271,7 +284,10 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     MaxValue = in->ReadInt32();
     Value = in->ReadInt32();
 
-    UpdateMetrics();
+    // Reset dynamic values
+    _cachedBar = Rect();
+    _cachedHandle = Rect();
+    _handleRange = 0;
 }
 
 void GUISlider::WriteToSavegame(Stream *out) const

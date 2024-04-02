@@ -17,20 +17,20 @@
 #include <string>
 #include <vector>
 #include "ac/gamestructdefines.h"
+#include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 #include "util/string.h"
 
 // TODO: we need to make some kind of TextManager class of this module
-
-namespace AGS { namespace Common { class Bitmap; } }
-using namespace AGS;
 
 class IAGSFontRenderer;
 class IAGSFontRenderer2;
 class IAGSFontRendererInternal;
 struct FontInfo;
 struct FontRenderParams;
+struct FontMetrics;
 
-void init_font_renderer();
+void init_font_renderer(AGS::Common::AssetManager *amgr);
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, size_t fontnum);
 IAGSFontRenderer* font_replace_renderer(size_t fontNumber, IAGSFontRenderer* renderer);
@@ -85,18 +85,20 @@ void set_font_outline(size_t font_number, int outline_type,
     enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
 bool is_font_antialiased(size_t font_number);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
-void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
+void wouttextxy(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, const char *texx);
 // Assigns FontInfo to the font
 void set_fontinfo(size_t fontNumber, const FontInfo &finfo);
 // Gets full information about the font
 FontInfo get_fontinfo(size_t font_number);
 // Loads a font from disk
 bool load_font_size(size_t fontNumber, const FontInfo &font_info);
-void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
+// Loads a font from disk, reads metrics, and disposes a font
+bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
+void wgtprintf(AGS::Common::Bitmap *ds, int xxx, int yyy, size_t fontNumber, color_t text_color, char *fmt, ...);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.
 void alloc_font_outline_buffers(size_t font_number,
-    Common::Bitmap **text_stencil, Common::Bitmap **outline_stencil,
+    AGS::Common::Bitmap **text_stencil, AGS::Common::Bitmap **outline_stencil,
     int text_width, int text_height, int color_depth);
 // Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
 void adjust_fonts_for_render_mode(bool aa_mode);
@@ -117,8 +119,8 @@ class SplitLines
 {
 public:
     inline size_t Count() const { return _count; }
-    inline const Common::String &operator[](size_t i) const { return _pool[i]; }
-    inline Common::String &operator[](size_t i) { return _pool[i]; }
+    inline const AGS::Common::String &operator[](size_t i) const { return _pool[i]; }
+    inline AGS::Common::String &operator[](size_t i) { return _pool[i]; }
     inline void Clear() { _pool.clear(); _count = 0; }
     inline void Reset() { _count = 0; }
     inline void Add(const char *cstr)
@@ -131,7 +133,7 @@ public:
     std::string LineBuf[2];
 
 private:
-    std::vector<Common::String> _pool;
+    std::vector<AGS::Common::String> _pool;
     size_t _count; // actual number of lines in use
 };
 

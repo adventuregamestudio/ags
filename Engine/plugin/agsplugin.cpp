@@ -27,6 +27,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_audio.h"
 #include "ac/global_walkablearea.h"
+#include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/parser.h"
 #include "ac/path_helper.h"
@@ -47,7 +48,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-#include "gui/guimain.h"
 #include "main/engine.h"
 #include "main/game_run.h"
 #include "main/main.h"
@@ -88,6 +88,7 @@ extern IGraphicsDriver *gfxDriver;
 extern ScriptSystem scsystem;
 extern int mousex, mousey;
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern RGB palette[256];
 extern int displayed_room;
@@ -762,7 +763,7 @@ void IAGSEngine::BreakIntoDebugger()
 IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRenderer *newRenderer)
 {
     auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUI::MarkForFontUpdate(fontNumber);
+    GUIE::MarkForFontUpdate(fontNumber);
     return old_render;
 }
 
@@ -787,14 +788,14 @@ void IAGSEngine::GetGameInfo(AGSGameInfo* ginfo)
 IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer2(int fontNumber, IAGSFontRenderer2 *newRenderer)
 {
     auto *old_render = font_replace_renderer(fontNumber, newRenderer);
-    GUI::MarkForFontUpdate(fontNumber);
+    GUIE::MarkForFontUpdate(fontNumber);
     return old_render;
 }
 
 void IAGSEngine::NotifyFontUpdated(int fontNumber)
 {
     font_recalc_metrics(fontNumber);
-    GUI::MarkForFontUpdate(fontNumber);
+    GUIE::MarkForFontUpdate(fontNumber);
 }
 
 size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t buf_len)
@@ -811,15 +812,16 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
 
 ::IAGSStream *IAGSEngine::OpenFileStream(const char *script_path, int file_mode, int work_mode)
 {
-    Stream *s = ResolveScriptPathAndOpen(script_path,
-        static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode));
-    return reinterpret_cast<::IAGSStream*>(s);
+    std::unique_ptr<Stream> s(ResolveScriptPathAndOpen(script_path,
+        static_cast<FileOpenMode>(file_mode), static_cast<StreamMode>(work_mode)));
+    // FIXME: this is ugly...
+    return reinterpret_cast<::IAGSStream*>(s->ReleaseStreamBase().release());
 }
 
 ::IAGSStream *IAGSEngine::GetFileStreamByHandle(int32 fhandle)
 {
     return reinterpret_cast<::IAGSStream*>(
-        get_file_stream(fhandle, "IAGSEngine::GetFileStreamByHandle"));
+        get_file_stream_iface(fhandle, "IAGSEngine::GetFileStreamByHandle"));
 }
 
 // *********** General plugin implementation **********

@@ -15,24 +15,32 @@
 // AGS Native interface to .NET
 //
 //=============================================================================
-#include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #define BITMAP WINDOWS_BITMAP
 #include <windows.h>
 #undef BITMAP
 #include <stdlib.h>
-#include "NativeMethods.h"
-#include "NativeUtils.h"
+#include "ac/characterinfo.h"
+#include "ac/dialogtopic.h"
 #include "ac/game_version.h"
+#include "ac/inventoryiteminfo.h"
+#include "ac/mousecursor.h"
+#include "ac/view.h"
+#include "ac/wordsdictionary.h"
 #include "font/fonts.h"
-#include "font/ttffontrenderer.h"
+#include "game/customproperties.h"
 #include "game/main_game_file.h"
 #include "game/plugininfo.h"
 #include "util/error.h"
 #include "util/ini_util.h"
 #include "util/multifilelib.h"
 #include "util/string_utils.h"
+// IMPORTANT: NativeMethods.h must be included AFTER native headers,
+// otherwise there will be naming conflicts with System:: and AGS::Types
+#include "NativeMethods.h"
+#include "NativeUtils.h"
+#include "agsnative.h"
 
 using namespace System::Runtime::InteropServices;
 using namespace AGS::Native;
@@ -46,6 +54,7 @@ extern void free_old_game_data();
 extern void save_default_crm_file(Room ^roomToSave);
 extern HAGSError import_sci_font(const AGSString &filename, int fslot);
 extern bool reload_font(int curFont);
+extern bool measure_font_height(const AGSString &filename, int pixel_height, int &formal_height);
 // Draws font char sheet on the provided context and returns the height of drawn object;
 // may be called with hdc = 0 to get required height without drawing anything
 extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
@@ -344,12 +353,12 @@ namespace AGS
     int NativeMethods::FindTTFSizeForHeight(String ^fileName, int pixelHeight)
     {
         AGSString filename = TextHelper::ConvertUTF8(fileName);
-        FontMetrics metrics;
-        if (!TTFFontRenderer::MeasureFontOfPixelHeight(filename, pixelHeight, &metrics))
+        int height;
+        if (!measure_font_height(filename, pixelHeight, height))
         {
             throw gcnew AGSEditorException(String::Format("Unable to load font {0}. Not a TTF font, or there an error occured while loading it.", fileName));
         }
-        return metrics.Height;
+        return height;
     }
 
     void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate)

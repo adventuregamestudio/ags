@@ -129,12 +129,12 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/,
   Stream *ffi = nullptr;
 
   file_name.Format("agsfnt%d.wfn", fontNumber);
-  ffi = AssetMgr->OpenAsset(file_name);
+  ffi = _amgr->OpenAsset(file_name);
   if (ffi == nullptr)
   {
     // actual font not found, try font 0 instead
     file_name = "agsfnt0.wfn";
-    ffi = AssetMgr->OpenAsset(file_name);
+    ffi = _amgr->OpenAsset(file_name);
     if (ffi == nullptr)
       return false;
   }

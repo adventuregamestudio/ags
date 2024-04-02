@@ -53,11 +53,24 @@ namespace AGS.Editor
             _agsEditor = agsEditor;
             _showMatchingScript = showMatchingScript;
             _room = null;
-            _roomNumber = 0;
+            _roomNumber = -1;
             Init(scriptToEdit);
 
             this.Load += new EventHandler(ScriptEditor_Load);
             this.Resize += new EventHandler(ScriptEditor_Resize);
+        }
+
+        public string GetScriptTabName()
+        {
+            if (_roomNumber >= 0)
+            {
+                UnloadedRoom room = Factory.AGSEditor.CurrentGame.FindRoomByID(_roomNumber);
+                if(room != null && room.Number == _roomNumber && !string.IsNullOrEmpty(room.Description))
+                {
+                    return Script.FileName + (IsModified ? " *" : "") + ": " + room.Description;
+                }
+            }
+            return Script.FileName + (IsModified ? " *" : "");
         }
 
         private void Init(Script scriptToEdit)

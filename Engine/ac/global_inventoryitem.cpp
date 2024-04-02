@@ -19,16 +19,16 @@
 #include "ac/global_gui.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/inventoryitem.h"
 #include "ac/invwindow.h"
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_inventory.h"
-#include "gui/guimain.h"
-#include "gui/guiinv.h"
 #include "script/script.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int mousex, mousey;
@@ -53,7 +53,7 @@ void set_inv_item_pic(int invi, int piccy) {
     }
 
     game.invinfo[invi].pic = piccy;
-    GUI::MarkInventoryForUpdate(-1, false);
+    GUIE::MarkInventoryForUpdate(-1, false);
 }
 
 void SetInvItemName(int invi, const char *newName) {
@@ -62,7 +62,7 @@ void SetInvItemName(int invi, const char *newName) {
 
     game.invinfo[invi].name = newName;
     // might need to redraw the GUI if it has the inv item name on it
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 int GetInvAt(int atx, int aty) {

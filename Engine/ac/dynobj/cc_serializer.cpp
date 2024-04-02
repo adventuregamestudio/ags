@@ -25,6 +25,7 @@
 #include "ac/game.h"
 #include "debug/debug_log.h"
 #include "plugin/plugin_engine.h"
+#include "util/memory_compat.h"
 #include "util/memorystream.h"
 #include "scriptjoystick.h"
 
@@ -60,7 +61,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     // part of the plugin API.
     size_t data_sz = static_cast<size_t>(dataSize);
     assert(data_sz <= INT32_MAX); // dynamic object API does not support size > int32
-    MemoryStream mems(reinterpret_cast<const uint8_t*>(serializedData), dataSize);
+    Stream mems(std::make_unique<MemoryStream>(reinterpret_cast<const uint8_t*>(serializedData), dataSize));
 
     // TODO: consider this: there are object types that are part of the
     // script's foundation, because they are created by the bytecode ops:

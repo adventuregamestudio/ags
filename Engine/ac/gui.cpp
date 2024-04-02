@@ -13,6 +13,7 @@
 //=============================================================================
 #include <algorithm>
 #include <cstdio>
+#include <numeric>
 #include <vector>
 #include "ac/gui.h"
 #include "ac/common.h"
@@ -72,6 +73,104 @@ int mouse_on_iface=-1;   // mouse cursor is over this interface
 int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 
 int eip_guinum, eip_guiobj;
+
+
+namespace AGS
+{
+namespace Engine
+{
+namespace GUIE
+{
+
+void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl)
+{
+    for (auto &gui : guis)
+    {
+        if (redraw)
+        {
+            gui.MarkChanged();
+            for (int i = 0; i < gui.GetControlCount(); ++i)
+                gui.GetControl(i)->MarkChanged();
+        }
+        if (reset_over_ctrl)
+            gui.ResetOverControl();
+    }
+}
+
+void MarkForTranslationUpdate()
+{
+    for (auto &btn : guibuts)
+    {
+        if (btn.IsTranslated())
+            btn.MarkChanged();
+    }
+    for (auto &lbl : guilabels)
+    {
+        if (lbl.IsTranslated())
+            lbl.MarkChanged();
+    }
+    for (auto &list : guilist)
+    {
+        if (list.IsTranslated())
+            list.MarkChanged();
+    }
+}
+
+void MarkForFontUpdate(int font)
+{
+    const bool update_all = (font < 0);
+    for (auto &btn : guibuts)
+    {
+        if (update_all || btn.Font == font)
+            btn.OnResized();
+    }
+    for (auto &lbl : guilabels)
+    {
+        if (update_all || lbl.Font == font)
+            lbl.OnResized();
+    }
+    for (auto &list : guilist)
+    {
+        if (update_all || list.Font == font)
+            list.OnResized();
+    }
+    for (auto &tb : guitext)
+    {
+        if (update_all || tb.Font == font)
+            tb.OnResized();
+    }
+}
+
+void MarkSpecialLabelsForUpdate(GUILabelMacro macro)
+{
+    for (auto &lbl : guilabels)
+    {
+        if ((lbl.GetTextMacros() & macro) != 0)
+        {
+            lbl.MarkChanged();
+        }
+    }
+}
+
+void MarkInventoryForUpdate(int char_id, bool is_player)
+{
+    for (auto &btn : guibuts)
+    {
+        if (btn.GetPlaceholder() != kButtonPlace_None)
+            btn.MarkChanged();
+    }
+    for (auto &inv : guiinv)
+    {
+        if ((char_id < 0) || (inv.CharId == char_id) || (is_player && inv.CharId < 0))
+        {
+            inv.MarkChanged();
+        }
+    }
+}
+
+} // namespace GUI
+} // namespace Engine
+} // namespace AGS
 
 
 ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
@@ -459,6 +558,38 @@ void update_gui_zorder()
     std::sort(play.gui_draw_order.begin(), play.gui_draw_order.end(), sort_gui_less);
 }
 
+void prepare_gui_runtime(bool startup)
+{
+    // Trigger all guis and controls to recalculate their dynamic state;
+    // here we achieve this by sending "On Resize" event, although there could
+    // be a better way for this.
+    for (auto &gui : guis)
+    {
+        for (int i = 0; i < gui.GetControlCount(); ++i)
+        {
+            GUIObject *guio = gui.GetControl(i);
+            guio->IsActivated = false;
+            guio->OnResized();
+        }
+    }
+    // Reset particular states after loading game data
+    if (startup)
+    {
+        // labels are not clickable by default
+        // CHECKME: why are we doing this at all?
+        for (auto &label : guilabels)
+        {
+            label.SetClickable(false);
+        }
+    }
+    play.gui_draw_order.resize(guis.size());
+    std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
+    update_gui_zorder();
+
+    GUI::Options.DisabledStyle = static_cast<GuiDisableStyle>(game.options[OPT_DISABLEOFF]);
+    GUIE::MarkAllGUIForUpdate(true, true);
+}
+
 void export_gui_controls(int ee)
 {
     for (int ff = 0; ff < guis[ee].GetControlCount(); ff++)
@@ -482,20 +613,19 @@ void unexport_gui_controls(int ee)
     }
 }
 
-void update_gui_disabled_status() {
-    // update GUI display status (perhaps we've gone into
-    // an interface disabled state)
-    int all_buttons_was = all_buttons_disabled;
-    all_buttons_disabled = -1;
+void update_gui_disabled_status()
+{
+    // update GUI display status (perhaps we've gone into an interface disabled state)
+    const GuiDisableStyle disabled_state_was = GUI::Context.DisabledState;
+    GUI::Context.DisabledState = IsInterfaceEnabled() ?
+        kGuiDis_Undefined : GUI::Options.DisabledStyle;
 
-    if (!IsInterfaceEnabled()) {
-        all_buttons_disabled = GUI::Options.DisabledStyle;
-    }
-
-    if (all_buttons_was != all_buttons_disabled) {
+    if (disabled_state_was != GUI::Context.DisabledState)
+    {
         // Mark guis for redraw and reset control-under-mouse detection
-        GUI::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
-        if (GUI::Options.DisabledStyle != kGuiDis_Unchanged) {
+        GUIE::MarkAllGUIForUpdate(GUI::Options.DisabledStyle != kGuiDis_Unchanged, true);
+        if (GUI::Options.DisabledStyle != kGuiDis_Unchanged)
+        {
             invalidate_screen();
         }
     }
@@ -514,7 +644,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking) {
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-        ((all_buttons_disabled >= 0) || assume_blocking))
+        ((GUI::Context.DisabledState != kGuiDis_Undefined) || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
     for (const auto &gui : guis) {
@@ -536,7 +666,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking) {
 
 int adjust_y_for_guis(int y, bool assume_blocking) {
     if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) &&
-        ((all_buttons_disabled >= 0) || assume_blocking))
+        ((GUI::Context.DisabledState >= 0) || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
     for (const auto &gui : guis) {
@@ -558,7 +688,7 @@ int adjust_y_for_guis(int y, bool assume_blocking) {
 
 int gui_get_interactable(int x,int y)
 {
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0))
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
         return -1;
     return GetGUIAt(x, y);
 }
@@ -567,7 +697,7 @@ int gui_on_mouse_move()
 {
     int mouse_over_gui = -1;
     // If all GUIs are off, skip the loop
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (all_buttons_disabled >= 0)) ;
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0)) ;
     else {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it

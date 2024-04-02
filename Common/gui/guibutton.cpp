@@ -20,8 +20,6 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-std::vector<AGS::Common::GUIButton> guibuts;
-
 namespace AGS
 {
 namespace Common
@@ -99,6 +97,9 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
     if (clipped)
         return RectWH(0, 0, _width, _height);
 
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
+
     // TODO: need to find a way to cache image and text position, or there'll be some repetition
     Rect rc = RectWH(0, 0, _width, _height);
     if (IsImageButton())
@@ -109,6 +110,7 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
         if (spriteset.DoesSpriteExist(_currentImage))
             rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(_currentImage), get_adjusted_spriteheight(_currentImage)));
         // Optionally merge with the inventory pic
+        const int gui_inv_pic = GUI::Context.InventoryPic;
         if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
         {
             Size inv_sz = Size(get_adjusted_spritewidth(gui_inv_pic), get_adjusted_spriteheight(gui_inv_pic));
@@ -152,7 +154,7 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
         ClickAction[kGUIClickRight] != kGUIAction_None;
 
     bool const draw_disabled =
-        !IsGUIEnabled(this) &&
+        !GUI::IsGUIEnabled(this) &&
         button_is_clickable &&
         GUI::Options.DisabledStyle != kGuiDis_Unchanged &&
         GUI::Options.DisabledStyle != kGuiDis_Off;
@@ -283,7 +285,7 @@ void GUIButton::OnMouseUp()
 {
     if (IsMouseOver)
     {
-        if (IsGUIEnabled(this) && IsClickable())
+        if (GUI::IsGUIEnabled(this) && IsClickable())
             IsActivated = true;
     }
 
@@ -404,9 +406,12 @@ void GUIButton::WriteToSavegame(Stream *out) const
 
 void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
 {
-    assert(_currentImage >= 0);
     if (draw_disabled && GUI::Options.DisabledStyle == kGuiDis_Blackout)
         return; // button should not be shown at all
+
+    assert(_currentImage >= 0);
+    assert(GUI::Context.Spriteset);
+    SpriteCache &spriteset = *GUI::Context.Spriteset;
 
     // NOTE: the CLIP flag only clips the image, not the text
     if (IsClippingImage() && !GUI::Options.ClipControls)
@@ -416,6 +421,7 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         draw_gui_sprite_flipped(ds, _currentImage, x, y, kBlend_Normal, _curImageFlags & VFLG_FLIPSPRITE);
 
     // Draw active inventory item
+    const int gui_inv_pic = GUI::Context.InventoryPic;
     if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
     {
         Size inv_sz = Size(get_adjusted_spritewidth(gui_inv_pic), get_adjusted_spriteheight(gui_inv_pic));

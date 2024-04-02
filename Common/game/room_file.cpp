@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/common.h" // update_polled_stuff
 #include "ac/common_defines.h"
 #include "ac/gamestructdefines.h"
@@ -40,12 +39,12 @@ namespace AGS
 namespace Common
 {
 
-HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src)
+HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src, AssetManager *mgr)
 {
     // Cleanup source struct
     src = RoomDataSource();
     // Try to find and open room file
-    Stream *in = AssetMgr->OpenAsset(filename);
+    Stream *in = mgr->OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
@@ -470,6 +469,25 @@ HRoomFileError UpdateRoomData(RoomStruct *room, RoomFileVersion data_ver, const 
     // sync bpalettes[0] with room.pal
     memcpy(room->BgFrames[0].Palette, room->Palette, sizeof(RGB) * 256);
     return HRoomFileError::None();
+}
+
+HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
+    const std::vector<SpriteInfo> &sprinfos)
+{
+    room->Free();
+    room->InitDefaults();
+
+    RoomDataSource src;
+    HRoomFileError err = OpenRoomFileFromAsset(filename, src, mgr);
+    if (err)
+    {
+        err = ReadRoomData(room, src.InputStream.get(), src.DataVersion);
+        if (err)
+            err = UpdateRoomData(room, src.DataVersion, sprinfos);
+    }
+    if (!err)
+        return new Error(String::FromFormat("Failed loading a room from file '%s'.", filename.GetCStr()), err);
+    return HError::None();
 }
 
 HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver)

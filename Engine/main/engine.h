@@ -15,12 +15,14 @@
 #define __AGS_EE_MAIN__ENGINE_H
 
 #include "util/ini_util.h"
+#include "util/error.h"
 
 const char *get_engine_name();
 const char *get_engine_version();
 AGS::Common::String get_engine_version_and_build();
 void        show_preload();
 void        engine_init_game_settings();
+AGS::Common::HError engine_init_sprites();
 int         initialize_engine(const AGS::Common::ConfigTree &startup_opts);
 
 struct DisplayModeSetup;

@@ -37,6 +37,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 extern int displayed_room;
 extern int face_talking;
 extern std::vector<ViewStruct> views;

@@ -59,8 +59,6 @@ enum SetupReturnValue
 };
 
 class AGSPlatformDriver
-    // be used as a output target for logging system
-    : public AGS::Common::IOutputHandler
 {
 public:
     AGSPlatformDriver();
@@ -128,6 +126,8 @@ public:
     virtual bool FullscreenSupported() { return true; }
     // Returns command line argument in a UTF-8 format
     virtual Common::String GetCommandArg(size_t arg_index);
+    // Returns a IOutputHandler implementation that prints to this platform's stdout
+    virtual std::unique_ptr<Common::IOutputHandler> GetStdOut();
 
     // Gets the only platform driver instance, creates one if necessary
     static AGSPlatformDriver *GetDriver();
@@ -141,12 +141,6 @@ public:
     // Set whether DisplayAlert is allowed to show modal GUIs on some systems;
     // it will print to either stdout or stderr otherwise, depending on above flag
     void SetGUIMode(bool on) { _guiMode = on; }
-
-    //-----------------------------------------------
-    // IOutputHandler implementation
-    //-----------------------------------------------
-    // Writes to the standard platform's output, prepending "AGS: " prefix to the message
-    void PrintMessage(const AGS::Common::DebugMessage &msg) override;
 
 protected:
     // TODO: this is a quick solution for IOutputHandler implementation

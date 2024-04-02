@@ -19,7 +19,6 @@
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/view.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
@@ -35,6 +34,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/mouse.h"
+#include "ac/movelist.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
@@ -45,6 +45,7 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
@@ -61,7 +62,6 @@
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
 #include "media/audio/audio_system.h"
-#include "ac/movelist.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -162,7 +162,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
         charextra[charid].invorder[addIndex] = inum;
     }
     charextra[charid].invorder_count++;
-    GUI::MarkInventoryForUpdate(charid, charid == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
     if (chaa == playerchar)
         run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
 }
@@ -748,7 +748,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
             }
         }
     }
-    GUI::MarkInventoryForUpdate(charid, charid == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(charid, charid == game.playercharacter);
 
     if (chap == playerchar)
         run_on_event (GE_LOSE_INV, RuntimeScriptValue().SetInt32(inum));
@@ -1137,7 +1137,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
             if (GetCursorMode()==MODE_USE)
                 set_cursor_mode(0);
         }
-        GUI::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
+        GUIE::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
         return;
     }
 
@@ -1154,7 +1154,7 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
         update_inv_cursor(iit->id);
         set_cursor_mode(MODE_USE);
     }
-    GUI::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
+    GUIE::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
 }
 
 int Character_GetAnimating(CharacterInfo *chaa) {
@@ -1429,7 +1429,7 @@ const char* Character_GetName(CharacterInfo *chaa) {
 void Character_SetName(CharacterInfo *chaa, const char *newName) {
     chaa->name = newName;
     // Fill legacy name fields, for compatibility with old scripts and plugins
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 int Character_GetNormalView(CharacterInfo *chaa) {

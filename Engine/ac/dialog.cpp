@@ -29,6 +29,7 @@
 #include "ac/global_gui.h"
 #include "ac/global_room.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/keycode.h"
 #include "ac/overlay.h"
 #include "ac/mouse.h"
@@ -41,8 +42,6 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "script/cc_instance.h"
-#include "gui/guimain.h"
-#include "gui/guitextbox.h"
 #include "main/game_run.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
@@ -50,7 +49,6 @@
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-#include "ac/mouse.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
@@ -822,7 +820,7 @@ bool DialogOptions::Run()
     // Handle default rendering changing an active option
     if (!usingCustomRendering)
     {
-        needRedraw = (mousewason != mouseison);
+        needRedraw |= (mousewason != mouseison);
     }
     // Handle new parser's state
     if (parserInput && parserInput->IsActivated)
@@ -855,7 +853,7 @@ bool DialogOptions::Run()
             chose = ccDialogOptionsRendering.chosenOptionID;
             ccDialogOptionsRendering.chosenOptionID = -1;
         }
-        needRedraw = ccDialogOptionsRendering.needRepaint;
+        needRedraw |= ccDialogOptionsRendering.needRepaint;
     }
 
     // Finally, if the option has been chosen, then break the options loop
@@ -929,11 +927,11 @@ bool DialogOptions::RunKey(const KeyInput &ki)
             needRedraw = true;
             return true; // handled
         }
-        else if ((agskey >= eAGSKeyCodeSpace) || (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
+        else if ((ki.UChar > 0) || (agskey == eAGSKeyCodeReturn) || (agskey == eAGSKeyCodeBackspace))
         {
-            parserInput->OnKeyPress(ki);
-            needRedraw = true;
-            return true; // handled
+            bool handled = parserInput->OnKeyPress(ki);
+            needRedraw = handled;
+            return handled;
         }
     }
     else if (newCustomRender)

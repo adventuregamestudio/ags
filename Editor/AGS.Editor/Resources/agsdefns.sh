@@ -1867,6 +1867,34 @@ builtin managed struct AudioClip {
 #endif
 };
 
+
+#ifdef SCRIPT_API_v362
+// Engine value constant name pattern:
+// ENGINE_VALUE_<I,II,S,SI>_NAME, where
+//   I - integer, II - indexed integer, S - string, SI - indexed string.
+// When adding indexed values - make sure to also add a value that tells their count.
+
+enum EngineValueID {
+  ENGINE_VALUE_UNDEFINED = 0,            // formality...
+  ENGINE_VALUE_SI_VALUENAME,             // get engine value's own name, by its index
+  ENGINE_VALUE_S_ENGINE_NAME,
+  ENGINE_VALUE_S_ENGINE_VERSION,         // N.N.N.N (with an optional custom tag)
+  ENGINE_VALUE_S_ENGINE_VERSION_FULL,    // full, with bitness, endianess and any tag list
+  ENGINE_VALUE_S_DISPLAY_MODE_STR,
+  ENGINE_VALUE_S_GFXRENDERER,
+  ENGINE_VALUE_S_GFXFILTER,
+  ENGINE_VALUE_I_SPRCACHE_MAXNORMAL,
+  ENGINE_VALUE_I_SPRCACHE_NORMAL,
+  ENGINE_VALUE_I_SPRCACHE_LOCKED,
+  ENGINE_VALUE_I_SPRCACHE_EXTERNAL,
+  ENGINE_VALUE_I_TEXCACHE_MAXNORMAL,
+  ENGINE_VALUE_I_TEXCACHE_NORMAL,
+  ENGINE_VALUE_I_FPS_MAX,
+  ENGINE_VALUE_I_FPS,
+  ENGINE_VALUE_LAST                      // in case user wants to iterate them
+};
+#endif
+
 builtin struct System {
   /// Gets whether Caps Lock is currently on.
   readonly import static attribute bool CapsLock;
@@ -1911,6 +1939,12 @@ builtin struct System {
 #ifdef SCRIPT_API_v360
   /// Prints message
   import static void Log(LogLevel level, const string format, ...);    // $AUTOCOMPLETESTATICONLY$
+#endif
+#ifdef SCRIPT_API_v362
+  /// Gets a runtime engine value represented as integer by the given identifier; is meant for diagnostic purposes only
+  import static int GetEngineInteger(EngineValueID value, int index = 0); // $AUTOCOMPLETESTATICONLY$
+  /// Gets a runtime engine string by the given identifier; is meant for diagnostic purposes only
+  import static String GetEngineString(EngineValueID value, int index = 0); // $AUTOCOMPLETESTATICONLY$
 #endif
 };
 

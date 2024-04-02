@@ -207,6 +207,8 @@ HError load_game_file()
     err = (HError)InitGameState(ents, src.DataVersion);
     if (!err)
         return err;
+
+    GUIE::MarkAllGUIForUpdate(true, true);
     return HError::None();
 }
 

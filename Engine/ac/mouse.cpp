@@ -22,6 +22,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_screen.h"
+#include "ac/gui.h"
 #include "ac/sys_events.h"
 #include "ac/system.h"
 #include "ac/viewframe.h"

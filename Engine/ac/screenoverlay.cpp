@@ -21,6 +21,7 @@
 using namespace AGS::Common;
 
 extern GameSetupStruct game;
+extern SpriteCache spriteset;
 
 ScreenOverlay::ScreenOverlay(ScreenOverlay &&over)
 {

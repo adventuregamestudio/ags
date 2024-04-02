@@ -153,23 +153,14 @@ enum GuiSvgVersion
     kGuiSvgVersion_400      = 4000000
 };
 
+// Style of GUI drawing in disabled state
 enum GuiDisableStyle
 {
-    kGuiDis_Greyout   = 0,
-    kGuiDis_Blackout  = 1,
-    kGuiDis_Unchanged = 2,
-    kGuiDis_Off       = 3
-};
-
-// Global GUI options
-struct GuiOptions
-{
-    // Clip GUI control's contents to the control's rectangle
-    bool ClipControls = true;
-    // How the GUI controls are drawn when the interface is disabled
-    GuiDisableStyle DisabledStyle = kGuiDis_Unchanged;
-    // Whether to graphically outline GUI controls
-    bool OutlineControls = false;
+    kGuiDis_Undefined = -1, // this is for marking not-disabled state
+    kGuiDis_Greyout   = 0, // paint "gisabled" effect over controls
+    kGuiDis_Blackout  = 1, // invisible controls (but guis are shown
+    kGuiDis_Unchanged = 2, // no change, display normally
+    kGuiDis_Off       = 3  // fully invisible guis
 };
 
 } // namespace Common

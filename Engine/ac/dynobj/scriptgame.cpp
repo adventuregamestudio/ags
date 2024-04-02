@@ -15,11 +15,11 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
+#include "ac/gui.h"
 #include "debug/debug_log.h"
-#include "gui/guimain.h"
 #include "script/cc_common.h" // cc_error
 
-using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 CCScriptGame GameStaticManager;

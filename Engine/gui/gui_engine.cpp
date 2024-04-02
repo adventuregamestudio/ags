@@ -16,14 +16,9 @@
 //
 //=============================================================================
 #include "ac/game_version.h"
+#include "ac/gui.h"
 #include "ac/system.h"
 #include "font/fonts.h"
-#include "gui/guimain.h"
-#include "gui/guibutton.h"
-#include "gui/guiinv.h"
-#include "gui/guilabel.h"
-#include "gui/guilistbox.h"
-#include "gui/guitextbox.h"
 #include <ctype.h>
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
@@ -96,24 +91,28 @@ size_t GUI::SplitLinesForDrawing(const char *text, bool is_translated, SplitLine
 void GUIObject::MarkChanged()
 {
     _hasChanged = true;
-    guis[ParentId].MarkControlChanged();
+    if (ParentId >= 0)
+        guis[ParentId].MarkControlChanged();
 }
 
 void GUIObject::MarkParentChanged()
 {
-    guis[ParentId].MarkControlChanged();
+    if (ParentId >= 0)
+        guis[ParentId].MarkControlChanged();
 }
 
 void GUIObject::MarkPositionChanged(bool self_changed)
 {
     _hasChanged |= self_changed;
-    guis[ParentId].NotifyControlPosition();
+    if (ParentId >= 0)
+        guis[ParentId].NotifyControlPosition();
 }
 
 void GUIObject::MarkStateChanged(bool self_changed, bool parent_changed)
 {
     _hasChanged |= self_changed;
-    guis[ParentId].NotifyControlState(Id, self_changed | parent_changed);
+    if (ParentId >= 0)
+        guis[ParentId].NotifyControlState(Id, self_changed | parent_changed);
 }
 
 void GUIObject::ClearChanged()
@@ -145,7 +144,7 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y, color_t text_colo
         reverse ? kAlignTopRight : kAlignTopLeft);
     wouttext_outline(ds, tpos.X1, tpos.Y1, Font, text_color, _textToDraw.GetCStr());
 
-    if (IsGUIEnabled(this))
+    if (GUI::IsGUIEnabled(this))
     {
         // draw a cursor
         const int cursor_width = 5;

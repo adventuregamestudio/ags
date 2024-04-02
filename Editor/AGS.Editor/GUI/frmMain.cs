@@ -414,6 +414,7 @@ namespace AGS.Editor
         {
             this.tabbedDocumentContainer1.Init();
 
+            ShowTabIcons = Factory.AGSEditor.Settings.ShowIconInTab;
             Factory.GUIController.ShowWelcomeScreen();
         }
 
@@ -502,6 +503,12 @@ namespace AGS.Editor
 			// you click in the tree. It's an unpopular feature!
             //SetPropertyObjectList(null);
             //SetPropertyObject(null);
+        }
+
+        public bool ShowTabIcons
+        {
+            get { return mainContainer.ShowDocumentIcon; }
+            set { mainContainer.ShowDocumentIcon = value; }
         }
 
         private void LoadColorTheme(ColorTheme t)

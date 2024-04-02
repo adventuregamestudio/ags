@@ -17,21 +17,31 @@
 #include "ac/gamestate.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_translation.h"
+#include "ac/gui.h"
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
-#include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
+
+bool AssertHotspot(const char *apiname, int hot_id)
+{
+    if ((hot_id >= 0) && (static_cast<uint32_t>(hot_id) < thisroom.HotspotCount))
+        return true;
+    debug_script_warn("%s: invalid hotspot id %d (range is 0..%d)", apiname, hot_id, thisroom.HotspotCount - 1);
+    return false;
+}
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
     if (newval)
@@ -83,7 +93,7 @@ void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
     croom->hotspot[hss->id].Name = newName;
-    GUI::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
+    GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
 bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {

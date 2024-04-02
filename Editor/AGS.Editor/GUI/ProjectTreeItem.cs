@@ -9,8 +9,8 @@ namespace AGS.Editor
 {
     public class ProjectTreeItem : IProjectTreeItem
     {
-		public delegate bool CanDropHereDelegate(ProjectTreeItem source, ProjectTreeItem target);
-		public delegate void DropHereDelegate(ProjectTreeItem source, ProjectTreeItem target);
+		public delegate bool CanDropHereDelegate(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone, out bool showLine);
+		public delegate void DropHereDelegate(ProjectTreeItem source, ProjectTreeItem target, TargetDropZone dropZone);
 
         public bool AllowLabelEdit = false;
         public bool AllowDoubleClickWhenExpanding = false;

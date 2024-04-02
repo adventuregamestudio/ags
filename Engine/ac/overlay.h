@@ -56,6 +56,10 @@ Common::Bitmap *recreate_overlay_image(ScreenOverlay &over,
     Common::Bitmap *&scalebmp, Common::Bitmap *&rotbmp);
 // Recalculates overlay's transform matrix and AABB, returns overlay object's position
 Point update_overlay_graphicspace(ScreenOverlay &over);
+// Returns a ref to overlays list, useful for iterating over them
+// FIXME: this should be a CONST ref (if any at all), strictly for reading,
+// but unfortunately some batch operations on overlays are currently performed
+// by external code...
 std::vector<ScreenOverlay> &get_overlays();
 
 #endif // __AGS_EE_AC__OVERLAY_H

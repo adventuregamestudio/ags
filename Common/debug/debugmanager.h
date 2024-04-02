@@ -32,11 +32,24 @@
 // each of the registered output targets, which do checks to find out whether
 // the message is permitted to be sent further to the printing handler, or not.
 //
+//-----------------------------------------------------------------------------
+//
+// Thread-safety: currently each public method of DebugManager is protected
+// by locking a mutex. One noteable case is sending a message to all outputs
+// using DebugManager::Print: all the outputs will be processed between a
+// single pair of lock/unlock. On one hand this makes the order of messages
+// strict and reduces potential number of lock/unlock pairs. On another hand,
+// this in theory may slow things down more in case of overly verbose logging
+// from multiple threads. If that becomes an issue, we might redesign
+// the locking strategy, e.g. letting separate outputs to process messages in
+// parallel.
+//
 //=============================================================================
 #ifndef __AGS_CN_DEBUG__DEBUGMANAGER_H
 #define __AGS_CN_DEBUG__DEBUGMANAGER_H
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include "debug/out.h"
 #include "debug/outputhandler.h"
@@ -48,6 +61,21 @@ namespace AGS
 namespace Common
 {
 
+// Debug group identifier defining either numeric or string id, or both
+struct DebugGroupID
+{
+    MessageGroupHandle ID = InvalidMessageGroup;
+    String SID;
+
+    DebugGroupID() = default;
+    DebugGroupID(uint32_t id, const String &sid = "") : ID(id), SID(sid) {}
+    DebugGroupID(const String &sid) : ID(InvalidMessageGroup), SID(sid) {}
+    // Tells if any of the id components is valid
+    bool IsValid() const { return ID != InvalidMessageGroup || !SID.IsEmpty(); }
+    // Tells if both id components are properly set
+    bool IsComplete() const { return ID != InvalidMessageGroup && !SID.IsEmpty(); }
+};
+
 // DebugGroup is a message sender definition, identified by DebugGroupID
 // and providing OutputName that could be used when printing its messages.
 // OutputName may or may not be same as DebugGroupID.SID.
@@ -56,101 +84,122 @@ struct DebugGroup
     DebugGroupID    UID;
     String          OutputName;
 
-    DebugGroup() {}
-    DebugGroup(DebugGroupID id, String out_name) : UID(id), OutputName(out_name) {}
+    DebugGroup() = default;
+    DebugGroup(const DebugGroupID &id, const String &out_name)
+        : UID(id), OutputName(out_name) {}
 };
 
-// DebugOutput is a slot for IOutputHandler with its own group filter
-class DebugOutput
-{
-public:
-    DebugOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity = kDbgMsg_All, bool enabled = true);
 
-    String          GetID() const;
-    IOutputHandler *GetHandler() const;
+class MessageBuffer;
 
-    bool            IsEnabled() const;
-    void            SetEnabled(bool enable);
-    // Setup group filter: either allow or disallow a group with the given ID
-    void            SetGroupFilter(DebugGroupID id, MessageType verbosity);
-    // Assign same verbosity level to all known groups
-    void            SetAllGroupFilters(MessageType verbosity);
-    // Clear all group filters; this efficiently disables everything
-    void            ClearGroupFilters();
-    // Try to resolve group filter unknown IDs
-    void            ResolveGroupID(DebugGroupID id);
-    // Test if given group id is permitted
-    bool            TestGroup(DebugGroupID id, MessageType mt) const;
-
-private:
-    String          _id;
-    IOutputHandler *_handler;
-    bool            _enabled;
-    MessageType     _defaultVerbosity;
-    // Set of permitted groups' numeric IDs
-    std::vector<MessageType> _groupFilter;
-    // Set of unresolved groups, which numeric IDs are not yet known
-    typedef std::unordered_map<String, MessageType, HashStrNoCase, StrEqNoCase> GroupNameToMTMap;
-    GroupNameToMTMap _unresolvedGroups;
-};
-
-typedef std::shared_ptr<DebugOutput> PDebugOutput;
-
-
+// DebugManager manages log outputs and message groups.
+// All the logging goes through this Manager's Print method.
 class DebugManager
 {
-    friend class DebugOutput;
-
 public:
-    DebugManager();
+    DebugManager(bool buffer_messages);
 
-    // Gets full group ID for any partial one; if the group is not registered returns unset ID
-    DebugGroup   GetGroup(DebugGroupID id);
-    // Gets output control interface for the given ID
-    PDebugOutput GetOutput(const String &id);
-    // Registers debugging group with the given string ID; numeric ID
-    // will be assigned internally. Returns full ID pair.
-    // If the group with such string id already exists, returns existing ID.
-    DebugGroup RegisterGroup(const String &id, const String &out_name);
+    // Registers message group with the given string ID; numeric ID will be
+    // assigned internally. "Out_name" is an optional name to use when printing
+    // a message from this group, it may be empty.
+    // Returns a numeric group handle.
+    // If the group with such string id already exists, then returns existing ID.
+    MessageGroupHandle RegisterGroup(const String &id, const String &out_name);
+    // Registers message group with the pair of numeric and string IDs.
+    // "Out_name" is an optional name to use when printing a message from
+    // this group, it may be empty.
+    // If the group with such string and/or numeric id already exists, they will be replaced.
+    // Returns a numeric group handle.
+    // TODO: revise this, currently is used to register default groups.
+    MessageGroupHandle RegisterGroup(const DebugGroupID &group_id, const String &out_name);
     // Registers output delegate for passing debug messages to;
-    // if the output with such id already exists, replaces the old one
-    PDebugOutput RegisterOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity = kDbgMsg_All, bool enabled = true);
+    // if the output with such id already exists, replaces the old one.
+    void RegisterOutput(const String &id, std::unique_ptr<IOutputHandler> &&handler,
+        MessageType def_verbosity,
+        const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+
+    // Gets a group description; returns an unfilled struct if such group does not exist.
+    DebugGroup GetGroup(const DebugGroupID &id);
+    // Tells if an output with the given name is already registered
+    bool HasOutput(const String &id);
+    // Resets message group filters for the given output
+    void SetOutputFilters(const String &id, MessageType def_verbosity,
+        const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+
     // Unregisters all groups and all targets
     void UnregisterAll();
-    // Unregisters debugging group with the given ID
-    void UnregisterGroup(DebugGroupID id);
-    // Unregisters output delegate with the given ID
+    // Unregisters debugging group with the given string ID
+    void UnregisterGroup(const DebugGroupID &id);
+    // Unregisters output delegate with the given string ID
     void UnregisterOutput(const String &id);
 
+    // Begins to record messages in the internal buffer.
+    // Whenever a new output is registered, any buffered messages will be
+    // resent into this new output, so that it had fuller log.
+    void StartMessageBuffering();
+    // Stops message buffering and erases buffer.
+    void StopMessageBuffering();
+
     // Output message of given group and message type
-    void Print(DebugGroupID group_id, MessageType mt, const String &text);
-    // Send message directly to the output with given id; the message
-    // must pass the output's message filter though
-    void SendMessage(const String &out_id, const DebugMessage &msg);
+    void Print(MessageGroupHandle group_id, MessageType mt, const String &text);
 
 private:
     // OutputSlot struct wraps over output target and adds a flag which indicates
     // that this target is temporarily disabled (for internal use only)
-    struct OutputSlot
+    class DebugOutput
     {
-        PDebugOutput Target;
-        bool          Suppressed;
+    public:
+        DebugOutput() = default;
+        DebugOutput(const String &id, std::unique_ptr<IOutputHandler> &&handler,
+            MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
 
-        OutputSlot() : Suppressed(false) {}
+        const String &GetID() const { return _id; }
+        IOutputHandler *GetHandler() const { return _handler.get(); }
+        void SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+        void ResolveGroupID(const DebugGroupID &id);
+        void SendMessage(const DebugMessage &msg);
+
+    private:
+        inline bool TestGroup(MessageGroupHandle id, MessageType mt) const
+        {
+            assert(id < _groupFilter.size());
+            return (_groupFilter[id] >= mt);
+        }
+
+        String          _id;
+        std::unique_ptr<IOutputHandler> _handler;
+        bool            _suppressed = false;
+        MessageType     _defaultVerbosity = kDbgMsg_None;
+        // Maximal message type per group (based on numeric index)
+        std::vector<MessageType> _groupFilter;
+        // Set of unresolved groups, which have not been properly registered yet,
+        // and which numeric IDs are not yet known. These may be added
+        // when registering an Output with a group filter list.
+        // Whenever a new group is registered, DebugManager will try to resolve
+        // previously unresolved groups, and respective output filters.
+        std::unordered_map<String, MessageType, HashStrNoCase, StrEqNoCase>
+                        _unresolvedGroups;
     };
 
-    typedef std::vector<DebugGroup> GroupVector;
-    typedef std::unordered_map<String, DebugGroupID, HashStrNoCase, StrEqNoCase> GroupByStringMap;
-    typedef std::unordered_map<String, OutputSlot, HashStrNoCase, StrEqNoCase> OutMap;
+    MessageGroupHandle FindFreeGroupID();
+    DebugGroup         GetGroupImpl(const DebugGroupID &id);
+    MessageGroupHandle RegisterGroupImpl(const DebugGroupID &group_id, const String &out_name);
+    DebugOutput        CreateOutputImpl(const String &id,
+        std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
+        const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters);
+    void               SendBufferedMessages(DebugOutput &out);
 
-    void RegisterGroup(const DebugGroup &id);
-    void SendMessage(OutputSlot &out, const DebugMessage &msg);
+    std::mutex          _mutex;
+    uint32_t            _freeGroupID = 0u; // first free group numeric id
+    std::vector<DebugGroup> _groups;
+    std::unordered_map<String, DebugGroupID, HashStrNoCase, StrEqNoCase>
+                        _groupByStrLookup;
+    std::unordered_map<String, DebugOutput, HashStrNoCase, StrEqNoCase>
+                        _outputs;
 
-    uint32_t            _firstFreeGroupID;
-    uint32_t            _lastGroupID;
-    GroupVector         _groups;
-    GroupByStringMap    _groupByStrLookup;
-    OutMap              _outputs;
+    // The ID for the optional message buffer
+    const String OutputMsgBufID = "internal.buffer";
+    MessageBuffer      *_messageBuf = nullptr; // non-owning quick ref
 };
 
 // TODO: move this to the dynamically allocated engine object whenever it is implemented

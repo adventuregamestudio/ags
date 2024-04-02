@@ -18,13 +18,15 @@
 #include "ac/common_defines.h" // TODO: split out gui drawing helpers
 #include "gfx/gfx_def.h" // TODO: split out gui drawing helpers
 #include "gui/guidefines.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "util/error.h"
 #include "util/geometry.h"
 #include "util/string.h"
-
-// Forward declaration
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
 
 class SplitLines;
 namespace AGS
@@ -32,8 +34,41 @@ namespace AGS
 namespace Common
 {
 
+// GUICollection is a helper struct for grouping gui object arrays
+// together when passing them to a processing function.
+struct GUICollection
+{
+    std::vector<GUIButton>  Buttons;
+    std::vector<GUIInvWindow> InvWindows;
+    std::vector<GUILabel>   Labels;
+    std::vector<GUIListBox> ListBoxes;
+    std::vector<GUISlider>  Sliders;
+    std::vector<GUITextBox> TextBoxes;
+};
+
+// GUIRefCollection is a helper struct for grouping *references* to
+// gui object arrays together when passing them to a processing function.
+struct GUIRefCollection
+{
+    std::vector<GUIButton>  &Buttons;
+    std::vector<GUIInvWindow> &InvWindows;
+    std::vector<GUILabel>   &Labels;
+    std::vector<GUIListBox> &ListBoxes;
+    std::vector<GUISlider>  &Sliders;
+    std::vector<GUITextBox> &TextBoxes;
+
+    GUIRefCollection(std::vector<GUIButton> &guibuts,
+        std::vector<GUIInvWindow> &guiinv, std::vector<GUILabel> &guilabels,
+        std::vector<GUIListBox> &guilist, std::vector<GUISlider> &guislider,
+        std::vector<GUITextBox> &guitext)
+        : Buttons(guibuts), InvWindows(guiinv), Labels(guilabels)
+        , ListBoxes(guilist), Sliders(guislider), TextBoxes(guitext) {}
+    GUIRefCollection(GUICollection &guiobjs)
+        : Buttons(guiobjs.Buttons), InvWindows(guiobjs.InvWindows), Labels(guiobjs.Labels)
+        , ListBoxes(guiobjs.ListBoxes), Sliders(guiobjs.Sliders), TextBoxes(guiobjs.TextBoxes) {}
+};
+
 class Bitmap;
-class GUIObject;
 
 
 class GUIMain
@@ -111,7 +146,8 @@ public:
     void    DrawWithControls(Bitmap *ds);
     // Polls GUI state, providing current cursor (mouse) coordinates
     void    Poll(int mx, int my);
-    HError  RebuildArray();
+    // Reconnects this GUIMain with the child controls from the global guiobject collection
+    HError  RebuildArray(GUIRefCollection &guiobjs);
     void    ResortZOrder();
     bool    SendControlToBack(int index);
     // Sets GUI position
@@ -201,10 +237,44 @@ private:
 };
 
 
+// Global GUI options
+struct GuiOptions
+{
+    // Clip GUI control's contents to the control's rectangle
+    bool ClipControls = true;
+    // How the GUI controls are drawn when the interface is disabled
+    GuiDisableStyle DisabledStyle = kGuiDis_Unchanged;
+    // Whether to graphically outline GUI controls
+    bool OutlineControls = false;
+};
+
+class SpriteCache;
+
+// Global GUI context, affects controls behavior (drawing, updating)
+struct GuiContext
+{
+    // Sprite cache, for GUI drawing in software mode
+    SpriteCache *Spriteset = nullptr;
+    // Current disabled state
+    GuiDisableStyle DisabledState = kGuiDis_Undefined;
+    // Last selected inventory item's pic
+    int InventoryPic = -1;
+};
+
 namespace GUI
 {
+    // These are still global objects for now, but in the future it will be
+    // optimal to have these as an object allocated on heap, and passed to
+    // GUI functions as a pointer.
     extern GuiVersion GameGuiVersion;
     extern GuiOptions Options;
+    extern GuiContext Context;
+
+    // Tells if the given control is considered enabled, taking global flag into account
+    inline bool IsGUIEnabled(GUIObject *g)
+    {
+        return (GUI::Context.DisabledState == kGuiDis_Undefined) && g->IsEnabled();
+    }
 
     // Applies current text direction setting (may depend on multiple factors)
     String ApplyTextDirection(const String &text);
@@ -240,56 +310,34 @@ namespace GUI
     // apply_direction param tells whether text direction setting should be applied
     size_t SplitLinesForDrawing(const char *text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
 
-    // Mark all existing GUI for redraw
-    void MarkAllGUIForUpdate(bool redraw, bool reset_over_ctrl);
-    // Mark all translatable GUI controls for redraw
-    void MarkForTranslationUpdate();
-    // Mark all GUI which use the given font for recalculate/redraw;
-    // pass -1 to update all the textual controls together
-    void MarkForFontUpdate(int font);
-    // Mark labels that acts as special text placeholders for redraw
-    void MarkSpecialLabelsForUpdate(GUILabelMacro macro);
-    // Mark inventory windows for redraw, optionally only ones linked to given character;
-    // also marks buttons with inventory icon mode
-    void MarkInventoryForUpdate(int char_id, bool is_player);
-
     // Reads all GUIs and their controls.
-    // WARNING: the data is read into the global arrays (guis, guibuts, and so on)
-    HError ReadGUI(Stream *in);
+    HError ReadGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs, Stream *in);
     // Writes all GUIs and their controls.
-    // WARNING: the data is written from the global arrays (guis, guibuts, and so on)
-    void WriteGUI(Stream *out);
+    void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
 
     // Rebuilds GUIs, connecting them to the child controls in memory.
-    // WARNING: the data is processed in the global arrays (guis, guibuts, and so on)
-    HError RebuildGUI();
+    HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
 }
 
 } // namespace Common
 } // namespace AGS
 
-extern std::vector<Common::GUIMain> guis;
-// Tells if all controls are disabled
-// TODO: investigate how this variable works, and if this is at all needed
-extern int all_buttons_disabled;
-extern int gui_inv_pic;
-
 extern int get_adjusted_spritewidth(int spr);
 extern int get_adjusted_spriteheight(int spr);
 
 // This function has distinct implementations in Engine and Editor
-extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y,
-                            Common::BlendMode blend_mode = Common::kBlend_Normal);
-extern void draw_gui_sprite(Common::Bitmap *ds, int x, int y,
-                            Common::Bitmap *image,
-                            Common::BlendMode blend_mode, int alpha);
+extern void draw_gui_sprite(AGS::Common::Bitmap *ds, int spr, int x, int y,
+                            AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal);
+extern void draw_gui_sprite(AGS::Common::Bitmap *ds, int x, int y,
+                            AGS::Common::Bitmap *image,
+                            AGS::Common::BlendMode blend_mode, int alpha);
 
-extern void draw_gui_sprite_flipped(Common::Bitmap *ds, int pic, int x, int y, Common::BlendMode blend_mode, bool is_flipped);
-extern void draw_gui_sprite_flipped(Common::Bitmap *ds, int x, int y,
-    Common::Bitmap *image, Common::BlendMode blend_mode, int alpha, bool is_flipped);
+extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode, bool is_flipped);
+extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y,
+    AGS::Common::Bitmap *image, AGS::Common::BlendMode blend_mode, int alpha, bool is_flipped);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);

@@ -35,8 +35,10 @@ namespace AGS.Types
         v360 = 3060000,
         [Description("3.6.0 Final")]
         v36026 = 3060026,
-        [Description("3.6.1 Beta")]
+        [Description("3.6.1")]
         v361 = 3060100,
+        [Description("3.6.2")]
+        v362 = 3060200,
         [Description("3.99.x")]
         v399 = 3990000,
         [Description("4.0.0")]

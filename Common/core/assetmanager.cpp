@@ -25,10 +25,6 @@ namespace AGS
 namespace Common
 {
 
-// TODO: move elsewhere later
-std::unique_ptr<AssetManager> AssetMgr;
-
-
 inline static bool IsAssetLibDir(const AssetLibInfo *lib) { return lib->BaseFileName.IsEmpty(); }
 inline static bool IsAssetLibFile(const AssetLibInfo *lib) { return !lib->BaseFileName.IsEmpty(); }
 
@@ -55,7 +51,7 @@ bool SortLibsPriorityLib(const AssetLibInfo *lib1, const AssetLibInfo *lib2)
 
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
-    Stream *in = File::OpenFileCI(data_file, Common::kFile_Open, Common::kStream_Read);
+    Stream *in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);
     if (in)
     {
         MFLUtil::MFLError err = MFLUtil::TestIsMFL(in, true);
@@ -67,7 +63,7 @@ bool SortLibsPriorityLib(const AssetLibInfo *lib1, const AssetLibInfo *lib2)
 
 /* static */ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &lib)
 {
-    Stream *in = File::OpenFileCI(data_file, Common::kFile_Open, Common::kStream_Read);
+    Stream *in = File::OpenFileCI(data_file, kFile_Open, kStream_Read);
     if (in)
     {
         MFLUtil::MFLError err = MFLUtil::ReadHeader(lib, in);
@@ -228,7 +224,7 @@ AssetError AssetManager::RegisterAssetLib(const String &path, AssetLibEx *&out_l
     // ...else try open a data library
     else
     {
-        Stream *in = File::OpenFileCI(path, Common::kFile_Open, Common::kStream_Read);
+        Stream *in = File::OpenFileCI(path, kFile_Open, kStream_Read);
         if (!in)
             return kAssetErrNoLibFile; // can't be opened, return error code
 

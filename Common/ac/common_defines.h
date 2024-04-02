@@ -28,6 +28,11 @@
 #define MAX_INV   301
 // Number of state-saved rooms
 #define MAX_ROOMS 300
+// Max number of old-style global interaction variables
+#define MAX_INTERACTION_VARIABLES 100
+// An offset for local room's interaction variable IDs
+#define LOCAL_INTER_VAR_OFFSET 10000
+
 
 // Room object flags
 // (design-time values are now limited to 16-bit by the game file format)

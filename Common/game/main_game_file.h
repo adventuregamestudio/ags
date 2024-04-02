@@ -21,12 +21,14 @@
 #ifndef __AGS_CN_GAME__MAINGAMEFILE_H
 #define __AGS_CN_GAME__MAINGAMEFILE_H
 
+#include <functional>
 #include <memory>
 #include <set>
 #include <vector>
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
 #include "gfx/gfx_def.h"
+#include "gui/guimain.h"
 #include "script/cc_script.h"
 #include "util/error.h"
 #include "util/stream.h"
@@ -110,8 +112,10 @@ struct CharDataEx
 // code refactoring.
 struct LoadedGameEntities
 {
-    GameSetupStruct        &Game;
+    GameSetupStruct        &Game; // FIXME: have an object, not ref, and std::move
     std::vector<CharDataEx> CharEx;
+    std::vector<GUIMain>    Guis;
+    GUICollection           GuiControls;
     std::vector<DialogTopic> Dialogs;
     std::vector<ViewStruct> Views;
     PScript                 GlobalScript;

@@ -731,14 +731,19 @@ namespace AGS.Editor
 
         public string[] ShowOpenFileDialogMultipleFiles(string title, string fileFilter)
         {
-			EnsureLastImportDirectoryIsSet(true);
+            EnsureLastImportDirectoryIsSet(true);
 
+            return ShowOpenFileDialogMultipleFiles(title, fileFilter, _lastImportDirectory);
+        }
+
+        public string[] ShowOpenFileDialogMultipleFiles(string title, string fileFilter, string initialDirectory)
+        {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Title = title;
             dialog.RestoreDirectory = true;
             dialog.CheckFileExists = true;
             dialog.CheckPathExists = true;
-            dialog.InitialDirectory = _lastImportDirectory;
+            dialog.InitialDirectory = initialDirectory;
             dialog.ValidateNames = true;
             dialog.Filter = fileFilter;
             dialog.Multiselect = true;
@@ -1614,6 +1619,11 @@ namespace AGS.Editor
         public void RePopulateTreeView(IEditorComponent component)
         {
             RePopulateTreeView(component, null);
+        }
+        public bool ShowTabIcons
+        {
+            get { return _mainForm.ShowTabIcons; }
+            set { _mainForm.ShowTabIcons = value; }
         }
 
 

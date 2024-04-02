@@ -86,7 +86,8 @@ public:
     ~SpriteCache() = default;
 
     // Loads sprite reference information and inits sprite stream
-    HError      InitFile(const String &filename, const String &sprindex_filename);
+    HError      InitFile(std::unique_ptr<Stream> &&sprite_file,
+                         std::unique_ptr<Stream> &&index_file);
     // Saves current cache contents to the file
     int         SaveToFile(const String &filename, int store_flags, SpriteCompression compress, SpriteFileIndex &index);
     // Closes an active sprite file stream
@@ -219,8 +220,5 @@ private:
 
 } // namespace Common
 } // namespace AGS
-
-// Main global spritecache object
-extern AGS::Common::SpriteCache spriteset;
 
 #endif // __AGS_CN_AC__SPRCACHE_H

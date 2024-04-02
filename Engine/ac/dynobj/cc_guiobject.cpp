@@ -14,8 +14,7 @@
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "gui/guimain.h"
-#include "gui/guiobject.h"
+#include "ac/gui.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;

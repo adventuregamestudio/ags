@@ -246,13 +246,25 @@ namespace AGS.Editor
             {
                 int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;
                 int y = previewPanel.ClientSize.Height - spriteSize.Height;
-                IntPtr hdc = e.Graphics.GetHdc();
-                Factory.NativeProxy.DrawSprite(hdc, x, y, spriteSize.Width, spriteSize.Height, spriteNum, thisFrame.Flipped);
-                e.Graphics.ReleaseHdc();
+
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), spriteSize.Width, spriteSize.Height, chkCentrePivot.Checked, false, Color.Magenta);
+
+                if (thisFrame.Flipped)
+                {
+                    Point urCorner = new Point(x, y);
+                    Point ulCorner = new Point(x+bmp.Width, y);
+                    Point llCorner = new Point(x+bmp.Width, y+bmp.Height);
+                    Point[] destPara = { ulCorner, urCorner, llCorner };
+                    e.Graphics.DrawImage(bmp, destPara);
+                }
+                else
+                {
+                    e.Graphics.DrawImage(bmp, x, y);
+                }
             }
             else
             {
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
+                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, Color.Magenta);
 
                 if (thisFrame.Flipped)
                 {

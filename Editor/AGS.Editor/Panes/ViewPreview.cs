@@ -241,46 +241,39 @@ namespace AGS.Editor
             {
                 spriteSize = MathExtra.SafeScale(spriteSize, _zoomLevel);
             }
-
+                        
+            int x, y, targetWidth, targetHeight;
             if (spriteSize.Width <= previewPanel.ClientSize.Width && spriteSize.Height <= previewPanel.ClientSize.Height)
             {
-                int x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;
-                int y = previewPanel.ClientSize.Height - spriteSize.Height;
-
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), spriteSize.Width, spriteSize.Height, chkCentrePivot.Checked, false, Color.Magenta);
-
-                if (thisFrame.Flipped)
-                {
-                    Point urCorner = new Point(x, y);
-                    Point ulCorner = new Point(x+bmp.Width, y);
-                    Point llCorner = new Point(x+bmp.Width, y+bmp.Height);
-                    Point[] destPara = { ulCorner, urCorner, llCorner };
-                    e.Graphics.DrawImage(bmp, destPara);
-                }
-                else
-                {
-                    e.Graphics.DrawImage(bmp, x, y);
-                }
+                x = chkCentrePivot.Checked ? previewPanel.ClientSize.Width / 2 - spriteSize.Width / 2 : 0;
+                y = previewPanel.ClientSize.Height - spriteSize.Height;
+                targetWidth = spriteSize.Width;
+                targetHeight = spriteSize.Height;                
             }
             else
             {
-                Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, Color.Magenta);
-
-                if (thisFrame.Flipped)
-                {
-                    Point urCorner = new Point(0, 0);
-                    Point ulCorner = new Point(bmp.Width, 0);
-                    Point llCorner = new Point(bmp.Width, bmp.Height);
-                    Point[] destPara = { ulCorner, urCorner, llCorner };
-                    e.Graphics.DrawImage(bmp, destPara);
-                }
-                else
-                {
-                    e.Graphics.DrawImage(bmp, 1, 1);
-                }
-
-                bmp.Dispose();
+                x = 0;
+                y = 0;
+                targetWidth = previewPanel.ClientSize.Width;
+                targetHeight = previewPanel.ClientSize.Height;
             }
+
+            Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteSize.Width, spriteSize.Height), targetWidth, targetHeight, chkCentrePivot.Checked, false, Color.Magenta);
+
+            if (thisFrame.Flipped)
+            {
+                Point urCorner = new Point(x, y);
+                Point ulCorner = new Point(x + bmp.Width, y);
+                Point llCorner = new Point(x + bmp.Width, y + bmp.Height);
+                Point[] destPara = { ulCorner, urCorner, llCorner };
+                e.Graphics.DrawImage(bmp, destPara);
+            }
+            else
+            {
+                e.Graphics.DrawImage(bmp, x, y);
+            }
+
+            bmp.Dispose();
         }
 
         private void udLoop_ValueChanged(object sender, EventArgs e)

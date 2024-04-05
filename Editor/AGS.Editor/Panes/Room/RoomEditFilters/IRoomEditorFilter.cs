@@ -17,11 +17,30 @@ namespace AGS.Editor
         /// Displayed name of the filter.
         /// </summary>
         string DisplayName { get; }
+        /// <summary>
+        /// Which room's mask is associated with this filter.
+        /// </summary>
         RoomAreaMaskType MaskToDraw { get; }
+        /// <summary>
+        /// Number of items.
+        /// </summary>
         int ItemCount { get; }
+        /// <summary>
+        /// Which area is selected (if applicable).
+        /// </summary>
         int SelectedArea { get; }
+        /// <summary>
+        /// Keyword to use when displaying F1 help for this filter.
+        /// </summary>
         string HelpKeyword { get; }
+        /// <summary>
+        /// Whether to show "transparency" slider control for this filter.
+        /// This lets to display filter contents with a level of transparency.
+        /// </summary>
         bool ShowTransparencySlider { get; }
+        /// <summary>
+        /// Whether filter items may be shown/hidden in the editor.
+        /// </summary>
         bool SupportVisibleItems { get; }
 
         /// <summary>

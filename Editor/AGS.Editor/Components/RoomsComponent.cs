@@ -31,8 +31,11 @@ namespace AGS.Editor.Components
         private const string COMMAND_LOAD_ROOM = "LoadRoom";
         private const string COMMAND_SAVE_ROOM = "SaveRoom";
 
+        private const string ROOM_ICON = "RoomsIcon";
         private const string ROOM_ICON_UNLOADED = "RoomIcon";
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
+        private const string ROOM_ICON_SAVE_UNLOADED = "RoomIconSaving";
+        private const string ROOM_ICON_SAVE_LOADED = "RoomColourIconSaving";
         private const string SCRIPT_ICON = "ScriptIcon";
 
         /// <summary>
@@ -73,10 +76,12 @@ namespace AGS.Editor.Components
         public RoomsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor, ROOMS_COMMAND_ID)
         {
-            _guiController.RegisterIcon("RoomsIcon", Resources.ResourceManager.GetIcon("room.ico"));
+            _guiController.RegisterIcon(ROOM_ICON, Resources.ResourceManager.GetIcon("room.ico"));
             _guiController.RegisterIcon(ROOM_ICON_UNLOADED, Resources.ResourceManager.GetIcon("room-item.ico"));
             _guiController.RegisterIcon(ROOM_ICON_LOADED, Resources.ResourceManager.GetIcon("roomsareas.ico"));
             _guiController.RegisterIcon("MenuIconSaveRoom", Resources.ResourceManager.GetIcon("menu_file_save-room.ico"));
+            _guiController.RegisterIcon(ROOM_ICON_SAVE_UNLOADED, Resources.ResourceManager.GetIcon("room-item-save.ico"));
+            _guiController.RegisterIcon(ROOM_ICON_SAVE_LOADED, Resources.ResourceManager.GetIcon("menu_file_save-room.over.ico"));
 
             MenuCommands commands = new MenuCommands(GUIController.FILE_MENU_ID, 50);
             commands.Commands.Add(new MenuCommand(COMMAND_SAVE_ROOM, "Save Room", Keys.Control | Keys.R, "MenuIconSaveRoom"));
@@ -867,7 +872,7 @@ namespace AGS.Editor.Components
                     ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).Room = null;
                 }
 
-                treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_NODE + _loadedRoom.Number, ROOM_ICON_UNLOADED);
+                treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_NODE + _loadedRoom.Number, _loadedRoom.StateSaving ? ROOM_ICON_SAVE_UNLOADED : ROOM_ICON_UNLOADED);
                 treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_SETTINGS + _loadedRoom.Number, ROOM_ICON_UNLOADED);
             }
 
@@ -1050,7 +1055,7 @@ namespace AGS.Editor.Components
 					}
 
                     ProjectTree treeController = _guiController.ProjectTree;
-					treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_NODE + _loadedRoom.Number, ROOM_ICON_LOADED);
+					treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_NODE + _loadedRoom.Number, _loadedRoom.StateSaving ? ROOM_ICON_SAVE_LOADED : ROOM_ICON);
 					treeController.ChangeNodeIcon(this, TREE_PREFIX_ROOM_SETTINGS + _loadedRoom.Number, ROOM_ICON_LOADED);
 
 					_guiController.ShowOutputPanel(errors);
@@ -1579,15 +1584,17 @@ namespace AGS.Editor.Components
 
         protected override ProjectTreeItem CreateTreeItemForItem(IRoom room)
 		{
-			string iconName = ROOM_ICON_UNLOADED;
+            string nodeIconName = room.StateSaving ? ROOM_ICON_SAVE_UNLOADED : ROOM_ICON_UNLOADED;
+            string iconName = ROOM_ICON_UNLOADED;
 
-			if ((_loadedRoom != null) && (room.Number == _loadedRoom.Number))
+            if ((_loadedRoom != null) && (room.Number == _loadedRoom.Number))
 			{
-				iconName = ROOM_ICON_LOADED;
+                nodeIconName = room.StateSaving ? ROOM_ICON_SAVE_LOADED : ROOM_ICON_LOADED;
+                iconName = ROOM_ICON_LOADED;
 			}
 
 			ProjectTree treeController = _guiController.ProjectTree;
-			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, iconName);
+			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, nodeIconName);
 			treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SETTINGS + room.Number, "Edit room", iconName);
             treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SCRIPT + room.Number, "Room script", SCRIPT_ICON);
             return treeItem;

@@ -156,11 +156,10 @@ struct ObjTexture
         }
     }
 
-    // Tests the sprite notification block to ensure that the texture
-    // is synchronized with the latest sprite version
-    inline bool IsSynced() const
+    // Tests if the sprite change was notified
+    inline bool IsChangeNotified() const
     {
-        return SpriteNotify && (*SpriteNotify == SpriteID);
+        return SpriteNotify && (*SpriteNotify != SpriteID);
     }
 
     ObjTexture &operator =(ObjTexture &&o)
@@ -1371,20 +1370,28 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
 static void sync_object_texture(ObjTexture &obj, bool has_alpha = false, bool opaque = false)
 {
     obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, obj.Bmp.get(), has_alpha, opaque);
-    // If this is a sprite-referencing texture, then assign a control block,
-    // let the object receive notification of sprite updates.
-    if ((obj.SpriteID != UINT32_MAX) && (!obj.IsSynced()))
+
+    // Handle notification control block for the dynamic sprites
+    if ((obj.SpriteID != UINT32_MAX) && game.SpriteInfos[obj.SpriteID].IsDynamicSprite())
     {
-        auto it_notify = drawstate.SpriteNotifyMap.find(obj.SpriteID);
-        if (it_notify != drawstate.SpriteNotifyMap.end())
-        { // assign existing
-            obj.SpriteNotify = it_notify->second;
+        // For dynamic sprite: check and update a notification block for this drawable
+        if (!obj.SpriteNotify || (*obj.SpriteNotify != obj.SpriteID))
+        {
+            auto it_notify = drawstate.SpriteNotifyMap.find(obj.SpriteID);
+            if (it_notify != drawstate.SpriteNotifyMap.end())
+            { // assign existing
+                obj.SpriteNotify = it_notify->second;
+            }
+            else
+            { // if does not exist, then create and share one
+                obj.SpriteNotify = std::make_shared<uint32_t>(obj.SpriteID);
+                drawstate.SpriteNotifyMap.insert(std::make_pair(obj.SpriteID, obj.SpriteNotify));
+            }
         }
-        else
-        { // if does not exist, then create and share one
-            obj.SpriteNotify = std::make_shared<uint32_t>(obj.SpriteID);
-            drawstate.SpriteNotifyMap.insert(std::make_pair(obj.SpriteID, obj.SpriteNotify));
-        }
+    }
+    else
+    {
+        obj.SpriteNotify = nullptr; // reset, for static sprite or without ID
     }
 }
 
@@ -1845,7 +1852,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     {
         // HW acceleration
         const bool is_texture_intact =
-            (objsav.sppic == specialpic) && actsp.IsSynced();
+            (objsav.sppic == specialpic) && !actsp.IsChangeNotified();
         objsav.sppic = specialpic;
         objsav.tintamnt = tint_level;
         objsav.tintr = tint_red;
@@ -1871,7 +1878,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     if ((objsav.image != nullptr) &&
         (objsav.sppic == specialpic) &&
         // not a dynamic sprite, or not sprite modified lately
-        (actsp.IsSynced()) &&
+        (!actsp.IsChangeNotified()) &&
         (objsav.tintamnt == tint_level) &&
         (objsav.tintlight == tint_light) &&
         (objsav.tintr == tint_red) &&
@@ -2720,7 +2727,7 @@ static void construct_overlays()
             overcache[i].X = pos.X; overcache[i].Y = pos.Y;
         }
 
-        if (has_changed || !overtx.IsSynced())
+        if (has_changed || overtx.IsChangeNotified())
         {
             overtx.SpriteID = over.GetSpriteNum();
             // For software mode - prepare transformed bitmap if necessary;

@@ -246,7 +246,8 @@ struct SpriteInfo
         : Width(w), Height(h), Flags(flags) {}
 
     inline Size GetResolution() const { return Size(Width, Height); }
-
+    // Gets if sprite is created at runtime (by engine, or a script command)
+    inline bool IsDynamicSprite() const { return (Flags & SPF_DYNAMICALLOC) != 0; }
     //
     // Legacy game support
     //

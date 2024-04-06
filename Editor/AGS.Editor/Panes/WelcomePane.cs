@@ -49,19 +49,6 @@ namespace AGS.Editor
             _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.6");
         }
 
-        private void WelcomePane_Resize(object sender, EventArgs e)
-        {
-            int newWidth = this.ClientRectangle.Width - pnlRight.Left;
-            if (newWidth < 25) newWidth = 25;
-            pnlRight.Width = newWidth - 10;
-            lblUpgradingInfo.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lblUpgradingInfo.Left - 10, 0);
-            lnkUpgrading.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lnkUpgrading.Left - 10, 0);
-            lnkUpgrading.Top = lblUpgradingInfo.Bottom + 10;
-            lblUpgradingInfo3.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lblUpgradingInfo3.Left - 10, 0);
-            lblUpgradingInfo3.Top = lnkUpgrading.Bottom + 10;
-            pnlRight.Height = lblUpgradingInfo3.Bottom + 10;
-        }
-
         private void WelcomePane_Load(object sender, EventArgs e)
         {
             if (!DesignMode)
@@ -90,6 +77,8 @@ namespace AGS.Editor
 
         private void ShowTipOfTheDay(int tipIndex)
         {
+            pnlTipOfTheDay.SuspendDrawing();
+            pnlTipOfTheDay.SuspendLayout();
             string tipText = TIPS_OF_THE_DAY[tipIndex];
             lnkTipText.LinkArea = new LinkArea(0, 0);
             _currentTipLinkTarget = null;
@@ -110,8 +99,11 @@ namespace AGS.Editor
                 lnkTipText.LinkArea = new LinkArea(linkOffset, linkEnd - linkOffset);
             }
             lnkTipText.Text = tipText;
-            lnkNextTip.Top = lnkTipText.Bottom + 10;
-            pnlTipOfTheDay.Height = lnkNextTip.Bottom + 15;
+            pnlTipOfTheDay.ResumeLayout();
+            pnlTipOfTheDay.ResumeDrawing();
+            pnlTipOfTheDay.Refresh();
+            // we refresh the entire flowpanel because the pnl may have reduced in size because the tip is very small and we are at a very big OS scaling
+            flowLayoutPanelLeft.Refresh();
         }
 
         private void lnkTipText_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -130,10 +122,10 @@ namespace AGS.Editor
         {
             t.SetColor("welcome/background", c => BackColor = c);
             t.SetColor("welcome/foreground", c => ForeColor = c);
-            t.SetColor("welcome/panel1/background", c => panel1.BackColor = c);
-            t.SetColor("welcome/panel1/foreground", c => panel1.ForeColor = c);
-            t.SetColor("welcome/panel2/background", c => panel2.BackColor = c);
-            t.SetColor("welcome/panel2/foreground", c => panel2.ForeColor = c);
+            t.SetColor("welcome/panel1/background", c => panelTitle.BackColor = c);
+            t.SetColor("welcome/panel1/foreground", c => panelTitle.ForeColor = c);
+            t.SetColor("welcome/panel2/background", c => panelWelcomeToAgs.BackColor = c);
+            t.SetColor("welcome/panel2/foreground", c => panelWelcomeToAgs.ForeColor = c);
             t.SetColor("welcome/pnlTipOfTheDay/background", c => pnlTipOfTheDay.BackColor = c);
             t.SetColor("welcome/pnlTipOfTheDay/foreground", c => pnlTipOfTheDay.ForeColor = c);
             t.SetColor("welcome/pnlRight/background", c => pnlRight.BackColor = c);
@@ -144,17 +136,17 @@ namespace AGS.Editor
             try
             {
                 Color linkColor = t.GetColor("welcome/panel2/link");
-                foreach (LinkLabel link in panel2.Controls.OfType<LinkLabel>())
+                foreach (LinkLabel link in tableWelcomeToAgs.Controls.OfType<LinkLabel>())
                 {
                     link.LinkColor = linkColor;
                 }
                 linkColor = t.GetColor("welcome/pnlTipOfTheDay/link");
-                foreach (LinkLabel link in pnlTipOfTheDay.Controls.OfType<LinkLabel>())
+                foreach (LinkLabel link in tableTipOfTheDay.Controls.OfType<LinkLabel>())
                 {
                     link.LinkColor = linkColor;
                 }
                 linkColor = t.GetColor("welcome/pnlRight/link");
-                foreach (LinkLabel link in pnlRight.Controls.OfType<LinkLabel>())
+                foreach (LinkLabel link in tableRight.Controls.OfType<LinkLabel>())
                 {
                     link.LinkColor = linkColor;
                 }

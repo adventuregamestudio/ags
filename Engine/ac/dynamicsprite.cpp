@@ -469,9 +469,6 @@ int add_dynamic_sprite(int slot, std::unique_ptr<Bitmap> image, bool has_alpha, 
     uint32_t flags = SPF_DYNAMICALLOC | (SPF_ALPHACHANNEL * has_alpha) | extra_flags;
     if (!spriteset.SetSprite(slot, std::move(image), flags))
         return 0; // failed to add the sprite, bad image or realloc failed
-
-    if (play.spritemodified.size() < game.SpriteInfos.size())
-        play.spritemodified.resize(game.SpriteInfos.size());
     return slot;
 }
 

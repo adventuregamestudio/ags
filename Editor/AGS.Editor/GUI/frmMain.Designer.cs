@@ -62,6 +62,7 @@ namespace AGS.Editor
             this.pnlCallStack = new AGS.Editor.CallStackPanel();
             this.pnlFindResults = new AGS.Editor.FindResultsPanel();
             this.pnlOutput = new AGS.Editor.OutputPanel();
+            this.pnlMemoryWatch = new AGS.Editor.MemoryWatchPanel();
             this.projectPanel = new AGS.Editor.ProjectPanel();
             this.propertiesPanel = new AGS.Editor.PropertiesPanel();
             this.mainMenu = new MenuStripExtended();
@@ -216,6 +217,25 @@ namespace AGS.Editor
             this.pnlOutput.Visible = true;
             this.pnlOutput.VisibleState = WeifenLuo.WinFormsUI.Docking.DockState.DockBottom;
             // 
+            // pnlMemoryWatch
+            // 
+            this.pnlMemoryWatch.ClientSize = new System.Drawing.Size(489, 65);
+            this.pnlMemoryWatch.DockPanel = this.mainContainer;
+            this.pnlMemoryWatch.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
+            this.pnlMemoryWatch.FloatPane = null;
+            this.pnlMemoryWatch.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.pnlMemoryWatch.IsFloat = false;
+            this.pnlMemoryWatch.IsHidden = true;
+            this.pnlMemoryWatch.HideOnClose = true;
+            this.pnlMemoryWatch.Location = new System.Drawing.Point(0, 0);
+            this.pnlMemoryWatch.Name = "pnlMemoryWatch";
+            this.pnlMemoryWatch.Text = "Watch variables";
+            this.pnlMemoryWatch.Pane = null;
+            this.pnlMemoryWatch.PanelPane = null;
+            this.pnlMemoryWatch.ShowHint = WeifenLuo.WinFormsUI.Docking.DockState.DockBottom;
+            this.pnlMemoryWatch.Visible = false;
+            this.pnlMemoryWatch.VisibleState = WeifenLuo.WinFormsUI.Docking.DockState.DockBottom;
+            // 
             // projectPanel
             // 
             this.projectPanel.DockPanel = this.mainContainer;
@@ -323,6 +343,7 @@ namespace AGS.Editor
         internal System.Windows.Forms.ToolStripStatusLabel statusLabel;
         internal CallStackPanel pnlCallStack;
         internal FindResultsPanel pnlFindResults;
+        internal MemoryWatchPanel pnlMemoryWatch;
     }
 }
 

@@ -49,6 +49,7 @@ namespace AGS.Editor
         private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor);
         private delegate void ShowCallStackDelegate(DebugCallStack callStack);
         private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results);
+        private delegate void NotifyMemoryWatchDelegate();
 
         private frmMain _mainForm;
         private LogPanel _pnlEngineLog;
@@ -467,6 +468,17 @@ namespace AGS.Editor
         public void PrintEngineLog(string message, LogGroup group, LogLevel level)
         {
             _pnlEngineLog?.WriteLogMessage(message, group, level);
+        }
+
+        public void NotifyMemoryWatch()
+        {
+            if (_mainForm.pnlMemoryWatch.InvokeRequired)
+            {
+                _mainForm.pnlMemoryWatch.Invoke(new NotifyMemoryWatchDelegate(NotifyMemoryWatch));
+                return;
+            }
+
+            _mainForm.pnlMemoryWatch.UpdateAllWatches();
         }
 
         public ContentDocument ActivePane

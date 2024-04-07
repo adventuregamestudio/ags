@@ -13,6 +13,8 @@ namespace AGS.Editor
         public event DebugStateChangedHandler DebugStateChanged;
         public delegate void BreakAtLocationHandler(DebugCallStack callStack);
         public event BreakAtLocationHandler BreakAtLocation;
+        public delegate void ReceiveMemoryHandler(uint requestID, string value);
+        public event ReceiveMemoryHandler ReceiveMemory;
 
         private DebugState _debugState = DebugState.NotRunning;
         private IEngineCommunication _communicator;
@@ -89,6 +91,15 @@ namespace AGS.Editor
                     return;
                 }
                 LogMessage(logTextNode.InnerText, group, level);
+            }
+            else if (command == "REVMEM")
+            {
+                if (ReceiveMemory != null)
+                {
+                    string reqID = doc.DocumentElement.SelectSingleNode("ReqID").InnerText;
+                    string memValue = doc.DocumentElement.SelectSingleNode("Value").InnerText;
+                    ReceiveMemory.Invoke(uint.Parse(reqID), memValue);
+                }
             }
         }
 
@@ -174,6 +185,15 @@ namespace AGS.Editor
         private void UnsetBreakpoint(Script script, int lineNumber)
         {
             _communicator.SendMessage("<Engine Command=\"DELBREAK $" + script.FileName + "$" + lineNumber + "$\"></Engine>");
+        }
+
+        private uint queryVariableCounter = 0; // for "unique" packet ids
+
+        public uint QueryMemory(string varId)
+        {
+            uint reqId = ++queryVariableCounter;
+            _communicator.SendMessage($"<Engine Command=\"GETMEM ${reqId}${varId}$\"></Engine>");
+            return reqId;
         }
 
         private void ClearCurrentLineMarker()

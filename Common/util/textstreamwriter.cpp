@@ -28,36 +28,14 @@ static const char Endl[2] = {'\r', '\n'};
 static const char Endl[1] = {'\n'};
 #endif
 
-
-TextStreamWriter::TextStreamWriter(Stream *stream)
-    : _stream(stream)
-{
-}
-
-TextStreamWriter::~TextStreamWriter()
-{
-    // TODO use shared ptr
-    delete _stream;
-}
-
 bool TextStreamWriter::IsValid() const
 {
     return _stream && _stream->CanWrite();
 }
 
-const Stream *TextStreamWriter::GetStream() const
-{
-    return _stream;
-}
-
-void TextStreamWriter::ReleaseStream()
-{
-    _stream = nullptr;
-}
-
 bool TextStreamWriter::EOS() const
 {
-    return _stream->EOS();
+    return _stream ? _stream->EOS() : true;
 }
 
 void TextStreamWriter::WriteChar(char c)

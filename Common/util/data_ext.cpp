@@ -58,7 +58,7 @@ HError DataExtParser::OpenBlock()
     }
     else
     { // new style block identified by a string id
-        _extID = String::FromStreamCount(_in, 16);
+        _extID = String::FromStreamCount(_in.get(), 16);
         _blockLen = _in->ReadInt64();
     }
     _blockStart = _in->GetPosition();
@@ -117,7 +117,7 @@ HError DataExtReader::Read()
     {
         // Call the reader function to read current block's data
         read_next = true;
-        err = ReadBlock(_blockID, _extID, _blockLen, read_next);
+        err = ReadBlock(_in.get(), _blockID, _extID, _blockLen, read_next);
         if (!err)
             return err;
         // Test that we did not read too much or too little

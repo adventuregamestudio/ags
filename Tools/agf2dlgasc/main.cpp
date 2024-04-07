@@ -97,14 +97,13 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Write script body
     //-----------------------------------------------------------------------//
-    Stream *out = File::CreateFile(dst);
+    auto out = File::CreateFile(dst);
     if (!out)
     {
         printf("Error: failed to open script header for writing.\n");
         return -1;
     }
     out->Write(body.GetCStr(), body.GetLength());
-    delete out;
     printf("Script body written successfully.\nDone.\n");
     return 0;
 }

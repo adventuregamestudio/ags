@@ -258,16 +258,16 @@ inline void WriteTraBlock(const Translation &tra, const String &ext_id,
         kDataExt_NumID32 | kDataExt_File32, out);
 }
 
-void WriteTraData(const Translation &tra, Stream *out)
+void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)
 {
     // Write header
     out->Write(TRASignature, strlen(TRASignature) + 1);
 
     // Write all blocks
-    WriteTraBlock(tra, kTraFblk_GameID, WriteGameID, out);
-    WriteTraBlock(tra, kTraFblk_Dict, WriteDict, out);
-    WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out);
-    WriteTraBlock(tra, "ext_sopts", WriteStrOptions, out);
+    WriteTraBlock(tra, kTraFblk_GameID, WriteGameID, out.get());
+    WriteTraBlock(tra, kTraFblk_Dict, WriteDict, out.get());
+    WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out.get());
+    WriteTraBlock(tra, "ext_sopts", WriteStrOptions, out.get());
 
     // Write ending
     out->WriteInt32(kTraFile_EOF);

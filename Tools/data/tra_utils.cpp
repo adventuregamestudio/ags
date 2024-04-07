@@ -108,7 +108,7 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
 // TRA - compiled translation in a binary format
 //-----------------------------------------------------------------------------
 
-HError WriteTRA(const Translation &tra, Stream *out)
+HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
 {
     // Check if translation object is meaningful
     if (tra.Dict.size() < 1)
@@ -122,8 +122,7 @@ HError WriteTRA(const Translation &tra, Stream *out)
         return new Error("Translation source did not appear to have any translated lines.");
 
     // Write translation
-    WriteTraData(tra, out);
-
+    WriteTraData(tra, std::move(out));
     return HError::None();
 }
 

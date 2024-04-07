@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     }
     tra.GameName = game_name;
     tra.GameUid = game_uid;
-    err = WriteTRA(tra, out.get());
+    err = WriteTRA(tra, std::move(out));
     if (!err)
     {
         printf("Error: failed to compile TRA:\n");

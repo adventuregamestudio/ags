@@ -30,7 +30,7 @@ using AGS::Common::Translation;
 
 // Parses a TRS format and fills Translation data
 HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in);
-HError WriteTRA(const Translation &tra, Stream *out);
+HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out);
 
 } // namespace DataUtil
 } // namespace AGS

@@ -74,7 +74,7 @@ HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stre
 // Reads full translation data from the provided stream
 HError ReadTraData(Translation &tra, std::unique_ptr<Stream> &&in);
 // Writes all translation data to the stream
-void WriteTraData(const Translation &tra, Stream *out);
+void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out);
 
 } // namespace Common
 } // namespace AGS

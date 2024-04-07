@@ -18,6 +18,7 @@ using namespace System;
 #include <stdio.h>
 #include <stdlib.h>
 #include "NativeUtils.h"
+#include "util/path.h"
 
 #define MAX_ICONS_IN_FILE 15
 
@@ -87,7 +88,8 @@ bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String
 {
     HMODULE hExe;
     // Load the .EXE file
-    hExe = LoadLibraryEx(exeName, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+    AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(exeName);
+    hExe = LoadLibraryEx(abs_path.GetCStr(), NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
     if (hExe == NULL) 
     {
         err_msg = WinAPIHelper::MakeErrorManaged("Unable to load executable.");

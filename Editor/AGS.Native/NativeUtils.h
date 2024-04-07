@@ -76,4 +76,14 @@ namespace TextHelper
     AGSString Convert(System::String^ clr_str, System::Text::Encoding^ enc);
 };
 
+namespace WinAPIHelper
+{
+    // Returns a message describing given WinAPI error code.
+    // Error text is returned as a UTF-8 string.
+    // Uses GetLastError if passed errcode is 0.
+    AGSString GetErrorUTF8(uint32_t errcode = 0);
+    AGSString MakeErrorUTF8(const AGSString &error_title, uint32_t errcode = 0);
+    System::String^ MakeErrorManaged(const AGSString &error_title, uint32_t errcode = 0);
+}
+
 extern AGSString editorVersionNumber;

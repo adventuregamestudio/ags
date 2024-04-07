@@ -18,6 +18,7 @@ using namespace System;
 #include <stdio.h>
 #include <stdlib.h>
 #include "NativeUtils.h"
+#include "util/stdio_compat.h"
 #include "util/path.h"
 
 #define MAX_ICONS_IN_FILE 15
@@ -88,7 +89,9 @@ static bool FindResID(const AGSString &exeName, LPCSTR lpType, LPTSTR &lpIconRes
 {
     HMODULE hExe;
     // Load the .EXE file
-    hExe = LoadLibraryEx(exeName.GetCStr(), NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+    WCHAR wpath[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, exeName.GetCStr(), -1, wpath, MAX_PATH_SZ);
+    hExe = LoadLibraryExW(wpath, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
     if (hExe == NULL) 
     {
         err_msg = WinAPIHelper::MakeErrorManaged("Unable to load executable.");
@@ -156,7 +159,9 @@ void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName) {
     throw gcnew AGSEditorException("Unable to find icon ID in the engine executable:\n" + err_msg);
   }
 
-  HANDLE hUpdate = BeginUpdateResource(abs_path.GetCStr(), FALSE);
+  WCHAR wpath[MAX_PATH_SZ];
+  MultiByteToWideChar(CP_UTF8, 0, abs_path.GetCStr(), -1, wpath, MAX_PATH_SZ);
+  HANDLE hUpdate = BeginUpdateResourceW(wpath, FALSE);
   if (hUpdate == NULL) {
     fclose(icoin);
     if (!IS_INTRESOURCE(lpIconResName))
@@ -209,7 +214,9 @@ void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName) {
 
 void ReplaceResourceInEXE(const AGSString &exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType)
 {
-  HANDLE hUpdate = BeginUpdateResource(exeName.GetCStr(), FALSE);
+  WCHAR wpath[MAX_PATH_SZ];
+  MultiByteToWideChar(CP_UTF8, 0, exeName.GetCStr(), -1, wpath, MAX_PATH_SZ);
+  HANDLE hUpdate = BeginUpdateResourceW(wpath, FALSE);
   if (hUpdate == NULL) 
   {
     throw gcnew AGSEditorException("Unable to replace resource: BeginUpdateResource failed");

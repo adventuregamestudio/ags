@@ -63,11 +63,6 @@ namespace TextHelper
     // this is for symbol names of variables, functions and alike
     AGSString ConvertASCII(System::String^ clr_str);
     void ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len);
-    // Convert managed text to native string, forcing ASCII and testing for unknown chars
-    // TODO: fix it uses and replace with ConvertUTF8, but be careful! -
-    // this likely will require replacing WinAPI functions to widechar versions
-    // and convert utf8 filepaths to widechar bufs.
-    void ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len);
     // Convert UTF-8 managed text to native string;
     // this is for filepaths and error messages, etc
     AGSString ConvertUTF8(System::String^ clr_str);

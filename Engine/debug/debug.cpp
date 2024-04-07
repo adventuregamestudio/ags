@@ -474,6 +474,58 @@ bool init_editor_debugging(const ConfigTree &cfg)
     return false;
 }
 
+bool query_memory(const String &mem_id, String &value)
+{
+    // Format for DRAFT testing only:
+    // x[N]:offset
+    // where x can be -
+    //  - g    - globalscript
+    //  - m[N] - module
+    //  - r    - room state
+    // offset is in bytes
+    if (mem_id.GetLength() < 1)
+        return false;
+
+    ccInstance *inst = nullptr;
+    switch (mem_id[0])
+    {
+    case 'g':
+        inst = gameinst.get();
+        break;
+    case 'm':
+        {
+            int module_id = atoi(&mem_id[1]);
+            if (module_id < 0)
+                return false;
+            inst = moduleInst[module_id].get();
+        }
+        break;
+    case 'r':
+        inst = roominst.get();
+        break;
+    default:
+        return false;
+    }
+
+    if (!inst)
+        return false;
+
+    size_t off_at = mem_id.FindChar(':');
+    if (off_at == -1)
+        return false;
+
+    int offset = atoi(&mem_id[off_at + 1]);
+    int size = 4; // fixme, hardcode for now
+    if (offset < 0 || offset >= inst->globaldatasize + size)
+        return false;
+
+    uint8_t *mem_ptr = reinterpret_cast<uint8_t*>(&inst->globaldata[offset]);
+    // fixme, type and size hardcoded for now
+    uint32_t *value_ptr = reinterpret_cast<uint32_t*>(mem_ptr);
+    value = String::FromFormat("%d", *value_ptr);
+    return true;
+}
+
 int check_for_messages_from_debugger()
 {
     if (editor_debugger->IsMessageAvailable())
@@ -556,6 +608,40 @@ int check_for_messages_from_debugger()
             want_exit = true;
             abort_engine = true;
             check_dynamic_sprites_at_exit = 0;
+        }
+        else if (strncmp(msgPtr, "GETMEM", 6) == 0)
+        {
+            // Format:  GETMEM $requestID$memoryID$
+            const char *req_id_str = strstr(msgPtr + 6, "$");
+            if (!req_id_str)
+            {
+                free(msg);
+                return 0;
+            }
+            const char *mem_id_str = strstr(req_id_str + 1, "$");
+            if (!mem_id_str)
+            {
+                free(msg);
+                return 0;
+            }
+            const char *end_str = strstr(mem_id_str + 1, "$");
+            if (!end_str)
+            {
+                free(msg);
+                return 0;
+            }
+
+            String req_id(req_id_str + 1, mem_id_str - req_id_str - 1);
+            String mem_id(mem_id_str + 1, end_str - mem_id_str - 1);
+            String mem_value;
+            if (!query_memory(mem_id, mem_value))
+            {
+                mem_value = "NOT FOUND";
+            }
+            std::vector<std::pair<String, String>> values;
+            values.push_back(std::make_pair("ReqID", req_id));
+            values.push_back(std::make_pair("Value", mem_value));
+            send_message_to_debugger(editor_debugger, values, "REVMEM");
         }
 
         free(msg);

@@ -26,6 +26,7 @@
 #include "script/cs_compiler.h"
 #include "script/cc_common.h"
 #include "util/path.h"
+#include "util/stdio_compat.h"
 #include "util/string_utils.h"
 
 extern void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName);
@@ -105,13 +106,7 @@ namespace AGS
 		{
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
-				char iconNameChars[MAX_PATH];
-				TextHelper::ConvertASCIIFilename(iconName, iconNameChars, MAX_PATH);
-
-				char fileNameChars[MAX_PATH];
-				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
-
-				ReplaceIconFromFile(iconNameChars, fileNameChars);
+				ReplaceIconFromFile(TextHelper::ConvertUTF8(iconName), TextHelper::ConvertUTF8(fileToUpdate));
 			}
 		}
 
@@ -138,8 +133,10 @@ namespace AGS
 
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
-      AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(TextHelper::ConvertASCII(fileToUpdate));
-      HMODULE module = LoadLibraryEx(abs_path.GetCStr(), NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
+      AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(TextHelper::ConvertUTF8(fileToUpdate));
+      WCHAR wpath[MAX_PATH_SZ];
+      MultiByteToWideChar(CP_UTF8, 0, abs_path.GetCStr(), -1, wpath, MAX_PATH_SZ);
+      HMODULE module = LoadLibraryExW(wpath, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
       if (module == NULL)
       {
         throw gcnew AGSEditorException(WinAPIHelper::MakeErrorManaged("LoadLibrary failed."));

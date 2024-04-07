@@ -183,13 +183,6 @@ void TextHelper::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t 
     Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
-void TextHelper::ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len)
-{
-    ConvertASCIIToArray(clr_str, buf, buf_len);
-    if (strchr(buf, '?') != nullptr)
-        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clr_str));
-}
-
 AGSString TextHelper::ConvertUTF8(System::String^ clr_str)
 {
     if (clr_str == nullptr)

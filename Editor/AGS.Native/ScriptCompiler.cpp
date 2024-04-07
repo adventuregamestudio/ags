@@ -25,6 +25,7 @@
 #include "scripting.h"
 #include "script/cs_compiler.h"
 #include "script/cc_common.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
@@ -137,10 +138,8 @@ namespace AGS
 
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
-      char fileNameChars[MAX_PATH];
-      TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
-
-      HMODULE module = LoadLibraryEx(fileNameChars, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
+      AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(TextHelper::ConvertASCII(fileToUpdate));
+      HMODULE module = LoadLibraryEx(abs_path.GetCStr(), NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
       if (module == NULL)
       {
         throw gcnew AGSEditorException(WinAPIHelper::MakeErrorManaged("LoadLibrary failed."));
@@ -167,7 +166,7 @@ namespace AGS
       pin_ptr<Byte> descriptionData = &gameNameUnicode[0];
       ReplaceStringInMemory(dataCopy, dataSize, searchFor, descriptionData);
 
-      ReplaceResourceInEXE(fileNameChars, MAKEINTRESOURCE(1), dataCopy, dataSize, MAKEINTRESOURCE(RT_VERSION));
+      ReplaceResourceInEXE(abs_path.GetCStr(), MAKEINTRESOURCE(1), dataCopy, dataSize, MAKEINTRESOURCE(RT_VERSION));
       free(dataCopy);
     }
 

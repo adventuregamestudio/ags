@@ -90,7 +90,7 @@ bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String
     hExe = LoadLibraryEx(exeName, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
     if (hExe == NULL) 
     {
-        err_msg = "Unable to load executable.";
+        err_msg = WinAPIHelper::MakeErrorManaged("Unable to load executable.");
         return false;
     }
 

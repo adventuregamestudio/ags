@@ -25,6 +25,7 @@
 #include "scripting.h"
 #include "script/cs_compiler.h"
 #include "script/cc_common.h"
+#include "util/string_utils.h"
 
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
@@ -136,19 +137,19 @@ namespace AGS
 
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
-			char fileNameChars[MAX_PATH];
-			TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
+      char fileNameChars[MAX_PATH];
+      TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
 
       HMODULE module = LoadLibraryEx(fileNameChars, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
       if (module == NULL)
       {
-        throw gcnew AGSEditorException("LoadLibrary failed");
+        throw gcnew AGSEditorException(WinAPIHelper::MakeErrorManaged("LoadLibrary failed."));
       }
       HRSRC handle = FindResource(module, MAKEINTRESOURCE(1), RT_VERSION);
       if (handle == NULL)
       {
         FreeLibrary(module);
-        throw gcnew AGSEditorException("FindResource failed");
+        throw gcnew AGSEditorException(WinAPIHelper::MakeErrorManaged("FindResource failed."));
       }
       HGLOBAL hglobal = LoadResource(module, handle);
       int dataSize = SizeofResource(module, handle);

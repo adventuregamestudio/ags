@@ -28,8 +28,8 @@
 #include "util/path.h"
 #include "util/string_utils.h"
 
-extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
-extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
+extern void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName);
+extern void ReplaceResourceInEXE(const AGSString &exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
 
 using namespace System::IO;
 
@@ -166,7 +166,7 @@ namespace AGS
       pin_ptr<Byte> descriptionData = &gameNameUnicode[0];
       ReplaceStringInMemory(dataCopy, dataSize, searchFor, descriptionData);
 
-      ReplaceResourceInEXE(abs_path.GetCStr(), MAKEINTRESOURCE(1), dataCopy, dataSize, MAKEINTRESOURCE(RT_VERSION));
+      ReplaceResourceInEXE(abs_path, MAKEINTRESOURCE(1), dataCopy, dataSize, MAKEINTRESOURCE(RT_VERSION));
       free(dataCopy);
     }
 

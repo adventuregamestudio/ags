@@ -84,12 +84,11 @@ BOOL CALLBACK FindFirstResource(HMODULE hModule, LPCTSTR lpszType, LPTSTR lpszNa
 }
 
 // Queries engine executable for the icon resource ID
-bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String^% err_msg)
+static bool FindResID(const AGSString &exeName, LPCSTR lpType, LPTSTR &lpIconResName, String^% err_msg)
 {
     HMODULE hExe;
     // Load the .EXE file
-    AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(exeName);
-    hExe = LoadLibraryEx(abs_path.GetCStr(), NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+    hExe = LoadLibraryEx(exeName.GetCStr(), NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
     if (hExe == NULL) 
     {
         err_msg = WinAPIHelper::MakeErrorManaged("Unable to load executable.");
@@ -110,10 +109,10 @@ bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String
     return lpIconResName != NULL;
 }
 
-void ReplaceIconFromFile(const char *iconName, const char *exeName) {
+void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName) {
 
   int i;
-  FILE *icoin = fopen(iconName, "rb");
+  FILE *icoin = fopen(iconName.GetCStr(), "rb"); // FIXME: don't use FILE functions
   if (icoin == NULL)
     return;
 
@@ -150,13 +149,14 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
 
   LPTSTR lpIconResName = NULL;
   String ^err_msg;
-  if (!FindResID(exeName, RT_GROUP_ICON, lpIconResName, err_msg))
+  AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(exeName);
+  if (!FindResID(abs_path, RT_GROUP_ICON, lpIconResName, err_msg))
   {
     fclose(icoin);
     throw gcnew AGSEditorException("Unable to find icon ID in the engine executable:\n" + err_msg);
   }
 
-  HANDLE hUpdate = BeginUpdateResource(exeName, FALSE);
+  HANDLE hUpdate = BeginUpdateResource(abs_path.GetCStr(), FALSE);
   if (hUpdate == NULL) {
     fclose(icoin);
     if (!IS_INTRESOURCE(lpIconResName))
@@ -207,9 +207,9 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
   return;
 }
 
-void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType)
+void ReplaceResourceInEXE(const AGSString &exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType)
 {
-  HANDLE hUpdate = BeginUpdateResource(exeName, FALSE);
+  HANDLE hUpdate = BeginUpdateResource(exeName.GetCStr(), FALSE);
   if (hUpdate == NULL) 
   {
     throw gcnew AGSEditorException("Unable to replace resource: BeginUpdateResource failed");

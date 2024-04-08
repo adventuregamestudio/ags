@@ -12,17 +12,17 @@ using namespace AGS::DataUtil;
 class RoomScNamesReader : public DataExtReader
 {
 public:
-    RoomScNamesReader(RoomScNames &data, RoomFileVersion data_ver, Stream *in)
-        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
+    RoomScNamesReader(RoomScNames &data, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
         , _data(data)
         , _dataVer(data_ver)
     {}
 
 private:
-    HError ReadBlock(int block_id, const String &ext_id,
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
-        return ReadRoomScNames(_data, _in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return ReadRoomScNames(_data, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
     }
 
     RoomScNames &_data;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     }
     
     RoomScNames data;
-    RoomScNamesReader reader(data, datasrc.DataVersion, datasrc.InputStream.get());
+    RoomScNamesReader reader(data, datasrc.DataVersion, std::move(datasrc.InputStream));
     err = reader.Read();
     if (!err)
     {
@@ -78,7 +78,6 @@ int main(int argc, char *argv[])
         printf("%s\n", err->FullMessage().GetCStr());
         return -1;
     }
-    datasrc.InputStream.reset();
 
     //-----------------------------------------------------------------------//
     // Create script header
@@ -88,14 +87,13 @@ int main(int argc, char *argv[])
     //-----------------------------------------------------------------------//
     // Write script header
     //-----------------------------------------------------------------------//
-    Stream *out = File::CreateFile(dst);
+    auto out = File::CreateFile(dst);
     if (!out)
     {
         printf("Error: failed to open script header for writing.\n");
         return -1;
     }
     out->Write(header.GetCStr(), header.GetLength());
-    delete out;
     printf("Script header written successfully.\nDone.\n");
     return 0;
 }

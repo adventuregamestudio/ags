@@ -26,9 +26,12 @@
 #include "script/cs_compiler.h"
 #include "script2/cs_compiler.h"
 #include "script/cc_common.h"
+#include "util/path.h"
+#include "util/stdio_compat.h"
+#include "util/string_utils.h"
 
-extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
-extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
+extern void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName);
+extern void ReplaceResourceInEXE(const AGSString &exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
 
 using namespace System::IO;
 
@@ -165,13 +168,7 @@ namespace AGS
 		{
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
-				char iconNameChars[MAX_PATH];
-				TextHelper::ConvertASCIIFilename(iconName, iconNameChars, MAX_PATH);
-
-				char fileNameChars[MAX_PATH];
-				TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
-
-				ReplaceIconFromFile(iconNameChars, fileNameChars);
+				ReplaceIconFromFile(TextHelper::ConvertUTF8(iconName), TextHelper::ConvertUTF8(fileToUpdate));
 			}
 		}
 
@@ -198,19 +195,19 @@ namespace AGS
 
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
-			char fileNameChars[MAX_PATH];
-			TextHelper::ConvertASCIIFilename(fileToUpdate, fileNameChars, MAX_PATH);
-
-      HMODULE module = LoadLibraryEx(fileNameChars, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
+      AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(TextHelper::ConvertUTF8(fileToUpdate));
+      WCHAR wpath[MAX_PATH_SZ];
+      MultiByteToWideChar(CP_UTF8, 0, abs_path.GetCStr(), -1, wpath, MAX_PATH_SZ);
+      HMODULE module = LoadLibraryExW(wpath, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
       if (module == NULL)
       {
-        throw gcnew AGSEditorException("LoadLibrary failed");
+        throw gcnew AGSEditorException(WinAPIHelper::MakeErrorManaged("LoadLibrary failed."));
       }
       HRSRC handle = FindResource(module, MAKEINTRESOURCE(1), RT_VERSION);
       if (handle == NULL)
       {
         FreeLibrary(module);
-        throw gcnew AGSEditorException("FindResource failed");
+        throw gcnew AGSEditorException(WinAPIHelper::MakeErrorManaged("FindResource failed."));
       }
       HGLOBAL hglobal = LoadResource(module, handle);
       int dataSize = SizeofResource(module, handle);
@@ -228,7 +225,7 @@ namespace AGS
       pin_ptr<Byte> descriptionData = &gameNameUnicode[0];
       ReplaceStringInMemory(dataCopy, dataSize, searchFor, descriptionData);
 
-      ReplaceResourceInEXE(fileNameChars, MAKEINTRESOURCE(1), dataCopy, dataSize, MAKEINTRESOURCE(RT_VERSION));
+      ReplaceResourceInEXE(abs_path, MAKEINTRESOURCE(1), dataCopy, dataSize, MAKEINTRESOURCE(RT_VERSION));
       free(dataCopy);
     }
 

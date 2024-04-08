@@ -100,6 +100,21 @@ struct DrawState
     WalkBehindMethodEnum WalkBehindMethod = DrawAsSeparateSprite;
     // Whether there are currently remnants of a on-screen effect
     bool ScreenIsDirty = false;
+
+    // A map of shared "control blocks" per each sprite used
+    // when preparing object textures. "Control block" is currently just
+    // an integer which lets to check whether the object texture is in sync
+    // with the sprite. When the dynamic sprite is updated or deleted,
+    // the control block is marked as invalid and removed from the map;
+    // but certain objects may keep the shared ptr to the old block with
+    // "invalid" mark, thus they know that they must reset their texture.
+    //
+    // TODO: investigate an alternative of having a equivalent of
+    // "shared texture" with sprite ID ref in Software renderer too,
+    // which would allow to use same method of testing DDB ID for both
+    // kinds of renderers, thus saving on 1 extra notification mechanism.
+    std::unordered_map<sprkey_t, std::shared_ptr<uint32_t>>
+        SpriteNotifyMap;
 };
 
 DrawState drawstate;
@@ -122,6 +137,9 @@ struct ObjTexture
     std::unique_ptr<Bitmap> Bmp2;
     // Corresponding texture, created by renderer
     IDriverDependantBitmap *Ddb = nullptr;
+    // Sprite notification block: becomes invalid to notify an updated
+    // or deleted sprtie
+    std::shared_ptr<uint32_t> SpriteNotify;
     // Sprite's position
     Point Pos;
     // Texture's offset, *relative* to the logical sprite's position;
@@ -140,6 +158,12 @@ struct ObjTexture
             assert(gfxDriver);
             gfxDriver->DestroyDDB(Ddb);
         }
+    }
+
+    // Tests if the sprite change was notified
+    inline bool IsChangeNotified() const
+    {
+        return SpriteNotify && (*SpriteNotify != SpriteID);
     }
 
     ObjTexture &operator =(ObjTexture &&o)
@@ -664,8 +688,6 @@ void init_game_drawdata()
         guio_num += gui.GetControlCount();
     }
     guiobjbg.resize(guio_num);
-
-    play.spritemodified.resize(game.SpriteInfos.size());
 }
 
 void dispose_game_drawdata()
@@ -686,9 +708,6 @@ void dispose_game_drawdata()
     gui_render_tex.clear();
     guiobjbg.clear();
     guiobjddbref.clear();
-
-    play.spritemodified.clear();
-    play.spritemodifiedlist.clear();
 }
 
 static void dispose_debug_room_drawdata()
@@ -733,9 +752,8 @@ void clear_drawobj_cache()
     for (auto &hbg : guihelpbg) hbg.reset();
     overtxs.clear();
 
-    // Clear "modified sprite" flags
-    play.spritemodifiedlist.clear();
-    std::fill(play.spritemodified.begin(), play.spritemodified.end(), false);
+    // Clear sprite update notification blocks
+    drawstate.SpriteNotifyMap.clear();
 
     dispose_debug_room_drawdata();
 }
@@ -949,14 +967,19 @@ void notify_sprite_changed(int sprnum, bool deleted)
         update_shared_texture(sprnum);
 
     // For texture-based renderers updating a shared texture will already
-    // update all the related drawn objects on screen.
-    // For software renderer we should notify drawables that currently
-    // reference this sprite.
-    if (drawstate.SoftwareRender && !play.spritemodified.empty())
+    // update all the related drawn objects on screen; software renderer
+    // will need to know to redraw active cached sprite for objects.
+    // We have this notification for both kinds of renderers though,
+    // because it makes the code simpler, and also it makes it simpler to
+    // notify texture-based ones in a specific case when a deleted sprite
+    // was replaced by another of same ID.
     {
-        assert(static_cast<uint32_t>(sprnum) < play.spritemodified.size());
-        play.spritemodified[sprnum] = true;
-        play.spritemodifiedlist.push_back(sprnum);
+        auto it_notify = drawstate.SpriteNotifyMap.find(sprnum);
+        if (it_notify != drawstate.SpriteNotifyMap.end())
+        {
+            *it_notify->second = UINT32_MAX;
+            drawstate.SpriteNotifyMap.erase(sprnum);
+        }
     }
 }
 
@@ -1233,6 +1256,29 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
 static void sync_object_texture(ObjTexture &obj, bool opaque = false)
 {
     obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, obj.Bmp.get(), opaque);
+
+    // Handle notification control block for the dynamic sprites
+    if ((obj.SpriteID != UINT32_MAX) && game.SpriteInfos[obj.SpriteID].IsDynamicSprite())
+    {
+        // For dynamic sprite: check and update a notification block for this drawable
+        if (!obj.SpriteNotify || (*obj.SpriteNotify != obj.SpriteID))
+        {
+            auto it_notify = drawstate.SpriteNotifyMap.find(obj.SpriteID);
+            if (it_notify != drawstate.SpriteNotifyMap.end())
+            { // assign existing
+                obj.SpriteNotify = it_notify->second;
+            }
+            else
+            { // if does not exist, then create and share one
+                obj.SpriteNotify = std::make_shared<uint32_t>(obj.SpriteID);
+                drawstate.SpriteNotifyMap.insert(std::make_pair(obj.SpriteID, obj.SpriteNotify));
+            }
+        }
+    }
+    else
+    {
+        obj.SpriteNotify = nullptr; // reset, for static sprite or without ID
+    }
 }
 
 //------------------------------------------------------------------------
@@ -1821,7 +1867,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     if (use_hw_transform)
     {
         // HW acceleration
-        const bool is_texture_intact = objsav.sppic == specialpic;
+        const bool is_texture_intact =
+            (objsav.sppic == specialpic) && !actsp.IsChangeNotified();
         objsav.sppic = specialpic;
         objsav.tintamnt = tint_level;
         objsav.tintr = tint_red;
@@ -1848,7 +1895,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     if ((objsav.image != nullptr) &&
         (objsav.sppic == specialpic) &&
         // not a dynamic sprite, or not sprite modified lately
-        (!play.spritemodified[pic]) &&
+        (!actsp.IsChangeNotified()) &&
         (objsav.tintamnt == tint_level) &&
         (objsav.tintlight == tint_light) &&
         (objsav.tintr == tint_red) &&
@@ -2733,7 +2780,7 @@ static void construct_overlays()
         if (over.transparency == 255) continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
-        bool has_changed = over.HasChanged() || play.spritemodified[over.GetSpriteNum()];
+        bool has_changed = over.HasChanged();
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
         {
@@ -2742,7 +2789,7 @@ static void construct_overlays()
             overcache[i].X = pos.X; overcache[i].Y = pos.Y;
         }
 
-        if (has_changed)
+        if (has_changed || overtx.IsChangeNotified())
         {
             overtx.SpriteID = over.GetSpriteNum();
             // For software mode - prepare transformed bitmap if necessary;
@@ -2783,21 +2830,6 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);
-    }
-}
-
-static void reset_spritemodified()
-{
-    if (play.spritemodifiedlist.size() > 0)
-    {
-        // Sort and remove duplicates;
-        // CHECKME: or is it more optimal to just run over raw list?
-        std::sort(play.spritemodifiedlist.begin(), play.spritemodifiedlist.end());
-        play.spritemodifiedlist.erase(
-            std::unique(play.spritemodifiedlist.begin(), play.spritemodifiedlist.end()), play.spritemodifiedlist.end());
-        for (auto sprnum : play.spritemodifiedlist)
-            play.spritemodified[sprnum] = false;
-        play.spritemodifiedlist.clear();
     }
 }
 
@@ -2855,9 +2887,6 @@ void construct_game_scene(bool full_redraw)
 
     // End the parent scene node
     gfxDriver->EndSpriteBatch();
-
-    // Clear "modified sprite" flags
-    reset_spritemodified();
 }
 
 void construct_game_screen_overlay(bool draw_mouse)

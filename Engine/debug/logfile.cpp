@@ -43,8 +43,8 @@ void LogFile::PrintMessage(const DebugMessage &msg)
         if (_filePath.IsEmpty())
             return; // was disabled
 
-        _file.reset(File::OpenFile(_filePath, _openMode == kLogFile_Append ? kFile_Create : kFile_CreateAlways,
-            kStream_Write));
+        _file = File::OpenFile(_filePath, _openMode == kLogFile_Append ? kFile_Create : kFile_CreateAlways,
+            kStream_Write);
         if (!_file)
         {
             // TODO: find a method to disable an output in DebugManager
@@ -80,10 +80,10 @@ bool LogFile::OpenFile(const String &file_path, OpenMode open_mode)
     }
     else
     {
-        _file.reset(File::OpenFile(file_path,
+        _file = File::OpenFile(file_path,
                            open_mode == kLogFile_Append ? kFile_Create : kFile_CreateAlways,
-                           kStream_Write));
-        return _file.get() != nullptr;
+                           kStream_Write);
+        return _file != nullptr;
     }
 }
 

@@ -80,9 +80,9 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     }
 }
 
-HError ReadTRS(Translation &tra, Stream *in)
+HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
 {
-    TextStreamReader sr(in);
+    TextStreamReader sr(std::move(in));
 
     String line;
     for (line = sr.ReadLine(); !sr.EOS(); line = sr.ReadLine())
@@ -101,7 +101,6 @@ HError ReadTRS(Translation &tra, Stream *in)
         }
     }
 
-    sr.ReleaseStream(); // we do not want to delete it
     return HError::None();
 }
 
@@ -109,7 +108,7 @@ HError ReadTRS(Translation &tra, Stream *in)
 // TRA - compiled translation in a binary format
 //-----------------------------------------------------------------------------
 
-HError WriteTRA(const Translation &tra, Stream *out)
+HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
 {
     // Check if translation object is meaningful
     if (tra.Dict.size() < 1)
@@ -123,8 +122,7 @@ HError WriteTRA(const Translation &tra, Stream *out)
         return new Error("Translation source did not appear to have any translated lines.");
 
     // Write translation
-    WriteTraData(tra, out);
-
+    WriteTraData(tra, std::move(out));
     return HError::None();
 }
 

@@ -68,9 +68,6 @@ namespace TextHelper
     AGSString ConvertASCII(System::String^ clr_str);
     std::string ConvertASCIIToStd(System::String^ clr_str);
     void ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t buf_len);
-    // Convert managed text to native string, forcing ASCII and testing for unknown chars
-    // TODO: fix it uses and replace with ConvertUTF8ToArray
-    void ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len);
     // Convert UTF-8 managed text to native string;
     // this is for filepaths and error messages, etc
     AGSString ConvertUTF8(System::String^ clr_str);
@@ -82,5 +79,15 @@ namespace TextHelper
     // Convert managed to native std::string using given encoder
     std::string ConvertToStd(System::String^ clr_str, System::Text::Encoding^ enc);
 };
+
+namespace WinAPIHelper
+{
+    // Returns a message describing given WinAPI error code.
+    // Error text is returned as a UTF-8 string.
+    // Uses GetLastError if passed errcode is 0.
+    AGSString GetErrorUTF8(uint32_t errcode = 0);
+    AGSString MakeErrorUTF8(const AGSString &error_title, uint32_t errcode = 0);
+    System::String^ MakeErrorManaged(const AGSString &error_title, uint32_t errcode = 0);
+}
 
 extern AGSString editorVersionNumber;

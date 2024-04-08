@@ -178,13 +178,6 @@ void TextHelper::ConvertASCIIToArray(System::String^ clr_str, char *buf, size_t 
     Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
-void TextHelper::ConvertASCIIFilename(System::String^ clr_str, char *buf, size_t buf_len)
-{
-    ConvertASCIIToArray(clr_str, buf, buf_len);
-    if (strchr(buf, '?') != nullptr)
-        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clr_str));
-}
-
 AGSString TextHelper::ConvertUTF8(System::String^ clr_str)
 {
     if (clr_str == nullptr)
@@ -221,6 +214,34 @@ std::string TextHelper::ConvertToStd(System::String^ clr_str, System::Text::Enco
 TextConverter^ TextHelper::GetGameTextConverter()
 {
     return AGS::Native::NativeMethods::GetGameTextConverter();
+}
+
+AGSString WinAPIHelper::GetErrorUTF8(uint32_t errcode)
+{
+    if (errcode == 0)
+        errcode = GetLastError();
+
+    WCHAR buffer[1024];
+    if (FormatMessageW(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        /*source*/ NULL, /*dwMessageId*/ errcode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        buffer, sizeof(buffer) / sizeof(WCHAR), NULL) == 0)
+    {
+        return AGSString();
+    }
+    char message[1024];
+    AGS::Common::StrUtil::ConvertWstrToUtf8(buffer, message, sizeof(message));
+    return message;
+}
+
+AGSString WinAPIHelper::MakeErrorUTF8(const AGSString &error_title, uint32_t errcode)
+{
+    return AGSString::FromFormat("%s \n%s", error_title.GetCStr(), GetErrorUTF8(errcode).GetCStr());
+}
+
+System::String^ WinAPIHelper::MakeErrorManaged(const AGSString &error_title, uint32_t errcode)
+{
+    return TextHelper::ConvertUTF8(MakeErrorUTF8(error_title, errcode));
 }
 
 

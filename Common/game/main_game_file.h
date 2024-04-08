@@ -145,9 +145,9 @@ HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src)
 // Opens main game file for reading using the current Asset Manager (uses default asset name)
 HGameFileError     OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManager *mgr);
 // Reads game data, applies necessary conversions to match current format version
-HGameFileError     ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
+HGameFileError     ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&in, GameDataVersion data_ver);
 // Pre-reads the heading game data, just enough to identify the game and its special file locations
-void               PreReadGameData(GameSetupStruct &game, Stream *in, GameDataVersion data_ver);
+void               PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);

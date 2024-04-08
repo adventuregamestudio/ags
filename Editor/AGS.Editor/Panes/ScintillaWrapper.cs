@@ -325,6 +325,8 @@ namespace AGS.Editor
             // to make this work properly we need to supply keywords for preprocessor,
             // otherwise lexer will not know about external defines.
             scintillaControl1.SetProperty("lexer.cpp.track.preprocessor", "0");
+            // avoid confusing comment fold feature, see https://github.com/adventuregamestudio/ags/issues/2323
+            scintillaControl1.SetProperty("fold.cpp.comment.explicit", "0");
 
             Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             UpdateAllStyles();

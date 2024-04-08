@@ -16,8 +16,8 @@ using namespace AGS::Common;
 class RoomBlockParser : public DataExtParser
 {
 public:
-    RoomBlockParser(Stream *in, RoomFileVersion data_ver)
-        : DataExtParser(in, kDataExt_NumID8 | kDataExt_File64)
+    RoomBlockParser(std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
+        : DataExtParser(std::move(in), kDataExt_NumID8 | kDataExt_File64)
         {}
     virtual String GetOldBlockName(int block_id) const
     { return GetRoomBlockName((RoomFileBlock)block_id); }
@@ -33,7 +33,7 @@ static void print_known_blockids()
 HError print_room_blockids(RoomDataSource &datasrc)
 {
     HError err = HError::None();
-    RoomBlockParser parser(datasrc.InputStream.get(), datasrc.DataVersion);
+    RoomBlockParser parser(std::move(datasrc.InputStream), datasrc.DataVersion);
     printf("------ Block ID ------|------- Offset -------|--- Size --\n");
     for (err = parser.OpenBlock(); err && !parser.AtEnd(); err = parser.OpenBlock())
     {
@@ -197,23 +197,27 @@ int main(int argc, char *argv[])
     // Parse the input room, search for the requested block ID;
     // save its location in the stream.
     //-----------------------------------------------------------------------//
-    RoomBlockParser parser(datasrc.InputStream.get(), datasrc.DataVersion);
+    // FIXME: following is a very ugly code!
+    // stream should not be shared between two owners at once.
+    Stream *input_s = datasrc.InputStream.get(); // save to let us check positions...
+    RoomBlockParser parser(std::move(datasrc.InputStream), datasrc.DataVersion);
     soff_t block_head = -1;
     soff_t block_data_at = -1;
     soff_t block_end = -1;
-    for (block_end = parser.GetStream()->GetPosition(), err = parser.OpenBlock();
+    for (block_end = input_s->GetPosition(), err = parser.OpenBlock();
          (block_head < 0) && err && !parser.AtEnd(); err = parser.OpenBlock())
     {
         if (parser.GetBlockID() == block_numid || parser.GetBlockName() == block_strid)
         {
             block_head = block_end;
-            block_data_at = parser.GetStream()->GetPosition();
+            block_data_at = input_s->GetPosition();
         }
         parser.SkipBlock();
-        block_end = parser.GetStream()->GetPosition();
+        block_end = input_s->GetPosition();
     }
     // need these later
     const int dataext_flags = parser.GetFlags();
+    datasrc.InputStream = parser.ReleaseStream();
         
     if (!err)
     {
@@ -267,7 +271,7 @@ int main(int argc, char *argv[])
     std::unique_ptr<Stream> block_in;
     if (command == 'i')
     {
-        block_in.reset(File::OpenFileRead(arg_blockfile));
+        block_in = File::OpenFileRead(arg_blockfile);
         if (!block_in)
         {
             printf("Error: failed to open block file for reading.\n");
@@ -281,7 +285,7 @@ int main(int argc, char *argv[])
     std::vector<uint8_t> temp_data;
     if (out_roomfile)
     {
-        room_out.reset(File::CreateFile(out_roomfile));
+        room_out = File::CreateFile(out_roomfile);
         if (!room_out)
         {
             printf("Error: failed to open room file for writing.\n");
@@ -321,7 +325,7 @@ int main(int argc, char *argv[])
     if (!out_roomfile)
     {
         auto temp_room = std::make_unique<Stream>(std::make_unique<VectorStream>(temp_data));
-        room_out.reset(File::CreateFile(in_roomfile));
+        room_out = File::CreateFile(in_roomfile);
         if (!room_out)
         {
             printf("Error: failed to open room file for writing.\n");

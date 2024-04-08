@@ -124,6 +124,23 @@ Engine:
 
 ===================================================================================================
 
+VERSION 3.6.1 - Patch 1, April 2024
+
+Editor:
+ - Fixed View's frame preview sometimes drawn incorrectly, in case of certain panel sizes.
+ - Fixed folding in the script editor not working correctly if there's a commented closing
+   bracket ("//}") inside this code section.
+ - Fixed Editor sometimes failing to update game exe's file information and/or icons, if
+   user was importing any sprites during this working session.
+
+Engine:
+ - Fixed room objects not updating under Direct3D/OpenGL renderer, if they were assigned a dynamic
+   sprite, then that sprite was deleted, and a new one assigned with coincidentally same ID.
+ - Fixed room objects not updating under Software renderer, if they were assigned a dynamic sprite,
+   and that sprite was modified while object was not visible on screen.
+ - Fixed inventory cursor's crosshair not displayed (when enabled in game settings).
+
+
 VERSION 3.6.1, April 2024
 
 Common features:

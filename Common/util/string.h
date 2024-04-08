@@ -107,6 +107,9 @@ public:
     }
 #endif
 
+    // TODO: reorganize stream reading/writing methods, decide if they should
+    // be a part of the String class, or separate e.g. StrUtil function group.
+    //
     // Read() method implies that string length is initially unknown.
     // max_chars parameter determine the buffer size limit.
     // If stop_at_limit flag is set, it will read only up to the max_chars.
@@ -213,6 +216,9 @@ public:
 
     static String FromFormat(const char *fcstr, ...);
     static String FromFormatV(const char *fcstr, va_list argptr);
+
+    // TODO: reorganize stream reading/writing methods, decide if they should
+    // be a part of the String class, or separate e.g. StrUtil function group.
     // Reads stream until null-terminator or EOS
     static String FromStream(Stream *in, size_t max_chars = 5 * 1024 * 1024, bool stop_at_limit = false);
     // Reads up to N chars from stream
@@ -366,7 +372,7 @@ public:
     String &operator=(String &&str);
     // Assign C-string by copying contents
     String &operator=(const char *cstr);
-    inline char operator[](size_t index) const
+    inline const char &operator[](size_t index) const
     {
         assert(index < _len);
         return _cstr[index];

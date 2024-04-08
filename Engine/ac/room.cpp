@@ -393,7 +393,7 @@ static void update_all_viewcams_with_newroom()
 HError LoadRoomScript(RoomStruct *room, int newnum)
 {
     String filename = String::FromFormat("room%d.o", newnum);
-    std::unique_ptr<Stream> in(AssetMgr->OpenAsset(filename));
+    auto in = AssetMgr->OpenAsset(filename);
     if (in)
     {
         PScript script(ccScript::CreateFromStream(in.get()));

@@ -112,7 +112,7 @@ HError preload_game_data()
     if (!err)
         return (HError)err;
     // Read only the particular data we need for preliminary game analysis
-    PreReadGameData(game, src.InputStream.get(), src.DataVersion);
+    PreReadGameData(game, std::move(src.InputStream), src.DataVersion);
     game.compiled_with = src.CompiledWith;
     FixupSaveDirectory(game);
     return HError::None();
@@ -132,7 +132,7 @@ static inline HError MakeScriptLoadError(const char *name)
 HError LoadGameScripts(LoadedGameEntities &ents)
 {
     // Global script
-    std::unique_ptr<Stream> in(AssetMgr->OpenAsset("GlobalScript.o"));
+    auto in = AssetMgr->OpenAsset("GlobalScript.o");
     if (in)
     {
         PScript script(ccScript::CreateFromStream(in.get()));
@@ -141,7 +141,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
         ents.GlobalScript = script;
     }
     // Dialog script
-    in.reset(AssetMgr->OpenAsset("DialogScript.o"));
+    in = AssetMgr->OpenAsset("DialogScript.o");
     if (in)
     {
         PScript script(ccScript::CreateFromStream(in.get()));
@@ -152,11 +152,10 @@ HError LoadGameScripts(LoadedGameEntities &ents)
     // Script modules
     // First load a modules list
     std::vector<String> modules;
-    in.reset(AssetMgr->OpenAsset("ScriptModules.lst"));
+    in = AssetMgr->OpenAsset("ScriptModules.lst");
     if (in)
     {
-        TextStreamReader reader(in.get());
-        in.release(); // TextStreamReader got it
+        TextStreamReader reader(std::move(in));
         while (!reader.EOS())
             modules.push_back(reader.ReadLine());
     }
@@ -165,7 +164,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
     // Now run by the list and try loading everything
     for (size_t i = 0; i < modules.size(); ++i)
     {
-        in.reset(AssetMgr->OpenAsset(modules[i]));
+        in = AssetMgr->OpenAsset(modules[i]);
         if (in)
         {
             PScript script(ccScript::CreateFromStream(in.get()));
@@ -184,10 +183,9 @@ HError load_game_file()
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (!err)
         return err;
-    err = (HError)ReadGameData(ents, src.InputStream.get(), src.DataVersion);
+    err = (HError)ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
     if (!err)
         return err;
-    src.InputStream.reset();
 
     //-------------------------------------------------------------------------
     // Data overrides: for compatibility mode and custom engine support

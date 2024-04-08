@@ -107,7 +107,7 @@ void soundcache_precache(const AssetPath &apath)
         return; // cache is disabled
     if (SndCache.Exists(apath.Name))
         return; // already in cache
-    std::unique_ptr<Stream> s_in(AssetMgr->OpenAsset(apath));
+    auto s_in = AssetMgr->OpenAsset(apath);
     if (!s_in)
         return; // failed to open asset
     size_t asset_size = static_cast<size_t>(s_in->GetLength());
@@ -130,7 +130,7 @@ SOUNDCLIP *load_sound_clip(const AssetPath &apath, const char *extension_hint, b
     }
     else
     {
-        s_in.reset(AssetMgr->OpenAsset(apath));
+        s_in = AssetMgr->OpenAsset(apath);
         if (!s_in)
             return nullptr;
         asset_size = static_cast<size_t>(s_in->GetLength());

@@ -52,7 +52,7 @@ namespace AGS.Editor
 
         protected override string GetItemName(int id)
         {
-            return _room.Hotspots[id].Name;
+            return _room.Hotspots[id].PropertyGridTitle; // NOTE: ScriptName is not obligatory at the moment!
         }
 
         protected override SortedDictionary<string, int> InitItemRefs()

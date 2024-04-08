@@ -540,7 +540,7 @@ ResolvedPath ResolveWritePathAndCreateDirs(const String &sc_path)
     return ResolvedPath(res_path);
 }
 
-Stream *ResolveScriptPathAndOpen(const String &sc_path,
+std::unique_ptr<Stream> ResolveScriptPathAndOpen(const String &sc_path,
     FileOpenMode open_mode, StreamMode work_mode)
 {
     ResolvedPath rp;
@@ -551,7 +551,7 @@ Stream *ResolveScriptPathAndOpen(const String &sc_path,
 
     if (!rp)
         return nullptr;
-    Stream *s = rp.AssetMgr ?
+    auto s = rp.AssetMgr ?
         AssetMgr->OpenAsset(rp.FullPath, "*") :
         File::OpenFile(rp.FullPath, open_mode, work_mode);
     if (!s)

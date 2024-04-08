@@ -44,11 +44,11 @@ HRoomFileError OpenRoomFileFromAsset(const String &filename, RoomDataSource &src
     // Cleanup source struct
     src = RoomDataSource();
     // Try to find and open room file
-    Stream *in = mgr->OpenAsset(filename);
+    auto in = mgr->OpenAsset(filename);
     if (in == nullptr)
         return new RoomFileError(kRoomFileErr_FileOpenFailed, String::FromFormat("Filename: %s.", filename.GetCStr()));
     src.Filename = filename;
-    src.InputStream.reset(in);
+    src.InputStream = std::move(in);
     return ReadRoomHeader(src);
 }
 
@@ -413,8 +413,8 @@ HError ReadRoomBlock(RoomStruct *room, Stream *in, RoomFileBlock block, const St
 class RoomBlockReader : public DataExtReader
 {
 public:
-    RoomBlockReader(RoomStruct *room, RoomFileVersion data_ver, Stream *in)
-        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
+    RoomBlockReader(RoomStruct *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
         , _room(room)
         , _dataVer(data_ver)
     {}
@@ -426,7 +426,7 @@ public:
         if (!err)
             return err;
         char *buf = nullptr;
-        err = ReadScriptBlock(buf, _in, _dataVer);
+        err = ReadScriptBlock(buf, _in.get(), _dataVer);
         script = buf;
         delete buf;
         return err;
@@ -435,11 +435,11 @@ public:
 private:
     String GetOldBlockName(int block_id) const override
     { return GetRoomBlockName((RoomFileBlock)block_id); }
-    HError ReadBlock(int block_id, const String &ext_id,
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
-        return ReadRoomBlock(_room, _in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
+        return ReadRoomBlock(_room, in, (RoomFileBlock)block_id, ext_id, block_len, _dataVer);
     }
 
     RoomStruct *_room {};
@@ -447,10 +447,10 @@ private:
 };
 
 
-HRoomFileError ReadRoomData(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ReadRoomData(RoomStruct *room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     room->DataVersion = data_ver;
-    RoomBlockReader reader(room, data_ver, in);
+    RoomBlockReader reader(room, data_ver, std::move(in));
     HError err = reader.Read();
     return err ? HRoomFileError::None() : new RoomFileError(kRoomFileErr_BlockListFailed, err);
 }
@@ -481,7 +481,7 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
     HRoomFileError err = OpenRoomFileFromAsset(filename, src, mgr);
     if (err)
     {
-        err = ReadRoomData(room, src.InputStream.get(), src.DataVersion);
+        err = ReadRoomData(room, std::move(src.InputStream), src.DataVersion);
         if (err)
             err = UpdateRoomData(room, src.DataVersion, sprinfos);
     }
@@ -490,9 +490,9 @@ HError LoadRoom(const String &filename, RoomStruct *room, AssetManager *mgr,
     return HError::None();
 }
 
-HRoomFileError ExtractScriptText(String &script, Stream *in, RoomFileVersion data_ver)
+HRoomFileError ExtractScriptText(String &script, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    RoomBlockReader reader(nullptr, data_ver, in);
+    RoomBlockReader reader(nullptr, data_ver, std::move(in));
     HError err = reader.ReadRoomScript(script);
     if (!err)
         new RoomFileError(kRoomFileErr_BlockListFailed, err);

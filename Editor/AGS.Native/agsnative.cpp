@@ -384,7 +384,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     if (thisFile.CompareNoCase(ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    Stream *readin = templateMgr->OpenAsset(thisFile);
+    auto readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -392,10 +392,9 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     char outputName[MAX_PATH];
     AGSString extension = AGSPath::GetFileExtension(thisFile);
     sprintf(outputName, "room%d.%s", newRoomNumber, extension.GetCStr());
-    Stream *wrout = AGSFile::CreateFile(outputName);
+    auto wrout = AGSFile::CreateFile(outputName);
     if (!wrout) 
     {
-      delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", outputName));
     }
     
@@ -403,8 +402,6 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
-    delete readin;
-    delete wrout;
     delete[] membuff;
   }
 
@@ -435,7 +432,7 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     if (thisFile.CompareNoCase(TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    Stream *readin = templateMgr->OpenAsset(thisFile);
+    auto readin = templateMgr->OpenAsset(thisFile);
     if (!readin)
     {
       return new AGSError(AGSString::FromFormat("Failed to open template asset '%s' for reading.", thisFile.GetCStr()));
@@ -443,18 +440,15 @@ HAGSError extract_template_files(const AGSString &templateFileName)
     // Make sure to create necessary subfolders,
     // e.g. if it's an old template with Music & Sound folders
     AGSDirectory::CreateAllDirectories(".", AGSPath::GetDirectoryPath(thisFile));
-    Stream *wrout = AGSFile::CreateFile(thisFile);
+    auto wrout = AGSFile::CreateFile(thisFile);
     if (!wrout)
     {
-      delete readin;
       return new AGSError(AGSString::FromFormat("Failed to open file '%s' for writing.", thisFile.GetCStr()));
     }
     const size_t size = readin->GetLength();
     char *membuff = new char[size];
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
-    delete readin;
-    delete wrout;
     delete[] membuff;
   }
 
@@ -487,7 +481,7 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
     {
       if (templateMgr->DoesAssetExist(ROOM_TEMPLATE_ID_FILE))
       {
-        std::unique_ptr<Stream> in(templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE));
+        auto in = templateMgr->OpenAsset(ROOM_TEMPLATE_ID_FILE);
         if (!in)
             return false;
         if (in->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
@@ -516,7 +510,7 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
 	      return false;
       }
 
-	    std::unique_ptr<Stream> in(templateMgr->OpenAsset(old_editor_main_game_file));
+	    auto in = templateMgr->OpenAsset(old_editor_main_game_file);
 	    if (in) 
 	    {
 		    in->Seek(30);
@@ -527,7 +521,6 @@ bool load_template_file(const AGSString &fileName, AGSString &description,
 			    // older than 2.72 template
 			    return false;
 		    }
-            in.reset();
 	    }
 
         if (templateMgr->DoesAssetExist(TEMPLATE_DESC_FILE))
@@ -1110,11 +1103,11 @@ HAGSError reset_sprite_file()
 
 HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexfile)
 {
-    std::unique_ptr<Stream> sprite_file(AssetMgr->OpenAsset(spritefile));
+    auto sprite_file = AssetMgr->OpenAsset(spritefile);
     if (!sprite_file)
         return new AGSError(AGSString::FromFormat("Failed to open spriteset file '%s'.",
             spritefile.GetCStr()));
-    std::unique_ptr<Stream> index_file(AssetMgr->OpenAsset(indexfile));
+    auto index_file = AssetMgr->OpenAsset(indexfile);
 	HAGSError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
     if (!err)
         return err;
@@ -1173,7 +1166,7 @@ HAGSError load_dta_file_into_thisgame(const AGSString &filename)
     HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
-        load_err = AGS::Common::ReadGameData(ents, src.InputStream.get(), src.DataVersion);
+        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
         if (load_err)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }
@@ -2846,7 +2839,7 @@ System::String ^load_room_script(System::String ^fileName)
     AGS::Common::HRoomFileError err = OpenRoomFile(roomFileName, src);
     if (err)
     {
-        err = AGS::Common::ExtractScriptText(scriptText, src.InputStream.get(), src.DataVersion);
+        err = AGS::Common::ExtractScriptText(scriptText, std::move(src.InputStream), src.DataVersion);
         if (err.HasError() && err->Code() == AGS::Common::kRoomFileErr_BlockNotFound)
             return nullptr; // simply did not find the script text
     }

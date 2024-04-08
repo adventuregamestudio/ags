@@ -326,7 +326,7 @@ static bool video_check_user_input(VideoSkipType skip)
 static HError video_single_run(const String &asset_name,
     int video_flags, int state_flags, VideoSkipType skip)
 {
-    std::unique_ptr<Stream> video_stream(AssetMgr->OpenAsset(asset_name));
+    auto video_stream = AssetMgr->OpenAsset(asset_name);
     if (!video_stream)
     {
         return new Error(String::FromFormat("Failed to open file: %s", asset_name.GetCStr()));

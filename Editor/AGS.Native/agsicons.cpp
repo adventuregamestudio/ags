@@ -15,9 +15,13 @@ using namespace AGS::Types;
 using namespace System;
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include "NativeUtils.h"
+#include "util/file.h"
+#include "util/stdio_compat.h"
+#include "util/path.h"
 
 #define MAX_ICONS_IN_FILE 15
 
@@ -83,14 +87,16 @@ BOOL CALLBACK FindFirstResource(HMODULE hModule, LPCTSTR lpszType, LPTSTR lpszNa
 }
 
 // Queries engine executable for the icon resource ID
-bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String^% err_msg)
+static bool FindResID(const AGSString &exeName, LPCSTR lpType, LPTSTR &lpIconResName, String^% err_msg)
 {
     HMODULE hExe;
     // Load the .EXE file
-    hExe = LoadLibraryEx(exeName, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
+    WCHAR wpath[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, exeName.GetCStr(), -1, wpath, MAX_PATH_SZ);
+    hExe = LoadLibraryExW(wpath, NULL, LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
     if (hExe == NULL) 
     {
-        err_msg = "Unable to load executable.";
+        err_msg = WinAPIHelper::MakeErrorManaged("Unable to load executable.");
         return false;
     }
 
@@ -108,34 +114,33 @@ bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String
     return lpIconResName != NULL;
 }
 
-void ReplaceIconFromFile(const char *iconName, const char *exeName) {
+void ReplaceIconFromFile(const AGSString &iconName, const AGSString &exeName) {
 
-  int i;
-  FILE *icoin = fopen(iconName, "rb");
-  if (icoin == NULL)
+  std::unique_ptr<AGS::Common::Stream> iconfile(AGS::Common::File::OpenFileRead(iconName));
+  if (!iconfile)
     return;
 
   ICONDIR iconHeader;
-  fread(&iconHeader, 6, 1, icoin);
+  iconfile->Read(&iconHeader, 3 * sizeof(WORD));
 
   if ((iconHeader.idCount > MAX_ICONS_IN_FILE) || (iconHeader.idCount < 1)) {
-    fclose(icoin);
+    iconfile.reset();
     throw gcnew AGSEditorException("Unable to replace icon: Too many icons within this icon file, or this may not be a valid .ICO file.");
   }
   
   if (iconHeader.idType != 1) {
-    fclose(icoin);
+    iconfile.reset();
     throw gcnew AGSEditorException("Unable to replace icon: this is not a valid icon file");
   }
 
-  fread(&iconHeader.idEntries[0], sizeof(ICONDIRENTRY), iconHeader.idCount, icoin);
+  iconfile->Read(&iconHeader.idEntries[0], sizeof(ICONDIRENTRY) * iconHeader.idCount);
 
   GRPICONDIR resIconHeader;
   resIconHeader.idReserved = 0;
   resIconHeader.idType = iconHeader.idType;
   resIconHeader.idCount = iconHeader.idCount;
 
-  for (i = 0; i < iconHeader.idCount; i++) {
+  for (int i = 0; i < iconHeader.idCount; i++) {
     resIconHeader.idEntries[i].bColorCount = iconHeader.idEntries[i].bColorCount;
     resIconHeader.idEntries[i].bHeight = iconHeader.idEntries[i].bHeight;
     resIconHeader.idEntries[i].bReserved = iconHeader.idEntries[i].bReserved;
@@ -148,15 +153,18 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
 
   LPTSTR lpIconResName = NULL;
   String ^err_msg;
-  if (!FindResID(exeName, RT_GROUP_ICON, lpIconResName, err_msg))
+  AGSString abs_path = AGS::Common::Path::MakeAbsolutePath(exeName);
+  if (!FindResID(abs_path, RT_GROUP_ICON, lpIconResName, err_msg))
   {
-    fclose(icoin);
+    iconfile.reset();
     throw gcnew AGSEditorException("Unable to find icon ID in the engine executable:\n" + err_msg);
   }
 
-  HANDLE hUpdate = BeginUpdateResource(exeName, FALSE);
+  WCHAR wpath[MAX_PATH_SZ];
+  MultiByteToWideChar(CP_UTF8, 0, abs_path.GetCStr(), -1, wpath, MAX_PATH_SZ);
+  HANDLE hUpdate = BeginUpdateResourceW(wpath, FALSE);
   if (hUpdate == NULL) {
-    fclose(icoin);
+    iconfile.reset();
     if (!IS_INTRESOURCE(lpIconResName))
         free(lpIconResName);
     throw gcnew AGSEditorException("Unable to load the custom icon: BeginUpdateResource failed");
@@ -173,12 +181,12 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
   }
   else {
 
-    for (i = 0; i < iconHeader.idCount; i++) {
-      fseek(icoin, iconHeader.idEntries[i].dwImageOffset, SEEK_SET);
+    for (int i = 0; i < iconHeader.idCount; i++) {
+      iconfile->Seek(iconHeader.idEntries[i].dwImageOffset, AGS::Common::kSeekBegin);
 
       int iconSize = iconHeader.idEntries[i].dwBytesInRes;
       char *iconbuffer = (char*)malloc(iconSize);
-      fread(iconbuffer, iconSize, 1, icoin);
+      iconfile->Read(iconbuffer, iconSize);
 
       if (UpdateResource(hUpdate, RT_ICON, MAKEINTRESOURCE(i + FIRST_ICON_ID),
                     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_UK),
@@ -190,7 +198,7 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
 
   }
 
-  fclose(icoin);
+  iconfile.reset();
   if (!IS_INTRESOURCE(lpIconResName))
       free(lpIconResName);
 
@@ -205,9 +213,11 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
   return;
 }
 
-void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType)
+void ReplaceResourceInEXE(const AGSString &exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType)
 {
-  HANDLE hUpdate = BeginUpdateResource(exeName, FALSE);
+  WCHAR wpath[MAX_PATH_SZ];
+  MultiByteToWideChar(CP_UTF8, 0, exeName.GetCStr(), -1, wpath, MAX_PATH_SZ);
+  HANDLE hUpdate = BeginUpdateResourceW(wpath, FALSE);
   if (hUpdate == NULL) 
   {
     throw gcnew AGSEditorException("Unable to replace resource: BeginUpdateResource failed");

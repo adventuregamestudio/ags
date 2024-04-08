@@ -21,9 +21,16 @@
 //-----------------------------------------------------------------------------
 // TODO: consider replace/merge with PhysFS library in the future.
 //
-// TODO: support streams that work on a file subsection, limited by size,
-// to avoid having to return an asset size separately from a stream.
-// TODO: return stream as smart pointer.
+// TODO: because Stream is now just a wrapper over IStreamBase,
+// there are two *alternate* changes that we might consider for the future:
+// 1. Variant 1 - return not a unique_ptr<Stream>, but a plain moveable
+//    Stream object instead. This would require altering alot  of code
+//    throughout the engine though, where Stream is accessed as a ptr.
+// 2. Variant 2 - return unique_ptr<IStreamBase>. This means getting a more
+//    primitive object, which may be wrapped into Stream only where necessary.
+//    This would require minor code adjustments, but may be less convenient
+//    in general use (?).
+// Same changes could be done for File helpers (OpenFile etc).
 //
 //=============================================================================
 #ifndef __AGS_CN_CORE__ASSETMANAGER_H
@@ -32,14 +39,13 @@
 #include <memory>
 #include <functional>
 #include "core/asset.h"
-#include "util/file.h" // TODO: extract filestream mode constants or introduce generic ones
+#include "util/stream.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-class Stream;
 struct MultiFileLib;
 
 enum AssetSearchPriority
@@ -104,10 +110,11 @@ public:
                                    const String &filter = "") const;
     // Open asset stream in the given work mode; returns null if asset is not found or cannot be opened
     // This method only searches in libraries that do not have any defined filters
-    Stream      *OpenAsset(const String &asset_name) const;
+    std::unique_ptr<Stream> OpenAsset(const String &asset_name) const;
     // Open asset stream, providing a single filter to search in matching libraries
-    Stream      *OpenAsset(const String &asset_name, const String &filter) const;
-    inline Stream *OpenAsset(const AssetPath &apath) const { return OpenAsset(apath.Name, apath.Filter); }
+    std::unique_ptr<Stream> OpenAsset(const String &asset_name, const String &filter) const;
+    inline std::unique_ptr<Stream> OpenAsset(const AssetPath &apath) const
+        { return OpenAsset(apath.Name, apath.Filter); }
 
 private:
     // AssetLibEx combines library info with extended internal data required for the manager
@@ -123,8 +130,8 @@ private:
     AssetError  RegisterAssetLib(const String &path, AssetLibEx *&lib);
 
     // Tries to find asset in the given location, and then opens a stream for reading
-    Stream     *OpenAssetFromLib(const AssetLibEx *lib, const String &asset_name) const;
-    Stream     *OpenAssetFromDir(const AssetLibEx *lib, const String &asset_name) const;
+    std::unique_ptr<Stream> OpenAssetFromLib(const AssetLibEx *lib, const String &asset_name) const;
+    std::unique_ptr<Stream> OpenAssetFromDir(const AssetLibEx *lib, const String &asset_name) const;
 
     std::vector<std::unique_ptr<AssetLibEx>> _libs;
     std::vector<AssetLibEx*> _activeLibs;

@@ -1758,8 +1758,8 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
         return;
     }
 
-    Stream *data_s = File::OpenFile("script.log", kFile_Create, kStream_Write);
-    TextStreamWriter writer(data_s);
+    auto data_s = File::OpenFile("script.log", kFile_Create, kStream_Write);
+    TextStreamWriter writer(std::move(data_s));
     writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
 
     const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];

@@ -372,7 +372,7 @@ public:
     String &operator=(String &&str);
     // Assign C-string by copying contents
     String &operator=(const char *cstr);
-    inline char operator[](size_t index) const
+    inline const char &operator[](size_t index) const
     {
         assert(index < _len);
         return _cstr[index];

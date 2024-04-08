@@ -31,19 +31,19 @@ const char scfilesig[5] = "SCOM";
 class ScriptExtReader : public DataExtReader
 {
 public:
-    ScriptExtReader(ccScript &script, Stream *in)
-        : DataExtReader(in, kDataExt_NumID8 | kDataExt_File64)
+    ScriptExtReader(ccScript &script, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
         , _script(script)
         {}
 
 protected:
-    HError ReadBlock(int block_id, const String &ext_id,
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
         if (ext_id.CompareNoCase("rtti") == 0)
         {
-            _script.rtti.reset(new RTTI(std::move(RTTISerializer::Read(_in))));
+            _script.rtti.reset(new RTTI(std::move(RTTISerializer::Read(in))));
             return HError::None();
         }
         return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
@@ -332,12 +332,13 @@ bool ccScript::Read(Stream *in)
   // Extended data
   //-------------------------------------------------------------------------
   if (fileVer >= SCOM_VERSION_EXT) {
-    ScriptExtReader reader(*this, in);
+    ScriptExtReader reader(*this, std::unique_ptr<Stream>(in));
     HError err = reader.Read();
     if (!err) {
       cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
       return false;
     }
+    reader.ReleaseStream().release(); // FIXME: this double release is ugly
   }
 
   if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG) {

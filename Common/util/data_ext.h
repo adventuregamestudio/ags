@@ -141,6 +141,8 @@ class DataExtReader : protected DataExtParser
 public:
     virtual ~DataExtReader() = default;
 
+    using DataExtParser::ReleaseStream;
+
     // Parses a block list, calls ReadBlock for each found block
     HError Read();
 

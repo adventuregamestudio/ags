@@ -374,7 +374,7 @@ namespace AGS.Editor
         {
             int curX, curY;
             GetObjectPosition(_selectedObject, out curX, out curY);
-            int step = GetArrowMoveStepSize();
+            int step = 1;
             switch (key)
             {
                 case Keys.Left:
@@ -433,26 +433,6 @@ namespace AGS.Editor
                 _movingHintTimer.Stop();
             }
             return true;
-        }
-
-        /// <summary>
-        /// Legacy feature support: changes step of moving object with a keyboard,
-        /// depending on room's resolution.
-        /// FIXME: remove this.
-        /// </summary>
-        private int GetArrowMoveStepSize()
-        {
-            return 1;
-        }
-
-        /// <summary>
-        /// Legacy feature support: rounds coordinates to match the room's
-        /// resolution grid.
-        /// FIXME: remove this.
-        /// </summary>
-        protected int ConvertObjectCoordinate(int newCoord)
-        {
-            return newCoord;
         }
 
         protected void ClearMovingState()

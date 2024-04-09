@@ -477,12 +477,20 @@ bool init_editor_debugging(const ConfigTree &cfg)
 bool query_memory(const String &mem_id, String &value)
 {
     // Format for DRAFT testing only:
-    // x[N]:offset
+    // x[N]:offset[,type[:offset,type[:...]]
     // where x can be -
     //  - g    - globalscript
     //  - m[N] - module
     //  - r    - room state
     // offset is in bytes
+    // type can be:
+    //  - c    - char (1 byte integer)
+    //  - iN   - integer of given size in bytes, e.g. i1, i2, i4
+    //  - fN   - float of given size in bytes, e.g. f4
+    //  - dN   - plain data (struct, plain array), optionally of given size in bytes
+    //  - s    - plain string (null-terminated sequences of chars)
+    //  - p    - pointer, reserved
+    //  - h    - handle (managed), an int32 that may be resolved to a pointer
     if (mem_id.GetLength() < 1)
         return false;
 
@@ -493,13 +501,13 @@ bool query_memory(const String &mem_id, String &value)
         inst = gameinst.get();
         break;
     case 'm':
-        {
-            int module_id = atoi(&mem_id[1]);
-            if (module_id < 0)
-                return false;
-            inst = moduleInst[module_id].get();
-        }
-        break;
+    {
+        int module_id = atoi(&mem_id[1]);
+        if (module_id < 0)
+            return false;
+        inst = moduleInst[module_id].get();
+    }
+    break;
     case 'r':
         inst = roominst.get();
         break;
@@ -515,14 +523,97 @@ bool query_memory(const String &mem_id, String &value)
         return false;
 
     int offset = atoi(&mem_id[off_at + 1]);
-    int size = 4; // fixme, hardcode for now
+    char type = 0;
+    int size = 0;
+    size_t type_at = mem_id.FindChar(',', off_at + 1);
+    if (type_at != -1)
+    {
+        type = mem_id[type_at + 1];
+        if (type_at + 2 < mem_id.GetLength())
+            size = atoi(&mem_id[type_at + 2]);
+    }
+    else
+    {
+        // default tp 'i4'
+        type = 'i';
+        size = 4;
+    }
+
     if (offset < 0 || offset >= inst->globaldatasize + size)
         return false;
+    const void *mem_ptr = reinterpret_cast<const uint8_t*>(&inst->globaldata[offset]);
+    
+    switch (type)
+    {
+    case 'c':
+        switch (size)
+        {
+        case 1:
+        {
+            const int8_t *value_ptr = reinterpret_cast<const int8_t*>(mem_ptr);
+            value = String::FromFormat("%c", *value_ptr);
+            break;
+        }
+        default: // unknown type, fail
+            return false;
+        }
+        break;
+    case 'i':
+        switch (size)
+        {
+        case 1:
+        {
+            const int8_t *value_ptr = reinterpret_cast<const int8_t*>(mem_ptr);
+            value = String::FromFormat("%d", *value_ptr);
+            break;
+        }
+        case 2:
+        {
+            const int16_t *value_ptr = reinterpret_cast<const int16_t*>(mem_ptr);
+            value = String::FromFormat("%d", *value_ptr);
+            break;
+        }
+        case 4:
+        {
+            const int32_t *value_ptr = reinterpret_cast<const int32_t*>(mem_ptr);
+            value = String::FromFormat("%d", *value_ptr);
+            break;
+        }
+        default: // unknown type, fail
+            return false;
+        }
+        break;
+    case 'f':
+        switch (size)
+        {
+        case 4:
+        {
+            const float *value_ptr = reinterpret_cast<const float*>(mem_ptr);
+            value = String::FromFormat("%f", *value_ptr);
+            break;
+        }
+        default: // unknown type, fail
+            return false;
+        }
+        break;
+    case 'd':
+        // TODO: convert requested size to base64?
+        break;
+    case 's':
+        value = reinterpret_cast<const char*>(mem_ptr);
+        break;
+    case 'p': // value of a address, reserved
+        break;
+    case 'h': // value of a managed handle (int32)
+    {
+        const int32_t *value_ptr = reinterpret_cast<const int32_t*>(mem_ptr);
+        value = String::FromFormat("%d", *value_ptr);
+        break;
+    }
+    default: // unknown type, fail
+        return false;
+    }
 
-    uint8_t *mem_ptr = reinterpret_cast<uint8_t*>(&inst->globaldata[offset]);
-    // fixme, type and size hardcoded for now
-    uint32_t *value_ptr = reinterpret_cast<uint32_t*>(mem_ptr);
-    value = String::FromFormat("%d", *value_ptr);
     return true;
 }
 

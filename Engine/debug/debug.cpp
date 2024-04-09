@@ -24,6 +24,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -474,6 +475,9 @@ bool init_editor_debugging(const ConfigTree &cfg)
     return false;
 }
 
+bool resolve_memory(const String &mem_id, size_t from, String &value,
+    const uint8_t *mem_ptr, size_t memsize);
+
 bool query_memory(const String &mem_id, String &value)
 {
     // Format for DRAFT testing only:
@@ -522,11 +526,22 @@ bool query_memory(const String &mem_id, String &value)
     if (off_at == -1)
         return false;
 
-    int offset = atoi(&mem_id[off_at + 1]);
+    return resolve_memory(mem_id, off_at + 1, value,
+        reinterpret_cast<const uint8_t*>(inst->globaldata), inst->globaldatasize);
+}
+
+bool resolve_memory(const String &mem_id, size_t from, String &value,
+    const uint8_t *mem_ptr, size_t memsize)
+{
+    const size_t off_at = from;
+    int offset = atoi(&mem_id[off_at]);
     char type = 0;
     int size = 0;
-    size_t type_at = mem_id.FindChar(',', off_at + 1);
-    if (type_at != -1)
+
+    size_t type_at = mem_id.FindChar(',', off_at);
+    size_t next_off_at = mem_id.FindChar(':', off_at);
+    
+    if ((type_at != -1) && (type_at < next_off_at))
     {
         type = mem_id[type_at + 1];
         if (type_at + 2 < mem_id.GetLength())
@@ -539,10 +554,38 @@ bool query_memory(const String &mem_id, String &value)
         size = 4;
     }
 
-    if (offset < 0 || offset >= inst->globaldatasize + size)
+    if (offset < 0 || ((memsize != -1) && (offset >= memsize + size)))
         return false;
-    const void *mem_ptr = reinterpret_cast<const uint8_t*>(&inst->globaldata[offset]);
-    
+
+    mem_ptr = mem_ptr + offset;
+
+    if (next_off_at != -1)
+    {
+        // Resolve memory chain, if possible
+        switch (type)
+        {
+        case 'd': // plain data, use same mem ptr
+            memsize -= offset;
+            break;
+        case 'p': // value of a address, reserved but not supported atm
+            return false;
+        case 'h': // managed handle, resolve to managed object addr
+        {
+            const int32_t *value_ptr = reinterpret_cast<const int32_t*>(mem_ptr);
+            const void *addr = ccGetObjectAddressFromHandle(*value_ptr);
+            if (!addr)
+                return false; // object not found
+            mem_ptr = reinterpret_cast<const uint8_t*>(addr);
+            memsize = -1; // FIXME... how to get it? use dynamic manager? need to expand iface
+            break;
+        }
+        default: // invalid type for resolving, fail
+            return false;
+        }
+        return resolve_memory(mem_id, next_off_at + 1, value,
+            mem_ptr, memsize);
+    }
+
     switch (type)
     {
     case 'c':

@@ -589,18 +589,11 @@ bool resolve_memory(const String &mem_id, size_t from, String &value,
     switch (type)
     {
     case 'c':
-        switch (size)
-        {
-        case 1:
-        {
-            const int8_t *value_ptr = reinterpret_cast<const int8_t*>(mem_ptr);
-            value = String::FromFormat("%c", *value_ptr);
-            break;
-        }
-        default: // unknown type, fail
-            return false;
-        }
+    {
+        const int8_t *value_ptr = reinterpret_cast<const int8_t*>(mem_ptr);
+        value = String::FromFormat("%c", *value_ptr);
         break;
+    }
     case 'i':
         switch (size)
         {

@@ -281,7 +281,11 @@ void GUIMain::DrawWithControls(Bitmap *ds)
 {
     ds->ResetClip();
     DrawSelf(ds);
+    DrawControls(ds);
+}
 
+void GUIMain::DrawControls(Bitmap *ds)
+{
     if ((GUI::Context.DisabledState != kGuiDis_Undefined) && (GUI::Options.DisabledStyle == kGuiDis_Blackout))
         return; // don't draw GUI controls
 

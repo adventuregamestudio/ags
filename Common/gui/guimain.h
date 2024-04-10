@@ -162,6 +162,7 @@ public:
     bool    BringControlToFront(int index);
     void    DrawSelf(Bitmap *ds);
     void    DrawWithControls(Bitmap *ds);
+    void    DrawControls(Bitmap *ds);
     // Polls GUI state, providing current cursor (mouse) coordinates
     void    Poll(int mx, int my);
     // Reconnects this GUIMain with the child controls from the global guiobject collection

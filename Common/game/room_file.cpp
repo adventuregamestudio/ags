@@ -36,6 +36,12 @@
 // Reserved room options (each is a byte)
 #define ROOM_OPTIONS_RESERVED 4
 #define LEGACY_TINT_IS_ENABLED 0x80000000
+// The sizes of the ancient FullAnimation struct,
+// used for skipping data chunk, because we currently don't know how
+// to handle these in game. See room_file_deprecated.cpp.
+#define LEGACY_ROOM_ANIMATION_SIZE (5 * sizeof(int) + 4 * sizeof(char)) /* 2 bytes of padding */
+#define LEGACY_ROOM_FULLANIMATION_SIZE (LEGACY_ROOM_ANIMATION_SIZE * 10 + sizeof(int))
+
 
 namespace AGS
 {
@@ -279,7 +285,8 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         // TODO: remove from format later
         size_t fullanim_count = in->ReadInt16();
         if (fullanim_count > 0)
-            return new RoomFileError(kRoomFileErr_IncompatibleEngine, "Room animations are no longer supported.");
+            Debug::Printf("WARNING: Legacy room animations not supported, data skipped.");
+        in->Seek(LEGACY_ROOM_FULLANIMATION_SIZE * fullanim_count);
         /* NOTE: implementation hidden in room_file_deprecated.cpp
             in->ReadArray(&fullanims[0], sizeof(FullAnimation), fullanim_count);
         */

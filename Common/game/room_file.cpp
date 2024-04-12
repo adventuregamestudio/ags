@@ -316,7 +316,7 @@ HError ReadMainBlock(RoomStruct *room, Stream *in, RoomFileVersion data_ver)
         room->BgFrames[0].Graphic = load_rle_bitmap8(in);
 
     // Area masks
-    if (data_ver >= kRoomVersion_255b)
+    if (data_ver >= kRoomVersion_253)
         room->RegionMask = load_rle_bitmap8(in);
     else if (data_ver >= kRoomVersion_114)
         skip_rle_bitmap8(in); // an old version - clear the 'shadow' area into a blank regions bmp (???)

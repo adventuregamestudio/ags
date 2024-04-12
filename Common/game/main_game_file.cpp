@@ -948,7 +948,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
     game.numgui = ents.Guis.size();
 
-    if (data_ver >= kGameVersion_260)
+    if (data_ver >= kGameVersion_255)
     {
         err = ReadPlugins(ents.PluginInfos, in);
         if (!err)

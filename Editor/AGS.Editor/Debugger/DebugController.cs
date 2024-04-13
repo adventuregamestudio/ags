@@ -192,6 +192,13 @@ namespace AGS.Editor
         public uint QueryMemory(string varId)
         {
             uint reqId = ++queryVariableCounter;
+            _communicator.SendMessage($"<Engine Command=\"GETMEM2 ${reqId}${varId}$\"></Engine>");
+            return reqId;
+        }
+
+        public uint QueryMemoryDirect(string varId)
+        {
+            uint reqId = ++queryVariableCounter;
             _communicator.SendMessage($"<Engine Command=\"GETMEM ${reqId}${varId}$\"></Engine>");
             return reqId;
         }

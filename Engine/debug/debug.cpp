@@ -478,7 +478,8 @@ bool init_editor_debugging(const ConfigTree &cfg)
 bool resolve_memory(const String &mem_id, size_t from, String &value,
     const uint8_t *mem_ptr, size_t memsize);
 
-bool query_memory(const String &mem_id, String &value)
+// Query memory using direct address instructions
+bool query_memory_direct(const String &mem_id, String &value)
 {
     // Format for DRAFT testing only:
     // x[N]:offset[,type[:offset,type[:...]]
@@ -501,6 +502,9 @@ bool query_memory(const String &mem_id, String &value)
     ccInstance *inst = nullptr;
     switch (mem_id[0])
     {
+    case '?':
+        inst = ccInstance::GetCurrentInstance();
+        break;
     case 'g':
         inst = gameinst.get();
         break;
@@ -653,6 +657,183 @@ bool resolve_memory(const String &mem_id, size_t from, String &value,
     return true;
 }
 
+bool append_memid_item(const String &item, String &mem_id,
+     uint32_t f_local_typeid, uint32_t f_offset, ccInstance *inst,
+     const RTTI::Type **next_type);
+
+// Query memory using variable names;
+// resolves a name.name.name string to a address instruction and calls resolve_memory
+bool query_memory_bytoc(const String &var_ref, String &value)
+{
+    // Format for DRAFT testing only:
+    // [$scriptname:]symbolname[.symbolname[.symbolname[,...]]]
+    if (var_ref.IsEmpty())
+        return false;
+
+    String mem_id;
+    String items;
+    ccInstance *inst = nullptr;
+    if (var_ref[0] == '$')
+    {
+        String script_name = var_ref.LeftSection('.');
+        // ugly....
+        if (script_name.Compare(gameinst->instanceof->sectionNames[0].c_str()) == 0)
+        {
+            inst = ccInstance::GetCurrentInstance();
+        }
+        else if (script_name.Compare(roominst->instanceof->sectionNames[0].c_str()) == 0)
+        {
+            inst = roominst.get();
+        }
+        else
+        {
+            for (size_t i = 0; i < moduleInst.size(); ++i)
+            {
+                if (script_name.Compare(moduleInst[i]->instanceof->sectionNames[0].c_str()) == 0)
+                {
+                    inst = moduleInst[i].get();
+                    break;
+                }
+            }
+        }
+
+        if (!inst)
+            return false; // unknown script?
+
+        items = var_ref.Mid(script_name.GetLength() + 1);
+    }
+    else
+    {
+        inst = ccInstance::GetCurrentInstance();
+        if (!inst)
+            return false; // unknown script?
+        items = var_ref;
+    }
+
+    size_t index = 0;
+    String item;
+    const RTTI::Type *last_type = nullptr;
+    const RTTI::Type *next_type = nullptr;
+    const auto *datatoc = inst->instanceof->datatoc.get();
+    const auto *l2gtypes = &inst->GetLocal2GlobalTypeMap();
+
+    for (item = items.Section('.', index, index);
+        !item.IsEmpty();
+         ++index, item = items.Section('.', index, index))
+    {
+        if (next_type)
+        {
+            // get next member of type
+            // todo: is it possible to speed this up, making a field lookup,
+            // or that would be too costly to do per type?
+            const RTTI::Field *next_field = nullptr;
+            for (const auto *field = next_type->first_field; field; field = field->next_field)
+            {
+                if (strcmp(field->name, item.GetCStr()) == 0)
+                {
+                    next_field = field;
+                    break;
+                }
+            }
+
+            if (!next_field)
+                return false; // cannot find next item
+
+            mem_id.AppendChar(':');
+            // note: f_typeid here is already resolved to global type id,
+            // because we're using joint rtti, not local script's one
+            if (!append_memid_item(item, mem_id, next_field->f_typeid, next_field->offset, inst, &next_type))
+                return false;
+
+            last_type = next_type;
+        }
+        else
+        {
+            // get variable from the script data
+            auto var_it = datatoc->_varLookup.find(item);
+            if (var_it == datatoc->_varLookup.end())
+                return false; // cannot find next item
+
+            const auto &var = inst->instanceof->datatoc->VarDefs[var_it->second];
+
+            // resolve local script's type to a global type index
+            // todo: this should be resolved after loading script, similar to RTTI!
+            auto type_it = l2gtypes->find(var.f_typeid);
+            if (type_it == l2gtypes->end())
+                return false; // cannot find global type
+            uint32_t g_typeid = type_it->second;
+            
+            if (!append_memid_item(item, mem_id, g_typeid, var.offset, inst, &next_type))
+                return false;
+
+            last_type = next_type;
+        }
+    }
+
+    if (mem_id.IsEmpty())
+        return false;
+
+    // FIXME: this is a hack, force resolve managed "String" type
+    // so that user receives a string value instead of a handle;
+    // need to think how to deal with this situation in a generic way.
+    if (((last_type->flags & RTTI::kType_Managed) != 0) &&
+        (strcmp(last_type->name, "String") == 0))
+    {
+        mem_id.Append(":0,s");
+    }
+
+    return resolve_memory(mem_id, 0, value,
+        reinterpret_cast<const uint8_t*>(inst->globaldata), inst->globaldatasize);
+}
+
+bool append_memid_item(const String &item, String &mem_id,
+    uint32_t g_typeid, uint32_t f_offset, ccInstance *inst,
+    const RTTI::Type **next_type)
+{
+    const auto *rtti = ccInstance::GetRTTI();
+    const auto &type = rtti->GetTypes()[g_typeid];
+    *next_type = &type;
+
+    // FIXME: this does not support arrays...
+
+    // erm... using hardcoded type names here, no other way?...
+    // todo: generate a table of basic types, avoid checking name every time,
+    // check uint id instead!
+    char typec = '?';
+    int typesz = 0;
+    if (strcmp(type.name, "char") == 0)
+    {
+        typec = 'i'; typesz = 1;
+    }
+    else if (strcmp(type.name, "short") == 0)
+    {
+        typec = 'i'; typesz = 2;
+    }
+    else if (strcmp(type.name, "int") == 0)
+    {
+        typec = 'i'; typesz = 4;
+    }
+    else if (strcmp(type.name, "float") == 0)
+    {
+        typec = 'f'; typesz = 4;
+    }
+    else if (strcmp(type.name, "string") == 0)
+    {
+        typec = 's'; typesz = 200; // old-style string of fixed size
+    }
+    else if ((type.flags & RTTI::kType_Managed) != 0)
+    {
+        typec = 'h'; typesz = 4;
+    }
+    else
+    {
+        typec = 'd'; typesz = type.size; // ?
+    }
+
+    mem_id.AppendFmt("%u,%c%d", f_offset, typec, typesz);
+    return true;
+}
+
 int check_for_messages_from_debugger()
 {
     if (editor_debugger->IsMessageAvailable())
@@ -736,6 +917,40 @@ int check_for_messages_from_debugger()
             abort_engine = true;
             check_dynamic_sprites_at_exit = 0;
         }
+        else if (strncmp(msgPtr, "GETMEM2", 7) == 0)
+        {
+            // Format:  GETMEM $requestID$variableChain$
+            const char *req_id_str = strstr(msgPtr + 6, "$");
+            if (!req_id_str)
+            {
+                free(msg);
+                return 0;
+            }
+            const char *var_ref_str = strstr(req_id_str + 1, "$");
+            if (!var_ref_str)
+            {
+                free(msg);
+                return 0;
+            }
+            const char *end_str = strstr(var_ref_str + 1, "$");
+            if (!end_str)
+            {
+                free(msg);
+                return 0;
+            }
+
+            String req_id(req_id_str + 1, var_ref_str - req_id_str - 1);
+            String var_ref(var_ref_str + 1, end_str - var_ref_str - 1);
+            String mem_value;
+            if (!query_memory_bytoc(var_ref, mem_value))
+            {
+                mem_value = "NOT FOUND";
+            }
+            std::vector<std::pair<String, String>> values;
+            values.push_back(std::make_pair("ReqID", req_id));
+            values.push_back(std::make_pair("Value", mem_value));
+            send_message_to_debugger(editor_debugger, values, "REVMEM");
+        }
         else if (strncmp(msgPtr, "GETMEM", 6) == 0)
         {
             // Format:  GETMEM $requestID$memoryID$
@@ -761,7 +976,7 @@ int check_for_messages_from_debugger()
             String req_id(req_id_str + 1, mem_id_str - req_id_str - 1);
             String mem_id(mem_id_str + 1, end_str - mem_id_str - 1);
             String mem_value;
-            if (!query_memory(mem_id, mem_value))
+            if (!query_memory_direct(mem_id, mem_value))
             {
                 mem_value = "NOT FOUND";
             }

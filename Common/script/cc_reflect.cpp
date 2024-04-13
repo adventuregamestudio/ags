@@ -556,6 +556,13 @@ void ReadScriptDataTOC(ScriptDataTOC &datatoc, Stream *in)
         var.flags = in->ReadInt32();
         var.num_elems = in->ReadInt32();
     }
+
+    datatoc._varLookup.clear();
+    for (size_t i = 0; i < datatoc.VarDefs.size(); ++i)
+    {
+        datatoc._varLookup.insert(
+            std::make_pair(datatoc.VarDefs[i].name, static_cast<uint32_t>(i)));
+    }
 }
 
 void WriteScriptDataTOC(const ScriptDataTOC &datatoc, Stream *out)

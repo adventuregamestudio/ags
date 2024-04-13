@@ -271,6 +271,8 @@ public:
     };
 
     std::vector<VariableDef> VarDefs;
+
+    std::unordered_map<AGS::Common::String, uint32_t> _varLookup;
 };
 
 void ReadScriptDataTOC(ScriptDataTOC &rtti, AGS::Common::Stream *in);

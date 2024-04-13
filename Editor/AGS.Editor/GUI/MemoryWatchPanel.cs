@@ -65,9 +65,24 @@ namespace AGS.Editor
             foreach (var item in listView1.Items)
             {
                 string varName = (item as ListViewItem).Text;
-                _varRequests.Add(
-                    AGSEditor.Instance.Debugger.QueryMemory(varName),
-                    varName);
+                if (string.IsNullOrEmpty(varName))
+                    continue;
+
+                // FIXME: temporary logic for easier testing:
+                // if user input begins with '+' then use direct mem query,
+                // otherwise rely on variable names
+                if (varName[0] == '+')
+                {
+                    _varRequests.Add(
+                        AGSEditor.Instance.Debugger.QueryMemoryDirect(varName.Substring(1)),
+                        varName);
+                }
+                else
+                {
+                    _varRequests.Add(
+                        AGSEditor.Instance.Debugger.QueryMemory(varName),
+                        varName);
+                }
             }
         }
 

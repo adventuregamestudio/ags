@@ -212,6 +212,9 @@ public:
     // Also change CALLEXT op-codes to CALLAS when they pertain to a script instance 
     bool    ResolveImportFixups(const ccScript *scri);
 
+    const std::unordered_map<uint32_t, uint32_t> &
+        GetLocal2GlobalTypeMap() const { return _typeidLocal2Global; }
+
 private:
     bool    _Create(PScript scri, const ccInstance * joined);
     // free the memory associated with the instance

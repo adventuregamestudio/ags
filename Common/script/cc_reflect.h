@@ -68,6 +68,8 @@ public:
     {
         kField_ManagedPtr = 0x0001,
         kField_Array      = 0x0002,
+        // An import from another script, must be resolved
+        kField_Import     = 0x40000000,
         // We use "generated" flag to mark fields that are created at runtime
         // and are intended to be replaced by "true" fields later
         kField_Generated  = 0x80000000
@@ -251,6 +253,29 @@ private:
 // TODO: provide TextWriter instead of returning a String,
 // but need to implement a TextWriter that writes into the engine's log
 AGS::Common::String PrintRTTI(const RTTI &rtti);
+
+
+// FIXME: all the declaration below is temporary, for test only
+class ScriptDataTOC
+{
+public:
+    struct VariableDef
+    {
+    public:
+        AGS::Common::String name;
+        AGS::Common::String loc_id; // FIXME should be int key
+        uint32_t offset = 0u; // relative address of this field in script mem, in bytes
+        uint32_t f_typeid = 0u; // field's type id
+        uint32_t flags = 0u; // field flags
+        uint32_t num_elems = 0u; // number of elements (for array)
+    };
+
+    std::vector<VariableDef> VarDefs;
+};
+
+void ReadScriptDataTOC(ScriptDataTOC &rtti, AGS::Common::Stream *in);
+void WriteScriptDataTOC(const ScriptDataTOC &rtti, AGS::Common::Stream *out);
+
 
 } // namespace AGS
 

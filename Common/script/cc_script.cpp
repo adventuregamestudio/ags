@@ -15,6 +15,7 @@
 #include <string.h>
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
+#include "script/cc_reflect.h"
 #include "script/cc_script.h"
 #include "util/data_ext.h"
 #include "util/stream.h"
@@ -44,6 +45,12 @@ protected:
         if (ext_id.CompareNoCase("rtti") == 0)
         {
             _script.rtti.reset(new RTTI(std::move(RTTISerializer::Read(in))));
+            return HError::None();
+        }
+        else if (ext_id.CompareNoCase("datatoc") == 0)
+        {
+            _script.datatoc.reset(new ScriptDataTOC());
+            ReadScriptDataTOC(*_script.datatoc, in);
             return HError::None();
         }
         return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
@@ -123,10 +130,18 @@ void ccScript::Write(Stream *out)
     //-------------------------------------------------------------------------
     // Extended data
     //-------------------------------------------------------------------------
+    // FIXME: write a ScriptExtWriter class, pair with ScriptExtReader
     const auto *rtti = ccScript::rtti.get();
     if (rtti && !rtti->IsEmpty())
     {
         WriteExtBlock("rtti", [rtti](Stream *out){ RTTISerializer::Write(*rtti, out); },
+                      kDataExt_NumID8 | kDataExt_File64, out);
+    }
+    // FIXME: this is purely for a test, not a final format!
+    const auto *datatoc = ccScript::datatoc.get();
+    if (datatoc && !datatoc->VarDefs.empty())
+    {
+        WriteExtBlock("datatoc", [datatoc](Stream *out){ WriteScriptDataTOC(*datatoc, out); },
                       kDataExt_NumID8 | kDataExt_File64, out);
     }
     // Write ending

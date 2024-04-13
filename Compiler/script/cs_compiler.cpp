@@ -22,6 +22,7 @@
 #include "script/cc_common.h"
 #include "script/cc_internal.h"
 #include "script/cs_parser.h"
+#include "util/memory_compat.h"
 
 const char *ccSoftwareVersion = "1.0";
 
@@ -78,7 +79,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
             ((ste.flags & SFLG_MANAGED) != 0))
         {
-            uint32_t flags = 0u; // TODO
+            uint32_t flags = 0u;
             if ((ste.flags & SFLG_STRUCTTYPE))
                 flags = RTTI::kType_Struct;
             if ((ste.flags & SFLG_MANAGED))
@@ -101,6 +102,39 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
 
     return std::unique_ptr<RTTI>(
         new RTTI(std::move(rtb.Finalize())));
+}
+
+static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const symbolTable &sym) {
+    auto toc = std::make_unique<ScriptDataTOC>();
+
+    for (size_t t = 0; t < sym.entries.size(); ++t)
+    {
+        const SymbolTableEntry &ste = sym.entries[t];
+
+        if (ste.stype == SYM_GLOBALVAR)
+        {
+            ScriptDataTOC::VariableDef var;
+            uint32_t flags = 0u;
+            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
+                flags |= RTTI::kField_ManagedPtr;
+            if (ste.flags & SFLG_ARRAY)
+                flags |= RTTI::kField_Array;
+            if (ste.flags & SFLG_IMPORTED)
+            {
+                flags |= RTTI::kField_Import;
+                continue; // TODO
+            }
+
+            var.name = ste.sname.c_str();
+            var.f_typeid = ste.vartype;
+            var.offset = ste.soffs;
+            var.flags = flags;
+            var.num_elems = static_cast<uint32_t>(ste.arrsize);
+            toc->VarDefs.push_back(var);
+        }
+    }
+
+    return std::move(toc);
 }
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
@@ -180,6 +214,10 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
     // Construct RTTI
     if (ccGetOption(SCOPT_RTTI)) {
         cctemp->rtti = ccCompileRTTI(sym);
+    }
+
+    if (ccGetOption(SCOPT_DATATOC)) {
+        cctemp->datatoc = ccCompileDataTOC(sym);
     }
 
     cctemp->free_extra();

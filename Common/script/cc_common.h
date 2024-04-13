@@ -32,7 +32,8 @@
 #define SCOPT_UTF8          0x0100   // UTF-8 text mode
 #define SCOPT_RTTI          0x0200   // generate and export RTTI
 #define SCOPT_RTTIOPS       0x0400   // enable syntax & opcodes that require RTTI to work
-#define SCOPT_HIGHEST       SCOPT_RTTIOPS
+#define SCOPT_DATATOC       0x0800
+#define SCOPT_HIGHEST       SCOPT_DATATOC
 
 extern void ccSetOption(int, int);
 extern int ccGetOption(int);

@@ -95,6 +95,49 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
         new RTTI(std::move(rtb.Finalize())));
 }
 
+static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, const SectionList &seclist)
+{
+    auto toc = std::make_unique<ScriptDataTOC>();
+    std::string buf; // for constructing names
+
+    for (size_t t = 0; t < symt.entries.size(); t++)
+    {
+        const SymbolTableEntry &ste = symt.entries[t];
+
+        if (ste.VariableD && !ste.ComponentD)
+        {
+            ScriptDataTOC::VariableDef var;
+            const auto &field_type = symt.entries[ste.VariableD->Vartype];
+            if (!field_type.VartypeD)
+                continue; // probably a special "variable" like "this"
+
+            uint32_t flags = 0u;
+            if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
+                flags |= RTTI::kField_ManagedPtr;
+            if (field_type.VartypeD->Type == VTT::kArray)
+                flags |= RTTI::kField_Array;
+            if (ste.VariableD->TypeQualifiers[TQ::kImport])
+            {
+                flags |= RTTI::kField_Import;
+                continue; // TODO
+            }
+            uint32_t num_elems = 0u;
+            for (const auto sz : field_type.VartypeD->Dims)
+                num_elems += sz; // CHECKME if correct
+
+            var.name = ste.Name.c_str();
+            var.f_typeid = symt.GetFirstBaseVartype(ste.VariableD->Vartype);
+            var.offset = ste.VariableD->Offset;
+            var.flags = flags;
+            var.num_elems = num_elems;
+            toc->VarDefs.push_back(var);
+        }
+    }
+
+    return std::move(toc);
+}
+
 
 ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options, MessageHandler &mh)
 {
@@ -140,6 +183,11 @@ ccScript *ccCompileText2(std::string const &script, std::string const &scriptNam
     if (FlagIsSet(options, SCOPT_RTTI))
     {
         compiled_script->rtti = ccCompileRTTI(symt, seclist);
+    }
+
+    if (FlagIsSet(options, SCOPT_DATATOC))
+    {
+        compiled_script->datatoc = ccCompileDataTOC(symt, seclist);
     }
 
     ccCurScriptName = nullptr;

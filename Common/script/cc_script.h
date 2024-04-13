@@ -45,6 +45,7 @@ public:
     std::vector<int32_t> sectionOffsets;
     // Extended information
     std::unique_ptr<RTTI> rtti;
+    std::unique_ptr<ScriptDataTOC> datatoc;
 
     int instances = 0; // reference count for this script object
 

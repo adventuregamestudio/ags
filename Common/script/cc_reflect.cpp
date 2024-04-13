@@ -16,6 +16,7 @@
 #include <string> // std::string
 #include <string.h> // memcpy etc
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 namespace AGS
 {
@@ -537,6 +538,38 @@ String PrintRTTI(const RTTI &rtti)
 
     fullstr.Append(dbhr);
     return fullstr;
+}
+
+
+// FIXME: code below is temporary, for test only
+using namespace AGS::Common;
+
+void ReadScriptDataTOC(ScriptDataTOC &datatoc, Stream *in)
+{
+    datatoc.VarDefs.resize(static_cast<uint32_t>(in->ReadInt32()));
+    for (auto &var : datatoc.VarDefs)
+    {
+        var.name.Read(in);
+        var.loc_id.Read(in);
+        var.offset = in->ReadInt32();
+        var.f_typeid = in->ReadInt32();
+        var.flags = in->ReadInt32();
+        var.num_elems = in->ReadInt32();
+    }
+}
+
+void WriteScriptDataTOC(const ScriptDataTOC &datatoc, Stream *out)
+{
+    out->WriteInt32(static_cast<uint32_t>(datatoc.VarDefs.size()));
+    for (const auto &var : datatoc.VarDefs)
+    {
+        StrUtil::WriteCStr(var.name, out);
+        StrUtil::WriteCStr(var.loc_id, out);
+        out->WriteInt32(var.offset);
+        out->WriteInt32(var.f_typeid);
+        out->WriteInt32(var.flags);
+        out->WriteInt32(var.num_elems);
+    }
 }
 
 } // namespace AGS

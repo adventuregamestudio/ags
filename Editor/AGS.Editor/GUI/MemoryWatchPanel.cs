@@ -99,7 +99,8 @@ namespace AGS.Editor
             var item = new ListViewItem();
             item.Text = "VARIABLE NAME";
             item.SubItems.Add(new ListViewItem.ListViewSubItem());
-            listView1.Items.Add(item);
+            item = listView1.Items.Add(item);
+            item.BeginEdit();
         }
 
         private void removeToolStripMenuItem_Click(object sender, EventArgs e)

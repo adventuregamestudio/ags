@@ -93,7 +93,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
             uint32_t flags = 0u;
             if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
                 flags |= RTTI::kField_ManagedPtr;
-            if (ste.flags & SFLG_ARRAY)
+            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_ARRAY))
                 flags |= RTTI::kField_Array;
             rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags,
                 static_cast<uint32_t>(ste.arrsize));
@@ -117,7 +117,7 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const symbolTable &sym) {
             uint32_t flags = 0u;
             if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_POINTER))
                 flags |= RTTI::kField_ManagedPtr;
-            if (ste.flags & SFLG_ARRAY)
+            if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_ARRAY))
                 flags |= RTTI::kField_Array;
             if (ste.flags & SFLG_IMPORTED)
             {

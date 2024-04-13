@@ -658,8 +658,8 @@ bool resolve_memory(const String &mem_id, size_t from, String &value,
 }
 
 bool append_memid_item(const String &item, String &mem_id,
-     uint32_t f_local_typeid, uint32_t f_offset, ccInstance *inst,
-     const RTTI::Type **next_type);
+     uint32_t f_local_typeid, uint32_t f_flags, uint32_t f_offset, uint32_t arr_index,
+    ccInstance *inst, const RTTI::Type **next_type);
 
 // Query memory using variable names;
 // resolves a name.name.name string to a address instruction and calls resolve_memory
@@ -721,6 +721,15 @@ bool query_memory_bytoc(const String &var_ref, String &value)
         !item.IsEmpty();
          ++index, item = items.Section('.', index, index))
     {
+        // fixme... this is not fully correct
+        size_t has_array_at = item.FindChar('[');
+        uint32_t array_index = -1;
+        if (has_array_at != -1)
+        {
+            array_index = atoi(&item[has_array_at + 1]);
+            item = item.Left(has_array_at);
+        }
+
         if (next_type)
         {
             // get next member of type
@@ -742,7 +751,8 @@ bool query_memory_bytoc(const String &var_ref, String &value)
             mem_id.AppendChar(':');
             // note: f_typeid here is already resolved to global type id,
             // because we're using joint rtti, not local script's one
-            if (!append_memid_item(item, mem_id, next_field->f_typeid, next_field->offset, inst, &next_type))
+            if (!append_memid_item(item, mem_id, next_field->f_typeid, next_field->flags,
+                next_field->offset, array_index, inst, &next_type))
                 return false;
 
             last_type = next_type;
@@ -763,7 +773,8 @@ bool query_memory_bytoc(const String &var_ref, String &value)
                 return false; // cannot find global type
             uint32_t g_typeid = type_it->second;
             
-            if (!append_memid_item(item, mem_id, g_typeid, var.offset, inst, &next_type))
+            if (!append_memid_item(item, mem_id, g_typeid, var.flags,
+                    var.offset, array_index, inst, &next_type))
                 return false;
 
             last_type = next_type;
@@ -787,20 +798,34 @@ bool query_memory_bytoc(const String &var_ref, String &value)
 }
 
 bool append_memid_item(const String &item, String &mem_id,
-    uint32_t g_typeid, uint32_t f_offset, ccInstance *inst,
-    const RTTI::Type **next_type)
+    uint32_t g_typeid, uint32_t f_flags, uint32_t f_offset, uint32_t arr_index,
+    ccInstance *inst, const RTTI::Type **next_type)
 {
     const auto *rtti = ccInstance::GetRTTI();
     const auto &type = rtti->GetTypes()[g_typeid];
     *next_type = &type;
 
-    // FIXME: this does not support arrays...
+    if ((f_flags & RTTI::kField_Array) != 0)
+    {
+        // dynamic array or regular array
+        if ((f_flags & RTTI::kField_ManagedPtr) != 0)
+            mem_id.AppendFmt("%u,h", f_offset);
+        else
+            mem_id.AppendFmt("%u,d0", f_offset); // fixme pass full array size (in bytes)
+
+        if (arr_index == UINT32_MAX)
+            return true; // return array itself... ?
+
+        mem_id.AppendChar(':');
+        // new offset is relative to array
+        f_offset = arr_index * type.size;
+    }
 
     // erm... using hardcoded type names here, no other way?...
     // todo: generate a table of basic types, avoid checking name every time,
     // check uint id instead!
     char typec = '?';
-    int typesz = 0;
+    uint32_t typesz = 0;
     if (strcmp(type.name, "char") == 0)
     {
         typec = 'i'; typesz = 1;
@@ -830,7 +855,7 @@ bool append_memid_item(const String &item, String &mem_id,
         typec = 'd'; typesz = type.size; // ?
     }
 
-    mem_id.AppendFmt("%u,%c%d", f_offset, typec, typesz);
+    mem_id.AppendFmt("%u,%c%u", f_offset, typec, typesz);
     return true;
 }
 

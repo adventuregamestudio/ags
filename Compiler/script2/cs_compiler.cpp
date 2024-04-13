@@ -81,7 +81,8 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
             if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
                 (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_ManagedPtr;
-            if (field_type.VartypeD->Type == VTT::kArray)
+            if ((field_type.VartypeD->Type == VTT::kArray) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_Array;
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
@@ -115,7 +116,8 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, 
             if ((field_type.VartypeD->Type == VTT::kDynpointer) ||
                 (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_ManagedPtr;
-            if (field_type.VartypeD->Type == VTT::kArray)
+            if ((field_type.VartypeD->Type == VTT::kArray) ||
+                (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_Array;
             if (ste.VariableD->TypeQualifiers[TQ::kImport])
             {

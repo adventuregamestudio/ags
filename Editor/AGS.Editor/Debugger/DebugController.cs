@@ -191,6 +191,9 @@ namespace AGS.Editor
 
         public uint QueryMemory(string varId)
         {
+            if ((_debugState != DebugState.Paused) && (_debugState != DebugState.Running))
+                return 0; // fixme?
+
             uint reqId = ++queryVariableCounter;
             _communicator.SendMessage($"<Engine Command=\"GETMEM2 ${reqId}${varId}$\"></Engine>");
             return reqId;
@@ -198,6 +201,9 @@ namespace AGS.Editor
 
         public uint QueryMemoryDirect(string varId)
         {
+            if ((_debugState != DebugState.Paused) && (_debugState != DebugState.Running))
+                return 0; // fixme?
+
             uint reqId = ++queryVariableCounter;
             _communicator.SendMessage($"<Engine Command=\"GETMEM ${reqId}${varId}$\"></Engine>");
             return reqId;

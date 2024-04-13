@@ -17,9 +17,33 @@ namespace AGS.Editor
 
         private Dictionary<uint, string> _varRequests = new Dictionary<uint, string>();
 
+        // TODO: there should be a working thread for updating items instead,
+        // with a list of items to update that may be added and removed async.
+        private Timer _updateItemTimer = new Timer();
+        private ListViewItem _itemToUpdate;
+
         public MemoryWatchPanel()
         {
             InitializeComponent();
+
+            listView1.AfterLabelEdit += ListView1_AfterLabelEdit;
+            _updateItemTimer.Interval = 100;
+            _updateItemTimer.Tick += _updateItemTimer_Tick;
+        }
+
+        private void _updateItemTimer_Tick(object sender, EventArgs e)
+        {
+            _updateItemTimer.Enabled = false;
+            if (_itemToUpdate != null)
+            {
+                UpdateSingleWatch(_itemToUpdate);
+            }
+        }
+
+        private void ListView1_AfterLabelEdit(object sender, LabelEditEventArgs e)
+        {
+            _itemToUpdate = listView1.Items[e.Item];
+            _updateItemTimer.Start();
         }
 
         private void MemoryWatchPanel_Shown(object sender, EventArgs e)
@@ -51,38 +75,48 @@ namespace AGS.Editor
             string varName;
             if (_varRequests.TryGetValue(requestID, out varName))
             {
-                var item = listView1.FindItemWithText(varName, false, 0, false);
-                if (item != null)
+                for (var item = listView1.FindItemWithText(varName, false, 0, false);
+                    item != null;
+                    item = item.Index < listView1.Items.Count - 1 ? listView1.FindItemWithText(varName, false, item.Index + 1, false) : null)
                 {
                     item.SubItems[1].Text = value;
                 }
+                _varRequests.Remove(requestID);
+            }
+        }
+
+        private void UpdateSingleWatch(ListViewItem item)
+        {
+            if (!AGSEditor.Instance.Debugger.CanUseDebugger)
+                return;
+
+            string varName = item.Text;
+            if (string.IsNullOrEmpty(varName))
+                return;
+
+            // FIXME: temporary logic for easier testing:
+            // if user input begins with '+' then use direct mem query,
+            // otherwise rely on variable names
+            if (varName[0] == '+')
+            {
+                _varRequests.Add(
+                    AGSEditor.Instance.Debugger.QueryMemoryDirect(varName.Substring(1)),
+                    varName);
+            }
+            else
+            {
+                _varRequests.Add(
+                    AGSEditor.Instance.Debugger.QueryMemory(varName),
+                    varName);
             }
         }
 
         public void UpdateAllWatches()
         {
             _varRequests.Clear();
-            foreach (var item in listView1.Items)
+            foreach (ListViewItem item in listView1.Items)
             {
-                string varName = (item as ListViewItem).Text;
-                if (string.IsNullOrEmpty(varName))
-                    continue;
-
-                // FIXME: temporary logic for easier testing:
-                // if user input begins with '+' then use direct mem query,
-                // otherwise rely on variable names
-                if (varName[0] == '+')
-                {
-                    _varRequests.Add(
-                        AGSEditor.Instance.Debugger.QueryMemoryDirect(varName.Substring(1)),
-                        varName);
-                }
-                else
-                {
-                    _varRequests.Add(
-                        AGSEditor.Instance.Debugger.QueryMemory(varName),
-                        varName);
-                }
+                UpdateSingleWatch(item);
             }
         }
 

@@ -64,7 +64,7 @@ namespace AGS.Editor
             
             _drawSnapPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
 
-            SetZoomSliderToDefault();
+            SetSlidersToDefault();
             UpdateScrollableWindowSize();
         }
 
@@ -265,11 +265,13 @@ namespace AGS.Editor
             Factory.ToolBarManager.RefreshCurrentPane();
         }
 
-        private void SetZoomSliderToDefault()
+        private void SetSlidersToDefault()
         {
             // For low res games, set larger default zoom (x2)
             sldZoomLevel.Value = (100 * Factory.AGSEditor.CurrentGame.GUIScaleFactor) / ZOOM_STEP_VALUE;
             sldZoomLevel_Scroll(null, null);
+            sldTransparency.Value = 0;
+            sldTransparency_Scroll(null, null);
         }
 
         private void UpdateScrollableWindowSize()
@@ -289,8 +291,8 @@ namespace AGS.Editor
                 int drawOffsY = _state.GUIYToWindow(0);
 
                 IntPtr hdc = e.Graphics.GetHdc();
-                //Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, _state.ScaleFactor, (_selectedControl == null) ? -1 : _selectedControl.ID);
-                Factory.NativeProxy.DrawGUI(hdc, drawOffsX, drawOffsY, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, _state.Scale, -1);
+                Factory.NativeProxy.DrawGUI(hdc, drawOffsX, drawOffsY, _gui,
+                    Factory.AGSEditor.CurrentGame.GUIScaleFactor, _state.Scale, _state.ControlTransparency, -1);
                 e.Graphics.ReleaseHdc(hdc);
                 
                 if (_addingControl)
@@ -1220,11 +1222,12 @@ namespace AGS.Editor
 				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], true, 0), null);
 			}
 		}
-		
-	private void LoadColorTheme(ColorTheme t)
+
+        private void LoadColorTheme(ColorTheme t)
         {
             t.ControlHelper(this, "gui-editor");
         }
+
         private void sldZoomLevel_Scroll(object sender, EventArgs e)
         {
             lblZoomInfo.Text = String.Format("{0}%", sldZoomLevel.Value * ZOOM_STEP_VALUE);
@@ -1240,20 +1243,26 @@ namespace AGS.Editor
             bgPanel.Invalidate();
         }
 
+        private void sldTransparency_Scroll(object sender, EventArgs e)
+        {
+            lblTransparency.Text = String.Format("{0}%", sldTransparency.Value);
+            _state.ControlTransparency = sldTransparency.Value;
+            bgPanel.Invalidate();
+        }
     }
 
     // TODO: perhaps we need a shared editor class (at least for GUI and rooms) that supports scaling and coordinate conversions.
     public class GUIEditorState
     {
         // Multiplier, defining convertion between GUI and editor coords.
-        private float _scale;
+        private float _scale = 1f;
         // Offsets, in window coordinates.
-        private int _scrollOffsetX;
-        private int _scrollOffsetY;
+        private int _scrollOffsetX = 0;
+        private int _scrollOffsetY = 0;
+        private int _controlTransparency = 0;
 
         internal GUIEditorState()
         {
-            Scale = 1f;
         }
 
         internal int WindowXToGUI(int x)
@@ -1299,6 +1308,12 @@ namespace AGS.Editor
                 _scrollOffsetX = (int)((_scrollOffsetX / oldScale) * _scale);
                 _scrollOffsetY = (int)((_scrollOffsetY / oldScale) * _scale);
             }
+        }
+
+        public int ControlTransparency
+        {
+            get { return _controlTransparency; }
+            set { _controlTransparency = value; }
         }
 
         /// <summary>

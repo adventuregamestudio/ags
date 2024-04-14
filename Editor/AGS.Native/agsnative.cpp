@@ -1247,8 +1247,8 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
   delete tempBlock;
 }
 
-void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolutionFactor, float scale) {
-
+void drawGUIAt(int hdc, int x, int y, int x1, int y1,int x2, int y2, int resolutionFactor, float scale, int ctrl_trans)
+{
   if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
 
@@ -1256,10 +1256,22 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
     dsc_want_hires = 1;
   }
 
-  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
-  tempblock->Clear(tempblock->GetMaskColor ());
+  std::unique_ptr<AGSBitmap> tempblock(new AGSBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth * 8));
+  tempblock->Clear(tempblock->GetMaskColor());
 
-  tempgui.DrawWithControls(tempblock);
+  tempgui.DrawSelf(tempblock.get());
+  if (ctrl_trans == 0)
+  {
+      tempgui.DrawControls(tempblock.get());
+  }
+  else if (ctrl_trans < 100)
+  {
+      std::unique_ptr<AGSBitmap> ctrl_bmp(new AGSBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth * 8));
+      ctrl_bmp->Clear(ctrl_bmp->GetMaskColor());
+      tempgui.DrawControls(ctrl_bmp.get());
+      set_trans_blender(0, 0, 0, AGS::Common::GfxDef::Trans100ToAlpha255(ctrl_trans));
+      tempblock->TransBlendBlt(ctrl_bmp.get(), 0, 0);
+  }
 
   dsc_want_hires = 0;
 
@@ -1267,8 +1279,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int resolution
     tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
   }
 
-  drawBlockScaledAt(hdc, tempblock, x, y, scale);
-  delete tempblock;
+  drawBlockScaledAt(hdc, tempblock.get(), x, y, scale);
 }
 
 #define SIMP_INDEX0  0
@@ -2773,7 +2784,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->RebuildArray(guictrl_refs);
 }
 
-void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scale, int selectedControl) {
+void drawGUI(int hdc, int x, int y, GUI^ guiObj, int resolutionFactor, float scale, int ctrl_trans, int selectedControl) {
   guibuts.clear();
   guilabels.clear();
   guitext.clear();
@@ -2794,7 +2805,7 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int resolutionFactor, float scal
 
   tempgui.HighlightCtrl = selectedControl;
 
-  drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale);
+  drawGUIAt(hdc, x, y, -1, -1, -1, -1, resolutionFactor, scale, ctrl_trans);
 }
 
 Dictionary<int, Sprite^>^ load_sprite_dimensions()

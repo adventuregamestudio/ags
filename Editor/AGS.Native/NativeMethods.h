@@ -47,7 +47,7 @@ namespace AGS
 			void SaveGame(Game^ game);
 			void GameSettingsChanged(Game^ game);
 			void PaletteColoursUpdated(Game ^game);
-			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int selectedControl);
+			void DrawGUI(int hDC, int x, int y, GUI^ gui, int resolutionFactor, float scale, int controlTransparency, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum, bool flipImage);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
 			// Draws font char sheet on the provided context and returns the height of drawn object;

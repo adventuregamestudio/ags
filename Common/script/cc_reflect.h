@@ -271,6 +271,12 @@ public:
     };
 
     std::vector<VariableDef> VarDefs;
+};
+
+class JointDataTOC : public ScriptDataTOC
+{
+public:
+    JointDataTOC(const ScriptDataTOC &datatoc);
 
     std::unordered_map<AGS::Common::String, uint32_t> _varLookup;
 };

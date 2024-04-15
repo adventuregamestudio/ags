@@ -544,6 +544,16 @@ String PrintRTTI(const RTTI &rtti)
 // FIXME: code below is temporary, for test only
 using namespace AGS::Common;
 
+JointDataTOC::JointDataTOC(const ScriptDataTOC &datatoc)
+    : ScriptDataTOC(datatoc)
+{
+    for (size_t i = 0; i < datatoc.VarDefs.size(); ++i)
+    {
+        _varLookup.insert(
+            std::make_pair(datatoc.VarDefs[i].name, static_cast<uint32_t>(i)));
+    }
+}
+
 void ReadScriptDataTOC(ScriptDataTOC &datatoc, Stream *in)
 {
     datatoc.VarDefs.resize(static_cast<uint32_t>(in->ReadInt32()));
@@ -555,13 +565,6 @@ void ReadScriptDataTOC(ScriptDataTOC &datatoc, Stream *in)
         var.f_typeid = in->ReadInt32();
         var.flags = in->ReadInt32();
         var.num_elems = in->ReadInt32();
-    }
-
-    datatoc._varLookup.clear();
-    for (size_t i = 0; i < datatoc.VarDefs.size(); ++i)
-    {
-        datatoc._varLookup.insert(
-            std::make_pair(datatoc.VarDefs[i].name, static_cast<uint32_t>(i)));
     }
 }
 

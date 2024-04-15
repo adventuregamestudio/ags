@@ -120,10 +120,8 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, 
                 (field_type.VartypeD->Type == VTT::kDynarray))
                 flags |= RTTI::kField_Array;
             if (ste.VariableD->TypeQualifiers[TQ::kImport])
-            {
                 flags |= RTTI::kField_Import;
-                continue; // TODO
-            }
+
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
                 num_elems += sz; // CHECKME if correct

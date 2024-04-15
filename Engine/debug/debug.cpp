@@ -661,6 +661,31 @@ bool append_memid_item(const String &item, String &mem_id,
      uint32_t f_local_typeid, uint32_t f_flags, uint32_t f_offset, uint32_t arr_index,
     ccInstance *inst, const RTTI::Type **next_type);
 
+ccInstance *get_instance_by_locid(const String &loc_id)
+{
+    // ugly....
+    if (loc_id.Compare(gameinst->instanceof->sectionNames[0].c_str()) == 0)
+    {
+        return gameinst.get();
+    }
+    else if (roominst && (loc_id.Compare(roominst->instanceof->sectionNames[0].c_str()) == 0))
+    {
+        return roominst.get();
+    }
+    else
+    {
+        for (size_t i = 0; i < moduleInst.size(); ++i)
+        {
+            if (loc_id.Compare(moduleInst[i]->instanceof->sectionNames[0].c_str()) == 0)
+            {
+                return moduleInst[i].get();
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 // Query memory using variable names;
 // resolves a name.name.name string to a address instruction and calls resolve_memory
 bool query_memory_bytoc(const String &var_ref, String &value)
@@ -675,38 +700,19 @@ bool query_memory_bytoc(const String &var_ref, String &value)
     ccInstance *inst = nullptr;
     if (var_ref[0] == '$')
     {
-        String script_name = var_ref.LeftSection('.');
-        // ugly....
-        if (script_name.Compare(gameinst->instanceof->sectionNames[0].c_str()) == 0)
-        {
-            inst = ccInstance::GetCurrentInstance();
-        }
-        else if (script_name.Compare(roominst->instanceof->sectionNames[0].c_str()) == 0)
-        {
-            inst = roominst.get();
-        }
-        else
-        {
-            for (size_t i = 0; i < moduleInst.size(); ++i)
-            {
-                if (script_name.Compare(moduleInst[i]->instanceof->sectionNames[0].c_str()) == 0)
-                {
-                    inst = moduleInst[i].get();
-                    break;
-                }
-            }
-        }
-
+        String loc_id = var_ref.LeftSection('.');
+        inst = get_instance_by_locid(loc_id);
         if (!inst)
             return false; // unknown script?
 
-        items = var_ref.Mid(script_name.GetLength() + 1);
+        items = var_ref.Mid(loc_id.GetLength() + 1);
     }
     else
     {
         inst = ccInstance::GetCurrentInstance();
         if (!inst)
-            return false; // unknown script?
+            return false; // not in running script
+
         items = var_ref;
     }
 
@@ -714,7 +720,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
     String item;
     const RTTI::Type *last_type = nullptr;
     const RTTI::Type *next_type = nullptr;
-    const auto *datatoc = inst->instanceof->datatoc.get();
+    const auto *datatoc = inst->GetDataTOC();
     const auto *l2gtypes = &inst->GetLocal2GlobalTypeMap();
 
     for (item = items.Section('.', index, index);
@@ -764,7 +770,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
             if (var_it == datatoc->_varLookup.end())
                 return false; // cannot find next item
 
-            const auto &var = inst->instanceof->datatoc->VarDefs[var_it->second];
+            const auto &var = inst->GetDataTOC()->VarDefs[var_it->second];
 
             // resolve local script's type to a global type index
             // todo: this should be resolved after loading script, similar to RTTI!
@@ -772,6 +778,14 @@ bool query_memory_bytoc(const String &var_ref, String &value)
             if (type_it == l2gtypes->end())
                 return false; // cannot find global type
             uint32_t g_typeid = type_it->second;
+
+            // fixup instance if it's an imported variable
+            if ((var.flags & RTTI::kField_Import) != 0)
+            {
+                inst = get_instance_by_locid(var.loc_id);
+                if (!inst)
+                    return false; // unknown script?
+            }
             
             if (!append_memid_item(item, mem_id, g_typeid, var.flags,
                     var.offset, array_index, inst, &next_type))

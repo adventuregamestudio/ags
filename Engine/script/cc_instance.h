@@ -214,6 +214,7 @@ public:
 
     const std::unordered_map<uint32_t, uint32_t> &
         GetLocal2GlobalTypeMap() const { return _typeidLocal2Global; }
+    const JointDataTOC *GetDataTOC() const { return _jointTOC.get(); }
 
 private:
     bool    _Create(PScript scri, const ccInstance * joined);
@@ -257,6 +258,9 @@ private:
     std::unordered_map<uint32_t, uint32_t> _locidLocal2Global;
     // Map local script's type id to global (program-wide)
     std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
+
+    // Script variables TOC, joins script's own memory and imported variables
+    std::unique_ptr<JointDataTOC> _jointTOC;
 
     // Minimal timeout: how much time may pass without any engine update
     // before we want to check on the situation and do system poll

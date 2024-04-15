@@ -120,10 +120,7 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const symbolTable &sym) {
             if ((ste.flags & SFLG_DYNAMICARRAY) || (ste.flags & SFLG_ARRAY))
                 flags |= RTTI::kField_Array;
             if (ste.flags & SFLG_IMPORTED)
-            {
                 flags |= RTTI::kField_Import;
-                continue; // TODO
-            }
 
             var.name = ste.sname.c_str();
             var.f_typeid = ste.vartype;

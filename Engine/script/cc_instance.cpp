@@ -1858,7 +1858,10 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         globaldata = joined->globaldata;
         code = joined->code;
         codesize = joined->codesize;
-    } 
+
+        if (joined->_jointTOC)
+            _jointTOC.reset(new JointDataTOC(*joined->_jointTOC)); // fixme: share, not copy
+    }
     else {
         // create own memory space
         // NOTE: globalvars are created in CreateGlobalVars()
@@ -1880,6 +1883,11 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
             // relocations on the references.
             for (int i = 0; i < codesize; ++i)
                 code[i] = scri->code[i];
+        }
+
+        if (scri->datatoc)
+        {
+            _jointTOC.reset(new JointDataTOC(*scri->datatoc));
         }
     }
 
@@ -2024,6 +2032,31 @@ void ccInstance::Free()
 
 bool ccInstance::ResolveScriptImports(const ccScript *scri)
 {
+    // Resolve an imported variable definition
+    // Keep in mind that they do not have to be used in the script code,
+    // unlike resolved imports below, which are only present if they are required.
+    if (_jointTOC)
+    {
+        for (const auto &it_var : _jointTOC->_varLookup)
+        {
+            auto &var = _jointTOC->VarDefs[it_var.second];
+            if ((var.flags & RTTI::kField_Import) == 0)
+                continue;
+
+            ScriptImport const *import = simp.getByName(it_var.first);
+            // must be from a user script, not exported by the engine!
+            if (import && import->InstancePtr)
+            {
+                var.loc_id = import->InstancePtr->instanceof->sectionNames[0].c_str();
+                 // fixme, very ugly!
+                var.offset = (uint8_t*)import->Value.RValue->Ptr - (uint8_t*)import->InstancePtr->globaldata;
+                //var.flags &= ~RTTI::kField_Import;
+            }
+        }
+    }
+
+
+
     // Script keeps the information of what imports are used as an array of names.
     // When an import is referenced in the code, it's addressed by its index in this
     // array. Different scripts have differing arrays of imports; indexes

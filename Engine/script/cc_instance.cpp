@@ -2044,13 +2044,22 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
                 continue;
 
             ScriptImport const *import = simp.getByName(it_var.first);
-            // must be from a user script, not exported by the engine!
-            if (import && import->InstancePtr)
+            // this may be memory from a user script, but also from the engine or plugin!
+            if (import)
             {
-                var.loc_id = import->InstancePtr->instanceof->sectionNames[0].c_str();
-                 // fixme, very ugly!
-                var.offset = (uint8_t*)import->Value.RValue->Ptr - (uint8_t*)import->InstancePtr->globaldata;
-                //var.flags &= ~RTTI::kField_Import;
+                if (import->InstancePtr)
+                {
+                    var.loc_id = import->InstancePtr->instanceof->sectionNames[0].c_str();
+                    var.mem_ptr = import->Value.GetDirectPtr();
+                    var.offset = (uint8_t*)var.mem_ptr - (uint8_t*)import->InstancePtr->globaldata;
+                }
+                else
+                {
+                    var.loc_id.Empty();
+                    var.mem_ptr = import->Value.GetDirectPtr();
+                    var.offset = 0;
+                }
+                //var.flags &= ~RTTI::kField_Import; // ???
             }
         }
     }

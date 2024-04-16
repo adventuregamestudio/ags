@@ -659,7 +659,7 @@ bool resolve_memory(const String &mem_id, size_t from, String &value,
 
 bool append_memid_item(const String &item, String &mem_id,
      uint32_t f_local_typeid, uint32_t f_flags, uint32_t f_offset, uint32_t arr_index,
-    ccInstance *inst, const RTTI::Type **next_type);
+    const RTTI::Type **next_type);
 
 ccInstance *get_instance_by_locid(const String &loc_id)
 {
@@ -722,6 +722,8 @@ bool query_memory_bytoc(const String &var_ref, String &value)
     const RTTI::Type *next_type = nullptr;
     const auto *datatoc = inst->GetDataTOC();
     const auto *l2gtypes = &inst->GetLocal2GlobalTypeMap();
+    const void *mem_ptr = nullptr;
+    size_t mem_size = 0u;
 
     for (item = items.Section('.', index, index);
         !item.IsEmpty();
@@ -758,7 +760,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
             // note: f_typeid here is already resolved to global type id,
             // because we're using joint rtti, not local script's one
             if (!append_memid_item(item, mem_id, next_field->f_typeid, next_field->flags,
-                next_field->offset, array_index, inst, &next_type))
+                next_field->offset, array_index, &next_type))
                 return false;
 
             last_type = next_type;
@@ -782,13 +784,28 @@ bool query_memory_bytoc(const String &var_ref, String &value)
             // fixup instance if it's an imported variable
             if ((var.flags & RTTI::kField_Import) != 0)
             {
-                inst = get_instance_by_locid(var.loc_id);
-                if (!inst)
-                    return false; // unknown script?
+                if (var.loc_id.IsEmpty())
+                {
+                    mem_ptr = var.mem_ptr;
+                    mem_size = -1; // ?
+                }
+                else
+                {
+                    inst = get_instance_by_locid(var.loc_id);
+                    if (!inst)
+                        return false; // unknown script?
+                    mem_ptr = inst->globaldata;
+                    mem_size = inst->globaldatasize;
+                }
+            }
+            else
+            {
+                mem_ptr = inst->globaldata;
+                mem_size = inst->globaldatasize;
             }
             
             if (!append_memid_item(item, mem_id, g_typeid, var.flags,
-                    var.offset, array_index, inst, &next_type))
+                    var.offset, array_index, &next_type))
                 return false;
 
             last_type = next_type;
@@ -808,12 +825,12 @@ bool query_memory_bytoc(const String &var_ref, String &value)
     }
 
     return resolve_memory(mem_id, 0, value,
-        reinterpret_cast<const uint8_t*>(inst->globaldata), inst->globaldatasize);
+        reinterpret_cast<const uint8_t*>(mem_ptr), mem_size);
 }
 
 bool append_memid_item(const String &item, String &mem_id,
     uint32_t g_typeid, uint32_t f_flags, uint32_t f_offset, uint32_t arr_index,
-    ccInstance *inst, const RTTI::Type **next_type)
+    const RTTI::Type **next_type)
 {
     const auto *rtti = ccInstance::GetRTTI();
     const auto &type = rtti->GetTypes()[g_typeid];

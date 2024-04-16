@@ -265,6 +265,7 @@ public:
         AGS::Common::String name;
         AGS::Common::String loc_id; // FIXME should be int key
         uint32_t offset = 0u; // relative address of this field in script mem, in bytes
+        const void *mem_ptr = nullptr; // this is for imports not from scripts; FIXME: should be in a separate struct (?)
         uint32_t f_typeid = 0u; // field's type id
         uint32_t flags = 0u; // field flags
         uint32_t num_elems = 0u; // number of elements (for array)

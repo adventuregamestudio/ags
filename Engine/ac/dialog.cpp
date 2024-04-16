@@ -951,11 +951,19 @@ bool DialogOptions::Run()
     ags_clear_input_buffer();
 
     // Post user input, processing changes
-    // Handle default rendering changing an active option
-    if (!usingCustomRendering)
+    if (newCustomRender)
     {
+        // New-style custom rendering: check its explicit flag;
+        // could be set by setting ActiveOptionID, or calling Update()
+        needRedraw |= ccDialogOptionsRendering.needRepaint;
+    }
+    else
+    {
+        // Default rendering and old-style custom rendering:
+        // test if an active option has changed
         needRedraw |= (mousewason != mouseison);
     }
+
     // Handle new parser's state
     if (parserInput && parserInput->IsActivated)
     {
@@ -987,7 +995,6 @@ bool DialogOptions::Run()
             chose = ccDialogOptionsRendering.chosenOptionID;
             ccDialogOptionsRendering.chosenOptionID = -1;
         }
-        needRedraw |= ccDialogOptionsRendering.needRepaint;
     }
 
     // Finally, if the option has been chosen, then break the options loop

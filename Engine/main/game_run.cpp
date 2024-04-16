@@ -261,8 +261,9 @@ static void check_mouse_state(int &was_mouse_on_iface)
         gui_on_mouse_hold(wasongui, wasbutdown);
     }
     else if ((wasbutdown > kMouseNone) && (!ags_misbuttondown(wasbutdown))) {
-        gui_on_mouse_up(wasongui, wasbutdown);
-        wasbutdown = kMouseNone;
+        eAGSMouseButton mouse_btn_up = wasbutdown;
+        wasbutdown = kMouseNone; // reset before event, avoid recursive call of "mouse up"
+        gui_on_mouse_up(wasongui, mouse_btn_up);
     }
 
     int mwheelz = ags_check_mouse_wheel();

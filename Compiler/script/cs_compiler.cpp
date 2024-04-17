@@ -104,14 +104,12 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
         new RTTI(std::move(rtb.Finalize())));
 }
 
-static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const symbolTable &sym) {
-    auto toc = std::make_unique<ScriptDataTOC>();
-
-    for (size_t t = 0; t < sym.entries.size(); ++t)
+static void ccCompileDataTOC(const symbolTable &sym, const std::vector<SymbolTableEntry> &entries, int stype, ScriptDataTOC *toc)
+{
+    for (size_t t = 0; t < entries.size(); ++t)
     {
-        const SymbolTableEntry &ste = sym.entries[t];
-
-        if (ste.stype == SYM_GLOBALVAR)
+        const SymbolTableEntry &ste = entries[t];
+        if (ste.stype == stype)
         {
             ScriptDataTOC::VariableDef var;
             uint32_t flags = 0u;
@@ -121,16 +119,38 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const symbolTable &sym) {
                 flags |= RTTI::kField_Array;
             if (ste.flags & SFLG_IMPORTED)
                 flags |= RTTI::kField_Import;
+            if (ste.stype == SYM_LOCALVAR)
+                flags |= RTTI::kField_Local;
+            if (ste.flags & SFLG_PARAMETER)
+                flags |= RTTI::kField_Parameter;
 
             var.name = ste.sname.c_str();
             var.f_typeid = ste.vartype;
+            var.scope_begin = ste.scope_section_begin;
+            var.scope_end = ste.scope_section_end;
             var.offset = ste.soffs;
             var.flags = flags;
             var.num_elems = static_cast<uint32_t>(ste.arrsize);
             toc->VarDefs.push_back(var);
         }
-    }
 
+        // CHECKME: record only non-imports for now, because we need to know their line range
+        if ((ste.stype == SYM_FUNCTION) && ((ste.flags & SFLG_IMPORTED) == 0))
+        {
+            ScriptDataTOC::FunctionDef func;
+            func.name = ste.sname.c_str();
+            func.scope_begin = ste.scope_section_begin;
+            func.scope_end = ste.scope_section_end;
+            toc->FuncDefs.push_back(func);
+        }
+    }
+}
+
+static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const symbolTable &sym)
+{
+    auto toc = std::make_unique<ScriptDataTOC>();
+    ccCompileDataTOC(sym, sym.entries, SYM_GLOBALVAR, toc.get());
+    ccCompileDataTOC(sym, sym.localEntries, SYM_LOCALVAR, toc.get());
     return std::move(toc);
 }
 

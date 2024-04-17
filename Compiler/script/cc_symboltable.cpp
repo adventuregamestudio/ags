@@ -70,6 +70,7 @@ void symbolTable::reset() {
 
 	entries.clear();
     sections.clear();
+    localEntries.clear();
 
     stringStructSym = 0;
     symbolTree.clear();

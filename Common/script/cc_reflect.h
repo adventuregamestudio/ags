@@ -68,8 +68,12 @@ public:
     {
         kField_ManagedPtr = 0x0001,
         kField_Array      = 0x0002,
+        // Is a function's parameter, allocated on stack, expect negative offset
+        kField_Parameter  = 0x10000000, // FIXME: separate flag set for variables?
+        // Local field, allocated on stack
+        kField_Local      = 0x20000000, // FIXME: separate flag set for variables?
         // An import from another script, must be resolved
-        kField_Import     = 0x40000000,
+        kField_Import     = 0x40000000, // FIXME: separate flag set for variables?
         // We use "generated" flag to mark fields that are created at runtime
         // and are intended to be replaced by "true" fields later
         kField_Generated  = 0x80000000
@@ -264,14 +268,32 @@ public:
     public:
         AGS::Common::String name;
         AGS::Common::String loc_id; // FIXME should be int key
-        uint32_t offset = 0u; // relative address of this field in script mem, in bytes
+        // FIXME: these should store BYTECODE POSITION instead of lines!
+        // because linenumbers are optional in the compiled bytecode
+        uint32_t scope_begin = 0u;
+        uint32_t scope_end = UINT32_MAX;
+        // WARNING: local vars have offset related to cur_sp at the function start;
+        // and function parameters have *negative* offset (this is why it's signed int32)
+        int32_t offset = 0u; // relative address of this field in script mem, in bytes
         const void *mem_ptr = nullptr; // this is for imports not from scripts; FIXME: should be in a separate struct (?)
         uint32_t f_typeid = 0u; // field's type id
         uint32_t flags = 0u; // field flags
         uint32_t num_elems = 0u; // number of elements (for array)
     };
 
+    struct FunctionDef
+    {
+        AGS::Common::String name;
+        AGS::Common::String loc_id; // FIXME should be int key
+        // FIXME: these should store BYTECODE POSITION instead of lines!
+        // because linenumbers are optional in the compiled bytecode
+        uint32_t scope_begin = 0u;
+        uint32_t scope_end = UINT32_MAX;
+        // TODO: return type, parameters etc
+    };
+
     std::vector<VariableDef> VarDefs;
+    std::vector<FunctionDef> FuncDefs;
 };
 
 class JointDataTOC : public ScriptDataTOC

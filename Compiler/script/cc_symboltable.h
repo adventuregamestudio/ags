@@ -24,16 +24,19 @@
 
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
-	std::string sname;
-        int section; // section index this symbol was declared in
-	int16_t stype;
-	int32_t flags;
-	int16_t vartype;
-	int soffs;
-	int32_t ssize; // or return type size for function
-	int16_t sscope; // or num arguments for function
-	int32_t arrsize;
-	int16_t extends; // inherits another class (classes) / owning class (member vars)
+    std::string sname;
+    int section = 0; // section index this symbol was declared in
+    int16_t stype = 0;
+    int32_t flags = 0;
+    int16_t vartype = 0;
+    int soffs = 0;
+    int32_t ssize = 0; // or return type size for function
+    int16_t sscope = 0; // or num arguments for function
+    // script lines 
+    int32_t scope_section_begin = 0;
+    int32_t scope_section_end = 0;
+    int32_t arrsize = 0;
+    int16_t extends = 0; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<uint32_t> funcparamtypes;
     std::vector<int32_t> funcParamDefaultValues;
@@ -66,6 +69,8 @@ struct symbolTable {
 	std::vector<SymbolTableEntry> entries;
     // section names filled by tokenizer, required for RTTI
     std::vector<std::string> sections;
+    // saved local symbols, for generating script data TOC (optional)
+    std::vector<SymbolTableEntry> localEntries;
 
     symbolTable();
     void reset();    // clears table

@@ -562,9 +562,19 @@ void ReadScriptDataTOC(ScriptDataTOC &datatoc, Stream *in)
         var.name.Read(in);
         var.loc_id.Read(in);
         var.offset = in->ReadInt32();
+        var.scope_begin = in->ReadInt32();
+        var.scope_end = in->ReadInt32();
         var.f_typeid = in->ReadInt32();
         var.flags = in->ReadInt32();
         var.num_elems = in->ReadInt32();
+    }
+    datatoc.FuncDefs.resize(static_cast<uint32_t>(in->ReadInt32()));
+    for (auto &func : datatoc.FuncDefs)
+    {
+        func.name.Read(in);
+        func.loc_id.Read(in);
+        func.scope_begin = in->ReadInt32();
+        func.scope_end = in->ReadInt32();
     }
 }
 
@@ -576,9 +586,19 @@ void WriteScriptDataTOC(const ScriptDataTOC &datatoc, Stream *out)
         StrUtil::WriteCStr(var.name, out);
         StrUtil::WriteCStr(var.loc_id, out);
         out->WriteInt32(var.offset);
+        out->WriteInt32(var.scope_begin);
+        out->WriteInt32(var.scope_end);
         out->WriteInt32(var.f_typeid);
         out->WriteInt32(var.flags);
         out->WriteInt32(var.num_elems);
+    }
+    out->WriteInt32(static_cast<uint32_t>(datatoc.FuncDefs.size()));
+    for (const auto &func : datatoc.FuncDefs)
+    {
+        StrUtil::WriteCStr(func.name, out);
+        StrUtil::WriteCStr(func.loc_id, out);
+        out->WriteInt32(func.scope_begin);
+        out->WriteInt32(func.scope_end);
     }
 }
 

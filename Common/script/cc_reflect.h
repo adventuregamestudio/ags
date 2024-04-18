@@ -302,7 +302,21 @@ public:
     JointDataTOC(const ScriptDataTOC &datatoc);
 
     std::unordered_map<AGS::Common::String, uint32_t> _varLookup;
+
+    std::vector<FunctionDef> _sortedFuncDefs;
+    std::vector<VariableDef> _sortedLocalVars;
 };
+
+inline bool FuncDef_Less(const ScriptDataTOC::FunctionDef &f1, const ScriptDataTOC::FunctionDef &f2)
+{
+    return f1.scope_begin < f2.scope_begin;
+}
+
+inline bool VarDef_Less(const ScriptDataTOC::VariableDef &v1, const ScriptDataTOC::VariableDef &v2)
+{
+    return (v1.scope_begin < v2.scope_begin) ||
+        ((v1.scope_begin == v2.scope_begin) && (v1.offset < v2.offset));
+}
 
 void ReadScriptDataTOC(ScriptDataTOC &rtti, AGS::Common::Stream *in);
 void WriteScriptDataTOC(const ScriptDataTOC &rtti, AGS::Common::Stream *out);

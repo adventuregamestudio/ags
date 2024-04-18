@@ -547,11 +547,23 @@ using namespace AGS::Common;
 JointDataTOC::JointDataTOC(const ScriptDataTOC &datatoc)
     : ScriptDataTOC(datatoc)
 {
-    for (size_t i = 0; i < datatoc.VarDefs.size(); ++i)
+    for (size_t i = 0; i < VarDefs.size(); ++i)
     {
-        _varLookup.insert(
-            std::make_pair(datatoc.VarDefs[i].name, static_cast<uint32_t>(i)));
+        // only add global variables to the lookup table, for now (revisit this later)
+        if ((VarDefs[i].flags & RTTI::kField_Local) == 0)
+        {
+            _varLookup.insert(
+                std::make_pair(VarDefs[i].name, static_cast<uint32_t>(i)));
+        }
+        else
+        {
+            _sortedLocalVars.push_back(VarDefs[i]);
+        }
     }
+
+    _sortedFuncDefs = FuncDefs;
+    std::sort(_sortedFuncDefs.begin(), _sortedFuncDefs.end(), FuncDef_Less);
+    std::sort(_sortedLocalVars.begin(), _sortedLocalVars.end(), VarDef_Less);
 }
 
 void ReadScriptDataTOC(ScriptDataTOC &datatoc, Stream *in)

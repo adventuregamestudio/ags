@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <algorithm>
 #include <limits>
 #include <inttypes.h>
 #include <memory>
@@ -721,6 +722,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
     const RTTI::Type *last_type = nullptr;
     const RTTI::Type *next_type = nullptr;
     const auto *datatoc = inst->GetDataTOC();
+    const auto *local_rtti = inst->instanceof->rtti.get();
     const auto *l2gtypes = &inst->GetLocal2GlobalTypeMap();
     const void *mem_ptr = nullptr;
     size_t mem_size = 0u;
@@ -768,44 +770,118 @@ bool query_memory_bytoc(const String &var_ref, String &value)
         else
         {
             // get variable from the script data
-            auto var_it = datatoc->_varLookup.find(item);
-            if (var_it == datatoc->_varLookup.end())
-                return false; // cannot find next item
+            const ScriptDataTOC::VariableDef *var_ptr = nullptr;
+            
+            // first try local variables
+            bool found_local_var = false;
+            uint32_t var_offset = 0u;
+            if (datatoc->_sortedLocalVars.size() > 0)
+            {
+                // FIXME: think if this may be optimized...
+                // FIXME: better way to pass arbitrary key?
+                ScriptDataTOC::FunctionDef dummy_func; dummy_func.scope_begin = inst->line_number;
+                auto func_it = std::upper_bound(datatoc->_sortedFuncDefs.begin(), datatoc->_sortedFuncDefs.end(), dummy_func, FuncDef_Less);
+                //if (func_it != datatoc->_sortedFuncDefs.end()) // FIXME?
+                {
+                    const auto &func = *(--func_it);
+                    // NOTE: use lower_bound when searching for variable,
+                    // because current stack offset is PAST the latest allocated local var,
+                    // and may correspond to the next var. We find next var, and decrement once to get to the last allocated.
+                    ScriptDataTOC::VariableDef dummy_var; dummy_var.scope_begin = inst->line_number;// dummy_var.offset = (inst->stackdata_ptr - inst->stackdata);
+                    auto var_it = std::lower_bound(datatoc->_sortedLocalVars.begin(), datatoc->_sortedLocalVars.end(), dummy_var, VarDef_Less);
+                    if (var_it != datatoc->_sortedLocalVars.begin()) // cannot be begin, see above for explanation
+                    {
+                        const ScriptDataTOC::VariableDef *last_var = (var_it == datatoc->_sortedLocalVars.end()) ?
+                            nullptr : &*var_it;
+                        //const char *stackdata_ptr = inst->stackdata_ptr;
+                        // FIXME: helper method returning stack? don't direct access!
+                        const auto *stack_ptr = inst->registers[SREG_SP].RValue;
+                        for (; (var_it > datatoc->_sortedLocalVars.begin()) &&
+                               (var_it->scope_begin >= func.scope_begin);) // not past function's declaration
+                        {
+                            --var_it; // begin searching with the previous entry
+                            const ScriptDataTOC::VariableDef *var = &*var_it;
 
-            const auto &var = inst->GetDataTOC()->VarDefs[var_it->second];
+                            //stackdata_ptr -= local_rtti->GetTypes()[var->f_typeid].size * std::min(1u, var->num_elems);
+                            --stack_ptr;
 
+                            // FIXME: very dirty hack: detect when we reach function parameter list,
+                            // and skip 1 extra entry on stack, reserved for the return value
+                            if ((var->flags & RTTI::kField_Parameter) &&
+                                (!last_var || (last_var->flags & RTTI::kField_Parameter) == 0))
+                            {
+                                --stack_ptr;
+                            }
+
+                            if (var->name.Compare(item) == 0)
+                            {
+                                found_local_var = true;
+                                var_ptr = var;
+                                //mem_ptr = stackdata_ptr;
+                                //mem_size = inst->stackdata_ptr - stackdata_ptr;
+                                // FIXME: this is horrible....
+                                if (stack_ptr->Type < kScValStackPtr)
+                                    mem_ptr = &stack_ptr->IValue;
+                                else
+                                    mem_ptr = stack_ptr->GetDirectPtr();
+                                mem_size = stack_ptr->Size;
+                                break;
+                            }
+
+                            last_var = var;
+                        }
+                    }
+                }
+            }
+
+
+            // if not found among locals, lookup the global one
+            if (!found_local_var)
+            {
+                auto var_it = datatoc->_varLookup.find(item);
+                if (var_it == datatoc->_varLookup.end())
+                    return false; // cannot find next item
+
+                const auto &var = datatoc->VarDefs[var_it->second];;
+                var_ptr = &var;
+
+                // fixup instance if it's an imported variable
+                // FIXME: following variants may be simplified by recording variable ptr
+                if ((var.flags & RTTI::kField_Import) != 0)
+                {
+                    if (var.loc_id.IsEmpty())
+                    {
+                        mem_ptr = var.mem_ptr;
+                        mem_size = -1; // ?
+                    }
+                    else
+                    {
+                        inst = get_instance_by_locid(var.loc_id);
+                        if (!inst)
+                            return false; // unknown script?
+                        mem_ptr = inst->globaldata;
+                        mem_size = inst->globaldatasize;
+                    }
+                }
+                else
+                {
+                    mem_ptr = inst->globaldata;
+                    mem_size = inst->globaldatasize;
+                }
+
+                var_offset = var.offset;
+            }
+
+            const auto &var = *var_ptr;
             // resolve local script's type to a global type index
             // todo: this should be resolved after loading script, similar to RTTI!
             auto type_it = l2gtypes->find(var.f_typeid);
             if (type_it == l2gtypes->end())
                 return false; // cannot find global type
             uint32_t g_typeid = type_it->second;
-
-            // fixup instance if it's an imported variable
-            if ((var.flags & RTTI::kField_Import) != 0)
-            {
-                if (var.loc_id.IsEmpty())
-                {
-                    mem_ptr = var.mem_ptr;
-                    mem_size = -1; // ?
-                }
-                else
-                {
-                    inst = get_instance_by_locid(var.loc_id);
-                    if (!inst)
-                        return false; // unknown script?
-                    mem_ptr = inst->globaldata;
-                    mem_size = inst->globaldatasize;
-                }
-            }
-            else
-            {
-                mem_ptr = inst->globaldata;
-                mem_size = inst->globaldatasize;
-            }
             
             if (!append_memid_item(item, mem_id, g_typeid, var.flags,
-                    var.offset, array_index, &next_type))
+                    var_offset, array_index, &next_type))
                 return false;
 
             last_type = next_type;

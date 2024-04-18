@@ -1329,7 +1329,12 @@ namespace AGS.Editor
             }
         }
 
-        public bool SaveGameFiles()
+        /// <summary>
+        /// Tests if the Editor can save the game right now.
+        /// Is allowed to show error messages in the process.
+        /// Returns the result.
+        /// </summary>
+        public bool TestIfCanSaveNow()
         {
             if (AttemptToSaveGame != null)
             {
@@ -1339,6 +1344,15 @@ namespace AGS.Editor
                 {
                     return false;
                 }
+            }
+            return true;
+        }
+
+        public bool SaveGameFiles()
+        {
+            if (!TestIfCanSaveNow())
+            {
+                return false;
             }
 
 			PreSaveGameEventArgs evArgs = new PreSaveGameEventArgs();

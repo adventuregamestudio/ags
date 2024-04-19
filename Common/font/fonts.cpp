@@ -111,7 +111,7 @@ static void font_post_init(size_t fontNumber)
     Font &font = fonts[fontNumber];
     // If no font height property was provided, then try several methods,
     // depending on which interface is available
-    if ((font.Metrics.Height == 0) && font.Renderer)
+    if ((font.Metrics.NominalHeight == 0) && font.Renderer)
     {
         int height = 0;
         if (font.Renderer2)
@@ -125,14 +125,15 @@ static void font_post_init(size_t fontNumber)
             const char *height_test_string = "ZHwypgfjqhkilIK";
             height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
         }
-        
-        font.Metrics.Height = std::max(0, height);
-        font.Metrics.RealHeight = font.Metrics.Height;
+
+        font.Metrics.NominalHeight = std::max(0, height);
+        font.Metrics.RealHeight = font.Metrics.NominalHeight;
+        font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight);
     }
     // Use either nominal or real pixel height to define font's logical height
     // and default linespacing; logical height = nominal height is compatible with the old games
     font.Metrics.CompatHeight = (font.Info.Flags & FFLG_REPORTNOMINALHEIGHT) != 0 ?
-        font.Metrics.Height : font.Metrics.RealHeight;
+        font.Metrics.NominalHeight : font.Metrics.RealHeight;
 
     if (font.Info.Outline != FONT_OUTLINE_AUTO)
     {
@@ -330,7 +331,15 @@ int get_font_surface_height(size_t fontNumber)
 {
     if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
         return 0;
-    return fonts[fontNumber].Metrics.RealHeight;
+    return fonts[fontNumber].Metrics.VExtent.second -
+        fonts[fontNumber].Metrics.VExtent.first;
+}
+
+std::pair<int, int> get_font_surface_extent(size_t fontNumber)
+{
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
+        return std::make_pair(0, 0);
+    return fonts[fontNumber].Metrics.VExtent;
 }
 
 int get_font_linespacing(size_t fontNumber)

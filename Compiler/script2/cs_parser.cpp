@@ -727,7 +727,6 @@ void AGS::Parser::RestoreLocalsFromSymtable(size_t from_level)
             Symbol const s = symbols_it->first;
             // Note, it's important we use deep copy because the vector elements will be destroyed when the level is popped
             _sym[s] = symbols_it->second;
-                continue;
         }
     }
 }

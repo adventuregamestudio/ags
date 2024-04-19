@@ -1394,7 +1394,7 @@ bool measure_font_height(const AGSString &filename, int pixel_height, int &forma
     FontMetrics metrics;
     if (!load_font_metrics(filename, pixel_height, metrics))
         return false;
-    formal_height = metrics.Height;
+    formal_height = metrics.NominalHeight;
     return true;
 }
 

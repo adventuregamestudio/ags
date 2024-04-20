@@ -17,6 +17,7 @@
 #include <alfont.h>
 #include "ac/common.h" // set_our_eip
 #include "ac/gamestructdefines.h"
+#include "debug/out.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
@@ -549,25 +550,31 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
   params.LoadMode = (font_info.Flags & FFLG_LOADMODEMASK);
   FontMetrics metrics;
 
-  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
+  Font &font = fonts[fontNumber];
+  String src_filename;
+  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &src_filename, &params, &metrics))
   {
-    fonts[fontNumber].Renderer    = &ttfRenderer;
-    fonts[fontNumber].Renderer2   = &ttfRenderer;
-    fonts[fontNumber].RendererInt = &ttfRenderer;
+    font.Renderer    = &ttfRenderer;
+    font.Renderer2   = &ttfRenderer;
+    font.RendererInt = &ttfRenderer;
   }
-  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
+  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &src_filename, &params, &metrics))
   {
-    fonts[fontNumber].Renderer    = &wfnRenderer;
-    fonts[fontNumber].Renderer2   = &wfnRenderer;
-    fonts[fontNumber].RendererInt = &wfnRenderer;
+    font.Renderer    = &wfnRenderer;
+    font.Renderer2   = &wfnRenderer;
+    font.RendererInt = &wfnRenderer;
   }
 
-  if (!fonts[fontNumber].Renderer)
+  if (!font.Renderer)
       return false;
 
-  fonts[fontNumber].Info = font_info;
-  fonts[fontNumber].Metrics = metrics;
+  font.Info = font_info;
+  font.Metrics = metrics;
   font_post_init(fontNumber);
+
+  Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, extent: %d,%d",
+      fontNumber, src_filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
+      font.Metrics.VExtent.first, font.Metrics.VExtent.second);
   return true;
 }
 

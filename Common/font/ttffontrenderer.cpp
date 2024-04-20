@@ -61,7 +61,7 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, nullptr, nullptr);
+  return LoadFromDiskEx(fontNumber, fontSize, nullptr, nullptr, nullptr);
 }
 
 bool TTFFontRenderer::IsBitmapFont()
@@ -114,7 +114,7 @@ static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
     metrics->VExtent.second = std::max(metrics->RealHeight, metrics->VExtent.second);
 }
 
-bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
+bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, String *src_filename,
     const FontRenderParams *params, FontMetrics *metrics)
 {
     String filename = String::FromFormat("agsfnt%d.ttf", fontNumber);
@@ -132,6 +132,8 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize,
 
     _fontData[fontNumber].AlFont = alfptr;
     _fontData[fontNumber].Params = f_params;
+    if (src_filename)
+        *src_filename = filename;
     if (metrics)
         FillMetrics(alfptr, metrics);
     return true;

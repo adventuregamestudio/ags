@@ -457,7 +457,10 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 
             if (just_count == 0) {
                 // Save a symbol copy in case we'll have to generate script data TOC
-                sym.entries[cc].scope_section_end = scrip->codesize_i32(); // checkme if reliable?
+                sym.entries[cc].scope_section_end = scrip->codesize_i32() // checkme if reliable?
+                    + 1 // FIXME: dirty hack to mark past to (SCMD_SUB, SREG_SP, N) or SCMD_RET
+                        // rewrite this later!
+                    ; 
                 sym.localEntries.push_back(sym.entries[cc]);
 
                 sym.entries[cc].stype = 0;

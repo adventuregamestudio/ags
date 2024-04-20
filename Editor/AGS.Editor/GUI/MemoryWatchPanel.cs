@@ -13,7 +13,7 @@ namespace AGS.Editor
 {
     public partial class MemoryWatchPanel : DockContent
     {
-        private delegate void ReceiveMemoryHandler(uint requestID, string value);
+        private delegate void ReceiveMemoryHandler(uint requestID, string type, string value);
 
         private Dictionary<uint, string> _varRequests = new Dictionary<uint, string>();
 
@@ -64,11 +64,11 @@ namespace AGS.Editor
                 AGSEditor.Instance.Debugger.ReceiveMemory -= Debugger_ReceiveMemory;
         }
 
-        private void Debugger_ReceiveMemory(uint requestID, string value)
+        private void Debugger_ReceiveMemory(uint requestID, string varType, string varValue)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new ReceiveMemoryHandler(Debugger_ReceiveMemory), requestID, value);
+                this.Invoke(new ReceiveMemoryHandler(Debugger_ReceiveMemory), requestID, varType, varValue);
                 return;
             }
 
@@ -79,7 +79,8 @@ namespace AGS.Editor
                     item != null;
                     item = item.Index < listView1.Items.Count - 1 ? listView1.FindItemWithText(varName, false, item.Index + 1, false) : null)
                 {
-                    item.SubItems[1].Text = value;
+                    item.SubItems[1].Text = varType;
+                    item.SubItems[2].Text = varValue;
                 }
                 _varRequests.Remove(requestID);
             }
@@ -132,6 +133,7 @@ namespace AGS.Editor
         {
             var item = new ListViewItem();
             item.Text = "VARIABLE NAME";
+            item.SubItems.Add(new ListViewItem.ListViewSubItem());
             item.SubItems.Add(new ListViewItem.ListViewSubItem());
             item = listView1.Items.Add(item);
             item.BeginEdit();

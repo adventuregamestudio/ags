@@ -480,7 +480,7 @@ bool resolve_memory(const String &mem_id, size_t from, String &value,
     const uint8_t *mem_ptr, size_t memsize);
 
 // Query memory using direct address instructions
-bool query_memory_direct(const String &mem_id, String &value)
+bool query_memory_direct(const String &mem_id, String &mem_type, String &mem_value)
 {
     // Format for DRAFT testing only:
     // x[N]:offset[,type[:offset,type[:...]]
@@ -531,7 +531,8 @@ bool query_memory_direct(const String &mem_id, String &value)
     if (off_at == -1)
         return false;
 
-    return resolve_memory(mem_id, off_at + 1, value,
+    mem_type = "?";
+    return resolve_memory(mem_id, off_at + 1, mem_value,
         reinterpret_cast<const uint8_t*>(inst->globaldata), inst->globaldatasize);
 }
 
@@ -689,7 +690,7 @@ ccInstance *get_instance_by_locid(const String &loc_id)
 
 // Query memory using variable names;
 // resolves a name.name.name string to a address instruction and calls resolve_memory
-bool query_memory_bytoc(const String &var_ref, String &value)
+bool query_memory_bytoc(const String &var_ref, String &mem_type, String &value)
 {
     // Format for DRAFT testing only:
     // [$scriptname:]symbolname[.symbolname[.symbolname[,...]]]
@@ -909,6 +910,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
         mem_id.Append(":0,s");
     }
 
+    mem_type = last_type->name;
     return resolve_memory(mem_id, 0, value,
         reinterpret_cast<const uint8_t*>(mem_ptr), mem_size);
 }
@@ -1082,13 +1084,14 @@ int check_for_messages_from_debugger()
 
             String req_id(req_id_str + 1, var_ref_str - req_id_str - 1);
             String var_ref(var_ref_str + 1, end_str - var_ref_str - 1);
-            String mem_value;
-            if (!query_memory_bytoc(var_ref, mem_value))
+            String mem_type, mem_value;
+            if (!query_memory_bytoc(var_ref, mem_type, mem_value))
             {
                 mem_value = "NOT FOUND";
             }
             std::vector<std::pair<String, String>> values;
             values.push_back(std::make_pair("ReqID", req_id));
+            values.push_back(std::make_pair("Type", mem_type));
             values.push_back(std::make_pair("Value", mem_value));
             send_message_to_debugger(editor_debugger, values, "REVMEM");
         }
@@ -1116,13 +1119,14 @@ int check_for_messages_from_debugger()
 
             String req_id(req_id_str + 1, mem_id_str - req_id_str - 1);
             String mem_id(mem_id_str + 1, end_str - mem_id_str - 1);
-            String mem_value;
-            if (!query_memory_direct(mem_id, mem_value))
+            String mem_type, mem_value;
+            if (!query_memory_direct(mem_id, mem_type, mem_value))
             {
                 mem_value = "NOT FOUND";
             }
             std::vector<std::pair<String, String>> values;
             values.push_back(std::make_pair("ReqID", req_id));
+            values.push_back(std::make_pair("Type", mem_type));
             values.push_back(std::make_pair("Value", mem_value));
             send_message_to_debugger(editor_debugger, values, "REVMEM");
         }

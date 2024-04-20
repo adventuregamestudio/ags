@@ -13,7 +13,7 @@ namespace AGS.Editor
         public event DebugStateChangedHandler DebugStateChanged;
         public delegate void BreakAtLocationHandler(DebugCallStack callStack);
         public event BreakAtLocationHandler BreakAtLocation;
-        public delegate void ReceiveMemoryHandler(uint requestID, string value);
+        public delegate void ReceiveMemoryHandler(uint requestID, string type, string value);
         public event ReceiveMemoryHandler ReceiveMemory;
 
         private DebugState _debugState = DebugState.NotRunning;
@@ -97,8 +97,9 @@ namespace AGS.Editor
                 if (ReceiveMemory != null)
                 {
                     string reqID = doc.DocumentElement.SelectSingleNode("ReqID").InnerText;
+                    string memType = doc.DocumentElement.SelectSingleNode("Type").InnerText;
                     string memValue = doc.DocumentElement.SelectSingleNode("Value").InnerText;
-                    ReceiveMemory.Invoke(uint.Parse(reqID), memValue);
+                    ReceiveMemory.Invoke(uint.Parse(reqID), memType, memValue);
                 }
             }
         }

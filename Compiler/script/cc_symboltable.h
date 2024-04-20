@@ -32,7 +32,7 @@ struct SymbolTableEntry {
     int soffs = 0;
     int32_t ssize = 0; // or return type size for function
     int16_t sscope = 0; // or num arguments for function
-    // script lines 
+    // symbol's life scope, in bytecode pos
     int32_t scope_section_begin = 0;
     int32_t scope_section_end = 0;
     int32_t arrsize = 0;

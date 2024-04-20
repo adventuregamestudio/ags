@@ -457,7 +457,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 
             if (just_count == 0) {
                 // Save a symbol copy in case we'll have to generate script data TOC
-                sym.entries[cc].scope_section_end = currentline;
+                sym.entries[cc].scope_section_end = scrip->codesize_i32(); // checkme if reliable?
                 sym.localEntries.push_back(sym.entries[cc]);
 
                 sym.entries[cc].stype = 0;
@@ -928,8 +928,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     return -1;
   }
   sym.entries[funcsym].soffs = in_func;  // save code offset of function
-  sym.entries[funcsym].scope_section_begin = currentline;
-  sym.entries[funcsym].scope_section_end = currentline;
+  sym.entries[funcsym].scope_section_begin = scrip->codesize_i32(); // checkme...
+  sym.entries[funcsym].scope_section_end = scrip->codesize_i32();
 
   if (!next_is_import)
     scrip->cur_sp += 4;  // the return address will be pushed
@@ -1038,8 +1038,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.entries[cursym].vartype = vartypesym;
         sym.entries[cursym].ssize = 4; // param is 4 bytes
         sym.entries[cursym].sscope = nested_level + 1;
-        sym.entries[cursym].scope_section_begin = currentline;
-        sym.entries[cursym].scope_section_end = currentline;
+        sym.entries[cursym].scope_section_begin = scrip->codesize_i32(); // checkme...
+        sym.entries[cursym].scope_section_end = scrip->codesize_i32();
         sym.entries[cursym].flags |= SFLG_PARAMETER;
         if (isPointerParam)
           sym.entries[cursym].flags |= SFLG_POINTER;
@@ -3331,8 +3331,8 @@ int parse_variable_declaration(int32_t cursym,int *next_type,int isglobal,
   else {
     // local variable
     sym.entries[cursym].soffs = scrip->cur_sp;
-    sym.entries[cursym].scope_section_begin = currentline;
-    sym.entries[cursym].scope_section_end = currentline;
+    sym.entries[cursym].scope_section_begin = scrip->codesize_i32(); // checkme...
+    sym.entries[cursym].scope_section_end = scrip->codesize_i32();
     scrip->write_cmd2(SCMD_REGTOREG,SREG_SP,SREG_MAR);
     if (need_fixup == 2) {
       // expression worked out into ax
@@ -3486,8 +3486,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         sym.entries[thisSym].vartype = isMemberFunction;
                         sym.entries[thisSym].ssize = varsize; // pointer to struct
                         sym.entries[thisSym].sscope = nested_level;
-                        sym.entries[cursym].scope_section_begin = currentline;
-                        sym.entries[cursym].scope_section_end = currentline;
+                        sym.entries[cursym].scope_section_begin = scrip->codesize_i32(); // checkme...
+                        sym.entries[cursym].scope_section_end = scrip->codesize_i32();
                         sym.entries[thisSym].flags = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
                         // declare as local variable
                         sym.entries[thisSym].soffs = scrip->cur_sp;
@@ -3539,7 +3539,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
             if (nested_level == 0) {
 
-                sym.entries[inFuncSym].scope_section_end = currentline;
+                sym.entries[inFuncSym].scope_section_end = scrip->codesize_i32(); // checkme if reliable?
 
                 in_func = -1;
                 inFuncSym = -1;

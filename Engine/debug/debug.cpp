@@ -779,7 +779,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
             {
                 // FIXME: think if this may be optimized...
                 // FIXME: better way to pass arbitrary key?
-                ScriptDataTOC::FunctionDef dummy_func; dummy_func.scope_begin = inst->line_number;
+                ScriptDataTOC::FunctionDef dummy_func; dummy_func.scope_begin = inst->pc;
                 auto func_it = std::upper_bound(datatoc->_sortedFuncDefs.begin(), datatoc->_sortedFuncDefs.end(), dummy_func, FuncDef_Less);
                 //if (func_it != datatoc->_sortedFuncDefs.end()) // FIXME?
                 {
@@ -787,17 +787,20 @@ bool query_memory_bytoc(const String &var_ref, String &value)
                     // NOTE: use lower_bound when searching for variable,
                     // because current stack offset is PAST the latest allocated local var,
                     // and may correspond to the next var. We find next var, and decrement once to get to the last allocated.
-                    ScriptDataTOC::VariableDef dummy_var; dummy_var.scope_begin = inst->line_number;// dummy_var.offset = (inst->stackdata_ptr - inst->stackdata);
+                    ScriptDataTOC::VariableDef dummy_var; dummy_var.scope_begin = inst->pc;// dummy_var.offset = (inst->stackdata_ptr - inst->stackdata);
                     auto var_it = std::lower_bound(datatoc->_sortedLocalVars.begin(), datatoc->_sortedLocalVars.end(), dummy_var, VarDef_Less);
-                    if (var_it != datatoc->_sortedLocalVars.begin()) // cannot be begin, see above for explanation
+                    if (var_it > datatoc->_sortedLocalVars.begin()) // cannot be begin, see above for explanation
                     {
                         const ScriptDataTOC::VariableDef *last_var = (var_it == datatoc->_sortedLocalVars.end()) ?
                             nullptr : &*var_it;
                         //const char *stackdata_ptr = inst->stackdata_ptr;
                         // FIXME: helper method returning stack? don't direct access!
                         const auto *stack_ptr = inst->registers[SREG_SP].RValue;
-                        for (; (var_it > datatoc->_sortedLocalVars.begin()) &&
-                               (var_it->scope_begin >= func.scope_begin);) // not past function's declaration
+                        for (;
+                               (var_it > datatoc->_sortedLocalVars.begin()) &&
+                               (var_it == datatoc->_sortedLocalVars.end() ||
+                               ((var_it - 1)->scope_begin >= func.scope_begin)); // next is not past function's declaration
+                            )
                         {
                             --var_it; // begin searching with the previous entry
                             const ScriptDataTOC::VariableDef *var = &*var_it;

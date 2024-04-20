@@ -268,8 +268,7 @@ public:
     public:
         AGS::Common::String name;
         AGS::Common::String loc_id; // FIXME should be int key
-        // FIXME: these should store BYTECODE POSITION instead of lines!
-        // because linenumbers are optional in the compiled bytecode
+        // Lifetime scope of this variable, in bytecode pos
         uint32_t scope_begin = 0u;
         uint32_t scope_end = UINT32_MAX;
         // WARNING: local vars have offset related to cur_sp at the function start;
@@ -285,8 +284,7 @@ public:
     {
         AGS::Common::String name;
         AGS::Common::String loc_id; // FIXME should be int key
-        // FIXME: these should store BYTECODE POSITION instead of lines!
-        // because linenumbers are optional in the compiled bytecode
+        // Scope of this function, in bytecode pos
         uint32_t scope_begin = 0u;
         uint32_t scope_end = UINT32_MAX;
         // TODO: return type, parameters etc

@@ -805,6 +805,12 @@ bool query_memory_bytoc(const String &var_ref, String &value)
                             --var_it; // begin searching with the previous entry
                             const ScriptDataTOC::VariableDef *var = &*var_it;
 
+                            // skip if local variable's scope ends before current pos
+                            if (var_it->scope_end < inst->pc)
+                            {
+                                continue;
+                            }
+
                             //stackdata_ptr -= local_rtti->GetTypes()[var->f_typeid].size * std::min(1u, var->num_elems);
                             --stack_ptr;
 

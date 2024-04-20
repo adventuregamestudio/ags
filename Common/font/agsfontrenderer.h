@@ -11,9 +11,10 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
+
+#include "util/string.h"
 
 struct BITMAP;
 
@@ -101,8 +102,8 @@ public:
     // Tells if this is a bitmap font (otherwise it's a vector font)
     virtual bool IsBitmapFont() = 0;
     // Load font, applying extended font rendering parameters
-    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params,
-        FontMetrics *metrics) = 0;
+    virtual bool LoadFromDiskEx(int fontNumber, int fontSize, AGS::Common::String *src_filename,
+        const FontRenderParams *params, FontMetrics *metrics) = 0;
     // Fill FontMetrics struct; note that it may be left cleared if this is not supported
     virtual void GetFontMetrics(int fontNumber, FontMetrics *metrics) = 0;
     // Perform any necessary adjustments when the AA mode is toggled

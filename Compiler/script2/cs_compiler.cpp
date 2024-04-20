@@ -96,14 +96,13 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
         new RTTI(std::move(rtb.Finalize())));
 }
 
-static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, const SectionList &seclist)
+static void ccCompileDataTOC(const SymbolTable &symt, const std::vector<SymbolTableEntry> &entries, ScriptDataTOC *toc)
 {
-    auto toc = std::make_unique<ScriptDataTOC>();
     std::string buf; // for constructing names
 
-    for (size_t t = 0; t < symt.entries.size(); t++)
+    for (size_t t = 0; t < entries.size(); t++)
     {
-        const SymbolTableEntry &ste = symt.entries[t];
+        const SymbolTableEntry &ste = entries[t];
 
         if (ste.VariableD && !ste.ComponentD)
         {
@@ -121,6 +120,10 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, 
                 flags |= RTTI::kField_Array;
             if (ste.VariableD->TypeQualifiers[TQ::kImport])
                 flags |= RTTI::kField_Import;
+            if (ste.Scope > 0)
+                flags |= RTTI::kField_Local;
+            if (ste.Scope == SymbolTableConstant::kParameterScope)
+                flags |= RTTI::kField_Parameter;
 
             uint32_t num_elems = 0u;
             for (const auto sz : field_type.VartypeD->Dims)
@@ -128,13 +131,31 @@ static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, 
 
             var.name = ste.Name.c_str();
             var.f_typeid = symt.GetFirstBaseVartype(ste.VariableD->Vartype);
+            var.scope_begin = ste.ScopeBegin;
+            var.scope_end = ste.ScopeEnd;
             var.offset = ste.VariableD->Offset;
             var.flags = flags;
             var.num_elems = num_elems;
             toc->VarDefs.push_back(var);
         }
-    }
 
+        // CHECKME: record only non-imports for now, because we need to know their line range
+        if (ste.FunctionD && !ste.FunctionD->TypeQualifiers[TQ::kImport])
+        {
+            ScriptDataTOC::FunctionDef func;
+            func.name = ste.Name.c_str();
+            func.scope_begin = ste.ScopeBegin;
+            func.scope_end = ste.ScopeEnd;
+            toc->FuncDefs.push_back(func);
+        }
+    }
+}
+
+static std::unique_ptr<ScriptDataTOC> ccCompileDataTOC(const SymbolTable &symt, const SectionList &seclist)
+{
+    auto toc = std::make_unique<ScriptDataTOC>();
+    ccCompileDataTOC(symt, symt.entries, toc.get());
+    ccCompileDataTOC(symt, symt.localEntries, toc.get());
     return std::move(toc);
 }
 

@@ -247,6 +247,11 @@ struct SymbolTableEntry : public SymbolTableConstant
     size_t Declared = kNoSrcLocation;    // where this was declared, pertains to _src
     size_t Scope = 0u;   
     bool Accessed = false;  // will be set to 'true' on first access
+    // FIXME: find a better place for these, in one of the components below??
+    // Symbol lifetime scope, for functions and local defs,
+    // contains bytecode position
+    size_t ScopeBegin = 0u;
+    size_t ScopeEnd = 0u;
 
     // For attributes
     struct AttributeDesc
@@ -398,6 +403,10 @@ private:
 public:
     std::vector<SymbolTableEntry> entries;
     inline SymbolTableEntry &operator[](Symbol sym) { return entries.at(sym); };
+
+    // FIXME: find a better way to store this?
+    // Recorded list of all the local symbols: variables and function parameters
+    std::vector<SymbolTableEntry> localEntries;
 
     SymbolTable();
 

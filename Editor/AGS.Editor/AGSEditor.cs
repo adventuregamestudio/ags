@@ -931,15 +931,18 @@ namespace AGS.Editor
             compileTasks.Add(new CompileTask(dialogScripts, headers));
             _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 
+            // The extended compiler doesn't use static memory, 
+            // so several instances can run in parallel.
+            bool compileParallel = _game.Settings.ExtendedCompiler
+                // && false // uncomment if debugging script compiler; TODO: add Editor preference?
+                ;
+
             // Compile the scripts
-            if (_game.Settings.ExtendedCompiler)
+            if (compileParallel)
             {
-                // The extended compiler doesn't use static memory, 
-                // so several instances can run in parallel.
                 Parallel.ForEach(compileTasks, (ct, state) =>
                 {
                     CompileMessages messages = new CompileMessages();
-
                     CompileScript(ct.Script, ct.Headers, messages);
                     lock (messagesToReturn)
                     {

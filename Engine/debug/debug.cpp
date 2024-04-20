@@ -806,7 +806,7 @@ bool query_memory_bytoc(const String &var_ref, String &value)
                             const ScriptDataTOC::VariableDef *var = &*var_it;
 
                             // skip if local variable's scope ends before current pos
-                            if (var_it->scope_end < inst->pc)
+                            if (var_it->scope_end <= inst->pc)
                             {
                                 continue;
                             }

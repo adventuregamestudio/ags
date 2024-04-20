@@ -721,6 +721,9 @@ void AGS::Parser::RestoreLocalsFromSymtable(size_t from_level)
         for (auto symbols_it = od.begin(); symbols_it != od.end(); symbols_it++)
         {
             Symbol const s = symbols_it->first;
+            // make a full copy of the local symbol
+            _sym[s].ScopeEnd = _scrip.Codesize_i32();
+            _sym.localEntries.push_back(_sym[s]);
             // Note, it's important we use deep copy because the vector elements will be destroyed when the level is popped
             _sym[s] = symbols_it->second;
         }
@@ -1153,6 +1156,9 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype ret
 {
     _sym.MakeEntryFunction(name_of_function);
     SymbolTableEntry &entry = _sym[name_of_function];
+
+    entry.ScopeBegin = _scrip.Codesize_i32();
+    entry.ScopeEnd = _scrip.Codesize_i32();
     
     entry.FunctionD->Parameters.resize(1u);
     entry.FunctionD->Parameters[0].Vartype = return_vartype;
@@ -4033,6 +4039,10 @@ void AGS::Parser::ParseVardecl_InitialValAssignment(Symbol varname, std::vector<
 void AGS::Parser::ParseVardecl_Var2SymTable(Symbol const var_name, Vartype const vartype)
 {
     SymbolTableEntry &var_entry = _sym[var_name];
+    //
+    var_entry.ScopeBegin = _scrip.Codesize_i32();
+    var_entry.ScopeEnd = _scrip.Codesize_i32();
+    //
     _sym.MakeEntryVariable(var_name);
     var_entry.VariableD->Vartype = vartype;
     var_entry.Scope = _nest.TopLevel();
@@ -4373,6 +4383,7 @@ void AGS::Parser::ParseVardecl_CheckAndStashOldDefn(Symbol var_name)
         UserError(
             ReferenceMsgSym("'%s' has already been defined as a parameter", var_name).c_str(),
             _sym.GetName(var_name).c_str());
+
     if (_nest.AddOldDefinition(var_name, _sym[var_name]))
         InternalError("AddOldDefinition: Storage place occupied");
     _sym[var_name].Clear();
@@ -4466,6 +4477,8 @@ void AGS::Parser::HandleEndOfFuncBody(Symbol &struct_of_current_func, Symbol &na
             Warning("Code execution may reach this point and the default '0' return isn't suitable (did you forget a 'return' statement?)");
         WriteCmd(SCMD_RET);
     }
+
+    _sym[name_of_current_func].ScopeEnd = _scrip.Codesize_i32();
 
     // We've just finished the body of the current function.
     name_of_current_func = kKW_NoSymbol;

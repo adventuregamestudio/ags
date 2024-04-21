@@ -197,6 +197,10 @@ private:
         inline NSType Type(size_t level) const { return _stack.at(level).Type; }
         inline void SetType(NSType nt) { _stack.back().Type = nt; }
         
+        // "Old Definitions" are a collection of previous state of symbols from the upper nesting level.
+        // Note that these are added not just for overridden symbols, but any local symbol found inside the nesting.
+        // In the former case these contain old symbol properties that may be restored,
+        // in the latter - empty symbol states, used to erase the current locals when their lifescope ends.
         inline std::map<Symbol, SymbolTableEntry> const &GetOldDefinitions(size_t level) const { return _stack.at(level).OldDefinitions; }
         // Add an old symbol table entry to the innermost nesting; return true if there is one already.
         bool AddOldDefinition(Symbol s, SymbolTableEntry const &entry);
@@ -454,6 +458,8 @@ private:
 
     // Restore those definitions that have a nesting level of 'from_level' or higher
     // to what they were on the level 'from_level - 1'.
+    // Note that this does not only restore the overridden symbols,
+    // but also erases uniquely named local symbols by writing a "empty" struct over them.
     void RestoreLocalsFromSymtable(size_t from_level);
 
     // Remove at nesting_level or higher.

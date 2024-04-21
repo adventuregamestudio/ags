@@ -628,15 +628,11 @@ void AGS::Parser::FreeDynpointersOfStdArray(Symbol the_array)
         FreeDynpointersOfStdArrayOfStruct(element_vartype, elements_count);
 }
 
-// Note: Currently, the structs/arrays that are pointed to cannot contain
-// pointers in their turn.
-// If they do, we need a solution at runtime to chase the pointers to release;
-// we cannot do it at compile time. Also, the pointers might form "rings"
-// (e.g., A contains a field that points to B; B contains a field that
-// points to A), so we cannot rely on reference counting for identifying
-// _all_ the unreachable memory chunks. (If nothing else points to A or B,
-// both are unreachable so _could_ be released, but they still point to each
-// other and so have a reference count of 1; the reference count will never reach 0).
+// Note: here we only release the pointers contained directly in script's "pointer"
+// variables and PODs (plain structs). Any pointers contained within another dynamically
+// allocated object (struct or array) cannot be released at compile time.
+// Instead, the engine is responsible to track and release these, then cleanup any loose refs
+// using its garbage collector.
 
 void AGS::Parser::FreeDynpointersOfLocals(size_t from_level)
 {

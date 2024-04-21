@@ -922,7 +922,9 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     return -1;
   }
   sym.entries[funcsym].soffs = in_func;  // save code offset of function
-  scrip->cur_sp += 4;  // the return address will be pushed
+
+  if (!next_is_import)
+    scrip->cur_sp += 4;  // the return address will be pushed
 
   int prototype = 0;
   bool next_is_const = false;

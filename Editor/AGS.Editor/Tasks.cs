@@ -607,6 +607,7 @@ namespace AGS.Editor
                 }
 
                 _testGameProcess = new Process();
+                _testGameProcess.StartInfo.UseShellExecute = false;
                 _testGameProcess.StartInfo.FileName = exeName;
                 _testGameProcess.StartInfo.Arguments = parameter;
                 if (raiseEventOnExit)

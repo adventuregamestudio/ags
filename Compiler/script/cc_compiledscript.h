@@ -15,7 +15,6 @@
 #define __CC_COMPILEDSCRIPT_H
 
 #include <cstdint>
-#include <string>
 #include "script/cc_script.h"       // ccScript
 #include "cs_parser_common.h"   // macro definitions
 #include "cc_symboldef.h"       // SymbolDef

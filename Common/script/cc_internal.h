@@ -18,7 +18,9 @@
 #ifndef __CC_INTERNAL_H
 #define __CC_INTERNAL_H
 
-#define SCOM_VERSION 90
+#define SCOM_VERSION_SECTIONS 83
+#define SCOM_VERSION_321  90
+#define SCOM_VERSION_CURRENT SCOM_VERSION_321
 #define SCOM_VERSIONSTR "0.90"
 
 // virtual CPU registers

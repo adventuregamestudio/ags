@@ -82,6 +82,9 @@ namespace StrUtil
     // Buffer is hard-limited to 1024 bytes, including null-terminator.
     // Strictly for compatibility with the C lib code!
     char *          ReadMallocCStrOrNull(Stream *in);
+    // Variant of above, that allocates std::string.
+    // Buffer is hard-limited to 1024 bytes, including null-terminator.
+    std::string     ReadCStrAsStdString(Stream *in);
     void            SkipCStr(Stream *in);
     void            WriteCStr(const char *cstr, Stream *out);
     void            WriteCStr(const String &s, Stream *out);

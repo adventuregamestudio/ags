@@ -31,7 +31,6 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct CharacterInfo;
-struct ccScript;
 
 
 struct GameSetupStructBase

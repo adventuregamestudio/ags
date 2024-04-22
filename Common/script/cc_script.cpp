@@ -65,167 +65,56 @@ ccScript *ccScript::CreateFromStream(Stream *in)
     return scri;
 }
 
-ccScript::ccScript()
-{
-    globaldata          = nullptr;
-    globaldatasize      = 0;
-    code                = nullptr;
-    codesize            = 0;
-    strings             = nullptr;
-    stringssize         = 0;
-    fixuptypes          = nullptr;
-    fixups              = nullptr;
-    numfixups           = 0;
-    importsCapacity     = 0;
-    imports             = nullptr;
-    numimports          = 0;
-    exportsCapacity     = 0;
-    exports             = nullptr;
-    export_addr         = nullptr;
-    numexports          = 0;
-    instances           = 0;
-    sectionNames        = nullptr;
-    sectionOffsets      = nullptr;
-    numSections         = 0;
-    capacitySections    = 0;
-}
-
 ccScript::ccScript(const ccScript &src)
 {
-    globaldatasize = src.globaldatasize;
-    if (globaldatasize > 0)
-    {
-        globaldata = (char*)malloc(globaldatasize);
-        memcpy(globaldata, src.globaldata, globaldatasize);
-    }
-    else
-    {
-        globaldata = nullptr;
-    }
+    globaldata = src.globaldata;
+    code = src.code;
+    strings = src.strings;
+    fixuptypes = src.fixuptypes;
+    fixups = src.fixups;
 
-    codesize = src.codesize;
-    if (codesize > 0)
-    {
-        code = (int32_t*)malloc(codesize * sizeof(int32_t));
-        memcpy(code, src.code, sizeof(int32_t) * codesize);
-    }
-    else
-    {
-        code = nullptr;
-    }
+    imports = src.imports;
+    exports = src.exports;
+    export_addr = src.export_addr;
 
-    stringssize = src.stringssize;
-    if (stringssize > 0)
-    {
-        strings = (char*)malloc(stringssize);
-        memcpy(strings, src.strings, stringssize);
-    }
-    else
-    {
-        strings = nullptr;
-    }
+    sectionNames = src.sectionNames;
+    sectionOffsets = src.sectionOffsets;
 
-    numfixups = src.numfixups;
-    if (numfixups > 0)
-    {
-        fixuptypes = (char*)malloc(numfixups);
-        fixups = (int32_t*)malloc(numfixups * sizeof(int32_t));
-        memcpy(fixuptypes, src.fixuptypes, numfixups);
-        memcpy(fixups, src.fixups, numfixups * sizeof(int32_t));
-    }
-    else
-    {
-        fixups = nullptr;
-        fixuptypes = nullptr;
-    }
-
-    importsCapacity = src.numimports;
-    numimports = src.numimports;
-    if (numimports > 0)
-    {
-        imports = (char**)malloc(sizeof(char*) * numimports);
-        for (int i = 0; i < numimports; ++i)
-            imports[i] = ags_strdup(src.imports[i]);
-    }
-    else
-    {
-        imports = nullptr;
-    }
-
-    exportsCapacity = src.numexports;
-    numexports = src.numexports;
-    if (numexports > 0)
-    {
-        exports = (char**)malloc(sizeof(char*) * numexports);
-        export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
-        for (int i = 0; i < numexports; ++i)
-        {
-            exports[i] = ags_strdup(src.exports[i]);
-            export_addr[i] = src.export_addr[i];
-        }
-    }
-    else
-    {
-        exports = nullptr;
-        export_addr = nullptr;
-    }
-
-    capacitySections = src.numSections;
-    numSections = src.numSections;
-    if (numSections > 0)
-    {
-        sectionNames = (char**)malloc(numSections * sizeof(char*));
-        sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
-        for (int i = 0; i < numSections; ++i)
-        {
-            sectionNames[i] = ags_strdup(src.sectionNames[i]);
-            sectionOffsets[i] = src.sectionOffsets[i];
-        }
-    }
-    else
-    {
-        numSections = 0;
-        sectionNames = nullptr;
-        sectionOffsets = nullptr;
-    }
-
-    instances = 0;
+    instances = 0; // don't copy reference count, since it's a new object
 }
 
-ccScript::~ccScript()
+void ccScript::Write(Stream *out)
 {
-    Free();
-}
-
-void ccScript::Write(Stream *out) {
-    int n;
     out->Write(scfilesig,4);
-    out->WriteInt32(SCOM_VERSION);
-    out->WriteInt32(globaldatasize);
-    out->WriteInt32(codesize);
-    out->WriteInt32(stringssize);
-    if (globaldatasize > 0)
-        out->WriteArray(globaldata,globaldatasize,1);
-    if (codesize > 0)
-        out->WriteArrayOfInt32(code,codesize);
-    if (stringssize > 0)
-        out->WriteArray(strings,stringssize,1);
-    out->WriteInt32(numfixups);
-    if (numfixups > 0) {
-        out->WriteArray(fixuptypes,numfixups,1);
-        out->WriteArrayOfInt32(fixups,numfixups);
+    out->WriteInt32(SCOM_VERSION_CURRENT);
+    out->WriteInt32(globaldata.size());
+    out->WriteInt32(code.size());
+    out->WriteInt32(strings.size());
+    if (globaldata.size() > 0)
+        out->Write(&globaldata.front(), globaldata.size());
+    if (code.size() > 0)
+        out->WriteArrayOfInt32(&code.front(), code.size());
+    if (strings.size() > 0)
+        out->Write(&strings.front(), strings.size());
+    out->WriteInt32(fixups.size());
+    if (fixups.size() > 0)
+    {
+        out->Write(&fixuptypes.front(), fixups.size());
+        out->WriteArrayOfInt32(&fixups.front(), fixups.size());
     }
-    out->WriteInt32(numimports);
-    for (n=0;n<numimports;n++)
-        StrUtil::WriteCStr(imports[n], out);
-    out->WriteInt32(numexports);
-    for (n=0;n<numexports;n++) {
-        StrUtil::WriteCStr(exports[n], out);
+    out->WriteInt32(imports.size());
+    for (size_t n = 0; n < imports.size(); ++n)
+        StrUtil::WriteCStr(imports[n].c_str(), out);
+    out->WriteInt32(exports.size());
+    for (size_t n = 0; n < exports.size(); ++n)
+    {
+        StrUtil::WriteCStr(exports[n].c_str(), out);
         out->WriteInt32(export_addr[n]);
     }
-    out->WriteInt32(numSections);
-    for (n = 0; n < numSections; n++) {
-        StrUtil::WriteCStr(sectionNames[n], out);
+    out->WriteInt32(sectionNames.size());
+    for (size_t n = 0; n < sectionNames.size(); ++n)
+    {
+        StrUtil::WriteCStr(sectionNames[n].c_str(), out);
         out->WriteInt32(sectionOffsets[n]);
     }
 
@@ -246,179 +135,113 @@ void ccScript::Write(Stream *out) {
 
 bool ccScript::Read(Stream *in)
 {
-  instances = 0;
-  int n;
-  char gotsig[5];
-  currentline = -1;
-  in->Read(gotsig, 4);
-  gotsig[4] = 0;
+    instances = 0;
+    currentline = -1;
 
-  int fileVer = in->ReadInt32();
+    char gotsig[5]{};
+    in->Read(gotsig, 4);
 
-  if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
-    cc_error("file was not written by ccScript::Write or seek position is incorrect");
-    return false;
-  }
-
-  globaldatasize = in->ReadInt32();
-  codesize = in->ReadInt32();
-  stringssize = in->ReadInt32();
-
-  if (globaldatasize > 0) {
-    globaldata = (char *)malloc(globaldatasize);
-    in->Read(globaldata, globaldatasize);
-  }
-  else
-    globaldata = nullptr;
-
-  if (codesize > 0) {
-    code = (int32_t *)malloc(codesize * sizeof(int32_t));
-    in->ReadArrayOfInt32(code, codesize);
-  }
-  else
-    code = nullptr;
-
-  if (stringssize > 0) {
-    strings = (char *)malloc(stringssize);
-    in->Read(strings, stringssize);
-  } 
-  else
-    strings = nullptr;
-
-  numfixups = in->ReadInt32();
-  if (numfixups > 0) {
-    fixuptypes = (char *)malloc(numfixups);
-    fixups = (int32_t *)malloc(numfixups * sizeof(int32_t));
-    in->Read(fixuptypes, numfixups);
-    in->ReadArrayOfInt32(fixups, numfixups);
-  }
-  else {
-    fixups = nullptr;
-    fixuptypes = nullptr;
-  }
-
-  numimports = in->ReadInt32();
-
-  imports = (char**)malloc(sizeof(char*) * numimports);
-  for (n = 0; n < numimports; n++)
-    imports[n] = StrUtil::ReadMallocCStrOrNull(in);
-
-  numexports = in->ReadInt32();
-  exports = (char**)malloc(sizeof(char*) * numexports);
-  export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
-  for (n = 0; n < numexports; n++) {
-    exports[n] = StrUtil::ReadMallocCStrOrNull(in);
-    export_addr[n] = in->ReadInt32();
-  }
-
-  if (fileVer >= 83) { // TODO: make a version constant
-    // read in the Sections
-    numSections = in->ReadInt32();
-    sectionNames = (char**)malloc(numSections * sizeof(char*));
-    sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
-    for (n = 0; n < numSections; n++) {
-      sectionNames[n] = StrUtil::ReadMallocCStrOrNull(in);
-      sectionOffsets[n] = in->ReadInt32();
+    int fileVer = in->ReadInt32();
+    if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION_CURRENT))
+    {
+        cc_error("file was not written by ccScript::Write or seek position is incorrect");
+        return false;
     }
-  }
-  else
-  {
-    numSections = 0;
-    sectionNames = nullptr;
-    sectionOffsets = nullptr;
-  }
 
-  //-------------------------------------------------------------------------
-  // Extended data
-  //-------------------------------------------------------------------------
-  if (fileVer >= SCOM_VERSION_EXT) {
-    ScriptExtReader reader(*this, std::unique_ptr<Stream>(in));
-    HError err = reader.Read();
-    if (!err) {
-      cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
-      return false;
+    const uint32_t globaldatasize = in->ReadInt32();
+    const uint32_t codesize = in->ReadInt32();
+    const uint32_t stringssize = in->ReadInt32();
+
+    globaldata.resize(globaldatasize);
+    if (globaldatasize > 0)
+    {
+        in->Read(&globaldata.front(), globaldata.size());
     }
-    reader.ReleaseStream().release(); // FIXME: this double release is ugly
-  }
 
-  if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG) {
-    cc_error("!internal error reading script: end file signature not found");
-    return false;
-  }
-  return true;
+    code.resize(codesize);
+    if (codesize > 0)
+    {
+        in->ReadArrayOfInt32(&code.front(), code.size());
+    }
+
+    strings.resize(stringssize);
+    if (strings.size() > 0)
+    {
+        in->Read(&strings.front(), strings.size());
+    }
+
+    const uint32_t numfixups = in->ReadInt32();
+    fixuptypes.resize(numfixups);
+    fixups.resize(numfixups);
+    if (numfixups > 0)
+    {
+        in->Read(&fixuptypes.front(), numfixups);
+        in->ReadArrayOfInt32(&fixups.front(), numfixups);
+    }
+
+    const uint32_t numimports = in->ReadInt32();
+    imports.resize(numimports);
+    for (uint32_t n = 0; n < numimports; ++n)
+    {
+        imports[n] = StrUtil::ReadCStrAsStdString(in);
+    }
+
+    const uint32_t numexports = in->ReadInt32();
+    exports.resize(numexports);
+    export_addr.resize(numexports);
+    for (uint32_t n = 0; n < numexports; ++n)
+    {
+        exports[n] = StrUtil::ReadCStrAsStdString(in);
+        export_addr[n] = in->ReadInt32();
+    }
+
+    if (fileVer >= SCOM_VERSION_SECTIONS)
+    {
+        // read in the Sections
+        const uint32_t numsections = in->ReadInt32();
+        sectionNames.resize(numsections);
+        sectionOffsets.resize(numsections);
+        for (uint32_t n = 0; n < numsections; ++n)
+        {
+            sectionNames[n] = StrUtil::ReadCStrAsStdString(in);
+            sectionOffsets[n] = in->ReadInt32();
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    // Extended data
+    //-------------------------------------------------------------------------
+    if (fileVer >= SCOM_VERSION_EXT) {
+        ScriptExtReader reader(*this, std::unique_ptr<Stream>(in));
+        HError err = reader.Read();
+        if (!err) {
+            cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
+            return false;
+        }
+        reader.ReleaseStream().release(); // FIXME: this double release is ugly
+    }
+
+    if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG)
+    {
+        cc_error("!internal error reading script: end file signature not found");
+        return false;
+    }
+    return true;
 }
 
-void ccScript::Free()
+const char* ccScript::GetSectionName(int32_t offs) const
 {
-    if (globaldata != nullptr)
-        free(globaldata);
-
-    if (code != nullptr)
-        free(code);
-
-    if (strings != nullptr)
-        free(strings);
-
-    if (fixups != nullptr && numfixups > 0)
-        free(fixups);
-
-    if (fixuptypes != nullptr && numfixups > 0)
-        free(fixuptypes);
-
-    globaldata = nullptr;
-    code = nullptr;
-    strings = nullptr;
-    fixups = nullptr;
-    fixuptypes = nullptr;
-
-    int aa;
-    for (aa = 0; aa < numimports; aa++) {
-        if (imports[aa] != nullptr)
-            free(imports[aa]);
-    }
-
-    for (aa = 0; aa < numexports; aa++)
-        free(exports[aa]);
-
-    for (aa = 0; aa < numSections; aa++)
-        free(sectionNames[aa]);
-
-    if (sectionNames != nullptr)
+    size_t sect_idx = 0;
+    for (; sect_idx < sectionOffsets.size(); ++sect_idx)
     {
-        free(sectionNames);
-        free(sectionOffsets);
-        sectionNames = nullptr;
-        sectionOffsets = nullptr;
-    }
-
-    if (imports != nullptr)
-    {
-        free(imports);
-        free(exports);
-        free(export_addr);
-        imports = nullptr;
-        exports = nullptr;
-        export_addr = nullptr;
-    }
-    numimports = 0;
-    numexports = 0;
-    numSections = 0;
-
-    rtti.reset();
-}
-
-const char* ccScript::GetSectionName(int32_t offs) const {
-
-    int i;
-    for (i = 0; i < numSections; i++) {
-        if (sectionOffsets[i] < offs)
+        if (sectionOffsets[sect_idx] < offs)
             continue;
         break;
     }
 
     // if no sections in script, return unknown
-    if (i == 0)
+    if (sect_idx == 0)
         return "(unknown section)";
 
-    return sectionNames[i - 1];
+    return sectionNames[sect_idx - 1].c_str();
 }

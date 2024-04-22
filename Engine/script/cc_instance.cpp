@@ -433,8 +433,8 @@ int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const 
     const size_t mangled_len = snprintf(mangledName, sizeof(mangledName), "%s$", funcname);
     int export_args = numargs;
 
-    for (int k = 0; k < instanceof->numexports; k++) {
-        const char *thisExportName = instanceof->exports[k];
+    for (size_t k = 0; k < instanceof->exports.size(); k++) {
+        const char *thisExportName = instanceof->exports[k].c_str();
         bool match = false;
 
         // check for a mangled name match
@@ -1737,11 +1737,11 @@ RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname) const
     snprintf(altName, sizeof(altName), "%s$", symname);
     RuntimeScriptValue rval_null;
     const size_t len_altName = strlen(altName);
-    for (int k = 0; k < instanceof->numexports; k++) {
-        if (strcmp(instanceof->exports[k], symname) == 0)
+    for (size_t k = 0; k < instanceof->exports.size(); k++) {
+        if (strcmp(instanceof->exports[k].c_str(), symname) == 0)
             return exports[k];
         // mangled function name
-        if (strncmp(instanceof->exports[k], altName, len_altName) == 0)
+        if (strncmp(instanceof->exports[k].c_str(), altName, len_altName) == 0)
             return exports[k];
     }
     return rval_null;
@@ -1863,15 +1863,15 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         // create own memory space
         // NOTE: globalvars are created in CreateGlobalVars()
         globalvars.reset(new ScVarMap());
-        globaldatasize = scri->globaldatasize;
+        globaldatasize = scri->globaldata.size();
         globaldata = nullptr;
         if (globaldatasize > 0)
         {
             globaldata = static_cast<char *>(malloc(globaldatasize));
-            memcpy(globaldata, scri->globaldata, globaldatasize);
+            memcpy(globaldata, &scri->globaldata[0], globaldatasize);
         }
 
-        codesize = scri->codesize;
+        codesize = scri->code.size();
         code = nullptr;
         if (codesize > 0)
         {
@@ -1884,8 +1884,8 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
     }
 
     // just use the pointer to the strings since they don't change
-    strings = scri->strings;
-    stringssize = scri->stringssize;
+    strings = &scri->strings[0];
+    stringssize = scri->strings.size();
     // create a stack
     stackdatasize = CC_STACK_DATA_SIZE;
     // This is quite a random choice; there's no way to deduce number of stack
@@ -1928,10 +1928,10 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
         }
     }
 
-    exports = new RuntimeScriptValue[scri->numexports];
+    exports = new RuntimeScriptValue[scri->exports.size()];
 
     // find the real address of the exports
-    for (int i = 0; i < scri->numexports; i++) {
+    for (size_t i = 0; i < scri->exports.size(); i++) {
         const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
         const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
         if (etype == EXPORT_FUNCTION)
@@ -1968,9 +1968,9 @@ bool ccInstance::_Create(PScript scri, const ccInstance * joined)
 
     if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
         // import all the exported stuff from this script
-        for (int i = 0; i < scri->numexports; i++) {
-            if (!ccAddExternalScriptSymbol(scri->exports[i], exports[i], this)) {
-                cc_error("Export table overflow at '%s'", scri->exports[i]);
+        for (size_t i = 0; i < scri->exports.size(); i++) {
+            if (!ccAddExternalScriptSymbol(scri->exports[i].c_str(), exports[i], this)) {
+                cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
                 return false;
             }
         }
@@ -2031,7 +2031,7 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
     // To allow real-time import use, the sequence of imports in 'imports[]'
     // and 'resolved_imports[]' should not be modified.
 
-    numimports = scri->numimports;
+    numimports = scri->imports.size();
     if (numimports == 0)
     {
         // [PGB] AFAICS there's nothing wrong with not having any imports, and
@@ -2043,18 +2043,18 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
 
     resolved_imports = new uint32_t[numimports];
     size_t errors = 0, last_err_idx = 0;
-    for (int import_idx = 0; import_idx < scri->numimports; ++import_idx)
+    for (size_t import_idx = 0; import_idx < scri->imports.size(); ++import_idx)
     {
-        if (scri->imports[import_idx] == nullptr)
+        if (scri->imports[import_idx].empty())
         {
             resolved_imports[import_idx] = UINT32_MAX;
             continue;
         }
 
-        resolved_imports[import_idx] = simp.get_index_of(scri->imports[import_idx]);
+        resolved_imports[import_idx] = simp.get_index_of(String::Wrapper(scri->imports[import_idx].c_str()));
         if (resolved_imports[import_idx] == UINT32_MAX)
         {
-            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx], scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>");
+            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx].c_str(), scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "<unknown>");
             errors++;
             last_err_idx = import_idx;
         }
@@ -2062,9 +2062,9 @@ bool ccInstance::ResolveScriptImports(const ccScript *scri)
 
     if (errors > 0)
         cc_error("in %s: %d unresolved imports (last: %s)",
-            scri->numSections > 0 ? scri->sectionNames[0] : "<unknown>",
+            scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "<unknown>",
             errors,
-            scri->imports[last_err_idx]);
+            scri->imports[last_err_idx].c_str());
 
     return errors == 0;
 }
@@ -2078,7 +2078,7 @@ bool ccInstance::CreateGlobalVars(const ccScript *scri)
     ScriptVariable glvar;
 
     // Step One: deduce global variables from fixups
-    for (int i = 0; i < scri->numfixups; ++i)
+    for (size_t i = 0; i < scri->fixuptypes.size(); ++i)
     {
         switch (scri->fixuptypes[i])
         {
@@ -2113,7 +2113,7 @@ bool ccInstance::CreateGlobalVars(const ccScript *scri)
     }
 
     // Step Two: deduce global variables from exports
-    for (int i = 0; i < scri->numexports; ++i)
+    for (size_t i = 0; i < scri->exports.size(); ++i)
     {
         const int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
         const int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
@@ -2183,23 +2183,23 @@ static void cc_error_fixups(const ccScript *scri, const size_t pc, const char *f
     va_start(ap, fmt);
     const String displbuf = String::FromFormatV(fmt, ap);
     va_end(ap);
-    const char *scname = scri->numSections > 0 ? scri->sectionNames[0] : "?";
+    const char *scname = scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "?";
     if (pc == SIZE_MAX)
     {
         cc_error("in script %s: %s", scname, displbuf.GetCStr());
     }
     else
     {
-        const int line = DetermineScriptLine(scri->code, scri->codesize, pc);
+        const int line = DetermineScriptLine(&scri->code[0], scri->code.size(), pc);
         cc_error("in script %s around line %d: %s", scname, line, displbuf.GetCStr());
     }
 }
 
 bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
 {
-    code_fixups = new char[scri->codesize];
-    memset(code_fixups, 0, scri->codesize);
-    for (int i = 0; i < scri->numfixups; ++i)
+    code_fixups = new char[scri->code.size()];
+    memset(code_fixups, 0, scri->code.size());
+    for (int i = 0; i < scri->fixups.size(); ++i)
     {
         if (scri->fixuptypes[i] == FIXUP_DATADATA)
         {
@@ -2207,10 +2207,10 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
         }
 
         const int32_t fixup = scri->fixups[i];
-        if (fixup < 0 || fixup >= scri->codesize)
+        if (fixup < 0 || fixup >= scri->code.size())
         {
             cc_error_fixups(scri, SIZE_MAX, "bad fixup at %d (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
-                i,  scri->fixuptypes[i], fixup, scri->codesize);
+                i,  scri->fixuptypes[i], fixup, scri->code.size());
             return false;
         }
 
@@ -2244,7 +2244,7 @@ bool ccInstance::CreateRuntimeCodeFixups(const ccScript *scri)
 
 bool ccInstance::ResolveImportFixups(const ccScript *scri)
 {
-    for (int fixup_idx = 0; fixup_idx < scri->numfixups; ++fixup_idx)
+    for (size_t fixup_idx = 0; fixup_idx < scri->fixups.size(); ++fixup_idx)
     {
         if (scri->fixuptypes[fixup_idx] != FIXUP_IMPORT)
             continue;

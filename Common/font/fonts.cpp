@@ -332,8 +332,7 @@ int get_font_surface_height(size_t fontNumber)
 {
     if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
         return 0;
-    return fonts[fontNumber].Metrics.VExtent.second -
-        fonts[fontNumber].Metrics.VExtent.first;
+    return fonts[fontNumber].Metrics.ExtentHeight();
 }
 
 std::pair<int, int> get_font_surface_extent(size_t fontNumber)

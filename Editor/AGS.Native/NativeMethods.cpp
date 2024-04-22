@@ -361,7 +361,7 @@ namespace AGS
         {
             throw gcnew AGSEditorException(String::Format("Unable to load font {0}. Not a TTF font, or there an error occured while loading it.", fileName));
         }
-        return metrics.Height;
+        return metrics.NominalHeight;
     }
 
     void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot, bool forceUpdate)

@@ -17,6 +17,7 @@
 #include <alfont.h>
 #include "ac/common.h" // set_our_eip
 #include "ac/gamestructdefines.h"
+#include "debug/out.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
@@ -111,7 +112,7 @@ static void font_post_init(size_t fontNumber)
     Font &font = fonts[fontNumber];
     // If no font height property was provided, then try several methods,
     // depending on which interface is available
-    if ((font.Metrics.Height == 0) && font.Renderer)
+    if ((font.Metrics.NominalHeight == 0) && font.Renderer)
     {
         int height = 0;
         if (font.Renderer2)
@@ -125,14 +126,15 @@ static void font_post_init(size_t fontNumber)
             const char *height_test_string = "ZHwypgfjqhkilIK";
             height = font.Renderer->GetTextHeight(height_test_string, fontNumber);
         }
-        
-        font.Metrics.Height = std::max(0, height);
-        font.Metrics.RealHeight = font.Metrics.Height;
+
+        font.Metrics.NominalHeight = std::max(0, height);
+        font.Metrics.RealHeight = font.Metrics.NominalHeight;
+        font.Metrics.VExtent = std::make_pair(0, font.Metrics.RealHeight);
     }
     // Use either nominal or real pixel height to define font's logical height
     // and default linespacing; logical height = nominal height is compatible with the old games
     font.Metrics.CompatHeight = (font.Info.Flags & FFLG_REPORTNOMINALHEIGHT) != 0 ?
-        font.Metrics.Height : font.Metrics.RealHeight;
+        font.Metrics.NominalHeight : font.Metrics.RealHeight;
 
     if (font.Info.Outline != FONT_OUTLINE_AUTO)
     {
@@ -330,7 +332,14 @@ int get_font_surface_height(size_t fontNumber)
 {
     if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
         return 0;
-    return fonts[fontNumber].Metrics.RealHeight;
+    return fonts[fontNumber].Metrics.ExtentHeight();
+}
+
+std::pair<int, int> get_font_surface_extent(size_t fontNumber)
+{
+    if (fontNumber >= fonts.size() || !fonts[fontNumber].Renderer)
+        return std::make_pair(0, 0);
+    return fonts[fontNumber].Metrics.VExtent;
 }
 
 int get_font_linespacing(size_t fontNumber)
@@ -540,25 +549,31 @@ bool load_font_size(size_t fontNumber, const FontInfo &font_info)
   params.LoadMode = (font_info.Flags & FFLG_LOADMODEMASK);
   FontMetrics metrics;
 
-  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
+  Font &font = fonts[fontNumber];
+  String src_filename;
+  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &src_filename, &params, &metrics))
   {
-    fonts[fontNumber].Renderer    = &ttfRenderer;
-    fonts[fontNumber].Renderer2   = &ttfRenderer;
-    fonts[fontNumber].RendererInt = &ttfRenderer;
+    font.Renderer    = &ttfRenderer;
+    font.Renderer2   = &ttfRenderer;
+    font.RendererInt = &ttfRenderer;
   }
-  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &params, &metrics))
+  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.Size, &src_filename, &params, &metrics))
   {
-    fonts[fontNumber].Renderer    = &wfnRenderer;
-    fonts[fontNumber].Renderer2   = &wfnRenderer;
-    fonts[fontNumber].RendererInt = &wfnRenderer;
+    font.Renderer    = &wfnRenderer;
+    font.Renderer2   = &wfnRenderer;
+    font.RendererInt = &wfnRenderer;
   }
 
-  if (!fonts[fontNumber].Renderer)
+  if (!font.Renderer)
       return false;
 
-  fonts[fontNumber].Info = font_info;
-  fonts[fontNumber].Metrics = metrics;
+  font.Info = font_info;
+  font.Metrics = metrics;
   font_post_init(fontNumber);
+
+  Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, extent: %d,%d",
+      fontNumber, src_filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
+      font.Metrics.VExtent.first, font.Metrics.VExtent.second);
   return true;
 }
 

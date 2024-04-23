@@ -1515,12 +1515,11 @@ void free_old_game_data()
 }
 
 // remap the scene, from its current palette oldpale to palette
-void remap_background (Common::Bitmap *scene, RGB *oldpale, RGB*palette, int exactPal) {
-  int a;  
+void remap_background (Common::Bitmap *scene, const RGB *oldpale, RGB*palette, int exactPal) {
 
   if (exactPal) {
     // exact palette import (for doing palette effects, don't change)
-    for (a=0;a<256;a++) 
+    for (int a=0;a<256;a++) 
     {
       if (thisgame.paluses[a] == PAL_BACKGROUND)
       {
@@ -1532,23 +1531,23 @@ void remap_background (Common::Bitmap *scene, RGB *oldpale, RGB*palette, int exa
 
   // find how many slots there are reserved for backgrounds
   int numbgslots=0;
-  for (a=0;a<256;a++) { oldpale[a].filler=0;
+  for (int a=0;a<256;a++) {
     if (thisgame.paluses[a]!=PAL_GAMEWIDE) numbgslots++;
   }
   // find which colours from the image palette are actually used
   int imgpalcnt[256],numimgclr=0;
   memset(&imgpalcnt[0],0,sizeof(int)*256);
 
-  for (a=0;a<(scene->GetWidth()) * (scene->GetHeight());a++) {
+  for (int a=0;a<(scene->GetWidth()) * (scene->GetHeight());a++) {
     imgpalcnt[scene->GetScanLine(0)[a]]++;
   }
-  for (a=0;a<256;a++) {
+  for (int a=0;a<256;a++) {
     if (imgpalcnt[a]>0) numimgclr++;
   }
   // count up the number of unique colours in the image
   int numclr=0,bb;
   RGB tpal[256];
-  for (a=0;a<256;a++) {
+  for (int a=0;a<256;a++) {
     if (thisgame.paluses[a]==PAL_BACKGROUND)
       wsetrgb(a,0,0,0,palette);  // black out the bg slots before starting
     if ((oldpale[a].r==0) & (oldpale[a].g==0) & (oldpale[a].b==0)) {
@@ -1575,7 +1574,7 @@ void remap_background (Common::Bitmap *scene, RGB *oldpale, RGB*palette, int exa
 
   // fill the background slots in the palette with the colours
   int palslt=255;  // start from end of palette and work backwards
-  for (a=0;a<numclr;a++) {
+  for (int a=0;a<numclr;a++) {
     while (thisgame.paluses[palslt]!=PAL_BACKGROUND) {
       palslt--;
       if (palslt<0) break;
@@ -1586,7 +1585,7 @@ void remap_background (Common::Bitmap *scene, RGB *oldpale, RGB*palette, int exa
     if (palslt<0) break;
   }
   // blank out the sprite colours, then remap the picture
-  for (a=0;a<256;a++) {
+  for (int a=0;a<256;a++) {
     if (thisgame.paluses[a]==PAL_GAMEWIDE) {
       tpal[a].r=0;
       tpal[a].g=0; tpal[a].b=0; 

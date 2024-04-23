@@ -40,8 +40,8 @@ extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
 
     // TODO: these are used only in the Editor's agsnative.cpp
     extern int __wremap_keep_transparent;
-    extern void wremap(RGB * pal1, Common::Bitmap *picc, RGB * pal2);
-    extern void wremapall(RGB * pal1, Common::Bitmap *picc, RGB * pal2);
+    extern void wremap(const RGB * pal1, Common::Bitmap *picc, const RGB * pal2);
+    extern void wremapall(const RGB * pal1, Common::Bitmap *picc, const RGB * pal2);
 
 
 #endif // __WGT4_H

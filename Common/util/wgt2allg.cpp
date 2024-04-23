@@ -94,12 +94,11 @@ using namespace AGS::Common;
 
   int __wremap_keep_transparent = 1;
 
-  void wremap(RGB * pal1, Bitmap *picc, RGB * pal2)
+  void wremap(const RGB * pal1, Bitmap *picc, const RGB * pal2)
   {
-    int jj;
     unsigned char color_mapped_table[256];
 
-    for (jj = 0; jj < 256; jj++)
+    for (int jj = 0; jj < 256; jj++)
     {
       if ((pal1[jj].r == 0) && (pal1[jj].g == 0) && (pal1[jj].b == 0))
       {
@@ -115,21 +114,21 @@ using namespace AGS::Common;
       // keep transparency
       color_mapped_table[0] = 0;
       // any other pixels which are being mapped to 0, map to 16 instead
-      for (jj = 1; jj < 256; jj++) {
+      for (int jj = 1; jj < 256; jj++) {
         if (color_mapped_table[jj] == 0)
           color_mapped_table[jj] = 16;
       }
     }
 
     int pic_size = picc->GetWidth() * picc->GetHeight();
-    for (jj = 0; jj < pic_size; jj++) {
+    for (int jj = 0; jj < pic_size; jj++) {
       int xxl = jj % (picc->GetWidth()), yyl = jj / (picc->GetWidth());
       int rr = picc->GetPixel(xxl, yyl);
       picc->PutPixel(xxl, yyl, color_mapped_table[rr]);
     }
   }
 
-  void wremapall(RGB * pal1, Bitmap *picc, RGB * pal2)
+  void wremapall(const RGB * pal1, Bitmap *picc, const RGB * pal2)
   {
     __wremap_keep_transparent--;
     wremap(pal1, picc, pal2);

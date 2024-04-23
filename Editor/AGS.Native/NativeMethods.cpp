@@ -81,7 +81,7 @@ extern int GetMaxSprites();
 extern bool load_template_file(const AGSString &fileName, AGSString &description,
     std::vector<char> &iconDataBuffer, bool isRoomTemplate);
 extern HAGSError extract_template_files(const AGSString &templateFileName);
-extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber);
+extern HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber, std::vector<AGSString> &files);
 extern void change_sprite_number(int oldNumber, int newNumber);
 extern void SaveNativeSprites(Settings^ gameSettings);
 extern void ReplaceSpriteFile(const AGSString &new_spritefile, const AGSString &new_indexfile, bool fallback_tempfiles);
@@ -602,10 +602,15 @@ namespace AGS
 			}
 		}
 
-		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
+		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber, List<String^> ^extractedFiles) 
 		{
 			AGSString fileNameAnsi = TextHelper::ConvertUTF8(templateFileName);
-            HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber);
+            std::vector<AGSString> files;
+            HAGSError err = extract_room_template_files(fileNameAnsi, newRoomNumber, files);
+            for (const auto &file : files)
+            {
+                extractedFiles->Add(TextHelper::ConvertUTF8(file));
+            }
 			if (!err)
 			{
 				throw gcnew AGSEditorException("Unable to extract template files.\n" + TextHelper::ConvertUTF8(err->FullMessage()));

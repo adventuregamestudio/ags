@@ -261,6 +261,17 @@ namespace AGS.Editor.Components
 
             CloseRoomScriptEditorIfOpen(roomToDelete.Number);
 
+            DeleteRoomFiles(roomToDelete);
+
+            RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
+            _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+        }
+
+        /// <summary>
+        /// Deletes any files, both source and compiled ones, related to the given Room.
+        /// </summary>
+        private void DeleteRoomFiles(IRoom roomToDelete)
+        {
             List<string> filesToDelete = new List<string>();
 
             if (File.Exists(roomToDelete.FileName))
@@ -422,6 +433,7 @@ namespace AGS.Editor.Components
                 newRoomNumber = _agsEditor.CurrentGame.FindFirstAvailableRoomNumber(0);
             }
 
+            List<string> newFiles = new List<string>();
             try
             {
                 string newFileName = string.Format("room{0}.crm", newRoomNumber);
@@ -432,11 +444,13 @@ namespace AGS.Editor.Components
                     if (!File.Exists(newScriptName))
                     {
                         CopyScriptOutOfOldRoomFile(fileName, newScriptName);
+                        newFiles.Add(newScriptName);
                     }
 					if (newRoomNumber != fileRoomNumber)
 					{
 						File.Copy(fileName, newFileName, true);
-					}
+                        newFiles.Add(newFileName);
+                    }
                 }
                 else
                 {
@@ -448,8 +462,11 @@ namespace AGS.Editor.Components
                     }
                     else
                     {
-                        CopyScriptOutOfOldRoomFile(fileName, newScriptName);
+                        CopyScriptOutOfOldRoomFile(fileName, newScriptName);    
                     }
+
+                    newFiles.Add(newFileName);
+                    newFiles.Add(newScriptName);
                 }
 
                 UnloadedRoom newRoom = new UnloadedRoom(newRoomNumber);
@@ -458,6 +475,7 @@ namespace AGS.Editor.Components
                 if (errors.HasErrors)
                 {
                     _guiController.ShowMessage("There was an error importing the room. The error was: " + errors.FirstError.AsString, MessageBoxIcon.Warning);
+                    _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
                     return;
                 }
 
@@ -470,18 +488,29 @@ namespace AGS.Editor.Components
             catch (Exception ex)
             {
                 _guiController.ShowMessage("There was a problem importing the room file: " + ex.Message, MessageBoxIcon.Warning);
+                _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
             }
         }
 
         private void CopyScriptOutOfOldRoomFile(string roomFile, string scriptFile)
         {
+            string roomScript = null;
             try
             {
-                string roomScript = _nativeProxy.LoadRoomScript(roomFile);
-                if (roomScript == null)
-                {
-                    roomScript = "// room script file\r\n";
-                }
+                roomScript = _nativeProxy.LoadRoomScript(roomFile);
+            }
+            catch (Exception e)
+            {
+                _guiController.ShowMessage($"There was an error loading the script from the old room {roomFile}: {e.Message}", MessageBoxIcon.Warning);
+            }
+
+            if (roomScript == null)
+            {
+                roomScript = "// room script file\r\n";
+            }
+
+            try
+            {
                 // NOTE: old game format: texts are always ANSI/ASCII
                 StreamWriter sw = new StreamWriter(scriptFile, false, Encoding.Default);
                 sw.Write(roomScript);
@@ -541,6 +570,7 @@ namespace AGS.Editor.Components
                 return;
             }
 
+            List<string> newFiles = new List<string>();
             try
             {
 				if (template.FileName == null)
@@ -551,10 +581,12 @@ namespace AGS.Editor.Components
 					StreamWriter sw = new StreamWriter(newRoom.ScriptFileName);
 					sw.WriteLine("// room script file");
 					sw.Close();
+                    newFiles.Add(room.FileName);
+                    newFiles.Add(newRoom.ScriptFileName);
 				}
 				else
 				{
-					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number);
+					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number, newFiles);
 				}
 
                 CompileMessages errors = new CompileMessages();
@@ -562,6 +594,7 @@ namespace AGS.Editor.Components
                 if (errors.HasErrors)
                 {
                     _guiController.ShowMessage("There was an error attempting to create the new room. The error was: " + errors.FirstError.AsString, MessageBoxIcon.Warning);
+                    _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
                     return;
                 }
 
@@ -573,6 +606,7 @@ namespace AGS.Editor.Components
             catch (Exception ex)
             {
                 _guiController.ShowMessage("There was an error attempting to create the new room. The error was: " + ex.Message, MessageBoxIcon.Warning);
+                _agsEditor.DeleteFileOnDisk(newFiles.ToArray());
             }
         }
 

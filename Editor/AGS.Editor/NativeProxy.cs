@@ -316,9 +316,9 @@ namespace AGS.Editor
             _native.ExtractTemplateFiles(templateFileName);
         }
 
-		public void ExtractRoomTemplateFiles(string templateFileName, int newRoomNumber)
+		public void ExtractRoomTemplateFiles(string templateFileName, int newRoomNumber, List<string> extractedFiles)
 		{
-			_native.ExtractRoomTemplateFiles(templateFileName, newRoomNumber);
+			_native.ExtractRoomTemplateFiles(templateFileName, newRoomNumber, extractedFiles);
 		}
 
         public void UpdateFileIcon(string fileToUpdate, string newIconToUse)

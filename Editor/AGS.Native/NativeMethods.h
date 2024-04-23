@@ -87,7 +87,7 @@ namespace Native
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);
 			void ExtractTemplateFiles(String ^templateFileName);
-		  void ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber);
+		  void ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber, List<String^> ^extractedFiles);
 			void UpdateFileIcon(String ^fileToUpdate, String ^iconFileName);
       void UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode);
 			bool HaveSpritesBeenModified();

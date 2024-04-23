@@ -360,7 +360,7 @@ int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *cro
   return 1;
 }
 
-HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber)
+HAGSError extract_room_template_files(const AGSString &templateFileName, int newRoomNumber, std::vector<AGSString> &files)
 {
   const AssetLibInfo *lib = nullptr;
   std::unique_ptr<AssetManager> templateMgr(new AssetManager());
@@ -403,6 +403,7 @@ HAGSError extract_room_template_files(const AGSString &templateFileName, int new
     readin->Read(membuff, size);
     wrout->Write(membuff, size);
     delete[] membuff;
+    files.push_back(outputName);
   }
 
   return HAGSError::None();
